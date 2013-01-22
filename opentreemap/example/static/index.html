@@ -11,7 +11,7 @@
     <script>
         $(document).ready(function(){
             var map = new L.Map('map');
-            var baseURL = "http://192.168.16.77:40002/database/<%= dbname %>/table/<%= table %>/{z}/{x}/{y}";
+            var baseURL = "/tile/database/<%= dbname %>/table/<%= table %>/{z}/{x}/{y}";
 
             var layers = [];
             var tilejson = {
