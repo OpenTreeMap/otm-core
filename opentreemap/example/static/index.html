@@ -13,7 +13,6 @@
             var map = new L.Map('map');
             var baseURL = "/tile/database/<%= dbname %>/table/<%= table %>/{z}/{x}/{y}";
 
-            var layers = [];
             var tilejson = {
                 tilejson: '1.0.0',
                 scheme: 'xyz',
@@ -21,6 +20,15 @@
                 grids: [],
                 formatter: function(options, data) { return data.id }
             };
+
+            var tilejson2 = {
+                tilejson: '1.0.0',
+                scheme: 'xyz',
+                tiles: [],
+                grids: [],
+                formatter: function(options, data) { return data.id }
+            };
+
 
 
                 var dbname = "otm";
@@ -31,15 +39,23 @@
                 tilejson.tiles = [url + '.png'];
                 tilejson.grids = [url + '.grid.json'];
 
-                _.each(layers, function(layer){
-                    map.removeLayer(layer)
-                });
-
                 var testMap = new wax.leaf.connector(tilejson);
                 map.addLayer(testMap);
+
+        ////        ////        ////        ////        ////
+
+                table = "treemap_plot";
+                url = _.template(baseURL, {dbname: dbname, table: table});
+
+                tilejson2.tiles = [url + '.png'];
+                tilejson2.grids = [url + '.grid.json'];
+
+                var testMap2 = new wax.leaf.connector(tilejson2);
+                map.addLayer(testMap2);
+
                 map.setView(new L.LatLng(51.505, -0.09), 1, true);
+
                 wax.leaf.interaction(map, tilejson);
-                layers.push(testMap);
         });
     </script>
 
