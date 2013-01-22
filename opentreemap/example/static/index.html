@@ -11,7 +11,7 @@
     <script>
         $(document).ready(function(){
             var map = new L.Map('map');
-            var baseURL = "http://localhost:4000/database/<%= dbname %>/table/<%= table %>/{z}/{x}/{y}";
+            var baseURL = "http://192.168.16.77:40002/database/<%= dbname %>/table/<%= table %>/{z}/{x}/{y}";
 
             var layers = [];
             var tilejson = {
@@ -23,11 +23,8 @@
             };
 
 
-            $('#update_map').click(function(ev){
-                ev.preventDefault();
-
-                var dbname = $('#dbname').val();
-                var table = $('#table').val();
+                var dbname = "otm";
+                var table = "treemap_neighborhood";
 
                 var url = _.template(baseURL, {dbname: dbname, table: table});
 
