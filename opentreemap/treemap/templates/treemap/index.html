@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Windshaft test (On a Branch)</title>
+    <title>Open Tree Map Test</title>
     <meta charset="utf-8" />
     <script src="http://documentcloud.github.com/underscore/underscore-min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
-    <script src="leaflet.js"></script>
-    <script src="wax.leaf.min.js"></script>
+    <script src="{{ STATIC_URL}}leaflet.js"></script>
+    <script src="{{ STATIC_URL}}wax.leaf.min.js"></script>
+    <script src="{{ ROOT_URL }}/config/settings.js?instance={{ instance.id }}"></script>
 
     <script>
         $(document).ready(function(){
             var map = new L.Map('map');
-            var baseURL = "/tile/database/<%= dbname %>/table/<%= table %>/{z}/{x}/{y}";
+            var baseURL = "/tile/<%= rev %>/database/<%= dbname %>/table/<%= table %>/{z}/{x}/{y}";
 
             var tilejson = {
                 tilejson: '1.0.0',
@@ -34,7 +35,7 @@
                 var dbname = "otm";
                 var table = "treemap_neighborhood";
 
-                var url = _.template(baseURL, {dbname: dbname, table: table});
+                var url = _.template(baseURL, {rev: '1', dbname: dbname, table: table});
 
                 tilejson.tiles = [url + '.png'];
                 tilejson.grids = [url + '.grid.json'];
@@ -44,8 +45,8 @@
 
         ////        ////        ////        ////        ////
 
-                table = "treemap_plot";
-                url = _.template(baseURL, {dbname: dbname, table: table});
+                table = "treemap_tree";
+                url = _.template(baseURL, {rev: otm.settings.instance.rev, dbname: dbname, table: table});
 
                 tilejson2.tiles = [url + '.png'];
                 tilejson2.grids = [url + '.grid.json'];
@@ -53,13 +54,16 @@
                 var testMap2 = new wax.leaf.connector(tilejson2);
                 map.addLayer(testMap2);
 
-                map.setView(new L.LatLng(39.9503, -75.1650), 11, true);
+                map.setView(new L.LatLng(
+                    {{ instance.center_lat_lng.y }},
+                    {{ instance.center_lat_lng.x }}),
+                    11, true);
 
                 wax.leaf.interaction(map, tilejson);
         });
     </script>
 
-    <link rel="stylesheet" href="leaflet.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}leaflet.css" />
     <!--[if lte IE 8]><link rel="stylesheet" href="../dist/leaflet.ie.css" /><![endif]-->
 </head>
 <body>

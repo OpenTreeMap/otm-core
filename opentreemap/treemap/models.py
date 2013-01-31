@@ -24,11 +24,25 @@ class Instance(models.Model):
     """
     geo_rev = models.IntegerField(default=1)
 
+    """ Center of the map when loading the instance """
+    center = models.PointField(srid=3857)
+
+    objects = models.GeoManager()
+
+    @property
+    def geo_rev_hash(self):
+        import hashlib
+        return hashlib.md5(str(self.geo_rev)).hexdigest()
+
+    @property
+    def center_lat_lng(self):
+        return self.center.transform(4326,clone=True)
+
 class Tree(models.Model):
     """
     Represents a single tree, belonging to an instance
     """
-    geom = models.PointField(srid=3857, db_column='the_geom_webmercator', null=True)
+    geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
     instance = models.ForeignKey(Instance)
 
     objects = models.GeoManager()
