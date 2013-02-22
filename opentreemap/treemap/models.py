@@ -1,4 +1,5 @@
 from django.contrib.gis.db import models
+from treemap.audit import Auditable, Audit
 
 class Instance(models.Model):
     """
@@ -38,11 +39,13 @@ class Instance(models.Model):
     def center_lat_lng(self):
         return self.center.transform(4326,clone=True)
 
-class Tree(models.Model):
+## Auditable must come first
+class Tree(Auditable, models.Model):
     """
     Represents a single tree, belonging to an instance
     """
     geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
     instance = models.ForeignKey(Instance)
+    owner = models.CharField(max_length=200)
 
     objects = models.GeoManager()
