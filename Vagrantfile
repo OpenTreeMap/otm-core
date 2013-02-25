@@ -9,5 +9,9 @@ Vagrant::Config.run do |config|
 
   config.vm.forward_port 80, 6000
 
+  config.vm.share_folder "share", "/usr/local/otm", ".", :create => true
+
   config.vm.provision :shell, :path => "scripts/bootstrap.sh"
+
+  config.vm.customize ["modifyvm", :id, "--memory", 1024]
 end
