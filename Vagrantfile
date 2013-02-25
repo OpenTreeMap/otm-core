@@ -9,7 +9,7 @@ Vagrant::Config.run do |config|
 
   config.vm.forward_port 80, 6060
 
-  config.vm.share_folder "share", "/usr/local/otm", ".", :create => true, :owner => "otm"
+  config.vm.share_folder "share", "/usr/local/otm", ".", :create => true
 
   config.vm.provision :shell, :path => "scripts/bootstrap.sh"
 
