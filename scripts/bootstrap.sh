@@ -11,3 +11,6 @@ then
     echo "otm ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/80-allow-otm-sudo
     chmod 0440 /etc/sudoers.d/80-allow-otm-sudo
 fi
+
+umount /usr/local/otm
+mount -t vboxsf -o uid=`id -u otm`,gid=`id -g vagrant` share /usr/local/otm
