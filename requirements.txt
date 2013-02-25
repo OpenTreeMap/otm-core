@@ -2,3 +2,6 @@ https://www.djangoproject.com/download/1.5c1/tarball/
 argparse==1.2.1
 gunicorn==0.17.2
 wsgiref==0.1.2
+south
+psycopg2
+
