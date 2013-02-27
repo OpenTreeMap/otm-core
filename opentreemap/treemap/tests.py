@@ -3,6 +3,23 @@ from treemap.models import Tree, Instance, Plot, User
 from treemap.audit import Audit
 from django.contrib.gis.geos import Point
 
+class InstanceAndAuth(TestCase):
+
+    def setUp(self):
+        p = Point(-8515941.0, 4953519.0)
+        self.instance1 = Instance(name='i1',geo_rev=0,center=p)
+        self.instance1.save()
+
+        self.instance2 = Instance(name='i2',geo_rev=0,center=p)
+        self.instance2.save()
+
+    def test_invalid_instance_returns_404(self):
+        response = self.client.get('/%s/' % self.instance1.pk)
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get('/1000/')
+        self.assertEqual(response.status_code, 404)
+
 class AuditTest(TestCase):
 
     def setUp(self):
