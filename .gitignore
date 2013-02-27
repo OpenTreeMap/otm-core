@@ -3,3 +3,4 @@ env
 .vagrant
 .#*
 local_settings.py
+/static
