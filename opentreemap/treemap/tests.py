@@ -1,5 +1,5 @@
 from django.test import TestCase
-from treemap.models import Tree, Instance
+from treemap.models import Tree, Instance, Plot, User
 from treemap.audit import Audit
 from django.contrib.gis.geos import Point
 
@@ -10,17 +10,26 @@ class AuditTest(TestCase):
         self.instance = Instance(name='i1',geo_rev=0,center=p)
         self.instance.save()
 
-        self.user = 1
+        self.user1 = User(username='joe')
+        self.user1.save()
+
+        self.user2 = User(username='amy')
+        self.user2.save()
 
     def assertAuditsEqual(self, exps, acts):
         self.assertEqual(len(exps), len(acts))
 
-        for [exp,act] in zip(exps, acts):
+        exps = list(exps)
+        for act in acts:
             act = act.dict()
             act['created'] = None
-            self.assertEqual(exp, act)
 
-    def make_audit(self, pk, field, old, new, action=Audit.Type.Insert, user=None):
+            if act in exps:
+                exps.remove(act)
+            else:
+                raise AssertionError('Missing audit record for %s' % act)
+
+    def make_audit(self, pk, field, old, new, action=Audit.Type.Insert, user=None, model=u'Tree'):
         if field:
             field = unicode(field)
         if old:
@@ -28,9 +37,9 @@ class AuditTest(TestCase):
         if new:
             new = unicode(new)
 
-        user = user or self.user
+        user = user or self.user1
 
-        return { 'model': u'Tree',
+        return { 'model': model,
                  'model_id': pk,
                  'instance_id': self.instance,
                  'field': field,
@@ -44,34 +53,46 @@ class AuditTest(TestCase):
 
     def test_basic_audit(self):
         p = Point(-8515222.0, 4953200.0)
-        t = Tree(geom=p, instance=self.instance, owner='joe')
+        plot = Plot(geom=p, instance=self.instance, created_by=self.user1)
+        plot.save_with_user(self.user1)
 
-        t.save_with_user(self.user)
+        self.assertAuditsEqual([
+            self.make_audit(plot.pk, 'id', None, str(plot.pk), model='Plot'),
+            self.make_audit(plot.pk, 'instance', None, plot.instance.pk , model='Plot'),
+            self.make_audit(plot.pk, 'readonly', None, 'False' , model='Plot'),
+            self.make_audit(plot.pk, 'geom', None, str(plot.geom), model='Plot'),
+            self.make_audit(plot.pk, 'created_by', None, self.user1.pk, model='Plot')],
+                               plot.audits())
+
+        t = Tree(plot=plot, instance=self.instance, readonly=True, created_by=self.user1)
+
+        t.save_with_user(self.user1)
 
         expected_audits = [
             self.make_audit(t.pk, 'id', None, str(t.pk)),
-            self.make_audit(t.pk, 'geom', None, str(t.geom)),
             self.make_audit(t.pk, 'instance', None, t.instance.pk),
-            self.make_audit(t.pk, 'owner', None, t.owner)]
+            self.make_audit(t.pk, 'readonly', None, True),
+            self.make_audit(t.pk, 'created_by', None, self.user1.pk),
+            self.make_audit(t.pk, 'plot', None, plot.pk)]
 
 
         self.assertAuditsEqual(expected_audits, t.audits())
 
-        t.owner = 'sally'
-        t.save_with_user(2)
+        t.readonly = False
+        t.save_with_user(self.user2)
 
         expected_audits.insert(
-            0, self.make_audit(t.pk, 'owner', 'joe', t.owner,
-                               action=Audit.Type.Update, user=2))
+            0, self.make_audit(t.pk, 'readonly', 'True', 'False',
+                               action=Audit.Type.Update, user=self.user2))
 
         self.assertAuditsEqual(expected_audits, t.audits())
 
         old_pk = t.pk
-        t.delete_with_user(4)
+        t.delete_with_user(self.user1)
 
         expected_audits.insert(
             0, self.make_audit(old_pk, None, None, None,
-                               action=Audit.Type.Delete, user=4))
+                               action=Audit.Type.Delete, user=self.user1))
 
         self.assertAuditsEqual(
             expected_audits,

@@ -2,6 +2,7 @@
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+AUTH_USER_MODEL = 'treemap.User'
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
