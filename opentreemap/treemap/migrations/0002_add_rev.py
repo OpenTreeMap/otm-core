@@ -8,11 +8,6 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Instance.geo_rev'
-        db.add_column(u'treemap_instance', 'geo_rev',
-                      self.gf('django.db.models.fields.IntegerField')(default=1),
-                      keep_default=False)
-
         # Note that if you change the instance on a tree
         # the trigger wont fire
         # but, is there any reason you would change an instance?
@@ -38,34 +33,32 @@ CREATE OR REPLACE FUNCTION RevUpdate()
 
 CREATE TRIGGER RevInsertTrigger
 AFTER INSERT
-ON treemap_tree
+ON treemap_plot
 FOR EACH ROW
 WHEN (NEW.the_geom_webmercator IS NOT NULL)
 EXECUTE PROCEDURE RevUpdate ();
 
 CREATE TRIGGER RevUpdateTrigger
 AFTER UPDATE OF the_geom_webmercator
-ON treemap_tree
+ON treemap_plot
 FOR EACH ROW
 EXECUTE PROCEDURE RevUpdate ();
 
 CREATE TRIGGER RevDeleteTrigger
 AFTER DELETE
-ON treemap_tree
+ON treemap_plot
 FOR EACH ROW
 EXECUTE PROCEDURE RevUpdate ();
 """)
-                   
+
 
 
     def backwards(self, orm):
-        # Deleting field 'Instance.geo_rev'
-        db.delete_column(u'treemap_instance', 'geo_rev')
-        
+
         db.execute("""
-DROP TRIGGER RevInsertTrigger ON treemap_tree;
-DROP TRIGGER RevUpdateTrigger ON treemap_tree;
-DROP TRIGGER RevDeleteTrigger ON treemap_tree;
+DROP TRIGGER RevInsertTrigger ON treemap_plot;
+DROP TRIGGER RevUpdateTrigger ON treemap_plot;
+DROP TRIGGER RevDeleteTrigger ON treemap_plot;
 DROP FUNCTION RevUpdate();
 """);
 
