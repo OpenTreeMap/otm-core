@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 from django.test import TestCase
 from treemap.models import Tree, Instance, Plot, User
 from treemap.audit import Audit, AuditException

@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 from django.contrib.gis.db import models
 from treemap.audit import Auditable, Audit
 from django.contrib.auth.models import AbstractUser
