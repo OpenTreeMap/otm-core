@@ -1,6 +1,6 @@
 from django.test import TestCase
 from treemap.models import Tree, Instance, Plot, User
-from treemap.audit import Audit
+from treemap.audit import Audit, AuditException
 from django.contrib.gis.geos import Point
 
 class GeoRevIncr(TestCase):
@@ -120,6 +120,16 @@ class AuditTest(TestCase):
                  'requires_auth': False,
                  'ref_id': None,
                  'created': None }
+
+    def test_cant_use_regular_methods(self):
+        p = Point(-8515222.0, 4953200.0)
+        plot = Plot(geom=p, instance=self.instance, created_by=self.user1)
+        self.assertRaises(AuditException, plot.save)
+        self.assertRaises(AuditException, plot.delete)
+
+        tree = Tree()
+        self.assertRaises(AuditException, tree.save)
+        self.assertRaises(AuditException, tree.delete)
 
     def test_basic_audit(self):
         p = Point(-8515222.0, 4953200.0)

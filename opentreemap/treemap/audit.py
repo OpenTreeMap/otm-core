@@ -1,6 +1,9 @@
 from django.contrib.gis.db import models
 from django.forms.models import model_to_dict
 
+class AuditException(Exception):
+    pass
+
 class Auditable(object):
     """
     Watches an object for changes and logs them
@@ -30,12 +33,12 @@ class Auditable(object):
         return self.__class__.__name__
 
     def save(self, *args, **kwargs):
-        raise Exception(
+        raise AuditException(
             'All changes to %s objects must be saved via "save_with_user"' %
             (self._model_name()))
 
     def delete(self, *args, **kwargs):
-        raise Exception(
+        raise AuditException(
             'All deletes to %s objects must be saved via "delete_with_user"' %
             (self._model_name()))
 
