@@ -1,5 +1,12 @@
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 from django.contrib.gis.db import models
 from django.forms.models import model_to_dict
+
+class AuditException(Exception):
+    pass
 
 class Auditable(object):
     """
@@ -30,12 +37,12 @@ class Auditable(object):
         return self.__class__.__name__
 
     def save(self, *args, **kwargs):
-        raise Exception(
+        raise AuditException(
             'All changes to %s objects must be saved via "save_with_user"' %
             (self._model_name()))
 
     def delete(self, *args, **kwargs):
-        raise Exception(
+        raise AuditException(
             'All deletes to %s objects must be saved via "delete_with_user"' %
             (self._model_name()))
 
