@@ -38,6 +38,9 @@ class Instance(models.Model):
 
     objects = models.GeoManager()
 
+    def __unicode__(self):
+        return self.name
+
     @property
     def geo_rev_hash(self):
         import hashlib
