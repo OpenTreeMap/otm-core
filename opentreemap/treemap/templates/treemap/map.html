@@ -2,10 +2,15 @@
 
 {% block title %}Open Tree Map Test{% endblock title %}
 
-{% block head_extra %}
+{% block body %}
+  <span>Windshaft test (On a Branch - AGAIN?)</span>
+  <div id="map" style="width: 1500px; height: 900px"></div>
+{% endblock body %}
+
+{% block scripts %}
   <script src="{{ STATIC_URL}}leaflet.js"></script>
   <script src="{{ STATIC_URL}}wax.leaf.min.js"></script>
-  <script src="{{ ROOT_URL }}/config/settings.js?instance={{ instance.id }}"></script>
+  <script src="{{ ROOT_URL }}/{{ instance.id}}/config/settings.js"></script>
 
   <script>
     $(document).ready(function(){
@@ -61,9 +66,4 @@
 
   <link rel="stylesheet" href="{{ STATIC_URL }}leaflet.css" />
   <!--[if lte IE 8]><link rel="stylesheet" href="../dist/leaflet.ie.css" /><![endif]-->
-{% endblock head_extra %}
-
-{% block body %}
-  <span>Windshaft test (On a Branch - AGAIN?)</span>
-  <div id="map" style="width: 1500px; height: 900px"></div>
-{% endblock body %}
+{% endblock scripts %}
