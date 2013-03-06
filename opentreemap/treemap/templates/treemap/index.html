@@ -1,73 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Open Tree Map Test</title>
-    <meta charset="utf-8" />
-    <script src="http://documentcloud.github.com/underscore/underscore-min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
-    <script src="{{ STATIC_URL}}leaflet.js"></script>
-    <script src="{{ STATIC_URL}}wax.leaf.min.js"></script>
-    <script src="{{ ROOT_URL }}/config/settings.js?instance={{ instance.id }}"></script>
+{% extends "base.html" %}
 
-    <script>
-        $(document).ready(function(){
-            var map = new L.Map('map');
-            var baseURL = "/tile/<%= rev %>/database/<%= dbname %>/table/<%= table %>/{z}/{x}/{y}";
+{% block title %}Open Tree Map Home{% endblock title %}
 
-            var tilejson = {
-                tilejson: '1.0.0',
-                scheme: 'xyz',
-                tiles: [],
-                grids: [],
-                formatter: function(options, data) { return data.id }
-            };
+{% block body %}
+  <p>Welcome to the OTMC landing page.</p>
 
-            var tilejson2 = {
-                tilejson: '1.0.0',
-                scheme: 'xyz',
-                tiles: [],
-                grids: [],
-                formatter: function(options, data) { return data.id }
-            };
-
-
-
-                var dbname = "otm";
-                var table = "treemap_neighborhood";
-
-                var url = _.template(baseURL, {rev: '1', dbname: dbname, table: table});
-
-                tilejson.tiles = [url + '.png'];
-                tilejson.grids = [url + '.grid.json'];
-
-                var testMap = new wax.leaf.connector(tilejson);
-                map.addLayer(testMap);
-
-        ////        ////        ////        ////        ////
-
-                table = "treemap_tree";
-                url = _.template(baseURL, {rev: otm.settings.instance.rev, dbname: dbname, table: table});
-
-                tilejson2.tiles = [url + '.png'];
-                tilejson2.grids = [url + '.grid.json'];
-
-                var testMap2 = new wax.leaf.connector(tilejson2);
-                map.addLayer(testMap2);
-
-                map.setView(new L.LatLng(
-                    {{ instance.center_lat_lng.y }},
-                    {{ instance.center_lat_lng.x }}),
-                    11, true);
-
-                wax.leaf.interaction(map, tilejson);
-        });
-    </script>
-
-    <link rel="stylesheet" href="{{ STATIC_URL }}leaflet.css" />
-    <!--[if lte IE 8]><link rel="stylesheet" href="../dist/leaflet.ie.css" /><![endif]-->
-</head>
-<body>
-<span>Windshaft test (On a Branch - AGAIN?)</span>
-<div id="map" style="width: 1500px; height: 900px"></div>
-</body>
-</html>
+  <p>Get started:</p>
+  <ul>
+    <li>
+      <a href="/{{ instance.id }}/trees/">View the map page</a>
+    </li>
+  </ul>
+{% endblock body %}
