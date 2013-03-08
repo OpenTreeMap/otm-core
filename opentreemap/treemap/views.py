@@ -41,6 +41,6 @@ def tree_detail(request, tree_id):
 
 @instance_request
 def settings(request):
-    return render_to_response('treemap/settings.js',RequestContext(request,{
+    return render_to_response('treemap/settings.js', RequestContext(request,{
         'instance': request.instance
-    }))
+    }), mimetype='application/x-javascript')
