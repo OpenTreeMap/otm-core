@@ -4,12 +4,12 @@ from __future__ import division
 
 from django.conf.urls import patterns, include, url
 
-from treemap.views import index, trees, tree_detail, settings
+from treemap.views import index, trees, tree_detail, settings_js
 
 urlpatterns = patterns(
     '',
     url(r'^$', index),
     url(r'^trees/$', trees),
     url(r'^trees/(?P<tree_id>\d+)/$', tree_detail),
-    url(r'^config/settings.js$', settings)
+    url(r'^config/settings.js$', settings_js)
 )
