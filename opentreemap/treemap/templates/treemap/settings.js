@@ -9,6 +9,7 @@ otm.settings.instance = {
     'center': [{{ request.instance.center.x }}, {{ request.instance.center.y }}],
     'basemap': {
         'type': '{{ request.instance.basemap_type }}',
-        'data': '{{ request.instance.basemap_data }}'
+        'data': '{{ request.instance.basemap_data }}',
+        'bing_api_key': '{{ BING_API_KEY }}'
     }
 }
