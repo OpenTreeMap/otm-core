@@ -1,5 +1,5 @@
 Blend==0.1.5
-Django==1.5c1
+Django==1.5
 South==0.7.6
 argparse==1.2.1
 gunicorn==0.17.2
