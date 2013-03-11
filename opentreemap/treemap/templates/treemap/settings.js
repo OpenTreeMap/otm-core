@@ -3,12 +3,12 @@ var otm = otm || {};
 otm.settings = otm.settings || {};
 
 otm.settings.instance = {
-    'id': '{{ instance.id }}',
-    'name': '{{ instance.name }}',
-    'rev': '{{ instance.geo_rev_hash }}',
-    'center': [{{ instance.center.x }}, {{ instance.center.y }}],
+    'id': '{{ request.instance.id }}',
+    'name': '{{ request.instance.name }}',
+    'rev': '{{ request.instance.geo_rev_hash }}',
+    'center': [{{ request.instance.center.x }}, {{ request.instance.center.y }}],
     'basemap': {
-        'type': '{{ instance.basemap_type }}',
-        'data': '{{ instance.basemap_data }}'
+        'type': '{{ request.instance.basemap_type }}',
+        'data': '{{ request.instance.basemap_data }}'
     }
 }
