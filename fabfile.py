@@ -1,37 +1,60 @@
-""" Fabric script to handle common iOS building tasks """
+""" Fabric script to handle common building tasks """
 from fabric.api import cd, run, require, sudo, env, local
 
 import os
 
-def _set_defaults():
+def _set_default_paths(env):
+    """ Modify the fabric environment to have default otm paths set """
+
+    base_dir = '/usr/local/otm/'
     if 'venv_path' not in env:
-        env.venv_path = '/usr/local/otm_env/env'
+        env.venv_path = os.path.join(base_dir, 'env')
 
     if 'site_path' not in env:
-        env.site_path = '/usr/local/otm/opentreemap'
+        env.site_path = os.path.join(base_dir, 'app', 'opentreemap')
 
     if 'static_path' not in env:
-        env.static_path = '/usr/local/otm_static/static'
+        env.static_path = os.path.join(base_dir, 'static')
+
+_set_default_paths(env)
 
 def vagrant():
-    data = {}
+    """ Configure fabric to use vagrant as a host.
+
+    Use the current vagrant directory to gather ssh-config settings
+    for the vagrant VM. Write these settings to the fabric env.
+
+    This should prefix any commands to be run in this context.
+
+    EX:
+    fab vagrant <command_name>
+    """
+    vagrant_ssh_config = {}
     for l in local('vagrant ssh-config', capture=True).split('\n'):
         try:
             l = l.strip()
             i = l.index(' ')
-            data[l[0:i].strip()] = l[i+1:].strip()
+
+            setting_name = l[:i].strip()
+            setting_value = l[i+1:].strip()
+
+            vagrant_ssh_config[setting_name] = setting_value
         except Exception, e:
             pass
 
-    env.key_filename = data['IdentityFile']
-    env.user = data['User']
-    env.hosts = ['localhost:%s' % data['Port']]
-
-    _set_defaults()
+    env.key_filename = vagrant_ssh_config['IdentityFile']
+    env.user = vagrant_ssh_config['User']
+    env.hosts = ['localhost:%s' % vagrant_ssh_config['Port']]
 
 def me():
+    """ Configure fabric to use localhost as a host.
+
+    This should prefix any commands to be run in this context.
+
+    EX:
+    fab me <command_name>
+    """
     env.hosts = ['localhost']
-    _set_defaults()
 
 def _venv_exec(cmd):
     require('venv_path')
@@ -41,7 +64,8 @@ def _python(cmd):
     require('venv_path')
     return _venv_exec('python %s' % cmd)
 
-def collectstatic():
+def _collectstatic():
+    """ Collect static files. """
     require('site_path')
     require('venv_path')
 
@@ -49,8 +73,8 @@ def collectstatic():
         sudo('rm -rf "%s"' % env.static_path)
         sudo(_python('manage.py collectstatic --noinput'))
 
-# Requires java?!?
-def blend():
+def _blend():
+    """ Lint, compile and minify javascript files. """
     require('static_path')
     require('venv_path')
 
@@ -58,5 +82,6 @@ def blend():
         sudo(_venv_exec('blend'))
 
 def static():
-    collectstatic()
-    blend()
+    """ Collect static files and minify javascript. """
+    _collectstatic()
+    _blend()
