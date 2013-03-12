@@ -5,11 +5,11 @@
 /*globals $,OpenLayers,otm*/
 /*jslint indent: 4, white: true */
 
-var app = (function ($,L,config) {
+var app = (function ($,OL,config) {
     "use strict";
     return {
         createMap: function (elmt) {
-            var map = new L.Map({
+            var map = new OL.Map({
                 div: elmt,
                 projection: 'EPSG:3857',
                 layers: this.getBasemapLayers(config)
@@ -23,17 +23,17 @@ var app = (function ($,L,config) {
         getBasemapLayers: function (config) {
             var layer;
             if (config.instance.basemap.type === 'bing') {
-                layer = new L.Layer.Bing({
+                layer = new OL.Layer.Bing({
                     name: 'Road',
                     key: config.instance.basemap.bing_api_key,
                     type: 'Road'
                 });
             } else if (config.instance.basemap.type === 'tms') {
-                layer = new L.Layer.XYZ(
+                layer = new OL.Layer.XYZ(
                     'xyz',
                     config.instance.basemap.data);
             } else {
-                layer = new L.Layer.Google(
+                layer = new OL.Layer.Google(
                     "Google Streets",
                     {numZoomLevels: 20});
             }
@@ -41,7 +41,7 @@ var app = (function ($,L,config) {
         },
 
         createPlotTileLayer: function(config) {
-            return new L.Layer.XYZ(
+            return new OL.Layer.XYZ(
                 'tiles',
                 '/tile/' +
                     config.instance.rev +
