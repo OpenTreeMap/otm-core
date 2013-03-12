@@ -64,6 +64,11 @@ def _python(cmd):
     require('venv_path')
     return _venv_exec('python %s' % cmd)
 
+def _manage(cmd):
+    """ Execute 'cmd' as a python management command in the venv """
+    with cd(env.site_path):
+        sudo(_python('manage.py %s' % cmd))
+
 def _collectstatic():
     """ Collect static files. """
     require('site_path')
@@ -71,7 +76,8 @@ def _collectstatic():
 
     with cd(env.site_path):
         sudo('rm -rf "%s"' % env.static_path)
-        sudo(_python('manage.py collectstatic --noinput'))
+
+    _manage('collectstatic --noinput')
 
 def _blend():
     """ Lint, compile and minify javascript files. """
@@ -85,3 +91,21 @@ def static():
     """ Collect static files and minify javascript. """
     _collectstatic()
     _blend()
+
+def syncdb(dev_data=False):
+    """ Run syncdb and all migrations
+
+    Set dev_data to True to load in the development data
+    """
+    require('site_path')
+    require('venv_path')
+
+    _manage('syncdb --noinput')
+    _manage('migrate --noinput')
+
+    if dev_data:
+        _manage('loaddata development_data.json')
+
+def restart_app():
+    """ Restart the gunicorns running the app """
+    sudo("service otm-unicorn restart")
