@@ -16,6 +16,20 @@ class Instance(models.Model):
     name = models.CharField(max_length=255)
 
     """
+    Basemap type     Basemap data
+    ------------     -----------------
+    Google           Google_API_Key
+    Bing             Bing_API_Key
+    TMS              TMS URL with {x},{y},{z}
+    """
+    basemap_type = models.CharField(max_length=255,
+                                    choices=(("google", "Google"),
+                                             ("bing", "Bing"),
+                                             ("tms", "Tile Mapping Service")),
+                                    default="google")
+    basemap_data = models.CharField(max_length=255, null=True, blank=True)
+
+    """
     The current database revision for the instance
 
     This revision is used to determine if tiles should be cached.

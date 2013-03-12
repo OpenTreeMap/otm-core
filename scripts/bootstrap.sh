@@ -12,5 +12,7 @@ then
     chmod 0440 /etc/sudoers.d/80-allow-otm-sudo
 fi
 
-umount /usr/local/otm
-mount -t vboxsf -o uid=`id -u otm`,gid=`id -g vagrant` share /usr/local/otm
+# vagrant mounts the share as the wrong user (vagrant)
+# umount and remount as otm.
+mountpoint -q /usr/local/otm/app/ || umount /usr/local/otm/app/
+mount -t vboxsf -o uid=`id -u otm`,gid=`id -g vagrant` share /usr/local/otm/app/
