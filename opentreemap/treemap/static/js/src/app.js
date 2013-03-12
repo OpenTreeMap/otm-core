@@ -8,7 +8,7 @@
 var app = (function ($,L,config) {
     "use strict";
     return {
-        createBasemap: function (elmt) {
+        createMap: function (elmt) {
             var map = new L.Map({
                 div: elmt,
                 projection: 'EPSG:3857',
@@ -40,8 +40,19 @@ var app = (function ($,L,config) {
             return [layer];
         },
 
+        createPlotTileLayer: function(config) {
+            return new L.Layer.XYZ(
+                'tiles',
+                '/tile/' +
+                    config.instance.rev +
+                    '/database/otm/table/treemap_plot/${z}/${x}/${y}.png',
+            { isBaseLayer: false });
+
+        },
+
         init: function () {
-            app.createBasemap($("#map")[0]);
+            var map = app.createMap($("#map")[0]);
+            map.addLayer(app.createPlotTileLayer(config));
         }
     };
 }($, OpenLayers, otm.settings));
