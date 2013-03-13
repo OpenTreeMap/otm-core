@@ -5,7 +5,7 @@ from __future__ import division
 import itertools
 
 from django.test import TestCase
-from treemap.models import Tree, Instance, Plot, User, Species
+from treemap.models import Tree, Instance, Plot, User, Species, Role, FieldPermission
 from treemap.audit import Audit, AuditException
 from django.contrib.gis.geos import Point
 from django.core.exceptions import FieldError
@@ -69,7 +69,6 @@ class HashModelTest(TestCase):
 
         self.assertNotEqual(h1, h2, "Hashes should change")
 
-
 class GeoRevIncr(TestCase):
     def setUp(self):
         self.user = User(username='kim')
@@ -78,7 +77,10 @@ class GeoRevIncr(TestCase):
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
 
-        self.instance = Instance(name='i1',geo_rev=0,center=self.p1)
+        global_role = Role(name='global', rep_thresh=0)
+        global_role.save()
+
+        self.instance = Instance(name='i1',geo_rev=0,center=self.p1,default_role=global_role)
         self.instance.save()
 
     def hash_and_rev(self):
@@ -122,15 +124,85 @@ class GeoRevIncr(TestCase):
         self.assertNotEqual(rev4h, rev5h)
         self.assertEqual(rev4+1,rev5)
 
+class UserRoleFieldPermissionTest(TestCase):
+    def setUp(self):
+        """ Create an """
+
+        self.global_role = Role(name='global', rep_thresh=0)
+        self.global_role.save()
+
+        self.p1 = Point(-8515941.0, 4953519.0)
+        self.instance = Instance(name="testtreemap", geo_rev=0, center=self.p1, 
+                                 default_role=self.global_role)
+        self.instance.save()
+
+        self.officer_role = Role(name='officer', instance=self.instance, rep_thresh=3)
+        self.officer_role.save()
+
+        self.observer_role = Role(name='observer', instance=self.instance, rep_thresh=2)
+        self.observer_role.save()
+
+        self.outlaw_role = Role(name='outlaw', instance=self.instance, rep_thresh=1)
+        self.outlaw_role.save()
+
+        permissions = (
+            ('Plot', 'geom',  self.officer_role, self.instance, 3),
+            ('Plot', 'length',  self.officer_role, self.instance, 3),
+            ('Species', 'fact_sheet',  self.officer_role, self.instance, 3),
+            ('Species', 'symbol',  self.officer_role, self.instance, 3),
+            ('Species', 'symbol',  self.observer_role, self.instance, 1),
+            )
+
+        for perm in permissions:
+            fp = FieldPermission()
+            fp.model_name, fp.field_name, fp.role, fp.instance, fp.type = perm
+            fp.save()
+
+        self.officer = User(username="officer")
+        self.officer.save()
+        self.officer.roles.add(self.officer_role)
+
+        self.observer = User(username="observer")
+        self.observer.save()
+        self.observer.roles.add(self.observer_role)
+
+        self.outlaw = User(username="outlaw")
+        self.outlaw.save()
+        self.outlaw.roles.add(self.outlaw_role)
+
+        self.anonymous = User(username="")
+        self.anonymous.save()
+
+    # DELETE ME
+    def test_users_have_roles(self):
+        self.assertNotEqual(self.officer.roles, None)
+        self.assertNotEqual(self.observer.roles, None)
+        self.assertNotEqual(self.outlaw.roles, None)
+        self.assertNotEqual(self.anonymous.roles, None)
+
+    def test_user_get_permissions(self):
+        self.assertNotEqual(type(self.officer.get_instance_permissions(self.instance)), EmptyQuerySet)
+        self.assertNotEqual(type(self.observer.get_instance_permissions(self.instance)), EmptyQuerySet)
+        self.assertNotEqual(type(self.outlaw.get_instance_permissions(self.instance)), EmptyQuerySet)
+        self.assertNotEqual(type(self.anonymous.get_instance_permissions(self.instance)), EmptyQuerySet)
+
+        self.assertEqual(self.officer.get_instance_permissions(self.instance).count(), 4)
+        self.assertEqual(self.observer.get_instance_permissions(self.instance).count(), 1)
+        self.assertEqual(self.outlaw.get_instance_permissions(self.instance).count(), 0)
+        self.assertEqual(self.anonymous.get_instance_permissions(self.instance).count(), 0)
 
 class InstanceAndAuth(TestCase):
 
     def setUp(self):
+
+        global_role = Role(name='global', rep_thresh=0)
+        global_role.save()
+
         p = Point(-8515941.0, 4953519.0)
-        self.instance1 = Instance(name='i1',geo_rev=0,center=p)
+        self.instance1 = Instance(name='i1',geo_rev=0,center=p,default_role=global_role)
         self.instance1.save()
 
-        self.instance2 = Instance(name='i2',geo_rev=0,center=p)
+        self.instance2 = Instance(name='i2',geo_rev=0,center=p,default_role=global_role)
         self.instance2.save()
 
     def test_invalid_instance_returns_404(self):
@@ -191,8 +263,12 @@ class InstanceTest(TestCase):
 class AuditTest(TestCase):
 
     def setUp(self):
+
+        global_role = Role(name='global', rep_thresh=0)
+        global_role.save()
+
         p = Point(-8515941.0, 4953519.0)
-        self.instance = Instance(name='i1',geo_rev=0,center=p)
+        self.instance = Instance(name='i1',geo_rev=0,center=p,default_role=global_role)
         self.instance.save()
 
         self.user1 = User(username='joe')
@@ -292,3 +368,4 @@ class AuditTest(TestCase):
         self.assertAuditsEqual(
             expected_audits,
             Audit.audits_for_model('Tree', self.instance, old_pk))
+

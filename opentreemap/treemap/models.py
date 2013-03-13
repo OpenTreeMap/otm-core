@@ -8,9 +8,6 @@ from django.contrib.auth.models import AbstractUser
 
 import hashlib
 
-class User(AbstractUser):
-    pass
-
 class Instance(models.Model):
     """
     Each "Tree Map" is a single instance
@@ -68,6 +65,37 @@ class Instance(models.Model):
     def scope_model(self, model):
         qs = model.objects.filter(instance=self)
         return qs
+
+class Role(models.Model):
+    name = models.CharField(max_length=255)
+    instance = models.ForeignKey(Instance, null=True, blank=True)
+    rep_thresh = models.IntegerField()
+
+class FieldPermission(models.Model):
+    model_name = models.CharField(max_length=255)
+    field_name = models.CharField(max_length=255)
+    role = models.ForeignKey(Role)
+    instance = models.ForeignKey(Instance)
+    # TODO type is a python builtin function. should we change this?
+    # Should type be a charfield?
+    type = models.IntegerField(choices=(
+            (0, "None"), # reserving zero in case we want to create a "null-permission" later
+            (1, "Read Only"),
+            (2, "Write with Audit"),
+            (3, "Write Directly")))
+
+class User(AbstractUser):
+    roles = models.ManyToManyField(Role, blank=True, null=True)
+
+    def get_instance_permissions(self, instance):
+        roles = self.roles.filter(instance=instance)
+
+        # TODO: replace with an exception
+        assert(roles.count() in (0, 1))
+        if roles:
+            return FieldPermission.objects.filter(role__in=roles)
+        else:
+            return FieldPermission.objects.filter(role=instance.default_role)
 
 class Species(models.Model):
     """
