@@ -2,10 +2,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import itertools
+
 from django.test import TestCase
-from treemap.models import Tree, Instance, Plot, User
+from treemap.models import Tree, Instance, Plot, User, Species
 from treemap.audit import Audit, AuditException
 from django.contrib.gis.geos import Point
+from django.core.exceptions import FieldError
 
 class GeoRevIncr(TestCase):
     def setUp(self):
@@ -76,6 +79,54 @@ class InstanceAndAuth(TestCase):
 
         response = self.client.get('/1000/')
         self.assertEqual(response.status_code, 404)
+
+class InstanceTest(TestCase):
+
+    def setUp(self):
+        p1 = Point(-8515222.0, 4953200.0)
+        p2 = Point(-7515222.0, 3953200.0)
+
+        self.instance1 = Instance(name='i1',geo_rev=0,center=p1)
+        self.instance1.save()
+        self.instance2 = Instance(name='i2',geo_rev=1,center=p2)
+        self.instance2.save()
+
+        self.user = User(username='Benjamin')
+        self.user.save()
+
+        self.plot1 = Plot(geom=p1, instance=self.instance1, created_by=self.user)
+        self.plot1.save_with_user(self.user)
+        self.plot2 = Plot(geom=p2, instance=self.instance2, created_by=self.user)
+        self.plot2.save_with_user(self.user)
+
+        tree_combos = itertools.product(
+            [self.plot1, self.plot2],
+            [self.instance1, self.instance2],
+            [True, False],
+            [self.user])
+
+        for tc in tree_combos:
+            plot, instance, readonly, created_by = tc
+            t = Tree(plot=plot, instance=instance, readonly=readonly, created_by=created_by)
+            t.save_with_user(self.user)
+
+    def test_scope_model_method(self):
+        all_trees = Tree.objects.all()
+        orm_instance_1_trees = list(all_trees.filter(instance=self.instance1))
+        orm_instance_2_trees = list(all_trees.filter(instance=self.instance2))
+
+        method_instance_1_trees = list(self.instance1.scope_model(Tree))
+        method_instance_2_trees = list(self.instance2.scope_model(Tree))
+        
+        # Test that it returns the same as using the ORM
+        self.assertEquals(orm_instance_1_trees, method_instance_1_trees)
+        self.assertEquals(orm_instance_2_trees, method_instance_2_trees)
+
+        # Test that it didn't grab all trees
+        self.assertNotEquals(list(all_trees), method_instance_1_trees)
+        self.assertNotEquals(list(all_trees), method_instance_2_trees)
+
+        self.assertRaises(FieldError, (lambda: self.instance1.scope_model(Species)))
 
 class AuditTest(TestCase):
 
