@@ -64,6 +64,10 @@ class Instance(models.Model):
     def center_lat_lng(self):
         return self.center.transform(4326,clone=True)
 
+    def scope_model(self, model):
+        qs = model.objects.filter(instance=self)
+        return qs
+
 class Species(models.Model):
     """
     http://plants.usda.gov/adv_search.html
