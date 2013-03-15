@@ -10,6 +10,66 @@ from treemap.audit import Audit, AuditException
 from django.contrib.gis.geos import Point
 from django.core.exceptions import FieldError
 
+class HashModelTest(TestCase):
+    def setUp(self):
+        self.user = User(username='kim')
+        self.user.save()
+
+        self.p1 = Point(-8515941.0, 4953519.0)
+        self.p2 = Point(-7615441.0, 5953519.0)
+
+        self.instance = Instance(name='i1',geo_rev=0,center=self.p1)
+        self.instance.save()
+
+    def test_changing_fields_changes_hash(self):
+        plot = Plot(geom=self.p1, instance=self.instance, created_by=self.user)
+        plot.save_with_user(self.user)
+
+        #
+        # Make sure regular field updates change the hash
+        #
+        h1 = plot.hash
+        plot.width = 44
+        plot.save_with_user(self.user)
+        h2 = plot.hash
+
+        self.assertNotEqual(h1, h2, "Hashes should change")
+
+        h1 = plot.hash
+        plot.address_street = "test"
+        plot.save_with_user(self.user)
+        h2 = plot.hash
+
+        self.assertNotEqual(h1, h2, "Hashes should change")
+
+        #
+        # Verify adding a new tree updates the plot hash
+        #
+
+        h1 = plot.hash
+        tree = Tree(plot=plot,
+                    instance=self.instance,
+                    readonly=False,
+                    created_by=self.user)
+        tree.save_with_user(self.user)
+        h2 = plot.hash
+
+        self.assertNotEqual(h1, h2, "Hashes should change")
+
+        #
+        # Verify that updating a tree related to a plot also
+        # changes the plot hash
+        #
+
+        h1 = plot.hash
+        tree.readonly = True
+        tree.save_with_user(self.user)
+
+        h2 = plot.hash
+
+        self.assertNotEqual(h1, h2, "Hashes should change")
+
+
 class GeoRevIncr(TestCase):
     def setUp(self):
         self.user = User(username='kim')
@@ -117,7 +177,7 @@ class InstanceTest(TestCase):
 
         method_instance_1_trees = list(self.instance1.scope_model(Tree))
         method_instance_2_trees = list(self.instance2.scope_model(Tree))
-        
+
         # Test that it returns the same as using the ORM
         self.assertEquals(orm_instance_1_trees, method_instance_1_trees)
         self.assertEquals(orm_instance_2_trees, method_instance_2_trees)

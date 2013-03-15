@@ -6,6 +6,8 @@ from django.contrib.gis.db import models
 from treemap.audit import Auditable, Audit
 from django.contrib.auth.models import AbstractUser
 
+import hashlib
+
 class User(AbstractUser):
     pass
 
@@ -57,7 +59,6 @@ class Instance(models.Model):
 
     @property
     def geo_rev_hash(self):
-        import hashlib
         return hashlib.md5(str(self.geo_rev)).hexdigest()
 
     @property
@@ -135,6 +136,17 @@ class Plot(Auditable, models.Model):
     readonly = models.BooleanField(default=False)
 
     objects = models.GeoManager()
+
+    @property
+    def hash(self):
+        string_to_hash = super(Plot, self).hash
+
+        # The hash state for a given plot also includes the hash
+        # state for all of the trees on it as well
+        tree_hashes = [t.hash for t in self.tree_set.all()]
+        string_to_hash += "," + ",".join(tree_hashes)
+
+        return hashlib.md5(string_to_hash).hexdigest()
 
     @property
     def zones(self):
