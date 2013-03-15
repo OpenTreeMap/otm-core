@@ -5,6 +5,8 @@ from __future__ import division
 from django.contrib.gis.db import models
 from django.forms.models import model_to_dict
 
+import hashlib
+
 class AuditException(Exception):
     pass
 
@@ -87,6 +89,22 @@ class Auditable(object):
 
         Audit.objects.bulk_create(audits)
         self.__initial = self._dict()
+
+    @property
+    def hash(self):
+        """ Return a unique hash for this object """
+        # Since this is an audited object each changes will
+        # manifest itself in the audit log, essentially keeping
+        # a revision id of this instance. Since each primary
+        # key will be unique, we can just use that for the hash
+        audits = self.instance.scope_model(Audit)\
+                              .filter(model=self._model_name())\
+                              .filter(model_id=self.pk)\
+                              .order_by('-updated')
+
+        string_to_hash = str(audits[0].pk)
+
+        return hashlib.md5(string_to_hash).hexdigest()
 
 
 ###
