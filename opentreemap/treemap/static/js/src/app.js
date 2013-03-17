@@ -104,6 +104,3 @@ var app = (function ($,OL,config) {
         }
     };
 }($, OpenLayers, otm.settings));
-
-
-$(app.init);
