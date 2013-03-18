@@ -6,7 +6,7 @@ import itertools
 
 from django.test import TestCase
 from treemap.models import Tree, Instance, Plot, User, Species, Role, FieldPermission
-from treemap.audit import Audit, AuditException
+from treemap.audit import Audit, AuditException, UserTrackingException
 from django.contrib.gis.geos import Point
 from django.core.exceptions import FieldError
 
@@ -74,17 +74,25 @@ class HashModelTest(TestCase):
 
 class GeoRevIncr(TestCase):
     def setUp(self):
-        self.user = User(username='kim')
-        self.user.save()
-
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
 
-        global_role = Role(name='global', rep_thresh=0)
-        global_role.save()
+        # TODO- This is stupid... way too much saving
+        self.role = Role(name="default", rep_thresh=0)
+        self.role.save()
 
-        self.instance = Instance(name='i1',geo_rev=0,center=self.p1,default_role=global_role)
+        self.instance = Instance(name='i1',geo_rev=0,center=self.p1,default_role=self.role)
         self.instance.save()
+
+        self.role.instance = self.instance
+        self.role.save()
+
+        for field in ['geom']:
+            FieldPermission(model_name='Plot',field_name=field, type=3,
+                            role=self.role, instance=self.instance).save()
+
+        self.user = User(username='kim')
+        self.user.save()
 
     def hash_and_rev(self):
         i = Instance.objects.get(pk=self.instance.pk)
@@ -150,9 +158,9 @@ class UserRoleFieldPermissionTest(TestCase):
         permissions = (
             ('Plot', 'geom',  self.officer_role, self.instance, 3),
             ('Plot', 'length',  self.officer_role, self.instance, 3),
-            ('Species', 'fact_sheet',  self.officer_role, self.instance, 3),
-            ('Species', 'symbol',  self.officer_role, self.instance, 3),
-            ('Species', 'symbol',  self.observer_role, self.instance, 1),
+
+            ('Plot', 'geom',  self.observer_role, self.instance, 1),
+            ('Plot', 'length',  self.observer_role, self.instance, 1),
             )
 
         for perm in permissions:
@@ -175,23 +183,30 @@ class UserRoleFieldPermissionTest(TestCase):
         self.anonymous = User(username="")
         self.anonymous.save()
 
-    # DELETE ME
-    def test_users_have_roles(self):
-        self.assertNotEqual(self.officer.roles, None)
-        self.assertNotEqual(self.observer.roles, None)
-        self.assertNotEqual(self.outlaw.roles, None)
-        self.assertNotEqual(self.anonymous.roles, None)
+        self.plot = Plot(geom=self.p1, instance=self.instance, created_by=self.officer)
+        self.plot.save_with_user(self.officer)
 
-    def test_user_get_permissions(self):
-        self.assertNotEqual(type(self.officer.get_instance_permissions(self.instance)), EmptyQuerySet)
-        self.assertNotEqual(type(self.observer.get_instance_permissions(self.instance)), EmptyQuerySet)
-        self.assertNotEqual(type(self.outlaw.get_instance_permissions(self.instance)), EmptyQuerySet)
-        self.assertNotEqual(type(self.anonymous.get_instance_permissions(self.instance)), EmptyQuerySet)
+    def test_no_permission_cant_edit_object(self):
+        self.plot.length = 10
+        self.assertRaises(Exception, self.plot.save_with_user, self.outlaw)
+        self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
 
-        self.assertEqual(self.officer.get_instance_permissions(self.instance).count(), 4)
-        self.assertEqual(self.observer.get_instance_permissions(self.instance).count(), 1)
-        self.assertEqual(self.outlaw.get_instance_permissions(self.instance).count(), 0)
-        self.assertEqual(self.anonymous.get_instance_permissions(self.instance).count(), 0)
+    def test_readonly_cant_edit_object(self):
+        self.plot.length = 10
+        self.assertRaises(Exception, self.plot.save_with_user, self.observer)
+        self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
+
+    def test_writeperm_allows_write(self):
+        self.plot.length = 10
+        self.plot.save_with_user(self.officer)
+        self.assertEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
+
+    def test_write_fails_if_any_fields_cant_be_written(self):
+        self.plot.length = 10
+        self.plot.width = 110
+        self.assertRaises(Exception, self.plot.save_with_user, self.officer)
+        self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
+        self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).width, 110)
 
 class InstanceAndAuth(TestCase):
 
@@ -320,12 +335,12 @@ class AuditTest(TestCase):
     def test_cant_use_regular_methods(self):
         p = Point(-8515222.0, 4953200.0)
         plot = Plot(geom=p, instance=self.instance, created_by=self.user1)
-        self.assertRaises(AuditException, plot.save)
-        self.assertRaises(AuditException, plot.delete)
+        self.assertRaises(UserTrackingException, plot.save)
+        self.assertRaises(UserTrackingException, plot.delete)
 
         tree = Tree()
-        self.assertRaises(AuditException, tree.save)
-        self.assertRaises(AuditException, tree.delete)
+        self.assertRaises(UserTrackingException, tree.save)
+        self.assertRaises(UserTrackingException, tree.delete)
 
     def test_basic_audit(self):
         p = Point(-8515222.0, 4953200.0)
