@@ -16,8 +16,6 @@ var app = (function ($,OL,config) {
                 layers: this.getBasemapLayers(config)
             });
 
-            map.setCenter(config.instance.center, 10);
-
             return map;
         },
 
@@ -27,7 +25,8 @@ var app = (function ($,OL,config) {
                 layer = new OL.Layer.Bing({
                     name: 'Road',
                     key: config.instance.basemap.bing_api_key,
-                    type: 'Road'
+                    type: 'Road',
+                    isBaseLayer: true
                 });
             } else if (config.instance.basemap.type === 'tms') {
                 layer = new OL.Layer.XYZ(
@@ -96,12 +95,29 @@ var app = (function ($,OL,config) {
         init: function () {
             var map = app.createMap($("#map")[0]),
                 plotLayer = app.createPlotTileLayer(config),
-                utfLayer = app.createPlotUTFLayer(config);
+                utfLayer = app.createPlotUTFLayer(config),
+                zoom = 0;
+
+            // Bing maps uses a 1-based zoom so XYZ layers
+            // on the base map have a zoom offset that is
+            // always one less than the map zoom:
+            // > map.setCenter(center, 11)
+            // > map.zoom
+            //   12
+            // So this forces the tile requests to use
+            // the correct Z offset
+            if (config.instance.basemap.type === 'bing') {
+                plotLayer.zoomOffset = 1;
+                utfLayer.zoomOffset = 1;
+            }
 
             map.addLayer(plotLayer);
             map.addLayer(utfLayer);
 
             map.addControl(app.createUTFMovementControl(app.onMove));
+
+            zoom = map.getZoomForResolution(76.43702827453613);
+            map.setCenter(config.instance.center, zoom);
         }
     };
 }($, OpenLayers, otm.settings));
