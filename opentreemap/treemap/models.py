@@ -86,18 +86,29 @@ class FieldPermission(models.Model):
             (2, "Write with Audit"),
             (3, "Write Directly")))
 
+    @property
+    def allows_writes(self):
+        return self.type >= 2
+
 class User(AbstractUser):
     roles = models.ManyToManyField(Role, blank=True, null=True)
 
-    def get_instance_permissions(self, instance):
+    def get_instance_permissions(self, instance, model_name=None):
         roles = self.roles.filter(instance=instance)
 
-        # TODO: replace with an exception
-        assert(roles.count() in (0, 1))
-        if roles:
-            return FieldPermission.objects.filter(role__in=roles)
+        if len(roles) > 1:
+            error_message = "%s cannot have more than one role. Something might be"\
+                            "very wrong with your database configuration." % self.pk
+            raise Exception(error_message)
+        elif len(roles) == 1:
+            perms = FieldPermission.objects.filter(role=roles[0])
         else:
-            return FieldPermission.objects.filter(role=instance.default_role)
+            perms = FieldPermission.objects.filter(role=instance.default_role)
+
+        if model_name:
+            perms = perms.filter(model_name=model_name)
+            
+        return perms
 
 class Species(models.Model):
     """
