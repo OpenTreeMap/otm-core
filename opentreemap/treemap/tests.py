@@ -10,19 +10,34 @@ from treemap.audit import Audit, AuditException, UserTrackingException
 from django.contrib.gis.geos import Point
 from django.core.exceptions import FieldError
 
+def make_instance_and_user():
+    global_role = Role(name='global', rep_thresh=0)
+    global_role.save()
+
+    p1 = Point(-8515941.0, 4953519.0)
+
+    instance = Instance(name='i1',geo_rev=0,center=p1,default_role=global_role)
+    instance.save()
+
+    user_role = Role(name='custom', instance=instance, rep_thresh=3)
+    user_role.save()
+
+    user = User(username="custom")
+    user.save()
+    user.roles.add(user_role)
+
+    return instance, user
+    
+
 class HashModelTest(TestCase):
     def setUp(self):
-        self.user = User(username='kim')
-        self.user.save()
-
+        self.instance, self.user = make_instance_and_user()
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
-
-        global_role = Role(name='global', rep_thresh=0)
-        global_role.save()
-
-        self.instance = Instance(name='i1',geo_rev=0,center=self.p1,default_role=global_role)
-        self.instance.save()
+        for field in ('length', 'width', 'address_street'):
+            FieldPermission(model_name='Plot',field_name=field,
+                            role=self.user.roles.all()[0],
+                            instance=self.instance, type=3).save()
 
     def test_changing_fields_changes_hash(self):
         plot = Plot(geom=self.p1, instance=self.instance, created_by=self.user)
@@ -76,23 +91,10 @@ class GeoRevIncr(TestCase):
     def setUp(self):
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
-
-        # TODO- This is stupid... way too much saving
-        self.role = Role(name="default", rep_thresh=0)
-        self.role.save()
-
-        self.instance = Instance(name='i1',geo_rev=0,center=self.p1,default_role=self.role)
-        self.instance.save()
-
-        self.role.instance = self.instance
-        self.role.save()
-
-        for field in ['geom']:
-            FieldPermission(model_name='Plot',field_name=field, type=3,
-                            role=self.role, instance=self.instance).save()
-
-        self.user = User(username='kim')
-        self.user.save()
+        self.instance, self.user = make_instance_and_user()
+        FieldPermission(model_name='Plot',field_name='geom',type=3,
+                        role=self.user.roles.all()[0],
+                        instance=self.instance).save()
 
     def hash_and_rev(self):
         i = Instance.objects.get(pk=self.instance.pk)
@@ -139,12 +141,8 @@ class UserRoleFieldPermissionTest(TestCase):
     def setUp(self):
         """ Create an """
 
-        self.global_role = Role(name='global', rep_thresh=0)
-        self.global_role.save()
-
         self.p1 = Point(-8515941.0, 4953519.0)
-        self.instance = Instance(name="i1", geo_rev=0, center=self.p1, default_role=self.global_role)
-        self.instance.save()
+        self.instance, _ = make_instance_and_user()
 
         self.officer_role = Role(name='officer', instance=self.instance, rep_thresh=3)
         self.officer_role.save()
@@ -284,15 +282,7 @@ class AuditTest(TestCase):
 
     def setUp(self):
 
-        global_role = Role(name='global', rep_thresh=0)
-        global_role.save()
-
-        p = Point(-8515941.0, 4953519.0)
-        self.instance = Instance(name='i1',geo_rev=0,center=p,default_role=global_role)
-        self.instance.save()
-
-        self.user1 = User(username='joe')
-        self.user1.save()
+        self.instance, self.user1 = make_instance_and_user()
 
         self.user2 = User(username='amy')
         self.user2.save()
