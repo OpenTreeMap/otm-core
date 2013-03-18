@@ -198,7 +198,7 @@ class Plot(Authorizable, Auditable, models.Model):
         else:
             return []
 
-class Tree(Auditable, models.Model):
+class Tree(Authorizable, Auditable, models.Model):
     """
     Represents a single tree, belonging to an instance
     """

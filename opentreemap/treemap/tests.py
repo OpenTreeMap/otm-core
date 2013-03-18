@@ -38,6 +38,10 @@ class HashModelTest(TestCase):
             FieldPermission(model_name='Plot',field_name=field,
                             role=self.user.roles.all()[0],
                             instance=self.instance, type=3).save()
+        for field in ('readonly',):
+            FieldPermission(model_name='Tree',field_name=field,
+                            role=self.user.roles.all()[0],
+                            instance=self.instance, type=3).save()
 
     def test_changing_fields_changes_hash(self):
         plot = Plot(geom=self.p1, instance=self.instance, created_by=self.user)
@@ -286,6 +290,18 @@ class AuditTest(TestCase):
 
         self.user2 = User(username='amy')
         self.user2.save()
+        role = Role(name='custom', instance=self.instance, rep_thresh=3)
+        role.save()
+        self.user2.roles.add(role)
+
+        for field in ('readonly',):
+            FieldPermission(model_name='Tree',field_name=field,
+                            role=self.user1.roles.all()[0],
+                            instance=self.instance, type=3).save()
+            FieldPermission(model_name='Tree',field_name=field,
+                            role=self.user2.roles.all()[0],
+                            instance=self.instance, type=3).save()
+
 
     def assertAuditsEqual(self, exps, acts):
         self.assertEqual(len(exps), len(acts))
