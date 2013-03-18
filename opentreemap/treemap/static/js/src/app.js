@@ -10,6 +10,7 @@ var app = (function ($,OL,config) {
     return {
         createMap: function (elmt) {
             var map = new OL.Map({
+                theme: null,
                 div: elmt,
                 projection: 'EPSG:3857',
                 layers: this.getBasemapLayers(config)
