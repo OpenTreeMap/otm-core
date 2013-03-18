@@ -11,6 +11,10 @@ from django.contrib.gis.geos import Point
 from django.core.exceptions import FieldError
 
 def make_instance_and_user():
+    """ A helper function for making an instance and user 
+
+    You'll still want to load the permissions you need for each
+    test onto the user's role. """
     global_role = Role(name='global', rep_thresh=0)
     global_role.save()
 
@@ -143,7 +147,6 @@ class GeoRevIncr(TestCase):
 
 class UserRoleFieldPermissionTest(TestCase):
     def setUp(self):
-        """ Create an """
 
         self.p1 = Point(-8515941.0, 4953519.0)
         self.instance, _ = make_instance_and_user()
@@ -237,7 +240,7 @@ class UserRoleFieldPermissionTest(TestCase):
         self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
         self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).canopy_height, 110)
 
-class InstanceAndAuth(TestCase):
+class InstanceValidationTest(TestCase):
 
     def setUp(self):
 
@@ -258,7 +261,7 @@ class InstanceAndAuth(TestCase):
         response = self.client.get('/1000/')
         self.assertEqual(response.status_code, 404)
 
-class InstanceTest(TestCase):
+class ScopeModelTest(TestCase):
 
     def setUp(self):
         p1 = Point(-8515222.0, 4953200.0)
