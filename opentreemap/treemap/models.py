@@ -49,6 +49,8 @@ class Instance(models.Model):
     """ Center of the map when loading the instance """
     center = models.PointField(srid=3857)
 
+    default_role = models.ForeignKey('Role', related_name='default_role')
+
     objects = models.GeoManager()
 
     def __unicode__(self):

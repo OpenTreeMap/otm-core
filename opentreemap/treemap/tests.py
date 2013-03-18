@@ -18,7 +18,10 @@ class HashModelTest(TestCase):
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
 
-        self.instance = Instance(name='i1',geo_rev=0,center=self.p1)
+        global_role = Role(name='global', rep_thresh=0)
+        global_role.save()
+
+        self.instance = Instance(name='i1',geo_rev=0,center=self.p1,default_role=global_role)
         self.instance.save()
 
     def test_changing_fields_changes_hash(self):
@@ -132,8 +135,7 @@ class UserRoleFieldPermissionTest(TestCase):
         self.global_role.save()
 
         self.p1 = Point(-8515941.0, 4953519.0)
-        self.instance = Instance(name="testtreemap", geo_rev=0, center=self.p1, 
-                                 default_role=self.global_role)
+        self.instance = Instance(name="i1", geo_rev=0, center=self.p1, default_role=self.global_role)
         self.instance.save()
 
         self.officer_role = Role(name='officer', instance=self.instance, rep_thresh=3)
@@ -218,9 +220,12 @@ class InstanceTest(TestCase):
         p1 = Point(-8515222.0, 4953200.0)
         p2 = Point(-7515222.0, 3953200.0)
 
-        self.instance1 = Instance(name='i1',geo_rev=0,center=p1)
+        self.global_role = Role(name='global', rep_thresh=0)
+        self.global_role.save()
+
+        self.instance1 = Instance(name='i1',geo_rev=0,center=p1,default_role=self.global_role)
         self.instance1.save()
-        self.instance2 = Instance(name='i2',geo_rev=1,center=p2)
+        self.instance2 = Instance(name='i2',geo_rev=1,center=p2,default_role=self.global_role)
         self.instance2.save()
 
         self.user = User(username='Benjamin')
