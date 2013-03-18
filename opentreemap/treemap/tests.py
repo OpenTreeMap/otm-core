@@ -163,6 +163,12 @@ class UserRoleFieldPermissionTest(TestCase):
 
             ('Plot', 'geom',  self.observer_role, self.instance, 1),
             ('Plot', 'length',  self.observer_role, self.instance, 1),
+
+            ('Tree', 'diameter',  self.officer_role, self.instance, 3),
+            ('Tree', 'height',  self.officer_role, self.instance, 3),
+
+            ('Tree', 'diameter',  self.observer_role, self.instance, 1),
+            ('Tree', 'height',  self.observer_role, self.instance, 1),
             )
 
         for perm in permissions:
@@ -188,20 +194,35 @@ class UserRoleFieldPermissionTest(TestCase):
         self.plot = Plot(geom=self.p1, instance=self.instance, created_by=self.officer)
         self.plot.save_with_user(self.officer)
 
+        self.tree = Tree(plot=self.plot, instance=self.instance, created_by=self.officer)
+        self.tree.save_with_user(self.officer)
+
     def test_no_permission_cant_edit_object(self):
         self.plot.length = 10
         self.assertRaises(Exception, self.plot.save_with_user, self.outlaw)
         self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
+
+        self.tree.diameter = 10
+        self.assertRaises(Exception, self.tree.save_with_user, self.outlaw)
+        self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
 
     def test_readonly_cant_edit_object(self):
         self.plot.length = 10
         self.assertRaises(Exception, self.plot.save_with_user, self.observer)
         self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
 
+        self.tree.diameter = 10
+        self.assertRaises(Exception, self.tree.save_with_user, self.observer)
+        self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
+
     def test_writeperm_allows_write(self):
         self.plot.length = 10
         self.plot.save_with_user(self.officer)
         self.assertEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
+
+        self.tree.diameter = 10
+        self.tree.save_with_user(self.officer)
+        self.assertEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
 
     def test_write_fails_if_any_fields_cant_be_written(self):
         self.plot.length = 10
@@ -209,6 +230,12 @@ class UserRoleFieldPermissionTest(TestCase):
         self.assertRaises(Exception, self.plot.save_with_user, self.officer)
         self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
         self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).width, 110)
+
+        self.tree.diameter = 10
+        self.tree.canopy_height = 110
+        self.assertRaises(Exception, self.tree.save_with_user, self.officer)
+        self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
+        self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).canopy_height, 110)
 
 class InstanceAndAuth(TestCase):
 
