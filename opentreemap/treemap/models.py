@@ -3,13 +3,10 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib.gis.db import models
-from treemap.audit import Auditable, Audit
+from treemap.audit import Auditable, Audit, Authorizable
 from django.contrib.auth.models import AbstractUser
 
 import hashlib
-
-class User(AbstractUser):
-    pass
 
 class Instance(models.Model):
     """
@@ -52,6 +49,8 @@ class Instance(models.Model):
     """ Center of the map when loading the instance """
     center = models.PointField(srid=3857)
 
+    default_role = models.ForeignKey('Role', related_name='default_role')
+
     objects = models.GeoManager()
 
     def __unicode__(self):
@@ -68,6 +67,48 @@ class Instance(models.Model):
     def scope_model(self, model):
         qs = model.objects.filter(instance=self)
         return qs
+
+class Role(models.Model):
+    name = models.CharField(max_length=255)
+    instance = models.ForeignKey(Instance, null=True, blank=True)
+    rep_thresh = models.IntegerField()
+
+class FieldPermission(models.Model):
+    model_name = models.CharField(max_length=255)
+    field_name = models.CharField(max_length=255)
+    role = models.ForeignKey(Role)
+    instance = models.ForeignKey(Instance)
+    # TODO type is a python builtin function. should we change this?
+    # Should type be a charfield?
+    type = models.IntegerField(choices=(
+            (0, "None"), # reserving zero in case we want to create a "null-permission" later
+            (1, "Read Only"),
+            (2, "Write with Audit"),
+            (3, "Write Directly")))
+
+    @property
+    def allows_writes(self):
+        return self.type >= 2
+
+class User(AbstractUser):
+    roles = models.ManyToManyField(Role, blank=True, null=True)
+
+    def get_instance_permissions(self, instance, model_name=None):
+        roles = self.roles.filter(instance=instance)
+
+        if len(roles) > 1:
+            error_message = "%s cannot have more than one role. Something might be"\
+                            "very wrong with your database configuration." % self.pk
+            raise Exception(error_message)
+        elif len(roles) == 1:
+            perms = FieldPermission.objects.filter(role=roles[0])
+        else:
+            perms = FieldPermission.objects.filter(role=instance.default_role)
+
+        if model_name:
+            perms = perms.filter(model_name=model_name)
+            
+        return perms
 
 class Species(models.Model):
     """
@@ -119,7 +160,7 @@ class ImportEvent(models.Model):
 #TODO:
 # Exclusion Zones
 # Proximity validation
-class Plot(Auditable, models.Model):
+class Plot(Authorizable, Auditable, models.Model):
     instance = models.ForeignKey(Instance)
     geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
 
@@ -157,7 +198,7 @@ class Plot(Auditable, models.Model):
         else:
             return []
 
-class Tree(Auditable, models.Model):
+class Tree(Authorizable, Auditable, models.Model):
     """
     Represents a single tree, belonging to an instance
     """

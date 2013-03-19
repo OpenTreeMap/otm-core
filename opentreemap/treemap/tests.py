@@ -5,21 +5,47 @@ from __future__ import division
 import itertools
 
 from django.test import TestCase
-from treemap.models import Tree, Instance, Plot, User, Species
-from treemap.audit import Audit, AuditException
+from treemap.models import Tree, Instance, Plot, User, Species, Role, FieldPermission
+from treemap.audit import Audit, AuditException, UserTrackingException
 from django.contrib.gis.geos import Point
 from django.core.exceptions import FieldError
 
+def make_instance_and_user():
+    """ A helper function for making an instance and user 
+
+    You'll still want to load the permissions you need for each
+    test onto the user's role. """
+    global_role = Role(name='global', rep_thresh=0)
+    global_role.save()
+
+    p1 = Point(-8515941.0, 4953519.0)
+
+    instance = Instance(name='i1',geo_rev=0,center=p1,default_role=global_role)
+    instance.save()
+
+    user_role = Role(name='custom', instance=instance, rep_thresh=3)
+    user_role.save()
+
+    user = User(username="custom")
+    user.save()
+    user.roles.add(user_role)
+
+    return instance, user
+    
+
 class HashModelTest(TestCase):
     def setUp(self):
-        self.user = User(username='kim')
-        self.user.save()
-
+        self.instance, self.user = make_instance_and_user()
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
-
-        self.instance = Instance(name='i1',geo_rev=0,center=self.p1)
-        self.instance.save()
+        for field in ('length', 'width', 'address_street'):
+            FieldPermission(model_name='Plot',field_name=field,
+                            role=self.user.roles.all()[0],
+                            instance=self.instance, type=3).save()
+        for field in ('readonly',):
+            FieldPermission(model_name='Tree',field_name=field,
+                            role=self.user.roles.all()[0],
+                            instance=self.instance, type=3).save()
 
     def test_changing_fields_changes_hash(self):
         plot = Plot(geom=self.p1, instance=self.instance, created_by=self.user)
@@ -69,17 +95,14 @@ class HashModelTest(TestCase):
 
         self.assertNotEqual(h1, h2, "Hashes should change")
 
-
 class GeoRevIncr(TestCase):
     def setUp(self):
-        self.user = User(username='kim')
-        self.user.save()
-
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
-
-        self.instance = Instance(name='i1',geo_rev=0,center=self.p1)
-        self.instance.save()
+        self.instance, self.user = make_instance_and_user()
+        FieldPermission(model_name='Plot',field_name='geom',type=3,
+                        role=self.user.roles.all()[0],
+                        instance=self.instance).save()
 
     def hash_and_rev(self):
         i = Instance.objects.get(pk=self.instance.pk)
@@ -122,15 +145,113 @@ class GeoRevIncr(TestCase):
         self.assertNotEqual(rev4h, rev5h)
         self.assertEqual(rev4+1,rev5)
 
+class UserRoleFieldPermissionTest(TestCase):
+    def setUp(self):
 
-class InstanceAndAuth(TestCase):
+        self.p1 = Point(-8515941.0, 4953519.0)
+        self.instance, _ = make_instance_and_user()
+
+        self.officer_role = Role(name='officer', instance=self.instance, rep_thresh=3)
+        self.officer_role.save()
+
+        self.observer_role = Role(name='observer', instance=self.instance, rep_thresh=2)
+        self.observer_role.save()
+
+        self.outlaw_role = Role(name='outlaw', instance=self.instance, rep_thresh=1)
+        self.outlaw_role.save()
+
+        permissions = (
+            ('Plot', 'geom',  self.officer_role, self.instance, 3),
+            ('Plot', 'length',  self.officer_role, self.instance, 3),
+
+            ('Plot', 'geom',  self.observer_role, self.instance, 1),
+            ('Plot', 'length',  self.observer_role, self.instance, 1),
+
+            ('Tree', 'diameter',  self.officer_role, self.instance, 3),
+            ('Tree', 'height',  self.officer_role, self.instance, 3),
+
+            ('Tree', 'diameter',  self.observer_role, self.instance, 1),
+            ('Tree', 'height',  self.observer_role, self.instance, 1),
+            )
+
+        for perm in permissions:
+            fp = FieldPermission()
+            fp.model_name, fp.field_name, fp.role, fp.instance, fp.type = perm
+            fp.save()
+
+        self.officer = User(username="officer")
+        self.officer.save()
+        self.officer.roles.add(self.officer_role)
+
+        self.observer = User(username="observer")
+        self.observer.save()
+        self.observer.roles.add(self.observer_role)
+
+        self.outlaw = User(username="outlaw")
+        self.outlaw.save()
+        self.outlaw.roles.add(self.outlaw_role)
+
+        self.anonymous = User(username="")
+        self.anonymous.save()
+
+        self.plot = Plot(geom=self.p1, instance=self.instance, created_by=self.officer)
+        self.plot.save_with_user(self.officer)
+
+        self.tree = Tree(plot=self.plot, instance=self.instance, created_by=self.officer)
+        self.tree.save_with_user(self.officer)
+
+    def test_no_permission_cant_edit_object(self):
+        self.plot.length = 10
+        self.assertRaises(Exception, self.plot.save_with_user, self.outlaw)
+        self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
+
+        self.tree.diameter = 10
+        self.assertRaises(Exception, self.tree.save_with_user, self.outlaw)
+        self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
+
+    def test_readonly_cant_edit_object(self):
+        self.plot.length = 10
+        self.assertRaises(Exception, self.plot.save_with_user, self.observer)
+        self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
+
+        self.tree.diameter = 10
+        self.assertRaises(Exception, self.tree.save_with_user, self.observer)
+        self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
+
+    def test_writeperm_allows_write(self):
+        self.plot.length = 10
+        self.plot.save_with_user(self.officer)
+        self.assertEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
+
+        self.tree.diameter = 10
+        self.tree.save_with_user(self.officer)
+        self.assertEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
+
+    def test_write_fails_if_any_fields_cant_be_written(self):
+        self.plot.length = 10
+        self.plot.width = 110
+        self.assertRaises(Exception, self.plot.save_with_user, self.officer)
+        self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
+        self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).width, 110)
+
+        self.tree.diameter = 10
+        self.tree.canopy_height = 110
+        self.assertRaises(Exception, self.tree.save_with_user, self.officer)
+        self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
+        self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).canopy_height, 110)
+
+class InstanceValidationTest(TestCase):
 
     def setUp(self):
+
+        global_role = Role(name='global', rep_thresh=0)
+        global_role.save()
+
         p = Point(-8515941.0, 4953519.0)
-        self.instance1 = Instance(name='i1',geo_rev=0,center=p)
+        self.instance1 = Instance(name='i1',geo_rev=0,center=p,default_role=global_role)
         self.instance1.save()
 
-        self.instance2 = Instance(name='i2',geo_rev=0,center=p)
+        self.instance2 = Instance(name='i2',geo_rev=0,center=p,default_role=global_role)
         self.instance2.save()
 
     def test_invalid_instance_returns_404(self):
@@ -140,15 +261,18 @@ class InstanceAndAuth(TestCase):
         response = self.client.get('/1000/')
         self.assertEqual(response.status_code, 404)
 
-class InstanceTest(TestCase):
+class ScopeModelTest(TestCase):
 
     def setUp(self):
         p1 = Point(-8515222.0, 4953200.0)
         p2 = Point(-7515222.0, 3953200.0)
 
-        self.instance1 = Instance(name='i1',geo_rev=0,center=p1)
+        self.global_role = Role(name='global', rep_thresh=0)
+        self.global_role.save()
+
+        self.instance1 = Instance(name='i1',geo_rev=0,center=p1,default_role=self.global_role)
         self.instance1.save()
-        self.instance2 = Instance(name='i2',geo_rev=1,center=p2)
+        self.instance2 = Instance(name='i2',geo_rev=1,center=p2,default_role=self.global_role)
         self.instance2.save()
 
         self.user = User(username='Benjamin')
@@ -191,15 +315,23 @@ class InstanceTest(TestCase):
 class AuditTest(TestCase):
 
     def setUp(self):
-        p = Point(-8515941.0, 4953519.0)
-        self.instance = Instance(name='i1',geo_rev=0,center=p)
-        self.instance.save()
 
-        self.user1 = User(username='joe')
-        self.user1.save()
+        self.instance, self.user1 = make_instance_and_user()
 
         self.user2 = User(username='amy')
         self.user2.save()
+        role = Role(name='custom', instance=self.instance, rep_thresh=3)
+        role.save()
+        self.user2.roles.add(role)
+
+        for field in ('readonly',):
+            FieldPermission(model_name='Tree',field_name=field,
+                            role=self.user1.roles.all()[0],
+                            instance=self.instance, type=3).save()
+            FieldPermission(model_name='Tree',field_name=field,
+                            role=self.user2.roles.all()[0],
+                            instance=self.instance, type=3).save()
+
 
     def assertAuditsEqual(self, exps, acts):
         self.assertEqual(len(exps), len(acts))
@@ -239,12 +371,12 @@ class AuditTest(TestCase):
     def test_cant_use_regular_methods(self):
         p = Point(-8515222.0, 4953200.0)
         plot = Plot(geom=p, instance=self.instance, created_by=self.user1)
-        self.assertRaises(AuditException, plot.save)
-        self.assertRaises(AuditException, plot.delete)
+        self.assertRaises(UserTrackingException, plot.save)
+        self.assertRaises(UserTrackingException, plot.delete)
 
         tree = Tree()
-        self.assertRaises(AuditException, tree.save)
-        self.assertRaises(AuditException, tree.delete)
+        self.assertRaises(UserTrackingException, tree.save)
+        self.assertRaises(UserTrackingException, tree.delete)
 
     def test_basic_audit(self):
         p = Point(-8515222.0, 4953200.0)
@@ -292,3 +424,4 @@ class AuditTest(TestCase):
         self.assertAuditsEqual(
             expected_audits,
             Audit.audits_for_model('Tree', self.instance, old_pk))
+

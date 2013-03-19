@@ -7,17 +7,20 @@ from django.forms.models import model_to_dict
 
 import hashlib
 
-class AuditException(Exception):
+class UserTrackingException(Exception):
     pass
 
-class Auditable(object):
-    """
-    Watches an object for changes and logs them
-    """
-
+class UserTrackable(object):
     def __init__(self, *args, **kwargs):
-        super(Auditable, self).__init__(*args, **kwargs)
-        self.__initial = self._dict()
+        super(UserTrackable, self).__init__(*args, **kwargs)
+
+        if self.pk is None:
+            # User created the object as "MyObj(field1=...,field2=...)"
+            # the saved state will include these changes but the actual
+            # "initial" state is empty so we clear it here
+            self._previous_state = {}
+        else:
+            self._previous_state = self._dict()
 
     def _dict(self):
         return model_to_dict(self, fields=[field.name for field in
@@ -27,7 +30,7 @@ class Auditable(object):
         updated = {}
         d = self._dict()
         for key in d:
-            old = self.__initial.get(key,None)
+            old = self._previous_state.get(key,None)
             new = d.get(key,None)
 
             if new != old:
@@ -35,51 +38,100 @@ class Auditable(object):
 
         return updated
 
+    @property
     def _model_name(self):
         return self.__class__.__name__
 
+    def delete_with_user(self, user, *args, **kwargs):
+        # TODO: something has to happen with the user here
+        super(UserTrackable, self).delete(*args, **kwargs)
+        self._previous_state = {}
+
+    def save_with_user(self, user, *args, **kwargs):
+        # TODO: something has to happen with the user here
+        self.save_base(self, *args, **kwargs)
+        self._previous_state = self._dict()
+
     def save(self, *args, **kwargs):
-        raise AuditException(
+        raise UserTrackingException(
             'All changes to %s objects must be saved via "save_with_user"' %
-            (self._model_name()))
+            (self._model_name))
 
     def delete(self, *args, **kwargs):
-        raise AuditException(
+        raise UserTrackingException(
             'All deletes to %s objects must be saved via "delete_with_user"' %
-            (self._model_name()))
+            (self._model_name))
+
+class AuthorizeException(Exception):
+    def __init__(self, name):
+        super(Exception, self).__init__(name)
+
+class Authorizable(UserTrackable):
+    """
+    """
+
+    def _user_can_create_delete(self, user):
+        # TODO: we need to relax the create requirements
+        # the user only needs access to all required fields,
+        # not EVERY field.
+        perms = user.get_instance_permissions(self.instance)
+        perm_pairs = { (perm.model_name, perm.field_name) for perm in perms if perm.type >= 2 }
+        model_fields = { (self._model_name, field_name) for field_name in self._previous_state.keys() }
+        return perm_pairs == model_fields
+
+    def save_with_user(self, user, *args, **kwargs):
+        assert(hasattr(self, 'instance'))
+       
+        if not self.pk is None:
+            perms = user.get_instance_permissions(self.instance, self._model_name)
+            writable_perms = { perm.field_name for perm in perms if perm.allows_writes }
+
+            for field in self._updated_fields():
+                if field not in writable_perms:
+                    raise AuthorizeException("Can't edit field %s on %s" % (field, self._model_name))
+            
+        super(Authorizable, self).save_with_user(user, *args, **kwargs)
+
+
+class AuditException(Exception):
+    pass
+
+class Auditable(UserTrackable):
+    """
+    Watches an object for changes and logs them
+    """
 
     def audits(self):
         return Audit.audits_for_object(self)
 
     def delete_with_user(self, user, *args, **kwargs):
-        a = Audit(model=self._model_name(),
+        a = Audit(model=self._model_name,
                   model_id=self.pk,
                   instance=self.instance,
                   user=user, action=Audit.Type.Delete)
 
-        super(Auditable, self).delete(*args, **kwargs)
-
+        # TODO : Super won't work here, because it goes up the chain,
+        # when we want to go over.
+        super(Auditable, self).delete_with_user(user, *args, **kwargs)
         a.save()
-        self.__initial = {}
 
     def save_with_user(self, user, *args, **kwargs):
 
-        if self.pk is None:
-            action = Audit.Type.Insert
+        updates = self._updated_fields()
 
-            # User created the object as "MyObj(field1=...,field2=...)"
-            # the saved state will include these changes but the actual
-            # "initial" state is empty so we clear it here
-            self.__initial = {}
+        is_insert = self.pk is None
+        super(Auditable, self).save_with_user(user, *args, **kwargs)
+
+        if is_insert:
+            action = Audit.Type.Insert
+            updates['id'] = [None, self.pk]
         else:
             action = Audit.Type.Update
-
-        self.save_base(self, *args, **kwargs)
-
+        
         audits = []
-        for [field, values] in self._updated_fields().iteritems():
+        for [field, values] in updates.iteritems():
             audits.append(
-                Audit(model=self._model_name(), model_id=self.pk,
+                Audit(model=self._model_name, model_id=self.pk,
                       instance=self.instance, field=field,
                       previous_value=values[0],
                       current_value=values[1],
@@ -88,7 +140,6 @@ class Auditable(object):
                       ref_id=None))
 
         Audit.objects.bulk_create(audits)
-        self.__initial = self._dict()
 
     @property
     def hash(self):
@@ -98,7 +149,7 @@ class Auditable(object):
         # a revision id of this instance. Since each primary
         # key will be unique, we can just use that for the hash
         audits = self.instance.scope_model(Audit)\
-                              .filter(model=self._model_name())\
+                              .filter(model=self._model_name)\
                               .filter(model_id=self.pk)\
                               .order_by('-updated')
 
@@ -155,7 +206,7 @@ class Audit(models.Model):
     @classmethod
     def audits_for_object(clz, obj):
         return clz.audits_for_model(
-            obj._model_name(), obj.instance, obj.pk)
+            obj._model_name, obj.instance, obj.pk)
 
     def dict(self):
         return { 'model': self.model,
