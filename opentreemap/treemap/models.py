@@ -8,9 +8,6 @@ from django.contrib.auth.models import AbstractUser
 
 import hashlib
 
-class User(AbstractUser):
-    pass
-
 class Instance(models.Model):
     """
     Each "Tree Map" is a single instance
@@ -52,6 +49,8 @@ class Instance(models.Model):
     """ Center of the map when loading the instance """
     center = models.PointField(srid=3857)
 
+    default_role = models.ForeignKey('Role', related_name='default_role')
+
     objects = models.GeoManager()
 
     def __unicode__(self):
@@ -68,6 +67,51 @@ class Instance(models.Model):
     def scope_model(self, model):
         qs = model.objects.filter(instance=self)
         return qs
+
+class Role(models.Model):
+    name = models.CharField(max_length=255)
+    instance = models.ForeignKey(Instance, null=True, blank=True)
+    rep_thresh = models.IntegerField()
+
+class FieldPermission(models.Model):
+    model_name = models.CharField(max_length=255)
+    field_name = models.CharField(max_length=255)
+    role = models.ForeignKey(Role)
+    instance = models.ForeignKey(Instance)
+
+    NONE = 0
+    READ_ONLY = 1
+    WRITE_WITH_AUDIT = 2
+    WRITE_DIRECTLY = 3
+    permission_level = models.IntegerField(choices=(
+            (NONE, "None"), # reserving zero in case we want to create a "null-permission" later
+            (READ_ONLY, "Read Only"),
+            (WRITE_WITH_AUDIT, "Write with Audit"),
+            (WRITE_DIRECTLY, "Write Directly")))
+
+    @property
+    def allows_writes(self):
+        return self.permission_level >= self.WRITE_WITH_AUDIT
+
+class User(AbstractUser):
+    roles = models.ManyToManyField(Role, blank=True, null=True)
+
+    def get_instance_permissions(self, instance, model_name=None):
+        roles = self.roles.filter(instance=instance)
+
+        if len(roles) > 1:
+            error_message = "%s cannot have more than one role per instance. Something"\
+                            "might be very wrong with your database configuration." % self.pk
+            raise IntegrityError(error_message)
+        elif len(roles) == 1:
+            perms = FieldPermission.objects.filter(role=roles[0])
+        else:
+            perms = FieldPermission.objects.filter(role=instance.default_role)
+
+        if model_name:
+            perms = perms.filter(model_name=model_name)
+            
+        return perms
 
 class Species(models.Model):
     """
