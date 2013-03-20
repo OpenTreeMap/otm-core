@@ -3,7 +3,8 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib.gis.db import models
-from treemap.audit import Auditable, Audit
+from django.db import IntegrityError
+from treemap.audit import Auditable, Audit, Authorizable
 from django.contrib.auth.models import AbstractUser
 
 import hashlib
@@ -163,7 +164,7 @@ class ImportEvent(models.Model):
 #TODO:
 # Exclusion Zones
 # Proximity validation
-class Plot(Auditable, models.Model):
+class Plot(Authorizable, Auditable, models.Model):
     instance = models.ForeignKey(Instance)
     geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
 
@@ -201,7 +202,7 @@ class Plot(Auditable, models.Model):
         else:
             return []
 
-class Tree(Auditable, models.Model):
+class Tree(Authorizable, Auditable, models.Model):
     """
     Represents a single tree, belonging to an instance
     """
