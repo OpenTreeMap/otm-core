@@ -91,6 +91,10 @@ class FieldPermission(models.Model):
             (WRITE_DIRECTLY, "Write Directly")))
 
     @property
+    def allows_reads(self):
+        return self.permission_level >= self.READ_ONLY
+
+    @property
     def allows_writes(self):
         return self.permission_level >= self.WRITE_WITH_AUDIT
 

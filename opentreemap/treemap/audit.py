@@ -70,6 +70,12 @@ class Authorizable(UserTrackable):
     edits they have attempted to make.
     """
 
+    def __init__(self, *args, **kwargs):
+        super(Authorizable, self).__init__(*args, **kwargs)
+
+        self._exempt_field_names = { 'instance','created_by','id' }
+        self._has_been_clobbered = False
+
     def _write_perm_comparison_sets(self, user):
         """
         Helper method for comparing a user's write
@@ -86,6 +92,7 @@ class Authorizable(UserTrackable):
         field permissions on a model.
         """
         perm_set, field_set = self._write_perm_comparison_sets(user)
+        field_set = field_set - self._exempt_field_names
         return perm_set == field_set
 
     def _user_can_create(self, user):
@@ -93,12 +100,44 @@ class Authorizable(UserTrackable):
         A user is able to create an object if they have permission on
         any of the fields in that model.
         """
-        perm_set, field_set = self._write_perm_comparison_sets(user)
-        return field_set.intersection(perm_set) is not None
+        can_create = True
+        
+        perm_set, _ = self._write_perm_comparison_sets(user)
+        for field in self._meta.fields:
+            if (not field.null and
+                not field.blank and
+                not field.primary_key and
+                field.name not in self._exempt_field_names):
+                if field.name not in perm_set:
+                    can_create =  False
+                    break
+
+        return can_create
  
+    def _assert_not_clobbered(self):
+        """
+        Raises an exception if the object has been clobbered.
+        This assertion should be called by any method that
+        shouldn't operate on clobbered models.
+        """
+        if self._has_been_clobbered:
+            raise AuthorizeException("Operation cannot be performed on a clobbered object.")
+
+    def clobber_unauthorized(self, user):
+        perms = user.get_instance_permissions(self.instance, self._model_name)
+        readable_fields = { perm.field_name for perm in perms if perm.allows_reads }
+        fields = set(self._previous_state.keys())
+        unreadable_fields = fields - readable_fields
+        
+        for field_name in unreadable_fields:
+            if field_name not in self._exempt_field_names:
+                setattr(self, field_name, None)
+
+        self._has_been_clobbered = True
+
     def save_with_user(self, user, *args, **kwargs):
-        assert(hasattr(self, 'instance'))
-       
+        self._assert_not_clobbered()
+      
         if self.pk is not None:
             writable_perms, _ = self._write_perm_comparison_sets(user)
             for field in self._updated_fields():
@@ -111,6 +150,15 @@ class Authorizable(UserTrackable):
                                      (user, self._model_name))
             
         super(Authorizable, self).save_with_user(user, *args, **kwargs)
+
+    def delete_with_user(self, user, *args, **kwargs):
+        self._assert_not_clobbered()
+
+        if self._user_can_delete(user):
+            super(Authorizable, self).delete_with_user(user, *args, **kwargs)
+        else:
+            raise AuthorizeException("%s does not have permission to delete %s objects." %
+                                     (user, self._model_name))
 
 
 class AuditException(Exception):
