@@ -25,7 +25,7 @@ class Instance(models.Model):
     basemap_type = models.CharField(max_length=255,
                                     choices=(("google", "Google"),
                                              ("bing", "Bing"),
-                                             ("tms", "Tile Mapping Service")),
+                                             ("tms", "Tile Map Service")),
                                     default="google")
     basemap_data = models.CharField(max_length=255, null=True, blank=True)
 
@@ -111,7 +111,7 @@ class User(AbstractUser):
 
         if model_name:
             perms = perms.filter(model_name=model_name)
-            
+
         return perms
 
 class Species(models.Model):
