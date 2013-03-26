@@ -38,12 +38,12 @@ class HashModelTest(TestCase):
         self.instance, self.user = make_instance_and_user()
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
-        for field in ('length', 'width', 'address_street'):
+        for field in ('length', 'width', 'address_street', 'geom'):
             FieldPermission(model_name='Plot',field_name=field,
                             role=self.user.roles.all()[0],
                             instance=self.instance, 
                             permission_level=FieldPermission.WRITE_DIRECTLY).save()
-        for field in ('readonly',):
+        for field in ('readonly','plot'):
             FieldPermission(model_name='Tree',field_name=field,
                             role=self.user.roles.all()[0],
                             instance=self.instance, 
@@ -102,10 +102,15 @@ class GeoRevIncr(TestCase):
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
         self.instance, self.user = make_instance_and_user()
-        FieldPermission(model_name='Plot',field_name='geom',
-                        permission_level=FieldPermission.WRITE_DIRECTLY,
-                        role=self.user.roles.all()[0],
-                        instance=self.instance).save()
+        for field in ('geom','width','length','address_street',
+                      'address_city','address_zip','import_event',
+                      'owner_orig_id','readonly'):
+            FieldPermission(model_name='Plot',field_name=field,
+                            permission_level=FieldPermission.WRITE_DIRECTLY,
+                            role=self.user.roles.all()[0],
+                            instance=self.instance).save()
+
+
 
     def hash_and_rev(self):
         i = Instance.objects.get(pk=self.instance.pk)
@@ -154,6 +159,9 @@ class UserRoleFieldPermissionTest(TestCase):
         self.p1 = Point(-8515941.0, 4953519.0)
         self.instance, _ = make_instance_and_user()
 
+        self.commander_role = Role(name='commander', instance=self.instance, rep_thresh=3)
+        self.commander_role.save()
+
         self.officer_role = Role(name='officer', instance=self.instance, rep_thresh=3)
         self.officer_role.save()
 
@@ -163,6 +171,23 @@ class UserRoleFieldPermissionTest(TestCase):
         self.outlaw_role = Role(name='outlaw', instance=self.instance, rep_thresh=1)
         self.outlaw_role.save()
 
+        for field in ('geom','width','length','address_street',
+                      'address_city','address_zip','import_event',
+                      'owner_orig_id','readonly'):
+            FieldPermission(model_name='Plot',field_name=field,
+                            permission_level=FieldPermission.WRITE_DIRECTLY,
+                            role=self.commander_role,
+                            instance=self.instance).save()
+
+        for field in ('plot','species','import_event',
+                      'readonly','diameter','height','canopy_height',
+                      'date_planted','date_removed'):
+            FieldPermission(model_name='Tree',field_name=field,
+                            role=self.commander_role,
+                            instance=self.instance, 
+                            permission_level=FieldPermission.WRITE_DIRECTLY).save()
+
+
         permissions = (
             ('Plot', 'geom',  self.officer_role, self.instance, 3),
             ('Plot', 'length',  self.officer_role, self.instance, 3),
@@ -171,6 +196,7 @@ class UserRoleFieldPermissionTest(TestCase):
             ('Plot', 'length',  self.observer_role, self.instance, 1),
 
             ('Tree', 'diameter',  self.officer_role, self.instance, 3),
+            ('Tree', 'plot',  self.officer_role, self.instance, 3),
             ('Tree', 'height',  self.officer_role, self.instance, 3),
 
             ('Tree', 'diameter',  self.observer_role, self.instance, 1),
@@ -181,6 +207,10 @@ class UserRoleFieldPermissionTest(TestCase):
             fp = FieldPermission()
             fp.model_name, fp.field_name, fp.role, fp.instance, fp.permission_level = perm
             fp.save()
+
+        self.commander = User(username="commander")
+        self.commander.save()
+        self.commander.roles.add(self.commander_role)
 
         self.officer = User(username="officer")
         self.officer.save()
@@ -229,6 +259,60 @@ class UserRoleFieldPermissionTest(TestCase):
         self.tree.diameter = 10
         self.tree.save_with_user(self.officer)
         self.assertEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
+
+    def test_save_new_object_authorized(self):
+        '''Save two new objects with authorized user, nothing should happen'''
+        plot = Plot(geom=self.p1, instance=self.instance, created_by=self.officer)
+        plot.save_with_user(self.officer)
+        tree = Tree(plot=plot, instance=self.instance, created_by=self.officer)
+        tree.save_with_user(self.officer)
+
+    def test_save_new_object_unauthorized(self):
+        plot = Plot(geom=self.p1, instance=self.instance, created_by=self.outlaw)
+        self.assertRaises(AuthorizeException, plot.save_with_user, self.outlaw)
+        tree = Tree(plot=plot, instance=self.instance, created_by=self.outlaw)
+        self.assertRaises(AuthorizeException, tree.save_with_user, self.outlaw)
+
+    def test_delete_object(self):
+        self.assertRaises(AuthorizeException, self.tree.delete_with_user, self.outlaw)
+        self.assertRaises(AuthorizeException, self.plot.delete_with_user, self.outlaw)
+
+        self.assertRaises(AuthorizeException, self.tree.delete_with_user, self.officer)
+        self.assertRaises(AuthorizeException, self.plot.delete_with_user, self.officer)
+
+        self.tree.delete_with_user(self.commander)
+        self.plot.delete_with_user(self.commander)
+
+    def test_clobbering_authorized(self):
+        "When clobbering with a superuser, nothing should happen"
+        self.plot.width = 5
+        self.plot.save_with_user(self.commander)
+
+        plot = Plot.objects.get(pk=self.plot.pk)
+        plot.clobber_unauthorized(self.commander)
+        self.assertEqual(self.plot.width, plot.width)
+
+    def test_clobbering_unauthorized(self):
+        "Clobbering changes an unauthorized field to None"
+        self.plot.width = 5
+        self.plot.save_base()
+
+        plot = Plot.objects.get(pk=self.plot.pk)
+        plot.clobber_unauthorized(self.observer)
+        self.assertEqual(None, plot.width)
+
+        plot = Plot.objects.get(pk=self.plot.pk)
+        plot.clobber_unauthorized(self.outlaw)
+        self.assertEqual(None, plot.width)
+
+    def test_clobbering_whole_queryset(self):
+        "Clobbering also works on entire querysets"
+        self.plot.width = 5
+        self.plot.save_base()
+
+        plots = Plot.objects.filter(pk=self.plot.pk)
+        plot = Plot.clobber_queryset(plots, self.observer)[0]
+        self.assertEqual(None, plot.width)
 
     def test_write_fails_if_any_fields_cant_be_written(self):
         """ If a user tries to modify several fields simultaneously,
@@ -281,6 +365,16 @@ class ScopeModelTest(TestCase):
         self.instance2 = Instance(name='i2',geo_rev=1,center=p2,default_role=self.global_role)
         self.instance2.save()
 
+        for i in [self.instance1, self.instance2]:
+            FieldPermission(model_name='Plot',field_name='geom',
+                            permission_level=FieldPermission.WRITE_DIRECTLY,
+                            role=self.global_role,
+                            instance=i).save()
+            FieldPermission(model_name='Tree',field_name='plot',
+                            permission_level=FieldPermission.WRITE_DIRECTLY,
+                            role=self.global_role,
+                            instance=i).save()
+
         self.user = User(username='Benjamin')
         self.user.save()
 
@@ -330,15 +424,19 @@ class AuditTest(TestCase):
         role.save()
         self.user2.roles.add(role)
 
-        for field in ('readonly',):
-            FieldPermission(model_name='Tree',field_name=field,
-                            role=self.user1.roles.all()[0],
-                            instance=self.instance, 
+        for user in [self.user1, self.user2]:
+            FieldPermission(model_name='Plot',field_name='geom',
+                            role=user.roles.all()[0],
+                            instance=self.instance,  
                             permission_level=FieldPermission.WRITE_DIRECTLY).save()
-            FieldPermission(model_name='Tree',field_name=field,
-                            role=self.user2.roles.all()[0],
-                            instance=self.instance, 
-                            permission_level=FieldPermission.WRITE_DIRECTLY).save()
+
+            for field in ('plot','species','import_event',
+                          'readonly','diameter','height','canopy_height',
+                          'date_planted','date_removed'):
+                FieldPermission(model_name='Tree',field_name=field,
+                                role=user.roles.all()[0],
+                                instance=self.instance, 
+                                permission_level=FieldPermission.WRITE_DIRECTLY).save()
 
 
     def assertAuditsEqual(self, exps, acts):
