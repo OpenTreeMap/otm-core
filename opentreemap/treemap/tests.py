@@ -260,17 +260,18 @@ class UserRoleFieldPermissionTest(TestCase):
         self.tree.save_with_user(self.officer)
         self.assertEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
 
-    def test_save_new_object(self):
-        # Save two new objects with authorized user, nothing should happen
-        plot1 = Plot(geom=self.p1, instance=self.instance, created_by=self.officer)
-        plot1.save_with_user(self.officer)
-        tree1 = Tree(plot=plot1, instance=self.instance, created_by=self.officer)
-        tree1.save_with_user(self.officer)
+    def test_save_new_object_authorized(self):
+        '''Save two new objects with authorized user, nothing should happen'''
+        plot = Plot(geom=self.p1, instance=self.instance, created_by=self.officer)
+        plot.save_with_user(self.officer)
+        tree = Tree(plot=plot, instance=self.instance, created_by=self.officer)
+        tree.save_with_user(self.officer)
 
-        plot2 = Plot(geom=self.p1, instance=self.instance, created_by=self.outlaw)
-        self.assertRaises(AuthorizeException, plot2.save_with_user, self.outlaw)
-        tree2 = Tree(plot=plot2, instance=self.instance, created_by=self.outlaw)
-        self.assertRaises(AuthorizeException, tree2.save_with_user, self.outlaw)
+    def test_save_new_object_unauthorized(self):
+        plot = Plot(geom=self.p1, instance=self.instance, created_by=self.outlaw)
+        self.assertRaises(AuthorizeException, plot.save_with_user, self.outlaw)
+        tree = Tree(plot=plot, instance=self.instance, created_by=self.outlaw)
+        self.assertRaises(AuthorizeException, tree.save_with_user, self.outlaw)
 
     def test_delete_object(self):
         self.assertRaises(AuthorizeException, self.tree.delete_with_user, self.outlaw)
@@ -282,13 +283,19 @@ class UserRoleFieldPermissionTest(TestCase):
         self.tree.delete_with_user(self.commander)
         self.plot.delete_with_user(self.commander)
 
-    def test_clobbering(self):
+    def test_clobbering_authorized(self):
+        "When clobbering with a superuser, nothing should happen"
         self.plot.width = 5
         self.plot.save_with_user(self.commander)
 
         plot = Plot.objects.get(pk=self.plot.pk)
         plot.clobber_unauthorized(self.commander)
         self.assertEqual(self.plot.width, plot.width)
+
+    def test_clobbering_unauthorized(self):
+        "Clobbering changes an unauthorized field to None"
+        self.plot.width = 5
+        self.plot.save_base()
 
         plot = Plot.objects.get(pk=self.plot.pk)
         plot.clobber_unauthorized(self.observer)
