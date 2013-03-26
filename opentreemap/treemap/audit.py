@@ -135,6 +135,12 @@ class Authorizable(UserTrackable):
 
         self._has_been_clobbered = True
 
+    @staticmethod
+    def clobber_queryset(qs, user):
+        for model in qs:
+            model.clobber_unauthorized(user)
+        return qs
+
     def save_with_user(self, user, *args, **kwargs):
         self._assert_not_clobbered()
       

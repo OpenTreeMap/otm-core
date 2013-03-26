@@ -305,6 +305,15 @@ class UserRoleFieldPermissionTest(TestCase):
         plot.clobber_unauthorized(self.outlaw)
         self.assertEqual(None, plot.width)
 
+    def test_clobbering_whole_queryset(self):
+        "Clobbering also works on entire querysets"
+        self.plot.width = 5
+        self.plot.save_base()
+
+        plots = Plot.objects.filter(pk=self.plot.pk)
+        plot = Plot.clobber_queryset(plots, self.observer)[0]
+        self.assertEqual(None, plot.width)
+
     def test_write_fails_if_any_fields_cant_be_written(self):
         """ If a user tries to modify several fields simultaneously,
         only some of which s/he has access to, the write will fail
