@@ -572,3 +572,31 @@ class AuditTest(TestCase):
             expected_audits,
             Audit.audits_for_model('Tree', self.instance, old_pk))
 
+class ReputationTest(TestCase):
+    def setUp(self):
+        self.instance = make_instance()
+
+        self.system_user = make_system_user()
+        self.system_user.roles.add(make_commander_role(self.instance))
+
+        self.privileged_user = make_basic_user(self.instance, "user1")
+        self.privileged_user.roles.add(make_officer_role(self.instance))
+
+        self.unprivileged_user = make_basic_user(self.instance, "user2")
+        self.unprivileged_user.roles.add(make_apprentice_role(self.instance))
+
+        self.p1 = Point(-7615441.0, 5953519.0)
+        self.plot = Plot(geom=self.p1, instance=self.instance, created_by=self.system_user)
+        self.plot.save_with_user(self.system_user)
+
+        rm = ReputationMetric(instance=self.instance, model_name='Tree',
+                              action=Audit.Type.Insert, direct_write_score=2,
+                              approval_score=20, denial_score=5)
+        rm.save()
+
+    def test_reputations_increase_for_direct_writes(self):
+        self.assertEqual(self.privileged_user.reputation, 0)
+        t = Tree(plot=self.plot, instance=self.instance, readonly=True, created_by=self.privileged_user)
+        t.save_with_user(self.privileged_user)
+        self.assertGreater(self.privileged_user.reputation, 0)
+
