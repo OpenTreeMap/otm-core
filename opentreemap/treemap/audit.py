@@ -5,6 +5,11 @@ from __future__ import division
 from django.contrib.gis.db import models
 from django.forms.models import model_to_dict
 
+from django.dispatch import receiver
+from django.db.models.signals import pre_save
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
+
 import hashlib
 
 class UserTrackingException(Exception):
@@ -206,19 +211,18 @@ class Auditable(UserTrackable):
             updates['id'] = [None, self.pk]
         else:
             action = Audit.Type.Update
-        
-        audits = []
-        for [field, values] in updates.iteritems():
-            audits.append(
-                Audit(model=self._model_name, model_id=self.pk,
-                      instance=self.instance, field=field,
-                      previous_value=values[0],
-                      current_value=values[1],
-                      user=user, action=action,
-                      requires_auth=False,
-                      ref_id=None))
 
-        Audit.objects.bulk_create(audits)
+        for [field, values] in updates.iteritems():
+            audit = Audit(model=self._model_name, model_id=self.pk,
+                          field=field,
+                          previous_value=values[0],
+                          current_value=values[1],
+                          user=user, action=action,
+                          requires_auth=False,
+                          ref_id=None)
+            if hasattr(self, 'instance'):
+                audit.instance = self.instance
+            audit.save()
 
     @property
     def hash(self):
@@ -245,7 +249,7 @@ class Auditable(UserTrackable):
 class Audit(models.Model):
     model = models.CharField(max_length=255,null=True)
     model_id = models.IntegerField(null=True)
-    instance = models.ForeignKey('Instance')
+    instance = models.ForeignKey('Instance', null=True, blank=True)
     field = models.CharField(max_length=255,null=True)
     previous_value = models.CharField(max_length=255,null=True)
     current_value = models.CharField(max_length=255,null=True)
@@ -305,3 +309,60 @@ class Audit(models.Model):
         return u"ID: %s %s.%s (%s) %s => %s" % \
             (self.action, self.model, self.field, self.model_id,
              self.previous_value, self.current_value)
+
+    def is_pending(self):
+        return self.requires_auth and not self.ref_id
+
+    def was_reviewed(self):
+        return self.requires_auth and self.ref_id
+
+class ReputationMetric(models.Model):
+    """
+    Assign integer scores for each model that determine
+    how many reputation points are awarded/deducted for an
+    approved/denied audit.
+    """
+    # instance is nullable because some auditables don't have instances
+    instance = models.ForeignKey('Instance', null=True, blank=True)
+    model_name = models.CharField(max_length=255)
+    action = models.CharField(max_length=255)
+    direct_write_score = models.IntegerField(null=True, blank=True)
+    approval_score = models.IntegerField(null=True, blank=True)
+    denial_score = models.IntegerField(null=True, blank=True)
+
+    @staticmethod
+    def apply_adjustment(audit):
+        try:
+            rm = ReputationMetric.objects.get(instance=audit.instance,
+                                              model_name=audit.model,
+                                              action=audit.action)
+        except ObjectDoesNotExist:
+            return
+
+
+        if audit.was_reviewed():
+            review_audit = Audit.objects.get(id=audit.ref_id)
+            if review_audit.action == Audit.Type.PendingApprove:
+                audit.user.reputation += rm.approval_score
+                audit.user.save_base()
+            elif review_audit.action == Audit.Type.PendingReject:
+                new_score = audit.user.reputation - rm.denial_score
+                if new_score >= 0:
+                    audit.user.reputation = new_score
+                else:
+                    audit.user.reputation = 0
+                audit.user.save_base()
+            else:
+                error_message = "Referenced Audits must carry approval actions. "\
+                    "They must have an action of PendingApprove or Pending Reject. "\
+                    "Something might be very wrong with your database configuration."
+                raise IntegrityError(error_message)
+        elif not audit.requires_auth:
+            audit.user.reputation += rm.direct_write_score
+            audit.user.save_base()
+
+
+@receiver(pre_save, sender=Audit)
+def audit_presave_actions(sender, instance, **kwargs):
+    ReputationMetric.apply_adjustment(instance)
+
