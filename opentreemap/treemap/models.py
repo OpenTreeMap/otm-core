@@ -4,7 +4,7 @@ from __future__ import division
 
 from django.contrib.gis.db import models
 from django.db import IntegrityError
-from treemap.audit import Auditable, Audit, Authorizable
+from treemap.audit import Auditable, Audit, Authorizable, ReputationMetric
 from django.contrib.auth.models import AbstractUser
 
 import hashlib
@@ -84,11 +84,13 @@ class FieldPermission(models.Model):
     READ_ONLY = 1
     WRITE_WITH_AUDIT = 2
     WRITE_DIRECTLY = 3
-    permission_level = models.IntegerField(choices=(
+    permission_level = models.IntegerField(
+        choices=(
             (NONE, "None"), # reserving zero in case we want to create a "null-permission" later
             (READ_ONLY, "Read Only"),
             (WRITE_WITH_AUDIT, "Write with Audit"),
-            (WRITE_DIRECTLY, "Write Directly")))
+            (WRITE_DIRECTLY, "Write Directly")),
+        default=NONE)
 
     @property
     def allows_reads(self):
@@ -98,8 +100,9 @@ class FieldPermission(models.Model):
     def allows_writes(self):
         return self.permission_level >= self.WRITE_WITH_AUDIT
 
-class User(AbstractUser):
+class User(Auditable, AbstractUser):
     roles = models.ManyToManyField(Role, blank=True, null=True)
+    reputation = models.IntegerField(default=0)
 
     def get_instance_permissions(self, instance, model_name=None):
         roles = self.roles.filter(instance=instance)
