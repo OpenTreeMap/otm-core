@@ -3,6 +3,8 @@ from fabric.api import cd, run, require, sudo, env, local
 
 import os
 
+env.use_ssh_config = True
+
 def _set_default_paths(env):
     """ Modify the fabric environment to have default otm paths set """
 
