@@ -7,7 +7,9 @@ from django.contrib.gis.geos import Point
 from django.utils import translation
 from optparse import make_option
 
-from treemap.models import Instance, User, Plot, Tree, ImportEvent
+from treemap.models import Instance, User, Plot, Tree, ImportEvent,\
+    FieldPermission, Role
+
 import random
 import math
 
@@ -54,6 +56,31 @@ class Command(BaseCommand):
             return 1
         else:
             user = user[0]
+
+        if user.roles.count() == 0:
+            print('Added global role to user')
+            r = Role(name='global', rep_thresh=0, instance=instance)
+            r.save()
+            user.roles.add(r)
+            user.save()
+
+        for field in ('geom','created_by','import_event'):
+            _, c = FieldPermission.objects.get_or_create(
+                model_name='Plot',field_name=field,
+                role=user.roles.all()[0],
+                instance=instance,
+                permission_level=FieldPermission.WRITE_DIRECTLY)
+            if c:
+                print('Created plot permission for field "%s"' % field)
+
+        for field in ('plot','created_by'):
+            _, c = FieldPermission.objects.get_or_create(
+                model_name='Tree',field_name=field,
+                role=user.roles.all()[0],
+                instance=instance,
+                permission_level=FieldPermission.WRITE_DIRECTLY)
+            if c:
+                print('Created tree permission for field "%s"' % field)
 
         dt = 0
         dp = 0
