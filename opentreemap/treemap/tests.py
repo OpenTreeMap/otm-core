@@ -104,7 +104,7 @@ def make_system_user():
     return system_user
 
 def make_basic_user(instance, username):
-    """ A helper function for making an instance and user 
+    """ A helper function for making an instance and user
 
     You'll still want to load the permissions you need for each
     test onto the user's role. """
@@ -113,7 +113,7 @@ def make_basic_user(instance, username):
     user = User(username=username)
     user.save_with_user(system_user)
     return user
-    
+
 def make_instance_and_basic_user():
     instance = make_instance()
     basic_user = make_basic_user(instance, "custom_user")
@@ -572,6 +572,58 @@ class AuditTest(TestCase):
             expected_audits,
             Audit.audits_for_model('Tree', self.instance, old_pk))
 
+class PendingTest(TestCase):
+    def setUp(self):
+        self.instance = make_instance()
+        self.system_user = make_system_user()
+        self.system_user.roles.add(make_commander_role(self.instance))
+
+        self.direct_user = make_basic_user(self.instance, "user write direct")
+        self.direct_user.roles.add(make_officer_role(self.instance))
+
+        self.pending_user = make_basic_user(self.instance, "user pdg")
+        self.pending_user.roles.add(make_apprentice_role(self.instance))
+
+        self.p1 = Point(-7615441.0, 5953519.0)
+        self.plot = Plot(geom=self.p1, instance=self.instance,
+                         created_by=self.system_user)
+        self.plot.save_with_user(self.direct_user)
+
+    def test_simple_pending(self):
+        readonly_orig = self.plot.readonly
+        readonly_new = not readonly_orig
+
+        pending_audits_q = Audit.objects.filter(requires_auth=True)
+        self.assertEqual(0, pending_audits_q.count())
+
+        self.plot.readonly = readonly_new
+        self.plot.save_with_user(self.pending_user)
+
+        # Make sure change was reverted on the in-memory object
+        self.assertEqual(self.plot.readonly, readonly_orig)
+        # Make sure change wasn't serialzied to the database
+        self.assertEqual(Plot.objects.get(pk=self.plot.pk).readonly,
+                         readonly_orig)
+
+        self.assertEqual(1, pending_audits_q.count())
+        audit = pending_audits_q[0]
+
+        self.assertTrue(audit.requires_auth)
+        self.assertEqual(audit.model_id, self.plot.pk)
+
+        self.plot.readonly = readonly_new
+        self.plot.save_with_user(self.system_user)
+
+        # Make sure change was applied on the in-memory object
+        self.assertEqual(self.plot.readonly, readonly_new)
+        # Make sure change was serialzied to the database
+        self.assertEqual(Plot.objects.get(pk=self.plot.pk).readonly,
+                         readonly_new)
+
+        # This shouldn't change, no more pending objects created
+        self.assertEqual(1, pending_audits_q.count())
+
+
 class ReputationTest(TestCase):
     def setUp(self):
         self.instance = make_instance()
@@ -599,4 +651,3 @@ class ReputationTest(TestCase):
         t = Tree(plot=self.plot, instance=self.instance, readonly=True, created_by=self.privileged_user)
         t.save_with_user(self.privileged_user)
         self.assertGreater(self.privileged_user.reputation, 0)
-

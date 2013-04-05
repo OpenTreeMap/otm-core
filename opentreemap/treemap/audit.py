@@ -140,6 +140,7 @@ class Authorizable(UserTrackable):
         can_create = True
 
         perm_set, _ = self._write_perm_comparison_sets(user)
+
         for field in self._meta.fields:
             if (not field.null and
                 not field.blank and
@@ -159,6 +160,25 @@ class Authorizable(UserTrackable):
         """
         if self._has_been_clobbered:
             raise AuthorizeException("Operation cannot be performed on a clobbered object.")
+
+    def get_pending_fields(self, user):
+        """
+        Get a list of fields that are currently being update which would
+        require a pending edit
+
+        Note: Since Authorizable doesn't control what happens to "pending" or
+        "write with audit" fields it is the subclasses responsibility to handle
+        the difference. A naive implementation (i.e. just subclassing Authorizable)
+        treats "write with audit" that same as "write directly"
+        """
+        perms = user.get_instance_permissions(self.instance, self._model_name)
+        fields_to_audit = []
+        for perm in user.get_instance_permissions(self.instance, self._model_name):
+            if (perm.permission_level == FieldPermission.WRITE_WITH_AUDIT and
+                perm.field_name in self._updated_fields()):
+                fields_to_audit.append(perm.field_name)
+
+        return fields_to_audit
 
     def clobber_unauthorized(self, user):
         perms = user.get_instance_permissions(self.instance, self._model_name)
@@ -193,6 +213,7 @@ class Authorizable(UserTrackable):
                                      (user, self._model_name))
 
         super(Authorizable, self).save_with_user(user, *args, **kwargs)
+
 
     def delete_with_user(self, user, *args, **kwargs):
         self._assert_not_clobbered()
@@ -236,25 +257,48 @@ class Auditable(UserTrackable):
         updates = self._updated_fields()
 
         is_insert = self.pk is None
-        super(Auditable, self).save_with_user(user, *args, **kwargs)
-
         if is_insert:
             action = Audit.Type.Insert
-            updates['id'] = [None, self.pk]
         else:
             action = Audit.Type.Update
 
-        for [field, values] in updates.iteritems():
-            audit = Audit(model=self._model_name, model_id=self.pk,
-                          field=field,
-                          previous_value=values[0],
-                          current_value=values[1],
-                          user=user, action=action,
-                          requires_auth=False,
-                          ref_id=None)
+        # This field is populated if a given object is both
+        # auditable and authorizable. It is sort of a leaky
+        # abstraction - given that it is tightly coupling
+        # Auditable and Authorizable
+        pending_audits = []
+        if hasattr(self, 'get_pending_fields'):
+            pending = self.get_pending_fields(user)
+            for pending_field in pending:
+                pending_audits.append((pending_field, updates[pending_field]))
+
+                # Clear changes to object
+                oldval = updates[pending_field][0]
+                setattr(self, pending_field, oldval)
+
+        super(Auditable, self).save_with_user(user, *args, **kwargs)
+
+        if is_insert:
+            updates['id'] = [None, self.pk]
+
+        def make_audit_and_save(field, prev_val, cur_val, pending):
+            instance = None
             if hasattr(self, 'instance'):
-                audit.instance = self.instance
-            audit.save()
+                instance = self.instance
+
+            Audit(model=self._model_name, model_id=self.pk,
+                  instance=instance, field=field,
+                  previous_value=prev_val,
+                  current_value=cur_val,
+                  user=user, action=action,
+                  requires_auth=pending,
+                  ref_id=None).save()
+
+        for [field, values] in updates.iteritems():
+            make_audit_and_save(field, values[0], values[1], False)
+
+        for (field, (prev_val, next_val)) in pending_audits:
+            make_audit_and_save(field, prev_val, next_val, True)
 
     @property
     def hash(self):
