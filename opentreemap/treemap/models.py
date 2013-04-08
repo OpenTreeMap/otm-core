@@ -4,7 +4,9 @@ from __future__ import division
 
 from django.contrib.gis.db import models
 from django.db import IntegrityError
-from treemap.audit import Auditable, Audit, Authorizable, ReputationMetric
+from treemap.audit import Auditable, Audit, Authorizable,\
+    ReputationMetric, FieldPermission, Role
+
 from django.contrib.auth.models import AbstractUser
 
 import hashlib
@@ -68,37 +70,6 @@ class Instance(models.Model):
     def scope_model(self, model):
         qs = model.objects.filter(instance=self)
         return qs
-
-class Role(models.Model):
-    name = models.CharField(max_length=255)
-    instance = models.ForeignKey(Instance, null=True, blank=True)
-    rep_thresh = models.IntegerField()
-
-class FieldPermission(models.Model):
-    model_name = models.CharField(max_length=255)
-    field_name = models.CharField(max_length=255)
-    role = models.ForeignKey(Role)
-    instance = models.ForeignKey(Instance)
-
-    NONE = 0
-    READ_ONLY = 1
-    WRITE_WITH_AUDIT = 2
-    WRITE_DIRECTLY = 3
-    permission_level = models.IntegerField(
-        choices=(
-            (NONE, "None"), # reserving zero in case we want to create a "null-permission" later
-            (READ_ONLY, "Read Only"),
-            (WRITE_WITH_AUDIT, "Write with Audit"),
-            (WRITE_DIRECTLY, "Write Directly")),
-        default=NONE)
-
-    @property
-    def allows_reads(self):
-        return self.permission_level >= self.READ_ONLY
-
-    @property
-    def allows_writes(self):
-        return self.permission_level >= self.WRITE_WITH_AUDIT
 
 class User(Auditable, AbstractUser):
     roles = models.ManyToManyField(Role, blank=True, null=True)
