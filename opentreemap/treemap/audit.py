@@ -65,6 +65,38 @@ class UserTrackable(object):
             'All deletes to %s objects must be saved via "delete_with_user"' %
             (self._model_name))
 
+class Role(models.Model):
+    name = models.CharField(max_length=255)
+    instance = models.ForeignKey('Instance', null=True, blank=True)
+    rep_thresh = models.IntegerField()
+
+class FieldPermission(models.Model):
+    model_name = models.CharField(max_length=255)
+    field_name = models.CharField(max_length=255)
+    role = models.ForeignKey(Role)
+    instance = models.ForeignKey('Instance')
+
+    NONE = 0
+    READ_ONLY = 1
+    WRITE_WITH_AUDIT = 2
+    WRITE_DIRECTLY = 3
+    permission_level = models.IntegerField(
+        choices=(
+            (NONE, "None"), # reserving zero in case we want to create a "null-permission" later
+            (READ_ONLY, "Read Only"),
+            (WRITE_WITH_AUDIT, "Write with Audit"),
+            (WRITE_DIRECTLY, "Write Directly")),
+        default=NONE)
+
+    @property
+    def allows_reads(self):
+        return self.permission_level >= self.READ_ONLY
+
+    @property
+    def allows_writes(self):
+        return self.permission_level >= self.WRITE_WITH_AUDIT
+
+
 class AuthorizeException(Exception):
     def __init__(self, name):
         super(Exception, self).__init__(name)
@@ -93,7 +125,7 @@ class Authorizable(UserTrackable):
 
     def _user_can_delete(self, user):
         """
-        A user is able to delete an object if they have all 
+        A user is able to delete an object if they have all
         field permissions on a model.
         """
         perm_set, field_set = self._write_perm_comparison_sets(user)
@@ -106,7 +138,7 @@ class Authorizable(UserTrackable):
         any of the fields in that model.
         """
         can_create = True
-        
+
         perm_set, _ = self._write_perm_comparison_sets(user)
         for field in self._meta.fields:
             if (not field.null and
@@ -118,7 +150,7 @@ class Authorizable(UserTrackable):
                     break
 
         return can_create
- 
+
     def _assert_not_clobbered(self):
         """
         Raises an exception if the object has been clobbered.
@@ -133,7 +165,7 @@ class Authorizable(UserTrackable):
         readable_fields = { perm.field_name for perm in perms if perm.allows_reads }
         fields = set(self._previous_state.keys())
         unreadable_fields = fields - readable_fields
-        
+
         for field_name in unreadable_fields:
             if field_name not in self._exempt_field_names:
                 setattr(self, field_name, None)
@@ -148,18 +180,18 @@ class Authorizable(UserTrackable):
 
     def save_with_user(self, user, *args, **kwargs):
         self._assert_not_clobbered()
-      
+
         if self.pk is not None:
             writable_perms, _ = self._write_perm_comparison_sets(user)
             for field in self._updated_fields():
                 if field not in writable_perms:
-                    raise AuthorizeException("Can't edit field %s on %s" % 
+                    raise AuthorizeException("Can't edit field %s on %s" %
                                             ( field, self._model_name))
 
         elif not self._user_can_create(user):
             raise AuthorizeException("%s does not have permission to create new %s objects." %
                                      (user, self._model_name))
-            
+
         super(Authorizable, self).save_with_user(user, *args, **kwargs)
 
     def delete_with_user(self, user, *args, **kwargs):
@@ -365,4 +397,3 @@ class ReputationMetric(models.Model):
 @receiver(pre_save, sender=Audit)
 def audit_presave_actions(sender, instance, **kwargs):
     ReputationMetric.apply_adjustment(instance)
-
