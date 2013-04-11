@@ -46,6 +46,9 @@ class EcoTest(TestCase):
 
         self.tree.save_with_user(self.user)
 
+    def test_group_eco(self):
+        pass #TODO: Once filtering has been enabled
+
     def test_eco_benefit_sanity(self):
         req = self.factory.get('/%s/eco/benefit/tree/%s/' %
                               (self.instance.pk, self.tree.pk))
