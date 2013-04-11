@@ -12,6 +12,100 @@ from django.db import IntegrityError
 
 import hashlib
 
+def approve_or_reject_audit_and_apply(audit, user, approved):
+    """
+    Approve or reject a given audit and apply it to the
+    underlying model if "approved" is True
+
+    audit    - Audit record to apply
+    user     - The user who is approving or rejecting
+    approved - True to generate an approval, False to
+               generate a rejection
+    """
+    # If the ref_id has already been set, this audit has
+    # already been accepted or rejected so we can't do anything
+    if audit.ref_id:
+        raise Exception('The pending status of an audit cannot be changed')
+
+    # Regardless of what we're doing, we need to make sure
+    # 'user' is authorized to approve this edit
+    _verify_user_can_apply_audit(audit, user)
+
+    pdgaudit = Audit(model=audit.model, model_id=audit.model_id,
+                     instance=audit.instance, field=audit.field,
+                     previous_value=audit.previous_value,
+                     current_value=audit.current_value,
+                     user=user)
+
+    if approved:
+        pdgaudit.action = Audit.Type.PendingApprove
+
+        TheModel = _lkp_model(audit.model)
+        obj = TheModel.objects.get(pk=audit.model_id)
+        setattr(obj, audit.field, audit.current_value)
+
+        # Not sure this is really great here, but we want to
+        # bypass all of the safety measures and simply apply
+        # the edit without generating any additional audits
+        # or triggering the auth system
+        obj.save_base()
+        pdgaudit.save()
+
+        audit.ref_id = pdgaudit
+        audit.save()
+
+    else: # Reject
+        pdgaudit.action = Audit.Type.PendingReject
+        pdgaudit.save()
+
+        audit.ref_id = pdgaudit
+        audit.save()
+
+def _lkp_model(modelname):
+    """
+    Convert a model name (as a string) into the model class
+    If the model has no prefix, it is assumed to be in the
+    'treemap.models' module
+    """
+    import importlib
+
+    if "." in modelname:
+        parts = modelname.split('.')
+        modulename = '.'.join(parts[:-1])
+        modelname = parts[-1]
+    else:
+        modulename = 'treemap.models'
+
+    m = importlib.import_module(modulename)
+    c = getattr(m, modelname)
+
+    return c
+
+def _verify_user_can_apply_audit(audit, user):
+    """
+    Make sure that user has "write direct" permissions
+    for the given audit's fields
+    """
+    perms = user.get_instance_permissions(audit.instance,
+                                          model_name=audit.model)
+
+    foundperm = False
+    for perm in perms:
+        if perm.field_name == audit.field:
+            if perm.permission_level == FieldPermission.WRITE_DIRECTLY:
+                foundperm = True
+                break
+            else:
+                raise AuthorizeException(
+                    "User %s can't edit field %s on model %s" %
+                    (user, audit.field, audit.model))
+
+    if not foundperm:
+        raise AuthorizeException(
+            "User %s can't edit field %s on model %s (No permissions found)" %
+            (user, audit.field, audit.model))
+
+
 class UserTrackingException(Exception):
     pass
 
