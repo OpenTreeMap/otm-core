@@ -133,6 +133,7 @@ INSTALLED_APPS = (
     'south',
     'treemap',
     'example',
+    'ecobenefits',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
