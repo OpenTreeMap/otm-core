@@ -4,3 +4,5 @@ env
 .#*
 local_settings.py
 /static
+.coverage
+Guardfile
