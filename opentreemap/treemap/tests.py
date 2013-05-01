@@ -10,6 +10,8 @@ from treemap.audit import Audit, AuditException, UserTrackingException, Authoriz
 from django.contrib.gis.geos import Point
 from django.core.exceptions import FieldError
 
+from audit import approve_or_reject_audit_and_apply
+
 ######################################
 ## SETUP FUNCTIONS
 ######################################
@@ -51,6 +53,7 @@ def make_officer_role(instance):
     permissions = (
         ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
         ('Plot', 'length', FieldPermission.WRITE_DIRECTLY),
+        ('Plot', 'readonly', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'height', FieldPermission.WRITE_DIRECTLY))
@@ -584,44 +587,127 @@ class PendingTest(TestCase):
         self.pending_user = make_basic_user(self.instance, "user pdg")
         self.pending_user.roles.add(make_apprentice_role(self.instance))
 
+        self.observer_user = make_basic_user(self.instance, "user obs")
+        self.observer_user.roles.add(make_observer_role(self.instance))
+
         self.p1 = Point(-7615441.0, 5953519.0)
         self.plot = Plot(geom=self.p1, instance=self.instance,
                          created_by=self.system_user)
         self.plot.save_with_user(self.direct_user)
 
-    def test_simple_pending(self):
+    def test_reject(self):
+        # Setup
         readonly_orig = self.plot.readonly
         readonly_new = not readonly_orig
-
-        pending_audits_q = Audit.objects.filter(requires_auth=True)
-        self.assertEqual(0, pending_audits_q.count())
 
         self.plot.readonly = readonly_new
         self.plot.save_with_user(self.pending_user)
 
-        # Make sure change was reverted on the in-memory object
-        self.assertEqual(self.plot.readonly, readonly_orig)
-        # Make sure change wasn't serialzied to the database
-        self.assertEqual(Plot.objects.get(pk=self.plot.pk).readonly,
-                         readonly_orig)
+        # Generated a single audit
+        audit = Audit.objects.filter(requires_auth=True)[0]
 
-        self.assertEqual(1, pending_audits_q.count())
-        audit = pending_audits_q[0]
-
+        # Should match the model
         self.assertTrue(audit.requires_auth)
         self.assertEqual(audit.model_id, self.plot.pk)
 
-        self.plot.readonly = readonly_new
-        self.plot.save_with_user(self.system_user)
+        # Users who don't have direct field access can't reject
+        # the edit
+        self.assertRaises(AuthorizeException,
+                          approve_or_reject_audit_and_apply,
+                          audit, self.observer_user, approved=False)
 
-        # Make sure change was applied on the in-memory object
-        self.assertEqual(self.plot.readonly, readonly_new)
-        # Make sure change was serialzied to the database
+        # User with write access can reject the change
+        approve_or_reject_audit_and_apply(
+            audit, self.direct_user, approved=False)
+
+        # Reload from DB
+        audit = Audit.objects.get(pk=audit.pk)
+
+        # Audit should be marked as processed
+        self.assertIsNotNone(audit.ref_id)
+
+        # Ref'd audit should note rejection
+        refaudit = Audit.objects.get(pk=audit.ref_id.pk)
+        self.assertEqual(refaudit.user, self.direct_user)
+        self.assertEqual(refaudit.action, Audit.Type.PendingReject)
+
+        # The object shouldn't have changed
+        self.assertEqual(Plot.objects.get(pk=self.plot.pk).readonly,
+                         readonly_orig)
+
+        ohash = Plot.objects.get(pk=self.plot.pk).hash
+
+        # Can't reject a pending edit twice
+        self.assertRaises(Exception,
+                          approve_or_reject_audit_and_apply,
+                          audit, self.direct_user, approved=False)
+
+        # Can't approve a pending edit once rejected
+        self.assertRaises(Exception,
+                          approve_or_reject_audit_and_apply,
+                          audit, self.direct_user, approved=False)
+
+        # Nothing was changed, no audits were added
+        self.assertEqual(ohash,
+                         Plot.objects.get(pk=self.plot.pk).hash)
+
+
+    def test_accept(self):
+        # Setup
+        readonly_orig = self.plot.readonly
+        readonly_new = not readonly_orig
+
+        self.plot.readonly = readonly_new
+        self.plot.save_with_user(self.pending_user)
+
+        # Generated a single audit
+        audit = Audit.objects.filter(requires_auth=True)[0]
+
+        # Should match the model
+        self.assertTrue(audit.requires_auth)
+        self.assertEqual(audit.model_id, self.plot.pk)
+
+        # Users who don't have direct field access can't accept
+        # the edit
+        self.assertRaises(AuthorizeException,
+                          approve_or_reject_audit_and_apply,
+                          audit, self.observer_user, approved=True)
+
+        # User with write access can apply the change
+        approve_or_reject_audit_and_apply(
+            audit, self.direct_user, approved=True)
+
+        # Reload from DB
+        audit = Audit.objects.get(pk=audit.pk)
+
+        # Audit should be marked as processed
+        self.assertIsNotNone(audit.ref_id)
+
+        # Ref'd audit should note approval
+        refaudit = Audit.objects.get(pk=audit.ref_id.pk)
+        self.assertEqual(refaudit.user, self.direct_user)
+        self.assertEqual(refaudit.action, Audit.Type.PendingApprove)
+
+        # The object should be updated
         self.assertEqual(Plot.objects.get(pk=self.plot.pk).readonly,
                          readonly_new)
 
-        # This shouldn't change, no more pending objects created
-        self.assertEqual(1, pending_audits_q.count())
+        ohash = Plot.objects.get(pk=self.plot.pk).hash
+
+        # Can't approve a pending edit twice
+        self.assertRaises(Exception,
+                          approve_or_reject_audit_and_apply,
+                          audit, self.direct_user, approved=True)
+
+        # Can't reject a pending edit once approved
+        self.assertRaises(Exception,
+                          approve_or_reject_audit_and_apply,
+                          audit, self.direct_user, approved=False)
+
+        # Nothing was changed, no audits were added
+        self.assertEqual(ohash,
+                         Plot.objects.get(pk=self.plot.pk).hash)
+
 
 
 class ReputationTest(TestCase):
