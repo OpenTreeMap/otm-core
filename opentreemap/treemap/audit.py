@@ -61,6 +61,8 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
         audit.ref_id = pdgaudit
         audit.save()
 
+    return pdgaudit
+
 def _lkp_model(modelname):
     """
     Convert a model name (as a string) into the model class
@@ -370,6 +372,12 @@ class Auditable(UserTrackable):
                 oldval = updates[pending_field][0]
                 setattr(self, pending_field, oldval)
 
+
+                # If a field is a "pending field" then it should
+                # be logically removed from the fields that are being
+                # marked as "updated"
+                del updates[pending_field]
+
         super(Auditable, self).save_with_user(user, *args, **kwargs)
 
         if is_insert:
@@ -440,8 +448,8 @@ class Audit(models.Model):
     requires_auth = models.BooleanField(default=False)
     ref_id = models.ForeignKey('Audit', null=True)
 
-    created = models.DateField(auto_now_add=True)
-    updated = models.DateField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     class Type:
         Insert = 1
@@ -464,15 +472,15 @@ class Audit(models.Model):
     def dict(self):
         return { 'model': self.model,
                  'model_id': self.model_id,
-                 'instance_id': self.instance,
+                 'instance_id': self.instance.pk,
                  'field': self.field,
                  'previous_value': self.previous_value,
                  'current_value': self.current_value,
-                 'user_id': self.user,
+                 'user_id': self.user.pk,
                  'action': self.action,
                  'requires_auth': self.requires_auth,
-                 'ref_id': self.ref_id,
-                 'created': self.created }
+                 'ref_id': self.ref_id.pk if self.ref_id else None,
+                 'created': str(self.created) }
 
 
     def __unicode__(self):
