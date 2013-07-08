@@ -442,8 +442,8 @@ class Audit(models.Model):
     requires_auth = models.BooleanField(default=False)
     ref_id = models.ForeignKey('Audit', null=True)
 
-    created = models.DateField(auto_now_add=True)
-    updated = models.DateField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     class Type:
         Insert = 1
