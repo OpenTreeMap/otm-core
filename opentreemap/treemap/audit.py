@@ -61,6 +61,8 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
         audit.ref_id = pdgaudit
         audit.save()
 
+    return pdgaudit
+
 def _lkp_model(modelname):
     """
     Convert a model name (as a string) into the model class
