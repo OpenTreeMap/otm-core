@@ -372,6 +372,12 @@ class Auditable(UserTrackable):
                 oldval = updates[pending_field][0]
                 setattr(self, pending_field, oldval)
 
+
+                # If a field is a "pending field" then it should
+                # be logically removed from the fields that are being
+                # marked as "updated"
+                del updates[pending_field]
+
         super(Auditable, self).save_with_user(user, *args, **kwargs)
 
         if is_insert:
