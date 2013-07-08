@@ -472,15 +472,15 @@ class Audit(models.Model):
     def dict(self):
         return { 'model': self.model,
                  'model_id': self.model_id,
-                 'instance_id': self.instance,
+                 'instance_id': self.instance.pk,
                  'field': self.field,
                  'previous_value': self.previous_value,
                  'current_value': self.current_value,
-                 'user_id': self.user,
+                 'user_id': self.user.pk,
                  'action': self.action,
                  'requires_auth': self.requires_auth,
-                 'ref_id': self.ref_id,
-                 'created': self.created }
+                 'ref_id': self.ref_id.pk if self.ref_id else None,
+                 'created': str(self.created) }
 
 
     def __unicode__(self):

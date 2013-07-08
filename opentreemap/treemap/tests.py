@@ -508,11 +508,11 @@ class AuditTest(TestCase):
 
         return { 'model': model,
                  'model_id': pk,
-                 'instance_id': self.instance,
+                 'instance_id': self.instance.pk,
                  'field': field,
                  'previous_value': old,
                  'current_value': new,
-                 'user_id': user,
+                 'user_id': user.pk,
                  'action': action,
                  'requires_auth': False,
                  'ref_id': None,
