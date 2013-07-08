@@ -5,12 +5,16 @@ from __future__ import division
 import itertools
 
 from django.test import TestCase
+from django.test.client import RequestFactory
 from treemap.models import Tree, Instance, Plot, User, Species, Role, FieldPermission, ReputationMetric
 from treemap.audit import Audit, AuditException, UserTrackingException, AuthorizeException
+from treemap.views import audits
 from django.contrib.gis.geos import Point
 from django.core.exceptions import FieldError
 
 from audit import approve_or_reject_audit_and_apply
+
+import json
 
 ######################################
 ## SETUP FUNCTIONS
@@ -737,3 +741,184 @@ class ReputationTest(TestCase):
         t = Tree(plot=self.plot, instance=self.instance, readonly=True, created_by=self.privileged_user)
         t.save_with_user(self.privileged_user)
         self.assertGreater(self.privileged_user.reputation, 0)
+
+class RecentEditsViewTest(TestCase):
+    def setUp(self):
+        self.instance = make_instance()
+
+        self.system_user = make_system_user()
+        self.system_user.roles.add(make_commander_role(self.instance))
+
+        self.officer = User(username="officer")
+        self.officer.save_with_user(self.system_user)
+        self.officer.roles.add(make_officer_role(self.instance))
+
+        self.pending_user = make_basic_user(self.instance, "user pdg")
+        self.pending_user.roles.add(make_apprentice_role(self.instance))
+
+        self.p1 = Point(-7615441.0, 5953519.0)
+        self.factory = RequestFactory()
+
+        self.plot = Plot(geom=self.p1, instance=self.instance, created_by=self.system_user)
+        self.plot.save_with_user(self.system_user)
+
+        self.tree = Tree(plot=self.plot, instance=self.instance, created_by=self.officer)
+        self.tree.save_with_user(self.officer)
+
+        self.tree.diameter = 4
+        self.tree.save_with_user(self.officer)
+
+        self.tree.diameter = 5
+        self.tree.save_with_user(self.officer)
+
+        self.plot.width = 9
+        self.plot.save_with_user(self.system_user)
+
+        self.plot_delta = {
+            "model": "Plot",
+            "model_id": self.plot.pk,
+            "ref_id": None,
+            "action": Audit.Type.Update,
+            "previous_value": None,
+            "current_value": "9",
+            "requires_auth": False,
+            "user_id": self.system_user.pk,
+            "instance_id": self.instance.pk,
+            "field": "width"
+        }
+
+        self.next_plot_delta = self.plot_delta.copy()
+        self.next_plot_delta["current_value"] = "44"
+        self.next_plot_delta["previous_value"] = "9"
+
+        self.plot.width = 44
+        self.plot.save_with_user(self.system_user)
+
+
+    def check_audits(self, url, dicts):
+        req = self.factory.get(url)
+        returns = json.loads(audits(req, self.instance.pk).content)
+
+        self.assertEqual(len(dicts), len(returns))
+
+        for expected, generated in zip(dicts, returns):
+            for k,v in expected.iteritems():
+                self.assertEqual(v, generated[k])
+
+    def test_multiple_deltas(self):
+        self.check_audits('/blah/?page_size=2', [self.next_plot_delta, self.plot_delta])
+
+    def test_paging(self):
+        self.check_audits('/blah/?page_size=1&page=1', [self.plot_delta])
+
+    def test_model_filtering_errors(self):
+        self.assertRaises(Exception,
+                          self.check_audits,
+                          "/blah/?model_id=%s&page=0&page_size=1" %\
+                          self.tree.pk, [])
+
+        self.assertRaises(Exception,
+                          self.check_audits,
+                          "/blah/?model_id=%s&models=Tree,Plot&page=0&page_size=1" % \
+                          self.tree.pk, [])
+
+        self.assertRaises(Exception,
+                          self.check_audits,
+                          "/blah/?models=User&page=0&page_size=1", [])
+
+    def test_model_filtering(self):
+
+        specific_tree_delta = {
+            "model": "Tree",
+            "model_id": self.tree.pk,
+            "action": Audit.Type.Update,
+            "user_id": self.officer.pk,
+        }
+
+        generic_tree_delta = {
+            "model": "Tree"
+        }
+
+        generic_plot_delta = {
+            "model": "Plot"
+        }
+
+        self.check_audits(
+            "/blah/?model_id=%s&models=Tree&page=0&page_size=1" % self.tree.pk,
+            [specific_tree_delta])
+
+        self.check_audits(
+            "/blah/?model_id=%s&models=Plot&page=0&page_size=1" % self.plot.pk,
+            [self.next_plot_delta])
+
+        self.check_audits(
+            "/blah/?models=Plot,Tree&page=0&page_size=3",
+            [generic_plot_delta, generic_plot_delta, generic_tree_delta])
+
+        self.check_audits(
+            "/blah/?models=Plot&page=0&page_size=5",
+            [generic_plot_delta]*5)
+
+        self.check_audits(
+            "/blah/?models=Tree&page=0&page_size=5",
+            [generic_tree_delta]*5)
+
+    def test_user_filtering(self):
+
+        generic_officer_delta = {
+            "user_id": self.officer.pk
+        }
+
+        generic_systemuser_delta = {
+            "user_id": self.system_user.pk
+        }
+
+        self.check_audits(
+            "/blah/?user=%s&page_size=3" % self.officer.pk,
+            [generic_officer_delta]*3)
+
+        self.check_audits(
+            "/blah/?user=%s&page_size=3" % self.system_user.pk,
+            [generic_systemuser_delta]*3)
+
+
+    def test_pending_filtering(self):
+        self.plot.width = 22
+        self.plot.save_with_user(self.pending_user)
+
+        pending_plot_delta = {
+            "model": "Plot",
+            "model_id": self.plot.pk,
+            "ref_id": None,
+            "action": Audit.Type.Update,
+            "previous_value": "44",
+            "current_value": "22",
+            "requires_auth": True,
+            "user_id": self.pending_user.pk,
+            "instance_id": self.instance.pk,
+            "field": "width"
+        }
+
+        approve_delta = {
+            "action": Audit.Type.PendingApprove,
+            "user_id": self.system_user.pk,
+            "instance_id": self.instance.pk,
+        }
+
+        self.check_audits(
+            "/blah/?page_size=2&include_pending=true",
+            [pending_plot_delta, self.next_plot_delta])
+
+        self.check_audits(
+            "/blah/?page_size=2&include_pending=false",
+            [self.next_plot_delta, self.plot_delta])
+
+        a = approve_or_reject_audit_and_apply(
+            Audit.objects.all().order_by("-created")[0],
+            self.system_user, approved=True)
+
+        pending_plot_delta["ref_id"] = a.pk
+
+        self.check_audits(
+            "/blah/?page_size=4&include_pending=false",
+            [approve_delta, pending_plot_delta, self.next_plot_delta, self.plot_delta])
