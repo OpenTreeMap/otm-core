@@ -9,7 +9,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import etag
 
 from django.conf import settings
-from treemap.models import Instance, Plot, Audit, Tree, User
+from treemap.models import Instance, Plot, Audit, Tree, User, BoundaryZones
 from functools import wraps
 
 import json
@@ -152,3 +152,8 @@ def audits(request):
         audits = audits.exclude(requires_auth=True, ref_id__isnull=True)
 
     return [a.dict() for a in audits[start_pos:end_pos]]
+
+@json_api_call
+def boundary_zones_to_geojson(request, id):
+    boundary_zones = BoundaryZones.objects.get(pk=id)
+    return HttpResponse(boundary_zones.geom.geojson)
