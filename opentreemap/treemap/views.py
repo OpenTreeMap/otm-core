@@ -154,6 +154,6 @@ def audits(request):
     return [a.dict() for a in audits[start_pos:end_pos]]
 
 @json_api_call
-def boundary_to_geojson(request, id):
-    boundary = Boundary.objects.get(pk=id)
+def boundary_to_geojson(request, boundary_id):
+    boundary = Boundary.objects.get(pk=boundary_id)
     return HttpResponse(boundary.geom.geojson)
