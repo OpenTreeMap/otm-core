@@ -9,7 +9,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import etag
 
 from django.conf import settings
-from treemap.models import Instance, Plot, Audit, Tree, User
+from treemap.models import Instance, Plot, Audit, Tree, User, BoundaryZones
 from functools import wraps
 
 import json
@@ -28,34 +28,28 @@ def instance_request(view_fn):
 
     return wrapper
 
-def api_call(content_type="application/json"):
-    """ Wrap an API call that returns an object that
+def json_api_call(req_function):
+    """ Wrap a view-like function that returns an object that
         is convertable from json
     """
-    def decorate(req_function):
-        @wraps(req_function)
-        def newreq(request, *args, **kwargs):
-            try:
-                outp = req_function(request, *args, **kwargs)
-                if issubclass(outp.__class__, HttpResponse):
-                    response = outp
-                else:
-                    response = HttpResponse()
-                    response.write('%s' % json.dumps(outp))
-                    response['Content-length'] = str(len(response.content))
-                    response['Content-Type'] = content_type
+    @wraps(req_function)
+    def newreq(request, *args, **kwargs):
+        try:
+            outp = req_function(request, *args, **kwargs)
+            if issubclass(outp.__class__, HttpResponse):
+                response = outp
+            else:
+                response = HttpResponse()
+                response.write('%s' % json.dumps(outp))
+                response['Content-length'] = str(len(response.content))
 
-            except HttpBadRequestException, bad_request:
-                response = HttpResponseBadRequest(bad_request.message)
+            response['Content-Type'] = "application/json"
 
-            return response
+        except HttpBadRequestException, bad_request:
+            response = HttpResponseBadRequest(bad_request.message)
 
-        return newreq
-    return decorate
-
-def json_api_call(req_function):
-    return api_call(content_type="application/json")(req_function)
-
+        return response
+    return newreq
 
 @instance_request
 def index(request):
@@ -158,3 +152,8 @@ def audits(request):
         audits = audits.exclude(requires_auth=True, ref_id__isnull=True)
 
     return [a.dict() for a in audits[start_pos:end_pos]]
+
+@json_api_call
+def boundary_zones_to_geojson(request, id):
+    boundary_zones = BoundaryZones.objects.get(pk=id)
+    return HttpResponse(boundary_zones.geom.geojson)

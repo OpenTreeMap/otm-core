@@ -6,10 +6,10 @@ import itertools
 
 from django.test import TestCase
 from django.test.client import RequestFactory
-from treemap.models import Tree, Instance, Plot, User, Species, Role, FieldPermission, ReputationMetric
+from treemap.models import Tree, Instance, Plot, User, Species, Role, FieldPermission, ReputationMetric, BoundaryZones
 from treemap.audit import Audit, AuditException, UserTrackingException, AuthorizeException
-from treemap.views import audits
-from django.contrib.gis.geos import Point
+from treemap.views import audits, boundary_zones_to_geojson
+from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from django.core.exceptions import FieldError
 
 from audit import approve_or_reject_audit_and_apply
@@ -741,6 +741,24 @@ class ReputationTest(TestCase):
         t = Tree(plot=self.plot, instance=self.instance, readonly=True, created_by=self.privileged_user)
         t.save_with_user(self.privileged_user)
         self.assertGreater(self.privileged_user.reputation, 0)
+
+class BoundaryZonesViewTest(TestCase):
+
+    def setUp(self):
+        self.boundary = BoundaryZones()
+        p1 = Polygon( ((0, 0), (0, 1), (1, 1), (0, 0)) )
+        p2 = Polygon( ((1, 1), (1, 2), (2, 2), (1, 1)) )
+        self.boundary.geom = MultiPolygon(p1, p2)
+        self.boundary.name = "Hello"
+        self.boundary.category = "World"
+        self.boundary.sort_order = 1
+        self.boundary.save()
+        self.factory = RequestFactory()
+
+    def test_view(self):
+        request = self.factory.get("/hello/world")
+        response = boundary_zones_to_geojson(request, self.boundary.id)
+        self.assertEqual(response.content, self.boundary.geom.geojson)
 
 class RecentEditsViewTest(TestCase):
     def setUp(self):
