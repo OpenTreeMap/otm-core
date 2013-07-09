@@ -174,7 +174,7 @@ class Plot(Authorizable, Auditable, models.Model):
     @property
     def zones(self):
         if self.geom:
-            return BoundaryZones.objects\
+            return Boundary.objects\
                                 .filter(geom__contains=self.goem)\
                                 .order('sort_order')
         else:
@@ -200,7 +200,7 @@ class Tree(Authorizable, Auditable, models.Model):
 
     objects = models.GeoManager()
 
-class BoundaryZones(models.Model):
+class Boundary(models.Model):
     """
     A plot can belong to many different boundary zones. Boundary zones are
     always sorted by 'sort_order' before displaying. An example output
