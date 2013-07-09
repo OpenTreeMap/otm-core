@@ -28,34 +28,28 @@ def instance_request(view_fn):
 
     return wrapper
 
-def api_call(content_type="application/json"):
-    """ Wrap an API call that returns an object that
+def json_api_call(req_function):
+    """ Wrap a view-like function that returns an object that
         is convertable from json
     """
-    def decorate(req_function):
-        @wraps(req_function)
-        def newreq(request, *args, **kwargs):
-            try:
-                outp = req_function(request, *args, **kwargs)
-                if issubclass(outp.__class__, HttpResponse):
-                    response = outp
-                else:
-                    response = HttpResponse()
-                    response.write('%s' % json.dumps(outp))
-                    response['Content-length'] = str(len(response.content))
-                    response['Content-Type'] = content_type
+    @wraps(req_function)
+    def newreq(request, *args, **kwargs):
+        try:
+            outp = req_function(request, *args, **kwargs)
+            if issubclass(outp.__class__, HttpResponse):
+                response = outp
+            else:
+                response = HttpResponse()
+                response.write('%s' % json.dumps(outp))
+                response['Content-length'] = str(len(response.content))
 
-            except HttpBadRequestException, bad_request:
-                response = HttpResponseBadRequest(bad_request.message)
+            response['Content-Type'] = "application/json"
 
-            return response
+        except HttpBadRequestException, bad_request:
+            response = HttpResponseBadRequest(bad_request.message)
 
-        return newreq
-    return decorate
-
-def json_api_call(req_function):
-    return api_call(content_type="application/json")(req_function)
-
+        return response
+    return newreq
 
 @instance_request
 def index(request):
