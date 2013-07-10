@@ -5,7 +5,7 @@ from __future__ import division
 from django.conf.urls import patterns, include, url
 
 from treemap.views import boundary_to_geojson, index, trees,\
-    plot_detail, settings_js, audits
+    plot_detail, settings_js, audits, search_tree_benefits
 
 urlpatterns = patterns(
     '',
@@ -14,5 +14,6 @@ urlpatterns = patterns(
     url(r'^recentedits', audits),
     url(r'^trees/$', trees),
     url(r'^trees/(?P<plot_id>\d+)/$', plot_detail),
-    url(r'^config/settings.js$', settings_js)
+    url(r'^config/settings.js$', settings_js),
+    url(r'^benefit/search$', search_tree_benefits),
 )
