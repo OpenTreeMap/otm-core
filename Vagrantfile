@@ -13,5 +13,5 @@ Vagrant::Config.run do |config|
 
   config.vm.provision :shell, :path => "scripts/bootstrap.sh"
 
-  config.vm.customize ["modifyvm", :id, "--memory", 1024]
+  config.vm.customize ["modifyvm", :id, "--memory", 2048, "--cpus", "2"]
 end
