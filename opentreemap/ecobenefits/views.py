@@ -16,13 +16,6 @@ def get_codes_for_species(species, region):
     return benefits.lookup_species_code(
         region=region, species=species.species, genus=species.genus)
 
-#
-# DUMMY METHOD - to be replaced when we have filtering
-# working
-#
-def _execute_filter(instance, filter_str):
-    return Tree.objects.filter(instance=instance)
-
 def _benefits_for_tree_dbh_and_species(dbh, species, region):
     dbh = float(dbh)
 
@@ -42,49 +35,6 @@ def _benefits_for_tree_dbh_and_species(dbh, species, region):
             'airquality': fmt(aq['improvement'],'lbs/year')}
 
     return rslt
-
-@instance_request
-def group_tree_benefits(request, region='SoCalCSMA'):
-    filter_str = request.REQUEST['filter']
-    trees = _execute_filter(request.instance, filter_str)
-
-    num_calculated_trees = 0
-
-    benefits = {'energy': 0.0, 'stormwater': 0.0,
-                'co2': 0.0, 'airquality': 0.0}
-
-    for tree in trees:
-        if tree.diameter and tree.species:
-            tree_benefits = _benefits_for_tree_dbh_and_species(
-                tree.diameter, tree.species, region)
-
-            for key in benefits:
-                benefits[key] = tree_benefits[key]['value']
-
-            num_calculated_trees += 1
-
-    total_trees = len(trees)
-    if num_calculated_trees > 0 and total_trees > 0:
-
-        # Extrapolate an average over the rest of the urban forest
-        trees_without_benefit_data = total_trees - num_calculated_trees
-        for benefit in benefits:
-            avg_benefit = benefits[benefit] / num_calculated_trees
-            extrp_benefit = avg_benefit * trees_without_benefit_data
-
-            benefits[benefit] += extrp_benefit
-
-        rslt = {'benefits': benefits,
-                'basis': {'n_calc': num_calculated_trees,
-                          'n_total': total_trees,
-                          'percent': float(num_calculated_trees)/total_trees }}
-    else:
-        rslt = {'benefits': benefits,
-                'basis': {'n_calc': num_calculated_trees,
-                          'n_total': total_trees,
-                          'percent': 0}}
-
-    return HttpResponse(json.dumps(rslt), content_type='application/json')
 
 
 @instance_request

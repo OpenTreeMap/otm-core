@@ -4,10 +4,9 @@ from __future__ import division
 
 from django.conf.urls import patterns, include, url
 
-from ecobenefits.views import tree_benefits, group_tree_benefits
+from ecobenefits.views import tree_benefits
 
 urlpatterns = patterns(
     '',
     url(r'^benefit/tree/(?P<tree_id>\d+)/$', tree_benefits),
-    url(r'^benefit/search$', group_tree_benefits)
 )
