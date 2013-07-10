@@ -108,6 +108,39 @@ def syncdb(dev_data=False):
     if dev_data:
         _manage('loaddata development_data.json')
 
+def schemamigration(app_name, flag=' --auto'):
+    require('site_path')
+    require('venv_path')
+
+    _manage('schemamigration %s %s' % (app_name, flag))
+
+def runserver(bind_to='0.0.0.0',port='12000'):
+    """ Run a python development server on the host """
+    require('site_path')
+    require('venv_path')
+
+    _manage('runserver %s:%s' % (bind_to, port))
+
+def test(test_filter="treemap"):
+    """ Run app tests on the server """
+    require('site_path')
+    require('venv_path')
+
+    _manage('test %s' % test_filter)
+
 def restart_app():
     """ Restart the gunicorns running the app """
     sudo("service otm-unicorn restart")
+
+def stop_app():
+    """ Stop the gunicorns running the app """
+    sudo("service otm-unicorn stop")
+
+def start_app():
+    """ Start the gunicorns running the app """
+    sudo("service otm-unicorn start")
+
+def app_status():
+    """ Query upstart for the status of the otm-unicorn app """
+    sudo("service otm-unicorn status")
+
