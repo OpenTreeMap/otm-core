@@ -96,7 +96,7 @@ def make_observer_role(instance):
 def make_instance():
     global_role, _ = Role.objects.get_or_create(name='global', rep_thresh=0)
 
-    p1 = Point(-8515941.0, 4953519.0)
+    p1 = Point(0, 0)
 
     instance, _ = Instance.objects.get_or_create(
         name='i1',geo_rev=0,center=p1,default_role=global_role)
