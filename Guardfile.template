@@ -6,7 +6,9 @@
 # ruby based program so you'll have to install ruby first.
 #
 # To install guard:
-# > gem install guard rb-inotify rb-fsevent rb-fchagne
+# > gem install guard guard-shell rb-inotify rb-fsevent rb-fchange
+#
+# Make a copy of this file without the template extension
 #
 # Then run it with:
 # guard in your root directory
