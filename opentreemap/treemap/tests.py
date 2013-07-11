@@ -8,7 +8,7 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from treemap.models import Tree, Instance, Plot, User, Species, Role, FieldPermission, ReputationMetric, Boundary
 from treemap.audit import Audit, AuditException, UserTrackingException, AuthorizeException
-from treemap.views import audits, boundary_to_geojson
+from treemap.views import audits, boundary_to_geojson, boundary_autocomplete
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from django.core.exceptions import FieldError
 
@@ -778,6 +778,34 @@ class BoundaryViewTest(TestCase):
         request = self.factory.get("/hello/world")
         response = boundary_to_geojson(request, boundary.id)
         self.assertEqual(response.content, boundary.geom.geojson)
+
+    def test_autocomplete_view(self):
+        test_instance = make_instance()
+        test_boundaries = [
+            'alabama',
+            'arkansas',
+            'far',
+            'farquaad\'s castle',
+            'farther',
+            'farthest',
+            'ferenginar',
+            'romulan star empire',
+        ]
+        for i, v in enumerate(test_boundaries):
+            test_instance.boundaries.add(self._make_simple_boundary(v, i))
+            test_instance.save()
+
+        # make a boundary that is not tied to this
+        # instance, should not be in the search
+        # results
+        self._make_simple_boundary("fargo", 1)
+
+        request = self.factory.get("hello/world", {'q': 'fa'})
+        response = boundary_autocomplete(request, make_instance().id)
+        response_boundaries = json.loads(response.content)
+
+        self.assertEqual(response_boundaries, test_boundaries[2:6])
+
 
 class RecentEditsViewTest(TestCase):
     def setUp(self):

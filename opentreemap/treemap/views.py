@@ -158,6 +158,17 @@ def boundary_to_geojson(request, boundary_id):
     boundary = Boundary.objects.get(pk=boundary_id)
     return HttpResponse(boundary.geom.geojson)
 
+@json_api_call
+@instance_request
+def boundary_autocomplete(request):
+    query = request.GET.get('q', '')
+
+    boundaries = request.instance.boundaries\
+                                 .filter(name__startswith=query)\
+                                 .order_by('name')[:10]
+
+    return [boundary.name for boundary in boundaries]
+
 #
 # DUMMY FUNCTION - to be replaced when we have filtering
 # working
