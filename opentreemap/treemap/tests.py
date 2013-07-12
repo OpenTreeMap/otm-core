@@ -791,9 +791,13 @@ class BoundaryViewTest(TestCase):
             'ferenginar',
             'romulan star empire',
         ]
+        test_boundary_hashes = []
         for i, v in enumerate(test_boundaries):
-            test_instance.boundaries.add(self._make_simple_boundary(v, i))
+            boundary = self._make_simple_boundary(v, i)
+            test_instance.boundaries.add(boundary)
             test_instance.save()
+            test_boundary_hashes.append({'name': boundary.name,
+                                         'category': boundary.category})
 
         # make a boundary that is not tied to this
         # instance, should not be in the search
@@ -804,7 +808,7 @@ class BoundaryViewTest(TestCase):
         response = boundary_autocomplete(request, make_instance().id)
         response_boundaries = json.loads(response.content)
 
-        self.assertEqual(response_boundaries, test_boundaries[2:6])
+        self.assertEqual(response_boundaries, test_boundary_hashes[2:6])
 
 
 class RecentEditsViewTest(TestCase):

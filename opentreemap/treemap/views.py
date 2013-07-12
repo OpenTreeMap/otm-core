@@ -168,7 +168,8 @@ def boundary_autocomplete(request):
                                  .filter(name__startswith=query)\
                                  .order_by('name')[:max_items]
 
-    return [boundary.name for boundary in boundaries]
+    return [{'name': boundary.name, 'category': boundary.category}
+            for boundary in boundaries]
 
 #
 # DUMMY FUNCTION - to be replaced when we have filtering
