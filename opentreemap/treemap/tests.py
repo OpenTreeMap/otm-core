@@ -819,6 +819,10 @@ class BoundaryViewTest(TestCase):
                                             self.test_boundary_hashes[2:6])
 
 
+    def test_autocomplete_view_limit(self):
+        self.assertAutoCompleteQueryMatches({'q': 'fa',
+                                             'max_items': 2},
+                                            self.test_boundary_hashes[2:4])
 
 
 class RecentEditsViewTest(TestCase):
