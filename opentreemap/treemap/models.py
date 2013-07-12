@@ -11,6 +11,7 @@ from django.contrib.auth.models import AbstractUser
 
 import hashlib
 
+
 class Instance(models.Model):
     """
     Each "Tree Map" is a single instance
@@ -73,6 +74,7 @@ class Instance(models.Model):
         qs = model.objects.filter(instance=self)
         return qs
 
+
 class User(Auditable, AbstractUser):
     roles = models.ManyToManyField(Role, blank=True, null=True)
     reputation = models.IntegerField(default=0)
@@ -81,9 +83,12 @@ class User(Auditable, AbstractUser):
         roles = self.roles.filter(instance=instance)
 
         if len(roles) > 1:
-            error_message = "%s cannot have more than one role per instance. Something"\
-                            "might be very wrong with your database configuration." % self.pk
+            error_message = ("%s cannot have more than one role per"
+                             " instance. Something might be very "
+                             "wrong with your database configuration." %
+                             self.pk)
             raise IntegrityError(error_message)
+
         elif len(roles) == 1:
             perms = FieldPermission.objects.filter(role=roles[0])
         else:
@@ -93,6 +98,7 @@ class User(Auditable, AbstractUser):
             perms = perms.filter(model_name=model_name)
 
         return perms
+
 
 class Species(models.Model):
     """
@@ -132,14 +138,17 @@ class Species(models.Model):
         if self.cultivar:
             name += " '%s'" % self.cultivar
 
+
 class InstanceSpecies(Auditable, models.Model):
     instance = models.ForeignKey(Instance)
     species = models.ForeignKey(Species)
     common_name = models.CharField(max_length=255, null=True, blank=True)
 
+
 class ImportEvent(models.Model):
     imported_by = models.ForeignKey(User)
     imported_on = models.DateField(auto_now_add=True)
+
 
 #TODO:
 # Exclusion Zones
@@ -177,10 +186,11 @@ class Plot(Authorizable, Auditable, models.Model):
     def zones(self):
         if self.geom:
             return Boundary.objects\
-                                .filter(geom__contains=self.goem)\
-                                .order('sort_order')
+                           .filter(geom__contains=self.goem)\
+                           .order('sort_order')
         else:
             return []
+
 
 class Tree(Authorizable, Auditable, models.Model):
     """
@@ -201,6 +211,7 @@ class Tree(Authorizable, Auditable, models.Model):
     date_removed = models.DateField(null=True, blank=True)
 
     objects = models.GeoManager()
+
 
 class Boundary(models.Model):
     """

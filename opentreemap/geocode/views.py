@@ -4,14 +4,12 @@ from __future__ import division
 
 from django.http import HttpResponse, Http404
 
-from django.views.decorators.http import etag
-
 from django.conf import settings
-from django.views.decorators.cache import cache_page
 
 from omgeo import Geocoder
 
 import json
+
 
 def geocode(request):
     """

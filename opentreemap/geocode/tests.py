@@ -9,7 +9,9 @@ from django.test.client import RequestFactory
 
 import json
 
+
 class GeocodeTest(TestCase):
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -29,5 +31,5 @@ class GeocodeTest(TestCase):
         tgty = 39.957688
         tgtx = -75.158653
 
-        self.assertTrue(abs(x-tgtx) < 0.00001)
-        self.assertTrue(abs(y-tgty) < 0.00001)
+        self.assertTrue(abs(x - tgtx) < 0.00001)
+        self.assertTrue(abs(y - tgty) < 0.00001)

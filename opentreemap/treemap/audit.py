@@ -12,6 +12,7 @@ from django.db import IntegrityError
 
 import hashlib
 
+
 def approve_or_reject_audit_and_apply(audit, user, approved):
     """
     Approve or reject a given audit and apply it to the
@@ -54,7 +55,7 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
         audit.ref_id = pdgaudit
         audit.save()
 
-    else: # Reject
+    else:  # Reject
         pdgaudit.action = Audit.Type.PendingReject
         pdgaudit.save()
 
@@ -62,6 +63,7 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
         audit.save()
 
     return pdgaudit
+
 
 def _lkp_model(modelname):
     """
@@ -82,6 +84,7 @@ def _lkp_model(modelname):
     c = getattr(m, modelname)
 
     return c
+
 
 def _verify_user_can_apply_audit(audit, user):
     """
@@ -110,6 +113,7 @@ def _verify_user_can_apply_audit(audit, user):
 
 class UserTrackingException(Exception):
     pass
+
 
 class UserTrackable(object):
     def __init__(self, *args, **kwargs):
@@ -161,10 +165,12 @@ class UserTrackable(object):
             'All deletes to %s objects must be saved via "delete_with_user"' %
             (self._model_name))
 
+
 class Role(models.Model):
     name = models.CharField(max_length=255)
     instance = models.ForeignKey('Instance', null=True, blank=True)
     rep_thresh = models.IntegerField()
+
 
 class FieldPermission(models.Model):
     model_name = models.CharField(max_length=255)
@@ -178,7 +184,9 @@ class FieldPermission(models.Model):
     WRITE_DIRECTLY = 3
     permission_level = models.IntegerField(
         choices=(
-            (NONE, "None"), # reserving zero in case we want to create a "null-permission" later
+            # reserving zero in case we want
+            # to create a "null-permission" later
+            (NONE, "None"),
             (READ_ONLY, "Read Only"),
             (WRITE_WITH_AUDIT, "Write with Audit"),
             (WRITE_DIRECTLY, "Write Directly")),
@@ -197,6 +205,7 @@ class AuthorizeException(Exception):
     def __init__(self, name):
         super(Exception, self).__init__(name)
 
+
 class Authorizable(UserTrackable):
     """
     Determines whether or not a user can save based on the
@@ -206,7 +215,7 @@ class Authorizable(UserTrackable):
     def __init__(self, *args, **kwargs):
         super(Authorizable, self).__init__(*args, **kwargs)
 
-        self._exempt_field_names = { 'instance','created_by','id' }
+        self._exempt_field_names = {'instance','created_by','id'}
         self._has_been_clobbered = False
 
     def _write_perm_comparison_sets(self, user):
@@ -215,8 +224,8 @@ class Authorizable(UserTrackable):
         permissions with the fields on the current model
         """
         perms = user.get_instance_permissions(self.instance, self._model_name)
-        perm_set = { perm.field_name for perm in perms if perm.allows_writes }
-        field_set = { field_name for field_name in self._previous_state.keys() }
+        perm_set = {perm.field_name for perm in perms if perm.allows_writes}
+        field_set = {field_name for field_name in self._previous_state.keys()}
         return perm_set, field_set
 
     def _user_can_delete(self, user):
@@ -242,8 +251,9 @@ class Authorizable(UserTrackable):
                 not field.blank and
                 not field.primary_key and
                 field.name not in self._exempt_field_names):
+
                 if field.name not in perm_set:
-                    can_create =  False
+                    can_create = False
                     break
 
         return can_create
@@ -255,7 +265,8 @@ class Authorizable(UserTrackable):
         shouldn't operate on clobbered models.
         """
         if self._has_been_clobbered:
-            raise AuthorizeException("Operation cannot be performed on a clobbered object.")
+            raise AuthorizeException(
+                "Operation cannot be performed on a clobbered object.")
 
     def get_pending_fields(self, user):
         """
@@ -263,22 +274,28 @@ class Authorizable(UserTrackable):
         require a pending edit
 
         Note: Since Authorizable doesn't control what happens to "pending" or
-        "write with audit" fields it is the subclasses responsibility to handle
-        the difference. A naive implementation (i.e. just subclassing Authorizable)
-        treats "write with audit" that same as "write directly"
+        "write with audit" fields it is the subclasses responsibility to
+        handle the difference. A naive implementation (i.e. just subclassing
+        Authorizable) treats "write with audit" that same as "write directly"
         """
         perms = user.get_instance_permissions(self.instance, self._model_name)
         fields_to_audit = []
-        for perm in user.get_instance_permissions(self.instance, self._model_name):
+        for perm in user.get_instance_permissions(
+                self.instance, self._model_name):
+
             if (perm.permission_level == FieldPermission.WRITE_WITH_AUDIT and
                 perm.field_name in self._updated_fields()):
+
                 fields_to_audit.append(perm.field_name)
 
         return fields_to_audit
 
     def clobber_unauthorized(self, user):
         perms = user.get_instance_permissions(self.instance, self._model_name)
-        readable_fields = { perm.field_name for perm in perms if perm.allows_reads }
+        readable_fields = {perm.field_name for perm
+                           in perms
+                           if perm.allows_reads}
+
         fields = set(self._previous_state.keys())
         unreadable_fields = fields - readable_fields
 
@@ -302,14 +319,14 @@ class Authorizable(UserTrackable):
             for field in self._updated_fields():
                 if field not in writable_perms:
                     raise AuthorizeException("Can't edit field %s on %s" %
-                                            ( field, self._model_name))
+                                            (field, self._model_name))
 
         elif not self._user_can_create(user):
-            raise AuthorizeException("%s does not have permission to create new %s objects." %
+            raise AuthorizeException("%s does not have permission to "
+                                     "create new %s objects." %
                                      (user, self._model_name))
 
         super(Authorizable, self).save_with_user(user, *args, **kwargs)
-
 
     def delete_with_user(self, user, *args, **kwargs):
         self._assert_not_clobbered()
@@ -317,12 +334,14 @@ class Authorizable(UserTrackable):
         if self._user_can_delete(user):
             super(Authorizable, self).delete_with_user(user, *args, **kwargs)
         else:
-            raise AuthorizeException("%s does not have permission to delete %s objects." %
+            raise AuthorizeException("%s does not have permission to "
+                                     "delete %s objects." %
                                      (user, self._model_name))
 
 
 class AuditException(Exception):
     pass
+
 
 class Auditable(UserTrackable):
     """
@@ -371,7 +390,6 @@ class Auditable(UserTrackable):
                 # Clear changes to object
                 oldval = updates[pending_field][0]
                 setattr(self, pending_field, oldval)
-
 
                 # If a field is a "pending field" then it should
                 # be logically removed from the fields that are being
@@ -470,18 +488,17 @@ class Audit(models.Model):
             obj._model_name, obj.instance, obj.pk)
 
     def dict(self):
-        return { 'model': self.model,
-                 'model_id': self.model_id,
-                 'instance_id': self.instance.pk,
-                 'field': self.field,
-                 'previous_value': self.previous_value,
-                 'current_value': self.current_value,
-                 'user_id': self.user.pk,
-                 'action': self.action,
-                 'requires_auth': self.requires_auth,
-                 'ref_id': self.ref_id.pk if self.ref_id else None,
-                 'created': str(self.created) }
-
+        return {'model': self.model,
+                'model_id': self.model_id,
+                'instance_id': self.instance.pk,
+                'field': self.field,
+                'previous_value': self.previous_value,
+                'current_value': self.current_value,
+                'user_id': self.user.pk,
+                'action': self.action,
+                'requires_auth': self.requires_auth,
+                'ref_id': self.ref_id.pk if self.ref_id else None,
+                'created': str(self.created)}
 
     def __unicode__(self):
         return u"ID: %s %s.%s (%s) %s => %s" % \
@@ -493,6 +510,7 @@ class Audit(models.Model):
 
     def was_reviewed(self):
         return self.requires_auth and self.ref_id
+
 
 class ReputationMetric(models.Model):
     """
@@ -517,7 +535,6 @@ class ReputationMetric(models.Model):
         except ObjectDoesNotExist:
             return
 
-
         if audit.was_reviewed():
             review_audit = Audit.objects.get(id=audit.ref_id)
             if review_audit.action == Audit.Type.PendingApprove:
@@ -531,9 +548,11 @@ class ReputationMetric(models.Model):
                     audit.user.reputation = 0
                 audit.user.save_base()
             else:
-                error_message = "Referenced Audits must carry approval actions. "\
-                    "They must have an action of PendingApprove or Pending Reject. "\
-                    "Something might be very wrong with your database configuration."
+                error_message = ("Referenced Audits must carry approval "
+                                 "actions. They must have an action of "
+                                 "PendingApprove or Pending Reject. "
+                                 "Something might be very wrong with your "
+                                 "database configuration.")
                 raise IntegrityError(error_message)
         elif not audit.requires_auth:
             audit.user.reputation += rm.direct_write_score
