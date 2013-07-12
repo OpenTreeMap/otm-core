@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, include, url
-from example.views import index
+from django.conf import settings
 
 from django.contrib import admin
 admin.autodiscover()
