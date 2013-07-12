@@ -162,10 +162,11 @@ def boundary_to_geojson(request, boundary_id):
 @instance_request
 def boundary_autocomplete(request):
     query = request.GET.get('q', '')
+    max_items = request.GET.get('max_items', 10)
 
     boundaries = request.instance.boundaries\
                                  .filter(name__startswith=query)\
-                                 .order_by('name')[:10]
+                                 .order_by('name')[:max_items]
 
     return [boundary.name for boundary in boundaries]
 
