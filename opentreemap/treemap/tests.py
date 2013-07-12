@@ -15,8 +15,8 @@ from treemap.models import (Tree, Instance, Plot, User, Species, Role,
 from treemap.audit import (Audit, UserTrackingException, AuthorizeException,
                            ReputationMetric)
 
-from treemap.views import (audits, boundary_to_geojson,
-                           boundary_autocomplete, _execute_filter)
+from treemap.views import (audits, boundary_to_geojson, boundary_autocomplete,
+                           _execute_filter, species_list)
 
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from django.core.exceptions import FieldError
@@ -173,6 +173,21 @@ def make_instance_and_system_user():
     instance = make_instance()
     system_user = make_system_user()
     return instance, system_user
+
+
+######################################
+## Utility functions
+######################################
+
+
+def _assert_view_equals(testCase, view, expected_dict, url="hello/world",
+                        params=None):
+    factory = testCase.factory
+    request = factory.get(url) if params is None else factory.get(url, params)
+    response = view(request, testCase.instance.pk)
+    reponse_dict = json.loads(response.content)
+
+    testCase.assertEqual(expected_dict, reponse_dict)
 
 
 ######################################
@@ -1419,3 +1434,25 @@ class SearchTests(TestCase):
                    self.instance, diameter_range_filter)}
 
         self.assertEqual(ids, {p2.pk, p3.pk})
+
+
+class SpeciesViewTests(TestCase):
+    def setUp(self):
+        self.instance = make_instance()
+        self.factory = RequestFactory()
+
+        self.species_dict = [
+            {'common_name': 'elm', 'scientific_name': 'elmitius'},
+            {'common_name': 'oak', 'scientific_name': 'oakenitus'},
+            {'common_name': 'pine', 'scientific_name': 'piniferus'},
+            {'common_name': 'xmas', 'scientific_name': 'christmas'},
+        ]
+        for i, item in enumerate(self.species_dict):
+            species = Species(common_name=item['common_name'],
+                              genus=item['scientific_name'],
+                              symbol=str(i))
+            species.save()
+            item['id'] = species.id
+
+    def test_get_species_list(self):
+        _assert_view_equals(self, species_list, self.species_dict)

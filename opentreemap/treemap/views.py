@@ -19,7 +19,7 @@ from treemap.util import instance_request, json_api_call
 from treemap.search import create_filter
 
 from treemap.audit import Audit
-from treemap.models import Plot, User, Boundary
+from treemap.models import Plot, User, Boundary, Species
 
 from ecobenefits.views import _benefits_for_tree_dbh_and_species
 
@@ -152,6 +152,18 @@ def boundary_autocomplete(request):
     return [{'name': boundary.name, 'category': boundary.category}
             for boundary in boundaries]
 
+@json_api_call
+@instance_request
+# Doesn't really do anything with instance right now, but will in the future
+def species_list(request):
+    species_set = Species.objects.order_by('common_name')
+
+    return [{
+             'common_name': species.common_name,
+             'id': species.pk,
+             'scientific_name': species.scientific_name,
+            }
+            for species in species_set]
 
 def _execute_filter(instance, filter_str):
     return create_filter(filter_str).filter(instance=instance)
