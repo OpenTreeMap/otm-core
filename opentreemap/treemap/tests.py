@@ -772,16 +772,8 @@ class BoundaryViewTest(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
-
-    def test_boundary_to_geojson_view(self):
-        boundary = self._make_simple_boundary("Hello, World", 1)
-        request = self.factory.get("/hello/world")
-        response = boundary_to_geojson(request, boundary.id)
-        self.assertEqual(response.content, boundary.geom.geojson)
-
-    def test_autocomplete_view(self):
-        test_instance = make_instance()
-        test_boundaries = [
+        self.test_instance = make_instance()
+        self.test_boundaries = [
             'alabama',
             'arkansas',
             'far',
@@ -791,24 +783,42 @@ class BoundaryViewTest(TestCase):
             'ferenginar',
             'romulan star empire',
         ]
-        test_boundary_hashes = []
-        for i, v in enumerate(test_boundaries):
+        self.test_boundary_hashes = []
+        for i, v in enumerate(self.test_boundaries):
             boundary = self._make_simple_boundary(v, i)
-            test_instance.boundaries.add(boundary)
-            test_instance.save()
-            test_boundary_hashes.append({'name': boundary.name,
+            self.test_instance.boundaries.add(boundary)
+            self.test_instance.save()
+            self.test_boundary_hashes.append({'name': boundary.name,
                                          'category': boundary.category})
 
+
+    def test_boundary_to_geojson_view(self):
+        boundary = self._make_simple_boundary("Hello, World", 1)
+        request = self.factory.get("/hello/world")
+        response = boundary_to_geojson(request, boundary.id)
+        self.assertEqual(response.content, boundary.geom.geojson)
+
+    def assertAutoCompleteQueryMatches(self, get_params, data_criteria):
+        request = self.factory.get("hello/world", get_params)
+        response = boundary_autocomplete(request, make_instance().id)
+        response_boundaries = json.loads(response.content)
+
+        self.assertEqual(response_boundaries, data_criteria)
+
+    def test_autocomplete_view(self):
+        self.assertAutoCompleteQueryMatches({'q': 'fa'},
+                                            self.test_boundary_hashes[2:6])
+
+    def test_autocomplete_view_scoped(self):
         # make a boundary that is not tied to this
         # instance, should not be in the search
         # results
         self._make_simple_boundary("fargo", 1)
 
-        request = self.factory.get("hello/world", {'q': 'fa'})
-        response = boundary_autocomplete(request, make_instance().id)
-        response_boundaries = json.loads(response.content)
+        self.assertAutoCompleteQueryMatches({'q': 'fa'},
+                                            self.test_boundary_hashes[2:6])
 
-        self.assertEqual(response_boundaries, test_boundary_hashes[2:6])
+
 
 
 class RecentEditsViewTest(TestCase):
