@@ -149,3 +149,22 @@ def app_status():
     """ Query upstart for the status of the otm-unicorn app """
     sudo("service otm-unicorn status")
 
+
+def tiler_restart():
+    """ Restart the map tile service """
+    sudo("service tiler restart")
+
+
+def tiler_stop():
+    """ Stop the map tile service """
+    sudo("service tiler stop")
+
+
+def tiler_start():
+    """ Start the map tile service """
+    sudo("service tiler start")
+
+
+def tiler_status():
+    """ Query upstart for the status of the map tile service """
+    sudo("service tiler status")
