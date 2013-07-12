@@ -8,7 +8,7 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from treemap.models import Tree, Instance, Plot, User, Species, Role, FieldPermission, ReputationMetric, Boundary
 from treemap.audit import Audit, AuditException, UserTrackingException, AuthorizeException
-from treemap.views import audits, boundary_to_geojson
+from treemap.views import audits, boundary_to_geojson, boundary_autocomplete
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from django.core.exceptions import FieldError
 
@@ -19,6 +19,23 @@ import json
 ######################################
 ## SETUP FUNCTIONS
 ######################################
+
+def make_simple_polygon(n=1):
+    """
+    Creates a simple, point-like polygon for testing distances
+    so it will save to the geom field on a Boundary.
+
+    The idea is to create small polygons such that the n-value
+    that is passed in can identify how far the polygon will be
+    from the origin.
+
+    For example:
+    p1 = make_simple_polygon(1)
+    p2 = make_simple_polygon(2)
+
+    p1 will be closer to the origin.
+    """
+    return Polygon( ((n, n), (n, n+1), (n+1, n+1), (n, n)) )
 
 def _make_loaded_role(instance, name, rep_thresh, permissions):
     role, created = Role.objects.get_or_create(name=name, instance=instance, rep_thresh=rep_thresh)
@@ -96,7 +113,7 @@ def make_observer_role(instance):
 def make_instance():
     global_role, _ = Role.objects.get_or_create(name='global', rep_thresh=0)
 
-    p1 = Point(-8515941.0, 4953519.0)
+    p1 = Point(0, 0)
 
     instance, _ = Instance.objects.get_or_create(
         name='i1',geo_rev=0,center=p1,default_role=global_role)
@@ -744,21 +761,69 @@ class ReputationTest(TestCase):
 
 class BoundaryViewTest(TestCase):
 
-    def setUp(self):
-        self.boundary = Boundary()
-        p1 = Polygon( ((0, 0), (0, 1), (1, 1), (0, 0)) )
-        p2 = Polygon( ((1, 1), (1, 2), (2, 2), (1, 1)) )
-        self.boundary.geom = MultiPolygon(p1, p2)
-        self.boundary.name = "Hello"
-        self.boundary.category = "World"
-        self.boundary.sort_order = 1
-        self.boundary.save()
-        self.factory = RequestFactory()
+    def _make_simple_boundary(self, name, n=1):
+        b = Boundary()
+        b.geom = MultiPolygon(make_simple_polygon(n))
+        b.name = name
+        b.category = "Unknown"
+        b.sort_order = 1
+        b.save()
+        return b
 
-    def test_view(self):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.test_instance = make_instance()
+        self.test_boundaries = [
+            'alabama',
+            'arkansas',
+            'far',
+            'farquaad\'s castle',
+            'farther',
+            'farthest',
+            'ferenginar',
+            'romulan star empire',
+        ]
+        self.test_boundary_hashes = []
+        for i, v in enumerate(self.test_boundaries):
+            boundary = self._make_simple_boundary(v, i)
+            self.test_instance.boundaries.add(boundary)
+            self.test_instance.save()
+            self.test_boundary_hashes.append({'name': boundary.name,
+                                         'category': boundary.category})
+
+
+    def test_boundary_to_geojson_view(self):
+        boundary = self._make_simple_boundary("Hello, World", 1)
         request = self.factory.get("/hello/world")
-        response = boundary_to_geojson(request, self.boundary.id)
-        self.assertEqual(response.content, self.boundary.geom.geojson)
+        response = boundary_to_geojson(request, boundary.id)
+        self.assertEqual(response.content, boundary.geom.geojson)
+
+    def assertAutoCompleteQueryMatches(self, get_params, data_criteria):
+        request = self.factory.get("hello/world", get_params)
+        response = boundary_autocomplete(request, make_instance().id)
+        response_boundaries = json.loads(response.content)
+
+        self.assertEqual(response_boundaries, data_criteria)
+
+    def test_autocomplete_view(self):
+        self.assertAutoCompleteQueryMatches({'q': 'fa'},
+                                            self.test_boundary_hashes[2:6])
+
+    def test_autocomplete_view_scoped(self):
+        # make a boundary that is not tied to this
+        # instance, should not be in the search
+        # results
+        self._make_simple_boundary("fargo", 1)
+
+        self.assertAutoCompleteQueryMatches({'q': 'fa'},
+                                            self.test_boundary_hashes[2:6])
+
+
+    def test_autocomplete_view_limit(self):
+        self.assertAutoCompleteQueryMatches({'q': 'fa',
+                                             'max_items': 2},
+                                            self.test_boundary_hashes[2:4])
+
 
 class RecentEditsViewTest(TestCase):
     def setUp(self):

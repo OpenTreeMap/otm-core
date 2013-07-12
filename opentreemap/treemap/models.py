@@ -54,6 +54,8 @@ class Instance(models.Model):
 
     default_role = models.ForeignKey('Role', related_name='default_role')
 
+    boundaries = models.ManyToManyField('Boundary', null=True, blank=True)
+
     objects = models.GeoManager()
 
     def __unicode__(self):
@@ -219,3 +221,6 @@ class Boundary(models.Model):
     sort_order = models.IntegerField()
 
     objects = models.GeoManager()
+
+    def __unicode__(self):
+        return self.name
