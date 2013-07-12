@@ -4,7 +4,8 @@ from __future__ import division
 
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
+from django.http import (HttpResponse, HttpResponseBadRequest,
+                         HttpResponseServerError)
 
 from django.views.decorators.http import etag
 
@@ -14,11 +15,14 @@ from functools import wraps
 
 import json
 
+
 class InvalidInstanceException(Exception):
     pass
 
+
 class HttpBadRequestException(Exception):
     pass
+
 
 def instance_request(view_fn):
     @wraps(view_fn)
@@ -27,6 +31,7 @@ def instance_request(view_fn):
         return view_fn(request, *args, **kwargs)
 
     return wrapper
+
 
 def json_api_call(req_function):
     """ Wrap a view-like function that returns an object that
@@ -51,16 +56,20 @@ def json_api_call(req_function):
         return response
     return newreq
 
+
 @instance_request
 def index(request):
     return render_to_response('treemap/index.html',RequestContext(request))
+
 
 @instance_request
 def trees(request):
     return render_to_response('treemap/map.html',RequestContext(request))
 
+
 def _plot_hash(request, plot_id):
     return request.instance.scope_model(Plot).get(pk=plot_id).hash
+
 
 @instance_request
 @etag(_plot_hash)
@@ -72,12 +81,15 @@ def plot_detail(request, plot_id):
         'plot': plot
     }, RequestContext(request))
 
+
 @instance_request
 def settings_js(request):
     return render_to_response('treemap/settings.js',
-                              { 'BING_API_KEY': settings.BING_API_KEY },
+                              {'BING_API_KEY': settings.BING_API_KEY},
                               RequestContext(request),
                               mimetype='application/x-javascript')
+
+
 @instance_request
 @json_api_call
 def audits(request):
@@ -102,7 +114,7 @@ def audits(request):
          The page to return
     """
 
-    PAGE_MAX=100
+    PAGE_MAX = 100
 
     r = request.REQUEST
     instance = request.instance
@@ -129,7 +141,7 @@ def audits(request):
     model_id = r.get('model_id', None)
 
     if model_id is not None and len(models) != 1:
-        raise Exception("You must specific one and only model "\
+        raise Exception("You must specific one and only model "
                         "when looking up by id")
 
     user_id = r.get('user', None)
@@ -153,10 +165,12 @@ def audits(request):
 
     return [a.dict() for a in audits[start_pos:end_pos]]
 
+
 @json_api_call
 def boundary_to_geojson(request, boundary_id):
     boundary = Boundary.objects.get(pk=boundary_id)
     return HttpResponse(boundary.geom.geojson)
+
 
 @json_api_call
 @instance_request
@@ -171,6 +185,7 @@ def boundary_autocomplete(request):
     return [{'name': boundary.name, 'category': boundary.category}
             for boundary in boundaries]
 
+
 #
 # DUMMY FUNCTION - to be replaced when we have filtering
 # working
@@ -178,13 +193,14 @@ def boundary_autocomplete(request):
 def _execute_filter(instance, filter_str):
     return Tree.objects.filter(instance=instance)
 
+
 @instance_request
 def search_tree_benefits(request, region='SoCalCSMA'):
     try:
         filter_str = request.REQUEST['filter']
     except KeyError:
         return HttpResponseServerError("Please supply a 'filter' parameter")
-        
+
     trees = _execute_filter(request.instance, filter_str)
 
     num_calculated_trees = 0
@@ -216,7 +232,8 @@ def search_tree_benefits(request, region='SoCalCSMA'):
         rslt = {'benefits': benefits,
                 'basis': {'n_calc': num_calculated_trees,
                           'n_total': total_trees,
-                          'percent': float(num_calculated_trees)/total_trees }}
+                          'percent': (float(num_calculated_trees) /
+                                      total_trees)}}
     else:
         rslt = {'benefits': benefits,
                 'basis': {'n_calc': num_calculated_trees,
@@ -224,4 +241,3 @@ def search_tree_benefits(request, region='SoCalCSMA'):
                           'percent': 0}}
 
     return HttpResponse(json.dumps(rslt), content_type='application/json')
-
