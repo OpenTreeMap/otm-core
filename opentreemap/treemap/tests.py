@@ -4,6 +4,9 @@ from __future__ import division
 
 import itertools
 
+from django.db.models import Q
+from django.utils.tree import Node
+
 from django.test import TestCase
 from django.test.client import RequestFactory
 from treemap.models import Tree, Instance, Plot, User, Species, Role, FieldPermission, ReputationMetric, Boundary
@@ -14,6 +17,7 @@ from django.core.exceptions import FieldError
 
 from audit import approve_or_reject_audit_and_apply
 
+import search
 import json
 
 ######################################
@@ -1005,3 +1009,236 @@ class RecentEditsViewTest(TestCase):
         self.check_audits(
             "/blah/?page_size=4&include_pending=false",
             [approve_delta, pending_plot_delta, self.next_plot_delta, self.plot_delta])
+
+
+class FilterParserTests(TestCase):
+    def destructure_query_set(self, node):
+        """
+        Django query objects are not comparable by themselves, but they
+        are built from a tree (django.util.tree) and stored in nodes
+
+        This function generates a canonical representation using sets and
+        tuples of a query tree
+
+        This can be used to verify that query structures are made correctly
+        """
+        if isinstance(node, Node):
+            n = (node.connector,
+                 frozenset(
+                     {self.destructure_query_set(c) for c in node.children}))
+
+            if node.negated:
+                n = ('NOT', n)
+
+            return n
+        else:
+            return node
+
+
+    def test_key_parser_plots(self):
+        # Plots go directly to a field
+        match = search._parse_predicate_key('plot.width')
+        self.assertEqual(match, 'width')
+
+    def test_key_parser_trees(self):
+        # Trees require a prefix and the field
+        match = search._parse_predicate_key('tree.dbh')
+        self.assertEqual(match, 'tree__dbh')
+
+    def test_key_parser_invalid_model(self):
+        # Invalid models should raise an exception
+        self.assertRaises(search.ParseException,
+                          search._parse_predicate_key,
+                          "user.id")
+
+    def test_key_parser_too_many_dots(self):
+        # Dotted fields are also not allowed
+        self.assertRaises(search.ParseException,
+                          search._parse_predicate_key,
+                          "plot.width.other")
+
+    def test_combinator_and(self):
+        qa = Q(a=1)
+        qb = Q(b=1)
+        qc = Q(c=1)
+
+        # Simple AND
+        ands = search._apply_combinator('AND', [qa, qb, qc])
+
+        self.assertEqual(self.destructure_query_set(ands),
+                         self.destructure_query_set(qa & qb & qc))
+
+    def test_combinator_or(self):
+        qa = Q(a=1)
+        qb = Q(b=1)
+        qc = Q(c=1)
+
+        # Simple OR
+        ands = search._apply_combinator('OR', [qa, qb, qc])
+
+        self.assertEqual(self.destructure_query_set(ands),
+                         self.destructure_query_set(qa | qb | qc))
+
+    def test_combinator_invalid_combinator(self):
+        qa = Q(a=1)
+        qb = Q(b=1)
+        qc = Q(c=1)
+
+        # Error if not AND,OR
+        self.assertRaises(search.ParseException,
+                          search._apply_combinator,
+                          'ANDarg', [qa, qb])
+
+        self.assertRaises(search.ParseException,
+                          search._apply_combinator,
+                          qc, [qa, qb])
+
+    def test_combinator_invalid_empty(self):
+        qa = Q(a=1)
+        qb = Q(b=1)
+        qc = Q(c=1)
+
+        # Error if empty
+        self.assertRaises(search.ParseException,
+                          search._apply_combinator,
+                          'AND', [])
+
+
+    def test_contraints_in(self):
+        inparams = search._parse_dict_value({'IN': [1, 2, 3]})
+        self.assertEqual(inparams,
+                         {'__in': [1,2,3]})
+
+    def test_contraints_is(self):
+        # "IS" is a special case in that we don't need to appl
+        # a suffix at all
+        isparams = search._parse_dict_value({'IS': 'what'})
+        self.assertEqual(isparams,
+                         {'': 'what'})
+
+    def test_contraints_invalid_groups(self):
+        # It is an error to combine mutually exclusive groups
+        self.assertRaises(search.ParseException,
+                          search._parse_dict_value,
+                          {'IS': 'what', 'IN': [1,2,3]})
+
+        self.assertRaises(search.ParseException,
+                          search._parse_dict_value,
+                          {'IS': 'what', 'MIN': 3})
+
+    def test_contraints_invalid_keys(self):
+        self.assertRaises(search.ParseException,
+                          search._parse_dict_value,
+                          {'EXCLUSIVE': 9})
+
+        self.assertRaises(search.ParseException,
+                          search._parse_dict_value,
+                          {'IS NOT VALID KEY': 'what'})
+
+    def test_contraint_min(self):
+        const = search._parse_dict_value({'MIN': 5})
+        self.assertEqual(const, {'__gte': 5})
+
+    def test_contraint_max(self):
+        const = search._parse_dict_value({'MAX': 5})
+        self.assertEqual(const, {'__lte': 5})
+
+    def test_contraint_max_with_exclusive(self):
+        const = search._parse_dict_value(
+            {'MAX': 5,
+             'EXCLUSIVE': True })
+        self.assertEqual(const, {'__lt': 5})
+
+        const = search._parse_dict_value(
+            {'MAX': 5,
+             'EXCLUSIVE': False })
+        self.assertEqual(const, {'__lte': 5})
+
+    def test_contraints_min_and_max(self):
+        const = search._parse_dict_value(
+            {'MIN': 5,
+             'MAX': 9,
+             'EXCLUSIVE': False })
+        self.assertEqual(const, {'__lte': 9, '__gte': 5})
+
+    def test_parse_predicate(self):
+        pred = search._parse_predicate(
+            {'plot.width':
+             {'MIN': 5,
+              'MAX': 9,
+              'EXCLUSIVE': False },
+             'tree.height':
+             9})
+
+        p1 = ('AND', {('width__lte', 9),
+                      ('width__gte', 5),
+                      ('tree__height', 9)})
+
+        self.assertEqual(self.destructure_query_set(pred),
+                         p1)
+
+        pred = search._parse_predicate(
+            {'tree.leaf_type': {'IS': 9},
+             'tree.last_updated_by': 4})
+
+
+        p2 = ('AND', {('tree__leaf_type', 9),
+                      ('tree__last_updated_by', 4)})
+
+        self.assertEqual(self.destructure_query_set(pred),
+                         p2)
+
+    def test_parse_filter_no_wrapper(self):
+        pred = search._parse_filter(
+            {'plot.width':
+             {'MIN': 5,
+              'MAX': 9,
+              'EXCLUSIVE': False },
+             'tree.height': 9})
+
+        p = ('AND',
+             {('width__lte', 9),
+              ('width__gte', 5),
+              ('tree__height', 9)})
+
+        self.assertEqual(self.destructure_query_set(pred), p)
+
+    def test_parse_filter_and(self):
+        pred = search._parse_filter(
+            ['AND',
+             {'plot.width':
+              {'MIN': 5,
+               'MAX': 9,
+               'EXCLUSIVE': False },
+              'tree.height': 9},
+             {'tree.leaf_type': {'IS': 9},
+              'tree.last_updated_by': 4}])
+
+        p = ('AND',
+             {('width__lte', 9),
+              ('width__gte', 5),
+              ('tree__height', 9),
+              ('tree__leaf_type', 9),
+              ('tree__last_updated_by', 4)})
+
+        self.assertEqual(self.destructure_query_set(pred), p)
+
+    def test_parse_filter_or(self):
+        pred = search._parse_filter(
+            ['OR',
+             {'plot.width':
+              {'MIN': 5,
+               'MAX': 9,
+               'EXCLUSIVE': False },
+              'tree.height': 9},
+             {'tree.leaf_type': {'IS': 9},
+              'tree.last_updated_by': 4}])
+
+        p1 = ('AND', frozenset({('width__lte', 9),
+                                ('width__gte', 5),
+                                ('tree__height', 9)}))
+
+        p2 = ('AND', frozenset({('tree__leaf_type', 9),
+                                ('tree__last_updated_by', 4)}))
+
+        self.assertEqual(self.destructure_query_set(pred), ('OR', {p1, p2}))
