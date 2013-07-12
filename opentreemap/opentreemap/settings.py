@@ -10,18 +10,6 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '',                      # Or path to database file if using sqlite3.
-        # The following settings are not used with sqlite3:
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': '',                      # Set to empty string for default.
-    }
-}
-
 OMGEO_SETTINGS = [[
     'omgeo.services.EsriWGS', {}
 ]]
@@ -80,7 +68,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -90,7 +78,7 @@ SECRET_KEY = 'r*b9!2rc^*w1m$pqjcue5n@wz3-x3hq*(^owy^67k4hb)s-x1p'
 TEMPLATE_LOADERS = (
     #'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    #     'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -109,7 +97,8 @@ ROOT_URLCONF = 'opentreemap.urls'
 WSGI_APPLICATION = 'opentreemap.wsgi.application'
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+    # Put strings here, like "/home/html/django_templates" or
+    # "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
 )
@@ -136,7 +125,6 @@ INSTALLED_APPS = (
     'django.contrib.gis',
     'south',
     'treemap',
-    'example',
     'ecobenefits',
     'geocode',
     # Uncomment the next line to enable admin documentation:
@@ -172,4 +160,4 @@ LOGGING = {
     }
 }
 
-from local_settings import *
+from opentreemap.local_settings import *

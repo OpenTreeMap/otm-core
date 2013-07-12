@@ -13,6 +13,7 @@ from treemap import tests as tm
 
 import json
 
+
 class EcoTest(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
@@ -47,7 +48,7 @@ class EcoTest(TestCase):
         self.tree.save_with_user(self.user)
 
     def test_group_eco(self):
-        pass #TODO: Once filtering has been enabled
+        pass  # TODO: Once filtering has been enabled
 
     def test_eco_benefit_sanity(self):
         req = self.factory.get('/%s/eco/benefit/tree/%s/' %
@@ -63,11 +64,11 @@ class EcoTest(TestCase):
 
         bens = rslt['benefits']
 
-        def assertBValue(k, u, v):
-            self.assertEqual(bens[k]['unit'], u)
-            self.assertEqual(int(float(bens[k]['value'])), v)
+        def assertBValue(benefit, unit, value):
+            self.assertEqual(bens[benefit]['unit'], unit)
+            self.assertEqual(int(float(bens[benefit]['value'])), value)
 
-        assertBValue('energy','kwh',1896)
-        assertBValue('airquality','lbs/year',6)
-        assertBValue('stormwater','gal',3185)
-        assertBValue('co2','lbs/year',563)
+        assertBValue('energy', 'kwh', 1896)
+        assertBValue('airquality', 'lbs/year', 6)
+        assertBValue('stormwater', 'gal', 3185)
+        assertBValue('co2', 'lbs/year', 563)
