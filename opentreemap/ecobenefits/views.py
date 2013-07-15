@@ -33,10 +33,10 @@ def _benefits_for_tree_dbh_and_species(dbh, species, region):
     def fmt(val, lbl):
         return {'value': val, 'unit': lbl}
 
-    rslt = {'energy': fmt(kwh,'kwh'),
-            'stormwater': fmt(gal,'gal'),
-            'co2': fmt(co2['reduced'],'lbs/year'),
-            'airquality': fmt(airq['improvement'],'lbs/year')}
+    rslt = {'energy': fmt(kwh, 'kwh'),
+            'stormwater': fmt(gal, 'gal'),
+            'co2': fmt(co2['reduced'], 'lbs/year'),
+            'airquality': fmt(airq['improvement'], 'lbs/year')}
 
     return rslt
 

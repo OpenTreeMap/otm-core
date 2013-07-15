@@ -2,6 +2,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from functools import wraps
+
+import json
+
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import (HttpResponse, HttpResponseBadRequest,
@@ -10,10 +14,9 @@ from django.http import (HttpResponse, HttpResponseBadRequest,
 from django.views.decorators.http import etag
 
 from django.conf import settings
-from treemap.models import Instance, Plot, Audit, Tree, User, Boundary
-from functools import wraps
 
-import json
+from treemap.models import Instance, Plot, Audit, Tree, User, Boundary
+from ecobenefits.models import _benefits_for_tree_dbh_and_species
 
 
 class InvalidInstanceException(Exception):
@@ -59,12 +62,12 @@ def json_api_call(req_function):
 
 @instance_request
 def index(request):
-    return render_to_response('treemap/index.html',RequestContext(request))
+    return render_to_response('treemap/index.html', RequestContext(request))
 
 
 @instance_request
 def trees(request):
-    return render_to_response('treemap/map.html',RequestContext(request))
+    return render_to_response('treemap/map.html', RequestContext(request))
 
 
 def _plot_hash(request, plot_id):

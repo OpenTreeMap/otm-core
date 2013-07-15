@@ -135,11 +135,11 @@ class UserTrackable(object):
         updated = {}
         d = self._dict()
         for key in d:
-            old = self._previous_state.get(key,None)
-            new = d.get(key,None)
+            old = self._previous_state.get(key, None)
+            new = d.get(key, None)
 
             if new != old:
-                updated[key] = [old,new]
+                updated[key] = [old, new]
 
         return updated
 
@@ -215,7 +215,7 @@ class Authorizable(UserTrackable):
     def __init__(self, *args, **kwargs):
         super(Authorizable, self).__init__(*args, **kwargs)
 
-        self._exempt_field_names = {'instance','created_by','id'}
+        self._exempt_field_names = {'instance', 'created_by', 'id'}
         self._has_been_clobbered = False
 
     def _write_perm_comparison_sets(self, user):
@@ -247,10 +247,10 @@ class Authorizable(UserTrackable):
         perm_set, _ = self._write_perm_comparison_sets(user)
 
         for field in self._meta.fields:
-            if (not field.null and
-                not field.blank and
-                not field.primary_key and
-                field.name not in self._exempt_field_names):
+            if ((not field.null and
+                 not field.blank and
+                 not field.primary_key and
+                 field.name not in self._exempt_field_names)):
 
                 if field.name not in perm_set:
                     can_create = False
@@ -280,11 +280,9 @@ class Authorizable(UserTrackable):
         """
         perms = user.get_instance_permissions(self.instance, self._model_name)
         fields_to_audit = []
-        for perm in user.get_instance_permissions(
-                self.instance, self._model_name):
-
-            if (perm.permission_level == FieldPermission.WRITE_WITH_AUDIT and
-                perm.field_name in self._updated_fields()):
+        for perm in perms:
+            if ((perm.permission_level == FieldPermission.WRITE_WITH_AUDIT and
+                 perm.field_name in self._updated_fields())):
 
                 fields_to_audit.append(perm.field_name)
 
@@ -443,12 +441,12 @@ class Auditable(UserTrackable):
 # Test null values
 ###
 class Audit(models.Model):
-    model = models.CharField(max_length=255,null=True)
+    model = models.CharField(max_length=255, null=True)
     model_id = models.IntegerField(null=True)
     instance = models.ForeignKey('Instance', null=True, blank=True)
-    field = models.CharField(max_length=255,null=True)
-    previous_value = models.CharField(max_length=255,null=True)
-    current_value = models.CharField(max_length=255,null=True)
+    field = models.CharField(max_length=255, null=True)
+    previous_value = models.CharField(max_length=255, null=True)
+    current_value = models.CharField(max_length=255, null=True)
 
     user = models.ForeignKey('treemap.User')
     action = models.IntegerField()
