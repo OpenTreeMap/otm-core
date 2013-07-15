@@ -134,8 +134,9 @@ class Species(models.Model):
         name = self.genus
         if self.species:
             name += " " + self.species
-        if self.cultivar:
-            name += " '%s'" % self.cultivar
+        if self.cultivar_name:
+            name += " '%s'" % self.cultivar_name
+        return name
 
 
 class InstanceSpecies(Auditable, models.Model):
