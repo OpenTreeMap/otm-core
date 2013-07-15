@@ -21,6 +21,8 @@ from treemap.views import (audits, boundary_to_geojson,
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from django.core.exceptions import FieldError
 
+from django.contrib.gis.measure import Distance
+
 from audit import approve_or_reject_audit_and_apply
 
 import search
@@ -1258,6 +1260,20 @@ class FilterParserTests(TestCase):
              'EXCLUSIVE': False})
         self.assertEqual(const, {'__lte': 9, '__gte': 5})
 
+    def test_within_radius(self):
+        const = search._parse_dict_value(
+            {
+                'WITHIN_RADIUS': {
+                    "RADIUS": 5,
+                    "POINT": {
+                        "x": 100,
+                        "y": 50,
+                    }
+            }
+         })
+        self.assertEqual(const,
+                         {'__dwithin': (Point(100, 50), Distance(m=5)) })
+
     def test_parse_predicate(self):
         pred = search._parse_predicate(
             {'plot.width':
@@ -1405,6 +1421,43 @@ class SearchTests(TestCase):
                    self.instance, diameter_range_filter)}
 
         self.assertEqual(ids, {p1.pk})
+
+    def test_within_radius_integration(self):
+        test_point = Point(-7615443.0, 5953520.0)
+        near_point = Point(-7615444.0, 5953521.0)
+        far_point = Point(-9615444.0, 8953521.0)
+
+        near_plot = Plot(geom=near_point, instance=self.instance,
+                         created_by=self.system_user)
+        near_plot.save_with_user(self.system_user)
+        near_tree = Tree(plot=near_plot, instance=self.instance,
+                         created_by=self.system_user)
+        near_tree.save_with_user(self.system_user)
+
+        # just to make sure that the geospatial
+        # query actually filters by distance
+        far_plot = Plot(geom=far_point, instance=self.instance,
+                         created_by=self.system_user)
+        far_plot.save_with_user(self.system_user)
+        far_tree = Tree(plot=far_plot, instance=self.instance,
+                         created_by=self.system_user)
+        far_tree.save_with_user(self.system_user)
+
+        radius_filter = json.dumps(
+            {'plot.geom':
+             {
+                 'WITHIN_RADIUS': {
+                     'POINT': { 'x': test_point.x, 'y': test_point.y },
+                     'RADIUS': 10
+                 }
+             }})
+
+        ids = {p.pk
+               for p
+               in _execute_filter(
+                   self.instance, radius_filter)}
+
+        self.assertEqual(ids, {near_plot.pk})
 
     def test_diameter_range_filter(self):
         p1, p2, p3, p4 = self.setup_diameter_test()

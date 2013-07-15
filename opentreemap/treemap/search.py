@@ -6,6 +6,9 @@ from json import loads
 
 from django.db.models import Q
 
+from django.contrib.gis.measure import Distance
+from django.contrib.gis.geos import Point
+
 from treemap.models import Plot
 
 
@@ -25,7 +28,7 @@ def create_filter(filterstr):
     the following grammar:
     literal        = json literal | GMT date string in 'YYYY-MM-DD HH:MM:SS'
     model          = 'plot' | 'tree'
-    value-property = 'MIN' | 'MAX' | 'EXCLUSIVE' | 'IN' | 'IS'
+    value-property = 'MIN' | 'MAX' | 'EXCLUSIVE' | 'IN' | 'IS' | 'WITHIN_RADIUS'
     combinator     = 'AND' | 'OR'
     predicate      = { model.field: literal }
                    | { model.field: { (value-property: literal)* }}
@@ -110,11 +113,19 @@ def _parse_min_max_value(valuesdict):
 
     return params
 
+def _parse_within_radius(valuesdict):
+    within_radius = valuesdict['WITHIN_RADIUS']
+    x = _parse_value(within_radius['POINT']['x'])
+    y = _parse_value(within_radius['POINT']['y'])
+    radius = _parse_value(within_radius['RADIUS'])
+    point = Point(x, y, srid=3857)
+
+    return {'__dwithin' : (point, Distance(m=radius)) }
 
 def _parse_dict_value(valuesdict):
     """
     Supported keys are:
-    'MIN', 'MAX', 'EXCLUSIVE', 'IN', 'IS'
+    'MIN', 'MAX', 'EXCLUSIVE', 'IN', 'IS', 'WITHIN_RADIUS'
 
     The following rules apply:
     IN, IS, and the MIN/MAX/EXCL are mutually exclusive
@@ -133,6 +144,8 @@ def _parse_dict_value(valuesdict):
             raise ParseException('Invalid value dict: %s' % valuesdict)
 
         return {'': _parse_value(valuesdict['IS'])}
+    elif 'WITHIN_RADIUS' in valuesdict:
+        return _parse_within_radius(valuesdict)
     else:
         raise ParseException('Invalid value dict: %s' % valuesdict)
 
