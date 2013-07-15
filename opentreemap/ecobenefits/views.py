@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 
 from treemap.models import Tree
-from treemap.views import instance_request
+from treemap.util import instance_request
 
 from eco import benefits
 

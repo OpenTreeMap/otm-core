@@ -10,11 +10,14 @@ from django.utils.tree import Node
 from django.test import TestCase
 from django.test.client import RequestFactory
 from treemap.models import (Tree, Instance, Plot, User, Species, Role,
-                            FieldPermission, ReputationMetric, Boundary)
+                            FieldPermission, Boundary)
 
-from treemap.audit import Audit, UserTrackingException, AuthorizeException
+from treemap.audit import (Audit, UserTrackingException, AuthorizeException,
+                           ReputationMetric)
 
-from treemap.views import audits, boundary_to_geojson, boundary_autocomplete
+from treemap.views import (audits, boundary_to_geojson,
+                           boundary_autocomplete, _execute_filter)
+
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from django.core.exceptions import FieldError
 
@@ -1335,3 +1338,84 @@ class FilterParserTests(TestCase):
                                 ('tree__last_updated_by', 4)}))
 
         self.assertEqual(self.destructure_query_set(pred), ('OR', {p1, p2}))
+
+
+class SearchTests(TestCase):
+    def setUp(self):
+        self.instance = make_instance()
+
+        self.system_user = make_system_user()
+        self.system_user.roles.add(make_commander_role(self.instance))
+
+        self.p1 = Point(-7615441.0, 5953519.0)
+
+    def create_tree_and_plot(self):
+        plot = Plot(geom=self.p1, instance=self.instance,
+                    created_by=self.system_user)
+
+        plot.save_with_user(self.system_user)
+
+        tree = Tree(plot=plot, instance=self.instance,
+                    created_by=self.system_user)
+
+        tree.save_with_user(self.system_user)
+
+        return plot, tree
+
+    def setup_diameter_test(self):
+        p1, t1 = self.create_tree_and_plot()
+        t1.diameter = 2.0
+
+        p2, t2 = self.create_tree_and_plot()
+        t2.diameter = 4.0
+
+        p3, t3 = self.create_tree_and_plot()
+        t3.diameter = 6.0
+
+        p4, t4 = self.create_tree_and_plot()
+        t4.diameter = 8.0
+
+        for t in [t1, t2, t3, t4]:
+            t.save_with_user(self.system_user)
+
+        return [p1, p2, p3, p4]
+
+    def test_diameter_min_filter(self):
+        p1, p2, p3, p4 = self.setup_diameter_test()
+
+        diameter_range_filter = json.dumps({'tree.diameter':
+                                            {'MIN': 3.0}})
+
+        ids = {p.pk
+               for p
+               in _execute_filter(
+                   self.instance, diameter_range_filter)}
+
+        self.assertEqual(ids, {p2.pk, p3.pk, p4.pk})
+
+    def test_diameter_max_filter(self):
+        p1, p2, p3, p4 = self.setup_diameter_test()
+
+        diameter_range_filter = json.dumps({'tree.diameter':
+                                            {'MAX': 3.0}})
+
+        ids = {p.pk
+               for p
+               in _execute_filter(
+                   self.instance, diameter_range_filter)}
+
+        self.assertEqual(ids, {p1.pk})
+
+    def test_diameter_range_filter(self):
+        p1, p2, p3, p4 = self.setup_diameter_test()
+
+        diameter_range_filter = json.dumps({'tree.diameter':
+                                            {'MAX': 7.0,
+                                             'MIN': 3.0}})
+
+        ids = {p.pk
+               for p
+               in _execute_filter(
+                   self.instance, diameter_range_filter)}
+
+        self.assertEqual(ids, {p2.pk, p3.pk})
