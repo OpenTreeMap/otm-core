@@ -160,4 +160,4 @@ LOGGING = {
     }
 }
 
-from opentreemap.local_settings import *
+from opentreemap.local_settings import *  # NOQA

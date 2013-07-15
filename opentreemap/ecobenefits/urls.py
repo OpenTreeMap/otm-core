@@ -2,7 +2,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls import patterns, url
 
 from ecobenefits.views import tree_benefits
 

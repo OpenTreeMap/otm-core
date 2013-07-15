@@ -94,6 +94,13 @@ def _blend():
     with cd(os.path.join(env.static_path, 'js')):
         sudo(_venv_exec('blend'))
 
+def check():
+    """ Run flake8 (pep8 + pyflakes) """
+    require('site_path')
+
+    with cd(env.site_path):
+        run(_venv_exec('flake8 --exclude migrations *'))
+
 def static():
     """ Collect static files and minify javascript. """
     _collectstatic()
@@ -148,7 +155,6 @@ def start_app():
 def app_status():
     """ Query upstart for the status of the otm-unicorn app """
     sudo("service otm-unicorn status")
-
 
 def tiler_restart():
     """ Restart the map tile service """

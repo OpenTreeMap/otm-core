@@ -12,8 +12,7 @@ from django.test.client import RequestFactory
 from treemap.models import (Tree, Instance, Plot, User, Species, Role,
                             FieldPermission, ReputationMetric, Boundary)
 
-from treemap.audit import (Audit, AuditException, UserTrackingException,
-                           AuthorizeException)
+from treemap.audit import Audit, UserTrackingException, AuthorizeException
 
 from treemap.views import audits, boundary_to_geojson, boundary_autocomplete
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
@@ -135,7 +134,8 @@ def make_instance():
     p1 = Point(0, 0)
 
     instance, _ = Instance.objects.get_or_create(
-        name='i1',geo_rev=0,center=p1,default_role=global_role)
+        name='i1', geo_rev=0, center=p1, default_role=global_role)
+
     return instance
 
 
@@ -278,7 +278,7 @@ class GeoRevIncr(TestCase):
         rev2h, rev2 = self.hash_and_rev()
 
         self.assertNotEqual(rev1h, rev2h)
-        self.assertEqual(rev1 + 1,rev2)
+        self.assertEqual(rev1 + 1, rev2)
 
         plot2 = Plot(geom=self.p2, instance=self.instance,
                      created_by=self.user)
@@ -288,7 +288,7 @@ class GeoRevIncr(TestCase):
         rev3h, rev3 = self.hash_and_rev()
 
         self.assertNotEqual(rev2h, rev3h)
-        self.assertEqual(rev2 + 1,rev3)
+        self.assertEqual(rev2 + 1, rev3)
 
         # Update
         plot2.geom = self.p1
@@ -297,7 +297,7 @@ class GeoRevIncr(TestCase):
         rev4h, rev4 = self.hash_and_rev()
 
         self.assertNotEqual(rev3h, rev4h)
-        self.assertEqual(rev3 + 1,rev4)
+        self.assertEqual(rev3 + 1, rev4)
 
         # Delete
         plot2.delete_with_user(self.user)
@@ -305,7 +305,7 @@ class GeoRevIncr(TestCase):
         rev5h, rev5 = self.hash_and_rev()
 
         self.assertNotEqual(rev4h, rev5h)
-        self.assertEqual(rev4 + 1,rev5)
+        self.assertEqual(rev4 + 1, rev5)
 
 
 class UserRoleFieldPermissionTest(TestCase):
@@ -520,11 +520,11 @@ class ScopeModelTest(TestCase):
         self.instance2.save()
 
         for i in [self.instance1, self.instance2]:
-            FieldPermission(model_name='Plot',field_name='geom',
+            FieldPermission(model_name='Plot', field_name='geom',
                             permission_level=FieldPermission.WRITE_DIRECTLY,
                             role=self.global_role,
                             instance=i).save()
-            FieldPermission(model_name='Tree',field_name='plot',
+            FieldPermission(model_name='Tree', field_name='plot',
                             permission_level=FieldPermission.WRITE_DIRECTLY,
                             role=self.global_role,
                             instance=i).save()
@@ -987,7 +987,7 @@ class RecentEditsViewTest(TestCase):
         self.assertEqual(len(dicts), len(returns))
 
         for expected, generated in zip(dicts, returns):
-            for k,v in expected.iteritems():
+            for k, v in expected.iteritems():
                 self.assertEqual(v, generated[k])
 
     def test_multiple_deltas(self):
@@ -1193,10 +1193,6 @@ class FilterParserTests(TestCase):
                           qc, [qa, qb])
 
     def test_combinator_invalid_empty(self):
-        qa = Q(a=1)
-        qb = Q(b=1)
-        qc = Q(c=1)
-
         # Error if empty
         self.assertRaises(search.ParseException,
                           search._apply_combinator,
@@ -1205,7 +1201,7 @@ class FilterParserTests(TestCase):
     def test_contraints_in(self):
         inparams = search._parse_dict_value({'IN': [1, 2, 3]})
         self.assertEqual(inparams,
-                         {'__in': [1,2,3]})
+                         {'__in': [1, 2, 3]})
 
     def test_contraints_is(self):
         # "IS" is a special case in that we don't need to appl
@@ -1218,7 +1214,7 @@ class FilterParserTests(TestCase):
         # It is an error to combine mutually exclusive groups
         self.assertRaises(search.ParseException,
                           search._parse_dict_value,
-                          {'IS': 'what', 'IN': [1,2,3]})
+                          {'IS': 'what', 'IN': [1, 2, 3]})
 
         self.assertRaises(search.ParseException,
                           search._parse_dict_value,

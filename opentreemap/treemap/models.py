@@ -4,8 +4,7 @@ from __future__ import division
 
 from django.contrib.gis.db import models
 from django.db import IntegrityError
-from treemap.audit import Auditable, Audit, Authorizable,\
-    ReputationMetric, FieldPermission, Role
+from treemap.audit import Auditable, Authorizable, FieldPermission, Role
 
 from django.contrib.auth.models import AbstractUser
 
@@ -68,7 +67,7 @@ class Instance(models.Model):
 
     @property
     def center_lat_lng(self):
-        return self.center.transform(4326,clone=True)
+        return self.center.transform(4326, clone=True)
 
     def scope_model(self, model):
         qs = model.objects.filter(instance=self)
@@ -134,7 +133,7 @@ class Species(models.Model):
     def scientific_name(self):
         name = self.genus
         if self.species:
-            name += " " + species
+            name += " " + self.species
         if self.cultivar:
             name += " '%s'" % self.cultivar
 
@@ -162,7 +161,7 @@ class Plot(Authorizable, Auditable, models.Model):
 
     address_street = models.CharField(max_length=255, blank=True, null=True)
     address_city = models.CharField(max_length=255, blank=True, null=True)
-    address_zip = models.CharField(max_length=30,blank=True, null=True)
+    address_zip = models.CharField(max_length=30, blank=True, null=True)
 
     import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
     created_by = models.ForeignKey(User)
@@ -199,9 +198,9 @@ class Tree(Authorizable, Auditable, models.Model):
     instance = models.ForeignKey(Instance)
 
     plot = models.ForeignKey(Plot)
-    species = models.ForeignKey(Species,null=True,blank=True)
+    species = models.ForeignKey(Species, null=True, blank=True)
     created_by = models.ForeignKey(User)
-    import_event = models.ForeignKey(ImportEvent,null=True,blank=True)
+    import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
 
     readonly = models.BooleanField(default=False)
     diameter = models.FloatField(null=True, blank=True)

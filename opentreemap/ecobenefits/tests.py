@@ -7,7 +7,7 @@ from django.test import TestCase
 from ecobenefits.views import tree_benefits
 from django.test.client import RequestFactory
 
-from treemap.models import User, Instance, Plot, Tree, Species
+from treemap.models import User, Plot, Tree, Species
 from django.contrib.gis.geos import Point
 from treemap import tests as tm
 
