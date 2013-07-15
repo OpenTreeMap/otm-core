@@ -2,9 +2,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point
-from django.utils import translation
 from optparse import make_option
 
 from treemap.models import Instance, User, Plot, Tree, ImportEvent,\
@@ -12,6 +11,7 @@ from treemap.models import Instance, User, Plot, Tree, ImportEvent,\
 
 import random
 import math
+
 
 class Command(BaseCommand):
 
@@ -43,7 +43,8 @@ class Command(BaseCommand):
                     type='int',
                     dest='ptree',
                     default=50,
-                    help='Probability that a given plot will have a tree (0-100)'))
+                    help=('Probability that a given plot will '
+                          'have a tree (0-100)')))
 
     def handle(self, *args, **options):
         """ Create some seed data """
@@ -64,18 +65,20 @@ class Command(BaseCommand):
             user.roles.add(r)
             user.save()
 
-        for field in ('geom','created_by','import_event'):
+        for field in ('geom', 'created_by', 'import_event'):
             _, c = FieldPermission.objects.get_or_create(
-                model_name='Plot',field_name=field,
+                model_name='Plot',
+                field_name=field,
                 role=user.roles.all()[0],
                 instance=instance,
                 permission_level=FieldPermission.WRITE_DIRECTLY)
             if c:
                 print('Created plot permission for field "%s"' % field)
 
-        for field in ('plot','created_by'):
+        for field in ('plot', 'created_by'):
             _, c = FieldPermission.objects.get_or_create(
-                model_name='Tree',field_name=field,
+                model_name='Tree',
+                field_name=field,
                 role=user.roles.all()[0],
                 instance=instance,
                 permission_level=FieldPermission.WRITE_DIRECTLY)
@@ -92,7 +95,7 @@ class Command(BaseCommand):
                 p.delete_with_user(user)
                 dp += 1
 
-            print("Deleted %s trees and %s plots" % (dt,dp))
+            print("Deleted %s trees and %s plots" % (dt, dp))
 
         n = options['n']
         print("Will create %s plots" % n)
@@ -113,11 +116,11 @@ class Command(BaseCommand):
             radius = random.gauss(0.0, max_radius)
             theta = random.random() * 2.0 * math.pi
 
-            x = math.cos(theta)*radius + center_x
-            y = math.sin(theta)*radius + center_y
+            x = math.cos(theta) * radius + center_x
+            y = math.sin(theta) * radius + center_y
 
             plot = Plot(instance=instance,
-                        geom=Point(x,y),
+                        geom=Point(x, y),
                         created_by=user,
                         import_event=import_event)
 
@@ -132,4 +135,4 @@ class Command(BaseCommand):
                 tree.save_with_user(user)
                 ct += 1
 
-        print("Created %s trees and %s plots" % (ct,cp))
+        print("Created %s trees and %s plots" % (ct, cp))

@@ -93,8 +93,6 @@ def _parse_min_max_value(valuesdict):
         if key not in valid_keys:
             raise ParseException('Invalid value dict: %s' % valuesdict)
 
-    exclusive_sfx = ''
-
     if 'EXCLUSIVE' in valuesdict and valuesdict['EXCLUSIVE']:
         gt = '__gt'
         lt = '__lt'
@@ -143,7 +141,7 @@ def _parse_predicate_pair(key, value):
     search_key = _parse_predicate_key(key)
     if type(value) is dict:
         return Q(**{search_key + k: v
-                    for (k,v)
+                    for (k, v)
                     in _parse_dict_value(value).iteritems()})
     else:
         return Q(**{search_key: value})

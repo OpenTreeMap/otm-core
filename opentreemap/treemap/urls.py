@@ -2,7 +2,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls import patterns, url
 
 from treemap.views import boundary_to_geojson, index, trees,\
     plot_detail, settings_js, audits, search_tree_benefits,\
