@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from functools import wraps
+from itertools import chain
 
 import json
 
@@ -14,6 +15,7 @@ from django.http import (HttpResponse, HttpResponseBadRequest,
 from django.views.decorators.http import etag
 
 from django.conf import settings
+from treemap.search import create_filter
 
 from treemap.models import Instance, Plot, Audit, Tree, User, Boundary
 from ecobenefits.models import _benefits_for_tree_dbh_and_species
@@ -189,13 +191,8 @@ def boundary_autocomplete(request):
             for boundary in boundaries]
 
 
-#
-# DUMMY FUNCTION - to be replaced when we have filtering
-# working
-#
 def _execute_filter(instance, filter_str):
-    return Tree.objects.filter(instance=instance)
-
+    return create_filter(filter_str).filter(instance=instance)
 
 @instance_request
 def search_tree_benefits(request, region='SoCalCSMA'):
@@ -204,7 +201,8 @@ def search_tree_benefits(request, region='SoCalCSMA'):
     except KeyError:
         return HttpResponseServerError("Please supply a 'filter' parameter")
 
-    trees = _execute_filter(request.instance, filter_str)
+    plots  = _execute_filter(request.instance, filter_str)
+    trees = chain(*[plot.trees for plot in plots])
 
     num_calculated_trees = 0
 
