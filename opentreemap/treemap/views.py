@@ -2,64 +2,26 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from functools import wraps
 from itertools import chain
 
 import json
 
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.http import (HttpResponse, HttpResponseBadRequest,
-                         HttpResponseServerError)
+from django.http import HttpResponse, HttpResponseServerError
 
 from django.views.decorators.http import etag
 
 from django.conf import settings
+
+from treemap.util import instance_request, json_api_call
+
 from treemap.search import create_filter
 
-from treemap.models import Instance, Plot, Audit, Tree, User, Boundary
-from ecobenefits.models import _benefits_for_tree_dbh_and_species
+from treemap.audit import Audit
+from treemap.models import Plot, User, Boundary
 
-
-class InvalidInstanceException(Exception):
-    pass
-
-
-class HttpBadRequestException(Exception):
-    pass
-
-
-def instance_request(view_fn):
-    @wraps(view_fn)
-    def wrapper(request, instance_id, *args, **kwargs):
-        request.instance = get_object_or_404(Instance, pk=instance_id)
-        return view_fn(request, *args, **kwargs)
-
-    return wrapper
-
-
-def json_api_call(req_function):
-    """ Wrap a view-like function that returns an object that
-        is convertable from json
-    """
-    @wraps(req_function)
-    def newreq(request, *args, **kwargs):
-        try:
-            outp = req_function(request, *args, **kwargs)
-            if issubclass(outp.__class__, HttpResponse):
-                response = outp
-            else:
-                response = HttpResponse()
-                response.write('%s' % json.dumps(outp))
-                response['Content-length'] = str(len(response.content))
-
-            response['Content-Type'] = "application/json"
-
-        except HttpBadRequestException, bad_request:
-            response = HttpResponseBadRequest(bad_request.message)
-
-        return response
-    return newreq
+from ecobenefits.views import _benefits_for_tree_dbh_and_species
 
 
 @instance_request
@@ -194,6 +156,7 @@ def boundary_autocomplete(request):
 def _execute_filter(instance, filter_str):
     return create_filter(filter_str).filter(instance=instance)
 
+
 @instance_request
 def search_tree_benefits(request, region='SoCalCSMA'):
     try:
@@ -201,7 +164,7 @@ def search_tree_benefits(request, region='SoCalCSMA'):
     except KeyError:
         return HttpResponseServerError("Please supply a 'filter' parameter")
 
-    plots  = _execute_filter(request.instance, filter_str)
+    plots = _execute_filter(request.instance, filter_str)
     trees = chain(*[plot.trees for plot in plots])
 
     num_calculated_trees = 0

@@ -10,9 +10,10 @@ from django.utils.tree import Node
 from django.test import TestCase
 from django.test.client import RequestFactory
 from treemap.models import (Tree, Instance, Plot, User, Species, Role,
-                            FieldPermission, ReputationMetric, Boundary)
+                            FieldPermission, Boundary)
 
-from treemap.audit import Audit, UserTrackingException, AuthorizeException
+from treemap.audit import (Audit, UserTrackingException, AuthorizeException,
+                           ReputationMetric)
 
 from treemap.views import (audits, boundary_to_geojson,
                            boundary_autocomplete, _execute_filter)
