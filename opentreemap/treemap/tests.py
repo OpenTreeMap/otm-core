@@ -176,18 +176,30 @@ def make_instance_and_system_user():
 
 
 ######################################
-## Utility functions
+## Custom test classes
 ######################################
 
 
-def _assert_view_equals(testCase, view, expected_dict, url="hello/world",
-                        params=None):
-    factory = testCase.factory
-    request = factory.get(url) if params is None else factory.get(url, params)
-    response = view(request, testCase.instance.pk)
-    reponse_dict = json.loads(response.content)
+class ViewTestCase(TestCase):
+    def setUp_view(self):
+        self.factory = RequestFactory()
+        self.instance = make_instance()
 
-    testCase.assertEqual(expected_dict, reponse_dict)
+    def call_view(self, view, view_args=[], view_keyword_args={},
+                  url="hello/world", url_args={}):
+        request = self.factory.get(url, url_args)
+        response = view(request, *view_args, **view_keyword_args)
+        return json.loads(response.content)
+
+    def call_instance_view(self, view, view_args=None, view_keyword_args={},
+                           url="hello/world", url_args={}):
+        if (view_args is None):
+            view_args = [self.instance.pk]
+        else:
+            view_args.insert(0, self.instance.pk)
+
+        return self.call_view(view, view_args, view_keyword_args,
+                              url, url_args)
 
 
 ######################################
@@ -1436,10 +1448,9 @@ class SearchTests(TestCase):
         self.assertEqual(ids, {p2.pk, p3.pk})
 
 
-class SpeciesViewTests(TestCase):
+class SpeciesViewTests(ViewTestCase):
     def setUp(self):
-        self.instance = make_instance()
-        self.factory = RequestFactory()
+        self.setUp_view()
 
         self.species_dict = [
             {'common_name': 'elm', 'scientific_name': 'elmitius'},
@@ -1455,4 +1466,6 @@ class SpeciesViewTests(TestCase):
             item['id'] = species.id
 
     def test_get_species_list(self):
-        _assert_view_equals(self, species_list, self.species_dict)
+        response = self.call_instance_view(species_list)
+
+        self.assertEquals(response, self.species_dict)
