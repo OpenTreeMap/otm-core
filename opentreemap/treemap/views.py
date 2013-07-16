@@ -160,7 +160,7 @@ def _execute_filter(instance, filter_str):
 @instance_request
 def search_tree_benefits(request, region='SoCalCSMA'):
     try:
-        filter_str = request.REQUEST['filter']
+        filter_str = request.REQUEST['q']
     except KeyError:
         return HttpResponseServerError("Please supply a 'filter' parameter")
 
