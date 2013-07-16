@@ -1,11 +1,12 @@
 /* app.js */
 
 //= require OpenLayers
+//= require Search
 
-/*globals $,OpenLayers,otm,document*/
+/*globals $,OpenLayers,otm,document,Search*/
 /*jslint indent: 4, white: true */
 
-var app = (function ($,OL,config) {
+var app = (function ($,OL,Search,config) {
     "use strict";
     return {
         createMap: function (elmt) {
@@ -118,6 +119,9 @@ var app = (function ($,OL,config) {
 
             zoom = map.getZoomForResolution(76.43702827453613);
             map.setCenter(config.instance.center, zoom);
+
+            Search.init($("#perform-search")
+                        .asEventStream("click"));
         }
     };
-}($, OpenLayers, otm.settings));
+}($, OpenLayers, Search, otm.settings));
