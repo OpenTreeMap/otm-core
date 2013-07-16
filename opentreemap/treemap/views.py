@@ -165,7 +165,7 @@ def search_tree_benefits(request, region='SoCalCSMA'):
         return HttpResponseServerError("Please supply a 'filter' parameter")
 
     plots = _execute_filter(request.instance, filter_str)
-    trees = chain(*[plot.trees for plot in plots])
+    trees = list(chain(*[plot.tree_set.all() for plot in plots]))
 
     num_calculated_trees = 0
 
@@ -182,7 +182,9 @@ def search_tree_benefits(request, region='SoCalCSMA'):
 
             num_calculated_trees += 1
 
+    total_plots = len(plots)
     total_trees = len(trees)
+
     if num_calculated_trees > 0 and total_trees > 0:
 
         # Extrapolate an average over the rest of the urban forest
@@ -195,13 +197,15 @@ def search_tree_benefits(request, region='SoCalCSMA'):
 
         rslt = {'benefits': benefits,
                 'basis': {'n_calc': num_calculated_trees,
-                          'n_total': total_trees,
+                          'n_total_trees': total_trees,
+                          'n_total_plots': total_plots,
                           'percent': (float(num_calculated_trees) /
                                       total_trees)}}
     else:
         rslt = {'benefits': benefits,
                 'basis': {'n_calc': num_calculated_trees,
-                          'n_total': total_trees,
+                          'n_total_trees': total_trees,
+                          'n_total_plots': total_plots,
                           'percent': 0}}
 
     return HttpResponse(json.dumps(rslt), content_type='application/json')

@@ -8,7 +8,36 @@
 <script src="{{ STATIC_URL }}js/src/map.js"></script>
 {% endblock scripts %}
 
+{% block templates %}
+<script type="text/template" id="template-search-results">
+<div>
+  <h2>Benefits</h2>
+  <table>
+    <tr><th>Benefit</th><th>Value</th></tr>
+    <tr><td>Energy<td><%= search.benefits.energy %></td></tr>
+    <tr><td>Air Quality<td><%= search.benefits.airquality %></td></tr>
+    <tr><td>Storwater<td><%= search.benefits.stormwater %></td></tr>
+  </table>
+  <div>
+    Search returned <%= search.basis.n_total_plots %> plots and
+    <%= search.basis.n_total_trees %> trees
+  </div>
+</script>
+{% endblock templates %}
+
 {% block body %}
-  <span>Windshaft test <span id="attrs"></span></span>
+  <div>
+    <h2>Selected: <span id="attrs"></h2>
+    <h2>Search</h2>
+    <div>Species Id: <input id="search-species"></div>
+    <div>DBH Min: <input id="dbh-min"></div>
+    <div>DBH Max: <input id="dbh-min"></div>
+    <button id="perform-search">Go</button>
+  </div>
+  <div id="search-results"></div>
+  <div>
+    <h2>Search Result:</h2>
+    <div id="search-results"></div>
+  </div>
   <div id="map" style="width: 800px; height: 800px"></div>
 {% endblock body %}
