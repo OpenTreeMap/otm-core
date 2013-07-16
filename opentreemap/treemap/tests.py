@@ -890,7 +890,7 @@ class ReputationTest(TestCase):
         self.assertGreater(self.privileged_user.reputation, 0)
 
 
-class BoundaryViewTest(TestCase):
+class BoundaryViewTest(ViewTestCase):
 
     def _make_simple_boundary(self, name, n=1):
         b = Boundary()
@@ -902,8 +902,7 @@ class BoundaryViewTest(TestCase):
         return b
 
     def setUp(self):
-        self.factory = RequestFactory()
-        self.test_instance = make_instance()
+        self.setUp_view()
         self.test_boundaries = [
             'alabama',
             'arkansas',
@@ -917,41 +916,38 @@ class BoundaryViewTest(TestCase):
         self.test_boundary_hashes = []
         for i, v in enumerate(self.test_boundaries):
             boundary = self._make_simple_boundary(v, i)
-            self.test_instance.boundaries.add(boundary)
-            self.test_instance.save()
+            self.instance.boundaries.add(boundary)
+            self.instance.save()
             self.test_boundary_hashes.append({'name': boundary.name,
                                               'category': boundary.category})
 
     def test_boundary_to_geojson_view(self):
         boundary = self._make_simple_boundary("Hello, World", 1)
-        request = self.factory.get("/hello/world")
-        response = boundary_to_geojson(request, boundary.id)
-        self.assertEqual(response.content, boundary.geom.geojson)
+        response = self.call_view(boundary_to_geojson, [boundary.id])
 
-    def assertAutoCompleteQueryMatches(self, get_params, data_criteria):
-        request = self.factory.get("hello/world", get_params)
-        response = boundary_autocomplete(request, make_instance().id)
-        response_boundaries = json.loads(response.content)
-
-        self.assertEqual(response_boundaries, data_criteria)
+        self.assertEqual(response, json.loads(boundary.geom.geojson))
 
     def test_autocomplete_view(self):
-        self.assertAutoCompleteQueryMatches({'q': 'fa'},
-                                            self.test_boundary_hashes[2:6])
+        response = self.call_instance_view(boundary_autocomplete,
+                                           url_args={'q': 'fa'})
+        self.assertEqual(response, self.test_boundary_hashes[2:6])
 
     def test_autocomplete_view_scoped(self):
         # make a boundary that is not tied to this
         # instance, should not be in the search
         # results
         self._make_simple_boundary("fargo", 1)
+        response = self.call_instance_view(boundary_autocomplete,
+                                           url_args={'q': 'fa'})
 
-        self.assertAutoCompleteQueryMatches({'q': 'fa'},
-                                            self.test_boundary_hashes[2:6])
+        self.assertEqual(response, self.test_boundary_hashes[2:6])
 
     def test_autocomplete_view_limit(self):
-        self.assertAutoCompleteQueryMatches({'q': 'fa',
-                                             'max_items': 2},
-                                            self.test_boundary_hashes[2:4])
+        response = self.call_instance_view(boundary_autocomplete,
+                                           url_args={'q': 'fa',
+                                                     'max_items': 2})
+
+        self.assertEqual(response, self.test_boundary_hashes[2:4])
 
 
 class RecentEditsViewTest(TestCase):
