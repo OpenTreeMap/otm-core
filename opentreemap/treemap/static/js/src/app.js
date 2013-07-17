@@ -1,6 +1,7 @@
 /* app.js */
 
 //= require OpenLayers
+//= require openlayers.layer.otm
 //= require Search
 
 /*globals $,OpenLayers,otm,document,Search*/
@@ -49,11 +50,11 @@ var app = (function ($,OL,Search,config) {
         },
 
         createPlotTileLayer: function(config) {
-            return new OL.Layer.XYZ(
+            return new OL.Layer.OTM(
                 'tiles',
                 this.getPlotLayerURL(config, 'png'),
-            { isBaseLayer: false });
-
+            { isBaseLayer: false,
+              filterQueryArgumentName: config.urls.filterQueryArgumentName });
         },
 
         createPlotUTFLayer: function(config) {
@@ -121,7 +122,7 @@ var app = (function ($,OL,Search,config) {
             map.setCenter(config.instance.center, zoom);
 
             Search.init($("#perform-search")
-                        .asEventStream("click"));
+                        .asEventStream("click"), plotLayer);
         }
     };
 }($, OpenLayers, Search, otm.settings));

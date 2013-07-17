@@ -2,6 +2,10 @@
 var otm = otm || {};
 otm.settings = otm.settings || {};
 
+otm.settings.urls = {
+    'filterQueryArgumentName': 'q'
+}
+
 otm.settings.instance = {
     'id': '{{ request.instance.id }}',
     'name': '{{ request.instance.name }}',
