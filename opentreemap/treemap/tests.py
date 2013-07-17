@@ -1285,17 +1285,13 @@ class FilterParserTests(TestCase):
 
     def test_within_radius(self):
         const = search._parse_dict_value(
-            {
-                'WITHIN_RADIUS': {
-                    "RADIUS": 5,
-                    "POINT": {
-                        "x": 100,
-                        "y": 50,
-                    }
-            }
-         })
+            {'WITHIN_RADIUS': {
+                "RADIUS": 5,
+                "POINT": {
+                    "x": 100,
+                    "y": 50}}})
         self.assertEqual(const,
-                         {'__dwithin': (Point(100, 50), Distance(m=5)) })
+                         {'__dwithin': (Point(100, 50), Distance(m=5))})
 
     def test_parse_predicate(self):
         pred = search._parse_predicate(
@@ -1460,17 +1456,17 @@ class SearchTests(TestCase):
         # just to make sure that the geospatial
         # query actually filters by distance
         far_plot = Plot(geom=far_point, instance=self.instance,
-                         created_by=self.system_user)
+                        created_by=self.system_user)
         far_plot.save_with_user(self.system_user)
         far_tree = Tree(plot=far_plot, instance=self.instance,
-                         created_by=self.system_user)
+                        created_by=self.system_user)
         far_tree.save_with_user(self.system_user)
 
         radius_filter = json.dumps(
             {'plot.geom':
              {
                  'WITHIN_RADIUS': {
-                     'POINT': { 'x': test_point.x, 'y': test_point.y },
+                     'POINT': {'x': test_point.x, 'y': test_point.y},
                      'RADIUS': 10
                  }
              }})
