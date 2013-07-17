@@ -122,9 +122,10 @@ def _parse_min_max_value_fn(operator):
 
         value = _parse_value(raw_value)
 
-        return { key: value }
+        return {key: value}
 
     return fn
+
 
 def _parse_within_radius_value(predicate_value):
     """
@@ -136,7 +137,7 @@ def _parse_within_radius_value(predicate_value):
     y = _parse_value(predicate_value['POINT']['y'])
     point = Point(x, y, srid=3857)
 
-    return { '__dwithin': (point, Distance(m=radius)) }
+    return {'__dwithin': (point, Distance(m=radius))}
 
 # a predicate_builder takes a value for the
 # corresponding predicate type and returns
@@ -153,17 +154,18 @@ PREDICATE_TYPES = {
     },
     'IN': {
         'combines_with': set(),
-        'predicate_builder': (lambda value: { '__in': value }),
+        'predicate_builder': (lambda value: {'__in': value}),
     },
     'IS': {
         'combines_with': set(),
-        'predicate_builder': (lambda value: { '': value })
+        'predicate_builder': (lambda value: {'': value})
     },
     'WITHIN_RADIUS': {
         'combines_with': set(),
         'predicate_builder': _parse_within_radius_value,
     }
 }
+
 
 def _parse_dict_value(valuesdict):
     """
@@ -184,19 +186,19 @@ def _parse_dict_value(valuesdict):
             raise ParseException(
                 'Invalid key: %s in %s' % (value_key, valuesdict))
         else:
-            predicate_properties = PREDICATE_TYPES[value_key]
-            valid_values = predicate_properties['combines_with'].\
-                           union({value_key})
+            predicate_props = PREDICATE_TYPES[value_key]
+            valid_values = predicate_props['combines_with'].union({value_key})
             if not valid_values.issuperset(set(valuesdict.keys())):
                 raise ParseException(
                     'Cannot use these keys together: %s in %s' %
                     (valuesdict.keys(), valuesdict))
             else:
-                predicate_builder = predicate_properties['predicate_builder']
+                predicate_builder = predicate_props['predicate_builder']
                 param_pair = predicate_builder(valuesdict[value_key])
                 params.update(param_pair)
 
     return params
+
 
 def _parse_predicate_pair(key, value):
     search_key = _parse_predicate_key(key)

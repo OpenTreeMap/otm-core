@@ -1278,19 +1278,19 @@ class FilterParserTests(TestCase):
     def test_contraint_max_with_exclusive(self):
         const = search._parse_dict_value(
             {'MAX': {'VALUE': 5,
-                     'EXCLUSIVE': True} })
+                     'EXCLUSIVE': True}})
         self.assertEqual(const, {'__lt': 5})
 
         const = search._parse_dict_value(
             {'MAX': {'VALUE': 5,
-                     'EXCLUSIVE': False} })
+                     'EXCLUSIVE': False}})
         self.assertEqual(const, {'__lte': 5})
 
     def test_contraints_min_and_max(self):
         const = search._parse_dict_value(
             {'MIN': 5,
              'MAX': {'VALUE': 9,
-                     'EXCLUSIVE': False} })
+                     'EXCLUSIVE': False}})
         self.assertEqual(const, {'__lte': 9, '__gte': 5})
 
     def test_within_radius(self):
@@ -1308,7 +1308,7 @@ class FilterParserTests(TestCase):
             {'plot.width':
              {'MIN': 5,
               'MAX': {'VALUE': 9,
-                      'EXCLUSIVE': False} },
+                      'EXCLUSIVE': False}},
              'tree.height':
              9})
 
@@ -1334,7 +1334,7 @@ class FilterParserTests(TestCase):
             {'plot.width':
              {'MIN': 5,
               'MAX': {'VALUE': 9,
-                      'EXCLUSIVE': False} },
+                      'EXCLUSIVE': False}},
              'tree.height': 9})
 
         p = ('AND',
@@ -1350,7 +1350,7 @@ class FilterParserTests(TestCase):
              {'plot.width':
               {'MIN': 5,
                'MAX': {'VALUE': 9,
-                       'EXCLUSIVE': False} },
+                       'EXCLUSIVE': False}},
               'tree.height': 9},
              {'tree.leaf_type': {'IS': 9},
               'tree.last_updated_by': 4}])
@@ -1370,7 +1370,7 @@ class FilterParserTests(TestCase):
              {'plot.width':
               {'MIN': 5,
                'MAX': {'VALUE': 9,
-                       'EXCLUSIVE': False} },
+                       'EXCLUSIVE': False}},
               'tree.height': 9},
              {'tree.leaf_type': {'IS': 9},
               'tree.last_updated_by': 4}])
