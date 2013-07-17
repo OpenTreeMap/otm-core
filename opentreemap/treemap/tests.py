@@ -1020,11 +1020,13 @@ class RecentEditsViewTest(TestCase):
 
     def check_audits(self, url, dicts):
         req = self.factory.get(url)
-        returns = audits(req, self.instance.pk)
+        resulting_audits = [a.audit.dict()
+                            for a
+                            in audits(req, self.instance)['audits']]
 
-        self.assertEqual(len(dicts), len(returns))
+        self.assertEqual(len(dicts), len(resulting_audits))
 
-        for expected, generated in zip(dicts, returns):
+        for expected, generated in zip(dicts, resulting_audits):
             for k, v in expected.iteritems():
                 self.assertEqual(v, generated[k])
 

@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import GEOSGeometry
+
 from django.forms.models import model_to_dict
 
 from django.dispatch import receiver
@@ -433,6 +435,84 @@ class Auditable(UserTrackable):
         string_to_hash = str(audits[0].pk)
 
         return hashlib.md5(string_to_hash).hexdigest()
+
+
+class AuditUI(models.Model):
+    """
+    Audit UI provides useful accessors for getting the objects behind
+    an audit.
+
+    For example, the 'created_by' field of an audit is a user but is
+    stored an integer. If this is an audit for a given 'created_by'
+    field you can do something like:
+
+    aui = AuditUI(audit)
+    user_object = aui.previous_value_as_user
+
+    If there is an invalid conversion it returns None:
+    plot_object = aui.previous_value_as_plot
+    """
+    def __init__(self, audit):
+        self.audit = audit
+
+    def _value_as_thing(self, value, Thing):
+        return Thing.objects.get(pk=value)
+
+    def _value_as_user(self, value):
+        # Delayed import since this is circular
+        from treemap.models import User
+
+        if self.audit.field == 'created_by':
+            return self._value_as_thing(value, User)
+        else:
+            return None
+
+    @property
+    def current_value_as_user(self):
+        return self._value_as_user(self.audit.current_value)
+
+    @property
+    def previous_value_as_user(self):
+        return self._value_as_user(self.audit.previous_value)
+
+    def _value_as_geom(self, value):
+        if self.audit.field == 'geom':
+            return GEOSGeometry(value)
+        else:
+            return None
+
+    @property
+    def current_value_as_geom(self):
+        return self._value_as_geom(self.audit.current_value)
+
+    @property
+    def previous_value_as_geom(self):
+        return self._value_as_geom(self.audit.previous_value)
+
+    def _value_as_plot(self, value):
+        # Delayed import since this is circular
+        from treemap.models import Plot
+
+        if self.audit.field == 'plot' and self.audit.model == 'Tree':
+            return self._value_as_thing(value, Plot)
+        else:
+            return None
+
+    @property
+    def current_value_as_plot(self):
+        return self._value_as_plot(self.audit.current_value)
+
+    @property
+    def previous_value_as_plot(self):
+        return self._value_as_plot(self.audit.previous_value)
+
+    @property
+    def previous_value(self):
+        return self.audit.previous_value
+
+    @property
+    def current_value(self):
+        return self.audit.current_value
 
 
 ###

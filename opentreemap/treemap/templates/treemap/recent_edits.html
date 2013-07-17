@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Recent Edits{% endblock title %}
+
+{% block body %}
+
+<h1>
+Recent Edits
+</h1>
+<a href="{% url 'recent_edits' instance_id=request.instance.pk %}">Reset</a>
+
+<table>
+  <tr>
+    <th>Audit ID</th>
+    <th>Model</th>
+    <th>Model #</th>
+    <th>Field</th>
+    <th>Old Value</th>
+    <th>Current Value</th>
+    <th>Commit By</th>
+    <th>Commit On</th>
+  </tr>
+  {% for auditui in audits %}
+  <tr>
+    <td>{{ auditui.audit.pk }}</td>
+    <td>
+      <a href="?models={{ auditui.audit.model }}">
+      {{ auditui.audit.model }}
+      </a>
+    </td>
+    <td>
+      <a href="?models={{ auditui.audit.model }}&model_id={{ auditui.audit.model_id }}">
+        {{ auditui.audit.model_id }}
+      </a>
+    </td>
+    <td>{{ auditui.audit.field }}</td>
+
+    {% if auditui.previous_value_as_user %}
+    <td>
+      <a href="?user={{ auditui.previous_value_as_user.pk }}">
+        {{ auditui.previous_value_as_user }}
+      </a>
+    </td>
+    {% elif auditui.previous_value_as_plot %}
+    <td>
+      <a href="?models=Plot,id={{ auditui.previous_value_as_plot.pk }}">
+        Plot {{ auditui.previous_value_as_plot.pk}}
+      </a>
+    </td>
+    {% elif auditui.previous_value_as_geom %}
+    <td>
+      {{ auditui.previous_value_as_geom.x|floatformat:0 }},
+      {{ auditui.previous_value_as_geom.y|floatformat:0 }}
+    </td>
+    {% else %}
+    <td>{{ auditui.audit.previous_value }}</td>
+    {% endif %}
+
+    {% if auditui.current_value_as_user %}
+    <td>
+      <a href="?user={{ auditui.current_value_as_user.pk }}">
+        {{ auditui.current_value_as_user }}
+      </a>
+    </td>
+    {% elif auditui.current_value_as_plot %}
+    <td>
+      <a href="?models=Plot&model_id={{ auditui.current_value_as_plot.pk }}">
+        Plot {{ auditui.current_value_as_plot.pk}}
+      </a>
+    </td>
+    {% elif auditui.current_value_as_geom %}
+    <td>
+      {{ auditui.current_value_as_geom.x|floatformat:0 }},
+      {{ auditui.current_value_as_geom.y|floatformat:0 }}
+    </td>
+    {% else %}
+    <td>{{ auditui.audit.current_value }}</td>
+    {% endif %}
+
+    <td>
+      <a href="?user={{ auditui.audit.user.pk }}">
+        {{ auditui.audit.user }}
+      </a>
+    </td>
+    <td>
+      {{ auditui.audit.created }}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% if prev_page %}
+<a href="{{ prev_page }}">&lt;&lt; Previous</a>
+{% else %}
+&lt;&lt; Previous
+{% endif %}
+|
+{% if next_page %}
+<a href="{{ next_page }}">Next &gt;&gt;</a>
+{% else %}
+Next &gt;&gt;
+{% endif %}
+
+
+{% endblock body %}

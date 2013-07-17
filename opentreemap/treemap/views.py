@@ -2,6 +2,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import urllib
+
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseServerError
 
@@ -13,7 +15,7 @@ from treemap.util import json_api_call, render_template, instance_request
 
 from treemap.search import create_filter
 
-from treemap.audit import Audit
+from treemap.audit import Audit, AuditUI
 from treemap.models import Plot, Tree, User, Boundary, Species
 
 from ecobenefits.views import _benefits_for_tree_dbh_and_species
@@ -53,10 +55,11 @@ def audits(request, instance):
     """
 
     PAGE_MAX = 100
+    PAGE_DEFAULT = 20
 
     r = request.REQUEST
 
-    page_size = min(int(r.get('page_size', PAGE_MAX)), PAGE_MAX)
+    page_size = min(int(r.get('page_size', PAGE_DEFAULT)), PAGE_MAX)
     page = int(r.get('page', 0))
 
     start_pos = page * page_size
@@ -89,7 +92,7 @@ def audits(request, instance):
 
     audits = Audit.objects.filter(instance=instance)\
                           .filter(model__in=models)\
-                          .order_by('-created')
+                          .order_by('-created', 'id')
 
     if user_id:
         audits = audits.filter(user=user)
@@ -100,7 +103,24 @@ def audits(request, instance):
     if r.get('include_pending', "true") == "false":
         audits = audits.exclude(requires_auth=True, ref_id__isnull=True)
 
-    return [a.dict() for a in audits[start_pos:end_pos]]
+    audits = [AuditUI(a) for a in audits[start_pos:end_pos]]
+
+    query_vars = {k: v for (k, v) in request.GET.iteritems() if k != 'page'}
+
+    next_page = None
+    prev_page = None
+
+    if len(audits) == page_size:
+        query_vars['page'] = page + 1
+        next_page = "?" + urllib.urlencode(query_vars)
+
+    if page > 0:
+        query_vars['page'] = page - 1
+        prev_page = "?" + urllib.urlencode(query_vars)
+
+    return {'audits': audits,
+            'next_page': next_page,
+            'prev_page': prev_page}
 
 
 def boundary_to_geojson(request, boundary_id):
@@ -189,7 +209,8 @@ def search_tree_benefits(request, instance, region='SoCalCSMA'):
     return rslt
 
 
-audits_view = instance_request(json_api_call(audits))
+audits_view = instance_request(
+    render_template('treemap/recent_edits.html', audits))
 
 index_view = instance_request(render_template('treemap/index.html'))
 trees_view = instance_request(
