@@ -8,3 +8,4 @@ wsgiref==0.1.2
 git+git://github.com/azavea/eco.py.git
 pep8==1.4.6
 flake8==2.0
+python-omgeo==1.5
