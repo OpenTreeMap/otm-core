@@ -9,6 +9,17 @@
 
 var app = (function ($,OL,Search,config) {
     "use strict";
+
+    /* BEGIN BACON HELPERS */
+
+    function keyCodeIs(keyCode) {
+        return function(event) { return event.which === keyCode; };
+    }
+
+    var isEnterKey = keyCodeIs(13);
+
+    /* END BACON HELPERS */
+
     return {
         createMap: function (elmt) {
             var map = new OL.Map({
@@ -94,11 +105,21 @@ var app = (function ($,OL,Search,config) {
             document.getElementById("attrs").innerHTML = JSON.stringify(data || {});
         },
 
+
         init: function () {
             var map = app.createMap($("#map")[0]),
                 plotLayer = app.createPlotTileLayer(config),
                 utfLayer = app.createPlotUTFLayer(config),
-                zoom = 0;
+                zoom = 0,
+
+                enterKeyPressStream = $('input[data-class="search"]')
+                    .asEventStream("keyup")
+                    .filter(isEnterKey),
+
+                performSearchClickStream = $("#perform-search")
+                    .asEventStream("click"),
+
+                triggerEventStream = enterKeyPressStream.merge(performSearchClickStream);
 
             // Bing maps uses a 1-based zoom so XYZ layers
             // on the base map have a zoom offset that is
@@ -121,8 +142,7 @@ var app = (function ($,OL,Search,config) {
             zoom = map.getZoomForResolution(76.43702827453613);
             map.setCenter(config.instance.center, zoom);
 
-            Search.init($("#perform-search")
-                        .asEventStream("click"), plotLayer);
+            Search.init(triggerEventStream, plotLayer);
         }
     };
 }($, OpenLayers, Search, otm.settings));
