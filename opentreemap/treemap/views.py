@@ -2,8 +2,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from itertools import chain
-
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseServerError
 
@@ -16,7 +14,7 @@ from treemap.util import json_api_call, render_template, instance_request
 from treemap.search import create_filter
 
 from treemap.audit import Audit
-from treemap.models import Plot, User, Boundary, Species
+from treemap.models import Plot, Tree, User, Boundary, Species
 
 from ecobenefits.views import _benefits_for_tree_dbh_and_species
 
@@ -142,14 +140,20 @@ def search_tree_benefits(request, instance, region='SoCalCSMA'):
         return HttpResponseServerError("Please supply a 'filter' parameter")
 
     plots = _execute_filter(instance, filter_str)
-    trees = list(chain(*[plot.tree_set.all() for plot in plots]))
+    trees = Tree.objects.filter(plot_id__in=plots)
 
     num_calculated_trees = 0
 
     benefits = {'energy': 0.0, 'stormwater': 0.0,
                 'co2': 0.0, 'airquality': 0.0}
 
-    for tree in trees:
+    total_plots = plots.count()
+    total_trees = trees.count()
+
+    trees_for_eco = trees.exclude(species__isnull=True)\
+                         .exclude(diameter__isnull=True)
+
+    for tree in trees_for_eco:
         if tree.diameter and tree.species:
             tree_benefits = _benefits_for_tree_dbh_and_species(
                 tree.diameter, tree.species, region)
@@ -158,9 +162,6 @@ def search_tree_benefits(request, instance, region='SoCalCSMA'):
                 benefits[key] = tree_benefits[key]['value']
 
             num_calculated_trees += 1
-
-    total_plots = len(plots)
-    total_trees = len(trees)
 
     if num_calculated_trees > 0 and total_trees > 0:
 
