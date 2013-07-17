@@ -15,8 +15,8 @@ from treemap.models import (Tree, Instance, Plot, User, Species, Role,
 from treemap.audit import (Audit, UserTrackingException, AuthorizeException,
                            ReputationMetric)
 
-from treemap.views import (audits, boundary_to_geojson,
-                           boundary_autocomplete, _execute_filter)
+from treemap.views import (audits, boundary_to_geojson, boundary_autocomplete,
+                           _execute_filter, species_list)
 
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from django.core.exceptions import FieldError
@@ -175,6 +175,33 @@ def make_instance_and_system_user():
     instance = make_instance()
     system_user = make_system_user()
     return instance, system_user
+
+
+######################################
+## Custom test classes
+######################################
+
+
+class ViewTestCase(TestCase):
+    def setUp_view(self):
+        self.factory = RequestFactory()
+        self.instance = make_instance()
+
+    def call_view(self, view, view_args=[], view_keyword_args={},
+                  url="hello/world", url_args={}):
+        request = self.factory.get(url, url_args)
+        response = view(request, *view_args, **view_keyword_args)
+        return json.loads(response.content)
+
+    def call_instance_view(self, view, view_args=None, view_keyword_args={},
+                           url="hello/world", url_args={}):
+        if (view_args is None):
+            view_args = [self.instance.pk]
+        else:
+            view_args.insert(0, self.instance.pk)
+
+        return self.call_view(view, view_args, view_keyword_args,
+                              url, url_args)
 
 
 ######################################
@@ -865,7 +892,7 @@ class ReputationTest(TestCase):
         self.assertGreater(self.privileged_user.reputation, 0)
 
 
-class BoundaryViewTest(TestCase):
+class BoundaryViewTest(ViewTestCase):
 
     def _make_simple_boundary(self, name, n=1):
         b = Boundary()
@@ -877,8 +904,7 @@ class BoundaryViewTest(TestCase):
         return b
 
     def setUp(self):
-        self.factory = RequestFactory()
-        self.test_instance = make_instance()
+        self.setUp_view()
         self.test_boundaries = [
             'alabama',
             'arkansas',
@@ -892,41 +918,38 @@ class BoundaryViewTest(TestCase):
         self.test_boundary_hashes = []
         for i, v in enumerate(self.test_boundaries):
             boundary = self._make_simple_boundary(v, i)
-            self.test_instance.boundaries.add(boundary)
-            self.test_instance.save()
+            self.instance.boundaries.add(boundary)
+            self.instance.save()
             self.test_boundary_hashes.append({'name': boundary.name,
                                               'category': boundary.category})
 
     def test_boundary_to_geojson_view(self):
         boundary = self._make_simple_boundary("Hello, World", 1)
-        request = self.factory.get("/hello/world")
-        response = boundary_to_geojson(request, boundary.id)
-        self.assertEqual(response.content, boundary.geom.geojson)
+        response = self.call_view(boundary_to_geojson, [boundary.id])
 
-    def assertAutoCompleteQueryMatches(self, get_params, data_criteria):
-        request = self.factory.get("hello/world", get_params)
-        response = boundary_autocomplete(request, make_instance().id)
-        response_boundaries = json.loads(response.content)
-
-        self.assertEqual(response_boundaries, data_criteria)
+        self.assertEqual(response, json.loads(boundary.geom.geojson))
 
     def test_autocomplete_view(self):
-        self.assertAutoCompleteQueryMatches({'q': 'fa'},
-                                            self.test_boundary_hashes[2:6])
+        response = self.call_instance_view(boundary_autocomplete,
+                                           url_args={'q': 'fa'})
+        self.assertEqual(response, self.test_boundary_hashes[2:6])
 
     def test_autocomplete_view_scoped(self):
         # make a boundary that is not tied to this
         # instance, should not be in the search
         # results
         self._make_simple_boundary("fargo", 1)
+        response = self.call_instance_view(boundary_autocomplete,
+                                           url_args={'q': 'fa'})
 
-        self.assertAutoCompleteQueryMatches({'q': 'fa'},
-                                            self.test_boundary_hashes[2:6])
+        self.assertEqual(response, self.test_boundary_hashes[2:6])
 
     def test_autocomplete_view_limit(self):
-        self.assertAutoCompleteQueryMatches({'q': 'fa',
-                                             'max_items': 2},
-                                            self.test_boundary_hashes[2:4])
+        response = self.call_instance_view(boundary_autocomplete,
+                                           url_args={'q': 'fa',
+                                                     'max_items': 2})
+
+        self.assertEqual(response, self.test_boundary_hashes[2:4])
 
 
 class RecentEditsViewTest(TestCase):
@@ -1472,3 +1495,26 @@ class SearchTests(TestCase):
                    self.instance, diameter_range_filter)}
 
         self.assertEqual(ids, {p2.pk, p3.pk})
+
+
+class SpeciesViewTests(ViewTestCase):
+    def setUp(self):
+        self.setUp_view()
+
+        self.species_dict = [
+            {'common_name': 'elm', 'scientific_name': 'elmitius'},
+            {'common_name': 'oak', 'scientific_name': 'oakenitus'},
+            {'common_name': 'pine', 'scientific_name': 'piniferus'},
+            {'common_name': 'xmas', 'scientific_name': 'christmas'},
+        ]
+        for i, item in enumerate(self.species_dict):
+            species = Species(common_name=item['common_name'],
+                              genus=item['scientific_name'],
+                              symbol=str(i))
+            species.save()
+            item['id'] = species.id
+
+    def test_get_species_list(self):
+        response = self.call_instance_view(species_list)
+
+        self.assertEquals(response, self.species_dict)
