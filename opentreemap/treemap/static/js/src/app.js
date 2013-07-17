@@ -57,6 +57,20 @@ var app = (function ($,OL,Search,config) {
               filterQueryArgumentName: config.urls.filterQueryArgumentName });
         },
 
+        getBoundsLayerURL: function(config, extension) {
+            return '/tile/' +
+                config.instance.rev +
+                '/database/otm/table/treemap_boundary/${z}/${x}/${y}.' +
+                extension;
+        },
+
+        createBoundsTileLayer: function(config) {
+            return new OL.Layer.OTM(
+                'bounds',
+                this.getBoundsLayerURL(config, 'png'),
+            { isBaseLayer: false });
+        },
+
         createPlotUTFLayer: function(config) {
             return new OL.Layer.UTFGrid({
                 url: this.getPlotLayerURL(config, 'grid.json') +
@@ -97,6 +111,7 @@ var app = (function ($,OL,Search,config) {
         init: function () {
             var map = app.createMap($("#map")[0]),
                 plotLayer = app.createPlotTileLayer(config),
+                boundsLayer = app.createBoundsTileLayer(config),
                 utfLayer = app.createPlotUTFLayer(config),
                 zoom = 0;
 
@@ -115,6 +130,7 @@ var app = (function ($,OL,Search,config) {
 
             map.addLayer(plotLayer);
             map.addLayer(utfLayer);
+            map.addLayer(boundsLayer);
 
             map.addControl(app.createUTFMovementControl(app.onMove));
 
