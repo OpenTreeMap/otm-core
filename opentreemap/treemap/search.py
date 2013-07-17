@@ -28,7 +28,12 @@ def create_filter(filterstr):
     the following grammar:
     literal        = json literal | GMT date string in 'YYYY-MM-DD HH:MM:SS'
     model          = 'plot' | 'tree'
-    value-property = 'MIN' | 'MAX' | 'EXCLUSIVE' | 'IN' | 'IS' | 'WITHIN_RADIUS'
+    value-property = 'MIN'
+                   | 'MAX'
+                   | 'EXCLUSIVE'
+                   | 'IN'
+                   | 'IS'
+                   | 'WITHIN_RADIUS'
     combinator     = 'AND' | 'OR'
     predicate      = { model.field: literal }
                    | { model.field: { (value-property: literal)* }}
@@ -113,6 +118,7 @@ def _parse_min_max_value(valuesdict):
 
     return params
 
+
 def _parse_within_radius(valuesdict):
     within_radius = valuesdict['WITHIN_RADIUS']
     x = _parse_value(within_radius['POINT']['x'])
@@ -120,7 +126,8 @@ def _parse_within_radius(valuesdict):
     radius = _parse_value(within_radius['RADIUS'])
     point = Point(x, y, srid=3857)
 
-    return {'__dwithin' : (point, Distance(m=radius)) }
+    return {'__dwithin': (point, Distance(m=radius))}
+
 
 def _parse_dict_value(valuesdict):
     """

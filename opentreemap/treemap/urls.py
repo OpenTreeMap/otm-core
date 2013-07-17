@@ -4,19 +4,21 @@ from __future__ import division
 
 from django.conf.urls import patterns, url
 
-from treemap.views import boundary_to_geojson, index, trees,\
-    plot_detail, settings_js, audits, search_tree_benefits,\
-    boundary_autocomplete, species_list
+from treemap.views import (boundary_to_geojson_view, index_view, trees_view,
+                           plot_detail_view, settings_js_view, audits_view,
+                           search_tree_benefits_view, species_list_view,
+                           boundary_autocomplete_view)
 
 urlpatterns = patterns(
     '',
-    url(r'^$', index),
-    url(r'^boundaries/(?P<boundary_id>\d+)/geojson/$', boundary_to_geojson),
-    url(r'^boundaries/autocomplete$', boundary_autocomplete),
-    url(r'^species/$', species_list),
-    url(r'^recentedits', audits),
-    url(r'^trees/$', trees),
-    url(r'^trees/(?P<plot_id>\d+)/$', plot_detail),
-    url(r'^config/settings.js$', settings_js),
-    url(r'^benefit/search$', search_tree_benefits),
+    url(r'^$', index_view),
+    url(r'^boundaries/(?P<boundary_id>\d+)/geojson/$',
+        boundary_to_geojson_view),
+    url(r'^boundaries/autocomplete$', boundary_autocomplete_view),
+    url(r'^recentedits', audits_view),
+    url(r'^species/$', species_list_view),
+    url(r'^trees/$', trees_view),
+    url(r'^trees/(?P<plot_id>\d+)/$', plot_detail_view),
+    url(r'^config/settings.js$', settings_js_view),
+    url(r'^benefit/search$', search_tree_benefits_view),
 )
