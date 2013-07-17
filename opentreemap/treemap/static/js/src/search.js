@@ -39,7 +39,7 @@ var Search = (function ($,Bacon,config) {
     function executeSearch(search_query) {
         var search = $.ajax({
             url: '/' + config.instance.id + '/benefit/search',
-            data: {'filter': JSON.stringify(search_query)},
+            data: {'q': JSON.stringify(search_query)},
             type: 'GET',
             dataType: 'json'});
 
