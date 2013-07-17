@@ -94,68 +94,109 @@ def _parse_value(value):
         return value
 
 
-def _parse_min_max_value(valuesdict):
-    valid_keys = ['MIN', 'MAX', 'EXCLUSIVE']
+def _parse_min_max_value_fn(operator):
+    """
+    returns a function that produces predicate pairs
+    for the given operator.
+    """
 
-    for key in valuesdict.keys():
-        if key not in valid_keys:
-            raise ParseException('Invalid value dict: %s' % valuesdict)
+    def fn(predicate_value):
+        # assign closure value to a local
+        # in order to mutate it later
+        key = operator
 
-    if 'EXCLUSIVE' in valuesdict and valuesdict['EXCLUSIVE']:
-        gt = '__gt'
-        lt = '__lt'
-    else:
-        gt = '__gte'
-        lt = '__lte'
+        # a min/max predicate can either take
+        # a value or a dictionary that provides
+        # a VALUE and EXCLUSIVE flag.
+        if type(predicate_value) == dict:
+            raw_value = predicate_value.get('VALUE')
+            exclusive = predicate_value.get('EXCLUSIVE')
+        else:
+            raw_value = predicate_value
+            exclusive = False
 
-    params = {}
+        if not exclusive:
+            # django use lt/lte and gt/gte
+            # to handle inclusive/exclusive
+            key += 'e'
 
-    if 'MIN' in valuesdict:
-        params[gt] = _parse_value(valuesdict['MIN'])
+        value = _parse_value(raw_value)
 
-    if 'MAX' in valuesdict:
-        params[lt] = _parse_value(valuesdict['MAX'])
+        return { key: value }
 
-    return params
+    return fn
 
-
-def _parse_within_radius(valuesdict):
-    within_radius = valuesdict['WITHIN_RADIUS']
-    x = _parse_value(within_radius['POINT']['x'])
-    y = _parse_value(within_radius['POINT']['y'])
-    radius = _parse_value(within_radius['RADIUS'])
+def _parse_within_radius_value(predicate_value):
+    """
+    buildup the geospatial value for the RHS of an
+    on orm call and pair it with the LHS
+    """
+    radius = _parse_value(predicate_value['RADIUS'])
+    x = _parse_value(predicate_value['POINT']['x'])
+    y = _parse_value(predicate_value['POINT']['y'])
     point = Point(x, y, srid=3857)
 
-    return {'__dwithin': (point, Distance(m=radius))}
+    return { '__dwithin': (point, Distance(m=radius)) }
 
+# a predicate_builder takes a value for the
+# corresponding predicate type and returns
+# a singleton dictionary with a mapping of
+# predicate kwargs to pass to a Q object
+PREDICATE_TYPES = {
+    'MIN': {
+        'combines_with': {'MAX'},
+        'predicate_builder': _parse_min_max_value_fn('__gt'),
+    },
+    'MAX': {
+        'combines_with': {'MIN'},
+        'predicate_builder': _parse_min_max_value_fn('__lt'),
+    },
+    'IN': {
+        'combines_with': set(),
+        'predicate_builder': (lambda value: { '__in': value }),
+    },
+    'IS': {
+        'combines_with': set(),
+        'predicate_builder': (lambda value: { '': value })
+    },
+    'WITHIN_RADIUS': {
+        'combines_with': set(),
+        'predicate_builder': _parse_within_radius_value,
+    }
+}
 
 def _parse_dict_value(valuesdict):
     """
+    Loops over the keys provided and returns predicate pairs
+    if all the keys validate.
+
     Supported keys are:
-    'MIN', 'MAX', 'EXCLUSIVE', 'IN', 'IS', 'WITHIN_RADIUS'
+    'MIN', 'MAX', 'IN', 'IS', 'WITHIN_RADIUS'
 
     The following rules apply:
-    IN, IS, and the MIN/MAX/EXCL are mutually exclusive
-
-    EXCLUSIVE can only be specified with MIN and MAX
+    IN, IS, WITHIN_RADIUS, and MIN/MAX (together) are mutually exclusive
     """
-    if 'MIN' in valuesdict or 'MAX' in valuesdict:
-        return _parse_min_max_value(valuesdict)
-    elif 'IN' in valuesdict:
-        if len(valuesdict) != 1:
-            raise ParseException('Invalid value dict: %s' % valuesdict)
 
-        return {'__in': _parse_value(valuesdict['IN'])}
-    elif 'IS' in valuesdict:
-        if len(valuesdict) != 1:
-            raise ParseException('Invalid value dict: %s' % valuesdict)
+    params = {}
 
-        return {'': _parse_value(valuesdict['IS'])}
-    elif 'WITHIN_RADIUS' in valuesdict:
-        return _parse_within_radius(valuesdict)
-    else:
-        raise ParseException('Invalid value dict: %s' % valuesdict)
+    for value_key in valuesdict:
+        if value_key not in PREDICATE_TYPES:
+            raise ParseException(
+                'Invalid key: %s in %s' % (value_key, valuesdict))
+        else:
+            predicate_properties = PREDICATE_TYPES[value_key]
+            valid_values = predicate_properties['combines_with'].\
+                           union({value_key})
+            if not valid_values.issuperset(set(valuesdict.keys())):
+                raise ParseException(
+                    'Cannot use these keys together: %s in %s' %
+                    (valuesdict.keys(), valuesdict))
+            else:
+                predicate_builder = predicate_properties['predicate_builder']
+                param_pair = predicate_builder(valuesdict[value_key])
+                params.update(param_pair)
 
+    return params
 
 def _parse_predicate_pair(key, value):
     search_key = _parse_predicate_key(key)
