@@ -21,6 +21,10 @@ def instance_request(view_fn):
     @wraps(view_fn)
     def wrapper(request, instance_id, *args, **kwargs):
         instance = get_object_or_404(Instance, pk=instance_id)
+        # Include the instance as both a request property and as an
+        # view function argument for flexibility and to keep "template
+        # only" requests simple.
+        request.instance = instance
         return view_fn(request, instance, *args, **kwargs)
 
     return wrapper
