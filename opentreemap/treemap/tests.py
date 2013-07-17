@@ -183,7 +183,10 @@ def make_instance_and_system_user():
 
 
 class ViewTestCase(TestCase):
-    def setUp_view(self):
+    def _make_request(self, params={}):
+        return self.factory.get("hello/world", params)
+
+    def setUp(self):
         self.factory = RequestFactory()
         self.instance = make_instance()
 
@@ -904,7 +907,8 @@ class BoundaryViewTest(ViewTestCase):
         return b
 
     def setUp(self):
-        self.setUp_view()
+        super(BoundaryViewTest, self).setUp()
+
         self.test_boundaries = [
             'alabama',
             'arkansas',
@@ -925,13 +929,17 @@ class BoundaryViewTest(ViewTestCase):
 
     def test_boundary_to_geojson_view(self):
         boundary = self._make_simple_boundary("Hello, World", 1)
-        response = self.call_view(boundary_to_geojson, [boundary.id])
+        response = boundary_to_geojson(
+            self._make_request(),
+            boundary.pk)
 
-        self.assertEqual(response, json.loads(boundary.geom.geojson))
+        self.assertEqual(response.content, boundary.geom.geojson)
 
     def test_autocomplete_view(self):
-        response = self.call_instance_view(boundary_autocomplete,
-                                           url_args={'q': 'fa'})
+        response = boundary_autocomplete(
+            self._make_request({'q': 'fa'}),
+            self.instance)
+
         self.assertEqual(response, self.test_boundary_hashes[2:6])
 
     def test_autocomplete_view_scoped(self):
@@ -939,15 +947,17 @@ class BoundaryViewTest(ViewTestCase):
         # instance, should not be in the search
         # results
         self._make_simple_boundary("fargo", 1)
-        response = self.call_instance_view(boundary_autocomplete,
-                                           url_args={'q': 'fa'})
+        response = boundary_autocomplete(
+            self._make_request({'q': 'fa'}),
+            self.instance)
 
         self.assertEqual(response, self.test_boundary_hashes[2:6])
 
     def test_autocomplete_view_limit(self):
-        response = self.call_instance_view(boundary_autocomplete,
-                                           url_args={'q': 'fa',
-                                                     'max_items': 2})
+        response = boundary_autocomplete(
+            self._make_request({'q': 'fa',
+                                'max_items': 2}),
+            self.instance)
 
         self.assertEqual(response, self.test_boundary_hashes[2:4])
 
@@ -1010,7 +1020,7 @@ class RecentEditsViewTest(TestCase):
 
     def check_audits(self, url, dicts):
         req = self.factory.get(url)
-        returns = json.loads(audits(req, self.instance.pk).content)
+        returns = audits(req, self.instance.pk)
 
         self.assertEqual(len(dicts), len(returns))
 
@@ -1495,7 +1505,7 @@ class SearchTests(TestCase):
 
 class SpeciesViewTests(ViewTestCase):
     def setUp(self):
-        self.setUp_view()
+        super(SpeciesViewTests, self).setUp()
 
         self.species_dict = [
             {'common_name': 'elm', 'scientific_name': 'elmitius'},
@@ -1511,6 +1521,4 @@ class SpeciesViewTests(ViewTestCase):
             item['id'] = species.id
 
     def test_get_species_list(self):
-        response = self.call_instance_view(species_list)
-
-        self.assertEquals(response, self.species_dict)
+        self.assertEquals(self.species_dict, species_list(None, None))

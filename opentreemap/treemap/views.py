@@ -4,17 +4,14 @@ from __future__ import division
 
 from itertools import chain
 
-import json
-
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
+from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseServerError
 
 from django.views.decorators.http import etag
 
 from django.conf import settings
 
-from treemap.util import instance_request, json_api_call
+from treemap.util import json_api_call, render_template, instance_request
 
 from treemap.search import create_filter
 
@@ -24,42 +21,18 @@ from treemap.models import Plot, User, Boundary, Species
 from ecobenefits.views import _benefits_for_tree_dbh_and_species
 
 
-@instance_request
-def index(request):
-    return render_to_response('treemap/index.html', RequestContext(request))
+def _plot_hash(request, instance, plot_id):
+    return instance.scope_model(Plot).get(pk=plot_id).hash
 
 
-@instance_request
-def trees(request):
-    return render_to_response('treemap/map.html', RequestContext(request))
-
-
-def _plot_hash(request, plot_id):
-    return request.instance.scope_model(Plot).get(pk=plot_id).hash
-
-
-@instance_request
-@etag(_plot_hash)
-def plot_detail(request, plot_id):
-    InstancePlot = request.instance.scope_model(Plot)
+def plot_detail(request, instance, plot_id):
+    InstancePlot = instance.scope_model(Plot)
     plot = get_object_or_404(InstancePlot, pk=plot_id)
 
-    return render_to_response('treemap/plot_detail.html', {
-        'plot': plot
-    }, RequestContext(request))
+    return {'plot': plot}
 
 
-@instance_request
-def settings_js(request):
-    return render_to_response('treemap/settings.js',
-                              {'BING_API_KEY': settings.BING_API_KEY},
-                              RequestContext(request),
-                              mimetype='application/x-javascript')
-
-
-@instance_request
-@json_api_call
-def audits(request):
+def audits(request, instance):
     """
     Request a variety of different audit types.
     Params:
@@ -84,7 +57,6 @@ def audits(request):
     PAGE_MAX = 100
 
     r = request.REQUEST
-    instance = request.instance
 
     page_size = min(int(r.get('page_size', PAGE_MAX)), PAGE_MAX)
     page = int(r.get('page', 0))
@@ -133,50 +105,43 @@ def audits(request):
     return [a.dict() for a in audits[start_pos:end_pos]]
 
 
-@json_api_call
 def boundary_to_geojson(request, boundary_id):
     boundary = Boundary.objects.get(pk=boundary_id)
     return HttpResponse(boundary.geom.geojson)
 
 
-@json_api_call
-@instance_request
-def boundary_autocomplete(request):
+def boundary_autocomplete(request, instance):
     query = request.GET.get('q', '')
     max_items = request.GET.get('max_items', 10)
 
-    boundaries = request.instance.boundaries\
-                                 .filter(name__startswith=query)\
-                                 .order_by('name')[:max_items]
+    boundaries = instance.boundaries\
+                         .filter(name__startswith=query)\
+                         .order_by('name')[:max_items]
 
     return [{'name': boundary.name, 'category': boundary.category}
             for boundary in boundaries]
 
-@json_api_call
-@instance_request
-# Doesn't really do anything with instance right now, but will in the future
-def species_list(request):
+
+def species_list(request, instance):
     species_set = Species.objects.order_by('common_name')
 
-    return [{
-             'common_name': species.common_name,
+    return [{'common_name': species.common_name,
              'id': species.pk,
-             'scientific_name': species.scientific_name,
-            }
+             'scientific_name': species.scientific_name}
             for species in species_set]
+
 
 def _execute_filter(instance, filter_str):
     return create_filter(filter_str).filter(instance=instance)
 
 
-@instance_request
-def search_tree_benefits(request, region='SoCalCSMA'):
+def search_tree_benefits(request, instance, region='SoCalCSMA'):
     try:
         filter_str = request.REQUEST['filter']
     except KeyError:
         return HttpResponseServerError("Please supply a 'filter' parameter")
 
-    plots = _execute_filter(request.instance, filter_str)
+    plots = _execute_filter(instance, filter_str)
     trees = list(chain(*[plot.tree_set.all() for plot in plots]))
 
     num_calculated_trees = 0
@@ -220,4 +185,28 @@ def search_tree_benefits(request, region='SoCalCSMA'):
                           'n_total_plots': total_plots,
                           'percent': 0}}
 
-    return HttpResponse(json.dumps(rslt), content_type='application/json')
+    return rslt
+
+
+audits_view = instance_request(json_api_call(audits))
+
+index_view = instance_request(render_template('treemap/index.html'))
+trees_view = instance_request(render_template('treemap/map.html'))
+
+plot_detail_view = instance_request(etag(_plot_hash)(
+    render_template('treemap/plot_detail.html', plot_detail)))
+
+settings_js_view = instance_request(
+    render_template('treemap/settings.js',
+                    {'BING_API_KEY': settings.BING_API_KEY},
+                    mimetype='application/x-javascript'))
+
+
+boundary_to_geojson_view = json_api_call(boundary_to_geojson)
+boundary_autocomplete_view = instance_request(
+    json_api_call(boundary_autocomplete))
+
+search_tree_benefits_view = instance_request(
+    json_api_call(search_tree_benefits))
+
+species_list_view = json_api_call(instance_request(species_list))
