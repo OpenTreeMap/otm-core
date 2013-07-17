@@ -8,8 +8,8 @@ urlpatterns = patterns(
     '',
 
     url(r'^', include('geocode.urls')),
-    url(r'(?P<instance_id>\d+)/', include('treemap.urls')),
-    url(r'(?P<instance_id>\d+)/eco/', include('ecobenefits.urls')),
+    url(r'^(?P<instance_id>\d+)/', include('treemap.urls')),
+    url(r'^(?P<instance_id>\d+)/eco/', include('ecobenefits.urls')),
 )
 
 if settings.DEBUG:

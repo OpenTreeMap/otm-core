@@ -9,3 +9,4 @@ user_logged_in.disconnect(auth_models.update_last_login)
 
 admin.site.register(models.Instance)
 admin.site.register(models.Species)
+admin.site.register(models.Tree)
