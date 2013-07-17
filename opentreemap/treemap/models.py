@@ -138,6 +138,9 @@ class Species(models.Model):
             name += " '%s'" % self.cultivar_name
         return name
 
+    class Meta:
+        verbose_name_plural = "Species"
+
 
 class InstanceSpecies(Auditable, models.Model):
     instance = models.ForeignKey(Instance)
