@@ -53,9 +53,22 @@ var Search = (function ($,Bacon,config) {
         $("#search-results").html(html);
     }
 
-    exports.init = function(start_search_stream) {
-        return start_search_stream
-            .map(buildSearch)
+    // Arguments
+    //
+    // triggerEventStream: a Bacon.js EventStream. The value
+    //   of the item will be ignored and, instead, the current
+    //   values of the search form fields will be scraped.
+    //
+    // plotLayer: An OpenLayers.Layer.OTM instance with the
+    // `url` argument initialized to the unfiltered tile url.
+    exports.init = function(triggerEventStream, plotLayer) {
+        var searchStream = triggerEventStream.map(buildSearch);
+
+        // binding is required to save the context of the plotLayer
+        // `setFilter` instance method
+        searchStream.onValue(_.bind(plotLayer.setFilter, plotLayer));
+
+        searchStream
             .flatMap(executeSearch)
             .onValue(displaySearch);
     };
