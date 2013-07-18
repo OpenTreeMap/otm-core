@@ -178,10 +178,11 @@ def search_tree_benefits(request, instance, region='SoCalCSMA'):
             tree_benefits = _benefits_for_tree_dbh_and_species(
                 tree.diameter, tree.species, region)
 
-            for key in benefits:
-                benefits[key] = tree_benefits[key]['value']
+            if tree_benefits:
+                for key in benefits:
+                    benefits[key] = tree_benefits[key]['value']
 
-            num_calculated_trees += 1
+                    num_calculated_trees += 1
 
     if num_calculated_trees > 0 and total_trees > 0:
 
