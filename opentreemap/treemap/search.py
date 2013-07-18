@@ -19,7 +19,8 @@ class ParseException (Exception):
 
 
 MODEL_MAPPING = {'plot': '',
-                 'tree': 'tree__'}
+                 'tree': 'tree__',
+                 'species': 'tree__species__'}
 
 
 def create_filter(filterstr):
@@ -27,7 +28,7 @@ def create_filter(filterstr):
     A filter is a string that must be valid json and conform to
     the following grammar:
     literal        = json literal | GMT date string in 'YYYY-MM-DD HH:MM:SS'
-    model          = 'plot' | 'tree'
+    model          = 'plot' | 'tree' | 'species'
     value-property = 'MIN'
                    | 'MAX'
                    | 'EXCLUSIVE'

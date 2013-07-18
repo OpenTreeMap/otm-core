@@ -1316,6 +1316,16 @@ class FilterParserTests(TestCase):
         self.assertEqual(const,
                          {'__dwithin': (Point(100, 50), Distance(m=5))})
 
+    def test_parse_species_predicate(self):
+        pred = search._parse_predicate(
+            {'species.id': 113,
+             'species.flowering': True})
+
+        target = ('AND', {('tree__species__id', 113),
+                          ('tree__species__flowering', True)})
+
+        self.assertEqual(self.destructure_query_set(pred), target)
+
     def test_parse_predicate(self):
         pred = search._parse_predicate(
             {'plot.width':
@@ -1419,6 +1429,44 @@ class SearchTests(TestCase):
         tree.save_with_user(self.system_user)
 
         return plot, tree
+
+    def test_species_id_search(self):
+        species1 = Species.objects.create(
+            common_name='Species-1',
+            genus='Genus-1',
+            symbol='S1')
+
+        species2 = Species.objects.create(
+            common_name='Species-2',
+            genus='Genus-2',
+            symbol='S1')
+
+        p1, t1 = self.create_tree_and_plot()
+        p2, t2 = self.create_tree_and_plot()
+        p3, t3 = self.create_tree_and_plot()
+
+        t1.species = species1
+        t1.save_with_user(self.system_user)
+
+        t2.species = species2
+        t2.save_with_user(self.system_user)
+
+        species1_filter = json.dumps({'species.id': species1.pk})
+        species2_filter = json.dumps({'species.id': species2.pk})
+        species3_filter = json.dumps({'species.id': -1})
+
+        self.assertEqual(
+            {p1.pk},
+            {p.pk
+             for p in _execute_filter(self.instance, species1_filter)})
+
+        self.assertEqual(
+            {p2.pk},
+            {p.pk
+             for p in _execute_filter(self.instance, species2_filter)})
+
+        self.assertEqual(
+            0, len(_execute_filter(self.instance, species3_filter)))
 
     def test_boundary_search(self):
         # Unit Square
