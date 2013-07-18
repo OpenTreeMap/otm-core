@@ -15,7 +15,7 @@ urlpatterns = patterns(
     url(r'^boundaries/(?P<boundary_id>\d+)/geojson/$',
         boundary_to_geojson_view),
     url(r'^boundaries/autocomplete$', boundary_autocomplete_view),
-    url(r'^recentedits', audits_view),
+    url(r'^recent_edits', audits_view, name='recent_edits'),
     url(r'^species/$', species_list_view),
     url(r'^trees/$', trees_view),
     url(r'^trees/(?P<plot_id>\d+)/$', plot_detail_view),
