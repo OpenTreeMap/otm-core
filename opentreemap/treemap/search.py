@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.contrib.gis.measure import Distance
 from django.contrib.gis.geos import Point
 
-from treemap.models import Plot
+from treemap.models import Plot, Boundary
 
 
 class ParseException (Exception):
@@ -34,6 +34,7 @@ def create_filter(filterstr):
                    | 'IN'
                    | 'IS'
                    | 'WITHIN_RADIUS'
+                   | 'IN_BOUNDARY'
     combinator     = 'AND' | 'OR'
     predicate      = { model.field: literal }
                    | { model.field: { (value-property: literal)* }}
@@ -139,6 +140,12 @@ def _parse_within_radius_value(predicate_value):
 
     return {'__dwithin': (point, Distance(m=radius))}
 
+
+def _parse_in_boundary(boundary_id):
+    boundary = Boundary.objects.get(pk=boundary_id)
+    return {'__contained': boundary.geom}
+
+
 # a predicate_builder takes a value for the
 # corresponding predicate type and returns
 # a singleton dictionary with a mapping of
@@ -163,6 +170,10 @@ PREDICATE_TYPES = {
     'WITHIN_RADIUS': {
         'combines_with': set(),
         'predicate_builder': _parse_within_radius_value,
+    },
+    'IN_BOUNDARY': {
+        'combines_with': set(),
+        'predicate_builder': _parse_in_boundary
     }
 }
 

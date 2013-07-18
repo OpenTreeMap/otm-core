@@ -18,6 +18,9 @@ var Search = (function ($,Bacon,config) {
                   '#dbh-min':
                   { 'key': 'tree.diameter',
                     'pred': 'MIN' },
+                  '#boundary':
+                  { 'key': 'plot.geom',
+                    'pred': 'IN_BOUNDARY' },
                   '#dbh-max':
                   { 'key': 'tree.diameter',
                     'pred': 'MAX' }};
