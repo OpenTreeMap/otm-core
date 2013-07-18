@@ -47,6 +47,10 @@ Recent Edits
         Plot {{ auditui.previous_value_as_plot.pk}}
       </a>
     </td>
+    {% elif auditui.previous_value_as_species %}
+    <td>
+      {{ auditui.previous_value_as_species.scientific_name }}
+    </td>
     {% elif auditui.previous_value_as_geom %}
     <td>
       {{ auditui.previous_value_as_geom.x|floatformat:0 }},
@@ -67,6 +71,10 @@ Recent Edits
       <a href="?models=Plot&model_id={{ auditui.current_value_as_plot.pk }}">
         Plot {{ auditui.current_value_as_plot.pk}}
       </a>
+    </td>
+    {% elif auditui.current_value_as_species %}
+    <td>
+      {{ auditui.current_value_as_species.scientific_name }}
     </td>
     {% elif auditui.current_value_as_geom %}
     <td>
