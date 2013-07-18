@@ -506,6 +506,23 @@ class AuditUI(models.Model):
     def previous_value_as_plot(self):
         return self._value_as_plot(self.audit.previous_value)
 
+    def _value_as_species(self, value):
+        # Delayed import since this is circular
+        from treemap.models import Species
+
+        if self.audit.field == 'species' and self.audit.model == 'Tree':
+            return self._value_as_thing(value, Species)
+        else:
+            return None
+
+    @property
+    def current_value_as_species(self):
+        return self._value_as_species(self.audit.current_value)
+
+    @property
+    def previous_value_as_species(self):
+        return self._value_as_species(self.audit.previous_value)
+
     @property
     def previous_value(self):
         return self.audit.previous_value
