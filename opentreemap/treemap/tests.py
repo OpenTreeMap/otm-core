@@ -1430,7 +1430,7 @@ class SearchTests(TestCase):
 
         # Unit Square translated by (0.2,0.2)
         b2 = Boundary.objects.create(
-            geom=MultiPolygon(make_simple_polygon(1)),
+            geom=MultiPolygon(make_simple_polygon(0.2)),
             name='whatever',
             category='whatever',
             sort_order=1)
@@ -1442,7 +1442,7 @@ class SearchTests(TestCase):
             category='whatever',
             sort_order=1)
 
-        plot1 = Plot(geom=Point(0.5, 0.5), instance=self.instance,
+        plot1 = Plot(geom=Point(0.9, 0.9), instance=self.instance,
                      created_by=self.system_user)
         plot2 = Plot(geom=Point(1.1, 1.1), instance=self.instance,
                      created_by=self.system_user)
@@ -1450,7 +1450,7 @@ class SearchTests(TestCase):
                      created_by=self.system_user)
 
         for p in (plot1, plot2, plot3):
-            p.save()
+            p.save_with_user(self.system_user)
 
         boundary1_filter = json.dumps({'plot.geom':
                                        {'IN_BOUNDARY': b1.pk}})
@@ -1472,7 +1472,7 @@ class SearchTests(TestCase):
                                        {'IN_BOUNDARY': b3.pk}})
 
         self.assertEqual(
-            set(), _execute_filter(self.instance, boundary3_filter))
+            0, len(_execute_filter(self.instance, boundary3_filter)))
 
     def setup_diameter_test(self):
         p1, t1 = self.create_tree_and_plot()
