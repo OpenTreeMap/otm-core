@@ -1236,6 +1236,17 @@ class FilterParserTests(TestCase):
                           search._apply_combinator,
                           'AND', [])
 
+    def test_boundary_constraint(self):
+        b = Boundary.objects.create(
+            geom=MultiPolygon(make_simple_polygon(0)),
+            name='whatever',
+            category='whatever',
+            sort_order=1)
+
+        inparams = search._parse_dict_value({'IN_BOUNDARY': b.pk})
+        self.assertEqual(inparams,
+                         {'__contained': b.geom})
+
     def test_contraints_in(self):
         inparams = search._parse_dict_value({'IN': [1, 2, 3]})
         self.assertEqual(inparams,
@@ -1406,6 +1417,60 @@ class SearchTests(TestCase):
         tree.save_with_user(self.system_user)
 
         return plot, tree
+
+    def test_boundary_search(self):
+        # Unit Square
+        b1 = Boundary.objects.create(
+            geom=MultiPolygon(make_simple_polygon(0)),
+            name='whatever',
+            category='whatever',
+            sort_order=1)
+
+        # Unit Square translated by (0.2,0.2)
+        b2 = Boundary.objects.create(
+            geom=MultiPolygon(make_simple_polygon(1)),
+            name='whatever',
+            category='whatever',
+            sort_order=1)
+
+        # Unit square translated by (-1,-1)
+        b3 = Boundary.objects.create(
+            geom=MultiPolygon(make_simple_polygon(-1)),
+            name='whatever',
+            category='whatever',
+            sort_order=1)
+
+        plot1 = Plot(geom=Point(0.5, 0.5), instance=self.instance,
+                     created_by=self.system_user)
+        plot2 = Plot(geom=Point(1.1, 1.1), instance=self.instance,
+                     created_by=self.system_user)
+        plot3 = Plot(geom=Point(2.5, 2.5), instance=self.instance,
+                     created_by=self.system_user)
+
+        for p in (plot1, plot2, plot3):
+            p.save()
+
+        boundary1_filter = json.dumps({'plot.geom':
+                                       {'IN_BOUNDARY': b1.pk}})
+
+        self.assertEqual(
+            {plot1.pk},
+            {p.pk
+             for p in _execute_filter(self.instance, boundary1_filter)})
+
+        boundary2_filter = json.dumps({'plot.geom':
+                                       {'IN_BOUNDARY': b2.pk}})
+
+        self.assertEqual(
+            {plot1.pk, plot2.pk},
+            {p.pk
+             for p in _execute_filter(self.instance, boundary2_filter)})
+
+        boundary3_filter = json.dumps({'plot.geom':
+                                       {'IN_BOUNDARY': b3.pk}})
+
+        self.assertEqual(
+            set(), _execute_filter(self.instance, boundary3_filter))
 
     def setup_diameter_test(self):
         p1, t1 = self.create_tree_and_plot()
