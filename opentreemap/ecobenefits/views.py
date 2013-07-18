@@ -25,6 +25,9 @@ def _benefits_for_tree_dbh_and_species(dbh, species, region):
 
     codes = get_codes_for_species(species, region)
 
+    if not codes:
+        return None
+
     kwh = benefits.get_energy_conserved(region, codes, dbh)
     gal = benefits.get_stormwater_management(region, codes, dbh)
     co2 = benefits.get_co2_stats(region, codes, dbh)
