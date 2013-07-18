@@ -229,7 +229,9 @@ class Boundary(models.Model):
         +- 19107 (Zip Code, 4)
         +- Callowhill (Neighborhood, 4)
     """
-    geom = models.MultiPolygonField(srid=3857, db_column='the_geom_webmercator')
+    geom = models.MultiPolygonField(srid=3857,
+                                    db_column='the_geom_webmercator')
+
     name = models.CharField(max_length=255)
     category = models.CharField(max_length=255)
     sort_order = models.IntegerField()
