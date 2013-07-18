@@ -30,15 +30,23 @@
     <h2>Selected: <span id="attrs"></h2>
     <h2>Search</h2>
     <div>
+      Species:
+      <select data-class="search" id="search-species">
+        <option value="">None</option>
+        {% for sp in species %}
+        <option value="{{ sp.pk }}">{{ sp.scientific_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
       Boundaries:
       <select data-class="search" id="boundary">
-        <option value="none">None</option>
+        <option value="">None</option>
         {% for boundary in bounds %}
         <option value="{{ boundary.pk }}">{{ boundary.name }}</option>
         {% endfor %}
       </select>
     </div>
-    <div>Species Id: <input data-class="search" id="search-species"></div>
     <div>DBH Min: <input data-class="search" id="dbh-min"></div>
     <div>DBH Max: <input data-class="search" id="dbh-max"></div>
     <button id="perform-search">Go</button>

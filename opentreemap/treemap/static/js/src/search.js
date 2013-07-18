@@ -13,7 +13,7 @@ var Search = (function ($,Bacon,config) {
     var exports = {},
         // Quite manual right now but should be nicer in the future
         elems = { '#search-species':
-                  { 'key': 'tree.species__id',
+                  { 'key': 'species.id',
                     'pred': 'IS' },
                   '#dbh-min':
                   { 'key': 'tree.diameter',
