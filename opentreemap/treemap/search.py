@@ -98,15 +98,12 @@ def _parse_value(value):
 
 def _parse_min_max_value_fn(operator):
     """
-    returns a function that produces predicate pairs
-    for the given operator.
+    returns a function that produces singleton
+    dictionary of django operands for the given
+    query operator.
     """
 
     def fn(predicate_value):
-        # assign closure value to a local
-        # in order to mutate it later
-        key = operator
-
         # a min/max predicate can either take
         # a value or a dictionary that provides
         # a VALUE and EXCLUSIVE flag.
@@ -117,10 +114,12 @@ def _parse_min_max_value_fn(operator):
             raw_value = predicate_value
             exclusive = False
 
-        if not exclusive:
+        if exclusive:
+            key = operator
+        else:
             # django use lt/lte and gt/gte
             # to handle inclusive/exclusive
-            key += 'e'
+            key = operator + 'e'
 
         value = _parse_value(raw_value)
 
