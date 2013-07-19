@@ -741,6 +741,9 @@ def user_to_dict(user):
         }
 
 
+#TODO: All of this logic should probably be
+# moved to the geocoder app
+# not sure what we should do about BBOX settings
 @require_http_methods(["GET"])
 @api_call()
 def geocode_address(request, address):
