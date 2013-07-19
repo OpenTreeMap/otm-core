@@ -725,31 +725,20 @@ def species_to_dict(s):
         "genus": s.genus,
         "species": s.species,
         "cultivar": s.cultivar_name,
-        "gender": s.gender,
         "common_name": s.common_name }
 
 
 def user_to_dict(user):
+    #TODO: permissions?
+    # what are these in OTM2 vs OTM1
+    # user_type permissions need to be updated
+    # is this even used in the app?
     return {
         "id": user.pk,
-        "firstname": user.first_name,
-        "lastname": user.last_name,
-        "email": user.email,
-        "username": user.username,
-        "zipcode": UserProfile.objects.get(user__pk=user.pk).zip_code,
-        "reputation": Reputation.objects.reputation_for_user(user).reputation,
-        "permissions": list(user.get_all_permissions()),
-        "user_type": user_access_type(user)
+        "reputation": user.reputation,
+        #"permissions": list(user.get_all_permissions()),
+        #"user_type": user_access_type(user)
         }
-
-def user_access_type(user):
-    """ Given a user, determine the name and "level" of a user """
-    if user.is_superuser:
-        return { 'name': 'administrator', 'level': 1000 }
-    elif Reputation.objects.reputation_for_user(user).reputation > 1000:
-        return { 'name': 'editor', 'level': 500 }
-    else:
-        return { 'name': 'public', 'level': 0 }
 
 
 @require_http_methods(["GET"])
