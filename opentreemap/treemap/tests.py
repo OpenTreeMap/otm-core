@@ -1249,19 +1249,19 @@ class FilterParserTests(TestCase):
         self.assertEqual(inparams,
                          {'__contained': b.geom})
 
-    def test_contraints_in(self):
+    def test_constraints_in(self):
         inparams = search._parse_dict_value({'IN': [1, 2, 3]})
         self.assertEqual(inparams,
                          {'__in': [1, 2, 3]})
 
-    def test_contraints_is(self):
+    def test_constraints_is(self):
         # "IS" is a special case in that we don't need to appl
         # a suffix at all
         isparams = search._parse_dict_value({'IS': 'what'})
         self.assertEqual(isparams,
                          {'': 'what'})
 
-    def test_contraints_invalid_groups(self):
+    def test_constraints_invalid_groups(self):
         # It is an error to combine mutually exclusive groups
         self.assertRaises(search.ParseException,
                           search._parse_dict_value,
@@ -1271,7 +1271,7 @@ class FilterParserTests(TestCase):
                           search._parse_dict_value,
                           {'IS': 'what', 'MIN': 3})
 
-    def test_contraints_invalid_keys(self):
+    def test_constraints_invalid_keys(self):
         self.assertRaises(search.ParseException,
                           search._parse_dict_value,
                           {'EXCLUSIVE': 9})
@@ -1299,7 +1299,7 @@ class FilterParserTests(TestCase):
                      'EXCLUSIVE': False}})
         self.assertEqual(const, {'__lte': 5})
 
-    def test_contraints_min_and_max(self):
+    def test_constraints_min_and_max(self):
         const = search._parse_dict_value(
             {'MIN': 5,
              'MAX': {'VALUE': 9,
