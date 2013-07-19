@@ -18,7 +18,7 @@ from treemap.search import create_filter
 from treemap.audit import Audit, AuditUI
 from treemap.models import Plot, Tree, User, Boundary, Species
 
-from ecobenefits.views import _benefits_for_tree_dbh_and_species
+from ecobenefits.views import _benefits_for_trees
 
 
 def _plot_hash(request, instance, plot_id):
@@ -153,7 +153,7 @@ def _execute_filter(instance, filter_str):
     return create_filter(filter_str).filter(instance=instance)
 
 
-def search_tree_benefits(request, instance, region='SoCalCSMA'):
+def search_tree_benefits(request, instance, region='PiedmtCLT'):
     try:
         filter_str = request.REQUEST['q']
     except KeyError:
@@ -164,35 +164,25 @@ def search_tree_benefits(request, instance, region='SoCalCSMA'):
 
     num_calculated_trees = 0
 
-    benefits = {'energy': 0.0, 'stormwater': 0.0,
-                'co2': 0.0, 'airquality': 0.0}
-
     total_plots = plots.count()
     total_trees = trees.count()
 
-    trees_for_eco = trees.exclude(species__isnull=True)\
-                         .exclude(diameter__isnull=True)
+    trees_for_eco = trees.exclude(species__itree_code__isnull=True)\
+                         .exclude(diameter__isnull=True)\
+                         .values('diameter', 'species__itree_code')
 
-    for tree in trees_for_eco:
-        if tree.diameter and tree.species:
-            tree_benefits = _benefits_for_tree_dbh_and_species(
-                tree.diameter, tree.species, region)
-
-            if tree_benefits:
-                for key in benefits:
-                    benefits[key] = tree_benefits[key]['value']
-
-                    num_calculated_trees += 1
+    benefits, num_calculated_trees = _benefits_for_trees(
+        trees_for_eco, region)
 
     if num_calculated_trees > 0 and total_trees > 0:
 
         # Extrapolate an average over the rest of the urban forest
         trees_without_benefit_data = total_trees - num_calculated_trees
         for benefit in benefits:
-            avg_benefit = benefits[benefit] / num_calculated_trees
+            avg_benefit = benefits[benefit]['value'] / num_calculated_trees
             extrp_benefit = avg_benefit * trees_without_benefit_data
 
-            benefits[benefit] += extrp_benefit
+            benefits[benefit]['value'] += extrp_benefit
 
         rslt = {'benefits': benefits,
                 'basis': {'n_calc': num_calculated_trees,
