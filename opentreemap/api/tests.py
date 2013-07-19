@@ -1408,37 +1408,6 @@ class ChoiceConversion(TestCase):
             self.assertTrue(response_json['tree']['condition'] in old_original_conditions, "Expected condition to NOT have been updated in the JSON response")
 
 
-class Resource(TestCase):
-    def setUp(self):
-        setupTreemapEnv()
-
-    def tearDown(self):
-        teardownTreemapEnv()
-
-    def test_tree_resource_to_dict_on_empty_resource(self):
-        # If resources are all calculated as zero, this method should still return a valid object
-
-        tr = TreeResource()
-        tr.annual_stormwater_management = 0
-        tr.annual_electricity_conserved = 0
-        tr.annual_energy_conserved = 0
-        tr.annual_natural_gas_conserved = 0
-        tr.annual_air_quality_improvement = 0
-        tr.annual_co2_sequestered = 0
-        tr.annual_co2_avoided = 0
-        tr.annual_co2_reduced = 0
-        tr.total_co2_stored = 0
-        tr.annual_ozone = 0
-        tr.annual_nox = 0
-        tr.annual_pm10 = 0
-        tr.annual_sox = 0
-        tr.annual_voc = 0
-        tr.annual_bvoc = 0
-
-        resource_dict = tree_resource_to_dict(tr)
-        self.assertIsNotNone(resource_dict)
-
-
 # TODO: Add this back in when we really support
 #       tree photos
 # class TreePhoto(TestCase):
