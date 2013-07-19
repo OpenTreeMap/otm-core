@@ -1127,10 +1127,10 @@ def reject_pending_edit(request, pending_edit_id):
 @transaction.commit_on_success
 def remove_plot(request, plot_id):
     plot = get_object_or_404(Plot, pk=plot_id)
-    if can_delete_tree_or_plot(plot, request.user):
-        plot.remove()
+    try:
+        plot.delete_with_user(request.user)
         return {"ok": True}
-    else:
+    except Exception, e:
         raise PermissionDenied('%s does not have permission to delete plot %s' % (request.user.username, plot_id))
 
 
@@ -1142,11 +1142,13 @@ def remove_current_tree_from_plot(request, plot_id):
     plot = get_object_or_404(Plot, pk=plot_id)
     tree = plot.current_tree()
     if tree:
-        if can_delete_tree_or_plot(tree, request.user):
-            tree.remove()
+        try:
+            tree.delete_with_user(request.user)
             updated_plot = Plot.objects.get(pk=plot_id)
-            return convert_response_plot_dict_choice_values(request, plot_to_dict(updated_plot, longform=True, user=request.user))
-        else:
+            return convert_response_plot_dict_choice_values(
+                request, plot_to_dict(
+                    updated_plot, longform=True, user=request.user))
+        except:
             raise PermissionDenied('%s does not have permission to the current tree from plot %s' % (request.user.username, plot_id))
     else:
         raise HttpResponseBadRequest("Plot %s does not have a current tree" % plot_id)
