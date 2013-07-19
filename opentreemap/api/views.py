@@ -13,16 +13,17 @@ from django.db import transaction
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
-from django_reputation.models import Reputation, UserReputationAction
-from profiles.utils import change_reputation_for_user
 
-from treemap.models import Plot, Species, TreePhoto, ImportEvent, Tree
-from treemap.models import BenefitValues
-from treemap.models import TreeResource, PlotPending, TreePending
-from treemap.forms import TreeAddForm
-from treemap.views import get_tree_pend_or_plot_pend_by_id_or_404_not_found,\
-    has_pending_permission_or_403_forbidden,\
-    requires_pending_record, _build_tree_search_result
+from treemap.models import Plot, Species, Tree
+from treemap.views import create_user, get_tree_photos, create_plot
+from treemap.util import instance_request
+
+from ecobenefits.views import tree_benefits
+
+from treemap.search import create_filter
+
+from treemap.audit import Audit, approve_or_reject_audit_and_apply
+
 from api.models import APIKey, APILog
 from django.contrib.gis.geos import Point, fromstr
 
@@ -39,8 +40,7 @@ import json
 import struct
 import ctypes
 import math
-
-import simplejson
+import json
 
 from copy import deepcopy
 
@@ -65,11 +65,11 @@ def route(**kwargs):
 
 def json_from_request(request):
     """
-    Accessing raw_post_data throws an exception when using the Django test
+    Accessing body throws an exception when using the Django test
     client in to make requests in unit tests.
     """
     try:
-        data = json.loads(request.raw_post_data)
+        data = json.loads(request.body)
     except Exception, e:
         data = request.POST
     return data
@@ -144,7 +144,7 @@ def api_call(content_type="application/json"):
                     response = outp
                 else:
                     response = HttpResponse()
-                    response.write('%s' % simplejson.dumps(outp))
+                    response.write('%s' % json.dumps(outp))
                     response['Content-length'] = str(len(response.content))
                     response['Content-Type'] = content_type
 
@@ -244,7 +244,7 @@ def verify_auth(request):
 @api_call()
 @transaction.commit_on_success
 def register(request):
-    data = json.loads(request.raw_post_data)
+    data = json.loads(request.body)
 
     # If a user already exists with the specified username, return a 409 Conflict
     if User.objects.filter(username=data["username"]).count():
@@ -276,7 +276,7 @@ def add_tree_photo(request, plot_id):
     if not content_type:
         content_type = "image/png" # Older versions of the iOS client sent PNGs exclusively
     file_type = content_type.lower().split('/')[-1]
-    uploaded_image = ContentFile(request.raw_post_data)
+    uploaded_image = ContentFile(request.body)
     uploaded_image.name = "plot_%s.%s" % (plot_id, file_type)
 
     plot = Plot.objects.get(pk=plot_id)
@@ -301,7 +301,7 @@ def add_tree_photo(request, plot_id):
 @api_call()
 @login_required
 def add_profile_photo(request, user_id, title):
-    uploaded_image = ContentFile(request.raw_post_data)
+    uploaded_image = ContentFile(request.body)
     uploaded_image.name = "%s.png" % title
 
     profile = UserProfile.objects.get(user__id=user_id)
@@ -357,7 +357,7 @@ def recent_edits(request, user_id):
 @api_call()
 @login_required
 def update_password(request, user_id):
-    data = json.loads(request.raw_post_data)
+    data = json.loads(request.body)
 
     pw = data["password"]
 
@@ -1139,7 +1139,7 @@ def rename_plot_request_dict_fields(request_dict):
 def create_plot_optional_tree(request):
     response = HttpResponse()
 
-    # Unit tests fail to access request.raw_post_data
+    # Unit tests fail to access request.body
     request_dict = json_from_request(request)
 
     # Convert any 'legacy' choice values
@@ -1296,7 +1296,7 @@ def update_plot_and_tree(request, plot_id):
         plot = Plot.objects.get(pk=plot_id)
     except Plot.DoesNotExist:
         response.status_code = 400
-        response.content = simplejson.dumps({"error": "No plot with id %s" % plot_id})
+        response.content = json.dumps({"error": "No plot with id %s" % plot_id})
         return response
 
     request_dict = convert_request_plot_dict_choice_values(request, json_from_request(request))
@@ -1386,7 +1386,7 @@ def update_plot_and_tree(request, plot_id):
                             tree_was_edited = True
                 except Exception:
                     response.status_code = 400
-                    response.content = simplejson.dumps({"error": "No species with id %s" % request_dict[tree_field.name]})
+                    response.content = json.dumps({"error": "No species with id %s" % request_dict[tree_field.name]})
                     return response
             else: # tree_field.name != 'species'
                 if not compare_fields(get_attr_with_choice_correction(request, tree, tree_field.name), request_dict[tree_field.name]):
@@ -1415,7 +1415,7 @@ def update_plot_and_tree(request, plot_id):
     full_plot = Plot.objects.get(pk=plot.id)
     return_dict = convert_response_plot_dict_choice_values(request, plot_to_dict(full_plot, longform=True,user=request.user))
     response.status_code = 200
-    response.content = simplejson.dumps(return_dict)
+    response.content = json.dumps(return_dict)
     return response
 
 @require_http_methods(["POST"])
