@@ -4,9 +4,9 @@ from __future__ import division
 
 from django.conf.urls import patterns, url
 
-from ecobenefits.views import tree_benefits
+from ecobenefits.views import tree_benefits_view
 
 urlpatterns = patterns(
     '',
-    url(r'^benefit/tree/(?P<tree_id>\d+)/$', tree_benefits),
+    url(r'^benefit/tree/(?P<tree_id>\d+)/$', tree_benefits_view),
 )
