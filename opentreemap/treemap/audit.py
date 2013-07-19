@@ -230,7 +230,7 @@ class Authorizable(UserTrackable):
         field_set = {field_name for field_name in self._previous_state.keys()}
         return perm_set, field_set
 
-    def _user_can_delete(self, user):
+    def user_can_delete(self, user):
         """
         A user is able to delete an object if they have all
         field permissions on a model.
@@ -331,7 +331,7 @@ class Authorizable(UserTrackable):
     def delete_with_user(self, user, *args, **kwargs):
         self._assert_not_clobbered()
 
-        if self._user_can_delete(user):
+        if self.user_can_delete(user):
             super(Authorizable, self).delete_with_user(user, *args, **kwargs)
         else:
             raise AuthorizeException("%s does not have permission to "

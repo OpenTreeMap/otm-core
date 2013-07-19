@@ -180,7 +180,6 @@ def plot_permissions(plot, user):
     return perms
 
 def plot_or_tree_permissions(obj, user):
-    ####TODO- Totally broke
     """ Determine what the given user can do with a tree or plot
         Returns {
            can_delete: <boolean>,
@@ -198,11 +197,7 @@ def plot_or_tree_permissions(obj, user):
     elif obj.readonly:
         can_delete = False
         can_edit = False
-    # If the user is an admin they can do whatever they want
-    # (but not to readonly trees)
-    elif user.has_perm('auth.change_user'):
-        can_delete = True
-        can_edit = True
+    # Use the normal admin system
     else:
         can_delete = obj.user_can_delete(user)
         ###TODO
@@ -479,8 +474,8 @@ def plots_to_list_of_dict(plots,longform=False,user=None):
 def point_wkt_to_dict(wkt):
     point = fromstr(wkt)
     return {
-        'lat': point.y,
-        'lng': point.x,
+        'y': point.y,
+        'x': point.x,
         'srid': '3857'
     }
 
@@ -564,15 +559,12 @@ def plot_to_dict(plot,longform=False,user=None):
         "id": plot.pk,
         "plot_width": plot.width,
         "plot_length": plot.length,
-        "owner_orig_id": plot.owner_orig_id,
-        "plot_type": plot.type,
         "readonly": plot.readonly,
         "tree": tree_dict,
-        "address": plot.geocoded_address,
-        "geometry": {
-            "srid": plot.geometry.srid,
-            "lat": plot.geometry.y,
-            "lng": plot.geometry.x
+        "geom": {
+            "srid": plot.geom.srid,
+            "y": plot.geom.y,
+            "x": plot.geom.x
         }
     }
 

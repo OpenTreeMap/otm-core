@@ -176,6 +176,18 @@ class Plot(Authorizable, Auditable, models.Model):
 
     objects = models.GeoManager()
 
+    def current_tree(self):
+        """
+        This is a compatibility method that is used by the API to
+        select the 'current tree'. Right now OTM only supports one
+        tree per plot, so this method returns the 'first' tree
+        """
+        trees = list(self.tree_set.all())
+        if trees:
+            return trees[0]
+        else:
+            return None
+
     @property
     def hash(self):
         string_to_hash = super(Plot, self).hash

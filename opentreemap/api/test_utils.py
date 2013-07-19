@@ -11,25 +11,21 @@ from treemap.tests import (make_instance, make_commander_role,
 import django.shortcuts
 
 
-def mkPlot(u, geom=Point(50, 50)):
-    p = Plot(geometry=geom, last_updated_by=u,
-             import_event=ImportEvent.objects.all()[0],
-             present=True, data_owner=u)
-
-    p.save_with_user(u)
+def mkPlot(instance, user, geom=Point(50, 50)):
+    p = Plot(geom=geom, instance=instance, created_by=user)
+    p.save_with_user(user)
 
     return p
 
 
-def mkTree(u, plot=None, species=-1):
+def mkTree(instance, user, plot=None, species=None):
     if not plot:
-        plot = mkPlot(u)
+        plot = mkPlot(instance, user)
 
-    if species == -1:
+    if species is not None:
         s = Species.objects.all()[0]
     else:
         s = species
-
 
     t = Tree(plot=plot, instance=instance, species=s, created_by=user)
     t.save_with_user(user)
@@ -122,6 +118,8 @@ def setupTreemapEnv():
     ie = ImportEvent(imported_by=system_user)
     ie.save()
 
+    return instance
+
 
 def teardownTreemapEnv():
     system_user = make_system_user()
@@ -146,6 +144,3 @@ def teardownTreemapEnv():
 
     for r in ImportEvent.objects.all():
         r.delete()
-
-    # for u in User.objects.all():
-    #     u.delete_with_user(system_user)
