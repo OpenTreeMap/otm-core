@@ -30,11 +30,9 @@ def mkTree(u, plot=None, species=-1):
     else:
         s = species
 
-    t = Tree(plot=plot, species=s, last_updated_by=u,
-             import_event=ImportEvent.objects.all()[0])
 
-    t.present = True
-    t.save_with_user(u)
+    t = Tree(plot=plot, instance=instance, species=s, created_by=user)
+    t.save_with_user(user)
 
     return t
 

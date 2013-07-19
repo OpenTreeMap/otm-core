@@ -11,6 +11,8 @@ from django.views.decorators.http import etag
 
 from django.conf import settings
 
+from django.contrib.gis.geos.point import Point
+
 from treemap.util import json_api_call, render_template, instance_request
 
 from treemap.search import create_filter
@@ -38,6 +40,7 @@ def add_tree_photo(user_id, plot_id, uploaded_image):
 
     return TPShim()
 
+
 def _rotate_image_based_on_exif(img):
     img = Image.open(treephoto.photo.path)
     try:
@@ -51,17 +54,46 @@ def _rotate_image_based_on_exif(img):
 
     return img
 
+
 def get_tree_photos(plot_id, photo_id):
     return None
 
+
 def add_user_photo(user_id, uploaded_image):
     return None
+
 
 def create_user(*args, **kwargs):
     class UserShim(object):
         def __init__(self):
             self.pk = 2
     return UserShim()
+
+
+def create_plot(user, instance, *args, **kwargs):
+    if 'x' in kwargs and 'y' in kwargs:
+        geom = Point(
+            kwargs['x'],
+            kwargs['y'])
+    elif 'lon' in kwargs and 'lat' in kwargs:
+        geom = Point(
+            kwargs['lon'],
+            kwargs['lat'])
+    else:
+        geom = Point(50, 50)
+
+    p = Plot(geom=geom, instance=instance, created_by=user)
+    p.save_with_user(user)
+
+    if 'height' in kwargs:
+        t = Tree(plot=p, instance=instance, created_by=user)
+        t.height = kwargs['height']
+
+        if t.height > 1000:
+            return ["Height is too large."]
+
+        t.save_with_user(user)
+    return p
 
 
 def plot_detail(request, instance, plot_id):

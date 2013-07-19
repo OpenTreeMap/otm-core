@@ -367,6 +367,12 @@ class Auditable(UserTrackable):
         super(Auditable, self).delete_with_user(user, *args, **kwargs)
         a.save()
 
+    def get_active_pending_audits(self):
+        return Audit.objects.filter(model=self._model_name)\
+                            .filter(requires_auth=True)\
+                            .filter(ref_id__isnull=True)\
+                            .order_by('-created')
+
     def save_with_user(self, user, *args, **kwargs):
 
         updates = self._updated_fields()

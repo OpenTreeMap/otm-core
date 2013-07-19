@@ -20,8 +20,6 @@ from treemap.util import instance_request
 
 from ecobenefits.views import tree_benefits
 
-from ecobenefits.views import tree_benefits
-
 from treemap.search import create_filter
 
 from treemap.audit import Audit, approve_or_reject_audit_and_apply
@@ -206,18 +204,17 @@ def plot_or_tree_permissions(obj, user):
         can_delete = True
         can_edit = True
     else:
-        # If the user is the owner of the object
-        # they can do whatever
-        creator = obj.created_by
-        if creator and creator.pk == user.pk:
-            can_delete = True
-            can_edit = True
-        # If the tree is not readonly, and the user isn't an admin
-        # and the user doesn't own the objet, editing is allowed
-        # but delete is not
-        else:
-            can_delete = False
-            can_edit = True
+        can_delete = obj.user_can_delete(user)
+        ###TODO
+        ###OTM only support the concept of 'can edit' and 'can delete'
+        ###but OTM2 defines 'delete' as 'can edit all fields'
+        ###at least right now, so these are the same
+        can_edit = can_delete
+
+        ###TODO
+        ###This ignores things like 'can delete if they created it'
+        ###and such. Those business rules should, however, be
+        ###put in 'user_can_delete'
 
     return { "can_delete": can_delete, "can_edit": can_edit }
 
@@ -511,7 +508,7 @@ def plot_to_dict(plot,longform=False,user=None):
             tree_dict["species_name"] = current_tree.species.common_name
             tree_dict["sci_name"] = current_tree.scientific_name
 
-        if current_tree.dbh:
+        if current_tree.diameter:
             tree_dict["dbh"] = current_tree.dbh
 
         if current_tree.height:
@@ -520,51 +517,45 @@ def plot_to_dict(plot,longform=False,user=None):
         if current_tree.canopy_height:
             tree_dict["canopy_height"] = current_tree.canopy_height
 
-        images = current_tree.treephoto_set.all()
+        #TODO: Support for tree images
+        # images = current_tree.treephoto_set.all()
 
-        if len(images) > 0:
-            tree_dict["images"] = [{"id": image.pk, "title": image.title, "url": image.photo.url}
-                                   for image in images]
+        # if len(images) > 0:
+        #     tree_dict["images"] = [{"id": image.pk,
+        # "title": image.title, "url": image.photo.url}
+        #                            for image in images]
 
         if longform:
-            tree_dict['tree_owner'] = current_tree.tree_owner
-            tree_dict['steward_name'] = current_tree.steward_name
-            tree_dict['sponsor'] = current_tree.sponsor
             tree_dict['eco'] = tree_resource_to_dict(current_tree)
-
-            if current_tree.steward_user:
-                tree_dict['steward_user'] = current_tree.steward_user
-
-            tree_dict['species_other1'] = current_tree.species_other1
-            tree_dict['species_other2'] = current_tree.species_other2
-            tree_dict['date_planted'] = datetime_to_iso_string(current_tree.date_planted)
-            tree_dict['date_removed'] = datetime_to_iso_string(current_tree.date_removed)
-            tree_dict['present'] = current_tree.present
-            tree_dict['last_updated'] = datetime_to_iso_string(current_tree.last_updated)
-            tree_dict['last_updated_by'] = current_tree.last_updated_by.username
-            tree_dict['condition'] = current_tree.condition
-            tree_dict['canopy_condition'] = current_tree.canopy_condition
-            tree_dict['pests'] = current_tree.pests
             tree_dict['readonly'] = current_tree.readonly
 
-            if settings.PENDING_ON:
-                tree_field_reverse_property_name_dict = {'species_id': 'species'}
-                for raw_field_name, detail in current_tree.get_active_pend_dictionary().items():
-                    if raw_field_name in tree_field_reverse_property_name_dict:
-                        field_name = tree_field_reverse_property_name_dict[raw_field_name]
-                    else:
-                        field_name = raw_field_name
-                    pending_edit_dict['tree.' + field_name] = {'latest_value': detail['latest_value'], 'pending_edits': []}
-                    for pend in detail['pending_edits']:
-                        pend_dict = pending_edit_to_dict(pend)
-                        if field_name == 'species':
-                            species_set = Species.objects.filter(pk=pend_dict['value'])
-                            if species_set:
-                                pend_dict['related_fields'] = {
-                                    'tree.sci_name': species_set[0].scientific_name,
-                                    'tree.species_name': species_set[0].common_name
-                                }
-                        pending_edit_dict['tree.' + field_name]['pending_edits'].append(pend_dict)
+            tree_field_reverse_property_name_dict = {'species_id': 'species'}
+            pending_edit_dict = {}
+            for audit in current_tree.get_active_pending_audits():
+                raw_field_name = audit.field
+
+                if raw_field_name in tree_field_reverse_property_name_dict:
+                    field_name = tree_field_reverse_property_name_dict.get(
+                        raw_field_name)
+                else:
+                    field_name = raw_field_name
+
+                if 'tree.' + field_name not in pending_edit_dict:
+                    pending_edit_dict['tree.' + field_name] = {
+                        'latest_value': audit['latest_value'],
+                        'pending_edits': []}
+
+                pend_dict = pending_edit_to_dict(audit)
+                if field_name == 'species':
+                    species_set = Species.objects.filter(
+                        pk=audit.current_value)
+                    if species_set:
+                        pend_dict['related_fields'] = {
+                            'tree.sci_name': species_set[0].scientific_name,
+                            'tree.species_name': species_set[0].common_name
+                        }
+                pending_edit_dict['tree.' + field_name]['pending_edits']\
+                    .append(pend_dict)
 
     else:
         tree_dict = None
@@ -589,6 +580,7 @@ def plot_to_dict(plot,longform=False,user=None):
         base["perm"] = plot_permissions(plot,user)
 
     if longform:
+<<<<<<< HEAD
         base['power_lines'] = plot.powerline_conflict_potential
         base['sidewalk_damage'] = plot.sidewalk_damage
         base['address_street'] = plot.address_street
@@ -605,22 +597,37 @@ def plot_to_dict(plot,longform=False,user=None):
 
         if settings.PENDING_ON:
             plot_field_reverse_property_name_dict = {'width': 'plot_width', 'length': 'plot_length', 'powerline_conflict_potential': 'power_lines'}
+=======
+        plot_field_reverse_property_name_dict = {
+            'width': 'plot_width',
+            'length': 'plot_length'
+        }
 
-            for raw_field_name, detail in plot.get_active_pend_dictionary().items():
-                if raw_field_name in plot_field_reverse_property_name_dict:
-                    field_name = plot_field_reverse_property_name_dict[raw_field_name]
-                else:
-                    field_name = raw_field_name
+        pending_edit_dict = {}
+>>>>>>> 3ce6563... Create plot shims (tests)
 
-                if field_name == 'geometry':
-                    latest_value = point_wkt_to_dict(detail['latest_value'])
-                else:
-                    latest_value = detail['latest_value']
+        for audit in plot.get_active_pending_audits():
+            raw_field_name = audit.field
+            if raw_field_name in plot_field_reverse_property_name_dict:
+                field_name = plot_field_reverse_property_name_dict[raw_field_name]
+            else:
+                field_name = raw_field_name
 
-                pending_edit_dict[field_name] = {'latest_value': latest_value, 'pending_edits': []}
-                for pend in detail['pending_edits']:
-                    pending_edit_dict[field_name]['pending_edits'].append(pending_edit_to_dict(pend))
-            base['pending_edits'] = pending_edit_dict
+            if field_name == 'geom':
+                latest_value = point_wkt_to_dict(audit.previous_value)
+            else:
+                latest_value = audit.current_value
+
+            if field_name not in pending_edit_dict:
+                pending_edit_dict[field_name] = {
+                    'latest_value': latest_value,
+                    'pending_edits': []}
+
+            pending_edit_dict[field_name]['pending_edits'].append(
+                pending_edit_to_dict(audit))
+
+
+        base['pending_edits'] = pending_edit_dict
 
     return base
 
@@ -712,7 +719,7 @@ def convert_plot_dict_choice_values(request, plot_dict, direction):
 
 
 def tree_resource_to_dict(tree):
-    if tree.species.itree_code and tree.diameter:
+    if tree.species and tree.species.itree_code and tree.diameter:
         return tree_benefits(tree.instance, tree.pk)
     else:
         return {}
@@ -817,9 +824,10 @@ def rename_plot_request_dict_fields(request_dict):
     return request_dict
 
 @require_http_methods(["POST"])
+@instance_request
 @api_call()
 @login_required
-def create_plot_optional_tree(request):
+def create_plot_optional_tree(request, instance):
     response = HttpResponse()
 
     # Unit tests fail to access request.body
@@ -839,32 +847,17 @@ def create_plot_optional_tree(request):
     # helper function renames keys in the dictionary to match what the form expects
     rename_plot_request_dict_fields(request_dict)
 
-    form = TreeAddForm(request_dict, request.FILES)
+    plot = create_plot(request.user, instance, **request_dict)
 
-    if not form.is_valid():
+    if type(plot) is list:
         response.status_code = 400
-        if '__all__' in form.errors:
-            response.content = simplejson.dumps({"error": form.errors['__all__']})
-        else:
-            response.content = simplejson.dumps({"error": form.errors})
-        return response
-
-    try:
-        new_plot = form.save(request)
-    except ValidationError, ve:
-        response.status_code = 400
-        response.content = simplejson.dumps({"error": form.error_class(ve.messages)})
-        return response
-
-    new_tree = new_plot.current_tree()
-    if new_tree:
-        change_reputation_for_user(request.user, 'add tree', new_tree)
+        response.content = json.dumps({'error': plot})
     else:
-        change_reputation_for_user(request.user, 'add plot', new_plot)
+        response.status_code = 201
+        new_plot = convert_response_plot_dict_choice_values(
+            request, plot_to_dict(plot,longform=True,user=request.user))
+        response.content = json.dumps(new_plot)
 
-    response.status_code = 201
-    new_plot = convert_response_plot_dict_choice_values(request, plot_to_dict(Plot.objects.get(pk=new_plot.id),longform=True,user=request.user))
-    response.content = json.dumps(new_plot)
     return response
 
 @require_http_methods(["GET"])

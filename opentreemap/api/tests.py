@@ -20,7 +20,8 @@ import urllib
 from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 
 from treemap.models import Species, Plot, Tree, User
-from treemap.tests import make_system_user
+from treemap.tests import make_system_user, make_commander_role
+from treemap.audit import ReputationMetric, Audit
 
 from api.models import APIKey, APILog
 from api.views import InvalidAPIKeyException, plot_or_tree_permissions, plot_permissions, tree_resource_to_dict, _parse_application_version_header_as_dict, _attribute_requires_conversion
@@ -722,14 +723,22 @@ class Locations(TestCase):
 class CreatePlotAndTree(TestCase):
 
     def setUp(self):
-        setupTreemapEnv()
+        self.instance = setupTreemapEnv()
 
+        self.system_user = make_system_user()
         self.user = User.objects.get(username="jim")
         self.user.set_password("password")
-        self.user.save()
+        self.user.roles.add(make_commander_role(self.instance))
+        self.user.save_with_user(self.system_user)
+
         self.sign = create_signer_dict(self.user)
         auth = base64.b64encode("jim:password")
         self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        rm = ReputationMetric(instance=self.instance, model_name='Plot',
+                              action=Audit.Type.Insert, direct_write_score=2,
+                              approval_score=20, denial_score=5)
+        rm.save()
 
     def test_create_plot_with_tree(self):
         data = {
@@ -742,17 +751,21 @@ class CreatePlotAndTree(TestCase):
             }
         }
 
-        plot_count = Plot.objects.count()
-        reputation_count = UserReputationAction.objects.count()
+        ###TODO: Need to create reputation metrics
 
-        response = post_json( "%s/plots"  % API_PFX, data, self.client, self.sign)
+        plot_count = Plot.objects.count()
+        reputation_count = self.user.reputation
+
+        response = post_json("%s/%s/plots"  % (API_PFX, self.instance.pk),
+                             data, self.client, self.sign)
 
         self.assertEqual(201, response.status_code, "Create failed:" + response.content)
 
         # Assert that a plot was added
         self.assertEqual(plot_count + 1, Plot.objects.count())
-        # Assert that reputation was added
-        self.assertEqual(reputation_count + 1, UserReputationAction.objects.count())
+        # Assert that reputation went up
+        reloaded_user_rep = User.objects.get(pk=self.user.pk).reputation
+        self.assertEqual(reputation_count + 10, reloaded_user_rep)
 
         response_json = loads(response.content)
         self.assertTrue("id" in response_json)
@@ -776,54 +789,62 @@ class CreatePlotAndTree(TestCase):
         }
 
         tree_count = Tree.objects.count()
-        reputation_count = UserReputationAction.objects.count()
+        reputation_count = self.user.reputation
 
-        response = post_json( "%s/plots"  % API_PFX, data, self.client, self.sign)
+        response = post_json("%s/%s/plots"  % (API_PFX, self.instance.pk),
+                             data, self.client, self.sign)
 
-        self.assertEqual(400, response.status_code, "Expected creating a million foot tall tree to return 400:" + response.content)
+        self.assertEqual(400,
+                         response.status_code,
+                         "Expected creating a million foot "
+                         "tall tree to return 400:" + response.content)
 
         body_dict = loads(response.content)
-        self.assertTrue('error' in body_dict, "Expected the body JSON to contain an 'error' key")
+        self.assertTrue('error' in body_dict,
+                        "Expected the body JSON to contain an 'error' key")
+
         errors = body_dict['error']
-        self.assertTrue(len(errors) == 1, "Expected a single error message to be returned")
+        self.assertTrue(len(errors) == 1,
+                        "Expected a single error message to be returned")
+
         self.assertEqual('Height is too large.', errors[0])
 
         # Assert that a tree was _not_ added
         self.assertEqual(tree_count, Tree.objects.count())
         # Assert that reputation was _not_ added
-        self.assertEqual(reputation_count, UserReputationAction.objects.count())
+        self.assertEqual(reputation_count, self.user.reputation)
 
     def test_create_plot_with_geometry(self):
         data = {
             "geometry": {
-                "lon": 35,
-                "lat": 25,
+                "x": 35,
+                "y": 25,
             },
-            "geocode_address": "1234 ANY ST",
-            "edit_address_street": "1234 ANY ST",
             "tree": {
                 "height": 10
             }
         }
 
         plot_count = Plot.objects.count()
-        reputation_count = UserReputationAction.objects.count()
+        reputation_count = self.user.reputation
 
-        response = post_json( "%s/plots"  % API_PFX, data, self.client, self.sign)
+        response = post_json("%s/%s/plots"  % (API_PFX, self.instance.pk),
+                             data, self.client, self.sign)
 
         self.assertEqual(201, response.status_code, "Create failed:" + response.content)
 
         # Assert that a plot was added
         self.assertEqual(plot_count + 1, Plot.objects.count())
         # Assert that reputation was added
-        self.assertEqual(reputation_count + 1, UserReputationAction.objects.count())
+        reloaded_user_rep = User.objects.get(pk=self.user.pk).reputation
+        self.assertEqual(reputation_count + 10, reloaded_user_rep)
 
         response_json = loads(response.content)
         self.assertTrue("id" in response_json)
         id = response_json["id"]
         plot = Plot.objects.get(pk=id)
-        self.assertEqual(35.0, plot.geometry.x)
-        self.assertEqual(25.0, plot.geometry.y)
+        self.assertEqual(35.0, plot.geom.x)
+        self.assertEqual(25.0, plot.geom.y)
         tree = plot.current_tree()
         self.assertIsNotNone(tree)
         self.assertEqual(10.0, tree.height)
