@@ -438,9 +438,10 @@ def get_plot_list(request):
     end = size + start
 
     # order_by prevents testing weirdness
-    plots = Plot.objects.filter(present=True).order_by('id')[start:end]
+    plots = Plot.objects.order_by('id')[start:end]
 
-    return [convert_response_plot_dict_choice_values(request, plot) for plot in plots_to_list_of_dict(plots,user=request.user)]
+    return [convert_response_plot_dict_choice_values(request, plot)
+            for plot in plots_to_list_of_dict(plots,user=request.user)]
 
 @require_http_methods(["GET"])
 @api_call()
@@ -454,71 +455,18 @@ def species_list(request, lat=None, lon=None):
 @login_optional
 def plots_closest_to_point(request, lat=None, lon=None):
     point = Point(float(lon), float(lat), srid=4326)
+    q = request.REQUEST['q']
+    # 100 meters
+    plots = Plot.objects.filter(create_filter(filter_str))\
+                        .filter(instance=instance)\
+                        .filter(distance__lte=100)\
+                        .distance(point)\
+                        .order_by('distance')[0:10]
 
-    distance_string = request.GET.get('distance', settings.MAP_CLICK_RADIUS)
-    try:
-        distance = float(distance_string)
-    except ValueError:
-        raise HttpBadRequestException('The distance parameter must be a number')
-
-    max_plots_string = request.GET.get('max_plots', '1')
-    try:
-        max_plots = int(max_plots_string)
-    except ValueError:
-        raise HttpBadRequestException('The max_plots parameter must be a number between 1 and 500')
-
-    if max_plots > 500 or max_plots < 1:
-        raise HttpBadRequestException('The max_plots parameter must be a number between 1 and 500')
-
-    species = request.GET.get('species', None)
-
-    sort_recent = request.GET.get('filter_recent', None)
-    if sort_recent and sort_recent == "true":
-        sort_recent = True
-    else:
-        sort_recent = False
-
-    sort_pending = request.GET.get('filter_pending', None)
-    if sort_pending and sort_pending == "true":
-        sort_pending = True
-    else:
-        sort_pending = False
-
-    has_tree = request.GET.get("has_tree",None)
-    if has_tree:
-        if has_tree == "true":
-            has_tree = True
-        else:
-            has_tree = False
-
-    has_species = request.GET.get("has_species",None)
-    if has_species:
-        if has_species == "true":
-            has_species = True
-        else:
-            has_species = False
-
-    has_dbh = request.GET.get("has_dbh",None)
-    if has_dbh:
-        if has_dbh == "true":
-            has_dbh = True
-        else:
-            has_dbh = False
-
-    plots, extent = Plot.locate.with_geometry(
-        point, distance, max_plots, species,
-        native=str2bool(request.GET,"filter_native"),
-        flowering=str2bool(request.GET,'filter_flowering'),
-        fall=str2bool(request.GET,'filter_fall_colors'),
-        edible=str2bool(request.GET,'filter_edible'),
-        dbhmin=request.GET.get("filter_dbh_min",None),
-        dbhmax=request.GET.get("filter_dbh_max",None),
-        species=request.GET.get("filter_species",None),
-        pests=request.GET.get("filter_pests",None),
-        sort_recent=sort_recent, sort_pending=sort_pending,
-        has_tree=has_tree, has_species=has_species, has_dbh=has_dbh)
-
-    return [convert_response_plot_dict_choice_values(request, plot) for plot in plots_to_list_of_dict(plots, longform=True, user=request.user)]
+    return [convert_response_plot_dict_choice_values(request, plot)
+            for plot
+            in plots_to_list_of_dict(
+                plots, longform=True, user=request.user)]
 
 def str2bool(ahash, akey):
     if akey in ahash:
