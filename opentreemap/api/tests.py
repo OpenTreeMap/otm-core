@@ -507,9 +507,10 @@ class PlotListing(TestCase):
 
 class Locations(TestCase):
     def setUp(self):
-        setupTreemapEnv()
+        self.instance = setupTreemapEnv()
 
         self.user = User.objects.get(username="jim")
+        self.user.roles.add(make_commander_role(self.instance))
         self.sign = create_signer_dict(self.user)
 
     def test_locations_plots_endpoint_with_auth(self):
@@ -550,11 +551,10 @@ class Locations(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_plots(self):
-        plot = mkPlot(self.user)
-        plot.present = True
-        plot.save()
+        plot = mkPlot(self.instance, self.user)
+        plot.save_with_user(self.user)
 
-        response = self.client.get("%s/locations/%s,%s/plots" % (API_PFX, plot.geometry.x, plot.geometry.y), **self.sign)
+        response = self.client.get("%s/locations/%s,%s/plots" % (API_PFX, plot.geom.x, plot.geom.y), **self.sign)
 
         self.assertEqual(response.status_code, 200)
         json = loads(response.content)
@@ -610,8 +610,8 @@ class CreatePlotAndTree(TestCase):
         self.assertTrue("id" in response_json)
         id = response_json["id"]
         plot = Plot.objects.get(pk=id)
-        self.assertEqual(35.0, plot.geometry.x)
-        self.assertEqual(25.0, plot.geometry.y)
+        self.assertEqual(35.0, plot.geom.x)
+        self.assertEqual(25.0, plot.geom.y)
         tree = plot.current_tree()
         self.assertIsNotNone(tree)
         self.assertEqual(10.0, tree.height)

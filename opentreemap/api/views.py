@@ -12,9 +12,11 @@ from django.db import transaction
 
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
+
+from django.contrib.gis.measure import D
 from django.contrib.auth.tokens import default_token_generator
 
-from treemap.models import Plot, Species, Tree
+from treemap.models import Plot, Species, Tree, Instance
 from treemap.views import create_user, get_tree_photos, create_plot
 from treemap.util import instance_request
 
@@ -152,7 +154,7 @@ def api_call(content_type="application/json"):
                     response['Content-Type'] = content_type
 
             except HttpBadRequestException, bad_request:
-                response = HttpResponseBadRequest(bad_request.message)
+                response = HttpResponseBadRequest(str(bad_request))
 
             except HttpConflictException, conflict:
                 response = HttpResponse(conflict.message)
@@ -448,14 +450,36 @@ def species_list(request, lat=None, lon=None):
 @api_call()
 @login_optional
 def plots_closest_to_point(request, lat=None, lon=None):
+    ###TODO: Need to pin to an instance
+    instance = Instance.objects.all()[0]
     point = Point(float(lon), float(lat), srid=4326)
-    q = request.REQUEST['q']
+
+    try:
+        max_plots = int(request.GET.get('max_plots', '1'))
+    except ValueError:
+        raise HttpBadRequestException(
+            'The max_plots parameter must be a number between 1 and 500')
+
+    if max_plots > 500 or max_plots < 1:
+        raise HttpBadRequestException(
+            'The max_plots parameter must be a number between 1 and 500')
+
+    try:
+        distance = float(request.GET.get(
+            'distance', settings.MAP_CLICK_RADIUS))
+
+    except ValueError:
+        raise HttpBadRequestException('The distance parameter must be a number')
+
     # 100 meters
-    plots = Plot.objects.filter(create_filter(filter_str))\
+    plots = Plot.objects.distance(point)\
                         .filter(instance=instance)\
-                        .filter(distance__lte=100)\
-                        .distance(point)\
-                        .order_by('distance')[0:10]
+                        .filter(geom__distance_lte=(point, D(m=distance)))\
+                        .order_by('distance')[0:max_plots]
+
+    if 'q' in request.REQUEST:
+        q = request.REQUEST['q']
+        plots = plots.filter(create_filter(filter_str))
 
     return [convert_response_plot_dict_choice_values(request, plot)
             for plot
@@ -572,31 +596,15 @@ def plot_to_dict(plot,longform=False,user=None):
         base["perm"] = plot_permissions(plot,user)
 
     if longform:
-<<<<<<< HEAD
-        base['power_lines'] = plot.powerline_conflict_potential
-        base['sidewalk_damage'] = plot.sidewalk_damage
-        base['address_street'] = plot.address_street
-        base['address_city'] = plot.address_city
-        base['address_zip'] = plot.address_zip
-
-        if plot.data_owner:
-            base['data_owner'] = plot.data_owner.pk
 
         base['last_updated'] = datetime_to_iso_string(plot.last_updated)
 
-        if plot.last_updated_by:
-            base['last_updated_by'] = plot.last_updated_by.username
-
-        if settings.PENDING_ON:
-            plot_field_reverse_property_name_dict = {'width': 'plot_width', 'length': 'plot_length', 'powerline_conflict_potential': 'power_lines'}
-=======
         plot_field_reverse_property_name_dict = {
             'width': 'plot_width',
             'length': 'plot_length'
         }
 
         pending_edit_dict = {}
->>>>>>> 3ce6563... Create plot shims (tests)
 
         for audit in plot.get_active_pending_audits():
             raw_field_name = audit.field
