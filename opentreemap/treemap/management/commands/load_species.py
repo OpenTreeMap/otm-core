@@ -26,7 +26,9 @@ class Command(BaseCommand):
         del fields['v_max_dbh']
 
         removed_fields = ['alternate_symbol', 'v_multiple_trunks',
-                          'tree_count', 'resource', 'itree_code']
+                          'tree_count', 'resource']
+
+        fields['itree_code'] = 'BDL OTHER'
 
         for f in removed_fields:
             del fields[f]
