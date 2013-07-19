@@ -173,6 +173,9 @@ class Species(models.Model):
             name += " '%s'" % self.cultivar_name
         return name
 
+    def __unicode__(self):
+        return self.scientific_name
+
     class Meta:
         verbose_name_plural = "Species"
 
@@ -182,10 +185,16 @@ class InstanceSpecies(Auditable, models.Model):
     species = models.ForeignKey(Species)
     common_name = models.CharField(max_length=255, null=True, blank=True)
 
+    def __unicode__(self):
+        return self.common_name
+
 
 class ImportEvent(models.Model):
     imported_by = models.ForeignKey(User)
     imported_on = models.DateField(auto_now_add=True)
+
+    def __unicode__(self):
+        return "%s - %s" % (self.imported_by, self.imported_on)
 
 
 #TODO:
@@ -209,6 +218,7 @@ class Plot(Authorizable, Auditable, models.Model):
 
     objects = models.GeoManager()
 
+
     def current_tree(self):
         """
         This is a compatibility method that is used by the API to
@@ -220,6 +230,12 @@ class Plot(Authorizable, Auditable, models.Model):
             return trees[0]
         else:
             return None
+
+    def __unicode__(self):
+        x_chunk = "X: %s" % self.geom.x
+        y_chunk = "Y: %s" % self.geom.y
+        address_chunk = self.address_street or "No Address Provided"
+        return "%s, %s - %s" % (x_chunk, y_chunk, address_chunk)
 
     @property
     def hash(self):
@@ -261,6 +277,15 @@ class Tree(Authorizable, Auditable, models.Model):
     date_removed = models.DateField(null=True, blank=True)
 
     objects = models.GeoManager()
+
+    def __unicode__(self):
+        diameter_chunk = ("Diameter: %s, " % self.diameter
+                          if self.diameter else "")
+        species_chunk = ("Species: %s - " % self.species
+                         if self.species else "")
+        created_by_chunk = "Created by %s" % self.created_by
+        return "%s%s%s" % (diameter_chunk, species_chunk,
+                                created_by_chunk)
 
 
 class Boundary(models.Model):

@@ -174,6 +174,9 @@ class Role(models.Model):
     instance = models.ForeignKey('Instance', null=True, blank=True)
     rep_thresh = models.IntegerField()
 
+    def __unicode__(self):
+        return self.name
+
 
 class FieldPermission(models.Model):
     model_name = models.CharField(max_length=255)
@@ -194,6 +197,9 @@ class FieldPermission(models.Model):
             (WRITE_WITH_AUDIT, "Write with Audit"),
             (WRITE_DIRECTLY, "Write Directly")),
         default=NONE)
+
+    def __unicode__(self):
+        return "%s.%s - %s" % (self.model_name, self.field_name, self.role)
 
     @property
     def allows_reads(self):
@@ -646,6 +652,9 @@ class ReputationMetric(models.Model):
     direct_write_score = models.IntegerField(null=True, blank=True)
     approval_score = models.IntegerField(null=True, blank=True)
     denial_score = models.IntegerField(null=True, blank=True)
+
+    def __unicode__(self):
+        return "%s - %s - %s" % (self.instance, self.model_name, self.action)
 
     @staticmethod
     def apply_adjustment(audit):
