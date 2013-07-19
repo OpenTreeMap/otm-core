@@ -246,25 +246,7 @@ def verify_auth(request):
 def register(request):
     data = json.loads(request.body)
 
-    # If a user already exists with the specified username, return a 409 Conflict
-    if User.objects.filter(username=data["username"]).count():
-        raise HttpConflictException(simplejson.dumps(
-            { "status": "failure", "id": -1, "detail": "Username %s exists" % data["username"]}
-        ))
-
-    user = User(username=data["username"],
-                first_name=data["firstname"],
-                last_name=data["lastname"],
-                email=data["email"])
-
-    user.set_password(data["password"])
-    user.save()
-
-    user.reputation = Reputation(user=user)
-    user.reputation.save()
-
-    profile = UserProfile(user=user,zip_code=data["zipcode"],active=True)
-    profile.save()
+    user = create_user(**data)
 
     return { "status": "success", "id": user.pk }
 
@@ -279,20 +261,7 @@ def add_tree_photo(request, plot_id):
     uploaded_image = ContentFile(request.body)
     uploaded_image.name = "plot_%s.%s" % (plot_id, file_type)
 
-    plot = Plot.objects.get(pk=plot_id)
-    tree = plot.current_tree()
-
-    if tree is None:
-        import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
-        tree = Tree(plot=plot, last_updated_by=request.user, import_event=import_event)
-        tree.plot = plot
-        tree.last_updated_by = request.user
-        tree.save()
-
-    treephoto = TreePhoto(tree=tree,title=uploaded_image.name,reported_by=request.user)
-    treephoto.photo.save("plot_%s.%s" % (plot_id, file_type), uploaded_image)
-
-    treephoto.save()
+    treephoto = add_tree_photo(request.user.pk, plot_id, uploaded_image)
 
     return { "status": "success", "title": treephoto.title, "id": treephoto.pk }
 
@@ -304,10 +273,7 @@ def add_profile_photo(request, user_id, title):
     uploaded_image = ContentFile(request.body)
     uploaded_image.name = "%s.png" % title
 
-    profile = UserProfile.objects.get(user__id=user_id)
-    profile.photo.save("%s.png" % title, uploaded_image)
-
-    profile.save()
+    add_user_photo(user_id, uploaded_image)
 
     return { "status": "success" }
 

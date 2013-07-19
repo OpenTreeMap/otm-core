@@ -25,6 +25,29 @@ def _plot_hash(request, instance, plot_id):
     return instance.scope_model(Plot).get(pk=plot_id).hash
 
 
+##
+# These are calls made by the API that aren't currently implemented
+# as we make these features, please use these functions to share the
+# love with mobile
+##
+def add_tree_photo(user_id, plot_id, uploaded_image):
+    class TPShim(object):
+        def __init__(self):
+            self.pk = 2
+            self.title = 'shim'
+
+    return TPShim()
+
+def add_user_photo(user_id, uploaded_image):
+    return None
+
+def create_user(*args, **kwargs):
+    class UserShim(object):
+        def __init__(self):
+            self.pk = 2
+    return UserShim()
+
+
 def plot_detail(request, instance, plot_id):
     InstancePlot = instance.scope_model(Plot)
     plot = get_object_or_404(InstancePlot, pk=plot_id)
