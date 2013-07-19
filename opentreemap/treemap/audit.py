@@ -437,7 +437,7 @@ class Auditable(UserTrackable):
         return hashlib.md5(string_to_hash).hexdigest()
 
 
-class AuditUI(models.Model):
+class AuditUI(object):
     """
     Audit UI provides useful accessors for getting the objects behind
     an audit.

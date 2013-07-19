@@ -15,23 +15,19 @@ import json
 
 def get_codes_for_species(species, region):
     "Get the iTree codes for a specific in a specific region"
-    return benefits.lookup_species_code(
+    codes = benefits.lookup_species_code(
         region=region, species=species.species, genus=species.genus)
 
+    return codes
 
-def _benefits_for_tree_dbh_and_species(dbh, species, region):
-    "Given a dbh, species and region return benefits from eco.py"
-    dbh = float(dbh)
 
-    codes = get_codes_for_species(species, region)
+def _benefits_for_trees(trees, region):
+    trees = [(t['species__itree_code'], t['diameter']) for t in trees]
 
-    if not codes:
-        return None
-
-    kwh = benefits.get_energy_conserved(region, codes, dbh)
-    gal = benefits.get_stormwater_management(region, codes, dbh)
-    co2 = benefits.get_co2_stats(region, codes, dbh)
-    airq = benefits.get_air_quality_stats(region, codes, dbh)
+    kwh = benefits.get_energy_conserved(region, trees)
+    gal = benefits.get_stormwater_management(region, trees)
+    co2 = benefits.get_co2_stats(region, trees)
+    airq = benefits.get_air_quality_stats(region, trees)
 
     def fmt(val, lbl):
         return {'value': val, 'unit': lbl}
@@ -41,17 +37,17 @@ def _benefits_for_tree_dbh_and_species(dbh, species, region):
             'co2': fmt(co2['reduced'], 'lbs/year'),
             'airquality': fmt(airq['improvement'], 'lbs/year')}
 
-    return rslt
+    return (rslt, len(trees))
 
 
 @instance_request
-def tree_benefits(request, tree_id, region='SoCalCSMA'):
+def tree_benefits(request, instance, tree_id, region='NoEastXXX'):
     "Given a tree id, determine eco benefits via eco.py"
-    InstanceTree = request.instance.scope_model(Tree)
+    InstanceTree = instance.scope_model(Tree)
     tree = get_object_or_404(InstanceTree, pk=tree_id)
 
     dbh = tree.diameter
-    species = tree.species
+    species = tree.species.itree_code
 
     rslt = {}
     if not dbh:
@@ -60,6 +56,9 @@ def tree_benefits(request, tree_id, region='SoCalCSMA'):
         rslt = {'benefits': {}, 'error': 'MISSING_SPECIES'}
     else:
         rslt = {'benefits':
-                _benefits_for_tree_dbh_and_species(dbh, species, region)}
+                _benefits_for_trees(
+                    [{'species__itree_code': species,
+                      'diameter': dbh}],
+                    region=region)}
 
     return HttpResponse(json.dumps(rslt), content_type='application/json')
