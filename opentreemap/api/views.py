@@ -743,6 +743,7 @@ def user_to_dict(user):
     return {
         "id": user.pk,
         "reputation": user.reputation,
+        "username": user.username
         #"permissions": list(user.get_all_permissions()),
         #"user_type": user_access_type(user)
         }

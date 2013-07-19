@@ -32,8 +32,8 @@ def parse_basicauth(authstr):
     if (auth == None):
         return None
     else:
-        return authenticate(username = auth[0], password = auth[1])
-        
+        return authenticate(username=auth[0], password=auth[1])
+
 def parse_user_from_request(request):
     user = None
     if (request.META.has_key('HTTP_AUTHORIZATION')):
