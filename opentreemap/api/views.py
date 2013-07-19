@@ -1094,36 +1094,31 @@ def update_plot_and_tree(request, plot_id):
     response.content = json.dumps(return_dict)
     return response
 
+
+def _approve_or_reject_pending_edit(user, pending_edit_id, approve):
+    audit = Audit.objects.get(pk=pending_edit_id)
+    approve_or_reject_audit_and_apply(audit, user, approve)
+
+    updated_plot = extract_plot_from_audit(audit)
+
+    return convert_response_plot_dict_choice_values(
+        request, plot_to_dict(updated_plot, longform=True))
+
+
 @require_http_methods(["POST"])
 @api_call()
 @login_required
-@has_pending_permission_or_403_forbidden
 def approve_pending_edit(request, pending_edit_id):
-    pend, model = get_tree_pend_or_plot_pend_by_id_or_404_not_found(pending_edit_id)
+    return _approve_or_reject_pending_edit(
+        request.user, pending_edit_it, True)
 
-    pend.approve_and_reject_other_active_pends_for_the_same_field(request.user)
-
-    if model == 'Tree':
-        change_reputation_for_user(pend.submitted_by, 'edit tree', pend.tree, change_initiated_by_user=pend.updated_by)
-        updated_plot = Plot.objects.get(pk=pend.tree.plot.id)
-    else: # model == 'Plot'
-        change_reputation_for_user(pend.submitted_by, 'edit plot', pend.plot, change_initiated_by_user=pend.updated_by)
-        updated_plot = Plot.objects.get(pk=pend.plot.id)
-
-    return convert_response_plot_dict_choice_values(request, plot_to_dict(updated_plot, longform=True))
 
 @require_http_methods(["POST"])
 @api_call()
 @login_required
-@has_pending_permission_or_403_forbidden
 def reject_pending_edit(request, pending_edit_id):
-    pend, model = get_tree_pend_or_plot_pend_by_id_or_404_not_found(pending_edit_id)
-    pend.reject(request.user)
-    if model == 'Tree':
-        updated_plot = Plot.objects.get(pk=pend.tree.plot.id)
-    else: # model == 'Plot'
-        updated_plot = Plot.objects.get(pk=pend.plot.id)
-    return convert_response_plot_dict_choice_values(request, plot_to_dict(updated_plot, longform=True))
+    return _approve_or_reject_pending_edit(
+        request.user, pending_edit_it, False)
 
 
 @require_http_methods(["DELETE"])
@@ -1137,6 +1132,7 @@ def remove_plot(request, plot_id):
         return {"ok": True}
     else:
         raise PermissionDenied('%s does not have permission to delete plot %s' % (request.user.username, plot_id))
+
 
 @require_http_methods(["DELETE"])
 @api_call()
