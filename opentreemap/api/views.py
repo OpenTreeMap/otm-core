@@ -20,6 +20,8 @@ from treemap.util import instance_request
 
 from ecobenefits.views import tree_benefits
 
+from ecobenefits.views import tree_benefits
+
 from treemap.search import create_filter
 
 from treemap.audit import Audit, approve_or_reject_audit_and_apply
@@ -482,7 +484,7 @@ def point_wkt_to_dict(wkt):
     return {
         'lat': point.y,
         'lng': point.x,
-        'srid': '4326'
+        'srid': '3857'
     }
 
 def pending_edit_to_dict(pending_edit):
@@ -499,7 +501,7 @@ def pending_edit_to_dict(pending_edit):
     }
 
 def plot_to_dict(plot,longform=False,user=None):
-    pending_edit_dict = {} #If settings.PENDING_ON then this will be populated and included in the response
+    pending_edit_dict = {}
     current_tree = plot.current_tree()
     if current_tree:
         tree_dict = { "id" : current_tree.pk }
@@ -507,7 +509,7 @@ def plot_to_dict(plot,longform=False,user=None):
         if current_tree.species:
             tree_dict["species"] = current_tree.species.pk
             tree_dict["species_name"] = current_tree.species.common_name
-            tree_dict["sci_name"] = current_tree.get_scientific_name()
+            tree_dict["sci_name"] = current_tree.scientific_name
 
         if current_tree.dbh:
             tree_dict["dbh"] = current_tree.dbh
@@ -528,9 +530,7 @@ def plot_to_dict(plot,longform=False,user=None):
             tree_dict['tree_owner'] = current_tree.tree_owner
             tree_dict['steward_name'] = current_tree.steward_name
             tree_dict['sponsor'] = current_tree.sponsor
-
-            if len(TreeResource.objects.filter(tree=current_tree)) > 0:
-                tree_dict['eco'] = tree_resource_to_dict(current_tree.treeresource)
+            tree_dict['eco'] = tree_resource_to_dict(current_tree)
 
             if current_tree.steward_user:
                 tree_dict['steward_user'] = current_tree.steward_user
@@ -650,7 +650,12 @@ def convert_plot_dict_choice_values(request, plot_dict, direction):
 
     converted_plot_dict = deepcopy(plot_dict)
 
-    for attr in [x for x in settings.CHOICE_CONVERSIONS.keys() if _attribute_requires_conversion(request, x)]:
+    attrs = [x
+             for x
+             in settings.CHOICE_CONVERSIONS.keys()
+             if _attribute_requires_conversion(request, x)]
+
+    for attr in attrs:
         if attr in ATTR_TO_KEY.keys():
             dict_key = ATTR_TO_KEY[attr]
         else:
@@ -706,39 +711,11 @@ def convert_plot_dict_choice_values(request, plot_dict, direction):
     return converted_plot_dict
 
 
-def tree_resource_to_dict(tr):
-    b = BenefitValues.objects.all()[0]
-
-    ac_dollar = tr.annual_ozone * b.ozone + tr.annual_nox * b.nox + \
-                tr.annual_pm10 * b.pm10 + tr.annual_sox * b.sox + \
-                tr.annual_voc * b.voc + tr.annual_bvoc * b.bvoc
-
-    weight_unit = getattr(settings, 'ECO_WEIGHT_UNIT', 'lbs')
-    elec_unit = getattr(settings, 'ECO_POWER_UNIT', 'kWh')
-    water_unit = getattr(settings, 'ECO_WATER_UNIT', 'gallons')
-
-    return {
-        "annual_stormwater_management": with_unit(tr.annual_stormwater_management, b.stormwater, water_unit),
-        "annual_electricity_conserved": with_unit(tr.annual_electricity_conserved, b.electricity, elec_unit),
-        "annual_energy_conserved": with_unit(tr.annual_energy_conserved, b.electricity, elec_unit),
-        "annual_natural_gas_conserved": with_unit(tr.annual_natural_gas_conserved, b.electricity, elec_unit),
-        "annual_air_quality_improvement": with_unit(tr.annual_air_quality_improvement, None, weight_unit, dollar=ac_dollar),
-        "annual_co2_sequestered": with_unit(tr.annual_co2_sequestered, b.co2, weight_unit),
-        "annual_co2_avoided": with_unit(tr.annual_co2_avoided, b.co2, weight_unit),
-        "annual_co2_reduced": with_unit(tr.annual_co2_reduced, b.co2, weight_unit),
-        "total_co2_stored": with_unit(tr.total_co2_stored, b.co2, weight_unit),
-        "annual_ozone": with_unit(tr.annual_ozone, b.ozone, weight_unit),
-        "annual_nox": with_unit(tr.annual_nox, b.nox, weight_unit),
-        "annual_pm10": with_unit(tr.annual_pm10, b.pm10,  weight_unit),
-        "annual_sox": with_unit(tr.annual_sox, b.sox, weight_unit),
-        "annual_voc": with_unit(tr.annual_voc, b.voc, weight_unit),
-        "annual_bvoc": with_unit(tr.annual_bvoc, b.bvoc, weight_unit) }
-
-def with_unit(val,dollar_factor,unit,dollar=None):
-    if dollar is None:
-        dollar = dollar_factor * val
-
-    return { "value": val, "unit": unit, "dollars": dollar }
+def tree_resource_to_dict(tree):
+    if tree.species.itree_code and tree.diameter:
+        return tree_benefits(tree.instance, tree.pk)
+    else:
+        return {}
 
 
 def species_to_dict(s):
