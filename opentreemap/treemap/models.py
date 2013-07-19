@@ -120,6 +120,8 @@ class Species(models.Model):
     palatable_human = models.NullBooleanField()
     wildlife_value = models.NullBooleanField()
 
+    itree_code = models.CharField(max_length=255, null=True, blank=True)
+
     fact_sheet = models.URLField(max_length=255, null=True, blank=True)
     plant_guide = models.URLField(max_length=255, null=True, blank=True)
 

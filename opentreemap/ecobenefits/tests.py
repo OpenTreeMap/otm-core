@@ -27,6 +27,7 @@ class EcoTest(TestCase):
         self.species = Species(symbol='CEDR',
                                genus='cedrus',
                                species='atlantica',
+                               itree_code='CEM OTHER',
                                max_dbh=2000,
                                max_height=100)
         self.species.save()
@@ -62,7 +63,7 @@ class EcoTest(TestCase):
         self.assertEqual(response.status_code, 200)
         rslt = json.loads(response.content)
 
-        bens = rslt['benefits']
+        bens = rslt['benefits'][0]
 
         def assertBValue(benefit, unit, value):
             self.assertEqual(bens[benefit]['unit'], unit)
