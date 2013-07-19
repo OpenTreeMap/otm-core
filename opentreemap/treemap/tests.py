@@ -32,6 +32,15 @@ import json
 ## SETUP FUNCTIONS
 ######################################
 
+def make_simple_boundary(name, n=1):
+    b = Boundary()
+    b.geom = MultiPolygon(make_simple_polygon(n))
+    b.name = name
+    b.category = "Unknown"
+    b.sort_order = 1
+    b.save()
+    return b
+
 
 def make_simple_polygon(n=1):
     """
@@ -133,13 +142,13 @@ def make_observer_role(instance):
     return _make_loaded_role(instance, 'observer', 2, permissions)
 
 
-def make_instance():
+def make_instance(name='i1'):
     global_role, _ = Role.objects.get_or_create(name='global', rep_thresh=0)
 
     p1 = Point(0, 0)
 
     instance, _ = Instance.objects.get_or_create(
-        name='i1', geo_rev=0, center=p1, default_role=global_role)
+        name=name, geo_rev=0, center=p1, default_role=global_role)
 
     return instance
 
@@ -897,14 +906,6 @@ class ReputationTest(TestCase):
 
 class BoundaryViewTest(ViewTestCase):
 
-    def _make_simple_boundary(self, name, n=1):
-        b = Boundary()
-        b.geom = MultiPolygon(make_simple_polygon(n))
-        b.name = name
-        b.category = "Unknown"
-        b.sort_order = 1
-        b.save()
-        return b
 
     def setUp(self):
         super(BoundaryViewTest, self).setUp()
@@ -921,14 +922,14 @@ class BoundaryViewTest(ViewTestCase):
         ]
         self.test_boundary_hashes = []
         for i, v in enumerate(self.test_boundaries):
-            boundary = self._make_simple_boundary(v, i)
+            boundary = make_simple_boundary(v, i)
             self.instance.boundaries.add(boundary)
             self.instance.save()
             self.test_boundary_hashes.append({'name': boundary.name,
                                               'category': boundary.category})
 
     def test_boundary_to_geojson_view(self):
-        boundary = self._make_simple_boundary("Hello, World", 1)
+        boundary = make_simple_boundary("Hello, World", 1)
         response = boundary_to_geojson(
             self._make_request(),
             boundary.pk)
@@ -946,7 +947,7 @@ class BoundaryViewTest(ViewTestCase):
         # make a boundary that is not tied to this
         # instance, should not be in the search
         # results
-        self._make_simple_boundary("fargo", 1)
+        make_simple_boundary("fargo", 1)
         response = boundary_autocomplete(
             self._make_request({'q': 'fa'}),
             self.instance)
