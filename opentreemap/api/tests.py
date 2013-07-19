@@ -31,7 +31,7 @@ import os
 import struct
 import base64
 
-API_PFX = "/api/v0.1"
+API_PFX = "/api/v2"
 
 def create_signer_dict(user):
     key = APIKey(user=user,key="TESTING",enabled=True,comment="")
@@ -119,7 +119,7 @@ def put_json(url, body_object, client, sign_dict=None):
 class Signing(TestCase):
     def setUp(self):
         settings.OTM_VERSION = "1.2.3"
-        settings.API_VERSION = "0.1"
+        settings.API_VERSION = "2"
 
         setupTreemapEnv()
 
@@ -312,7 +312,7 @@ class Version(TestCase):
 
     def test_version(self):
         settings.OTM_VERSION = "1.2.3"
-        settings.API_VERSION = "0.1"
+        settings.API_VERSION = "2"
 
         ret = self.client.get("%s/version" % API_PFX, **self.sign)
 

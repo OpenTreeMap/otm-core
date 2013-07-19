@@ -227,9 +227,10 @@ def can_delete_tree_or_plot(obj, user):
 @require_http_methods(["GET"])
 @api_call()
 def status(request):
-    return [{ 'api_version': 'v0.1',
-              'status': 'online',
-              'message': '' }]
+    return [{'api_version': 'v2',
+             'status': 'online',
+             'message': ''}]
+
 
 @require_http_methods(["GET"])
 @api_call()

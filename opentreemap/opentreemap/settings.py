@@ -127,6 +127,7 @@ INSTALLED_APPS = (
     'treemap',
     'ecobenefits',
     'geocode',
+    'api'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
