@@ -30,6 +30,13 @@ def instance_request(view_fn):
     return wrapper
 
 
+def strip_request(view_fn):
+    @wraps(view_fn)
+    def wrapper(request, *args, **kwargs):
+        return view_fn(*args, **kwargs)
+
+    return wrapper
+
 def render_template(templ, view_fn_or_dict=None, **kwargs):
     def wrapper(request, *args, **wrapper_kwargs):
         if view_fn_or_dict is None:

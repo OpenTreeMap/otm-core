@@ -3,14 +3,11 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
 
 from treemap.models import Tree
-from treemap.util import instance_request
+from treemap.util import instance_request, json_api_call, strip_request
 
 from eco import benefits
-
-import json
 
 
 def get_codes_for_species(species, region):
@@ -40,8 +37,7 @@ def _benefits_for_trees(trees, region):
     return (rslt, len(trees))
 
 
-@instance_request
-def tree_benefits(request, instance, tree_id, region='NoEastXXX'):
+def tree_benefits(instance, tree_id, region='NoEastXXX'):
     "Given a tree id, determine eco benefits via eco.py"
     InstanceTree = instance.scope_model(Tree)
     tree = get_object_or_404(InstanceTree, pk=tree_id)
@@ -61,4 +57,7 @@ def tree_benefits(request, instance, tree_id, region='NoEastXXX'):
                       'diameter': dbh}],
                     region=region)}
 
-    return HttpResponse(json.dumps(rslt), content_type='application/json')
+    return rslt
+
+tree_benefits_view = json_api_call(
+    instance_request(strip_request(tree_benefits)))
