@@ -571,6 +571,18 @@ class Audit(models.Model):
         PendingApprove = 4
         PendingReject = 5
 
+    TYPES = {
+        Type.Insert: 'Create',
+        Type.Delete: 'Delete',
+        Type.Update: 'Update',
+        Type.PendingApprove: 'Approved Pending Edit',
+        Type.PendingReject: 'Reject Pending Edit',
+    }
+
+    @property
+    def display_action(self):
+        return Audit.TYPES[self.action]
+
     @classmethod
     def audits_for_model(clz, model_name, inst, pk):
         return Audit.objects.filter(model=model_name,

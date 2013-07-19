@@ -277,42 +277,46 @@ def add_profile_photo(request, user_id, title):
 
     return { "status": "success" }
 
-def extract_plot_id_from_rep(repact):
-    content_type = repact.content_type
-    if content_type.model == "plot":
-        return repact.object_id
-    elif content_type.model == 'tree':
-        return Tree.objects.get(pk=repact.object_id).plot.pk
-    else:
-        return None
+def extract_plot_from_audit(audit):
+    if audit.model == 'Plot':
+        return Plot.objects.get(pk=audit.model_id)
+    elif audit.model == 'Tree':
+        return Tree.objects.get(id=audit.model_id).plot
 
 @require_http_methods(["GET"])
 @api_call()
+@instance_request
 @login_required
-def recent_edits(request, user_id):
+def recent_edits(request, instance, user_id):
     if (int(user_id) != request.user.pk):
         return create_401unauthorized()
+
+    user = User.objects.get(pk=user_id)
 
     result_offset = int(request.REQUEST.get("offset",0))
     num_results = min(int(request.REQUEST.get("length",15)),15)
 
-    acts = UserReputationAction.objects.filter(user=request.user).order_by('-date_created')[result_offset:(result_offset+num_results)]
+    audits = Audit.objects.filter(instance=instance)\
+                          .filter(user=user)\
+                          .filter(model_in=['Tree', 'Plot'])\
+                          .order_by('-created', 'id')
+
+    audits = audits[result_offset:(result_offset+num_results)]
 
     keys = []
-    for act in acts:
+    for audit in audits:
         d = {}
-        plot_id = extract_plot_id_from_rep(act)
+        plot = extract_plot_from_audit(act)
         d["plot_id"] = plot_id
 
         if plot_id:
-            d["plot"] = convert_response_plot_dict_choice_values(request,
-                plot_to_dict(Plot.objects.get(pk=plot_id),longform=True,user=request.user)
-            )
+            d["plot"] = plot_to_dict(
+                plot, longform=true, user=user)
 
-        d["id"] = act.pk
-        d["name"] = act.action.name
-        d["created"] = datetime_to_iso_string(act.date_created)
-        d["value"] = act.value
+        d["id"] = audit.pk
+        d["name"] = audit.display_action
+        d["created"] = datetime_to_iso_string(audit.created)
+        d["value"] = audit.current_value
 
         keys.append(d)
 
