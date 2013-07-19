@@ -38,6 +38,22 @@ def add_tree_photo(user_id, plot_id, uploaded_image):
 
     return TPShim()
 
+def _rotate_image_based_on_exif(img):
+    img = Image.open(treephoto.photo.path)
+    try:
+       orientation = img._getexif()[0x0112]
+       if orientation == 6: # Right turn
+          img = img.rotate(-90)
+       elif orientation == 5: # Left turn
+          img = img.rotate(90)
+    except:
+       pass
+
+    return img
+
+def get_tree_photos(plot_id, photo_id):
+    return None
+
 def add_user_photo(user_id, uploaded_image):
     return None
 

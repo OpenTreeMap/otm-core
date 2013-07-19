@@ -27,8 +27,6 @@ from treemap.audit import Audit, approve_or_reject_audit_and_apply
 from api.models import APIKey, APILog
 from django.contrib.gis.geos import Point, fromstr
 
-from profiles.models import UserProfile
-
 from api.auth import login_required, create_401unauthorized, login_optional
 
 from functools import wraps
@@ -45,6 +43,11 @@ import json
 from copy import deepcopy
 
 from distutils.version import StrictVersion
+
+#TODO: Kill this
+def change_reputation_for_user(*args, **kwargs):
+    print "WARNING: Shim called for 'change_reputation_for_user'"
+
 
 class HttpBadRequestException(Exception):
     pass
@@ -167,6 +170,7 @@ def datetime_to_iso_string(d):
         return None
 
 def plot_permissions(plot, user):
+    ####TODO- Totally broke
     perms = { "plot": plot_or_tree_permissions(plot, user) }
 
     tree = plot.current_tree()
@@ -176,6 +180,7 @@ def plot_permissions(plot, user):
     return perms
 
 def plot_or_tree_permissions(obj, user):
+    ####TODO- Totally broke
     """ Determine what the given user can do with a tree or plot
         Returns {
            can_delete: <boolean>,
@@ -390,19 +395,9 @@ def get_tree_image(request, plot_id, photo_id):
     Output:
       image/jpeg raw data
     """
-    treephoto = TreePhoto.objects.get(pk=photo_id)
+    img = get_tree_photos(plot_id, photo_id)
 
-    if treephoto.tree.plot.pk == int(plot_id):
-        img = Image.open(treephoto.photo.path)
-        try:
-           orientation = img._getexif()[0x0112]
-           if orientation == 6: # Right turn
-              img = img.rotate(-90)
-           elif orientation == 5: # Left turn
-              img = img.rotate(90)
-        except:
-           pass
-
+    if img:
         resized = img.resize((144,132), Image.ANTIALIAS)
         response = HttpResponse(mimetype="image/png")
         resized.save(response, "PNG")

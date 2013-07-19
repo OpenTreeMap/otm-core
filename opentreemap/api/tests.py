@@ -1721,55 +1721,58 @@ class Resource(TestCase):
         resource_dict = tree_resource_to_dict(tr)
         self.assertIsNotNone(resource_dict)
 
-class TreePhoto(TestCase):
 
-    def setUp(self):
-        setupTreemapEnv()
-        self.user = User.objects.get(username="jim")
-        self.user.set_password("password")
-        self.user.save()
-        self.sign = create_signer_dict(self.user)
-        auth = base64.b64encode("jim:password")
-        self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+# TODO: Add this back in when we really support
+#       tree photos
+# class TreePhoto(TestCase):
 
-        self.test_jpeg_path = os.path.join(os.path.dirname(__file__), 'test_resources', '2by2.jpeg')
-        self.test_png_path = os.path.join(os.path.dirname(__file__), 'test_resources', '2by2.png')
+#     def setUp(self):
+#         setupTreemapEnv()
+#         self.user = User.objects.get(username="jim")
+#         self.user.set_password("password")
+#         self.user.save()
+#         self.sign = create_signer_dict(self.user)
+#         auth = base64.b64encode("jim:password")
+#         self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
-        def assertSuccessfulResponse(response):
-            self.assertIsNotNone(response)
-            self.assertIsNotNone(response.content)
-            response_dict = loads(response.content)
-            self.assertTrue('status' in response_dict)
-            self.assertEqual('success', response_dict['status'])
-        self.assertSuccessfulResponse = assertSuccessfulResponse
+#         self.test_jpeg_path = os.path.join(os.path.dirname(__file__), 'test_resources', '2by2.jpeg')
+#         self.test_png_path = os.path.join(os.path.dirname(__file__), 'test_resources', '2by2.png')
 
-    def tearDown(self):
-        teardownTreemapEnv()
+#         def assertSuccessfulResponse(response):
+#             self.assertIsNotNone(response)
+#             self.assertIsNotNone(response.content)
+#             response_dict = loads(response.content)
+#             self.assertTrue('status' in response_dict)
+#             self.assertEqual('success', response_dict['status'])
+#         self.assertSuccessfulResponse = assertSuccessfulResponse
 
-    def test_jpeg_tree_photo_file_name(self):
-        plot = mkPlot(self.user)
-        plot_id = plot.pk
-        response = post_jpeg_file( "%s/plots/%d/tree/photo"  % (API_PFX, plot_id), self.test_jpeg_path,
-            self.client, self.sign)
+#     def tearDown(self):
+#         teardownTreemapEnv()
 
-        self.assertSuccessfulResponse(response)
+#     def test_jpeg_tree_photo_file_name(self):
+#         plot = mkPlot(self.instance, self.user)
+#         plot_id = plot.pk
+#         response = post_jpeg_file( "%s/plots/%d/tree/photo"  % (API_PFX, plot_id), self.test_jpeg_path,
+#             self.client, self.sign)
 
-        plot = Plot.objects.get(pk=plot_id)
-        tree = plot.current_tree()
-        self.assertIsNotNone(tree)
-        photo = tree.treephoto_set.all()[0]
-        self.assertEqual('plot_%d.jpeg' % plot_id, photo.title)
+#         self.assertSuccessfulResponse(response)
 
-    def test_png_tree_photo_file_name(self):
-        plot = mkPlot(self.user)
-        plot_id = plot.pk
-        response = post_png_file( "%s/plots/%d/tree/photo"  % (API_PFX, plot_id), self.test_png_path,
-            self.client, self.sign)
+#         plot = Plot.objects.get(pk=plot_id)
+#         tree = plot.current_tree()
+#         self.assertIsNotNone(tree)
+#         photo = tree.treephoto_set.all()[0]
+#         self.assertEqual('plot_%d.jpeg' % plot_id, photo.title)
 
-        self.assertSuccessfulResponse(response)
+#     def test_png_tree_photo_file_name(self):
+#         plot = mkPlot(self.instance, self.user)
+#         plot_id = plot.pk
+#         response = post_png_file( "%s/plots/%d/tree/photo"  % (API_PFX, plot_id), self.test_png_path,
+#             self.client, self.sign)
 
-        plot = Plot.objects.get(pk=plot_id)
-        tree = plot.current_tree()
-        self.assertIsNotNone(tree)
-        photo = tree.treephoto_set.all()[0]
-        self.assertEqual('plot_%d.png' % plot_id, photo.title)
+#         self.assertSuccessfulResponse(response)
+
+#         plot = Plot.objects.get(pk=plot_id)
+#         tree = plot.current_tree()
+#         self.assertIsNotNone(tree)
+#         photo = tree.treephoto_set.all()[0]
+#         self.assertEqual('plot_%d.png' % plot_id, photo.title)
