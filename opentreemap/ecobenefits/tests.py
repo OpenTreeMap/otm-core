@@ -11,8 +11,6 @@ from treemap.models import User, Plot, Tree, Species
 from django.contrib.gis.geos import Point
 from treemap import tests as tm
 
-import json
-
 
 class EcoTest(TestCase):
     def setUp(self):
@@ -52,16 +50,9 @@ class EcoTest(TestCase):
         pass  # TODO: Once filtering has been enabled
 
     def test_eco_benefit_sanity(self):
-        req = self.factory.get('/%s/eco/benefit/tree/%s/' %
-                              (self.instance.pk, self.tree.pk))
-
-        response = tree_benefits(req,
-                                 instance_id=self.instance.pk,
-                                 tree_id=self.tree.pk,
-                                 region='NoEastXXX')
-
-        self.assertEqual(response.status_code, 200)
-        rslt = json.loads(response.content)
+        rslt = tree_benefits(instance=self.instance,
+                             tree_id=self.tree.pk,
+                             region='NoEastXXX')
 
         bens = rslt['benefits'][0]
 
