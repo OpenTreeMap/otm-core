@@ -8,11 +8,9 @@ from StringIO import StringIO
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
-from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.test.client import Client
 
-import unittest
 from json import loads, dumps
 
 from django.conf import settings
@@ -26,19 +24,22 @@ from treemap.tests import (make_system_user, make_commander_role,
 from treemap.audit import ReputationMetric, Audit
 
 from api.models import APIKey, APILog
-from api.views import InvalidAPIKeyException, plot_or_tree_permissions, plot_permissions, tree_resource_to_dict, _parse_application_version_header_as_dict, _attribute_requires_conversion
+from api.views import (InvalidAPIKeyException, plot_or_tree_permissions,
+                       plot_permissions,
+                       _parse_application_version_header_as_dict)
 
 import os
-import struct
 import base64
 
 API_PFX = "/api/v2"
 
+
 def create_signer_dict(user):
-    key = APIKey(user=user,key="TESTING",enabled=True,comment="")
+    key = APIKey(user=user, key="TESTING", enabled=True, comment="")
     key.save()
 
-    return { "HTTP_X_API_KEY": key.key }
+    return {"HTTP_X_API_KEY": key.key}
+
 
 def _get_path(parsed_url):
     """
@@ -49,6 +50,7 @@ def _get_path(parsed_url):
         return urllib.unquote(parsed_url[2] + ";" + parsed_url[3])
     else:
         return urllib.unquote(parsed_url[2])
+
 
 def send_json_body(url, body_object, client, method, sign_dict=None):
     """
@@ -70,7 +72,9 @@ def send_json_body(url, body_object, client, method, sign_dict=None):
     }
     return _send_with_client_params(url, client, client_params, sign_dict)
 
-def send_binary_body(url, body_stream, size, content_type, client, method, sign_dict=None):
+
+def send_binary_body(url, body_stream, size, content_type,
+                     client, method, sign_dict=None):
     parsed_url = urlparse(url)
     client_params = {
         'CONTENT_LENGTH': size,
@@ -81,6 +85,7 @@ def send_binary_body(url, body_stream, size, content_type, client, method, sign_
         'wsgi.input': body_stream,
     }
     return _send_with_client_params(url, client, client_params, sign_dict)
+
 
 def _send_with_client_params(url, client, client_params, sign_dict=None):
     if sign_dict is not None:
@@ -98,24 +103,30 @@ def post_json(url, body_object, client, sign_dict=None):
     """
     return send_json_body(url, body_object, client, 'POST', sign_dict)
 
+
 def post_jpeg_file(url, file_path, client, sign_dict):
     return _post_binary_file(url, file_path, 'image/jpeg', client, sign_dict)
 
+
 def post_png_file(url, file_path, client, sign_dict):
     return _post_binary_file(url, file_path, 'image/png', client, sign_dict)
+
 
 def _post_binary_file(url, file_path, content_type, client, sign_dict=None):
     stat = os.stat(file_path)
     response = None
     f = open(file_path, 'rb')
     try:
-        response = send_binary_body(url, f, stat.st_size, content_type, client, 'POST', sign_dict)
+        response = send_binary_body(
+            url, f, stat.st_size, content_type, client, 'POST', sign_dict)
     finally:
         f.close()
     return response
 
+
 def put_json(url, body_object, client, sign_dict=None):
     return send_json_body(url, body_object, client, 'PUT', sign_dict)
+
 
 class Signing(TestCase):
     def setUp(self):
@@ -127,28 +138,30 @@ class Signing(TestCase):
         self.u = User.objects.get(username="jim")
 
     def test_unsigned_will_fail(self):
-        self.assertRaises(InvalidAPIKeyException, self.client.get,"%s/version" % API_PFX)
+        self.assertRaises(InvalidAPIKeyException,
+                          self.client.get, "%s/version" % API_PFX)
 
     def test_signed_header(self):
-        key = APIKey(user=self.u,key="TESTING",enabled=True,comment="")
+        key = APIKey(user=self.u, key="TESTING", enabled=True, comment="")
         key.save()
 
-        ret = self.client.get("%s/version" % API_PFX, **{ "HTTP_X_API_KEY": key.key })
+        ret = self.client.get("%s/version" % API_PFX,
+                              **{"HTTP_X_API_KEY": key.key})
         self.assertEqual(ret.status_code, 200)
 
     def test_url_param(self):
-        key = APIKey(user=self.u,key="TESTING",enabled=True,comment="")
+        key = APIKey(user=self.u, key="TESTING", enabled=True, comment="")
         key.save()
 
-        ret = self.client.get("%s/version?apikey=%s" % (API_PFX,key.key))
+        ret = self.client.get("%s/version?apikey=%s" % (API_PFX, key.key))
         self.assertEqual(ret.status_code, 200)
 
     def test_disabled_keys_dont_work(self):
-        key = APIKey(user=self.u,key="TESTING",enabled=False,comment="")
+        key = APIKey(user=self.u, key="TESTING", enabled=False, comment="")
         key.save()
 
-        self.assertRaises(InvalidAPIKeyException, self.client.get, "%s/version" % API_PFX, **{ "X-API-Key": key.key })
-
+        self.assertRaises(InvalidAPIKeyException, self.client.get,
+                          "%s/version" % API_PFX, **{"X-API-Key": key.key})
 
     def tearDown(self):
         teardownTreemapEnv()
@@ -174,7 +187,6 @@ class Authentication(TestCase):
         ret = self.client.get("%s/login" % API_PFX, **self.sign)
         self.assertEqual(ret.status_code, 401)
 
-
     def test_ok(self):
         auth = base64.b64encode("jim:password")
         withauth = dict(self.sign.items() +
@@ -197,7 +209,6 @@ class Authentication(TestCase):
         ret = self.client.get("%s/login" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 401)
 
-
     def test_bad_cred(self):
         auth = base64.b64encode("jim:passwordz")
         withauth = dict(self.sign.items() +
@@ -206,18 +217,18 @@ class Authentication(TestCase):
         ret = self.client.get("%s/login" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 401)
 
-
     def test_user_has_rep(self):
 
         carol = User(username='carol',
-                   email="%s@test.org" % 'carol',
-                   password='carol')
+                     email="%s@test.org" % 'carol',
+                     password='carol')
 
         carol.reputation = 1001
         carol.set_password('carol')
         carol.save_with_user(self.system_user)
 
-        auth = base64.b64encode("%s:%s" % (carol.username,carol.username))
+        auth = base64.b64encode("%s:%s" %
+                                (carol.username, carol.username))
         withauth = dict(create_signer_dict(carol).items() +
                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
@@ -231,9 +242,9 @@ class Authentication(TestCase):
         self.assertEqual(json['status'], 'success')
         self.assertEqual(json['reputation'], 1001)
 
-
     def tearDown(self):
         teardownTreemapEnv()
+
 
 class Logging(TestCase):
     def setUp(self):
@@ -245,7 +256,8 @@ class Logging(TestCase):
     def test_log_request(self):
         settings.SITE_ROOT = ''
 
-        ret = self.client.get("%s/version?rvar=4,rvar2=5" % API_PFX, **self.sign)
+        ret = self.client.get(
+            "%s/version?rvar=4,rvar2=5" % API_PFX, **self.sign)
         self.assertEqual(ret.status_code, 200)
 
         logs = APILog.objects.all()
@@ -255,13 +267,15 @@ class Logging(TestCase):
         key = APIKey.objects.get(user=self.u)
         log = logs[0]
 
-        self.assertEqual(log.apikey,key)
-        self.assertTrue(log.url.endswith("%s/version?rvar=4,rvar2=5" % API_PFX))
+        self.assertEqual(log.apikey, key)
+        self.assertTrue(
+            log.url.endswith("%s/version?rvar=4,rvar2=5" % API_PFX))
         self.assertEqual(log.method, "GET")
         self.assertEqual(log.requestvars, "rvar=4,rvar2=5")
 
     def tearDown(self):
         teardownTreemapEnv()
+
 
 class Version(TestCase):
     def setUp(self):
@@ -301,15 +315,13 @@ class PlotListing(TestCase):
         #TODO: Test recent edits
         return None
         user = self.u
-        p = mkPlot(self.instance, user)
-        p2 = mkPlot(self.instance, user)
-        t3 = mkTree(self.instance, user)
 
-        auth = base64.b64encode("%s:%s" % (user.username,user.username))
-        withauth = dict(create_signer_dict(user).items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+        auth = base64.b64encode("%s:%s" % (user.username, user.username))
+        withauth = dict(create_signer_dict(user).items() +
+                        [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
-        ret = self.client.get("%s/user/%s/edits" % (API_PFX, user.pk), **withauth)
-        json = loads(ret.content)
+        self.client.get("%s/user/%s/edits" %
+                        (API_PFX, user.pk), **withauth)
 
     def setup_edit_flags_test(self):
         ghost = AnonymousUser()
@@ -341,37 +353,36 @@ class PlotListing(TestCase):
         self.users = [ghost, peon, duke, leroi]
 
     def mkd(self, e, d):
-        return { "can_delete": d, "can_edit": e }
+        return {"can_delete": d, "can_edit": e}
 
     def mkdp(self, pe, pd, te=None, td=None):
-        d = { "plot": self.mkd(pe,pd) }
-        if td != None and te != None:
+        d = {"plot": self.mkd(pe, pd)}
+        if td is not None and te is not None:
             d["tree"] = self.mkd(te, td)
 
         return d
-
 
     def test_annon_user_cant_do_anything(self):
         self.setup_edit_flags_test()
 
         for p in self.plots:
-            self.assertEqual(self.mkd(False,False),
+            self.assertEqual(self.mkd(False, False),
                              plot_or_tree_permissions(p, self.ghost))
 
-            self.assertEqual(self.mkdp(False,False,False,False),
+            self.assertEqual(self.mkdp(False, False, False, False),
                              plot_permissions(p, self.ghost))
 
-            self.assertEqual(self.mkd(False,False),
+            self.assertEqual(self.mkd(False, False),
                              plot_or_tree_permissions(p, None))
 
-            self.assertEqual(self.mkdp(False,False,False,False),
+            self.assertEqual(self.mkdp(False, False, False, False),
                              plot_permissions(p, None))
 
         for t in self.trees:
-            self.assertEqual(self.mkd(False,False),
+            self.assertEqual(self.mkd(False, False),
                              plot_or_tree_permissions(t, self.ghost))
 
-            self.assertEqual(self.mkd(False,False),
+            self.assertEqual(self.mkd(False, False),
                              plot_or_tree_permissions(t, None))
 
     def test_a_user_with_delete_access_can_delete(self):
@@ -391,21 +402,21 @@ class PlotListing(TestCase):
 
         for p in self.plots:
             for u in self.users:
-                self.assertEqual(self.mkd(False,False),
+                self.assertEqual(self.mkd(False, False),
                                  plot_or_tree_permissions(p, u))
-                self.assertEqual(self.mkdp(False,False,False,False),
+                self.assertEqual(self.mkdp(False, False, False, False),
                                  plot_permissions(p, u))
 
         for t in self.trees:
             for u in self.users:
-                self.assertEqual(self.mkd(False,False),
+                self.assertEqual(self.mkd(False, False),
                                  plot_or_tree_permissions(t, u))
 
     def test_basic_data(self):
         p = mkPlot(self.instance, self.u)
         p.width = 22
         p.length = 44
-        p.geom = Point(55,56)
+        p.geom = Point(55, 56)
         p.readonly = False
         p.save_with_user(self.u)
 
@@ -485,18 +496,15 @@ class PlotListing(TestCase):
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p1.pk, p2.pk]))
 
-
         r = self.client.get("%s/plots?offset=1&size=2" % API_PFX, **self.sign)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p2.pk, p3.pk]))
 
-
         r = self.client.get("%s/plots?offset=2&size=2" % API_PFX, **self.sign)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p3.pk]))
-
 
         r = self.client.get("%s/plots?offset=3&size=2" % API_PFX, **self.sign)
 
@@ -508,6 +516,7 @@ class PlotListing(TestCase):
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p1.pk, p2.pk, p3.pk]))
 
+
 class Locations(TestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
@@ -517,50 +526,72 @@ class Locations(TestCase):
         self.sign = create_signer_dict(self.user)
 
     def test_locations_plots_endpoint_with_auth(self):
-        auth = base64.b64encode("%s:%s" % (self.user.username,self.user.username))
-        withauth = dict(create_signer_dict(self.user).items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+        auth = base64.b64encode("%s:%s" %
+                                (self.user.username, self.user.username))
+        withauth = dict(create_signer_dict(self.user).items() +
+                        [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
-        response = self.client.get("%s/locations/0,0/plots" % API_PFX, **withauth)
+        response = self.client.get(
+            "%s/locations/0,0/plots" % API_PFX, **withauth)
         self.assertEqual(response.status_code, 200)
 
     def test_locations_plots_endpoint(self):
-        response = self.client.get("%s/locations/0,0/plots" % API_PFX, **self.sign)
+        response = self.client.get(
+            "%s/locations/0,0/plots" % API_PFX, **self.sign)
         self.assertEqual(response.status_code, 200)
 
     def test_locations_plots_endpoint_max_plots_param_must_be_a_number(self):
-        response = self.client.get("%s/locations/0,0/plots?max_plots=foo" % API_PFX, **self.sign)
+        response = self.client.get(
+            "%s/locations/0,0/plots?max_plots=foo" % API_PFX, **self.sign)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content, 'The max_plots parameter must be a number between 1 and 500')
+        self.assertEqual(response.content,
+                         'The max_plots parameter must be '
+                         'a number between 1 and 500')
 
-    def test_locations_plots_endpoint_max_plots_param_cannot_be_greater_than_500(self):
-        response = self.client.get("%s/locations/0,0/plots?max_plots=501" % API_PFX, **self.sign)
+    def test_locations_plots_max_plots_param_cannot_be_greater_than_500(self):
+        response = self.client.get(
+            "%s/locations/0,0/plots?max_plots=501" % API_PFX, **self.sign)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content, 'The max_plots parameter must be a number between 1 and 500')
-        response = self.client.get("%s/locations/0,0/plots?max_plots=500" % API_PFX, **self.sign)
+        self.assertEqual(response.content,
+                         'The max_plots parameter must be '
+                         'a number between 1 and 500')
+        response = self.client.get("%s/locations/0,0/plots?max_plots=500" %
+                                   API_PFX, **self.sign)
         self.assertEqual(response.status_code, 200)
 
-    def test_locations_plots_endpoint_max_plots_param_cannot_be_less_than_1(self):
-        response = self.client.get("%s/locations/0,0/plots?max_plots=0" % API_PFX, **self.sign)
+    def test_locations_plots_endpoint_max_plots_param_cannot_be_less_than_1(
+            self):
+        response = self.client.get("%s/locations/0,0/plots?max_plots=0" %
+                                   API_PFX, **self.sign)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content, 'The max_plots parameter must be a number between 1 and 500')
-        response = self.client.get("%s/locations/0,0/plots?max_plots=1" % API_PFX, **self.sign)
+        self.assertEqual(response.content,
+                         'The max_plots parameter must be a '
+                         'number between 1 and 500')
+        response = self.client.get("%s/locations/0,0/plots?max_plots=1" %
+                                   API_PFX, **self.sign)
         self.assertEqual(response.status_code, 200)
 
     def test_locations_plots_endpoint_distance_param_must_be_a_number(self):
-        response = self.client.get("%s/locations/0,0/plots?distance=foo" % API_PFX, **self.sign)
+        response = self.client.get("%s/locations/0,0/plots?distance=foo" %
+                                   API_PFX, **self.sign)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content, 'The distance parameter must be a number')
-        response = self.client.get("%s/locations/0,0/plots?distance=42" % API_PFX, **self.sign)
+        self.assertEqual(response.content,
+                         'The distance parameter must be a number')
+
+        response = self.client.get("%s/locations/0,0/plots?distance=42" %
+                                   API_PFX, **self.sign)
         self.assertEqual(response.status_code, 200)
 
     def test_plots(self):
         plot = mkPlot(self.instance, self.user)
         plot.save_with_user(self.user)
 
-        response = self.client.get("%s/locations/%s,%s/plots" % (API_PFX, plot.geom.x, plot.geom.y), **self.sign)
+        response = self.client.get("%s/locations/%s,%s/plots" %
+                                   (API_PFX, plot.geom.x, plot.geom.y),
+                                   **self.sign)
 
         self.assertEqual(response.status_code, 200)
-        json = loads(response.content)
+
 
 class CreatePlotAndTree(TestCase):
 
@@ -575,7 +606,8 @@ class CreatePlotAndTree(TestCase):
 
         self.sign = create_signer_dict(self.user)
         auth = base64.b64encode("jim:password")
-        self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+        self.sign = dict(self.sign.items() +
+                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
         rm = ReputationMetric(instance=self.instance, model_name='Plot',
                               action=Audit.Type.Insert, direct_write_score=2,
@@ -598,10 +630,11 @@ class CreatePlotAndTree(TestCase):
         plot_count = Plot.objects.count()
         reputation_count = self.user.reputation
 
-        response = post_json("%s/%s/plots"  % (API_PFX, self.instance.pk),
+        response = post_json("%s/%s/plots" % (API_PFX, self.instance.pk),
                              data, self.client, self.sign)
 
-        self.assertEqual(201, response.status_code, "Create failed:" + response.content)
+        self.assertEqual(201, response.status_code,
+                         "Create failed:" + response.content)
 
         # Assert that a plot was added
         self.assertEqual(plot_count + 1, Plot.objects.count())
@@ -633,7 +666,7 @@ class CreatePlotAndTree(TestCase):
         tree_count = Tree.objects.count()
         reputation_count = self.user.reputation
 
-        response = post_json("%s/%s/plots"  % (API_PFX, self.instance.pk),
+        response = post_json("%s/%s/plots" % (API_PFX, self.instance.pk),
                              data, self.client, self.sign)
 
         self.assertEqual(400,
@@ -670,10 +703,11 @@ class CreatePlotAndTree(TestCase):
         plot_count = Plot.objects.count()
         reputation_count = self.user.reputation
 
-        response = post_json("%s/%s/plots"  % (API_PFX, self.instance.pk),
+        response = post_json("%s/%s/plots" % (API_PFX, self.instance.pk),
                              data, self.client, self.sign)
 
-        self.assertEqual(201, response.status_code, "Create failed:" + response.content)
+        self.assertEqual(201, response.status_code,
+                         "Create failed:" + response.content)
 
         # Assert that a plot was added
         self.assertEqual(plot_count + 1, Plot.objects.count())
@@ -704,7 +738,8 @@ class UpdatePlotAndTree(TestCase):
         self.user.save_with_user(self.system_user)
         self.sign = create_signer_dict(self.user)
         auth = base64.b64encode("jim:password")
-        self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+        self.sign = dict(self.sign.items() +
+                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
         self.public_user = User.objects.get(username="amy")
         self.public_user.set_password("password")
@@ -713,7 +748,9 @@ class UpdatePlotAndTree(TestCase):
 
         self.public_user_sign = create_signer_dict(self.public_user)
         public_user_auth = base64.b64encode("amy:password")
-        self.public_user_sign = dict(self.public_user_sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % public_user_auth)])
+        self.public_user_sign = dict(
+            self.public_user_sign.items() +
+            [("HTTP_AUTHORIZATION", "Basic %s" % public_user_auth)])
 
         rm = ReputationMetric(instance=self.instance, model_name='Plot',
                               action=Audit.Type.Update, direct_write_score=2,
@@ -721,9 +758,9 @@ class UpdatePlotAndTree(TestCase):
         rm.save()
 
     def test_invalid_plot_id_returns_400_and_a_json_error(self):
-        response = put_json( "%s/%s/plots/0"  %
-                             (API_PFX, self.instance.pk),
-                             {}, self.client, self.sign)
+        response = put_json("%s/%s/plots/0" %
+                            (API_PFX, self.instance.pk),
+                            {}, self.client, self.sign)
 
         self.assertEqual(400, response.status_code)
         response_json = loads(response.content)
@@ -748,7 +785,7 @@ class UpdatePlotAndTree(TestCase):
                           'plot_width': 11,
                           'plot_length': 22}
 
-        response = put_json("%s/%s/plots/%d"  %
+        response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.pk, test_plot.pk),
                             updated_values, self.client, self.sign)
 
@@ -784,13 +821,14 @@ class UpdatePlotAndTree(TestCase):
                           'plot_length': 22}
 
         # Send the edit request as a public user
-        response = put_json("%s/%s/plots/%d"  %
+        response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.pk, test_plot.pk),
                             updated_values, self.client, self.public_user_sign)
 
         self.assertEqual(200, response.status_code)
 
-        # Assert that nothing has changed. Pends should have been created instead
+        # Assert that nothing has changed.
+        # Pends should have been created instead
         response_json = loads(response.content)
 
         self.assertEqual(50, response_json['geom']['y'])
@@ -812,14 +850,17 @@ class UpdatePlotAndTree(TestCase):
         test_plot = mkPlot(self.instance, self.user)
         updated_values = {'foo': 'bar'}
 
-        response = put_json("%s/%s/plots/%d"  %
+        response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.pk, test_plot.pk),
                             updated_values, self.client, self.sign)
 
         self.assertEqual(200, response.status_code)
         response_json = loads(response.content)
-        self.assertFalse("error" in response_json.keys(), "Did not expect an error")
-        self.assertFalse("foo" in response_json.keys(), "Did not expect foo to be added to the plot")
+        self.assertFalse("error" in response_json.keys(),
+                         "Did not expect an error")
+
+        self.assertFalse("foo" in response_json.keys(),
+                         "Did not expect foo to be added to the plot")
 
     def test_update_creates_tree(self):
         test_plot = mkPlot(self.instance, self.user)
@@ -827,7 +868,7 @@ class UpdatePlotAndTree(TestCase):
         self.assertIsNone(test_plot.current_tree())
         updated_values = {'tree': {'diameter': 1.2}}
 
-        response = put_json("%s/%s/plots/%d"  %
+        response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.pk, test_plot.pk),
                             updated_values, self.client, self.sign)
 
@@ -844,13 +885,13 @@ class UpdatePlotAndTree(TestCase):
 
     #     self.assertIsNone(test_plot.current_tree())
     #     self.assertEqual(0, len(Audit.pending_audits()),
-    #                      "Expected the test to start with no pending records")
+    #                   "Expected the test to start with no pending records")
 
     #     updated_values = {'tree': {'diameter': 1.2}}
 
-    #     response = put_json("%s/%s/plots/%d"  %
-    #                         (API_PFX, self.instance.pk, test_plot.pk),
-    #                         updated_values, self.client, self.public_user_sign)
+    #     response = put_json("%s/%s/plots/%d" %
+    #                      (API_PFX, self.instance.pk, test_plot.pk),
+    #                      updated_values, self.client, self.public_user_sign)
 
     #     self.assertEqual(200, response.status_code)
     #     self.assertEqual(0, len(Pending.objects.all()),
@@ -869,9 +910,9 @@ class UpdatePlotAndTree(TestCase):
         test_tree.save_with_user(self.user)
 
         updated_values = {'tree': {'diameter': 3.9}}
-        response = put_json( "%s/%s/plots/%d"  %
-                             (API_PFX, self.instance.pk, test_plot.id),
-                             updated_values, self.client, self.sign)
+        response = put_json("%s/%s/plots/%d" %
+                            (API_PFX, self.instance.pk, test_plot.id),
+                            updated_values, self.client, self.sign)
 
         self.assertEqual(200, response.status_code)
 
@@ -891,7 +932,7 @@ class UpdatePlotAndTree(TestCase):
 
         updated_values = {'tree': {'diameter': 3.9}}
 
-        response = put_json("%s/%s/plots/%d"  %
+        response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.pk, test_plot.pk),
                             updated_values, self.client, self.public_user_sign)
 
@@ -918,7 +959,7 @@ class UpdatePlotAndTree(TestCase):
         first_species = Species.objects.all()[0]
         updated_values = {'tree': {'species': first_species.id}}
 
-        response = put_json("%s/%s/plots/%d"  %
+        response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.pk, test_plot.pk),
                             updated_values, self.client, self.sign)
 
@@ -932,17 +973,19 @@ class UpdatePlotAndTree(TestCase):
         mkTree(self.instance, self.user, plot=test_plot)
 
         invalid_species_id = -1
-        self.assertRaises(Exception, Species.objects.get, pk=invalid_species_id)
+        self.assertRaises(Exception,
+                          Species.objects.get, pk=invalid_species_id)
 
         updated_values = {'tree': {'species': invalid_species_id}}
 
-        response = put_json("%s/%s/plots/%d"  %
+        response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.pk, test_plot.pk),
                             updated_values, self.client, self.sign)
 
         self.assertEqual(400, response.status_code)
         response_json = loads(response.content)
-        self.assertTrue("error" in response_json.keys(), "Expected an 'error' key in the JSON response")
+        self.assertTrue("error" in response_json.keys(),
+                        "Expected an 'error' key in the JSON response")
 
     def test_approve_pending_edit_returns_404_for_invalid_pend_id(self):
         invalid_pend_id = -1
@@ -953,7 +996,8 @@ class UpdatePlotAndTree(TestCase):
                              None, self.client, self.sign)
 
         self.assertEqual(404, response.status_code,
-                         "Expected approving and invalid pend id to return 404")
+                         "Expected approving and invalid "
+                         "pend id to return 404")
 
     def test_reject_pending_edit_returns_404_for_invalid_pend_id(self):
         invalid_pend_id = -1
@@ -964,7 +1008,8 @@ class UpdatePlotAndTree(TestCase):
                              None, self.client, self.sign)
 
         self.assertEqual(404, response.status_code,
-                         "Expected approving and invalid pend id to return 404")
+                         "Expected approving and invalid pend "
+                         " id to return 404")
 
     def test_approve_pending_edit(self):
         self.assert_pending_edit_operation(Audit.Type.PendingApprove)
@@ -972,7 +1017,8 @@ class UpdatePlotAndTree(TestCase):
     def test_reject_pending_edit(self):
         self.assert_pending_edit_operation(Audit.Type.PendingReject)
 
-    def assert_pending_edit_operation(self, action, original_dbh=2.3, edited_dbh=3.9):
+    def assert_pending_edit_operation(self, action,
+                                      original_dbh=2.3, edited_dbh=3.9):
         test_plot = mkPlot(self.instance, self.user)
         test_tree = mkTree(self.instance, self.user, plot=test_plot)
         test_tree_id = test_tree.id
@@ -1144,16 +1190,18 @@ class UpdatePlotAndTree(TestCase):
                                       (API_PFX, self.instance.pk, plot_id),
                                       **self.sign)
 
-        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        self.assertEqual(200, response.status_code,
+                         "Expected 200 status code after delete")
         response_dict = loads(response.content)
-        self.assertIsNone(response_dict['tree'], 'Expected a json object response to a None value for "tree" key after the tree is deleted')
+        self.assertIsNone(response_dict['tree'],
+                          'Expected a json object response to a None'
+                          'value for "tree" key after the tree is deleted')
 
         plot = Plot.objects.filter(pk=plot_id)
         tree = Tree.objects.filter(pk=tree_id)
 
         self.assertTrue(len(plot) == 1, 'Expected plot to be here')
         self.assertTrue(len(tree) == 0, 'Expected tree to be gone')
-
 
     def test_get_current_tree(self):
         plot = mkPlot(self.instance, self.user)
@@ -1167,13 +1215,18 @@ class UpdatePlotAndTree(TestCase):
                                    (API_PFX, self.instance.pk, plot_id),
                                    **self.sign)
 
-        self.assertEqual(200, response.status_code, "Expected 200 status code")
+        self.assertEqual(200, response.status_code,
+                         "Expected 200 status code")
         response_dict = loads(response.content)
-        self.assertTrue('species' in response_dict, 'Expected "species" to be a top level key in the response object')
+        self.assertTrue('species' in response_dict,
+                        'Expected "species" to be a top level '
+                        'key in the response object')
         self.assertEqual(tree.species.pk, response_dict['species'])
 
     def test_registration(self):
-        self.assertTrue(User.objects.filter(username='foobar').count() == 0, "The test expects the foobar user to not exists.")
+        self.assertTrue(
+            User.objects.filter(username='foobar').count() == 0,
+            "The test expects the foobar user to not exists.")
         data = {
             'username': 'foobar',
             'firstname': 'foo',
@@ -1182,15 +1235,22 @@ class UpdatePlotAndTree(TestCase):
             'password': 'drowssap',
             'zipcode': 19107
         }
-        response = post_json("%s/user/" % API_PFX, data, self.client, self.sign)
-        self.assertEqual(200, response.status_code, "Expected 200 status code after creating user")
+        response = post_json("%s/user/" % API_PFX,
+                             data, self.client, self.sign)
+        self.assertEqual(200, response.status_code,
+                         "Expected 200 status code after creating user")
         response_dict = loads(response.content)
-        self.assertTrue('status' in response_dict, 'Expected "status" to be a top level key in the response object')
-        self.assertEqual('success', response_dict['status'], 'Expected "status" to be "success"')
-        self.assertTrue(User.objects.filter(username='foobar').count() == 1, 'Expected the "foobar" user to be created.')
+        self.assertTrue('status' in response_dict,
+                        'Expected "status" to be a top level '
+                        'key in the response object')
+        self.assertEqual('success', response_dict['status'],
+                         'Expected "status" to be "success"')
+        self.assertTrue(User.objects.filter(username='foobar').count() == 1,
+                        'Expected the "foobar" user to be created.')
 
     def test_duplicate_registration(self):
-        self.assertTrue(User.objects.filter(username='jim').count() == 1, "The test expects the jim user to exist.")
+        self.assertTrue(User.objects.filter(username='jim').count() == 1,
+                        "The test expects the jim user to exist.")
         data = {
             'username': 'jim',
             'firstname': 'Jim',
@@ -1199,12 +1259,20 @@ class UpdatePlotAndTree(TestCase):
             'password': 'drowssap',
             'zipcode': 19107
         }
-        response = post_json("%s/user/" % API_PFX, data, self.client, self.sign)
-        self.assertEqual(409, response.status_code, "Expected 409 status code after attempting to create duplicate username")
+        response = post_json("%s/user/" % API_PFX,
+                             data, self.client, self.sign)
+        self.assertEqual(409, response.status_code,
+                         "Expected 409 status code after attempting"
+                         " to create duplicate username")
         response_dict = loads(response.content)
-        self.assertTrue('status' in response_dict, 'Expected "status" to be a top level key in the response object')
-        self.assertEqual('failure', response_dict['status'], 'Expected "status" to be "failure"')
-        self.assertTrue('detail' in response_dict, 'Expected "detail" to be a top level key in the response object')
+        self.assertTrue('status' in response_dict,
+                        'Expected "status" to be a top level key'
+                        'in the response object')
+        self.assertEqual('failure', response_dict['status'],
+                         'Expected "status" to be "failure"')
+        self.assertTrue('detail' in response_dict,
+                        'Expected "detail" to be a top level key'
+                        'in the response object')
         self.assertEqual('Username jim exists', response_dict['detail'])
 
 
@@ -1259,7 +1327,8 @@ class VersionHeaderParsing(TestCase):
         }, version_dict)
 
     def test_extra_segments_dropped(self):
-        request = _create_mock_request_with_version_string('ios-1.2-b32-some-other junk')
+        request = _create_mock_request_with_version_string(
+            'ios-1.2-b32-some-other junk')
         version_dict = _parse_application_version_header_as_dict(request)
         self.assertEqual({
             'platform': 'ios',
@@ -1290,10 +1359,13 @@ class VersionHeaderParsing(TestCase):
 #         self.user.save()
 #         self.sign = create_signer_dict(self.user)
 #         auth = base64.b64encode("jim:password")
-#         self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+#         self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION",
+#         "Basic %s" % auth)])
 
-#         self.test_jpeg_path = os.path.join(os.path.dirname(__file__), 'test_resources', '2by2.jpeg')
-#         self.test_png_path = os.path.join(os.path.dirname(__file__), 'test_resources', '2by2.png')
+#         self.test_jpeg_path = os.path.join(os.path.dirname(__file__),
+#          'test_resources', '2by2.jpeg')
+#         self.test_png_path = os.path.join(os.path.dirname(__file__),
+#       'test_resources', '2by2.png')
 
 #         def assertSuccessfulResponse(response):
 #             self.assertIsNotNone(response)
@@ -1309,7 +1381,8 @@ class VersionHeaderParsing(TestCase):
 #     def test_jpeg_tree_photo_file_name(self):
 #         plot = mkPlot(self.instance, self.user)
 #         plot_id = plot.pk
-#         response = post_jpeg_file( "%s/plots/%d/tree/photo"  % (API_PFX, plot_id), self.test_jpeg_path,
+#         response = post_jpeg_file("%s/plots/%d/tree/photo" %
+#         (API_PFX, plot_id), self.test_jpeg_path,
 #             self.client, self.sign)
 
 #         self.assertSuccessfulResponse(response)
@@ -1323,7 +1396,8 @@ class VersionHeaderParsing(TestCase):
 #     def test_png_tree_photo_file_name(self):
 #         plot = mkPlot(self.instance, self.user)
 #         plot_id = plot.pk
-#         response = post_png_file( "%s/plots/%d/tree/photo"  % (API_PFX, plot_id), self.test_png_path,
+#         response = post_png_file("%s/plots/%d/tree/photo" %
+#         (API_PFX, plot_id), self.test_png_path,
 #             self.client, self.sign)
 
 #         self.assertSuccessfulResponse(response)

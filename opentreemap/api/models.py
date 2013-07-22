@@ -1,8 +1,10 @@
 from django.contrib.gis.db import models
 from treemap.models import User
 
+
 API_KEY_IOS = 1
 API_KEY_ANDROID = 2
+
 
 class APIKey(models.Model):
     user = models.ForeignKey(User, null=True)
@@ -10,6 +12,7 @@ class APIKey(models.Model):
     key = models.CharField(max_length=50)
     enabled = models.BooleanField(default=True)
     comment = models.TextField()
+
 
 class APILog(models.Model):
     url = models.TextField()

@@ -1,5 +1,13 @@
-from django.conf.urls import patterns, url
-from views import *
+from django.conf.urls import patterns
+from views import (get_plot_list, create_plot_optional_tree, status,
+                   version, route, get_plot, remove_plot,
+                   update_plot_and_tree, get_current_tree_from_plot,
+                   remove_current_tree_from_plot, add_tree_photo,
+                   get_tree_image, plots_closest_to_point,
+                   approve_pending_edit, reject_pending_edit, species_list,
+                   geocode_address, reset_password, verify_auth,
+                   register, add_profile_photo, update_password,
+                   recent_edits)
 
 urlpatterns = patterns(
     '',

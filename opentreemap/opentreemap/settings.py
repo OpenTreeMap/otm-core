@@ -1,7 +1,7 @@
 # Django settings for opentreemap project.
 
-OTM_VERSION='dev'
-API_VERSION='v0.1'
+OTM_VERSION = 'dev'
+API_VERSION = 'v0.1'
 
 # API distance check, in meters
 MAP_CLICK_RADIUS = 100

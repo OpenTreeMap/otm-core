@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import urllib
+from PIL import Image
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseServerError
@@ -41,16 +42,16 @@ def add_tree_photo(user_id, plot_id, uploaded_image):
     return TPShim()
 
 
-def _rotate_image_based_on_exif(img):
-    img = Image.open(treephoto.photo.path)
+def _rotate_image_based_on_exif(img_path):
+    img = Image.open(img_path)
     try:
-       orientation = img._getexif()[0x0112]
-       if orientation == 6: # Right turn
-          img = img.rotate(-90)
-       elif orientation == 5: # Left turn
-          img = img.rotate(90)
+        orientation = img._getexif()[0x0112]
+        if orientation == 6:  # Right turn
+            img = img.rotate(-90)
+        elif orientation == 5:  # Left turn
+            img = img.rotate(90)
     except:
-       pass
+        pass
 
     return img
 
@@ -73,6 +74,7 @@ def create_user(*args, **kwargs):
     user.save_with_user(make_system_user())
 
     return user
+
 
 def create_plot(user, instance, *args, **kwargs):
     if 'x' in kwargs and 'y' in kwargs:
