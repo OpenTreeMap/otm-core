@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
 from django.shortcuts import get_object_or_404
-from django.db import transaction
+from django.db import transaction, IntegrityError
 
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
@@ -247,7 +247,16 @@ def verify_auth(request):
 def register(request):
     data = json.loads(request.body)
 
-    user = create_user(**data)
+    try:
+        user = create_user(**data)
+    except IntegrityError, e:
+        response = HttpResponse()
+        response.status_code = 409
+        response.content = json.dumps(
+            {'status': 'failure',
+             'detail': 'Username %s exists' % data['username']})
+
+        return response
 
     return { "status": "success", "id": user.pk }
 
@@ -505,15 +514,15 @@ def point_wkt_to_dict(wkt):
 
 def pending_edit_to_dict(pending_edit):
     if pending_edit.field == 'geometry':
-        pending_value = point_wkt_to_dict(pending_edit.value) # Pending geometry edits are stored as WKT
+        pending_value = point_wkt_to_dict(pending_edit.current_value) # Pending geometry edits are stored as WKT
     else:
-        pending_value = pending_edit.value
+        pending_value = pending_edit.current_value
 
     return {
         'id': pending_edit.pk,
-        'submitted': datetime_to_iso_string(pending_edit.submitted),
+        'submitted': datetime_to_iso_string(pending_edit.created),
         'value': pending_value,
-        'username': pending_edit.submitted_by.username
+        'username': pending_edit.user.username
     }
 
 def plot_to_dict(plot,longform=False,user=None):
@@ -525,10 +534,10 @@ def plot_to_dict(plot,longform=False,user=None):
         if current_tree.species:
             tree_dict["species"] = current_tree.species.pk
             tree_dict["species_name"] = current_tree.species.common_name
-            tree_dict["sci_name"] = current_tree.scientific_name
+            tree_dict["sci_name"] = current_tree.species.scientific_name
 
         if current_tree.diameter:
-            tree_dict["dbh"] = current_tree.dbh
+            tree_dict["dbh"] = current_tree.diameter
 
         if current_tree.height:
             tree_dict["height"] = current_tree.height
@@ -544,12 +553,13 @@ def plot_to_dict(plot,longform=False,user=None):
         # "title": image.title, "url": image.photo.url}
         #                            for image in images]
 
+        pending_edit_dict = {}
+
         if longform:
             tree_dict['eco'] = tree_resource_to_dict(current_tree)
             tree_dict['readonly'] = current_tree.readonly
 
             tree_field_reverse_property_name_dict = {'species_id': 'species'}
-            pending_edit_dict = {}
             for audit in current_tree.get_active_pending_audits():
                 raw_field_name = audit.field
 
@@ -561,7 +571,7 @@ def plot_to_dict(plot,longform=False,user=None):
 
                 if 'tree.' + field_name not in pending_edit_dict:
                     pending_edit_dict['tree.' + field_name] = {
-                        'latest_value': audit['latest_value'],
+                        'latest_value': audit.previous_value,
                         'pending_edits': []}
 
                 pend_dict = pending_edit_to_dict(audit)
@@ -597,14 +607,10 @@ def plot_to_dict(plot,longform=False,user=None):
 
     if longform:
 
-        base['last_updated'] = datetime_to_iso_string(plot.last_updated)
-
         plot_field_reverse_property_name_dict = {
             'width': 'plot_width',
             'length': 'plot_length'
         }
-
-        pending_edit_dict = {}
 
         for audit in plot.get_active_pending_audits():
             raw_field_name = audit.field
@@ -946,8 +952,9 @@ def _attribute_requires_conversion(request, attr):
 
 @require_http_methods(["PUT"])
 @api_call()
+@instance_request
 @login_required
-def update_plot_and_tree(request, plot_id):
+def update_plot_and_tree(request, instance, plot_id):
 
     def set_attr_with_choice_correction(request, model, attr, value):
         if _attribute_requires_conversion(request, attr):
@@ -987,8 +994,6 @@ def update_plot_and_tree(request, plot_id):
     # keys and model field names
     plot_field_property_name_dict = {'plot_width': 'width', 'plot_length': 'length', 'power_lines': 'powerline_conflict_potential'}
 
-    should_create_plot_pends = requires_pending_record(plot, request.user)
-
     plot_was_edited = False
     for plot_field_name in request_dict.keys():
         if plot_field_name in plot_field_whitelist:
@@ -998,17 +1003,12 @@ def update_plot_and_tree(request, plot_id):
                 new_name = plot_field_name
             new_value = request_dict[plot_field_name]
             if not compare_fields(get_attr_with_choice_correction(request, plot, new_name), new_value):
-                if should_create_plot_pends:
-                    plot_pend = PlotPending(plot=plot)
-                    plot_pend.set_create_attributes(request.user, new_name, new_value)
-                    plot_pend.save()
-                else:
-                    set_attr_with_choice_correction(request, plot, new_name, new_value)
-                    plot_was_edited = True
+                set_attr_with_choice_correction(request, plot, new_name, new_value)
+                plot_was_edited = True
 
     # TODO: Standardize on lon or lng
     if 'lat' in request_dict or 'lon' in request_dict or 'lng' in request_dict:
-        new_geometry = Point(x=plot.geometry.x, y=plot.geometry.y)
+        new_geometry = Point(x=plot.geom.x, y=plot.geom.y)
         if 'lat' in request_dict:
             new_geometry.y = request_dict['lat']
         if 'lng' in request_dict:
@@ -1016,118 +1016,102 @@ def update_plot_and_tree(request, plot_id):
         if 'lon' in request_dict:
             new_geometry.x = request_dict['lon']
 
-        if plot.geometry.x != new_geometry.x or plot.geometry.y != new_geometry.y:
-            if should_create_plot_pends:
-                plot_pend = PlotPending(plot=plot)
-                plot_pend.set_create_attributes(request.user, 'geometry', new_geometry)
-                plot_pend.save()
-            else:
-                plot.geometry = new_geometry
-                plot_was_edited = True
+        if plot.geom.x != new_geometry.x or plot.geom.y != new_geometry.y:
+            plot.geom = new_geometry
+            plot_was_edited = True
 
     if plot_was_edited:
-        plot.last_updated = datetime.datetime.now()
-        plot.last_updated_by = request.user
-        plot.save()
-        change_reputation_for_user(request.user, 'edit plot', plot)
+        plot.save_with_user(request.user)
 
     tree_was_edited = False
     tree_was_added = False
     tree = plot.current_tree()
-    tree_field_whitelist = ['species','dbh','height','canopy_height', 'canopy_condition', 'condition','pests']
-
-    if tree is None:
-        should_create_tree_pends = False
-    else:
-        should_create_tree_pends = requires_pending_record(tree, request.user)
+    tree_field_whitelist = ['species', 'diameter', 'height', 'canopy_height',
+                            'canopy_condition', 'condition', 'pests']
 
     for tree_field in Tree._meta.fields:
         if tree_field.name in request_dict and tree_field.name in tree_field_whitelist:
             if tree is None:
-                import_event, created = ImportEvent.objects.get_or_create(file_name='site_add',)
-                tree = Tree(plot=plot, last_updated_by=request.user, import_event=import_event)
+                tree = Tree(plot=plot, instance=instance,
+                            created_by=request.user)
+
                 tree.plot = plot
                 tree.last_updated_by = request.user
-                tree.save()
+                tree.save_with_user(request.user)
                 tree_was_added = True
             if tree_field.name == 'species':
                 try:
                     if (tree.species and tree.species.pk != request_dict[tree_field.name]) \
                     or (not tree.species and request_dict[tree_field.name]):
-                        if should_create_tree_pends:
-                            tree_pend = TreePending(tree=tree)
-                            tree_pend.set_create_attributes(request.user, 'species_id', request_dict[tree_field.name])
-                            tree_pend.save()
-                        else:
-                            tree.species = Species.objects.get(pk=request_dict[tree_field.name])
-                            tree_was_edited = True
+                        tree.species = Species.objects.get(pk=request_dict[tree_field.name])
+                        tree_was_edited = True
                 except Exception:
                     response.status_code = 400
                     response.content = json.dumps({"error": "No species with id %s" % request_dict[tree_field.name]})
                     return response
             else: # tree_field.name != 'species'
                 if not compare_fields(get_attr_with_choice_correction(request, tree, tree_field.name), request_dict[tree_field.name]):
-                    if should_create_tree_pends:
-                        tree_pend = TreePending(tree=tree)
-                        tree_pend.set_create_attributes(request.user, tree_field.name, request_dict[tree_field.name])
-                        tree_pend.save()
-                    else:
-                        set_attr_with_choice_correction(request, tree, tree_field.name, request_dict[tree_field.name])
-                        tree_was_edited = True
+                    set_attr_with_choice_correction(
+                        request, tree, tree_field.name,
+                        request_dict[tree_field.name])
+                    tree_was_edited = True
 
-    if tree_was_edited:
-        tree.last_updated = datetime.datetime.now()
-        tree.last_updated_by = request.user
 
     if tree_was_added or tree_was_edited:
-        tree.save()
-
-    # You cannot get reputation for both adding and editing a tree in one action
-    # so I use an elif here
-    if tree_was_added:
-        change_reputation_for_user(request.user, 'add tree', tree)
-    elif tree_was_edited:
-        change_reputation_for_user(request.user, 'edit tree', tree)
+        tree.save_with_user(request.user)
 
     full_plot = Plot.objects.get(pk=plot.id)
-    return_dict = convert_response_plot_dict_choice_values(request, plot_to_dict(full_plot, longform=True,user=request.user))
+    return_dict = convert_response_plot_dict_choice_values(
+        request, plot_to_dict(full_plot, longform=True,user=request.user))
     response.status_code = 200
     response.content = json.dumps(return_dict)
     return response
 
 
-def _approve_or_reject_pending_edit(user, pending_edit_id, approve):
-    audit = Audit.objects.get(pk=pending_edit_id)
+def _approve_or_reject_pending_edit(
+        request, instance, user, pending_edit_id, approve):
+    audit = Audit.objects.get(pk=pending_edit_id, instance=instance)
     approve_or_reject_audit_and_apply(audit, user, approve)
 
     updated_plot = extract_plot_from_audit(audit)
+
+    # Reject remaining audits on specified field if
+    # we approved this audit
+    # TODO: Should this logic be moved to app_or_rej_audit_and_ap?
+    if approve:
+        for pending_audit in updated_plot.get_active_pending_audits()\
+                                 .filter(field=audit.field):
+            approve_or_reject_audit_and_apply(pending_audit, user, False)
 
     return convert_response_plot_dict_choice_values(
         request, plot_to_dict(updated_plot, longform=True))
 
 
 @require_http_methods(["POST"])
+@instance_request
 @api_call()
 @login_required
-def approve_pending_edit(request, pending_edit_id):
+def approve_pending_edit(request, instance, pending_edit_id):
     return _approve_or_reject_pending_edit(
-        request.user, pending_edit_it, True)
+        request, instance, request.user, pending_edit_id, True)
 
 
 @require_http_methods(["POST"])
+@instance_request
 @api_call()
 @login_required
-def reject_pending_edit(request, pending_edit_id):
+def reject_pending_edit(request, instance, pending_edit_id):
     return _approve_or_reject_pending_edit(
-        request.user, pending_edit_it, False)
+        request, instance, request.user, pending_edit_id, False)
 
 
 @require_http_methods(["DELETE"])
 @api_call()
+@instance_request
 @login_required
 @transaction.commit_on_success
-def remove_plot(request, plot_id):
-    plot = get_object_or_404(Plot, pk=plot_id)
+def remove_plot(request, instance, plot_id):
+    plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
     try:
         plot.delete_with_user(request.user)
         return {"ok": True}
@@ -1137,11 +1121,13 @@ def remove_plot(request, plot_id):
 
 @require_http_methods(["DELETE"])
 @api_call()
+@instance_request
 @login_required
 @transaction.commit_on_success
-def remove_current_tree_from_plot(request, plot_id):
-    plot = get_object_or_404(Plot, pk=plot_id)
+def remove_current_tree_from_plot(request, instance, plot_id):
+    plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
     tree = plot.current_tree()
+
     if tree:
         try:
             tree.delete_with_user(request.user)
@@ -1155,9 +1141,10 @@ def remove_current_tree_from_plot(request, plot_id):
         raise HttpResponseBadRequest("Plot %s does not have a current tree" % plot_id)
 
 @require_http_methods(["GET"])
+@instance_request
 @api_call()
-def get_current_tree_from_plot(request, plot_id):
-    plot = get_object_or_404(Plot, pk=plot_id)
+def get_current_tree_from_plot(request, instance, plot_id):
+    plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
     if  plot.current_tree():
         plot_dict = convert_response_plot_dict_choice_values(request,
             plot_to_dict(plot, longform=True)

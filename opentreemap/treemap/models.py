@@ -85,7 +85,7 @@ class User(Auditable, AbstractUser):
             error_message = ("%s cannot have more than one role per"
                              " instance. Something might be very "
                              "wrong with your database configuration." %
-                             self.pk)
+                             self.username)
             raise IntegrityError(error_message)
 
         elif len(roles) == 1:

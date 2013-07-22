@@ -64,11 +64,15 @@ def add_user_photo(user_id, uploaded_image):
 
 
 def create_user(*args, **kwargs):
-    class UserShim(object):
-        def __init__(self):
-            self.pk = 2
-    return UserShim()
+    # Clearly this is just getting the api working
+    # it shouldn't stay here when real user stuff happens
+    from treemap.tests import make_system_user
 
+    user = User(username=kwargs['username'], email=kwargs['email'])
+    user.set_password(kwargs['password'])
+    user.save_with_user(make_system_user())
+
+    return user
 
 def create_plot(user, instance, *args, **kwargs):
     if 'x' in kwargs and 'y' in kwargs:

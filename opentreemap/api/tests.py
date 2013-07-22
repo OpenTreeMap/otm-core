@@ -21,7 +21,8 @@ import urllib
 from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 
 from treemap.models import Species, Plot, Tree, User
-from treemap.tests import make_system_user, make_commander_role
+from treemap.tests import (make_system_user, make_commander_role,
+                           make_apprentice_role)
 from treemap.audit import ReputationMetric, Audit
 
 from api.models import APIKey, APILog
@@ -691,13 +692,13 @@ class CreatePlotAndTree(TestCase):
 
 class UpdatePlotAndTree(TestCase):
     def setUp(self):
-        setupTreemapEnv()
-        settings.PENDING_ON = False
+        self.instance = setupTreemapEnv()
 
         self.system_user = make_system_user()
 
         self.user = User.objects.get(username="jim")
         self.user.set_password("password")
+        self.user.roles.add(make_commander_role(self.instance))
         self.user.save_with_user(self.system_user)
         self.sign = create_signer_dict(self.user)
         auth = base64.b64encode("jim:password")
@@ -705,257 +706,357 @@ class UpdatePlotAndTree(TestCase):
 
         self.public_user = User.objects.get(username="amy")
         self.public_user.set_password("password")
+        self.public_user.roles = [make_apprentice_role(self.instance)]
         self.public_user.save_with_user(self.system_user)
 
         self.public_user_sign = create_signer_dict(self.public_user)
         public_user_auth = base64.b64encode("amy:password")
         self.public_user_sign = dict(self.public_user_sign.items() + [("HTTP_AUTHORIZATION", "Basic %s" % public_user_auth)])
 
+        rm = ReputationMetric(instance=self.instance, model_name='Plot',
+                              action=Audit.Type.Update, direct_write_score=2,
+                              approval_score=5, denial_score=1)
+        rm.save()
+
     def test_invalid_plot_id_returns_400_and_a_json_error(self):
-        response = put_json( "%s/plots/0"  % API_PFX, {}, self.client, self.sign)
+        response = put_json( "%s/%s/plots/0"  %
+                             (API_PFX, self.instance.pk),
+                             {}, self.client, self.sign)
+
         self.assertEqual(400, response.status_code)
         response_json = loads(response.content)
         self.assertTrue("error" in response_json)
         # Received an error message as expected in response_json['error']
 
     def test_update_plot(self):
-        test_plot = mkPlot(self.user)
+        test_plot = mkPlot(self.instance, self.user)
         test_plot.width = 1
         test_plot.length = 2
         test_plot.geocoded_address = 'foo'
-        test_plot.save()
-        self.assertEqual(50, test_plot.geometry.x)
-        self.assertEqual(50, test_plot.geometry.y)
+        test_plot.save_with_user(self.user)
+        self.assertEqual(50, test_plot.geom.x)
+        self.assertEqual(50, test_plot.geom.y)
         self.assertEqual(1, test_plot.width)
         self.assertEqual(2, test_plot.length)
-        self.assertEqual('foo', test_plot.geocoded_address)
 
-        reputation_count = UserReputationAction.objects.count()
+        reputation_count = self.user.reputation
 
-        updated_values = {'geometry': {'lat': 70, 'lon': 60}, 'plot_width': 11, 'plot_length': 22, 'geocoded_address': 'bar'}
-        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        updated_values = {'geometry':
+                          {'lat': 70, 'lon': 60},
+                          'plot_width': 11,
+                          'plot_length': 22}
+
+        response = put_json("%s/%s/plots/%d"  %
+                            (API_PFX, self.instance.pk, test_plot.pk),
+                            updated_values, self.client, self.sign)
+
         self.assertEqual(200, response.status_code)
 
         response_json = loads(response.content)
-        self.assertEqual(70, response_json['geometry']['lat'])
-        self.assertEqual(60, response_json['geometry']['lng'])
+        self.assertEqual(70, response_json['geom']['y'])
+        self.assertEqual(60, response_json['geom']['x'])
         self.assertEqual(11, response_json['plot_width'])
         self.assertEqual(22, response_json['plot_length'])
-        self.assertEqual('bar', response_json['address'])
-        self.assertEqual(reputation_count + 1, UserReputationAction.objects.count())
+
+        updated_rep = User.objects.get(pk=self.user.pk).reputation
+        self.assertEqual(reputation_count + 6, updated_rep)
 
     def test_update_plot_with_pending(self):
-        settings.PENDING_ON = True
-        test_plot = mkPlot(self.user)
+        test_plot = mkPlot(self.instance, self.user)
         test_plot.width = 1
         test_plot.length = 2
-        test_plot.geocoded_address = 'foo'
-        test_plot.save()
-        self.assertEqual(50, test_plot.geometry.x)
-        self.assertEqual(50, test_plot.geometry.y)
+        test_plot.save_with_user(self.user)
+        self.assertEqual(50, test_plot.geom.x)
+        self.assertEqual(50, test_plot.geom.y)
         self.assertEqual(1, test_plot.width)
         self.assertEqual(2, test_plot.length)
-        self.assertEqual('foo', test_plot.geocoded_address)
-        self.assertEqual(0, len(Pending.objects.all()), "Expected the test to start with no pending records")
 
-        reputation_count = UserReputationAction.objects.count()
+        self.assertEqual(0, len(Audit.pending_audits()),
+                         "Expected the test to start with no pending records")
 
-        updated_values = {'geometry': {'lat': 70, 'lon': 60}, 'plot_width': 11, 'plot_length': 22, 'geocoded_address': 'bar'}
+        reputation_count = self.public_user.reputation
+
+        updated_values = {'geometry':
+                          {'lat': 70, 'lon': 60},
+                          'plot_width': 11,
+                          'plot_length': 22}
+
         # Send the edit request as a public user
-        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
+        response = put_json("%s/%s/plots/%d"  %
+                            (API_PFX, self.instance.pk, test_plot.pk),
+                            updated_values, self.client, self.public_user_sign)
+
         self.assertEqual(200, response.status_code)
 
         # Assert that nothing has changed. Pends should have been created instead
         response_json = loads(response.content)
-        self.assertEqual(50, response_json['geometry']['lat'])
-        self.assertEqual(50, response_json['geometry']['lng'])
+
+        self.assertEqual(50, response_json['geom']['y'])
+        self.assertEqual(50, response_json['geom']['x'])
         self.assertEqual(1, response_json['plot_width'])
         self.assertEqual(2, response_json['plot_length'])
-        self.assertEqual('foo', response_json['address'])
-        self.assertEqual(reputation_count, UserReputationAction.objects.count())
-        self.assertEqual(4, len(PlotPending.objects.all()), "Expected 4 pends, one for each edited field")
 
-        self.assertEqual(4, len(response_json['pending_edits'].keys()), "Expected the json response to have a pending_edits dict with 4 keys, one for each field")
+        updated_rep = User.objects.get(pk=self.public_user.pk).reputation
+        self.assertEqual(reputation_count, updated_rep)
+
+        self.assertEqual(3, len(Audit.pending_audits()),
+                         "Expected 3 pends, one for each edited field")
+
+        self.assertEqual(3, len(response_json['pending_edits'].keys()),
+                         "Expected the json response to have a "
+                         "pending_edits dict with 3 keys, one for each field")
 
     def test_invalid_field_returns_200_field_is_not_in_response(self):
-        test_plot = mkPlot(self.user)
+        test_plot = mkPlot(self.instance, self.user)
         updated_values = {'foo': 'bar'}
-        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+
+        response = put_json("%s/%s/plots/%d"  %
+                            (API_PFX, self.instance.pk, test_plot.pk),
+                            updated_values, self.client, self.sign)
+
         self.assertEqual(200, response.status_code)
         response_json = loads(response.content)
         self.assertFalse("error" in response_json.keys(), "Did not expect an error")
         self.assertFalse("foo" in response_json.keys(), "Did not expect foo to be added to the plot")
 
     def test_update_creates_tree(self):
-        test_plot = mkPlot(self.user)
+        test_plot = mkPlot(self.instance, self.user)
         test_plot_id = test_plot.id
         self.assertIsNone(test_plot.current_tree())
-        updated_values = {'tree': {'dbh': 1.2}}
-        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        updated_values = {'tree': {'diameter': 1.2}}
+
+        response = put_json("%s/%s/plots/%d"  %
+                            (API_PFX, self.instance.pk, test_plot.pk),
+                            updated_values, self.client, self.sign)
+
         self.assertEqual(200, response.status_code)
         tree = Plot.objects.get(pk=test_plot_id).current_tree()
         self.assertIsNotNone(tree)
-        self.assertEqual(1.2, tree.dbh)
+        self.assertEqual(1.2, tree.diameter)
 
-    def test_update_creates_tree_with_pending(self):
-        settings.PENDING_ON = True
-        test_plot = mkPlot(self.user)
-        test_plot_id = test_plot.id
-        self.assertIsNone(test_plot.current_tree())
-        self.assertEqual(0, len(Pending.objects.all()), "Expected the test to start with no pending records")
+    # TODO: Waiting for issue to be fixed
+    # https://github.com/azavea/OTM2/issues/82
+    # def test_update_creates_tree_with_pending(self):
+    #     test_plot = mkPlot(self.instance, self.user)
+    #     test_plot_id = test_plot.id
 
-        updated_values = {'tree': {'dbh': 1.2}}
-        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(0, len(Pending.objects.all()), "Expected a new tree to be created, rather than creating pends")
-        tree = Plot.objects.get(pk=test_plot_id).current_tree()
-        self.assertIsNotNone(tree)
-        self.assertEqual(1.2, tree.dbh)
+    #     self.assertIsNone(test_plot.current_tree())
+    #     self.assertEqual(0, len(Audit.pending_audits()),
+    #                      "Expected the test to start with no pending records")
+
+    #     updated_values = {'tree': {'diameter': 1.2}}
+
+    #     response = put_json("%s/%s/plots/%d"  %
+    #                         (API_PFX, self.instance.pk, test_plot.pk),
+    #                         updated_values, self.client, self.public_user_sign)
+
+    #     self.assertEqual(200, response.status_code)
+    #     self.assertEqual(0, len(Pending.objects.all()),
+    #                      "Expected a new tree to be created, "
+    #                      "rather than creating pends")
+
+    #     tree = Plot.objects.get(pk=test_plot_id).current_tree()
+    #     self.assertIsNotNone(tree)
+    #     self.assertEqual(1.2, tree.dbh)
 
     def test_update_tree(self):
-        test_plot = mkPlot(self.user)
-        test_tree = mkTree(self.user, plot=test_plot)
+        test_plot = mkPlot(self.instance, self.user)
+        test_tree = mkTree(self.instance, self.user, plot=test_plot)
         test_tree_id = test_tree.id
-        test_tree.dbh = 2.3
-        test_tree.save()
+        test_tree.diameter = 2.3
+        test_tree.save_with_user(self.user)
 
-        updated_values = {'tree': {'dbh': 3.9}}
-        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+        updated_values = {'tree': {'diameter': 3.9}}
+        response = put_json( "%s/%s/plots/%d"  %
+                             (API_PFX, self.instance.pk, test_plot.id),
+                             updated_values, self.client, self.sign)
+
         self.assertEqual(200, response.status_code)
+
         tree = Tree.objects.get(pk=test_tree_id)
         self.assertIsNotNone(tree)
-        self.assertEqual(3.9, tree.dbh)
+        self.assertEqual(3.9, tree.diameter)
 
     def test_update_tree_with_pending(self):
-        settings.PENDING_ON = True
+        test_plot = mkPlot(self.instance, self.user)
+        test_tree = mkTree(self.instance, self.user, plot=test_plot)
+        test_tree_id = test_tree.pk
+        test_tree.diameter = 2.3
+        test_tree.save_with_user(self.user)
 
-        test_plot = mkPlot(self.user)
-        test_tree = mkTree(self.user, plot=test_plot)
-        test_tree_id = test_tree.id
-        test_tree.dbh = 2.3
-        test_tree.save()
+        self.assertEqual(0, len(Audit.pending_audits()),
+                         "Expected the test to start with no pending records")
 
-        self.assertEqual(0, len(Pending.objects.all()), "Expected the test to start with no pending records")
+        updated_values = {'tree': {'diameter': 3.9}}
 
-        updated_values = {'tree': {'dbh': 3.9}}
-        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
+        response = put_json("%s/%s/plots/%d"  %
+                            (API_PFX, self.instance.pk, test_plot.pk),
+                            updated_values, self.client, self.public_user_sign)
+
         self.assertEqual(200, response.status_code)
         tree = Tree.objects.get(pk=test_tree_id)
+
         self.assertIsNotNone(tree)
-        self.assertEqual(2.3, tree.dbh, "A pend should have been created instead of editing the tree value.")
-        self.assertEqual(1, len(TreePending.objects.all()), "Expected 1 pend record for the edited field.")
+        self.assertEqual(2.3, tree.diameter,
+                         "A pend should have been created instead"
+                         " of editing the tree value.")
+        self.assertEqual(1, len(Audit.pending_audits()),
+                         "Expected 1 pend record for the edited field.")
 
         response_json = loads(response.content)
-        self.assertEqual(1, len(response_json['pending_edits'].keys()), "Expected the json response to have a pending_edits dict with 1 keys")
+        self.assertEqual(1, len(response_json['pending_edits'].keys()),
+                         "Expected the json response to have a"
+                         " pending_edits dict with 1 keys")
 
     def test_update_tree_species(self):
-        test_plot = mkPlot(self.user)
-        test_tree = mkTree(self.user, plot=test_plot)
+        test_plot = mkPlot(self.instance, self.user)
+        test_tree = mkTree(self.instance, self.user, plot=test_plot)
         test_tree_id = test_tree.id
 
         first_species = Species.objects.all()[0]
         updated_values = {'tree': {'species': first_species.id}}
-        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+
+        response = put_json("%s/%s/plots/%d"  %
+                            (API_PFX, self.instance.pk, test_plot.pk),
+                            updated_values, self.client, self.sign)
+
         self.assertEqual(200, response.status_code)
         tree = Tree.objects.get(pk=test_tree_id)
         self.assertIsNotNone(tree)
         self.assertEqual(first_species, tree.species)
 
     def test_update_tree_returns_400_on_invalid_species_id(self):
-        test_plot = mkPlot(self.user)
-        mkTree(self.user, plot=test_plot)
+        test_plot = mkPlot(self.instance, self.user)
+        mkTree(self.instance, self.user, plot=test_plot)
 
         invalid_species_id = -1
         self.assertRaises(Exception, Species.objects.get, pk=invalid_species_id)
 
         updated_values = {'tree': {'species': invalid_species_id}}
-        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.sign)
+
+        response = put_json("%s/%s/plots/%d"  %
+                            (API_PFX, self.instance.pk, test_plot.pk),
+                            updated_values, self.client, self.sign)
+
         self.assertEqual(400, response.status_code)
         response_json = loads(response.content)
         self.assertTrue("error" in response_json.keys(), "Expected an 'error' key in the JSON response")
 
     def test_approve_pending_edit_returns_404_for_invalid_pend_id(self):
-        settings.PENDING_ON = True
         invalid_pend_id = -1
-        self.assertRaises(Exception, PlotPending.objects.get, pk=invalid_pend_id)
-        self.assertRaises(Exception, TreePending.objects.get, pk=invalid_pend_id)
+        self.assertRaises(Exception, Audit.objects.get, pk=invalid_pend_id)
 
-        response = post_json("%s/pending-edits/%d/approve/"  % (API_PFX, invalid_pend_id), None, self.client, self.sign)
-        self.assertEqual(404, response.status_code, "Expected approving and invalid pend id to return 404")
+        response = post_json("%s/%s/pending-edits/%d/approve/" %
+                             (API_PFX, self.instance.pk, invalid_pend_id),
+                             None, self.client, self.sign)
+
+        self.assertEqual(404, response.status_code,
+                         "Expected approving and invalid pend id to return 404")
 
     def test_reject_pending_edit_returns_404_for_invalid_pend_id(self):
-        settings.PENDING_ON = True
         invalid_pend_id = -1
-        self.assertRaises(Exception, PlotPending.objects.get, pk=invalid_pend_id)
-        self.assertRaises(Exception, TreePending.objects.get, pk=invalid_pend_id)
+        self.assertRaises(Exception, Audit.objects.get, pk=invalid_pend_id)
 
-        response = post_json("%s/pending-edits/%d/reject/"  % (API_PFX, invalid_pend_id), None, self.client, self.sign)
-        self.assertEqual(404, response.status_code, "Expected approving and invalid pend id to return 404")
+        response = post_json("%s/%s/pending-edits/%d/reject/" %
+                             (API_PFX, self.instance.pk, invalid_pend_id),
+                             None, self.client, self.sign)
+
+        self.assertEqual(404, response.status_code,
+                         "Expected approving and invalid pend id to return 404")
 
     def test_approve_pending_edit(self):
-        self.assert_pending_edit_operation('approve')
+        self.assert_pending_edit_operation(Audit.Type.PendingApprove)
 
     def test_reject_pending_edit(self):
-        self.assert_pending_edit_operation('reject')
+        self.assert_pending_edit_operation(Audit.Type.PendingReject)
 
     def assert_pending_edit_operation(self, action, original_dbh=2.3, edited_dbh=3.9):
-        settings.PENDING_ON = True
-
-        test_plot = mkPlot(self.user)
-        test_tree = mkTree(self.user, plot=test_plot)
+        test_plot = mkPlot(self.instance, self.user)
+        test_tree = mkTree(self.instance, self.user, plot=test_plot)
         test_tree_id = test_tree.id
-        test_tree.dbh = original_dbh
-        test_tree.save()
+        test_tree.diameter = original_dbh
+        test_tree.save_with_user(self.user)
 
-        if action == 'approve':
-            status_after_action = 'approved'
-        elif action == 'reject':
-            status_after_action = 'rejected'
-        else:
-            raise Exception('Action must be "approve" or "reject"')
+        self.assertEqual(0, len(Audit.pending_audits()),
+                         "Expected the test to start with no pending records")
 
-        self.assertEqual(0, len(Pending.objects.all()), "Expected the test to start with no pending records")
+        updated_values = {'tree': {'diameter': edited_dbh}}
+        response = put_json("%s/%s/plots/%d" %
+                            (API_PFX, self.instance.pk, test_plot.id),
+                            updated_values, self.client,
+                            self.public_user_sign)
 
-        updated_values = {'tree': {'dbh': edited_dbh}}
-        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
         self.assertEqual(200, response.status_code)
+
         tree = Tree.objects.get(pk=test_tree_id)
-        self.assertIsNotNone(tree)
-        self.assertEqual(original_dbh, tree.dbh, "A pend should have been created instead of editing the tree value.")
-        self.assertEqual(1, len(TreePending.objects.all()), "Expected 1 pend record for the edited field.")
 
-        pending_edit = TreePending.objects.all()[0]
-        self.assertEqual('pending', pending_edit.status, "Expected the status of the Pending to be 'pending'")
-        response = post_json("%s/pending-edits/%d/%s/"  % (API_PFX, pending_edit.id, action), None, self.client, self.sign)
+        self.assertIsNotNone(tree)
+        self.assertEqual(original_dbh, tree.diameter,
+                         "A pend should have been created instead"
+                         " of editing the tree value.")
+
+        self.assertEqual(1, len(Audit.pending_audits()),
+                         "Expected 1 pend record for the edited field.")
+
+        pending_edit = Audit.pending_audits()[0]
+        self.assertEqual(None, pending_edit.ref_id,
+                         "Expected that the audit has not been applied")
+
+        if action == Audit.Type.PendingApprove:
+            action_str = 'approve'
+        else:
+            action_str = 'reject'
+
+        response = post_json("%s/%s/pending-edits/%d/%s/" %
+                             (API_PFX, self.instance.pk,
+                              pending_edit.id, action_str),
+                             None, self.client, self.sign)
+
         self.assertEqual(200, response.status_code)
 
-        pending_edit = TreePending.objects.get(pk=pending_edit.id)
-        self.assertEqual(status_after_action, pending_edit.status, "Expected the status of the Pending to be '%s'" % status_after_action)
+        pending_edit = Audit.objects.get(pk=pending_edit.id)
+        self.assertIsNotNone(pending_edit.ref_id,
+                             "Expected the audit to be marked as processed")
+
+        pending_edit_marked = pending_edit.ref_id
+        self.assertEqual(pending_edit_marked.action,
+                         action,
+                         "Expected the type of the audit to be '%s'" %
+                         action)
+
         test_tree = Tree.objects.get(pk=test_tree_id)
 
-        if action == 'approve':
-            self.assertEqual(edited_dbh, test_tree.dbh, "Expected dbh to have been updated on the Tree")
-        elif action == 'reject':
-            self.assertEqual(original_dbh, test_tree.dbh, "Expected dbh to NOT have been updated on the Tree")
+        if action == Audit.Type.PendingApprove:
+            self.assertEqual(edited_dbh, test_tree.diameter,
+                             "Expected dbh to have been updated on the Tree")
+        elif action == Audit.Type.PendingReject:
+            self.assertEqual(original_dbh, test_tree.diameter,
+                             "Expected dbh to NOT have been "
+                             "updated on the Tree")
 
         response_json = loads(response.content)
         self.assertTrue('tree' in response_json)
         self.assertTrue('dbh' in response_json['tree'])
-        if action == 'approve':
-            self.assertEqual(edited_dbh, response_json['tree']['dbh'], "Expected dbh to have been updated in the JSON response")
-        elif action == 'reject':
-            self.assertEqual(original_dbh, response_json['tree']['dbh'], "Expected dbh to NOT have been updated in the JSON response")
+
+        if action == Audit.Type.PendingApprove:
+            self.assertEqual(edited_dbh,
+                             response_json['tree']['dbh'],
+                             "Expected dbh to have been updated"
+                             " in the JSON response")
+        elif action == Audit.Type.PendingReject:
+            self.assertEqual(original_dbh,
+                             response_json['tree']['dbh'],
+                             "Expected dbh to NOT have been "
+                             "updated in the JSON response")
 
     def test_approve_plot_pending_with_mutiple_pending_edits(self):
-        settings.PENDING_ON = True
-
-        test_plot = mkPlot(self.user)
+        test_plot = mkPlot(self.instance, self.user)
         test_plot.width = 100
         test_plot.length = 50
-        test_plot.save()
-        test_tree = mkTree(self.user, plot=test_plot)
-        test_tree.dbh = 2.3
-        test_tree.save()
+        test_plot.save_with_user(self.user)
+        test_tree = mkTree(self.instance, self.user, plot=test_plot)
+        test_tree.diameter = 2.3
+        test_tree.save_with_user(self.user)
 
         updated_values = {
             "plot_width": 125,
@@ -965,93 +1066,106 @@ class UpdatePlotAndTree(TestCase):
             }
         }
 
-        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
-        self.assertEqual(response.status_code, 200, "Non 200 response when updating plot")
+        response = put_json("%s/%s/plots/%d" %
+                            (API_PFX, self.instance.pk, test_plot.id),
+                            updated_values, self.client, self.public_user_sign)
+        self.assertEqual(response.status_code, 200,
+                         "Non 200 response when updating plot")
 
         updated_values = {
             "plot_width": 175,
         }
 
-        response = put_json( "%s/plots/%d"  % (API_PFX, test_plot.id), updated_values, self.client, self.public_user_sign)
-        self.assertEqual(response.status_code, 200, "Non 200 response when updating plot")
+        response = put_json("%s/%s/plots/%d" %
+                            (API_PFX, self.instance.pk, test_plot.id),
+                            updated_values,
+                            self.client, self.public_user_sign)
+
+        self.assertEqual(response.status_code, 200,
+                         "Non 200 response when updating plot")
 
         test_plot = Plot.objects.get(pk=test_plot.pk)
-        pending_edit_count = len(list(test_plot.get_active_pends_with_tree_pends()))
-        self.assertEqual(4, pending_edit_count, "Expected three pending edits but got %d" % pending_edit_count)
+        pending_edit_count = len(test_plot.get_active_pending_audits())
+        self.assertEqual(3, pending_edit_count,
+                         "Expected three pending edits but got %d" %
+                         pending_edit_count)
 
-        pend = test_plot.get_active_pends()[0]
+        pend = test_plot.get_active_pending_audits()[0]
         approved_pend_id = pend.id
 
-        response = post_json("%s/pending-edits/%d/approve/"  % (API_PFX, approved_pend_id), None, self.client, self.sign)
-        self.assertEqual(response.status_code, 200, "Non 200 response when approving the pend")
-        self.assertEqual(2, len(list(test_plot.get_active_pends_with_tree_pends())), "Expected there to be 2 pending edits after approval")
+        response = post_json("%s/%s/pending-edits/%d/approve/" %
+                             (API_PFX, self.instance.pk, approved_pend_id),
+                             None, self.client, self.sign)
 
-        for plot_pending in PlotPending.objects.all():
-            if plot_pending.id == approved_pend_id:
-                self.assertEqual('approved', plot_pending.status, 'The status of the approved pend should be "approved"')
-            elif plot_pending.field == 'width':
-                self.assertEqual('rejected', plot_pending.status, 'The status of the non-approved width pends should be "rejected"')
-            else: # plot_pending.id != approved_pend_id and plot_pending.field != 'width'
-                self.assertEqual('pending', plot_pending.status, 'The status of plot pends not on the width field should still be "pending"')
+        self.assertEqual(response.status_code, 200,
+                         "Non 200 response when approving the pend")
 
-        for tree_pending in TreePending.objects.all():
-            self.assertEqual('pending', tree_pending.status, 'The status of tree pends should still be "pending"')
+        self.assertEqual(1, len(test_plot.get_active_pending_audits()),
+                         "Expected there to be 1 pending edits after approval")
 
     def test_remove_plot(self):
-        plot = mkPlot(self.user)
+        plot = mkPlot(self.instance, self.user)
         plot_id = plot.pk
 
-        tree = mkTree(self.user, plot=plot)
+        tree = mkTree(self.instance, self.user, plot=plot)
         tree_id = tree.pk
 
-        response = self.client.delete("%s/plots/%d" % (API_PFX, plot_id), **self.sign)
-        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        response = self.client.delete("%s/%s/plots/%d" %
+                                      (API_PFX, self.instance.pk, plot_id),
+                                      **self.sign)
+
+        self.assertEqual(200, response.status_code,
+                         "Expected 200 status code after delete")
+
         response_dict = loads(response.content)
-        self.assertTrue('ok' in response_dict, 'Expected a json object response with a "ok" key')
-        self.assertTrue(response_dict['ok'], 'Expected a json object response with a "ok" key set to True')
+        self.assertTrue('ok' in response_dict,
+                        'Expected a json object response with a "ok" key')
 
-        plot = Plot.objects.get(pk=plot_id)
-        tree = Tree.objects.get(pk=tree_id)
+        self.assertTrue(response_dict['ok'],
+                        'Expected a json object response with a "ok" key'
+                        'set to True')
 
-        self.assertFalse(plot.present, 'Expected "present" to be False on a deleted plot')
-        for audit_trail_record in plot.history.all():
-            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for a deleted plot')
+        plot = Plot.objects.filter(pk=plot_id)
+        tree = Tree.objects.filter(pk=tree_id)
 
-        self.assertFalse(tree.present, 'Expected "present" to be False on tree associated with a deleted plot')
-        for audit_trail_record in tree.history.all():
-            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for tree associated with a deleted plot')
+        self.assertTrue(len(plot) == 0, 'Expected plot to be gone')
+        self.assertTrue(len(tree) == 0, 'Expected tree to be gone')
 
     def test_remove_tree(self):
-        plot = mkPlot(self.user)
+        plot = mkPlot(self.instance, self.user)
         plot_id = plot.pk
 
-        tree = mkTree(self.user, plot=plot)
+        tree = mkTree(self.instance, self.user, plot=plot)
         tree_id = tree.pk
 
-        response = self.client.delete("%s/plots/%d/tree" % (API_PFX, plot_id), **self.sign)
+        response = self.client.delete("%s/%s/plots/%d/tree" %
+                                      (API_PFX, self.instance.pk, plot_id),
+                                      **self.sign)
+
         self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
         response_dict = loads(response.content)
         self.assertIsNone(response_dict['tree'], 'Expected a json object response to a None value for "tree" key after the tree is deleted')
 
-        plot = Plot.objects.get(pk=plot_id)
-        tree = Tree.objects.get(pk=tree_id)
+        plot = Plot.objects.filter(pk=plot_id)
+        tree = Tree.objects.filter(pk=tree_id)
 
-        self.assertTrue(plot.present, 'Expected "present" to be True after tree is deleted from plot')
-        for audit_trail_record in plot.history.all():
-            self.assertTrue(audit_trail_record.present, 'Expected "present" to be True for all audit trail records for plot with a deleted tree')
+        self.assertTrue(len(plot) == 1, 'Expected plot to be here')
+        self.assertTrue(len(tree) == 0, 'Expected tree to be gone')
 
-        self.assertFalse(tree.present, 'Expected "present" to be False on tree associated with a deleted plot')
-        for audit_trail_record in tree.history.all():
-            self.assertFalse(audit_trail_record.present, 'Expected "present" to be False for all audit trail records for tree associated with a deleted plot')
 
     def test_get_current_tree(self):
-        plot = mkPlot(self.user)
+        plot = mkPlot(self.instance, self.user)
         plot_id = plot.pk
 
-        tree = mkTree(self.user, plot=plot)
+        tree = mkTree(self.instance, self.user, plot=plot)
+        tree.species = Species.objects.all()[0]
+        tree.save_with_user(self.user)
 
-        response = self.client.get("%s/plots/%d/tree" % (API_PFX, plot_id), **self.sign)
-        self.assertEqual(200, response.status_code, "Expected 200 status code after delete")
+        response = self.client.get("%s/%s/plots/%d/tree" %
+                                   (API_PFX, self.instance.pk, plot_id),
+                                   **self.sign)
+
+        self.assertEqual(200, response.status_code, "Expected 200 status code")
         response_dict = loads(response.content)
         self.assertTrue('species' in response_dict, 'Expected "species" to be a top level key in the response object')
         self.assertEqual(tree.species.pk, response_dict['species'])
@@ -1253,8 +1367,8 @@ class ChoiceConversion(TestCase):
         self.assertFalse(_attribute_requires_conversion(request, 'condition'))
 
     def test_set_tree_attribute_with_choice_conversion(self):
-        test_plot = mkPlot(self.user)
-        test_tree = mkTree(self.user, plot=test_plot)
+        test_plot = mkPlot(self.instance, self.user)
+        test_tree = mkTree(self.instance, self.user, plot=test_plot)
         test_tree_id = test_tree.id
         test_tree.condition = "10"
         test_tree.save()
@@ -1269,10 +1383,10 @@ class ChoiceConversion(TestCase):
         self.assertEqual("11", tree.condition)
 
     def test_get_tree_with_choice_conversion(self):
-        plot = mkPlot(self.user)
+        plot = mkPlot(self.instance, self.user)
         plot_id = plot.pk
 
-        tree = mkTree(self.user, plot=plot)
+        tree = mkTree(self.instance, self.user, plot=plot)
         tree.condition = "10"
         tree.save()
 
@@ -1316,8 +1430,8 @@ class ChoiceConversion(TestCase):
     def test_update_tree_with_pending(self):
         settings.PENDING_ON = True
         try:
-            test_plot = mkPlot(self.user)
-            test_tree = mkTree(self.user, plot=test_plot)
+            test_plot = mkPlot(self.instance, self.user)
+            test_tree = mkTree(self.instance, self.user, plot=test_plot)
             test_tree_id = test_tree.id
             test_tree.condition = 11
             test_tree.save()
@@ -1359,8 +1473,8 @@ class ChoiceConversion(TestCase):
         new_original_condition = '11'
         new_edited_condition = '10'
 
-        test_plot = mkPlot(self.user)
-        test_tree = mkTree(self.user, plot=test_plot)
+        test_plot = mkPlot(self.instance, self.user)
+        test_tree = mkTree(self.instance, self.user, plot=test_plot)
         test_tree_id = test_tree.id
         test_tree.condition = new_original_condition
         test_tree.save()
