@@ -4,6 +4,7 @@ from __future__ import division
 
 from django.contrib.gis.db import models
 from django.db import IntegrityError
+from django.db.models import Q
 from treemap.audit import Auditable, Authorizable, FieldPermission, Role
 
 from django.contrib.auth.models import AbstractUser
@@ -99,6 +100,19 @@ class User(Auditable, AbstractUser):
         return perms
 
 
+class SpeciesManager(models.GeoManager):
+    # Since scientific_name is a property it can't be used in a django filter
+    # instead this searches the fields sceintific_name is built from
+    def contains_name(self, query):
+        queries = query.split(' ', 4)
+        q = Q(common_name__contains=query)
+        for word in queries:
+            q |= Q(genus__contains=word)
+            q |= Q(species__contains=word)
+            q |= Q(cultivar_name__contains=word)
+        return self.filter(q)
+
+
 class Species(models.Model):
     """
     http://plants.usda.gov/adv_search.html
@@ -129,7 +143,7 @@ class Species(models.Model):
     max_dbh = models.IntegerField(default=200)
     max_height = models.IntegerField(default=800)
 
-    objects = models.GeoManager()
+    objects = SpeciesManager()
 
     @property
     def scientific_name(self):
