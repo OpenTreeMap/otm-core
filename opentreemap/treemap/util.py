@@ -37,6 +37,7 @@ def strip_request(view_fn):
 
     return wrapper
 
+
 def render_template(templ, view_fn_or_dict=None, **kwargs):
     def wrapper(request, *args, **wrapper_kwargs):
         if view_fn_or_dict is None:

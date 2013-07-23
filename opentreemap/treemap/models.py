@@ -85,7 +85,7 @@ class User(Auditable, AbstractUser):
             error_message = ("%s cannot have more than one role per"
                              " instance. Something might be very "
                              "wrong with your database configuration." %
-                             self.pk)
+                             self.username)
             raise IntegrityError(error_message)
 
         elif len(roles) == 1:
@@ -175,6 +175,18 @@ class Plot(Authorizable, Auditable, models.Model):
     readonly = models.BooleanField(default=False)
 
     objects = models.GeoManager()
+
+    def current_tree(self):
+        """
+        This is a compatibility method that is used by the API to
+        select the 'current tree'. Right now OTM only supports one
+        tree per plot, so this method returns the 'first' tree
+        """
+        trees = list(self.tree_set.all())
+        if trees:
+            return trees[0]
+        else:
+            return None
 
     @property
     def hash(self):

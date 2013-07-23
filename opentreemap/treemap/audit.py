@@ -25,6 +25,7 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
     approved - True to generate an approval, False to
                generate a rejection
     """
+
     # If the ref_id has already been set, this audit has
     # already been accepted or rejected so we can't do anything
     if audit.ref_id:
@@ -230,7 +231,7 @@ class Authorizable(UserTrackable):
         field_set = {field_name for field_name in self._previous_state.keys()}
         return perm_set, field_set
 
-    def _user_can_delete(self, user):
+    def user_can_delete(self, user):
         """
         A user is able to delete an object if they have all
         field permissions on a model.
@@ -331,7 +332,7 @@ class Authorizable(UserTrackable):
     def delete_with_user(self, user, *args, **kwargs):
         self._assert_not_clobbered()
 
-        if self._user_can_delete(user):
+        if self.user_can_delete(user):
             super(Authorizable, self).delete_with_user(user, *args, **kwargs)
         else:
             raise AuthorizeException("%s does not have permission to "
@@ -366,6 +367,13 @@ class Auditable(UserTrackable):
 
         super(Auditable, self).delete_with_user(user, *args, **kwargs)
         a.save()
+
+    def get_active_pending_audits(self):
+        return Audit.objects.filter(model=self._model_name)\
+                            .filter(model_id=self.pk)\
+                            .filter(requires_auth=True)\
+                            .filter(ref_id__isnull=True)\
+                            .order_by('-created')
 
     def save_with_user(self, user, *args, **kwargs):
 
@@ -571,11 +579,29 @@ class Audit(models.Model):
         PendingApprove = 4
         PendingReject = 5
 
+    TYPES = {
+        Type.Insert: 'Create',
+        Type.Delete: 'Delete',
+        Type.Update: 'Update',
+        Type.PendingApprove: 'Approved Pending Edit',
+        Type.PendingReject: 'Reject Pending Edit',
+    }
+
+    @property
+    def display_action(self):
+        return Audit.TYPES[self.action]
+
     @classmethod
     def audits_for_model(clz, model_name, inst, pk):
         return Audit.objects.filter(model=model_name,
                                     model_id=pk,
                                     instance=inst).order_by('created')
+
+    @classmethod
+    def pending_audits(clz):
+        return Audit.objects.filter(requires_auth=True)\
+                            .filter(ref_id__isnull=True)\
+                            .order_by('created')
 
     @classmethod
     def audits_for_object(clz, obj):
@@ -631,7 +657,7 @@ class ReputationMetric(models.Model):
             return
 
         if audit.was_reviewed():
-            review_audit = Audit.objects.get(id=audit.ref_id)
+            review_audit = audit.ref_id
             if review_audit.action == Audit.Type.PendingApprove:
                 audit.user.reputation += rm.approval_score
                 audit.user.save_base()
