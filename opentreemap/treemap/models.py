@@ -2,6 +2,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import string
+import re
+
 from django.contrib.gis.db import models
 from django.db import IntegrityError
 from django.db.models import Q
@@ -102,14 +105,30 @@ class User(Auditable, AbstractUser):
 
 class SpeciesManager(models.GeoManager):
     # Since scientific_name is a property it can't be used in a django filter
-    # instead this searches the fields sceintific_name is built from
+    # instead this searches the fields scientific_name is built from
     def contains_name(self, query):
-        queries = query.split(' ', 4)
-        q = Q(common_name__contains=query)
+        def simple_search(search):
+            return (Q(common_name__contains=search)
+                    | Q(genus__contains=search)
+                    | Q(species__contains=search)
+                    | Q(cultivar_name__contains=search))
+
+        simple_qs = self.filter(simple_search(query))
+
+        if simple_qs:
+            return simple_qs
+
+        # If a simple match cannot be found try matching on each individual
+        # word in the query.
+        separator = re.compile(r'(?:\s|[%s])+'
+                               % re.escape(string.punctuation))
+        queries = separator.split(query, 4)
+
+        q = Q()
         for word in queries:
-            q |= Q(genus__contains=word)
-            q |= Q(species__contains=word)
-            q |= Q(cultivar_name__contains=word)
+            if word:
+                q &= simple_search(word)
+
         return self.filter(q)
 
 

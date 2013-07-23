@@ -1623,6 +1623,9 @@ class SpeciesViewTests(ViewTestCase):
         super(SpeciesViewTests, self).setUp()
 
         self.species_dict = [
+            {'common_name': 'asian cherry', 'genus': 'cherrificus'},
+            {'common_name': 'cherrytree', 'genus': 'cherritius',
+             'cultivar_name': 'asian'},
             {'common_name': 'elm', 'genus': 'elmitius'},
             {'common_name': 'oak', 'genus': 'acorn',
              'species': 'oakenitus'},
@@ -1654,19 +1657,44 @@ class SpeciesViewTests(ViewTestCase):
     def test_get_species_list_filter_common(self):
         self.assertEquals(
             species_list(self._make_request({'q': 'pine'}), None),
-            self.species_json[2:3])
+            self.species_json[4:5])
 
     def test_get_species_list_filter_scientific(self):
         self.assertEquals(
             species_list(self._make_request({'q': 'lmitiu'}), None),
-            [self.species_json[0], self.species_json[3]])
+            [self.species_json[2], self.species_json[5]])
 
     def test_get_species_list_filter_both_names(self):
         self.assertEquals(
             species_list(self._make_request({'q': 'xmas'}), None),
-            self.species_json[4:6])
+            self.species_json[6:8])
 
     def test_get_species_list_max_items(self):
         self.assertEquals(
             species_list(self._make_request({'max_items': 3}), None),
             self.species_json[:3])
+
+    def test_get_species_list_no_split_match(self):
+        self.assertEquals(
+            species_list(self._make_request({'q': 'asian cherry'}), None),
+            self.species_json[:1])
+
+    def test_get_species_list_contains(self):
+        self.assertEquals(
+            species_list(self._make_request({'q': 'cherry'}), None),
+            self.species_json[:2])
+
+    def test_get_species_list_out_of_order_matches(self):
+        self.assertEquals(
+            species_list(self._make_request({'q': 'cherry asian'}), None),
+            self.species_json[:2])
+
+    def test_get_species_list_punctuation_split(self):
+        self.assertEquals(
+            species_list(self._make_request({'q': "asian,cherry'cherritius'"}),
+                         None),
+            self.species_json[1:2])
+
+    def test_get_species_list_no_match(self):
+        self.assertEquals(
+            species_list(self._make_request({'q': 'cherry elm'}), None), [])
