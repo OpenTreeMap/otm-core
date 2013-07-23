@@ -218,7 +218,6 @@ class Plot(Authorizable, Auditable, models.Model):
 
     objects = models.GeoManager()
 
-
     def current_tree(self):
         """
         This is a compatibility method that is used by the API to

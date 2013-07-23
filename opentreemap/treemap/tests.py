@@ -34,6 +34,7 @@ import json
 ## SETUP FUNCTIONS
 ######################################
 
+
 def make_simple_boundary(name, n=1):
     b = Boundary()
     b.geom = MultiPolygon(make_simple_polygon(n))
@@ -908,7 +909,6 @@ class ReputationTest(TestCase):
 
 class BoundaryViewTest(ViewTestCase):
 
-
     def setUp(self):
         super(BoundaryViewTest, self).setUp()
 
@@ -1721,17 +1721,21 @@ class SpeciesModelTests(TestCase):
         self.assertEquals(s.scientific_name, "Ulmus rubra 'Columella'")
         self.assertEquals(self.species_dict, species_list(None, None))
 
+
 class ModelUnicodeTests(TestCase):
 
     def setUp(self):
         self.instance = make_instance(name='Test Instance')
 
-        self.species = Species(common_name='Test Common Name', genus='Test Genus',
-                               cultivar_name='Test Cultivar', species='Test Species')
+        self.species = Species(common_name='Test Common Name',
+                               genus='Test Genus',
+                               cultivar_name='Test Cultivar',
+                               species='Test Species')
         self.species.save_base()
 
-        self.instance_species = InstanceSpecies(instance=self.instance, species=self.species,
-                                           common_name='Test Common Name')
+        self.instance_species = InstanceSpecies(instance=self.instance,
+                                                species=self.species,
+                                                common_name='Test Common Name')
         self.instance_species.save_base()
 
         self.user = make_system_user()
@@ -1745,7 +1749,8 @@ class ModelUnicodeTests(TestCase):
 
         self.plot.save_base()
 
-        self.tree = Tree(plot=self.plot, instance=self.instance, created_by=self.user)
+        self.tree = Tree(plot=self.plot, instance=self.instance,
+                         created_by=self.user)
         self.tree.save_base()
 
         self.boundary = make_simple_boundary("Test Boundary")
@@ -1754,32 +1759,34 @@ class ModelUnicodeTests(TestCase):
         self.role.name = "Test Role"
         self.role.save()
 
-        self.field_permission = FieldPermission(model_name="Tree",
-                                           field_name="readonly",
-                                           permission_level=FieldPermission.READ_ONLY,
-                                           role=self.role,
-                                           instance=self.instance)
+        self.field_permission = FieldPermission(
+            model_name="Tree",
+            field_name="readonly",
+            permission_level=FieldPermission.READ_ONLY,
+            role=self.role,
+            instance=self.instance)
         self.field_permission.save_base()
 
         self.audit = Audit(action=Audit.Type.Update,
-                      model = "Tree",
-                      field = "readonly",
-                      model_id = 1,
-                      user=self.user,
-                      previous_value=True,
-                      current_value=False)
+                           model="Tree",
+                           field="readonly",
+                           model_id=1,
+                           user=self.user,
+                           previous_value=True,
+                           current_value=False)
         self.audit.save_base()
 
         self.reputation_metric = ReputationMetric(instance=self.instance,
-                                             model_name="Tree",
-                                             action="Test Action")
+                                                  model_name="Tree",
+                                                  action="Test Action")
         self.reputation_metric.save_base()
 
     def test_instance_model(self):
         self.assertEqual(unicode(self.instance), "Test Instance")
 
     def test_species_model(self):
-        self.assertEqual(unicode(self.species), "Test Genus Test Species 'Test Cultivar'")
+        self.assertEqual(unicode(self.species),
+                         "Test Genus Test Species 'Test Cultivar'")
 
     def test_instance_species_model(self):
         self.assertEqual(unicode(self.instance_species), 'Test Common Name')
@@ -1789,7 +1796,8 @@ class ModelUnicodeTests(TestCase):
 
     def test_import_event_model(self):
         today = datetime.datetime.today().strftime('%Y-%m-%d')
-        self.assertEqual(unicode(self.import_event), 'system_user - %s' % today)
+        self.assertEqual(unicode(self.import_event),
+                         'system_user - %s' % today)
 
     def test_plot_model(self):
         self.assertEqual(unicode(self.plot), 'X: 0.0, Y: 0.0 - 123 Main Street')
@@ -1805,10 +1813,13 @@ class ModelUnicodeTests(TestCase):
         self.assertEqual(unicode(self.role), 'Test Role')
 
     def test_field_permission_model(self):
-        self.assertEqual(unicode(self.field_permission), 'Tree.readonly - Test Role')
+        self.assertEqual(unicode(self.field_permission),
+                         'Tree.readonly - Test Role')
 
     def test_audit_model(self):
-        self.assertEqual(unicode(self.audit), 'ID: 3 Tree.readonly (1) True => False')
+        self.assertEqual(unicode(self.audit),
+                         'ID: 3 Tree.readonly (1) True => False')
 
     def test_reputation_metric_model(self):
-        self.assertEqual(unicode(self.reputation_metric), 'Test Instance - Tree - Test Action')
+        self.assertEqual(unicode(self.reputation_metric),
+                         'Test Instance - Tree - Test Action')
