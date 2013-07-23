@@ -1638,37 +1638,20 @@ class SpeciesViewTests(ViewTestCase):
     def test_get_species_list(self):
         self.assertEquals(self.species_dict, species_list(None, None))
 
-class SpeciesModelTests(TestCase):
-    def setUp(self):
-        self.species_dict = [
-            {'common_name': 'elm', 'genus': 'elmitius'},
-            {'common_name': 'oak', 'genus': 'acorn',
-             'species': 'oakenitus'},
-            {'common_name': 'pine', 'genus': 'piniferus',
-             'cultivar_name': 'green'},
-            {'common_name': 'thing', 'genus': 'elmitius'},
-            {'common_name': 'xmas', 'genus': 'christmas',
-             'species': 'tree', 'cultivar_name': 'douglass'},
-            {'common_name': 'xmas tree', 'genus': 'x-mas',
-             'species': 'tree', 'cultivar_name': 'douglass'},
-        ]
-        self.scientific_names = [
-            "elmitius",
-            "acorn oakenitus",
-            "piniferus 'green'",
-            "elmitius",
-            "christmas tree 'douglass'",
-            "x-mas tree 'douglass'"
-        ]
-        self.species = []
-        for i, item in enumerate(self.species_dict):
-            self.species.append(
-                Species(common_name=item.get('common_name'),
-                        genus=item.get('genus'),
-                        species=item.get('species'),
-                        cultivar_name=item.get('cultivar_name'),
-                        symbol=str(i)))
 
-    def test_scientific_name(self):
-        for i, s in enumerate(self.species):
-            self.assertEquals(s.scientific_name, self.scientific_names[i])
+class SpeciesModelTests(TestCase):
+    def test_scientific_name_genus(self):
+        s = Species(genus='Ulmus')
+        self.assertEquals(s.scientific_name, 'Ulmus')
+
+    def test_scientific_name_genus_species(self):
+        s = Species(genus='Ulmus', species='rubra')
+        self.assertEquals(s.scientific_name, 'Ulmus rubra')
+
+    def test_scientific_name_genus_cultivar(self):
+        s = Species(genus='Ulmus', cultivar_name='Columella')
+        self.assertEquals(s.scientific_name, "Ulmus 'Columella'")
+
+    def test_scientific_name_all(self):
+        s = Species(genus='Ulmus', species='rubra', cultivar_name='Columella')
+        self.assertEquals(s.scientific_name, "Ulmus rubra 'Columella'")
