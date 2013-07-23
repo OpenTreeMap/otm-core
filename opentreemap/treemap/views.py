@@ -141,7 +141,11 @@ def boundary_autocomplete(request, instance):
 
 
 def species_list(request, instance):
-    species_set = Species.objects.order_by('common_name')
+    query = request.GET.get('q', '')
+    max_items = request.GET.get('max_items', 10)
+
+    species_set = Species.objects.contains_name(query)\
+                                 .order_by('common_name')[:max_items]
 
     return [{'common_name': species.common_name,
              'id': species.pk,
