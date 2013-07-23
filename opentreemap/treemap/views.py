@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import urllib
+from PIL import Image
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseServerError
@@ -10,6 +11,8 @@ from django.http import HttpResponse, HttpResponseServerError
 from django.views.decorators.http import etag
 
 from django.conf import settings
+
+from django.contrib.gis.geos.point import Point
 
 from treemap.util import json_api_call, render_template, instance_request
 
@@ -23,6 +26,80 @@ from ecobenefits.views import _benefits_for_trees
 
 def _plot_hash(request, instance, plot_id):
     return instance.scope_model(Plot).get(pk=plot_id).hash
+
+
+##
+# These are calls made by the API that aren't currently implemented
+# as we make these features, please use these functions to share the
+# love with mobile
+##
+def add_tree_photo(user_id, plot_id, uploaded_image):
+    class TPShim(object):
+        def __init__(self):
+            self.pk = 2
+            self.title = 'shim'
+
+    return TPShim()
+
+
+def _rotate_image_based_on_exif(img_path):
+    img = Image.open(img_path)
+    try:
+        orientation = img._getexif()[0x0112]
+        if orientation == 6:  # Right turn
+            img = img.rotate(-90)
+        elif orientation == 5:  # Left turn
+            img = img.rotate(90)
+    except:
+        pass
+
+    return img
+
+
+def get_tree_photos(plot_id, photo_id):
+    return None
+
+
+def add_user_photo(user_id, uploaded_image):
+    return None
+
+
+def create_user(*args, **kwargs):
+    # Clearly this is just getting the api working
+    # it shouldn't stay here when real user stuff happens
+    from treemap.tests import make_system_user
+
+    user = User(username=kwargs['username'], email=kwargs['email'])
+    user.set_password(kwargs['password'])
+    user.save_with_user(make_system_user())
+
+    return user
+
+
+def create_plot(user, instance, *args, **kwargs):
+    if 'x' in kwargs and 'y' in kwargs:
+        geom = Point(
+            kwargs['x'],
+            kwargs['y'])
+    elif 'lon' in kwargs and 'lat' in kwargs:
+        geom = Point(
+            kwargs['lon'],
+            kwargs['lat'])
+    else:
+        geom = Point(50, 50)
+
+    p = Plot(geom=geom, instance=instance, created_by=user)
+    p.save_with_user(user)
+
+    if 'height' in kwargs:
+        t = Tree(plot=p, instance=instance, created_by=user)
+        t.height = kwargs['height']
+
+        if t.height > 1000:
+            return ["Height is too large."]
+
+        t.save_with_user(user)
+    return p
 
 
 def plot_detail(request, instance, plot_id):

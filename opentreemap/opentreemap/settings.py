@@ -1,5 +1,11 @@
 # Django settings for opentreemap project.
 
+OTM_VERSION = 'dev'
+API_VERSION = 'v0.1'
+
+# API distance check, in meters
+MAP_CLICK_RADIUS = 100
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 AUTH_USER_MODEL = 'treemap.User'
@@ -127,6 +133,7 @@ INSTALLED_APPS = (
     'treemap',
     'ecobenefits',
     'geocode',
+    'api'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
