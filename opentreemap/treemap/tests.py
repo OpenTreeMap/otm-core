@@ -1623,21 +1623,81 @@ class SpeciesViewTests(ViewTestCase):
         super(SpeciesViewTests, self).setUp()
 
         self.species_dict = [
-            {'common_name': 'elm', 'scientific_name': 'elmitius'},
-            {'common_name': 'oak', 'scientific_name': 'oakenitus'},
-            {'common_name': 'pine', 'scientific_name': 'piniferus'},
-            {'common_name': 'xmas', 'scientific_name': 'christmas'},
+            {'common_name': 'asian cherry', 'genus': 'cherrificus'},
+            {'common_name': 'cherrytree', 'genus': 'cherritius',
+             'cultivar_name': 'asian'},
+            {'common_name': 'elm', 'genus': 'elmitius'},
+            {'common_name': 'oak', 'genus': 'acorn',
+             'species': 'oakenitus'},
+            {'common_name': 'pine', 'genus': 'piniferus',
+             'cultivar_name': 'green'},
+            {'common_name': 'thing', 'genus': 'elmitius'},
+            {'common_name': 'xmas', 'genus': 'christmas',
+             'species': 'tree', 'cultivar_name': 'douglass'},
+            {'common_name': 'x-mas tree', 'genus': 'xmas',
+             'species': 'tree', 'cultivar_name': 'douglass'},
         ]
+        self.species_json = []
         for i, item in enumerate(self.species_dict):
-            species = Species(common_name=item['common_name'],
-                              genus=item['scientific_name'],
+            species = Species(common_name=item.get('common_name'),
+                              genus=item.get('genus'),
+                              species=item.get('species'),
+                              cultivar_name=item.get('cultivar_name'),
                               symbol=str(i))
             species.save()
-            item['id'] = species.id
+            self.species_json.append(
+                {'id': species.id,
+                 'common_name': species.common_name,
+                 'scientific_name': species.scientific_name})
 
     def test_get_species_list(self):
-        self.assertEquals(self.species_dict, species_list(None, None))
+        self.assertEquals(species_list(self._make_request(), None),
+                          self.species_json)
 
+    def test_get_species_list_filter_common(self):
+        self.assertEquals(
+            species_list(self._make_request({'q': 'pine'}), None),
+            self.species_json[4:5])
+
+    def test_get_species_list_filter_scientific(self):
+        self.assertEquals(
+            species_list(self._make_request({'q': 'lmitiu'}), None),
+            [self.species_json[2], self.species_json[5]])
+
+    def test_get_species_list_filter_both_names(self):
+        self.assertEquals(
+            species_list(self._make_request({'q': 'xmas'}), None),
+            self.species_json[6:8])
+
+    def test_get_species_list_max_items(self):
+        self.assertEquals(
+            species_list(self._make_request({'max_items': 3}), None),
+            self.species_json[:3])
+
+    def test_get_species_list_no_split_match(self):
+        self.assertEquals(
+            species_list(self._make_request({'q': 'asian cherry'}), None),
+            self.species_json[:1])
+
+    def test_get_species_list_contains(self):
+        self.assertEquals(
+            species_list(self._make_request({'q': 'cherry'}), None),
+            self.species_json[:2])
+
+    def test_get_species_list_out_of_order_matches(self):
+        self.assertEquals(
+            species_list(self._make_request({'q': 'cherry asian'}), None),
+            self.species_json[:2])
+
+    def test_get_species_list_punctuation_split(self):
+        self.assertEquals(
+            species_list(self._make_request({'q': "asian,cherry'cherritius'"}),
+                         None),
+            self.species_json[1:2])
+
+    def test_get_species_list_no_match(self):
+        self.assertEquals(
+            species_list(self._make_request({'q': 'cherry elm'}), None), [])
 
 class SpeciesModelTests(TestCase):
     def test_scientific_name_genus(self):
