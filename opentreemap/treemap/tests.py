@@ -1637,3 +1637,21 @@ class SpeciesViewTests(ViewTestCase):
 
     def test_get_species_list(self):
         self.assertEquals(self.species_dict, species_list(None, None))
+
+
+class SpeciesModelTests(TestCase):
+    def test_scientific_name_genus(self):
+        s = Species(genus='Ulmus')
+        self.assertEquals(s.scientific_name, 'Ulmus')
+
+    def test_scientific_name_genus_species(self):
+        s = Species(genus='Ulmus', species='rubra')
+        self.assertEquals(s.scientific_name, 'Ulmus rubra')
+
+    def test_scientific_name_genus_cultivar(self):
+        s = Species(genus='Ulmus', cultivar_name='Columella')
+        self.assertEquals(s.scientific_name, "Ulmus 'Columella'")
+
+    def test_scientific_name_all(self):
+        s = Species(genus='Ulmus', species='rubra', cultivar_name='Columella')
+        self.assertEquals(s.scientific_name, "Ulmus rubra 'Columella'")
