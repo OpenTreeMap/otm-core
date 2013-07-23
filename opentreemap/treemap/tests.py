@@ -1699,6 +1699,7 @@ class SpeciesViewTests(ViewTestCase):
         self.assertEquals(
             species_list(self._make_request({'q': 'cherry elm'}), None), [])
 
+
 class SpeciesModelTests(TestCase):
     def test_scientific_name_genus(self):
         s = Species(genus='Ulmus')
