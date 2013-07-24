@@ -995,8 +995,7 @@ def update_plot_and_tree(request, instance, plot_id):
         if ((tree_field.name in request_dict and
              tree_field.name in tree_field_whitelist)):
             if tree is None:
-                tree = Tree(plot=plot, instance=instance,
-                            created_by=request.user)
+                tree = Tree(plot=plot, instance=instance)
 
                 tree.plot = plot
                 tree.last_updated_by = request.user
