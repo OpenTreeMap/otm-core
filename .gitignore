@@ -6,3 +6,4 @@ local_settings.py
 /static
 .coverage
 Guardfile
+opentreemap/.idea
