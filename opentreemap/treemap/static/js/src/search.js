@@ -44,16 +44,13 @@ var Search = (function ($,Bacon,config) {
             url: '/' + config.instance.id + '/benefit/search',
             data: {'q': JSON.stringify(search_query)},
             type: 'GET',
-            dataType: 'json'});
+            dataType: 'html'});
 
         return Bacon.fromPromise(search);
     }
 
     function displaySearch(result) {
-        var html = _.template($('#template-search-results').html(),
-                              { search: result });
-
-        $("#search-results").html(html);
+        $("#search-results").html(result);
     }
 
     // Arguments
