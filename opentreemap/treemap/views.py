@@ -88,11 +88,11 @@ def create_plot(user, instance, *args, **kwargs):
     else:
         geom = Point(50, 50)
 
-    p = Plot(geom=geom, instance=instance, created_by=user)
+    p = Plot(geom=geom, instance=instance)
     p.save_with_user(user)
 
     if 'height' in kwargs:
-        t = Tree(plot=p, instance=instance, created_by=user)
+        t = Tree(plot=p, instance=instance)
         t.height = kwargs['height']
 
         if t.height > 1000:
