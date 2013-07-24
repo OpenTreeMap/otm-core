@@ -229,7 +229,7 @@ class HashModelTest(TestCase):
         self.p2 = Point(-7615441.0, 5953519.0)
 
     def test_changing_fields_changes_hash(self):
-        plot = Plot(geom=self.p1, instance=self.instance, created_by=self.user)
+        plot = Plot(geom=self.p1, instance=self.instance)
         plot.save_with_user(self.user)
 
         #
@@ -256,8 +256,7 @@ class HashModelTest(TestCase):
         h1 = plot.hash
         tree = Tree(plot=plot,
                     instance=self.instance,
-                    readonly=False,
-                    created_by=self.user)
+                    readonly=False)
         tree.save_with_user(self.user)
         h2 = plot.hash
 
@@ -305,8 +304,7 @@ class GeoRevIncr(TestCase):
         rev1h, rev1 = self.hash_and_rev()
 
         # Create
-        plot1 = Plot(geom=self.p1, instance=self.instance,
-                     created_by=self.user)
+        plot1 = Plot(geom=self.p1, instance=self.instance)
 
         plot1.save_with_user(self.user)
 
@@ -315,8 +313,7 @@ class GeoRevIncr(TestCase):
         self.assertNotEqual(rev1h, rev2h)
         self.assertEqual(rev1 + 1, rev2)
 
-        plot2 = Plot(geom=self.p2, instance=self.instance,
-                     created_by=self.user)
+        plot2 = Plot(geom=self.p2, instance=self.instance)
 
         plot2.save_with_user(self.user)
 
@@ -372,13 +369,11 @@ class UserRoleFieldPermissionTest(TestCase):
         self.anonymous = User(username="")
         self.anonymous.save_with_user(system_user)
 
-        self.plot = Plot(geom=self.p1, instance=self.instance,
-                         created_by=self.officer)
+        self.plot = Plot(geom=self.p1, instance=self.instance)
 
         self.plot.save_with_user(self.officer)
 
-        self.tree = Tree(plot=self.plot, instance=self.instance,
-                         created_by=self.officer)
+        self.tree = Tree(plot=self.plot, instance=self.instance)
 
         self.tree.save_with_user(self.officer)
 
@@ -419,25 +414,21 @@ class UserRoleFieldPermissionTest(TestCase):
 
     def test_save_new_object_authorized(self):
         '''Save two new objects with authorized user, nothing should happen'''
-        plot = Plot(geom=self.p1, instance=self.instance,
-                    created_by=self.officer)
+        plot = Plot(geom=self.p1, instance=self.instance)
 
         plot.save_with_user(self.officer)
 
-        tree = Tree(plot=plot, instance=self.instance,
-                    created_by=self.officer)
+        tree = Tree(plot=plot, instance=self.instance)
 
         tree.save_with_user(self.officer)
 
     def test_save_new_object_unauthorized(self):
-        plot = Plot(geom=self.p1, instance=self.instance,
-                    created_by=self.outlaw)
+        plot = Plot(geom=self.p1, instance=self.instance)
 
         self.assertRaises(AuthorizeException,
                           plot.save_with_user, self.outlaw)
 
-        tree = Tree(plot=plot, instance=self.instance,
-                    created_by=self.outlaw)
+        tree = Tree(plot=plot, instance=self.instance)
 
         self.assertRaises(AuthorizeException,
                           tree.save_with_user, self.outlaw)
@@ -564,26 +555,22 @@ class ScopeModelTest(TestCase):
                             role=self.global_role,
                             instance=i).save()
 
-        self.plot1 = Plot(geom=p1, instance=self.instance1,
-                          created_by=self.user)
+        self.plot1 = Plot(geom=p1, instance=self.instance1)
 
         self.plot1.save_with_user(self.user)
 
-        self.plot2 = Plot(geom=p2, instance=self.instance2,
-                          created_by=self.user)
+        self.plot2 = Plot(geom=p2, instance=self.instance2)
 
         self.plot2.save_with_user(self.user)
 
         tree_combos = itertools.product(
             [self.plot1, self.plot2],
             [self.instance1, self.instance2],
-            [True, False],
-            [self.user])
+            [True, False])
 
         for tc in tree_combos:
-            plot, instance, readonly, created_by = tc
-            t = Tree(plot=plot, instance=instance, readonly=readonly,
-                     created_by=created_by)
+            plot, instance, readonly = tc
+            t = Tree(plot=plot, instance=instance, readonly=readonly)
 
             t.save_with_user(self.user)
 
@@ -671,7 +658,7 @@ class AuditTest(TestCase):
 
     def test_cant_use_regular_methods(self):
         p = Point(-8515222.0, 4953200.0)
-        plot = Plot(geom=p, instance=self.instance, created_by=self.user1)
+        plot = Plot(geom=p, instance=self.instance)
         self.assertRaises(UserTrackingException, plot.save)
         self.assertRaises(UserTrackingException, plot.delete)
 
@@ -681,7 +668,7 @@ class AuditTest(TestCase):
 
     def test_basic_audit(self):
         p = Point(-8515222.0, 4953200.0)
-        plot = Plot(geom=p, instance=self.instance, created_by=self.user1)
+        plot = Plot(geom=p, instance=self.instance)
         plot.save_with_user(self.user1)
 
         self.assertAuditsEqual([
@@ -691,12 +678,9 @@ class AuditTest(TestCase):
             self.make_audit(plot.pk, 'readonly', None, 'False',
                             model='Plot'),
             self.make_audit(plot.pk, 'geom', None, str(plot.geom),
-                            model='Plot'),
-            self.make_audit(plot.pk, 'created_by', None, self.user1.pk,
                             model='Plot')], plot.audits())
 
-        t = Tree(plot=plot, instance=self.instance, readonly=True,
-                 created_by=self.user1)
+        t = Tree(plot=plot, instance=self.instance, readonly=True)
 
         t.save_with_user(self.user1)
 
@@ -704,7 +688,6 @@ class AuditTest(TestCase):
             self.make_audit(t.pk, 'id', None, str(t.pk)),
             self.make_audit(t.pk, 'instance', None, t.instance.pk),
             self.make_audit(t.pk, 'readonly', None, True),
-            self.make_audit(t.pk, 'created_by', None, self.user1.pk),
             self.make_audit(t.pk, 'plot', None, plot.pk)]
 
         self.assertAuditsEqual(expected_audits, t.audits())
@@ -746,8 +729,7 @@ class PendingTest(TestCase):
         self.observer_user.roles.add(make_observer_role(self.instance))
 
         self.p1 = Point(-7615441.0, 5953519.0)
-        self.plot = Plot(geom=self.p1, instance=self.instance,
-                         created_by=self.system_user)
+        self.plot = Plot(geom=self.p1, instance=self.instance)
         self.plot.save_with_user(self.direct_user)
 
     def test_reject(self):
@@ -877,8 +859,7 @@ class ReputationTest(TestCase):
         self.unprivileged_user.roles.add(make_apprentice_role(self.instance))
 
         self.p1 = Point(-7615441.0, 5953519.0)
-        self.plot = Plot(geom=self.p1, instance=self.instance,
-                         created_by=self.system_user)
+        self.plot = Plot(geom=self.p1, instance=self.instance)
 
         self.plot.save_with_user(self.system_user)
 
@@ -890,7 +871,7 @@ class ReputationTest(TestCase):
     def test_reputations_increase_for_direct_writes(self):
         self.assertEqual(self.privileged_user.reputation, 0)
         t = Tree(plot=self.plot, instance=self.instance,
-                 readonly=True, created_by=self.privileged_user)
+                 readonly=True)
         t.save_with_user(self.privileged_user)
         self.assertGreater(self.privileged_user.reputation, 0)
 
@@ -979,13 +960,11 @@ class RecentEditsViewTest(TestCase):
         self.p1 = Point(-7615441.0, 5953519.0)
         self.factory = RequestFactory()
 
-        self.plot = Plot(geom=self.p1, instance=self.instance,
-                         created_by=self.system_user)
+        self.plot = Plot(geom=self.p1, instance=self.instance)
 
         self.plot.save_with_user(self.system_user)
 
-        self.tree = Tree(plot=self.plot, instance=self.instance,
-                         created_by=self.officer)
+        self.tree = Tree(plot=self.plot, instance=self.instance)
 
         self.tree.save_with_user(self.officer)
 
@@ -1418,13 +1397,11 @@ class SearchTests(TestCase):
         self.p1 = Point(-7615441.0, 5953519.0)
 
     def create_tree_and_plot(self):
-        plot = Plot(geom=self.p1, instance=self.instance,
-                    created_by=self.system_user)
+        plot = Plot(geom=self.p1, instance=self.instance)
 
         plot.save_with_user(self.system_user)
 
-        tree = Tree(plot=plot, instance=self.instance,
-                    created_by=self.system_user)
+        tree = Tree(plot=plot, instance=self.instance)
 
         tree.save_with_user(self.system_user)
 
@@ -1490,12 +1467,9 @@ class SearchTests(TestCase):
             category='whatever',
             sort_order=1)
 
-        plot1 = Plot(geom=Point(0.9, 0.9), instance=self.instance,
-                     created_by=self.system_user)
-        plot2 = Plot(geom=Point(1.1, 1.1), instance=self.instance,
-                     created_by=self.system_user)
-        plot3 = Plot(geom=Point(2.5, 2.5), instance=self.instance,
-                     created_by=self.system_user)
+        plot1 = Plot(geom=Point(0.9, 0.9), instance=self.instance)
+        plot2 = Plot(geom=Point(1.1, 1.1), instance=self.instance)
+        plot3 = Plot(geom=Point(2.5, 2.5), instance=self.instance)
 
         for p in (plot1, plot2, plot3):
             p.save_with_user(self.system_user)
@@ -1571,20 +1545,16 @@ class SearchTests(TestCase):
         near_point = Point(-7615444.0, 5953521.0)
         far_point = Point(-9615444.0, 8953521.0)
 
-        near_plot = Plot(geom=near_point, instance=self.instance,
-                         created_by=self.system_user)
+        near_plot = Plot(geom=near_point, instance=self.instance)
         near_plot.save_with_user(self.system_user)
-        near_tree = Tree(plot=near_plot, instance=self.instance,
-                         created_by=self.system_user)
+        near_tree = Tree(plot=near_plot, instance=self.instance)
         near_tree.save_with_user(self.system_user)
 
         # just to make sure that the geospatial
         # query actually filters by distance
-        far_plot = Plot(geom=far_point, instance=self.instance,
-                        created_by=self.system_user)
+        far_plot = Plot(geom=far_point, instance=self.instance)
         far_plot.save_with_user(self.system_user)
-        far_tree = Tree(plot=far_plot, instance=self.instance,
-                        created_by=self.system_user)
+        far_tree = Tree(plot=far_plot, instance=self.instance)
         far_tree.save_with_user(self.system_user)
 
         radius_filter = json.dumps(
@@ -1634,7 +1604,7 @@ class SpeciesViewTests(ViewTestCase):
             {'common_name': 'thing', 'genus': 'elmitius'},
             {'common_name': 'xmas', 'genus': 'christmas',
              'species': 'tree', 'cultivar_name': 'douglass'},
-            {'common_name': 'x-mas tree', 'genus': 'xmas',
+            {'common_name': 'xmas tree', 'genus': 'xmas',
              'species': 'tree', 'cultivar_name': 'douglass'},
         ]
         self.species_json = []

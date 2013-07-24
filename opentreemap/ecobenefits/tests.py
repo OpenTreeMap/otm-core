@@ -32,8 +32,7 @@ class EcoTest(TestCase):
 
         p1 = Point(-8515941.0, 4953519.0)
         self.plot = Plot(geom=p1,
-                         instance=self.instance,
-                         created_by=self.user)
+                         instance=self.instance)
 
         self.plot.save_with_user(self.user)
 
@@ -41,8 +40,7 @@ class EcoTest(TestCase):
                          instance=self.instance,
                          readonly=False,
                          species=self.species,
-                         diameter=1630,
-                         created_by=self.user)
+                         diameter=1630)
 
         self.tree.save_with_user(self.user)
 

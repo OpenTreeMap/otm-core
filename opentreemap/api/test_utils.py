@@ -12,7 +12,7 @@ import django.shortcuts
 
 
 def mkPlot(instance, user, geom=Point(50, 50)):
-    p = Plot(geom=geom, instance=instance, created_by=user)
+    p = Plot(geom=geom, instance=instance)
     p.save_with_user(user)
 
     return p
@@ -27,7 +27,7 @@ def mkTree(instance, user, plot=None, species=None):
     else:
         s = species
 
-    t = Tree(plot=plot, instance=instance, species=s, created_by=user)
+    t = Tree(plot=plot, instance=instance, species=s)
     t.save_with_user(user)
 
     return t

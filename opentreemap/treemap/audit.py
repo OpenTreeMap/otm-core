@@ -218,7 +218,7 @@ class Authorizable(UserTrackable):
     def __init__(self, *args, **kwargs):
         super(Authorizable, self).__init__(*args, **kwargs)
 
-        self._exempt_field_names = {'instance', 'created_by', 'id'}
+        self._exempt_field_names = {'instance', 'id'}
         self._has_been_clobbered = False
 
     def _write_perm_comparison_sets(self, user):

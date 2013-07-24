@@ -65,7 +65,7 @@ class Command(BaseCommand):
             user.roles.add(r)
             user.save()
 
-        for field in ('geom', 'created_by', 'import_event'):
+        for field in ('geom', 'import_event'):
             _, c = FieldPermission.objects.get_or_create(
                 model_name='Plot',
                 field_name=field,
@@ -75,7 +75,7 @@ class Command(BaseCommand):
             if c:
                 print('Created plot permission for field "%s"' % field)
 
-        for field in ('plot', 'created_by'):
+        for field in ('plot',):
             _, c = FieldPermission.objects.get_or_create(
                 model_name='Tree',
                 field_name=field,
@@ -121,7 +121,6 @@ class Command(BaseCommand):
 
             plot = Plot(instance=instance,
                         geom=Point(x, y),
-                        created_by=user,
                         import_event=import_event)
 
             plot.save_with_user(user)
@@ -129,7 +128,6 @@ class Command(BaseCommand):
 
             if mktree:
                 tree = Tree(plot=plot,
-                            created_by=user,
                             import_event=import_event,
                             instance=instance)
                 tree.save_with_user(user)
