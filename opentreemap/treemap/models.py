@@ -212,7 +212,6 @@ class Plot(Authorizable, Auditable, models.Model):
     address_zip = models.CharField(max_length=30, blank=True, null=True)
 
     import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
-    created_by = models.ForeignKey(User)
     owner_orig_id = models.CharField(max_length=255, null=True, blank=True)
     readonly = models.BooleanField(default=False)
 
@@ -265,7 +264,6 @@ class Tree(Authorizable, Auditable, models.Model):
 
     plot = models.ForeignKey(Plot)
     species = models.ForeignKey(Species, null=True, blank=True)
-    created_by = models.ForeignKey(User)
     import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
 
     readonly = models.BooleanField(default=False)
@@ -282,9 +280,7 @@ class Tree(Authorizable, Auditable, models.Model):
                           if self.diameter else "")
         species_chunk = ("Species: %s - " % self.species
                          if self.species else "")
-        created_by_chunk = "Created by %s" % self.created_by
-        return "%s%s%s" % (diameter_chunk, species_chunk,
-                                created_by_chunk)
+        return "%s%s" % (diameter_chunk, species_chunk)
 
 
 class Boundary(models.Model):
