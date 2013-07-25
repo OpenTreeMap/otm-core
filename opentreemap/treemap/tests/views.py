@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import json
 
 from django.test import TestCase
 from django.test.client import RequestFactory
@@ -13,7 +14,7 @@ from treemap.audit import Role, Audit, approve_or_reject_audit_and_apply
 from treemap.models import Instance, Species, User, Plot, Tree
 
 from treemap.views import (species_list, boundary_to_geojson,
-                           boundary_autocomplete, audits)
+                           boundary_autocomplete, audits, search_tree_benefits)
 
 from treemap.tests import (ViewTestCase, make_instance, make_system_user,
                            make_commander_role, make_officer_role,
@@ -372,3 +373,72 @@ class SpeciesViewTests(ViewTestCase):
     def test_get_species_list_no_match(self):
         self.assertEquals(
             species_list(self._make_request({'q': 'cherry elm'}), None), [])
+
+
+class SearchTreeBenefitsTests(ViewTestCase):
+    def setUp(self):
+        super(SearchTreeBenefitsTests, self).setUp()
+        self.instance = make_instance()
+        self.system_user = make_system_user()
+        self.system_user.roles.add(make_commander_role(self.instance))
+        self.p1 = Point(-7615441.0, 5953519.0)
+
+    def create_tree_and_plot(self):
+        plot = Plot(geom=self.p1, instance=self.instance)
+        plot.save_with_user(self.system_user)
+
+        tree = Tree(plot=plot, instance=self.instance)
+        tree.save_with_user(self.system_user)
+
+        return plot, tree
+
+    def make_tree(self, diameter, species):
+        plot, tree = self.create_tree_and_plot()
+        tree.diameter = diameter
+        tree.species = species
+        tree.save_with_user(self.system_user)
+        return tree
+
+    def assertBenefitEqual(self, benefit, unit, value):
+        self.assertEqual(benefit['unit'], unit)
+        self.assertEqual(int(float(benefit['value'])), value)
+
+    def setup_benefits_test(self):
+        self.species = Species(symbol='CEDR',
+                               genus='cedrus',
+                               species='atlantica',
+                               itree_code='CEM OTHER',
+                               max_dbh=2000,
+                               max_height=100)
+        self.species.save()
+
+        self.make_tree(10, self.species)
+        self.make_tree(20, self.species)
+        self.make_tree(30, self.species)
+        self.make_tree(40, self.species)
+
+    def test_benefits_no_extrapolation(self):
+        self.setup_benefits_test()
+
+        request = self._make_request({'q': json.dumps({'tree.readonly': {'IS': False}})})  # all trees
+        result = search_tree_benefits(request, self.instance)
+        benefits = result['benefits']
+
+        self.assertBenefitEqual(benefits['energy'], 'kwh', 256)
+        self.assertBenefitEqual(benefits['co2'], 'lbs/year', 521)
+        self.assertBenefitEqual(benefits['airquality'], 'lbs/year', 2)
+        self.assertBenefitEqual(benefits['stormwater'], 'gal', 3191)
+
+    def test_benefits_with_extrapolation(self):
+        self.setup_benefits_test()
+        self.make_tree(None, self.species)
+        self.make_tree(10, None)
+
+        request = self._make_request({'q': json.dumps({'tree.readonly': {'IS': False}})})  # all trees
+        result = search_tree_benefits(request, self.instance)
+        benefits = result['benefits']
+
+        self.assertBenefitEqual(benefits['energy'], 'kwh', 384)
+        self.assertBenefitEqual(benefits['co2'], 'lbs/year', 782)
+        self.assertBenefitEqual(benefits['airquality'], 'lbs/year', 3)
+        self.assertBenefitEqual(benefits['stormwater'], 'gal', 4787)
