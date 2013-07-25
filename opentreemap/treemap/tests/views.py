@@ -6,19 +6,19 @@ from __future__ import division
 from django.test import TestCase
 from django.test.client import RequestFactory
 
-from django.contrib.gis.geos import Point, MultiPolygon
+from django.contrib.gis.geos import Point
 
 from treemap.audit import Role, Audit, approve_or_reject_audit_and_apply
 
-from treemap.models import Instance, Boundary, Species, User, Plot, Tree
+from treemap.models import Instance, Species, User, Plot, Tree
 
 from treemap.views import (species_list, boundary_to_geojson,
                            boundary_autocomplete, audits)
 
-from treemap.tests import (ViewTestCase, make_simple_polygon,
-                           make_instance, make_system_user,
+from treemap.tests import (ViewTestCase, make_instance, make_system_user,
                            make_commander_role, make_officer_role,
-                           make_basic_user, make_apprentice_role)
+                           make_basic_user, make_apprentice_role,
+                           make_simple_boundary)
 
 
 class InstanceValidationTest(TestCase):
@@ -49,15 +49,6 @@ class InstanceValidationTest(TestCase):
 
 class BoundaryViewTest(ViewTestCase):
 
-    def _make_simple_boundary(self, name, n=1):
-        b = Boundary()
-        b.geom = MultiPolygon(make_simple_polygon(n))
-        b.name = name
-        b.category = "Unknown"
-        b.sort_order = 1
-        b.save()
-        return b
-
     def setUp(self):
         super(BoundaryViewTest, self).setUp()
 
@@ -73,14 +64,14 @@ class BoundaryViewTest(ViewTestCase):
         ]
         self.test_boundary_hashes = []
         for i, v in enumerate(self.test_boundaries):
-            boundary = self._make_simple_boundary(v, i)
+            boundary = make_simple_boundary(v, i)
             self.instance.boundaries.add(boundary)
             self.instance.save()
             self.test_boundary_hashes.append({'name': boundary.name,
                                               'category': boundary.category})
 
     def test_boundary_to_geojson_view(self):
-        boundary = self._make_simple_boundary("Hello, World", 1)
+        boundary = make_simple_boundary("Hello, World", 1)
         response = boundary_to_geojson(
             self._make_request(),
             boundary.pk)
@@ -98,7 +89,7 @@ class BoundaryViewTest(ViewTestCase):
         # make a boundary that is not tied to this
         # instance, should not be in the search
         # results
-        self._make_simple_boundary("fargo", 1)
+        make_simple_boundary("fargo", 1)
         response = boundary_autocomplete(
             self._make_request({'q': 'fa'}),
             self.instance)
