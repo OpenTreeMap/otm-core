@@ -243,8 +243,6 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
     plots = _execute_filter(instance, filter_str)
     trees = Tree.objects.filter(plot_id__in=plots)
 
-    num_calculated_trees = 0
-
     total_plots = plots.count()
     total_trees = trees.count()
 
@@ -254,6 +252,8 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
 
     benefits, num_calculated_trees = _benefits_for_trees(
         trees_for_eco, region)
+
+    percent = 0
 
     if num_calculated_trees > 0 and total_trees > 0:
 
@@ -265,18 +265,13 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
 
             benefits[benefit]['value'] += extrp_benefit
 
-        rslt = {'benefits': benefits,
-                'basis': {'n_calc': num_calculated_trees,
-                          'n_total_trees': total_trees,
-                          'n_total_plots': total_plots,
-                          'percent': (float(num_calculated_trees) /
-                                      total_trees)}}
-    else:
-        rslt = {'benefits': benefits,
-                'basis': {'n_calc': num_calculated_trees,
-                          'n_total_trees': total_trees,
-                          'n_total_plots': total_plots,
-                          'percent': 0}}
+        percent = (float(num_calculated_trees) / total_trees)
+
+    rslt = {'benefits': benefits,
+            'basis': {'n_calc': num_calculated_trees,
+                      'n_total_trees': total_trees,
+                      'n_total_plots': total_plots,
+                      'percent': percent}}
 
     return rslt
 
