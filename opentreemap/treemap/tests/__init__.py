@@ -8,6 +8,16 @@ from django.test.client import RequestFactory
 from django.contrib.gis.geos import Point, Polygon
 
 
+def make_simple_boundary(name, n=1):
+    b = Boundary()
+    b.geom = MultiPolygon(make_simple_polygon(n))
+    b.name = name
+    b.category = "Unknown"
+    b.sort_order = 1
+    b.save()
+    return b
+
+
 def make_simple_polygon(n=1):
     """
     Creates a simple, point-like polygon for testing distances
@@ -108,13 +118,13 @@ def make_observer_role(instance):
     return make_loaded_role(instance, 'observer', 2, permissions)
 
 
-def make_instance():
+def make_instance(name='i1'):
     global_role, _ = Role.objects.get_or_create(name='global', rep_thresh=0)
 
     p1 = Point(0, 0)
 
     instance, _ = Instance.objects.get_or_create(
-        name='i1', geo_rev=0, center=p1, default_role=global_role)
+        name=name, geo_rev=0, center=p1, default_role=global_role)
 
     return instance
 

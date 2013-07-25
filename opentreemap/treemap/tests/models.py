@@ -2,12 +2,17 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import datetime
 
 from django.test import TestCase
 from django.contrib.gis.geos import Point
 
-from treemap.models import Tree, Instance, Plot, FieldPermission, Species
-from treemap.tests import make_loaded_role, make_instance_and_basic_user
+from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
+                            InstanceSpecies, ImportEvent)
+from treemap.audit import Audit, ReputationMetric
+from treemap.tests import (make_loaded_role, make_instance_and_basic_user,
+                           make_instance, make_system_user,
+                           make_simple_boundary, make_commander_role)
 
 
 class HashModelTest(TestCase):
@@ -155,3 +160,105 @@ class SpeciesModelTests(TestCase):
     def test_scientific_name_all(self):
         s = Species(genus='Ulmus', species='rubra', cultivar_name='Columella')
         self.assertEquals(s.scientific_name, "Ulmus rubra 'Columella'")
+
+
+class ModelUnicodeTests(TestCase):
+
+    def setUp(self):
+        self.instance = make_instance(name='Test Instance')
+
+        self.species = Species(common_name='Test Common Name',
+                               genus='Test Genus',
+                               cultivar_name='Test Cultivar',
+                               species='Test Species')
+        self.species.save_base()
+
+        self.instance_species = InstanceSpecies(instance=self.instance,
+                                                species=self.species,
+                                                common_name='Test Common Name')
+        self.instance_species.save_base()
+
+        self.user = make_system_user()
+
+        self.import_event = ImportEvent(imported_by=self.user)
+        self.import_event.save_base()
+
+        self.plot = Plot(geom=Point(0, 0), instance=self.instance,
+                         address_street="123 Main Street")
+
+        self.plot.save_base()
+
+        self.tree = Tree(plot=self.plot, instance=self.instance)
+
+        self.tree.save_base()
+
+        self.boundary = make_simple_boundary("Test Boundary")
+
+        self.role = make_commander_role(self.instance)
+        self.role.name = "Test Role"
+        self.role.save()
+
+        self.field_permission = FieldPermission(
+            model_name="Tree",
+            field_name="readonly",
+            permission_level=FieldPermission.READ_ONLY,
+            role=self.role,
+            instance=self.instance)
+        self.field_permission.save_base()
+
+        self.audit = Audit(action=Audit.Type.Update,
+                           model="Tree",
+                           field="readonly",
+                           model_id=1,
+                           user=self.user,
+                           previous_value=True,
+                           current_value=False)
+        self.audit.save_base()
+
+        self.reputation_metric = ReputationMetric(instance=self.instance,
+                                                  model_name="Tree",
+                                                  action="Test Action")
+        self.reputation_metric.save_base()
+
+    def test_instance_model(self):
+        self.assertEqual(unicode(self.instance), "Test Instance")
+
+    def test_species_model(self):
+        self.assertEqual(unicode(self.species),
+                         "Test Genus Test Species 'Test Cultivar'")
+
+    def test_instance_species_model(self):
+        self.assertEqual(unicode(self.instance_species), 'Test Common Name')
+
+    def test_user_model(self):
+        self.assertEqual(unicode(self.user), 'system_user')
+
+    def test_import_event_model(self):
+        today = datetime.datetime.today().strftime('%Y-%m-%d')
+        self.assertEqual(unicode(self.import_event),
+                         'system_user - %s' % today)
+
+    def test_plot_model(self):
+        self.assertEqual(unicode(self.plot),
+                         'X: 0.0, Y: 0.0 - 123 Main Street')
+
+    def test_tree_model(self):
+        self.assertEqual(unicode(self.tree), '')
+
+    def test_boundary_model(self):
+        self.assertEqual(unicode(self.boundary), 'Test Boundary')
+
+    def test_role_model(self):
+        self.assertEqual(unicode(self.role), 'Test Role')
+
+    def test_field_permission_model(self):
+        self.assertEqual(unicode(self.field_permission),
+                         'Tree.readonly - Test Role')
+
+    def test_audit_model(self):
+        self.assertEqual(unicode(self.audit),
+                         'ID: 3 Tree.readonly (1) True => False')
+
+    def test_reputation_metric_model(self):
+        self.assertEqual(unicode(self.reputation_metric),
+                         'Test Instance - Tree - Test Action')
