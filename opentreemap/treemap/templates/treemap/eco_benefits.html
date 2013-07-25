@@ -2,9 +2,9 @@
   <h2>Benefits</h2>
   <table>
     <tr><th>Benefit</th><th>Value</th></tr>
-    <tr><td>Energy<td>{{ benefits.energy.value }}</td></tr>
-    <tr><td>Air Quality<td>{{ benefits.airquality.value }}</td></tr>
-    <tr><td>Stormwater<td>{{ benefits.stormwater.value }}</td></tr>
+    {% for benefit in benefits %}
+    <tr><td>{{ benefit.label }}<td>{{ benefit.value }} {{ benefit.unit }}</td></tr>
+    {% endfor %}
   </table>
   <div>
     Search returned {{ basis.n_total_plots }} plots and

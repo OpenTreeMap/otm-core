@@ -267,7 +267,23 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
 
         percent = (float(num_calculated_trees) / total_trees)
 
-    rslt = {'benefits': benefits,
+    def displayize_benefit(key, label, format):
+        benefit = benefits[key]
+        benefit['label'] = label
+        benefit['value'] = format % benefit['value']
+        return benefit
+
+    # TODO: i18n of labels
+    # TODO: get units from locale, and convert value
+    # TODO: how many decimal places do we really want? Is it unit-sensitive?
+    benefits_for_display = [
+        displayize_benefit('energy', 'Energy', '%.1f'),
+        displayize_benefit('stormwater', 'Stormwater', '%.1f'),
+        displayize_benefit('co2', 'Carbon Dioxide', '%.1f'),
+        displayize_benefit('airquality','Air Quality', '%.1f'),
+    ]
+
+    rslt = {'benefits': benefits_for_display,
             'basis': {'n_calc': num_calculated_trees,
                       'n_total_trees': total_trees,
                       'n_total_plots': total_plots,
