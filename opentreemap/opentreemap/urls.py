@@ -15,6 +15,7 @@ urlpatterns = patterns(
     url(r'^(?P<instance_id>\d+)/', include('treemap.urls')),
     url(r'^(?P<instance_id>\d+)/eco/', include('ecobenefits.urls')),
     url(r'^api/v2/', include('api.urls')),
+    url(r'^accounts/', include('registration_backend.urls')),
 )
 
 if settings.DEBUG:
