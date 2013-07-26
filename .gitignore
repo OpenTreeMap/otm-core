@@ -7,3 +7,5 @@ local_settings.py
 .coverage
 Guardfile
 opentreemap/.idea
+node_modules/
+opentreemap/treemap/static/js/

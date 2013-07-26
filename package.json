@@ -1,0 +1,23 @@
+{
+  "name": "OTM2",
+  "version": "2.0.0",
+  "directories": {
+    "doc": "doc"
+  },
+  "dependencies": {
+    "baconjs": "~0.6",
+    "underscore": "~1.5"
+  },
+  "devDependencies": {
+    "grunt-browserify": "~1.2",
+    "grunt": "~0.4",
+    "grunt-contrib-jshint": "~0.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/azavea/OTM2.git"
+  },
+  "author": "Azavea",
+  "license": "GPL3",
+  "readmeFilename": "README.md"
+}
