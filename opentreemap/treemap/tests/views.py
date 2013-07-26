@@ -382,63 +382,53 @@ class SearchTreeBenefitsTests(ViewTestCase):
         self.system_user = make_system_user()
         self.system_user.roles.add(make_commander_role(self.instance))
         self.p1 = Point(-7615441.0, 5953519.0)
-
-    def create_tree_and_plot(self):
-        plot = Plot(geom=self.p1, instance=self.instance)
-        plot.save_with_user(self.system_user)
-
-        tree = Tree(plot=plot, instance=self.instance)
-        tree.save_with_user(self.system_user)
-
-        return plot, tree
+        self.species_good = Species(itree_code='CEM OTHER')
+        self.species_good.save()
+        self.species_bad = Species()
+        self.species_bad.save()
 
     def make_tree(self, diameter, species):
-        plot, tree = self.create_tree_and_plot()
-        tree.diameter = diameter
-        tree.species = species
+        plot = Plot(geom=self.p1, instance=self.instance)
+        plot.save_with_user(self.system_user)
+        tree = Tree(plot=plot, instance=self.instance, diameter=diameter, species=species)
         tree.save_with_user(self.system_user)
-        return tree
 
-    def assertBenefitEqual(self, benefit, unit, value):
-        self.assertEqual(benefit['unit'], unit)
-        self.assertEqual(int(float(benefit['value'])), value)
-
-    def setup_benefits_test(self):
-        self.species = Species(symbol='CEDR',
-                               genus='cedrus',
-                               species='atlantica',
-                               itree_code='CEM OTHER',
-                               max_dbh=2000,
-                               max_height=100)
-        self.species.save()
-
-        self.make_tree(10, self.species)
-        self.make_tree(20, self.species)
-        self.make_tree(30, self.species)
-        self.make_tree(40, self.species)
-
-    def test_benefits_no_extrapolation(self):
-        self.setup_benefits_test()
-
+    def search_benefits(self):
         request = self._make_request({'q': json.dumps({'tree.readonly': {'IS': False}})})  # all trees
         result = search_tree_benefits(request, self.instance)
-        benefits = result['benefits']
+        return result
 
-        self.assertBenefitEqual(benefits['energy'], 'kwh', 256)
-        self.assertBenefitEqual(benefits['co2'], 'lbs/year', 521)
-        self.assertBenefitEqual(benefits['airquality'], 'lbs/year', 2)
-        self.assertBenefitEqual(benefits['stormwater'], 'gal', 3191)
+    def test_tree_with_species_and_diameter_included(self):
+        self.make_tree(10, self.species_good)
+        benefits = self.search_benefits()
+        self.assertEqual(benefits['basis']['n_trees_used'], 1)
 
-    def test_benefits_with_extrapolation(self):
-        self.setup_benefits_test()
-        self.make_tree(None, self.species)
+    def test_tree_without_diameter_ignored(self):
+        self.make_tree(None, self.species_good)
+        benefits = self.search_benefits()
+        self.assertEqual(benefits['basis']['n_trees_used'], 0)
+
+    def test_tree_without_species_ignored(self):
         self.make_tree(10, None)
+        benefits = self.search_benefits()
+        self.assertEqual(benefits['basis']['n_trees_used'], 0)
 
-        request = self._make_request({'q': json.dumps({'tree.readonly': {'IS': False}})})  # all trees
-        result = search_tree_benefits(request, self.instance)
-        benefits = result['benefits']
+    def test_tree_without_itree_code_ignored(self):
+        self.make_tree(10, self.species_bad)
+        benefits = self.search_benefits()
+        self.assertEqual(benefits['basis']['n_trees_used'], 0)
 
-        self.assertBenefitEqual(benefits['energy'], 'kwh', 384)
-        self.assertBenefitEqual(benefits['co2'], 'lbs/year', 782)
-        self.assertBenefitEqual(benefits['airquality'], 'lbs/year', 3)
-        self.assertBenefitEqual(benefits['stormwater'], 'gal', 4787)
+    def test_extrapolation_increases_benefits(self):
+        self.make_tree(10, self.species_good)
+        self.make_tree(20, self.species_good)
+        self.make_tree(30, self.species_good)
+        benefits = self.search_benefits()
+        value_without_extrapolation = float(benefits['benefits'][0]['value'])
+
+        self.make_tree(None, self.species_good)
+        self.make_tree(10, None)
+        benefits = self.search_benefits()
+        value_with_extrapolation = float(benefits['benefits'][0]['value'])
+
+        self.assertEqual(benefits['basis']['percent'], 0.6)
+        self.assertGreater(self, value_with_extrapolation, value_without_extrapolation)

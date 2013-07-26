@@ -250,22 +250,14 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
                          .exclude(diameter__isnull=True)\
                          .values('diameter', 'species__itree_code')
 
-    benefits, num_calculated_trees = _benefits_for_trees(
-        trees_for_eco, region)
+    benefits, num_calculated_trees = _benefits_for_trees(trees_for_eco, region)
 
     percent = 0
-
     if num_calculated_trees > 0 and total_trees > 0:
-
         # Extrapolate an average over the rest of the urban forest
-        trees_without_benefit_data = total_trees - num_calculated_trees
-        for benefit in benefits:
-            avg_benefit = benefits[benefit]['value'] / num_calculated_trees
-            extrp_benefit = avg_benefit * trees_without_benefit_data
-
-            benefits[benefit]['value'] += extrp_benefit
-
-        percent = (float(num_calculated_trees) / total_trees)
+        percent = float(num_calculated_trees) / total_trees
+        for key in benefits:
+            benefits[key]['value'] /= percent
 
     def displayize_benefit(key, label, format):
         benefit = benefits[key]
@@ -284,9 +276,9 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
     ]
 
     rslt = {'benefits': benefits_for_display,
-            'basis': {'n_calc': num_calculated_trees,
-                      'n_total_trees': total_trees,
-                      'n_total_plots': total_plots,
+            'basis': {'n_trees_used': num_calculated_trees,
+                      'n_trees_total': total_trees,
+                      'n_plots': total_plots,
                       'percent': percent}}
 
     return rslt
