@@ -1,4 +1,6 @@
 module.exports = function(grunt) {
+    "use strict";
+
     grunt.initConfig({
         browserify: {
             treemap: {
@@ -27,11 +29,26 @@ module.exports = function(grunt) {
                     debug: true
                 }
             }
+        },
+        jshint: {
+            options: {
+                indent: 4,
+                globalstrict: true, // Node.js modules are inherently wrapped in functions
+                browser: true,
+                globals: {
+                    require: false,
+                    module: true,
+                    exports: true
+                }
+            },
+            treemap: ['../../Gruntfile.js', 'js/src/**/*.js']
         }
     });
 
     grunt.loadNpmTasks('grunt-browserify');
+    grunt.loadNpmTasks('grunt-contrib-jshint');
 
     grunt.file.setBase('opentreemap', 'treemap');
     grunt.registerTask('default', ['browserify']);
+    grunt.registerTask('check', ['jshint']);
 };

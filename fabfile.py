@@ -1,5 +1,5 @@
 """ Fabric script to handle common building tasks """
-from fabric.api import cd, run, require, sudo, env, local
+from fabric.api import cd, run, require, sudo, env, local, settings, abort
 
 import os
 
@@ -87,11 +87,18 @@ def _collectstatic():
     _manage('collectstatic --noinput')
 
 def check():
-    """ Run flake8 (pep8 + pyflakes) """
+    """ Run flake8 (pep8 + pyflakes) and JSHint """
     require('site_path')
 
-    with cd(env.site_path):
-        run(_venv_exec('flake8 --exclude migrations *'))
+    with settings(warn_only=True):
+        jshint = local('grunt check', capture=True)
+        print(jshint)
+
+        with cd(env.site_path):
+            flake8 = run(_venv_exec('flake8 --exclude migrations *'))
+
+    if jshint.failed or flake8.failed:
+        abort('Code linting failed')
 
 def bundle():
     """ Update npm and bundle javascript """
