@@ -243,8 +243,6 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
     plots = _execute_filter(instance, filter_str)
     trees = Tree.objects.filter(plot_id__in=plots)
 
-    num_calculated_trees = 0
-
     total_plots = plots.count()
     total_trees = trees.count()
 
@@ -252,31 +250,36 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
                          .exclude(diameter__isnull=True)\
                          .values('diameter', 'species__itree_code')
 
-    benefits, num_calculated_trees = _benefits_for_trees(
-        trees_for_eco, region)
+    benefits, num_calculated_trees = _benefits_for_trees(trees_for_eco, region)
 
+    percent = 0
     if num_calculated_trees > 0 and total_trees > 0:
-
         # Extrapolate an average over the rest of the urban forest
-        trees_without_benefit_data = total_trees - num_calculated_trees
-        for benefit in benefits:
-            avg_benefit = benefits[benefit]['value'] / num_calculated_trees
-            extrp_benefit = avg_benefit * trees_without_benefit_data
+        percent = float(num_calculated_trees) / total_trees
+        for key in benefits:
+            benefits[key]['value'] /= percent
 
-            benefits[benefit]['value'] += extrp_benefit
+    def displayize_benefit(key, label, format):
+        benefit = benefits[key]
+        benefit['label'] = label
+        benefit['value'] = format % benefit['value']
+        return benefit
 
-        rslt = {'benefits': benefits,
-                'basis': {'n_calc': num_calculated_trees,
-                          'n_total_trees': total_trees,
-                          'n_total_plots': total_plots,
-                          'percent': (float(num_calculated_trees) /
-                                      total_trees)}}
-    else:
-        rslt = {'benefits': benefits,
-                'basis': {'n_calc': num_calculated_trees,
-                          'n_total_trees': total_trees,
-                          'n_total_plots': total_plots,
-                          'percent': 0}}
+    # TODO: i18n of labels
+    # TODO: get units from locale, and convert value
+    # TODO: how many decimal places do we really want? Is it unit-sensitive?
+    benefits_for_display = [
+        displayize_benefit('energy', 'Energy', '%.1f'),
+        displayize_benefit('stormwater', 'Stormwater', '%.1f'),
+        displayize_benefit('co2', 'Carbon Dioxide', '%.1f'),
+        displayize_benefit('airquality','Air Quality', '%.1f'),
+    ]
+
+    rslt = {'benefits': benefits_for_display,
+            'basis': {'n_trees_used': num_calculated_trees,
+                      'n_trees_total': total_trees,
+                      'n_plots': total_plots,
+                      'percent': percent}}
 
     return rslt
 
@@ -304,6 +307,6 @@ boundary_autocomplete_view = instance_request(
     json_api_call(boundary_autocomplete))
 
 search_tree_benefits_view = instance_request(
-    json_api_call(search_tree_benefits))
+    render_template('treemap/eco_benefits.html', search_tree_benefits))
 
 species_list_view = json_api_call(instance_request(species_list))
