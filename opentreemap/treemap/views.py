@@ -309,10 +309,14 @@ trees_view = instance_request(
 plot_detail_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_detail.html', plot_detail)))
 
-settings_js_view = instance_request(
+root_settings_js_view = render_template('treemap/settings.js',
+                    {'BING_API_KEY': settings.BING_API_KEY},
+                    mimetype='application/javascript')
+
+instance_settings_js_view = instance_request(
     render_template('treemap/settings.js',
                     {'BING_API_KEY': settings.BING_API_KEY},
-                    mimetype='application/x-javascript'))
+                    mimetype='application/javascript'))
 
 
 boundary_to_geojson_view = json_api_call(boundary_to_geojson)

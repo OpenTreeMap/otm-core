@@ -12,10 +12,17 @@
     {% block content %}
     {% endblock content %}
 
-    {% block base_scripts %}
-      <script src="{{ ROOT_URL }}/{{ request.instance.id }}/config/settings.js"></script>
-      <script src="{{ STATIC_URL }}/js/treemap.js"></script>
-    {% endblock base_scripts %}
+    {% block config_scripts %}
+      {% if request.instance %}
+        <script src="{{ SITE_ROOT }}{{ request.instance.id }}/config/settings.js"></script>
+      {% else %}
+        <script src="{{ SITE_ROOT }}config/settings.js"></script>
+      {% endif %}
+    {% endblock config_scripts %}
+
+    {% block global_scripts %}
+      <script src="{{ STATIC_URL }}js/treemap.js"></script>
+    {% endblock global_scripts %}
 
     {% block scripts %}
     {% endblock scripts %}
