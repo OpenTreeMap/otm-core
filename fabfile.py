@@ -86,14 +86,6 @@ def _collectstatic():
 
     _manage('collectstatic --noinput')
 
-def _blend():
-    """ Lint, compile and minify javascript files. """
-    require('static_path')
-    require('venv_path')
-
-    with cd(os.path.join(env.static_path, 'js')):
-        sudo(_venv_exec('blend'))
-
 def check():
     """ Run flake8 (pep8 + pyflakes) """
     require('site_path')
@@ -103,8 +95,8 @@ def check():
 
 def static():
     """ Collect static files and minify javascript. """
+    local('grunt')
     _collectstatic()
-    _blend()
 
 def syncdb(dev_data=False):
     """ Run syncdb and all migrations

@@ -33,5 +33,5 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-browserify');
 
     grunt.file.setBase('opentreemap', 'treemap');
-    grunt.registerTask('bundle', ['browserify']);
+    grunt.registerTask('default', ['browserify']);
 };
