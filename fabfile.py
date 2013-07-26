@@ -93,9 +93,14 @@ def check():
     with cd(env.site_path):
         run(_venv_exec('flake8 --exclude migrations *'))
 
-def static():
-    """ Collect static files and minify javascript. """
+def bundle():
+    """ Update npm and bundle javascript """
+    local('npm install')
     local('grunt')
+
+def static():
+    """ Collect static files and bundle javascript. """
+    bundle()
     _collectstatic()
 
 def syncdb(dev_data=False):
