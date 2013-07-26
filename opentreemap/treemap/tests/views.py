@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import json
 
 from django.test import TestCase
 from django.test.client import RequestFactory
@@ -13,7 +14,7 @@ from treemap.audit import Role, Audit, approve_or_reject_audit_and_apply
 from treemap.models import Instance, Species, User, Plot, Tree
 
 from treemap.views import (species_list, boundary_to_geojson,
-                           boundary_autocomplete, audits)
+                           boundary_autocomplete, audits, search_tree_benefits)
 
 from treemap.tests import (ViewTestCase, make_instance, make_system_user,
                            make_commander_role, make_officer_role,
@@ -372,3 +373,62 @@ class SpeciesViewTests(ViewTestCase):
     def test_get_species_list_no_match(self):
         self.assertEquals(
             species_list(self._make_request({'q': 'cherry elm'}), None), [])
+
+
+class SearchTreeBenefitsTests(ViewTestCase):
+    def setUp(self):
+        super(SearchTreeBenefitsTests, self).setUp()
+        self.instance = make_instance()
+        self.system_user = make_system_user()
+        self.system_user.roles.add(make_commander_role(self.instance))
+        self.p1 = Point(-7615441.0, 5953519.0)
+        self.species_good = Species(itree_code='CEM OTHER')
+        self.species_good.save()
+        self.species_bad = Species()
+        self.species_bad.save()
+
+    def make_tree(self, diameter, species):
+        plot = Plot(geom=self.p1, instance=self.instance)
+        plot.save_with_user(self.system_user)
+        tree = Tree(plot=plot, instance=self.instance, diameter=diameter, species=species)
+        tree.save_with_user(self.system_user)
+
+    def search_benefits(self):
+        request = self._make_request({'q': json.dumps({'tree.readonly': {'IS': False}})})  # all trees
+        result = search_tree_benefits(request, self.instance)
+        return result
+
+    def test_tree_with_species_and_diameter_included(self):
+        self.make_tree(10, self.species_good)
+        benefits = self.search_benefits()
+        self.assertEqual(benefits['basis']['n_trees_used'], 1)
+
+    def test_tree_without_diameter_ignored(self):
+        self.make_tree(None, self.species_good)
+        benefits = self.search_benefits()
+        self.assertEqual(benefits['basis']['n_trees_used'], 0)
+
+    def test_tree_without_species_ignored(self):
+        self.make_tree(10, None)
+        benefits = self.search_benefits()
+        self.assertEqual(benefits['basis']['n_trees_used'], 0)
+
+    def test_tree_without_itree_code_ignored(self):
+        self.make_tree(10, self.species_bad)
+        benefits = self.search_benefits()
+        self.assertEqual(benefits['basis']['n_trees_used'], 0)
+
+    def test_extrapolation_increases_benefits(self):
+        self.make_tree(10, self.species_good)
+        self.make_tree(20, self.species_good)
+        self.make_tree(30, self.species_good)
+        benefits = self.search_benefits()
+        value_without_extrapolation = float(benefits['benefits'][0]['value'])
+
+        self.make_tree(None, self.species_good)
+        self.make_tree(10, None)
+        benefits = self.search_benefits()
+        value_with_extrapolation = float(benefits['benefits'][0]['value'])
+
+        self.assertEqual(benefits['basis']['percent'], 0.6)
+        self.assertGreater(self, value_with_extrapolation, value_without_extrapolation)
