@@ -38,7 +38,8 @@ function executeSearch(search_query) {
         url: '/' + config.instance.id + '/benefit/search',
         data: {'q': JSON.stringify(search_query)},
         type: 'GET',
-        dataType: 'html'});
+        dataType: 'html'
+    });
 
     return Bacon.fromPromise(search);
 }
