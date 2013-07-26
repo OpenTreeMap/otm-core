@@ -13,10 +13,8 @@
     {% endblock body %}
 
     {% block base_scripts %}
-      <script src="//documentcloud.github.com/underscore/underscore-min.js"></script>
-      <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
       <script src="{{ ROOT_URL }}/{{ request.instance.id }}/config/settings.js"></script>
-      <script src="{{ STATIC_URL }}/js/output/app.js"></script>
+      <script src="{{ STATIC_URL }}/js/treemap.js"></script>
     {% endblock base_scripts %}
 
     {% block scripts %}
