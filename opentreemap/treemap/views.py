@@ -6,7 +6,8 @@ import urllib
 from PIL import Image
 
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, HttpResponseServerError
+from django.http import (HttpResponse, HttpResponseServerError,
+                         HttpResponseRedirect)
 
 from django.views.decorators.http import etag
 
@@ -284,6 +285,18 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
     return rslt
 
 
+def user(request, username):
+    context = get_object_or_404(User, username=username).__dict__
+    context['instance_id'] = request.GET.get('instance_id', None)
+    return context
+
+
+def instance_user_view(request, instance_id, username):
+    url = '/users/%(username)s/?instance_id=%(instance_id)s' %\
+        {'username': username, 'instance_id': instance_id}
+    return HttpResponseRedirect(url)
+
+
 audits_view = instance_request(
     render_template('treemap/recent_edits.html', audits))
 
@@ -310,3 +323,5 @@ search_tree_benefits_view = instance_request(
     render_template('treemap/eco_benefits.html', search_tree_benefits))
 
 species_list_view = json_api_call(instance_request(species_list))
+
+user_view = render_template("treemap/user.html", user)
