@@ -9,8 +9,8 @@
     {% endblock head_extra %}
   </head>
   <body>
-    {% block body %}
-    {% endblock body %}
+    {% block content %}
+    {% endblock content %}
 
     {% block base_scripts %}
       <script src="{{ ROOT_URL }}/{{ request.instance.id }}/config/settings.js"></script>

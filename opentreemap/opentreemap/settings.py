@@ -133,9 +133,19 @@ INSTALLED_APPS = (
     'treemap',
     'ecobenefits',
     'geocode',
-    'api'
+    'api',
+    'registration',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
+
+# From the django-registration quickstart
+# https://django-registration.readthedocs.org/en/latest/quickstart.html
+#
+# ACCOUNT_ACTIVATION_DAYS is the number of days users will have to activate
+# their accounts after registering. If a user does not activate within
+# that period, the account will remain permanently inactive and
+# may be deleted by maintenance scripts provided in django-registration.
+ACCOUNT_ACTIVATION_DAYS = 7
 
 from opentreemap.local_settings import *  # NOQA
