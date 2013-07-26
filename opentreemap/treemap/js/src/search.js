@@ -44,10 +44,6 @@ function executeSearch(search_query) {
     return Bacon.fromPromise(search);
 }
 
-function displaySearch(result) {
-    $("#search-results").html(result);
-}
-
 // Arguments
 //
 // triggerEventStream: a Bacon.js EventStream. The value
@@ -68,5 +64,5 @@ exports.init = function(triggerEventStream, plotLayer, otmConfig) {
 
     searchStream
         .flatMap(executeSearch)
-        .onValue(displaySearch);
+        .onValue($('#search-results'), 'html');
 };
