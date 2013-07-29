@@ -1,0 +1,10 @@
+{
+    "indent": 4,
+    "globalstrict": true,
+    "browser": true,
+    "globals": {
+        "require": false,
+        "module": true,
+        "exports": true
+    }
+}
