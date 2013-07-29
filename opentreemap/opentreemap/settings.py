@@ -125,6 +125,12 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 INSTALLED_APPS = (
+    'south',
+    'treemap',
+    'ecobenefits',
+    'geocode',
+    'api',
+    'registration',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -133,12 +139,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.gis',
-    'south',
-    'treemap',
-    'ecobenefits',
-    'geocode',
-    'api',
-    'registration',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
