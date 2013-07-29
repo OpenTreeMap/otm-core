@@ -6,6 +6,7 @@ import json
 
 from django.test import TestCase
 from django.test.client import RequestFactory
+from django.http import Http404
 
 from django.contrib.gis.geos import Point
 
@@ -14,7 +15,8 @@ from treemap.audit import Role, Audit, approve_or_reject_audit_and_apply
 from treemap.models import Instance, Species, User, Plot, Tree
 
 from treemap.views import (species_list, boundary_to_geojson,
-                           boundary_autocomplete, audits, search_tree_benefits)
+                           boundary_autocomplete, audits, search_tree_benefits,
+                           user, instance_user_view)
 
 from treemap.tests import (ViewTestCase, make_instance, make_system_user,
                            make_commander_role, make_officer_role,
@@ -434,3 +436,52 @@ class SearchTreeBenefitsTests(ViewTestCase):
 
         self.assertEqual(benefits['basis']['percent'], 0.6)
         self.assertGreater(self, value_with_extrapolation, value)
+
+
+class UserViewTests(ViewTestCase):
+
+    def setUp(self):
+        super(UserViewTests, self).setUp()
+        self.system_user = make_system_user()
+
+    def test_get_by_username(self):
+        context = user(self._make_request(), self.system_user.username)
+        self.assertEquals(self.system_user.username, context['username'],
+                          'the user view should return a dict with '
+                          '"username" set to %s ' % self.system_user.username)
+
+    def test_get_with_invalid_username_returns_404(self):
+        self.assertRaises(Http404, user, self._make_request(),
+                          'no_way_this_is_a_username')
+
+
+class InstanceUserViewTests(ViewTestCase):
+
+    def setUp(self):
+        super(InstanceUserViewTests, self).setUp()
+        self.system_user = make_system_user()
+
+    def test_get_by_username_redirects(self):
+        res = instance_user_view(self._make_request(),
+                                 self.instance.id,
+                                 self.system_user.username)
+        expected_url = '/users/%s/?instance_id=%d' %\
+            (self.system_user.username, self.instance.id)
+        self.assertEquals(res.status_code, 302, "should be a 302 Found \
+            temporary redirect")
+        self.assertEquals(expected_url, res['Location'],
+                          'the view should redirect to %s not %s ' %
+                          (expected_url, res['Location']))
+
+    def test_get_with_invalid_username_redirects(self):
+        test_instance_id, test_username = 9999999999999, 'no_way_username'
+        res = instance_user_view(self._make_request(),
+                                 test_instance_id,
+                                 test_username)
+        expected_url = '/users/%s/?instance_id=%d' %\
+            (test_username, test_instance_id)
+        self.assertEquals(res.status_code, 302, "should be a 302 Found \
+            temporary redirect")
+        self.assertEquals(expected_url, res['Location'],
+                          'the view should redirect to %s not %s ' %
+                          (expected_url, res['Location']))

@@ -2,6 +2,8 @@ from django.conf.urls import patterns, include, url
 from django.conf import settings
 from django.views.generic import RedirectView
 
+from treemap.views import user_view
+
 from django.contrib import admin
 admin.autodiscover()
 
@@ -14,7 +16,9 @@ urlpatterns = patterns(
     url(r'^', include('geocode.urls')),
     url(r'^(?P<instance_id>\d+)/', include('treemap.urls')),
     url(r'^(?P<instance_id>\d+)/eco/', include('ecobenefits.urls')),
+    url(r'^users/(?P<username>\w+)/', user_view),
     url(r'^api/v2/', include('api.urls')),
+    url(r'^accounts/', include('registration_backend.urls')),
 )
 
 if settings.DEBUG:
