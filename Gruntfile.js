@@ -32,14 +32,7 @@ module.exports = function(grunt) {
         },
         jshint: {
             options: {
-                indent: 4,
-                globalstrict: true, // Node.js modules are inherently wrapped in functions
-                browser: true,
-                globals: {
-                    require: false,
-                    module: true,
-                    exports: true
-                }
+                jshintrc: "../../.jshintrc"
             },
             treemap: ['../../Gruntfile.js', 'js/src/**/*.js']
         }
@@ -49,6 +42,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
 
     grunt.file.setBase('opentreemap', 'treemap');
-    grunt.registerTask('default', ['browserify']);
+
     grunt.registerTask('check', ['jshint']);
+    grunt.registerTask('default', ['browserify']);
 };
