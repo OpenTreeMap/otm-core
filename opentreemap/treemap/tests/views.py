@@ -390,11 +390,13 @@ class SearchTreeBenefitsTests(ViewTestCase):
     def make_tree(self, diameter, species):
         plot = Plot(geom=self.p1, instance=self.instance)
         plot.save_with_user(self.system_user)
-        tree = Tree(plot=plot, instance=self.instance, diameter=diameter, species=species)
+        tree = Tree(plot=plot, instance=self.instance,
+                    diameter=diameter, species=species)
         tree.save_with_user(self.system_user)
 
     def search_benefits(self):
-        request = self._make_request({'q': json.dumps({'tree.readonly': {'IS': False}})})  # all trees
+        request = self._make_request(
+            {'q': json.dumps({'tree.readonly': {'IS': False}})})  # all trees
         result = search_tree_benefits(request, self.instance)
         return result
 
@@ -423,7 +425,7 @@ class SearchTreeBenefitsTests(ViewTestCase):
         self.make_tree(20, self.species_good)
         self.make_tree(30, self.species_good)
         benefits = self.search_benefits()
-        value_without_extrapolation = float(benefits['benefits'][0]['value'])
+        value = float(benefits['benefits'][0]['value'])
 
         self.make_tree(None, self.species_good)
         self.make_tree(10, None)
@@ -431,4 +433,4 @@ class SearchTreeBenefitsTests(ViewTestCase):
         value_with_extrapolation = float(benefits['benefits'][0]['value'])
 
         self.assertEqual(benefits['basis']['percent'], 0.6)
-        self.assertGreater(self, value_with_extrapolation, value_without_extrapolation)
+        self.assertGreater(self, value_with_extrapolation, value)

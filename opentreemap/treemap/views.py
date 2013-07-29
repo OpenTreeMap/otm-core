@@ -272,7 +272,7 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
         displayize_benefit('energy', 'Energy', '%.1f'),
         displayize_benefit('stormwater', 'Stormwater', '%.1f'),
         displayize_benefit('co2', 'Carbon Dioxide', '%.1f'),
-        displayize_benefit('airquality','Air Quality', '%.1f'),
+        displayize_benefit('airquality', 'Air Quality', '%.1f')
     ]
 
     rslt = {'benefits': benefits_for_display,
