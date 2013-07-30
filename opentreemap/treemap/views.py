@@ -309,6 +309,9 @@ trees_view = instance_request(
 plot_detail_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_detail.html', plot_detail)))
 
+plot_popup_view = instance_request(etag(_plot_hash)(
+    render_template('treemap/plot_popup.html', plot_detail)))
+
 root_settings_js_view = render_template('treemap/settings.js',
                     {'BING_API_KEY': settings.BING_API_KEY},
                     mimetype='application/javascript')

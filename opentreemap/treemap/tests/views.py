@@ -16,7 +16,7 @@ from treemap.models import Instance, Species, User, Plot, Tree
 
 from treemap.views import (species_list, boundary_to_geojson,
                            boundary_autocomplete, audits, search_tree_benefits,
-                           user, instance_user_view)
+                           user, instance_user_view, plot_popup_view)
 
 from treemap.tests import (ViewTestCase, make_instance, make_system_user,
                            make_commander_role, make_officer_role,
@@ -485,3 +485,41 @@ class InstanceUserViewTests(ViewTestCase):
         self.assertEquals(expected_url, res['Location'],
                           'the view should redirect to %s not %s ' %
                           (expected_url, res['Location']))
+
+
+class PlotPopupViewTests(ViewTestCase):
+    def setUp(self):
+        self.instance = make_instance()
+
+        self.system_user = make_system_user()
+        self.system_user.roles.add(make_commander_role(self.instance))
+
+        self.species = Species(common_name='Test Common Species',
+                               genus='Testus Genius',
+                               species='Testus Specicus',
+                               cultivar_name='Testus Cultivus',
+                               symbol='test')
+        self.species.save()
+
+        self.point = Point(-7615441.0, 5953519.0)
+        self.factory = RequestFactory()
+
+        self.plot = Plot(geom=self.point, instance=self.instance)
+        self.plot.address_street = '1234 Market St'
+        self.plot.address_city = 'Philadelphia'
+        self.plot.address_zip = '19107'
+        self.plot.save_with_user(self.system_user)
+
+        self.tree = Tree(plot=self.plot, instance=self.instance)
+        self.tree.diameter = 4
+        self.tree.species = self.species
+        self.tree.save_with_user(self.system_user)
+
+    def test_get_returns_200_for_existing_plot(self):
+        res = plot_popup_view(self._make_request(), self.instance.pk, self.plot.pk)
+        self.assertEquals(200, res.status_code, 'Plot detail request with instance '
+                          '%d and plot %d should return 200' % (self.instance.pk, self.plot.pk))
+
+    def test_get_with_invalid_plot_id_raises_does_not_exist(self):
+        self.assertRaises(Plot.DoesNotExist, plot_popup_view, self._make_request(),
+                          self.instance.pk, -1)
