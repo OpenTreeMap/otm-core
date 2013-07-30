@@ -1,11 +1,16 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('underscore'),
     OL = require('OpenLayers'),
     Search = require('./search.js'),
     Bacon = require('baconjs');
 
+// These modules add features to the OpenLayers global
+// so we do not need `var thing =`
 require('./openlayers.layer.otm.js');
+require('./openLayersUtfGridEventStream');
+require('./openLayersMapEventStream');
 
 $.extend($.fn, Bacon.$);
 
@@ -16,6 +21,10 @@ function keyCodeIs(keyCode) {
 }
 
 var isEnterKey = keyCodeIs(13);
+
+var truthyOrError = function (value) {
+    return !!value ? value : Bacon.Error('The value ' + value + ' is not truthy');
+};
 
 /* END BACON HELPERS */
 
@@ -89,36 +98,23 @@ var app = {
         });
     },
 
-    /**
-     * Create a new utf movement control bound to all
-     * utf layers.
-     *
-     * @param renderfn A single argument function
-     *                 that takes in a hash of the last
-     *                 point or 'undefined' if the mouse
-     *                 isn't over a point
-     */
-    createUTFMovementControl: function(renderfn) {
-        return new OL.Control.UTFGrid({
-            callback: function(info) {
-                var idx, props;
-                for(idx in info) {
-                    if (info.hasOwnProperty(idx)) {
-                        props = info[idx] || {};
-                        renderfn(props.data);
-                    }
-                }
-            },
-
-            handlerMode: "move"
+    getPlotPopupContent: function(config, id) {
+        var search = $.ajax({
+            url: '/' + config.instance.id + '/plots/' + id + '/',
+            type: 'GET',
+            dataType: 'html'
         });
+        return Bacon.fromPromise(search);
     },
 
-    onMove: function(data) {
-        document.getElementById("attrs").innerHTML = JSON.stringify(data || {});
+    makePopup: function(latLon, html, size) {
+        if (latLon && html) {
+            return new OL.Popup("plot-popup", latLon, size, html, true);
+        } else {
+            return null;
+        }
     }
 };
-
 
 module.exports = {
     init: function (config) {
@@ -154,7 +150,51 @@ module.exports = {
         map.addLayer(utfLayer);
         map.addLayer(boundsLayer);
 
-        map.addControl(app.createUTFMovementControl(app.onMove));
+        var utfGridMoveControl = new OL.Control.UTFGrid();
+
+        utfGridMoveControl
+            .asEventStream('move')
+            .map(function (o) { return JSON.stringify(o || {}); })
+            .assign($('#attrs'), 'html');
+
+        // The control must be added to the map after setting up the
+        // event stream
+        map.addControl(utfGridMoveControl);
+
+        var utfGridClickControl = new OL.Control.UTFGrid();
+
+        var clickedIdStream = utfGridClickControl
+            .asEventStream('click')
+            .map('.id');
+
+        var popupHtmlStream = clickedIdStream
+            .map(truthyOrError) // Prevents making requests if id is undefined
+            .flatMap(_.bind(app.getPlotPopupContent, app, config))
+            .mapError(''); // No id or a server error both result in no content
+
+        // The control must be added to the map after setting up the
+        // event streams
+        map.addControl(utfGridClickControl);
+
+        var showPlotDetailPopup = (function(map) {
+            var existingPopup;
+            return function(popup) {
+                if (existingPopup) { map.removePopup(existingPopup); }
+                if (popup) { map.addPopup(popup); }
+                existingPopup = popup;
+            };
+        }(map));
+
+        var clickedLatLonStream = map.asEventStream('click').map(function (e) {
+            return map.getLonLatFromPixel(e.xy);
+        });
+
+        // OpenLayers needs both the content and a coordinate to
+        // show a popup so I zip map clicks together with content
+        // requested via ajax
+        clickedLatLonStream
+            .zip(popupHtmlStream, app.makePopup) // TODO: size is not being sent to makePopup
+            .onValue(showPlotDetailPopup);
 
         zoom = map.getZoomForResolution(76.43702827453613);
         map.setCenter(config.instance.center, zoom);

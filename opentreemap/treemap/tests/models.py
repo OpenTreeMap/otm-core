@@ -262,3 +262,43 @@ class ModelUnicodeTests(TestCase):
     def test_reputation_metric_model(self):
         self.assertEqual(unicode(self.reputation_metric),
                          'Test Instance - Tree - Test Action')
+
+
+class PlotFullAddressTests(TestCase):
+
+    def setUp(self):
+        self.instance = make_instance(name='Test Instance')
+        self.plot = Plot(geom=Point(0, 0), instance=self.instance)
+
+    def test_street_address_only(self):
+        self.plot.address_street = '1234 market st'
+        self.assertEqual('1234 market st', self.plot.address_full)
+
+    def test_city_only(self):
+        self.plot.address_city = 'boomtown'
+        self.assertEqual('boomtown', self.plot.address_full)
+
+    def test_zip_only(self):
+        self.plot.address_zip = '12345'
+        self.assertEqual('12345', self.plot.address_full)
+
+    def test_street_address_and_city(self):
+        self.plot.address_street = '1234 market st'
+        self.plot.address_city = 'boomtown'
+        self.assertEqual('1234 market st, boomtown', self.plot.address_full)
+
+    def test_street_address_and_zip(self):
+        self.plot.address_street = '1234 market st'
+        self.plot.address_zip = '12345'
+        self.assertEqual('1234 market st, 12345', self.plot.address_full)
+
+    def test_city_and_zip(self):
+        self.plot.address_city = 'boomtown'
+        self.plot.address_zip = '12345'
+        self.assertEqual('boomtown, 12345', self.plot.address_full)
+
+    def test_all_components(self):
+        self.plot.address_street = '1234 market st'
+        self.plot.address_city = 'boomtown'
+        self.plot.address_zip = '12345'
+        self.assertEqual('1234 market st, boomtown, 12345', self.plot.address_full)

@@ -255,6 +255,17 @@ class Plot(Authorizable, Auditable, models.Model):
         else:
             return []
 
+    @property
+    def address_full(self):
+        components = []
+        if self.address_street:
+            components.append(self.address_street)
+        if self.address_city:
+            components.append(self.address_city)
+        if self.address_zip:
+            components.append(self.address_zip)
+        return ', '.join(components)
+
 
 class Tree(Authorizable, Auditable, models.Model):
     """
