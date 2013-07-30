@@ -516,10 +516,12 @@ class PlotPopupViewTests(ViewTestCase):
         self.tree.save_with_user(self.system_user)
 
     def test_get_returns_200_for_existing_plot(self):
-        res = plot_popup_view(self._make_request(), self.instance.pk, self.plot.pk)
-        self.assertEquals(200, res.status_code, 'Plot detail request with instance '
-                          '%d and plot %d should return 200' % (self.instance.pk, self.plot.pk))
+        res = plot_popup_view(self._make_request(), self.instance.pk,
+                              self.plot.pk)
+        self.assertEquals(200, res.status_code, 'Plot detail request with'
+                          'instance %d and plot %d should return 200' %
+                          (self.instance.pk, self.plot.pk))
 
     def test_get_with_invalid_plot_id_raises_does_not_exist(self):
-        self.assertRaises(Plot.DoesNotExist, plot_popup_view, self._make_request(),
-                          self.instance.pk, -1)
+        self.assertRaises(Plot.DoesNotExist, plot_popup_view,
+                          self._make_request(), self.instance.pk, -1)
