@@ -38,7 +38,7 @@ OL.Layer.OTM = OL.Layer.OTM || OL.Class(OL.Layer.XYZ, {
     clearFilter: function() {
         this.filter = undefined;
         this.url = this.originalUrl;
-        this.redraw();
+        this.redraw({force: true});
     },
 
     setFilter: function(filter) {
@@ -51,7 +51,7 @@ OL.Layer.OTM = OL.Layer.OTM || OL.Class(OL.Layer.XYZ, {
                 filterQueryArgumentName: this.filterQueryArgumentName,
                 uriEncodedFilterObject: uriEncodeFilterObject(filter)
             });
-            this.redraw();
+            this.redraw({force: true});
         }
     }
 });
