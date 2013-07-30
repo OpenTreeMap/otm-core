@@ -297,6 +297,12 @@ def instance_user_view(request, instance_id, username):
     return HttpResponseRedirect(url)
 
 
+def profile_to_user_view(request):
+    if request.user and request.user.username:
+        return HttpResponseRedirect('/users/%s/' % request.user.username)
+    else:
+        return HttpResponseRedirect(settings.LOGIN_URL)
+
 audits_view = instance_request(
     render_template('treemap/recent_edits.html', audits))
 
