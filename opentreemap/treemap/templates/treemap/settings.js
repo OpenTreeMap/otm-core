@@ -2,6 +2,10 @@
 var otm = otm || {};
 otm.settings = otm.settings || {};
 
+otm.settings.utfGrid = {
+    plotIdKey: 'the_plot_id'
+}
+
 otm.settings.urls = {
     'filterQueryArgumentName': 'q'
 }
