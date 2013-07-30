@@ -4,7 +4,8 @@ var $ = require('jquery'),
     _ = require('underscore'),
     OL = require('OpenLayers'),
     Search = require('./search.js'),
-    Bacon = require('baconjs');
+    Bacon = require('baconjs'),
+    otmTypeahead = require('./otm.typeahead.js');
 
 // These modules add features to the OpenLayers global
 // so we do not need `var thing =`
@@ -199,5 +200,13 @@ module.exports = {
         map.setCenter(config.instance.center, zoom);
 
         Search.init(triggerEventStream, plotLayer, config);
+
+        otmTypeahead.create({
+            name: "species",
+            url: "/" + config.instance.id + "/species",
+            input: "#species-typeahead",
+            template: "#species-element-template",
+            hidden: "#search-species"
+        });
     }
 };
