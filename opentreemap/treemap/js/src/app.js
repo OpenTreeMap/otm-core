@@ -76,6 +76,13 @@ var app = {
           filterQueryArgumentName: config.urls.filterQueryArgumentName });
     },
 
+    createPlotUTFLayer: function(config) {
+        return new OL.Layer.UTFGrid({
+            url: this.getPlotLayerURL(config, 'grid.json'),
+            utfgridResolution: 4
+        });
+    },
+
     getBoundsLayerURL: function(config, extension) {
         return '/tile/' +
             config.instance.rev +
@@ -88,14 +95,6 @@ var app = {
             'bounds',
             this.getBoundsLayerURL(config, 'png'),
         { isBaseLayer: false });
-    },
-
-    createPlotUTFLayer: function(config) {
-        return new OL.Layer.UTFGrid({
-            url: this.getPlotLayerURL(config, 'grid.json') +
-                '&interactivity=id',
-            utfgridResolution: 4
-        });
     },
 
     getPlotPopupContent: function(config, id) {
