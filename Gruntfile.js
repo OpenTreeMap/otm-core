@@ -15,6 +15,7 @@ module.exports = function(grunt) {
                         ext: '',
                         flatten: true
                     },
+                    noParse: grunt.file.expand('js/lib/*.js'),
                     shim: {
                         googlemaps: {
                             path: './js/shim/googlemaps.js',
@@ -24,6 +25,12 @@ module.exports = function(grunt) {
                             path: './js/shim/OpenLayers.js',
                             exports: 'OpenLayers',
                             depends: { googlemaps: 'google' }
+                        },
+                        // Typeahead puts itself onto the jQuery object
+                        typeahead: {
+                            path: './js/shim/typeahead.js',
+                            exports: null,
+                            depends: { jquery: 'jQuery' }
                         }
                     },
                     debug: true
