@@ -138,11 +138,11 @@ class Species(models.Model):
     """
     ### Base required info
     symbol = models.CharField(max_length=255)
+    common_name = models.CharField(max_length=255)
     genus = models.CharField(max_length=255)
     species = models.CharField(max_length=255, null=True, blank=True)
     cultivar_name = models.CharField(max_length=255, null=True, blank=True)
     gender = models.CharField(max_length=50, null=True, blank=True)
-    common_name = models.CharField(max_length=255, null=True, blank=True)
 
     ### Copied from original OTM ###
     native_status = models.CharField(max_length=255, null=True, blank=True)
@@ -165,6 +165,10 @@ class Species(models.Model):
     objects = SpeciesManager()
 
     @property
+    def display_name(self):
+        return "%s [%s]" % (self.common_name, self.scientific_name)
+
+    @property
     def scientific_name(self):
         name = self.genus
         if self.species:
@@ -174,7 +178,7 @@ class Species(models.Model):
         return name
 
     def __unicode__(self):
-        return self.scientific_name
+        return self.display_name
 
     class Meta:
         verbose_name_plural = "Species"
