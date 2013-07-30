@@ -25,8 +25,15 @@ function buildSearch(stream) {
             pred = {};
 
         if (val && val.length > 0) {
-            pred[key_and_pred.pred] = val;
-            preds[key_and_pred.key] = pred;
+            // If a predicate field (such as tree.diameter)
+            // is already specified, merge the resulting dicts
+            // instead
+            if (preds[key_and_pred.key]) {
+                preds[key_and_pred.key][key_and_pred.pred] = val;
+            } else {
+                pred[key_and_pred.pred] = val;
+                preds[key_and_pred.key] = pred;
+            }
         }
 
         return preds;
