@@ -52,6 +52,33 @@ def make_loaded_role(instance, name, rep_thresh, permissions):
     return role
 
 
+def make_god_role(instance):
+    permissions = (
+        ('Plot', 'instance', FieldPermission.WRITE_DIRECTLY),
+        ('Plot', 'id', FieldPermission.WRITE_DIRECTLY),
+        ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
+        ('Plot', 'width', FieldPermission.WRITE_DIRECTLY),
+        ('Plot', 'length', FieldPermission.WRITE_DIRECTLY),
+        ('Plot', 'address_street', FieldPermission.WRITE_DIRECTLY),
+        ('Plot', 'address_city', FieldPermission.WRITE_DIRECTLY),
+        ('Plot', 'address_zip', FieldPermission.WRITE_DIRECTLY),
+        ('Plot', 'import_event', FieldPermission.WRITE_DIRECTLY),
+        ('Plot', 'owner_orig_id', FieldPermission.WRITE_DIRECTLY),
+        ('Plot', 'readonly', FieldPermission.WRITE_DIRECTLY),
+        ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
+        ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
+        ('Tree', 'instance', FieldPermission.WRITE_DIRECTLY),
+        ('Tree', 'species', FieldPermission.WRITE_DIRECTLY),
+        ('Tree', 'import_event', FieldPermission.WRITE_DIRECTLY),
+        ('Tree', 'readonly', FieldPermission.WRITE_DIRECTLY),
+        ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
+        ('Tree', 'height', FieldPermission.WRITE_DIRECTLY),
+        ('Tree', 'canopy_height', FieldPermission.WRITE_DIRECTLY),
+        ('Tree', 'date_planted', FieldPermission.WRITE_DIRECTLY),
+        ('Tree', 'date_removed', FieldPermission.WRITE_DIRECTLY))
+    return make_loaded_role(instance, 'god', 3, permissions)
+
+
 def make_commander_role(instance):
     permissions = (
         ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
