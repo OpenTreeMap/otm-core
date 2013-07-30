@@ -219,15 +219,20 @@ def boundary_autocomplete(request, instance):
 
 
 def species_list(request, instance):
-    query = request.GET.get('q', '')
-    max_items = request.GET.get('max_items', 10)
+    max_items = request.GET.get('max_items', None)
 
-    species_set = Species.objects.contains_name(query)\
-                                 .order_by('common_name')[:max_items]
+    species_set = Species.objects.order_by('common_name')[:max_items]
+
+    # Split names by space so that "el" will match common_name="Delaware Elm"
+    tokens = lambda s: [token for name in
+                        (s.common_name, s.genus, s.species, s.cultivar_name)
+                        for token in (name.split() if name else [])]
 
     return [{'common_name': species.common_name,
              'id': species.pk,
-             'scientific_name': species.scientific_name}
+             'scientific_name': species.scientific_name,
+             'value': species.display_name,
+             'tokens': tokens(species)}
             for species in species_set]
 
 
