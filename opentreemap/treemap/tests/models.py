@@ -301,4 +301,5 @@ class PlotFullAddressTests(TestCase):
         self.plot.address_street = '1234 market st'
         self.plot.address_city = 'boomtown'
         self.plot.address_zip = '12345'
-        self.assertEqual('1234 market st, boomtown, 12345', self.plot.address_full)
+        self.assertEqual('1234 market st, boomtown, 12345',
+                         self.plot.address_full)
