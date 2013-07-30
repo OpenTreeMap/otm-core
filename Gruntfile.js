@@ -41,7 +41,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-contrib-jshint');
 
-    grunt.file.setBase('opentreemap', 'treemap');
+    grunt.file.setBase('/usr/local/otm/app/opentreemap/treemap');
 
     grunt.registerTask('check', ['jshint']);
     grunt.registerTask('default', ['browserify']);
