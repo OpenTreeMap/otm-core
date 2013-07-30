@@ -15,7 +15,7 @@ function uriEncodeFilterObject(o) {
     return encodeURIComponent(JSON.stringify(o));
 }
 
-var _urlTemplate = _.template('<%= originalUrl %>?<%= filterQueryArgumentName %>=<%= uriEncodedFilterObject %>');
+var _urlTemplate = _.template('<%= originalUrl %>&<%= filterQueryArgumentName %>=<%= uriEncodedFilterObject %>');
 
 OL.Layer.OTM = OL.Layer.OTM || OL.Class(OL.Layer.XYZ, {
     originalUrl: null,

@@ -56,7 +56,7 @@ var app = {
         return '/tile/' +
             config.instance.rev +
             '/database/otm/table/treemap_plot/${z}/${x}/${y}.' +
-            extension;
+            extension + '?instance_id=' + config.instance.id;
     },
 
     createPlotTileLayer: function(config) {
@@ -71,7 +71,7 @@ var app = {
         return '/tile/' +
             config.instance.rev +
             '/database/otm/table/treemap_boundary/${z}/${x}/${y}.' +
-            extension;
+            extension + '?instance_id=' + config.instance.id;
     },
 
     createBoundsTileLayer: function(config) {
@@ -84,7 +84,7 @@ var app = {
     createPlotUTFLayer: function(config) {
         return new OL.Layer.UTFGrid({
             url: this.getPlotLayerURL(config, 'grid.json') +
-                '?interactivity=id',
+                '&interactivity=id',
             utfgridResolution: 4
         });
     },
