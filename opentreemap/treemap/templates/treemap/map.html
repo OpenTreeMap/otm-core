@@ -2,9 +2,12 @@
 
 {% block title %}Open Tree Map Test{% endblock title %}
 
-{% block scripts %}
+{% block head_extra %}
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/openlayers.css">
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/otm.css">
+{% endblock head_extra %}
+
+{% block scripts %}
 <script>
 (function(require) {
     var $ = require("jquery"),

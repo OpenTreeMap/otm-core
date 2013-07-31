@@ -224,15 +224,15 @@ def species_list(request, instance):
     species_set = Species.objects.order_by('common_name')[:max_items]
 
     # Split names by space so that "el" will match common_name="Delaware Elm"
-    tokens = lambda s: [token for name in
-                        (s.common_name, s.genus, s.species, s.cultivar_name)
-                        for token in (name.split() if name else [])]
+    tokenize = lambda s: [token for name in
+                          (s.common_name, s.genus, s.species, s.cultivar_name)
+                          for token in (name.split() if name else [])]
 
     return [{'common_name': species.common_name,
              'id': species.pk,
              'scientific_name': species.scientific_name,
              'value': species.display_name,
-             'tokens': tokens(species)}
+             'tokens': tokenize(species)}
             for species in species_set]
 
 
