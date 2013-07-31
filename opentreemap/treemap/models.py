@@ -136,10 +136,6 @@ class Species(models.Model):
         return "%s [%s]" % (self.common_name, self.scientific_name)
 
     @property
-    def display_name(self):
-        return "%s [%s]" % (self.common_name, self.scientific_name)
-
-    @property
     def scientific_name(self):
         name = self.genus
         if self.species:
