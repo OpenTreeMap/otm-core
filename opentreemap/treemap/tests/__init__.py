@@ -214,7 +214,23 @@ class ViewTestCase(TestCase):
                               url, url_args)
 
 
+class RequestTestCase(TestCase):
+
+    def assertOk(self, res):
+        self.assertTrue(res.status_code >= 200 and res.status_code <= 200,
+                        'expected the response to have a 2XX status code, '
+                        'not %d' % res.status_code)
+
+    def assertTemporaryRedirect(self, res, path):
+        self.assertEqual(302, res.status_code, 'expected the response to '
+                         'have a 302 Found status code, not %d'
+                         % res.status_code)
+        self.assertEqual(path, res['Location'], 'expected to redirect to %s '
+                         'not %s' % (path, res['Location']))
+
+
 from audit import *   # NOQA
+from auth import *    # NOQA
 from models import *  # NOQA
 from search import *  # NOQA
 from views import *   # NOQA

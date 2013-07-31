@@ -2,7 +2,8 @@ from django.conf.urls import patterns, include, url
 from django.conf import settings
 from django.views.generic import RedirectView
 
-from treemap.views import user_view, root_settings_js_view
+from treemap.views import (user_view, root_settings_js_view,
+                           profile_to_user_view)
 
 from django.contrib import admin
 admin.autodiscover()
@@ -19,6 +20,9 @@ urlpatterns = patterns(
     url(r'^config/settings.js$', root_settings_js_view),
     url(r'^users/(?P<username>\w+)/', user_view),
     url(r'^api/v2/', include('api.urls')),
+    # The profile view is handled specially by redirecting to
+    # the page of the currently logged in user
+    url(r'^accounts/profile/$', profile_to_user_view),
     url(r'^accounts/', include('registration_backend.urls')),
 )
 
