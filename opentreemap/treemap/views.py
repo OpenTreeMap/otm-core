@@ -106,6 +106,23 @@ def plot_detail(request, instance, plot_id):
     return {'plot': plot}
 
 
+def _get_audits(instance, user, models, model_id, page, page_size, exclude_pending=True):
+    start_pos = page * page_size
+    end_pos = start_pos + page_size
+
+    audits = Audit.objects.filter(instance=instance)\
+                          .filter(model__in=models)\
+                          .order_by('-created', 'id')
+    if user:
+        audits = audits.filter(user=user)
+    if model_id:
+        audits = audits.filter(model_id=model_id)
+    if exclude_pending:
+        audits = audits.exclude(requires_auth=True, ref_id__isnull=True)
+
+    return [AuditUI(a) for a in audits[start_pos:end_pos]]
+
+
 def audits(request, instance):
     """
     Request a variety of different audit types.
@@ -136,9 +153,6 @@ def audits(request, instance):
     page_size = min(int(r.get('page_size', PAGE_DEFAULT)), PAGE_MAX)
     page = int(r.get('page', 0))
 
-    start_pos = page * page_size
-    end_pos = start_pos + page_size
-
     models = []
 
     allowed_models = {
@@ -164,30 +178,16 @@ def audits(request, instance):
     if user_id is not None:
         user = User.objects.get(pk=user_id)
 
-    audits = Audit.objects.filter(instance=instance)\
-                          .filter(model__in=models)\
-                          .order_by('-created', 'id')
+    include_pending = r.get('include_pending', "true") == "false"
 
-    if user_id:
-        audits = audits.filter(user=user)
-
-    if model_id:
-        audits = audits.filter(model_id=model_id)
-
-    if r.get('include_pending', "true") == "false":
-        audits = audits.exclude(requires_auth=True, ref_id__isnull=True)
-
-    audits = [AuditUI(a) for a in audits[start_pos:end_pos]]
+    audits = _get_audits(instance, user, models, model_id, page, page_size, include_pending)
 
     query_vars = {k: v for (k, v) in request.GET.iteritems() if k != 'page'}
-
     next_page = None
     prev_page = None
-
     if len(audits) == page_size:
         query_vars['page'] = page + 1
         next_page = "?" + urllib.urlencode(query_vars)
-
     if page > 0:
         query_vars['page'] = page - 1
         prev_page = "?" + urllib.urlencode(query_vars)
