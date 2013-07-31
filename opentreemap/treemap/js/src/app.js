@@ -209,5 +209,12 @@ module.exports = {
             template: "#species-element-template",
             hidden: "#search-species"
         });
+        otmTypeahead.create({
+            name: "boundaries",
+            url: "/" + config.instance.id + "/boundaries",
+            input: "#boundary-typeahead",
+            template: "#boundary-element-template",
+            hidden: "#boundary"
+        });
     }
 };

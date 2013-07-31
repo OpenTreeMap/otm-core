@@ -8,17 +8,12 @@ from PIL import Image
 from django.shortcuts import get_object_or_404
 from django.http import (HttpResponse, HttpResponseServerError,
                          HttpResponseRedirect)
-
 from django.views.decorators.http import etag
-
 from django.conf import settings
-
 from django.contrib.gis.geos.point import Point
 
 from treemap.util import json_api_call, render_template, instance_request
-
 from treemap.search import create_filter
-
 from treemap.audit import Audit, AuditUI
 from treemap.models import Plot, Tree, User, Boundary, Species
 
@@ -29,13 +24,14 @@ def _plot_hash(request, instance, plot_id):
     return instance.scope_model(Plot).get(pk=plot_id).hash
 
 
-##
+#
 # These are calls made by the API that aren't currently implemented
 # as we make these features, please use these functions to share the
 # love with mobile
-##
+#
 def add_tree_photo(user_id, plot_id, uploaded_image):
     class TPShim(object):
+
         def __init__(self):
             self.pk = 2
             self.title = 'shim'
@@ -207,14 +203,15 @@ def boundary_to_geojson(request, boundary_id):
 
 
 def boundary_autocomplete(request, instance):
-    query = request.GET.get('q', '')
-    max_items = request.GET.get('max_items', 10)
+    max_items = request.GET.get('max_items', None)
 
-    boundaries = instance.boundaries\
-                         .filter(name__startswith=query)\
-                         .order_by('name')[:max_items]
+    boundaries = instance.boundaries.order_by('name')[:max_items]
 
-    return [{'name': boundary.name, 'category': boundary.category}
+    return [{'name': boundary.name,
+             'category': boundary.category,
+             'id': boundary.pk,
+             'value': boundary.name,
+             'tokens': boundary.name.split()}
             for boundary in boundaries]
 
 
