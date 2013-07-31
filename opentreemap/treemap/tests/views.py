@@ -65,13 +65,26 @@ class BoundaryViewTest(ViewTestCase):
             'ferenginar',
             'romulan star empire',
         ]
-        self.test_boundary_hashes = []
+        self.test_boundary_hashes = [
+            {'tokens': ['alabama']},
+            {'tokens': ['arkansas']},
+            {'tokens': ['far']},
+            {'tokens': ['farquaad\'s', 'castle']},
+            {'tokens': ['farther']},
+            {'tokens': ['farthest']},
+            {'tokens': ['ferenginar']},
+            {'tokens': ['romulan', 'star', 'empire']},
+        ]
         for i, v in enumerate(self.test_boundaries):
             boundary = make_simple_boundary(v, i)
             self.instance.boundaries.add(boundary)
             self.instance.save()
-            self.test_boundary_hashes.append({'name': boundary.name,
-                                              'category': boundary.category})
+            js_boundary = self.test_boundary_hashes[i]
+
+            js_boundary['id'] = boundary.id
+            js_boundary['name'] = boundary.name
+            js_boundary['category'] = boundary.category
+            js_boundary['value'] = boundary.name
 
     def test_boundary_to_geojson_view(self):
         boundary = make_simple_boundary("Hello, World", 1)
@@ -82,30 +95,25 @@ class BoundaryViewTest(ViewTestCase):
         self.assertEqual(response.content, boundary.geom.geojson)
 
     def test_autocomplete_view(self):
-        response = boundary_autocomplete(
-            self._make_request({'q': 'fa'}),
-            self.instance)
+        response = boundary_autocomplete(self._make_request(), self.instance)
 
-        self.assertEqual(response, self.test_boundary_hashes[2:6])
+        self.assertEqual(response, self.test_boundary_hashes)
 
     def test_autocomplete_view_scoped(self):
         # make a boundary that is not tied to this
         # instance, should not be in the search
         # results
         make_simple_boundary("fargo", 1)
-        response = boundary_autocomplete(
-            self._make_request({'q': 'fa'}),
-            self.instance)
+        response = boundary_autocomplete(self._make_request(), self.instance)
 
-        self.assertEqual(response, self.test_boundary_hashes[2:6])
+        self.assertEqual(response, self.test_boundary_hashes)
 
     def test_autocomplete_view_limit(self):
         response = boundary_autocomplete(
-            self._make_request({'q': 'fa',
-                                'max_items': 2}),
+            self._make_request({'max_items': 2}),
             self.instance)
 
-        self.assertEqual(response, self.test_boundary_hashes[2:4])
+        self.assertEqual(response, self.test_boundary_hashes[0:2])
 
 
 class RecentEditsViewTest(TestCase):
