@@ -3,8 +3,9 @@
 var $ = require('jquery'),
     _ = require('underscore'),
     OL = require('OpenLayers'),
-    Search = require('./search.js'),
     Bacon = require('baconjs'),
+
+    Search = require('./search.js'),
     otmTypeahead = require('./otm.typeahead.js');
 
 // These modules add features to the OpenLayers global
