@@ -22,7 +22,7 @@ urlpatterns = patterns(
     url(r'^api/v2/', include('api.urls')),
     # The profile view is handled specially by redirecting to
     # the page of the currently logged in user
-    url(r'^accounts/profile/$', profile_to_user_view),
+    url(r'^accounts/profile/$', profile_to_user_view, name='profile'),
     url(r'^accounts/', include('registration_backend.urls')),
 )
 
