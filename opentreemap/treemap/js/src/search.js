@@ -69,6 +69,9 @@ exports.init = function(triggerEventStream, plotLayer, otmConfig) {
     // `setFilter` instance method
     searchStream.onValue(_.bind(plotLayer.setFilter, plotLayer));
 
+    // Clear any previous search results
+    searchStream.map('').onValue($('#search-results'), 'html');
+
     searchStream
         .flatMap(executeSearch)
         .onValue($('#search-results'), 'html');
