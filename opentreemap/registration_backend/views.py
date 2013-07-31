@@ -36,7 +36,7 @@ class RegistrationView(DefaultRegistrationView):
 
         new_user = get_user_model()()
         new_user.username = username
-        new_user.password = password
+        new_user.set_password(password)
         new_user.email = email
         new_user.is_active = False
         new_user.save_base()
