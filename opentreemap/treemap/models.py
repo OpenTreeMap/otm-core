@@ -2,6 +2,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.conf import settings
+
 from django.contrib.gis.db import models
 from django.db import IntegrityError
 from treemap.audit import Auditable, Authorizable, FieldPermission, Role
@@ -78,6 +80,21 @@ class User(Auditable, AbstractUser):
     roles = models.ManyToManyField(Role, blank=True, null=True)
     reputation = models.IntegerField(default=0)
 
+    _system_user = None
+
+    @classmethod
+    def system_user(clazz):
+        if not User._system_user:
+            try:
+                User._system_user = User.objects.get(
+                    pk=settings.SYSTEM_USER_ID)
+
+            except User.DoesNotExist:
+                raise Exception('System user does not exist. You may '
+                                'want to run `manage.py create_system_user`')
+
+        return User._system_user
+
     def get_instance_permissions(self, instance, model_name=None):
         roles = self.roles.filter(instance=instance)
 
@@ -97,6 +114,10 @@ class User(Auditable, AbstractUser):
             perms = perms.filter(model_name=model_name)
 
         return perms
+
+    def save(self):
+        system_user = User.system_user()
+        self.save_with_user(system_user)
 
 
 class Species(models.Model):

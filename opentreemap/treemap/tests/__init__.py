@@ -7,6 +7,8 @@ from django.test.client import RequestFactory
 
 from django.contrib.gis.geos import Point, Polygon
 
+from treemap.models import User
+
 
 def make_simple_boundary(name, n=1):
     b = Boundary()
@@ -156,37 +158,14 @@ def make_instance(name='i1'):
     return instance
 
 
-def make_system_user():
+def create_mock_system_user():
     try:
         system_user = User.objects.get(username="system_user")
     except Exception:
         system_user = User(username="system_user")
         system_user.save_base()
-    return system_user
 
-
-def make_basic_user(instance, username):
-    """ A helper function for making an instance and user
-
-    You'll still want to load the permissions you need for each
-    test onto the user's role. """
-    system_user = make_system_user()
-
-    user = User(username=username)
-    user.save_with_user(system_user)
-    return user
-
-
-def make_instance_and_basic_user():
-    instance = make_instance()
-    basic_user = make_basic_user(instance, "custom_user")
-    return instance, basic_user
-
-
-def make_instance_and_system_user():
-    instance = make_instance()
-    system_user = make_system_user()
-    return instance, system_user
+    User._system_user = system_user
 
 
 class ViewTestCase(TestCase):
@@ -228,6 +207,8 @@ class RequestTestCase(TestCase):
         self.assertEqual(path, res['Location'], 'expected to redirect to %s '
                          'not %s' % (path, res['Location']))
 
+
+create_mock_system_user()
 
 from audit import *   # NOQA
 from auth import *    # NOQA

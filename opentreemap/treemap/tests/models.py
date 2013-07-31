@@ -12,17 +12,18 @@ from django.contrib.gis.geos import Point
 from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
                             InstanceSpecies, ImportEvent, User)
 from treemap.audit import Audit, ReputationMetric
-from treemap.tests import (make_loaded_role, make_instance_and_basic_user,
-                           make_instance, make_system_user,
-                           make_simple_boundary, make_commander_role,
-                           make_instance_and_system_user, make_god_role)
-
 from treemap.management.commands.migrate_otm1 import hash_to_model
+
+from treemap.tests import (make_loaded_role, make_instance, make_god_role,
+                           make_simple_boundary, make_commander_role)
 
 
 class HashModelTest(TestCase):
     def setUp(self):
-        self.instance, self.user = make_instance_and_basic_user()
+        self.instance = make_instance()
+        self.user = User(username='user')
+        self.user.save()
+
         permissions = (
             ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
             ('Plot', 'width', FieldPermission.WRITE_DIRECTLY),
@@ -89,7 +90,9 @@ class GeoRevIncr(TestCase):
     def setUp(self):
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
-        self.instance, self.user = make_instance_and_basic_user()
+        self.instance = make_instance()
+        self.user = User(username='user')
+        self.user.save()
 
         permissions = (
             ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
@@ -183,7 +186,8 @@ class ModelUnicodeTests(TestCase):
                                                 common_name='Test Common Name')
         self.instance_species.save_base()
 
-        self.user = make_system_user()
+        self.user = User(username='commander')
+        self.user.save()
 
         self.import_event = ImportEvent(imported_by=self.user)
         self.import_event.save_base()
@@ -237,12 +241,12 @@ class ModelUnicodeTests(TestCase):
         self.assertEqual(unicode(self.instance_species), 'Test Common Name')
 
     def test_user_model(self):
-        self.assertEqual(unicode(self.user), 'system_user')
+        self.assertEqual(unicode(self.user), 'commander')
 
     def test_import_event_model(self):
         today = datetime.datetime.today().strftime('%Y-%m-%d')
         self.assertEqual(unicode(self.import_event),
-                         'system_user - %s' % today)
+                         'commander - %s' % today)
 
     def test_plot_model(self):
         self.assertEqual(unicode(self.plot),
@@ -313,10 +317,10 @@ class PlotFullAddressTests(TestCase):
 
 class MigrationCommandTests(TestCase):
     def setUp(self):
-        self.instance, self.user = make_instance_and_system_user()
+        self.instance = make_instance()
 
         self.god = User(username="god")
-        self.god.save_with_user(self.user)
+        self.god.save()
         self.god.roles.add(make_god_role(self.instance))
 
         self.tree_blob = """
