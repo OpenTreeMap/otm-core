@@ -7,8 +7,27 @@
 
     {% block head_extra %}
     {% endblock head_extra %}
+    <style type="text/css">
+      header {
+        background-color: #dddddd;
+        padding: 0.5em;
+        margin: 0 0 0.5em 0;
+      }
+    </style>
   </head>
   <body>
+    {% block header %}
+    <header>
+      {% if request.user.username %}
+        <a href="{% url 'profile' %}">{{ request.user }}</a>
+        <a href="{% url 'auth_logout' %}">Logout</a>
+      {% else %}
+        <a href="{% url 'auth_login' %}">Login</a>
+        <a href="{% url 'registration_register' %}">Sign Up</a>
+      {% endif %}
+    </header>
+    {% endblock header %}
+
     {% block content %}
     {% endblock content %}
 
