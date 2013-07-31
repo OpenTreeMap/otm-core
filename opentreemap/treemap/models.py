@@ -2,12 +2,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import string
-import re
-
 from django.contrib.gis.db import models
 from django.db import IntegrityError
-from django.db.models import Q
 from treemap.audit import Auditable, Authorizable, FieldPermission, Role
 
 from django.contrib.auth.models import AbstractUser
@@ -103,46 +99,17 @@ class User(Auditable, AbstractUser):
         return perms
 
 
-class SpeciesManager(models.GeoManager):
-    # Since scientific_name is a property it can't be used in a django filter
-    # instead this searches the fields scientific_name is built from
-    def contains_name(self, query):
-        def simple_search(search):
-            return (Q(common_name__contains=search)
-                    | Q(genus__contains=search)
-                    | Q(species__contains=search)
-                    | Q(cultivar_name__contains=search))
-
-        simple_qs = self.filter(simple_search(query))
-
-        if simple_qs:
-            return simple_qs
-
-        # If a simple match cannot be found try matching on each individual
-        # word in the query.
-        separator = re.compile(r'(?:\s|[%s])+'
-                               % re.escape(string.punctuation))
-        queries = separator.split(query, 4)
-
-        q = Q()
-        for word in queries:
-            if word:
-                q &= simple_search(word)
-
-        return self.filter(q)
-
-
 class Species(models.Model):
     """
     http://plants.usda.gov/adv_search.html
     """
     ### Base required info
     symbol = models.CharField(max_length=255)
+    common_name = models.CharField(max_length=255)
     genus = models.CharField(max_length=255)
     species = models.CharField(max_length=255, null=True, blank=True)
     cultivar_name = models.CharField(max_length=255, null=True, blank=True)
     gender = models.CharField(max_length=50, null=True, blank=True)
-    common_name = models.CharField(max_length=255, null=True, blank=True)
 
     ### Copied from original OTM ###
     native_status = models.CharField(max_length=255, null=True, blank=True)
@@ -162,7 +129,11 @@ class Species(models.Model):
     max_dbh = models.IntegerField(default=200)
     max_height = models.IntegerField(default=800)
 
-    objects = SpeciesManager()
+    objects = models.GeoManager()
+
+    @property
+    def display_name(self):
+        return "%s [%s]" % (self.common_name, self.scientific_name)
 
     @property
     def scientific_name(self):
@@ -174,7 +145,7 @@ class Species(models.Model):
         return name
 
     def __unicode__(self):
-        return self.scientific_name
+        return self.display_name
 
     class Meta:
         verbose_name_plural = "Species"

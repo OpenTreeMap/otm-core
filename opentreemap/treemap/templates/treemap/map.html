@@ -2,16 +2,20 @@
 
 {% block title %}Open Tree Map Test{% endblock title %}
 
-{% block scripts %}
+{% block head_extra %}
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/openlayers.css">
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/otm.css">
+{% endblock head_extra %}
+
+{% block scripts %}
 <script>
 (function(require) {
     var $ = require("jquery"),
         app = require("treemap");
 
-        $(function(){
-            app.init(otm.settings);
-        })
+    $(function(){
+        app.init(otm.settings);
+    })
 })(require);
 </script>
 {% endblock scripts %}
@@ -22,21 +26,13 @@
     <h2>Search</h2>
     <div>
       Species:
-      <select data-class="search" id="search-species">
-        <option value="">None</option>
-        {% for sp in species %}
-        <option value="{{ sp.pk }}">{{ sp.scientific_name }}</option>
-        {% endfor %}
-      </select>
+      <input type="text" data-class="search" id="species-typeahead" />
+      <input type="hidden" id="search-species" />
     </div>
     <div>
       Boundaries:
-      <select data-class="search" id="boundary">
-        <option value="">None</option>
-        {% for boundary in bounds %}
-        <option value="{{ boundary.pk }}">{{ boundary.name }}</option>
-        {% endfor %}
-      </select>
+      <input type="text" data-class="search" id="boundary-typeahead" />
+      <input type="hidden" id="boundary" />
     </div>
     <div>DBH Min: <input data-class="search" id="dbh-min"></div>
     <div>DBH Max: <input data-class="search" id="dbh-max"></div>
@@ -49,3 +45,12 @@
   </div>
   <div id="map" style="width: 800px; height: 800px"></div>
 {% endblock content %}
+
+{% block templates %}
+{% verbatim %}
+<script id="species-element-template" type="text/x-mustache-template">
+  <p>{{common_name}}</p>
+  <p>{{scientific_name}}</p>
+</script>
+{% endverbatim %}
+{% endblock templates %}

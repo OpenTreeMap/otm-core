@@ -229,8 +229,9 @@ class ModelUnicodeTests(TestCase):
         self.assertEqual(unicode(self.instance), "Test Instance")
 
     def test_species_model(self):
-        self.assertEqual(unicode(self.species),
-                         "Test Genus Test Species 'Test Cultivar'")
+        self.assertEqual(
+            unicode(self.species),
+            "Test Common Name [Test Genus Test Species 'Test Cultivar']")
 
     def test_instance_species_model(self):
         self.assertEqual(unicode(self.instance_species), 'Test Common Name')
