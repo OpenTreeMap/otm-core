@@ -151,7 +151,7 @@
 /* Footer ----------------------------- */
 footer {
   bottom: 0;
-  position: relative;
+  position: fixed;
   background: #000;
   width: 100%;
   font-size: 12px;
