@@ -263,34 +263,6 @@ class Command(InstanceDataCommand):
             print('Invalid instance provided.')
             return 1
 
-        species_hashes = []
-        user_hashes = []
-        plot_hashes = []
-        tree_hashes = []
-
-        try:
-            species_file = open(options['species_fixture'], 'r')
-            species_hashes = json.load(species_file)
-        except:
-            print('No valid species fixture provided ... SKIPPING')
-
-        try:
-            user_file = open(options['user_fixture'], 'r')
-            user_hashes = json.load(user_file)
-        except:
-            print('No valid user fixture provided    ... SKIPPING')
-
-        try:
-            plot_file = open(options['plot_fixture'], 'r')
-            plot_hashes = json.load(plot_file)
-        except:
-            print('No valid plot fixture provided    ... SKIPPING')
-
-        try:
-            tree_file = open(options['tree_fixture'], 'r')
-            tree_hashes = json.load(tree_file)
-        except:
-            print('No valid tree fixture provided    ... SKIPPING')
 
         ##########################################
         # models saved with system user
@@ -311,6 +283,26 @@ class Command(InstanceDataCommand):
         ##########################################
         # models saved with app user (if possible)
         ##########################################
+        # look for fixtures of the form '<model>_fixture' that
+        # were passed in as command line args and load them as
+        # python objects
+        json_hashes = {
+            'species': [],
+            'user': [],
+            'plot': [],
+            'tree': [],
+        }
+
+
+        for model_name in json_hashes:
+            option_name = model_name + '_fixture'
+            try:
+                model_file = open(options[option_name], 'r')
+                json_hashes[model_name] = json.load(model_file)
+            except:
+                print('No valid %s fixture provided ... SKIPPING'
+                      % model_name)
+
 
         from treemap.tests import make_god_role
         god_role = make_god_role(instance)
