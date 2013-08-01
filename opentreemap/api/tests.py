@@ -19,19 +19,23 @@ import urllib
 from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 
 from treemap.models import Species, Plot, Tree, User
-from treemap.tests import (make_system_user, make_commander_role,
-                           make_apprentice_role)
+from treemap.tests import make_commander_role, make_apprentice_role
 from treemap.audit import ReputationMetric, Audit
 
 from api.models import APIKey, APILog
 from api.views import (InvalidAPIKeyException, plot_or_tree_permissions,
                        plot_permissions,
                        _parse_application_version_header_as_dict)
+from treemap.tests import create_mock_system_user
 
 import os
 import base64
 
+
 API_PFX = "/api/v2"
+
+
+create_mock_system_user()
 
 
 def create_signer_dict(user):
@@ -171,15 +175,13 @@ class Authentication(TestCase):
     def setUp(self):
         setupTreemapEnv()
 
-        self.system_user = make_system_user()
-
         self.u = User.objects.get(username="jim")
         self.u.set_password("password")
-        self.u.save_with_user(self.system_user)
+        self.u.save()
 
         amy = User.objects.get(username="amy")
         amy.set_password("password")
-        amy.save_with_user(self.system_user)
+        amy.save()
 
         self.sign = create_signer_dict(self.u)
 
@@ -225,7 +227,7 @@ class Authentication(TestCase):
 
         carol.reputation = 1001
         carol.set_password('carol')
-        carol.save_with_user(self.system_user)
+        carol.save()
 
         auth = base64.b64encode("%s:%s" %
                                 (carol.username, carol.username))
@@ -304,7 +306,10 @@ class PlotListing(TestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
 
-        self.u = make_system_user()
+        self.u = User(username='user')
+        self.u.save()
+        self.u.roles.add(make_commander_role(self.instance))
+
         self.sign = create_signer_dict(self.u)
         self.client = Client()
 
@@ -598,11 +603,10 @@ class CreatePlotAndTree(TestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
 
-        self.system_user = make_system_user()
         self.user = User.objects.get(username="jim")
         self.user.set_password("password")
         self.user.roles.add(make_commander_role(self.instance))
-        self.user.save_with_user(self.system_user)
+        self.user.save()
 
         self.sign = create_signer_dict(self.user)
         auth = base64.b64encode("jim:password")
@@ -730,12 +734,10 @@ class UpdatePlotAndTree(TestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
 
-        self.system_user = make_system_user()
-
         self.user = User.objects.get(username="jim")
         self.user.set_password("password")
         self.user.roles.add(make_commander_role(self.instance))
-        self.user.save_with_user(self.system_user)
+        self.user.save()
         self.sign = create_signer_dict(self.user)
         auth = base64.b64encode("jim:password")
         self.sign = dict(self.sign.items() +
@@ -744,7 +746,7 @@ class UpdatePlotAndTree(TestCase):
         self.public_user = User.objects.get(username="amy")
         self.public_user.set_password("password")
         self.public_user.roles = [make_apprentice_role(self.instance)]
-        self.public_user.save_with_user(self.system_user)
+        self.public_user.save()
 
         self.public_user_sign = create_signer_dict(self.public_user)
         public_user_auth = base64.b64encode("amy:password")

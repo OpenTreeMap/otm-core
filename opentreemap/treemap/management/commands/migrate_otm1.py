@@ -228,8 +228,8 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                             save_with_system_user=False):
 
     for model_hash in model_hashes:
-        for dependency_name, dependency_field in\
-            MODELS[model_name]['dependencies'].iteritems():
+        for dependency_name, dependency_field in \
+            MODELS[model_name]['dependencies'].iteritems():  # NOQA
             dependency_map = dependency_id_maps[dependency_name]
             dependency_id = model_hash['fields'][dependency_field]
             if dependency_id:
@@ -299,7 +299,7 @@ class Command(InstanceDataCommand):
             'species': [],
             'user': [],
             'plot': [],
-            'tree': [],
+            'tree': []
         }
 
         for model_name in json_hashes:
@@ -310,7 +310,6 @@ class Command(InstanceDataCommand):
             except:
                 print('No valid %s fixture provided ... SKIPPING'
                       % model_name)
-
 
         # iterate over the fixture hashes and save them as database
         # records.

@@ -4,9 +4,8 @@ from django.contrib.gis.geos.polygon import Polygon
 from api.models import APILog, APIKey
 
 from treemap.models import (Species, Boundary, Tree, Plot,
-                            ImportEvent, User)
-from treemap.tests import (make_instance, make_commander_role,
-                           make_system_user)
+                            ImportEvent, User, Instance)
+from treemap.tests import make_commander_role, make_instance
 
 import django.shortcuts
 
@@ -51,20 +50,17 @@ def setupTreemapEnv():
 
     instance = make_instance()
 
-    system_user = make_system_user()
-    system_user.roles.add(make_commander_role(instance))
-
     u = User.objects.filter(username="jim")
     if u:
         u = u[0]
     else:
         u = User(username="jim", email="jim@test.org", password="jim")
-        u.save_with_user(system_user)
+        u.save()
 
     amy_filter_result = User.objects.filter(username="amy")
     if not amy_filter_result:
         amy = User(username="amy", email="amy@test.org", password="amy")
-        amy.save_with_user(system_user)
+        amy.save()
         amy.roles.add(make_commander_role(instance))
     else:
         amy = amy_filter_result[0]
@@ -74,7 +70,7 @@ def setupTreemapEnv():
         olivia = User(
             username="olivia", email="olivia@test.org", password="olivia")
 
-        olivia.save_with_user(system_user)
+        olivia.save()
         olivia.roles.add(make_commander_role(instance))
     else:
         olivia = olivia_filter_result[0]
@@ -115,14 +111,17 @@ def setupTreemapEnv():
     s2.save()
     s3.save()
 
-    ie = ImportEvent(imported_by=system_user)
+    ie = ImportEvent(imported_by=olivia)
     ie.save()
 
     return instance
 
 
 def teardownTreemapEnv():
-    system_user = make_system_user()
+    system_user = User.system_user()
+    system_user.roles = [make_commander_role(i)
+                         for i in Instance.objects.all()]
+    system_user.save()
 
     for r in APILog.objects.all():
         r.delete()

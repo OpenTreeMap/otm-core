@@ -1,13 +1,5 @@
-from treemap.tests import RequestTestCase
-from treemap.tests import make_instance_and_basic_user
-
-
-def make_instance_and_user(username, password):
-    instance, user = make_instance_and_basic_user()
-    user.username = username
-    user.set_password(password)
-    user.save_base()
-    return instance, user
+from treemap.models import User
+from treemap.tests import RequestTestCase, make_instance
 
 
 class LogoutTests(RequestTestCase):
@@ -22,11 +14,12 @@ class LoginTests(RequestTestCase):
         self.client.get('/accounts/logout/')
         self.username = 'testo'
         self.password = '1337'
-        self.instance, self.user = make_instance_and_user(
-            self.username, self.password)
+        self.instance = make_instance()
+        self.user = User(username=self.username)
+        self.user.set_password(self.password)
+        self.user.save()
 
     def test_password_correct(self):
-
         res = self.client.post('/accounts/login/',
                                {'username': self.username,
                                 'password': self.password})

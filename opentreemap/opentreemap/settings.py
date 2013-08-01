@@ -3,6 +3,9 @@
 OTM_VERSION = 'dev'
 API_VERSION = 'v0.1'
 
+
+SYSTEM_USER_ID=-1
+
 # API distance check, in meters
 MAP_CLICK_RADIUS = 100
 

@@ -64,11 +64,9 @@ def add_user_photo(user_id, uploaded_image):
 def create_user(*args, **kwargs):
     # Clearly this is just getting the api working
     # it shouldn't stay here when real user stuff happens
-    from treemap.tests import make_system_user
-
     user = User(username=kwargs['username'], email=kwargs['email'])
     user.set_password(kwargs['password'])
-    user.save_with_user(make_system_user())
+    user.save()
 
     return user
 

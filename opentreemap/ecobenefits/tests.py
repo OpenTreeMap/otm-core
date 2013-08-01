@@ -16,10 +16,10 @@ class EcoTest(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.instance, system_user = tm.make_instance_and_system_user()
+        self.instance = tm.make_instance()
 
         self.user = User(username="commander")
-        self.user.save_with_user(system_user)
+        self.user.save()
         self.user.roles.add(tm.make_commander_role(self.instance))
 
         self.species = Species(symbol='CEDR',
