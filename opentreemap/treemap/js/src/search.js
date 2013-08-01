@@ -57,17 +57,14 @@ function executeSearch(search_query) {
 //   of the item will be ignored and, instead, the current
 //   values of the search form fields will be scraped.
 //
-// plotLayer: An OpenLayers.Layer.OTM instance with the
-// `url` argument initialized to the unfiltered tile url.
-//
 // otmConfig: The otm.settings config object
-exports.init = function(triggerEventStream, plotLayer, otmConfig) {
+//
+// applyFilter: Function to call when filter changes.
+exports.init = function(triggerEventStream, otmConfig, applyFilter) {
     config = otmConfig;
     var searchStream = triggerEventStream.map(buildSearch);
 
-    // binding is required to save the context of the plotLayer
-    // `setFilter` instance method
-    searchStream.onValue(_.bind(plotLayer.setFilter, plotLayer));
+    searchStream.onValue(applyFilter);
 
     // Clear any previous search results
     searchStream.map('').onValue($('#search-results'), 'html');

@@ -5,12 +5,12 @@ var $ = require('jquery'),
     OL = require('OpenLayers'),
     Bacon = require('baconjs'),
 
-    Search = require('./search.js'),
-    otmTypeahead = require('./otm.typeahead.js');
+    Search = require('./search'),
+    otmTypeahead = require('./otm.typeahead'),
+    makeLayerFilterable = require('./makeLayerFilterable');
 
 // These modules add features to the OpenLayers global
 // so we do not need `var thing =`
-require('./openlayers.layer.otm.js');
 require('./openLayersUtfGridEventStream');
 require('./openLayersMapEventStream');
 
@@ -70,19 +70,25 @@ var app = {
             extension + '?instance_id=' + config.instance.id;
     },
 
-    createPlotTileLayer: function(config) {
-        return new OL.Layer.OTM(
-            'tiles',
-            this.getPlotLayerURL(config, 'png'),
-        { isBaseLayer: false,
-          filterQueryArgumentName: config.urls.filterQueryArgumentName });
+    createPlotTileLayer: function (config) {
+        var url = this.getPlotLayerURL(config, 'png'),
+            layer = new OL.Layer.XYZ(
+                'tiles',
+                url,
+                { isBaseLayer: false,
+                  sphericalMercator: true });
+        makeLayerFilterable(layer, url, config.urls.filterQueryArgumentName);
+        return layer;
     },
 
-    createPlotUTFLayer: function(config) {
-        return new OL.Layer.UTFGrid({
-            url: this.getPlotLayerURL(config, 'grid.json'),
-            utfgridResolution: 4
-        });
+    createPlotUTFLayer: function (config) {
+        var url = this.getPlotLayerURL(config, 'grid.json'),
+            layer = new OL.Layer.UTFGrid({
+                url: url,
+                utfgridResolution: 4
+            });
+        makeLayerFilterable(layer, url, config.urls.filterQueryArgumentName);
+        return layer;
     },
 
     getBoundsLayerURL: function(config, extension) {
@@ -92,11 +98,12 @@ var app = {
             extension + '?instance_id=' + config.instance.id;
     },
 
-    createBoundsTileLayer: function(config) {
-        return new OL.Layer.OTM(
+    createBoundsTileLayer: function (config) {
+        return new OL.Layer.XYZ(
             'bounds',
             this.getBoundsLayerURL(config, 'png'),
-        { isBaseLayer: false });
+            { isBaseLayer: false,
+              sphericalMercator: true });
     },
 
     getPlotPopupContent: function(config, id) {
@@ -200,7 +207,10 @@ module.exports = {
         zoom = map.getZoomForResolution(76.43702827453613);
         map.setCenter(config.instance.center, zoom);
 
-        Search.init(triggerEventStream, plotLayer, config);
+        Search.init(triggerEventStream, config, function (filter) {
+            plotLayer.setFilter(filter);
+            utfLayer.setFilter(filter);
+        });
 
         otmTypeahead.create({
             name: "species",
