@@ -1,5 +1,5 @@
 from PIL import Image
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import ContentFile
 
 from django.conf import settings
@@ -7,7 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
-from django.db import transaction, IntegrityError
+from django.db import transaction
 
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
@@ -258,12 +258,11 @@ def register(request):
 
     try:
         user = create_user(**data)
-    except IntegrityError:
+    except ValidationError as e:
         response = HttpResponse()
-        response.status_code = 409
-        response.content = json.dumps(
-            {'status': 'failure',
-             'detail': 'Username %s exists' % data['username']})
+        response.status_code = 400
+        response.content = json.dumps({'status': 'failure',
+                                       'detail': e.message_dict})
 
         return response
 
