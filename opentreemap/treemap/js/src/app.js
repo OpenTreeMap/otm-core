@@ -9,26 +9,13 @@ var $ = require('jquery'),
     otmTypeahead = require('./otm.typeahead'),
     makeLayerFilterable = require('./makeLayerFilterable');
 
+    isEnterKey = require('./otmBaconUtils').isEnterKey,
+    truthyOrError = require('./otmBaconUtils').truthyOrError;
+
 // These modules add features to the OpenLayers global
 // so we do not need `var thing =`
 require('./openLayersUtfGridEventStream');
 require('./openLayersMapEventStream');
-
-$.extend($.fn, Bacon.$);
-
-/* BEGIN BACON HELPERS */
-
-function keyCodeIs(keyCode) {
-    return function(event) { return event.which === keyCode; };
-}
-
-var isEnterKey = keyCodeIs(13);
-
-var truthyOrError = function (value) {
-    return !!value ? value : Bacon.Error('The value ' + value + ' is not truthy');
-};
-
-/* END BACON HELPERS */
 
 var app = {
     createMap: function (elmt, config) {
