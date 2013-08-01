@@ -13,9 +13,37 @@ from django.conf import settings
 from treemap.models import (User, Plot, Tree, Species)
 from ._private import InstanceDataCommand
 
+# model specification:
+#
+# model_class:        the django class object used to instantiate objects
+#
+# dependencies:       a mapping where keys are the names of models that
+#                     must also be in the MODELS dict and values are the
+#                     names of fields for the currently model that have
+#                     foreign key relationships to the dependency model
+#
+# common_fields:      fields that must be in the provided data and the otm2
+#                     django model.
+# renamed_fields:     a mapping where keys are fields in the provided data
+#                     and values are their names in the otm2 model.
+#
+# undecided_fields:   fields that we're not sure what to do with. These should
+#                     be resolved into other categories before this is used
+#                     for a production migration.
+# removed_fields:     fields in the provided data that will be discarded.
+#
+# missing_fields:     fields in the otm2 django model that are not provided.
+#
+# value_transformers: a mapping where keys are the name of fields in the
+#                     _provided_ data and and values are binary functions
+#                     that take a value and transform it to some other value.
 
 MODELS = {
     'tree': {
+        'model_class': Tree,
+        'dependencies': {'species': 'species',
+                         'user': 'steward_user',
+                         'plot': 'plot'},
         'common_fields': {'plot', 'species', 'readonly', 'canopy_height',
                           'date_planted', 'date_removed', 'height'},
         'renamed_fields': {'dbh': 'diameter'},
@@ -33,6 +61,8 @@ MODELS = {
             }
     },
     'plot': {
+        'model_class': Plot,
+        'dependencies': {'user': 'data_owner'},
         'common_fields': {'width', 'length', 'address_street', 'address_zip',
                           'address_city', 'owner_orig_id', 'readonly'},
         'renamed_fields': {'geometry': 'geom'},
@@ -50,6 +80,8 @@ MODELS = {
         },
     },
     'species': {
+        'model_class': Species,
+        'dependencies': {},
         'common_fields': {'bloom_period', 'common_name', 'cultivar_name',
                           'fact_sheet', 'fall_conspicuous',
                           'flower_conspicuous', 'fruit_period', 'gender',
@@ -69,6 +101,8 @@ MODELS = {
         },
     },
     'user': {
+        'model_class': User,
+        'dependencies': {},
         'common_fields': {'username', 'password', 'email', 'date_joined',
                           'first_name', 'last_name', 'is_active',
                           'is_superuser', 'is_staff', 'last_login'},
@@ -107,7 +141,7 @@ def validate_model(model_name, data_hash):
                            symmetric_difference(provided_fields)))
 
 
-def hash_to_model(model_cls, model_name, data_hash, instance, user):
+def hash_to_model(model_name, data_hash, instance, user):
     """
     Takes a model specified in the MODELS global and a
     hash of json data and attempts to populate a django
@@ -119,7 +153,7 @@ def hash_to_model(model_cls, model_name, data_hash, instance, user):
     common_fields = MODELS[model_name]['common_fields']
     renamed_fields = MODELS[model_name]['renamed_fields']
 
-    model = model_cls()
+    model = MODELS[model_name]['model_class']()
 
     identity = (lambda x: x)
 
@@ -168,14 +202,14 @@ def more_permissions(role, user, system_user):
     user.save_with_user(system_user)
 
 
-def try_save_user_hash_to_model(model_cls, model_name, model_hash,
+def try_save_user_hash_to_model(model_name, model_hash,
                                 instance, system_user, god_role,
                                 user_field_to_try):
     """
     Tries to save an object with the app user that should own
     the object. If not possible, falls back to the system_user.
     """
-    model = hash_to_model(model_cls, model_name, model_hash,
+    model = hash_to_model(model_name, model_hash,
                           instance, system_user)
 
     potential_user_id = model_hash['fields'][user_field_to_try]
