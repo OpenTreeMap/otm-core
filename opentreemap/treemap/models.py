@@ -3,14 +3,16 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.conf import settings
-
+from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
 from django.db import IntegrityError
-from treemap.audit import Auditable, Authorizable, FieldPermission, Role
 
 from django.contrib.auth.models import AbstractUser
 
+from treemap.audit import Auditable, Authorizable, FieldPermission, Role
+
 import hashlib
+import re
 
 
 class Instance(models.Model):
@@ -115,7 +117,13 @@ class User(Auditable, AbstractUser):
 
         return perms
 
+    def clean(self):
+        if re.search('\\s', self.username):
+            raise ValidationError('Cannot have spaces in a username')
+
     def save(self):
+        self.full_clean()
+
         system_user = User.system_user()
         self.save_with_user(system_user)
 
