@@ -7,10 +7,10 @@ var $ = require('jquery'),
 
     Search = require('./search'),
     otmTypeahead = require('./otmTypeahead'),
-    makeLayerFilterable = require('./makeLayerFilterable');
+    makeLayerFilterable = require('./makeLayerFilterable'),
 
-    isEnterKey = require('./otmBaconUtils').isEnterKey,
-    truthyOrError = require('./otmBaconUtils').truthyOrError;
+    isEnterKey = require('./baconUtils').isEnterKey,
+    truthyOrError = require('./baconUtils').truthyOrError;
 
 // These modules add features to the OpenLayers global
 // so we do not need `var thing =`

@@ -7,7 +7,7 @@ require('typeahead');
 var $ = require("jquery"),
     mustache = require("mustache"),
     Bacon = require("baconjs"),
-    keyCodeIs = require("./otmBaconUtils").keyCodeIs;
+    keyCodeIs = require("./baconUtils").keyCodeIs;
 
 exports.create = function(options) {
     var config = options.config,
