@@ -8,11 +8,11 @@ from django.utils.tree import Node
 from django.contrib.gis.geos import Point, MultiPolygon
 from django.contrib.gis.measure import Distance
 
-from treemap.tests import (make_instance, make_system_user,
-                           make_commander_role, make_simple_polygon)
+from treemap.tests import (make_instance, make_commander_role,
+                           make_simple_polygon)
 
 from treemap.views import _execute_filter
-from treemap.models import (Tree, Plot, Boundary, Species)
+from treemap.models import (Tree, Plot, Boundary, Species, User)
 
 from treemap import search
 
@@ -278,19 +278,20 @@ class SearchTests(TestCase):
     def setUp(self):
         self.instance = make_instance()
 
-        self.system_user = make_system_user()
-        self.system_user.roles.add(make_commander_role(self.instance))
+        self.commander = User(username='commander')
+        self.commander.save()
+        self.commander.roles.add(make_commander_role(self.instance))
 
         self.p1 = Point(-7615441.0, 5953519.0)
 
     def create_tree_and_plot(self):
         plot = Plot(geom=self.p1, instance=self.instance)
 
-        plot.save_with_user(self.system_user)
+        plot.save_with_user(self.commander)
 
         tree = Tree(plot=plot, instance=self.instance)
 
-        tree.save_with_user(self.system_user)
+        tree.save_with_user(self.commander)
 
         return plot, tree
 
@@ -310,10 +311,10 @@ class SearchTests(TestCase):
         p3, t3 = self.create_tree_and_plot()
 
         t1.species = species1
-        t1.save_with_user(self.system_user)
+        t1.save_with_user(self.commander)
 
         t2.species = species2
-        t2.save_with_user(self.system_user)
+        t2.save_with_user(self.commander)
 
         species1_filter = json.dumps({'species.id': species1.pk})
         species2_filter = json.dumps({'species.id': species2.pk})
@@ -359,7 +360,7 @@ class SearchTests(TestCase):
         plot3 = Plot(geom=Point(2.5, 2.5), instance=self.instance)
 
         for p in (plot1, plot2, plot3):
-            p.save_with_user(self.system_user)
+            p.save_with_user(self.commander)
 
         boundary1_filter = json.dumps({'plot.geom':
                                        {'IN_BOUNDARY': b1.pk}})
@@ -397,7 +398,7 @@ class SearchTests(TestCase):
         t4.diameter = 8.0
 
         for t in [t1, t2, t3, t4]:
-            t.save_with_user(self.system_user)
+            t.save_with_user(self.commander)
 
         return [p1, p2, p3, p4]
 
@@ -433,16 +434,16 @@ class SearchTests(TestCase):
         far_point = Point(-9615444.0, 8953521.0)
 
         near_plot = Plot(geom=near_point, instance=self.instance)
-        near_plot.save_with_user(self.system_user)
+        near_plot.save_with_user(self.commander)
         near_tree = Tree(plot=near_plot, instance=self.instance)
-        near_tree.save_with_user(self.system_user)
+        near_tree.save_with_user(self.commander)
 
         # just to make sure that the geospatial
         # query actually filters by distance
         far_plot = Plot(geom=far_point, instance=self.instance)
-        far_plot.save_with_user(self.system_user)
+        far_plot.save_with_user(self.commander)
         far_tree = Tree(plot=far_plot, instance=self.instance)
-        far_tree.save_with_user(self.system_user)
+        far_tree.save_with_user(self.commander)
 
         radius_filter = json.dumps(
             {'plot.geom':

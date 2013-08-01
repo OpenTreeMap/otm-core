@@ -18,10 +18,9 @@ from treemap.views import (species_list, boundary_to_geojson,
                            boundary_autocomplete, audits, search_tree_benefits,
                            user, instance_user_view, plot_popup_view)
 
-from treemap.tests import (ViewTestCase, make_instance, make_system_user,
+from treemap.tests import (ViewTestCase, make_instance,
                            make_commander_role, make_officer_role,
-                           make_basic_user, make_apprentice_role,
-                           make_simple_boundary)
+                           make_apprentice_role, make_simple_boundary)
 
 
 class InstanceValidationTest(TestCase):
@@ -120,14 +119,16 @@ class RecentEditsViewTest(TestCase):
     def setUp(self):
         self.instance = make_instance()
 
-        self.system_user = make_system_user()
-        self.system_user.roles.add(make_commander_role(self.instance))
-
         self.officer = User(username="officer")
-        self.officer.save_with_user(self.system_user)
+        self.officer.save()
         self.officer.roles.add(make_officer_role(self.instance))
 
-        self.pending_user = make_basic_user(self.instance, "user pdg")
+        self.commander = User(username="commander")
+        self.commander.save()
+        self.commander.roles.add(make_commander_role(self.instance))
+
+        self.pending_user = User(username="pdg")
+        self.pending_user.save()
         self.pending_user.roles.add(make_apprentice_role(self.instance))
 
         self.p1 = Point(-7615441.0, 5953519.0)
@@ -135,7 +136,7 @@ class RecentEditsViewTest(TestCase):
 
         self.plot = Plot(geom=self.p1, instance=self.instance)
 
-        self.plot.save_with_user(self.system_user)
+        self.plot.save_with_user(self.commander)
 
         self.tree = Tree(plot=self.plot, instance=self.instance)
 
@@ -148,7 +149,7 @@ class RecentEditsViewTest(TestCase):
         self.tree.save_with_user(self.officer)
 
         self.plot.width = 9
-        self.plot.save_with_user(self.system_user)
+        self.plot.save_with_user(self.commander)
 
         self.plot_delta = {
             "model": "Plot",
@@ -158,7 +159,7 @@ class RecentEditsViewTest(TestCase):
             "previous_value": None,
             "current_value": "9",
             "requires_auth": False,
-            "user_id": self.system_user.pk,
+            "user_id": self.commander.pk,
             "instance_id": self.instance.pk,
             "field": "width"
         }
@@ -168,7 +169,7 @@ class RecentEditsViewTest(TestCase):
         self.next_plot_delta["previous_value"] = "9"
 
         self.plot.width = 44
-        self.plot.save_with_user(self.system_user)
+        self.plot.save_with_user(self.commander)
 
     def check_audits(self, url, dicts):
         req = self.factory.get(url)
@@ -248,8 +249,8 @@ class RecentEditsViewTest(TestCase):
             "user_id": self.officer.pk
         }
 
-        generic_systemuser_delta = {
-            "user_id": self.system_user.pk
+        generic_commander_delta = {
+            "user_id": self.commander.pk
         }
 
         self.check_audits(
@@ -257,8 +258,8 @@ class RecentEditsViewTest(TestCase):
             [generic_officer_delta] * 3)
 
         self.check_audits(
-            "/blah/?user=%s&page_size=3" % self.system_user.pk,
-            [generic_systemuser_delta] * 3)
+            "/blah/?user=%s&page_size=3" % self.commander.pk,
+            [generic_commander_delta] * 3)
 
     def test_pending_filtering(self):
         self.plot.width = 22
@@ -279,7 +280,7 @@ class RecentEditsViewTest(TestCase):
 
         approve_delta = {
             "action": Audit.Type.PendingApprove,
-            "user_id": self.system_user.pk,
+            "user_id": self.commander.pk,
             "instance_id": self.instance.pk,
         }
 
@@ -293,7 +294,7 @@ class RecentEditsViewTest(TestCase):
 
         a = approve_or_reject_audit_and_apply(
             Audit.objects.all().order_by("-created")[0],
-            self.system_user, approved=True)
+            self.commander, approved=True)
 
         pending_plot_delta["ref_id"] = a.pk
 
@@ -349,8 +350,10 @@ class SearchTreeBenefitsTests(ViewTestCase):
     def setUp(self):
         super(SearchTreeBenefitsTests, self).setUp()
         self.instance = make_instance()
-        self.system_user = make_system_user()
-        self.system_user.roles.add(make_commander_role(self.instance))
+        self.commander = User(username="commander")
+        self.commander.save()
+        self.commander.roles.add(make_commander_role(self.instance))
+
         self.p1 = Point(-7615441.0, 5953519.0)
         self.species_good = Species(itree_code='CEM OTHER')
         self.species_good.save()
@@ -359,10 +362,10 @@ class SearchTreeBenefitsTests(ViewTestCase):
 
     def make_tree(self, diameter, species):
         plot = Plot(geom=self.p1, instance=self.instance)
-        plot.save_with_user(self.system_user)
+        plot.save_with_user(self.commander)
         tree = Tree(plot=plot, instance=self.instance,
                     diameter=diameter, species=species)
-        tree.save_with_user(self.system_user)
+        tree.save_with_user(self.commander)
 
     def search_benefits(self):
         request = self._make_request(
@@ -410,13 +413,15 @@ class UserViewTests(ViewTestCase):
 
     def setUp(self):
         super(UserViewTests, self).setUp()
-        self.system_user = make_system_user()
+
+        self.commander = User(username="commander")
+        self.commander.save()
 
     def test_get_by_username(self):
-        context = user(self._make_request(), self.system_user.username)
-        self.assertEquals(self.system_user.username, context['username'],
+        context = user(self._make_request(), self.commander.username)
+        self.assertEquals(self.commander.username, context['username'],
                           'the user view should return a dict with '
-                          '"username" set to %s ' % self.system_user.username)
+                          '"username" set to %s ' % self.commander.username)
 
     def test_get_with_invalid_username_returns_404(self):
         self.assertRaises(Http404, user, self._make_request(),
@@ -427,14 +432,16 @@ class InstanceUserViewTests(ViewTestCase):
 
     def setUp(self):
         super(InstanceUserViewTests, self).setUp()
-        self.system_user = make_system_user()
+
+        self.commander = User(username="commander")
+        self.commander.save()
 
     def test_get_by_username_redirects(self):
         res = instance_user_view(self._make_request(),
                                  self.instance.id,
-                                 self.system_user.username)
+                                 self.commander.username)
         expected_url = '/users/%s/?instance_id=%d' %\
-            (self.system_user.username, self.instance.id)
+            (self.commander.username, self.instance.id)
         self.assertEquals(res.status_code, 302, "should be a 302 Found \
             temporary redirect")
         self.assertEquals(expected_url, res['Location'],
@@ -459,8 +466,9 @@ class PlotPopupViewTests(ViewTestCase):
     def setUp(self):
         self.instance = make_instance()
 
-        self.system_user = make_system_user()
-        self.system_user.roles.add(make_commander_role(self.instance))
+        self.commander = User(username="commander")
+        self.commander.save()
+        self.commander.roles.add(make_commander_role(self.instance))
 
         self.species = Species(common_name='Test Common Species',
                                genus='Testus Genius',
@@ -476,12 +484,12 @@ class PlotPopupViewTests(ViewTestCase):
         self.plot.address_street = '1234 Market St'
         self.plot.address_city = 'Philadelphia'
         self.plot.address_zip = '19107'
-        self.plot.save_with_user(self.system_user)
+        self.plot.save_with_user(self.commander)
 
         self.tree = Tree(plot=self.plot, instance=self.instance)
         self.tree.diameter = 4
         self.tree.species = self.species
-        self.tree.save_with_user(self.system_user)
+        self.tree.save_with_user(self.commander)
 
     def test_get_returns_200_for_existing_plot(self):
         res = plot_popup_view(self._make_request(), self.instance.pk,
