@@ -36,6 +36,7 @@ def create_filter(filterstr):
                    | 'IS'
                    | 'WITHIN_RADIUS'
                    | 'IN_BOUNDARY'
+                   | 'LIKE'
     combinator     = 'AND' | 'OR'
     predicate      = { model.field: literal }
                    | { model.field: { (value-property: literal)* }}
@@ -166,6 +167,10 @@ PREDICATE_TYPES = {
     'IS': {
         'combines_with': set(),
         'predicate_builder': (lambda value: {'': value})
+    },
+    'LIKE': {
+        'combines_with': set(),
+        'predicate_builder': (lambda value: {'__icontains': value})
     },
     'WITHIN_RADIUS': {
         'combines_with': set(),
