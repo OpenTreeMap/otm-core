@@ -1225,6 +1225,25 @@ class UpdatePlotAndTree(TestCase):
                         'key in the response object')
         self.assertEqual(tree.species.pk, response_dict['species'])
 
+    def test_register_with_space_fails(self):
+        self.assertTrue(
+            User.objects.filter(username='foo bar').count() == 0,
+            "The test expects the foo bar user to not exists.")
+        data = {
+            'username': 'foo bar',
+            'firstname': 'foo',
+            'lastname': 'bar',
+            'email': 'foo@bar.com',
+            'password': 'drowssap',
+            'zipcode': 19107
+        }
+
+        response = post_json("%s/user/" % API_PFX,
+                             data, self.client, self.sign)
+
+        self.assertEqual(400, response.status_code)
+        self.assertTrue(User.objects.filter(username='foo bar').count() == 0)
+
     def test_registration(self):
         self.assertTrue(
             User.objects.filter(username='foobar').count() == 0,
@@ -1263,8 +1282,9 @@ class UpdatePlotAndTree(TestCase):
         }
         response = post_json("%s/user/" % API_PFX,
                              data, self.client, self.sign)
-        self.assertEqual(409, response.status_code,
-                         "Expected 409 status code after attempting"
+
+        self.assertEqual(400, response.status_code,
+                         "Expected 400 status code after attempting"
                          " to create duplicate username")
         response_dict = loads(response.content)
         self.assertTrue('status' in response_dict,
@@ -1272,10 +1292,6 @@ class UpdatePlotAndTree(TestCase):
                         'in the response object')
         self.assertEqual('failure', response_dict['status'],
                          'Expected "status" to be "failure"')
-        self.assertTrue('detail' in response_dict,
-                        'Expected "detail" to be a top level key'
-                        'in the response object')
-        self.assertEqual('Username jim exists', response_dict['detail'])
 
 
 def _create_mock_request_without_version():
