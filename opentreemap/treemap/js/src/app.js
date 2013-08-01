@@ -5,9 +5,9 @@ var $ = require('jquery'),
     OL = require('OpenLayers'),
     Bacon = require('baconjs'),
 
-    Search = require('./search.js'),
-    otmTypeahead = require('./otm.typeahead.js'),
-    makeLayerFilterable = require('./makeLayerFilterable.js');
+    Search = require('./search'),
+    otmTypeahead = require('./otm.typeahead'),
+    makeLayerFilterable = require('./makeLayerFilterable');
 
 // These modules add features to the OpenLayers global
 // so we do not need `var thing =`
