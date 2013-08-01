@@ -13,9 +13,37 @@ from django.conf import settings
 from treemap.models import (User, Plot, Tree, Species)
 from ._private import InstanceDataCommand
 
+# model specification:
+#
+# model_class:        the django class object used to instantiate objects
+#
+# dependencies:       a mapping where keys are the names of models that
+#                     must also be in the MODELS dict and values are the
+#                     names of fields for the currently model that have
+#                     foreign key relationships to the dependency model
+#
+# common_fields:      fields that must be in the provided data and the otm2
+#                     django model.
+# renamed_fields:     a mapping where keys are fields in the provided data
+#                     and values are their names in the otm2 model.
+#
+# undecided_fields:   fields that we're not sure what to do with. These should
+#                     be resolved into other categories before this is used
+#                     for a production migration.
+# removed_fields:     fields in the provided data that will be discarded.
+#
+# missing_fields:     fields in the otm2 django model that are not provided.
+#
+# value_transformers: a mapping where keys are the name of fields in the
+#                     _provided_ data and and values are binary functions
+#                     that take a value and transform it to some other value.
 
 MODELS = {
     'tree': {
+        'model_class': Tree,
+        'dependencies': {'species': 'species',
+                         'user': 'steward_user',
+                         'plot': 'plot'},
         'common_fields': {'plot', 'species', 'readonly', 'canopy_height',
                           'date_planted', 'date_removed', 'height'},
         'renamed_fields': {'dbh': 'diameter'},
@@ -33,6 +61,8 @@ MODELS = {
             }
     },
     'plot': {
+        'model_class': Plot,
+        'dependencies': {'user': 'data_owner'},
         'common_fields': {'width', 'length', 'address_street', 'address_zip',
                           'address_city', 'owner_orig_id', 'readonly'},
         'renamed_fields': {'geometry': 'geom'},
@@ -50,6 +80,8 @@ MODELS = {
         },
     },
     'species': {
+        'model_class': Species,
+        'dependencies': {},
         'common_fields': {'bloom_period', 'common_name', 'cultivar_name',
                           'fact_sheet', 'fall_conspicuous',
                           'flower_conspicuous', 'fruit_period', 'gender',
@@ -69,6 +101,8 @@ MODELS = {
         },
     },
     'user': {
+        'model_class': User,
+        'dependencies': {},
         'common_fields': {'username', 'password', 'email', 'date_joined',
                           'first_name', 'last_name', 'is_active',
                           'is_superuser', 'is_staff', 'last_login'},
@@ -107,7 +141,7 @@ def validate_model(model_name, data_hash):
                            symmetric_difference(provided_fields)))
 
 
-def hash_to_model(model_cls, model_name, data_hash, instance, user):
+def hash_to_model(model_name, data_hash, instance, user):
     """
     Takes a model specified in the MODELS global and a
     hash of json data and attempts to populate a django
@@ -119,7 +153,7 @@ def hash_to_model(model_cls, model_name, data_hash, instance, user):
     common_fields = MODELS[model_name]['common_fields']
     renamed_fields = MODELS[model_name]['renamed_fields']
 
-    model = model_cls()
+    model = MODELS[model_name]['model_class']()
 
     identity = (lambda x: x)
 
@@ -144,8 +178,6 @@ def hash_to_model(model_cls, model_name, data_hash, instance, user):
     except AttributeError:
         pass
 
-    model.pk = data_hash['pk']
-
     return model
 
 
@@ -168,14 +200,14 @@ def more_permissions(role, user, system_user):
     user.save_with_user(system_user)
 
 
-def try_save_user_hash_to_model(model_cls, model_name, model_hash,
+def try_save_user_hash_to_model(model_name, model_hash,
                                 instance, system_user, god_role,
                                 user_field_to_try):
     """
     Tries to save an object with the app user that should own
     the object. If not possible, falls back to the system_user.
     """
-    model = hash_to_model(model_cls, model_name, model_hash,
+    model = hash_to_model(model_name, model_hash,
                           instance, system_user)
 
     potential_user_id = model_hash['fields'][user_field_to_try]
@@ -188,6 +220,38 @@ def try_save_user_hash_to_model(model_cls, model_name, model_hash,
         model.save_with_user(elevated_user)
 
     return model
+
+
+def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
+                            instance, system_user,
+                            god_role=None, save_with_user=False,
+                            save_with_system_user=False):
+
+    for model_hash in model_hashes:
+        for dependency_name, dependency_field in\
+            MODELS[model_name]['dependencies'].iteritems():
+            dependency_map = dependency_id_maps[dependency_name]
+            dependency_id = model_hash['fields'][dependency_field]
+            if dependency_id:
+                new_id = dependency_map[model_hash['fields'][dependency_field]]
+                model_hash['fields'][dependency_field] = new_id
+
+        if save_with_user:
+            user_field = MODELS[model_name]['dependencies']['user']
+            fn = try_save_user_hash_to_model
+            model = fn(model_name, model_hash, instance, system_user,
+                       god_role, user_field)
+        else:
+            model = hash_to_model(model_name, model_hash,
+                                  instance, system_user)
+            if save_with_system_user:
+                model.save_with_user(system_user)
+            else:
+                model.save()
+
+        model_key_map = dependency_id_maps.get(model_name, None)
+        if model_key_map is not None:
+            model_key_map[model_hash['pk']] = model.pk
 
 
 class Command(InstanceDataCommand):
@@ -216,7 +280,6 @@ class Command(InstanceDataCommand):
     )
 
     def handle(self, *args, **options):
-        """ Create some seed data """
 
         if settings.DEBUG:
             print('In order to run this command you must manually'
@@ -229,66 +292,65 @@ class Command(InstanceDataCommand):
             print('Invalid instance provided.')
             return 1
 
-        species_hashes = []
-        user_hashes = []
-        plot_hashes = []
-        tree_hashes = []
+        # look for fixtures of the form '<model>_fixture' that
+        # were passed in as command line args and load them as
+        # python objects
+        json_hashes = {
+            'species': [],
+            'user': [],
+            'plot': [],
+            'tree': [],
+        }
 
-        try:
-            species_file = open(options['species_fixture'], 'r')
-            species_hashes = json.load(species_file)
-        except:
-            print('No valid species fixture provided ... SKIPPING')
+        for model_name in json_hashes:
+            option_name = model_name + '_fixture'
+            try:
+                model_file = open(options[option_name], 'r')
+                json_hashes[model_name] = json.load(model_file)
+            except:
+                print('No valid %s fixture provided ... SKIPPING'
+                      % model_name)
 
-        try:
-            user_file = open(options['user_fixture'], 'r')
-            user_hashes = json.load(user_file)
-        except:
-            print('No valid user fixture provided    ... SKIPPING')
 
-        try:
-            plot_file = open(options['plot_fixture'], 'r')
-            plot_hashes = json.load(plot_file)
-        except:
-            print('No valid plot fixture provided    ... SKIPPING')
+        # iterate over the fixture hashes and save them as database
+        # records.
+        #
+        # a few important things happen here:
+        # #
+        # # for models that server as dependencies for other models,
+        # # their previous ids are stored in a map so that when dependant
+        # # models are made, the correct pk can be retreived.
+        # #
+        # # for models that must be saved with a user, they are either
+        # # saved immediately with a system_user, or an app user is tried
+        # # first, depending on the model.
+        dependency_id_maps = {
+            'plot': {},
+            'species': {},
+            'user': {},
+        }
 
-        try:
-            tree_file = open(options['tree_fixture'], 'r')
-            tree_hashes = json.load(tree_file)
-        except:
-            print('No valid tree fixture provided    ... SKIPPING')
+        if json_hashes['user']:
+            hashes_to_saved_objects('user', json_hashes['user'],
+                                    dependency_id_maps,
+                                    instance, system_user,
+                                    save_with_system_user=True)
 
-        ##########################################
-        # models saved with system user
-        ##########################################
-
-        if user_hashes:
-            for user_hash in user_hashes:
-                user = hash_to_model(User, 'user', user_hash,
-                                     instance, system_user)
-                user.save_with_user(system_user)
-
-        if species_hashes:
-            for species_hash in species_hashes:
-                species = hash_to_model(Species, 'species', species_hash,
-                                        instance, system_user)
-                species.save()
-
-        ##########################################
-        # models saved with app user (if possible)
-        ##########################################
+        if json_hashes['species']:
+            hashes_to_saved_objects('species', json_hashes['species'],
+                                    dependency_id_maps, instance, system_user)
 
         from treemap.tests import make_god_role
         god_role = make_god_role(instance)
 
-        if plot_hashes:
-            for plot_hash in plot_hashes:
-                try_save_user_hash_to_model(Plot, 'plot', plot_hash,
-                                            instance, system_user,
-                                            god_role, 'data_owner')
+        if json_hashes['plot']:
+            hashes_to_saved_objects('plot', json_hashes['plot'],
+                                    dependency_id_maps,
+                                    instance, system_user, god_role,
+                                    save_with_user=True)
 
-        if tree_hashes:
-            for tree_hash in tree_hashes:
-                try_save_user_hash_to_model(Tree, 'tree', tree_hash,
-                                            instance, system_user,
-                                            god_role, 'steward_user')
+        if json_hashes['tree']:
+            hashes_to_saved_objects('tree', json_hashes['tree'],
+                                    dependency_id_maps,
+                                    instance, system_user, god_role,
+                                    save_with_user=True)
