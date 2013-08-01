@@ -36,6 +36,6 @@ function makeLayerFilterable(layer, originalUrl, filterQueryArgumentName) {
     };
 
     return layer;
-};
+}
 
 module.exports = makeLayerFilterable;
