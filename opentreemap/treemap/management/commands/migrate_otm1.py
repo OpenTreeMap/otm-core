@@ -302,7 +302,6 @@ class Command(InstanceDataCommand):
             'tree': [],
         }
 
-
         for model_name in json_hashes:
             option_name = model_name + '_fixture'
             try:
@@ -332,7 +331,8 @@ class Command(InstanceDataCommand):
         }
 
         if json_hashes['user']:
-            hashes_to_saved_objects('user', json_hashes['user'], dependency_id_maps,
+            hashes_to_saved_objects('user', json_hashes['user'],
+                                    dependency_id_maps,
                                     instance, system_user,
                                     save_with_system_user=True)
 
@@ -344,11 +344,13 @@ class Command(InstanceDataCommand):
         god_role = make_god_role(instance)
 
         if json_hashes['plot']:
-            hashes_to_saved_objects('plot', json_hashes['plot'], dependency_id_maps,
-                                   instance, system_user, god_role,
-                                   save_with_user=True)
+            hashes_to_saved_objects('plot', json_hashes['plot'],
+                                    dependency_id_maps,
+                                    instance, system_user, god_role,
+                                    save_with_user=True)
 
         if json_hashes['tree']:
-            hashes_to_saved_objects('tree', json_hashes['tree'], dependency_id_maps,
-                                   instance, system_user, god_role,
-                                   save_with_user=True)
+            hashes_to_saved_objects('tree', json_hashes['tree'],
+                                    dependency_id_maps,
+                                    instance, system_user, god_role,
+                                    save_with_user=True)
