@@ -9,3 +9,4 @@ Guardfile
 opentreemap/.idea
 node_modules/
 opentreemap/treemap/static/js/
+prototype/css/.sass-cache

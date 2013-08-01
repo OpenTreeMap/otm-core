@@ -1,0 +1,61 @@
+@media (min-width: 1200px) {
+
+}
+ 
+
+@media (min-width: 768px) and (max-width: 1023px) {
+	.logo {
+		display: none;
+	}
+}
+
+@media (max-width: 1024px) {
+
+}
+ 
+
+@media (max-width: 767px) {
+	.logo {
+		display: none;
+	}
+	.search-block-wrapper {
+		width: 100%;
+		float: left;
+		left: 0;
+	}
+	.search-options {
+		float: left;
+		position: relative;
+		width: 100%;
+		top: 225px;
+		margin-left: 0;
+	}
+	.search-block {
+		float: none;
+		margin: 0 10px 10px;
+	}
+	.mobile-only {
+		display: block !important;
+	}
+	.desktop-only {
+		display: none !important;
+	}
+	.input-prepend {
+		display: none;
+	}
+	.search-submit-btn {
+		width: 100%;
+	}
+		.btn-group {
+			width: 100%;
+		}
+		.btn-group .btn {
+			width: 50%;
+		}
+
+}
+ 
+
+@media (max-width: 480px) {
+
+}

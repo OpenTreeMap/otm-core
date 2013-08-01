@@ -1,0 +1,177 @@
+/* SASS Variables --------------------- */
+/* Navbar ----------------------------- */
+.navbar .brand {
+  margin-left: 15px;
+  padding: 10px 20px 10px 0; }
+
+.brand img {
+  max-width: 20px; }
+
+.navbar-static-top .container,
+.navbar-fixed-top .container,
+.navbar-fixed-bottom .container {
+  left: 0;
+  right: 0;
+  width: auto; }
+
+/* Logo and Search -------------------- */
+.header {
+  margin-top: 41px;
+  padding: 15px;
+  height: 96px;
+  border-bottom: 1px solid #eee;
+  background: #fff; }
+
+.search-block {
+  padding: 8px;
+  border: 1px solid #eee;
+  border-radius: 3px;
+  float: left;
+  margin-left: 10px; }
+
+.logo {
+  float: left; }
+
+.logo img {
+  max-width: 200px; }
+
+.search-options {
+  float: right;
+  margin-left: 20px; }
+
+.search-submit-btn {
+  margin-bottom: 7px;
+  width: 149px;
+  padding: 14px 0; }
+
+.search-block-wrapper {
+  right: 190px;
+  position: absolute; }
+
+.mobile-only {
+  display: none !important; }
+
+.mobile-only .btn {
+  float: right;
+  margin-bottom: 10px; }
+
+/* Subheader -------------------------- */
+.subhead {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 16px;
+  background: #fff; }
+
+.subhead span {
+  font-weight: bold; }
+
+.subhead .exportBtn {
+  margin-left: 10px; }
+
+.subhead .addBtn {
+  float: right;
+  margin-top: -3px; }
+
+/* Additional Searches ---------------- */
+.additional-searches {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  width: 100%; }
+
+.stewardship {
+  right: 0; }
+
+/* Main Content ----------------------- */
+.content {
+  padding: 30px 0 120px; }
+
+.login-signup {
+  background: #f8f8f8; }
+
+.login-signup-panel {
+  background-color: #fff;
+  box-shadow: none;
+  max-width: 500px;
+  margin: 0px auto; }
+
+.have-account {
+  font-size: 14px; }
+
+.signup-option {
+  text-align: center;
+  vertical-align: middle;
+  border: none;
+  background-color: #777;
+  color: #fff;
+  margin-top: 15px; }
+
+.signup-option p {
+  margin-bottom: 0; }
+
+.signup-option a {
+  margin-left: 20px; }
+
+.profile-photo-upload {
+  padding: 5px;
+  border: 1px solid #eee;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px; }
+
+/* Tree Details ----------------------- */
+.tree-details h1,
+.tree-details h2 {
+  line-height: 19px; }
+
+.tree-details h1 {
+  font-size: 24px; }
+
+.tree-details h2 {
+  font-size: 20px;
+  font-weight: 300;
+  color: #777; }
+
+.tree-details .left {
+  width: 260px;
+  padding-right: 20px;
+  border-right: 1px solid #eee;
+  float: left;
+  margin-right: 15px; }
+
+.tree-details .left .add-photos {
+  margin-top: 10px; }
+
+.tree-details .left .add-favorite {
+  width: 235px; }
+
+.tree-details .center {
+  margin-left: 15px;
+  float: left; }
+
+/* Footer ----------------------------- */
+footer {
+  bottom: 0;
+  position: relative;
+  background: #000;
+  width: 100%;
+  font-size: 12px;
+  height: 35px; }
+
+footer .nav {
+  margin-bottom: 0; }
+
+.partners {
+  margin-top: 7px;
+  margin-right: 15px;
+  color: #777; }
+
+.partners:hover {
+  color: #fff;
+  text-decoration: none; }
+
+footer .nav-pills > li > a {
+  color: #777; }
+
+footer .nav-pills > li > a:hover {
+  background: none;
+  color: #fff; }
