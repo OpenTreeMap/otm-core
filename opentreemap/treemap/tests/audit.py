@@ -3,10 +3,8 @@ from __future__ import unicode_literals
 from __future__ import division
 
 
-import itertools
-
 from django.test import TestCase
-from django.core.exceptions import FieldError
+from django.core.exceptions import FieldError, ValidationError
 
 from treemap.models import (Tree, User, Instance, Plot, Species,
                             FieldPermission)
@@ -25,15 +23,15 @@ from treemap.tests import (make_instance, make_commander_role,
 class ScopeModelTest(TestCase):
 
     def setUp(self):
-        p1 = Point(-8515222.0, 4953200.0)
-        p2 = Point(-7515222.0, 3953200.0)
+        self.p1 = Point(-8515222.0, 4953200.0)
+        self.p2 = Point(-7515222.0, 3953200.0)
 
         self.instance1 = make_instance()
         self.user = User(username='auser')
         self.user.save()
         self.global_role = self.instance1.default_role
 
-        self.instance2 = Instance(name='i2', geo_rev=1, center=p2,
+        self.instance2 = Instance(name='i2', geo_rev=1, center=self.p2,
                                   default_role=self.global_role)
         self.instance2.save()
 
@@ -47,18 +45,20 @@ class ScopeModelTest(TestCase):
                             role=self.global_role,
                             instance=i).save()
 
-        self.plot1 = Plot(geom=p1, instance=self.instance1)
+        self.plot1 = Plot(geom=self.p1, instance=self.instance1)
 
         self.plot1.save_with_user(self.user)
 
-        self.plot2 = Plot(geom=p2, instance=self.instance2)
+        self.plot2 = Plot(geom=self.p2, instance=self.instance2)
 
         self.plot2.save_with_user(self.user)
 
-        tree_combos = itertools.product(
-            [self.plot1, self.plot2],
-            [self.instance1, self.instance2],
-            [True, False])
+        tree_combos = [
+            (self.plot1, self.instance1, True),
+            (self.plot1, self.instance1, False),
+            (self.plot2, self.instance2, True),
+            (self.plot2, self.instance2, False),
+        ]
 
         for tc in tree_combos:
             plot, instance, readonly = tc
@@ -84,6 +84,14 @@ class ScopeModelTest(TestCase):
 
         self.assertRaises(FieldError,
                           (lambda: self.instance1.scope_model(Species)))
+
+    def test_plot_tree_same_instance(self):
+        plot = Plot(geom=self.p1, instance=self.instance2)
+        plot.save_with_user(self.user)
+
+        tree = Tree(plot=plot, instance=self.instance1, readonly=False)
+        self.assertRaises(ValidationError,
+                          (lambda: tree.save_with_user(self.user)))
 
 
 class AuditTest(TestCase):
@@ -465,6 +473,7 @@ class UserRoleFieldPermissionTest(TestCase):
         self.assertRaises(AuthorizeException,
                           plot.save_with_user, self.outlaw)
 
+        plot.save_base()
         tree = Tree(plot=plot, instance=self.instance)
 
         self.assertRaises(AuthorizeException,

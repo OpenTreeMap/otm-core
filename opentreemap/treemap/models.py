@@ -9,6 +9,7 @@ from django.db import IntegrityError
 from treemap.audit import Auditable, Authorizable, FieldPermission, Role
 
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 
 import hashlib
 
@@ -284,6 +285,18 @@ class Tree(Authorizable, Auditable, models.Model):
         species_chunk = ("Species: %s - " % self.species
                          if self.species else "")
         return "%s%s" % (diameter_chunk, species_chunk)
+
+    ##########################
+    # tree validation
+    ##########################
+
+    def clean(self):
+        if self.plot and self.plot.instance != self.instance:
+            raise ValidationError('Cannot save to a plot in another instance')
+
+    def save_with_user(self, user, *args, **kwargs):
+        self.full_clean()
+        super(Tree, self).save_with_user(user, *args, **kwargs)
 
 
 class Boundary(models.Model):
