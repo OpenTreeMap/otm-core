@@ -422,6 +422,7 @@ class SpeciesViewTests(ViewTestCase):
         super(SpeciesViewTests, self).setUp()
 
         self.species_dict = [
+            {'common_name': "apple 'Red Devil'", 'genus': 'applesauce'},
             {'common_name': 'asian cherry', 'genus': 'cherrificus'},
             {'common_name': 'cherrytree', 'genus': 'cherritius',
              'cultivar_name': 'asian'},
@@ -430,6 +431,7 @@ class SpeciesViewTests(ViewTestCase):
              'species': 'oakenitus'}
         ]
         self.species_json = [
+            {'tokens': ['apple', 'Red', 'Devil', 'applesauce']},
             {'tokens': ['asian', 'cherry', 'cherrificus']},
             {'tokens': ['cherrytree', 'cherritius', 'asian']},
             {'tokens': ['elm', 'elmitius']},
