@@ -434,7 +434,6 @@ class MigrationCommandTests(TestCase):
         user = hash_to_model('user', user_dict, self.instance,
                              self.god)
         user.save_with_user(self.god)
-        self.assertEqual(user.pk, 17)
         self.assertEqual(user.username, "kyle_reese")
         self.assertEqual(user.first_name, "Kyle")
         self.assertEqual(user.last_name, "Reese")
@@ -491,7 +490,6 @@ class MigrationCommandTests(TestCase):
         tree = hash_to_model('tree', tree_dict, self.instance,
                              self.god)
         tree.save_with_user(self.god)
-        self.assertEqual(tree.pk, 95)
         self.assertEqual(tree.plot, test_plot)
         self.assertEqual(tree.species, None)
         self.assertEqual(tree.readonly, True)

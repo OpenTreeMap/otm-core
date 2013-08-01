@@ -178,8 +178,6 @@ def hash_to_model(model_name, data_hash, instance, user):
     except AttributeError:
         pass
 
-    model.pk = data_hash['pk']
-
     return model
 
 
@@ -224,6 +222,38 @@ def try_save_user_hash_to_model(model_name, model_hash,
     return model
 
 
+def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
+                            instance, system_user,
+                            god_role=None, save_with_user=False,
+                            save_with_system_user=False):
+
+    for model_hash in model_hashes:
+        for dependency_name, dependency_field in\
+            MODELS[model_name]['dependencies'].iteritems():
+            dependency_map = dependency_id_maps[dependency_name]
+            dependency_id = model_hash['fields'][dependency_field]
+            if dependency_id:
+                new_id = dependency_map[model_hash['fields'][dependency_field]]
+                model_hash['fields'][dependency_field] = new_id
+
+        if save_with_user:
+            user_field = MODELS[model_name]['dependencies']['user']
+            fn = try_save_user_hash_to_model
+            model = fn(model_name, model_hash, instance, system_user,
+                       god_role, user_field)
+        else:
+            model = hash_to_model(model_name, model_hash,
+                                  instance, system_user)
+            if save_with_system_user:
+                model.save_with_user(system_user)
+            else:
+                model.save()
+
+        model_key_map = dependency_id_maps.get(model_name, None)
+        if model_key_map is not None:
+            model_key_map[model_hash['pk']] = model.pk
+
+
 class Command(InstanceDataCommand):
 
     option_list = InstanceDataCommand.option_list + (
@@ -250,7 +280,6 @@ class Command(InstanceDataCommand):
     )
 
     def handle(self, *args, **options):
-        """ Create some seed data """
 
         if settings.DEBUG:
             print('In order to run this command you must manually'
@@ -263,26 +292,6 @@ class Command(InstanceDataCommand):
             print('Invalid instance provided.')
             return 1
 
-
-        ##########################################
-        # models saved with system user
-        ##########################################
-
-        if user_hashes:
-            for user_hash in user_hashes:
-                user = hash_to_model(User, 'user', user_hash,
-                                     instance, system_user)
-                user.save_with_user(system_user)
-
-        if species_hashes:
-            for species_hash in species_hashes:
-                species = hash_to_model(Species, 'species', species_hash,
-                                        instance, system_user)
-                species.save()
-
-        ##########################################
-        # models saved with app user (if possible)
-        ##########################################
         # look for fixtures of the form '<model>_fixture' that
         # were passed in as command line args and load them as
         # python objects
@@ -304,17 +313,42 @@ class Command(InstanceDataCommand):
                       % model_name)
 
 
+        # iterate over the fixture hashes and save them as database
+        # records.
+        #
+        # a few important things happen here:
+        # #
+        # # for models that server as dependencies for other models,
+        # # their previous ids are stored in a map so that when dependant
+        # # models are made, the correct pk can be retreived.
+        # #
+        # # for models that must be saved with a user, they are either
+        # # saved immediately with a system_user, or an app user is tried
+        # # first, depending on the model.
+        dependency_id_maps = {
+            'plot': {},
+            'species': {},
+            'user': {},
+        }
+
+        if json_hashes['user']:
+            hashes_to_saved_objects('user', json_hashes['user'], dependency_id_maps,
+                                    instance, system_user,
+                                    save_with_system_user=True)
+
+        if json_hashes['species']:
+            hashes_to_saved_objects('species', json_hashes['species'],
+                                    dependency_id_maps, instance, system_user)
+
         from treemap.tests import make_god_role
         god_role = make_god_role(instance)
 
-        if plot_hashes:
-            for plot_hash in plot_hashes:
-                try_save_user_hash_to_model(Plot, 'plot', plot_hash,
-                                            instance, system_user,
-                                            god_role, 'data_owner')
+        if json_hashes['plot']:
+            hashes_to_saved_objects('plot', json_hashes['plot'], dependency_id_maps,
+                                   instance, system_user, god_role,
+                                   save_with_user=True)
 
-        if tree_hashes:
-            for tree_hash in tree_hashes:
-                try_save_user_hash_to_model(Tree, 'tree', tree_hash,
-                                            instance, system_user,
-                                            god_role, 'steward_user')
+        if json_hashes['tree']:
+            hashes_to_saved_objects('tree', json_hashes['tree'], dependency_id_maps,
+                                   instance, system_user, god_role,
+                                   save_with_user=True)
