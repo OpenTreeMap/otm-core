@@ -6,7 +6,7 @@ var $ = require('jquery'),
     Bacon = require('baconjs'),
 
     Search = require('./search'),
-    otmTypeahead = require('./otm.typeahead'),
+    otmTypeahead = require('./otmTypeahead'),
     makeLayerFilterable = require('./makeLayerFilterable');
 
     isEnterKey = require('./otmBaconUtils').isEnterKey,
