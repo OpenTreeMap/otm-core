@@ -8,7 +8,6 @@ from django.contrib.gis.db import models
 from django.db import IntegrityError
 
 from django.contrib.auth.models import AbstractUser
-from django.core.exceptions import ValidationError
 
 from treemap.audit import Auditable, Authorizable, FieldPermission, Role
 
