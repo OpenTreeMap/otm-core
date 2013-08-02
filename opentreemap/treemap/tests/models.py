@@ -21,7 +21,7 @@ from treemap.tests import (make_loaded_role, make_instance, make_god_role,
 class HashModelTest(TestCase):
     def setUp(self):
         self.instance = make_instance()
-        self.user = User(username='user')
+        self.user = User(username='user', password='pw')
         self.user.save()
 
         permissions = (
@@ -91,7 +91,7 @@ class GeoRevIncr(TestCase):
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
         self.instance = make_instance()
-        self.user = User(username='user')
+        self.user = User(username='user', password='pw')
         self.user.save()
 
         permissions = (
@@ -186,7 +186,7 @@ class ModelUnicodeTests(TestCase):
                                                 common_name='Test Common Name')
         self.instance_species.save_base()
 
-        self.user = User(username='commander')
+        self.user = User(username='commander', password='pw')
         self.user.save()
 
         self.import_event = ImportEvent(imported_by=self.user)
@@ -319,7 +319,7 @@ class MigrationCommandTests(TestCase):
     def setUp(self):
         self.instance = make_instance()
 
-        self.god = User(username="god")
+        self.god = User(username="god", password='pw')
         self.god.save()
         self.god.roles.add(make_god_role(self.instance))
 

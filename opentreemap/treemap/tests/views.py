@@ -119,15 +119,15 @@ class RecentEditsViewTest(TestCase):
     def setUp(self):
         self.instance = make_instance()
 
-        self.officer = User(username="officer")
+        self.officer = User(username="officer", password='pw')
         self.officer.save()
         self.officer.roles.add(make_officer_role(self.instance))
 
-        self.commander = User(username="commander")
+        self.commander = User(username="commander", password='pw')
         self.commander.save()
         self.commander.roles.add(make_commander_role(self.instance))
 
-        self.pending_user = User(username="pdg")
+        self.pending_user = User(username="pdg", password='pw')
         self.pending_user.save()
         self.pending_user.roles.add(make_apprentice_role(self.instance))
 
@@ -350,7 +350,7 @@ class SearchTreeBenefitsTests(ViewTestCase):
     def setUp(self):
         super(SearchTreeBenefitsTests, self).setUp()
         self.instance = make_instance()
-        self.commander = User(username="commander")
+        self.commander = User(username="commander", password='pw')
         self.commander.save()
         self.commander.roles.add(make_commander_role(self.instance))
 
@@ -414,7 +414,7 @@ class UserViewTests(ViewTestCase):
     def setUp(self):
         super(UserViewTests, self).setUp()
 
-        self.commander = User(username="commander")
+        self.commander = User(username="commander", password='pw')
         self.commander.save()
 
     def test_get_by_username(self):
@@ -433,7 +433,7 @@ class InstanceUserViewTests(ViewTestCase):
     def setUp(self):
         super(InstanceUserViewTests, self).setUp()
 
-        self.commander = User(username="commander")
+        self.commander = User(username="commander", password='pw')
         self.commander.save()
 
     def test_get_by_username_redirects(self):
@@ -466,7 +466,7 @@ class PlotPopupViewTests(ViewTestCase):
     def setUp(self):
         self.instance = make_instance()
 
-        self.commander = User(username="commander")
+        self.commander = User(username="commander", password='pw')
         self.commander.save()
         self.commander.roles.add(make_commander_role(self.instance))
 
