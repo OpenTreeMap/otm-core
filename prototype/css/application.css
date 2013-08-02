@@ -8,6 +8,10 @@ body {
 
 /* Buttons ---------------------------- */
 
+input {
+  font-size: 13px !important;
+}
+
 .btn, 
 .btn-group .btn, {
   font-size: 14px;
@@ -59,9 +63,19 @@ body {
   float: left;
   margin-left: 10px; 
 }
+  .search-block .dropdown-menu {
+    width: 257px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+  }
+    .search-block .dropdown-menu > li > a {
+      padding: 3px 12px;
+    }
 
 .logo {
   float: left; 
+  margin-top: 15px;
 }
 
 .logo img {

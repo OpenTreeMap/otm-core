@@ -4,7 +4,7 @@
  
 
 @media (min-width: 768px) and (max-width: 1023px) {
-	
+
 }
 
 @media (max-width: 1024px) {
@@ -13,6 +13,19 @@
  
 
 @media (max-width: 767px) {
+
+	.search-block-wrapper {
+		top: 230px;
+		right: 0;
+		left: 0;
+		width: 100%;
+	}
+	.search-options {
+		position: absolute;
+		float: none;
+		top: 230px;
+		right: 6px;
+	}
 
 }
  

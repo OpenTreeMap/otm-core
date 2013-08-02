@@ -44,6 +44,9 @@
 
         <!--Species Search-->
         <div class="search-block">
+          <span class="mobile-only">
+            <p class="pull-left">Search by Species</p><a class="pull-right btn"><i class="icon-th-list"></i></a>
+          </span>
           <p class="desktop-only">Search by Species</p></a>
           <div class="input-prepend">
             <div class="btn-group">
@@ -56,10 +59,16 @@
             </div>
             <input type="text" placeholder="American basswood">
           </div>
+          <div class="mobile-only">
+            <input type="text" class="input-block-level" placeholder="340 N 12th St, Philadelphia">
+          </div>
         </div>
 
         <!-- Location Search -->
         <div class="search-block">
+          <span class="mobile-only">
+            <p class="pull-left">Search by Location</p><a class="pull-right btn"><i class="icon-th-list"></i></a>
+          </span>
           <p class="desktop-only">Search by Location</p>
           <div class="input-prepend">
             <div class="btn-group">
@@ -71,6 +80,9 @@
               </ul>
             </div>
             <input type="text" placeholder="340 N 12th St, Philadelphia">
+          </div>
+          <div class="mobile-only">
+            <input type="text" class="input-block-level" placeholder="340 N 12th St, Philadelphia">
           </div>
         </div>
 
@@ -110,6 +122,7 @@
     <!-- Javascript -->
     <script src="js/jquery.js"></script>
     <script src="js/bootstrap.js"></script>
+    <script src="js/response.js"></script>
     <script src="js/application.js"></script>
 
   </body>
