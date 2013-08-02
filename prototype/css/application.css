@@ -203,6 +203,10 @@ input {
 
 /* Tree Details ----------------------- */
 
+.tree-details {
+  padding: 10px;
+}
+
 .tree-details h1,
 .tree-details h2 {
   line-height: 19px; 
@@ -218,13 +222,33 @@ input {
   color: #777; 
 }
 
+.tree-details h3 {
+  line-height: 28px;
+}
+
+.tree-details h5 {
+  font-weight: 700;
+  font-size: 18px;
+  margin-bottom: 0;
+}
+
 .tree-details .left {
   width: 260px;
   padding-right: 20px;
+  padding-bottom: 120px;
   border-right: 1px solid #eee;
   float: left;
   margin-right: 15px; 
 }
+  .tree-details .left h4 {
+    margin-top: 0;
+    padding-top: 0;
+  }
+  .tree-details .left ul {
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
+  }
 
 .tree-details .left .add-photos {
   margin-top: 10px; 
@@ -235,9 +259,37 @@ input {
 }
 
 .tree-details .center {
-  margin-left: 15px;
-  float: left; 
+    margin-left: 15px;
+    float: right;
+    width: 50%;
+    left: 281px;
+    position: absolute;
+    right: 0;
 }
+  .tree-details .center h1 {
+    font-size: 34px;
+    font-weight: 700;
+  }
+  .tree-details .center h2 {
+    font-size: 28px;
+    font-weight: 400;
+    padding-top: 0;
+  }
+  .tree-details .center h3 {
+    font-family: "Roboto", Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+  }
+
+.tree-details .right {
+    float: right;
+    left: 0;
+    right: 0;
+    top: 0;
+    position: relative;
+}
+
+
 
 
 /* Footer ----------------------------- */
