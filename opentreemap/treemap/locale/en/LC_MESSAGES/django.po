@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-08-02 18:15+0000\n"
+"POT-Creation-Date: 2013-08-02 18:58+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,26 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#. Translators: 'Energy' is the name of an eco benefit
+#: views.py:277
+msgid "Energy"
+msgstr ""
+
+#. Translators: 'Stormwater' is the name of an eco benefit
+#: views.py:279
+msgid "Stormwater"
+msgstr ""
+
+#. Translators: 'Carbon Dioxide' is the name of an eco benefit
+#: views.py:281
+msgid "Carbon Dioxide"
+msgstr ""
+
+#. Translators: 'Air Quaility' is the name of an eco benefit
+#: views.py:283
+msgid "Air Quality"
+msgstr ""
 
 #: templates/registration/activate.html:8
 msgid "Account successfully activated"
@@ -115,45 +135,79 @@ msgstr ""
 msgid "Value"
 msgstr ""
 
-#: templates/treemap/eco_benefits.html:11
+#. Translators: This is the beginning of the statement "Search returned 23 plots and 21 trees..."
+#: templates/treemap/eco_benefits.html:12
+msgid "Search returned"
+msgstr ""
+
+#: templates/treemap/eco_benefits.html:13
 #, python-format
 msgid ""
 "\n"
-"      Search returned %(basis.n_plots)s plots and\n"
-"      %(basis.n_trees_used)s trees out of %(basis.n_trees_total)s total "
-"trees.\n"
+"      %(plot_count)s plot\n"
 "    "
-msgstr ""
+msgid_plural ""
+"\n"
+"      %(plot_count)s plots\n"
+"    "
+msgstr[0] ""
+msgstr[1] ""
 
-#: templates/treemap/map.html:25
+#: templates/treemap/eco_benefits.html:19
+#, python-format
+msgid ""
+"\n"
+"      %(tree_count)s tree\n"
+"    "
+msgid_plural ""
+"\n"
+"      %(tree_count)s trees\n"
+"    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/treemap/eco_benefits.html:25
+#, python-format
+msgid ""
+"\n"
+"      %(total_tree_count)s total tree.\n"
+"    "
+msgid_plural ""
+"\n"
+"      %(total_tree_count)s total trees.\n"
+"    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/treemap/map.html:26
 msgid "Selected:"
 msgstr ""
 
-#: templates/treemap/map.html:26
+#: templates/treemap/map.html:27
 msgid "Search"
 msgstr ""
 
-#: templates/treemap/map.html:28 templates/treemap/plot_popup.html:2
+#: templates/treemap/map.html:29 templates/treemap/plot_popup.html:3
 msgid "Species:"
 msgstr ""
 
-#: templates/treemap/map.html:33
+#: templates/treemap/map.html:34
 msgid "Boundaries:"
 msgstr ""
 
-#: templates/treemap/map.html:37
+#: templates/treemap/map.html:38
 msgid "DBH Min:"
 msgstr ""
 
-#: templates/treemap/map.html:38
+#: templates/treemap/map.html:39
 msgid "DBH Max:"
 msgstr ""
 
-#: templates/treemap/map.html:39
+#: templates/treemap/map.html:40
 msgid "Go"
 msgstr ""
 
-#: templates/treemap/map.html:43
+#: templates/treemap/map.html:44
 msgid "Search Result:"
 msgstr ""
 
@@ -161,19 +215,19 @@ msgstr ""
 msgid "Tree Detail"
 msgstr ""
 
-#: templates/treemap/plot_popup.html:1
+#: templates/treemap/plot_popup.html:2
 msgid "ID:"
 msgstr ""
 
-#: templates/treemap/plot_popup.html:3
+#: templates/treemap/plot_popup.html:4
 msgid "Nearby Address:"
 msgstr ""
 
-#: templates/treemap/plot_popup.html:4
+#: templates/treemap/plot_popup.html:5
 msgid "View all details"
 msgstr ""
 
-#: templates/treemap/plot_popup.html:5
+#: templates/treemap/plot_popup.html:6
 msgid "Edit details"
 msgstr ""
 
@@ -223,22 +277,22 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
-#: templates/treemap/user.html:5
+#: templates/treemap/user.html:6
 msgid "Username:"
 msgstr ""
 
-#: templates/treemap/user.html:6
+#: templates/treemap/user.html:7
 msgid "Name:"
 msgstr ""
 
-#: templates/treemap/user.html:7
+#: templates/treemap/user.html:8
 msgid "Email:"
 msgstr ""
 
-#: templates/treemap/user.html:8
+#: templates/treemap/user.html:9
 msgid "Reputation:"
 msgstr ""
 
-#: templates/treemap/user.html:9
+#: templates/treemap/user.html:10
 msgid "Instance:"
 msgstr ""
