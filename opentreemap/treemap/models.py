@@ -247,15 +247,6 @@ class Plot(Authorizable, Auditable, models.Model):
         return hashlib.md5(string_to_hash).hexdigest()
 
     @property
-    def zones(self):
-        if self.geom:
-            return Boundary.objects\
-                           .filter(geom__contains=self.goem)\
-                           .order('sort_order')
-        else:
-            return []
-
-    @property
     def address_full(self):
         components = []
         if self.address_street:
