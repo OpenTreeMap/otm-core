@@ -121,7 +121,6 @@ def teardownTreemapEnv():
     system_user = User.system_user()
     system_user.roles = [make_commander_role(i)
                          for i in Instance.objects.all()]
-    system_user.save()
 
     for r in APILog.objects.all():
         r.delete()

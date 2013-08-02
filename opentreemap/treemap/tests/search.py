@@ -286,7 +286,7 @@ class SearchTests(TestCase):
     def setUp(self):
         self.instance = make_instance()
 
-        self.commander = User(username='commander',password='pw')
+        self.commander = User(username='commander', password='pw')
         self.commander.save()
         self.commander.roles.add(make_commander_role(self.instance))
 
@@ -498,7 +498,7 @@ class SearchTests(TestCase):
             'species.common_name':
             {'LIKE': 's a tes'}})
 
-        result = [p.pk for p in
+        result = [o.pk for o in
                   _execute_filter(
                       self.instance, species_like_filter)]
 

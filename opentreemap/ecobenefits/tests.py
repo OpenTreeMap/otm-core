@@ -18,7 +18,7 @@ class EcoTest(TestCase):
 
         self.instance = tm.make_instance()
 
-        self.user = User(username="commander")
+        self.user = User(username="commander", password='pw')
         self.user.save()
         self.user.roles.add(tm.make_commander_role(self.instance))
 
