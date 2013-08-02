@@ -192,6 +192,14 @@ class FilterParserTests(TestCase):
 
         self.assertEqual(self.destructure_query_set(pred), target)
 
+    def test_like_predicate(self):
+        pred = search._parse_predicate(
+            {'tree.steward': {'LIKE': 'thisisatest'}})
+
+        target = ('AND', {('tree__steward__icontains', 'thisisatest')})
+
+        self.assertEqual(self.destructure_query_set(pred), target)
+
     def test_parse_predicate(self):
         pred = search._parse_predicate(
             {'plot.width':
@@ -278,7 +286,7 @@ class SearchTests(TestCase):
     def setUp(self):
         self.instance = make_instance()
 
-        self.commander = User(username='commander')
+        self.commander = User(username='commander', password='pw')
         self.commander.save()
         self.commander.roles.add(make_commander_role(self.instance))
 
@@ -474,3 +482,32 @@ class SearchTests(TestCase):
                    self.instance, diameter_range_filter)}
 
         self.assertEqual(ids, {p2.pk, p3.pk})
+
+    def test_like_filter(self):
+        species = Species.objects.create(
+            common_name='this is a test species',
+            genus='Genus-1',
+            symbol='S1')
+
+        p, t = self.create_tree_and_plot()
+
+        t.species = species
+        t.save_with_user(self.commander)
+
+        species_like_filter = json.dumps({
+            'species.common_name':
+            {'LIKE': 's a tes'}})
+
+        result = [o.pk for o in
+                  _execute_filter(
+                      self.instance, species_like_filter)]
+
+        self.assertEqual(result, [p.pk])
+
+        species.common_name = 'no match'
+        species.save()
+
+        result = _execute_filter(
+            self.instance, species_like_filter)
+
+        self.assertEqual(len(result), 0)

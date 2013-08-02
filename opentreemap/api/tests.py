@@ -306,7 +306,7 @@ class PlotListing(TestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
 
-        self.u = User(username='user')
+        self.u = User(username='user', password='pw')
         self.u.save()
         self.u.roles.add(make_commander_role(self.instance))
 
@@ -332,13 +332,13 @@ class PlotListing(TestCase):
         ghost = AnonymousUser()
         self.ghost = ghost
 
-        peon = User(username="peon")
+        peon = User(username="peon", password='pw')
         peon.save_with_user(self.u)
 
-        duke = User(username="duke")
+        duke = User(username="duke", password='pw')
         duke.save_with_user(self.u)
 
-        leroi = User(username="leroi")
+        leroi = User(username="leroi", password='pw')
         leroi.active = True
         leroi.save_with_user(self.u)
 
