@@ -35,7 +35,7 @@ from ._private import InstanceDataCommand
 # missing_fields:     fields in the otm2 django model that are not provided.
 #
 # value_transformers: a mapping where keys are the name of fields in the
-#                     _provided_ data and and values are binary functions
+#                     _provided_ data and and values are unary functions
 #                     that take a value and transform it to some other value.
 
 MODELS = {
