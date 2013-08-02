@@ -386,3 +386,41 @@ footer .nav-pills > li > a:hover {
     .faq-nav a:hover {
       text-decoration: none;
       color: #000;
+    }
+
+      
+/* Map -------------------------------- */
+
+.map {
+  left: 0;
+  background: #eee;
+  position: absolute;
+  bottom: 35px;
+  top: 211px;
+  right: 350px;
+}
+
+.sidebar {
+  width: 350px;
+  background: #fff;
+  border-left: 1px solid #c2c2c2;
+  position: absolute;
+  top: 211px;
+  right: 0;
+  bottom: 35px;
+}
+  .sidebar .accordion-group {
+    border-left: none;
+    border-right: none;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+    margin-bottom: 0px;
+    border-top: none;
+  }
+
+  .benefit-label {
+    font-weight: bold;
+  }
+
+
