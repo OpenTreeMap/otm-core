@@ -26,6 +26,17 @@
 		top: 230px;
 		right: 6px;
 	}
+	.content {
+		margin-top: 120px;
+	}
+
+	.faq-nav {
+		width: 300px;
+		position: fixed;
+	}
+	.faq-content {
+		left: 375px;
+	}
 
 }
  
