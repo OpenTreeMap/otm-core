@@ -82,16 +82,14 @@ class ScopeModelTest(TestCase):
         self.assertNotEquals(list(all_trees), method_instance_1_trees)
         self.assertNotEquals(list(all_trees), method_instance_2_trees)
 
-        self.assertRaises(FieldError,
-                          (lambda: self.instance1.scope_model(Species)))
+        self.assertRaises(FieldError, self.instance1.scope_model, Species)
 
     def test_plot_tree_same_instance(self):
         plot = Plot(geom=self.p1, instance=self.instance2)
         plot.save_with_user(self.user)
 
         tree = Tree(plot=plot, instance=self.instance1, readonly=False)
-        self.assertRaises(ValidationError,
-                          (lambda: tree.save_with_user(self.user)))
+        self.assertRaises(ValidationError, tree.save_with_user, self.user)
 
 
 class AuditTest(TestCase):
