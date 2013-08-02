@@ -1,13 +1,16 @@
+{% load i18n %}
 <div>
-  <h2>Benefits</h2>
+  <h2>{% trans "Benefits" %}</h2>
   <table>
-    <tr><th>Benefit</th><th>Value</th></tr>
+    <tr><th>{% trans "Benefit" %}</th><th>{% trans "Value" %}</th></tr>
     {% for benefit in benefits %}
     <tr><td>{{ benefit.label }}<td>{{ benefit.value }} {{ benefit.unit }}</td></tr>
     {% endfor %}
   </table>
   <div>
-    Search returned {{ basis.n_plots }} plots and
-    {{ basis.n_trees_used }} trees out of {{ basis.n_trees_total }} total trees.
+    {% blocktrans %}
+      Search returned {{ basis.n_plots }} plots and
+      {{ basis.n_trees_used }} trees out of {{ basis.n_trees_total }} total trees.
+    {% endblocktrans %}
   </div>
 </div>

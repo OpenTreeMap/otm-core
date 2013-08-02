@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-08-02 16:57+0000\n"
+"POT-Creation-Date: 2013-08-02 18:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -101,4 +101,144 @@ msgstr ""
 
 #: templates/registration/registration_complete.html:5
 msgid "You are now registered. Activation email sent."
+msgstr ""
+
+#: templates/treemap/eco_benefits.html:3
+msgid "Benefits"
+msgstr ""
+
+#: templates/treemap/eco_benefits.html:5
+msgid "Benefit"
+msgstr ""
+
+#: templates/treemap/eco_benefits.html:5
+msgid "Value"
+msgstr ""
+
+#: templates/treemap/eco_benefits.html:11
+#, python-format
+msgid ""
+"\n"
+"      Search returned %(basis.n_plots)s plots and\n"
+"      %(basis.n_trees_used)s trees out of %(basis.n_trees_total)s total "
+"trees.\n"
+"    "
+msgstr ""
+
+#: templates/treemap/map.html:25
+msgid "Selected:"
+msgstr ""
+
+#: templates/treemap/map.html:26
+msgid "Search"
+msgstr ""
+
+#: templates/treemap/map.html:28 templates/treemap/plot_popup.html:2
+msgid "Species:"
+msgstr ""
+
+#: templates/treemap/map.html:33
+msgid "Boundaries:"
+msgstr ""
+
+#: templates/treemap/map.html:37
+msgid "DBH Min:"
+msgstr ""
+
+#: templates/treemap/map.html:38
+msgid "DBH Max:"
+msgstr ""
+
+#: templates/treemap/map.html:39
+msgid "Go"
+msgstr ""
+
+#: templates/treemap/map.html:43
+msgid "Search Result:"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:3
+msgid "Tree Detail"
+msgstr ""
+
+#: templates/treemap/plot_popup.html:1
+msgid "ID:"
+msgstr ""
+
+#: templates/treemap/plot_popup.html:3
+msgid "Nearby Address:"
+msgstr ""
+
+#: templates/treemap/plot_popup.html:4
+msgid "View all details"
+msgstr ""
+
+#: templates/treemap/plot_popup.html:5
+msgid "Edit details"
+msgstr ""
+
+#: templates/treemap/recent_edits.html:9
+msgid "Recent Edits"
+msgstr ""
+
+#: templates/treemap/recent_edits.html:15
+msgid "Audit ID"
+msgstr ""
+
+#: templates/treemap/recent_edits.html:16
+msgid "Model"
+msgstr ""
+
+#: templates/treemap/recent_edits.html:17
+msgid "Model #"
+msgstr ""
+
+#: templates/treemap/recent_edits.html:18
+msgid "Field"
+msgstr ""
+
+#: templates/treemap/recent_edits.html:19
+msgid "Old Value"
+msgstr ""
+
+#: templates/treemap/recent_edits.html:20
+msgid "Current Value"
+msgstr ""
+
+#: templates/treemap/recent_edits.html:21
+msgid "Commit By"
+msgstr ""
+
+#: templates/treemap/recent_edits.html:22
+msgid "Commit On"
+msgstr ""
+
+#: templates/treemap/recent_edits.html:102
+#: templates/treemap/recent_edits.html:104
+msgid "Previous"
+msgstr ""
+
+#: templates/treemap/recent_edits.html:108
+#: templates/treemap/recent_edits.html:110
+msgid "Next"
+msgstr ""
+
+#: templates/treemap/user.html:5
+msgid "Username:"
+msgstr ""
+
+#: templates/treemap/user.html:6
+msgid "Name:"
+msgstr ""
+
+#: templates/treemap/user.html:7
+msgid "Email:"
+msgstr ""
+
+#: templates/treemap/user.html:8
+msgid "Reputation:"
+msgstr ""
+
+#: templates/treemap/user.html:9
+msgid "Instance:"
 msgstr ""
