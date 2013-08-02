@@ -10,3 +10,7 @@ opentreemap/.idea
 node_modules/
 opentreemap/treemap/static/js/
 prototype/css/.sass-cache
+
+# .mo files are compiled, binary language files created
+# by ``django-admin.py compilemessages``
+*.mo

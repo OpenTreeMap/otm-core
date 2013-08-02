@@ -1,5 +1,7 @@
 """ Fabric script to handle common building tasks """
 from fabric.api import cd, run, require, sudo, env, local, settings, abort
+from fabric.contrib.files import exists as host_exists
+from fabric.colors import yellow
 
 import os
 
@@ -72,9 +74,13 @@ def _python(cmd):
     return _venv_exec('python %s' % cmd)
 
 def _manage(cmd):
-    """ Execute 'cmd' as a python management command in the venv """
+    """ Execute 'cmd' as a django management command in the venv """
     with cd(env.site_path):
         sudo(_python('manage.py %s' % cmd))
+
+def _admin(cmd):
+    """ Execute 'cmd' as a django-admin command in the venv """
+    sudo(_venv_exec('django-admin.py %s' % cmd))
 
 def _collectstatic():
     """ Collect static files. """
@@ -178,3 +184,49 @@ def tiler_start():
 def tiler_status():
     """ Query upstart for the status of the map tile service """
     sudo("service tiler status")
+
+
+def _get_app_path(app):
+    if app is None:
+        raise Exception('app cannot be None')
+
+    require('site_path')
+    require('venv_path')
+
+    app_path = os.path.join(env.site_path, app)
+    if not host_exists(app_path):
+        raise Exception('The app path %s is not accessible' % app_path)
+    return app_path
+
+###########
+# i18n
+#
+
+I18N_APPS = ['treemap', 'ecobenefits']
+
+def make_messages(locale=None):
+    for app in I18N_APPS:
+        make_messages_for_app(app, locale)
+
+
+def make_messages_for_app(app, locale=None):
+    app_path = _get_app_path(app)
+    with cd(app_path):
+        print(yellow("Making messages in %s" % app_path))
+        if locale:
+            _admin('makemessages --locale %s' % locale)
+            _admin('makemessages -d djangojs --locale %s' % locale)
+        else:
+            _admin('makemessages --all')
+            _admin('makemessages -d djangojs --all')
+
+
+def compile_messages():
+    for app in I18N_APPS:
+        compile_messages_for_app(app)
+
+
+def compile_messages_for_app(app):
+    app_path = _get_app_path(app)
+    with cd(app_path):
+        _admin('compilemessages')
