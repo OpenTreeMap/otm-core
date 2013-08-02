@@ -23,16 +23,15 @@ class LoginTests(RequestTestCase):
         res = self.client.post('/accounts/login/',
                                {'username': self.username,
                                 'password': self.password})
-        self.assertTemporaryRedirect(res,
-                                     'http://testserver/accounts/profile/')
+        self.assertRedirects(res, '/accounts/profile/', target_status_code=302)
 
     def test_successful_login_redirect(self):
         self.client.post('/accounts/login/',
                          {'username': self.username,
                           'password': self.password})
         res = self.client.get('/accounts/profile/')
-        expected_url = 'http://testserver/users/%s/' % self.username
-        self.assertTemporaryRedirect(res, expected_url)
+        expected_url = '/users/%s/' % self.username
+        self.assertRedirects(res, expected_url)
 
     def test_password_incorrect(self):
         res = self.client.post('/accounts/login/',
@@ -41,3 +40,7 @@ class LoginTests(RequestTestCase):
         # If your login is invalid, the POST returns 200 and the user
         # stays on the login form page.
         self.assertOk(res)
+
+    def test_profile_redirect_when_no_current_user(self):
+        res = self.client.get('/accounts/profile/')
+        self.assertRedirects(res, '/accounts/login/')

@@ -41,13 +41,6 @@ class InstanceValidationTest(TestCase):
 
         self.instance2.save()
 
-    def test_invalid_instance_returns_404(self):
-        response = self.client.get('/%s/' % self.instance1.pk)
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.get('/1000/')
-        self.assertEqual(response.status_code, 404)
-
 
 class BoundaryViewTest(ViewTestCase):
 
@@ -87,8 +80,11 @@ class BoundaryViewTest(ViewTestCase):
 
     def test_boundary_to_geojson_view(self):
         boundary = make_simple_boundary("Hello, World", 1)
+        self.instance.boundaries.add(boundary)
+        self.instance.save()
         response = boundary_to_geojson(
             self._make_request(),
+            self.instance,
             boundary.pk)
 
         self.assertEqual(response.content, boundary.geom.geojson)
@@ -490,14 +486,3 @@ class PlotPopupViewTests(ViewTestCase):
         self.tree.diameter = 4
         self.tree.species = self.species
         self.tree.save_with_user(self.commander)
-
-    def test_get_returns_200_for_existing_plot(self):
-        res = plot_popup_view(self._make_request(), self.instance.pk,
-                              self.plot.pk)
-        self.assertEquals(200, res.status_code, 'Plot detail request with'
-                          'instance %d and plot %d should return 200' %
-                          (self.instance.pk, self.plot.pk))
-
-    def test_get_with_invalid_plot_id_raises_does_not_exist(self):
-        self.assertRaises(Plot.DoesNotExist, plot_popup_view,
-                          self._make_request(), self.instance.pk, -1)
