@@ -1,24 +1,25 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% block title %}Recent Edits{% endblock title %}
 
 {% block content %}
 
 <h1>
-Recent Edits
+{% trans "Recent Edits" %}
 </h1>
 <a href="{% url 'recent_edits' instance_id=request.instance.pk %}">Reset</a>
 
 <table>
   <tr>
-    <th>Audit ID</th>
-    <th>Model</th>
-    <th>Model #</th>
-    <th>Field</th>
-    <th>Old Value</th>
-    <th>Current Value</th>
-    <th>Commit By</th>
-    <th>Commit On</th>
+    <th>{% trans "Audit ID" %}</th>
+    <th>{% trans "Model" %}</th>
+    <th>{% trans "Model #" %}</th>
+    <th>{% trans "Field" %}</th>
+    <th>{% trans "Old Value" %}</th>
+    <th>{% trans "Current Value" %}</th>
+    <th>{% trans "Commit By" %}</th>
+    <th>{% trans "Commit On" %}</th>
   </tr>
   {% for auditui in audits %}
   <tr>
@@ -98,15 +99,15 @@ Recent Edits
 </table>
 
 {% if prev_page %}
-<a href="{{ prev_page }}">&lt;&lt; Previous</a>
+<a href="{{ prev_page }}">&lt;&lt; {% trans "Previous" %}</a>
 {% else %}
-&lt;&lt; Previous
+&lt;&lt; {% trans "Previous" %}
 {% endif %}
 |
 {% if next_page %}
-<a href="{{ next_page }}">Next &gt;&gt;</a>
+<a href="{{ next_page }}">{% trans "Next" %} &gt;&gt;</a>
 {% else %}
-Next &gt;&gt;
+{% trans "Next" %} &gt;&gt;
 {% endif %}
 
 

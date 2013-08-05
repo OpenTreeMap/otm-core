@@ -8,6 +8,11 @@ from treemap.views import (user_view, root_settings_js_view,
 from django.contrib import admin
 admin.autodiscover()
 
+js_i18n_info_dict = {
+    'domain': 'djangojs',
+    'packages': settings.I18N_APPS,
+}
+
 urlpatterns = patterns(
     '',
     # Setting permanent=False in case we want to allow customizing favicons
@@ -24,6 +29,10 @@ urlpatterns = patterns(
     # the page of the currently logged in user
     url(r'^accounts/profile/$', profile_to_user_view, name='profile'),
     url(r'^accounts/', include('registration_backend.urls')),
+    # Create a redirect view for setting the session language preference
+    # https://docs.djangoproject.com/en/1.0/topics/i18n/#the-set-language-redirect-view
+    url(r'^i18n/', include('django.conf.urls.i18n')),
+    url(r'^jsi18n/$', 'django.views.i18n.javascript_catalog', js_i18n_info_dict),
 )
 
 if settings.DEBUG:
