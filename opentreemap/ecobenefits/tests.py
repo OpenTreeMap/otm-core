@@ -9,18 +9,18 @@ from django.test.client import RequestFactory
 
 from treemap.models import User, Plot, Tree, Species
 from django.contrib.gis.geos import Point
-from treemap import tests as tm
+from treemap.tests import UrlTestCase, make_instance, make_commander_role
 
 
-class EcoTest(tm.UrlTestCase):
+class EcoTest(UrlTestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.instance = tm.make_instance()
+        self.instance = make_instance()
 
         self.user = User(username="commander", password='pw')
         self.user.save()
-        self.user.roles.add(tm.make_commander_role(self.instance))
+        self.user.roles.add(make_commander_role(self.instance))
 
         self.species = Species(symbol='CEDR',
                                genus='cedrus',

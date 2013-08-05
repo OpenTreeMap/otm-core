@@ -6,7 +6,7 @@ from django.contrib.gis.geos.polygon import Polygon
 from django.test import TestCase
 
 from treemap.models import User, Boundary, Plot
-from treemap.tests import (make_instance, make_god_role)
+from treemap.tests import (make_instance, make_god_role, make_simple_boundary)
 from opentreemap.local_settings import STATIC_ROOT
 
 class UrlTestCase(TestCase):
@@ -85,8 +85,7 @@ class TreemapUrlTests(UrlTestCase):
         return plot
 
     def make_boundary(self):
-        geom = MultiPolygon(Polygon(((0, 0), (1, 0), (1, 1), (0, 1), (0, 0))))
-        boundary = Boundary(name="n1", category='blah', sort_order=4, geom=geom)
+        boundary = make_simple_boundary('b')
         boundary.save()
         self.instance.boundaries.add(boundary)
         return boundary
