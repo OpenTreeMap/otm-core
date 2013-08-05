@@ -22,7 +22,8 @@ from ecobenefits.views import _benefits_for_trees
 
 
 def _plot_hash(request, instance, plot_id):
-    return instance.scope_model(Plot).get(pk=plot_id).hash
+    instance_plots = instance.scope_model(Plot)
+    return get_object_or_404(instance_plots, pk=plot_id).hash
 
 
 #
@@ -196,8 +197,8 @@ def audits(request, instance):
             'prev_page': prev_page}
 
 
-def boundary_to_geojson(request, boundary_id):
-    boundary = Boundary.objects.get(pk=boundary_id)
+def boundary_to_geojson(request, instance, boundary_id):
+    boundary = get_object_or_404(instance.boundaries, pk=boundary_id)
     return HttpResponse(boundary.geom.geojson)
 
 
@@ -334,7 +335,7 @@ instance_settings_js_view = instance_request(
                     mimetype='application/javascript'))
 
 
-boundary_to_geojson_view = json_api_call(boundary_to_geojson)
+boundary_to_geojson_view = json_api_call(instance_request(boundary_to_geojson))
 boundary_autocomplete_view = instance_request(
     json_api_call(boundary_autocomplete))
 

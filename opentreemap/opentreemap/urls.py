@@ -13,6 +13,12 @@ js_i18n_info_dict = {
     'packages': settings.I18N_APPS,
 }
 
+# Testing notes:
+# We want to test that every URL succeeds (200) or fails with bad data (404).
+# If you add/remove/modify a URL, please update the corresponding test(s).
+# For URLs included via <app>.urls, see <app>/tests
+# For "top level" URLs defined here, see treemap/tests/urls.py (RootUrlTests)
+
 urlpatterns = patterns(
     '',
     # Setting permanent=False in case we want to allow customizing favicons

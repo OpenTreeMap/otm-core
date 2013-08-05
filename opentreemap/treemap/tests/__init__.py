@@ -200,13 +200,6 @@ class RequestTestCase(TestCase):
                         'expected the response to have a 2XX status code, '
                         'not %d' % res.status_code)
 
-    def assertTemporaryRedirect(self, res, path):
-        self.assertEqual(302, res.status_code, 'expected the response to '
-                         'have a 302 Found status code, not %d'
-                         % res.status_code)
-        self.assertEqual(path, res['Location'], 'expected to redirect to %s '
-                         'not %s' % (path, res['Location']))
-
 
 create_mock_system_user()
 
@@ -214,4 +207,5 @@ from audit import *   # NOQA
 from auth import *    # NOQA
 from models import *  # NOQA
 from search import *  # NOQA
+from urls import *    # NOQA
 from views import *   # NOQA
