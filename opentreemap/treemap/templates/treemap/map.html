@@ -21,26 +21,27 @@
 {% endblock scripts %}
 
 {% block content %}
+{% load i18n %}
   <div>
-    <h2>Selected: <span id="attrs"></h2>
-    <h2>Search</h2>
+    <h2>{% trans "Selected:" %} <span id="attrs"></h2>
+    <h2>{% trans "Search" %}</h2>
     <div>
-      Species:
+      {% trans "Species:" %}
       <input type="text" data-class="search" id="species-typeahead" />
       <input type="hidden" id="search-species" />
     </div>
     <div>
-      Boundaries:
+      {% trans "Boundaries:" %}
       <input type="text" data-class="search" id="boundary-typeahead" />
       <input type="hidden" id="boundary" />
     </div>
-    <div>DBH Min: <input data-class="search" id="dbh-min"></div>
-    <div>DBH Max: <input data-class="search" id="dbh-max"></div>
-    <button id="perform-search">Go</button>
+    <div>{% trans "DBH Min:" %}<input data-class="search" id="dbh-min"></div>
+    <div>{% trans "DBH Max:" %}<input data-class="search" id="dbh-max"></div>
+    <button id="perform-search">{% trans "Go" %}</button>
   </div>
   <div id="search-results"></div>
   <div>
-    <h2>Search Result:</h2>
+    <h2>{% trans "Search Result:" %}</h2>
     <div id="search-results"></div>
   </div>
   <div id="map" style="width: 800px; height: 800px"></div>

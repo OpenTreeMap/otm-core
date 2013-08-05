@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% load i18n %}
 <h2>User</h2>
-<div>Username: {{ username }}</div>
-<div>Name: {{ first_name }} {{ last_name }}</div>
-<div>Email: {{ email }}</div>
-<div>Reputation: {{ reputation }}</div>
-<div>Instance: {{ instance_id }}</div>
+<div>{% trans "Username:" %} {{ username }}</div>
+<div>{% trans "Name:" %} {{ first_name }} {{ last_name }}</div>
+<div>{% trans "Email:" %} {{ email }}</div>
+<div>{% trans "Reputation:" %} {{ reputation }}</div>
+<div>{% trans "Instance:" %} {{ instance_id }}</div>
 {% endblock content %}

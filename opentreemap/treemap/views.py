@@ -11,6 +11,7 @@ from django.http import (HttpResponse, HttpResponseServerError,
 from django.views.decorators.http import etag
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
+from django.utils.translation import ugettext as _
 
 from treemap.util import json_api_call, render_template, instance_request
 from treemap.search import create_filter
@@ -270,10 +271,14 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
     # TODO: get units from locale, and convert value
     # TODO: how many decimal places do we really want? Is it unit-sensitive?
     benefits_for_display = [
-        displayize_benefit('energy', 'Energy', '%.1f'),
-        displayize_benefit('stormwater', 'Stormwater', '%.1f'),
-        displayize_benefit('co2', 'Carbon Dioxide', '%.1f'),
-        displayize_benefit('airquality', 'Air Quality', '%.1f')
+        # Translators: 'Energy' is the name of an eco benefit
+        displayize_benefit('energy', _('Energy'), '%.1f'),
+        # Translators: 'Stormwater' is the name of an eco benefit
+        displayize_benefit('stormwater', _('Stormwater'), '%.1f'),
+        # Translators: 'Carbon Dioxide' is the name of an eco benefit
+        displayize_benefit('co2', _('Carbon Dioxide'), '%.1f'),
+        # Translators: 'Air Quaility' is the name of an eco benefit
+        displayize_benefit('airquality', _('Air Quality'), '%.1f')
     ]
 
     rslt = {'benefits': benefits_for_display,
