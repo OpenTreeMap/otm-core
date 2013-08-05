@@ -12,7 +12,7 @@ from django.contrib.gis.geos import Point
 from treemap import tests as tm
 
 
-class EcoTest(TestCase):
+class EcoTest(tm.UrlTestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -43,6 +43,14 @@ class EcoTest(TestCase):
                          diameter=1630)
 
         self.tree.save_with_user(self.user)
+
+    def test_tree_benefits_url(self):
+        self.assert_200(
+            '/%s/eco/benefit/tree/%s/' % (self.instance.id, self.tree.id))
+
+    def test_tree_benefit_url_invalid(self):
+        self.assert_404(
+            '/%s/eco/benefit/tree/999/' % self.instance.id)
 
     def test_group_eco(self):
         pass  # TODO: Once filtering has been enabled

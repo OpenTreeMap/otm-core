@@ -8,6 +8,12 @@ from treemap.views import (user_view, root_settings_js_view,
 from django.contrib import admin
 admin.autodiscover()
 
+# Testing notes:
+# We want to test that every URL succeeds (200) or fails with bad data (404).
+# If you add/remove/modify a URL, please update the corresponding test(s).
+# For URLs included via <app>.urls, see <app>/tests
+# For "top level" URLs defined here, see treemap/tests/urls.py (RootUrlTests)
+
 urlpatterns = patterns(
     '',
     # Setting permanent=False in case we want to allow customizing favicons

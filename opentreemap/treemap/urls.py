@@ -10,6 +10,11 @@ from treemap.views import (boundary_to_geojson_view, index_view, trees_view,
                            species_list_view, boundary_autocomplete_view,
                            instance_user_view, plot_popup_view)
 
+# Testing notes:
+# We want to test that every URL succeeds (200) or fails with bad data (404).
+# If you add/remove/modify a URL, please update the corresponding test(s)
+# in treemap/tests/urls.py
+
 urlpatterns = patterns(
     '',
     url(r'^$', index_view),
