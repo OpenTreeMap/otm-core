@@ -13,6 +13,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 
 import hashlib
+import importlib
 
 
 def approve_or_reject_audit_and_apply(audit, user, approved):
@@ -35,14 +36,17 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
     # 'user' is authorized to approve this edit
     _verify_user_can_apply_audit(audit, user)
 
-    pdgaudit = Audit(model=audit.model, model_id=audit.model_id,
-                     instance=audit.instance, field=audit.field,
-                     previous_value=audit.previous_value,
-                     current_value=audit.current_value,
-                     user=user)
+    # Create an additional audit record to track the act of
+    # the privileged user applying either PendingApprove or
+    # pendingReject to the original audit.
+    review_audit = Audit(model=audit.model, model_id=audit.model_id,
+                        instance=audit.instance, field=audit.field,
+                        previous_value=audit.previous_value,
+                        current_value=audit.current_value,
+                        user=user)
 
     if approved:
-        pdgaudit.action = Audit.Type.PendingApprove
+        review_audit.action = Audit.Type.PendingApprove
 
         TheModel = _lkp_model(audit.model)
         obj = TheModel.objects.get(pk=audit.model_id)
@@ -53,29 +57,32 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
         # the edit without generating any additional audits
         # or triggering the auth system
         obj.save_base()
-        pdgaudit.save()
+        review_audit.save()
 
-        audit.ref_id = pdgaudit
+        audit.ref_id = review_audit
         audit.save()
 
     else:  # Reject
-        pdgaudit.action = Audit.Type.PendingReject
-        pdgaudit.save()
+        review_audit.action = Audit.Type.PendingReject
+        review_audit.save()
 
-        audit.ref_id = pdgaudit
+        audit.ref_id = review_audit
         audit.save()
 
-    return pdgaudit
+    return review_audit
 
 
 def _lkp_model(modelname):
     """
     Convert a model name (as a string) into the model class
-    If the model has no prefix, it is assumed to be in the
-    'treemap.models' module
-    """
-    import importlib
 
+    If the model has no prefix, it is assumed to be in the
+    'treemap.models' module.
+
+    ex:
+    'Tree' =(imports)=> treemap.models.Tree
+    'treemap.audit.Audit' =(imports)=> treemap.audit.Audit
+    """
     if "." in modelname:
         parts = modelname.split('.')
         modulename = '.'.join(parts[:-1])
@@ -416,9 +423,8 @@ class Auditable(UserTrackable):
             updates['id'] = [None, self.pk]
 
         def make_audit_and_save(field, prev_val, cur_val, pending):
-            instance = None
-            if hasattr(self, 'instance'):
-                instance = self.instance
+
+            instance = self.instance if hasattr(self, 'instance') else None
 
             Audit(model=self._model_name, model_id=self.pk,
                   instance=instance, field=field,

@@ -55,6 +55,13 @@ def make_loaded_role(instance, name, rep_thresh, permissions):
 
 
 def make_god_role(instance):
+    """
+    In principle, the god role is able to edit all fields, even things
+    that are supposed to live outside of the application space.
+
+    In practice, the god role has access to 2 more fields than the
+    normal, fully privileged user: model.id and model.instance
+    """
     permissions = (
         ('Plot', 'instance', FieldPermission.WRITE_DIRECTLY),
         ('Plot', 'id', FieldPermission.WRITE_DIRECTLY),
@@ -82,6 +89,10 @@ def make_god_role(instance):
 
 
 def make_commander_role(instance):
+    """
+    The commander role has permission to modify all model fields
+    directly for all models under test.
+    """
     permissions = (
         ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
         ('Plot', 'width', FieldPermission.WRITE_DIRECTLY),
@@ -105,6 +116,11 @@ def make_commander_role(instance):
 
 
 def make_officer_role(instance):
+    """
+    The officer role has permission to modify only a few fields,
+    and only a few models under test, but the officer is permitted to
+    modify them directly without moderation.
+    """
     permissions = (
         ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
         ('Plot', 'length', FieldPermission.WRITE_DIRECTLY),
@@ -116,6 +132,10 @@ def make_officer_role(instance):
 
 
 def make_apprentice_role(instance):
+    """
+    The apprentice role has permission to modify all model fields
+    for all models under test, but its edits are subject to review.
+    """
     permissions = (
         ('Plot', 'geom', FieldPermission.WRITE_WITH_AUDIT),
         ('Plot', 'width', FieldPermission.WRITE_WITH_AUDIT),
@@ -139,6 +159,9 @@ def make_apprentice_role(instance):
 
 
 def make_observer_role(instance):
+    """
+    The observer can read a few model fields.
+    """
     permissions = (
         ('Plot', 'geom', FieldPermission.READ_ONLY),
         ('Plot', 'length', FieldPermission.READ_ONLY),

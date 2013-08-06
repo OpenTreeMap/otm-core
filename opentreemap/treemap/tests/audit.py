@@ -21,6 +21,12 @@ from treemap.tests import (make_instance, make_commander_role,
 
 
 class ScopeModelTest(TestCase):
+    """
+    Tests that the various operations on models are scoped to the
+    instance they exist within. In general, ForeignKey relationships
+    must either be to objects with the same instance, or objects that
+    live outside of instance scoping (like Species).
+    """
 
     def setUp(self):
         self.p1 = Point(-8515222.0, 4953200.0)
