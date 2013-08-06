@@ -1,0 +1,58 @@
+@media (min-width: 1200px) {
+
+}
+ 
+
+@media (min-width: 768px) and (max-width: 1023px) {
+
+}
+
+@media (max-width: 1024px) {
+
+}
+ 
+
+@media (max-width: 767px) {
+
+	.search-block-wrapper {
+		top: 230px;
+		right: 0;
+		left: 0;
+		width: 100%;
+	}
+	.search-options {
+		position: absolute;
+		float: none;
+		top: 230px;
+		right: 6px;
+	}
+	.content {
+		margin-top: 120px;
+	}
+
+	.faq-nav {
+		width: 300px;
+		position: fixed;
+	}
+	.faq-content {
+		left: 375px;
+	}
+
+	.right {
+		width: 100%;
+		clear: both;
+		border-top: 1px solid #eee;
+		margin-top: 50px;
+		padding-bottom: 120px;
+	}
+
+	.right textarea {
+		width: 98%;
+	}
+
+}
+ 
+
+@media (max-width: 480px) {
+
+}

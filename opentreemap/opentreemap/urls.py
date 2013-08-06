@@ -36,9 +36,10 @@ urlpatterns = patterns(
     url(r'^accounts/profile/$', profile_to_user_view, name='profile'),
     url(r'^accounts/', include('registration_backend.urls')),
     # Create a redirect view for setting the session language preference
-    # https://docs.djangoproject.com/en/1.0/topics/i18n/#the-set-language-redirect-view
+    # https://docs.djangoproject.com/en/1.0/topics/i18n/#the-set-language-redirect-view  # NOQA
     url(r'^i18n/', include('django.conf.urls.i18n')),
-    url(r'^jsi18n/$', 'django.views.i18n.javascript_catalog', js_i18n_info_dict),
+    url(r'^jsi18n/$', 'django.views.i18n.javascript_catalog',
+        js_i18n_info_dict),
 )
 
 if settings.DEBUG:

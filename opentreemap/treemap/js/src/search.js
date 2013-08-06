@@ -43,12 +43,22 @@ function buildSearch(stream) {
 function executeSearch(search_query) {
     var search = $.ajax({
         url: '/' + config.instance.id + '/benefit/search',
-        data: {'q': JSON.stringify(search_query)},
+        data: {'q': search_query && Object.keys(search_query).length > 0 ? 
+                JSON.stringify(search_query) :
+                ''},
         type: 'GET',
         dataType: 'html'
     });
 
     return Bacon.fromPromise(search);
+}
+
+function updateSearchResults(newMarkup) {
+    var $new = $(newMarkup),
+        countsMarkup = $new.filter('#tree-and-planting-site-counts').html(),
+        benefitsMarkup = $new.filter('#benefit-values').html();
+    $('#tree-and-planting-site-counts').html(countsMarkup);
+    $('#benefit-values').html(benefitsMarkup);
 }
 
 // Arguments
@@ -71,5 +81,5 @@ exports.init = function(triggerEventStream, otmConfig, applyFilter) {
 
     searchStream
         .flatMap(executeSearch)
-        .onValue($('#search-results'), 'html');
+        .onValue(updateSearchResults);
 };

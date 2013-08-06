@@ -394,7 +394,7 @@ def version(request):
     Params: None
     Output:
       {
-        otm_version, string -> Open Tree Map Version (i.e. 1.0.2)
+        otm_version, string -> OpenTreeMap Version (i.e. 1.0.2)
         api_version, string -> API version (i.e. 1.6)
       }
 
