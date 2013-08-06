@@ -11,7 +11,8 @@ from treemap.models import (Tree, User, Instance, Plot, Species,
 
 from treemap.audit import (Audit, Role, UserTrackingException,
                            AuthorizeException, ReputationMetric,
-                           approve_or_reject_audit_and_apply)
+                           approve_or_reject_audit_and_apply,
+                           get_id_sequence_name)
 
 from django.contrib.gis.geos import Point
 
@@ -217,6 +218,10 @@ class AuditTest(TestCase):
         self.assertAuditsEqual(
             expected_audits,
             Audit.audits_for_model('Tree', self.instance, old_pk))
+
+    def test_get_id_sequence_name(self):
+        self.assertEqual(get_id_sequence_name(Tree), 'treemap_tree_id_seq')
+        self.assertEqual(get_id_sequence_name(Plot), 'treemap_plot_id_seq')
 
 
 class PendingTest(TestCase):

@@ -10,11 +10,45 @@ from django.forms.models import model_to_dict
 from django.dispatch import receiver
 from django.db.models.signals import pre_save
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
+from django.db import IntegrityError, connection
+from django.conf import settings
 
 import hashlib
 import importlib
 
+def get_id_sequence_name(model_class):
+    """
+    Takes a django model class and returns the name of the autonumber
+    sequence for the id field.
+    Tree => 'treemap_tree_id_seq'
+    Plot => 'treemap_plot_id_seq'
+    """
+    table_name = model_class._meta.db_table
+    pk_field = model_class._meta.pk
+    # django fields only have a truthy db_column when it is
+    # overriding the default
+    pk_column_name = pk_field.db_column or pk_field.name
+    id_seq_name = "%s_%s_seq" % (table_name, pk_column_name)
+    return id_seq_name
+
+def _reserve_model_id(model_class):
+    """
+    queries the database to get id from the audit id sequence.
+    this is used to reserve an id for a record that hasn't been
+    created yet, in order to make references to that record.
+    """
+    try:
+        id_seq_name = get_id_sequence_name(model_class)
+        cursor = connection.cursor()
+        cursor.execute("select nextval('%s');" % id_seq_name)
+        results = cursor.fetchone()
+        model_id = results[0]
+        assert(type(model_id) in [int, long])
+    except:
+        msg = "There was a database error while retrieving a unique audit ID."
+        raise IntegrityError(msg)
+
+    return model_id
 
 def approve_or_reject_audit_and_apply(audit, user, approved):
     """
