@@ -14,7 +14,7 @@ from treemap.audit import Auditable, Authorizable, FieldPermission, Role
 import hashlib
 import re
 
-from treemap.udf import UserDefinedFieldDefinition, UDFField, UDFModel
+from treemap.udf import UDFModel, GeoHStoreManager
 from treemap.instance import Instance
 
 
@@ -140,7 +140,7 @@ class ImportEvent(models.Model):
 #TODO:
 # Exclusion Zones
 # Proximity validation
-class Plot(Authorizable, Auditable, models.Model):
+class Plot(Authorizable, Auditable, UDFModel):
     instance = models.ForeignKey(Instance)
     geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
 
@@ -155,7 +155,7 @@ class Plot(Authorizable, Auditable, models.Model):
     owner_orig_id = models.CharField(max_length=255, null=True, blank=True)
     readonly = models.BooleanField(default=False)
 
-    objects = models.GeoManager()
+    objects = GeoHStoreManager()
 
     def current_tree(self):
         """
@@ -198,7 +198,7 @@ class Plot(Authorizable, Auditable, models.Model):
         return ', '.join(components)
 
 
-class Tree(Authorizable, Auditable, models.Model):
+class Tree(Authorizable, Auditable, UDFModel):
     """
     Represents a single tree, belonging to an instance
     """
@@ -215,7 +215,7 @@ class Tree(Authorizable, Auditable, models.Model):
     date_planted = models.DateField(null=True, blank=True)
     date_removed = models.DateField(null=True, blank=True)
 
-    objects = models.GeoManager()
+    objects = GeoHStoreManager()
 
     def __unicode__(self):
         diameter_chunk = ("Diameter: %s, " % self.diameter

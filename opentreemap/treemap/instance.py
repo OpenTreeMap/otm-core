@@ -1,5 +1,8 @@
 from django.contrib.gis.db import models
 
+import hashlib
+
+
 class Instance(models.Model):
     """
     Each "Tree Map" is a single instance
