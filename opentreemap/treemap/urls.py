@@ -18,7 +18,7 @@ urlpatterns = patterns(
     url(r'^boundaries/$', boundary_autocomplete_view),
     url(r'^recent_edits', audits_view, name='recent_edits'),
     url(r'^species/$', species_list_view),
-    url(r'^trees/$', trees_view),
+    url(r'^trees/$', trees_view, name='map'),
     url(r'^trees/(?P<plot_id>\d+)/$', plot_detail_view, name='tree_detail'),
     url(r'^plots/(?P<plot_id>\d+)/$', plot_popup_view),
     url(r'^config/settings.js$', instance_settings_js_view),

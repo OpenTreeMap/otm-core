@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import urllib
+import locale
 from PIL import Image
 
 from django.shortcuts import get_object_or_404
@@ -236,6 +237,10 @@ def _execute_filter(instance, filter_str):
 
 
 def search_tree_benefits(request, instance, region='PiedmtCLT'):
+    # locale.format does not insert grouping chars unless
+    # the locale is set
+    locale.setlocale(locale.LC_ALL, '')
+
     try:
         filter_str = request.REQUEST['q']
     except KeyError:
@@ -263,7 +268,7 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
     def displayize_benefit(key, label, format):
         benefit = benefits[key]
         benefit['label'] = label
-        benefit['value'] = format % benefit['value']
+        benefit['value'] = locale.format(format, benefit['value'], grouping=True)
         return benefit
 
     # TODO: i18n of labels
@@ -280,10 +285,15 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
         displayize_benefit('airquality', _('Air Quality'), '%.1f')
     ]
 
+    locale.setlocale(locale.LC_ALL, '')
+    n_trees_used = locale.format("%d", num_calculated_trees, grouping=True)
+    n_trees_total = locale.format("%d", total_trees, grouping=True)
+    n_plots = locale.format("%d", total_plots, grouping=True)
+
     rslt = {'benefits': benefits_for_display,
-            'basis': {'n_trees_used': num_calculated_trees,
-                      'n_trees_total': total_trees,
-                      'n_plots': total_plots,
+            'basis': {'n_trees_used': n_trees_used,
+                      'n_trees_total': n_trees_total,
+                      'n_plots': n_plots,
                       'percent': percent}}
 
     return rslt

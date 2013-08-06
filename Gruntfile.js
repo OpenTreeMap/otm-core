@@ -31,6 +31,12 @@ module.exports = function(grunt) {
                             path: './js/shim/typeahead.js',
                             exports: null,
                             depends: { jquery: 'jQuery' }
+                        },
+                        // Bootstrap puts itself onto the jQuery object
+                        bootstrap: {
+                            path: './js/shim/bootstrap.js',
+                            exports: null,
+                            depends: { jquery: 'jQuery' }
                         }
                     },
                     debug: true

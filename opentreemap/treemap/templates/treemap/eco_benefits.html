@@ -1,31 +1,27 @@
 {% load i18n %}
-<div>
-  <h2>{% trans "Benefits" %}</h2>
-  <table>
-    <tr><th>{% trans "Benefit" %}</th><th>{% trans "Value" %}</th></tr>
+<div id="benefit-values">
     {% for benefit in benefits %}
-    <tr><td>{{ benefit.label }}<td>{{ benefit.value }} {{ benefit.unit }}</td></tr>
+      <span class="benefit-label">{{ benefit.label }}</span>
+      <br>
+      <span class="content">{{ benefit.value }} {{ benefit.unit }}
+        <br>
+        $??.?? saved
+      </span>
+    <hr>
     {% endfor %}
-  </table>
-  <div>
-    {% comment %}Translators: This is the beginning of the statement "Search returned 23 plots and 21 trees..."{% endcomment %}
-    {% trans "Search returned" %}
-    {% blocktrans count basis.n_plots as plot_count %}
-      {{ plot_count }} plot
-    {% plural %}
-      {{ plot_count }} plots
-    {% endblocktrans %}
-    and
-    {% blocktrans count basis.n_trees_used as tree_count %}
-      {{ tree_count }} tree
-    {% plural %}
-      {{ tree_count }} trees
-    {% endblocktrans %}
-    out of
-    {% blocktrans count basis.n_trees_total as total_tree_count %}
-      {{ total_tree_count }} total tree.
-    {% plural %}
-      {{ total_tree_count }} total trees.
-    {% endblocktrans %}
-  </div>
+</div>
+<div id="tree-and-planting-site-counts">
+  <span id="tree-count">
+  {% blocktrans count basis.n_trees_used as tree_count %}
+    {{ tree_count }}</span> tree,
+  {% plural %}
+    {{ tree_count }}</span> trees,
+  {% endblocktrans %}
+
+  <span id="planting-site-count">
+  {% blocktrans count basis.n_plots as plot_count %}
+    {{ plot_count }}</span> planting site
+  {% plural %}
+    {{ plot_count }}</span> planting sites
+  {% endblocktrans %}
 </div>

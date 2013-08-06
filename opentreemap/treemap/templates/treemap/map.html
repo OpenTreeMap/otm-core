@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "instance_base.html" %}
+{% load i18n %}
 
-{% block title %}Open Tree Map Test{% endblock title %}
+{% block page_title %} | {% trans "Map" %}{% endblock %}
 
 {% block head_extra %}
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/openlayers.css">
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/otm.css">
 {% endblock head_extra %}
 
 {% block scripts %}
@@ -21,31 +21,51 @@
 {% endblock scripts %}
 
 {% block content %}
-{% load i18n %}
-  <div>
-    <h2>{% trans "Selected:" %} <span id="attrs"></h2>
-    <h2>{% trans "Search" %}</h2>
-    <div>
-      {% trans "Species:" %}
-      <input type="text" data-class="search" id="species-typeahead" />
-      <input type="hidden" id="search-species" />
-    </div>
-    <div>
-      {% trans "Boundaries:" %}
-      <input type="text" data-class="search" id="boundary-typeahead" />
-      <input type="hidden" id="boundary" />
-    </div>
+
+<!-- TODO: Restore these advanced search options -->
+<!--
     <div>{% trans "DBH Min:" %}<input data-class="search" id="dbh-min"></div>
     <div>{% trans "DBH Max:" %}<input data-class="search" id="dbh-max"></div>
-    <button id="perform-search">{% trans "Go" %}</button>
+-->
+<div class="content">
+  <div id="map" class="map"> </div>
+  <div class="sidebar">
+    <div class="accordion" id="map-info">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#treeDetails">Tree Details</a>
+        </div>
+        <div id="treeDetails" class="accordion-body collapse">
+          <div class="accordion-inner">
+            Anim pariatur cliche...
+          </div>
+      </div>
+    </div>
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#yearlyEco">Yearly Eco Benefits</a>
+        </div>
+        <div id="yearlyEco" class="accordion-body collapse in">
+          <div class="accordion-inner" id="benefit-values">
+            <!-- The benefit markup returned from the search endpoint looks like this -->
+            <!--
+            <span class="benefit-label">Total Benefits</span>
+            <br>
+            <span class="content">$8,651,746 saved</span>
+            <hr>
+            <span class="benefit-label">Greenhouse Gas Benefits</span>
+            <br>
+            <span class="content">23,716,949 lbs CO2 reduced<br>$79,214 saved</span>
+            <hr>
+            -->
+          </div>
+      </div>
+    </div>
   </div>
-  <div id="search-results"></div>
-  <div>
-    <h2>{% trans "Search Result:" %}</h2>
-    <div id="search-results"></div>
-  </div>
-  <div id="map" style="width: 800px; height: 800px"></div>
+</div>
 {% endblock content %}
+
+
 
 {% block templates %}
 {% verbatim %}

@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
 
+{% block page_title %} | {% trans "Logout" %}{% endblock %}
+
 {% block content %}
-<p>{% trans "Logged out" %}</p>
+<div class="content">
+    <p>{% trans "Logged out" %}</p>
+</div>
 {% endblock %}

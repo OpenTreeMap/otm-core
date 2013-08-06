@@ -139,7 +139,7 @@ module.exports = {
             performSearchClickStream = $("#perform-search")
                 .asEventStream("click"),
 
-	    // The Bacon.later triggers an initial empty search when the page is initialized
+            // The Bacon.later triggers an initial empty search when the page is initialized
             // I tried Bacon.once but the search was not being executed
             triggerEventStream = Bacon.later(1, true)
                 .merge(enterKeyPressStream.merge(performSearchClickStream));

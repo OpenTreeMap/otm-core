@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+{% extends "instance_base.html" %}
 {% load i18n %}
 
-{% block title %}Recent Edits{% endblock title %}
+{% block page_title %} | {% trans "Recent Edits" %} {{plot.pk}}{% endblock %}
 
 {% block content %}
 
