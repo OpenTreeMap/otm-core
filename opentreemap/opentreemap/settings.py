@@ -128,6 +128,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 INSTALLED_APPS = (
+    'djorm_core',
     'south',
     'treemap',
     'ecobenefits',

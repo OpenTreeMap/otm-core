@@ -78,11 +78,12 @@ def make_god_role(instance):
         ('Tree', 'canopy_height', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'date_planted', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'date_removed', FieldPermission.WRITE_DIRECTLY))
+
     return make_loaded_role(instance, 'god', 3, permissions)
 
 
-def make_commander_role(instance):
-    permissions = (
+def make_commander_role(instance, extra_plot_fields=None):
+    permissions = [
         ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
         ('Plot', 'width', FieldPermission.WRITE_DIRECTLY),
         ('Plot', 'length', FieldPermission.WRITE_DIRECTLY),
@@ -100,7 +101,12 @@ def make_commander_role(instance):
         ('Tree', 'height', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'canopy_height', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'date_planted', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'date_removed', FieldPermission.WRITE_DIRECTLY))
+        ('Tree', 'date_removed', FieldPermission.WRITE_DIRECTLY)]
+
+    if extra_plot_fields:
+        for field in extra_plot_fields:
+            permissions.append(('Plot', field, FieldPermission.WRITE_DIRECTLY))
+
     return make_loaded_role(instance, 'commander', 3, permissions)
 
 
@@ -163,7 +169,7 @@ def create_mock_system_user():
         system_user = User.objects.get(username="system_user")
     except Exception:
         system_user = User(username="system_user")
-        system_user.save_base()
+        system_user.id = -1
 
     User._system_user = system_user
 
@@ -210,6 +216,7 @@ class RequestTestCase(TestCase):
 
 create_mock_system_user()
 
+from udfs import *    # NOQA
 from audit import *   # NOQA
 from auth import *    # NOQA
 from models import *  # NOQA

@@ -46,7 +46,7 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
 
         TheModel = _lkp_model(audit.model)
         obj = TheModel.objects.get(pk=audit.model_id)
-        setattr(obj, audit.field, audit.current_value)
+        obj.apply_change(audit.field, audit.current_value)
 
         # Not sure this is really great here, but we want to
         # bypass all of the safety measures and simply apply
@@ -120,6 +120,8 @@ class UserTrackingException(Exception):
 
 class UserTrackable(object):
     def __init__(self, *args, **kwargs):
+        self._do_not_track = []
+
         super(UserTrackable, self).__init__(*args, **kwargs)
 
         if self.pk is None:
@@ -128,21 +130,25 @@ class UserTrackable(object):
             # "initial" state is empty so we clear it here
             self._previous_state = {}
         else:
-            self._previous_state = self._dict()
+            self._previous_state = self.as_dict()
 
-    def _dict(self):
+    def as_dict(self):
         return model_to_dict(self, fields=[field.name for field in
                                            self._meta.fields])
 
+    def apply_change(self, key, orig_value):
+        setattr(self, key, orig_value)
+
     def _updated_fields(self):
         updated = {}
-        d = self._dict()
+        d = self.as_dict()
         for key in d:
-            old = self._previous_state.get(key, None)
-            new = d.get(key, None)
+            if key not in self._do_not_track:
+                old = self._previous_state.get(key, None)
+                new = d.get(key, None)
 
-            if new != old:
-                updated[key] = [old, new]
+                if new != old:
+                    updated[key] = [old, new]
 
         return updated
 
@@ -156,7 +162,7 @@ class UserTrackable(object):
 
     def save_with_user(self, user, *args, **kwargs):
         self.save_base(self, *args, **kwargs)
-        self._previous_state = self._dict()
+        self._previous_state = self.as_dict()
 
     def save(self, *args, **kwargs):
         raise UserTrackingException(
@@ -224,7 +230,7 @@ class Authorizable(UserTrackable):
     def __init__(self, *args, **kwargs):
         super(Authorizable, self).__init__(*args, **kwargs)
 
-        self._exempt_field_names = {'instance', 'id'}
+        self._exempt_field_names = {'instance', 'id', 'udf_scalar_values'}
         self._has_been_clobbered = False
 
     def _write_perm_comparison_sets(self, user):
@@ -324,7 +330,8 @@ class Authorizable(UserTrackable):
         if self.pk is not None:
             writable_perms, _ = self._write_perm_comparison_sets(user)
             for field in self._updated_fields():
-                if field not in writable_perms:
+                if ((field not in writable_perms and
+                     field not in self._exempt_field_names)):
                     raise AuthorizeException("Can't edit field %s on %s" %
                                             (field, self._model_name))
 
@@ -403,7 +410,7 @@ class Auditable(UserTrackable):
 
                 # Clear changes to object
                 oldval = updates[pending_field][0]
-                setattr(self, pending_field, oldval)
+                self.apply_change(pending_field, oldval)
 
                 # If a field is a "pending field" then it should
                 # be logically removed from the fields that are being
