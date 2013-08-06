@@ -2,6 +2,7 @@
 from fabric.api import cd, run, require, sudo, env, local, settings, abort
 from fabric.contrib.files import exists as host_exists
 from fabric.colors import yellow
+from fabric import operations
 
 import os
 
@@ -230,3 +231,16 @@ def compile_messages_for_app(app):
     app_path = _get_app_path(app)
     with cd(app_path):
         _admin('compilemessages')
+
+def django_shell():
+    """ Opens a python shell that connects to the django application """
+    operations.open_shell(command=_manage("shell"))
+
+def dbshell():
+    """ Opens a psql shell that connects to the application database """
+    operations.open_shell(command=_manage("dbshell"))
+
+def venv_shell():
+    """ Opens a bash shell with the application virtualenv activated """
+    operations.open_shell(command="cd %s && source %s/bin/activate" %
+                          (env.site_path, env.venv_path))
