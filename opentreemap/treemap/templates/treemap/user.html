@@ -4,10 +4,29 @@
 
 {% block content %}
 {% load i18n %}
-<h2>User</h2>
-<div>{% trans "Username:" %} {{ username }}</div>
-<div>{% trans "Name:" %} {{ first_name }} {{ last_name }}</div>
-<div>{% trans "Email:" %} {{ email }}</div>
-<div>{% trans "Reputation:" %} {{ reputation }}</div>
+<div>{% trans "Username:" %} {{ user.username }}</div>
+<div>{% trans "Name:" %} {{ user.first_name }} {{ user.last_name }}</div>
+<div>{% trans "Email:" %} {{ user.email }}</div>
+<div>{% trans "Reputation:" %} {{ user.reputation }}</div>
 <div>{% trans "Instance:" %} {{ instance_id }}</div>
+
+<h3>{% trans "Recent Edits" %}</h3>
+<div id="recent-user-edits-container">
+  {% include 'treemap/recent_user_edits.html' %}
+</div>
 {% endblock content %}
+
+{% block scripts %}
+<script>
+(function(require) {
+    var $ = require('jquery'),
+        user = require('user');
+
+    user.init({
+        container: '#recent-user-edits-container',
+        prevLink: '#recent-user-edits-prev',
+        nextLink: '#recent-user-edits-next'
+    });
+})(require);
+</script>
+{% endblock scripts %}
