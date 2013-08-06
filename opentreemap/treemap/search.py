@@ -45,11 +45,12 @@ def create_filter(filterstr):
 
     Returns a lazy query set of plot objects
     """
-    query = loads(filterstr)
-
-    q = _parse_filter(query)
-
-    return Plot.objects.filter(q)
+    if filterstr is not None and filterstr != '':
+        query = loads(filterstr)
+        q = _parse_filter(query)
+        return Plot.objects.filter(q)
+    else:
+        return Plot.objects.all()
 
 
 def _parse_filter(query):

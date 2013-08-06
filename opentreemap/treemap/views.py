@@ -6,8 +6,7 @@ import urllib
 from PIL import Image
 
 from django.shortcuts import get_object_or_404
-from django.http import (HttpResponse, HttpResponseServerError,
-                         HttpResponseRedirect)
+from django.http import (HttpResponse, HttpResponseRedirect)
 from django.views.decorators.http import etag
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
@@ -240,7 +239,7 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
     try:
         filter_str = request.REQUEST['q']
     except KeyError:
-        return HttpResponseServerError("Please supply a 'filter' parameter")
+        filter_str = ''
 
     plots = _execute_filter(instance, filter_str)
     trees = Tree.objects.filter(plot_id__in=plots)

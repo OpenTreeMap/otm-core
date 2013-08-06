@@ -139,7 +139,10 @@ module.exports = {
             performSearchClickStream = $("#perform-search")
                 .asEventStream("click"),
 
-            triggerEventStream = enterKeyPressStream.merge(performSearchClickStream);
+	    // The Bacon.later triggers an initial empty search when the page is initialized
+            // I tried Bacon.once but the search was not being executed
+            triggerEventStream = Bacon.later(1, true)
+                .merge(enterKeyPressStream.merge(performSearchClickStream));
 
         // Bing maps uses a 1-based zoom so XYZ layers
         // on the base map have a zoom offset that is
