@@ -268,7 +268,8 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
     def displayize_benefit(key, label, format):
         benefit = benefits[key]
         benefit['label'] = label
-        benefit['value'] = locale.format(format, benefit['value'], grouping=True)
+        benefit['value'] = locale.format(format, benefit['value'],
+                                         grouping=True)
         return benefit
 
     # TODO: i18n of labels
