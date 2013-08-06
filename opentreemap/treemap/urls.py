@@ -8,7 +8,8 @@ from treemap.views import (boundary_to_geojson_view, index_view, trees_view,
                            plot_detail_view, instance_settings_js_view,
                            audits_view, search_tree_benefits_view,
                            species_list_view, boundary_autocomplete_view,
-                           instance_user_view, plot_popup_view)
+                           instance_user_view, plot_popup_view,
+                           instance_user_audits)
 
 # Testing notes:
 # We want to test that every URL succeeds (200) or fails with bad data (404).
@@ -28,5 +29,6 @@ urlpatterns = patterns(
     url(r'^plots/(?P<plot_id>\d+)/$', plot_popup_view),
     url(r'^config/settings.js$', instance_settings_js_view),
     url(r'^benefit/search$', search_tree_benefits_view),
-    url(r'^users/(?P<username>\w+)/', instance_user_view),
+    url(r'^users/(?P<username>\w+)/$', instance_user_view),
+    url(r'^users/(?P<username>\w+)/recent_edits/$', instance_user_audits),
 )

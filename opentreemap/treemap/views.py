@@ -16,7 +16,7 @@ from django.utils.translation import ugettext as _
 from treemap.util import json_api_call, render_template, instance_request
 from treemap.search import create_filter
 from treemap.audit import Audit, AuditUI
-from treemap.models import Plot, Tree, User, Boundary, Species
+from treemap.models import Plot, Tree, User, Boundary, Species, Instance
 
 from ecobenefits.views import _benefits_for_trees
 
@@ -106,13 +106,16 @@ def plot_detail(request, instance, plot_id):
     return {'plot': plot}
 
 
-def _get_audits(instance, user, models, model_id, page, page_size, exclude_pending=True):
+def _get_audits(instance, query_vars, user, models, model_id, page=0,
+                page_size=20, exclude_pending=True):
     start_pos = page * page_size
     end_pos = start_pos + page_size
 
-    audits = Audit.objects.filter(instance=instance)\
-                          .filter(model__in=models)\
+    audits = Audit.objects.filter(model__in=models)\
                           .order_by('-created', 'id')
+
+    if instance:
+        audits = audits.filter(instance=instance)
     if user:
         audits = audits.filter(user=user)
     if model_id:
@@ -120,31 +123,24 @@ def _get_audits(instance, user, models, model_id, page, page_size, exclude_pendi
     if exclude_pending:
         audits = audits.exclude(requires_auth=True, ref_id__isnull=True)
 
-    return [AuditUI(a) for a in audits[start_pos:end_pos]]
+    audits = [AuditUI(a) for a in audits[start_pos:end_pos]]
+
+    query_vars = {k: v for (k, v) in query_vars.iteritems() if k != 'page'}
+    next_page = None
+    prev_page = None
+    if len(audits) == page_size:
+        query_vars['page'] = page + 1
+        next_page = "?" + urllib.urlencode(query_vars)
+    if page > 0:
+        query_vars['page'] = page - 1
+        prev_page = "?" + urllib.urlencode(query_vars)
+
+    return {'audits': audits,
+            'next_page': next_page,
+            'prev_page': prev_page}
 
 
-def audits(request, instance):
-    """
-    Request a variety of different audit types.
-    Params:
-       - models
-         Comma separated list of models (only Tree and Plot are supported)
-       - model_id
-         The ID of a specfici model. If specified, models must also
-         be defined and have only one model
-
-       - user
-         Filter by a specific user
-
-       - include_pending (default: true)
-         Set to false to ignore edits that are currently pending
-
-       - page_size
-         Size of each page to return (up to PAGE_MAX)
-       - page
-         The page to return
-    """
-
+def _get_audits_params(request):
     PAGE_MAX = 100
     PAGE_DEFAULT = 20
 
@@ -172,29 +168,62 @@ def audits(request, instance):
         raise Exception("You must specific one and only model "
                         "when looking up by id")
 
-    user_id = r.get('user', None)
+    exclude_pending = r.get('include_pending', "true") == "false"
+
+    return (page, page_size, models, model_id, exclude_pending)
+
+
+def audits(request, instance):
+    """
+    Request a variety of different audit types.
+    Params:
+       - models
+         Comma separated list of models (only Tree and Plot are supported)
+       - model_id
+         The ID of a specfici model. If specified, models must also
+         be defined and have only one model
+
+       - user
+         Filter by a specific user
+
+       - include_pending (default: true)
+         Set to false to ignore edits that are currently pending
+
+       - page_size
+         Size of each page to return (up to PAGE_MAX)
+       - page
+         The page to return
+    """
+    (page, page_size, models, model_id,
+     include_pending) = _get_audits_params(request)
+
+    user_id = request.GET.get('user', None)
     user = None
 
     if user_id is not None:
         user = User.objects.get(pk=user_id)
 
-    include_pending = r.get('include_pending', "true") == "false"
+    return _get_audits(instance, request.REQUEST, user, models,
+                       model_id, page, page_size, include_pending)
 
-    audits = _get_audits(instance, user, models, model_id, page, page_size, include_pending)
 
-    query_vars = {k: v for (k, v) in request.GET.iteritems() if k != 'page'}
-    next_page = None
-    prev_page = None
-    if len(audits) == page_size:
-        query_vars['page'] = page + 1
-        next_page = "?" + urllib.urlencode(query_vars)
-    if page > 0:
-        query_vars['page'] = page - 1
-        prev_page = "?" + urllib.urlencode(query_vars)
+def user_audits(request, username):
+    user = get_object_or_404(User, username=username)
+    instance_id = request.GET.get('instance_id', None)
 
-    return {'audits': audits,
-            'next_page': next_page,
-            'prev_page': prev_page}
+    instance = (get_object_or_404(Instance, pk=instance_id)
+                if instance_id else None)
+
+    (page, page_size, models, model_id,
+     exclude_pending) = _get_audits_params(request)
+
+    return _get_audits(instance, request.REQUEST, user, models,
+                       model_id, page, page_size, exclude_pending)
+
+
+def instance_user_audits(request, instance_id, username):
+    return HttpResponseRedirect('/users/%s/recent_edits?instance_id=%s'
+                                % (username, instance_id))
 
 
 def boundary_to_geojson(request, instance, boundary_id):
@@ -302,13 +331,24 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
 
 
 def user(request, username):
-    context = get_object_or_404(User, username=username).__dict__
-    context['instance_id'] = request.GET.get('instance_id', None)
-    return context
+    user = get_object_or_404(User, username=username)
+    instance_id = request.GET.get('instance_id', None)
+
+    instance = (get_object_or_404(Instance, pk=instance_id)
+                if instance_id else None)
+
+    query_vars = {'instance_id': instance_id} if instance_id else {}
+
+    audit_dict = _get_audits(instance, query_vars, user, ['Plot', 'Tree'], 0)
+
+    return {'user': user,
+            'instance_id': instance_id,
+            'audits': audit_dict['audits'],
+            'next_page': audit_dict['next_page']}
 
 
 def instance_user_view(request, instance_id, username):
-    url = '/users/%(username)s/?instance_id=%(instance_id)s' %\
+    url = '/users/%(username)s?instance_id=%(instance_id)s' %\
         {'username': username, 'instance_id': instance_id}
     return HttpResponseRedirect(url)
 
@@ -355,3 +395,6 @@ search_tree_benefits_view = instance_request(
 species_list_view = json_api_call(instance_request(species_list))
 
 user_view = render_template("treemap/user.html", user)
+
+user_audits_view = render_template("treemap/recent_user_edits.html",
+                                   user_audits)

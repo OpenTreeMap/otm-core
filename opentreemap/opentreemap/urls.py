@@ -3,7 +3,7 @@ from django.conf import settings
 from django.views.generic import RedirectView
 
 from treemap.views import (user_view, root_settings_js_view,
-                           profile_to_user_view)
+                           profile_to_user_view, user_audits_view)
 
 from django.contrib import admin
 admin.autodiscover()
@@ -29,7 +29,9 @@ urlpatterns = patterns(
     url(r'^(?P<instance_id>\d+)/', include('treemap.urls')),
     url(r'^(?P<instance_id>\d+)/eco/', include('ecobenefits.urls')),
     url(r'^config/settings.js$', root_settings_js_view),
-    url(r'^users/(?P<username>\w+)/', user_view),
+    url(r'^users/(?P<username>\w+)/$', user_view),
+    url(r'^users/(?P<username>\w+)/recent_edits$', user_audits_view,
+        name='user_audits'),
     url(r'^api/v2/', include('api.urls')),
     # The profile view is handled specially by redirecting to
     # the page of the currently logged in user
