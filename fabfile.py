@@ -110,7 +110,7 @@ def check():
 def bundle():
     """ Update npm and bundle javascript """
     local('npm install')
-    local('grunt')
+    local('grunt --no-color')
 
 def static():
     """ Collect static files and bundle javascript. """
