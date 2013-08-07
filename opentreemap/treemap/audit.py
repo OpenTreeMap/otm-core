@@ -592,9 +592,11 @@ class AuditUI(object):
 # Test null values
 ###
 class Audit(models.Model):
-    model = models.CharField(max_length=255, null=True)
-    model_id = models.IntegerField(null=True)
-    instance = models.ForeignKey('Instance', null=True, blank=True)
+    model = models.CharField(max_length=255, null=True, db_index=True)
+    model_id = models.IntegerField(null=True, db_index=True)
+    instance = models.ForeignKey(
+        'Instance', null=True, blank=True, db_index=True)
+
     field = models.CharField(max_length=255, null=True)
     previous_value = models.CharField(max_length=255, null=True)
     current_value = models.CharField(max_length=255, null=True)
