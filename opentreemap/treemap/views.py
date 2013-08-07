@@ -4,6 +4,7 @@ from __future__ import division
 
 import urllib
 import locale
+import hashlib
 from PIL import Image
 
 from django.shortcuts import get_object_or_404
@@ -25,6 +26,13 @@ def _plot_hash(request, instance, plot_id):
     instance_plots = instance.scope_model(Plot)
     return get_object_or_404(instance_plots, pk=plot_id).hash
 
+def _search_hash(request, instance):
+    audits = instance.scope_model(Audit)\
+                     .order_by('-updated')
+
+    string_to_hash = str(audits[0].pk)
+
+    return hashlib.md5(string_to_hash).hexdigest()
 
 #
 # These are calls made by the API that aren't currently implemented
@@ -390,7 +398,9 @@ boundary_autocomplete_view = instance_request(
     json_api_call(boundary_autocomplete))
 
 search_tree_benefits_view = instance_request(
-    render_template('treemap/eco_benefits.html', search_tree_benefits))
+    etag(_search_hash)(
+        render_template('treemap/eco_benefits.html',
+                        search_tree_benefits)))
 
 species_list_view = json_api_call(instance_request(species_list))
 
