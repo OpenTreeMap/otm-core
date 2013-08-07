@@ -372,22 +372,26 @@ class SearchTreeBenefitsTests(ViewTestCase):
     def test_tree_with_species_and_diameter_included(self):
         self.make_tree(10, self.species_good)
         benefits = self.search_benefits()
-        self.assertEqual(benefits['basis']['n_trees_used'], 1)
+        # The benefit counts are returned as localized strings
+        self.assertEqual(benefits['basis']['n_trees_used'], '1')
 
     def test_tree_without_diameter_ignored(self):
         self.make_tree(None, self.species_good)
         benefits = self.search_benefits()
-        self.assertEqual(benefits['basis']['n_trees_used'], 0)
+        # The benefit counts are returned as localized strings
+        self.assertEqual(benefits['basis']['n_trees_used'], '0')
 
     def test_tree_without_species_ignored(self):
         self.make_tree(10, None)
         benefits = self.search_benefits()
-        self.assertEqual(benefits['basis']['n_trees_used'], 0)
+        # The benefit counts are returned as localized strings
+        self.assertEqual(benefits['basis']['n_trees_used'], '0')
 
     def test_tree_without_itree_code_ignored(self):
         self.make_tree(10, self.species_bad)
         benefits = self.search_benefits()
-        self.assertEqual(benefits['basis']['n_trees_used'], 0)
+        # The benefit counts are returned as localized strings
+        self.assertEqual(benefits['basis']['n_trees_used'], '0')
 
     def test_extrapolation_increases_benefits(self):
         self.make_tree(10, self.species_good)
