@@ -9,7 +9,8 @@ from django.db import IntegrityError
 
 from django.contrib.auth.models import AbstractUser
 
-from treemap.audit import Auditable, Authorizable, FieldPermission, Role
+from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
+                           Dictable)
 
 import hashlib
 import re
@@ -18,7 +19,7 @@ from treemap.udf import UDFModel, GeoHStoreManager
 from treemap.instance import Instance
 
 
-class BenefitCurrencyConversion(models.Model):
+class BenefitCurrencyConversion(Dictable, models.Model):
     """
     These conversion factors are used to convert a unit of benefit
     into a currency unit.

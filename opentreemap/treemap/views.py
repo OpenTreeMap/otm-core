@@ -27,13 +27,27 @@ def _plot_hash(request, instance, plot_id):
     instance_plots = instance.scope_model(Plot)
     return get_object_or_404(instance_plots, pk=plot_id).hash
 
+
 def _search_hash(request, instance):
     audits = instance.scope_model(Audit)\
                      .order_by('-updated')
 
-    string_to_hash = str(audits[0].pk)
+    try:
+        audit_id_str = str(audits[0].pk)
+    except IndexError:
+        audit_id_str = 'none'
+
+    eco_conversion = instance.eco_benefits_conversion
+
+    if eco_conversion:
+        eco_str = eco_conversion.hash
+    else:
+        eco_str = 'none'
+
+    string_to_hash = audit_id_str + ":" + eco_str
 
     return hashlib.md5(string_to_hash).hexdigest()
+
 
 #
 # These are calls made by the API that aren't currently implemented
