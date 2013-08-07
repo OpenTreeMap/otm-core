@@ -10,10 +10,45 @@ from django.forms.models import model_to_dict
 from django.dispatch import receiver
 from django.db.models.signals import pre_save
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
+from django.db import IntegrityError, connection
+from django.conf import settings
 
 import hashlib
+import importlib
 
+def get_id_sequence_name(model_class):
+    """
+    Takes a django model class and returns the name of the autonumber
+    sequence for the id field.
+    Tree => 'treemap_tree_id_seq'
+    Plot => 'treemap_plot_id_seq'
+    """
+    table_name = model_class._meta.db_table
+    pk_field = model_class._meta.pk
+    # django fields only have a truthy db_column when it is
+    # overriding the default
+    pk_column_name = pk_field.db_column or pk_field.name
+    id_seq_name = "%s_%s_seq" % (table_name, pk_column_name)
+    return id_seq_name
+
+def _reserve_model_id(model_class):
+    """
+    queries the database to get id from the audit id sequence.
+    this is used to reserve an id for a record that hasn't been
+    created yet, in order to make references to that record.
+    """
+    try:
+        id_seq_name = get_id_sequence_name(model_class)
+        cursor = connection.cursor()
+        cursor.execute("select nextval('%s');" % id_seq_name)
+        results = cursor.fetchone()
+        model_id = results[0]
+        assert(type(model_id) in [int, long])
+    except:
+        msg = "There was a database error while retrieving a unique audit ID."
+        raise IntegrityError(msg)
+
+    return model_id
 
 def approve_or_reject_audit_and_apply(audit, user, approved):
     """
@@ -35,14 +70,17 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
     # 'user' is authorized to approve this edit
     _verify_user_can_apply_audit(audit, user)
 
-    pdgaudit = Audit(model=audit.model, model_id=audit.model_id,
-                     instance=audit.instance, field=audit.field,
-                     previous_value=audit.previous_value,
-                     current_value=audit.current_value,
-                     user=user)
+    # Create an additional audit record to track the act of
+    # the privileged user applying either PendingApprove or
+    # pendingReject to the original audit.
+    review_audit = Audit(model=audit.model, model_id=audit.model_id,
+                        instance=audit.instance, field=audit.field,
+                        previous_value=audit.previous_value,
+                        current_value=audit.current_value,
+                        user=user)
 
     if approved:
-        pdgaudit.action = Audit.Type.PendingApprove
+        review_audit.action = Audit.Type.PendingApprove
 
         TheModel = _lkp_model(audit.model)
         obj = TheModel.objects.get(pk=audit.model_id)
@@ -53,29 +91,32 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
         # the edit without generating any additional audits
         # or triggering the auth system
         obj.save_base()
-        pdgaudit.save()
+        review_audit.save()
 
-        audit.ref_id = pdgaudit
+        audit.ref_id = review_audit
         audit.save()
 
     else:  # Reject
-        pdgaudit.action = Audit.Type.PendingReject
-        pdgaudit.save()
+        review_audit.action = Audit.Type.PendingReject
+        review_audit.save()
 
-        audit.ref_id = pdgaudit
+        audit.ref_id = review_audit
         audit.save()
 
-    return pdgaudit
+    return review_audit
 
 
 def _lkp_model(modelname):
     """
     Convert a model name (as a string) into the model class
-    If the model has no prefix, it is assumed to be in the
-    'treemap.models' module
-    """
-    import importlib
 
+    If the model has no prefix, it is assumed to be in the
+    'treemap.models' module.
+
+    ex:
+    'Tree' =(imports)=> treemap.models.Tree
+    'treemap.audit.Audit' =(imports)=> treemap.audit.Audit
+    """
     if "." in modelname:
         parts = modelname.split('.')
         modulename = '.'.join(parts[:-1])
@@ -416,9 +457,8 @@ class Auditable(UserTrackable):
             updates['id'] = [None, self.pk]
 
         def make_audit_and_save(field, prev_val, cur_val, pending):
-            instance = None
-            if hasattr(self, 'instance'):
-                instance = self.instance
+
+            instance = self.instance if hasattr(self, 'instance') else None
 
             Audit(model=self._model_name, model_id=self.pk,
                   instance=instance, field=field,

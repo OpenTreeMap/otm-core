@@ -11,7 +11,8 @@ from treemap.models import (Tree, User, Instance, Plot, Species,
 
 from treemap.audit import (Audit, Role, UserTrackingException,
                            AuthorizeException, ReputationMetric,
-                           approve_or_reject_audit_and_apply)
+                           approve_or_reject_audit_and_apply,
+                           get_id_sequence_name)
 
 from django.contrib.gis.geos import Point
 
@@ -21,6 +22,12 @@ from treemap.tests import (make_instance, make_commander_role,
 
 
 class ScopeModelTest(TestCase):
+    """
+    Tests that the various operations on models are scoped to the
+    instance they exist within. In general, ForeignKey relationships
+    must either be to objects with the same instance, or objects that
+    live outside of instance scoping (like Species).
+    """
 
     def setUp(self):
         self.p1 = Point(-8515222.0, 4953200.0)
@@ -211,6 +218,10 @@ class AuditTest(TestCase):
         self.assertAuditsEqual(
             expected_audits,
             Audit.audits_for_model('Tree', self.instance, old_pk))
+
+    def test_get_id_sequence_name(self):
+        self.assertEqual(get_id_sequence_name(Tree), 'treemap_tree_id_seq')
+        self.assertEqual(get_id_sequence_name(Plot), 'treemap_plot_id_seq')
 
 
 class PendingTest(TestCase):
