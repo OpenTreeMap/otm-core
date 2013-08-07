@@ -4,6 +4,7 @@ PIL==1.1.7
 argparse==1.2.1
 gunicorn==0.17.2
 psycopg2==2.4.6
+djorm-ext-hstore==0.5
 wsgiref==0.1.2
 numpy==1.7.1
 git+git://github.com/azavea/eco.py.git
