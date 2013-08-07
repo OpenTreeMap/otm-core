@@ -226,6 +226,20 @@ class UserTrackable(Dictable):
             'All deletes to %s objects must be saved via "delete_with_user"' %
             (self._model_name))
 
+    def get_pending_fields(self, user=None):
+        """
+        Get a list of fields that are currently being updated which would
+        require a pending edit.
+
+        Should return a list-like object. An empty list is a no-op.
+
+        Note: Since Authorizable doesn't control what happens to "pending" or
+        "write with audit" fields it is the subclasses responsibility to
+        handle the difference. A naive implementation (i.e. just subclassing
+        Authorizable) treats "write with audit" that same as "write directly"
+        """
+        return []
+
 
 class Role(models.Model):
     name = models.CharField(max_length=255)
@@ -337,13 +351,9 @@ class Authorizable(UserTrackable):
 
     def get_pending_fields(self, user):
         """
-        Get a list of fields that are currently being update which would
-        require a pending edit
-
-        Note: Since Authorizable doesn't control what happens to "pending" or
-        "write with audit" fields it is the subclasses responsibility to
-        handle the difference. A naive implementation (i.e. just subclassing
-        Authorizable) treats "write with audit" that same as "write directly"
+        Evaluates the permissions for the current user and collects
+        fields that inheriting subclasses will want to treat as
+        special pending_edit fields.
         """
         perms = user.get_instance_permissions(self.instance, self._model_name)
         fields_to_audit = []
@@ -464,24 +474,19 @@ class Auditable(UserTrackable):
         else:
             action = Audit.Type.Update
 
-        # This field is populated if a given object is both
-        # auditable and authorizable. It is sort of a leaky
-        # abstraction - given that it is tightly coupling
-        # Auditable and Authorizable
         pending_audits = []
-        if hasattr(self, 'get_pending_fields'):
-            pending = self.get_pending_fields(user)
-            for pending_field in pending:
-                pending_audits.append((pending_field, updates[pending_field]))
+        pending = self.get_pending_fields(user)
+        for pending_field in pending:
+            pending_audits.append((pending_field, updates[pending_field]))
 
-                # Clear changes to object
-                oldval = updates[pending_field][0]
-                self.apply_change(pending_field, oldval)
+            # Clear changes to object
+            oldval = updates[pending_field][0]
+            self.apply_change(pending_field, oldval)
 
-                # If a field is a "pending field" then it should
-                # be logically removed from the fields that are being
-                # marked as "updated"
-                del updates[pending_field]
+            # If a field is a "pending field" then it should
+            # be logically removed from the fields that are being
+            # marked as "updated"
+            del updates[pending_field]
 
         super(Auditable, self).save_with_user(user, *args, **kwargs)
 
