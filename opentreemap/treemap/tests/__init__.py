@@ -55,6 +55,28 @@ def make_loaded_role(instance, name, rep_thresh, permissions):
     return role
 
 
+def _make_permissions(field_permission):
+    permissions = (
+        ('Plot', 'geom', field_permission),
+        ('Plot', 'width', field_permission),
+        ('Plot', 'length', field_permission),
+        ('Plot', 'address_street', field_permission),
+        ('Plot', 'address_city', field_permission),
+        ('Plot', 'address_zip', field_permission),
+        ('Plot', 'import_event', field_permission),
+        ('Plot', 'owner_orig_id', field_permission),
+        ('Plot', 'readonly', field_permission),
+        ('Tree', 'plot', field_permission),
+        ('Tree', 'species', field_permission),
+        ('Tree', 'import_event', field_permission),
+        ('Tree', 'readonly', field_permission),
+        ('Tree', 'diameter', field_permission),
+        ('Tree', 'height', field_permission),
+        ('Tree', 'canopy_height', field_permission),
+        ('Tree', 'date_planted', field_permission),
+        ('Tree', 'date_removed', field_permission))
+    return permissions
+
 def make_god_role(instance):
     """
     In principle, the god role is able to edit all fields, even things
@@ -63,29 +85,13 @@ def make_god_role(instance):
     In practice, the god role has access to 2 more fields than the
     normal, fully privileged user: model.id and model.instance
     """
-    permissions = (
-        ('Plot', 'instance', FieldPermission.WRITE_DIRECTLY),
+    permissions = _make_permissions(FieldPermission.WRITE_DIRECTLY)
+    god_permissions = (
         ('Plot', 'id', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'width', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'length', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'address_street', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'address_city', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'address_zip', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'import_event', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'owner_orig_id', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'readonly', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
+        ('Plot', 'instance', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'instance', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'species', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'import_event', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'readonly', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'height', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'canopy_height', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'date_planted', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'date_removed', FieldPermission.WRITE_DIRECTLY))
+        ('Tree', 'instance', FieldPermission.WRITE_DIRECTLY))
+    permissions = permissions + god_permissions
 
     return make_loaded_role(instance, 'god', 3, permissions)
 
@@ -95,25 +101,7 @@ def make_commander_role(instance, extra_plot_fields=None):
     The commander role has permission to modify all model fields
     directly for all models under test.
     """
-    permissions = [
-        ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'width', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'length', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'address_street', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'address_city', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'address_zip', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'import_event', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'owner_orig_id', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'readonly', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'species', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'import_event', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'readonly', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'height', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'canopy_height', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'date_planted', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'date_removed', FieldPermission.WRITE_DIRECTLY)]
+    permissions = _make_permissions(FieldPermission.WRITE_DIRECTLY)
 
     if extra_plot_fields:
         for field in extra_plot_fields:
@@ -143,25 +131,7 @@ def make_apprentice_role(instance):
     The apprentice role has permission to modify all model fields
     for all models under test, but its edits are subject to review.
     """
-    permissions = (
-        ('Plot', 'geom', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'width', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'length', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'address_street', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'address_city', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'address_zip', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'import_event', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'owner_orig_id', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'readonly', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'plot', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'species', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'import_event', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'readonly', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'diameter', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'height', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'canopy_height', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'date_planted', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'date_removed', FieldPermission.WRITE_WITH_AUDIT))
+    permissions = _make_permissions(FieldPermission.WRITE_WITH_AUDIT)
     return make_loaded_role(instance, 'apprentice', 2, permissions)
 
 
