@@ -16,7 +16,7 @@ from treemap.models import Instance, Species, User, Plot, Tree
 
 from treemap.views import (species_list, boundary_to_geojson,
                            boundary_autocomplete, audits, search_tree_benefits,
-                           user, instance_user_view, plot_popup_view)
+                           user, instance_user_view)
 
 from treemap.tests import (ViewTestCase, make_instance,
                            make_commander_role, make_officer_role,
@@ -456,33 +456,3 @@ class InstanceUserViewTests(ViewTestCase):
         self.assertEquals(expected_url, res['Location'],
                           'the view should redirect to %s not %s ' %
                           (expected_url, res['Location']))
-
-
-class PlotPopupViewTests(ViewTestCase):
-    def setUp(self):
-        self.instance = make_instance()
-
-        self.commander = User(username="commander", password='pw')
-        self.commander.save()
-        self.commander.roles.add(make_commander_role(self.instance))
-
-        self.species = Species(common_name='Test Common Species',
-                               genus='Testus Genius',
-                               species='Testus Specicus',
-                               cultivar_name='Testus Cultivus',
-                               symbol='test')
-        self.species.save()
-
-        self.point = Point(-7615441.0, 5953519.0)
-        self.factory = RequestFactory()
-
-        self.plot = Plot(geom=self.point, instance=self.instance)
-        self.plot.address_street = '1234 Market St'
-        self.plot.address_city = 'Philadelphia'
-        self.plot.address_zip = '19107'
-        self.plot.save_with_user(self.commander)
-
-        self.tree = Tree(plot=self.plot, instance=self.instance)
-        self.tree.diameter = 4
-        self.tree.species = self.species
-        self.tree.save_with_user(self.commander)

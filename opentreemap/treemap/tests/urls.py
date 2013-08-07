@@ -1,13 +1,12 @@
 import os
 
-from django.contrib.gis.geos.collections import MultiPolygon
 from django.contrib.gis.geos.point import Point
-from django.contrib.gis.geos.polygon import Polygon
 from django.test import TestCase
 
-from treemap.models import User, Boundary, Plot
+from treemap.models import User, Plot
 from treemap.tests import (make_instance, make_god_role, make_simple_boundary)
 from opentreemap.local_settings import STATIC_ROOT
+
 
 class UrlTestCase(TestCase):
 
@@ -122,7 +121,7 @@ class TreemapUrlTests(UrlTestCase):
         self.assert_template(self.prefix + 'trees/', 'treemap/map.html')
 
     def test_plot_detail(self):
-        plot = self.make_plot();
+        plot = self.make_plot()
         self.assert_template(
             self.prefix + 'trees/%s/' % plot.id, 'treemap/plot_detail.html')
 
@@ -130,7 +129,7 @@ class TreemapUrlTests(UrlTestCase):
         self.assert_404(self.prefix + 'trees/999/')
 
     def test_plot_popup(self):
-        plot = self.make_plot();
+        plot = self.make_plot()
         self.assert_template(
             self.prefix + 'plots/%s/' % plot.id, 'treemap/plot_popup.html')
 

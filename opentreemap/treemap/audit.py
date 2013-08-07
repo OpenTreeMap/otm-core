@@ -11,10 +11,10 @@ from django.dispatch import receiver
 from django.db.models.signals import pre_save
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, connection
-from django.conf import settings
 
 import hashlib
 import importlib
+
 
 def get_id_sequence_name(model_class):
     """
@@ -30,6 +30,7 @@ def get_id_sequence_name(model_class):
     pk_column_name = pk_field.db_column or pk_field.name
     id_seq_name = "%s_%s_seq" % (table_name, pk_column_name)
     return id_seq_name
+
 
 def _reserve_model_id(model_class):
     """
@@ -49,6 +50,7 @@ def _reserve_model_id(model_class):
         raise IntegrityError(msg)
 
     return model_id
+
 
 def approve_or_reject_audit_and_apply(audit, user, approved):
     """
@@ -74,10 +76,10 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
     # the privileged user applying either PendingApprove or
     # pendingReject to the original audit.
     review_audit = Audit(model=audit.model, model_id=audit.model_id,
-                        instance=audit.instance, field=audit.field,
-                        previous_value=audit.previous_value,
-                        current_value=audit.current_value,
-                        user=user)
+                         instance=audit.instance, field=audit.field,
+                         previous_value=audit.previous_value,
+                         current_value=audit.current_value,
+                         user=user)
 
     if approved:
         review_audit.action = Audit.Type.PendingApprove
