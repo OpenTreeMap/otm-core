@@ -4,8 +4,12 @@
       <span class="benefit-label">{{ benefit.label }}</span>
       <br>
       <span class="content">{{ benefit.value }} {{ benefit.unit }}
+        {% if benefit.currency_saved %}
         <br>
-        $??.?? saved
+        {{ currency_symbol }}{{ benefit.currency_saved }}
+        {% comment %}Translators: Money saved{% endcomment %}
+        {% trans "saved" %}
+        {% endif %}
       </span>
     <hr>
     {% endfor %}

@@ -17,7 +17,8 @@ from django.utils.translation import ugettext as _
 from treemap.util import json_api_call, render_template, instance_request
 from treemap.search import create_filter
 from treemap.audit import Audit, AuditUI
-from treemap.models import Plot, Tree, User, Boundary, Species, Instance
+from treemap.models import (Plot, Tree, User, Boundary, Species,
+                            Instance, BenefitCurrencyConversion)
 
 from ecobenefits.views import _benefits_for_trees
 
@@ -303,25 +304,49 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
         for key in benefits:
             benefits[key]['value'] /= percent
 
-    def displayize_benefit(key, label, format):
+    def displayize_benefit(key, currency_factor, label, format):
         benefit = benefits[key]
+        if currency_factor:
+            benefit['currency_saved'] = locale.format(
+                '%d', benefit['value'] * currency_factor, grouping=True)
+
         benefit['label'] = label
         benefit['value'] = locale.format(format, benefit['value'],
                                          grouping=True)
+
         return benefit
+
+    conversion = instance.eco_benefits_conversion
+    if conversion is None:
+        conversion = BenefitCurrencyConversion()
 
     # TODO: i18n of labels
     # TODO: get units from locale, and convert value
     # TODO: how many decimal places do we really want? Is it unit-sensitive?
     benefits_for_display = [
         # Translators: 'Energy' is the name of an eco benefit
-        displayize_benefit('energy', _('Energy'), '%.1f'),
+        displayize_benefit(
+            'energy',
+            conversion.kwh_to_currency,
+            _('Energy'), '%.1f'),
+
         # Translators: 'Stormwater' is the name of an eco benefit
-        displayize_benefit('stormwater', _('Stormwater'), '%.1f'),
+        displayize_benefit(
+            'stormwater',
+            conversion.stormwater_gal_to_currency,
+            _('Stormwater'), '%.1f'),
+
         # Translators: 'Carbon Dioxide' is the name of an eco benefit
-        displayize_benefit('co2', _('Carbon Dioxide'), '%.1f'),
+        displayize_benefit(
+            'co2',
+            conversion.carbon_dioxide_lb_to_currency,
+            _('Carbon Dioxide'), '%.1f'),
+
         # Translators: 'Air Quaility' is the name of an eco benefit
-        displayize_benefit('airquality', _('Air Quality'), '%.1f')
+        displayize_benefit(
+            'airquality',
+            conversion.airquality_aggregate_lb_to_currency,
+            _('Air Quality'), '%.1f')
     ]
 
     locale.setlocale(locale.LC_ALL, '')
@@ -330,6 +355,7 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
     n_plots = locale.format("%d", total_plots, grouping=True)
 
     rslt = {'benefits': benefits_for_display,
+            'currency_symbol': conversion.currency_symbol,
             'basis': {'n_trees_used': n_trees_used,
                       'n_trees_total': n_trees_total,
                       'n_plots': n_plots,
