@@ -1,0 +1,63 @@
+{% load i18n %}
+<table id="recent-user-edits">
+    <thead>
+        <tr>
+            <th>{% trans "Action" %}</th>
+            <th>{% trans "Item" %}</th>
+            <th>{% trans "Value Changed" %}</th>
+            <th>{% trans "New Value" %}</th>
+            <th>{% trans "Date" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for auditui in audits %}
+        <tr data-id="{{auditui.id}}">
+            <td>{{ auditui.audit.display_action }}</td>
+            <td>{{ auditui.audit.model }}</td>
+            <td>{{ auditui.audit.field }}</td>
+
+            {% if auditui.current_value_as_user %}
+            <td>
+                {{ auditui.current_value_as_user }}
+            </td>
+            {% elif auditui.current_value_as_plot %}
+            <td>
+                Plot {{ auditui.current_value_as_plot }}
+            </td>
+            {% elif auditui.current_value_as_species %}
+            <td>
+                {{ auditui.current_value_as_species.display_name }}
+            </td>
+            {% elif auditui.current_value_as_geom %}
+            <td>
+              {{ auditui.current_value_as_geom.x|floatformat:0 }},
+              {{ auditui.current_value_as_geom.y|floatformat:0 }}
+            </td>
+            {% else %}
+            <td>
+                {{ auditui.audit.current_value }}
+            </td>
+            {% endif %}
+
+            <td>{{ auditui.audit.created }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <td>
+            {% if prev_page %}
+            <a id="recent-user-edits-prev" href="{% url 'user_audits' username=user.username %}{{prev_page }}">
+                &lt;&lt; {% trans "Previous" %}
+            </a>
+            {% endif %}
+        </td>
+        <td colspan="3"></td>
+        <td>
+            {% if next_page %}
+            <a id="recent-user-edits-next" href="{% url 'user_audits' username=user.username %}{{ next_page }}">
+                &gt;&gt; {% trans "Next" %}
+            </a>
+            {% endif %}
+        </td>
+    </tfoot>
+<table>
