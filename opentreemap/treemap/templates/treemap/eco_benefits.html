@@ -9,10 +9,20 @@
       </span>
     <hr>
     {% endfor %}
+    <div>
+      {% blocktrans with used=basis.n_trees_used %}
+        Based on {{ used }} out of
+      {% endblocktrans %}
+      {% blocktrans count basis.n_trees_total as tree_count %}
+        {{ tree_count }} total tree.
+      {% plural %}
+        {{ tree_count }} total trees.
+      {% endblocktrans %}
+    </div>
 </div>
 <div id="tree-and-planting-site-counts">
   <span id="tree-count">
-  {% blocktrans count basis.n_trees_used as tree_count %}
+  {% blocktrans count basis.n_trees_total as tree_count %}
     {{ tree_count }}</span> tree,
   {% plural %}
     {{ tree_count }}</span> trees,
