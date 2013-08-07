@@ -1,14 +1,6 @@
-{% extends "base.html" %}
-
-{% block title %}Open Tree Map Home{% endblock title %}
+{% extends "instance_base.html" %}
+{% load i18n %}
 
 {% block content %}
-  <p>Welcome to the OTMC landing page.</p>
-
-  <p>Get started:</p>
-  <ul>
-    <li>
-      <a href="/{{ request.instance.id }}/trees/">View the map page</a>
-    </li>
-  </ul>
+<a href="{% url 'map' instance_id=request.instance.pk %}" class="btn">{% trans "Explore Trees" %}</a>
 {% endblock content %}

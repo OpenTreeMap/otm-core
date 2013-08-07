@@ -1,10 +1,127 @@
-{% extends "base.html" %}
+{% extends "instance_base.html" %}
+{% load i18n %}
 
-{% block title %}{% load i18n %}Open Tree Map | {% trans "Tree Detail" %}{% endblock title %}
+{% block page_title %} | {% trans "Planting Site" %} {{plot.pk}}{% endblock %}
 
 {% block head_extra %}
 {% endblock head_extra %}
 
+
 {% block content %}
-This page will contain details about plot {{ plot.pk }}.
+<div class="content tree-details">
+
+  <!-- Left Column -->
+  <div class="left">
+    <img src="{{ STATIC_URL }}img/tree.png">
+    <a class="btn btn-mini add-photos" href="javascript:;">{% trans "Add Photos" %}</a>
+    <hr>
+    <a class="btn add-favorite" href="javascript:;">{% trans "Add to Favorites" %}</a>
+    <hr>
+    <h3>{% trans "Latest Update" %}</h3>
+    <p><a href="javascript:;">administrator</a> - July 18, 2013</p>
+    <h5>20% {% trans "Complete" %}</h5>
+    <div class="progress">
+      <div class="bar" style="width: 20%;"></div>
+    </div>
+    <hr>
+    <h3>{% trans "Your Turn" %}</h3>
+    <p>{% trans "Our database of trees comes from public records and citizen foresters like you. Update the information for this tree and help us grow!" %}</p>
+    <hr>
+    <h3>{% trans "Recent Edits" %}</h3>
+    <ul>
+      <li>Today - <a href="javascript:;">administrator</a></li>
+      <li>7/31/13 - <a href="javascript:;">administrator</a></li>
+      <li>7/31/13 - <a href="javascript:;">administrator</a></li>
+      <li>7/31/13 - <a href="javascript:;">administrator</a></li>
+      <li>7/31/13 - <a href="javascript:;">administrator</a></li>
+    </ul>
+  </div>
+
+  <!-- Center Column -->
+  <div class="center">
+    <h1>{{ plot.current_tree.species.common_name }}</h1>
+    <h2>{{ plot.current_tree.species.scientific_name }}</h2>
+    <h3>{{ plot.address_full }}</h3>
+
+    <!-- General Tree Information -->
+    <table class="table table-striped">
+      <h5>{% trans "General Tree Information" %}</h5>
+      <tbody>
+        <tr>
+          <td>{% trans "Tree Number" %}</td>
+          <td>{{ plot.current_tree.id }}</td>
+        </tr>
+        <tr>
+          <td>{% trans "Scientific Name" %}</td>
+          <td><em>{{ plot.current_tree.species.scientific_name }}</em></td>
+        </tr>
+        <tr>
+          <td>{% trans "Common Name" %}</td>
+          <td>{{ plot.current_tree.species.common_name }}</td>
+        </tr>
+        <tr>
+          <td>{% trans "Trunk Diameter" %}</td>
+          <td>{{ plot.current_tree.diameter|floatformat }}</td>
+        </tr>
+        <tr>
+          <td>{% trans "Tree Height" %}</td>
+          <td>{{ plot.current_tree.height }}</td>
+        </tr>
+        <tr>
+          <td>{% trans "Canopy Height" %}</td>
+          <td>{{ plot.current_tree.canopy_height }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <hr>
+
+    <!-- Yearly Ecosystem Services -->
+    <table class="table table-striped">
+      <h5>{% trans "Yearly Ecosystem Services" %}</h5>
+      <tbody>
+        <tr>
+          <td>{% trans "Stormwater Intercepted" %}</td>
+          <td>{{ benefits.stormwater }}</td>
+          <td>$??.??</td>
+        </tr>
+        <tr>
+          <td>{% trans "Energy Conserved" %}</td>
+          <td>{{ benefits.energy }}</td>
+          <td>$??.??</td>
+        </tr>
+        <tr>
+          <td>{% trans "Air pollutants removed" %}</td>
+          <td>{{ benefits.airquality }}</td>
+          <td>$??.??</td>
+        </tr>
+        <tr>
+          <td>{% trans "Carbon dioxide reduced" %}</td>
+          <td>{{ benefits.co2 }}</td>
+          <td>$??.??</td>
+        </tr>
+        <tr>
+          <td>{% trans "Total Co2 stored to date" %}</td>
+          <td>??? lbs</td>
+          <td>$??.??</td>
+        </tr>
+      </tbody>
+    </table>
+    <hr>
+
+  </div>
+
+  <div class="right">
+    <h3>{% trans "Commments" %}</h3>
+
+    {% if request.user.username %}
+      <form>
+        <textarea rows=8></textarea><br>
+        <button type="submit" class="btn">{% trans "Submit" %}</button>
+      </form>
+    {% else %}
+      <p><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a> {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "log in" %}</a> {% trans "to add comments" %}</p>
+    {% endif %}
+  </div>
+
+</div>
 {% endblock content %}

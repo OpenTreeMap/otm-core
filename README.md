@@ -1,4 +1,4 @@
-#Open Tree Map 2
+#OpenTreeMap 2
 
 ##Dev requirements
 While not necessary to run the application, [Node.js](http://nodejs.org/) and [Grunt](http://gruntjs.com/) are required to build it.

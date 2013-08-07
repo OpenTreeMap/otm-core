@@ -1,15 +1,46 @@
 {% extends "base.html" %}
 {% load i18n %}
 
+{% block page_title %} | {% trans "Login" %}{% endblock %}
+
+{% block search %}
+<!-- hide search options on the login page -->
+{% endblock search %}
+
+{% block subhead %}
+<!-- hide search results on the login page -->
+{% endblock subhead %}
+
 {% block content %}
-<form method="post" action=".">
-  {% csrf_token %} 
-  {{ form.as_p }}
+<div class="content login-signup">
+  <div class="well login-signup-panel">
+    <form method="post" action=".">
+        <fieldset>
+            {% csrf_token %}
+            <legend>{% trans "Login" %}<a class="pull-right have-account" href="{% url 'registration_register' %}">{% trans "Need an account?" %}</a></legend>
+            {{ form.as_p }}
+            <button type="submit" value="{% trans 'Log in' %}" class="btn btn-large btn-primary">{% trans 'Log in' %}</button>
+        </fieldset>
+    </form>
+  </div>
+  <div class="well login-signup-panel signup-option">
+    <p>{% trans "Forgot password" %}? <a href="{% url 'auth_password_reset' %}" class="btn">{% trans "Reset it" %}</a></p>
+  </div>
+</div>
+{% endblock content %}
 
-  <input type="submit" value="{% trans 'Log in' %}" />
-  <input type="hidden" name="next" value="{{ next }}" />
-</form>
-
-<p>{% trans "Forgot password" %}? <a href="{% url 'auth_password_reset' %}">{% trans "Reset it" %}</a>!</p>
-<p>{% trans "Not member" %}? <a href="{% url 'registration_register' %}">{% trans "Register" %}</a>!</p>
-{% endblock %}
+{% block scripts %}
+<script>
+(function(require) {
+    // TODO: Remove this when the login form is subclassed
+    var $ = require('jquery');
+    $(function(){
+        // Add additional classes to the fields generated
+        // by the stock Django login form
+        $('input[type="text"]').addClass('input-xlarge');
+        $('input[type="password"]').addClass('input-xlarge');
+        $('input[name="username"]').focus();
+    })
+})(require);
+</script>
+{% endblock scripts %}
