@@ -15,8 +15,8 @@ from treemap.audit import Role, Audit, approve_or_reject_audit_and_apply
 from treemap.models import Instance, Species, User, Plot, Tree
 
 from treemap.views import (species_list, boundary_to_geojson,
-                           boundary_autocomplete, audits, search_tree_benefits,
-                           user, instance_user_view)
+                           boundary_autocomplete, audits, user_audits,
+                           search_tree_benefits, user, instance_user_view)
 
 from treemap.tests import (ViewTestCase, make_instance,
                            make_commander_role, make_officer_role,
@@ -112,8 +112,12 @@ class BoundaryViewTest(ViewTestCase):
 
 
 class RecentEditsViewTest(TestCase):
+
     def setUp(self):
+        self.longMessage = True
+
         self.instance = make_instance()
+        self.instance2 = make_instance('i2')
 
         self.officer = User(username="officer", password='pw')
         self.officer.save()
@@ -122,6 +126,7 @@ class RecentEditsViewTest(TestCase):
         self.commander = User(username="commander", password='pw')
         self.commander.save()
         self.commander.roles.add(make_commander_role(self.instance))
+        self.commander.roles.add(make_commander_role(self.instance2))
 
         self.pending_user = User(username="pdg", password='pw')
         self.pending_user.save()
@@ -131,6 +136,9 @@ class RecentEditsViewTest(TestCase):
         self.factory = RequestFactory()
 
         self.plot = Plot(geom=self.p1, instance=self.instance)
+
+        self.dif_instance_plot = Plot(geom=self.p1, instance=self.instance2)
+        self.dif_instance_plot.save_with_user(self.commander)
 
         self.plot.save_with_user(self.commander)
 
@@ -167,24 +175,56 @@ class RecentEditsViewTest(TestCase):
         self.plot.width = 44
         self.plot.save_with_user(self.commander)
 
+        self.dif_instance_plot.width = '22'
+        self.dif_instance_plot.save_with_user(self.commander)
+        self.dif_plot_delta = {
+            "model": "Plot",
+            "model_id": self.dif_instance_plot.pk,
+            "ref_id": None,
+            "action": Audit.Type.Update,
+            "previous_value": None,
+            "current_value": '22',
+            "requires_auth": False,
+            "user_id": self.commander.pk,
+            "instance_id": self.instance2.pk,
+            "field": "width"
+        }
+
+    def _assert_dicts_equal(self, expected, actual):
+        self.assertEqual(len(expected), len(actual), "Number of dicts")
+
+        for expected, generated in zip(expected, actual):
+            for k, v in expected.iteritems():
+                self.assertEqual(v, generated[k], "key [%s]" % k)
+
     def check_audits(self, url, dicts):
         req = self.factory.get(url)
         resulting_audits = [a.audit.dict()
                             for a
                             in audits(req, self.instance)['audits']]
 
-        self.assertEqual(len(dicts), len(resulting_audits))
+        self._assert_dicts_equal(dicts, resulting_audits)
 
-        for expected, generated in zip(dicts, resulting_audits):
-            for k, v in expected.iteritems():
-                self.assertEqual(v, generated[k])
+    def check_user_audits(self, url, username, dicts):
+        req = self.factory.get(url)
+        resulting_audits = [a.audit.dict()
+                            for a
+                            in user_audits(req, username)['audits']]
+
+        self._assert_dicts_equal(dicts, resulting_audits)
 
     def test_multiple_deltas(self):
         self.check_audits('/blah/?page_size=2',
                           [self.next_plot_delta, self.plot_delta])
+        self.check_user_audits('/blah/?page_size=2&instance_id=%s'
+                               % self.instance.pk, self.commander.username,
+                               [self.next_plot_delta, self.plot_delta])
 
     def test_paging(self):
         self.check_audits('/blah/?page_size=1&page=1', [self.plot_delta])
+        self.check_user_audits('/eblah/?page_size=1&page=1&instance_id=%s'
+                               % self.instance.pk,
+                               self.commander.username, [self.plot_delta])
 
     def test_model_filtering_errors(self):
         self.assertRaises(Exception,
@@ -201,6 +241,27 @@ class RecentEditsViewTest(TestCase):
         self.assertRaises(Exception,
                           self.check_audits,
                           "/blah/?models=User&page=0&page_size=1", [])
+
+        self.assertRaises(Exception,
+                          self.check_user_audits,
+                          "/blah/?model_id=%s&page=0&page_size=1"
+                          "&instance_id=%s"
+                          % (self.instance.pk, self.tree.pk),
+                          self.commander.username, [])
+
+        self.assertRaises(Exception,
+                          self.check_user_audits,
+                          "/blah/?model_id=%s&"
+                          "models=Tree,Plot&page=0&page_size=1"
+                          "&instance_id=%s"
+                          % (self.instance.pk, self.tree.pk),
+                          self.commander.username, [])
+
+        self.assertRaises(Exception,
+                          self.check_user_audits,
+                          "/blah/?models=User&page=0&page_size=1",
+                          "&instance_id=%s" % self.instance.pk,
+                          self.commander.username, [])
 
     def test_model_filtering(self):
 
@@ -239,6 +300,41 @@ class RecentEditsViewTest(TestCase):
             "/blah/?models=Tree&page=0&page_size=5",
             [generic_tree_delta] * 5)
 
+    def test_model_user_filtering(self):
+
+        specific_tree_delta = {
+            "model": "Tree",
+            "model_id": self.tree.pk,
+            "action": Audit.Type.Update,
+            "user_id": self.officer.pk,
+        }
+
+        generic_tree_delta = {
+            "model": "Tree"
+        }
+
+        generic_plot_delta = {
+            "model": "Plot"
+        }
+
+        self.check_user_audits(
+            "/blah/?model_id=%s&models=Tree&page=0&page_size=1" % self.tree.pk,
+            self.officer.username, [specific_tree_delta])
+
+        self.check_user_audits(
+            "/blah/?model_id=%s&models=Plot&page=0&page_size=1&instance_id=%s"
+            % (self.plot.pk, self.instance.pk),
+            self.commander.username, [self.next_plot_delta])
+
+        self.check_user_audits(
+            "/blah/?models=Plot&page=0&page_size=3&instance_id=%s"
+            % self.instance.pk, self.commander.username,
+            [generic_plot_delta] * 3)
+
+        self.check_user_audits(
+            "/blah/?models=Tree&page=0&page_size=3", self.officer.username,
+            [generic_tree_delta] * 3)
+
     def test_user_filtering(self):
 
         generic_officer_delta = {
@@ -256,6 +352,33 @@ class RecentEditsViewTest(TestCase):
         self.check_audits(
             "/blah/?user=%s&page_size=3" % self.commander.pk,
             [generic_commander_delta] * 3)
+
+    def test_user_id_ignored(self):
+
+        generic_officer_delta = {
+            "user_id": self.officer.pk
+        }
+
+        generic_commander_delta = {
+            "user_id": self.commander.pk
+        }
+
+        self.check_user_audits(
+            "/blah/?user=%s&page_size=3" % self.officer.pk,
+            self.commander.username, [generic_commander_delta] * 3)
+
+        self.check_user_audits(
+            "/blah/?user=%s&page_size=3" % self.commander.pk,
+            self.officer.username, [generic_officer_delta] * 3)
+
+    def test_user_audits_multiple_instances(self):
+        self.check_user_audits(
+            "/blah/?page_size=2", self.commander.username,
+            [self.dif_plot_delta, self.next_plot_delta])
+
+        self.check_user_audits(
+            "/blah/?instance_id=%s&page_size=1" % self.instance2.pk,
+            self.commander.username, [self.dif_plot_delta])
 
     def test_pending_filtering(self):
         self.plot.width = 22
@@ -281,11 +404,11 @@ class RecentEditsViewTest(TestCase):
         }
 
         self.check_audits(
-            "/blah/?page_size=2&include_pending=true",
+            "/blah/?page_size=2&exclude_pending=false",
             [pending_plot_delta, self.next_plot_delta])
 
         self.check_audits(
-            "/blah/?page_size=2&include_pending=false",
+            "/blah/?page_size=2&exclude_pending=true",
             [self.next_plot_delta, self.plot_delta])
 
         a = approve_or_reject_audit_and_apply(
@@ -295,12 +418,13 @@ class RecentEditsViewTest(TestCase):
         pending_plot_delta["ref_id"] = a.pk
 
         self.check_audits(
-            "/blah/?page_size=4&include_pending=false",
+            "/blah/?page_size=4&exclude_pending=true",
             [approve_delta, pending_plot_delta,
              self.next_plot_delta, self.plot_delta])
 
 
 class SpeciesViewTests(ViewTestCase):
+
     def setUp(self):
         super(SpeciesViewTests, self).setUp()
 
@@ -343,6 +467,7 @@ class SpeciesViewTests(ViewTestCase):
 
 
 class SearchTreeBenefitsTests(ViewTestCase):
+
     def setUp(self):
         super(SearchTreeBenefitsTests, self).setUp()
         self.instance = make_instance()
@@ -419,9 +544,11 @@ class UserViewTests(ViewTestCase):
 
     def test_get_by_username(self):
         context = user(self._make_request(), self.commander.username)
-        self.assertEquals(self.commander.username, context['username'],
-                          'the user view should return a dict with '
+        self.assertEquals(self.commander.username, context['user'].username,
+                          'the user view should return a dict with user with '
                           '"username" set to %s ' % self.commander.username)
+        self.assertEquals([], context['audits'],
+                          'the user view should return a audits list')
 
     def test_get_with_invalid_username_returns_404(self):
         self.assertRaises(Http404, user, self._make_request(),
@@ -440,7 +567,7 @@ class InstanceUserViewTests(ViewTestCase):
         res = instance_user_view(self._make_request(),
                                  self.instance.id,
                                  self.commander.username)
-        expected_url = '/users/%s/?instance_id=%d' %\
+        expected_url = '/users/%s?instance_id=%d' %\
             (self.commander.username, self.instance.id)
         self.assertEquals(res.status_code, 302, "should be a 302 Found \
             temporary redirect")
@@ -453,7 +580,7 @@ class InstanceUserViewTests(ViewTestCase):
         res = instance_user_view(self._make_request(),
                                  test_instance_id,
                                  test_username)
-        expected_url = '/users/%s/?instance_id=%d' %\
+        expected_url = '/users/%s?instance_id=%d' %\
             (test_username, test_instance_id)
         self.assertEquals(res.status_code, 302, "should be a 302 Found \
             temporary redirect")

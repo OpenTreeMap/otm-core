@@ -7,7 +7,7 @@ module.exports = function(grunt) {
                 src: [],
                 dest: 'static/js/treemap.js',
                 options: {
-                    alias: ['js/src/app.js:treemap'],
+                    alias: ['js/src/app.js:app','js/src/user.js:user'],
                     aliasMappings: {
                         cwd: 'js/lib/',
                         src: ['*.js'],

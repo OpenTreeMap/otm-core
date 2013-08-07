@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-08-02 18:58+0000\n"
+"POT-Creation-Date: 2013-08-07 17:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,31 +18,95 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #. Translators: 'Energy' is the name of an eco benefit
-#: views.py:277
+#: views.py:310
 msgid "Energy"
 msgstr ""
 
 #. Translators: 'Stormwater' is the name of an eco benefit
-#: views.py:279
+#: views.py:312
 msgid "Stormwater"
 msgstr ""
 
 #. Translators: 'Carbon Dioxide' is the name of an eco benefit
-#: views.py:281
+#: views.py:314
 msgid "Carbon Dioxide"
 msgstr ""
 
 #. Translators: 'Air Quaility' is the name of an eco benefit
-#: views.py:283
+#: views.py:316
 msgid "Air Quality"
+msgstr ""
+
+#: templates/base.html:36 templates/instance_base.html:7
+#: templates/treemap/index.html:5
+msgid "Explore Trees"
+msgstr ""
+
+#: templates/base.html:37 templates/instance_base.html:8
+msgid "Add a Tree"
+msgstr ""
+
+#: templates/base.html:42 templates/registration/logout.html:4
+msgid "Logout"
+msgstr ""
+
+#: templates/base.html:44 templates/registration/login.html:4
+#: templates/registration/login.html:20
+msgid "Login"
+msgstr ""
+
+#: templates/base.html:45 templates/treemap/plot_detail.html:122
+msgid "Sign Up"
+msgstr ""
+
+#: templates/base.html:67
+msgid "Search by Species"
+msgstr ""
+
+#: templates/base.html:76
+msgid "Search by Location"
+msgstr ""
+
+#: templates/base.html:85
+msgid "Search"
+msgstr ""
+
+#: templates/base.html:88
+msgid "Advanced"
+msgstr ""
+
+#: templates/base.html:89
+msgid "Reset"
+msgstr ""
+
+#: templates/base.html:118
+msgid "Tree Key"
+msgstr ""
+
+#: templates/base.html:119
+msgid "Resources"
+msgstr ""
+
+#: templates/base.html:120
+msgid "FAQ"
+msgstr ""
+
+#: templates/base.html:121
+msgid "About"
+msgstr ""
+
+#: templates/base.html:122
+msgid "Contact"
 msgstr ""
 
 #: templates/registration/activate.html:8
 msgid "Account successfully activated"
 msgstr ""
 
-#: templates/registration/activate.html:10 templates/registration/login.html:9
+#: templates/registration/activate.html:10
+#: templates/registration/login.html:22
 #: templates/registration/password_reset_complete.html:8
+#: templates/registration/registration_form.html:33
 msgid "Log in"
 msgstr ""
 
@@ -67,23 +131,19 @@ msgstr ""
 msgid "Account activation on"
 msgstr ""
 
-#: templates/registration/login.html:13
+#: templates/registration/login.html:20
+msgid "Need an account?"
+msgstr ""
+
+#: templates/registration/login.html:27
 msgid "Forgot password"
 msgstr ""
 
-#: templates/registration/login.html:13
+#: templates/registration/login.html:27
 msgid "Reset it"
 msgstr ""
 
-#: templates/registration/login.html:14
-msgid "Not member"
-msgstr ""
-
-#: templates/registration/login.html:14
-msgid "Register"
-msgstr ""
-
-#: templates/registration/logout.html:5
+#: templates/registration/logout.html:8
 msgid "Logged out"
 msgstr ""
 
@@ -94,7 +154,8 @@ msgstr ""
 #: templates/registration/password_change_form.html:9
 #: templates/registration/password_reset_confirm.html:12
 #: templates/registration/password_reset_form.html:9
-#: templates/registration/registration_form.html:9
+#: templates/registration/registration_form.html:28
+#: templates/treemap/plot_detail.html:119
 msgid "Submit"
 msgstr ""
 
@@ -123,100 +184,161 @@ msgstr ""
 msgid "You are now registered. Activation email sent."
 msgstr ""
 
-#: templates/treemap/eco_benefits.html:3
-msgid "Benefits"
+#: templates/registration/registration_form.html:4
+msgid "Register"
 msgstr ""
 
-#: templates/treemap/eco_benefits.html:5
-msgid "Benefit"
+#: templates/registration/registration_form.html:33
+msgid "Already have an account?"
 msgstr ""
 
-#: templates/treemap/eco_benefits.html:5
-msgid "Value"
-msgstr ""
-
-#. Translators: This is the beginning of the statement "Search returned 23 plots and 21 trees..."
-#: templates/treemap/eco_benefits.html:12
-msgid "Search returned"
-msgstr ""
-
-#: templates/treemap/eco_benefits.html:13
+#: templates/treemap/eco_benefits.html:15
 #, python-format
 msgid ""
 "\n"
-"      %(plot_count)s plot\n"
-"    "
+"    %(tree_count)s</span> tree,\n"
+"  "
 msgid_plural ""
 "\n"
-"      %(plot_count)s plots\n"
-"    "
+"    %(tree_count)s</span> trees,\n"
+"  "
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/treemap/eco_benefits.html:19
+#: templates/treemap/eco_benefits.html:22
 #, python-format
 msgid ""
 "\n"
-"      %(tree_count)s tree\n"
-"    "
+"    %(plot_count)s</span> planting site\n"
+"  "
 msgid_plural ""
 "\n"
-"      %(tree_count)s trees\n"
-"    "
+"    %(plot_count)s</span> planting sites\n"
+"  "
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/treemap/eco_benefits.html:25
-#, python-format
-msgid ""
-"\n"
-"      %(total_tree_count)s total tree.\n"
-"    "
-msgid_plural ""
-"\n"
-"      %(total_tree_count)s total trees.\n"
-"    "
-msgstr[0] ""
-msgstr[1] ""
-
-#: templates/treemap/map.html:26
-msgid "Selected:"
+#: templates/treemap/map.html:4
+msgid "Map"
 msgstr ""
 
 #: templates/treemap/map.html:27
-msgid "Search"
-msgstr ""
-
-#: templates/treemap/map.html:29 templates/treemap/plot_popup.html:3
-msgid "Species:"
-msgstr ""
-
-#: templates/treemap/map.html:34
-msgid "Boundaries:"
-msgstr ""
-
-#: templates/treemap/map.html:38
 msgid "DBH Min:"
 msgstr ""
 
-#: templates/treemap/map.html:39
+#: templates/treemap/map.html:28
 msgid "DBH Max:"
 msgstr ""
 
-#: templates/treemap/map.html:40
-msgid "Go"
+#: templates/treemap/plot_detail.html:4
+msgid "Planting Site"
 msgstr ""
 
-#: templates/treemap/map.html:44
-msgid "Search Result:"
+#: templates/treemap/plot_detail.html:16
+msgid "Add Photos"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:3
-msgid "Tree Detail"
+#: templates/treemap/plot_detail.html:18
+msgid "Add to Favorites"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:20
+msgid "Latest Update"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:22
+msgid "Complete"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:27
+msgid "Your Turn"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:28
+msgid ""
+"Our database of trees comes from public records and citizen foresters like "
+"you. Update the information for this tree and help us grow!"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:30 templates/treemap/recent_edits.html:4
+#: templates/treemap/recent_edits.html:9 templates/treemap/user.html:13
+msgid "Recent Edits"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:48
+msgid "General Tree Information"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:51
+msgid "Tree Number"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:55
+msgid "Scientific Name"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:59
+msgid "Common Name"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:63
+msgid "Trunk Diameter"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:67
+msgid "Tree Height"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:71
+msgid "Canopy Height"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:80
+msgid "Yearly Ecosystem Services"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:83
+msgid "Stormwater Intercepted"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:88
+msgid "Energy Conserved"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:93
+msgid "Air pollutants removed"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:98
+msgid "Carbon dioxide reduced"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:103
+msgid "Total Co2 stored to date"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:114
+msgid "Commments"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:122
+msgid "or"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:122
+msgid "log in"
+msgstr ""
+
+#: templates/treemap/plot_detail.html:122
+msgid "to add comments"
 msgstr ""
 
 #: templates/treemap/plot_popup.html:2
 msgid "ID:"
+msgstr ""
+
+#: templates/treemap/plot_popup.html:3
+msgid "Species:"
 msgstr ""
 
 #: templates/treemap/plot_popup.html:4
@@ -229,10 +351,6 @@ msgstr ""
 
 #: templates/treemap/plot_popup.html:6
 msgid "Edit details"
-msgstr ""
-
-#: templates/treemap/recent_edits.html:9
-msgid "Recent Edits"
 msgstr ""
 
 #: templates/treemap/recent_edits.html:15
@@ -269,30 +387,52 @@ msgstr ""
 
 #: templates/treemap/recent_edits.html:102
 #: templates/treemap/recent_edits.html:104
+#: templates/treemap/recent_user_edits.html:50
 msgid "Previous"
 msgstr ""
 
 #: templates/treemap/recent_edits.html:108
 #: templates/treemap/recent_edits.html:110
+#: templates/treemap/recent_user_edits.html:58
 msgid "Next"
 msgstr ""
 
-#: templates/treemap/user.html:6
-msgid "Username:"
+#: templates/treemap/recent_user_edits.html:5
+msgid "Action"
+msgstr ""
+
+#: templates/treemap/recent_user_edits.html:6
+msgid "Item"
+msgstr ""
+
+#: templates/treemap/recent_user_edits.html:7
+msgid "Value Changed"
+msgstr ""
+
+#: templates/treemap/recent_user_edits.html:8
+msgid "New Value"
+msgstr ""
+
+#: templates/treemap/recent_user_edits.html:9
+msgid "Date"
 msgstr ""
 
 #: templates/treemap/user.html:7
-msgid "Name:"
+msgid "Username:"
 msgstr ""
 
 #: templates/treemap/user.html:8
-msgid "Email:"
+msgid "Name:"
 msgstr ""
 
 #: templates/treemap/user.html:9
-msgid "Reputation:"
+msgid "Email:"
 msgstr ""
 
 #: templates/treemap/user.html:10
+msgid "Reputation:"
+msgstr ""
+
+#: templates/treemap/user.html:11
 msgid "Instance:"
 msgstr ""

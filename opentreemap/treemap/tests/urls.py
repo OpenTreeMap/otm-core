@@ -18,7 +18,9 @@ class UrlTestCase(TestCase):
 
     def assert_status_code(self, url, code):
         response = self.client.get(url)
-        self.assertEqual(response.status_code, code)
+        self.assertEqual(response.status_code, code,
+                         "Actual code [%s] Expected code [%s]"
+                         % (response.status_code, code))
         return response
 
     def assert_200(self, url):
@@ -67,6 +69,21 @@ class RootUrlTests(UrlTestCase):
         self.assert_404('/users/nobody/')
 
     # Note: /accounts/profile/ is tested in tests/auth.py
+
+    def test_user_audits(self):
+        self.instance = make_instance()
+        god = self.make_god_user()
+        self.assert_template('/users/%s/recent_edits' % god.username,
+                             'treemap/recent_user_edits.html')
+        self.assert_template('/users/%s/recent_edits?instance_id=%s'
+                             % (god.username, self.instance.id),
+                             'treemap/recent_user_edits.html')
+
+    def test_user_audits_invalid(self):
+        self.instance = make_instance()
+        god = self.make_god_user()
+        self.assert_404('/users/fake/recent_edits')
+        self.assert_404('/users/%s/recent_edits?instance_id=0' % god.username)
 
 
 class TreemapUrlTests(UrlTestCase):
@@ -148,4 +165,11 @@ class TreemapUrlTests(UrlTestCase):
         username = self.make_god_user().username
         self.assert_redirects(
             self.prefix + 'users/%s/' % username,
-            '/users/%s/?instance_id=%s' % (username, self.instance.id))
+            '/users/%s?instance_id=%s' % (username, self.instance.id))
+
+    def test_user_audits(self):
+        username = self.make_god_user().username
+        self.assert_redirects(
+            self.prefix + 'users/%s/recent_edits' % username,
+            '/users/%s/recent_edits?instance_id=%s'
+            % (username, self.instance.id))
