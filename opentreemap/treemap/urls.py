@@ -29,6 +29,6 @@ urlpatterns = patterns(
     url(r'^plots/(?P<plot_id>\d+)/$', plot_popup_view),
     url(r'^config/settings.js$', instance_settings_js_view),
     url(r'^benefit/search$', search_tree_benefits_view),
-    url(r'^users/(?P<username>\w+)/$', instance_user_view),
-    url(r'^users/(?P<username>\w+)/recent_edits/$', instance_user_audits),
+    url(r'^users/(?P<username>\w+)/?$', instance_user_view),
+    url(r'^users/(?P<username>\w+)/recent_edits/?$', instance_user_audits),
 )

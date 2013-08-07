@@ -168,7 +168,7 @@ def _get_audits_params(request):
         raise Exception("You must specific one and only model "
                         "when looking up by id")
 
-    exclude_pending = r.get('include_pending', "true") == "false"
+    exclude_pending = r.get('exclude_pending', "false") == "true"
 
     return (page, page_size, models, model_id, exclude_pending)
 
@@ -186,7 +186,7 @@ def audits(request, instance):
        - user
          Filter by a specific user
 
-       - include_pending (default: true)
+       - exclude (default: true)
          Set to false to ignore edits that are currently pending
 
        - page_size
@@ -195,7 +195,7 @@ def audits(request, instance):
          The page to return
     """
     (page, page_size, models, model_id,
-     include_pending) = _get_audits_params(request)
+     exclude_pending) = _get_audits_params(request)
 
     user_id = request.GET.get('user', None)
     user = None
@@ -204,7 +204,7 @@ def audits(request, instance):
         user = User.objects.get(pk=user_id)
 
     return _get_audits(instance, request.REQUEST, user, models,
-                       model_id, page, page_size, include_pending)
+                       model_id, page, page_size, exclude_pending)
 
 
 def user_audits(request, username):
