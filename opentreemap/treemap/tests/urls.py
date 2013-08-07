@@ -3,18 +3,12 @@ import os
 from django.contrib.gis.geos.point import Point
 from django.test import TestCase
 
-from treemap.models import User, Plot
-from treemap.tests import (make_instance, make_god_role, make_simple_boundary)
+from treemap.models import Plot
+from treemap.tests import (make_instance, make_commander_user, make_simple_boundary)
 from opentreemap.local_settings import STATIC_ROOT
 
 
 class UrlTestCase(TestCase):
-
-    def make_god_user(self):
-        god = User(username='god', password='abc')
-        god.save()
-        god.roles.add(make_god_role(self.instance))
-        return god
 
     def assert_status_code(self, url, code):
         response = self.client.get(url)
@@ -62,8 +56,8 @@ class RootUrlTests(UrlTestCase):
 
     def test_user(self):
         self.instance = make_instance()
-        god = self.make_god_user()
-        self.assert_template('/users/%s/' % god.username, 'treemap/user.html')
+        user = make_commander_user(self.instance)
+        self.assert_template('/users/%s/' % user.username, 'treemap/user.html')
 
     def test_user_invalid(self):
         self.assert_404('/users/nobody/')
@@ -72,18 +66,18 @@ class RootUrlTests(UrlTestCase):
 
     def test_user_audits(self):
         self.instance = make_instance()
-        god = self.make_god_user()
-        self.assert_template('/users/%s/recent_edits' % god.username,
+        username = make_commander_user(self.instance).username
+        self.assert_template('/users/%s/recent_edits' % username,
                              'treemap/recent_user_edits.html')
         self.assert_template('/users/%s/recent_edits?instance_id=%s'
-                             % (god.username, self.instance.id),
+                             % (username, self.instance.id),
                              'treemap/recent_user_edits.html')
 
     def test_user_audits_invalid(self):
         self.instance = make_instance()
-        god = self.make_god_user()
+        username = make_commander_user(self.instance).username
         self.assert_404('/users/fake/recent_edits')
-        self.assert_404('/users/%s/recent_edits?instance_id=0' % god.username)
+        self.assert_404('/users/%s/recent_edits?instance_id=0' % username)
 
 
 class TreemapUrlTests(UrlTestCase):
@@ -95,9 +89,9 @@ class TreemapUrlTests(UrlTestCase):
         self.prefix = '/%s/' % self.instance.id
 
     def make_plot(self):
-        god = self.make_god_user()
+        user = make_commander_user(self.instance)
         plot = Plot(geom=Point(0, 0), instance=self.instance)
-        plot.save_with_user(god)
+        plot.save_with_user(user)
         return plot
 
     def make_boundary(self):
@@ -162,13 +156,13 @@ class TreemapUrlTests(UrlTestCase):
             self.prefix + 'benefit/search', 'treemap/eco_benefits.html')
 
     def test_user(self):
-        username = self.make_god_user().username
+        username = make_commander_user(self.instance).username
         self.assert_redirects(
             self.prefix + 'users/%s/' % username,
             '/users/%s?instance_id=%s' % (username, self.instance.id))
 
     def test_user_audits(self):
-        username = self.make_god_user().username
+        username = make_commander_user(self.instance).username
         self.assert_redirects(
             self.prefix + 'users/%s/recent_edits' % username,
             '/users/%s/recent_edits?instance_id=%s'

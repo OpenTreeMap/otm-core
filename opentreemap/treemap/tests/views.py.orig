@@ -20,8 +20,7 @@ from treemap.views import (species_list, boundary_to_geojson,
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
-                           make_user_with_default_role, make_simple_boundary,
-                           make_commander_role)
+                           make_user_with_default_role, make_simple_boundary)
 
 
 class InstanceValidationTest(TestCase):
@@ -118,11 +117,26 @@ class RecentEditsViewTest(TestCase):
         self.longMessage = True
 
         self.instance = make_instance()
+<<<<<<< HEAD
         self.instance2 = make_instance('i2')
+
+        self.officer = User(username="officer", password='pw')
+        self.officer.save()
+        self.officer.roles.add(make_officer_role(self.instance))
+
+        self.commander = User(username="commander", password='pw')
+        self.commander.save()
+        self.commander.roles.add(make_commander_role(self.instance))
+        self.commander.roles.add(make_commander_role(self.instance2))
+
+        self.pending_user = User(username="pdg", password='pw')
+        self.pending_user.save()
+        self.pending_user.roles.add(make_apprentice_role(self.instance))
+=======
         self.officer = make_officer_user(self.instance)
         self.commander = make_commander_user(self.instance)
         self.pending_user = make_apprentice_user(self.instance)
-        self.commander.roles.add(make_commander_role(self.instance2))
+>>>>>>> Refactor user creation in all unit tests
 
         self.p1 = Point(-7615441.0, 5953519.0)
         self.factory = RequestFactory()
@@ -531,12 +545,19 @@ class UserViewTests(ViewTestCase):
         self.joe = make_user_with_default_role(self.instance, 'joe')
 
     def test_get_by_username(self):
-        context = user(self._make_request(), self.joe.username)
-        self.assertEquals(self.joe.username, context['user'].username,
+<<<<<<< HEAD
+        context = user(self._make_request(), self.commander.username)
+        self.assertEquals(self.commander.username, context['user'].username,
                           'the user view should return a dict with user with '
-                          '"username" set to %s ' % self.joe.username)
+                          '"username" set to %s ' % self.commander.username)
         self.assertEquals([], context['audits'],
                           'the user view should return a audits list')
+=======
+        context = user(self._make_request(), self.joe.username)
+        self.assertEquals(self.joe.username, context['username'],
+                          'the user view should return a dict with '
+                          '"username" set to %s ' % self.joe.username)
+>>>>>>> Refactor user creation in all unit tests
 
     def test_get_with_invalid_username_returns_404(self):
         self.assertRaises(Http404, user, self._make_request(),
