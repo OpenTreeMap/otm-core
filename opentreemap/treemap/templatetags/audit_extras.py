@@ -38,6 +38,8 @@ def usercanread_tag(parser, token):
 
     if field[0] == '"' and field[0] == field[-1] and len(field) >= 2:
         field = field[1:-1]
+    else:
+        field = template.Variable(field)
 
     nodelist = parser.parse(('endusercanread',))
     parser.delete_first_token()
@@ -52,11 +54,23 @@ class FieldVisibilityNode(template.Node):
         self.field = field
 
     def render(self, context):
+        if hasattr(self.field, 'resolve'):
+            field = self.field.resolve(context)
+        else:
+            field = self.field
+
         req_user = template.Variable('request.user').resolve(context)
         model = self.model_variable.resolve(context)
 
-        if model and model.field_is_visible(req_user, self.field):
-            val = getattr(model, self.field)
+        if model and model.field_is_visible(req_user, field):
+            if hasattr(model, field):
+                val = getattr(model, field)
+            elif (hasattr(model, 'udf_field_names') and
+                  field in model.udf_field_names):
+                val = model.udf_scalar_values[field]
+            else:
+                raise ValueError('Could not find field: %s' % field)
+
             context[self.binding] = val
             content = self.nodelist.render(context)
         else:

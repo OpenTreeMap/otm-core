@@ -84,6 +84,14 @@
           <td>{{ canopy_height }}</td>
         </tr>
         {% endusercanread %}
+        {% for udf_field in plot.current_tree.udf_field_names %}
+        {% usercanread plot.current_tree udf_field as udf_value %}
+        <tr>
+          <td>{{ udf_field }}</td>
+          <td>{{ udf_value }}</td>
+        </tr>
+        {% endusercanread %}
+        {% endfor %}
       </tbody>
     </table>
     <hr>
@@ -133,6 +141,14 @@
           <td>{{ ro }}</td>
         </tr>
         {% endusercanread %}
+        {% for udf_field in plot.udf_field_names %}
+        {% usercanread plot udf_field as udf_value %}
+        <tr>
+          <td>{{ udf_field }}</td>
+          <td>{{ udf_value }}</td>
+        </tr>
+        {% endusercanread %}
+        {% endfor %}
       </tbody>
     </table>
     <hr>
