@@ -187,7 +187,6 @@ class UserTrackable(Dictable):
         else:
             self._previous_state = self.as_dict()
 
-
     def apply_change(self, key, orig_value):
         setattr(self, key, orig_value)
 
