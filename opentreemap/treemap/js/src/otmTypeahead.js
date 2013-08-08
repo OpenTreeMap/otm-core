@@ -5,7 +5,9 @@
 require('typeahead');
 
 var $ = require("jquery"),
-    mustache = require("mustache");
+    mustache = require("mustache"),
+    Bacon = require("baconjs"),
+    keyCodeIs = require("./baconUtils").keyCodeIs;
 
 exports.create = function(options) {
     var config = options.config,
@@ -24,8 +26,16 @@ exports.create = function(options) {
     });
 
     if (options.hidden) {
-        $input.on('typeahead:selected typeahead:autocompleted', function($typeahead, item) {
-            $hidden_input.val(item.id);
-        });
+        var selectStream = $input.asEventStream('typeahead:selected typeahead:autocompleted',
+                                                function(e, datum) { return datum; })
+                                 .map(".id"),
+
+            backspaceOrDeleteStream = $input.asEventStream('keyup')
+                                            .filter(keyCodeIs([8, 46]))
+                                            .map("");
+
+        selectStream.merge(backspaceOrDeleteStream)
+                    .onValue($hidden_input, "val");
+
     }
 };
