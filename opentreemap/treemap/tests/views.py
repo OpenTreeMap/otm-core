@@ -12,7 +12,8 @@ from django.contrib.gis.geos import Point
 
 from treemap.audit import Role, Audit, approve_or_reject_audit_and_apply
 
-from treemap.models import Instance, Species, User, Plot, Tree
+from treemap.models import (Instance, Species, User, Plot, Tree,
+                            BenefitCurrencyConversion)
 
 from treemap.views import (species_list, boundary_to_geojson,
                            boundary_autocomplete, audits, user_audits,
@@ -532,6 +533,35 @@ class SearchTreeBenefitsTests(ViewTestCase):
 
         self.assertEqual(benefits['basis']['percent'], 0.6)
         self.assertGreater(self, value_with_extrapolation, value)
+
+    def test_currency_is_empty_if_not_set(self):
+        self.make_tree(10, self.species_good)
+        benefits = self.search_benefits()
+
+        for benefit in benefits['benefits']:
+            self.assertNotIn('currency_saved', benefit)
+
+    def test_currency_is_not_empty(self):
+        benefit = BenefitCurrencyConversion(
+            kwh_to_currency=2.0,
+            stormwater_gal_to_currency=2.0,
+            carbon_dioxide_lb_to_currency=2.0,
+            airquality_aggregate_lb_to_currency=2.0,
+            currency_symbol='$')
+
+        benefit.save()
+        self.instance.eco_benefits_conversion = benefit
+        self.instance.save()
+
+        self.make_tree(10, self.species_good)
+        benefits = self.search_benefits()
+
+        for benefit in benefits['benefits']:
+            self.assertEqual(
+                benefit['currency_saved'],
+                '%d' % (float(benefit['value'])*2.0))
+
+        self.assertEqual(benefits['currency_symbol'], '$')
 
 
 class UserViewTests(ViewTestCase):
