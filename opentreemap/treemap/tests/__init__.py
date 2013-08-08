@@ -233,10 +233,11 @@ class RequestTestCase(TestCase):
 
 create_mock_system_user()
 
-from udfs import *    # NOQA
-from audit import *   # NOQA
-from auth import *    # NOQA
-from models import *  # NOQA
-from search import *  # NOQA
-from urls import *    # NOQA
-from views import *   # NOQA
+from templatetags import *  # NOQA
+from udfs import *          # NOQA
+from audit import *         # NOQA
+from auth import *          # NOQA
+from models import *        # NOQA
+from search import *        # NOQA
+from urls import *          # NOQA
+from views import *         # NOQA

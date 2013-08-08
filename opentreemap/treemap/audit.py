@@ -370,7 +370,7 @@ class Authorizable(UserTrackable):
         self._has_been_clobbered = True
 
     def field_is_visible(self, user, field):
-        if user is None:
+        if user is None or user.is_anonymous():
             perms = self.instance.default_role.fieldpermission_set
         else:
             perms = user.get_instance_permissions(
