@@ -39,20 +39,31 @@ def make_simple_polygon(n=1):
     return Polygon(((n, n), (n, n + 1), (n + 1, n + 1), (n, n)))
 
 
+def _add_permissions(instance, role, permissions):
+    if permissions:
+        for perm in permissions:
+            model_name, field_name, permission_level = perm
+            FieldPermission.objects.get_or_create(
+                model_name=model_name, field_name=field_name,
+                permission_level=permission_level, role=role,
+                instance=instance)
+
+
 def make_loaded_role(instance, name, rep_thresh, permissions):
     role, created = Role.objects.get_or_create(
         name=name, instance=instance, rep_thresh=rep_thresh)
 
     role.save()
-
-    for perm in permissions:
-        model_name, field_name, permission_level = perm
-        FieldPermission.objects.get_or_create(
-            model_name=model_name, field_name=field_name,
-            permission_level=permission_level, role=role,
-            instance=instance)
-
+    _add_permissions(instance, role, permissions)
     return role
+
+
+def add_field_permissions(instance, user, model_type, field_names):
+    permissions = ()
+    for field in field_names:
+        permissions += ((model_type, field, FieldPermission.WRITE_DIRECTLY),)
+    role = user.roles.filter(instance=instance)[0]
+    _add_permissions(instance, role, permissions)
 
 
 def _make_permissions(field_permission):
@@ -105,7 +116,7 @@ def make_commander_role(instance, extra_plot_fields=None):
 
     if extra_plot_fields:
         for field in extra_plot_fields:
-            permissions.append(('Plot', field, FieldPermission.WRITE_DIRECTLY))
+            permissions += (('Plot', field, FieldPermission.WRITE_DIRECTLY),)
 
     return make_loaded_role(instance, 'commander', 3, permissions)
 

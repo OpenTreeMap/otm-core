@@ -11,7 +11,8 @@ from django.core.exceptions import ValidationError
 
 from django.contrib.gis.geos import Point
 
-from treemap.tests import make_instance, make_commander_role
+from treemap.tests import (make_instance, make_commander_user,\
+                           add_field_permissions)
 
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.models import User, Plot
@@ -24,11 +25,9 @@ import psycopg2
 class ScalarUDFAuditTest(TestCase):
     def setUp(self):
         self.instance = make_instance()
-        self.commander_user = User(username='commander', password='pw')
-        self.commander_user.save()
-        self.commander_user.roles.add(
-            make_commander_role(self.instance,
-                                extra_plot_fields=['Test choice']))
+        self.commander_user = make_commander_user(self.instance)
+        add_field_permissions(self.instance, self.commander_user,
+                              'Plot', ['Test choice'])
 
         self.p = Point(-8515941.0, 4953519.0)
 
@@ -75,17 +74,10 @@ class ScalarUDFAuditTest(TestCase):
         self.assertEqual(last_audit.previous_value, 'b')
         self.assertEqual(last_audit.current_value, 'c')
 
-    def test_cant_edit_unathorized_field(self):
+    def test_cant_edit_unauthorized_field(self):
         self.plot.udf_scalar_values['Test unauth'] = 'c'
         self.assertRaises(AuthorizeException,
                           self.plot.save_with_user, self.commander_user)
-
-        self.commander_user.roles = [
-            make_commander_role(self.instance,
-                                extra_plot_fields=['Test unauth'])]
-
-        self.plot.udf_scalar_values['Test unauth'] = 'c'
-        self.plot.save_with_user(self.commander_user)
 
     def test_create_and_apply_pending(self):
         pending = self.plot.audits().filter(requires_auth=True)
@@ -238,10 +230,9 @@ class ScalarUDFTest(TestCase):
         addl_fields = ['Test %s' % ttype for ttype in allowed_types]
         addl_fields.append('Test choice')
 
-        self.commander_user = User(username='commander', password='pw')
-        self.commander_user.save()
-        self.commander_user.roles.add(
-            make_commander_role(self.instance, extra_plot_fields=addl_fields))
+        self.commander_user = make_commander_user(self.instance)
+        add_field_permissions(self.instance, self.commander_user,
+                              'Plot', addl_fields)
 
         for dtype in allowed_types:
             make_and_save_type(dtype)
