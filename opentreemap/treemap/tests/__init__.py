@@ -39,20 +39,54 @@ def make_simple_polygon(n=1):
     return Polygon(((n, n), (n, n + 1), (n + 1, n + 1), (n, n)))
 
 
+def _add_permissions(instance, role, permissions):
+    if permissions:
+        for perm in permissions:
+            model_name, field_name, permission_level = perm
+            FieldPermission.objects.get_or_create(
+                model_name=model_name, field_name=field_name,
+                permission_level=permission_level, role=role,
+                instance=instance)
+
+
 def make_loaded_role(instance, name, rep_thresh, permissions):
     role, created = Role.objects.get_or_create(
         name=name, instance=instance, rep_thresh=rep_thresh)
 
     role.save()
-
-    for perm in permissions:
-        model_name, field_name, permission_level = perm
-        FieldPermission.objects.get_or_create(
-            model_name=model_name, field_name=field_name,
-            permission_level=permission_level, role=role,
-            instance=instance)
-
+    _add_permissions(instance, role, permissions)
     return role
+
+
+def add_field_permissions(instance, user, model_type, field_names):
+    permissions = ()
+    for field in field_names:
+        permissions += ((model_type, field, FieldPermission.WRITE_DIRECTLY),)
+    role = user.roles.filter(instance=instance)[0]
+    _add_permissions(instance, role, permissions)
+
+
+def _make_permissions(field_permission):
+    permissions = (
+        ('Plot', 'geom', field_permission),
+        ('Plot', 'width', field_permission),
+        ('Plot', 'length', field_permission),
+        ('Plot', 'address_street', field_permission),
+        ('Plot', 'address_city', field_permission),
+        ('Plot', 'address_zip', field_permission),
+        ('Plot', 'import_event', field_permission),
+        ('Plot', 'owner_orig_id', field_permission),
+        ('Plot', 'readonly', field_permission),
+        ('Tree', 'plot', field_permission),
+        ('Tree', 'species', field_permission),
+        ('Tree', 'import_event', field_permission),
+        ('Tree', 'readonly', field_permission),
+        ('Tree', 'diameter', field_permission),
+        ('Tree', 'height', field_permission),
+        ('Tree', 'canopy_height', field_permission),
+        ('Tree', 'date_planted', field_permission),
+        ('Tree', 'date_removed', field_permission))
+    return permissions
 
 
 def make_god_role(instance):
@@ -63,29 +97,13 @@ def make_god_role(instance):
     In practice, the god role has access to 2 more fields than the
     normal, fully privileged user: model.id and model.instance
     """
-    permissions = (
-        ('Plot', 'instance', FieldPermission.WRITE_DIRECTLY),
+    permissions = _make_permissions(FieldPermission.WRITE_DIRECTLY)
+    god_permissions = (
         ('Plot', 'id', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'width', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'length', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'address_street', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'address_city', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'address_zip', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'import_event', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'owner_orig_id', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'readonly', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
+        ('Plot', 'instance', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'instance', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'species', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'import_event', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'readonly', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'height', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'canopy_height', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'date_planted', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'date_removed', FieldPermission.WRITE_DIRECTLY))
+        ('Tree', 'instance', FieldPermission.WRITE_DIRECTLY))
+    permissions = permissions + god_permissions
 
     return make_loaded_role(instance, 'god', 3, permissions)
 
@@ -95,29 +113,11 @@ def make_commander_role(instance, extra_plot_fields=None):
     The commander role has permission to modify all model fields
     directly for all models under test.
     """
-    permissions = [
-        ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'width', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'length', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'address_street', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'address_city', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'address_zip', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'import_event', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'owner_orig_id', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'readonly', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'species', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'import_event', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'readonly', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'height', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'canopy_height', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'date_planted', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'date_removed', FieldPermission.WRITE_DIRECTLY)]
+    permissions = _make_permissions(FieldPermission.WRITE_DIRECTLY)
 
     if extra_plot_fields:
         for field in extra_plot_fields:
-            permissions.append(('Plot', field, FieldPermission.WRITE_DIRECTLY))
+            permissions += (('Plot', field, FieldPermission.WRITE_DIRECTLY),)
 
     return make_loaded_role(instance, 'commander', 3, permissions)
 
@@ -143,25 +143,7 @@ def make_apprentice_role(instance):
     The apprentice role has permission to modify all model fields
     for all models under test, but its edits are subject to review.
     """
-    permissions = (
-        ('Plot', 'geom', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'width', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'length', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'address_street', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'address_city', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'address_zip', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'import_event', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'owner_orig_id', FieldPermission.WRITE_WITH_AUDIT),
-        ('Plot', 'readonly', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'plot', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'species', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'import_event', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'readonly', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'diameter', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'height', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'canopy_height', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'date_planted', FieldPermission.WRITE_WITH_AUDIT),
-        ('Tree', 'date_removed', FieldPermission.WRITE_WITH_AUDIT))
+    permissions = _make_permissions(FieldPermission.WRITE_WITH_AUDIT)
     return make_loaded_role(instance, 'apprentice', 2, permissions)
 
 
@@ -175,6 +157,46 @@ def make_observer_role(instance):
         ('Tree', 'diameter', FieldPermission.READ_ONLY),
         ('Tree', 'height', FieldPermission.READ_ONLY))
     return make_loaded_role(instance, 'observer', 2, permissions)
+
+
+def _make_user(instance, username, make_role=None):
+    user = User(username=username)
+    user.set_password("password")  # hashes password, allowing authentication
+    user.save()
+    role = make_role(instance) if make_role else instance.default_role
+    user.roles.add(role)
+    return user
+
+
+def make_god_user(instance, username='god'):
+    return _make_user(instance, username, make_god_role)
+
+
+def make_commander_user(instance, username='commander'):
+    return _make_user(instance, username, make_commander_role)
+
+
+def make_officer_user(instance, username='officer'):
+    return _make_user(instance, username, make_officer_role)
+
+
+def make_apprentice_user(instance, username='apprentice'):
+    return _make_user(instance, username, make_apprentice_role)
+
+
+def make_observer_user(instance, username='observer'):
+    return _make_user(instance, username, make_observer_role)
+
+
+def make_user_with_default_role(instance, username):
+    return _make_user(instance, username)
+
+
+def make_user_and_role(instance, username, rolename, permissions):
+    def make_role(instance):
+        return make_loaded_role(instance, rolename, 2, permissions)
+
+    return _make_user(instance, username, make_role)
 
 
 def make_instance(name='i1'):

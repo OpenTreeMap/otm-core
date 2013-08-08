@@ -8,11 +8,11 @@ from django.utils.tree import Node
 from django.contrib.gis.geos import Point, MultiPolygon
 from django.contrib.gis.measure import Distance
 
-from treemap.tests import (make_instance, make_commander_role,
+from treemap.tests import (make_instance, make_commander_user,
                            make_simple_polygon)
 
 from treemap.views import _execute_filter
-from treemap.models import (Tree, Plot, Boundary, Species, User)
+from treemap.models import (Tree, Plot, Boundary, Species)
 
 from treemap import search
 
@@ -285,11 +285,7 @@ class FilterParserTests(TestCase):
 class SearchTests(TestCase):
     def setUp(self):
         self.instance = make_instance()
-
-        self.commander = User(username='commander', password='pw')
-        self.commander.save()
-        self.commander.roles.add(make_commander_role(self.instance))
-
+        self.commander = make_commander_user(self.instance)
         self.p1 = Point(-7615441.0, 5953519.0)
 
     def create_tree_and_plot(self):

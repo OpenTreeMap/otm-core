@@ -3,9 +3,10 @@ from django.contrib.gis.geos.point import Point
 from django.contrib.gis.geos.polygon import Polygon
 from api.models import APILog, APIKey
 
-from treemap.models import (Species, Boundary, Tree, Plot,
-                            ImportEvent, User, Instance)
-from treemap.tests import make_commander_role, make_instance
+from treemap.models import (Species, Boundary, Tree, Plot, User, Instance)
+from treemap.tests import (make_commander_role, make_instance,
+                           make_commander_user, make_apprentice_user,
+                           make_user_with_default_role)
 
 import django.shortcuts
 
@@ -50,30 +51,9 @@ def setupTreemapEnv():
 
     instance = make_instance()
 
-    u = User.objects.filter(username="jim")
-    if u:
-        u = u[0]
-    else:
-        u = User(username="jim", email="jim@test.org", password="jim")
-        u.save()
-
-    amy_filter_result = User.objects.filter(username="amy")
-    if not amy_filter_result:
-        amy = User(username="amy", email="amy@test.org", password="amy")
-        amy.save()
-        amy.roles.add(make_commander_role(instance))
-    else:
-        amy = amy_filter_result[0]
-
-    olivia_filter_result = User.objects.filter(username="olivia")
-    if not amy_filter_result:
-        olivia = User(
-            username="olivia", email="olivia@test.org", password="olivia")
-
-        olivia.save()
-        olivia.roles.add(make_commander_role(instance))
-    else:
-        olivia = olivia_filter_result[0]
+    make_user_with_default_role(instance, 'jim')
+    make_commander_user(instance, 'commander')
+    make_apprentice_user(instance, 'apprentice')
 
     n1geom = MultiPolygon(Polygon(
         ((0, 0), (100, 0), (100, 100), (0, 100), (0, 0))))
@@ -111,9 +91,6 @@ def setupTreemapEnv():
     s2.save()
     s3.save()
 
-    ie = ImportEvent(imported_by=olivia)
-    ie.save()
-
     return instance
 
 
@@ -138,7 +115,4 @@ def teardownTreemapEnv():
         r.delete()
 
     for r in Species.objects.all():
-        r.delete()
-
-    for r in ImportEvent.objects.all():
         r.delete()

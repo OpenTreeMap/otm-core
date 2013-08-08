@@ -19,9 +19,10 @@ from treemap.views import (species_list, boundary_to_geojson,
                            boundary_autocomplete, audits, user_audits,
                            search_tree_benefits, user, instance_user_view)
 
-from treemap.tests import (ViewTestCase, make_instance,
-                           make_commander_role, make_officer_role,
-                           make_apprentice_role, make_simple_boundary)
+from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
+                           make_commander_user, make_apprentice_user,
+                           make_user_with_default_role, make_simple_boundary,
+                           make_commander_role)
 
 
 class InstanceValidationTest(TestCase):
@@ -119,19 +120,10 @@ class RecentEditsViewTest(TestCase):
 
         self.instance = make_instance()
         self.instance2 = make_instance('i2')
-
-        self.officer = User(username="officer", password='pw')
-        self.officer.save()
-        self.officer.roles.add(make_officer_role(self.instance))
-
-        self.commander = User(username="commander", password='pw')
-        self.commander.save()
-        self.commander.roles.add(make_commander_role(self.instance))
+        self.officer = make_officer_user(self.instance)
+        self.commander = make_commander_user(self.instance)
+        self.pending_user = make_apprentice_user(self.instance)
         self.commander.roles.add(make_commander_role(self.instance2))
-
-        self.pending_user = User(username="pdg", password='pw')
-        self.pending_user.save()
-        self.pending_user.roles.add(make_apprentice_role(self.instance))
 
         self.p1 = Point(-7615441.0, 5953519.0)
         self.factory = RequestFactory()
@@ -472,9 +464,7 @@ class SearchTreeBenefitsTests(ViewTestCase):
     def setUp(self):
         super(SearchTreeBenefitsTests, self).setUp()
         self.instance = make_instance()
-        self.commander = User(username="commander", password='pw')
-        self.commander.save()
-        self.commander.roles.add(make_commander_role(self.instance))
+        self.commander = make_commander_user(self.instance)
 
         self.p1 = Point(-7615441.0, 5953519.0)
         self.species_good = Species(itree_code='CEM OTHER')
@@ -568,15 +558,13 @@ class UserViewTests(ViewTestCase):
 
     def setUp(self):
         super(UserViewTests, self).setUp()
-
-        self.commander = User(username="commander", password='pw')
-        self.commander.save()
+        self.joe = make_user_with_default_role(self.instance, 'joe')
 
     def test_get_by_username(self):
-        context = user(self._make_request(), self.commander.username)
-        self.assertEquals(self.commander.username, context['user'].username,
+        context = user(self._make_request(), self.joe.username)
+        self.assertEquals(self.joe.username, context['user'].username,
                           'the user view should return a dict with user with '
-                          '"username" set to %s ' % self.commander.username)
+                          '"username" set to %s ' % self.joe.username)
         self.assertEquals([], context['audits'],
                           'the user view should return a audits list')
 

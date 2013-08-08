@@ -14,26 +14,14 @@ from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
 from treemap.audit import Audit, ReputationMetric
 from treemap.management.commands.migrate_otm1 import hash_to_model
 
-from treemap.tests import (make_loaded_role, make_instance, make_god_role,
+from treemap.tests import (make_instance, make_god_user, make_commander_user,
                            make_simple_boundary, make_commander_role)
 
 
 class HashModelTest(TestCase):
     def setUp(self):
         self.instance = make_instance()
-        self.user = User(username='user', password='pw')
-        self.user.save()
-
-        permissions = (
-            ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
-            ('Plot', 'width', FieldPermission.WRITE_DIRECTLY),
-            ('Plot', 'length', FieldPermission.WRITE_DIRECTLY),
-            ('Plot', 'address_street', FieldPermission.WRITE_DIRECTLY),
-            ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
-            ('Tree', 'readonly', FieldPermission.WRITE_DIRECTLY))
-
-        self.user.roles.add(
-            make_loaded_role(self.instance, "custom", 0, permissions))
+        self.user = make_commander_user(self.instance)
 
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
@@ -91,22 +79,7 @@ class GeoRevIncr(TestCase):
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
         self.instance = make_instance()
-        self.user = User(username='user', password='pw')
-        self.user.save()
-
-        permissions = (
-            ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
-            ('Plot', 'width', FieldPermission.WRITE_DIRECTLY),
-            ('Plot', 'length', FieldPermission.WRITE_DIRECTLY),
-            ('Plot', 'address_street', FieldPermission.WRITE_DIRECTLY),
-            ('Plot', 'address_city', FieldPermission.WRITE_DIRECTLY),
-            ('Plot', 'address_zip', FieldPermission.WRITE_DIRECTLY),
-            ('Plot', 'import_event', FieldPermission.WRITE_DIRECTLY),
-            ('Plot', 'owner_orig_id', FieldPermission.WRITE_DIRECTLY),
-            ('Plot', 'readonly', FieldPermission.WRITE_DIRECTLY))
-
-        self.user.roles.add(
-            make_loaded_role(self.instance, "custom", 0, permissions))
+        self.user = make_commander_user(self.instance)
 
     def hash_and_rev(self):
         i = Instance.objects.get(pk=self.instance.pk)
@@ -318,10 +291,7 @@ class PlotFullAddressTests(TestCase):
 class MigrationCommandTests(TestCase):
     def setUp(self):
         self.instance = make_instance()
-
-        self.god = User(username="god", password='pw')
-        self.god.save()
-        self.god.roles.add(make_god_role(self.instance))
+        self.god = make_god_user(self.instance)
 
         self.tree_blob = """
         {"pk": 95,
