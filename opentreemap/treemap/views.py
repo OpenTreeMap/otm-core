@@ -2,6 +2,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import string
+
 import urllib
 import locale
 import hashlib
@@ -273,9 +275,18 @@ def species_list(request, instance):
     species_set = Species.objects.order_by('common_name')[:max_items]
 
     # Split names by space so that "el" will match common_name="Delaware Elm"
-    tokenize = lambda s: [token for name in
-                          (s.common_name, s.genus, s.species, s.cultivar_name)
-                          for token in (name.split() if name else [])]
+    def tokenize(species):
+        names = (species.common_name, species.genus,
+                 species.species, species.cultivar_name)
+
+        tokens = []
+
+        for name in names:
+            if name:
+                tokens.extend(name.split())
+
+        # Names are sometimes in quotes, which should be stripped
+        return [token.strip(string.punctuation) for token in tokens]
 
     return [{'common_name': species.common_name,
              'id': species.pk,

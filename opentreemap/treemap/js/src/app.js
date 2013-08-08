@@ -6,29 +6,16 @@ var $ = require('jquery'),
     Bacon = require('baconjs'),
 
     Search = require('./search'),
-    otmTypeahead = require('./otm.typeahead'),
-    makeLayerFilterable = require('./makeLayerFilterable');
+    otmTypeahead = require('./otmTypeahead'),
+    makeLayerFilterable = require('./makeLayerFilterable'),
+
+    isEnterKey = require('./baconUtils').isEnterKey,
+    truthyOrError = require('./baconUtils').truthyOrError;
 
 // These modules add features to the OpenLayers global
 // so we do not need `var thing =`
 require('./openLayersUtfGridEventStream');
 require('./openLayersMapEventStream');
-
-$.extend($.fn, Bacon.$);
-
-/* BEGIN BACON HELPERS */
-
-function keyCodeIs(keyCode) {
-    return function(event) { return event.which === keyCode; };
-}
-
-var isEnterKey = keyCodeIs(13);
-
-var truthyOrError = function (value) {
-    return !!value ? value : Bacon.Error('The value ' + value + ' is not truthy');
-};
-
-/* END BACON HELPERS */
 
 var app = {
     createMap: function (elmt, config) {
