@@ -128,9 +128,14 @@ def create_plot(user, instance, *args, **kwargs):
 def plot_detail(request, instance, plot_id):
     InstancePlot = instance.scope_model(Plot)
     plot = get_object_or_404(InstancePlot, pk=plot_id)
+    trees = Tree.objects.filter(plot=plot)
 
-    return {'plot': plot,
-            'recent_activity': _plot_audits(request.user, instance, plot)}
+    context = _tree_benefits_helper(trees, 1, instance)
+
+    context['plot'] = plot
+    context['recent_activity'] = _plot_audits(request.user, instance, plot)
+
+    return context
 
 
 def _get_audits(instance, query_vars, user, models, model_id, page=0,
@@ -336,8 +341,12 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
 
     plots = _execute_filter(instance, filter_str)
     trees = Tree.objects.filter(plot_id__in=plots)
-
     total_plots = plots.count()
+
+    return _tree_benefits_helper(trees, total_plots, instance, region)
+
+
+def _tree_benefits_helper(trees, total_plots, instance, region='PiedmtCLT'):
     total_trees = trees.count()
 
     trees_for_eco = trees.exclude(species__itree_code__isnull=True)\

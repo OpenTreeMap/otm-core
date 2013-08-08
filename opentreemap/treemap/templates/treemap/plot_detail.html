@@ -155,31 +155,13 @@
     <table class="table table-striped">
       <h5>{% trans "Yearly Ecosystem Services" %}</h5>
       <tbody>
+      {% for benefit in benefits %}
         <tr>
-          <td>{% trans "Stormwater Intercepted" %}</td>
-          <td>{{ benefits.stormwater }}</td>
-          <td>$??.??</td>
+          <td>{{ benefit.label }}</td>
+          <td>{{ benefit.value }} {{ benefit.unit}}</td>
+          <td>{{ currency_symbol }}{{ benefit.currency_saved }}</td>
         </tr>
-        <tr>
-          <td>{% trans "Energy Conserved" %}</td>
-          <td>{{ benefits.energy }}</td>
-          <td>$??.??</td>
-        </tr>
-        <tr>
-          <td>{% trans "Air pollutants removed" %}</td>
-          <td>{{ benefits.airquality }}</td>
-          <td>$??.??</td>
-        </tr>
-        <tr>
-          <td>{% trans "Carbon dioxide reduced" %}</td>
-          <td>{{ benefits.co2 }}</td>
-          <td>$??.??</td>
-        </tr>
-        <tr>
-          <td>{% trans "Total Co2 stored to date" %}</td>
-          <td>??? lbs</td>
-          <td>$??.??</td>
-        </tr>
+      {% endfor %}
       </tbody>
     </table>
     <hr>
