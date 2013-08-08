@@ -161,7 +161,19 @@ class UserTrackingException(Exception):
     pass
 
 
-class UserTrackable(object):
+class Dictable(object):
+    def as_dict(self):
+        return model_to_dict(self, fields=[field.name for field in
+                                           self._meta.fields])
+
+    @property
+    def hash(self):
+        values = ['%s:%s' % (k, v) for (k, v) in self.as_dict().iteritems()]
+
+        return hashlib.md5('|'.join(values)).hexdigest()
+
+
+class UserTrackable(Dictable):
     def __init__(self, *args, **kwargs):
         self._do_not_track = []
 
@@ -175,9 +187,6 @@ class UserTrackable(object):
         else:
             self._previous_state = self.as_dict()
 
-    def as_dict(self):
-        return model_to_dict(self, fields=[field.name for field in
-                                           self._meta.fields])
 
     def apply_change(self, key, orig_value):
         setattr(self, key, orig_value)

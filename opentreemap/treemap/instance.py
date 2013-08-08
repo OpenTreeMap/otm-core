@@ -41,6 +41,9 @@ class Instance(models.Model):
     """
     geo_rev = models.IntegerField(default=1)
 
+    eco_benefits_conversion = models.ForeignKey(
+        'BenefitCurrencyConversion', null=True, blank=True)
+
     """ Center of the map when loading the instance """
     center = models.PointField(srid=3857)
 

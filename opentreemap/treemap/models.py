@@ -9,13 +9,44 @@ from django.db import IntegrityError
 
 from django.contrib.auth.models import AbstractUser
 
-from treemap.audit import Auditable, Authorizable, FieldPermission, Role
+from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
+                           Dictable)
 
 import hashlib
 import re
 
 from treemap.udf import UDFModel, GeoHStoreManager
 from treemap.instance import Instance
+
+
+class BenefitCurrencyConversion(Dictable, models.Model):
+    """
+    These conversion factors are used to convert a unit of benefit
+    into a currency unit.
+
+    While there is currently a 1-to-1 relationship between a given
+    benefit currency conversion and an instance, this provides an
+    easy way to note that there is no conversion available (setting
+    the FK to None). It also provides a mechanism for naming different
+    conversions or working with geography in the future
+    """
+
+    """
+    Symbol to display ($,£, etc)
+    """
+    currency_symbol = models.CharField(max_length=5)
+
+    kwh_to_currency = models.FloatField()
+    stormwater_gal_to_currency = models.FloatField()
+    carbon_dioxide_lb_to_currency = models.FloatField()
+
+    """
+    Air quality is currently a mixture of:
+    NOx, PM10, SOx, VOC and BVOX so this conversion
+    should try to assign an aggregate (weighted) conversion
+    factor.
+    """
+    airquality_aggregate_lb_to_currency = models.FloatField()
 
 
 class User(Auditable, AbstractUser):
