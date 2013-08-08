@@ -6,19 +6,19 @@ from __future__ import division
 from django.test import TestCase
 from django.core.exceptions import FieldError, ValidationError
 
-from treemap.models import (Tree, User, Instance, Plot, Species,
-                            FieldPermission)
+from treemap.models import (Tree, Instance, Plot, Species, FieldPermission)
 
-from treemap.audit import (Audit, Role, UserTrackingException,
+from treemap.audit import (Audit, UserTrackingException,
                            AuthorizeException, ReputationMetric,
                            approve_or_reject_audit_and_apply,
                            get_id_sequence_name)
 
 from django.contrib.gis.geos import Point
 
-from treemap.tests import (make_instance, make_commander_role,
-                           make_officer_role, make_observer_role,
-                           make_apprentice_role, make_loaded_role)
+from treemap.tests import (make_instance, make_user_with_default_role,
+                           make_user_and_role, make_commander_user,
+                           make_officer_user, make_observer_user,
+                           make_apprentice_user)
 
 
 class ScopeModelTest(TestCase):
@@ -34,8 +34,7 @@ class ScopeModelTest(TestCase):
         self.p2 = Point(-7515222.0, 3953200.0)
 
         self.instance1 = make_instance()
-        self.user = User(username='auser', password='pw')
-        self.user.save()
+        self.user = make_user_with_default_role(self.instance1, 'auser')
         self.global_role = self.instance1.default_role
 
         self.instance2 = Instance(name='i2', geo_rev=1, center=self.p2,
@@ -102,12 +101,7 @@ class ScopeModelTest(TestCase):
 class AuditTest(TestCase):
 
     def setUp(self):
-
-        self.instance = make_instance()
-        self.user1 = User(username='charles', password='pw')
-        self.user1.save()
-        self.user2 = User(username='amy', password='pw')
-        self.user2.save()
+        inst = self.instance = make_instance()
 
         permissions = (
             ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
@@ -121,11 +115,8 @@ class AuditTest(TestCase):
             ('Tree', 'date_planted', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'date_removed', FieldPermission.WRITE_DIRECTLY))
 
-        self.user1.roles.add(make_loaded_role(self.instance,
-                                              "custom1", 3, permissions))
-
-        self.user2.roles.add(make_loaded_role(self.instance,
-                                              "custom2", 3, permissions))
+        self.user1 = make_user_and_role(inst, 'charles', 'role1', permissions)
+        self.user2 = make_user_and_role(inst, 'amy', 'role2', permissions)
 
     def assertAuditsEqual(self, exps, acts):
         self.assertEqual(len(exps), len(acts))
@@ -227,21 +218,10 @@ class AuditTest(TestCase):
 class PendingTest(TestCase):
     def setUp(self):
         self.instance = make_instance()
-        self.commander_user = User(username='commander', password='pw')
-        self.commander_user.save()
-        self.commander_user.roles.add(make_commander_role(self.instance))
-
-        self.direct_user = User(username="user_write_direct", password='pw')
-        self.direct_user.save()
-        self.direct_user.roles.add(make_officer_role(self.instance))
-
-        self.pending_user = User(username="user_pdg", password='pw')
-        self.pending_user.save()
-        self.pending_user.roles.add(make_apprentice_role(self.instance))
-
-        self.observer_user = User(username="user_obs", password='pw')
-        self.observer_user.save()
-        self.observer_user.roles.add(make_observer_role(self.instance))
+        self.commander_user = make_commander_user(self.instance)
+        self.direct_user = make_officer_user(self.instance)
+        self.pending_user = make_apprentice_user(self.instance)
+        self.observer_user = make_observer_user(self.instance)
 
         self.p1 = Point(-7615441.0, 5953519.0)
         self.plot = Plot(geom=self.p1, instance=self.instance)
@@ -364,17 +344,9 @@ class ReputationTest(TestCase):
     def setUp(self):
         self.instance = make_instance()
 
-        self.commander = User(username='commander', password='pw')
-        self.commander.save()
-        self.commander.roles.add(make_commander_role(self.instance))
-
-        self.privileged_user = User(username="user1", password='pw')
-        self.privileged_user.save()
-        self.privileged_user.roles.add(make_officer_role(self.instance))
-
-        self.unprivileged_user = User(username="user2", password='pw')
-        self.unprivileged_user.save()
-        self.unprivileged_user.roles.add(make_apprentice_role(self.instance))
+        self.commander = make_commander_user(self.instance)
+        self.privileged_user = make_officer_user(self.instance)
+        self.unprivileged_user = make_apprentice_user(self.instance)
 
         self.p1 = Point(-7615441.0, 5953519.0)
         self.plot = Plot(geom=self.p1, instance=self.instance)
@@ -396,39 +368,17 @@ class ReputationTest(TestCase):
 
 class UserRoleFieldPermissionTest(TestCase):
     def setUp(self):
-        self.p1 = Point(-8515941.0, 4953519.0)
         self.instance = make_instance()
+        self.commander = make_commander_user(self.instance)
+        self.officer = make_officer_user(self.instance)
+        self.observer = make_observer_user(self.instance)
+        self.outlaw = make_user_with_default_role(self.instance, 'outlaw')
 
-        self.outlaw_role = Role(name='outlaw', instance=self.instance,
-                                rep_thresh=1)
-
-        self.outlaw_role.save()
-
-        self.commander = User(username="commander", password='pw')
-        self.commander.save()
-        self.commander.roles.add(make_commander_role(self.instance))
-
-        self.officer = User(username="officer", password='pw')
-        self.officer.save()
-        self.officer.roles.add(make_officer_role(self.instance))
-
-        self.observer = User(username="observer", password='pw')
-        self.observer.save()
-        self.observer.roles.add(make_observer_role(self.instance))
-
-        self.outlaw = User(username="outlaw", password='pw')
-        self.outlaw.save()
-        self.outlaw.roles.add(self.outlaw_role)
-
-        self.anonymous = User(username="annon", password='pw')
-        self.anonymous.save()
-
+        self.p1 = Point(-8515941.0, 4953519.0)
         self.plot = Plot(geom=self.p1, instance=self.instance)
-
         self.plot.save_with_user(self.officer)
 
         self.tree = Tree(plot=self.plot, instance=self.instance)
-
         self.tree.save_with_user(self.officer)
 
     def test_no_permission_cant_edit_object(self):

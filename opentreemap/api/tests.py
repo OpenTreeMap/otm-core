@@ -19,7 +19,6 @@ import urllib
 from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 
 from treemap.models import Species, Plot, Tree, User
-from treemap.tests import make_commander_role, make_apprentice_role
 from treemap.audit import ReputationMetric, Audit
 
 from api.models import APIKey, APILog
@@ -174,15 +173,7 @@ class Signing(TestCase):
 class Authentication(TestCase):
     def setUp(self):
         setupTreemapEnv()
-
         self.u = User.objects.get(username="jim")
-        self.u.set_password("password")
-        self.u.save()
-
-        amy = User.objects.get(username="amy")
-        amy.set_password("password")
-        amy.save()
-
         self.sign = create_signer_dict(self.u)
 
     def test_401(self):
@@ -220,18 +211,12 @@ class Authentication(TestCase):
         self.assertEqual(ret.status_code, 401)
 
     def test_user_has_rep(self):
+        jim = User.objects.get(username="jim")
+        jim.reputation = 1001
+        jim.save()
 
-        carol = User(username='carol',
-                     email="%s@test.org" % 'carol',
-                     password='carol')
-
-        carol.reputation = 1001
-        carol.set_password('carol')
-        carol.save()
-
-        auth = base64.b64encode("%s:%s" %
-                                (carol.username, carol.username))
-        withauth = dict(create_signer_dict(carol).items() +
+        auth = base64.b64encode("jim:password")
+        withauth = dict(create_signer_dict(jim).items() +
                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
         ret = self.client.get("%s/login" % API_PFX, **withauth)
@@ -240,7 +225,7 @@ class Authentication(TestCase):
 
         json = loads(ret.content)
 
-        self.assertEqual(json['username'], carol.username)
+        self.assertEqual(json['username'], jim.username)
         self.assertEqual(json['status'], 'success')
         self.assertEqual(json['reputation'], 1001)
 
@@ -305,11 +290,7 @@ class Version(TestCase):
 class PlotListing(TestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
-
-        self.u = User(username='user', password='pw')
-        self.u.save()
-        self.u.roles.add(make_commander_role(self.instance))
-
+        self.u = User.objects.get(username="commander")
         self.sign = create_signer_dict(self.u)
         self.client = Client()
 
@@ -525,9 +506,7 @@ class PlotListing(TestCase):
 class Locations(TestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
-
-        self.user = User.objects.get(username="jim")
-        self.user.roles.add(make_commander_role(self.instance))
+        self.user = User.objects.get(username="commander")
         self.sign = create_signer_dict(self.user)
 
     def test_locations_plots_endpoint_with_auth(self):
@@ -603,13 +582,9 @@ class CreatePlotAndTree(TestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
 
-        self.user = User.objects.get(username="jim")
-        self.user.set_password("password")
-        self.user.roles.add(make_commander_role(self.instance))
-        self.user.save()
-
+        self.user = User.objects.get(username="commander")
         self.sign = create_signer_dict(self.user)
-        auth = base64.b64encode("jim:password")
+        auth = base64.b64encode("commander:password")
         self.sign = dict(self.sign.items() +
                          [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
@@ -734,22 +709,16 @@ class UpdatePlotAndTree(TestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
 
-        self.user = User.objects.get(username="jim")
-        self.user.set_password("password")
-        self.user.roles.add(make_commander_role(self.instance))
-        self.user.save()
+        self.user = User.objects.get(username="commander")
         self.sign = create_signer_dict(self.user)
-        auth = base64.b64encode("jim:password")
+        auth = base64.b64encode("commander:password")
         self.sign = dict(self.sign.items() +
                          [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
-        self.public_user = User.objects.get(username="amy")
-        self.public_user.set_password("password")
-        self.public_user.roles = [make_apprentice_role(self.instance)]
-        self.public_user.save()
+        self.public_user = User.objects.get(username="apprentice")
 
         self.public_user_sign = create_signer_dict(self.public_user)
-        public_user_auth = base64.b64encode("amy:password")
+        public_user_auth = base64.b64encode("apprentice:password")
         self.public_user_sign = dict(
             self.public_user_sign.items() +
             [("HTTP_AUTHORIZATION", "Basic %s" % public_user_auth)])
@@ -1373,8 +1342,6 @@ class VersionHeaderParsing(TestCase):
 #     def setUp(self):
 #         setupTreemapEnv()
 #         self.user = User.objects.get(username="jim")
-#         self.user.set_password("password")
-#         self.user.save()
 #         self.sign = create_signer_dict(self.user)
 #         auth = base64.b64encode("jim:password")
 #         self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION",
