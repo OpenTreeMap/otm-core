@@ -88,6 +88,7 @@ def _make_permissions(field_permission):
         ('Tree', 'date_removed', field_permission))
     return permissions
 
+
 def make_god_role(instance):
     """
     In principle, the god role is able to edit all fields, even things
@@ -160,26 +161,32 @@ def make_observer_role(instance):
 
 def _make_user(instance, username, make_role=None):
     user = User(username=username)
-    user.set_password("password") # hashes password, allowing authentication
+    user.set_password("password")  # hashes password, allowing authentication
     user.save()
     role = make_role(instance) if make_role else instance.default_role
     user.roles.add(role)
     return user
 
+
 def make_god_user(instance, username='god'):
     return _make_user(instance, username, make_god_role)
+
 
 def make_commander_user(instance, username='commander'):
     return _make_user(instance, username, make_commander_role)
 
+
 def make_officer_user(instance, username='officer'):
     return _make_user(instance, username, make_officer_role)
+
 
 def make_apprentice_user(instance, username='apprentice'):
     return _make_user(instance, username, make_apprentice_role)
 
+
 def make_observer_user(instance, username='observer'):
     return _make_user(instance, username, make_observer_role)
+
 
 def make_user_with_default_role(instance, username):
     return _make_user(instance, username)

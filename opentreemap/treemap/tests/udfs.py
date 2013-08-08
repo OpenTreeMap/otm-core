@@ -11,11 +11,11 @@ from django.core.exceptions import ValidationError
 
 from django.contrib.gis.geos import Point
 
-from treemap.tests import (make_instance, make_commander_user,\
+from treemap.tests import (make_instance, make_commander_user,
                            add_field_permissions)
 
 from treemap.udf import UserDefinedFieldDefinition
-from treemap.models import User, Plot
+from treemap.models import Plot
 from treemap.audit import (AuthorizeException, FieldPermission,
                            approve_or_reject_audit_and_apply)
 

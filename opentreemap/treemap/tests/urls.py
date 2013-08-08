@@ -4,7 +4,8 @@ from django.contrib.gis.geos.point import Point
 from django.test import TestCase
 
 from treemap.models import Plot
-from treemap.tests import (make_instance, make_commander_user, make_simple_boundary)
+from treemap.tests import (make_instance, make_commander_user,
+                           make_simple_boundary)
 from opentreemap.local_settings import STATIC_ROOT
 
 

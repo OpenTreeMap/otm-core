@@ -26,6 +26,7 @@ def _plot_hash(request, instance, plot_id):
     instance_plots = instance.scope_model(Plot)
     return get_object_or_404(instance_plots, pk=plot_id).hash
 
+
 def _search_hash(request, instance):
     audits = instance.scope_model(Audit)\
                      .order_by('-updated')
@@ -33,6 +34,7 @@ def _search_hash(request, instance):
     string_to_hash = str(audits[0].pk)
 
     return hashlib.md5(string_to_hash).hexdigest()
+
 
 #
 # These are calls made by the API that aren't currently implemented
