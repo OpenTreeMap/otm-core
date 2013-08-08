@@ -50,10 +50,7 @@ class BenefitCurrencyConversion(Dictable, models.Model):
     airquality_aggregate_lb_to_currency = models.FloatField()
 
 
-class User(Auditable, AbstractUser):
-    roles = models.ManyToManyField(Role, blank=True, null=True)
-    reputation = models.IntegerField(default=0)
-
+class User(AbstractUser):
     _system_user = None
 
     @classmethod
@@ -159,6 +156,16 @@ class InstanceSpecies(Auditable, models.Model):
 
     def __unicode__(self):
         return self.common_name
+
+
+class InstanceUser(Auditable, models.Model):
+    instance = models.ForeignKey(Instance)
+    user = models.ForeignKey(User)
+    role = models.ForeignKey(Role)
+    reputation = models.IntegerField(default=0)
+
+    def __unicode__(self):
+        return '%s/%s' % (self.user.get_username(), self.instance.name)
 
 
 class ImportEvent(models.Model):
