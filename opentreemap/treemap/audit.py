@@ -738,18 +738,20 @@ class ReputationMetric(models.Model):
         except ObjectDoesNotExist:
             return
 
+        iuser = audit.user.get_instance_user(audit.instance)
+
         if audit.was_reviewed():
             review_audit = audit.ref_id
             if review_audit.action == Audit.Type.PendingApprove:
-                audit.user.reputation += rm.approval_score
-                audit.user.save_base()
+                iuser.reputation += rm.approval_score
+                iuser.save_base()
             elif review_audit.action == Audit.Type.PendingReject:
-                new_score = audit.user.reputation - rm.denial_score
+                new_score = iuser.reputation - rm.denial_score
                 if new_score >= 0:
-                    audit.user.reputation = new_score
+                    iuser.reputation = new_score
                 else:
-                    audit.user.reputation = 0
-                audit.user.save_base()
+                    iuser.reputation = 0
+                iuser.save_base()
             else:
                 error_message = ("Referenced Audits must carry approval "
                                  "actions. They must have an action of "
@@ -758,8 +760,8 @@ class ReputationMetric(models.Model):
                                  "database configuration.")
                 raise IntegrityError(error_message)
         elif not audit.requires_auth:
-            audit.user.reputation += rm.direct_write_score
-            audit.user.save_base()
+            iuser.reputation += rm.direct_write_score
+            iuser.save_base()
 
 
 @receiver(pre_save, sender=Audit)

@@ -84,7 +84,7 @@ class ScalarUDFAuditTest(TestCase):
 
         self.assertEqual(len(pending), 0)
 
-        role = self.commander_user.roles.all()[0]
+        role = self.commander_user.get_role(self.instance)
         fp, _ = FieldPermission.objects.get_or_create(
             model_name='Plot', field_name='Test unauth',
             permission_level=FieldPermission.WRITE_WITH_AUDIT,

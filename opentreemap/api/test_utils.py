@@ -95,9 +95,7 @@ def setupTreemapEnv():
 
 
 def teardownTreemapEnv():
-    system_user = User.system_user()
-    system_user.roles = [make_commander_role(i)
-                         for i in Instance.objects.all()]
+    commander = User.objects.get(username="commander")
 
     for r in APILog.objects.all():
         r.delete()
@@ -106,10 +104,10 @@ def teardownTreemapEnv():
         r.delete()
 
     for r in Tree.objects.all():
-        r.delete_with_user(system_user)
+        r.delete_with_user(commander)
 
     for r in Plot.objects.all():
-        r.delete_with_user(system_user)
+        r.delete_with_user(commander)
 
     for r in Boundary.objects.all():
         r.delete()

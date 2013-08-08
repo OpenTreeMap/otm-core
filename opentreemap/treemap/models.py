@@ -50,7 +50,7 @@ class BenefitCurrencyConversion(Dictable, models.Model):
     airquality_aggregate_lb_to_currency = models.FloatField()
 
 
-class User(AbstractUser):
+class User(Auditable, AbstractUser):
     _system_user = None
 
     @classmethod
@@ -66,25 +66,26 @@ class User(AbstractUser):
 
         return User._system_user
 
-    def get_instance_permissions(self, instance, model_name=None):
-        roles = self.roles.filter(instance=instance)
-
-        if len(roles) > 1:
-            error_message = ("%s cannot have more than one role per"
-                             " instance. Something might be very "
-                             "wrong with your database configuration." %
-                             self.username)
-            raise IntegrityError(error_message)
-
-        elif len(roles) == 1:
-            perms = FieldPermission.objects.filter(role=roles[0])
+    def get_instance_user(self, instance):
+        qs = InstanceUser.objects.filter(user=self, instance=instance)
+        if qs.count() == 1:
+            return qs[0]
+        elif qs.count() == 0:
+            msg = "Missing user/instance -- %s/%s" % (self, instance)
+            raise ValidationError(msg)
         else:
-            perms = FieldPermission.objects.filter(role=instance.default_role)
+            msg = ("User '%s' found more than once in instance '%s'"
+                   % (self, instance))
+            raise IntegrityError(msg)
 
-        if model_name:
-            perms = perms.filter(model_name=model_name)
+    def get_instance_permissions(self, instance, model_name=None):
+        return self.get_instance_user(instance).get_permissions(model_name)
 
-        return perms
+    def get_role(self, instance):
+        return self.get_instance_user(instance).role
+
+    def get_reputation(self, instance):
+        return self.get_instance_user(instance).reputation
 
     def clean(self):
         if re.search('\\s', self.username):
@@ -163,6 +164,18 @@ class InstanceUser(Auditable, models.Model):
     user = models.ForeignKey(User)
     role = models.ForeignKey(Role)
     reputation = models.IntegerField(default=0)
+
+    def get_permissions(self, model_name=None):
+        perms = FieldPermission.objects.filter(role=self.role)
+
+        if model_name:
+            perms = perms.filter(model_name=model_name)
+
+        return perms
+
+    def save(self):
+        self.full_clean()
+        self.save_with_user(User.system_user())
 
     def __unicode__(self):
         return '%s/%s' % (self.user.get_username(), self.instance.name)
