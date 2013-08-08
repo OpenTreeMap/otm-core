@@ -5,7 +5,7 @@ from __future__ import division
 from ecobenefits.views import tree_benefits
 from django.test.client import RequestFactory
 
-from treemap.models import User, Plot, Tree, Species
+from treemap.models import Plot, Tree, Species
 from django.contrib.gis.geos import Point
 from treemap.tests import UrlTestCase, make_instance, make_commander_user
 
