@@ -232,7 +232,7 @@ class Role(models.Model):
     rep_thresh = models.IntegerField()
 
     def __unicode__(self):
-        return self.name
+        return '%s (%s)' % (self.name, self.pk)
 
 
 class FieldPermission(models.Model):
@@ -368,6 +368,20 @@ class Authorizable(UserTrackable):
                 setattr(self, field_name, None)
 
         self._has_been_clobbered = True
+
+    def field_is_visible(self, user, field):
+        if user is None:
+            perms = self.instance.default_role.fieldpermission_set
+        else:
+            perms = user.get_instance_permissions(
+                self.instance, self._model_name)
+
+        perms = perms.filter(model_name=self._model_name)
+
+        return field in [perm.field_name
+                         for perm
+                         in perms
+                         if perm.allows_reads]
 
     @staticmethod
     def clobber_queryset(qs, user):

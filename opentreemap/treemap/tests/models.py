@@ -259,11 +259,11 @@ class ModelUnicodeTests(TestCase):
         self.assertEqual(unicode(self.boundary), 'Test Boundary')
 
     def test_role_model(self):
-        self.assertEqual(unicode(self.role), 'Test Role')
+        self.assertEqual(unicode(self.role), 'Test Role (%s)' % self.role.pk)
 
     def test_field_permission_model(self):
         self.assertEqual(unicode(self.field_permission),
-                         'Tree.readonly - Test Role')
+                         'Tree.readonly - Test Role (%s)' % self.role.pk)
 
     def test_audit_model(self):
         self.assertEqual(unicode(self.audit),
