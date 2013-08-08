@@ -286,10 +286,14 @@ class UDFModel(UserTrackable, models.Model):
             model_type=self._model_name)
 
     def apply_change(self, key, oldval):
-        if key in [field.name for field in self.get_user_defined_fields()]:
+        if key in self.udf_field_names:
             self.udf_scalar_values.set_raw(key, oldval)
         else:
             super(UDFModel, self).apply_change(key, oldval)
+
+    @property
+    def udf_field_names(self):
+        return [field.name for field in self.get_user_defined_fields()]
 
     def as_dict(self, *args, **kwargs):
         base_model_dict = super(UDFModel, self).as_dict(*args, **kwargs)
