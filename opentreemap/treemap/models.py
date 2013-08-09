@@ -11,7 +11,7 @@ from django.db import IntegrityError
 from django.contrib.auth.models import AbstractUser
 
 from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
-                           Dictable)
+                           Dictable, Audit)
 
 import hashlib
 import re
@@ -188,6 +188,27 @@ class Plot(Authorizable, Auditable, UDFModel):
     readonly = models.BooleanField(default=False)
 
     objects = GeoHStoreManager()
+
+    def get_tree_history(self):
+        """
+        Get a list of all tree ids that were ever assigned
+        to this plot
+        """
+        audits = Audit.objects.filter(instance=self.instance)\
+                              .filter(model='Tree')\
+                              .filter(field='plot')\
+                              .filter(current_value=self.pk)\
+                              .order_by('-updated')
+
+        model_ids = [audit.model_id for audit in audits]
+        model_ids_seen = set()
+
+        # Unique elements only
+        return [model_id
+                for model_id
+                in model_ids
+                if model_id not in model_ids_seen
+                and not model_ids_seen.add(model_id)]
 
     def current_tree(self):
         """

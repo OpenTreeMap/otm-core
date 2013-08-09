@@ -247,6 +247,35 @@ class ModelUnicodeTests(TestCase):
                          'Test Instance - Tree - Test Action')
 
 
+class PlotTest(TestCase):
+    def setUp(self):
+        self.instance = make_instance()
+        self.user = make_commander_user(self.instance)
+
+        self.p = Point(-7615441.0, 5953519.0)
+
+    def test_plot_history_shows_all_trees(self):
+        p = Plot(instance=self.instance, geom=self.p)
+        p.save_with_user(self.user)
+
+        self.assertEqual(p.get_tree_history(), [])
+
+        t = Tree(plot=p, instance=self.instance)
+        t.save_with_user(self.user)
+        tpk = t.pk
+
+        self.assertEqual(p.get_tree_history(), [tpk])
+
+        t.delete_with_user(self.user)
+
+        self.assertEqual(p.get_tree_history(), [tpk])
+
+        t2 = Tree(plot=p, instance=self.instance)
+        t2.save_with_user(self.user)
+
+        self.assertEqual(p.get_tree_history(), [t2.pk, tpk])
+
+
 class PlotFullAddressTests(TestCase):
 
     def setUp(self):
