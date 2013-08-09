@@ -141,7 +141,28 @@
     {% endblock global_scripts %}
 
     {% block scripts %}
+    <script type="text/javascript">
+      (function(require) {
+        var $ = require("jquery"),
+        app = require("app");
+
+        $(function(){
+          app.init(otm.settings);
+        })
+      })(require);
+    </script>
     {% endblock scripts %}
+
+    {% verbatim %}
+    <script id="species-element-template" type="text/x-mustache-template">
+      <p>{{common_name}}</p>
+      <p>{{scientific_name}}</p>
+    </script>
+    <script id="boundary-element-template" type="text/x-mustache-template">
+      <p>{{name}}</p>
+      <p>{{category}}</p>
+    </script>
+    {% endverbatim %}
 
     {% block templates %}
     {% endblock templates %}
