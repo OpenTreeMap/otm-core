@@ -171,6 +171,33 @@ class PlotViewTest(ViewTestCase):
         self.assertEqual(insert_audit.model_id, tree.pk)
         self.assertEqual(insert_audit.action, Audit.Type.Insert)
 
+    def test_plot_with_tree(self):
+        species = Species(itree_code='CEM OTHER')
+        species.save()
+
+        plot_w_tree = Plot(geom=self.p, instance=self.instance)
+        plot_w_tree.save_with_user(self.user)
+
+        tree = Tree(plot=plot_w_tree, instance=self.instance,
+                    diameter=10, species=species)
+        tree.save_with_user(self.user)
+
+        context = plot_detail(self._make_request(user=self.user),
+                              self.instance, plot_w_tree.pk)
+
+        self.assertEquals(plot_w_tree, context['plot'])
+        self.assertIn('benefits', context)
+
+    def test_plot_without_tree(self):
+        plot_wo_tree = Plot(geom=self.p, instance=self.instance)
+        plot_wo_tree.save_with_user(self.user)
+
+        context = plot_detail(self._make_request(user=self.user),
+                              self.instance, plot_wo_tree.pk)
+
+        self.assertEquals(plot_wo_tree, context['plot'])
+        self.assertNotIn('benefits', context)
+
 
 class RecentEditsViewTest(TestCase):
 
@@ -610,7 +637,7 @@ class SearchTreeBenefitsTests(ViewTestCase):
         for benefit in benefits['benefits']:
             self.assertEqual(
                 benefit['currency_saved'],
-                '%d' % (float(benefit['value'])*2.0))
+                '%d' % (float(benefit['value']) * 2.0))
 
         self.assertEqual(benefits['currency_symbol'], '$')
 
