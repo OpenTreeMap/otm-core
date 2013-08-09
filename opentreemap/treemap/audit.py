@@ -6,6 +6,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 
 from django.forms.models import model_to_dict
+from django.utils.translation import ugettext as _
 
 from django.dispatch import receiver
 from django.db.models.signals import pre_save
@@ -685,6 +686,28 @@ class Audit(models.Model):
     def audits_for_object(clz, obj):
         return clz.audits_for_model(
             obj._model_name, obj.instance, obj.pk)
+
+    def short_descr(self):
+        if self.action == Audit.Type.Insert:
+            return _('%(username)s created a %(model)s') %\
+                {'username': self.user,
+                 'model': _(self.model).lower()}
+        elif self.action == Audit.Type.Update:
+            return _('%(username)s updated the %(model)s') %\
+                {'username': self.user,
+                 'model': _(self.model).lower()}
+        elif self.action == Audit.Type.Delete:
+            return _('%(username)s deleted the %(model)s') %\
+                {'username': self.user,
+                 'model': _(self.model).lower()}
+        elif self.action == Audit.Type.PendingApprove:
+            return _('%(username)s approved an edit on the %(model)s') %\
+                {'username': self.user,
+                 'model': _(self.model).lower()}
+        elif self.action == Audit.Type.PendingReject:
+            return _('%(username)s rejected an edit on the %(model)s') %\
+                {'username': self.user,
+                 'model': _(self.model).lower()}
 
     def dict(self):
         return {'model': self.model,
