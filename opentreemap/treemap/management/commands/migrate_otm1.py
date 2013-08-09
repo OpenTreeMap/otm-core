@@ -10,7 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.gis.geos import fromstr
 from django.conf import settings
 
-from treemap.models import (User, Plot, Tree, Species)
+from treemap.models import (User, Plot, Tree, Species, InstanceUser)
 from ._private import InstanceDataCommand
 
 # model specification:
@@ -182,22 +182,20 @@ def hash_to_model(model_name, data_hash, instance, user):
 
 
 @contextmanager
-def more_permissions(role, user, system_user):
+def more_permissions(user, instance, role):
     """
-    Temporarily adds more permissions to a user
+    Temporarily assign role to a user
 
     This is useful for odd CRUD events that take place
     outside of the normal context of the app, like imports
     and migrations.
     """
-    backup_roles = list(user.roles.all())
-    user.roles.clear()
-    user.roles.add(role)
-    user.save_with_user(system_user)
+    iuser = user.get_instance_user(instance)
+    iuser.roles = role
+    iuser.save()
     yield user
-    user.roles.remove(role)
-    user.roles.add(*backup_roles)
-    user.save_with_user(system_user)
+    iuser.roles = instance.default_role
+    iuser.save()
 
 
 def try_save_user_hash_to_model(model_name, model_hash,
@@ -216,7 +214,7 @@ def try_save_user_hash_to_model(model_name, model_hash,
     else:
         user = system_user
 
-    with more_permissions(god_role, user, system_user) as elevated_user:
+    with more_permissions(user, instance, god_role) as elevated_user:
         model.save_with_user(elevated_user)
 
     return model
@@ -252,6 +250,13 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
         model_key_map = dependency_id_maps.get(model_name, None)
         if model_key_map is not None:
             model_key_map[model_hash['pk']] = model.pk
+
+
+def create_instance_users(instance):
+    for user in User.objects.all():
+        iuser = InstanceUser(instance=instance, user=user,
+                             role=instance.default_role)
+        iuser.save()
 
 
 class Command(InstanceDataCommand):
@@ -334,6 +339,7 @@ class Command(InstanceDataCommand):
                                     dependency_id_maps,
                                     instance, system_user,
                                     save_with_system_user=True)
+            create_instance_users(instance)
 
         if json_hashes['species']:
             hashes_to_saved_objects('species', json_hashes['species'],
