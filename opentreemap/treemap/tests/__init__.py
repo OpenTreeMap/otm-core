@@ -221,8 +221,12 @@ def create_mock_system_user():
 
 
 class ViewTestCase(TestCase):
-    def _make_request(self, params={}):
-        return self.factory.get("hello/world", params)
+    def _make_request(self, params={}, user=None):
+        req = self.factory.get("hello/world", params)
+        if user is not None:
+            req.user = user
+
+        return req
 
     def setUp(self):
         self.factory = RequestFactory()
