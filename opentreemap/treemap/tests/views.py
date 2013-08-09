@@ -15,7 +15,7 @@ from treemap.audit import Role, Audit, approve_or_reject_audit_and_apply
 from treemap.models import (Instance, Species, User, Plot, Tree,
                             BenefitCurrencyConversion)
 
-from treemap.views import (species_list, boundary_to_geojson,
+from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, audits, user_audits,
                            search_tree_benefits, user, instance_user_view)
 
@@ -111,6 +111,65 @@ class BoundaryViewTest(ViewTestCase):
             self.instance)
 
         self.assertEqual(response, self.test_boundary_hashes[0:2])
+
+
+class PlotViewTest(ViewTestCase):
+
+    def setUp(self):
+        super(PlotViewTest, self).setUp()
+
+        self.instance = make_instance()
+        self.user = make_commander_user(self.instance)
+
+        self.p = Point(-7615441.0, 5953519.0)
+
+    def test_simple_audit_history(self):
+        plot = Plot(instance=self.instance, geom=self.p)
+        plot.save_with_user(self.user)
+
+        plot.width = 9
+        plot.save_with_user(self.user)
+
+        details = plot_detail(self._make_request(user=self.user),
+                              self.instance,
+                              plot.pk)
+
+        self.assertIn('recent_activity', details)
+
+        recent_activity = details['recent_activity']
+
+        audit = recent_activity[0]
+        self.assertEqual(audit.model, 'Plot')
+        self.assertEqual(audit.field, 'width')
+
+    def test_tree_audits_show_up_too(self):
+        plot = Plot(instance=self.instance, geom=self.p)
+        plot.save_with_user(self.user)
+
+        tree = Tree(instance=self.instance, plot=plot)
+        tree.save_with_user(self.user)
+
+        tree.readonly = True
+        tree.save_with_user(self.user)
+
+        details = plot_detail(self._make_request(user=self.user),
+                              self.instance,
+                              plot.pk)
+
+        self.assertIn('recent_activity', details)
+
+        recent_activity = details['recent_activity']
+        readonly_audit = recent_activity[0]
+        insert_audit = recent_activity[1]
+
+        self.assertEqual(readonly_audit.model, 'Tree')
+        self.assertEqual(readonly_audit.field, 'readonly')
+        self.assertEqual(readonly_audit.model_id, tree.pk)
+        self.assertEqual(readonly_audit.action, Audit.Type.Update)
+
+        self.assertEqual(insert_audit.model, 'Tree')
+        self.assertEqual(insert_audit.model_id, tree.pk)
+        self.assertEqual(insert_audit.action, Audit.Type.Insert)
 
 
 class RecentEditsViewTest(TestCase):

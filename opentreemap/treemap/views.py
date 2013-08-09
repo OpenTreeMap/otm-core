@@ -15,6 +15,7 @@ from django.views.decorators.http import etag
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
 from django.utils.translation import ugettext as _
+from django.db.models import Q
 
 from treemap.util import json_api_call, render_template, instance_request
 from treemap.search import create_filter
@@ -128,7 +129,8 @@ def plot_detail(request, instance, plot_id):
     InstancePlot = instance.scope_model(Plot)
     plot = get_object_or_404(InstancePlot, pk=plot_id)
 
-    return {'plot': plot}
+    return {'plot': plot,
+            'recent_activity': _plot_audits(request.user, instance, plot)}
 
 
 def _get_audits(instance, query_vars, user, models, model_id, page=0,
@@ -230,6 +232,28 @@ def audits(request, instance):
 
     return _get_audits(instance, request.REQUEST, user, models,
                        model_id, page, page_size, exclude_pending)
+
+
+def _plot_audits(user, instance, plot):
+    readable_plot_fields = plot.visible_fields(user)
+
+    plot_filter = Q(model='Plot', field__in=readable_plot_fields)
+
+    tree_visible_fields = Tree(instance=instance)\
+        .visible_fields(user)
+
+    # Get a history of trees that were on this plot
+    tree_history = plot.get_tree_history()
+
+    tree_filter = Q(model='Tree',
+                    field__in=tree_visible_fields,
+                    model_id__in=tree_history)
+
+    audits = Audit.objects.filter(instance=instance)\
+                          .filter(tree_filter | plot_filter)\
+                          .order_by('-updated')[:5]
+
+    return audits
 
 
 def user_audits(request, username):

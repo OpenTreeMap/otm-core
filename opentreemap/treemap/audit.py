@@ -311,7 +311,7 @@ class Authorizable(UserTrackable):
         """
         can_create = True
 
-        perm_set = self._write_perm_comparison_sets(user)[0]
+        perm_set, __ = self._write_perm_comparison_sets(user)
 
         for field in self._meta.fields:
             if ((not field.null and
@@ -394,7 +394,7 @@ class Authorizable(UserTrackable):
         self._assert_not_clobbered()
 
         if self.pk is not None:
-            writable_perms = self._write_perm_comparison_sets(user)[0]
+            writable_perms, __ = self._write_perm_comparison_sets(user)
             for field in self._updated_fields():
                 if ((field not in writable_perms and
                      field not in self._exempt_field_names)):
@@ -688,26 +688,18 @@ class Audit(models.Model):
             obj._model_name, obj.instance, obj.pk)
 
     def short_descr(self):
-        if self.action == Audit.Type.Insert:
-            return _('%(username)s created a %(model)s') %\
-                {'username': self.user,
-                 'model': _(self.model).lower()}
-        elif self.action == Audit.Type.Update:
-            return _('%(username)s updated the %(model)s') %\
-                {'username': self.user,
-                 'model': _(self.model).lower()}
-        elif self.action == Audit.Type.Delete:
-            return _('%(username)s deleted the %(model)s') %\
-                {'username': self.user,
-                 'model': _(self.model).lower()}
-        elif self.action == Audit.Type.PendingApprove:
-            return _('%(username)s approved an edit on the %(model)s') %\
-                {'username': self.user,
-                 'model': _(self.model).lower()}
-        elif self.action == Audit.Type.PendingReject:
-            return _('%(username)s rejected an edit on the %(model)s') %\
-                {'username': self.user,
-                 'model': _(self.model).lower()}
+        lang = {
+            Audit.Type.Insert: _('%(username)s created a %(model)s'),
+            Audit.Type.Update: _('%(username)s updated the %(model)s'),
+            Audit.Type.Delete: _('%(username)s deleted the %(model)s'),
+            Audit.Type.PendingApprove: _('%(username)s approved an '
+                                         'edit on the %(model)s'),
+            Audit.Type.PendingReject: _('%(username)s rejected an '
+                                        'edit on the %(model)s')
+        }
+
+        return lang[self.action] % {'username': self.user,
+                                    'model': _(self.model).lower()}
 
     def dict(self):
         return {'model': self.model,
