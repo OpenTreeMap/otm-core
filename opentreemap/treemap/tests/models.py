@@ -488,5 +488,4 @@ class InstanceUserModelTest(TestCase):
     def test_get_instance_user_fails(self):
         user = User(username='joe', password='pw')
         user.save()
-        self.assertRaises(ValidationError,
-                          user.get_instance_user, self.instance)
+        self.assertEqual(user.get_instance_user(self.instance), None)

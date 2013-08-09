@@ -71,21 +71,28 @@ class User(Auditable, AbstractUser):
         if qs.count() == 1:
             return qs[0]
         elif qs.count() == 0:
-            msg = "Missing user/instance -- %s/%s" % (self, instance)
-            raise ValidationError(msg)
+            return None
         else:
             msg = ("User '%s' found more than once in instance '%s'"
                    % (self, instance))
             raise IntegrityError(msg)
 
     def get_instance_permissions(self, instance, model_name=None):
-        return self.get_instance_user(instance).get_permissions(model_name)
+        role = self.get_role(instance)
+        perms = FieldPermission.objects.filter(role=role)
+        if model_name:
+            perms = perms.filter(model_name=model_name)
+        return perms
 
     def get_role(self, instance):
-        return self.get_instance_user(instance).role
+        iuser = self.get_instance_user(instance)
+        role = iuser.role if iuser else instance.default_role
+        return role
 
     def get_reputation(self, instance):
-        return self.get_instance_user(instance).reputation
+        iuser = self.get_instance_user(instance)
+        reputation = iuser.reputation if iuser else 0
+        return reputation
 
     def clean(self):
         if re.search('\\s', self.username):
@@ -164,14 +171,6 @@ class InstanceUser(Auditable, models.Model):
     user = models.ForeignKey(User)
     role = models.ForeignKey(Role)
     reputation = models.IntegerField(default=0)
-
-    def get_permissions(self, model_name=None):
-        perms = FieldPermission.objects.filter(role=self.role)
-
-        if model_name:
-            perms = perms.filter(model_name=model_name)
-
-        return perms
 
     def save(self):
         self.full_clean()
