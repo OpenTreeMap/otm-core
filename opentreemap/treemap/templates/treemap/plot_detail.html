@@ -1,5 +1,6 @@
 {% extends "instance_base.html" %}
 {% load i18n %}
+{% load audit_extras %}
 
 {% block page_title %} | {% trans "Planting Site" %} {{plot.pk}}{% endblock %}
 
@@ -47,30 +48,107 @@
     <table class="table table-striped">
       <h5>{% trans "General Tree Information" %}</h5>
       <tbody>
+        {% usercanread plot.current_tree "id" as value %}
         <tr>
           <td>{% trans "Tree Number" %}</td>
-          <td>{{ plot.current_tree.id }}</td>
+          <td>{{ value }}</td>
         </tr>
+        {% endusercanread %}
+        {% usercanread plot.current_tree "species" as species %}
         <tr>
           <td>{% trans "Scientific Name" %}</td>
-          <td><em>{{ plot.current_tree.species.scientific_name }}</em></td>
+          <td><em>{{ species.scientific_name }}</em></td>
         </tr>
+        {% endusercanread %}
+        {% usercanread plot.current_tree "species" as species %}
         <tr>
           <td>{% trans "Common Name" %}</td>
-          <td>{{ plot.current_tree.species.common_name }}</td>
+          <td>{{ species.common_name }}</td>
         </tr>
+        {% endusercanread %}
+        {% usercanread plot.current_tree "diameter" as diameter %}
         <tr>
           <td>{% trans "Trunk Diameter" %}</td>
-          <td>{{ plot.current_tree.diameter|floatformat }}</td>
+          <td>{{ diameter|floatformat }}</td>
         </tr>
+        {% endusercanread %}
+        {% usercanread plot.current_tree "height" as height %}
         <tr>
           <td>{% trans "Tree Height" %}</td>
-          <td>{{ plot.current_tree.height }}</td>
+          <td>{{ height }}</td>
         </tr>
+        {% endusercanread %}
+        {% usercanread plot.current_tree "canopy_height" as canopy_height %}
         <tr>
           <td>{% trans "Canopy Height" %}</td>
-          <td>{{ plot.current_tree.canopy_height }}</td>
+          <td>{{ canopy_height }}</td>
         </tr>
+        {% endusercanread %}
+        {% for udf_field in plot.current_tree.udf_field_names %}
+        {% usercanread plot.current_tree udf_field as udf_value %}
+        <tr>
+          <td>{{ udf_field }}</td>
+          <td>{{ udf_value }}</td>
+        </tr>
+        {% endusercanread %}
+        {% endfor %}
+      </tbody>
+    </table>
+    <hr>
+
+    <table class="table table-striped">
+      <h5>{% trans "General Plot Information" %}</h5>
+      <tbody>
+        {% usercanread plot "width" as width %}
+        <tr>
+          <td>{% trans "Width" %}</td>
+          <td>{{ width }}</td>
+        </tr>
+        {% endusercanread %}
+        {% usercanread plot "length" as length %}
+        <tr>
+          <td>{% trans "Length" %}</td>
+          <td>{{ length }}</td>
+        </tr>
+        {% endusercanread %}
+        {% usercanread plot "address_street" as addr %}
+        <tr>
+          <td>{% trans "Adresss" %}</td>
+          <td>{{ addr }}</td>
+        </tr>
+        {% endusercanread %}
+        {% usercanread plot "city" as city %}
+        <tr>
+          <td>{% trans "City" %}</td>
+          <td>{{ city }}</td>
+        </tr>
+        {% endusercanread %}
+        {% usercanread plot "zip" as zip %}
+        <tr>
+          <td>{% trans "Zip Code" %}</td>
+          <td>{{ zip }}</td>
+        </tr>
+        {% endusercanread %}
+        {% usercanread plot "owner_orig_id" as oid %}
+        <tr>
+          <td>{% trans "Original Owner Id" %}</td>
+          <td>{{ oid }}</td>
+        </tr>
+        {% endusercanread %}
+        {% usercanread plot "readonly" as ro %}
+        <tr>
+          <td>{% trans "Read Only" %}</td>
+          <td>{{ ro }}</td>
+        </tr>
+        {% endusercanread %}
+        {% for udf_field in plot.udf_field_names %}
+        {% usercanread plot udf_field as udf_value %}
+        <tr>
+          <td>{{ udf_field }}</td>
+          <td>{{ udf_value }}</td>
+        </tr>
+        {% endusercanread %}
+        {% endfor %}
       </tbody>
     </table>
     <hr>
