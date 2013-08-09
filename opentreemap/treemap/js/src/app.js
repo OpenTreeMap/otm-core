@@ -108,28 +108,67 @@ var app = {
         } else {
             return null;
         }
-    }
-};
+    },
 
-module.exports = {
-    init: function (config) {
-        var map = app.createMap($("#map")[0], config),
-            plotLayer = app.createPlotTileLayer(config),
-            boundsLayer = app.createBoundsTileLayer(config),
-            utfLayer = app.createPlotUTFLayer(config),
-            zoom = 0,
+    initTypeAheads: function(config) {
+        otmTypeahead.create({
+            name: "species",
+            url: "/" + config.instance.id + "/species",
+            input: "#species-typeahead",
+            template: "#species-element-template",
+            hidden: "#search-species"
+        });
+        otmTypeahead.create({
+            name: "boundaries",
+            url: "/" + config.instance.id + "/boundaries",
+            input: "#boundary-typeahead",
+            template: "#boundary-element-template",
+            hidden: "#boundary"
+        });
+    },
 
-            enterKeyPressStream = $('input[data-class="search"]')
+    searchEventStream: function() {
+        var enterKeyPressStream = $('input[data-class="search"]')
                 .asEventStream("keyup")
                 .filter(isEnterKey),
 
             performSearchClickStream = $("#perform-search")
                 .asEventStream("click"),
 
-            // The Bacon.later triggers an initial empty search when the page is initialized
-            // I tried Bacon.once but the search was not being executed
-            triggerEventStream = Bacon.later(1, true)
-                .merge(enterKeyPressStream.merge(performSearchClickStream));
+            triggerEventStream = enterKeyPressStream.merge(
+                performSearchClickStream);
+
+        return triggerEventStream;
+    },
+
+    redirectToSearchPage: function (config, query) {
+        query = JSON.stringify(query);
+
+        window.location.href =
+            '/' + config.instance.id + '/trees/?q=' + query;
+    }
+};
+
+module.exports = {
+    init: function (config) {
+        app.initTypeAheads(config);
+        app.searchEventStream()
+            .map(Search.buildSearch)
+            .onValue(app.redirectToSearchPage, config);
+    },
+
+    initMapPage: function (config) {
+        var map = app.createMap($("#map")[0], config),
+            plotLayer = app.createPlotTileLayer(config),
+            boundsLayer = app.createBoundsTileLayer(config),
+            utfLayer = app.createPlotUTFLayer(config),
+            zoom = 0,
+
+            // The Bacon.later triggers an initial empty search when the page is
+            // initialized I tried Bacon.once but the search was not being executed
+            searchEventStream = Bacon.later(1, true).merge(app.searchEventStream());
+
+        app.initTypeAheads(config);
 
         // Bing maps uses a 1-based zoom so XYZ layers
         // on the base map have a zoom offset that is
@@ -197,24 +236,9 @@ module.exports = {
         zoom = map.getZoomForResolution(76.43702827453613);
         map.setCenter(config.instance.center, zoom);
 
-        Search.init(triggerEventStream, config, function (filter) {
+        Search.init(searchEventStream, config, function (filter) {
             plotLayer.setFilter(filter);
             utfLayer.setFilter(filter);
-        });
-
-        otmTypeahead.create({
-            name: "species",
-            url: "/" + config.instance.id + "/species",
-            input: "#species-typeahead",
-            template: "#species-element-template",
-            hidden: "#search-species"
-        });
-        otmTypeahead.create({
-            name: "boundaries",
-            url: "/" + config.instance.id + "/boundaries",
-            input: "#boundary-typeahead",
-            template: "#boundary-element-template",
-            hidden: "#boundary"
         });
     }
 };
