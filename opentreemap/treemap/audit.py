@@ -310,7 +310,7 @@ class Authorizable(UserTrackable):
         """
         can_create = True
 
-        perm_set, _ = self._write_perm_comparison_sets(user)
+        perm_set = self._write_perm_comparison_sets(user)[0]
 
         for field in self._meta.fields:
             if ((not field.null and
@@ -369,7 +369,7 @@ class Authorizable(UserTrackable):
 
         self._has_been_clobbered = True
 
-    def field_is_visible(self, user, field):
+    def visible_fields(self, user):
         if user is None or user.is_anonymous():
             perms = self.instance.default_role.fieldpermission_set
         else:
@@ -378,10 +378,10 @@ class Authorizable(UserTrackable):
 
         perms = perms.filter(model_name=self._model_name)
 
-        return field in [perm.field_name
-                         for perm
-                         in perms
-                         if perm.allows_reads]
+        return [perm.field_name for perm in perms if perm.allows_reads]
+
+    def field_is_visible(self, user, field):
+        return field in self.visible_fields(user)
 
     @staticmethod
     def clobber_queryset(qs, user):
@@ -393,7 +393,7 @@ class Authorizable(UserTrackable):
         self._assert_not_clobbered()
 
         if self.pk is not None:
-            writable_perms, _ = self._write_perm_comparison_sets(user)
+            writable_perms = self._write_perm_comparison_sets(user)[0]
             for field in self._updated_fields():
                 if ((field not in writable_perms and
                      field not in self._exempt_field_names)):
@@ -447,11 +447,10 @@ class Auditable(UserTrackable):
         a.save()
 
     def get_active_pending_audits(self):
-        return Audit.objects.filter(model=self._model_name)\
-                            .filter(model_id=self.pk)\
-                            .filter(requires_auth=True)\
-                            .filter(ref_id__isnull=True)\
-                            .order_by('-created')
+        return self.audits()\
+                   .filter(requires_auth=True)\
+                   .filter(ref_id__isnull=True)\
+                   .order_by('-created')
 
     def save_with_user(self, user, *args, **kwargs):
 
