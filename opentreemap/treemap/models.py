@@ -172,9 +172,9 @@ class InstanceUser(Auditable, models.Model):
     role = models.ForeignKey(Role)
     reputation = models.IntegerField(default=0)
 
-    def save(self):
+    def save_with_user(self, user):
         self.full_clean()
-        self.save_with_user(User.system_user())
+        super(InstanceUser, self).save_with_user(user)
 
     def __unicode__(self):
         return '%s/%s' % (self.user.get_username(), self.instance.name)
