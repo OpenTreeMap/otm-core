@@ -100,6 +100,9 @@ def create_user(*args, **kwargs):
 
 
 def create_plot(user, instance, *args, **kwargs):
+    if 'height' in kwargs and kwargs['height'] > 1000:
+        return ["Height is too large."]
+
     if 'x' in kwargs and 'y' in kwargs:
         geom = Point(
             kwargs['x'],
@@ -117,10 +120,6 @@ def create_plot(user, instance, *args, **kwargs):
     if 'height' in kwargs:
         t = Tree(plot=p, instance=instance)
         t.height = kwargs['height']
-
-        if t.height > 1000:
-            return ["Height is too large."]
-
         t.save_with_user(user)
     return p
 
@@ -444,7 +443,10 @@ def user(request, username):
 
     audit_dict = _get_audits(instance, query_vars, user, ['Plot', 'Tree'], 0)
 
+    reputation = user.get_reputation(instance) if instance else None
+
     return {'user': user,
+            'reputation': reputation,
             'instance_id': instance_id,
             'audits': audit_dict['audits'],
             'next_page': audit_dict['next_page']}

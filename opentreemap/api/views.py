@@ -685,9 +685,10 @@ def user_to_dict(user):
     # what are these in OTM2 vs OTM1
     # user_type permissions need to be updated
     # is this even used in the app?
+    #TODO: reputation now needs an instance
     return {
         "id": user.pk,
-        "reputation": user.reputation,
+        #"reputation": user.reputation,
         "username": user.username
         #"permissions": list(user.get_all_permissions()),
         #"user_type": user_access_type(user)
