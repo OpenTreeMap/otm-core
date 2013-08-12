@@ -159,7 +159,7 @@ def make_observer_role(instance):
     return make_loaded_role(instance, 'observer', 2, permissions)
 
 
-def _make_user(instance, username, make_role=None):
+def make_user(instance, username, make_role=None):
     """
     Create a User with the given username, and an InstanceUser for the
     given instance. The InstanceUser's role comes from calling make_role()
@@ -175,34 +175,34 @@ def _make_user(instance, username, make_role=None):
 
 
 def make_god_user(instance, username='god'):
-    return _make_user(instance, username, make_god_role)
+    return make_user(instance, username, make_god_role)
 
 
 def make_commander_user(instance, username='commander'):
-    return _make_user(instance, username, make_commander_role)
+    return make_user(instance, username, make_commander_role)
 
 
 def make_officer_user(instance, username='officer'):
-    return _make_user(instance, username, make_officer_role)
+    return make_user(instance, username, make_officer_role)
 
 
 def make_apprentice_user(instance, username='apprentice'):
-    return _make_user(instance, username, make_apprentice_role)
+    return make_user(instance, username, make_apprentice_role)
 
 
 def make_observer_user(instance, username='observer'):
-    return _make_user(instance, username, make_observer_role)
+    return make_user(instance, username, make_observer_role)
 
 
 def make_user_with_default_role(instance, username):
-    return _make_user(instance, username)
+    return make_user(instance, username)
 
 
 def make_user_and_role(instance, username, rolename, permissions):
     def make_role(instance):
         return make_loaded_role(instance, rolename, 2, permissions)
 
-    return _make_user(instance, username, make_role)
+    return make_user(instance, username, make_role)
 
 
 def make_instance(name='i1'):
