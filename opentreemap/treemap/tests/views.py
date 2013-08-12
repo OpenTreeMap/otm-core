@@ -125,7 +125,7 @@ class RecentEditsViewTest(TestCase):
         self.pending_user = make_apprentice_user(self.instance)
         iuser = InstanceUser(instance=self.instance2, user=self.commander,
                              role=self.commander.get_role(self.instance))
-        iuser.save()
+        iuser.save_with_user(self.commander)
 
         self.p1 = Point(-7615441.0, 5953519.0)
         self.factory = RequestFactory()

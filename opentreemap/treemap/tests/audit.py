@@ -44,7 +44,7 @@ class ScopeModelTest(TestCase):
 
         iuser = InstanceUser(instance=self.instance2, user=self.user,
                              role=self.global_role)
-        iuser.save()
+        iuser.save_with_user(self.user)
 
         for i in [self.instance1, self.instance2]:
             FieldPermission(model_name='Plot', field_name='geom',

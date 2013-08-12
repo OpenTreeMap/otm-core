@@ -170,7 +170,7 @@ def make_user(instance, username, make_role=None):
     user.save()
     role = make_role(instance) if make_role else instance.default_role
     iuser = InstanceUser(instance=instance, user=user, role=role)
-    iuser.save()
+    iuser.save_with_user(user)
     return user
 
 
