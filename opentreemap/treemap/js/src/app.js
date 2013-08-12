@@ -127,14 +127,16 @@ var app = {
             url: "/" + config.instance.id + "/species",
             input: "#species-typeahead",
             template: "#species-element-template",
-            hidden: "#search-species"
+            hidden: "#search-species",
+            reverse: "id"
         });
         otmTypeahead.create({
             name: "boundaries",
             url: "/" + config.instance.id + "/boundaries",
             input: "#boundary-typeahead",
             template: "#boundary-element-template",
-            hidden: "#boundary"
+            hidden: "#boundary",
+            reverse: "id"
         });
     },
 
@@ -268,6 +270,8 @@ module.exports = {
         var builtSearchEvents = searchEventStream
                 .map(Search.buildSearch)
                 .merge(initialQueryBus);
+
+        initialQueryBus.onValue(Search.applySearchToDom);
 
         Search.init(builtSearchEvents, config, function (filter) {
             plotLayer.setFilter(filter);

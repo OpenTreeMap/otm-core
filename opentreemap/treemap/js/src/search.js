@@ -40,6 +40,17 @@ function updateSearchResults(newMarkup) {
     $('#benefit-values').html(benefitsMarkup);
 }
 
+exports.applySearchToDom = function (search) {
+    // Map 'key' (i.e. "species.id") to DOM (i.e. '#search-species)
+    var reverseElems = _.object(
+        _.map(elems, function(v,k) { return [v['restore-to'] || v['key'], k]; }));
+
+    _.each(search, function(pred, field) {
+        var $domElem = $(reverseElems[field]);
+        $domElem.trigger('restore', [_.values(pred)[0]]);
+    });
+};
+
 exports.buildSearch = function (stream) {
     return _.reduce(elems, function(preds, key_and_pred, id) {
         var val = $(id).val(),
