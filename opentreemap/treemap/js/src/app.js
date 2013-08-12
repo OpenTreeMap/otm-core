@@ -4,6 +4,7 @@ var $ = require('jquery'),
     _ = require('underscore'),
     OL = require('OpenLayers'),
     Bacon = require('baconjs'),
+    U = require('./utility'),
 
     Search = require('./search'),
     otmTypeahead = require('./otmTypeahead'),
@@ -17,28 +18,6 @@ var $ = require('jquery'),
 require('./openLayersUtfGridEventStream');
 require('./openLayersMapEventStream');
 
-function concat(s1, s2) {
-    return s1 + s2;
-}
-
-function pushState(url) {
-    history.pushState({}, '', url);
-}
-
-function parseQueryString() {
-    var match,
-        pl     = /\+/g,  // Regex for replacing addition symbol with a space
-        search = /([^&=]+)=?([^&]*)/g,
-        decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
-        query  = window.location.search.substring(1),
-        urlParams = {};
-
-    while ((match = search.exec(query))) {
-        urlParams[decode(match[1])] = decode(match[2]);
-    }
-
-    return urlParams;
-}
 
 var app = {
     createMap: function (elmt, config) {
@@ -275,7 +254,7 @@ module.exports = {
         zoom = map.getZoomForResolution(76.43702827453613);
         map.setCenter(config.instance.center, zoom);
 
-        var query = parseQueryString()['q'];
+        var query = U.parseQueryString()['q'];
         var initialSearch = {};
         if (query) {
             initialSearch = JSON.parse(query);
@@ -297,8 +276,8 @@ module.exports = {
 
         builtSearchEvents
             .map(JSON.stringify)
-            .map(concat, "?q=")
-            .onValue(pushState);
+            .map(U.concat, "?q=")
+            .onValue(U.pushState);
 
         initialQueryBus.push(initialSearch);
 
