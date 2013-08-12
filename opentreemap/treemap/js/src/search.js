@@ -19,7 +19,7 @@ var config,
               { 'key': 'tree.diameter',
                 'pred': 'MAX' }};
 
-function executeSearch(search_query) {
+function executeSearch(config, search_query) {
     var search = $.ajax({
         url: '/' + config.instance.id + '/benefit/search',
         data: {'q': search_query && Object.keys(search_query).length > 0 ?
@@ -63,23 +63,17 @@ exports.buildSearch = function (stream) {
 
 // Arguments
 //
-// triggerEventStream: a Bacon.js EventStream. The value
-//   of the item will be ignored and, instead, the current
-//   values of the search form fields will be scraped.
-//
-// otmConfig: The otm.settings config object
+// searchStream: a Bacon.js EventStream. The value
+//   of the item should be JSON generated from buildSearch
 //
 // applyFilter: Function to call when filter changes.
-exports.init = function(triggerEventStream, otmConfig, applyFilter) {
-    config = otmConfig;
-    var searchStream = triggerEventStream.map(exports.buildSearch);
-
+exports.init = function(searchStream, config, applyFilter) {
     searchStream.onValue(applyFilter);
 
     // Clear any previous search results
     searchStream.map('').onValue($('#search-results'), 'html');
 
     searchStream
-        .flatMap(executeSearch)
+        .flatMap(_.partial(executeSearch, config))
         .onValue(updateSearchResults);
 };

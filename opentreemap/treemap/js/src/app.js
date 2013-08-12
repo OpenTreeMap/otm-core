@@ -17,6 +17,21 @@ var $ = require('jquery'),
 require('./openLayersUtfGridEventStream');
 require('./openLayersMapEventStream');
 
+function parseQueryString() {
+    var match,
+        pl     = /\+/g,  // Regex for replacing addition symbol with a space
+        search = /([^&=]+)=?([^&]*)/g,
+        decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+        query  = window.location.search.substring(1),
+        urlParams = {};
+
+    while ((match = search.exec(query))) {
+        urlParams[decode(match[1])] = decode(match[2]);
+    }
+
+    return urlParams;
+}
+
 var app = {
     createMap: function (elmt, config) {
         var map = new OL.Map({
@@ -177,10 +192,7 @@ module.exports = {
             boundsLayer = app.createBoundsTileLayer(config),
             utfLayer = app.createPlotUTFLayer(config),
             zoom = 0,
-
-            // The Bacon.later triggers an initial empty search when the page is
-            // initialized I tried Bacon.once but the search was not being executed
-            searchEventStream = Bacon.later(1, true).merge(app.searchEventStream());
+            searchEventStream = app.searchEventStream();
 
         app.initTypeAheads(config);
 
@@ -255,9 +267,27 @@ module.exports = {
         zoom = map.getZoomForResolution(76.43702827453613);
         map.setCenter(config.instance.center, zoom);
 
-        Search.init(searchEventStream, config, function (filter) {
+        var query = parseQueryString()['q'];
+        var initialSearch = {};
+        if (query) {
+            initialSearch = JSON.parse(query);
+        }
+
+        // Use a bus to delay sending the initial signal
+        // seems like you could merge with Bacon.once(initialSearch)
+        // but that empirically doesn't work
+
+        var initialQueryBus = new Bacon.Bus();
+        var builtSearchEvents = searchEventStream
+                .map(Search.buildSearch)
+                .merge(initialQueryBus);
+
+        Search.init(builtSearchEvents, config, function (filter) {
             plotLayer.setFilter(filter);
             utfLayer.setFilter(filter);
         });
+
+        initialQueryBus.push(initialSearch);
+
     }
 };
