@@ -194,7 +194,7 @@ def more_permissions(user, instance, role):
     iuser.roles = role
     iuser.save()
     yield user
-    iuser.roles = instance.default_role
+    iuser.role = instance.default_role
     iuser.save()
 
 
