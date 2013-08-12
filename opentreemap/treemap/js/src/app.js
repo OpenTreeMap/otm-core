@@ -17,6 +17,14 @@ var $ = require('jquery'),
 require('./openLayersUtfGridEventStream');
 require('./openLayersMapEventStream');
 
+function concat(s1, s2) {
+    return s1 + s2;
+}
+
+function pushState(url) {
+    history.pushState({}, '', url);
+}
+
 function parseQueryString() {
     var match,
         pl     = /\+/g,  // Regex for replacing addition symbol with a space
@@ -286,6 +294,11 @@ module.exports = {
             plotLayer.setFilter(filter);
             utfLayer.setFilter(filter);
         });
+
+        builtSearchEvents
+            .map(JSON.stringify)
+            .map(concat, "?q=")
+            .onValue(pushState);
 
         initialQueryBus.push(initialSearch);
 
