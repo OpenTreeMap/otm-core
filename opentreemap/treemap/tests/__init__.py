@@ -8,7 +8,7 @@ from django.conf import settings
 
 from django.contrib.gis.geos import Point, Polygon
 
-from treemap.models import User
+from treemap.models import User, InstanceUser
 
 
 def make_simple_boundary(name, n=1):
@@ -62,7 +62,7 @@ def add_field_permissions(instance, user, model_type, field_names):
     permissions = ()
     for field in field_names:
         permissions += ((model_type, field, FieldPermission.WRITE_DIRECTLY),)
-    role = user.roles.filter(instance=instance)[0]
+    role = user.get_role(instance)
     _add_permissions(instance, role, permissions)
 
 
@@ -160,11 +160,17 @@ def make_observer_role(instance):
 
 
 def _make_user(instance, username, make_role=None):
+    """
+    Create a User with the given username, and an InstanceUser for the
+    given instance. The InstanceUser's role comes from calling make_role()
+    (if provided) or from the instance's default role.
+    """
     user = User(username=username)
     user.set_password("password")  # hashes password, allowing authentication
     user.save()
     role = make_role(instance) if make_role else instance.default_role
-    user.roles.add(role)
+    iuser = InstanceUser(instance=instance, user=user, role=role)
+    iuser.save()
     return user
 
 

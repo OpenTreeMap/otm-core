@@ -6,7 +6,8 @@ from __future__ import division
 from django.test import TestCase
 from django.core.exceptions import FieldError, ValidationError
 
-from treemap.models import (Tree, Instance, Plot, Species, FieldPermission)
+from treemap.models import (Tree, Instance, Plot, Species, FieldPermission,
+                            User, InstanceUser)
 
 from treemap.audit import (Audit, UserTrackingException,
                            AuthorizeException, ReputationMetric,
@@ -40,6 +41,10 @@ class ScopeModelTest(TestCase):
         self.instance2 = Instance(name='i2', geo_rev=1, center=self.p2,
                                   default_role=self.global_role)
         self.instance2.save()
+
+        iuser = InstanceUser(instance=self.instance2, user=self.user,
+                             role=self.global_role)
+        iuser.save()
 
         for i in [self.instance1, self.instance2]:
             FieldPermission(model_name='Plot', field_name='geom',
@@ -359,11 +364,13 @@ class ReputationTest(TestCase):
         rm.save()
 
     def test_reputations_increase_for_direct_writes(self):
-        self.assertEqual(self.privileged_user.reputation, 0)
+        self.assertEqual(self.privileged_user.get_reputation(self.instance), 0)
         t = Tree(plot=self.plot, instance=self.instance,
                  readonly=True)
         t.save_with_user(self.privileged_user)
-        self.assertGreater(self.privileged_user.reputation, 0)
+        user = User.objects.get(pk=self.privileged_user.id)
+        reputation = user.get_reputation(self.instance)
+        self.assertGreater(reputation, 0)
 
 
 class UserRoleFieldPermissionTest(TestCase):

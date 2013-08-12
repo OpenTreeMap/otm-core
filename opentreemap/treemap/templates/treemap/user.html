@@ -7,7 +7,9 @@
 <div>{% trans "Username:" %} {{ user.username }}</div>
 <div>{% trans "Name:" %} {{ user.first_name }} {{ user.last_name }}</div>
 <div>{% trans "Email:" %} {{ user.email }}</div>
-<div>{% trans "Reputation:" %} {{ user.reputation }}</div>
+{% if reputation %}
+<div>{% trans "Reputation:" %} {{ reputation }}</div>
+{% endif %}
 <div>{% trans "Instance:" %} {{ instance_id }}</div>
 
 <h3>{% trans "Recent Edits" %}</h3>

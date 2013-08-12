@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import datetime
+from django.core.exceptions import ValidationError
 
 import json
 
@@ -15,6 +16,7 @@ from treemap.audit import Audit, ReputationMetric
 from treemap.management.commands.migrate_otm1 import hash_to_model
 
 from treemap.tests import (make_instance, make_god_user, make_commander_user,
+                           make_user_with_default_role,
                            make_simple_boundary, make_commander_role)
 
 
@@ -499,3 +501,19 @@ class MigrationCommandTests(TestCase):
         self.assertEqual(tree.canopy_height, None)
         self.assertEqual(tree.date_planted, None)
         self.assertEqual(tree.date_removed, None)
+
+
+class InstanceUserModelTest(TestCase):
+    def setUp(self):
+        self.instance = make_instance()
+
+    def test_get_instance_user(self):
+        user = make_user_with_default_role(self.instance, 'user')
+        iuser = user.get_instance_user(self.instance)
+        self.assertEqual(iuser.user, user)
+        self.assertEqual(iuser.instance, self.instance)
+
+    def test_get_instance_user_fails(self):
+        user = User(username='joe', password='pw')
+        user.save()
+        self.assertEqual(user.get_instance_user(self.instance), None)
