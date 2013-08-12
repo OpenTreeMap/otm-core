@@ -13,7 +13,7 @@ from django.contrib.gis.geos import Point
 from treemap.audit import Role, Audit, approve_or_reject_audit_and_apply
 
 from treemap.models import (Instance, Species, User, Plot, Tree,
-                            BenefitCurrencyConversion)
+                            InstanceUser, BenefitCurrencyConversion)
 
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, audits, user_audits,
@@ -21,8 +21,7 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
-                           make_user_with_default_role, make_simple_boundary,
-                           make_commander_role)
+                           make_user_with_default_role, make_simple_boundary)
 
 
 class InstanceValidationTest(TestCase):
@@ -209,7 +208,9 @@ class RecentEditsViewTest(TestCase):
         self.officer = make_officer_user(self.instance)
         self.commander = make_commander_user(self.instance)
         self.pending_user = make_apprentice_user(self.instance)
-        self.commander.roles.add(make_commander_role(self.instance2))
+        iuser = InstanceUser(instance=self.instance2, user=self.commander,
+                             role=self.commander.get_role(self.instance))
+        iuser.save_with_user(self.commander)
 
         self.p1 = Point(-7615441.0, 5953519.0)
         self.factory = RequestFactory()

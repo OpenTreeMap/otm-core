@@ -5,7 +5,7 @@ import json
 
 from treemap.audit import FieldPermission, Role
 from treemap.udf import UserDefinedFieldDefinition
-from treemap.models import User, Plot
+from treemap.models import User, Plot, InstanceUser
 from treemap.tests import make_instance
 
 
@@ -25,7 +25,9 @@ class UserCanReadTagTest(TestCase):
             permission_level=FieldPermission.NONE,
             role=self.role, instance=self.instance)
 
-        self.user.roles = [self.role]
+        iuser = InstanceUser(instance=self.instance, user=self.user,
+                             role=self.role)
+        iuser.save_with_user(self.user)
 
         inst_role = Role(name='inst def role',
                          instance=self.instance,
