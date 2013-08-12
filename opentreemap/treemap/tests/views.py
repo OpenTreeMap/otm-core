@@ -21,8 +21,7 @@ from treemap.views import (species_list, boundary_to_geojson,
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
-                           make_user_with_default_role, make_simple_boundary,
-                           make_commander_role)
+                           make_user_with_default_role, make_simple_boundary)
 
 
 class InstanceValidationTest(TestCase):

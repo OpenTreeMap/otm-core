@@ -141,8 +141,8 @@ def assert_reputation(test_case, expected_reputation):
     user = User.objects.get(pk=test_case.user.id)
     reputation = user.get_reputation(test_case.instance)
     test_case.assertEqual(expected_reputation, reputation,
-                     'Reputation is %s but %s was expected'
-                     % (reputation, expected_reputation))
+                          'Reputation is %s but %s was expected'
+                          % (reputation, expected_reputation))
 
 
 class Signing(TestCase):

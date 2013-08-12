@@ -3,10 +3,9 @@ from django.contrib.gis.geos.point import Point
 from django.contrib.gis.geos.polygon import Polygon
 from api.models import APILog, APIKey
 
-from treemap.models import (Species, Boundary, Tree, Plot, User, Instance)
-from treemap.tests import (make_commander_role, make_instance,
-                           make_commander_user, make_apprentice_user,
-                           make_user_with_default_role)
+from treemap.models import Species, Boundary, Tree, Plot, User
+from treemap.tests import (make_instance, make_commander_user,
+                           make_apprentice_user, make_user_with_default_role)
 
 import django.shortcuts
 

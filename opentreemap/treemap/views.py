@@ -402,6 +402,7 @@ def user(request, username):
     reputation = user.get_reputation(instance) if instance else None
 
     return {'user': user,
+            'reputation': reputation,
             'instance_id': instance_id,
             'audits': audit_dict['audits'],
             'next_page': audit_dict['next_page']}
