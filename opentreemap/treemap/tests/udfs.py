@@ -3,13 +3,15 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
+from random import shuffle
 from datetime import datetime
 
 from django.test import TestCase
 from django.db import connection
+from django.db.models import Q
 from django.core.exceptions import ValidationError
 
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, Polygon
 
 from treemap.tests import (make_instance, make_commander_user,
                            add_field_permissions)
@@ -20,6 +22,235 @@ from treemap.audit import (AuthorizeException, FieldPermission,
                            approve_or_reject_audit_and_apply)
 
 import psycopg2
+
+
+class ScalarUDFFilterTest(TestCase):
+    def setUp(self):
+        self.instance = make_instance()
+        self.commander_user = make_commander_user(self.instance)
+        add_field_permissions(self.instance, self.commander_user,
+                              'Plot',
+                              ['Test choice', 'Test string', 'Test int',
+                               'Test date', 'Test float'])
+
+        self.p = Point(-8515941.0, 4953519.0)
+
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'choice',
+                                 'choices': ['a', 'b', 'c']}),
+            iscollection=False,
+            name='Test choice')
+
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'string'}),
+            iscollection=False,
+            name='Test string')
+
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'date'}),
+            iscollection=False,
+            name='Test date')
+
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'int'}),
+            iscollection=False,
+            name='Test int')
+
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'float'}),
+            iscollection=False,
+            name='Test float')
+
+        self.plot = Plot(geom=self.p, instance=self.instance)
+        self.plot.save_with_user(self.commander_user)
+
+        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
+        def create_and_save_with_choice(c, n=1):
+            plots = []
+            for i in xrange(n):
+                plot = Plot(geom=self.p, instance=self.instance)
+                plot.udf_scalar_values['Test choice'] = c
+                plot.save_with_user(self.commander_user)
+                plots.append(plot)
+
+            return {plot.pk for plot in plots}
+
+        self.choice_a = create_and_save_with_choice('a', n=2)
+        self.choice_b = create_and_save_with_choice('b', n=3)
+        self.choice_c = create_and_save_with_choice('c', n=7)
+
+    def test_filtering_on_string_and_choice_using_count(self):
+        plots = Plot.objects.filter(**{'udf:Test choice': 'a'})
+        self.assertEqual(
+            len(self.choice_a),
+            plots.count())
+
+    def test_filtering_on_value_works(self):
+        plots = Plot.objects.filter(**{'udf:Test choice': 'b'})
+        self.assertEqual(
+            self.choice_b,
+            {plot.pk for plot in plots})
+
+    def test_combine_with_geom(self):
+        plot_a = Plot.objects.get(pk=self.choice_a.pop())
+        plot_b = Plot.objects.get(pk=self.choice_b.pop())
+
+        p = Point(10, 0)
+
+        poly = Polygon(((5, -5), (15, -5), (15, 5), (5, 5), (5, -5)))
+
+        plot_a.geom = p
+        plot_a.save_with_user(self.commander_user)
+
+        plot_b.geom = p
+        plot_b.save_with_user(self.commander_user)
+
+        a_in_poly = Plot.objects.filter(**{'udf:Test choice': 'a'})\
+                                .filter(geom__contained=poly)
+
+        self.assertEqual({plot.pk for plot in a_in_poly},
+                         {plot_a.pk, })
+
+        b_in_poly = Plot.objects.filter(**{'udf:Test choice': 'b'})\
+                                .filter(geom__contained=poly)
+
+        self.assertEqual({plot.pk for plot in b_in_poly},
+                         {plot_b.pk, })
+
+    def test_search_suffixes(self):
+        plot1 = Plot(geom=self.p, instance=self.instance)
+        plot1.udf_scalar_values['Test string'] = 'this is a test'
+        plot1.save_with_user(self.commander_user)
+
+        plot2 = Plot(geom=self.p, instance=self.instance)
+        plot2.udf_scalar_values['Test string'] = 'this is aLsO'
+        plot2.save_with_user(self.commander_user)
+
+        def run(sfx, val):
+            return {plot.pk
+                    for plot
+                    in Plot.objects.filter(
+                        **{'udf:Test string' + sfx: val})}
+
+        self.assertEqual(set(), run('', 'also'))
+
+        self.assertEqual({plot1.pk, plot2.pk},
+                         run('__contains', 'this is a'))
+
+        self.assertEqual({plot2.pk}, run('__icontains', 'this is al'))
+
+    def _setup_dates(self):
+        def create_plot_with_date(adate):
+            plot = Plot(geom=self.p, instance=self.instance)
+            plot.udf_scalar_values['Test date'] = adate
+            plot.save_with_user(self.commander_user)
+            return plot
+
+        dates = [
+            (2010, 3, 4),
+            (2010, 3, 5),
+            (2010, 4, 4),
+            (2010, 5, 5),
+            (2012, 3, 4),
+            (2012, 3, 5),
+            (2012, 4, 4),
+            (2012, 5, 5),
+            (2013, 3, 4)]
+
+        dates = [datetime(*adate) for adate in dates]
+
+        # Get dates out of standard order
+        shuffle(dates, lambda: 0.5)
+        for adate in dates:
+            create_plot_with_date(adate)
+
+        return dates
+
+    def test_date_ordering_normal(self):
+        dates = self._setup_dates()
+        plots = Plot.objects.filter(**{'udf:Test date__isnull': False})\
+                            .order_by('Plot.udf:Test date')
+
+        dates.sort()
+
+        selected_dates = [plot.udf_scalar_values['Test date']
+                          for plot in plots]
+        self.assertEqual(dates, selected_dates)
+
+    def test_date_ordering_reverse(self):
+        dates = self._setup_dates()
+        plots = Plot.objects.filter(**{'udf:Test date__isnull': False})\
+                            .order_by('-Plot.udf:Test date')
+
+        dates.sort()
+        dates.reverse()
+
+        selected_dates = [plot.udf_scalar_values['Test date']
+                          for plot in plots]
+        self.assertEqual(dates, selected_dates)
+
+    def test_date_ordering_gt(self):
+        self._setup_dates()
+        adate = datetime(2011, 1, 1)
+
+        plots = Plot.objects.filter(**{'udf:Test date__gt': adate})
+        self.assertEqual(len(plots), 5)
+
+        plots = Plot.objects.filter(**{'udf:Test date__lt': adate})
+        self.assertEqual(len(plots), 4)
+
+    def test_integer_gt_and_lte_constraints(self):
+        def create_plot_with_num(anint):
+            plot = Plot(geom=self.p, instance=self.instance)
+            plot.udf_scalar_values['Test int'] = anint
+            plot.save_with_user(self.commander_user)
+            return plot
+
+        for i in xrange(0, 7):
+            create_plot_with_num(i)
+
+        plots = Plot.objects.filter(**{'udf:Test int__gt': 2,
+                                       'udf:Test int__lte': 4})
+        self.assertEqual(len(plots), 2)
+
+    def test_float_gt_and_lte_constraints(self):
+        def create_plot_with_num(afloat):
+            plot = Plot(geom=self.p, instance=self.instance)
+            plot.udf_scalar_values['Test float'] = afloat
+            plot.save_with_user(self.commander_user)
+            return plot
+
+        # creates 1.0 through 3.0 moving by tenths
+        for i in xrange(10, 30):
+            create_plot_with_num(float(i)/10.0)
+
+        plots = Plot.objects.filter(**{'udf:Test float__gt': 1.5,
+                                       'udf:Test float__lte': 2.0})
+
+        self.assertEqual(len(plots), 5)  # 1.6, 1.7, 1.8, 1.9, 2.0
+
+    def test_using_q_objects(self):
+        qb = Q(**{'udf:Test choice': 'b'})
+        qc = Q(**{'udf:Test choice': 'c'})
+
+        q = qb | qc
+
+        plots = Plot.objects.filter(q)
+
+        self.assertEqual(
+            self.choice_b | self.choice_c,
+            {plot.pk for plot in plots})
 
 
 class ScalarUDFAuditTest(TestCase):

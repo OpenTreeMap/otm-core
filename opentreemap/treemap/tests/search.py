@@ -1,18 +1,22 @@
 import json
+import psycopg2
 
+from datetime import datetime
 from django.test import TestCase
 
 from django.db.models import Q
+from django.db import connection
 from django.utils.tree import Node
 
 from django.contrib.gis.geos import Point, MultiPolygon
 from django.contrib.gis.measure import Distance
 
 from treemap.tests import (make_instance, make_commander_user,
-                           make_simple_polygon)
+                           make_simple_polygon, add_field_permissions)
 
 from treemap.views import _execute_filter
 from treemap.models import (Tree, Plot, Boundary, Species)
+from treemap.udf import UserDefinedFieldDefinition
 
 from treemap import search
 
@@ -44,6 +48,10 @@ class FilterParserTests(TestCase):
         # Plots go directly to a field
         match = search._parse_predicate_key('plot.width')
         self.assertEqual(match, 'width')
+
+    def test_udf_fields_look_good(self):
+        match = search._parse_predicate_key('plot.udf:The 1st Planter')
+        self.assertEqual(match, 'udf:The 1st Planter')
 
     def test_key_parser_trees(self):
         # Trees require a prefix and the field
@@ -288,16 +296,106 @@ class SearchTests(TestCase):
         self.commander = make_commander_user(self.instance)
         self.p1 = Point(-7615441.0, 5953519.0)
 
-    def create_tree_and_plot(self):
+    def create_tree_and_plot(self, plotudfs=None, treeudfs=None):
         plot = Plot(geom=self.p1, instance=self.instance)
+
+        if plotudfs:
+            for k, v in plotudfs.iteritems():
+                plot.udf_scalar_values[k] = v
 
         plot.save_with_user(self.commander)
 
         tree = Tree(plot=plot, instance=self.instance)
+        if treeudfs:
+            for k, v in treeudfs.iteritems():
+                tree.udf_scalar_values[k] = v
 
         tree.save_with_user(self.commander)
 
         return plot, tree
+
+    def _setup_udfs(self):
+        add_field_permissions(self.instance, self.commander,
+                              'Plot',
+                              ['Test string', 'Test date'])
+        add_field_permissions(self.instance, self.commander,
+                              'Tree',
+                              ['Test float'])
+
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'string'}),
+            iscollection=False,
+            name='Test string')
+
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'date'}),
+            iscollection=False,
+            name='Test date')
+
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Tree',
+            datatype=json.dumps({'type': 'float'}),
+            iscollection=False,
+            name='Test float')
+
+        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
+        p1, _ = self.create_tree_and_plot(
+            plotudfs={'Test string': 'testing foo',
+                      'Test date': datetime(2010, 1, 9)},
+            treeudfs={'Test float': 9.2})
+
+        p2, _ = self.create_tree_and_plot(
+            plotudfs={'Test string': 'testing baz or fish',
+                      'Test date': datetime(2012, 1, 9)},
+            treeudfs={'Test float': 12.0})
+
+        p3, _ = self.create_tree_and_plot(
+            plotudfs={'Test string': 'baz',
+                      'Test date': datetime(2014, 1, 9)},
+            treeudfs={'Test float': 2.2})
+
+        return (p.pk for p in [p1, p2, p3])
+
+    def _execute_and_process_filter(self, filter):
+        return {p.pk
+                for p
+                in _execute_filter(
+                    self.instance, json.dumps(filter))}
+
+    def test_udf_numeric_search(self):
+        p1, p2, p3 = self._setup_udfs()
+
+        self.assertEqual(
+            {p1, p3},
+            self._execute_and_process_filter(
+                {'tree.udf:Test float': {'MAX': 10.0}}))
+
+    def test_udf_like_search(self):
+        p1, p2, p3 = self._setup_udfs()
+
+        self.assertEqual(
+            {p1, p2},
+            self._execute_and_process_filter(
+                {'plot.udf:Test string': {'LIKE': 'testing'}}))
+
+        self.assertEqual(
+            {p2, p3},
+            self._execute_and_process_filter(
+                {'plot.udf:Test string': {'LIKE': 'baz'}}))
+
+    def test_udf_direct_search(self):
+        _, _, p3 = self._setup_udfs()
+
+        self.assertEqual(
+            {p3},
+            self._execute_and_process_filter(
+                {'plot.udf:Test string': {'IS': 'baz'}}))
 
     def test_species_id_search(self):
         species1 = Species.objects.create(
