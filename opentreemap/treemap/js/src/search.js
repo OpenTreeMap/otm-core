@@ -19,7 +19,28 @@ var config,
               { 'key': 'tree.diameter',
                 'pred': 'MAX' }};
 
-function buildSearch(stream) {
+function executeSearch(search_query) {
+    var search = $.ajax({
+        url: '/' + config.instance.id + '/benefit/search',
+        data: {'q': search_query && Object.keys(search_query).length > 0 ?
+                JSON.stringify(search_query) :
+                ''},
+        type: 'GET',
+        dataType: 'html'
+    });
+
+    return Bacon.fromPromise(search);
+}
+
+function updateSearchResults(newMarkup) {
+    var $new = $(newMarkup),
+        countsMarkup = $new.filter('#tree-and-planting-site-counts').html(),
+        benefitsMarkup = $new.filter('#benefit-values').html();
+    $('#tree-and-planting-site-counts').html(countsMarkup);
+    $('#benefit-values').html(benefitsMarkup);
+}
+
+exports.buildSearch = function (stream) {
     return _.reduce(elems, function(preds, key_and_pred, id) {
         var val = $(id).val(),
             pred = {};
@@ -38,28 +59,7 @@ function buildSearch(stream) {
 
         return preds;
     }, {});
-}
-
-function executeSearch(search_query) {
-    var search = $.ajax({
-        url: '/' + config.instance.id + '/benefit/search',
-        data: {'q': search_query && Object.keys(search_query).length > 0 ? 
-                JSON.stringify(search_query) :
-                ''},
-        type: 'GET',
-        dataType: 'html'
-    });
-
-    return Bacon.fromPromise(search);
-}
-
-function updateSearchResults(newMarkup) {
-    var $new = $(newMarkup),
-        countsMarkup = $new.filter('#tree-and-planting-site-counts').html(),
-        benefitsMarkup = $new.filter('#benefit-values').html();
-    $('#tree-and-planting-site-counts').html(countsMarkup);
-    $('#benefit-values').html(benefitsMarkup);
-}
+};
 
 // Arguments
 //
@@ -72,7 +72,7 @@ function updateSearchResults(newMarkup) {
 // applyFilter: Function to call when filter changes.
 exports.init = function(triggerEventStream, otmConfig, applyFilter) {
     config = otmConfig;
-    var searchStream = triggerEventStream.map(buildSearch);
+    var searchStream = triggerEventStream.map(exports.buildSearch);
 
     searchStream.onValue(applyFilter);
 
