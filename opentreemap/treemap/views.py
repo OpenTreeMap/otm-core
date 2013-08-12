@@ -128,9 +128,23 @@ def create_plot(user, instance, *args, **kwargs):
 def plot_detail(request, instance, plot_id):
     InstancePlot = instance.scope_model(Plot)
     plot = get_object_or_404(InstancePlot, pk=plot_id)
+    tree = plot.current_tree()
 
-    return {'plot': plot,
-            'recent_activity': _plot_audits(request.user, instance, plot)}
+    context = {}
+    # If the the benefits calculation can't be done or fails, still display the
+    # plot details
+    if tree and tree.diameter is not None and tree.species.itree_code:
+        try:
+            eco_tree = {'species__itree_code': tree.species.itree_code,
+                        'diameter': tree.diameter}
+            context = _tree_benefits_helper([eco_tree], 1, 1, instance)
+        except Exception:
+            pass
+
+    context['plot'] = plot
+    context['recent_activity'] = _plot_audits(request.user, instance, plot)
+
+    return context
 
 
 def _get_audits(instance, query_vars, user, models, model_id, page=0,
@@ -344,6 +358,12 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
                          .exclude(diameter__isnull=True)\
                          .values('diameter', 'species__itree_code')
 
+    return _tree_benefits_helper(trees_for_eco, total_plots, total_trees,
+                                 instance, region)
+
+
+def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance,
+                          region='PiedmtCLT'):
     benefits, num_calculated_trees = _benefits_for_trees(trees_for_eco, region)
 
     percent = 0
