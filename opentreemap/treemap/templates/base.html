@@ -37,15 +37,16 @@
             <li><a href="javascript:;">{% trans "Explore Trees" %}</a></li>
             <li><a href="javascript:;">{% trans "Add a Tree" %}</a></li>
             {% endblock instancetopnav %}
-            <li class="divider-vertical"></li>
-            {% if request.user.username %}
+          </ul>
+					<ul class="nav pull-right">
+						{% if request.user.username %}
               <li><a href="{% url 'profile' %}">{{ request.user }}</a></li>
               <li><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
             {% else %}
               <li><a href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
               <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
             {% endif %}
-          </ul>
+					</ul>
         </div>
       </div>
     </div>
