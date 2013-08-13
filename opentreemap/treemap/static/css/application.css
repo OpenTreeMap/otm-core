@@ -424,8 +424,27 @@ footer .nav-pills > li > a:hover {
   }
 
 span.tt-dropdown-menu {
-    border: 1px solid black;
-    background: white;
+		margin-top: 5px;
+		padding: 10px;
+		width: 199px;
+		font-size: 13px;
+    border: 1px solid #c2c2c2;
+    background: #fff;
+		-webkit-border-radius: 3px;
+		-moz-border-radius:		 3px;
+		border-radius:				 3px;
+		-webkit-box-shadow: 0px 0px 5px rgba(0, 3, 0, 0.3);
+		-moz-box-shadow:    0px 0px 5px rgba(0, 3, 0, 0.3);
+		box-shadow:         0px 0px 5px rgba(0, 3, 0, 0.3);
+}
+.tt-suggestion p {
+	padding: 3px 7px;
+}
+	.tt-suggestion p:hover {
+		background-color: #eee;
+		-webkit-border-radius: 3px;
+		-moz-border-radius:		 3px;
+		border-radius:				 3px;
 }
 
 
