@@ -4,7 +4,7 @@ from __future__ import division
 
 from django.conf.urls import patterns, url
 
-from treemap.views import (boundary_to_geojson_view, index_view, trees_view,
+from treemap.views import (boundary_to_geojson_view, index_view, map_view,
                            plot_detail_view, instance_settings_js_view,
                            audits_view, search_tree_benefits_view,
                            species_list_view, boundary_autocomplete_view,
@@ -24,7 +24,7 @@ urlpatterns = patterns(
     url(r'^boundaries/$', boundary_autocomplete_view),
     url(r'^recent_edits', audits_view, name='recent_edits'),
     url(r'^species/$', species_list_view),
-    url(r'^trees/$', trees_view, name='map'),
+    url(r'^map/$', map_view, name='map'),
     url(r'^plots/(?P<plot_id>\d+)/$', plot_detail_view, name='plot_detail'),
     url(r'^plots/(?P<plot_id>\d+)/detail$', plot_accordian_view,
         name='plot_accordian'),

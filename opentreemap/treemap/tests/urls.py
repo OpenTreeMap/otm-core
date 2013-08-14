@@ -130,7 +130,7 @@ class TreemapUrlTests(UrlTestCase):
         self.assert_200(self.prefix + 'species/')
 
     def test_tree_list(self):
-        self.assert_template(self.prefix + 'trees/', 'treemap/map.html')
+        self.assert_template(self.prefix + 'map/', 'treemap/map.html')
 
     def test_plot_detail(self):
         plot = self.make_plot()
@@ -138,7 +138,7 @@ class TreemapUrlTests(UrlTestCase):
             self.prefix + 'plots/%s/' % plot.id, 'treemap/plot_detail.html')
 
     def test_plot_detail_invalid(self):
-        self.assert_404(self.prefix + 'trees/999/')
+        self.assert_404(self.prefix + 'map/999/')
 
     def test_plot_popup(self):
         plot = self.make_plot()
