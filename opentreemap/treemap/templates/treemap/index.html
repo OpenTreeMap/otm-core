@@ -2,5 +2,6 @@
 {% load i18n %}
 
 {% block content %}
+<h1>{{ request.instance.name }}</h1>
 <a href="{% url 'map' instance_id=request.instance.pk %}" class="btn">{% trans "Explore Trees" %}</a>
 {% endblock content %}
