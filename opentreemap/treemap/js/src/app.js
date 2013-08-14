@@ -4,6 +4,7 @@ var $ = require('jquery'),
     _ = require('underscore'),
     OL = require('OpenLayers'),
     Bacon = require('baconjs'),
+    U = require('./utility'),
 
     Search = require('./search'),
     otmTypeahead = require('./otmTypeahead'),
@@ -16,6 +17,7 @@ var $ = require('jquery'),
 // so we do not need `var thing =`
 require('./openLayersUtfGridEventStream');
 require('./openLayersMapEventStream');
+
 
 var app = {
     createMap: function (elmt, config) {
@@ -125,14 +127,16 @@ var app = {
             url: "/" + config.instance.id + "/species",
             input: "#species-typeahead",
             template: "#species-element-template",
-            hidden: "#search-species"
+            hidden: "#search-species",
+            reverse: "id"
         });
         otmTypeahead.create({
             name: "boundaries",
             url: "/" + config.instance.id + "/boundaries",
             input: "#boundary-typeahead",
             template: "#boundary-element-template",
-            hidden: "#boundary"
+            hidden: "#boundary",
+            reverse: "id"
         });
     },
 
@@ -151,10 +155,10 @@ var app = {
     },
 
     redirectToSearchPage: function (config, query) {
-        query = JSON.stringify(query);
+        query = U.getUpdatedQueryString('q', JSON.stringify(query));
 
         window.location.href =
-            '/' + config.instance.id + '/map/?q=' + query;
+            '/' + config.instance.id + '/map/?' + query;
     }
 };
 
@@ -177,10 +181,7 @@ module.exports = {
             boundsLayer = app.createBoundsTileLayer(config),
             utfLayer = app.createPlotUTFLayer(config),
             zoom = 0,
-
-            // The Bacon.later triggers an initial empty search when the page is
-            // initialized I tried Bacon.once but the search was not being executed
-            searchEventStream = Bacon.later(1, true).merge(app.searchEventStream());
+            searchEventStream = app.searchEventStream();
 
         app.initTypeAheads(config);
 
@@ -255,9 +256,34 @@ module.exports = {
         zoom = map.getZoomForResolution(76.43702827453613);
         map.setCenter(config.instance.center, zoom);
 
-        Search.init(searchEventStream, config, function (filter) {
+        var query = U.parseQueryString()['q'];
+        var initialSearch = {};
+        if (query) {
+            initialSearch = JSON.parse(query);
+        }
+
+        // Use a bus to delay sending the initial signal
+        // seems like you could merge with Bacon.once(initialSearch)
+        // but that empirically doesn't work
+
+        var initialQueryBus = new Bacon.Bus();
+        var builtSearchEvents = searchEventStream
+                .map(Search.buildSearch)
+                .merge(initialQueryBus);
+
+        initialQueryBus.onValue(Search.applySearchToDom);
+
+        Search.init(builtSearchEvents, config, function (filter) {
             plotLayer.setFilter(filter);
             utfLayer.setFilter(filter);
         });
+
+        builtSearchEvents
+            .map(JSON.stringify)
+            .map(U.getUpdateUrlByUpdatingQueryStringParam, 'q')
+            .onValue(U.pushState);
+
+        initialQueryBus.push(initialSearch);
+
     }
 };
