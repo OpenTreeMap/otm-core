@@ -135,7 +135,7 @@ class TreemapUrlTests(UrlTestCase):
     def test_plot_detail(self):
         plot = self.make_plot()
         self.assert_template(
-            self.prefix + 'trees/%s/' % plot.id, 'treemap/plot_detail.html')
+            self.prefix + 'plots/%s/' % plot.id, 'treemap/plot_detail.html')
 
     def test_plot_detail_invalid(self):
         self.assert_404(self.prefix + 'trees/999/')
@@ -143,10 +143,20 @@ class TreemapUrlTests(UrlTestCase):
     def test_plot_popup(self):
         plot = self.make_plot()
         self.assert_template(
-            self.prefix + 'plots/%s/' % plot.id, 'treemap/plot_popup.html')
+            self.prefix + 'plots/%s/popup' % plot.id,
+            'treemap/plot_popup.html')
 
     def test_plot_popup_invalid(self):
-        self.assert_404(self.prefix + 'plots/999/')
+        self.assert_404(self.prefix + 'plots/999/popup')
+
+    def test_plot_accordian(self):
+        plot = self.make_plot()
+        self.assert_template(
+            self.prefix + 'plots/%s/detail' % plot.id,
+            'treemap/plot_accordian.html')
+
+    def test_plot_accordian_invalid(self):
+        self.assert_404(self.prefix + 'plots/999/detail')
 
     def test_instance_settings_js(self):
         self.assert_template(
