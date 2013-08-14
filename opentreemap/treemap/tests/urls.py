@@ -86,7 +86,7 @@ class TreemapUrlTests(UrlTestCase):
     # All treemap URLs start with /<instance_id>/
 
     def setUp(self):
-        self.instance = make_instance()
+        self.instance = make_instance(is_public=True)
         self.prefix = '/%s/' % self.instance.id
 
     def make_plot(self):
