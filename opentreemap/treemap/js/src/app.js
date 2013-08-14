@@ -256,17 +256,24 @@ module.exports = {
         zoom = map.getZoomForResolution(76.43702827453613);
         map.setCenter(config.instance.center, zoom);
 
-        var query = U.parseQueryString().q;
-        var initialSearch = {};
-        if (query) {
-            initialSearch = JSON.parse(query);
-        }
-
         // Use a bus to delay sending the initial signal
         // seems like you could merge with Bacon.once(initialSearch)
         // but that empirically doesn't work
 
-        var initialQueryBus = new Bacon.Bus();
+        var triggerSearchFromUrl = new Bacon.Bus();
+        var initialQueryBus = triggerSearchFromUrl.flatMap(function() {
+            var query = U.parseQueryString().q;
+            if (query) {
+                return JSON.parse(query);
+            } else {
+                return Bacon.never();
+            }
+        });
+
+        window.addEventListener('popstate', function(event) {
+            triggerSearchFromUrl.push({});
+        }, false);
+
         var builtSearchEvents = searchEventStream
                 .map(Search.buildSearch)
                 .merge(initialQueryBus);
@@ -281,9 +288,12 @@ module.exports = {
         builtSearchEvents
             .map(JSON.stringify)
             .map(U.getUpdateUrlByUpdatingQueryStringParam, 'q')
+            .filter(function(url) {
+                return url != window.location.href;
+            })
             .onValue(U.pushState);
 
-        initialQueryBus.push(initialSearch);
+        triggerSearchFromUrl.push({});
 
     }
 };
