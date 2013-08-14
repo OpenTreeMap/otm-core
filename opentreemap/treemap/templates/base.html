@@ -39,15 +39,12 @@
             {% endblock instancetopnav %}
           </ul>
 					<ul class="nav pull-right">
-						{% if request.user.username %}
-            <li class="divider-vertical"></li>
             {% if request.user.is_authenticated %}
               <li><a href="{% url 'profile' %}">{{ request.user }}</a></li>
               <li><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
             {% else %}
               <li><a href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
               <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
-              {% endif %}
             {% endif %}
 					</ul>
         </div>
