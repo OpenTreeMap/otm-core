@@ -2,19 +2,71 @@
 
 {% block page_title %} | {{ username }}{% endblock %}
 
+{% block subhead %}
+{% comment %} The subhead is not shown on the profile page {% endcomment %}
+{% endblock subhead %}
+
+{% block header %}
+{% load i18n %}
+<div class="header">
+    <div class="container-fixedwidth">
+        <div class="logo">
+            <a href="index.html"><img src="{{STATIC_URL}}img/logo-main.svg" alt="OpenTreeMap"></a>
+        </div>
+        <div class="quick-info">
+            <ul>
+                <li>
+                    <h1>{{ user.username }}</h1>
+                    <p>{% trans "User Profile" %}</p>
+                </li>
+                <li><img class="img-circle img-polaroid user-photo" src="{{STATIC_URL}}img/profile.jpg"></li>
+            </ul>
+        </div>
+    </div>
+</div> <!-- end header -->
+{% endblock header %}
+
 {% block content %}
 {% load i18n %}
-<div>{% trans "Username:" %} {{ user.username }}</div>
-<div>{% trans "Name:" %} {{ user.first_name }} {{ user.last_name }}</div>
-<div>{% trans "Email:" %} {{ user.email }}</div>
-{% if reputation %}
-<div>{% trans "Reputation:" %} {{ reputation }}</div>
-{% endif %}
-<div>{% trans "Instance:" %} {{ instance_id }}</div>
-
-<h3>{% trans "Recent Edits" %}</h3>
-<div id="recent-user-edits-container">
-  {% include 'treemap/recent_user_edits.html' %}
+<div class="container-fixedwidth profile">
+    <div class="left">
+        <ul class="chunk">
+            <li class="chunk-label">{% trans "Name" %}</li>
+            <li class="chunk-content">{{ user.first_name }} {{ user.last_name }}</li>
+        </ul>
+        <ul class="chunk">
+            <li class="chunk-label">{% trans "Zip Code" %}</li>
+            <li class="chunk-content">99999</li>
+        </ul>
+        {% if reputation %}
+            <ul class="chunk">
+                <li class="chunk-label">{% trans "Reputation" %}</li>
+                <li class="chunk-content">{{ reputation }}</li>
+            </ul>
+        {% endif %}
+        <ul class="chunk">
+            <li class="chunk-label">{% trans "Password" %}</li>
+            <li class="chunk-content"><a href="javascript:;">{% trans "Reset" %}</a></li>
+        </ul>
+        <hr>
+        <ul class="chunk">
+            <li class="chunk-label">{% trans "Emails" %}</li>
+            <li class="chunk-content">{% trans "Not Subscribed" %}</li>
+        </ul>
+    </div>
+    <div class="right">
+        <ul class="chunk">
+            <li class="chunk-label">{% trans "Favorite Trees" %}</li>
+            <li class="chunk-content">{% trans "You haven't favorited any trees yet!" %}</li>
+        </ul>
+        <hr>
+        <ul class="chunk">
+            <li class="chunk-label">{% trans "Recently Added and Edited Trees" %}</li>
+            <li class="chunk-content extra">
+                {% include 'treemap/recent_user_edits.html' %}
+            </li>
+        </ul>
+    </div>
 </div>
 {% endblock content %}
 
