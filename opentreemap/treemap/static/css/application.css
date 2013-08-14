@@ -55,6 +55,23 @@ input {
   width: auto; 
 }
 
+.container-fixedwidth {
+	width: 970px;
+	margin: 0 auto;
+}
+	.container-fixedwidth .nav {
+		margin: 0 -15px;
+	}
+	.container-fixedwidth .nav.pull-right {
+		margin-right: -15px;
+	}
+	.container-fixedwidth .right {
+		float: right;
+	}
+	.container-fixedwidth .left {
+		float: left;
+	}
+
 
 /* Logo and Search -------------------- */
 
@@ -455,4 +472,58 @@ span.tt-dropdown-menu {
 		-webkit-border-radius: 3px;
 		-moz-border-radius:		 3px;
 		border-radius:				 3px;
+}
+
+
+/* User Profile ----------------------- */
+
+.profile {
+	margin-top: 50px !important;
+}
+	.profile .left,
+	.profile .right {
+		padding: 8px 15px;
+	}
+	.profile .left {
+		width: 261px;
+	}
+	.profile .right {
+		width: 648px;
+		border-left: 1px solid #eee;
+	}
+	.quick-info {
+		text-align: right;
+	}
+		.quick-info h1 {
+			line-height: 14px;
+			margin-top: 0;
+		}
+		.quick-info p {
+			color: #c2c2c2;
+		}
+		.quick-info ul {
+			padding: 0;
+			margin: 0;
+			list-style-type: none;
+		}
+		.quick-info li {
+			display: inline-block;
+			height: 100px;
+			padding-left: 50px;
+			vertical-align: middle;
+		}
+	.profile .chunk {
+		list-style: none;
+		padding: 5px 0 15px;
+		margin: 0;
+	}
+		.profile .chunk .extra {
+			padding-top: 10px;
+		}
+		.chunk-label {
+			font-weight: bold;
+		}
+
+.user-photo {
+	max-width: 85px;
 }

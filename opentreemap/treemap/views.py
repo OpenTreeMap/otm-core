@@ -479,6 +479,9 @@ plot_detail_view = instance_request(etag(_plot_hash)(
 plot_popup_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_popup.html', plot_detail)))
 
+plot_accordian_view = instance_request(etag(_plot_hash)(
+    render_template('treemap/plot_accordian.html', plot_detail)))
+
 root_settings_js_view = render_template('treemap/settings.js',
                                         {'BING_API_KEY':
                                          settings.BING_API_KEY},
@@ -488,7 +491,6 @@ instance_settings_js_view = instance_request(
     render_template('treemap/settings.js',
                     {'BING_API_KEY': settings.BING_API_KEY},
                     mimetype='application/javascript'))
-
 
 boundary_to_geojson_view = json_api_call(instance_request(boundary_to_geojson))
 boundary_autocomplete_view = instance_request(
