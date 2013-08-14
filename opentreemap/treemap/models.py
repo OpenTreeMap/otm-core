@@ -118,7 +118,7 @@ class Species(models.Model):
     gender = models.CharField(max_length=50, null=True, blank=True)
 
     ### Copied from original OTM ###
-    native_status = models.CharField(max_length=255, null=True, blank=True)
+    native_status = models.NullBooleanField()
     bloom_period = models.CharField(max_length=255, null=True, blank=True)
     fruit_period = models.CharField(max_length=255, null=True, blank=True)
     fall_conspicuous = models.NullBooleanField()
