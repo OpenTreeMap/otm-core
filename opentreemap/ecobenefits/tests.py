@@ -14,7 +14,7 @@ class EcoTest(UrlTestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.instance = make_instance()
+        self.instance = make_instance(is_public=True)
 
         self.user = make_commander_user(self.instance)
 
