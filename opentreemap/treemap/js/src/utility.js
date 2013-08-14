@@ -1,7 +1,27 @@
 "use strict";
 
-exports.concat = function (s1, s2) {
-    return s1 + s2;
+var Url = require('url'),
+    QS = require('querystring');
+
+exports.getUpdatedQueryString = function (k, v) {
+    var url = Url.parse(window.location.href, true);
+    var query = url.query || {};
+
+    query[k] = v;
+
+    return QS.stringify(query);
+};
+
+exports.getUpdateUrlByUpdatingQueryStringParam = function (k, v) {
+    var url = Url.parse(window.location.href, true);
+    var query = url.query || {};
+
+    query[k] = v;
+
+    url.query = query;
+    url.search = null;
+
+    return Url.format(url);
 };
 
 exports.pushState = function (url) {

@@ -155,10 +155,10 @@ var app = {
     },
 
     redirectToSearchPage: function (config, query) {
-        query = JSON.stringify(query);
+        query = U.getUpdatedQueryString('q', JSON.stringify(query));
 
         window.location.href =
-            '/' + config.instance.id + '/map/?q=' + query;
+            '/' + config.instance.id + '/map/?' + query;
     }
 };
 
@@ -280,7 +280,7 @@ module.exports = {
 
         builtSearchEvents
             .map(JSON.stringify)
-            .map(U.concat, "?q=")
+            .map(U.getUpdateUrlByUpdatingQueryStringParam, 'q')
             .onValue(U.pushState);
 
         initialQueryBus.push(initialSearch);
