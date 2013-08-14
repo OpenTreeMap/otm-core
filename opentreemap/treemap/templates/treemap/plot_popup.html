@@ -2,5 +2,5 @@
 <div><label>{% trans "ID:" %}</label>{{ plot.pk }}</div>
 <div><label>{% trans "Species:" %}</label>{{ plot.current_tree.species }}</div>
 <div><label>{% trans "Nearby Address:" %}</label>{{ plot.address_full }}</div>
-<div><a href="{% url 'tree_detail' instance_id=request.instance.pk plot_id=plot.pk %}">{% trans "View all details" %}</a></div>
-<div><a href="{% url 'tree_detail' instance_id=request.instance.pk plot_id=plot.pk %}#edit">{% trans "Edit details" %}</a></div>
+<div><a href="{% url 'plot_detail' instance_id=request.instance.pk plot_id=plot.pk %}">{% trans "View all details" %}</a></div>
+<div><a href="{% url 'plot_detail' instance_id=request.instance.pk plot_id=plot.pk %}#edit">{% trans "Edit details" %}</a></div>

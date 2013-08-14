@@ -95,7 +95,7 @@ var app = {
 
     getPlotPopupContent: function(config, id) {
         var search = $.ajax({
-            url: '/' + config.instance.id + '/plots/' + id + '/',
+            url: '/' + config.instance.id + '/plots/' + id + '/popup',
             type: 'GET',
             dataType: 'html'
         });
@@ -108,6 +108,15 @@ var app = {
         } else {
             return null;
         }
+    },
+
+    getPlotAccordianContent: function(config, id) {
+        var search = $.ajax({
+            url: '/' + config.instance.id + '/plots/' + id + '/detail',
+            type: 'GET',
+            dataType: 'html'
+        });
+        return Bacon.fromPromise(search);
     },
 
     initTypeAheads: function(config) {
@@ -148,6 +157,11 @@ var app = {
             '/' + config.instance.id + '/trees/?q=' + query;
     }
 };
+
+function showPlotAccordian(html) {
+    $('#plot-accordian').html(html);
+    $("#treeDetails").removeClass('collapse');
+}
 
 module.exports = {
     init: function (config) {
@@ -202,12 +216,17 @@ module.exports = {
 
         var clickedIdStream = utfGridClickControl
             .asEventStream('click')
-            .map('.' + config.utfGrid.plotIdKey);
+            .map('.' + config.utfGrid.plotIdKey)
+            .map(truthyOrError); // Prevents making requests if id is undefined
 
         var popupHtmlStream = clickedIdStream
-            .map(truthyOrError) // Prevents making requests if id is undefined
             .flatMap(_.bind(app.getPlotPopupContent, app, config))
             .mapError(''); // No id or a server error both result in no content
+
+        var accordianHtmlStream = clickedIdStream
+            .flatMap(_.bind(app.getPlotAccordianContent, app, config))
+            .mapError('')
+            .onValue(showPlotAccordian);
 
         // The control must be added to the map after setting up the
         // event streams
