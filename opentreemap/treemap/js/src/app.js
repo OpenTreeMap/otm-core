@@ -154,7 +154,7 @@ var app = {
         query = JSON.stringify(query);
 
         window.location.href =
-            '/' + config.instance.id + '/trees/?q=' + query;
+            '/' + config.instance.id + '/map/?q=' + query;
     }
 };
 

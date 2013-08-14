@@ -468,7 +468,7 @@ audits_view = instance_request(
     render_template('treemap/recent_edits.html', audits))
 
 index_view = instance_request(render_template('treemap/index.html'))
-trees_view = instance_request(
+map_view = instance_request(
     render_template('treemap/map.html',
                     {'bounds': Boundary.objects.all(),
                      'species': Species.objects.all()}))
