@@ -1,4 +1,5 @@
 from django.contrib.gis.db import models
+from django.core.exceptions import ObjectDoesNotExist
 
 import hashlib
 
@@ -54,6 +55,8 @@ class Instance(models.Model):
 
     boundaries = models.ManyToManyField('Boundary', null=True, blank=True)
 
+    is_public = models.BooleanField(default=False)
+
     objects = models.GeoManager()
 
     def __unicode__(self):
@@ -66,6 +69,18 @@ class Instance(models.Model):
     @property
     def center_lat_lng(self):
         return self.center.transform(4326, clone=True)
+
+    def is_accessible_by(self, user):
+        try:
+            if self.is_public:
+                return True
+            # If a user is not logged in, trying to check
+            # user=user raises a type error so I am checking
+            # pk instead
+            self.instanceuser_set.get(user__pk=user.pk)
+            return True
+        except ObjectDoesNotExist:
+            return False
 
     def scope_model(self, model):
         qs = model.objects.filter(instance=self)

@@ -3,7 +3,8 @@ from django.conf import settings
 from django.views.generic import RedirectView
 
 from treemap.views import (user_view, root_settings_js_view,
-                           profile_to_user_view, user_audits_view)
+                           profile_to_user_view, user_audits_view,
+                           instance_not_available_view)
 
 from django.contrib import admin
 admin.autodiscover()
@@ -42,6 +43,8 @@ urlpatterns = patterns(
     url(r'^i18n/', include('django.conf.urls.i18n')),
     url(r'^jsi18n/$', 'django.views.i18n.javascript_catalog',
         js_i18n_info_dict),
+    url(r'^not-available$', instance_not_available_view,
+        name='instance_not_available'),
 )
 
 if settings.DEBUG:

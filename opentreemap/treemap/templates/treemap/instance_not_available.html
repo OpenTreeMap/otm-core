@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block search %}
+{% comment %} Hide search options when the map is not available {% endcomment %}
+{% endblock search %}
+
+{% block subhead %}
+{% comment %} Hide subhead when the map is not available {% endcomment %}
+{% endblock subhead %}
+
+{% block content %}
+<h3>{% trans "This map is not available." %}</h3>
+{% endblock content %}
+
+{% block scripts %}
+{% comment %} This page has no interactivity {% endcomment %}
+{% endblock scripts %}
