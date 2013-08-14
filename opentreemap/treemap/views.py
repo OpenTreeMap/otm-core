@@ -314,7 +314,7 @@ def species_list(request, instance):
     # Split names by space so that "el" will match common_name="Delaware Elm"
     def tokenize(species):
         names = (species.common_name, species.genus,
-                 species.species, species.cultivar_name)
+                 species.species, species.cultivar)
 
         tokens = []
 

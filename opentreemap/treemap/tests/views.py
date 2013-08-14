@@ -512,7 +512,7 @@ class SpeciesViewTests(ViewTestCase):
             {'common_name': "apple 'Red Devil'", 'genus': 'applesauce'},
             {'common_name': 'asian cherry', 'genus': 'cherrificus'},
             {'common_name': 'cherrytree', 'genus': 'cherritius',
-             'cultivar_name': 'asian'},
+             'cultivar': 'asian'},
             {'common_name': 'elm', 'genus': 'elmitius'},
             {'common_name': 'oak', 'genus': 'acorn',
              'species': 'oakenitus'}
@@ -528,7 +528,7 @@ class SpeciesViewTests(ViewTestCase):
             species = Species(common_name=item.get('common_name'),
                               genus=item.get('genus'),
                               species=item.get('species'),
-                              cultivar_name=item.get('cultivar_name'),
+                              cultivar=item.get('cultivar'),
                               symbol=str(i))
             species.save()
 

@@ -676,7 +676,7 @@ def species_to_dict(s):
         "scientific_name": s.scientific_name,
         "genus": s.genus,
         "species": s.species,
-        "cultivar": s.cultivar_name,
+        "cultivar": s.cultivar,
         "common_name": s.common_name}
 
 

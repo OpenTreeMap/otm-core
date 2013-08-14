@@ -136,11 +136,11 @@ class SpeciesModelTests(TestCase):
         self.assertEquals(s.scientific_name, 'Ulmus rubra')
 
     def test_scientific_name_genus_cultivar(self):
-        s = Species(genus='Ulmus', cultivar_name='Columella')
+        s = Species(genus='Ulmus', cultivar='Columella')
         self.assertEquals(s.scientific_name, "Ulmus 'Columella'")
 
     def test_scientific_name_all(self):
-        s = Species(genus='Ulmus', species='rubra', cultivar_name='Columella')
+        s = Species(genus='Ulmus', species='rubra', cultivar='Columella')
         self.assertEquals(s.scientific_name, "Ulmus rubra 'Columella'")
 
 
@@ -151,7 +151,7 @@ class ModelUnicodeTests(TestCase):
 
         self.species = Species(common_name='Test Common Name',
                                genus='Test Genus',
-                               cultivar_name='Test Cultivar',
+                               cultivar='Test Cultivar',
                                species='Test Species')
         self.species.save_base()
 
@@ -455,7 +455,7 @@ class MigrationCommandTests(TestCase):
         self.assertEqual(species.symbol, 'SAVI')
         self.assertEqual(species.genus, 'Salix')
         self.assertEqual(species.species, 'viminalis')
-        self.assertEqual(species.cultivar_name, '')
+        self.assertEqual(species.cultivar, '')
         self.assertEqual(species.gender, '')
         self.assertEqual(species.common_name, "Basket willow")
         self.assertEqual(species.native_status, 'False')
