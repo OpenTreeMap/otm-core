@@ -13,7 +13,6 @@ h1, h2, h4, h4, h5 {
 }
 
 p {
-  font-size: 16px;
   line-height: 1.7;
 }
 
@@ -123,7 +122,7 @@ input {
 
 .subhead {
   padding: 10px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #c2c2c2;
   font-size: 16px;
   background: #fff; 
 }
@@ -167,7 +166,7 @@ input {
 .login-signup-panel {
   background-color: #fff;
   box-shadow: none;
-  max-width: 500px;
+  width: 940px;
   margin: 0px auto; 
 }
 
@@ -418,9 +417,42 @@ footer .nav-pills > li > a:hover {
     margin-bottom: 0px;
     border-top: none;
   }
+  .sidebar .accordion-heading {
+    background: #eee;
+  }
+    .sidebar .accordion-heading a {
+      color: #000;
+      font-weight: bold;
+    }
+    .sidebar .accordion-heading a:hover {
+      text-decoration: none;
+      color: #000;
+    }
 
   .benefit-label {
     font-weight: bold;
   }
 
-
+span.tt-dropdown-menu {
+    margin-top: 0;
+    padding: 10px;
+    width: 199px;
+    font-size: 13px !important
+    border: 1px solid #c2c2c2;
+    background: #fff;
+    -webkit-border-radius: 3px;
+    -moz-border-radius:    3px;
+    border-radius:         3px;
+    -webkit-box-shadow: 0px 0px 5px rgba(0, 3, 0, 0.3);
+    -moz-box-shadow:    0px 0px 5px rgba(0, 3, 0, 0.3);
+    box-shadow:         0px 0px 5px rgba(0, 3, 0, 0.3);
+}
+.tt-suggestion p {
+  padding: 0px 7px;
+}
+  .tt-suggestion p:hover {
+    background-color: #eee;
+    -webkit-border-radius: 3px;
+    -moz-border-radius:    3px;
+    border-radius:         3px;
+}

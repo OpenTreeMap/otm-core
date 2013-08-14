@@ -37,6 +37,9 @@
             <li><a href="javascript:;">{% trans "Explore Trees" %}</a></li>
             <li><a href="javascript:;">{% trans "Add a Tree" %}</a></li>
             {% endblock instancetopnav %}
+          </ul>
+					<ul class="nav pull-right">
+						{% if request.user.username %}
             <li class="divider-vertical"></li>
             {% if request.user.is_authenticated %}
               <li><a href="{% url 'profile' %}">{{ request.user }}</a></li>
@@ -44,8 +47,9 @@
             {% else %}
               <li><a href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
               <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
+              {% endif %}
             {% endif %}
-          </ul>
+					</ul>
         </div>
       </div>
     </div>
@@ -66,7 +70,7 @@
         <!--Species Search-->
         <div class="search-block">
           <p class="desktop-only">{% trans "Search by Species" %}</p></a>
-          <div class="input-prepend">
+          <div class="search-field-group">
             <input type="text" data-class="search" id="species-typeahead" placeholder="American basswood"/>
             <input type="hidden" id="search-species" />
           </div>
@@ -75,7 +79,7 @@
         <!-- Location Search -->
         <div class="search-block">
           <p class="desktop-only">{% trans "Search by Location" %}</p>
-          <div class="input-prepend">
+          <div class="search-field-group">
              <input type="text" data-class="search" id="boundary-typeahead" placeholder="340 N 12th St, Philadelphia"/>
             <input type="hidden" id="boundary" />
           </div>

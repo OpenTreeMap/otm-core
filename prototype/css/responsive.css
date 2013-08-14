@@ -1,24 +1,18 @@
-@media (min-width: 1200px) {
-
-}
- 
-
-@media (min-width: 768px) and (max-width: 1023px) {
-
-}
-
-@media (max-width: 1024px) {
-
-}
- 
+/* Portrait tablet -------------------------- */
 
 @media (max-width: 767px) {
 
+	.logo {
+		display: none;
+	}
 	.search-block-wrapper {
 		top: 230px;
 		right: 0;
 		left: 0;
 		width: 100%;
+	}
+	.search-block {
+		padding: 4px 15px;
 	}
 	.search-options {
 		position: absolute;
@@ -45,13 +39,14 @@
 		margin-top: 50px;
 		padding-bottom: 120px;
 	}
-
 	.right textarea {
 		width: 98%;
 	}
 
 }
+
  
+/* Landscape Phone and down ----------------- */
 
 @media (max-width: 480px) {
 

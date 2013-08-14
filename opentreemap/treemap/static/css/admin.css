@@ -1,0 +1,54 @@
+/* ---------------------------------------
+	 Admin Page Styles
+--------------------------------------- */
+
+body {
+	background: #f8f8f8;
+}
+
+.admin {
+	margin-top: 50px;
+}
+
+.single-line h1 {
+	margin-top: 15px;
+}
+
+	.admin .left {
+		width: 259px;
+		height: 100px;
+		margin-top: 25px;
+	}
+		.admin .left ul {
+			margin: 0;
+			background: #fff;
+			border-radius: 3px;
+		}
+			.admin .left ul > li a {
+				color: #000;
+				font-size: 13px;
+			}
+			
+		.admin .right h2 {
+			padding: 0;
+		}
+			
+	.admin .right {
+		border: 1px solid #ddd;
+		padding: 20px;
+		background: #fff;
+		width: 640px;
+		float: right;
+		margin-top: 25px;
+		-webkit-border-radius: 4px;
+		-moz-border-radius: 	 4px;
+		border-radius: 				 4px;
+	}
+	
+	.config-tabs {
+		margin: 0 !important;
+	}
+	
+	.nav-stacked li.active a {
+		background: #c2c2c2 !important;
+	}
