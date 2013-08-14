@@ -217,7 +217,6 @@ module.exports = {
         var clickedIdStream = utfGridClickControl
             .asEventStream('click')
             .map('.' + config.utfGrid.plotIdKey)
-            .log()
             .map(truthyOrError); // Prevents making requests if id is undefined
 
         var popupHtmlStream = clickedIdStream
