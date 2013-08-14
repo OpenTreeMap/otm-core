@@ -256,7 +256,7 @@ module.exports = {
         zoom = map.getZoomForResolution(76.43702827453613);
         map.setCenter(config.instance.center, zoom);
 
-        var query = U.parseQueryString()['q'];
+        var query = U.parseQueryString().q;
         var initialSearch = {};
         if (query) {
             initialSearch = JSON.parse(query);
