@@ -173,7 +173,7 @@
   <div class="right">
     <h3>{% trans "Commments" %}</h3>
 
-    {% if request.user.username %}
+    {% if request.user.is_authenticated %}
       <form>
         <textarea rows=8></textarea><br>
         <button type="submit" class="btn">{% trans "Submit" %}</button>

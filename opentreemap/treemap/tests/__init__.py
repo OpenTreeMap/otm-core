@@ -205,13 +205,14 @@ def make_user_and_role(instance, username, rolename, permissions):
     return make_user(instance, username, make_role)
 
 
-def make_instance(name='i1'):
+def make_instance(name='i1', is_public=False):
     global_role, _ = Role.objects.get_or_create(name='global', rep_thresh=0)
 
     p1 = Point(0, 0)
 
     instance, _ = Instance.objects.get_or_create(
-        name=name, geo_rev=0, center=p1, default_role=global_role)
+        name=name, geo_rev=0, center=p1, default_role=global_role,
+        is_public=is_public)
 
     return instance
 
