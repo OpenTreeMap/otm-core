@@ -7,6 +7,7 @@ from django.test.client import RequestFactory
 from django.conf import settings
 
 from django.contrib.gis.geos import Point, Polygon
+from django.contrib.auth.models import AnonymousUser
 
 from treemap.models import User, InstanceUser
 
@@ -229,9 +230,11 @@ def create_mock_system_user():
 
 class ViewTestCase(TestCase):
     def _make_request(self, params={}, user=None):
+        if user is None:
+            user = AnonymousUser()
+
         req = self.factory.get("hello/world", params)
-        if user is not None:
-            req.user = user
+        setattr(req, 'user', user)
 
         return req
 

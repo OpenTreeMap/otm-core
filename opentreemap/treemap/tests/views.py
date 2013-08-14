@@ -8,6 +8,7 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from django.http import Http404
 
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 
 from treemap.audit import Role, Audit, approve_or_reject_audit_and_apply
@@ -21,7 +22,7 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
-                           make_user_with_default_role, make_simple_boundary)
+                           make_simple_boundary)
 
 
 class InstanceValidationTest(TestCase):
@@ -198,13 +199,13 @@ class PlotViewTest(ViewTestCase):
         self.assertNotIn('benefits', context)
 
 
-class RecentEditsViewTest(TestCase):
+class RecentEditsViewTest(ViewTestCase):
 
     def setUp(self):
         self.longMessage = True
 
-        self.instance = make_instance()
-        self.instance2 = make_instance('i2')
+        self.instance = make_instance(is_public=True)
+        self.instance2 = make_instance('i2', is_public=True)
         self.officer = make_officer_user(self.instance)
         self.commander = make_commander_user(self.instance)
         self.pending_user = make_apprentice_user(self.instance)
@@ -279,6 +280,7 @@ class RecentEditsViewTest(TestCase):
 
     def check_audits(self, url, dicts):
         req = self.factory.get(url)
+        req.user = AnonymousUser()
         resulting_audits = [a.audit.dict()
                             for a
                             in audits(req, self.instance)['audits']]
@@ -287,6 +289,7 @@ class RecentEditsViewTest(TestCase):
 
     def check_user_audits(self, url, username, dicts):
         req = self.factory.get(url)
+        req.user = AnonymousUser()
         resulting_audits = [a.audit.dict()
                             for a
                             in user_audits(req, username)['audits']]
@@ -647,7 +650,10 @@ class UserViewTests(ViewTestCase):
 
     def setUp(self):
         super(UserViewTests, self).setUp()
-        self.joe = make_user_with_default_role(self.instance, 'joe')
+        self.instance.is_public = True
+        self.instance.save()
+
+        self.joe = make_commander_user(self.instance, 'joe')
 
     def test_get_by_username(self):
         context = user(self._make_request(), self.joe.username)
@@ -660,6 +666,30 @@ class UserViewTests(ViewTestCase):
     def test_get_with_invalid_username_returns_404(self):
         self.assertRaises(Http404, user, self._make_request(),
                           'no_way_this_is_a_username')
+
+    def test_all_private_audits_are_filtered_out(self):
+        p = Point(-7615441.0, 5953519.0)
+        plot = Plot(instance=self.instance, geom=p)
+        plot.save_with_user(self.joe)
+
+        context = user(self._make_request(), self.joe.username)
+
+        # Can always see public audits
+        self.assertTrue(len(context['audits']) > 0)
+
+        self.instance.is_public = False
+        self.instance.save()
+
+        # Can't see private audits
+        context = user(self._make_request(), self.joe.username)
+        self.assertTrue(len(context['audits']) == 0)
+
+        # Can see audits if the 'logged in' user has an
+        # InstanceUser on that instance
+        self.assertTrue(self.instance.is_accessible_by(self.joe))
+
+        context = user(self._make_request(user=self.joe), self.joe.username)
+        self.assertTrue(len(context['audits']) > 0)
 
 
 class InstanceUserViewTests(ViewTestCase):
