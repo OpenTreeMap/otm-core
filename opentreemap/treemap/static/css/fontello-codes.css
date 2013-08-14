@@ -7,5 +7,7 @@
 .icon-help:before { content: '\e806'; } /* '' */
 .icon-share:before { content: '\e800'; } /* '' */
 .icon-comments:before { content: '\e807'; } /* '' */
+.icon-down:before { content: '\e80b'; } /* '' */
+.icon-right:before { content: '\e80a'; } /* '' */
 .icon-leaf:before { content: '\e809'; } /* '' */
 .icon-user:before { content: '\e808'; } /* '' */
