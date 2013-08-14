@@ -40,6 +40,8 @@
           </ul>
 					<ul class="nav pull-right">
 						{% if request.user.username %}
+            <li class="divider-vertical"></li>
+            {% if request.user.is_authenticated %}
               <li><a href="{% url 'profile' %}">{{ request.user }}</a></li>
               <li><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
             {% else %}

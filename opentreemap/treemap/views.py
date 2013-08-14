@@ -505,3 +505,6 @@ user_view = render_template("treemap/user.html", user)
 
 user_audits_view = render_template("treemap/recent_user_edits.html",
                                    user_audits)
+
+instance_not_available_view = render_template(
+    "treemap/instance_not_available.html")

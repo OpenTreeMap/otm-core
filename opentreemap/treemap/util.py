@@ -1,10 +1,15 @@
 import json
 
 from functools import wraps
-
+from urlparse import urlparse
 from django.template import RequestContext
-from django.shortcuts import get_object_or_404, render_to_response
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, render_to_response, resolve_url
+from django.http import (HttpResponse, HttpResponseBadRequest,
+                         HttpResponseRedirect)
+from django.utils.encoding import force_str
+from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.conf import settings
+from django.core.urlresolvers import reverse
 
 from treemap.models import Instance
 
@@ -17,6 +22,24 @@ class InvalidInstanceException(Exception):
     pass
 
 
+def login_redirect(request):
+    # Reference: django/contrib/auth/decorators.py
+    path = request.build_absolute_uri()
+    # urlparse chokes on lazy objects in Python 3, force to str
+    resolved_login_url = force_str(
+        resolve_url(settings.LOGIN_URL))
+    # If the login url is the same scheme and net location then just
+    # use the path as the "next" url.
+    login_scheme, login_netloc = urlparse(resolved_login_url)[:2]
+    current_scheme, current_netloc = urlparse(path)[:2]
+    if (not login_scheme or login_scheme == current_scheme)\
+    and (not login_netloc or login_netloc == current_netloc):  # NOQA
+        path = request.get_full_path()
+    from django.contrib.auth.views import redirect_to_login
+    return redirect_to_login(
+        path, resolved_login_url, REDIRECT_FIELD_NAME)
+
+
 def instance_request(view_fn):
     @wraps(view_fn)
     def wrapper(request, instance_id, *args, **kwargs):
@@ -25,7 +48,13 @@ def instance_request(view_fn):
         # view function argument for flexibility and to keep "template
         # only" requests simple.
         request.instance = instance
-        return view_fn(request, instance, *args, **kwargs)
+        if instance.is_accessible_by(request.user):
+            return view_fn(request, instance, *args, **kwargs)
+        else:
+            if request.user.is_authenticated():
+                return HttpResponseRedirect(reverse('instance_not_available'))
+            else:
+                return login_redirect(request)
 
     return wrapper
 
