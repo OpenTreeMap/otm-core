@@ -77,3 +77,85 @@ class FieldVisibilityNode(template.Node):
             content = ''
 
         return content
+
+
+@register.tag('usercontent')
+def usercontent_tag(parser, token):
+    """
+    Template tag that can wrap a block of code that executes only
+    if the logged in user matched user specified in the
+    tag
+
+        {% usercontent for "joe" %}
+            Email: {{ email }}
+        {% endusercontent %}
+
+    Will render the email address only if the username of the logged in user
+    (defined as 'request.user.username') is 'joe'
+
+        {% usercontent for user %}
+            Email: {{ email }}
+        {% endusercontent %}
+
+    will render the email address only if user == request.user
+
+        {% usercontent for 1 %}
+            Email: {{ email }}
+        {% endusercontent %}
+
+    will render the email address only if request.user.pk == 1
+    """
+    try:
+        field_token, for_token, user_identifier = token.split_contents()
+    except ValueError:
+        raise template.TemplateSyntaxError(
+            'expected format is: '
+            'usercontent for {user_identifier}')
+
+    if field_token != 'usercontent' or for_token != 'for':
+        raise template.TemplateSyntaxError(
+            'expected format is: '
+            'usercontent for {user_identifier}')
+
+    if str(user_identifier).isdigit():
+        user_identifier = int(user_identifier)
+    else:
+        if user_identifier[0] == '"'\
+        and user_identifier[0] == user_identifier[-1]\
+        and len(user_identifier) >= 2:  # NOQA
+            user_identifier = user_identifier[1:-1]
+        else:
+            user_identifier = template.Variable(user_identifier)
+
+    nodelist = parser.parse(('endusercontent',))
+    parser.delete_first_token()
+    return UserContentNode(nodelist, user_identifier)
+
+
+class UserContentNode(template.Node):
+    def __init__(self, nodelist, user_identifier):
+        self.user_identifier = user_identifier
+        self.nodelist = nodelist
+
+    def render(self, context):
+        req_user = template.Variable('request.user').resolve(context)
+
+        if hasattr(self.user_identifier, 'resolve'):
+            user_identifier = self.user_identifier.resolve(context)
+        else:
+            user_identifier = self.user_identifier
+
+        user_content = self.nodelist.render(context)
+        if str(user_identifier).isdigit():
+            if req_user.pk == int(user_identifier):
+                return user_content
+        elif isinstance(user_identifier, basestring):
+            if req_user.username == user_identifier:
+                return user_content
+        else:
+            if req_user == user_identifier:
+                return user_content
+
+        # If there was a user match, the function would have
+        # previously returned the protected content
+        return ''

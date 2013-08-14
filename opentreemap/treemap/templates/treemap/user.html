@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load audit_extras %}
 
 {% block page_title %} | {{ user.username }}{% endblock %}
 
@@ -34,25 +35,30 @@
             <li class="chunk-label">{% trans "Name" %}</li>
             <li class="chunk-content">{{ user.first_name }} {{ user.last_name }}</li>
         </ul>
-        <ul class="chunk">
-            <li class="chunk-label">{% trans "Zip Code" %}</li>
-            <li class="chunk-content">99999</li>
-        </ul>
+        {% usercontent for user %}
+            <ul class="chunk">
+                <li class="chunk-label">{% trans "Zip Code" %}</li>
+                <li class="chunk-content">99999</li>
+            </ul>
+            <ul class="chunk">
+                <li class="chunk-label">{% trans "Email" %}</li>
+                <li class="chunk-content">{{user.email}}</li>
+            </ul>
+            <ul class="chunk">
+                <li class="chunk-label">{% trans "Password" %}</li>
+                <li class="chunk-content"><a href="javascript:;">{% trans "Reset" %}</a></li>
+            </ul>
+            <ul class="chunk">
+                <li class="chunk-label">{% trans "Emails" %}</li>
+                <li class="chunk-content">{% trans "Not Subscribed" %}</li>
+            </ul>
+        {% endusercontent %}
         {% if reputation %}
             <ul class="chunk">
                 <li class="chunk-label">{% trans "Reputation" %}</li>
                 <li class="chunk-content">{{ reputation }}</li>
             </ul>
         {% endif %}
-        <ul class="chunk">
-            <li class="chunk-label">{% trans "Password" %}</li>
-            <li class="chunk-content"><a href="javascript:;">{% trans "Reset" %}</a></li>
-        </ul>
-        <hr>
-        <ul class="chunk">
-            <li class="chunk-label">{% trans "Emails" %}</li>
-            <li class="chunk-content">{% trans "Not Subscribed" %}</li>
-        </ul>
     </div>
     <div class="right">
         <ul class="chunk">
