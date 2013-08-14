@@ -732,8 +732,7 @@ class ReputationMetric(models.Model):
     how many reputation points are awarded/deducted for an
     approved/denied audit.
     """
-    # instance is nullable because some auditables don't have instances
-    instance = models.ForeignKey('Instance', null=True, blank=True)
+    instance = models.ForeignKey('Instance')
     model_name = models.CharField(max_length=255)
     action = models.CharField(max_length=255)
     direct_write_score = models.IntegerField(null=True, blank=True)
