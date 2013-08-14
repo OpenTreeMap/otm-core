@@ -47,6 +47,7 @@
             {% else %}
               <li><a href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
               <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
+              {% endif %}
             {% endif %}
 					</ul>
         </div>
