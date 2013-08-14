@@ -1,8 +1,12 @@
 /* ---------------------------------------
-	 Admin Control Panel Styles
+	 Admin Page Styles
 --------------------------------------- */
 
-.admin .left {
-	width: 200px;
-	background: #eee;
+.left {
+	width: 259px;
+	position: absolute;
+	bottom: 0;
+	top: 168px;
+	background-color: #eee;
+	border-right: 1px solid #c2c2c2;
 }
