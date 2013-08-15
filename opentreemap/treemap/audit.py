@@ -439,10 +439,11 @@ class Auditable(UserTrackable):
         return Audit.audits_for_object(self)
 
     def delete_with_user(self, user, *args, **kwargs):
-        a = Audit(model=self._model_name,
-                  model_id=self.pk,
-                  instance=self.instance,
-                  user=user, action=Audit.Type.Delete)
+        a = Audit(
+            model=self._model_name,
+            model_id=self.pk,
+            instance=self.instance if hasattr(self, 'instance') else None,
+            user=user, action=Audit.Type.Delete)
 
         super(Auditable, self).delete_with_user(user, *args, **kwargs)
         a.save()
@@ -732,8 +733,7 @@ class ReputationMetric(models.Model):
     how many reputation points are awarded/deducted for an
     approved/denied audit.
     """
-    # instance is nullable because some auditables don't have instances
-    instance = models.ForeignKey('Instance', null=True, blank=True)
+    instance = models.ForeignKey('Instance')
     model_name = models.CharField(max_length=255)
     action = models.CharField(max_length=255)
     direct_write_score = models.IntegerField(null=True, blank=True)
