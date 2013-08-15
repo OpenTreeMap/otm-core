@@ -291,6 +291,13 @@ module.exports = {
 
         builtSearchEvents
             .map(JSON.stringify)
+            .map(function(q) {
+                if (q == '{}') {
+                    return null;
+                } else {
+                    return q;
+                }
+            })
             .map(U.getUpdateUrlByUpdatingQueryStringParam, 'q')
             .filter(function(url) {
                 return url != window.location.href;
