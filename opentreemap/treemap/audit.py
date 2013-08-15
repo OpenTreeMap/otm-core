@@ -17,6 +17,19 @@ import hashlib
 import importlib
 
 
+def model_hasattr(obj, name):
+    # hasattr will not work here because it
+    # just calls getattr and looks for exceptions
+    # not differentiating between DoesNotExist
+    # and AttributeError
+    try:
+        getattr(obj, name)
+    except ObjectDoesNotExist:
+        return True
+    except AttributeError:
+        return False
+
+
 def get_id_sequence_name(model_class):
     """
     Takes a django model class and returns the name of the autonumber
