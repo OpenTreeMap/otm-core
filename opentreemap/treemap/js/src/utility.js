@@ -16,7 +16,11 @@ exports.getUpdateUrlByUpdatingQueryStringParam = function (k, v) {
     var url = Url.parse(window.location.href, true);
     var query = url.query || {};
 
-    query[k] = v;
+    if (v == null) {
+        delete query[k];
+    } else {
+        query[k] = v;
+    }
 
     url.query = query;
     url.search = null;
