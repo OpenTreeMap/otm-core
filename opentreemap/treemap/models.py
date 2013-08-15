@@ -297,7 +297,7 @@ class Tree(Authorizable, Auditable, UDFModel):
             raise ValidationError('Cannot save to a plot in another instance')
 
     def save_with_user(self, user, *args, **kwargs):
-        self.full_clean()
+        self.clean()
         super(Tree, self).save_with_user(user, *args, **kwargs)
 
 
