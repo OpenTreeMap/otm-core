@@ -48,7 +48,7 @@ def setupTreemapEnv():
 
     django.shortcuts.render_to_response = local_render_to_response
 
-    instance = make_instance()
+    instance = make_instance(is_public=True)
 
     make_user_with_default_role(instance, 'jim')
     make_commander_user(instance, 'commander')
