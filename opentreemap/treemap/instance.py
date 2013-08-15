@@ -86,6 +86,18 @@ class Instance(models.Model):
     def __unicode__(self):
         return self.name
 
+    def _make_config_property(prop, default=None):
+        def get_config(self):
+            return self.config[prop] or default
+
+        def set_config(self, value):
+            self.config[prop] = value
+
+        return property(get_config, set_config)
+
+    advanced_search_filters = _make_config_property(
+        'advanced_search_fields')
+
     @property
     def geo_rev_hash(self):
         return hashlib.md5(str(self.geo_rev)).hexdigest()
