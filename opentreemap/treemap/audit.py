@@ -176,8 +176,7 @@ class Dictable(object):
 
 class UserTrackable(Dictable):
     def __init__(self, *args, **kwargs):
-        self._do_not_track = []
-
+        self._do_not_track = set(['instance', 'udf_scalar_values'])
         super(UserTrackable, self).__init__(*args, **kwargs)
 
         if self.pk is None:
@@ -296,7 +295,6 @@ class Authorizable(UserTrackable):
     def __init__(self, *args, **kwargs):
         super(Authorizable, self).__init__(*args, **kwargs)
 
-        self._exempt_field_names = {'instance', 'id', 'udf_scalar_values'}
         self._has_been_clobbered = False
 
     def _write_perm_comparison_sets(self, user):
@@ -314,8 +312,8 @@ class Authorizable(UserTrackable):
         A user is able to delete an object if they have all
         field permissions on a model.
         """
+        # TODO - this is cryptic.
         perm_set, field_set = self._write_perm_comparison_sets(user)
-        field_set = field_set - self._exempt_field_names
         return perm_set == field_set
 
     def _user_can_create(self, user):
@@ -331,7 +329,7 @@ class Authorizable(UserTrackable):
             if ((not field.null and
                  not field.blank and
                  not field.primary_key and
-                 field.name not in self._exempt_field_names)):
+                 not field.name in self._do_not_track)):
 
                 if field.name not in perm_set:
                     can_create = False
@@ -375,8 +373,6 @@ class Authorizable(UserTrackable):
         unreadable_fields = fields - readable_fields
 
         for field_name in unreadable_fields:
-            if field_name not in self._exempt_field_names:
-                setattr(self, field_name, None)
 
         self._has_been_clobbered = True
 
@@ -406,8 +402,6 @@ class Authorizable(UserTrackable):
         if self.pk is not None:
             writable_perms, __ = self._write_perm_comparison_sets(user)
             for field in self._updated_fields():
-                if ((field not in writable_perms and
-                     field not in self._exempt_field_names)):
                     raise AuthorizeException("Can't edit field %s on %s" %
                                             (field, self._model_name))
 

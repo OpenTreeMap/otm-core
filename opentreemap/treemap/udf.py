@@ -333,7 +333,7 @@ class UDFModel(UserTrackable, models.Model):
     def __init__(self, *args, **kwargs):
         super(UDFModel, self).__init__(*args, **kwargs)
 
-        self._do_not_track = ['udf_scalar_values']
+        self._do_not_track.add('udf_scalar_values')
 
     def get_user_defined_fields(self):
         return UserDefinedFieldDefinition.objects.filter(
