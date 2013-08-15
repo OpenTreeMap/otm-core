@@ -66,6 +66,24 @@ def _reserve_model_id(model_class):
     return model_id
 
 
+def _audit_deserialization_value_transformer(audit):
+    """
+    A helper function to transform values.
+
+    TODO: this needs to be worked into a toplevel thing.
+    There is duplicate logic between this and the AuditUI.
+    """
+    if audit.field == 'geom':
+        return GEOSGeometry(audit.current_value)
+    elif audit.field == 'plot':
+        from treemap.models import Plot
+        return Plot(pk=audit.current_value)
+    elif audit.field == 'readonly':
+        return audit.current_value == 'True'
+    else:
+        return audit.current_value
+
+
 def approve_or_reject_audit_and_apply(audit, user, approved):
     """
     Approve or reject a given audit and apply it to the
@@ -95,31 +113,77 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
                          current_value=audit.current_value,
                          user=user)
 
+    TheModel = _lkp_model(audit.model)
     if approved:
         review_audit.action = Audit.Type.PendingApprove
 
-        TheModel = _lkp_model(audit.model)
-        obj = TheModel.objects.get(pk=audit.model_id)
-        obj.apply_change(audit.field, audit.current_value)
+        # use a try/catch to determine if the is a pending insert
+        # or a pending update
+        try:
+            obj = TheModel.objects.get(pk=audit.model_id)
+            obj.apply_change(audit.field,
+                             _audit_deserialization_value_transformer(audit))
+            # TODO: consider firing the save signal here
+            # save this object without triggering any kind of
+            # UserTrackable actions. There is no straightforward way to
+            # call save on the object's parent here.
 
-        # Not sure this is really great here, but we want to
-        # bypass all of the safety measures and simply apply
-        # the edit without generating any additional audits
-        # or triggering the auth system
-        obj.save_base()
-        review_audit.save()
+            obj.save_base()
 
-        audit.ref_id = review_audit
-        audit.save()
+        except ObjectDoesNotExist:
+            if audit.field == 'id':
+                _process_approved_pending_insert(TheModel, user, audit)
 
     else:  # Reject
         review_audit.action = Audit.Type.PendingReject
-        review_audit.save()
 
-        audit.ref_id = review_audit
-        audit.save()
+        if audit.field == 'id':
+            related_audits = get_related_audits(audit)
+
+            for related_audit in related_audits:
+                related_audit.ref_id = None
+                related_audit.save()
+                approve_or_reject_audit_and_apply(related_audit, user, False)
+
+    review_audit.save()
+    audit.ref_id = review_audit
+    audit.save()
 
     return review_audit
+
+
+def _process_approved_pending_insert(model_class, user, audit):
+    # get all of the audits
+    obj = model_class(pk=audit.model_id)
+    if model_hasattr(obj, 'instance'):
+        obj.instance = audit.instance
+
+    approved_audits = get_related_audits(audit, approved_only=True)
+
+    for approved_audit in approved_audits:
+        obj.apply_change(approved_audit.field,
+                             _audit_deserialization_value_transformer(
+                                 approved_audit))
+
+    obj.validate_foreign_keys_exist()
+    obj.save_base()
+
+
+def get_related_audits(insert_audit, approved_only=False):
+    """
+    Takes a pending insert audit and retrieves all *other*
+    records that were part of that insert.
+    """
+    related_audits = Audit.objects.filter(instance=insert_audit.instance,
+                                          model_id=insert_audit.model_id,
+                                          model=insert_audit.model,
+                                          action=Audit.Type.Insert)\
+                                  .exclude(pk=insert_audit.pk)
+    if approved_only:
+        related_audits = related_audits.filter(
+            ref_id__action=Audit.Type.PendingApprove)
+
+    return related_audits
 
 
 def _lkp_model(modelname):
@@ -198,9 +262,12 @@ class UserTrackable(Dictable):
             # "initial" state is empty so we clear it here
             self._previous_state = {}
         else:
-            self._previous_state = self.as_dict()
+            self._populate_previous_state()
 
     def apply_change(self, key, orig_value):
+        # TODO: if a field has a default value, don't
+        # set the original value when the original value
+        # is none, set it to the default value of the field.
         setattr(self, key, orig_value)
 
     def _updated_fields(self):
@@ -216,6 +283,13 @@ class UserTrackable(Dictable):
 
         return updated
 
+    @classmethod
+    def _required_fields(cls):
+        return [field.name for field in cls._meta.fields
+                if not (field.null and
+                        field.blank) and
+                not field.name in self._do_not_track.union(['id'])]
+
     @property
     def _model_name(self):
         return self.__class__.__name__
@@ -226,7 +300,7 @@ class UserTrackable(Dictable):
 
     def save_with_user(self, user, *args, **kwargs):
         self.save_base(self, *args, **kwargs)
-        self._previous_state = self.as_dict()
+        self._populate_previous_state()
 
     def save(self, *args, **kwargs):
         raise UserTrackingException(
@@ -237,6 +311,14 @@ class UserTrackable(Dictable):
         raise UserTrackingException(
             'All deletes to %s objects must be saved via "delete_with_user"' %
             (self._model_name))
+
+    def _populate_previous_state(self):
+        """
+        A helper method for setting up a previous state dictionary
+        without the elements that should remained untracked
+        """
+        self._previous_state = {k: v for k, v in self.as_dict().iteritems()
+                                if k not in self._do_not_track}
 
     def get_pending_fields(self, user=None):
         """
@@ -338,6 +420,11 @@ class Authorizable(UserTrackable):
 
         perm_set, __ = self._write_perm_comparison_sets(user)
 
+        # TODO : maybe we should abstract this a little bit.
+        # iterating over self._meta.fields is a little low
+        # level. maybe the UserTrackable should provided a method
+        # called tracked_fields that has some/all of the following
+        # predicates baked in
         for field in self._meta.fields:
             if ((not field.null and
                  not field.blank and
@@ -386,6 +473,7 @@ class Authorizable(UserTrackable):
         unreadable_fields = fields - readable_fields
 
         for field_name in unreadable_fields:
+            self.apply_change(field_name, None)
 
         self._has_been_clobbered = True
 
@@ -415,6 +503,7 @@ class Authorizable(UserTrackable):
         if self.pk is not None:
             writable_perms, __ = self._write_perm_comparison_sets(user)
             for field in self._updated_fields():
+                if field not in writable_perms:
                     raise AuthorizeException("Can't edit field %s on %s" %
                                             (field, self._model_name))
 
@@ -451,6 +540,9 @@ class Auditable(UserTrackable):
     class Foo(Authorizable, Auditable, models.Model):
         ...
     """
+    def __init__(self, *args, **kwargs):
+        super(Auditable, self).__init__(*args, **kwargs)
+        self.is_pending_insert = False
 
     def audits(self):
         return Audit.audits_for_object(self)
@@ -471,40 +563,83 @@ class Auditable(UserTrackable):
                    .filter(ref_id__isnull=True)\
                    .order_by('-created')
 
+    def validate_foreign_keys_exist(self):
+        """
+        This method walks each field in the
+        model to see if any foreign keys are available.
+
+        There are cases where an object has a reference
+        to a pending foreign key that is not caught during
+        the django field validation process. Running this
+        validation protects against these.
+        """
+        for field in self._meta.fields:
+
+            is_fk = isinstance(field, models.ForeignKey)
+            is_required = (field.null is False or field.blank is False)
+
+            if is_fk:
+                try:
+                    related_model = getattr(self, field.name)
+                    if related_model is not None:
+                        id = related_model.pk
+                        cls = field.rel.to
+                        cls.objects.get(pk=id)
+                    elif is_required:
+                        raise IntegrityError(
+                            "%s has null required field %s" %
+                            (self, field.name))
+                except ObjectDoesNotExist:
+                    raise IntegrityError("%s has non-existent %s" %
+                        (self, field.name))
+
     def save_with_user(self, user, *args, **kwargs):
+        if self.is_pending_insert:
+            raise Exception("You have already saved this object.")
 
         updates = self._updated_fields()
 
         is_insert = self.pk is None
-        if is_insert:
-            action = Audit.Type.Insert
-        else:
-            action = Audit.Type.Update
+        action = Audit.Type.Insert if is_insert else Audit.Type.Update
 
         pending_audits = []
-        pending = self.get_pending_fields(user)
-        for pending_field in pending:
-            pending_audits.append((pending_field, updates[pending_field]))
+        pending_fields = self.get_pending_fields(user)
 
-            # Clear changes to object
-            oldval = updates[pending_field][0]
-            self.apply_change(pending_field, oldval)
+        if pending_fields:
+            for pending_field in pending_fields:
 
-            # If a field is a "pending field" then it should
-            # be logically removed from the fields that are being
-            # marked as "updated"
-            del updates[pending_field]
+                pending_audits.append((pending_field, updates[pending_field]))
 
-        super(Auditable, self).save_with_user(user, *args, **kwargs)
+                # Clear changes to object
+                oldval = updates[pending_field][0]
+                try:
+                    self.apply_change(pending_field, oldval)
+                except ValueError:
+                    pass
+
+                # If a field is a "pending field" then it should
+                # be logically removed from the fields that are being
+                # marked as "updated"
+                del updates[pending_field]
+
+        else:
+            super(Auditable, self).save_with_user(user, *args, **kwargs)
 
         if is_insert:
             updates['id'] = [None, self.pk]
 
+        instance = self.instance if hasattr(self, 'instance') else None
+
+        if self.pk:
+            model_id = self.pk
+        else:
+            model_id = _reserve_model_id(_lkp_model(self._model_name))
+            self.pk = model_id
+            self.is_pending_insert = True
+
         def make_audit_and_save(field, prev_val, cur_val, pending):
 
-            instance = self.instance if hasattr(self, 'instance') else None
-
-            Audit(model=self._model_name, model_id=self.pk,
+            Audit(model=self._model_name, model_id=model_id,
                   instance=instance, field=field,
                   previous_value=prev_val,
                   current_value=cur_val,
