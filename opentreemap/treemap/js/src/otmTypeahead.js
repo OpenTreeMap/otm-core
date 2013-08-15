@@ -17,6 +17,8 @@ function setTypeahead($typeahead, val) {
 function setTypeaheadAfterDataLoaded($typeahead, key, query) {
     if (!key) {
         setTypeahead($typeahead, query);
+    } else if (query == null || query.length == 0) {
+        setTypeahead($typeahead, '');
     } else {
         var data = _.filter(
             $typeahead.data('ttView').datasets[0].itemHash,
@@ -77,7 +79,7 @@ exports.create = function(options) {
             setTypeaheadAfterDataLoaded($input, reverse, value);
 
             // If we're not, this will get used when loaded later
-            $hidden_input.val(value);
+            $hidden_input.val(value || '');
         });
 
     }
