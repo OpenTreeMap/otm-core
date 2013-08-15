@@ -240,8 +240,10 @@ class ModelUnicodeTests(TestCase):
                          'Tree.readonly - Test Role (%s)' % self.role.pk)
 
     def test_audit_model(self):
-        self.assertEqual(unicode(self.audit),
-                         'ID: 3 Tree.readonly (1) True => False')
+        self.assertEqual(
+            unicode(self.audit),
+            'pk=%s - action=Update - Tree.readonly:(1) - True => False'
+            % self.audit.pk)
 
     def test_reputation_metric_model(self):
         self.assertEqual(unicode(self.reputation_metric),

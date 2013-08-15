@@ -721,8 +721,9 @@ class Audit(models.Model):
                 'created': str(self.created)}
 
     def __unicode__(self):
-        return u"ID: %s %s.%s (%s) %s => %s" % \
-            (self.action, self.model, self.field, self.model_id,
+        return u"pk=%s - action=%s - %s.%s:(%s) - %s => %s" % \
+            (self.pk, self.TYPES[self.action], self.model,
+             self.field, self.model_id,
              self.previous_value, self.current_value)
 
     def is_pending(self):
