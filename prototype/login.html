@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <title>OpenTreeMap</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="css/bootstrap.css" rel="stylesheet">
     <link href="css/application.css" rel="stylesheet">
@@ -16,19 +15,18 @@
 
   </head>
 
-  <body class="login-signup">
+  <body>
 
     <!-- Top Nav -->
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-          <a class="brand" href="#" data-r767="OpenTreeMap"><img src="img/logo-white.svg" alt="OpenTreeMap"></a>
-          <ul class="nav pull-right">
-            <li><a href="#" data-r767="Explore Trees"><i class="icon-search icon-white"></i></a></li>
-            <li><a href="#" data-r767="Add a Tree"><i class="icon-plus icon-white"></i></a></li>
+          <ul class="nav pull-left">
+            <li><a href="#">Explore Trees</a></li>
+            <li><a href="#">Add a Tree</a></li>
             <li class="divider-vertical"></li>
-            <li><a href="#" data-r767="Log In"><i class="icon-user icon-white"></i></a></li>
-            <li><a href="#" data-r767="Sign Up"><i class="icon-edit icon-white"></i></a></li>
+            <li><a href="#">Log In</a></li>
+            <li><a href="#">Sign Up</a></li>
           </ul>
         </div>
       </div>
@@ -46,9 +44,6 @@
 
         <!--Species Search-->
         <div class="search-block">
-          <span class="mobile-only">
-            <p class="pull-left">Search by Species</p><a class="pull-right btn"><i class="icon-th-list"></i></a>
-          </span>
           <p class="desktop-only">Search by Species</p></a>
           <div class="input-prepend">
             <div class="btn-group">
@@ -61,16 +56,10 @@
             </div>
             <input type="text" placeholder="American basswood">
           </div>
-          <div class="mobile-only">
-            <input type="text" class="input-block-level" placeholder="340 N 12th St, Philadelphia">
-          </div>
         </div>
 
         <!-- Location Search -->
         <div class="search-block">
-          <span class="mobile-only">
-            <p class="pull-left">Search by Location</p><a class="pull-right btn"><i class="icon-th-list"></i></a>
-          </span>
           <p class="desktop-only">Search by Location</p>
           <div class="input-prepend">
             <div class="btn-group">
@@ -82,9 +71,6 @@
               </ul>
             </div>
             <input type="text" placeholder="340 N 12th St, Philadelphia">
-          </div>
-          <div class="mobile-only">
-            <input type="text" class="input-block-level" placeholder="340 N 12th St, Philadelphia">
           </div>
         </div>
 
@@ -106,14 +92,6 @@
       <a href="#" class="btn btn-mini exportBtn"><i class="icon-share"></i> Export Search Results</a>
       <a href="#" class="btn addBtn">Add a Tree</a>
     </div>
-
-    <!--
-    <div class="additional-searches">
-      <div class="stewardship">
-        I am looking for trees that have been ... between then and now.
-      </div>
-    </div>
-    -->
 
     <div class="content login-signup">
       <div class="well login-signup-panel">
@@ -147,7 +125,6 @@
     <!-- Javascript -->
     <script src="js/jquery.js"></script>
     <script src="js/bootstrap.js"></script>
-    <script src="js/response.js"></script>
     <script src="js/application.js"></script>
 
   </body>

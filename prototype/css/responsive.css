@@ -4,9 +4,7 @@
  
 
 @media (min-width: 768px) and (max-width: 1023px) {
-	.logo {
-		display: none;
-	}
+
 }
 
 @media (max-width: 1024px) {
@@ -15,43 +13,42 @@
  
 
 @media (max-width: 767px) {
-	.logo {
-		display: none;
-	}
+
 	.search-block-wrapper {
-		width: 100%;
-		float: left;
+		top: 230px;
+		right: 0;
 		left: 0;
+		width: 100%;
 	}
 	.search-options {
-		float: left;
-		position: relative;
-		width: 100%;
-		top: 225px;
-		margin-left: 0;
-	}
-	.search-block {
+		position: absolute;
 		float: none;
-		margin: 0 10px 10px;
+		top: 230px;
+		right: 6px;
 	}
-	.mobile-only {
-		display: block !important;
+	.content {
+		margin-top: 120px;
 	}
-	.desktop-only {
-		display: none !important;
+
+	.faq-nav {
+		width: 300px;
+		position: fixed;
 	}
-	.input-prepend {
-		display: none;
+	.faq-content {
+		left: 375px;
 	}
-	.search-submit-btn {
+
+	.right {
 		width: 100%;
+		clear: both;
+		border-top: 1px solid #eee;
+		margin-top: 50px;
+		padding-bottom: 120px;
 	}
-		.btn-group {
-			width: 100%;
-		}
-		.btn-group .btn {
-			width: 50%;
-		}
+
+	.right textarea {
+		width: 98%;
+	}
 
 }
  
