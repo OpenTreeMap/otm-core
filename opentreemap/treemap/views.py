@@ -146,8 +146,8 @@ def plot_detail(request, instance, plot_id):
     return context
 
 
-def _get_audits(instance, query_vars, user, models, model_id, page=0,
-                page_size=20, exclude_pending=True):
+def _get_audits(logged_in_user, instance, query_vars, user, models,
+                model_id, page=0, page_size=20, exclude_pending=True):
     start_pos = page * page_size
     end_pos = start_pos + page_size
 
@@ -155,7 +155,26 @@ def _get_audits(instance, query_vars, user, models, model_id, page=0,
                           .order_by('-created', 'id')
 
     if instance:
-        audits = audits.filter(instance=instance)
+        if instance.is_accessible_by(logged_in_user):
+            audits = audits.filter(instance=instance)
+        else:
+            # Force no results
+            audits = Audit.objects.none()
+    # If we didn't specify an instance we only want to
+    # show audits where the user has permission
+    else:
+        public = Q(instance__is_public=True)
+
+        if logged_in_user is not None and not logged_in_user.is_anonymous():
+            private_with_access = Q(instance__instanceuser__user=
+                                    logged_in_user)
+
+            audit_instance_filter = public | private_with_access
+        else:
+            audit_instance_filter = public
+
+        audits = audits.filter(audit_instance_filter)
+
     if user:
         audits = audits.filter(user=user)
     if model_id:
@@ -243,8 +262,8 @@ def audits(request, instance):
     if user_id is not None:
         user = User.objects.get(pk=user_id)
 
-    return _get_audits(instance, request.REQUEST, user, models,
-                       model_id, page, page_size, exclude_pending)
+    return _get_audits(request.user, instance, request.REQUEST, user,
+                       models, model_id, page, page_size, exclude_pending)
 
 
 def _plot_audits(user, instance, plot):
@@ -279,8 +298,8 @@ def user_audits(request, username):
     (page, page_size, models, model_id,
      exclude_pending) = _get_audits_params(request)
 
-    return _get_audits(instance, request.REQUEST, user, models,
-                       model_id, page, page_size, exclude_pending)
+    return _get_audits(request.user, instance, request.REQUEST, user,
+                       models, model_id, page, page_size, exclude_pending)
 
 
 def instance_user_audits(request, instance_id, username):
@@ -314,7 +333,7 @@ def species_list(request, instance):
     # Split names by space so that "el" will match common_name="Delaware Elm"
     def tokenize(species):
         names = (species.common_name, species.genus,
-                 species.species, species.cultivar_name)
+                 species.species, species.cultivar)
 
         tokens = []
 
@@ -441,7 +460,8 @@ def user(request, username):
 
     query_vars = {'instance_id': instance_id} if instance_id else {}
 
-    audit_dict = _get_audits(instance, query_vars, user, ['Plot', 'Tree'], 0)
+    audit_dict = _get_audits(request.user, instance, query_vars,
+                             user, ['Plot', 'Tree'], 0)
 
     reputation = user.get_reputation(instance) if instance else None
 

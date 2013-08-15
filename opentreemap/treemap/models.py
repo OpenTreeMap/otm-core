@@ -114,11 +114,11 @@ class Species(models.Model):
     common_name = models.CharField(max_length=255)
     genus = models.CharField(max_length=255)
     species = models.CharField(max_length=255, null=True, blank=True)
-    cultivar_name = models.CharField(max_length=255, null=True, blank=True)
+    cultivar = models.CharField(max_length=255, null=True, blank=True)
     gender = models.CharField(max_length=50, null=True, blank=True)
 
     ### Copied from original OTM ###
-    native_status = models.CharField(max_length=255, null=True, blank=True)
+    native_status = models.NullBooleanField()
     bloom_period = models.CharField(max_length=255, null=True, blank=True)
     fruit_period = models.CharField(max_length=255, null=True, blank=True)
     fall_conspicuous = models.NullBooleanField()
@@ -146,8 +146,8 @@ class Species(models.Model):
         name = self.genus
         if self.species:
             name += " " + self.species
-        if self.cultivar_name:
-            name += " '%s'" % self.cultivar_name
+        if self.cultivar:
+            name += " '%s'" % self.cultivar
         return name
 
     def __unicode__(self):

@@ -67,11 +67,11 @@ def setupTreemapEnv():
     n2.save()
 
     s1 = Species(symbol="s1", genus="testus1", species="specieius1",
-                 cultivar_name='', itree_code='BDL OTHER')
+                 cultivar='', itree_code='BDL OTHER')
     s2 = Species(symbol="s2", genus="testus2", species="specieius2",
-                 cultivar_name='', itree_code='BDL OTHER')
+                 cultivar='', itree_code='BDL OTHER')
     s3 = Species(symbol="s3", genus="testus2", species="specieius3",
-                 cultivar_name='', itree_code='BDL OTHER')
+                 cultivar='', itree_code='BDL OTHER')
 
     s1.native_status = True
     s1.fall_conspicuous = True
