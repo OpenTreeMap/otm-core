@@ -516,3 +516,17 @@ class InstanceUserModelTest(TestCase):
         user = User(username='joe', password='pw')
         user.save()
         self.assertEqual(user.get_instance_user(self.instance), None)
+class InstanceTest(TestCase):
+
+    def test_can_read_and_write_config(self):
+        instance = make_instance()
+
+        instance.config['config_value'] = 'test'
+        instance.config['hold up'] = {'nested': 'true'}
+        instance.save()
+
+        reloaded_instance = Instance.objects.get(pk=instance.pk)
+
+        self.assertEqual(reloaded_instance.config,
+                         {'config_value': 'test',
+                          'hold up': {'nested': 'true'}})
