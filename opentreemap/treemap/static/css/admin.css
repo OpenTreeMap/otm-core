@@ -1,5 +1,5 @@
 /* ---------------------------------------
-	 Admin Page Styles
+	 Admin Styles (incl. Bulk Uploader)
 --------------------------------------- */
 
 body {
@@ -52,3 +52,77 @@ body {
 	.nav-stacked li.active a {
 		background: #c2c2c2 !important;
 	}
+
+
+/* Bulk Uploader ---------------------- */
+
+.uploader {
+	margin-top: 35px;
+}
+	.uploader h4 {
+		font-family: "Helvetica", Arial, sans-serif;
+		padding: 0;
+	}
+	.uploader .nav {
+		margin: 0;
+	}
+		.uploader .nav li a {
+			border: 1px solid #ddd;
+			margin-right: 10px;
+			font-size: 13px;
+		}
+
+.upload-box {
+	width: 45%;
+	padding: 10px 15px;
+	background: #fff;
+	border: 1px solid #ddd;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+}
+	.upload-box input {
+		position: relative;
+		-webkit-border-radius: 4px;
+		-moz-border-radius: 4px;
+		border-radius: 4px;
+		border: 1px solid #ddd;
+		padding: 3px 7px;
+	}
+	.upload-box .btn {
+		padding: 8px 15px;
+		float: right;
+	}
+	.tree-import {
+		float: left;
+	}
+	.species-import {
+		float: right;
+	}
+
+.table-container {
+	margin-top: 30px;
+	background: #fff;
+	padding: 15px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+	border: 1px solid #ddd;
+}
+	.table-container.first {
+		margin-top: 130px;
+	}
+	.table-container.scroll {
+	}
+		.table-container.scroll th {
+			font-size: 13px;
+			vertical-align: top;
+		}
+
+.view-export .btn {
+	float: right;
+	margin-left: 10px;
+}
+.view-label {
+	float: right;
+}
