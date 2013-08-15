@@ -41,13 +41,17 @@ function updateSearchResults(newMarkup) {
 }
 
 exports.applySearchToDom = function (search) {
-    // Map 'key' (i.e. "species.id") to DOM (i.e. '#search-species)
-    var reverseElems = _.object(
-        _.map(elems, function(v,k) { return [v['restore-to'] || v.key, k]; }));
+    _.each(elems, function(v, k) {
+        var restoreTarget = v['restore-to'] || v.key;
+        var pred = search[restoreTarget];
+        var $domElem = $(k);
+        if (pred) {
+            pred = _.values(pred)[0];
+        } else {
+            pred = null;
+        }
 
-    _.each(search, function(pred, field) {
-        var $domElem = $(reverseElems[field]);
-        $domElem.trigger('restore', [_.values(pred)[0]]);
+        $domElem.trigger('restore', pred);
     });
 };
 
