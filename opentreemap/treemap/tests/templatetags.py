@@ -46,7 +46,7 @@ class UserCanReadTagTest(TestCase):
 
     basic_template = Template(
         """
-        {% load audit_extras %}
+        {% load auth_extras %}
         {% usercanread plot "width" as w %}
         plot width {{ w }}
         {% endusercanread %}
@@ -117,7 +117,7 @@ class UserCanReadTagTest(TestCase):
         def render():
             return Template(
                 """
-                {% load audit_extras %}
+                {% load auth_extras %}
                 {% usercanread plot the_key as w %}
                 plot udf {{ w }}
                 {% endusercanread %}
@@ -164,7 +164,7 @@ class UserContentTagTests(TestCase):
 
     def render_username_template(self, req_user, content_user):
         username_template = Template("""
-        {% load audit_extras %}
+        {% load auth_extras %}
         {% usercontent for user.username %}
         SECRETS!
         {% endusercontent %}
