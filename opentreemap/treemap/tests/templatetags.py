@@ -46,7 +46,7 @@ class UserCanReadTagTest(TestCase):
 
     basic_template = Template(
         """
-        {% load audit_extras %}
+        {% load auth_extras %}
         {% usercanread plot "width" as w %}
         plot width {{ w }}
         {% endusercanread %}
@@ -117,7 +117,7 @@ class UserCanReadTagTest(TestCase):
         def render():
             return Template(
                 """
-                {% load audit_extras %}
+                {% load auth_extras %}
                 {% usercanread plot the_key as w %}
                 plot udf {{ w }}
                 {% endusercanread %}
@@ -133,3 +133,113 @@ class UserCanReadTagTest(TestCase):
         udf_perm.save()
 
         self.assertEqual(render(), 'plot udf b')
+
+
+class UserContentTagTests(TestCase):
+
+    def setUp(self):
+        self.instance = make_instance()
+
+        self.user = User(username='someone', password='someone')
+        self.user.save()
+
+        self.public_user = User(username='public', password='public')
+        self.public_user.save()
+
+    def _render_template_with_user(self, template, req_user, content_user):
+        return template.render(Context({
+            'request': {'user': req_user},
+            'user': content_user
+        })).strip()
+
+    def render_user_template(self, req_user, content_user):
+        user_template = Template("""
+        {% load auth_extras %}
+        {% usercontent for user %}
+        SECRETS!
+        {% endusercontent %}
+        """)
+        return self._render_template_with_user(
+            user_template, req_user, content_user)
+
+    def render_username_template(self, req_user, content_user):
+        username_template = Template("""
+        {% load auth_extras %}
+        {% usercontent for user.username %}
+        SECRETS!
+        {% endusercontent %}
+        """)
+        return self._render_template_with_user(
+            username_template, req_user, content_user)
+
+    def render_user_id_template(self, req_user, content_user):
+        user_id_template = Template("""
+        {% load auth_extras %}
+        {% usercontent for user.pk %}
+        SECRETS!
+        {% endusercontent %}
+        """)
+        return self._render_template_with_user(
+            user_id_template, req_user, content_user)
+
+    def render_literal_username_template(self, req_user, content_user):
+        literal_username_template = Template("""
+        {% load auth_extras %}
+        {% usercontent for "someone" %}
+        SECRETS!
+        {% endusercontent %}
+        """)
+        return self._render_template_with_user(
+            literal_username_template, req_user, content_user)
+
+    def render_literal_user_id_template(self, req_user, content_user):
+        literal_username_template = Template("""
+        {% load auth_extras %}
+        {% usercontent for """ + str(content_user.pk) + """ %}
+        SECRETS!
+        {% endusercontent %}
+        """)
+        return self._render_template_with_user(
+            literal_username_template, req_user, content_user)
+
+    def test_username_in_tag_shows_content_to_user(self):
+        self.assertEqual(
+            self.render_username_template(self.user, self.user), 'SECRETS!')
+
+    def test_username_in_tag_hides_content_from_others(self):
+        self.assertEqual(
+            self.render_username_template(self.public_user, self.user), '')
+
+    def test_user_in_tag_shows_content_to_user(self):
+        self.assertEqual(
+            self.render_user_template(self.user, self.user), 'SECRETS!')
+
+    def test_user_in_tag_hides_content_from_others(self):
+        self.assertEqual(
+            self.render_user_template(self.public_user, self.user), '')
+
+    def test_user_id_in_tag_shows_content_to_user(self):
+        self.assertEqual(
+            self.render_user_id_template(self.user, self.user), 'SECRETS!')
+
+    def test_user_id_in_tag_hides_content_from_others(self):
+        self.assertEqual(
+            self.render_user_id_template(self.public_user, self.user), '')
+
+    def test_literal_username_in_tag_shows_content_to_user(self):
+        content = self.render_literal_username_template(self.user, self.user)
+        self.assertEqual(content, 'SECRETS!')
+
+    def test_literal_username_in_tag_hides_content_from_others(self):
+        content = self.render_literal_username_template(self.public_user,
+                                                        self.user)
+        self.assertEqual(content, '')
+
+    def test_literal_user_id_in_tag_shows_content_to_user(self):
+        content = self.render_literal_user_id_template(self.user, self.user)
+        self.assertEqual(content, 'SECRETS!')
+
+    def test_literal_user_id_in_tag_hides_content_from_others(self):
+        content = self.render_literal_user_id_template(self.public_user,
+                                                       self.user)
+        self.assertEqual(content, '')
