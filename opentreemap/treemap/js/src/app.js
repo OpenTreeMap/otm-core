@@ -260,10 +260,14 @@ module.exports = {
         // seems like you could merge with Bacon.once(initialSearch)
         // but that empirically doesn't work
 
+        // Don't duplicate queries
+        var lastQuery = null;
+
         var triggerSearchFromUrl = new Bacon.Bus();
         var initialQueryBus = triggerSearchFromUrl.flatMap(function() {
-            var query = U.parseQueryString().q;
-            if (query) {
+            var query = U.parseQueryString().q || '{}';
+            if (lastQuery != query) {
+                lastQuery = query;
                 return JSON.parse(query);
             } else {
                 return Bacon.never();
