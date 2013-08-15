@@ -95,9 +95,9 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
                generate a rejection
     """
 
-    # If the ref_id has already been set, this audit has
+    # If the ref has already been set, this audit has
     # already been accepted or rejected so we can't do anything
-    if audit.ref_id:
+    if audit.ref:
         raise Exception('The pending status of an audit cannot be changed')
 
     # Regardless of what we're doing, we need to make sure
@@ -141,12 +141,12 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
             related_audits = get_related_audits(audit)
 
             for related_audit in related_audits:
-                related_audit.ref_id = None
+                related_audit.ref = None
                 related_audit.save()
                 approve_or_reject_audit_and_apply(related_audit, user, False)
 
     review_audit.save()
-    audit.ref_id = review_audit
+    audit.ref = review_audit
     audit.save()
 
     return review_audit
@@ -181,7 +181,7 @@ def get_related_audits(insert_audit, approved_only=False):
                                   .exclude(pk=insert_audit.pk)
     if approved_only:
         related_audits = related_audits.filter(
-            ref_id__action=Audit.Type.PendingApprove)
+            ref__action=Audit.Type.PendingApprove)
 
     return related_audits
 
@@ -553,7 +553,7 @@ class Auditable(UserTrackable):
     def get_active_pending_audits(self):
         return self.audits()\
                    .filter(requires_auth=True)\
-                   .filter(ref_id__isnull=True)\
+                   .filter(ref__isnull=True)\
                    .order_by('-created')
 
     def validate_foreign_keys_exist(self):
@@ -638,7 +638,7 @@ class Auditable(UserTrackable):
                   current_value=cur_val,
                   user=user, action=action,
                   requires_auth=pending,
-                  ref_id=None).save()
+                  ref=None).save()
 
         for [field, values] in updates.iteritems():
             make_audit_and_save(field, values[0], values[1], False)
@@ -787,7 +787,7 @@ class Audit(models.Model):
     type of either "PendingApprove" or "PendingReject"
     """
     requires_auth = models.BooleanField(default=False)
-    ref_id = models.ForeignKey('Audit', null=True)
+    ref = models.ForeignKey('Audit', null=True)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -820,7 +820,7 @@ class Audit(models.Model):
     @classmethod
     def pending_audits(clz):
         return Audit.objects.filter(requires_auth=True)\
-                            .filter(ref_id__isnull=True)\
+                            .filter(ref__isnull=True)\
                             .order_by('created')
 
     @classmethod
@@ -852,7 +852,7 @@ class Audit(models.Model):
                 'user_id': self.user.pk,
                 'action': self.action,
                 'requires_auth': self.requires_auth,
-                'ref_id': self.ref_id.pk if self.ref_id else None,
+                'ref': self.ref.pk if self.ref else None,
                 'created': str(self.created)}
 
     def __unicode__(self):
@@ -862,10 +862,10 @@ class Audit(models.Model):
              self.previous_value, self.current_value)
 
     def is_pending(self):
-        return self.requires_auth and not self.ref_id
+        return self.requires_auth and not self.ref
 
     def was_reviewed(self):
-        return self.requires_auth and self.ref_id
+        return self.requires_auth and self.ref
 
 
 class ReputationMetric(models.Model):
@@ -896,7 +896,7 @@ class ReputationMetric(models.Model):
         iuser = audit.user.get_instance_user(audit.instance)
 
         if audit.was_reviewed():
-            review_audit = audit.ref_id
+            review_audit = audit.ref
             if review_audit.action == Audit.Type.PendingApprove:
                 iuser.reputation += rm.approval_score
                 iuser.save_base()

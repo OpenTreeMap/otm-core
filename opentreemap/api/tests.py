@@ -1029,7 +1029,7 @@ class UpdatePlotAndTree(TestCase):
                          "Expected 1 pend record for the edited field.")
 
         pending_edit = Audit.pending_audits()[0]
-        self.assertEqual(None, pending_edit.ref_id,
+        self.assertEqual(None, pending_edit.ref,
                          "Expected that the audit has not been applied")
 
         if action == Audit.Type.PendingApprove:
@@ -1045,10 +1045,10 @@ class UpdatePlotAndTree(TestCase):
         self.assertEqual(200, response.status_code)
 
         pending_edit = Audit.objects.get(pk=pending_edit.id)
-        self.assertIsNotNone(pending_edit.ref_id,
+        self.assertIsNotNone(pending_edit.ref,
                              "Expected the audit to be marked as processed")
 
-        pending_edit_marked = pending_edit.ref_id
+        pending_edit_marked = pending_edit.ref
         self.assertEqual(pending_edit_marked.action,
                          action,
                          "Expected the type of the audit to be '%s'" %
