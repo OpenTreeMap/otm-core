@@ -90,32 +90,18 @@ def _make_permissions(field_permission):
     return permissions
 
 
-def make_god_role(instance):
-    """
-    In principle, the god role is able to edit all fields, even things
-    that are supposed to live outside of the application space.
-
-    In practice, the god role has access to 2 more fields than the
-    normal, fully privileged user: model.id and model.instance
-    """
-    permissions = _make_permissions(FieldPermission.WRITE_DIRECTLY)
-    god_permissions = (
-        ('Plot', 'id', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'instance', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'instance', FieldPermission.WRITE_DIRECTLY))
-    permissions = permissions + god_permissions
-
-    return make_loaded_role(instance, 'god', 3, permissions)
-
-
 def make_commander_role(instance, extra_plot_fields=None):
     """
     The commander role has permission to modify all model fields
     directly for all models under test.
     """
     permissions = _make_permissions(FieldPermission.WRITE_DIRECTLY)
+    commander_permissions = (
+        ('Plot', 'id', FieldPermission.WRITE_DIRECTLY),
+        ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
+    )
 
+    permissions = permissions + commander_permissions
     if extra_plot_fields:
         for field in extra_plot_fields:
             permissions += (('Plot', field, FieldPermission.WRITE_DIRECTLY),)
@@ -173,10 +159,6 @@ def make_user(instance, username, make_role=None):
     iuser = InstanceUser(instance=instance, user=user, role=role)
     iuser.save_with_user(user)
     return user
-
-
-def make_god_user(instance, username='god'):
-    return make_user(instance, username, make_god_role)
 
 
 def make_commander_user(instance, username='commander'):
