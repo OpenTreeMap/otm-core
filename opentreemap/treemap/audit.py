@@ -439,10 +439,11 @@ class Auditable(UserTrackable):
         return Audit.audits_for_object(self)
 
     def delete_with_user(self, user, *args, **kwargs):
-        a = Audit(model=self._model_name,
-                  model_id=self.pk,
-                  instance=self.instance,
-                  user=user, action=Audit.Type.Delete)
+        a = Audit(
+            model=self._model_name,
+            model_id=self.pk,
+            instance=self.instance if hasattr(self, 'instance') else None,
+            user=user, action=Audit.Type.Delete)
 
         super(Auditable, self).delete_with_user(user, *args, **kwargs)
         a.save()
