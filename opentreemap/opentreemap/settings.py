@@ -135,6 +135,7 @@ INSTALLED_APPS = (
     'geocode',
     'api',
     'registration',
+    'management',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
