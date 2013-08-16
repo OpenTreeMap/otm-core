@@ -8,6 +8,7 @@ local_settings.py
 Guardfile
 opentreemap/.idea
 node_modules/
+opentreemap/cloud_management
 opentreemap/treemap/static/js/
 prototype/css/.sass-cache
 
