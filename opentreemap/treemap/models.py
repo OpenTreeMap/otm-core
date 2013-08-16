@@ -98,11 +98,11 @@ class User(Auditable, AbstractUser):
         if re.search('\\s', self.username):
             raise ValidationError('Cannot have spaces in a username')
 
-    def save(self):
+    def save(self, *args, **kwargs):
         self.full_clean()
 
         system_user = User.system_user()
-        self.save_with_user(system_user)
+        self.save_with_user(system_user, *args, **kwargs)
 
 
 class Species(models.Model):
