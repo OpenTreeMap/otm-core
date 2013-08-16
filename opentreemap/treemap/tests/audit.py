@@ -43,8 +43,7 @@ class ScopeModelTest(TestCase):
         self.user = make_user_with_default_role(self.instance1, 'auser')
         self.global_role = self.instance1.default_role
 
-        self.instance2 = Instance(name='i2', geo_rev=1, center=self.p2,
-                                  default_role=self.global_role)
+        self.instance2 = make_instance(name='i2')
         self.instance2.save()
 
         iuser = InstanceUser(instance=self.instance2, user=self.user,
