@@ -48,7 +48,7 @@
               <li><a href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
               <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
             {% endif %}
-					</ul>
+          </ul>
         </div>
       </div>
     </div>
@@ -90,7 +90,7 @@
         <br>
         <div class="btn-group">
           <button class="btn">{% trans "Advanced" %}</button>
-          <button class="btn">{% trans "Reset" %}</button>
+          <button id="search-reset" class="btn">{% trans "Reset" %}</button>
         </div>
       </div>
       {% endblock searchoptions %}
