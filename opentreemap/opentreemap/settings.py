@@ -168,4 +168,9 @@ ACCOUNT_ACTIVATION_DAYS = 7
 #               ('/local/', 'local.urls))
 #
 EXTRA_URLS = ()
+
+EXTRA_INSTALLED_APPS = ()
+
 from opentreemap.local_settings import *  # NOQA
+
+INSTALLED_APPS += EXTRA_INSTALLED_APPS
