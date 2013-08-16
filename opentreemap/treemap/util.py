@@ -24,20 +24,20 @@ class InvalidInstanceException(Exception):
     pass
 
 
-def store_visited_instance(request, instance):
-    last_instances = request.session.get('last_instances', OrderedDict())
+def add_visited_instance(request, instance):
+    visited_instances = request.session.get('visited_instances', OrderedDict())
 
-    if instance.pk in last_instances:
-        del last_instances[instance.pk]
-    last_instances[instance.pk] = datetime.datetime.now()
+    if instance.pk in visited_instances:
+        del visited_instances[instance.pk]
+    visited_instances[instance.pk] = datetime.datetime.now()
 
-    request.session['last_instances'] = last_instances
+    request.session['visited_instances'] = visited_instances
     request.session.modified = True
 
 
-def get_last_instance(request):
-    if 'last_instances' in request.session:
-        instance_id = next(reversed(request.session['last_instances']))
+def get_last_visited_instance(request):
+    if 'visited_instances' in request.session:
+        instance_id = next(reversed(request.session['visited_instances']))
         return Instance.objects.get(pk=instance_id)
     else:
         return None
@@ -70,7 +70,7 @@ def instance_request(view_fn):
         # only" requests simple.
         request.instance = instance
         if instance.is_accessible_by(request.user):
-            store_visited_instance(request, instance)
+            add_visited_instance(request, instance)
             return view_fn(request, instance, *args, **kwargs)
         else:
             if request.user.is_authenticated():

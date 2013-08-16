@@ -4,7 +4,7 @@ from __future__ import division
 
 from django.contrib.sessions.middleware import SessionMiddleware
 
-from treemap.util import (store_visited_instance, get_last_instance)
+from treemap.util import (add_visited_instance, get_last_visited_instance)
 
 from treemap.tests import (ViewTestCase, make_instance,
                            make_user_with_default_role)
@@ -24,11 +24,14 @@ class VisitedInstancesTests(ViewTestCase):
         self.request.session.save()
 
     def test_get_last_instance(self):
-        store_visited_instance(self.request, self.instance1)
-        self.assertEqual(self.instance1, get_last_instance(self.request))
+        add_visited_instance(self.request, self.instance1)
+        self.assertEqual(self.instance1,
+                         get_last_visited_instance(self.request))
 
-        store_visited_instance(self.request, self.instance2)
-        self.assertEqual(self.instance2, get_last_instance(self.request))
+        add_visited_instance(self.request, self.instance2)
+        self.assertEqual(self.instance2,
+                         get_last_visited_instance(self.request))
 
-        store_visited_instance(self.request, self.instance1)
-        self.assertEqual(self.instance1, get_last_instance(self.request))
+        add_visited_instance(self.request, self.instance1)
+        self.assertEqual(self.instance1,
+                         get_last_visited_instance(self.request))
