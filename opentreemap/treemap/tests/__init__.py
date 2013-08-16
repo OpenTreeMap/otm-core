@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from django.conf import settings
 
-from django.contrib.gis.geos import Point, Polygon
+from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.contrib.auth.models import AnonymousUser
 
 from django.template import Template, RequestContext
@@ -197,9 +197,11 @@ def make_instance(name='i1', is_public=False):
 
     p1 = Point(0, 0)
 
-    instance, _ = Instance.objects.get_or_create(
-        name=name, geo_rev=0, center=p1, default_role=global_role,
-        is_public=is_public)
+    instance = Instance(name=name, geo_rev=0, default_role=global_role,
+                        is_public=is_public)
+
+    instance.set_center_and_bounds(p1)
+    instance.save()
 
     return instance
 
