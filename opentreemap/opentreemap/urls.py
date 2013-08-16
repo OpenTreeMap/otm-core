@@ -47,5 +47,9 @@ urlpatterns = patterns(
         name='instance_not_available'),
 )
 
+if settings.EXTRA_URLS:
+    for (url_pattern, url_module) in settings.EXTRA_URLS:
+        urlpatterns += patterns('', url(url_pattern, include(url_module)))
+
 if settings.DEBUG:
     urlpatterns += patterns('', url(r'^admin/', include(admin.site.urls)))

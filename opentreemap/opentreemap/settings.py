@@ -160,4 +160,12 @@ I18N_APPS = (
 # may be deleted by maintenance scripts provided in django-registration.
 ACCOUNT_ACTIVATION_DAYS = 7
 
+#
+# Mount extra urls from local settings. These should be a
+# tuple of (url path, url module). Something like:
+#
+# EXTRA_URLS = (('/extra_api/', 'apiv2.urls),
+#               ('/local/', 'local.urls))
+#
+EXTRA_URLS = ()
 from opentreemap.local_settings import *  # NOQA
