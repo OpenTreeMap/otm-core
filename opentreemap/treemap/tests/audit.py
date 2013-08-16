@@ -2,9 +2,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import psycopg2
+import json
 
 from django.test import TestCase
-from django.core.exceptions import FieldError, ValidationError
+from django.core.exceptions import (FieldError, ValidationError,
+                                    ObjectDoesNotExist)
+from django.db import IntegrityError, connection
+from django.contrib.gis.geos import Point
 
 from treemap.models import (Tree, Instance, Plot, Species, FieldPermission,
                             User, InstanceUser)
@@ -14,12 +19,12 @@ from treemap.audit import (Audit, UserTrackingException,
                            approve_or_reject_audit_and_apply,
                            get_id_sequence_name)
 
-from django.contrib.gis.geos import Point
+from treemap.udf import UserDefinedFieldDefinition
 
 from treemap.tests import (make_instance, make_user_with_default_role,
                            make_user_and_role, make_commander_user,
                            make_officer_user, make_observer_user,
-                           make_apprentice_user)
+                           make_apprentice_user, add_field_permissions)
 
 
 class ScopeModelTest(TestCase):
@@ -110,6 +115,7 @@ class AuditTest(TestCase):
 
         permissions = (
             ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
+            ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'species', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'import_event', FieldPermission.WRITE_DIRECTLY),
@@ -176,8 +182,6 @@ class AuditTest(TestCase):
 
         self.assertAuditsEqual([
             self.make_audit(plot.pk, 'id', None, str(plot.pk), model='Plot'),
-            self.make_audit(plot.pk, 'instance', None, plot.instance.pk,
-                            model='Plot'),
             self.make_audit(plot.pk, 'readonly', None, 'False',
                             model='Plot'),
             self.make_audit(plot.pk, 'geom', None, str(plot.geom),
@@ -189,7 +193,6 @@ class AuditTest(TestCase):
 
         expected_audits = [
             self.make_audit(t.pk, 'id', None, str(t.pk)),
-            self.make_audit(t.pk, 'instance', None, t.instance.pk),
             self.make_audit(t.pk, 'readonly', None, True),
             self.make_audit(t.pk, 'plot', None, plot.pk)]
 
@@ -343,6 +346,256 @@ class PendingTest(TestCase):
         # Nothing was changed, no audits were added
         self.assertEqual(ohash,
                          Plot.objects.get(pk=self.plot.pk).hash)
+
+
+class PendingInsertTest(TestCase):
+
+    def setUp(self):
+        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
+        self.instance = make_instance()
+        self.commander_user = make_commander_user(self.instance)
+        self.pending_user = make_apprentice_user(self.instance)
+        self.p1 = Point(-7615441.0, 5953519.0)
+
+        # we need there to be no audits so that we can
+        # iterate over all audits without conflict
+        Audit.objects.all().delete()
+
+    def approve_audits_with_insert_last(self, model_name, model_class,
+                                        model_id=None,
+                                        apply_assertions=False):
+
+        # put the insert at the end so it can be approved last
+        field_audits = Audit.objects.filter(model=model_name)\
+                                    .exclude(field='id')
+
+        insert_audits = Audit.objects.filter(model=model_name,
+                                             field='id')
+
+        if model_id:
+            field_audits = field_audits.filter(model_id=model_id)
+            insert_audit = insert_audits.get(model_id=model_id)
+        else:
+            if insert_audits.count() > 1:
+                raise Exception("multiple possible insert audits."
+                                "it's unclear what is expected to "
+                                "happen.")
+            else:
+                insert_audit = insert_audits[0]
+
+        field_audits = list(field_audits)
+
+        for field_audit in field_audits:
+            approve_or_reject_audit_and_apply(
+                field_audit, self.commander_user, approved=True)
+            if apply_assertions:
+                if field_audit != field_audits[-1]:
+                    self.assertEquals(model_class.objects.count(), 0)
+
+        insert_audit = Audit.objects.get(id=insert_audit.id)
+
+        approve_or_reject_audit_and_apply(
+            insert_audit, self.commander_user, approved=True)
+
+        if apply_assertions:
+                self.assertEquals(model_class.objects.count(), 1)
+
+    def test_insert_writes_when_approved(self):
+
+        new_plot = Plot(geom=self.p1, instance=self.instance)
+        new_plot.save_with_user(self.pending_user)
+
+        new_tree = Tree(plot=new_plot, instance=self.instance)
+        new_tree.save_with_user(self.pending_user)
+
+        self.assertEquals(Plot.objects.count(), 0)
+        self.assertEquals(Tree.objects.count(), 0)
+
+        self.approve_audits_with_insert_last('Plot', Plot,
+                                             apply_assertions=True)
+
+        self.approve_audits_with_insert_last('Tree', Tree,
+                                             apply_assertions=True)
+
+    def test_record_is_created_when_nullables_are_still_pending(self):
+        new_plot = Plot(geom=self.p1, instance=self.instance)
+        new_plot.save_with_user(self.pending_user)
+
+        new_tree = Tree(plot=new_plot, instance=self.instance,
+                        diameter=10, height=10, readonly=False)
+
+        new_tree.save_with_user(self.pending_user)
+
+        self.approve_audits_with_insert_last('Plot', Plot)
+
+        insert_audit = Audit.objects.filter(model='Tree')\
+                                    .get(field='id')
+        field_audits = Audit.objects.filter(model='Tree')\
+                                    .filter(field__in=['readonly', 'diameter',
+                                                       'plot'])
+        for audit in field_audits:
+            approve_or_reject_audit_and_apply(
+                audit, self.commander_user, approved=True)
+
+        approve_or_reject_audit_and_apply(insert_audit,
+                                          self.commander_user, True)
+
+        real_tree = Tree.objects.get(pk=new_tree.pk)
+
+        self.assertEqual(real_tree.plot_id, new_plot.pk)
+        self.assertEqual(real_tree.diameter, 10)
+        self.assertEqual(real_tree.height, None)
+        self.assertNotEqual(real_tree.readonly, True)
+
+    def test_reject_insert_rejects_updates(self):
+        new_plot = Plot(geom=self.p1, instance=self.instance)
+        new_plot.save_with_user(self.pending_user)
+
+        insert_audit = Audit.objects.filter(model='Plot')\
+                                    .get(field='id')
+        field_audits = Audit.objects.filter(model='Plot')\
+                                    .exclude(field='id')
+
+        for audit in field_audits:
+            approve_or_reject_audit_and_apply(
+                audit, self.commander_user, approved=True)
+
+        approve_or_reject_audit_and_apply(insert_audit,
+                                          self.commander_user, False)
+
+        # need to refresh the field_audits collection from the db
+        # because references are broken
+        # why doesn't this work? why are there 5 values in field_audits_ids?
+        # field_audit_ids = field_audits.values_list('id', flat=True)
+        field_audit_ids = [field_audit.id for field_audit in field_audits]
+        field_audits = Audit.objects.filter(pk__in=field_audit_ids)
+
+        for field_audit in field_audits:
+            attached_review_audit = Audit.objects.get(pk=field_audit.ref_id.pk)
+
+            self.assertEqual(attached_review_audit.action,
+                             Audit.Type.PendingReject)
+
+            self.assertNotEqual(None,
+                                Audit.objects.get(
+                                    model=field_audit.model,
+                                    field=field_audit.field,
+                                    model_id=field_audit.model_id,
+                                    action=Audit.Type.PendingApprove))
+
+    def test_approve_insert_without_required_raises_integrity_error(self):
+        new_plot = Plot(geom=self.p1, instance=self.instance)
+        new_plot.save_with_user(self.pending_user)
+
+        new_tree = Tree(plot=new_plot, instance=self.instance,
+                        diameter=10, height=10, readonly=False)
+        new_tree.save_with_user(self.pending_user)
+
+        self.approve_audits_with_insert_last('Plot', Plot)
+
+        diameter_audit = Audit.objects.get(model='Tree',
+                                           field='diameter',
+                                           model_id=new_tree.pk)
+        insert_audit = Audit.objects.get(model='Tree',
+                                         model_id=new_tree.pk,
+                                         field='id')
+
+        approve_or_reject_audit_and_apply(
+            diameter_audit, self.commander_user, approved=True)
+
+        self.assertRaises(IntegrityError, approve_or_reject_audit_and_apply,
+                          insert_audit, self.commander_user, True)
+
+    def test_pending_udf_audits(self):
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'choice',
+                                 'choices': ['1', '2', '3']}),
+            iscollection=False,
+            name='times_climbed')
+
+        add_field_permissions(self.instance, self.commander_user,
+                              'Plot', ['times_climbed'])
+
+        FieldPermission.objects.create(
+            model_name='Plot',
+            field_name='times_climbed',
+            permission_level=FieldPermission.WRITE_WITH_AUDIT,
+            role=self.pending_user.get_instance_user(self.instance).role,
+            instance=self.instance)
+
+        initial_plot = Plot(geom=self.p1, instance=self.instance)
+        initial_plot.udf_scalar_values['times_climbed'] = '2'
+        initial_plot.save_with_user(self.pending_user)
+
+        udf_audit = Audit.objects.get(model='Plot', field='times_climbed',
+                                      model_id=initial_plot.pk)
+        approve_or_reject_audit_and_apply(udf_audit, self.commander_user,
+                                          approved=True)
+
+        geom_audit = Audit.objects.get(model='Plot', field='geom',
+                                       model_id=initial_plot.pk)
+        approve_or_reject_audit_and_apply(geom_audit, self.commander_user,
+                                          approved=True)
+
+        readonly_audit = Audit.objects.get(model='Plot', field='readonly',
+                                           model_id=initial_plot.pk)
+        approve_or_reject_audit_and_apply(readonly_audit,
+                                          self.commander_user, approved=True)
+
+        insert_audit = Audit.objects.get(model='Plot', field='id',
+                                         model_id=initial_plot.pk)
+
+        approve_or_reject_audit_and_apply(insert_audit,
+                                          self.commander_user, approved=True)
+
+        new_plot = Plot.objects.get(pk=initial_plot.pk)
+
+        self.assertEqual(new_plot.pk, initial_plot.pk)
+        self.assertEqual(new_plot.readonly, False)
+        self.assertEqual(new_plot.geom, self.p1)
+        self.assertEqual(new_plot.udf_scalar_values['times_climbed'], '2')
+
+    def test_lots_of_trees_and_plots(self):
+        """
+        Make 3 plots: 2 pending and 1 approved
+        Make 4 trees: 1 on each pending plot, 2 on approved plot
+        Approve one pending plot.
+        Approve all trees. The one on the (Still) pending plot
+        should fail. all else should pass.
+        """
+        p1 = Point(0, 0)
+        p2 = Point(1, 1)
+        p3 = Point(2, 2)
+        plot1 = Plot(geom=p1, instance=self.instance)
+        plot2 = Plot(geom=p2, instance=self.instance)
+        plot3 = Plot(geom=p3, instance=self.instance)
+        plot1.save_with_user(self.commander_user)
+        plot2.save_with_user(self.pending_user)
+        plot3.save_with_user(self.pending_user)
+        tree1 = Tree(plot=plot1, instance=self.instance)
+        tree1.save_with_user(self.pending_user)
+        tree2 = Tree(plot=plot1, instance=self.instance)
+        tree2.save_with_user(self.pending_user)
+        tree3 = Tree(plot=plot2, instance=self.instance)
+        tree3.save_with_user(self.pending_user)
+        tree4 = Tree(plot=plot3, instance=self.instance)
+        tree4.save_with_user(self.pending_user)
+
+        self.approve_audits_with_insert_last('Plot', Plot,
+                                             model_id=plot2.pk)
+        self.approve_audits_with_insert_last('Tree', Tree,
+                                             model_id=tree1.pk)
+        self.approve_audits_with_insert_last('Tree', Tree,
+                                             model_id=tree2.pk)
+        self.approve_audits_with_insert_last('Tree', Tree,
+                                             model_id=tree3.pk)
+
+        self.assertRaises(ObjectDoesNotExist, Plot.objects.get, pk=plot3.pk)
+        self.assertRaises(IntegrityError, self.approve_audits_with_insert_last,
+                          'Tree', Tree, tree4.pk)
 
 
 class ReputationTest(TestCase):

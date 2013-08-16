@@ -234,8 +234,8 @@ class Plot(Authorizable, Auditable, UDFModel):
             return None
 
     def __unicode__(self):
-        x_chunk = "X: %s" % self.geom.x
-        y_chunk = "Y: %s" % self.geom.y
+        x_chunk = "X: %s" % self.geom.x if self.geom else "?"
+        y_chunk = "Y: %s" % self.geom.y if self.geom else "?"
         address_chunk = self.address_street or "No Address Provided"
         return "%s, %s - %s" % (x_chunk, y_chunk, address_chunk)
 
@@ -297,7 +297,7 @@ class Tree(Authorizable, Auditable, UDFModel):
             raise ValidationError('Cannot save to a plot in another instance')
 
     def save_with_user(self, user, *args, **kwargs):
-        self.full_clean()
+        self.clean()
         super(Tree, self).save_with_user(user, *args, **kwargs)
 
 

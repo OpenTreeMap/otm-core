@@ -11,6 +11,7 @@ from django.contrib.gis.geos import fromstr
 from django.conf import settings
 
 from treemap.models import (User, Plot, Tree, Species, InstanceUser)
+from treemap.audit import model_hasattr
 from ._private import InstanceDataCommand
 
 # model specification:
@@ -168,16 +169,8 @@ def hash_to_model(model_name, data_hash, instance, user):
         except ObjectDoesNotExist as d:
             print("Warning: %s ... SKIPPING" % d)
 
-    # hasattr will not work here because it
-    # just calls getattr and looks for exceptions
-    # not differentiating between DoesNotExist
-    # and AttributeError
-    try:
-        getattr(model, 'instance')
-    except ObjectDoesNotExist:
+    if model_hasattr(model, 'instance'):
         model.instance = instance
-    except AttributeError:
-        pass
 
     return model
 
