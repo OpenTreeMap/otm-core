@@ -283,13 +283,6 @@ class UserTrackable(Dictable):
 
         return updated
 
-    @classmethod
-    def _required_fields(cls):
-        return [field.name for field in cls._meta.fields
-                if not (field.null and
-                        field.blank) and
-                not field.name in self._do_not_track.union(['id'])]
-
     @property
     def _model_name(self):
         return self.__class__.__name__
