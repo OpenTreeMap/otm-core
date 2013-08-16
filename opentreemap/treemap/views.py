@@ -20,8 +20,8 @@ from django.db.models import Q
 from treemap.util import json_api_call, render_template, instance_request
 from treemap.search import create_filter
 from treemap.audit import Audit, AuditUI
-from treemap.models import (Plot, Tree, User, Boundary, Species,
-                            Instance, BenefitCurrencyConversion)
+from treemap.models import (Plot, Tree, User, Species, Instance,
+                            BenefitCurrencyConversion)
 
 from ecobenefits.views import _benefits_for_trees
 
@@ -489,9 +489,7 @@ audits_view = instance_request(
 
 index_view = instance_request(render_template('treemap/index.html'))
 map_view = instance_request(
-    render_template('treemap/map.html',
-                    {'bounds': Boundary.objects.all(),
-                     'species': Species.objects.all()}))
+    render_template('treemap/map.html'))
 
 plot_detail_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_detail.html', plot_detail)))
