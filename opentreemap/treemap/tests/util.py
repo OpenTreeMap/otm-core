@@ -2,10 +2,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.test.client import Client
 from django.contrib.sessions.middleware import SessionMiddleware
 
-from treemap.util import (add_visited_instance, get_last_visited_instance)
+from treemap.util import add_visited_instance, get_last_visited_instance
 
+from treemap.models import InstanceUser
 from treemap.tests import (ViewTestCase, make_instance,
                            make_user_with_default_role)
 
@@ -13,15 +15,62 @@ from treemap.tests import (ViewTestCase, make_instance,
 class VisitedInstancesTests(ViewTestCase):
     def setUp(self):
         super(VisitedInstancesTests, self).setUp()
-        self.instance1 = make_instance(1)
-        self.instance2 = make_instance(2)
+        self.instance1 = make_instance(1, is_public=True)
+        self.instance2 = make_instance(2, is_public=True)
+        self.instance3 = make_instance(3, is_public=False)
+        self.instance4 = make_instance(4, is_public=False)
 
         self.user = make_user_with_default_role(self.instance, 'joe')
+        self.user.set_password('joe')
+        self.user.save()
+
         self.request = self._make_request(user=self.user)
+
+        InstanceUser(
+            instance=self.instance4,
+            user=self.user,
+            role=self.instance4.default_role).save_base()
 
         middleware = SessionMiddleware()
         middleware.process_request(self.request)
         self.request.session.save()
+
+    def test_session(self):
+        #
+        # Create a view that renders a simple template
+        # that reads the `last_instance` from the context
+        # processor (that should be inserted by the session)
+        #
+        mock_request = self._mock_request_with_template_string(
+            "{{ last_instance.pk }}")
+
+        self._add_global_url(r'test$', mock_request)
+
+        # By default, nothing is in session
+        self.assertEqual(self.client.get('/test').content, '')
+
+        # Going to an instance sets the context variable
+        self.client.get('/%d/map/' % self.instance1.pk)
+        self.assertEqual(self.client.get('/test').content,
+                         str(self.instance1.pk))
+
+        # Going to a non-public instance doesn't update it
+        self.client.get('/%d/map/' % self.instance3.pk)
+        self.assertEqual(self.client.get('/test').content,
+                         str(self.instance1.pk))
+
+        # Going to a private instance while not logged in
+        # also doesn't update
+        self.client.get('/%d/map/' % self.instance4.pk)
+        self.assertEqual(self.client.get('/test').content,
+                         str(self.instance1.pk))
+
+        self.client.login(username='joe', password='joe')
+
+        # But should change after logging in
+        self.client.get('/%d/map/' % self.instance4.pk)
+        self.assertEqual(self.client.get('/test').content,
+                         str(self.instance4.pk))
 
     def test_get_last_instance(self):
         add_visited_instance(self.request, self.instance1)
