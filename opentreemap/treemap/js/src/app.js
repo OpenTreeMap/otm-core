@@ -140,6 +140,10 @@ var app = {
         });
     },
 
+    resetEventStream: function() {
+        return $("#search-reset").asEventStream("click");
+    },
+
     searchEventStream: function() {
         var enterKeyPressStream = $('input[data-class="search"]')
                 .asEventStream("keyup")
@@ -169,7 +173,12 @@ function showPlotAccordian(html) {
 
 module.exports = {
     init: function (config) {
+        app.resetEventStream()
+            .map({})
+            .onValue(Search.applySearchToDom);
+
         app.initTypeAheads(config);
+
         app.searchEventStream()
             .map(Search.buildSearch)
             .onValue(app.redirectToSearchPage, config);
@@ -181,7 +190,8 @@ module.exports = {
             boundsLayer = app.createBoundsTileLayer(config),
             utfLayer = app.createPlotUTFLayer(config),
             zoom = 0,
-            searchEventStream = app.searchEventStream();
+            searchEventStream = app.searchEventStream(),
+            resetStream = app.resetEventStream();
 
         app.initTypeAheads(config);
 
@@ -273,16 +283,19 @@ module.exports = {
                 return Bacon.never();
             }
         });
+        var triggeredQueryBus = resetStream.map({})
+                                           .merge(initialQueryBus);
 
         window.addEventListener('popstate', function(event) {
             triggerSearchFromUrl.push({});
         }, false);
 
         var builtSearchEvents = searchEventStream
+                .merge(resetStream)
                 .map(Search.buildSearch)
-                .merge(initialQueryBus);
+                .merge(triggeredQueryBus);
 
-        initialQueryBus.onValue(Search.applySearchToDom);
+        triggeredQueryBus.onValue(Search.applySearchToDom);
 
         Search.init(builtSearchEvents, config, function (filter) {
             plotLayer.setFilter(filter);
