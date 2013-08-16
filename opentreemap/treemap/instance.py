@@ -1,7 +1,24 @@
 from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.six import with_metaclass
+
+from south.modelsinspector import add_introspection_rules
 
 import hashlib
+import json
+
+
+class JSONField(with_metaclass(models.SubfieldBase, models.TextField)):
+    def to_python(self, value):
+        return json.loads(value or "{}")
+
+    def get_prep_value(self, value):
+        return json.dumps(value or {})
+
+    def get_prep_lookup(self, lookup_type, value):
+        raise TypeError("JSONField doesn't support lookups")
+
+add_introspection_rules([], ["^treemap\.instance\.JSONField"])
 
 
 class Instance(models.Model):
@@ -55,12 +72,31 @@ class Instance(models.Model):
 
     boundaries = models.ManyToManyField('Boundary', null=True, blank=True)
 
+    """
+    Config contains a bunch of config variables for a given instance
+    these can be accessed via per-config properties such as
+    `advanced_search_fields`
+    """
+    config = JSONField()
+
     is_public = models.BooleanField(default=False)
 
     objects = models.GeoManager()
 
     def __unicode__(self):
         return self.name
+
+    def _make_config_property(prop, default=None):
+        def get_config(self):
+            return self.config[prop] or default
+
+        def set_config(self, value):
+            self.config[prop] = value
+
+        return property(get_config, set_config)
+
+    advanced_search_filters = _make_config_property(
+        'advanced_search_fields')
 
     @property
     def geo_rev_hash(self):
