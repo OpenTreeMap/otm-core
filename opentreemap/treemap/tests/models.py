@@ -516,3 +516,40 @@ class InstanceUserModelTest(TestCase):
         user = User(username='joe', password='pw')
         user.save()
         self.assertEqual(user.get_instance_user(self.instance), None)
+
+
+class InstanceTest(TestCase):
+
+    def test_can_read_and_write_config(self):
+        instance = make_instance()
+
+        instance.config['config_value'] = 'test'
+        instance.config['hold up'] = {'nested': 'true'}
+        instance.save()
+
+        reloaded_instance = Instance.objects.get(pk=instance.pk)
+
+        self.assertEqual(reloaded_instance.config,
+                         {'config_value': 'test',
+                          'hold up': {'nested': 'true'}})
+
+    def test_config_accessors_work(self):
+        instance = make_instance()
+        instance.advanced_search_filters = ['field 1', 'field 2']
+        instance.save()
+
+        reloaded_instance = Instance.objects.get(pk=instance.pk)
+
+        self.assertEqual(reloaded_instance.advanced_search_filters,
+                         ['field 1', 'field 2'])
+
+        instance.advanced_search_filters.append('field 3')
+        instance.save()
+
+        reloaded_instance = Instance.objects.get(pk=instance.pk)
+
+        self.assertEqual(reloaded_instance.advanced_search_filters,
+                         ['field 1', 'field 2', 'field 3'])
+
+    def test_verify_cant_do_lookup(self):
+        self.assertRaises(TypeError, Instance.objects.filter, config='test')

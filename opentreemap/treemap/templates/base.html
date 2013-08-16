@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
     <link href="{{ STATIC_URL }}css/bootstrap.css" rel="stylesheet">
-		<link href="{{ STATIC_URL }}css/fontello.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/fontello.css" rel="stylesheet">
     <link href="{{ STATIC_URL }}css/application.css" rel="stylesheet">
     <link href="{{ STATIC_URL }}css/responsive.css" rel="stylesheet">
 
@@ -34,8 +34,10 @@
         <div class="container">
           <ul class="nav pull-left">
             {% block instancetopnav %}
-            <li><a href="javascript:;">{% trans "Explore Trees" %}</a></li>
-            <li><a href="javascript:;">{% trans "Add a Tree" %}</a></li>
+              {% if last_instance %}
+              <li><a href="{% url 'map' instance_id=last_instance.pk %}">{% trans "Explore Trees" %}</a></li>
+              <li><a href="{% url 'map' instance_id=last_instance.pk %}#editTree">{% trans "Add a Tree" %}</a></li>
+              {% endif %}
             {% endblock instancetopnav %}
           </ul>
           <ul class="nav pull-right">

@@ -1,4 +1,6 @@
 import json
+import datetime
+from collections import OrderedDict
 
 from functools import wraps
 from urlparse import urlparse
@@ -20,6 +22,25 @@ class HttpBadRequestException(Exception):
 
 class InvalidInstanceException(Exception):
     pass
+
+
+def add_visited_instance(request, instance):
+    visited_instances = request.session.get('visited_instances', OrderedDict())
+
+    if instance.pk in visited_instances:
+        del visited_instances[instance.pk]
+    visited_instances[instance.pk] = datetime.datetime.now()
+
+    request.session['visited_instances'] = visited_instances
+    request.session.modified = True
+
+
+def get_last_visited_instance(request):
+    if 'visited_instances' in request.session:
+        instance_id = next(reversed(request.session['visited_instances']))
+        return Instance.objects.get(pk=instance_id)
+    else:
+        return None
 
 
 def login_redirect(request):
@@ -49,6 +70,7 @@ def instance_request(view_fn):
         # only" requests simple.
         request.instance = instance
         if instance.is_accessible_by(request.user):
+            add_visited_instance(request, instance)
             return view_fn(request, instance, *args, **kwargs)
         else:
             if request.user.is_authenticated():

@@ -17,7 +17,7 @@ function setTypeahead($typeahead, val) {
 function setTypeaheadAfterDataLoaded($typeahead, key, query) {
     if (!key) {
         setTypeahead($typeahead, query);
-    } else if (query == null || query.length == 0) {
+    } else if (query === null || query.length === 0) {
         setTypeahead($typeahead, '');
     } else {
         var data = _.filter(
