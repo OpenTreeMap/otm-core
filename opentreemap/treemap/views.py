@@ -180,7 +180,7 @@ def _get_audits(logged_in_user, instance, query_vars, user, models,
     if model_id:
         audits = audits.filter(model_id=model_id)
     if exclude_pending:
-        audits = audits.exclude(requires_auth=True, ref_id__isnull=True)
+        audits = audits.exclude(requires_auth=True, ref__isnull=True)
 
     audits = [AuditUI(a) for a in audits[start_pos:end_pos]]
 
