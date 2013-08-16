@@ -633,7 +633,7 @@ class CreatePlotAndTree(TestCase):
         # Assert that a plot was added
         self.assertEqual(plot_count + 1, Plot.objects.count())
         # Assert that reputation went up
-        assert_reputation(self, reputation_count + 8)
+        assert_reputation(self, reputation_count + 6)
 
         response_json = loads(response.content)
         self.assertTrue("id" in response_json)
@@ -705,7 +705,7 @@ class CreatePlotAndTree(TestCase):
         # Assert that a plot was added
         self.assertEqual(plot_count + 1, Plot.objects.count())
         # Assert that reputation was added
-        assert_reputation(self, reputation_count + 8)
+        assert_reputation(self, reputation_count + 6)
 
         response_json = loads(response.content)
         self.assertTrue("id" in response_json)

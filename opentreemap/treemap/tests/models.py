@@ -14,7 +14,7 @@ from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
 from treemap.audit import Audit, ReputationMetric
 from treemap.management.commands.migrate_otm1 import hash_to_model
 
-from treemap.tests import (make_instance, make_god_user, make_commander_user,
+from treemap.tests import (make_instance, make_commander_user,
                            make_user_with_default_role,
                            make_simple_boundary, make_commander_role)
 
@@ -240,8 +240,10 @@ class ModelUnicodeTests(TestCase):
                          'Tree.readonly - Test Role (%s)' % self.role.pk)
 
     def test_audit_model(self):
-        self.assertEqual(unicode(self.audit),
-                         'ID: 3 Tree.readonly (1) True => False')
+        self.assertEqual(
+            unicode(self.audit),
+            'pk=%s - action=Update - Tree.readonly:(1) - True => False'
+            % self.audit.pk)
 
     def test_reputation_metric_model(self):
         self.assertEqual(unicode(self.reputation_metric),
@@ -320,7 +322,7 @@ class PlotTest(TestCase):
 class MigrationCommandTests(TestCase):
     def setUp(self):
         self.instance = make_instance()
-        self.god = make_god_user(self.instance)
+        self.commander = make_commander_user(self.instance)
 
         self.tree_blob = """
         {"pk": 95,
@@ -435,8 +437,8 @@ class MigrationCommandTests(TestCase):
     def test_user_hash_to_model(self):
         user_dict = json.loads(self.user_blob)
         user = hash_to_model('user', user_dict, self.instance,
-                             self.god)
-        user.save_with_user(self.god)
+                             self.commander)
+        user.save_with_user(self.commander)
         self.assertEqual(user.username, "kyle_reese")
         self.assertEqual(user.first_name, "Kyle")
         self.assertEqual(user.last_name, "Reese")
@@ -450,7 +452,7 @@ class MigrationCommandTests(TestCase):
     def test_species_hash_to_model(self):
         species_dict = json.loads(self.species_blob)
         species = hash_to_model('species', species_dict,
-                                self.instance, self.god)
+                                self.instance, self.commander)
         species.save()
         self.assertEqual(species.symbol, 'SAVI')
         self.assertEqual(species.genus, 'Salix')
@@ -472,8 +474,8 @@ class MigrationCommandTests(TestCase):
     def test_plot_hash_to_model(self):
         plot_dict = json.loads(self.plot_blob)
         plot = hash_to_model('plot', plot_dict, self.instance,
-                             self.god)
-        plot.save_with_user(self.god)
+                             self.commander)
+        plot.save_with_user(self.commander)
 
         self.assertEqual(plot.owner_orig_id, '84368')
         self.assertEqual(plot.address_street, None)
@@ -487,12 +489,12 @@ class MigrationCommandTests(TestCase):
     def test_tree_hash_to_model(self):
         test_plot = Plot(geom=Point(0, 0), instance=self.instance)
         test_plot.id = 95
-        test_plot.save_with_user(self.god)
+        test_plot.save_with_user(self.commander)
 
         tree_dict = json.loads(self.tree_blob)
         tree = hash_to_model('tree', tree_dict, self.instance,
-                             self.god)
-        tree.save_with_user(self.god)
+                             self.commander)
+        tree.save_with_user(self.commander)
         self.assertEqual(tree.plot, test_plot)
         self.assertEqual(tree.species, None)
         self.assertEqual(tree.readonly, True)
