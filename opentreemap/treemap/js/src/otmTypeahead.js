@@ -17,9 +17,7 @@ function setTypeahead($typeahead, val) {
 function setTypeaheadAfterDataLoaded($typeahead, key, query) {
     if (!key) {
         setTypeahead($typeahead, query);
-    } else if (query === null || query.length === 0) {
-        setTypeahead($typeahead, '');
-    } else {
+    } else if (query && query.length !== 0) {
         var data = _.filter(
             $typeahead.data('ttView').datasets[0].itemHash,
             function(data) {
@@ -29,6 +27,8 @@ function setTypeaheadAfterDataLoaded($typeahead, key, query) {
         if (data.length > 0) {
             setTypeahead($typeahead, data[0].value);
         }
+    } else {
+        setTypeahead($typeahead, '');
     }
 }
 
