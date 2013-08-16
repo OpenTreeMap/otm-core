@@ -11,7 +11,7 @@ from django.core.exceptions import (FieldError, ValidationError,
 from django.db import IntegrityError, connection
 from django.contrib.gis.geos import Point
 
-from treemap.models import (Tree, Instance, Plot, Species, FieldPermission,
+from treemap.models import (Tree, Plot, Species, FieldPermission,
                             User, InstanceUser)
 
 from treemap.audit import (Audit, UserTrackingException,
