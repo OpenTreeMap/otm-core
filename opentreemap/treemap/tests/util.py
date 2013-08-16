@@ -2,7 +2,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.test.client import Client
 from django.contrib.sessions.middleware import SessionMiddleware
 
 from treemap.util import add_visited_instance, get_last_visited_instance
