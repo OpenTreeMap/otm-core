@@ -437,7 +437,7 @@ class MigrationCommandTests(TestCase):
     def test_user_hash_to_model(self):
         user_dict = json.loads(self.user_blob)
         user = hash_to_model('user', user_dict, self.instance,
-                                self.commander)
+                             self.commander)
         user.save_with_user(self.commander)
         self.assertEqual(user.username, "kyle_reese")
         self.assertEqual(user.first_name, "Kyle")
@@ -452,7 +452,7 @@ class MigrationCommandTests(TestCase):
     def test_species_hash_to_model(self):
         species_dict = json.loads(self.species_blob)
         species = hash_to_model('species', species_dict,
-                                   self.instance, self.commander)
+                                self.instance, self.commander)
         species.save()
         self.assertEqual(species.symbol, 'SAVI')
         self.assertEqual(species.genus, 'Salix')
@@ -474,7 +474,7 @@ class MigrationCommandTests(TestCase):
     def test_plot_hash_to_model(self):
         plot_dict = json.loads(self.plot_blob)
         plot = hash_to_model('plot', plot_dict, self.instance,
-                                self.commander)
+                             self.commander)
         plot.save_with_user(self.commander)
 
         self.assertEqual(plot.owner_orig_id, '84368')
@@ -493,7 +493,7 @@ class MigrationCommandTests(TestCase):
 
         tree_dict = json.loads(self.tree_blob)
         tree = hash_to_model('tree', tree_dict, self.instance,
-                                self.commander)
+                             self.commander)
         tree.save_with_user(self.commander)
         self.assertEqual(tree.plot, test_plot)
         self.assertEqual(tree.species, None)

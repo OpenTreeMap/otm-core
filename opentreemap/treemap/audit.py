@@ -162,8 +162,8 @@ def _process_approved_pending_insert(model_class, user, audit):
 
     for approved_audit in approved_audits:
         obj.apply_change(approved_audit.field,
-                             _audit_deserialization_value_transformer(
-                                 approved_audit))
+                         _audit_deserialization_value_transformer(
+                             approved_audit))
 
     obj.validate_foreign_keys_exist()
     obj.save_base()
@@ -584,7 +584,7 @@ class Auditable(UserTrackable):
                             (self, field.name))
                 except ObjectDoesNotExist:
                     raise IntegrityError("%s has non-existent %s" %
-                        (self, field.name))
+                                         (self, field.name))
 
     def save_with_user(self, user, *args, **kwargs):
         if self.is_pending_insert:
