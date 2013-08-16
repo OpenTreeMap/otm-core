@@ -161,7 +161,7 @@ class AuditTest(TestCase):
                 'user_id': user.pk,
                 'action': action,
                 'requires_auth': False,
-                'ref_id': None,
+                'ref': None,
                 'created': None}
 
     def test_cant_use_regular_methods(self):
@@ -263,10 +263,10 @@ class PendingTest(TestCase):
         audit = Audit.objects.get(pk=audit.pk)
 
         # Audit should be marked as processed
-        self.assertIsNotNone(audit.ref_id)
+        self.assertIsNotNone(audit.ref)
 
         # Ref'd audit should note rejection
-        refaudit = Audit.objects.get(pk=audit.ref_id.pk)
+        refaudit = Audit.objects.get(pk=audit.ref.pk)
         self.assertEqual(refaudit.user, self.direct_user)
         self.assertEqual(refaudit.action, Audit.Type.PendingReject)
 
@@ -319,10 +319,10 @@ class PendingTest(TestCase):
         audit = Audit.objects.get(pk=audit.pk)
 
         # Audit should be marked as processed
-        self.assertIsNotNone(audit.ref_id)
+        self.assertIsNotNone(audit.ref)
 
         # Ref'd audit should note approval
-        refaudit = Audit.objects.get(pk=audit.ref_id.pk)
+        refaudit = Audit.objects.get(pk=audit.ref.pk)
         self.assertEqual(refaudit.user, self.direct_user)
         self.assertEqual(refaudit.action, Audit.Type.PendingApprove)
 
@@ -471,7 +471,7 @@ class PendingInsertTest(TestCase):
         field_audits = Audit.objects.filter(pk__in=field_audit_ids)
 
         for field_audit in field_audits:
-            attached_review_audit = Audit.objects.get(pk=field_audit.ref_id.pk)
+            attached_review_audit = Audit.objects.get(pk=field_audit.ref.pk)
 
             self.assertEqual(attached_review_audit.action,
                              Audit.Type.PendingReject)

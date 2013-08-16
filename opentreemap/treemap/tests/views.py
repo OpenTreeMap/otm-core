@@ -239,7 +239,7 @@ class RecentEditsViewTest(ViewTestCase):
         self.plot_delta = {
             "model": "Plot",
             "model_id": self.plot.pk,
-            "ref_id": None,
+            "ref": None,
             "action": Audit.Type.Update,
             "previous_value": None,
             "current_value": "9",
@@ -261,7 +261,7 @@ class RecentEditsViewTest(ViewTestCase):
         self.dif_plot_delta = {
             "model": "Plot",
             "model_id": self.dif_instance_plot.pk,
-            "ref_id": None,
+            "ref": None,
             "action": Audit.Type.Update,
             "previous_value": None,
             "current_value": '22',
@@ -470,7 +470,7 @@ class RecentEditsViewTest(ViewTestCase):
         pending_plot_delta = {
             "model": "Plot",
             "model_id": self.plot.pk,
-            "ref_id": None,
+            "ref": None,
             "action": Audit.Type.Update,
             "previous_value": "44",
             "current_value": "22",
@@ -498,7 +498,7 @@ class RecentEditsViewTest(ViewTestCase):
             Audit.objects.all().order_by("-created")[0],
             self.commander, approved=True)
 
-        pending_plot_delta["ref_id"] = a.pk
+        pending_plot_delta["ref"] = a.pk
 
         self.check_audits(
             "/blah/?page_size=4&exclude_pending=true",
