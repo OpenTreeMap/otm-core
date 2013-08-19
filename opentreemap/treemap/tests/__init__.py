@@ -24,6 +24,12 @@ class OTM2TestRunner(DjangoTestSuiteRunner):
         logging.disable(logging.CRITICAL)
         super(OTM2TestRunner, self).run_tests(*args, **kwargs)
 
+    def build_suite(self, test_labels, *args, **kwargs):
+        test_labels = test_labels or settings.MANAGED_APPS
+        return super(OTM2TestRunner, self).build_suite(test_labels,
+                                                       *args,
+                                                       **kwargs)
+
 
 def make_simple_boundary(name, n=1):
     b = Boundary()
