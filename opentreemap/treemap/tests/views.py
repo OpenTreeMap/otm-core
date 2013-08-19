@@ -9,9 +9,12 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from django.http import Http404
 from django.core.exceptions import ValidationError
+from django.db import connection
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
+
+from treemap.udf import UserDefinedFieldDefinition
 
 from treemap.audit import Role, Audit, approve_or_reject_audit_and_apply
 
@@ -25,7 +28,10 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
-                           make_simple_boundary, make_request)
+                           make_simple_boundary, make_request,
+                           add_field_permissions)
+
+import psycopg2
 
 
 class InstanceValidationTest(TestCase):
@@ -122,21 +128,72 @@ class PlotUpdateTest(unittest.TestCase):
 
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
+        add_field_permissions(self.instance, self.user,
+                              'Plot', ['Test choice'])
 
         self.p = Point(-7615441.0, 5953519.0)
+
+        self.choice_field = UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'choice',
+                                 'choices': ['a', 'b', 'c']}),
+            iscollection=False,
+            name='Test choice')
 
         self.plot = Plot(instance=self.instance, geom=self.p)
         self.plot.save_with_user(self.user)
 
+        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
     def tearDown(self):
+        self.plot.delete_with_user(self.user)
+        self.choice_field.delete()
         self.user.delete_with_user(User._system_user)
+
+    def test_invalid_udf_name_fails(self):
+        update = json.dumps({'plot.udf:INVaLiD UTF': 'z'})
+
+        self.assertRaises(KeyError,
+                          update_plot_and_tree,
+                          make_request(user=self.user, body=update),
+                          self.instance,
+                          self.plot.pk)
+
+    def test_malformed_udf_fails(self):
+        update = json.dumps({'plot.udf:Test choice': 'z'})
+
+        try:
+            update_plot_and_tree(make_request(user=self.user,
+                                              body=update),
+                                 self.instance,
+                                 self.plot.pk)
+            raise AssertionError('expected update to raise validation error')
+        except ValidationError as e:
+
+            self.assertIn('plot.udf:Test choice', e.message_dict)
+
+    def test_grouping_failed_udf(self):
+        update = json.dumps({'plot.udf:Test choice': 'z',
+                             'plot.length': 'bad'})
+
+        try:
+            update_plot_and_tree(make_request(user=self.user,
+                                              body=update),
+                                 self.instance,
+                                 self.plot.pk)
+            raise AssertionError('expected update to raise validation error')
+        except ValidationError as e:
+            self.assertIn('plot.udf:Test choice', e.message_dict)
+            self.assertIn('plot.length', e.message_dict)
 
     def test_simple_update(self):
         self.assertNotEqual(self.plot.length, 20)
         self.assertNotEqual(self.plot.width, 25)
 
         update = json.dumps({'plot.length': 20,
-                             'plot.width': 25})
+                             'plot.width': 25,
+                             'plot.udf:Test choice': 'b'})
 
         rslt = update_plot_and_tree(make_request(user=self.user,
                                                  body=update),
@@ -149,6 +206,7 @@ class PlotUpdateTest(unittest.TestCase):
 
         self.assertEqual(plot.length, 20)
         self.assertEqual(plot.width, 25)
+        self.assertEqual(plot.udf_scalar_values['Test choice'], 'b')
 
     def test_validates_numeric_fields(self):
         update = json.dumps({'plot.length': 'length'})
@@ -580,7 +638,7 @@ class RecentEditsViewTest(ViewTestCase):
             "ref": None,
             "action": Audit.Type.Update,
             "previous_value": "44.0",
-           "current_value": "22.0",
+            "current_value": "22.0",
             "requires_auth": True,
             "user_id": self.pending_user.pk,
             "instance_id": self.instance.pk,

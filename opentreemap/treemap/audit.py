@@ -408,7 +408,7 @@ class Authorizable(UserTrackable):
         if direct_only:
             perm_set = {perm.field_name
                         for perm in perms
-                        if perm.permission_level ==\
+                        if perm.permission_level ==
                         FieldPermission.WRITE_DIRECTLY}
         else:
             perm_set = {perm.field_name for perm in perms

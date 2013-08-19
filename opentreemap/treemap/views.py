@@ -171,6 +171,15 @@ def update_plot_and_tree(request, instance, plot_id):
     def set_attr_on_model(model, attr, val):
         if attr in model.fields() and attr != 'id':
             model.apply_change(attr, val)
+        elif attr.startswith('udf:'):
+            udf_name = attr[4:]
+
+            if udf_name in [field.name
+                            for field
+                            in model.get_user_defined_fields()]:
+                model.apply_change(attr[4:], val)
+            else:
+                raise KeyError('Invalid UDF %s' % attr)
         else:
             raise Exception('Maformed request - invalid field %s' % attr)
 
