@@ -633,7 +633,7 @@ class CreatePlotAndTree(TestCase):
         # Assert that a plot was added
         self.assertEqual(plot_count + 1, Plot.objects.count())
         # Assert that reputation went up
-        assert_reputation(self, reputation_count + 8)
+        assert_reputation(self, reputation_count + 6)
 
         response_json = loads(response.content)
         self.assertTrue("id" in response_json)
@@ -705,7 +705,7 @@ class CreatePlotAndTree(TestCase):
         # Assert that a plot was added
         self.assertEqual(plot_count + 1, Plot.objects.count())
         # Assert that reputation was added
-        assert_reputation(self, reputation_count + 8)
+        assert_reputation(self, reputation_count + 6)
 
         response_json = loads(response.content)
         self.assertTrue("id" in response_json)
@@ -1029,7 +1029,7 @@ class UpdatePlotAndTree(TestCase):
                          "Expected 1 pend record for the edited field.")
 
         pending_edit = Audit.pending_audits()[0]
-        self.assertEqual(None, pending_edit.ref_id,
+        self.assertEqual(None, pending_edit.ref,
                          "Expected that the audit has not been applied")
 
         if action == Audit.Type.PendingApprove:
@@ -1045,10 +1045,10 @@ class UpdatePlotAndTree(TestCase):
         self.assertEqual(200, response.status_code)
 
         pending_edit = Audit.objects.get(pk=pending_edit.id)
-        self.assertIsNotNone(pending_edit.ref_id,
+        self.assertIsNotNone(pending_edit.ref,
                              "Expected the audit to be marked as processed")
 
-        pending_edit_marked = pending_edit.ref_id
+        pending_edit_marked = pending_edit.ref
         self.assertEqual(pending_edit_marked.action,
                          action,
                          "Expected the type of the audit to be '%s'" %
