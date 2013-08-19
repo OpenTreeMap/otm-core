@@ -221,10 +221,10 @@ class Plot(Authorizable, Auditable, UDFModel):
                             .distinct('model_id')\
                             .values_list('model_id', flat=True)
 
-    def save_with_user(self, *args, **kwargs):
-        self.full_clean()
+    def save_with_user(self, user, *args, **kwargs):
+        self.full_clean_with_user(user)
 
-        super(Plot, self).save_with_user(*args, **kwargs)
+        super(Plot, self).save_with_user(user, *args, **kwargs)
 
     def current_tree(self):
         """
@@ -302,7 +302,7 @@ class Tree(Authorizable, Auditable, UDFModel):
             raise ValidationError('Cannot save to a plot in another instance')
 
     def save_with_user(self, user, *args, **kwargs):
-        self.full_clean()
+        self.full_clean_with_user(user)
         super(Tree, self).save_with_user(user, *args, **kwargs)
 
 

@@ -232,7 +232,7 @@ class PendingTest(TestCase):
 
         self.p1 = Point(-7615441.0, 5953519.0)
         self.plot = Plot(geom=self.p1, instance=self.instance)
-        self.plot.save_with_user(self.direct_user)
+        self.plot.save_with_user(self.commander_user)
 
     def test_reject(self):
         # Setup

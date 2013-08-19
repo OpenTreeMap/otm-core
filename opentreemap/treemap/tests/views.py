@@ -349,7 +349,7 @@ class RecentEditsViewTest(ViewTestCase):
             "ref": None,
             "action": Audit.Type.Update,
             "previous_value": None,
-            "current_value": "9",
+            "current_value": "9.0",
             "requires_auth": False,
             "user_id": self.commander.pk,
             "instance_id": self.instance.pk,
@@ -357,8 +357,8 @@ class RecentEditsViewTest(ViewTestCase):
         }
 
         self.next_plot_delta = self.plot_delta.copy()
-        self.next_plot_delta["current_value"] = "44"
-        self.next_plot_delta["previous_value"] = "9"
+        self.next_plot_delta["current_value"] = "44.0"
+        self.next_plot_delta["previous_value"] = "9.0"
 
         self.plot.width = 44
         self.plot.save_with_user(self.commander)
@@ -371,7 +371,7 @@ class RecentEditsViewTest(ViewTestCase):
             "ref": None,
             "action": Audit.Type.Update,
             "previous_value": None,
-            "current_value": '22',
+            "current_value": '22.0',
             "requires_auth": False,
             "user_id": self.commander.pk,
             "instance_id": self.instance2.pk,
@@ -579,8 +579,8 @@ class RecentEditsViewTest(ViewTestCase):
             "model_id": self.plot.pk,
             "ref": None,
             "action": Audit.Type.Update,
-            "previous_value": "44",
-            "current_value": "22",
+            "previous_value": "44.0",
+           "current_value": "22.0",
             "requires_auth": True,
             "user_id": self.pending_user.pk,
             "instance_id": self.instance.pk,
