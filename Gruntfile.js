@@ -17,10 +17,6 @@ module.exports = function(grunt) {
                     },
                     noParse: grunt.file.expand('js/lib/*.js'),
                     shim: {
-                        googlemaps: {
-                            path: './js/shim/googlemaps.js',
-                            exports: 'google'
-                        },
                         OpenLayers: {
                             path: './js/shim/OpenLayers.js',
                             exports: 'OpenLayers',
