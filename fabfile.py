@@ -145,7 +145,7 @@ def runserver(bind_to='0.0.0.0',port='12000'):
 
     _manage('runserver %s:%s' % (bind_to, port))
 
-def test(test_filter="treemap"):
+def test(test_filter=""):
     """ Run app tests on the server """
     require('site_path')
     require('venv_path')
