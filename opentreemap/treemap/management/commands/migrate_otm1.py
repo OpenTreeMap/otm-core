@@ -5,6 +5,7 @@ from __future__ import division
 from contextlib import contextmanager
 from optparse import make_option
 import json
+import logging
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.gis.geos import fromstr
@@ -13,6 +14,8 @@ from django.conf import settings
 from treemap.models import (User, Plot, Tree, Species, InstanceUser)
 from treemap.audit import model_hasattr
 from ._private import InstanceDataCommand
+
+logger = logging.getLogger('')
 
 # model specification:
 #
@@ -167,7 +170,7 @@ def hash_to_model(model_name, data_hash, instance, user):
             field = renamed_fields.get(field, field)
             setattr(model, field, transformed_value)
         except ObjectDoesNotExist as d:
-            print("Warning: %s ... SKIPPING" % d)
+            logger.warning("Warning: %s ... SKIPPING" % d)
 
     if model_hasattr(model, 'instance'):
         model.instance = instance
