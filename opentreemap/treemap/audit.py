@@ -9,7 +9,7 @@ from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as _
 
 from django.dispatch import receiver
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_save
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, connection
 
@@ -963,6 +963,6 @@ class ReputationMetric(models.Model):
             iuser.save_base()
 
 
-@receiver(pre_save, sender=Audit)
+@receiver(post_save, sender=Audit)
 def audit_presave_actions(sender, instance, **kwargs):
     ReputationMetric.apply_adjustment(instance)
