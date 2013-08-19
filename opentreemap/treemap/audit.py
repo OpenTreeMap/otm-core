@@ -911,9 +911,6 @@ class Audit(models.Model):
     def is_pending(self):
         return self.requires_auth and not self.ref
 
-    def was_reviewed(self):
-        return self.requires_auth and self.ref
-
 
 class ReputationMetric(models.Model):
     """
@@ -942,7 +939,7 @@ class ReputationMetric(models.Model):
 
         iuser = audit.user.get_instance_user(audit.instance)
 
-        if audit.was_reviewed():
+        if audit.requires_auth and audit.ref:
             review_audit = audit.ref
             if review_audit.action == Audit.Type.PendingApprove:
                 iuser.reputation += rm.approval_score
