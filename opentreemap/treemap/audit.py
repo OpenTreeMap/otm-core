@@ -283,6 +283,9 @@ class UserTrackable(Dictable):
 
         return updated
 
+    def fields_were_updated(self):
+        return len(self._updated_fields()) > 0
+
     @property
     def _model_name(self):
         return self.__class__.__name__
@@ -304,6 +307,9 @@ class UserTrackable(Dictable):
         raise UserTrackingException(
             'All deletes to %s objects must be saved via "delete_with_user"' %
             (self._model_name))
+
+    def fields(self):
+        return self.as_dict().keys()
 
     def _populate_previous_state(self):
         """

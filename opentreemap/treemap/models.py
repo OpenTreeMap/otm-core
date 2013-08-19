@@ -221,6 +221,11 @@ class Plot(Authorizable, Auditable, UDFModel):
                             .distinct('model_id')\
                             .values_list('model_id', flat=True)
 
+    def save_with_user(self, *args, **kwargs):
+        self.full_clean()
+
+        super(Plot, self).save_with_user(*args, **kwargs)
+
     def current_tree(self):
         """
         This is a compatibility method that is used by the API to
@@ -297,7 +302,7 @@ class Tree(Authorizable, Auditable, UDFModel):
             raise ValidationError('Cannot save to a plot in another instance')
 
     def save_with_user(self, user, *args, **kwargs):
-        self.clean()
+        self.full_clean()
         super(Tree, self).save_with_user(user, *args, **kwargs)
 
 

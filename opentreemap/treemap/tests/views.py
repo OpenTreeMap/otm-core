@@ -3,10 +3,12 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
+import unittest
 
 from django.test import TestCase
 from django.test.client import RequestFactory
 from django.http import Http404
+from django.core.exceptions import ValidationError
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
@@ -18,11 +20,12 @@ from treemap.models import (Instance, Species, User, Plot, Tree,
 
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, audits, user_audits,
-                           search_tree_benefits, user, instance_user_view)
+                           search_tree_benefits, user, instance_user_view,
+                           update_plot_and_tree)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
-                           make_simple_boundary)
+                           make_simple_boundary, make_request)
 
 
 class InstanceValidationTest(TestCase):
@@ -85,14 +88,14 @@ class BoundaryViewTest(ViewTestCase):
         self.instance.boundaries.add(boundary)
         self.instance.save()
         response = boundary_to_geojson(
-            self._make_request(),
+            make_request(),
             self.instance,
             boundary.pk)
 
         self.assertEqual(response.content, boundary.geom.geojson)
 
     def test_autocomplete_view(self):
-        response = boundary_autocomplete(self._make_request(), self.instance)
+        response = boundary_autocomplete(make_request(), self.instance)
 
         self.assertEqual(response, self.test_boundary_hashes)
 
@@ -101,16 +104,120 @@ class BoundaryViewTest(ViewTestCase):
         # instance, should not be in the search
         # results
         make_simple_boundary("fargo", 1)
-        response = boundary_autocomplete(self._make_request(), self.instance)
+        response = boundary_autocomplete(make_request(), self.instance)
 
         self.assertEqual(response, self.test_boundary_hashes)
 
     def test_autocomplete_view_limit(self):
         response = boundary_autocomplete(
-            self._make_request({'max_items': 2}),
+            make_request({'max_items': 2}),
             self.instance)
 
         self.assertEqual(response, self.test_boundary_hashes[0:2])
+
+
+class PlotUpdateTest(unittest.TestCase):
+    def setUp(self):
+        User._system_user.save_base()
+
+        self.instance = make_instance()
+        self.user = make_commander_user(self.instance)
+
+        self.p = Point(-7615441.0, 5953519.0)
+
+        self.plot = Plot(instance=self.instance, geom=self.p)
+        self.plot.save_with_user(self.user)
+
+    def tearDown(self):
+        self.user.delete_with_user(User._system_user)
+
+    def test_simple_update(self):
+        self.assertNotEqual(self.plot.length, 20)
+        self.assertNotEqual(self.plot.width, 25)
+
+        update = json.dumps({'plot.length': 20,
+                             'plot.width': 25})
+
+        rslt = update_plot_and_tree(make_request(user=self.user,
+                                                 body=update),
+                                    self.instance,
+                                    self.plot.pk)
+
+        self.assertEqual(rslt.pk, self.plot.pk)
+
+        plot = Plot.objects.get(pk=self.plot.pk)
+
+        self.assertEqual(plot.length, 20)
+        self.assertEqual(plot.width, 25)
+
+    def test_validates_numeric_fields(self):
+        update = json.dumps({'plot.length': 'length'})
+
+        try:
+            update_plot_and_tree(make_request(user=self.user,
+                                              body=update),
+                                 self.instance,
+                                 self.plot.pk)
+            raise AssertionError('expected update to raise validation error')
+        except ValidationError as e:
+            self.assertIn('plot.length', e.message_dict)
+
+    def test_edit_tree_creates_tree(self):
+        self.assertIsNone(self.plot.current_tree())
+
+        update = json.dumps({'tree.height': 9})
+        update_plot_and_tree(make_request(user=self.user,
+                                          body=update),
+                             self.instance,
+                             self.plot.pk)
+
+        self.assertIsNotNone(
+            Plot.objects.get(pk=self.plot.pk).current_tree())
+
+    def test_doesnt_edit_tree_if_plot_fails(self):
+        tree = Tree(plot=self.plot, instance=self.plot.instance)
+        tree.height = 92
+        tree.save_with_user(self.user)
+
+        update = json.dumps({'plot.length': 'length',
+                             'tree.height': 42})
+
+        try:
+            update_plot_and_tree(make_request(user=self.user,
+                                              body=update),
+                                 self.instance,
+                                 self.plot.pk)
+            raise AssertionError('expected update to raise validation error')
+        except ValidationError as e:
+            self.assertIn('plot.length', e.message_dict)
+
+        updated_tree = Tree.objects.get(pk=tree.pk)
+
+        self.assertEqual(updated_tree.height, 92)
+
+    def test_doesnt_edit_plot_if_tree_fails(self):
+        self.plot.length = 100
+        self.plot.save_with_user(self.user)
+
+        tree = Tree(plot=self.plot, instance=self.plot.instance)
+        tree.height = 92
+        tree.save_with_user(self.user)
+
+        update = json.dumps({'plot.length': 92,
+                             'tree.height': 'height'})
+
+        try:
+            update_plot_and_tree(make_request(user=self.user,
+                                              body=update),
+                                 self.instance,
+                                 self.plot.pk)
+            raise AssertionError('expected update to raise validation error')
+        except ValidationError as e:
+            self.assertIn('tree.height', e.message_dict)
+
+        updated_plot = Plot.objects.get(pk=self.plot.pk)
+
+        self.assertEqual(updated_plot.length, 100)
 
 
 class PlotViewTest(ViewTestCase):
@@ -130,7 +237,7 @@ class PlotViewTest(ViewTestCase):
         plot.width = 9
         plot.save_with_user(self.user)
 
-        details = plot_detail(self._make_request(user=self.user),
+        details = plot_detail(make_request(user=self.user),
                               self.instance,
                               plot.pk)
 
@@ -152,7 +259,7 @@ class PlotViewTest(ViewTestCase):
         tree.readonly = True
         tree.save_with_user(self.user)
 
-        details = plot_detail(self._make_request(user=self.user),
+        details = plot_detail(make_request(user=self.user),
                               self.instance,
                               plot.pk)
 
@@ -182,7 +289,7 @@ class PlotViewTest(ViewTestCase):
                     diameter=10, species=species)
         tree.save_with_user(self.user)
 
-        context = plot_detail(self._make_request(user=self.user),
+        context = plot_detail(make_request(user=self.user),
                               self.instance, plot_w_tree.pk)
 
         self.assertEquals(plot_w_tree, context['plot'])
@@ -192,7 +299,7 @@ class PlotViewTest(ViewTestCase):
         plot_wo_tree = Plot(geom=self.p, instance=self.instance)
         plot_wo_tree.save_with_user(self.user)
 
-        context = plot_detail(self._make_request(user=self.user),
+        context = plot_detail(make_request(user=self.user),
                               self.instance, plot_wo_tree.pk)
 
         self.assertEquals(plot_wo_tree, context['plot'])
@@ -242,7 +349,7 @@ class RecentEditsViewTest(ViewTestCase):
             "ref": None,
             "action": Audit.Type.Update,
             "previous_value": None,
-            "current_value": "9",
+            "current_value": "9.0",
             "requires_auth": False,
             "user_id": self.commander.pk,
             "instance_id": self.instance.pk,
@@ -250,8 +357,8 @@ class RecentEditsViewTest(ViewTestCase):
         }
 
         self.next_plot_delta = self.plot_delta.copy()
-        self.next_plot_delta["current_value"] = "44"
-        self.next_plot_delta["previous_value"] = "9"
+        self.next_plot_delta["current_value"] = "44.0"
+        self.next_plot_delta["previous_value"] = "9.0"
 
         self.plot.width = 44
         self.plot.save_with_user(self.commander)
@@ -264,7 +371,7 @@ class RecentEditsViewTest(ViewTestCase):
             "ref": None,
             "action": Audit.Type.Update,
             "previous_value": None,
-            "current_value": '22',
+            "current_value": '22.0',
             "requires_auth": False,
             "user_id": self.commander.pk,
             "instance_id": self.instance2.pk,
@@ -472,8 +579,8 @@ class RecentEditsViewTest(ViewTestCase):
             "model_id": self.plot.pk,
             "ref": None,
             "action": Audit.Type.Update,
-            "previous_value": "44",
-            "current_value": "22",
+            "previous_value": "44.0",
+           "current_value": "22.0",
             "requires_auth": True,
             "user_id": self.pending_user.pk,
             "instance_id": self.instance.pk,
@@ -542,12 +649,12 @@ class SpeciesViewTests(ViewTestCase):
             js_species['value'] = species.display_name
 
     def test_get_species_list(self):
-        self.assertEquals(species_list(self._make_request(), None),
+        self.assertEquals(species_list(make_request(), None),
                           self.species_json)
 
     def test_get_species_list_max_items(self):
         self.assertEquals(
-            species_list(self._make_request({'max_items': 3}), None),
+            species_list(make_request({'max_items': 3}), None),
             self.species_json[:3])
 
 
@@ -572,7 +679,7 @@ class SearchTreeBenefitsTests(ViewTestCase):
         tree.save_with_user(self.commander)
 
     def search_benefits(self):
-        request = self._make_request(
+        request = make_request(
             {'q': json.dumps({'tree.readonly': {'IS': False}})})  # all trees
         result = search_tree_benefits(request, self.instance)
         return result
@@ -656,7 +763,7 @@ class UserViewTests(ViewTestCase):
         self.joe = make_commander_user(self.instance, 'joe')
 
     def test_get_by_username(self):
-        context = user(self._make_request(), self.joe.username)
+        context = user(make_request(), self.joe.username)
         self.assertEquals(self.joe.username, context['user'].username,
                           'the user view should return a dict with user with '
                           '"username" set to %s ' % self.joe.username)
@@ -664,7 +771,7 @@ class UserViewTests(ViewTestCase):
                           'the user view should return a audits list')
 
     def test_get_with_invalid_username_returns_404(self):
-        self.assertRaises(Http404, user, self._make_request(),
+        self.assertRaises(Http404, user, make_request(),
                           'no_way_this_is_a_username')
 
     def test_all_private_audits_are_filtered_out(self):
@@ -672,7 +779,7 @@ class UserViewTests(ViewTestCase):
         plot = Plot(instance=self.instance, geom=p)
         plot.save_with_user(self.joe)
 
-        context = user(self._make_request(), self.joe.username)
+        context = user(make_request(), self.joe.username)
 
         # Can always see public audits
         self.assertTrue(len(context['audits']) > 0)
@@ -681,14 +788,14 @@ class UserViewTests(ViewTestCase):
         self.instance.save()
 
         # Can't see private audits
-        context = user(self._make_request(), self.joe.username)
+        context = user(make_request(), self.joe.username)
         self.assertTrue(len(context['audits']) == 0)
 
         # Can see audits if the 'logged in' user has an
         # InstanceUser on that instance
         self.assertTrue(self.instance.is_accessible_by(self.joe))
 
-        context = user(self._make_request(user=self.joe), self.joe.username)
+        context = user(make_request(user=self.joe), self.joe.username)
         self.assertTrue(len(context['audits']) > 0)
 
 
@@ -701,7 +808,7 @@ class InstanceUserViewTests(ViewTestCase):
         self.commander.save()
 
     def test_get_by_username_redirects(self):
-        res = instance_user_view(self._make_request(),
+        res = instance_user_view(make_request(),
                                  self.instance.id,
                                  self.commander.username)
         expected_url = '/users/%s?instance_id=%d' %\
@@ -714,7 +821,7 @@ class InstanceUserViewTests(ViewTestCase):
 
     def test_get_with_invalid_username_redirects(self):
         test_instance_id, test_username = 9999999999999, 'no_way_username'
-        res = instance_user_view(self._make_request(),
+        res = instance_user_view(make_request(),
                                  test_instance_id,
                                  test_username)
         expected_url = '/users/%s?instance_id=%d' %\

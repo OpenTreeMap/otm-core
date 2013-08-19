@@ -5,16 +5,19 @@ from __future__ import division
 import string
 
 import urllib
+import json
 import locale
 import hashlib
 from PIL import Image
 
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django.http import (HttpResponse, HttpResponseRedirect)
 from django.views.decorators.http import etag
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
 from django.utils.translation import ugettext as _
+from django.db import transaction
 from django.db.models import Q
 
 from treemap.util import json_api_call, render_template, instance_request
@@ -144,6 +147,69 @@ def plot_detail(request, instance, plot_id):
     context['recent_activity'] = _plot_audits(request.user, instance, plot)
 
     return context
+
+
+@transaction.commit_on_success
+def update_plot_and_tree(request, instance, plot_id):
+    """
+    Update a plot. Expects JSON in the request body to be:
+    {'model.field', ...}
+
+    Where model is either 'tree' or 'plot' and field is any field
+    on the model. UDF fields should be prefixed with 'udf:'.
+    """
+    def split_model_or_raise(model_and_field):
+        model_and_field = model_and_field.split('.', 1)
+
+        if ((len(model_and_field) != 2 or
+             model_and_field[0] not in ['plot', 'tree'])):
+            raise Exception(
+                'Malformed request - invalid field %s' % model_and_field)
+        else:
+            return model_and_field
+
+    def set_attr_on_model(model, attr, val):
+        if attr in model.fields() and attr != 'id':
+            model.apply_change(attr, val)
+        else:
+            raise Exception('Maformed request - invalid field %s' % attr)
+
+    def save_and_return_errors(thing, user):
+        try:
+            thing.save_with_user(user)
+            return {}
+        except ValidationError as e:
+            return {'%s.%s' % (thing._model_name.lower(), field): msg
+                    for (field, msg) in e.message_dict.iteritems()}
+
+    plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
+    tree = plot.current_tree() or Tree(instance=instance, plot=plot)
+
+    request_dict = json.loads(request.body)
+
+    for (model_and_field, value) in request_dict.iteritems():
+        model, field = split_model_or_raise(model_and_field)
+
+        if model == 'plot':
+            model = plot
+        elif model == 'tree':
+            model = tree
+        else:
+            raise Exception('Malformed request - invalid model %s' % model)
+
+        set_attr_on_model(model, field, value)
+
+    errors = {}
+
+    if tree.fields_were_updated():
+        errors.update(save_and_return_errors(tree, request.user))
+    if plot.fields_were_updated():
+        errors.update(save_and_return_errors(plot, request.user))
+
+    if errors:
+        raise ValidationError(errors)
+
+    return plot
 
 
 def _get_audits(logged_in_user, instance, query_vars, user, models,
