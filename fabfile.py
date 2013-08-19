@@ -98,6 +98,7 @@ def check():
     require('site_path')
 
     with settings(warn_only=True):
+        local('npm install')
         jshint = local('grunt --no-color check', capture=True)
         print(jshint)
 

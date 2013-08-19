@@ -19,6 +19,8 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+TEST_RUNNER = "treemap.tests.OTM2TestRunner"
+
 OMGEO_SETTINGS = [[
     'omgeo.services.EsriWGS', {}
 ]]
