@@ -2,9 +2,11 @@ from django.conf.urls import patterns, include, url
 from django.conf import settings
 from django.views.generic import RedirectView
 
+from opentreemap.util import route
+
 from treemap.views import (user_view, root_settings_js_view,
                            profile_to_user_view, user_audits_view,
-                           instance_not_available_view)
+                           instance_not_available_view, update_user_view)
 
 from django.contrib import admin
 admin.autodiscover()
@@ -30,7 +32,8 @@ urlpatterns = patterns(
     url(r'^(?P<instance_id>\d+)/', include('treemap.urls')),
     url(r'^(?P<instance_id>\d+)/eco/', include('ecobenefits.urls')),
     url(r'^config/settings.js$', root_settings_js_view),
-    url(r'^users/(?P<username>\w+)/?$', user_view),
+    url(r'^users/(?P<username>\w+)/?$',
+        route(GET=user_view, PUT=update_user_view)),
     url(r'^users/(?P<username>\w+)/recent_edits$', user_audits_view,
         name='user_audits'),
     url(r'^api/v2/', include('api.urls')),

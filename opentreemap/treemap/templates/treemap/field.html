@@ -1,0 +1,38 @@
+{% if field.is_visible %}
+    <ul class="chunk">
+        <li class="chunk-label">{{ field.label }}</li>
+        <li class="chunk-content"
+            data-field="{{ field.identifier }}"
+            data-class="display"
+            data-value="{{ field.value }}">
+            {{ field.display_value }}
+        </li>
+        {% if field.is_editable %}
+            <li class="chunk-content"
+                data-field="{{ field.identifier }}"
+                data-class="edit"
+                data-value="{{ field.value }}"
+                style="display: none;">
+            {% if field.data_type == 'choice' %}
+                <select name="{{ field.identifier }}"
+                        value="{{ field.value }}"
+                        style="display: none;" />
+                    {% for option in field.options %}
+                        <option value="{{ option }}">
+                            {{option}}
+                        </option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                <input name="{{ field.identifier }}"
+                       type="text"
+                       value="{{ field.value }}"/>
+            {% endif %}
+            </li>
+            <li class="chunk-content text-error"
+                data-field="{{ field.identifier }}"
+                data-class="error">
+            </li>
+        {% endif %}
+    </ul>
+{% endif %}

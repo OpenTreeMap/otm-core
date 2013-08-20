@@ -1,6 +1,7 @@
 from django.conf.urls import patterns
+from opentreemap.util import route
 from views import (get_plot_list, create_plot_optional_tree, status,
-                   version, route, get_plot, remove_plot,
+                   version, get_plot, remove_plot,
                    update_plot_and_tree, get_current_tree_from_plot,
                    remove_current_tree_from_plot, add_tree_photo,
                    get_tree_image, plots_closest_to_point,
