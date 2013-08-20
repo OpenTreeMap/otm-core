@@ -16,7 +16,7 @@ from django.http import (HttpResponse, HttpResponseRedirect)
 from django.views.decorators.http import etag
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext as trans
 from django.db import transaction
 from django.db.models import Q
 
@@ -501,25 +501,25 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance,
         displayize_benefit(
             'energy',
             conversion.kwh_to_currency,
-            _('Energy'), '%.1f'),
+            trans('Energy'), '%.1f'),
 
         # Translators: 'Stormwater' is the name of an eco benefit
         displayize_benefit(
             'stormwater',
             conversion.stormwater_gal_to_currency,
-            _('Stormwater'), '%.1f'),
+            trans('Stormwater'), '%.1f'),
 
         # Translators: 'Carbon Dioxide' is the name of an eco benefit
         displayize_benefit(
             'co2',
             conversion.carbon_dioxide_lb_to_currency,
-            _('Carbon Dioxide'), '%.1f'),
+            trans('Carbon Dioxide'), '%.1f'),
 
         # Translators: 'Air Quaility' is the name of an eco benefit
         displayize_benefit(
             'airquality',
             conversion.airquality_aggregate_lb_to_currency,
-            _('Air Quality'), '%.1f')
+            trans('Air Quality'), '%.1f')
     ]
 
     locale.setlocale(locale.LC_ALL, '')
