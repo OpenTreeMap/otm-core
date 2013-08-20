@@ -150,13 +150,16 @@ def plot_detail(request, instance, plot_id):
 
 
 @transaction.commit_on_success
-def update_plot_and_tree(request, instance, plot_id):
+def update_plot_and_tree(request, plot):
     """
     Update a plot. Expects JSON in the request body to be:
     {'model.field', ...}
 
     Where model is either 'tree' or 'plot' and field is any field
     on the model. UDF fields should be prefixed with 'udf:'.
+
+    This method can be used to create a new plot by passing in
+    an empty plot object (i.e. Plot(instance=instance))
     """
     def split_model_or_raise(model_and_field):
         model_and_field = model_and_field.split('.', 1)
@@ -169,6 +172,9 @@ def update_plot_and_tree(request, instance, plot_id):
             return model_and_field
 
     def set_attr_on_model(model, attr, val):
+        if attr == 'geom':
+            val = Point(val['x'], val['y'])
+
         if attr in model.fields() and attr != 'id':
             model.apply_change(attr, val)
         elif attr.startswith('udf:'):
@@ -191,8 +197,10 @@ def update_plot_and_tree(request, instance, plot_id):
             return {'%s.%s' % (thing._model_name.lower(), field): msg
                     for (field, msg) in e.message_dict.iteritems()}
 
-    plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
-    tree = plot.current_tree() or Tree(instance=instance, plot=plot)
+    def get_tree():
+        return plot.current_tree() or Tree(instance=plot.instance)
+
+    tree = None
 
     request_dict = json.loads(request.body)
 
@@ -202,6 +210,8 @@ def update_plot_and_tree(request, instance, plot_id):
         if model == 'plot':
             model = plot
         elif model == 'tree':
+            # Get the tree or spawn a new one if needed
+            tree = tree or get_tree()
             model = tree
         else:
             raise Exception('Malformed request - invalid model %s' % model)
@@ -210,10 +220,11 @@ def update_plot_and_tree(request, instance, plot_id):
 
     errors = {}
 
-    if tree.fields_were_updated():
-        errors.update(save_and_return_errors(tree, request.user))
     if plot.fields_were_updated():
         errors.update(save_and_return_errors(plot, request.user))
+    if tree and tree.fields_were_updated():
+        tree.plot = plot
+        errors.update(save_and_return_errors(tree, request.user))
 
     if errors:
         raise ValidationError(errors)

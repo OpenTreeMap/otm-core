@@ -151,14 +151,51 @@ class PlotUpdateTest(unittest.TestCase):
         self.choice_field.delete()
         self.user.delete_with_user(User._system_user)
 
+    def test_creates_new_plot(self):
+        plot = Plot(instance=self.instance)
+
+        update = json.dumps({'plot.geom': {'x': 4, 'y': 9},
+                             'plot.readonly': False})
+
+        created_plot = update_plot_and_tree(make_request(user=self.user,
+                                                         body=update),
+                                            plot)
+
+        created_plot_update = Plot.objects.get(pk=created_plot.pk)
+        self.assertIsNotNone(created_plot_update, created_plot_update.pk)
+        self.assertEqual(created_plot_update.geom.x, 4.0)
+        self.assertEqual(created_plot_update.geom.y, 9.0)
+        self.assertIsNone(created_plot_update.current_tree())
+
+        created_plot_update.delete_with_user(self.user)
+
+    def test_creates_new_plot_and_tree(self):
+        plot = Plot(instance=self.instance)
+
+        update = json.dumps({'plot.geom': {'x': 4, 'y': 9},
+                             'plot.readonly': False,
+                             'tree.readonly': False})
+
+        created_plot = update_plot_and_tree(make_request(user=self.user,
+                                                         body=update),
+                                            plot)
+
+        created_plot_update = Plot.objects.get(pk=created_plot.pk)
+        self.assertIsNotNone(created_plot_update, created_plot_update.pk)
+        self.assertEqual(created_plot_update.geom.x, 4.0)
+        self.assertEqual(created_plot_update.geom.y, 9.0)
+        self.assertIsNotNone(created_plot_update.current_tree())
+
+        created_plot_update.current_tree().delete_with_user(self.user)
+        created_plot_update.delete_with_user(self.user)
+
     def test_invalid_udf_name_fails(self):
         update = json.dumps({'plot.udf:INVaLiD UTF': 'z'})
 
         self.assertRaises(KeyError,
                           update_plot_and_tree,
                           make_request(user=self.user, body=update),
-                          self.instance,
-                          self.plot.pk)
+                          self.plot)
 
     def test_malformed_udf_fails(self):
         update = json.dumps({'plot.udf:Test choice': 'z'})
@@ -166,8 +203,7 @@ class PlotUpdateTest(unittest.TestCase):
         try:
             update_plot_and_tree(make_request(user=self.user,
                                               body=update),
-                                 self.instance,
-                                 self.plot.pk)
+                                 self.plot)
             raise AssertionError('expected update to raise validation error')
         except ValidationError as e:
 
@@ -180,8 +216,7 @@ class PlotUpdateTest(unittest.TestCase):
         try:
             update_plot_and_tree(make_request(user=self.user,
                                               body=update),
-                                 self.instance,
-                                 self.plot.pk)
+                                 self.plot)
             raise AssertionError('expected update to raise validation error')
         except ValidationError as e:
             self.assertIn('plot.udf:Test choice', e.message_dict)
@@ -197,8 +232,7 @@ class PlotUpdateTest(unittest.TestCase):
 
         rslt = update_plot_and_tree(make_request(user=self.user,
                                                  body=update),
-                                    self.instance,
-                                    self.plot.pk)
+                                    self.plot)
 
         self.assertEqual(rslt.pk, self.plot.pk)
 
@@ -214,8 +248,7 @@ class PlotUpdateTest(unittest.TestCase):
         try:
             update_plot_and_tree(make_request(user=self.user,
                                               body=update),
-                                 self.instance,
-                                 self.plot.pk)
+                                 self.plot)
             raise AssertionError('expected update to raise validation error')
         except ValidationError as e:
             self.assertIn('plot.length', e.message_dict)
@@ -226,8 +259,7 @@ class PlotUpdateTest(unittest.TestCase):
         update = json.dumps({'tree.height': 9})
         update_plot_and_tree(make_request(user=self.user,
                                           body=update),
-                             self.instance,
-                             self.plot.pk)
+                             self.plot)
 
         self.assertIsNotNone(
             Plot.objects.get(pk=self.plot.pk).current_tree())
@@ -243,8 +275,7 @@ class PlotUpdateTest(unittest.TestCase):
         try:
             update_plot_and_tree(make_request(user=self.user,
                                               body=update),
-                                 self.instance,
-                                 self.plot.pk)
+                                 self.plot)
             raise AssertionError('expected update to raise validation error')
         except ValidationError as e:
             self.assertIn('plot.length', e.message_dict)
@@ -267,8 +298,7 @@ class PlotUpdateTest(unittest.TestCase):
         try:
             update_plot_and_tree(make_request(user=self.user,
                                               body=update),
-                                 self.instance,
-                                 self.plot.pk)
+                                 self.plot)
             raise AssertionError('expected update to raise validation error')
         except ValidationError as e:
             self.assertIn('tree.height', e.message_dict)
