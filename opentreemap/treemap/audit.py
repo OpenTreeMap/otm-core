@@ -270,6 +270,13 @@ class UserTrackable(Dictable):
         # is none, set it to the default value of the field.
         setattr(self, key, orig_value)
 
+    def _fields_required_for_create(self):
+        return [field for field in self._meta.fields
+                if (not field.null and
+                    not field.blank and
+                    not field.primary_key and
+                    not field.name in self._do_not_track)]
+
     def _updated_fields(self):
         updated = {}
         d = self.as_dict()
@@ -282,6 +289,9 @@ class UserTrackable(Dictable):
                     updated[key] = [old, new]
 
         return updated
+
+    def fields_were_updated(self):
+        return len(self._updated_fields()) > 0
 
     @property
     def _model_name(self):
@@ -304,6 +314,9 @@ class UserTrackable(Dictable):
         raise UserTrackingException(
             'All deletes to %s objects must be saved via "delete_with_user"' %
             (self._model_name))
+
+    def fields(self):
+        return self.as_dict().keys()
 
     def _populate_previous_state(self):
         """
@@ -385,13 +398,22 @@ class Authorizable(UserTrackable):
 
         self._has_been_clobbered = False
 
-    def _write_perm_comparison_sets(self, user):
+    def _write_perm_comparison_sets(self, user, direct_only=False):
         """
         Helper method for comparing a user's write
         permissions with the fields on the current model
         """
         perms = user.get_instance_permissions(self.instance, self._model_name)
-        perm_set = {perm.field_name for perm in perms if perm.allows_writes}
+
+        if direct_only:
+            perm_set = {perm.field_name
+                        for perm in perms
+                        if perm.permission_level ==
+                        FieldPermission.WRITE_DIRECTLY}
+        else:
+            perm_set = {perm.field_name for perm in perms
+                        if perm.allows_writes}
+
         field_set = {field_name for field_name in self._previous_state.keys()}
         return perm_set, field_set
 
@@ -404,29 +426,23 @@ class Authorizable(UserTrackable):
         perm_set, field_set = self._write_perm_comparison_sets(user)
         return perm_set == field_set
 
-    def _user_can_create(self, user):
+    def _user_can_create(self, user, direct_only=False):
         """
         A user is able to create an object if they have permission on
         any of the fields in that model.
+
+        If direct_only is False this method will return true
+        if the user has either permission to create directly or
+        create with audits
         """
         can_create = True
 
-        perm_set, __ = self._write_perm_comparison_sets(user)
+        perm_set, __ = self._write_perm_comparison_sets(user, direct_only)
 
-        # TODO : maybe we should abstract this a little bit.
-        # iterating over self._meta.fields is a little low
-        # level. maybe the UserTrackable should provided a method
-        # called tracked_fields that has some/all of the following
-        # predicates baked in
-        for field in self._meta.fields:
-            if ((not field.null and
-                 not field.blank and
-                 not field.primary_key and
-                 not field.name in self._do_not_track)):
-
-                if field.name not in perm_set:
-                    can_create = False
-                    break
+        for field in self._fields_required_for_create():
+            if field.name not in perm_set:
+                can_create = False
+                break
 
         return can_create
 
@@ -537,6 +553,29 @@ class Auditable(UserTrackable):
         super(Auditable, self).__init__(*args, **kwargs)
         self.is_pending_insert = False
 
+    def full_clean(self, *args, **kwargs):
+        if not isinstance(self, Authorizable):
+            super(Auditable, self).full_clean(*args, **kwargs)
+        else:
+            raise TypeError("all calls to full clean must be done via "
+                            "'full_clean_with_user'")
+
+    def full_clean_with_user(self, user):
+        if ((not isinstance(self, Authorizable) or
+             self._user_can_create(user, direct_only=True))):
+            exclude_fields = []
+        else:
+            # If we aren't making a real object then we shouldn't
+            # check foreign key contraints. These will be checked
+            # when the object is actually made. They are also enforced
+            # a the database level
+            exclude_fields = []
+            for field in self._fields_required_for_create():
+                if isinstance(field, models.ForeignKey):
+                    exclude_fields.append(field.name)
+
+        super(Auditable, self).full_clean(exclude=exclude_fields)
+
     def audits(self):
         return Audit.audits_for_object(self)
 
@@ -598,37 +637,36 @@ class Auditable(UserTrackable):
         pending_audits = []
         pending_fields = self.get_pending_fields(user)
 
-        if pending_fields:
-            for pending_field in pending_fields:
+        for pending_field in pending_fields:
 
-                pending_audits.append((pending_field, updates[pending_field]))
+            pending_audits.append((pending_field, updates[pending_field]))
 
-                # Clear changes to object
-                oldval = updates[pending_field][0]
-                try:
-                    self.apply_change(pending_field, oldval)
-                except ValueError:
-                    pass
+            # Clear changes to object
+            oldval = updates[pending_field][0]
+            try:
+                self.apply_change(pending_field, oldval)
+            except ValueError:
+                pass
 
-                # If a field is a "pending field" then it should
-                # be logically removed from the fields that are being
-                # marked as "updated"
-                del updates[pending_field]
-
-        else:
-            super(Auditable, self).save_with_user(user, *args, **kwargs)
-
-        if is_insert:
-            updates['id'] = [None, self.pk]
+            # If a field is a "pending field" then it should
+            # be logically removed from the fields that are being
+            # marked as "updated"
+            del updates[pending_field]
 
         instance = self.instance if hasattr(self, 'instance') else None
 
-        if self.pk:
+        if ((not isinstance(self, Authorizable) or
+             self._user_can_create(user, direct_only=True) or
+             self.pk is not None)):
+            super(Auditable, self).save_with_user(user, *args, **kwargs)
             model_id = self.pk
         else:
             model_id = _reserve_model_id(_lkp_model(self._model_name))
             self.pk = model_id
             self.is_pending_insert = True
+
+        if is_insert:
+            updates['id'] = [None, model_id]
 
         def make_audit_and_save(field, prev_val, cur_val, pending):
 

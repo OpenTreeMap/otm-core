@@ -7,7 +7,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from treemap.util import add_visited_instance, get_last_visited_instance
 
 from treemap.models import InstanceUser
-from treemap.tests import (ViewTestCase, make_instance,
+from treemap.tests import (ViewTestCase, make_instance, make_request,
                            make_user_with_default_role)
 
 
@@ -23,7 +23,7 @@ class VisitedInstancesTests(ViewTestCase):
         self.user.set_password('joe')
         self.user.save()
 
-        self.request = self._make_request(user=self.user)
+        self.request = make_request(user=self.user)
 
         InstanceUser(
             instance=self.instance4,
