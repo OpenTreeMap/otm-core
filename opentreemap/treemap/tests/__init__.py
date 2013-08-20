@@ -4,6 +4,8 @@ from __future__ import division
 
 import logging
 
+from cStringIO import StringIO
+
 from django.test import TestCase
 from django.test.client import RequestFactory
 from django.test.simple import DjangoTestSuiteRunner
@@ -231,16 +233,24 @@ def create_mock_system_user():
     User._system_user = system_user
 
 
+def make_request(params={}, user=None, body=None):
+    if user is None:
+        user = AnonymousUser()
+
+    extra = {}
+    if body:
+        body_stream = StringIO(body)
+        extra['wsgi.input'] = body_stream
+        extra['CONTENT_LENGTH'] = len(body)
+
+    req = RequestFactory().get("hello/world", params, **extra)
+
+    setattr(req, 'user', user)
+
+    return req
+
+
 class ViewTestCase(TestCase):
-    def _make_request(self, params={}, user=None):
-        if user is None:
-            user = AnonymousUser()
-
-        req = self.factory.get("hello/world", params)
-        setattr(req, 'user', user)
-
-        return req
-
     def _add_global_url(self, url, view_fn):
         """
         Insert a new url into treemap for Client resolution

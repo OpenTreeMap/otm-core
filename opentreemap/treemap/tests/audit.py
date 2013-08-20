@@ -232,7 +232,7 @@ class PendingTest(TestCase):
 
         self.p1 = Point(-7615441.0, 5953519.0)
         self.plot = Plot(geom=self.p1, instance=self.instance)
-        self.plot.save_with_user(self.direct_user)
+        self.plot.save_with_user(self.commander_user)
 
     def test_reject(self):
         # Setup
@@ -360,6 +360,27 @@ class PendingInsertTest(TestCase):
         # we need there to be no audits so that we can
         # iterate over all audits without conflict
         Audit.objects.all().delete()
+
+    def test_can_create_obj_even_if_some_fields_are_pending(self):
+        # Give pending user permissions on all of the required
+        # fields for a plot
+        role = self.pending_user.get_instance_user(self.instance).role
+        role.fieldpermission_set\
+            .filter(field_name__in=['id', 'geom', 'readonly'])\
+            .update(permission_level=FieldPermission.WRITE_DIRECTLY)
+
+        self.assertEquals(Plot.objects.count(), 0)
+
+        # new_plot should be created, but there should be
+        # a pending record for length (and it should not be
+        # applied)
+        new_plot = Plot(geom=self.p1,
+                        instance=self.instance,
+                        length=4)
+
+        new_plot.save_with_user(self.pending_user)
+
+        self.assertEquals(Plot.objects.count(), 1)
 
     def approve_audits_with_insert_last(self, model_name, model_class,
                                         model_id=None,

@@ -149,7 +149,17 @@ class UserDefinedFieldDefinition(models.Model):
     def datatype_dict(self):
         return json.loads(self.datatype)
 
-    def from_string_to_python(self, value):
+    def reverse_clean(self, value):
+        if self.datatype_dict['type'] == 'user':
+            if hasattr(value, 'pk'):
+                value = str(value.pk)
+
+        if value:
+            return str(value)
+        else:
+            return None
+
+    def clean_value(self, value):
         """
         Given a value for this data type, validate and return the
         correct python/django representation.
@@ -161,6 +171,8 @@ class UserDefinedFieldDefinition(models.Model):
         If that user doesn't exist a ValidationError will be raised
         """
         from treemap.models import User  # Circular ref issue
+        if value is None:
+            return None
 
         if self.datatype_dict['type'] == 'float':
             try:
@@ -171,13 +183,31 @@ class UserDefinedFieldDefinition(models.Model):
                                       {'fieldname': self.name})
         elif self.datatype_dict['type'] == 'int':
             try:
+                if float(value) != int(value):
+                    raise ValueError
+
                 return int(value)
             except ValueError:
                 raise ValidationError(_('%(fieldname)s '
                                         'must be an integer') %
                                       {'fieldname': self.name})
         elif self.datatype_dict['type'] == 'user':
-            return User.objects.get(pk=value)
+            if isinstance(value, User):
+                return value
+
+            try:
+                pk = int(value)
+            except ValueError:
+                raise ValidationError(_('%(fieldname)s '
+                                        'must be an integer') %
+                                      {'fieldname': self.name})
+            try:
+                return User.objects.get(pk=pk)
+            except User.DoesNotExist:
+                raise ValidationError(_('%(fieldname)s '
+                                        'user not found') %
+                                      {'fieldname': self.name})
+
         elif self.datatype_dict['type'] == 'date':
             return datetime.strptime(value, DATETIME_FORMAT)
         elif self.datatype_dict['type'] == 'choice':
@@ -187,25 +217,6 @@ class UserDefinedFieldDefinition(models.Model):
                 raise ValidationError(_('Invalid choice'))
         else:
             return value
-
-    def from_python_to_string(self, value):
-        """
-        Given a value for this data type, return a string representation
-        to be stored in the hstore.
-        """
-        from treemap.models import User  # Circular ref issue
-
-        # We only support scalar UDFs right now
-        # so we can just grab the first one
-        if self.datatype_dict['type'] == 'user':
-            if isinstance(value, User):
-                return str(value.pk)
-            else:
-                raise ValidationError(_('Expected a User object'))
-        elif self.datatype_dict['type'] == 'date':
-            return value.strftime(DATETIME_FORMAT)
-        else:
-            return str(value)
 
 
 class UDFDictionary(HStoreDictionary):
@@ -253,22 +264,17 @@ class UDFDictionary(HStoreDictionary):
     def __getitem__(self, key):
         udf = self._get_udf_or_error(key)
         if super(UDFDictionary, self).__contains__(key):
-            return udf.from_string_to_python(
-                super(UDFDictionary, self).__getitem__(key))
+            v = super(UDFDictionary, self).__getitem__(key)
+            try:
+                return udf.clean_value(v)
+            except:
+                return v
         else:
             return None
 
     def __setitem__(self, key, val):
         udf = self._get_udf_or_error(key)
-        val = udf.from_python_to_string(val)
-        super(UDFDictionary, self).__setitem__(key, val)
-
-    def raw_items(self):
-        "Get iterable string key, values"
-        return super(UDFDictionary, self).iteritems()
-
-    def set_raw(self, key, val):
-        "Set a key to a string value without conversion"
+        val = udf.reverse_clean(val)
         super(UDFDictionary, self).__setitem__(key, val)
 
 
@@ -336,13 +342,17 @@ class UDFModel(UserTrackable, models.Model):
         self._do_not_track.add('udf_scalar_values')
 
     def get_user_defined_fields(self):
-        return UserDefinedFieldDefinition.objects.filter(
-            instance=self.instance,
+        udfs = UserDefinedFieldDefinition.objects.filter(
             model_type=self._model_name)
+
+        if hasattr(self, 'instance'):
+            udfs = udfs.filter(instance=self.instance)
+
+        return udfs
 
     def apply_change(self, key, oldval):
         if key in self.udf_field_names:
-            self.udf_scalar_values.set_raw(key, oldval)
+            self.udf_scalar_values[key] = oldval
         else:
             super(UDFModel, self).apply_change(key, oldval)
 
@@ -353,10 +363,43 @@ class UDFModel(UserTrackable, models.Model):
     def as_dict(self, *args, **kwargs):
         base_model_dict = super(UDFModel, self).as_dict(*args, **kwargs)
 
-        for (name, val) in self.udf_scalar_values.raw_items():
-            base_model_dict[name] = val
+        for field in self.udf_field_names:
+            base_model_dict[field] = self.udf_scalar_values[field]
 
         return base_model_dict
+
+    def clean_udfs(self):
+        fields = {field.name: field
+                  for field in self.get_user_defined_fields()}
+        errors = {}
+        for (key, val) in self.udf_scalar_values.iteritems():
+            field = fields.get(key, None)
+            if field:
+                try:
+                    field.clean_value(val)
+                except ValidationError as e:
+                    errors['udf:%s' % key] = e.messages
+            else:
+                errors['udf:%s' % key] = _('Invalid user defined field name')
+
+        if errors:
+            raise ValidationError(errors)
+
+    def clean_fields(self, exclude):
+        exclude = exclude + ['udf_scalar_values']
+        errors = {}
+        try:
+            super(UDFModel, self).clean_fields(exclude)
+        except ValidationError as e:
+            errors = e.message_dict
+
+        try:
+            self.clean_udfs()
+        except ValidationError as e:
+            errors.update(e.message_dict)
+
+        if errors:
+            raise ValidationError(errors)
 
 
 def quotesingle(string):
