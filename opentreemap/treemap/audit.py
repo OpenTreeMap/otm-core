@@ -380,11 +380,7 @@ class Authorizable(UserTrackable):
 
         self._has_been_clobbered = False
 
-    def _write_perm_comparison_sets(self, user, direct_only=False):
-        """
-        Helper method for comparing a user's write
-        permissions with the fields on the current model
-        """
+    def _get_perms_set(self, user, direct_only=False):
         perms = user.get_instance_permissions(self.instance, self._model_name)
 
         if direct_only:
@@ -395,18 +391,14 @@ class Authorizable(UserTrackable):
         else:
             perm_set = {perm.field_name for perm in perms
                         if perm.allows_writes}
-
-        field_set = {field_name for field_name in self._previous_state.keys()}
-        return perm_set, field_set
+        return perm_set
 
     def user_can_delete(self, user):
         """
         A user is able to delete an object if they have all
         field permissions on a model.
         """
-        # TODO - this is cryptic.
-        perm_set, field_set = self._write_perm_comparison_sets(user)
-        return perm_set == field_set
+        return self._get_perms_set(user) == set(self._previous_state.keys())
 
     def _user_can_create(self, user, direct_only=False):
         """
@@ -419,7 +411,7 @@ class Authorizable(UserTrackable):
         """
         can_create = True
 
-        perm_set, __ = self._write_perm_comparison_sets(user, direct_only)
+        perm_set = self._get_perms_set(user, direct_only)
 
         for field in self._fields_required_for_create():
             if field.name not in perm_set:
@@ -501,7 +493,7 @@ class Authorizable(UserTrackable):
         self._assert_not_clobbered()
 
         if self.pk is not None:
-            writable_perms, __ = self._write_perm_comparison_sets(user)
+            writable_perms = self._get_perms_set(user)
             for field in self._updated_fields():
                 if field not in writable_perms:
                     raise AuthorizeException("Can't edit field %s on %s" %
