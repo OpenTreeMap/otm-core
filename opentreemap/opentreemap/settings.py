@@ -130,14 +130,19 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'opentreemap.context_processors.global_settings',
 )
 
-INSTALLED_APPS = (
-    'south',
+# APPS THAT ARE DEVELOPED IN CONJUNCTION WITH OTM2
+# these are the apps we want to test by default using
+# 'python manage.py test'
+MANAGED_APPS = (
     'treemap',
     'ecobenefits',
     'geocode',
     'api',
-    'registration',
     'management',
+)
+
+UNMANAGED_APPS = (
+    'registration',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -146,7 +151,10 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.gis',
+    'south',
 )
+
+INSTALLED_APPS = MANAGED_APPS + UNMANAGED_APPS
 
 I18N_APPS = (
     'treemap',
