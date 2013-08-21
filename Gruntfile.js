@@ -1,36 +1,62 @@
 module.exports = function(grunt) {
     "use strict";
 
+    grunt.loadNpmTasks('grunt-browserify');
+    grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.file.setBase('opentreemap');
+    grunt.registerTask('check', ['jshint']);
+    grunt.registerTask('default', ['browserify']);
+
+
+    /*
+     * Reads the extra.json file which should be a dictionary
+     * where the keys are the require.js alias and the values
+     * are the path to a file, relative to `opentreemap`
+     */
+    function getAliases() {
+        var aliases = ['treemap/js/src/app.js:app',
+                       'treemap/js/src/user.js:user'];
+
+        var extras = require('./extra.json');
+        for (var alias in extras) {
+            var filepath = extras[alias];
+            if (grunt.file.exists(filepath)) {
+                aliases.push(filepath + ':' + alias);
+            }
+        }
+        return aliases;
+    }
+
     grunt.initConfig({
         browserify: {
             treemap: {
                 src: [],
-                dest: 'static/js/treemap.js',
+                dest: 'treemap/static/js/treemap.js',
                 options: {
-                    alias: ['js/src/app.js:app','js/src/user.js:user'],
+                    alias: getAliases(),
                     aliasMappings: {
-                        cwd: 'js/lib/',
+                        cwd:'treemap/js/lib/',
                         src: ['*.js'],
                         dest: '',
                         ext: '',
                         flatten: true
                     },
-                    noParse: grunt.file.expand('js/lib/*.js'),
+                    noParse: grunt.file.expand('*/js/lib/*.js'),
                     shim: {
                         OpenLayers: {
-                            path: './js/shim/OpenLayers.js',
+                            path: './treemap/js/shim/OpenLayers.js',
                             exports: 'OpenLayers',
                             depends: { googlemaps: 'google' }
                         },
                         // Typeahead puts itself onto the jQuery object
                         typeahead: {
-                            path: './js/shim/typeahead.js',
+                            path: './treemap/js/shim/typeahead.js',
                             exports: null,
                             depends: { jquery: 'jQuery' }
                         },
                         // Bootstrap puts itself onto the jQuery object
                         bootstrap: {
-                            path: './js/shim/bootstrap.js',
+                            path: './treemap/js/shim/bootstrap.js',
                             exports: null,
                             depends: { jquery: 'jQuery' }
                         }
@@ -41,17 +67,9 @@ module.exports = function(grunt) {
         },
         jshint: {
             options: {
-                jshintrc: "../../.jshintrc"
+                jshintrc: "../.jshintrc"
             },
-            treemap: ['../../Gruntfile.js', 'js/src/**/*.js']
+            treemap: ['../Gruntfile.js', '*/js/src/**/*.js']
         }
     });
-
-    grunt.loadNpmTasks('grunt-browserify');
-    grunt.loadNpmTasks('grunt-contrib-jshint');
-
-    grunt.file.setBase('opentreemap', 'treemap');
-
-    grunt.registerTask('check', ['jshint']);
-    grunt.registerTask('default', ['browserify']);
 };
