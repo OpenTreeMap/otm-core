@@ -66,23 +66,6 @@ def _reserve_model_id(model_class):
     return model_id
 
 
-def _audit_deserialization_value_transformer(audit):
-    """
-    A helper function to transform values.
-
-    TODO: this needs to be worked into a toplevel thing.
-    There is duplicate logic between this and the AuditUI.
-    """
-    if audit.field == 'geom':
-        return GEOSGeometry(audit.current_value)
-    elif audit.field == 'plot':
-        from treemap.models import Plot
-        return Plot(pk=audit.current_value)
-    elif audit.field == 'readonly':
-        return audit.current_value == 'True'
-    else:
-        return audit.current_value
-
 
 def approve_or_reject_audit_and_apply(audit, user, approved):
     """
@@ -122,7 +105,7 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
         try:
             obj = TheModel.objects.get(pk=audit.model_id)
             obj.apply_change(audit.field,
-                             _audit_deserialization_value_transformer(audit))
+                             audit.clean_current_value)
             # TODO: consider firing the save signal here
             # save this object without triggering any kind of
             # UserTrackable actions. There is no straightforward way to
@@ -162,8 +145,7 @@ def _process_approved_pending_insert(model_class, user, audit):
 
     for approved_audit in approved_audits:
         obj.apply_change(approved_audit.field,
-                         _audit_deserialization_value_transformer(
-                             approved_audit))
+                         approved_audit.clean_current_value)
 
     obj.validate_foreign_keys_exist()
     obj.save_base()
@@ -709,102 +691,6 @@ class Auditable(UserTrackable):
 
         return hashlib.md5(string_to_hash).hexdigest()
 
-
-class AuditUI(object):
-    """
-    Audit UI provides useful accessors for getting the objects behind
-    an audit.
-
-    For example, the 'created_by' field of an audit is a user but is
-    stored an integer. If this is an audit for a given 'created_by'
-    field you can do something like:
-
-    aui = AuditUI(audit)
-    user_object = aui.previous_value_as_user
-
-    If there is an invalid conversion it returns None:
-    plot_object = aui.previous_value_as_plot
-    """
-    def __init__(self, audit):
-        self.audit = audit
-
-    def _value_as_thing(self, value, Thing):
-        return Thing.objects.get(pk=value)
-
-    def _value_as_user(self, value):
-        # Delayed import since this is circular
-        from treemap.models import User
-
-        if self.audit.field == 'created_by':
-            return self._value_as_thing(value, User)
-        else:
-            return None
-
-    @property
-    def current_value_as_user(self):
-        return self._value_as_user(self.audit.current_value)
-
-    @property
-    def previous_value_as_user(self):
-        return self._value_as_user(self.audit.previous_value)
-
-    def _value_as_geom(self, value):
-        if self.audit.field == 'geom':
-            return GEOSGeometry(value)
-        else:
-            return None
-
-    @property
-    def current_value_as_geom(self):
-        return self._value_as_geom(self.audit.current_value)
-
-    @property
-    def previous_value_as_geom(self):
-        return self._value_as_geom(self.audit.previous_value)
-
-    def _value_as_plot(self, value):
-        # Delayed import since this is circular
-        from treemap.models import Plot
-
-        if self.audit.field == 'plot' and self.audit.model == 'Tree':
-            return self._value_as_thing(value, Plot)
-        else:
-            return None
-
-    @property
-    def current_value_as_plot(self):
-        return self._value_as_plot(self.audit.current_value)
-
-    @property
-    def previous_value_as_plot(self):
-        return self._value_as_plot(self.audit.previous_value)
-
-    def _value_as_species(self, value):
-        # Delayed import since this is circular
-        from treemap.models import Species
-
-        if self.audit.field == 'species' and self.audit.model == 'Tree':
-            return self._value_as_thing(value, Species)
-        else:
-            return None
-
-    @property
-    def current_value_as_species(self):
-        return self._value_as_species(self.audit.current_value)
-
-    @property
-    def previous_value_as_species(self):
-        return self._value_as_species(self.audit.previous_value)
-
-    @property
-    def previous_value(self):
-        return self.audit.previous_value
-
-    @property
-    def current_value(self):
-        return self.audit.current_value
-
-
 ###
 # TODO:
 # Test fail in saving on base object
@@ -853,6 +739,58 @@ class Audit(models.Model):
         Type.PendingApprove: 'Approved Pending Edit',
         Type.PendingReject: 'Reject Pending Edit',
     }
+
+    def _deserialize_value(self, value):
+        """
+        A helper method to transform deserialized audit strings
+
+        When an audit record is written to the audit table, the
+        value is stored as a string. When deserializing these values
+        for presentation purposes or constructing objects, they
+        need to be converted to their correct python value.
+
+        Where possible, django model field classes are used to
+        convert the value.
+        """
+
+        # some django fields can't handle .to_python(None), but
+        # for insert audits (None -> <value>) this method will
+        # still be called.
+        if value is None:
+            return None
+
+        # get the model/field class for each audit record and convert
+        # the value to a python object
+        cls = _lookup_model(self.model)
+        field_query = cls._meta.get_field_by_name(self.field)
+        field_cls, fk_model_cls, is_local, m2m = field_query
+        field_modified_value = field_cls.to_python(value)
+
+        # handle edge cases
+        if isinstance(field_cls, models.PointField):
+            field_modified_value = GEOSGeometry(field_modified_value)
+        elif isinstance(field_cls, models.ForeignKey):
+            field_modified_value = field_cls.rel.to.objects.get(
+                pk=field_modified_value)
+
+        return field_modified_value
+
+    @property
+    def clean_current_value(self):
+        return self._deserialize_value(self.current_value)
+
+    @property
+    def clean_previous_value(self):
+        cpv = self._deserialize_value(self.previous_value)
+
+        # empty strings respond equally well to truthy tests
+        # in templates but print better in the current use
+        # cases.
+        # TODO: handle this in the presentation layer
+        if cpv is None:
+            return ""
+        else:
+            return ""
 
     @property
     def display_action(self):

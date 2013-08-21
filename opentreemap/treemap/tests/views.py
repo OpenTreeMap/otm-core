@@ -33,6 +33,7 @@ from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
 
 import psycopg2
 
+from django.db.models.query import QuerySet
 
 class InstanceValidationTest(TestCase):
 
@@ -476,8 +477,8 @@ class RecentEditsViewTest(ViewTestCase):
     def check_audits(self, url, dicts):
         req = self.factory.get(url)
         req.user = AnonymousUser()
-        resulting_audits = [a.audit.dict()
-                            for a
+        resulting_audits = [audit.dict()
+                            for audit
                             in audits(req, self.instance)['audits']]
 
         self._assert_dicts_equal(dicts, resulting_audits)
@@ -485,8 +486,8 @@ class RecentEditsViewTest(ViewTestCase):
     def check_user_audits(self, url, username, dicts):
         req = self.factory.get(url)
         req.user = AnonymousUser()
-        resulting_audits = [a.audit.dict()
-                            for a
+        resulting_audits = [audit.dict()
+                            for audit
                             in user_audits(req, username)['audits']]
 
         self._assert_dicts_equal(dicts, resulting_audits)
@@ -855,8 +856,8 @@ class UserViewTests(ViewTestCase):
         self.assertEquals(self.joe.username, context['user'].username,
                           'the user view should return a dict with user with '
                           '"username" set to %s ' % self.joe.username)
-        self.assertEquals([], context['audits'],
-                          'the user view should return a audits list')
+        self.assertEquals(QuerySet, type(context['audits']),
+                          'the user view should return a queryset')
 
     def test_get_with_invalid_username_returns_404(self):
         self.assertRaises(Http404, user, make_request(),
