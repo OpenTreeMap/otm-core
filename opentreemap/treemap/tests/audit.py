@@ -645,6 +645,69 @@ class ReputationTest(TestCase):
         reputation = user.get_reputation(self.instance)
         self.assertGreater(reputation, 0)
 
+    def test_reputation_metric_no_adjustment_for_no_rm_record(self):
+        audit = Audit(model='Plot', model_id=1,
+                      action=Audit.Type.Insert,
+                      instance=self.instance, field='readonly',
+                      previous_value=None,
+                      current_value=True,
+                      user=self.privileged_user)
+
+        ReputationMetric.apply_adjustment(audit)
+
+        self.assertEqual(0,
+                         self.privileged_user.get_reputation(self.instance))
+
+    def test_reputation_metric_positive_adjustment_for_rm(self):
+        self.assertEqual(0,
+                         self.unprivileged_user.get_reputation(self.instance))
+        audit = Audit(model='Tree', model_id=1,
+                      action=Audit.Type.Insert,
+                      instance=self.instance, field='readonly',
+                      previous_value=None,
+                      current_value=True,
+                      user=self.unprivileged_user)
+
+        ReputationMetric.apply_adjustment(audit)
+
+        self.assertEqual(2,
+                         self.unprivileged_user.get_reputation(self.instance))
+
+    def _test_negative_adjustment(self, initial, adjusted):
+        iuser = self.unprivileged_user.get_instance_user(self.instance)
+        iuser.reputation = initial
+        iuser.save_base()
+
+        audit = Audit(model='Tree', model_id=1,
+                      action=Audit.Type.Insert,
+                      instance=self.instance, field='readonly',
+                      previous_value=None,
+                      current_value=True,
+                      user=self.unprivileged_user,
+                      requires_auth=True)
+        audit.save()
+        self.assertEqual(initial, iuser.reputation)
+
+        review_audit = Audit(model='Tree', model_id=1,
+                             action=Audit.Type.PendingReject,
+                             instance=self.instance, field='readonly',
+                             previous_value=None,
+                             current_value=True,
+                             user=self.privileged_user)
+        review_audit.save()
+
+        audit.ref = review_audit
+        audit.save()
+
+        # requery iuser
+        iuser = self.unprivileged_user.get_instance_user(self.instance)
+        self.assertEqual(adjusted, iuser.reputation)
+
+    def test_reputation_metric_negative_adjustment(self):
+        self._test_negative_adjustment(10, 5)
+        self._test_negative_adjustment(5, 0)
+        self._test_negative_adjustment(3, 0)
+
 
 class UserRoleFieldPermissionTest(TestCase):
     def setUp(self):

@@ -9,7 +9,7 @@ from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as _
 
 from django.dispatch import receiver
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_save
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, connection
 
@@ -911,9 +911,6 @@ class Audit(models.Model):
     def is_pending(self):
         return self.requires_auth and not self.ref
 
-    def was_reviewed(self):
-        return self.requires_auth and self.ref
-
 
 class ReputationMetric(models.Model):
     """
@@ -942,7 +939,7 @@ class ReputationMetric(models.Model):
 
         iuser = audit.user.get_instance_user(audit.instance)
 
-        if audit.was_reviewed():
+        if audit.requires_auth and audit.ref:
             review_audit = audit.ref
             if review_audit.action == Audit.Type.PendingApprove:
                 iuser.reputation += rm.approval_score
@@ -966,6 +963,6 @@ class ReputationMetric(models.Model):
             iuser.save_base()
 
 
-@receiver(pre_save, sender=Audit)
+@receiver(post_save, sender=Audit)
 def audit_presave_actions(sender, instance, **kwargs):
     ReputationMetric.apply_adjustment(instance)
