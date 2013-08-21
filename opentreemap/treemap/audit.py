@@ -235,16 +235,9 @@ class Dictable(object):
 
 class UserTrackable(Dictable):
     def __init__(self, *args, **kwargs):
-        self._do_not_track = set(['instance', 'udf_scalar_values'])
+        self._do_not_track = set(['instance'])
         super(UserTrackable, self).__init__(*args, **kwargs)
-
-        if self.pk is None:
-            # User created the object as "MyObj(field1=...,field2=...)"
-            # the saved state will include these changes but the actual
-            # "initial" state is empty so we clear it here
-            self._previous_state = {}
-        else:
-            self._populate_previous_state()
+        self.populate_previous_state()
 
     def apply_change(self, key, orig_value):
         # TODO: if a field has a default value, don't
@@ -285,7 +278,7 @@ class UserTrackable(Dictable):
 
     def save_with_user(self, user, *args, **kwargs):
         self.save_base(self, *args, **kwargs)
-        self._populate_previous_state()
+        self.populate_previous_state()
 
     def save(self, *args, **kwargs):
         raise UserTrackingException(
@@ -300,12 +293,18 @@ class UserTrackable(Dictable):
     def fields(self):
         return self.as_dict().keys()
 
-    def _populate_previous_state(self):
+    def populate_previous_state(self):
         """
         A helper method for setting up a previous state dictionary
         without the elements that should remained untracked
         """
-        self._previous_state = {k: v for k, v in self.as_dict().iteritems()
+        if self.pk is None:
+            # User created the object as "MyObj(field1=...,field2=...)"
+            # the saved state will include these changes but the actual
+            # "initial" state is empty so we clear it here
+            self._previous_state = {}
+        else:
+            self._previous_state = {k: v for k, v in self.as_dict().iteritems()
                                 if k not in self._do_not_track}
 
     def get_pending_fields(self, user=None):

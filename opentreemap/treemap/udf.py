@@ -341,8 +341,8 @@ class UDFModel(UserTrackable, models.Model):
 
     def __init__(self, *args, **kwargs):
         super(UDFModel, self).__init__(*args, **kwargs)
-
         self._do_not_track.add('udf_scalar_values')
+        self.populate_previous_state()
 
     def get_user_defined_fields(self):
         udfs = UserDefinedFieldDefinition.objects.filter(
