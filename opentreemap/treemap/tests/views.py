@@ -129,7 +129,7 @@ class PlotUpdateTest(unittest.TestCase):
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
         add_field_permissions(self.instance, self.user,
-                              'Plot', ['Test choice'])
+                              'Plot', ['udf:Test choice'])
 
         self.p = Point(-7615441.0, 5953519.0)
 

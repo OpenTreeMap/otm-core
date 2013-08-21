@@ -287,12 +287,15 @@ class UDFField(DictionaryField):
     def get_prep_value(self, data):
         return data
 
-    def create_proxy_field(self, name):
-        f = UDFField()
-        f.column = ('udf', name)
-        setattr(f, 'model', None)
-        return f
 
+class _UDFProxy(UDFField):
+    def __init__(self, name, *args, **kwargs):
+        super(_UDFProxy, self).__init__(*args, **kwargs)
+        self.column = ('udf', name)
+        self.model = None
+
+    def to_python(self, value):
+        return value
 
 from south.modelsinspector import add_introspection_rules
 add_introspection_rules([], ["^treemap\.udf\.UDFField"])
@@ -312,7 +315,7 @@ class UDFModelBase(ModelBase):
                 if name.startswith('udf:'):
                     udf, udfname = name.split(':', 1)
                     field, model, direct, m2m = orig('udf_scalar_values')
-                    field = field.create_proxy_field(udfname)
+                    field = _UDFProxy(udfname)
                     return (field, model, direct, m2m)
                 else:
                     raise
@@ -350,11 +353,15 @@ class UDFModel(UserTrackable, models.Model):
 
         return udfs
 
-    def apply_change(self, key, oldval):
-        if key in self.udf_field_names:
-            self.udf_scalar_values[key] = oldval
+    def apply_change(self, key, val):
+        if key.startswith('udf:'):
+            udf_field_name = key[4:]
+            if udf_field_name in self.udf_field_names:
+                self.udf_scalar_values[udf_field_name] = val
+            else:
+                raise Exception("cannot find udf field" % udf_field_name)
         else:
-            super(UDFModel, self).apply_change(key, oldval)
+            super(UDFModel, self).apply_change(key, val)
 
     @property
     def udf_field_names(self):
@@ -364,7 +371,7 @@ class UDFModel(UserTrackable, models.Model):
         base_model_dict = super(UDFModel, self).as_dict(*args, **kwargs)
 
         for field in self.udf_field_names:
-            base_model_dict[field] = self.udf_scalar_values[field]
+            base_model_dict['udf:' + field] = self.udf_scalar_values[field]
 
         return base_model_dict
 
