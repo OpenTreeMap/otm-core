@@ -113,7 +113,7 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
                          current_value=audit.current_value,
                          user=user)
 
-    TheModel = _lkp_model(audit.model)
+    TheModel = _lookup_model(audit.model)
     if approved:
         review_audit.action = Audit.Type.PendingApprove
 
@@ -186,7 +186,7 @@ def get_related_audits(insert_audit, approved_only=False):
     return related_audits
 
 
-def _lkp_model(modelname):
+def _lookup_model(modelname):
     """
     Convert a model name (as a string) into the model class
 
@@ -670,7 +670,7 @@ class Auditable(UserTrackable):
             super(Auditable, self).save_with_user(user, *args, **kwargs)
             model_id = self.pk
         else:
-            model_id = _reserve_model_id(_lkp_model(self._model_name))
+            model_id = _reserve_model_id(_lookup_model(self._model_name))
             self.pk = model_id
             self.is_pending_insert = True
 
