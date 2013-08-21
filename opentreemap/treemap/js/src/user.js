@@ -1,14 +1,9 @@
 "use strict";
 
-var $ = require('jquery');
+var inlineEditForm = require('./inlineEditForm');
+var recentEdits = require('./recentEdits');
 
 exports.init = function(options) {
-    var $container = $(options.container),
-        links = [options.prevLink, options.nextLink].join(',');
-
-    $container.on('click', links, function(e) {
-        e.preventDefault();
-
-        $container.load(this.href);
-    });
+    inlineEditForm.init(options.inlineEditForm);
+    recentEdits.init(options.recentEdits);
 };

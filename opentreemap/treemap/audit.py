@@ -486,19 +486,28 @@ class Authorizable(UserTrackable):
 
         self._has_been_clobbered = True
 
-    def visible_fields(self, user):
+    def _perms_for_user(self, user):
         if user is None or user.is_anonymous():
             perms = self.instance.default_role.fieldpermission_set
         else:
             perms = user.get_instance_permissions(
                 self.instance, self._model_name)
 
-        perms = perms.filter(model_name=self._model_name)
+        return perms.filter(model_name=self._model_name)
 
+    def visible_fields(self, user):
+        perms = self._perms_for_user(user)
         return [perm.field_name for perm in perms if perm.allows_reads]
 
     def field_is_visible(self, user, field):
         return field in self.visible_fields(user)
+
+    def editable_fields(self, user):
+        perms = self._perms_for_user(user)
+        return [perm.field_name for perm in perms if perm.allows_writes]
+
+    def field_is_editable(self, user, field):
+        return field in self.editable_fields(user)
 
     @staticmethod
     def clobber_queryset(qs, user):

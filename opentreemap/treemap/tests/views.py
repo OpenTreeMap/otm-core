@@ -7,7 +7,7 @@ import unittest
 
 from django.test import TestCase
 from django.test.client import RequestFactory
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.core.exceptions import ValidationError
 from django.db import connection
 
@@ -24,7 +24,7 @@ from treemap.models import (Instance, Species, User, Plot, Tree,
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, audits, user_audits,
                            search_tree_benefits, user, instance_user_view,
-                           update_plot_and_tree)
+                           update_plot_and_tree, update_user)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
@@ -885,6 +885,89 @@ class UserViewTests(ViewTestCase):
 
         context = user(make_request(user=self.joe), self.joe.username)
         self.assertTrue(len(context['audits']) > 0)
+
+
+class UserUpdateViewTests(ViewTestCase):
+
+    def setUp(self):
+        super(UserUpdateViewTests, self).setUp()
+        self.instance.is_public = True
+        self.instance.save()
+        self.public = make_apprentice_user(self.instance, 'public')
+        self.joe = make_commander_user(self.instance, 'joe')
+
+    def assertOk(self, response):
+        if (issubclass(response.__class__, HttpResponse)):
+            context = json.loads(response.content)
+            self.assertEquals(200, response.status_code)
+        else:
+            context = response
+        self.assertTrue('ok' in context)
+        self.assertFalse('error' in context)
+        self.assertFalse('validationErrors' in context)
+
+    def assertForbidden(self, response):
+        self.assertTrue(issubclass(response.__class__, HttpResponse))
+        self.assertEquals(403, response.status_code)
+        try:
+            context = json.loads(response.content)
+            self.assertFalse('ok' in context)
+            self.assertTrue('error' in context)
+        except ValueError:
+            pass  # It is ok for the response to have no content
+
+    def assertBadRequest(self, response):
+        self.assertTrue(issubclass(response.__class__, HttpResponse))
+        self.assertEquals(400, response.status_code)
+        context = json.loads(response.content)
+        self.assertFalse('ok' in context)
+        self.assertTrue('error' in context)
+
+    def test_empty_update_returns_ok(self):
+        self.assertOk(update_user(
+            make_request(user=self.joe), self.joe.username))
+
+    def test_updating_someone_else_is_forbidden(self):
+        self.assertForbidden(update_user(
+            make_request(user=self.public), self.joe.username))
+
+    def test_change_first_name(self):
+        self.joe.first_name = 'Joe'
+        self.joe.save()
+        update = '{"user.first_name": "Joseph"}'
+        self.assertOk(update_user(
+            make_request(user=self.joe, body=update), self.joe.username))
+        self.assertEquals('Joseph',
+                          User.objects.get(username='joe').first_name,
+                          'The first_name was not updated')
+
+    def test_expects_keys_prefixed_with_user(self):
+        self.joe.name = 'Joe'
+        self.joe.save()
+        update = '{"name": "Joseph"}'
+        response = update_user(
+            make_request(user=self.joe, body=update), self.joe.username)
+        self.assertBadRequest(response)
+        context = json.loads(response.content)
+        self.assertFalse('validationErrors' in context)
+
+    def test_email_validation(self):
+        self.joe.email = 'joe@gmail.com'
+        self.joe.save()
+        update = '{"user.email": "@not_valid@"}'
+        response = update_user(
+            make_request(user=self.joe, body=update), self.joe.username)
+        self.assertBadRequest(response)
+        context = json.loads(response.content)
+        self.assertTrue('validationErrors' in context)
+        self.assertTrue('user.email' in context['validationErrors'])
+
+    def test_cant_change_password_through_update_view(self):
+        self.joe.set_password = 'joe'
+        self.joe.save()
+        update = '{"user.password": "sekrit"}'
+        self.assertBadRequest(update_user(
+            make_request(user=self.joe, body=update), self.joe.username))
 
 
 class InstanceUserViewTests(ViewTestCase):
