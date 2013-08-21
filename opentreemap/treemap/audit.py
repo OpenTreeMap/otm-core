@@ -66,7 +66,6 @@ def _reserve_model_id(model_class):
     return model_id
 
 
-
 def approve_or_reject_audit_and_apply(audit, user, approved):
     """
     Approve or reject a given audit and apply it to the
@@ -305,7 +304,7 @@ class UserTrackable(Dictable):
             self._previous_state = {}
         else:
             self._previous_state = {k: v for k, v in self.as_dict().iteritems()
-                                if k not in self._do_not_track}
+                                    if k not in self._do_not_track}
 
     def get_pending_fields(self, user=None):
         """
@@ -681,6 +680,7 @@ class Auditable(UserTrackable):
         string_to_hash = str(audits[0].pk)
 
         return hashlib.md5(string_to_hash).hexdigest()
+
 
 ###
 # TODO:

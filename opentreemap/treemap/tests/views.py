@@ -35,6 +35,7 @@ import psycopg2
 
 from django.db.models.query import QuerySet
 
+
 class InstanceValidationTest(TestCase):
 
     def setUp(self):
