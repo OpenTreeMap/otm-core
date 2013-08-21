@@ -11,7 +11,10 @@ import json
 
 class JSONField(with_metaclass(models.SubfieldBase, models.TextField)):
     def to_python(self, value):
-        return json.loads(value or "{}")
+        if isinstance(value, basestring):
+            return json.loads(value or "{}")
+        else:
+            return value
 
     def get_prep_value(self, value):
         return json.dumps(value or {})
