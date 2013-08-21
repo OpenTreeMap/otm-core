@@ -15,3 +15,7 @@ prototype/css/.sass-cache
 # .mo files are compiled, binary language files created
 # by ``django-admin.py compilemessages``
 *.mo
+
+# the local directory is a place for keeping unversioned
+# scripts, etc 
+/local
