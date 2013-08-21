@@ -12,11 +12,12 @@ from PIL import Image
 
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
-from django.http import (HttpResponse, HttpResponseRedirect)
-from django.views.decorators.http import etag
+from django.http import (HttpResponse, HttpResponseRedirect,
+                         HttpResponseForbidden)
+from django.views.decorators.http import etag, require_http_methods
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext as trans
 from django.db import transaction
 from django.db.models import Q
 
@@ -27,6 +28,8 @@ from treemap.models import (Plot, Tree, User, Species, Instance,
                             BenefitCurrencyConversion)
 
 from ecobenefits.views import _benefits_for_trees
+
+from opentreemap.util import json_from_request
 
 
 def _plot_hash(request, instance, plot_id):
@@ -501,25 +504,25 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance,
         displayize_benefit(
             'energy',
             conversion.kwh_to_currency,
-            _('Energy'), '%.1f'),
+            trans('Energy'), '%.1f'),
 
         # Translators: 'Stormwater' is the name of an eco benefit
         displayize_benefit(
             'stormwater',
             conversion.stormwater_gal_to_currency,
-            _('Stormwater'), '%.1f'),
+            trans('Stormwater'), '%.1f'),
 
         # Translators: 'Carbon Dioxide' is the name of an eco benefit
         displayize_benefit(
             'co2',
             conversion.carbon_dioxide_lb_to_currency,
-            _('Carbon Dioxide'), '%.1f'),
+            trans('Carbon Dioxide'), '%.1f'),
 
         # Translators: 'Air Quaility' is the name of an eco benefit
         displayize_benefit(
             'airquality',
             conversion.airquality_aggregate_lb_to_currency,
-            _('Air Quality'), '%.1f')
+            trans('Air Quality'), '%.1f')
     ]
 
     locale.setlocale(locale.LC_ALL, '')
@@ -551,11 +554,66 @@ def user(request, username):
 
     reputation = user.get_reputation(instance) if instance else None
 
+    public_fields = [
+        (trans('First Name'), 'user.first_name'),
+        (trans('Last Name'), 'user.last_name')
+    ]
+
+    private_fields = [
+        (trans('Email'), 'user.email')
+    ]
+
     return {'user': user,
             'reputation': reputation,
             'instance_id': instance_id,
             'audits': audit_dict['audits'],
-            'next_page': audit_dict['next_page']}
+            'next_page': audit_dict['next_page'],
+            'public_fields': public_fields,
+            'private_fields': private_fields}
+
+
+def _bad_request_json_response(message, validation_error_dict=None):
+    response = HttpResponse()
+    response.status_code = 400
+    content = {
+        'error': 'One or more of the specified values are invalid.',
+    }
+    if validation_error_dict:
+        content['validationErrors'] = validation_error_dict
+    response.write(json.dumps(content))
+    response['Content-length'] = str(len(response.content))
+    response['Content-Type'] = "application/json"
+    return response
+
+
+def update_user(request, username):
+    user = get_object_or_404(User, username=username)
+    if user != request.user:
+        return HttpResponseForbidden()
+
+    new_values = json_from_request(request)
+    for key in new_values:
+        try:
+            model, field = key.split('.', 1)
+            if model != 'user':
+                return _bad_request_json_response(
+                    'All fields should be prefixed with "user."')
+            if field not in ['first_name', 'last_name', 'email']:
+                return _bad_request_json_response(
+                    field + ' is not an updatable field')
+        except ValueError:
+            return _bad_request_json_response(
+                'All fields should be prefixed with "user."')
+        setattr(user, field, new_values[key])
+    try:
+        user.save()
+        return {"ok": True}
+    except ValidationError, ve:
+        validation_error_dict =\
+            {'user.' + k: v for (k, v) in ve.message_dict.iteritems()}
+        return _bad_request_json_response(
+            'One or more of the specified values are invalid.',
+            validation_error_dict)
 
 
 def instance_user_view(request, instance_id, username):
@@ -608,6 +666,8 @@ search_tree_benefits_view = instance_request(
 species_list_view = json_api_call(instance_request(species_list))
 
 user_view = render_template("treemap/user.html", user)
+
+update_user_view = require_http_methods(["PUT"])(json_api_call(update_user))
 
 user_audits_view = render_template("treemap/recent_user_edits.html",
                                    user_audits)

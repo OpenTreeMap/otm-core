@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 {% load auth_extras %}
+{% load form_extras %}
 
 {% block page_title %} | {{ user.username }}{% endblock %}
 
 {% block subhead %}
-{% comment %} The subhead is not shown on the profile page {% endcomment %}
+    {% usercontent for user %}
+        <a href="javascript:;" id="edit-user" data-class="display" class="btn">Edit</a>
+        <a href="javascript:;" id="save-edit" data-class="edit" class="btn" style="display: none;">Save</a>
+        <a href="javascript:;" id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</a>
+    {% endusercontent %}
 {% endblock subhead %}
 
 {% block header %}
@@ -31,45 +36,48 @@
 {% load i18n %}
 <div class="container-fixedwidth profile">
     <div class="left">
-        <ul class="chunk">
-            <li class="chunk-label">{% trans "Name" %}</li>
-            <li class="chunk-content">{{ user.first_name }} {{ user.last_name }}</li>
-        </ul>
-        {% usercontent for user %}
-            <ul class="chunk">
-                <li class="chunk-label">{% trans "Zip Code" %}</li>
-                <li class="chunk-content">99999</li>
-            </ul>
-            <ul class="chunk">
-                <li class="chunk-label">{% trans "Email" %}</li>
-                <li class="chunk-content">{{user.email}}</li>
-            </ul>
-            <ul class="chunk">
-                <li class="chunk-label">{% trans "Password" %}</li>
-                <li class="chunk-content"><a href="javascript:;">{% trans "Reset" %}</a></li>
-            </ul>
-            <ul class="chunk">
-                <li class="chunk-label">{% trans "Emails" %}</li>
-                <li class="chunk-content">{% trans "Not Subscribed" %}</li>
-            </ul>
-        {% endusercontent %}
-        {% if reputation %}
-            <ul class="chunk">
-                <li class="chunk-label">{% trans "Reputation" %}</li>
-                <li class="chunk-content">{{ reputation }}</li>
-            </ul>
-        {% endif %}
+        <form id="user-form">
+            {% for label, identifier in public_fields %}
+                {% field label from identifier withtemplate "treemap/field.html" %}
+            {% endfor %}
+            {% usercontent for user %}
+                {% for label, identifier in private_fields %}
+                    {% field label from identifier withtemplate "treemap/field.html" %}
+                {% endfor %}
+                <ul class="chunk" data-class="display">
+                    <li class="chunk-label">{% trans "Password" %}</li>
+                    <li class="chunk-content"><a href="javascript:;">{% trans "Reset" %}</a></li>
+                </ul>
+                <ul class="chunk">
+                    <li class="chunk-label">{% trans "Emails" %}</li>
+                    <li class="chunk-content">{% trans "Not Subscribed" %}</li>
+                </ul>
+            {% endusercontent %}
+
+            {% if reputation %}
+                <ul class="chunk" >
+                    <li class="chunk-label">{% trans "Reputation" %}</li>
+                    <li class="chunk-content">{{ reputation }}</li>
+                </ul>
+            {% endif %}
+        </form>
     </div>
     <div class="right">
         <ul class="chunk">
             <li class="chunk-label">{% trans "Favorite Trees" %}</li>
-            <li class="chunk-content">{% trans "You haven't favorited any trees yet!" %}</li>
+            {% if user == request.user %}
+                <li class="chunk-content">{% trans "You haven't favorited any trees yet!" %}</li>
+            {% else %}
+                <li class="chunk-content">{% trans "This person hasn't favorited any trees yet!" %}</li>
+            {% endif %}
         </ul>
         <hr>
         <ul class="chunk">
             <li class="chunk-label">{% trans "Recently Added and Edited Trees" %}</li>
             <li class="chunk-content extra">
+                <div id="recent-user-edits-container">
                 {% include 'treemap/recent_user_edits.html' %}
+                </div>
             </li>
         </ul>
     </div>
@@ -79,13 +87,22 @@
 {% block scripts %}
 <script>
 (function(require) {
-    var $ = require('jquery'),
-        user = require('user');
-
-    user.init({
-        container: '#recent-user-edits-container',
-        prevLink: '#recent-user-edits-prev',
-        nextLink: '#recent-user-edits-next'
+    require('user').init({
+        inlineEditForm: {
+            updateUrl: window.location.href,
+            form: '#user-form',
+            edit: '#edit-user',
+            save: '#save-edit',
+            cancel: '#cancel-edit',
+            displayFields: '[data-class="display"]',
+            editFields: '[data-class="edit"]',
+            validationFields: '[data-class="error"]'    
+        },
+        recentEdits: {
+            recentEditsContainer: '#recent-user-edits-container',
+            prevLink: '#recent-user-edits-prev',
+            nextLink: '#recent-user-edits-next',    
+        }
     });
 })(require);
 </script>
