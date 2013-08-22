@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import logging
-import random
 
 from cStringIO import StringIO
 
@@ -223,7 +222,11 @@ def make_instance(name=None, is_public=False):
     instance = Instance(name=name, geo_rev=0, default_role=global_role,
                         is_public=is_public)
 
-    instance.set_center_and_bounds(p1)
+    tri = Polygon(((p1.x, p1.y),
+                   (p1.x + 10, p1.y + 10),
+                   (p1.x + 20, p1.y),
+                   (p1.x, p1.y)))
+    instance.bounds = MultiPolygon((tri,))
     instance.save()
 
     return instance

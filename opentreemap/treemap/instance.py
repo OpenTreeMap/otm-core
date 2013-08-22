@@ -67,7 +67,6 @@ class Instance(models.Model):
         'BenefitCurrencyConversion', null=True, blank=True)
 
     """ Center of the map when loading the instance """
-    center = models.PointField(srid=3857)
     bounds = models.MultiPolygonField(srid=3857)
 
     default_role = models.ForeignKey('Role', related_name='default_role')
@@ -103,17 +102,9 @@ class Instance(models.Model):
     advanced_search_filters = _make_config_property(
         'advanced_search_fields')
 
-    def set_center_and_bounds(self, point):
-        """
-        takes a point as the center, sets the center,
-        calculates and sets the bounds.
-        """
-        calculated_box = MultiPolygon(Polygon.from_bbox((
-            point.x - 2500, point.y - 2500,
-            point.x + 2500, point.y + 2500)))
-
-        self.center = point
-        self.bounds = calculated_box
+    @property
+    def center(self):
+        return self.bounds.centroid()
 
     @property
     def geo_rev_hash(self):

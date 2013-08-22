@@ -383,7 +383,6 @@ class PendingInsertTest(TestCase):
 
         self.assertEquals(Plot.objects.count(), 1)
 
-
     def test_insert_writes_when_approved(self):
 
         new_plot = Plot(geom=self.p1, instance=self.instance)
