@@ -1,0 +1,34 @@
+<div class="accordion" id="map-info">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#treeDetails">Tree Details <span class="arrow pull-right"><i class="icon-right"></i></span></a>
+    </div>
+    <div id="treeDetails" class="accordion-body collapse">
+      <div class="accordion-inner" id="plot-accordion">
+        <!-- The markup returned from the plot detail endpoint looks like
+             span.plot-label + br + span.content + p ...
+        -->
+      </div>
+    </div>
+  </div>
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#yearlyEco">Yearly Eco Benefits <span class="arrow pull-right"><i class="icon-right"></i></span></a>
+    </div>
+    <div id="yearlyEco" class="accordion-body collapse in">
+      <div class="accordion-inner" id="benefit-values">
+        <!-- The benefit markup returned from the search endpoint looks like this -->
+        <!--
+        <span class="benefit-label">Total Benefits</span>
+        <br>
+        <span class="content">$8,651,746 saved</span>
+        <hr>
+        <span class="benefit-label">Greenhouse Gas Benefits</span>
+        <br>
+        <span class="content">23,716,949 lbs CO2 reduced<br>$79,214 saved</span>
+        <hr>
+        -->
+      </div>
+    </div>
+  </div>
+</div>

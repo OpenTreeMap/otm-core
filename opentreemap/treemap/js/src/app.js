@@ -1,7 +1,6 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
     OL = require('OpenLayers'),
     Bacon = require('baconjs'),
     U = require('./utility'),
@@ -9,13 +8,11 @@ var $ = require('jquery'),
     Search = require('./search'),
     otmTypeahead = require('./otmTypeahead'),
     makeLayerFilterable = require('./makeLayerFilterable'),
+    modes = require('./modesForMapPage'),
 
-    isEnterKey = require('./baconUtils').isEnterKey,
-    truthyOrError = require('./baconUtils').truthyOrError;
+    isEnterKey = require('./baconUtils').isEnterKey;
 
-// These modules add features to the OpenLayers global
-// so we do not need `var thing =`
-require('./openLayersUtfGridEventStream');
+// This module augments the OpenLayers global so we don't need `var thing =`
 require('./openLayersMapEventStream');
 
 
@@ -95,32 +92,6 @@ var app = {
               sphericalMercator: true });
     },
 
-    getPlotPopupContent: function(config, id) {
-        var search = $.ajax({
-            url: '/' + config.instance.id + '/plots/' + id + '/popup',
-            type: 'GET',
-            dataType: 'html'
-        });
-        return Bacon.fromPromise(search);
-    },
-
-    makePopup: function(latLon, html, size) {
-        if (latLon && html) {
-            return new OL.Popup("plot-popup", latLon, size, html, true);
-        } else {
-            return null;
-        }
-    },
-
-    getPlotAccordianContent: function(config, id) {
-        var search = $.ajax({
-            url: '/' + config.instance.id + '/plots/' + id + '/detail',
-            type: 'GET',
-            dataType: 'html'
-        });
-        return Bacon.fromPromise(search);
-    },
-
     initTypeAheads: function(config) {
         otmTypeahead.create({
             name: "species",
@@ -166,11 +137,6 @@ var app = {
     }
 };
 
-function showPlotAccordian(html) {
-    $('#plot-accordian').html(html);
-    $("#treeDetails").removeClass('collapse');
-}
-
 module.exports = {
     init: function (config) {
         app.resetEventStream()
@@ -212,59 +178,15 @@ module.exports = {
         map.addLayer(utfLayer);
         map.addLayer(boundsLayer);
 
-        var utfGridMoveControl = new OL.Control.UTFGrid();
-
-        utfGridMoveControl
-            .asEventStream('move')
-            .map(function (o) { return JSON.stringify(o || {}); })
-            .assign($('#attrs'), 'html');
-
-        // The control must be added to the map after setting up the
-        // event stream
-        map.addControl(utfGridMoveControl);
-
-        var utfGridClickControl = new OL.Control.UTFGrid();
-
-        var clickedIdStream = utfGridClickControl
-            .asEventStream('click')
-            .map('.' + config.utfGrid.plotIdKey)
-            .map(truthyOrError); // Prevents making requests if id is undefined
-
-        var popupHtmlStream = clickedIdStream
-            .flatMap(_.bind(app.getPlotPopupContent, app, config))
-            .mapError(''); // No id or a server error both result in no content
-
-        var accordianHtmlStream = clickedIdStream
-            .flatMap(_.bind(app.getPlotAccordianContent, app, config))
-            .mapError('')
-            .onValue(showPlotAccordian);
-
-        // The control must be added to the map after setting up the
-        // event streams
-        map.addControl(utfGridClickControl);
-
-        var showPlotDetailPopup = (function(map) {
-            var existingPopup;
-            return function(popup) {
-                if (existingPopup) { map.removePopup(existingPopup); }
-                if (popup) { map.addPopup(popup); }
-                existingPopup = popup;
-            };
-        }(map));
-
         var clickedLatLonStream = map.asEventStream('click').map(function (e) {
             return map.getLonLatFromPixel(e.xy);
         });
 
-        // OpenLayers needs both the content and a coordinate to
-        // show a popup so I zip map clicks together with content
-        // requested via ajax
-        clickedLatLonStream
-            .zip(popupHtmlStream, app.makePopup) // TODO: size is not being sent to makePopup
-            .onValue(showPlotDetailPopup);
-
         zoom = map.getZoomForResolution(76.43702827453613);
         map.setCenter(config.instance.center, zoom);
+
+        modes.init(config, map, clickedLatLonStream);
+        modes.activateBrowseTreesMode();
 
         // Use a bus to delay sending the initial signal
         // seems like you could merge with Bacon.once(initialSearch)
