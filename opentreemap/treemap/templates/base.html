@@ -6,6 +6,7 @@
     <title>{% block title %}OpenTreeMap{% block instance_title %}{% endblock %}{% block page_title %}{% endblock %}{% endblock title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
+    <link href="{{ STATIC_URL }}css/openlayers.css" rel="stylesheet">
     <link href="{{ STATIC_URL }}css/bootstrap.css" rel="stylesheet">
     <link href="{{ STATIC_URL }}css/fontello.css" rel="stylesheet">
     <link href="{{ STATIC_URL }}css/application.css" rel="stylesheet">
@@ -65,53 +66,13 @@
       {% endblock logo %}
 
       {% block search %}
-      <div class="search-block-wrapper">
-        <!--Species Search-->
-        <div class="search-block">
-          <p class="desktop-only">{% trans "Search by Species" %}</p></a>
-          <div class="search-field-group">
-            <input type="text" data-class="search" id="species-typeahead" placeholder="American basswood"/>
-            <input type="hidden" id="search-species" />
-          </div>
-        </div>
-
-        <!-- Location Search -->
-        <div class="search-block">
-          <p class="desktop-only">{% trans "Search by Location" %}</p>
-          <div class="search-field-group">
-             <input type="text" data-class="search" id="boundary-typeahead" placeholder="340 N 12th St, Philadelphia"/>
-            <input type="hidden" id="boundary" />
-          </div>
-        </div>
-      </div> <!-- end search block wrapper -->
-      {% block searchoptions %}
-      <div class="search-options">
-        <a id="perform-search" class="btn btn-primary search-submit-btn">{% trans "Search" %}</a>
-        <br>
-        <div class="btn-group">
-          <button class="btn">{% trans "Advanced" %}</button>
-          <button id="search-reset" class="btn">{% trans "Reset" %}</button>
-        </div>
-      </div>
-      {% endblock searchoptions %}
       {% endblock search %}
+      {% block searchoptions %}
+      {% endblock searchoptions %}
 
     </div> <!-- end header -->
     {% endblock header %}
 
-
-    {% block subhead %}
-    <div class="subhead">
-      <div style="display: inline;" id="tree-and-planting-site-counts">
-        <!-- This is what the counts will look like -->
-        <!--
-        <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites
-        -->
-      </div>
-      <a href="javascript:;" class="btn btn-mini exportBtn"><i class="icon-share"></i> Export Search Results</a>
-      <a href="javascript:;" class="btn addBtn">Add a Tree</a>
-    </div>
-    {% endblock subhead %}
 
     {% block content %}
     {% endblock content %}
@@ -145,28 +106,10 @@
     {% endblock global_scripts %}
 
     {% block scripts %}
-    <script type="text/javascript">
-      (function(require) {
-        var $ = require("jquery"),
-        app = require("app");
-
-        $(function(){
-          app.init(otm.settings);
-        })
-      })(require);
-    </script>
     {% endblock scripts %}
 
-    {% verbatim %}
-    <script id="species-element-template" type="text/x-mustache-template">
-      <p>{{common_name}}</p>
-      <p>{{scientific_name}}</p>
-    </script>
-    <script id="boundary-element-template" type="text/x-mustache-template">
-      <p>{{name}}</p>
-      <p>{{category}}</p>
-    </script>
-    {% endverbatim %}
+    {% block endbody %}
+    {% endblock endbody %}
 
     {% block templates %}
     {% endblock templates %}

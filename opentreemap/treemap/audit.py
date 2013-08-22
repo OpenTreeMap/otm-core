@@ -11,7 +11,7 @@ from django.utils.translation import ugettext as _
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError, connection
+from django.db import IntegrityError, connection, transaction
 
 import hashlib
 import importlib
@@ -64,6 +64,40 @@ def _reserve_model_id(model_class):
         raise IntegrityError(msg)
 
     return model_id
+
+
+@transaction.commit_on_success
+def approve_or_reject_audits_and_apply(audits, user, approved):
+    """
+    Approve or reject a series of audits. This method provides additional
+    logic to make sure that creation audits (id audits) get applied last.
+
+    It also performs 'Plot' audits before 'Tree' audits, since a tree
+    cannot be made concrete until the corresponding plot has been created
+
+    This method runs inside of a transaction, so if any applications fail
+    we can bail without an inconsistent state
+    """
+    model_order = ['Plot', 'Tree']
+    id_audits = []
+
+    for audit in audits:
+        if audit.field == 'id':
+            id_audits.append(audit)
+        else:
+            approve_or_reject_audit_and_apply(audit, user, approved)
+
+    for model in model_order:
+        remaining = []
+        for audit in id_audits:
+            if audit.model == model:
+                approve_or_reject_audit_and_apply(audit, user, approved)
+            else:
+                remaining.append(audit)
+        id_audits = list(remaining)
+
+    for audit in remaining:
+        approve_or_reject_audit_and_apply(audit, user, approved)
 
 
 def approve_or_reject_audit_and_apply(audit, user, approved):
@@ -251,6 +285,13 @@ class UserTrackable(Dictable):
                     not field.primary_key and
                     not field.name in self._do_not_track)]
 
+    @property
+    def tracked_fields(self):
+        return [field.name
+                for field
+                in self._meta.fields
+                if field.name not in self._do_not_track]
+
     def _updated_fields(self):
         updated = {}
         d = self.as_dict()
@@ -396,7 +437,7 @@ class Authorizable(UserTrackable):
         A user is able to delete an object if they have all
         field permissions on a model.
         """
-        return self._get_perms_set(user) == set(self._previous_state.keys())
+        return self._get_perms_set(user) == set(self.tracked_fields)
 
     def _user_can_create(self, user, direct_only=False):
         """
