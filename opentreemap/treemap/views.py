@@ -23,7 +23,7 @@ from django.db.models import Q
 
 from treemap.util import json_api_call, render_template, instance_request
 from treemap.search import create_filter
-from treemap.audit import Audit, AuditUI
+from treemap.audit import Audit
 from treemap.models import (Plot, Tree, User, Species, Instance,
                             BenefitCurrencyConversion)
 
@@ -271,7 +271,7 @@ def _get_audits(logged_in_user, instance, query_vars, user, models,
     if exclude_pending:
         audits = audits.exclude(requires_auth=True, ref__isnull=True)
 
-    audits = [AuditUI(a) for a in audits[start_pos:end_pos]]
+    audits = audits[start_pos:end_pos]
 
     query_vars = {k: v for (k, v) in query_vars.iteritems() if k != 'page'}
     next_page = None

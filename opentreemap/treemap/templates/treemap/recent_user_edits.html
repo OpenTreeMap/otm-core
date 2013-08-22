@@ -11,36 +11,32 @@
         </tr>
     </thead>
     <tbody>
-        {% for auditui in audits %}
-        <tr data-id="{{auditui.id}}">
-            <td>{{ auditui.audit.display_action }}</td>
-            <td>{{ auditui.audit.model }}</td>
-            <td>{{ auditui.audit.field }}</td>
+        {% for audit in audits %}
+        <tr data-id="{{audit.id}}">
+            <td>{{ audit.display_action }}</td>
+            <td>{{ audit.model }}</td>
+            <td>{{ audit.field }}</td>
 
-            {% if auditui.current_value_as_user %}
+            {% if audit.field == 'plot' %}
             <td>
-                {{ auditui.current_value_as_user }}
+                Plot {{ audit.clean_current_value }}
             </td>
-            {% elif auditui.current_value_as_plot %}
+            {% elif audit.field == 'species' %}
             <td>
-                Plot {{ auditui.current_value_as_plot }}
+                {{ audit.clean_current_value.display_name }}
             </td>
-            {% elif auditui.current_value_as_species %}
+            {% elif audit.field == 'geom' %}
             <td>
-                {{ auditui.current_value_as_species.display_name }}
-            </td>
-            {% elif auditui.current_value_as_geom %}
-            <td>
-              {{ auditui.current_value_as_geom.x|floatformat:0 }},
-              {{ auditui.current_value_as_geom.y|floatformat:0 }}
+              {{ audit.clean_current_value.x|floatformat:0 }},
+              {{ audit.clean_current_value.y|floatformat:0 }}
             </td>
             {% else %}
             <td>
-                {{ auditui.audit.current_value }}
+                {{ audit.clean_current_value }}
             </td>
             {% endif %}
 
-            <td>{{ auditui.audit.created }}</td>
+            <td>{{ audit.created }}</td>
         </tr>
         {% endfor %}
     </tbody>

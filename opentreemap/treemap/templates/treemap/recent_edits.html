@@ -21,78 +21,84 @@
     <th>{% trans "Commit By" %}</th>
     <th>{% trans "Commit On" %}</th>
   </tr>
-  {% for auditui in audits %}
+  {% for audit in audits %}
   <tr>
-    <td>{{ auditui.audit.pk }}</td>
+    <td>{{ audit.pk }}</td>
     <td>
-      <a href="?models={{ auditui.audit.model }}">
-      {{ auditui.audit.model }}
+      <a href="?models={{ audit.model }}">
+      {{ audit.model }}
       </a>
     </td>
     <td>
-      <a href="?models={{ auditui.audit.model }}&model_id={{ auditui.audit.model_id }}">
-        {{ auditui.audit.model_id }}
+      <a href="?models={{ audit.model }}&model_id={{ audit.model_id }}">
+        {{ audit.model_id }}
       </a>
     </td>
-    <td>{{ auditui.audit.field }}</td>
+    <td>{{ audit.field }}</td>
 
-    {% if auditui.previous_value_as_user %}
+    {% if audit.field == 'user' %}
+
     <td>
-      <a href="?user={{ auditui.previous_value_as_user.pk }}">
-        {{ auditui.previous_value_as_user }}
+      {% if audit.clean_previous_value %}
+      <a href="?user={{ audit.clean_previous_value.pk }}">
+        {{ audit.clean_previous_value }}
+      </a>
+      {% else %}
+        None
+      {% endif %}
+    </td>
+    <td>
+      <a href="?user={{ audit.clean_current_value.pk }}">
+        {{ audit.clean_current_value }}
       </a>
     </td>
-    {% elif auditui.previous_value_as_plot %}
+
+    {% elif audit.field == 'plot' %}
+
     <td>
-      <a href="?models=Plot,id={{ auditui.previous_value_as_plot.pk }}">
-        Plot {{ auditui.previous_value_as_plot.pk}}
+      {% if audit.clean_previous_value %}
+      <a href="?models=Plot,id={{ audit.clean_previous_value.pk }}">
+        Plot {{ audit.clean_previous_value }}
+      </a>
+      {% else %}
+        None
+      {% endif %}
+    </td>
+    <td>
+      <a href="?models=Plot,id={{ audit.clean_current_value.pk }}">
+        Plot {{ audit.clean_current_value }}
       </a>
     </td>
-    {% elif auditui.previous_value_as_species %}
+
+    {% elif audit.field == 'species' %}
     <td>
-      {{ auditui.previous_value_as_species.scientific_name }}
+      {{ audit.clean_previous_value.scientific_name|default:"None" }}
     </td>
-    {% elif auditui.previous_value_as_geom %}
     <td>
-      {{ auditui.previous_value_as_geom.x|floatformat:0 }},
-      {{ auditui.previous_value_as_geom.y|floatformat:0 }}
+      {{ audit.clean_current_value.scientific_name }}
+    </td>
+
+    {% elif audit.field == 'geom' %}
+    <td>
+      {{ audit.clean_previous_value.x|floatformat:0 }},
+      {{ audit.clean_previous_value.y|floatformat:0 }}
+    </td>
+    <td>
+      {{ audit.clean_current_value.x|floatformat:0 }},
+      {{ audit.clean_current_value.y|floatformat:0 }}
     </td>
     {% else %}
-    <td>{{ auditui.audit.previous_value }}</td>
-    {% endif %}
-
-    {% if auditui.current_value_as_user %}
-    <td>
-      <a href="?user={{ auditui.current_value_as_user.pk }}">
-        {{ auditui.current_value_as_user }}
-      </a>
-    </td>
-    {% elif auditui.current_value_as_plot %}
-    <td>
-      <a href="?models=Plot&model_id={{ auditui.current_value_as_plot.pk }}">
-        Plot {{ auditui.current_value_as_plot.pk}}
-      </a>
-    </td>
-    {% elif auditui.current_value_as_species %}
-    <td>
-      {{ auditui.current_value_as_species.scientific_name }}
-    </td>
-    {% elif auditui.current_value_as_geom %}
-    <td>
-      {{ auditui.current_value_as_geom.x|floatformat:0 }},
-      {{ auditui.current_value_as_geom.y|floatformat:0 }}
-    </td>
-    {% else %}
-    <td>{{ auditui.audit.current_value }}</td>
+    <td>{{ audit.clean_previous_value }}</td>
+    <td>{{ audit.clean_current_value }}</td>
     {% endif %}
 
     <td>
-      <a href="?user={{ auditui.audit.user.pk }}">
-        {{ auditui.audit.user }}
+      <a href="?user={{ audit.user.pk }}">
+        {{ audit.user }}
       </a>
     </td>
     <td>
-      {{ auditui.audit.created }}
+      {{ audit.created }}
     </td>
   </tr>
   {% endfor %}

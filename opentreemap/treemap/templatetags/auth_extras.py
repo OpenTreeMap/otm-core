@@ -65,11 +65,15 @@ class FieldVisibilityNode(template.Node):
         if model and model.field_is_visible(req_user, field):
             if hasattr(model, field):
                 val = getattr(model, field)
-            elif (hasattr(model, 'udf_field_names') and
-                  field in model.udf_field_names):
-                val = model.udf_scalar_values[field]
             else:
-                raise ValueError('Could not find field: %s' % field)
+                prefix, udf_field_name = field.split(':', 1)
+                is_valid_udf_field = (hasattr(model, 'udf_field_names') and
+                                      prefix == 'udf' and
+                                      udf_field_name in model.udf_field_names)
+                if is_valid_udf_field:
+                    val = model.udf_scalar_values[udf_field_name]
+                else:
+                    raise ValueError('Could not find field: %s' % field)
 
             context[self.binding] = val
             content = self.nodelist.render(context)

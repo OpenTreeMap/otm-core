@@ -537,7 +537,7 @@ class PendingInsertTest(TestCase):
             name='times_climbed')
 
         add_field_permissions(self.instance, self.commander_user,
-                              'Plot', ['times_climbed'])
+                              'Plot', ['udf:times_climbed'])
 
         FieldPermission.objects.create(
             model_name='Plot',
@@ -550,7 +550,7 @@ class PendingInsertTest(TestCase):
         initial_plot.udf_scalar_values['times_climbed'] = '2'
         initial_plot.save_with_user(self.pending_user)
 
-        udf_audit = Audit.objects.get(model='Plot', field='times_climbed',
+        udf_audit = Audit.objects.get(model='Plot', field='udf:times_climbed',
                                       model_id=initial_plot.pk)
         approve_or_reject_audit_and_apply(udf_audit, self.commander_user,
                                           approved=True)
@@ -614,7 +614,8 @@ class PendingInsertTest(TestCase):
                                              model_id=tree3.pk)
 
         self.assertRaises(ObjectDoesNotExist, Plot.objects.get, pk=plot3.pk)
-        self.assertRaises(IntegrityError, self.approve_audits_with_insert_last,
+        self.assertRaises(ObjectDoesNotExist,
+                          self.approve_audits_with_insert_last,
                           'Tree', Tree, tree4.pk)
 
 
