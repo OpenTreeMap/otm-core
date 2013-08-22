@@ -29,7 +29,7 @@ class Instance(models.Model):
     """
     Each "Tree Map" is a single instance
     """
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     """
     Basemap type     Basemap data

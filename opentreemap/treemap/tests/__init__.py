@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import logging
+import random
 
 from cStringIO import StringIO
 
@@ -10,6 +11,7 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from django.test.simple import DjangoTestSuiteRunner
 from django.conf import settings
+from django.db.models import Max
 
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.contrib.auth.models import AnonymousUser
@@ -209,7 +211,11 @@ def make_user_and_role(instance, username, rolename, permissions):
     return make_user(instance, username, make_role)
 
 
-def make_instance(name='i1', is_public=False):
+def make_instance(name=None, is_public=False):
+    if name is None:
+        max_instance = Instance.objects.all().aggregate(
+            Max('id'))['id__max'] or 0
+        name = 'generated$%d' % (max_instance + 1)
     global_role, _ = Role.objects.get_or_create(name='global', rep_thresh=0)
 
     p1 = Point(0, 0)
@@ -233,7 +239,7 @@ def create_mock_system_user():
     User._system_user = system_user
 
 
-def make_request(params={}, user=None, body=None):
+def make_request(params={}, user=None, method='GET', body=None):
     if user is None:
         user = AnonymousUser()
 
@@ -244,6 +250,7 @@ def make_request(params={}, user=None, body=None):
         extra['CONTENT_LENGTH'] = len(body)
 
     req = RequestFactory().get("hello/world", params, **extra)
+    req.method = method
 
     setattr(req, 'user', user)
 

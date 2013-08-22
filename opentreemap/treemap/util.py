@@ -98,8 +98,14 @@ def render_template(templ, view_fn_or_dict=None, **kwargs):
         else:
             params = view_fn_or_dict(request, *args, **wrapper_kwargs)
 
-        return render_to_response(templ, params,
-                                  RequestContext(request), **kwargs)
+        # If we want to return some other response
+        # type we can, that simply overrides the default
+        # behavior
+        if params is None or isinstance(params, dict):
+            return render_to_response(templ, params,
+                                      RequestContext(request), **kwargs)
+        else:
+            return params
     return wrapper
 
 
