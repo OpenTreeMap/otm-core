@@ -3,7 +3,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.six import with_metaclass
 
 from south.modelsinspector import add_introspection_rules
-from django.contrib.gis.geos import Polygon, MultiPolygon
 
 import hashlib
 import json
@@ -81,7 +80,7 @@ class Instance(models.Model):
     these can be accessed via per-config properties such as
     `advanced_search_fields`
     """
-    config = JSONField()
+    config = JSONField(blank=True)
 
     is_public = models.BooleanField(default=False)
 
