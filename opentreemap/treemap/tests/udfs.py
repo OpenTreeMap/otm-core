@@ -30,8 +30,9 @@ class ScalarUDFFilterTest(TestCase):
         self.commander_user = make_commander_user(self.instance)
         add_field_permissions(self.instance, self.commander_user,
                               'Plot',
-                              ['Test choice', 'Test string', 'Test int',
-                               'Test date', 'Test float'])
+                              ['udf:Test choice', 'udf:Test string',
+                               'udf:Test int', 'udf:Test date',
+                               'udf:Test float'])
 
         self.p = Point(-8515941.0, 4953519.0)
 
@@ -258,7 +259,7 @@ class ScalarUDFAuditTest(TestCase):
         self.instance = make_instance()
         self.commander_user = make_commander_user(self.instance)
         add_field_permissions(self.instance, self.commander_user,
-                              'Plot', ['Test choice'])
+                              'Plot', ['udf:Test choice'])
 
         self.p = Point(-8515941.0, 4953519.0)
 
@@ -290,7 +291,7 @@ class ScalarUDFAuditTest(TestCase):
 
         self.assertEqual(last_audit.model, 'Plot')
         self.assertEqual(last_audit.model_id, self.plot.pk)
-        self.assertEqual(last_audit.field, 'Test choice')
+        self.assertEqual(last_audit.field, 'udf:Test choice')
         self.assertEqual(last_audit.previous_value, None)
         self.assertEqual(last_audit.current_value, 'b')
 
@@ -301,7 +302,7 @@ class ScalarUDFAuditTest(TestCase):
 
         self.assertEqual(last_audit.model, 'Plot')
         self.assertEqual(last_audit.model_id, self.plot.pk)
-        self.assertEqual(last_audit.field, 'Test choice')
+        self.assertEqual(last_audit.field, 'udf:Test choice')
         self.assertEqual(last_audit.previous_value, 'b')
         self.assertEqual(last_audit.current_value, 'c')
 
@@ -317,7 +318,7 @@ class ScalarUDFAuditTest(TestCase):
 
         role = self.commander_user.get_role(self.instance)
         fp, _ = FieldPermission.objects.get_or_create(
-            model_name='Plot', field_name='Test unauth',
+            model_name='Plot', field_name='udf:Test unauth',
             permission_level=FieldPermission.WRITE_WITH_AUDIT,
             role=role, instance=self.instance)
 
@@ -458,8 +459,8 @@ class ScalarUDFTest(TestCase):
 
         allowed_types = 'float', 'int', 'string', 'user', 'date'
 
-        addl_fields = ['Test %s' % ttype for ttype in allowed_types]
-        addl_fields.append('Test choice')
+        addl_fields = ['udf:Test %s' % ttype for ttype in allowed_types]
+        addl_fields.append('udf:Test choice')
 
         self.commander_user = make_commander_user(self.instance)
         add_field_permissions(self.instance, self.commander_user,

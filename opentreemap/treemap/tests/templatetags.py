@@ -111,7 +111,7 @@ class UserCanReadTagTest(TestCase):
             name='Test choice')
 
         udf_perm, _ = FieldPermission.objects.get_or_create(
-            model_name='Plot', field_name='Test choice',
+            model_name='Plot', field_name='udf:Test choice',
             permission_level=FieldPermission.NONE,
             role=self.role, instance=self.instance)
         udf_perm.save()
@@ -130,7 +130,7 @@ class UserCanReadTagTest(TestCase):
                 .render(Context({
                     'request': {'user': self.user},
                     'plot': plot,
-                    'the_key': 'Test choice'})).strip()
+                    'the_key': 'udf:Test choice'})).strip()
 
         self.assertEqual(render(), '')
 

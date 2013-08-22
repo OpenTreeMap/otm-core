@@ -66,24 +66,6 @@ def _reserve_model_id(model_class):
     return model_id
 
 
-def _audit_deserialization_value_transformer(audit):
-    """
-    A helper function to transform values.
-
-    TODO: this needs to be worked into a toplevel thing.
-    There is duplicate logic between this and the AuditUI.
-    """
-    if audit.field == 'geom':
-        return GEOSGeometry(audit.current_value)
-    elif audit.field == 'plot':
-        from treemap.models import Plot
-        return Plot(pk=audit.current_value)
-    elif audit.field == 'readonly':
-        return audit.current_value == 'True'
-    else:
-        return audit.current_value
-
-
 def approve_or_reject_audit_and_apply(audit, user, approved):
     """
     Approve or reject a given audit and apply it to the
@@ -113,7 +95,7 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
                          current_value=audit.current_value,
                          user=user)
 
-    TheModel = _lkp_model(audit.model)
+    TheModel = _lookup_model(audit.model)
     if approved:
         review_audit.action = Audit.Type.PendingApprove
 
@@ -122,7 +104,7 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
         try:
             obj = TheModel.objects.get(pk=audit.model_id)
             obj.apply_change(audit.field,
-                             _audit_deserialization_value_transformer(audit))
+                             audit.clean_current_value)
             # TODO: consider firing the save signal here
             # save this object without triggering any kind of
             # UserTrackable actions. There is no straightforward way to
@@ -162,8 +144,7 @@ def _process_approved_pending_insert(model_class, user, audit):
 
     for approved_audit in approved_audits:
         obj.apply_change(approved_audit.field,
-                         _audit_deserialization_value_transformer(
-                             approved_audit))
+                         approved_audit.clean_current_value)
 
     obj.validate_foreign_keys_exist()
     obj.save_base()
@@ -186,7 +167,7 @@ def get_related_audits(insert_audit, approved_only=False):
     return related_audits
 
 
-def _lkp_model(modelname):
+def _lookup_model(modelname):
     """
     Convert a model name (as a string) into the model class
 
@@ -253,16 +234,9 @@ class Dictable(object):
 
 class UserTrackable(Dictable):
     def __init__(self, *args, **kwargs):
-        self._do_not_track = set(['instance', 'udf_scalar_values'])
+        self._do_not_track = set(['instance'])
         super(UserTrackable, self).__init__(*args, **kwargs)
-
-        if self.pk is None:
-            # User created the object as "MyObj(field1=...,field2=...)"
-            # the saved state will include these changes but the actual
-            # "initial" state is empty so we clear it here
-            self._previous_state = {}
-        else:
-            self._populate_previous_state()
+        self.populate_previous_state()
 
     def apply_change(self, key, orig_value):
         # TODO: if a field has a default value, don't
@@ -303,7 +277,7 @@ class UserTrackable(Dictable):
 
     def save_with_user(self, user, *args, **kwargs):
         self.save_base(self, *args, **kwargs)
-        self._populate_previous_state()
+        self.populate_previous_state()
 
     def save(self, *args, **kwargs):
         raise UserTrackingException(
@@ -318,13 +292,19 @@ class UserTrackable(Dictable):
     def fields(self):
         return self.as_dict().keys()
 
-    def _populate_previous_state(self):
+    def populate_previous_state(self):
         """
         A helper method for setting up a previous state dictionary
         without the elements that should remained untracked
         """
-        self._previous_state = {k: v for k, v in self.as_dict().iteritems()
-                                if k not in self._do_not_track}
+        if self.pk is None:
+            # User created the object as "MyObj(field1=...,field2=...)"
+            # the saved state will include these changes but the actual
+            # "initial" state is empty so we clear it here
+            self._previous_state = {}
+        else:
+            self._previous_state = {k: v for k, v in self.as_dict().iteritems()
+                                    if k not in self._do_not_track}
 
     def get_pending_fields(self, user=None):
         """
@@ -398,11 +378,7 @@ class Authorizable(UserTrackable):
 
         self._has_been_clobbered = False
 
-    def _write_perm_comparison_sets(self, user, direct_only=False):
-        """
-        Helper method for comparing a user's write
-        permissions with the fields on the current model
-        """
+    def _get_perms_set(self, user, direct_only=False):
         perms = user.get_instance_permissions(self.instance, self._model_name)
 
         if direct_only:
@@ -413,18 +389,14 @@ class Authorizable(UserTrackable):
         else:
             perm_set = {perm.field_name for perm in perms
                         if perm.allows_writes}
-
-        field_set = {field_name for field_name in self._previous_state.keys()}
-        return perm_set, field_set
+        return perm_set
 
     def user_can_delete(self, user):
         """
         A user is able to delete an object if they have all
         field permissions on a model.
         """
-        # TODO - this is cryptic.
-        perm_set, field_set = self._write_perm_comparison_sets(user)
-        return perm_set == field_set
+        return self._get_perms_set(user) == set(self._previous_state.keys())
 
     def _user_can_create(self, user, direct_only=False):
         """
@@ -437,7 +409,7 @@ class Authorizable(UserTrackable):
         """
         can_create = True
 
-        perm_set, __ = self._write_perm_comparison_sets(user, direct_only)
+        perm_set = self._get_perms_set(user, direct_only)
 
         for field in self._fields_required_for_create():
             if field.name not in perm_set:
@@ -519,7 +491,7 @@ class Authorizable(UserTrackable):
         self._assert_not_clobbered()
 
         if self.pk is not None:
-            writable_perms, __ = self._write_perm_comparison_sets(user)
+            writable_perms = self._get_perms_set(user)
             for field in self._updated_fields():
                 if field not in writable_perms:
                     raise AuthorizeException("Can't edit field %s on %s" %
@@ -670,7 +642,7 @@ class Auditable(UserTrackable):
             super(Auditable, self).save_with_user(user, *args, **kwargs)
             model_id = self.pk
         else:
-            model_id = _reserve_model_id(_lkp_model(self._model_name))
+            model_id = _reserve_model_id(_lookup_model(self._model_name))
             self.pk = model_id
             self.is_pending_insert = True
 
@@ -708,101 +680,6 @@ class Auditable(UserTrackable):
         string_to_hash = str(audits[0].pk)
 
         return hashlib.md5(string_to_hash).hexdigest()
-
-
-class AuditUI(object):
-    """
-    Audit UI provides useful accessors for getting the objects behind
-    an audit.
-
-    For example, the 'created_by' field of an audit is a user but is
-    stored an integer. If this is an audit for a given 'created_by'
-    field you can do something like:
-
-    aui = AuditUI(audit)
-    user_object = aui.previous_value_as_user
-
-    If there is an invalid conversion it returns None:
-    plot_object = aui.previous_value_as_plot
-    """
-    def __init__(self, audit):
-        self.audit = audit
-
-    def _value_as_thing(self, value, Thing):
-        return Thing.objects.get(pk=value)
-
-    def _value_as_user(self, value):
-        # Delayed import since this is circular
-        from treemap.models import User
-
-        if self.audit.field == 'created_by':
-            return self._value_as_thing(value, User)
-        else:
-            return None
-
-    @property
-    def current_value_as_user(self):
-        return self._value_as_user(self.audit.current_value)
-
-    @property
-    def previous_value_as_user(self):
-        return self._value_as_user(self.audit.previous_value)
-
-    def _value_as_geom(self, value):
-        if self.audit.field == 'geom':
-            return GEOSGeometry(value)
-        else:
-            return None
-
-    @property
-    def current_value_as_geom(self):
-        return self._value_as_geom(self.audit.current_value)
-
-    @property
-    def previous_value_as_geom(self):
-        return self._value_as_geom(self.audit.previous_value)
-
-    def _value_as_plot(self, value):
-        # Delayed import since this is circular
-        from treemap.models import Plot
-
-        if self.audit.field == 'plot' and self.audit.model == 'Tree':
-            return self._value_as_thing(value, Plot)
-        else:
-            return None
-
-    @property
-    def current_value_as_plot(self):
-        return self._value_as_plot(self.audit.current_value)
-
-    @property
-    def previous_value_as_plot(self):
-        return self._value_as_plot(self.audit.previous_value)
-
-    def _value_as_species(self, value):
-        # Delayed import since this is circular
-        from treemap.models import Species
-
-        if self.audit.field == 'species' and self.audit.model == 'Tree':
-            return self._value_as_thing(value, Species)
-        else:
-            return None
-
-    @property
-    def current_value_as_species(self):
-        return self._value_as_species(self.audit.current_value)
-
-    @property
-    def previous_value_as_species(self):
-        return self._value_as_species(self.audit.previous_value)
-
-    @property
-    def previous_value(self):
-        return self.audit.previous_value
-
-    @property
-    def current_value(self):
-        return self.audit.current_value
 
 
 ###
@@ -853,6 +730,58 @@ class Audit(models.Model):
         Type.PendingApprove: 'Approved Pending Edit',
         Type.PendingReject: 'Reject Pending Edit',
     }
+
+    def _deserialize_value(self, value):
+        """
+        A helper method to transform deserialized audit strings
+
+        When an audit record is written to the audit table, the
+        value is stored as a string. When deserializing these values
+        for presentation purposes or constructing objects, they
+        need to be converted to their correct python value.
+
+        Where possible, django model field classes are used to
+        convert the value.
+        """
+
+        # some django fields can't handle .to_python(None), but
+        # for insert audits (None -> <value>) this method will
+        # still be called.
+        if value is None:
+            return None
+
+        # get the model/field class for each audit record and convert
+        # the value to a python object
+        cls = _lookup_model(self.model)
+        field_query = cls._meta.get_field_by_name(self.field)
+        field_cls, fk_model_cls, is_local, m2m = field_query
+        field_modified_value = field_cls.to_python(value)
+
+        # handle edge cases
+        if isinstance(field_cls, models.PointField):
+            field_modified_value = GEOSGeometry(field_modified_value)
+        elif isinstance(field_cls, models.ForeignKey):
+            field_modified_value = field_cls.rel.to.objects.get(
+                pk=field_modified_value)
+
+        return field_modified_value
+
+    @property
+    def clean_current_value(self):
+        return self._deserialize_value(self.current_value)
+
+    @property
+    def clean_previous_value(self):
+        cpv = self._deserialize_value(self.previous_value)
+
+        # empty strings respond equally well to truthy tests
+        # in templates but print better in the current use
+        # cases.
+        # TODO: handle this in the presentation layer
+        if cpv is None:
+            return ""
+        else:
+            return ""
 
     @property
     def display_action(self):

@@ -317,10 +317,10 @@ class SearchTests(TestCase):
     def _setup_udfs(self):
         add_field_permissions(self.instance, self.commander,
                               'Plot',
-                              ['Test string', 'Test date'])
+                              ['udf:Test string', 'udf:Test date'])
         add_field_permissions(self.instance, self.commander,
                               'Tree',
-                              ['Test float'])
+                              ['udf:Test float'])
 
         UserDefinedFieldDefinition.objects.create(
             instance=self.instance,
