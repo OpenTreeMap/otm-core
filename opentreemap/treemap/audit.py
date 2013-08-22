@@ -437,7 +437,7 @@ class Authorizable(UserTrackable):
         A user is able to delete an object if they have all
         field permissions on a model.
         """
-        return self._get_perms_set(user) == set(self._previous_state.keys())
+        return self._get_perms_set(user) == set(self.tracked_fields)
 
     def _user_can_create(self, user, direct_only=False):
         """
