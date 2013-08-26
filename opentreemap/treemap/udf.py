@@ -367,6 +367,11 @@ class UDFModel(UserTrackable, models.Model):
     def udf_field_names(self):
         return [field.name for field in self.get_user_defined_fields()]
 
+    @property
+    def tracked_fields(self):
+        return super(UDFModel, self).tracked_fields + \
+            ['udf:' + name for name in self.udf_field_names]
+
     def as_dict(self, *args, **kwargs):
         base_model_dict = super(UDFModel, self).as_dict(*args, **kwargs)
 

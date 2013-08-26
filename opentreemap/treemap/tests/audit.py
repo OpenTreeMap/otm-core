@@ -16,6 +16,7 @@ from treemap.models import (Tree, Plot, Species, FieldPermission,
 
 from treemap.audit import (Audit, UserTrackingException,
                            AuthorizeException, ReputationMetric,
+                           approve_or_reject_audits_and_apply,
                            approve_or_reject_audit_and_apply,
                            get_id_sequence_name)
 
@@ -382,45 +383,6 @@ class PendingInsertTest(TestCase):
 
         self.assertEquals(Plot.objects.count(), 1)
 
-    def approve_audits_with_insert_last(self, model_name, model_class,
-                                        model_id=None,
-                                        apply_assertions=False):
-
-        # put the insert at the end so it can be approved last
-        field_audits = Audit.objects.filter(model=model_name)\
-                                    .exclude(field='id')
-
-        insert_audits = Audit.objects.filter(model=model_name,
-                                             field='id')
-
-        if model_id:
-            field_audits = field_audits.filter(model_id=model_id)
-            insert_audit = insert_audits.get(model_id=model_id)
-        else:
-            if insert_audits.count() > 1:
-                raise Exception("multiple possible insert audits."
-                                "it's unclear what is expected to "
-                                "happen.")
-            else:
-                insert_audit = insert_audits[0]
-
-        field_audits = list(field_audits)
-
-        for field_audit in field_audits:
-            approve_or_reject_audit_and_apply(
-                field_audit, self.commander_user, approved=True)
-            if apply_assertions:
-                if field_audit != field_audits[-1]:
-                    self.assertEquals(model_class.objects.count(), 0)
-
-        insert_audit = Audit.objects.get(id=insert_audit.id)
-
-        approve_or_reject_audit_and_apply(
-            insert_audit, self.commander_user, approved=True)
-
-        if apply_assertions:
-                self.assertEquals(model_class.objects.count(), 1)
-
     def test_insert_writes_when_approved(self):
 
         new_plot = Plot(geom=self.p1, instance=self.instance)
@@ -432,11 +394,12 @@ class PendingInsertTest(TestCase):
         self.assertEquals(Plot.objects.count(), 0)
         self.assertEquals(Tree.objects.count(), 0)
 
-        self.approve_audits_with_insert_last('Plot', Plot,
-                                             apply_assertions=True)
+        approve_or_reject_audits_and_apply(
+            list(new_tree.audits()) + list(new_plot.audits()),
+            self.commander_user, True)
 
-        self.approve_audits_with_insert_last('Tree', Tree,
-                                             apply_assertions=True)
+        self.assertEqual(Plot.objects.all().count(), 1)
+        self.assertEqual(Tree.objects.all().count(), 1)
 
     def test_record_is_created_when_nullables_are_still_pending(self):
         new_plot = Plot(geom=self.p1, instance=self.instance)
@@ -447,7 +410,9 @@ class PendingInsertTest(TestCase):
 
         new_tree.save_with_user(self.pending_user)
 
-        self.approve_audits_with_insert_last('Plot', Plot)
+        approve_or_reject_audits_and_apply(
+            new_plot.audits(),
+            self.commander_user, True)
 
         insert_audit = Audit.objects.filter(model='Tree')\
                                     .get(field='id')
@@ -512,7 +477,9 @@ class PendingInsertTest(TestCase):
                         diameter=10, height=10, readonly=False)
         new_tree.save_with_user(self.pending_user)
 
-        self.approve_audits_with_insert_last('Plot', Plot)
+        approve_or_reject_audits_and_apply(
+            new_plot.audits(),
+            self.commander_user, True)
 
         diameter_audit = Audit.objects.get(model='Tree',
                                            field='diameter',
@@ -604,19 +571,27 @@ class PendingInsertTest(TestCase):
         tree4 = Tree(plot=plot3, instance=self.instance)
         tree4.save_with_user(self.pending_user)
 
-        self.approve_audits_with_insert_last('Plot', Plot,
-                                             model_id=plot2.pk)
-        self.approve_audits_with_insert_last('Tree', Tree,
-                                             model_id=tree1.pk)
-        self.approve_audits_with_insert_last('Tree', Tree,
-                                             model_id=tree2.pk)
-        self.approve_audits_with_insert_last('Tree', Tree,
-                                             model_id=tree3.pk)
+        approve_or_reject_audits_and_apply(
+            plot2.audits(),
+            self.commander_user, True)
+
+        approve_or_reject_audits_and_apply(
+            tree1.audits(),
+            self.commander_user, True)
+
+        approve_or_reject_audits_and_apply(
+            tree2.audits(),
+            self.commander_user, True)
+
+        approve_or_reject_audits_and_apply(
+            tree3.audits(),
+            self.commander_user, True)
 
         self.assertRaises(ObjectDoesNotExist, Plot.objects.get, pk=plot3.pk)
         self.assertRaises(ObjectDoesNotExist,
-                          self.approve_audits_with_insert_last,
-                          'Tree', Tree, tree4.pk)
+                          approve_or_reject_audits_and_apply,
+                          tree4.audits(),
+                          self.commander_user, True)
 
 
 class ReputationTest(TestCase):
