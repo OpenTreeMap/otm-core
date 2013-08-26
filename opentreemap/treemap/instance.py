@@ -103,7 +103,7 @@ class Instance(models.Model):
 
     @property
     def center(self):
-        return self.bounds.centroid()
+        return self.bounds.centroid
 
     @property
     def geo_rev_hash(self):
