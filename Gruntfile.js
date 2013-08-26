@@ -15,7 +15,9 @@ module.exports = function(grunt) {
      */
     function getAliases() {
         var aliases = ['treemap/js/src/app.js:app',
-                       'treemap/js/src/user.js:user'];
+                       'treemap/js/src/user.js:user',
+                       'treemap/js/src/openLayersMapEventStream:' +
+                       'openLayersMapEventStream'];
 
         var extras = require('./extra.json');
         for (var alias in extras) {
