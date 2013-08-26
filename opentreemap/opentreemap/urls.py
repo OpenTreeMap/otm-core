@@ -6,7 +6,8 @@ from opentreemap.util import route
 
 from treemap.views import (user_view, root_settings_js_view,
                            profile_to_user_view, user_audits_view,
-                           instance_not_available_view, update_user_view)
+                           instance_not_available_view, update_user_view,
+                           unsupported_view)
 
 from django.contrib import admin
 admin.autodiscover()
@@ -48,6 +49,8 @@ urlpatterns = patterns(
         js_i18n_info_dict),
     url(r'^not-available$', instance_not_available_view,
         name='instance_not_available'),
+    url(r'^unsupported$', unsupported_view,
+        name='unsupported'),
 )
 
 if settings.EXTRA_URLS:

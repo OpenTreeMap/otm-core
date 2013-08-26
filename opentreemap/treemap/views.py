@@ -674,3 +674,5 @@ user_audits_view = render_template("treemap/recent_user_edits.html",
 
 instance_not_available_view = render_template(
     "treemap/instance_not_available.html")
+
+unsupported_view = render_template("treemap/unsupported.html")

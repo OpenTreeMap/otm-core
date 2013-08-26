@@ -321,4 +321,5 @@ from models import *        # NOQA
 from search import *        # NOQA
 from urls import *          # NOQA
 from views import *         # NOQA
-from util import *         # NOQA
+from util import *          # NOQA
+from middleware import *    # NOQA
