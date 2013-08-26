@@ -65,4 +65,4 @@ module.exports = {
     activateBrowseTreesMode: activateBrowseTreesMode,
     activateAddTreeMode: activateAddTreeMode,
     activateEditTreeDetailsMode: activateEditTreeDetailsMode
-}
+};

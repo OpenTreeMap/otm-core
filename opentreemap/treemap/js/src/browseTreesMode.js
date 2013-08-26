@@ -79,7 +79,7 @@ function getPlotPopupContent(id) {
         dataType: 'html'
     });
     return Bacon.fromPromise(search);
-};
+}
 
 function makePopup(latLon, html, size) {
     if (latLon && html) {
@@ -87,7 +87,7 @@ function makePopup(latLon, html, size) {
     } else {
         return null;
     }
-};
+}
 
 function getPlotAccordionContent(id) {
     var search = $.ajax({
@@ -96,7 +96,7 @@ function getPlotAccordionContent(id) {
         dataType: 'html'
     });
     return Bacon.fromPromise(search);
-};
+}
 
 function showPlotAccordion(html) {
     $sidebar.find('#plot-accordion').html(html);
