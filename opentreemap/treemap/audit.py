@@ -100,6 +100,27 @@ def approve_or_reject_audits_and_apply(audits, user, approved):
         approve_or_reject_audit_and_apply(audit, user, approved)
 
 
+def add_all_permissions_on_model_to_role(
+        Model, role, permission_level, instance=None):
+    """
+    Create a new role with all normal fields on a given model.
+
+    Specifiy an instance to grab UDFs as well
+    """
+    mobj = Model()
+    if instance:
+        mobj.instance = instance
+
+    model_name = mobj._model_name
+    model_fields = mobj.tracked_fields
+    for field_name in model_fields:
+        FieldPermission.objects.get_or_create(
+            model_name=model_name,
+            field_name=field_name,
+            permission_level=permission_level, role=role,
+            instance=role.instance)
+
+
 def approve_or_reject_audit_and_apply(audit, user, approved):
     """
     Approve or reject a given audit and apply it to the

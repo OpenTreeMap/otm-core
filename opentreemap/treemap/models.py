@@ -171,6 +171,7 @@ class InstanceUser(Auditable, models.Model):
     user = models.ForeignKey(User)
     role = models.ForeignKey(Role)
     reputation = models.IntegerField(default=0)
+    admin = models.BooleanField(default=False)
 
     def save_with_user(self, user):
         self.full_clean()
