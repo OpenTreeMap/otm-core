@@ -1,0 +1,41 @@
+{% load i18n %}
+{% if field.is_visible %}
+  <tr>
+    <td>{% trans "Common Name" %}</td>
+    <td>{{ field.value.common_name }}</td>
+  </tr>
+  <tr>
+    <td>{% trans "Scientific Name" %}</td>
+    <td class="chunk-content"
+        data-field="{{ field.identifier }}"
+        data-class="display"
+        data-value="{{ field.value.id }}">
+        <em>{{ field.value.scientific_name }}</em>
+    </td>
+  </tr>
+  {% if field.is_editable %}
+  <tr style="display: none;"
+      data-class="edit"
+      data-field="{{ field.identifier }}"
+      data-value="{{ field.value.id }}">
+    <td>{% trans "Species" %}</td>
+    <td>
+      <input type="text"
+            {% if field.label %}
+             id="{{ field.label }}-typeahead"
+            {% endif %}
+             value="{{ field.value.display_name }}"/>
+      <input type="hidden"
+            {% if field.label %}
+             id="{{ field.label }}-hidden"
+            {% endif %}
+             name="{{ field.identifier }}"
+             value="{{ field.value.id }}"/>
+    </td>
+    <td class="chunk-content text-error"
+        data-field="{{ field.identifier }}"
+        data-class="error">
+    </td>
+  </tr>
+  {% endif %}
+{% endif %}
