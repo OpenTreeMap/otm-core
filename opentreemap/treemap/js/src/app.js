@@ -8,7 +8,7 @@ var $ = require('jquery'),
     Search = require('./search'),
     otmTypeahead = require('./otmTypeahead'),
     makeLayerFilterable = require('./makeLayerFilterable'),
-    modes = require('./modesForMapPage'),
+    modes = require('./modeManagerForMapPage'),
 
     isEnterKey = require('./baconUtils').isEnterKey;
 
