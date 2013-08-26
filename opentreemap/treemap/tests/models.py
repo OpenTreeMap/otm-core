@@ -13,10 +13,26 @@ from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
                             InstanceSpecies, ImportEvent, User)
 from treemap.audit import Audit, ReputationMetric
 from treemap.management.commands.migrate_otm1 import hash_to_model
+from treemap.management.commands import create_instance
 
 from treemap.tests import (make_instance, make_commander_user,
                            make_user_with_default_role,
                            make_simple_boundary, make_commander_role)
+
+
+class CreateInstanceManagementTest(TestCase):
+    def setUp(self):
+        self.user = User(username='WALL-E', password='EVE')
+        self.user.save()
+
+    def test_can_create_instance(self):
+        center = '0,0'
+        user = self.user.pk
+        name = 'my_instance'
+
+        self.assertEqual(Instance.objects.count(), 0)
+        create_instance.Command().handle(name, center=center, user=user)
+        self.assertEqual(Instance.objects.count(), 1)
 
 
 class HashModelTest(TestCase):
