@@ -198,6 +198,7 @@ def _resolve_variable(variable, context):
 class FieldNode(template.Node):
     _field_mappings = {
         'IntegerField': 'int',
+        'ForeignKey': 'int',
         'FloatField': 'float',
         'TextField': 'string',
         'CharField': 'string',
