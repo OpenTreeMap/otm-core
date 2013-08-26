@@ -1,6 +1,8 @@
 {% if field.is_visible %}
     <ul class="chunk">
+        {% if field.label %}
         <li class="chunk-label">{{ field.label }}</li>
+        {% endif %}
         <li class="chunk-content"
             data-field="{{ field.identifier }}"
             data-class="display"
