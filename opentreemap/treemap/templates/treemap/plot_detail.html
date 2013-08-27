@@ -144,9 +144,9 @@
     <hr>
 
     <!-- Yearly Ecosystem Services -->
+    <h5>{% trans "Yearly Ecosystem Services" %}</h5>
     {% if benefits %}
     <table class="table table-striped">
-      <h5>{% trans "Yearly Ecosystem Services" %}</h5>
       <tbody>
       {% for benefit in benefits %}
         <tr>
@@ -157,9 +157,12 @@
       {% endfor %}
       </tbody>
     </table>
-    <hr>
+    {% else %}
+    <div>
+      {% trans "Add the diameter of the tree and select a species to calculate the yearly ecosystem services." %}
+    </div>
     {% endif %}
-
+    <hr>
   </div>
 
   <div class="right">
