@@ -53,9 +53,11 @@
           <td>{{ value }}</td>
         </tr>
         {% endusercanread %}
+        {% if tree %}
         {% with tree=plot.current_tree %}
           {% field from "tree.species" for request.user withtemplate "treemap/species_field.html" %}
         {% endwith %}
+        {% endif %}
         {% usercanread plot.current_tree "diameter" as diameter %}
         <tr>
           <td>{% trans "Trunk Diameter" %}</td>
@@ -132,12 +134,14 @@
         </tr>
         {% endusercanread %}
         {% for udf_field in plot.udf_field_names %}
-        {% usercanread plot udf_field as udf_value %}
+        {% with "udf:"|add:udf_field as udf_field_with_prefix %}
+        {% usercanread plot udf_field_with_prefix as udf_value %}
         <tr>
           <td>{{ udf_field }}</td>
           <td>{{ udf_value }}</td>
         </tr>
         {% endusercanread %}
+        {% endwith %}
         {% endfor %}
       </tbody>
     </table>
