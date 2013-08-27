@@ -294,16 +294,31 @@ class FieldTagTests(TestCase):
             """ withtemplate "field_template.html" %}"""
         return Template(template_text)
 
+    def _form_template_labelless_with_request_user_for(self, identifier):
+        field_name = '"' + identifier + '"'
+        template_text = """{% load form_extras %}""" +\
+            """{% field from """ + field_name +\
+            """ for request.user withtemplate "field_template.html" %}"""
+        return Template(template_text)
+
+    def _form_template_labelless_for(self, identifier):
+        field_name = '"' + identifier + '"'
+        template_text = """{% load form_extras %}""" +\
+            """{% field from """ + field_name +\
+            """ withtemplate "field_template.html" %}"""
+        return Template(template_text)
+
     def _write_field_template(self, text):
         with open(self.template_file_path, 'w') as f:
                 f.write(text)
 
-    def assert_plot_length_context_value(self, user, name, value):
+    def assert_plot_length_context_value(self, user, name, value,
+                                         template_fn=None):
+        if template_fn is None:
+            template_fn = (self._form_template_with_request_user_for
+                           if user else self._form_template_for)
         plot = Plot(length=12.3, instance=self.instance)
-        if user:
-            template = self._form_template_with_request_user_for('plot.length')
-        else:
-            template = self._form_template_for('plot.length')
+        template = template_fn('plot.length')
         self._write_field_template("{{" + name + "}}")
         with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
             content = template.render(Context({
@@ -339,6 +354,14 @@ class FieldTagTests(TestCase):
         # anyone to get the rendered markup
         self.assert_plot_length_context_value(None, 'field.is_editable',
                                               'True')
+
+    def test_labelless_sets_is_visible_to_true_if_user_is_not_specified(self):
+        # A user without permissions would normaly not be able to
+        # view the field, but using the tag without "for user" allows
+        # anyone to get the rendered markup
+        self.assert_plot_length_context_value(
+            None, 'field.is_visible', 'True',
+            self._form_template_labelless_for)
 
     def test_sets_is_visible_to_false_for_user_without_perms(self):
         user = User(username='testuser')
@@ -403,3 +426,15 @@ class FieldTagTests(TestCase):
     def test_sets_choices_to_none_for_normal_field(self):
         user = make_observer_user(self.instance)
         self.assert_plot_length_context_value(user, 'field.choices', 'None')
+
+    def test_labelless_sets_label_to_none(self):
+        user = make_observer_user(self.instance)
+        self.assert_plot_length_context_value(
+            user, 'field.label', 'None',
+            self._form_template_labelless_with_request_user_for)
+
+    def test_labelless_sets_identifier(self):
+        user = make_observer_user(self.instance)
+        self.assert_plot_length_context_value(
+            user, 'field.identifier', 'plot.length',
+            self._form_template_labelless_with_request_user_for)

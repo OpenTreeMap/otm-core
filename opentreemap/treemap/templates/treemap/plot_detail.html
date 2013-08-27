@@ -1,6 +1,7 @@
 {% extends "instance_base.html" %}
 {% load i18n %}
 {% load auth_extras %}
+{% load form_extras %}
 
 {% block page_title %} | {% trans "Planting Site" %} {{plot.pk}}{% endblock %}
 
@@ -52,18 +53,9 @@
           <td>{{ value }}</td>
         </tr>
         {% endusercanread %}
-        {% usercanread plot.current_tree "species" as species %}
-        <tr>
-          <td>{% trans "Scientific Name" %}</td>
-          <td><em>{{ species.scientific_name }}</em></td>
-        </tr>
-        {% endusercanread %}
-        {% usercanread plot.current_tree "species" as species %}
-        <tr>
-          <td>{% trans "Common Name" %}</td>
-          <td>{{ species.common_name }}</td>
-        </tr>
-        {% endusercanread %}
+        {% with tree=plot.current_tree %}
+          {% field from "tree.species" for request.user withtemplate "treemap/species_field.html" %}
+        {% endwith %}
         {% usercanread plot.current_tree "diameter" as diameter %}
         <tr>
           <td>{% trans "Trunk Diameter" %}</td>

@@ -67,6 +67,13 @@ def field_tag(parser, token):
 
     {% field "First" from "user.first_name" withtemplate "template.html" %}
 
+    To allow using the tag with a more complex read-only representation, the
+    label can be omitted, in which case the template is expected to provide
+    a translated label.
+
+    {% field from "user.first_name" withtemplate "template.html" %}
+    {% field from "user.first_name" for user withtemplate "template.html" %}
+
     The template passed to the tag can use ``field.data_type`` to
     conditionally render different markup. This shows how choice fields
     can be rendered as <select> tags.
@@ -100,26 +107,43 @@ def field_tag(parser, token):
 
     syntaxErrorWithFormatMessage = template.TemplateSyntaxError(
         'expected format is: '
-        'field {model.property} for {user} withtemplate {template}')
+        'field [{label}] from {model.property}'
+        ' [for {user}] withtemplate {template}')
 
     try:
         tokens = token.split_contents()
     except ValueError:
         raise syntaxErrorWithFormatMessage
 
-    if len(tokens) < 6:
+    if len(tokens) < 5:
         raise syntaxErrorWithFormatMessage
 
     field_token = tokens[0]
-    label = tokens[1]
-    from_token = tokens[2]
-    identifier = tokens[3]
 
-    if len(tokens) == 6:
+    if len(tokens) in {5, 7}:
+        label = None
+        from_token = tokens[1]
+        identifier = tokens[2]
+    elif len(tokens) in {6, 8}:
+        label = tokens[1]
+        from_token = tokens[2]
+        identifier = tokens[3]
+
+    if len(tokens) == 5:
+        for_token = None
+        user = None
+        with_token = tokens[3]
+        field_template = tokens[4]
+    elif len(tokens) == 6:
         for_token = None
         user = None
         with_token = tokens[4]
         field_template = tokens[5]
+    elif len(tokens) == 7:
+        for_token = tokens[3]
+        user = tokens[4]
+        with_token = tokens[5]
+        field_template = tokens[6]
     elif len(tokens) == 8:
         for_token = tokens[4]
         user = tokens[5]
@@ -174,6 +198,7 @@ def _resolve_variable(variable, context):
 class FieldNode(template.Node):
     _field_mappings = {
         'IntegerField': 'int',
+        'ForeignKey': 'int',
         'FloatField': 'float',
         'TextField': 'string',
         'CharField': 'string',
