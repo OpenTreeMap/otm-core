@@ -291,7 +291,7 @@ class FieldNode(template.Node):
             'identifier': identifier,
             'value': field_value,
             # TODO: Support pluggable formatting instead of str()
-            'display_value': str(field_value),
+            'display_value': unicode(field_value),
             'data_type': _field_type_to_string(model, field_name),
             'is_visible': is_visible,
             'is_editable': is_editable,
