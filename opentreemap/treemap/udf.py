@@ -7,7 +7,7 @@ import re
 from datetime import datetime
 
 from django.core.exceptions import ValidationError, FieldError
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as trans
 
 from django.contrib.gis.db import models
 
@@ -40,14 +40,14 @@ def safe_get_udf_model_class(model_string):
     models_module = __import__('treemap.models')
 
     if not hasattr(models_module.models, model_string):
-        raise ValidationError(_('invalid model type'))
+        raise ValidationError(trans('invalid model type'))
 
     model_class = getattr(models_module.models, model_string)
 
     # It must have be a UDF subclass
     if not isinstance(model_class(), UDFModel):
-        raise ValidationError(_('invalid model type - must subclass '
-                                'UDFModel'))
+        raise ValidationError(trans('invalid model type - must subclass '
+                                    'UDFModel'))
 
     return model_class
 
@@ -112,34 +112,34 @@ class UserDefinedFieldDefinition(models.Model):
         field_names = [field.name for field in model_class._meta.fields]
 
         if self.name in field_names:
-            raise ValidationError(_('cannot use fields that already '
-                                    'exist on the model'))
+            raise ValidationError(trans('cannot use fields that already '
+                                        'exist on the model'))
 
         existing_objects = UserDefinedFieldDefinition.objects.filter(
             model_type=model_type,
             name=self.name)
 
         if existing_objects.count() != 0:
-            raise ValidationError(_('a field already exists on this model '
-                                    'with that name'))
+            raise ValidationError(trans('a field already exists on this model '
+                                        'with that name'))
 
         datatype = self.datatype_dict
 
         if 'type' not in datatype:
-            raise ValidationError(_('type required data type definition'))
+            raise ValidationError(trans('type required data type definition'))
 
         if datatype['type'] not in ['float', 'int', 'string',
                                     'user', 'choice', 'date']:
-            raise ValidationError(_('invalid datatype'))
+            raise ValidationError(trans('invalid datatype'))
 
         if datatype['type'] == 'choice':
             choices = datatype.get('choices', None)
 
             if choices is None:
-                raise ValidationError(_('missing choices key for key'))
+                raise ValidationError(trans('missing choices key for key'))
 
             if len(choices) == 0:
-                raise ValidationError(_('empty choice list'))
+                raise ValidationError(trans('empty choice list'))
 
     def save(self, *args, **kwargs):
         self.validate()
@@ -178,8 +178,8 @@ class UserDefinedFieldDefinition(models.Model):
             try:
                 return float(value)
             except ValueError:
-                raise ValidationError(_('%(fieldname)s '
-                                        'must be a real number') %
+                raise ValidationError(trans('%(fieldname)s '
+                                            'must be a real number') %
                                       {'fieldname': self.name})
         elif self.datatype_dict['type'] == 'int':
             try:
@@ -188,8 +188,8 @@ class UserDefinedFieldDefinition(models.Model):
 
                 return int(value)
             except ValueError:
-                raise ValidationError(_('%(fieldname)s '
-                                        'must be an integer') %
+                raise ValidationError(trans('%(fieldname)s '
+                                            'must be an integer') %
                                       {'fieldname': self.name})
         elif self.datatype_dict['type'] == 'user':
             if isinstance(value, User):
@@ -198,14 +198,14 @@ class UserDefinedFieldDefinition(models.Model):
             try:
                 pk = int(value)
             except ValueError:
-                raise ValidationError(_('%(fieldname)s '
-                                        'must be an integer') %
+                raise ValidationError(trans('%(fieldname)s '
+                                            'must be an integer') %
                                       {'fieldname': self.name})
             try:
                 return User.objects.get(pk=pk)
             except User.DoesNotExist:
-                raise ValidationError(_('%(fieldname)s '
-                                        'user not found') %
+                raise ValidationError(trans('%(fieldname)s '
+                                            'user not found') %
                                       {'fieldname': self.name})
 
         elif self.datatype_dict['type'] == 'date':
@@ -214,7 +214,7 @@ class UserDefinedFieldDefinition(models.Model):
             if value in self.datatype_dict['choices']:
                 return value
             else:
-                raise ValidationError(_('Invalid choice'))
+                raise ValidationError(trans('Invalid choice'))
         else:
             return value
 
@@ -392,7 +392,8 @@ class UDFModel(UserTrackable, models.Model):
                 except ValidationError as e:
                     errors['udf:%s' % key] = e.messages
             else:
-                errors['udf:%s' % key] = _('Invalid user defined field name')
+                errors['udf:%s' % key] = trans('Invalid user defined'
+                                               ' field name')
 
         if errors:
             raise ValidationError(errors)
