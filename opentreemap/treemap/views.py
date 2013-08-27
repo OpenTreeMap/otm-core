@@ -138,7 +138,12 @@ def plot_detail(request, instance, plot_id):
     context = {}
     # If the the benefits calculation can't be done or fails, still display the
     # plot details
-    if tree and tree.diameter is not None and tree.species.itree_code:
+
+    has_tree_diameter = tree is not None and tree.diameter is not None
+    has_tree_species_with_code = tree is not None \
+        and tree.species is not None and tree.species.itree_code is not None
+
+    if has_tree_diameter and has_tree_species_with_code:
         try:
             eco_tree = {'species__itree_code': tree.species.itree_code,
                         'diameter': tree.diameter}
