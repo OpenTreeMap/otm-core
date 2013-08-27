@@ -25,20 +25,20 @@ exports.init = function(options) {
         actionStream = new Bacon.Bus(),
 
         actionToCssDisplay = function(actions, action) {
-            return _.contains(actions, action) ? 'inline-block' : 'none';
+            return _.contains(actions, action) ? '' : 'none';
         },
 
-        actionToEditFieldCssDisplay = _.partial(actionToCssDisplay, 
+        actionToEditFieldCssDisplay = _.partial(actionToCssDisplay,
             ['edit:start', 'save:start', 'save:error']),
 
-        actionToDisplayFieldCssDisplay = _.partial(actionToCssDisplay, 
+        actionToDisplayFieldCssDisplay = _.partial(actionToCssDisplay,
             ['idle', 'save:ok', 'cancel']),
 
-        actionToValidationErrorCssDisplay = _.partial(actionToCssDisplay, 
+        actionToValidationErrorCssDisplay = _.partial(actionToCssDisplay,
             ['save:error']),
 
         displayValuesToFormFields = function() {
-            $(displayFields).each(function(index, el){
+            $(displayFields).each(function(index, el) {
                 var field = $(el).attr('data-field');
                 var value = $(el).attr('data-value');
                 var input;
@@ -81,7 +81,7 @@ exports.init = function(options) {
 
         isEditStart = function (action) {
             return action === 'edit:start';
-        }, 
+        },
 
         responseStream = saveStream
             .map(FH.formToDictionary, $(form), $(editFields))
@@ -117,7 +117,7 @@ exports.init = function(options) {
     actionStream.filter(isEditStart).onValue(displayValuesToFormFields);
 
     actionStream.map(actionToDisplayFieldCssDisplay)
-                .toProperty('inline-block')
+                .toProperty('')
                 .assign($(displayFields), "css", "display");
 
     actionStream.map(actionToEditFieldCssDisplay)
