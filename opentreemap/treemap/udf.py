@@ -368,6 +368,12 @@ class UDFModel(UserTrackable, models.Model):
         return [field.name for field in self.get_user_defined_fields()]
 
     @property
+    def udf_names_and_fields(self):
+        model_name = self.__class__.__name__.lower()
+        return [(field.name, model_name + ".udf:" + field.name)
+                for field in self.get_user_defined_fields()]
+
+    @property
     def tracked_fields(self):
         return super(UDFModel, self).tracked_fields + \
             ['udf:' + name for name in self.udf_field_names]
