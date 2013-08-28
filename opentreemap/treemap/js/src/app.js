@@ -141,8 +141,7 @@ var app = {
 module.exports = {
     init: function (config) {
         app.resetEventStream()
-            .map({})
-            .onValue(Search.applySearchToDom);
+            .onValue(Search.reset);
 
         app.initTypeAheads(config);
 
