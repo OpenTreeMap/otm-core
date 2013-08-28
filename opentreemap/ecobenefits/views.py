@@ -23,7 +23,7 @@ def get_codes_for_species(species, region):
 def _benefits_for_trees(trees):
     regions = {}
     for tree in trees:
-        region = tree['itree_region']
+        region = tree['itree_region_code']
         if region not in regions:
             regions[region] = []
 
@@ -70,7 +70,7 @@ def tree_benefits(instance, tree_id):
                 _benefits_for_trees(
                     [{'species__itree_code': species,
                       'diameter': dbh,
-                      'itree_region': region}])}
+                      'itree_region_code': region}])}
 
     return rslt
 

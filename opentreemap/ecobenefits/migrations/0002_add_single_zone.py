@@ -9,6 +9,7 @@ from django.contrib.gis.geos import MultiPolygon, Polygon
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # United States not include Alaska or Hawaii
         polygon = Polygon(((-15929819, 7113543),
                            (-15929819, 2814454),
                            (-7280294, 2814454),
