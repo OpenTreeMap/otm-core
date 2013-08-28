@@ -120,6 +120,8 @@ def add_all_permissions_on_model_to_role(
             permission_level=permission_level, role=role,
             instance=role.instance)
 
+    return role
+
 
 def approve_or_reject_audit_and_apply(audit, user, approved):
     """
