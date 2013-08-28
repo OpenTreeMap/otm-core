@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block search %}
+{% comment %} Hide search options when the browser is unsupported {% endcomment %}
+{% endblock search %}
+
+{% block subhead %}
+{% comment %} Hide subhead when the browser is unsupported {% endcomment %}
+{% endblock subhead %}
+
+{% block content %}
+<h3>{% trans "Sorry. OpenTreeMap requires Internet Explorer 9 or above." %}</h3>
+
+<p>{% trans "If you cannot upgrade your version of Internet Explorer, try using one of these alternate web browsers." %}</p>
+
+<ul>
+    <li><a href="http://www.google.com/chrome">Chrome</a></li>
+    <li><a href="http://www.mozilla.org/firefox">Firefox</a></li>
+</ul>
+{% endblock content %}
+
+{% block scripts %}
+{% comment %} This page has no interactivity {% endcomment %}
+{% endblock scripts %}
