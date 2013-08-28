@@ -388,6 +388,17 @@ class Role(models.Model):
     instance = models.ForeignKey('Instance', null=True, blank=True)
     rep_thresh = models.IntegerField()
 
+    @property
+    def tree_permissions(self):
+        return self.model_permissions('Tree')
+
+    @property
+    def plot_permissions(self):
+        return self.model_permissions('Plot')
+
+    def model_permissions(self, model):
+        return self.fieldpermission_set.filter(model_name=model)
+
     def __unicode__(self):
         return '%s (%s)' % (self.name, self.pk)
 
