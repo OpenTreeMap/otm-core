@@ -120,6 +120,8 @@ def add_all_permissions_on_model_to_role(
             permission_level=permission_level, role=role,
             instance=role.instance)
 
+    return role
+
 
 def approve_or_reject_audit_and_apply(audit, user, approved):
     """
@@ -388,6 +390,17 @@ class Role(models.Model):
     instance = models.ForeignKey('Instance', null=True, blank=True)
     rep_thresh = models.IntegerField()
 
+    @property
+    def tree_permissions(self):
+        return self.model_permissions('Tree')
+
+    @property
+    def plot_permissions(self):
+        return self.model_permissions('Plot')
+
+    def model_permissions(self, model):
+        return self.fieldpermission_set.filter(model_name=model)
+
     def __unicode__(self):
         return '%s (%s)' % (self.name, self.pk)
 
@@ -422,6 +435,15 @@ class FieldPermission(models.Model):
     @property
     def allows_writes(self):
         return self.permission_level >= self.WRITE_WITH_AUDIT
+
+    @property
+    def display_field_name(self):
+        if self.field_name.startswith('udf:'):
+            base_name = self.field_name[4:]
+        else:
+            base_name = self.field_name
+
+        return base_name.replace('_', ' ').title()
 
 
 class AuthorizeException(Exception):
