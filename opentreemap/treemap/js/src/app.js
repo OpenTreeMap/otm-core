@@ -178,15 +178,23 @@ module.exports = {
         map.addLayer(utfLayer);
         map.addLayer(boundsLayer);
 
-        var clickedLatLonStream = map.asEventStream('click').map(function (e) {
-            return map.getLonLatFromPixel(e.xy);
-        });
-
         zoom = map.getZoomForResolution(76.43702827453613);
         map.setCenter(config.instance.center, zoom);
 
-        modes.init(config, map, clickedLatLonStream);
+        function onPlotAddOrUpdate(geoRevHash) {
+            if (geoRevHash !== config.instance.rev) {
+                config.instance.rev = geoRevHash;
+                plotLayer.url = app.getPlotLayerURL(config, 'png');
+                utfLayer.url = app.getPlotLayerURL(config, 'grid.json');
+                plotLayer.redraw({force: true});
+                utfLayer.redraw({force: true});
+            }
+        }
+
+        modes.init(config, map, onPlotAddOrUpdate);
         modes.activateBrowseTreesMode();
+
+        $('.addBtn').click(modes.activateAddTreeMode)
 
         // Use a bus to delay sending the initial signal
         // seems like you could merge with Bacon.once(initialSearch)

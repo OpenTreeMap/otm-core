@@ -6,7 +6,7 @@
         <li class="chunk-content"
             data-field="{{ field.identifier }}"
             data-class="display"
-            data-value="{{ field.value }}">
+            data-value="{{ field.value|default_if_none:""}}">
             {{ field.display_value }}
         </li>
         {% if field.is_editable %}
@@ -14,10 +14,11 @@
                 data-field="{{ field.identifier }}"
                 data-class="edit"
                 data-value="{{ field.value }}"
+                data-type="{{ field.data_type }}"
                 style="display: none;">
             {% if field.data_type == 'choice' %}
                 <select name="{{ field.identifier }}"
-                        value="{{ field.value }}"
+                        value="{{ field.value|default_if_none:"" }}"
                         style="display: none;" />
                     {% for option in field.options %}
                         <option value="{{ option }}">
@@ -28,7 +29,7 @@
             {% else %}
                 <input name="{{ field.identifier }}"
                        type="text"
-                       value="{{ field.value }}"/>
+                       value="{{ field.value|default_if_none:"" }}"/>
             {% endif %}
             </li>
             <li class="chunk-content text-error"

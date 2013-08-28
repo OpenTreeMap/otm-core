@@ -11,14 +11,12 @@ require('./openLayersUtfGridEventStream');
 
 var config,
     map,
-    myClickedLatLonStream,  // map lat/long clicks, filtered for my mode
     inMyMode,               // function telling if my mode is active
     $sidebar;
 
 function init(options) {
     config = options.config;
     map = options.map;
-    myClickedLatLonStream = options.myClickedLatLonStream;
     inMyMode = options.inMyMode;
     $sidebar = options.$sidebar;
 
@@ -67,7 +65,14 @@ function init(options) {
     // OpenLayers needs both the content and a coordinate to
     // show a popup, so zip map clicks together with content
     // requested via ajax
-    myClickedLatLonStream
+    var clickedLatLonStream =
+        map.asEventStream('click')
+            .filter(inMyMode)
+            .map(function (e) {
+                return map.getLonLatFromPixel(e.xy);
+            });
+
+    clickedLatLonStream
         .zip(popupHtmlStream, makePopup) // TODO: size is not being sent to makePopup
         .onValue(showPlotDetailPopup);
 }
