@@ -237,6 +237,8 @@ def update_plot_and_tree(request, plot):
             # Get the tree or spawn a new one if needed
             tree = tree or get_tree()
             model = tree
+            if field == 'species':
+                value = Species.objects.get(pk=value)
         else:
             raise Exception('Malformed request - invalid model %s' % model)
 
