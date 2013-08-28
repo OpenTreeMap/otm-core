@@ -423,6 +423,15 @@ class FieldPermission(models.Model):
     def allows_writes(self):
         return self.permission_level >= self.WRITE_WITH_AUDIT
 
+    @property
+    def display_field_name(self):
+        if self.field_name.startswith('udf:'):
+            base_name = self.field_name[4:]
+        else:
+            base_name = self.field_name
+
+        return base_name.replace('_', ' ').title()
+
 
 class AuthorizeException(Exception):
     def __init__(self, name):
