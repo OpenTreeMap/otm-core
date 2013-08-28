@@ -14,6 +14,7 @@ var $ = require('jquery'),
 
 // This module augments the OpenLayers global so we don't need `var thing =`
 require('./openLayersMapEventStream');
+require('./csrf');  // set up cross-site forgery protection for $.ajax()
 
 
 var app = {
