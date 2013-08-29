@@ -89,14 +89,24 @@ def strip_request(view_fn):
     return wrapper
 
 
-def render_template(templ, view_fn_or_dict=None, **kwargs):
+def render_template(templ, callable_or_dict=None, **kwargs):
+    """
+    takes a template to render to and an object to render
+    the data for this template.
+
+    If callable_or_dict is callable, it will be called with
+    the request and any additional arguments to produce the
+    template paramaters. This is useful for a view-like function
+    that returns a dict-like object instead of an HttpResponse.
+
+    Otherwise, callable_or_dict is used as the parameters for
+    the rendered response.
+    """
     def wrapper(request, *args, **wrapper_kwargs):
-        if view_fn_or_dict is None:
-            params = None
-        elif type(view_fn_or_dict) is dict:
-            params = view_fn_or_dict
+        if callable(callable_or_dict):
+            params = callable_or_dict(request, *args, **wrapper_kwargs)
         else:
-            params = view_fn_or_dict(request, *args, **wrapper_kwargs)
+            params = callable_or_dict
 
         # If we want to return some other response
         # type we can, that simply overrides the default
@@ -106,6 +116,7 @@ def render_template(templ, view_fn_or_dict=None, **kwargs):
                                       RequestContext(request), **kwargs)
         else:
             return params
+
     return wrapper
 
 
