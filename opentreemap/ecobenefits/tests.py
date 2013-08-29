@@ -2,12 +2,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from ecobenefits.views import tree_benefits
 from django.test.client import RequestFactory
+from django.contrib.gis.geos import Point, MultiPolygon
 
 from treemap.models import Plot, Tree, Species
-from django.contrib.gis.geos import Point
 from treemap.tests import UrlTestCase, make_instance, make_commander_user
+
+from ecobenefits.models import ITreeRegion
+from ecobenefits.views import tree_benefits
 
 
 class EcoTest(UrlTestCase):
@@ -26,7 +28,14 @@ class EcoTest(UrlTestCase):
                                max_height=100)
         self.species.save()
 
+        ITreeRegion.objects.all().delete()
+
         p1 = Point(-8515941.0, 4953519.0)
+
+        ITreeRegion.objects.create(
+            code='NoEastXXX',
+            geometry=MultiPolygon([p1.buffer(1000)]))
+
         self.plot = Plot(geom=p1,
                          instance=self.instance)
 
@@ -53,8 +62,7 @@ class EcoTest(UrlTestCase):
 
     def test_eco_benefit_sanity(self):
         rslt = tree_benefits(instance=self.instance,
-                             tree_id=self.tree.pk,
-                             region='NoEastXXX')
+                             tree_id=self.tree.pk)
 
         bens = rslt['benefits'][0]
 
