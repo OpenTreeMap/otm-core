@@ -57,8 +57,10 @@ exports.$find = function (selector, $parent) {
     } else {
         $el = $(selector);
     }
-    if (!$el) {
-        console.write('Selector not found: ' + selector);
+    if ($el.length === 0) {
+        if (window.console) {
+            window.console.log('Selector not found: ' + selector);
+        }
     }
     return $el;
-}
+};

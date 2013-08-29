@@ -53,13 +53,13 @@ function applySearchToDom(search) {
 
         $domElem.trigger('restore', pred);
     });
-};
+}
 
 exports.applySearchToDom = applySearchToDom;
 
 exports.reset = function () {
     applySearchToDom({});
-}
+};
 
 exports.buildSearch = function (stream) {
     return _.reduce(elems, function(preds, key_and_pred, id) {
