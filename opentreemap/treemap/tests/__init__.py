@@ -25,7 +25,7 @@ from treemap.models import User, InstanceUser
 class OTM2TestRunner(DjangoTestSuiteRunner):
     def run_tests(self, *args, **kwargs):
         logging.disable(logging.CRITICAL)
-        super(OTM2TestRunner, self).run_tests(*args, **kwargs)
+        return super(OTM2TestRunner, self).run_tests(*args, **kwargs)
 
     def build_suite(self, test_labels, *args, **kwargs):
         test_labels = test_labels or settings.MANAGED_APPS
