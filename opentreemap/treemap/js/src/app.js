@@ -4,6 +4,7 @@ var $ = require('jquery'),
     OL = require('OpenLayers'),
     Bacon = require('baconjs'),
     U = require('./utility'),
+    csrf = require('./csrf'),
 
     Search = require('./search'),
     otmTypeahead = require('./otmTypeahead'),
@@ -14,7 +15,6 @@ var $ = require('jquery'),
 
 // This module augments the OpenLayers global so we don't need `var thing =`
 require('./openLayersMapEventStream');
-require('./csrf');  // set up cross-site forgery protection for $.ajax()
 
 
 var app = {
@@ -158,6 +158,9 @@ module.exports = {
             zoom = 0,
             searchEventStream = app.searchEventStream(),
             resetStream = app.resetEventStream();
+
+        // Set up cross-site forgery protection
+        $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
         app.initTypeAheads(config);
 
