@@ -197,7 +197,7 @@ module.exports = {
         modes.init(config, map, onPlotAddOrUpdate);
         modes.activateBrowseTreesMode();
 
-        $('.addBtn').click(modes.activateAddTreeMode)
+        $('.addBtn').click(modes.activateAddTreeMode);
 
         // Use a bus to delay sending the initial signal
         // seems like you could merge with Bacon.once(initialSearch)

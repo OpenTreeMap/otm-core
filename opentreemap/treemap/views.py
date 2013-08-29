@@ -169,6 +169,7 @@ def add_plot(request, instance):
             'One or more of the specified values are invalid.',
             ve.message_dict)
 
+
 @transaction.commit_on_success
 def update_plot_and_tree(request, plot):
     """

@@ -12,7 +12,7 @@ function csrfSafeMethod(method) {
 
 function getCookie(name) {
     var cookieValue = null;
-    if (document.cookie && document.cookie != '') {
+    if (document.cookie && document.cookie !== '') {
         var cookies = document.cookie.split(';');
         for (var i = 0; i < cookies.length; i++) {
             var cookie = $.trim(cookies[i]);
@@ -25,6 +25,7 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
 var csrftoken = getCookie('csrftoken');
 
 exports.jqueryAjaxSetupOptions = {
@@ -34,4 +35,4 @@ exports.jqueryAjaxSetupOptions = {
             xhr.setRequestHeader("X-CSRFToken", csrftoken);
         }
     }
-}
+};
