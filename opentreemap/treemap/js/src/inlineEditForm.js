@@ -3,6 +3,7 @@
 var $ = require('jquery');
 var Bacon = require('baconjs');
 var _ = require('underscore');
+var FH = require('./fieldHelpers');
 
 // Requiring this module handles wiring up the browserified
 // baconjs to jQuery
@@ -42,8 +43,7 @@ exports.init = function(options) {
                 var value = $(el).attr('data-value');
                 var input;
                 if (field) {
-                    input = $(editFields + '[data-field="' + field + '"]')
-                        .find('input');
+                    input = FH.getField($(editFields), field).find('input');
                     $(input).val(value);    
                 }
             });
@@ -54,21 +54,13 @@ exports.init = function(options) {
                 var field = $(el).attr('data-field');
                 var input, value, display;
                 if (field) {
-                    input = $(editFields + '[data-field="' + field + '"]').find('input');
+                    input = FH.getField($(editFields), field).find('input');
                     value = input.val();
-                    display = $(displayFields + '[data-field="' + field + '"]');
+                    display = FH.getField($(displayFields), field);
                     $(display).attr('data-value', value);
                     $(display).html(value);
                 }
             });
-        },
-
-        formToDictionary = function() {
-            var result = {};
-            _.each($(form).serializeArray(), function(item) {
-                result[item.name] = item.value;
-            });
-            return result;
         },
 
         update = function(data) {
@@ -81,8 +73,9 @@ exports.init = function(options) {
         },
 
         showValidationErrorsInline = function (errors) {
-            _.each(errors, function (errorList, field) {
-                $(validationFields + '[data-field="' + field + '"]').html(errorList.join(','));
+            _.each(errors, function (errorList, fieldName) {
+                FH.getField($(validationFields), fieldName)
+                    .html(errorList.join(','));
             });
         },
 
@@ -91,7 +84,7 @@ exports.init = function(options) {
         }, 
 
         responseStream = saveStream
-            .map(formToDictionary)
+            .map(function () { FH.formToDictionary($(form), $(editFields)); })
             .flatMap(update)
             .mapError(function (e) {
                 return e.responseJSON;

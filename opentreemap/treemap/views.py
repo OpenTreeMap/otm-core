@@ -157,6 +157,18 @@ def plot_detail(request, instance, plot_id):
     return context
 
 
+def add_plot(request, instance):
+    try:
+        plot = update_plot_and_tree(request, Plot(instance=instance))
+        return {
+            'ok': True,
+            'geoRevHash': plot.instance.geo_rev_hash
+        }
+    except ValidationError, ve:
+        return _bad_request_json_response(
+            'One or more of the specified values are invalid.',
+            ve.message_dict)
+
 @transaction.commit_on_success
 def update_plot_and_tree(request, plot):
     """
@@ -236,6 +248,9 @@ def update_plot_and_tree(request, plot):
 
     if errors:
         raise ValidationError(errors)
+
+    # Refresh plot.instance in case geo_rev_hash was updated
+    plot.instance = Instance.objects.get(id=plot.instance.id)
 
     return plot
 
@@ -580,9 +595,7 @@ def user(request, username):
 def _bad_request_json_response(message, validation_error_dict=None):
     response = HttpResponse()
     response.status_code = 400
-    content = {
-        'error': 'One or more of the specified values are invalid.',
-    }
+    content = {'error': message}
     if validation_error_dict:
         content['validationErrors'] = validation_error_dict
     response.write(json.dumps(content))
@@ -621,6 +634,17 @@ def update_user(request, username):
             validation_error_dict)
 
 
+def _get_map_view_context(request, instance_id):
+    fields_for_add_tree = [
+        (trans('Trunk Diameter (inches)'), 'tree.diameter')
+    ]
+    # Adding a tree used the field.html template tag, which expects a "tree"
+    # context object to grab field values from. Since we're adding trees there
+    # are no values to grab, hence the empty Tree instance.
+    return {'tree': Tree(),
+            'fields_for_add_tree': fields_for_add_tree}
+
+
 def instance_user_view(request, instance_id, username):
     url = '/users/%(username)s?instance_id=%(instance_id)s' %\
         {'username': username, 'instance_id': instance_id}
@@ -637,8 +661,9 @@ audits_view = instance_request(
     render_template('treemap/recent_edits.html', audits))
 
 index_view = instance_request(render_template('treemap/index.html'))
+
 map_view = instance_request(
-    render_template('treemap/map.html'))
+    render_template('treemap/map.html', _get_map_view_context))
 
 plot_detail_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_detail.html', plot_detail)))
@@ -648,6 +673,9 @@ plot_popup_view = instance_request(etag(_plot_hash)(
 
 plot_accordian_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_accordian.html', plot_detail)))
+
+add_plot_view = require_http_methods(["POST"])(
+    json_api_call(instance_request(add_plot)))
 
 root_settings_js_view = render_template('treemap/settings.js',
                                         {'BING_API_KEY':

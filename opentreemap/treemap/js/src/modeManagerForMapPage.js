@@ -5,25 +5,28 @@
 // module to handle UI events. This module initializes the mode modules and
 // orchestrates switching between modes.
 
-// Note that different modes will interpret map clicks differently. We pass
-// the map's "clickedLatLonStream" to each mode, but filter it so the events
-// will be ignored unless the mode is active.
-
-var $ = require('jquery'),
+var U = require('./utility'),
     browseTreesMode     = require('./browseTreesMode'),
     addTreeMode         = require('./addTreeMode'),
     editTreeDetailsMode = require('./editTreeDetailsMode'),
     currentMode;
 
-var $sidebarBrowseTrees     = $('#sidebar-browse-trees'),
-    $sidebarAddTree         = $('#sidebar-add-tree'),
-    $sidebarEditTreeDetails = $('#sidebar-edit-tree-details');
+var $sidebarBrowseTrees     = U.$find('#sidebar-browse-trees'),
+    $sidebarAddTree         = U.$find('#sidebar-add-tree'),
+    $sidebarEditTreeDetails = U.$find('#sidebar-edit-tree-details');
 
 function activateMode(mode, $sidebar) {
-    $sidebar.siblings().hide();
-    $sidebar.show();
-    if (mode.activate) { mode.activate(); }
-    currentMode = mode;
+    if (mode !== currentMode) {
+        if (currentMode && currentMode.deactivate) {
+            currentMode.deactivate();
+        }
+        $sidebar.siblings().hide();
+        $sidebar.show();
+        if (mode.activate) {
+            mode.activate();
+        }
+        currentMode = mode;
+    }
 }
 
 function activateBrowseTreesMode()     { activateMode(browseTreesMode,     $sidebarBrowseTrees); }
@@ -34,29 +37,27 @@ function inBrowseTreesMode()     { return currentMode === browseTreesMode; }
 function inAddTreeMode()         { return currentMode === addTreeMode; }
 function inEditTreeDetailsMode() { return currentMode === editTreeDetailsMode; }
 
-function init(config, map, clickedLatLonStream) {
+function init(config, map, onPlotAddOrUpdate) {
     browseTreesMode.init({
         config: config,
         map: map,
-        myClickedLatLonStream : clickedLatLonStream.filter(inBrowseTreesMode),
-        inMyMode : inBrowseTreesMode,
-        $sidebar : $sidebarBrowseTrees
+        inMyMode: inBrowseTreesMode,
+        $sidebar: $sidebarBrowseTrees
     });
 
     addTreeMode.init({
         config: config,
         map: map,
-        myClickedLatLonStream : clickedLatLonStream.filter(inAddTreeMode),
-        $sidebar : $sidebarAddTree,
-        onClose : activateBrowseTreesMode
+        $sidebar: $sidebarAddTree,
+        onAddTree: onPlotAddOrUpdate,
+        onClose: activateBrowseTreesMode
     });
 
     editTreeDetailsMode.init({
         config: config,
         map: map,
-        myClickedLatLonStream : clickedLatLonStream.filter(inEditTreeDetailsMode),
-        $sidebar : $sidebarEditTreeDetails,
-        onClose : activateBrowseTreesMode
+        $sidebar: $sidebarEditTreeDetails,
+        onClose: activateBrowseTreesMode
     });
 }
 

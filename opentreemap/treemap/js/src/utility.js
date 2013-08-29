@@ -1,7 +1,8 @@
 "use strict";
 
 var Url = require('url'),
-    QS = require('querystring');
+    QS = require('querystring'),
+    $ = require('jquery');
 
 exports.getUpdatedQueryString = function (k, v) {
     var url = Url.parse(window.location.href, true);
@@ -46,3 +47,18 @@ exports.parseQueryString = function () {
 
     return urlParams;
 };
+
+exports.$find = function (selector, $parent) {
+    // Find 'selector' via JQuery, inside $parent if specified.
+    // Log to console if not found.
+    var $el;
+    if ($parent) {
+        $el = $parent.find(selector);
+    } else {
+        $el = $(selector);
+    }
+    if (!$el) {
+        console.write('Selector not found: ' + selector);
+    }
+    return $el;
+}
