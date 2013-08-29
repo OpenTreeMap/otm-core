@@ -4,6 +4,7 @@ var $ = require('jquery');
 var Bacon = require('baconjs');
 var _ = require('underscore');
 var FH = require('./fieldHelpers');
+var getDatum = require('./otmTypeahead').getDatum;
 
 // Requiring this module handles wiring up the browserified
 // baconjs to jQuery
@@ -37,14 +38,41 @@ exports.init = function(options) {
         actionToValidationErrorCssDisplay = _.partial(actionToCssDisplay,
             ['save:error']),
 
+        displayValuesToTypeahead = function() {
+            $('[data-typeahead-restore]').each(function(index, el) {
+                var field = $(el).attr('data-typeahead-restore');
+                if (field) {
+                    $('input[name="' + field + '"]').trigger('restore', $(el).val());
+                }
+            });
+        },
+
         displayValuesToFormFields = function() {
             $(displayFields).each(function(index, el) {
                 var field = $(el).attr('data-field');
                 var value = $(el).attr('data-value');
                 var input;
                 if (field) {
-                    input = FH.getField($(editFields), field).find('input,select');
+                    input = FH.getField($(editFields), field)
+                                .find('input,select')
+                                .first();
                     $(input).val(value);
+                }
+            });
+            displayValuesToTypeahead();
+        },
+
+        typeaheadToDisplayValues = function() {
+            $('[data-typeahead-input]').each(function(index, el) {
+                var datum = getDatum($(el)),
+                    field = $(el).attr('data-typeahead-input');
+                if (typeof datum != "undefined") {
+                    $('[data-typeahead-restore="' + field + '"]').each(function(index, el) {
+                        $(el).val(datum[$(el).attr('data-datum')]);
+                    });
+                    $('[data-typeahead="' + field + '"]').each(function(index, el) {
+                        $(el).html(datum[$(el).attr('data-datum')]);
+                    });
                 }
             });
         },
@@ -53,14 +81,17 @@ exports.init = function(options) {
             $(editFields).each(function(index, el){
                 var field = $(el).attr('data-field');
                 var input, value, display;
-                if (field) {
-                    input = FH.getField($(editFields), field).find('input,select');
+                if ($(el).is('[data-field]')) {
+                    input = FH.getField($(editFields), field)
+                        .find('input,select')
+                        .first();
                     value = input.val();
                     display = FH.getField($(displayFields), field);
                     $(display).attr('data-value', value);
                     $(display).html(value);
                 }
             });
+            typeaheadToDisplayValues();
         },
 
         update = function(data) {
