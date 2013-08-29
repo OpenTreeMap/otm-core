@@ -40,7 +40,7 @@ function updateSearchResults(newMarkup) {
     $('#benefit-values').html(benefitsMarkup);
 }
 
-exports.applySearchToDom = function (search) {
+function applySearchToDom(search) {
     _.each(elems, function(v, k) {
         var restoreTarget = v['restore-to'] || v.key;
         var pred = search[restoreTarget];
@@ -54,6 +54,12 @@ exports.applySearchToDom = function (search) {
         $domElem.trigger('restore', pred);
     });
 };
+
+exports.applySearchToDom = applySearchToDom;
+
+exports.reset = function () {
+    applySearchToDom({});
+}
 
 exports.buildSearch = function (stream) {
     return _.reduce(elems, function(preds, key_and_pred, id) {

@@ -1,1 +1,27 @@
-<div>No content yet</div>
+<!-- Note: rough and without translation tags until we have prototype markup -->
+{% load form_extras %}
+
+<h3>Add a Tree</h3>
+<h4>1. Set the tree’s location</h4>
+<div>Click the map and then drag the marker to the correct location.</div>
+<h4>2. Additional information</h4>
+<form id="add-tree-form">
+    {% for label, identifier in fields_for_add_tree %}
+        {% field label from identifier withtemplate "treemap/field.html" %}
+    {% endfor %}
+    </form>
+
+<h4>3. After I add this tree...</h4>
+<div style="color: #aaa">
+    <input type="radio" disabled="disabled">I want to add another tree using the same tree details<br/>
+    <input type="radio" disabled="disabled">I want to add another tree with new details<br/>
+    <input type="radio" disabled="disabled">Let me continue editing this tree<br/>
+</div>
+<input type="radio" checked="true">I'm done!<br/>
+
+
+<div>
+    &nbsp;<br/>
+    <a href="javascript:;" class="btn saveBtn">Add This Tree</a>
+    <a href="javascript:;" class="btn cancelBtn">Cancel</a>
+</div>
