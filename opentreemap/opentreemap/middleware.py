@@ -36,6 +36,14 @@ class InternetExplorerRedirectMiddleware:
                            'not found in settings.')
             return None
 
+        if 'HTTP_USER_AGENT' not in request.META:
+            logger.warning('The request did not include an HTTP_USER_AGENT')
+            return None
+
+        if 'PATH_INFO' not in request.META:
+            logger.warning('The request did not include PATH_INFO')
+            return None
+
         request.ie_version = self._parse_major_ie_version_from_user_agent(
             request.META['HTTP_USER_AGENT'])
         if request.ie_version is not None:
