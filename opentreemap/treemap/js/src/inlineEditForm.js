@@ -43,8 +43,8 @@ exports.init = function(options) {
                 var value = $(el).attr('data-value');
                 var input;
                 if (field) {
-                    input = FH.getField($(editFields), field).find('input');
-                    $(input).val(value);    
+                    input = FH.getField($(editFields), field).find('input,select');
+                    $(input).val(value);
                 }
             });
         },
@@ -54,7 +54,7 @@ exports.init = function(options) {
                 var field = $(el).attr('data-field');
                 var input, value, display;
                 if (field) {
-                    input = FH.getField($(editFields), field).find('input');
+                    input = FH.getField($(editFields), field).find('input,select');
                     value = input.val();
                     display = FH.getField($(displayFields), field);
                     $(display).attr('data-value', value);
