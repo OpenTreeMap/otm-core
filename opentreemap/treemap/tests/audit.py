@@ -508,7 +508,7 @@ class PendingInsertTest(TestCase):
 
         FieldPermission.objects.create(
             model_name='Plot',
-            field_name='times_climbed',
+            field_name='udf:times_climbed',
             permission_level=FieldPermission.WRITE_WITH_AUDIT,
             role=self.pending_user.get_instance_user(self.instance).role,
             instance=self.instance)
