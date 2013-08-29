@@ -3,6 +3,7 @@
 var $ = require('jquery'),
     _ = require('underscore'),
     OL = require('OpenLayers'),
+    FH = require('./fieldHelpers'),
     U = require('./utility');
 
 var config,
@@ -90,7 +91,7 @@ function onPointDragged(feature) {
 function addTree() {
     // User hit "Add Tree".
     $validationFields.hide();
-    var data = formToDictionary();
+    var data = FH.formToDictionary($form, $editFields);
     data['plot.geom'] = {
         x: pointFeature.geometry.x,
         y: pointFeature.geometry.y
@@ -106,23 +107,6 @@ function addTree() {
     });
 }
 
-function formToDictionary() {
-    var result = {};
-    _.each($form.serializeArray(), function(item) {
-        var type = getField($editFields, item.name).data('type');
-        if (item.value == '' && (type == 'int' || type == 'float')) {
-            // omit blank numbers
-        } else {
-            result[item.name] = item.value;
-        }
-    });
-    return result;
-}
-
-function getField($fields, name) {
-    return $fields.filter('[data-field="' + name + '"]');
-}
-
 function onAddTreeSuccess(result) {
     // Tree was saved. Clean up and invoke callbacks.
     // TODO: Obey "After I add this tree" choice
@@ -135,7 +119,7 @@ function onAddTreeError(jqXHR, textStatus, errorThrown) {
     // Tree wasn't saved. Show validation errors.
     var errorDict = jqXHR.responseJSON.validationErrors;
     _.each(errorDict, function (errorList, fieldName) {
-        getField($validationFields, fieldName)
+        FH.getField($validationFields, fieldName)
             .html(errorList.join(','))
             .css('display', 'inline-block');
     });
