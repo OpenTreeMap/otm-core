@@ -84,7 +84,7 @@ exports.init = function(options) {
         }, 
 
         responseStream = saveStream
-            .map(function () { FH.formToDictionary($(form), $(editFields)); })
+            .map(FH.formToDictionary, $(form), $(editFields))
             .flatMap(update)
             .mapError(function (e) {
                 return e.responseJSON;
