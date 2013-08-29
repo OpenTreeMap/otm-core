@@ -27,6 +27,7 @@ from treemap.audit import Audit
 from treemap.models import (Plot, Tree, User, Species, Instance,
                             BenefitCurrencyConversion)
 
+from ecobenefits.models import ITreeRegion
 from ecobenefits.views import _benefits_for_trees
 
 from opentreemap.util import json_from_request
@@ -146,7 +147,9 @@ def plot_detail(request, instance, plot_id):
     if has_tree_diameter and has_tree_species_with_code:
         try:
             eco_tree = {'species__itree_code': tree.species.itree_code,
-                        'diameter': tree.diameter}
+                        'diameter': tree.diameter,
+                        'itree_region_code': ITreeRegion.objects.get(
+                            geometry__contains=plot.geom).code}
             context = _tree_benefits_helper([eco_tree], 1, 1, instance)
         except Exception:
             pass
@@ -466,7 +469,7 @@ def _execute_filter(instance, filter_str):
     return create_filter(filter_str).filter(instance=instance)
 
 
-def search_tree_benefits(request, instance, region='PiedmtCLT'):
+def search_tree_benefits(request, instance):
     # locale.format does not insert grouping chars unless
     # the locale is set
     locale.setlocale(locale.LC_ALL, '')
@@ -484,15 +487,23 @@ def search_tree_benefits(request, instance, region='PiedmtCLT'):
 
     trees_for_eco = trees.exclude(species__itree_code__isnull=True)\
                          .exclude(diameter__isnull=True)\
-                         .values('diameter', 'species__itree_code')
+                         .extra(select={'itree_region_code':
+                                        'ecobenefits_itreeregion.code'},
+                                where=['ST_Contains('
+                                       'ecobenefits_itreeregion.geometry, '
+                                       'treemap_plot.the_geom_webmercator)'],
+                                tables=['ecobenefits_itreeregion'])\
+                         .values('diameter',
+                                 'species__itree_code',
+                                 'itree_region_code',
+                                 'plot__geom')
 
     return _tree_benefits_helper(trees_for_eco, total_plots, total_trees,
-                                 instance, region)
+                                 instance)
 
 
-def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance,
-                          region='PiedmtCLT'):
-    benefits, num_calculated_trees = _benefits_for_trees(trees_for_eco, region)
+def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
+    benefits, num_calculated_trees = _benefits_for_trees(trees_for_eco)
 
     percent = 0
     if num_calculated_trees > 0 and total_trees > 0:

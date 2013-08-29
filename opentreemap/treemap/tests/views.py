@@ -12,7 +12,9 @@ from django.core.exceptions import ValidationError
 from django.db import connection
 
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, MultiPolygon
+
+from ecobenefits.models import ITreeRegion
 
 from treemap.udf import UserDefinedFieldDefinition
 
@@ -319,6 +321,60 @@ class PlotViewTest(ViewTestCase):
         self.user = make_commander_user(self.instance)
 
         self.p = Point(-7615441.0, 5953519.0)
+
+        ITreeRegion.objects.create(
+            code='PiedmtCLT',
+            geometry=MultiPolygon((self.p.buffer(10),)))
+
+    def test_eco_benefits_change_based_on_zone(self):
+        p1 = Point(5000, 5000)
+        p1b = Point(5001, 5001)
+        p2 = Point(-5000, -5000)
+        m1 = MultiPolygon([p1.buffer(50)])
+        m2 = MultiPolygon([p2.buffer(50)])
+
+        s = Species.objects.create(
+            symbol='BDM OTHER',
+            common_name='other',
+            itree_code='BDM OTHER')
+
+        ITreeRegion.objects.all().delete()
+        ITreeRegion.objects.create(code='NoEastXXX', geometry=m1)
+        ITreeRegion.objects.create(code='PiedmtCLT', geometry=m2)
+
+        plot1 = Plot(instance=self.instance, geom=p1)
+        plot1.save_with_user(self.user)
+        tree1 = Tree(plot=plot1,
+                     instance=plot1.instance,
+                     diameter=20.0,
+                     species=s)
+
+        tree1.save_with_user(self.user)
+
+        def get_benefits_from_request():
+            details = plot_detail(make_request(user=self.user),
+                                  self.instance,
+                                  plot1.pk)
+
+            self.assertIn('benefits', details)
+            self.assertTrue(len(details['benefits']) > 2)
+            return details['benefits']
+
+        benefits1 = get_benefits_from_request()
+
+        plot1.geom = p2
+        plot1.save_with_user(self.user)
+
+        benefits2 = get_benefits_from_request()
+
+        self.assertNotEqual(benefits1, benefits2)
+
+        plot1.geom = p1b
+        plot1.save_with_user(self.user)
+
+        benefits3 = get_benefits_from_request()
+
+        self.assertEqual(benefits1, benefits3)
 
     def test_simple_audit_history(self):
         plot = Plot(instance=self.instance, geom=self.p)
@@ -754,8 +810,12 @@ class SearchTreeBenefitsTests(ViewTestCase):
         super(SearchTreeBenefitsTests, self).setUp()
         self.instance = make_instance()
         self.commander = make_commander_user(self.instance)
-
         self.p1 = Point(-7615441.0, 5953519.0)
+
+        ITreeRegion.objects.create(
+            code='PiedmtCLT',
+            geometry=MultiPolygon((self.p1.buffer(10),)))
+
         self.species_good = Species(itree_code='CEM OTHER')
         self.species_good.save()
         self.species_bad = Species()
