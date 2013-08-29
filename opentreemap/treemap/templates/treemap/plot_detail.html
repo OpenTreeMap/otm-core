@@ -61,7 +61,8 @@
           {% endusercanread %}
           {% with tree=plot.current_tree %}
           {% if tree %}
-            {% field from "tree.species" for request.user withtemplate "treemap/species_field.html" %}
+            {# The "plot-species" label is used as an id prefix in "species_field.html" #}
+            {% field "plot-species" from "tree.species" for request.user withtemplate "treemap/species_field.html" %}
             {% trans "Trunk Diameter" as diameter %}
             {% field diameter from "tree.diameter" for request.user withtemplate "treemap/plot_field.html" %}
             {% trans "Tree Height" as height %}
@@ -140,19 +141,27 @@
 {% endblock content %}
 {% block scripts %}
 <script>
-(function(require) {
-    require('plot').init({
-        inlineEditForm: {
-            updateUrl: window.location.href,
-            form: '#plot-form',
-            edit: '#edit-plot',
-            save: '#save-edit-plot',
-            cancel: '#cancel-edit-plot',
-            displayFields: '[data-class="display"]',
-            editFields: '[data-class="edit"]',
-            validationFields: '[data-class="error"]'
-        }
-    });
-})(require);
+(function(require, config) {
+      require('plot').init({
+          inlineEditForm: {
+              updateUrl: window.location.href,
+              form: '#plot-form',
+              edit: '#edit-plot',
+              save: '#save-edit-plot',
+              cancel: '#cancel-edit-plot',
+              displayFields: '[data-class="display"]',
+              editFields: '[data-class="edit"]',
+              validationFields: '[data-class="error"]'
+          },
+          typeaheads: [{
+              name: "species",
+              url: "/" + config.instance.id + "/species",
+              input: "#plot-species-typeahead",
+              template: "#species-element-template",
+              hidden: "#plot-species-hidden",
+              reverse: "id"
+          }]
+      });
+})(require, otm.settings);
 </script>
 {% endblock scripts %}
