@@ -4,6 +4,8 @@ from __future__ import division
 
 from django.conf.urls import patterns, url
 
+from opentreemap.util import route
+
 from treemap.views import (boundary_to_geojson_view, index_view, map_view,
                            plot_detail_view, instance_settings_js_view,
                            audits_view, search_tree_benefits_view,
@@ -30,7 +32,7 @@ urlpatterns = patterns(
     url(r'^plots/(?P<plot_id>\d+)/detail$', plot_accordian_view,
         name='plot_accordian'),
     url(r'^plots/(?P<plot_id>\d+)/popup$', plot_popup_view),
-    url(r'^plots/add/$', add_plot_view),
+    url(r'^plots/$', route(POST=add_plot_view)),
     url(r'^config/settings.js$', instance_settings_js_view),
     url(r'^benefit/search$', search_tree_benefits_view),
     url(r'^users/(?P<username>\w+)/?$', instance_user_view),

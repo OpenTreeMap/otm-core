@@ -37,10 +37,10 @@ function init(options) {
     pointControl = new OL.Control.DrawFeature(
         vectorLayer,
         OL.Handler.Point,
-        { 'featureAdded': onPointAdded });
+        { 'featureAdded': onMarkerPlaced });
 
     dragControl = new OL.Control.DragFeature(vectorLayer);
-    dragControl.onDrag = onPointDragged;
+    dragControl.onDrag = onMarkerMoved;
 
     map.addLayer(vectorLayer);
     map.addControl(pointControl);
@@ -59,6 +59,26 @@ function init(options) {
     $validationFields.hide();
 }
 
+// Adding a tree uses a state machine with these states and transitions:
+//
+// Inactive:
+//     activate() -> CanPlaceMarker
+//
+// CanPlaceMarker:
+//     onMarkerPlaced() -> CanMoveMarker
+//     cancel() -> Inactive
+//     deactivate() -> Inactive
+//
+// CanMoveMarker:
+//     onMarkerMoved() -> CanAddTree
+//     cancel() -> Inactive
+//     deactivate() -> Inactive
+//
+// CanAddTree:
+//     onAddTreeSuccess() -> Inactive
+//     cancel() -> Inactive
+//     deactivate() -> Inactive
+
 function activate() {
     // Let user start creating a tree (by clicking the map)
     vectorLayer.display(true);
@@ -68,14 +88,14 @@ function activate() {
     userHasMovedTree = false;
 }
 
-function onPointAdded(feature) {
+function onMarkerPlaced(feature) {
     // User clicked the map. Let them drag the tree position.
     pointFeature = feature;
     pointControl.deactivate();
     dragControl.activate();
 }
 
-function onPointDragged(feature) {
+function onMarkerMoved(feature) {
     // User moved the tree location. Remember feature.
     if (!userHasMovedTree) {
         // This is the first move. Let them edit fields.
@@ -98,7 +118,7 @@ function addTree() {
     };
 
     $.ajax({
-        url: '/' + config.instance.id + '/plots/add/',
+        url: '/' + config.instance.id + '/plots/',
         type: 'POST',
         contentType: "application/json",
         data: JSON.stringify(data),
