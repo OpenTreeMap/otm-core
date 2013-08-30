@@ -6,6 +6,7 @@ import psycopg2
 import json
 
 from django.test import TestCase
+from django.test.client import RequestFactory
 from django.core.exceptions import (FieldError, ValidationError,
                                     ObjectDoesNotExist)
 from django.db import IntegrityError, connection
@@ -14,7 +15,7 @@ from django.contrib.gis.geos import Point
 from treemap.models import (Tree, Plot, Species, FieldPermission,
                             User, InstanceUser)
 
-from treemap.audit import (Audit, UserTrackingException,
+from treemap.audit import (Audit, Role, UserTrackingException,
                            AuthorizeException, ReputationMetric,
                            approve_or_reject_audits_and_apply,
                            approve_or_reject_audit_and_apply,
@@ -828,3 +829,31 @@ class UserRoleFieldPermissionTest(TestCase):
 
         self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).canopy_height,
                             110)
+
+
+class FieldPermMgmtTest(TestCase):
+    def setUp(self):
+        self.instance = make_instance()
+        self.commander = make_commander_user(self.instance)
+
+        self.new_role = Role(name='Ambassador', instance=self.instance,
+                             rep_thresh=0)
+        self.new_role.save()
+
+        self.factory = RequestFactory()
+
+    def assertInvalidFPRaises(self, **kwargs):
+        fp = FieldPermission(**kwargs)
+        fp.role = self.instance.default_role
+        fp.instance = self.instance
+        self.assertRaises(ValidationError, fp.save)
+
+    def test_invalid_model_does_not_exist_unit(self):
+        self.assertInvalidFPRaises(model_name='Gethen', field_name='readonly')
+
+    def test_invalid_model_does_not_authorizable_unit(self):
+        self.assertInvalidFPRaises(model_name='FieldPermission',
+                                   field_name='role')
+
+    def test_invalid_field_name_unit(self):
+        self.assertInvalidFPRaises(model_name='Tree', field_name='model_name')

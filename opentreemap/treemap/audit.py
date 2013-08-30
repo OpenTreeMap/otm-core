@@ -451,10 +451,21 @@ class FieldPermission(models.Model):
             cls = _lookup_model(self.model_name)
             cls._meta.get_field_by_name(self.field_name)
             assert issubclass(cls, Authorizable)
-        except (FieldDoesNotExist, AssertionError, AttributeError):
-            raise ValidationError("%s.%s is not a valid "
-                                  "model/field combination"
-                                  % (self.model_name, self.field_name))
+        except AttributeError as e:
+            raise ValidationError("%s: Model '%s' does not exist." %
+                                 (e.__class__.__name__,
+                                  self.model_name))
+        except FieldDoesNotExist as e:
+            raise ValidationError("%s: Model '%s' does not have field '%s'"
+                                  % (e.__class__.__name__,
+                                     self.model_name,
+                                     self.field_name))
+        except AssertionError as e:
+            raise ValidationError("%s: '%s' is not an Authorizable model. "
+                                  "FieldPermissions can only be set "
+                                  "on Authorizable models." %
+                                  (e.__class__.__name__,
+                                   self.model_name))
 
     def save(self, *args, **kwargs):
         self.full_clean()
