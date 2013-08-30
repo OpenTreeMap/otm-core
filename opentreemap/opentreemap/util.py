@@ -4,10 +4,10 @@ import json
 
 def route(**kwargs):
     @csrf_exempt
-    def routed(request, **kwargs2):
+    def routed(request, *args2, **kwargs2):
         method = request.method
         req_method = kwargs[method]
-        return req_method(request, **kwargs2)
+        return req_method(request, *args2, **kwargs2)
     return routed
 
 
