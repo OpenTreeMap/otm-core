@@ -9,18 +9,16 @@ var $ = require('jquery'),
 // This module augments the OpenLayers global so we don't need `var thing =`
 require('./openLayersUtfGridEventStream');
 
-var config,
-    map,
-    inMyMode,               // function telling if my mode is active
-    $sidebar;
+// Module-level config set in `init` and read by helper functions
+var config;               
 
 function init(options) {
     config = options.config;
-    map = options.map;
-    inMyMode = options.inMyMode;
-    $sidebar = options.$sidebar;
-    
-    var $accordionSection = $sidebar.find("#treeDetails");
+
+    var map = options.map;
+    var inMyMode = options.inMyMode; // function telling if my mode is active
+    var $sidebar = options.$sidebar;
+    var $accordionSection = options.$treeDetailAccordionSection;
     var utfGridMoveControl = new OL.Control.UTFGrid();
 
     utfGridMoveControl
@@ -29,7 +27,7 @@ function init(options) {
         .map(function (o) { return JSON.stringify(o || {}); })
         .assign($('#attrs'), 'html');
 
-    // The control must be added to the map after setting up the
+    // The utfGridMoveControl must be added to the map after setting up the
     // event stream
     map.addControl(utfGridMoveControl);
 
@@ -47,10 +45,12 @@ function init(options) {
                                                 getPlotAccordionContent, 
                                                 '');
 
-    // The control must be added to the map after setting up the
+    // The utfGridClickControl must be added to the map after setting up the
     // event streams
     map.addControl(utfGridClickControl);
 
+    // A closure is used here to keep a reference to any currently
+    // displayed popup so it can be removed
     var showPlotDetailPopup = (function(map) {
         var existingPopup;
         return function(popup) {
@@ -63,16 +63,13 @@ function init(options) {
     // OpenLayers needs both the content and a coordinate to
     // show a popup, so zip map clicks together with content
     // requested via ajax
-    var clickedLatLonStream =
-        map.asEventStream('click')
-            .filter(inMyMode)
-            .map(function (e) {
-                return map.getLonLatFromPixel(e.xy);
-            });
-
-    clickedLatLonStream
-        .zip(popupHtmlStream, makePopup) // TODO: size is not being sent to makePopup
-        .onValue(showPlotDetailPopup);
+    map.asEventStream('click')
+       .filter(inMyMode)
+       .map(function (e) {
+            return map.getLonLatFromPixel(e.xy);
+        })
+       .zip(popupHtmlStream, makePopup) // TODO: size is not being sent to makePopup
+       .onValue(showPlotDetailPopup);
 
     accordionHtmlStream.toProperty('').assign($('#plot-accordion'), "html");
 

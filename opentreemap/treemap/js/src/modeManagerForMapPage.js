@@ -11,9 +11,10 @@ var U = require('./utility'),
     editTreeDetailsMode = require('./editTreeDetailsMode'),
     currentMode;
 
-var $sidebarBrowseTrees     = U.$find('#sidebar-browse-trees'),
-    $sidebarAddTree         = U.$find('#sidebar-add-tree'),
-    $sidebarEditTreeDetails = U.$find('#sidebar-edit-tree-details');
+var $sidebarBrowseTrees         = U.$find('#sidebar-browse-trees'),
+    $treeDetailAccordionSection = U.$find('#tree-detail'),
+    $sidebarAddTree             = U.$find('#sidebar-add-tree'),
+    $sidebarEditTreeDetails     = U.$find('#sidebar-edit-tree-details');
 
 function activateMode(mode, $sidebar) {
     if (mode !== currentMode) {
@@ -42,7 +43,8 @@ function init(config, map, onPlotAddOrUpdate) {
         config: config,
         map: map,
         inMyMode: inBrowseTreesMode,
-        $sidebar: $sidebarBrowseTrees
+        $sidebar: $sidebarBrowseTrees,
+        $treeDetailAccordionSection: $treeDetailAccordionSection
     });
 
     addTreeMode.init({
