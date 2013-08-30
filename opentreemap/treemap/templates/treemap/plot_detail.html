@@ -42,109 +42,64 @@
     <h1>{{ plot.current_tree.species.common_name }}</h1>
     <h2>{{ plot.current_tree.species.scientific_name }}</h2>
     <h3>{{ plot.address_full }}</h3>
+    <form id="plot-form">
+      <a href="javascript:;" id="edit-plot"
+         data-class="display" class="btn">{% trans "Edit" %}</a>
+      <a href="javascript:;" id="save-edit-plot"
+         data-class="edit" class="btn" style="display: none;">{% trans "Save" %}</a>
+      <a href="javascript:;" id="cancel-edit-plot"
+         data-class="edit" class="btn" style="display: none;">{% trans "Cancel" %}</a>
+      <!-- General Tree Information -->
+      <table class="table table-striped">
+        <h5>{% trans "General Tree Information" %}</h5>
+        <tbody>
+          {% usercanread plot.current_tree "id" as value %}
+          <tr>
+            <td>{% trans "Tree Number" %}</td>
+            <td>{{ value }}</td>
+          </tr>
+          {% endusercanread %}
+          {% with tree=plot.current_tree %}
+          {% if tree %}
+            {# The "plot-species" label is used as an id prefix in "species_field.html" #}
+            {% field "plot-species" from "tree.species" for request.user withtemplate "treemap/species_field.html" %}
+            {% trans "Trunk Diameter" as diameter %}
+            {% field diameter from "tree.diameter" for request.user withtemplate "treemap/plot_field.html" %}
+            {% trans "Tree Height" as height %}
+            {% field height from "tree.height" for request.user withtemplate "treemap/plot_field.html" %}
+            {% trans "Canopy Height" as canopy %}
+            {% field canopy from "tree.canopy_height" for request.user withtemplate "treemap/plot_field.html" %}
+            {% for label, udf in tree.udf_names_and_fields %}
+              {% field label from udf withtemplate "treemap/plot_field.html" %}
+            {% endfor %}
+          {% endif %}
+          {% endwith %}
+        </tbody>
+      </table>
+      <hr>
 
-    <!-- General Tree Information -->
-    <table class="table table-striped">
-      <h5>{% trans "General Tree Information" %}</h5>
-      <tbody>
-        {% usercanread plot.current_tree "id" as value %}
-        <tr>
-          <td>{% trans "Tree Number" %}</td>
-          <td>{{ value }}</td>
-        </tr>
-        {% endusercanread %}
-        {% if tree %}
-        {% with tree=plot.current_tree %}
-          {% field from "tree.species" for request.user withtemplate "treemap/species_field.html" %}
-        {% endwith %}
-        {% endif %}
-        {% usercanread plot.current_tree "diameter" as diameter %}
-        <tr>
-          <td>{% trans "Trunk Diameter" %}</td>
-          <td>{{ diameter|floatformat }}</td>
-        </tr>
-        {% endusercanread %}
-        {% usercanread plot.current_tree "height" as height %}
-        <tr>
-          <td>{% trans "Tree Height" %}</td>
-          <td>{{ height }}</td>
-        </tr>
-        {% endusercanread %}
-        {% usercanread plot.current_tree "canopy_height" as canopy_height %}
-        <tr>
-          <td>{% trans "Canopy Height" %}</td>
-          <td>{{ canopy_height }}</td>
-        </tr>
-        {% endusercanread %}
-        {% for udf_field in plot.current_tree.udf_field_names %}
-        {% usercanread plot.current_tree udf_field as udf_value %}
-        <tr>
-          <td>{{ udf_field }}</td>
-          <td>{{ udf_value }}</td>
-        </tr>
-        {% endusercanread %}
-        {% endfor %}
-      </tbody>
-    </table>
-    <hr>
-
-    <table class="table table-striped">
-      <h5>{% trans "General Plot Information" %}</h5>
-      <tbody>
-        {% usercanread plot "width" as width %}
-        <tr>
-          <td>{% trans "Width" %}</td>
-          <td>{{ width }}</td>
-        </tr>
-        {% endusercanread %}
-        {% usercanread plot "length" as length %}
-        <tr>
-          <td>{% trans "Length" %}</td>
-          <td>{{ length }}</td>
-        </tr>
-        {% endusercanread %}
-        {% usercanread plot "address_street" as addr %}
-        <tr>
-          <td>{% trans "Adresss" %}</td>
-          <td>{{ addr }}</td>
-        </tr>
-        {% endusercanread %}
-        {% usercanread plot "city" as city %}
-        <tr>
-          <td>{% trans "City" %}</td>
-          <td>{{ city }}</td>
-        </tr>
-        {% endusercanread %}
-        {% usercanread plot "zip" as zip %}
-        <tr>
-          <td>{% trans "Zip Code" %}</td>
-          <td>{{ zip }}</td>
-        </tr>
-        {% endusercanread %}
-        {% usercanread plot "owner_orig_id" as oid %}
-        <tr>
-          <td>{% trans "Original Owner Id" %}</td>
-          <td>{{ oid }}</td>
-        </tr>
-        {% endusercanread %}
-        {% usercanread plot "readonly" as ro %}
-        <tr>
-          <td>{% trans "Read Only" %}</td>
-          <td>{{ ro }}</td>
-        </tr>
-        {% endusercanread %}
-        {% for udf_field in plot.udf_field_names %}
-        {% with "udf:"|add:udf_field as udf_field_with_prefix %}
-        {% usercanread plot udf_field_with_prefix as udf_value %}
-        <tr>
-          <td>{{ udf_field }}</td>
-          <td>{{ udf_value }}</td>
-        </tr>
-        {% endusercanread %}
-        {% endwith %}
-        {% endfor %}
-      </tbody>
-    </table>
+      <table class="table table-striped">
+        <h5>{% trans "General Plot Information" %}</h5>
+        <tbody>
+          {% trans "Width" as width %}
+          {% field width from "plot.width" for request.user withtemplate "treemap/plot_field.html" %}
+          {% trans "Length" as len %}
+          {% field len from "plot.length" for request.user withtemplate "treemap/plot_field.html" %}
+          {% trans "Address" as street %}
+          {% field street from "plot.address_street" for request.user withtemplate "treemap/plot_field.html" %}
+          {% trans "City" as city %}
+          {% field city from "plot.address_city" for request.user withtemplate "treemap/plot_field.html" %}
+          {% trans "Postal Code" as zip %}
+          {% field zip from "plot.address_zip" for request.user withtemplate "treemap/plot_field.html" %}
+          {% trans "Original Owner Id" as oid %}
+          {% field oid from "plot.owner_orig_id" for request.user withtemplate "treemap/plot_field.html" %}
+          {# {% field "Read Only" from "plot.readonly" for request.user withtemplate "treemap/plot_field.html" %} #}
+          {% for label, udf in plot.udf_names_and_fields %}
+            {% field label from udf withtemplate "treemap/plot_field.html" %}
+          {% endfor %}
+        </tbody>
+      </table>
+    <form>
     <hr>
 
     <!-- Yearly Ecosystem Services -->
@@ -184,3 +139,29 @@
 
 </div>
 {% endblock content %}
+{% block scripts %}
+<script>
+(function(require, config) {
+      require('plot').init({
+          inlineEditForm: {
+              updateUrl: window.location.href,
+              form: '#plot-form',
+              edit: '#edit-plot',
+              save: '#save-edit-plot',
+              cancel: '#cancel-edit-plot',
+              displayFields: '[data-class="display"]',
+              editFields: '[data-class="edit"]',
+              validationFields: '[data-class="error"]'
+          },
+          typeaheads: [{
+              name: "species",
+              url: "/" + config.instance.id + "/species",
+              input: "#plot-species-typeahead",
+              template: "#species-element-template",
+              hidden: "#plot-species-hidden",
+              reverse: "id"
+          }]
+      });
+})(require, otm.settings);
+</script>
+{% endblock scripts %}

@@ -1,38 +1,37 @@
 {% load i18n %}
 {% if field.is_visible %}
-  <tr>
+  <tr data-class="display">
     <td>{% trans "Common Name" %}</td>
-    <td>{{ field.value.common_name }}</td>
+    <td data-typeahead="{{ field.identifier }}"
+        data-datum="common_name">{{ field.value.common_name }}</td>
   </tr>
-  <tr>
+  <tr data-class="display">
     <td>{% trans "Scientific Name" %}</td>
-    <td class="chunk-content"
-        data-field="{{ field.identifier }}"
-        data-class="display"
-        data-value="{{ field.value.id }}">
-        <em>{{ field.value.scientific_name }}</em>
+    <td>
+      <input type="hidden"
+             value="{{ field.value.id }}"
+             data-typeahead-restore="{{ field.identifier}}"
+             data-datum="id" />
+      <em data-typeahead="{{ field.identifier }}"
+          data-datum="scientific_name">{{ field.value.scientific_name }}</em>
     </td>
   </tr>
   {% if field.is_editable %}
   <tr style="display: none;"
-      data-class="edit"
-      data-field="{{ field.identifier }}"
-      data-value="{{ field.value.id }}">
+      data-class="edit">
     <td>{% trans "Species" %}</td>
     <td>
-      <input type="text"
-            {% if field.label %}
-             id="{{ field.label }}-typeahead"
-            {% endif %}
-             value="{{ field.value.display_name }}"/>
       <input type="hidden"
-            {% if field.label %}
+             data-typeahead-hidden
              id="{{ field.label }}-hidden"
-            {% endif %}
              name="{{ field.identifier }}"
              value="{{ field.value.id }}"/>
+      <input type="text"
+             data-typeahead-input="{{ field.identifier }}"
+             id="{{ field.label }}-typeahead"
+             value="{{ field.value.display_name }}"/>
     </td>
-    <td class="chunk-content text-error"
+    <td class="text-error"
         data-field="{{ field.identifier }}"
         data-class="error">
     </td>

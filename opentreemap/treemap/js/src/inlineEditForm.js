@@ -4,6 +4,7 @@ var $ = require('jquery');
 var Bacon = require('baconjs');
 var _ = require('underscore');
 var FH = require('./fieldHelpers');
+var getDatum = require('./otmTypeahead').getDatum;
 
 // Requiring this module handles wiring up the browserified
 // baconjs to jQuery
@@ -25,26 +26,53 @@ exports.init = function(options) {
         actionStream = new Bacon.Bus(),
 
         actionToCssDisplay = function(actions, action) {
-            return _.contains(actions, action) ? 'inline-block' : 'none';
+            return _.contains(actions, action) ? '' : 'none';
         },
 
-        actionToEditFieldCssDisplay = _.partial(actionToCssDisplay, 
+        actionToEditFieldCssDisplay = _.partial(actionToCssDisplay,
             ['edit:start', 'save:start', 'save:error']),
 
-        actionToDisplayFieldCssDisplay = _.partial(actionToCssDisplay, 
+        actionToDisplayFieldCssDisplay = _.partial(actionToCssDisplay,
             ['idle', 'save:ok', 'cancel']),
 
-        actionToValidationErrorCssDisplay = _.partial(actionToCssDisplay, 
+        actionToValidationErrorCssDisplay = _.partial(actionToCssDisplay,
             ['save:error']),
 
+        displayValuesToTypeahead = function() {
+            $('[data-typeahead-restore]').each(function(index, el) {
+                var field = $(el).attr('data-typeahead-restore');
+                if (field) {
+                    $('input[name="' + field + '"]').trigger('restore', $(el).val());
+                }
+            });
+        },
+
         displayValuesToFormFields = function() {
-            $(displayFields).each(function(index, el){
+            $(displayFields).each(function(index, el) {
                 var field = $(el).attr('data-field');
                 var value = $(el).attr('data-value');
                 var input;
                 if (field) {
-                    input = FH.getField($(editFields), field).find('input');
-                    $(input).val(value);    
+                    input = FH.getField($(editFields), field)
+                                .find('input,select')
+                                .first();
+                    $(input).val(value);
+                }
+            });
+            displayValuesToTypeahead();
+        },
+
+        typeaheadToDisplayValues = function() {
+            $('[data-typeahead-input]').each(function(index, el) {
+                var datum = getDatum($(el)),
+                    field = $(el).attr('data-typeahead-input');
+                if (typeof datum != "undefined") {
+                    $('[data-typeahead-restore="' + field + '"]').each(function(index, el) {
+                        $(el).val(datum[$(el).attr('data-datum')]);
+                    });
+                    $('[data-typeahead="' + field + '"]').each(function(index, el) {
+                        $(el).html(datum[$(el).attr('data-datum')]);
+                    });
                 }
             });
         },
@@ -53,14 +81,17 @@ exports.init = function(options) {
             $(editFields).each(function(index, el){
                 var field = $(el).attr('data-field');
                 var input, value, display;
-                if (field) {
-                    input = FH.getField($(editFields), field).find('input');
+                if ($(el).is('[data-field]')) {
+                    input = FH.getField($(editFields), field)
+                        .find('input,select')
+                        .first();
                     value = input.val();
                     display = FH.getField($(displayFields), field);
                     $(display).attr('data-value', value);
                     $(display).html(value);
                 }
             });
+            typeaheadToDisplayValues();
         },
 
         update = function(data) {
@@ -81,7 +112,7 @@ exports.init = function(options) {
 
         isEditStart = function (action) {
             return action === 'edit:start';
-        }, 
+        },
 
         responseStream = saveStream
             .map(FH.formToDictionary, $(form), $(editFields))
@@ -117,7 +148,7 @@ exports.init = function(options) {
     actionStream.filter(isEditStart).onValue(displayValuesToFormFields);
 
     actionStream.map(actionToDisplayFieldCssDisplay)
-                .toProperty('inline-block')
+                .toProperty('')
                 .assign($(displayFields), "css", "display");
 
     actionStream.map(actionToEditFieldCssDisplay)

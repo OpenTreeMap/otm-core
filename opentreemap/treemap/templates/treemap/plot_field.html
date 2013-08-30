@@ -1,0 +1,36 @@
+{% if field.is_visible %}
+  <tr>
+    <td>{{ field.label }}</td>
+    <td data-field="{{ field.identifier }}"
+        data-class="display"
+        data-value="{{ field.value|default_if_none:"" }}">
+        {{ field.display_value|default_if_none:"" }}
+    </td>
+    {% if field.is_editable %}
+      <td data-field="{{ field.identifier }}"
+          data-class="edit"
+          data-value="{{ field.value|default_if_none:"" }}"
+          style="display: none;">
+      {% if field.data_type == 'choice' %}
+        <select name="{{ field.identifier }}"
+                value="{{ field.value|default_if_none:"" }}"
+                style="display: none;" />
+            {% for option in field.options %}
+                <option value="{{ option }}">
+                    {{option}}
+                </option>
+            {% endfor %}
+        </select>
+      {% else %}
+        <input name="{{ field.identifier }}"
+               type="text"
+               value="{{ field.value|default_if_none:"" }}"/>
+      {% endif %}
+      </td>
+      <td data-field="{{ field.identifier }}"
+          data-class="error"
+          style="display:none;">
+      </td>
+    {% endif %}
+  </tr>
+{% endif %}

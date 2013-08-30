@@ -1,4 +1,5 @@
 import os
+import json
 
 from django.contrib.gis.geos.point import Point
 from django.test import TestCase
@@ -11,23 +12,28 @@ from opentreemap.local_settings import STATIC_ROOT
 
 class UrlTestCase(TestCase):
 
-    def assert_status_code(self, url, code):
-        response = self.client.get(url)
+    def assert_status_code(self, url, code, method='GET', data=''):
+        client = {
+            'GET': self.client.get,
+            'PUT': self.client.put,
+            'POST': self.client.post
+        }
+        response = client[method](url, data)
         self.assertEqual(response.status_code, code,
                          "Actual code [%s] Expected code [%s]"
                          % (response.status_code, code))
         return response
 
-    def assert_200(self, url):
-        return self.assert_status_code(url, 200)
+    def assert_200(self, url, method='GET', data=''):
+        return self.assert_status_code(url, 200, method, data)
 
     def assert_template(self, url, template_path):
         response = self.assert_status_code(url, 200)
         self.assertTemplateUsed(response, template_path)
         return response
 
-    def assert_404(self, url):
-        return self.assert_status_code(url, 404)
+    def assert_404(self, url, method='GET', data=''):
+        return self.assert_status_code(url, 404, method, data)
 
     def assert_redirects(self, url, expected_url, status_code=302):
         response = self.client.get(url)
@@ -138,7 +144,18 @@ class TreemapUrlTests(UrlTestCase):
             self.prefix + 'plots/%s/' % plot.id, 'treemap/plot_detail.html')
 
     def test_plot_detail_invalid(self):
-        self.assert_404(self.prefix + 'map/999/')
+        self.assert_404(self.prefix + 'plots/999/')
+
+    def test_plot_detail_update(self):
+        plot = self.make_plot()
+        self.client.login(username='commander', password='password')
+        self.assert_200(
+            self.prefix + 'plots/%s/' % plot.id, 'PUT',
+            json.dumps({"plot.length": "1"}))
+
+    def test_plot_detail_update_invalid(self):
+        self.assert_404(self.prefix + 'plots/999/', 'PUT',
+                        json.dumps({"plot.length": "1"}))
 
     def test_plot_popup(self):
         plot = self.make_plot()

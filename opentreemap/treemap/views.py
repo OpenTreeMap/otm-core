@@ -173,6 +173,18 @@ def add_plot(request, instance):
             ve.message_dict)
 
 
+def update_plot_detail(request, instance, plot_id):
+    try:
+        InstancePlot = instance.scope_model(Plot)
+        plot = get_object_or_404(InstancePlot, pk=plot_id)
+        update_plot_and_tree(request, plot)
+        return {'ok': True}
+    except ValidationError as ve:
+        return _bad_request_json_response(
+            'One or more of the specified values are invalid.',
+            ve.message_dict)
+
+
 @transaction.commit_on_success
 def update_plot_and_tree(request, plot):
     """
@@ -237,6 +249,8 @@ def update_plot_and_tree(request, plot):
             # Get the tree or spawn a new one if needed
             tree = tree or get_tree()
             model = tree
+            if field == 'species':
+                value = Species.objects.get(pk=value)
         else:
             raise Exception('Malformed request - invalid model %s' % model)
 
@@ -677,8 +691,10 @@ index_view = instance_request(render_template('treemap/index.html'))
 map_view = instance_request(
     render_template('treemap/map.html', _get_map_view_context))
 
-plot_detail_view = instance_request(etag(_plot_hash)(
+get_plot_detail_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_detail.html', plot_detail)))
+
+update_plot_detail_view = json_api_call(instance_request(update_plot_detail))
 
 plot_popup_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_popup.html', plot_detail)))
