@@ -272,7 +272,7 @@ class FieldTagTests(TestCase):
             name='Test choice')
 
         udf_perm, _ = FieldPermission.objects.get_or_create(
-            model_name='Plot', field_name='Test choice',
+            model_name='Plot', field_name='udf:Test choice',
             permission_level=FieldPermission.READ_ONLY,
             role=self.role, instance=self.instance)
         udf_perm.save()

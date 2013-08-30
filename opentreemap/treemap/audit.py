@@ -10,7 +10,8 @@ from django.utils.translation import ugettext as _
 
 from django.dispatch import receiver
 from django.db.models.signals import post_save
-from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.fields import FieldDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, connection, transaction
 
 import hashlib
@@ -444,6 +445,31 @@ class FieldPermission(models.Model):
             base_name = self.field_name
 
         return base_name.replace('_', ' ').title()
+
+    def clean(self):
+        try:
+            cls = _lookup_model(self.model_name)
+            cls._meta.get_field_by_name(self.field_name)
+            assert issubclass(cls, Authorizable)
+        except AttributeError as e:
+            raise ValidationError("%s: Model '%s' does not exist." %
+                                 (e.__class__.__name__,
+                                  self.model_name))
+        except FieldDoesNotExist as e:
+            raise ValidationError("%s: Model '%s' does not have field '%s'"
+                                  % (e.__class__.__name__,
+                                     self.model_name,
+                                     self.field_name))
+        except AssertionError as e:
+            raise ValidationError("%s: '%s' is not an Authorizable model. "
+                                  "FieldPermissions can only be set "
+                                  "on Authorizable models." %
+                                  (e.__class__.__name__,
+                                   self.model_name))
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(FieldPermission, self).save(*args, **kwargs)
 
 
 class AuthorizeException(Exception):
