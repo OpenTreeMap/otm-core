@@ -515,7 +515,7 @@ class PendingInsertTest(TestCase):
             instance=self.instance)
 
         initial_plot = Plot(geom=self.p1, instance=self.instance)
-        initial_plot.udf_scalar_values['times_climbed'] = '2'
+        initial_plot.udfs['times_climbed'] = '2'
         initial_plot.save_with_user(self.pending_user)
 
         udf_audit = Audit.objects.get(model='Plot', field='udf:times_climbed',
@@ -544,7 +544,7 @@ class PendingInsertTest(TestCase):
         self.assertEqual(new_plot.pk, initial_plot.pk)
         self.assertEqual(new_plot.readonly, False)
         self.assertEqual(new_plot.geom, self.p1)
-        self.assertEqual(new_plot.udf_scalar_values['times_climbed'], '2')
+        self.assertEqual(new_plot.udfs['times_climbed'], '2')
 
     def test_lots_of_trees_and_plots(self):
         """

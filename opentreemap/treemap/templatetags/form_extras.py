@@ -263,7 +263,7 @@ class FieldNode(template.Node):
             if hasattr(model, field_name):
                 val = getattr(model, field_name)
             elif model_has_udfs and field_is_udf:
-                val = model.udf_scalar_values[udf_field_name]
+                val = model.udfs[udf_field_name]
                 try:
                     choices = _udf_dict(model, udf_field_name)['choices']
                 except KeyError:

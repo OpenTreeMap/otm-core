@@ -244,7 +244,7 @@ class PlotUpdateTest(unittest.TestCase):
 
         self.assertEqual(plot.length, 20)
         self.assertEqual(plot.width, 25)
-        self.assertEqual(plot.udf_scalar_values['Test choice'], 'b')
+        self.assertEqual(plot.udfs['Test choice'], 'b')
 
     def test_validates_numeric_fields(self):
         update = json.dumps({'plot.length': 'length'})

@@ -81,7 +81,7 @@ class ScalarUDFFilterTest(TestCase):
             plots = []
             for i in xrange(n):
                 plot = Plot(geom=self.p, instance=self.instance)
-                plot.udf_scalar_values['Test choice'] = c
+                plot.udfs['Test choice'] = c
                 plot.save_with_user(self.commander_user)
                 plots.append(plot)
 
@@ -131,11 +131,11 @@ class ScalarUDFFilterTest(TestCase):
 
     def test_search_suffixes(self):
         plot1 = Plot(geom=self.p, instance=self.instance)
-        plot1.udf_scalar_values['Test string'] = 'this is a test'
+        plot1.udfs['Test string'] = 'this is a test'
         plot1.save_with_user(self.commander_user)
 
         plot2 = Plot(geom=self.p, instance=self.instance)
-        plot2.udf_scalar_values['Test string'] = 'this is aLsO'
+        plot2.udfs['Test string'] = 'this is aLsO'
         plot2.save_with_user(self.commander_user)
 
         def run(sfx, val):
@@ -154,7 +154,7 @@ class ScalarUDFFilterTest(TestCase):
     def _setup_dates(self):
         def create_plot_with_date(adate):
             plot = Plot(geom=self.p, instance=self.instance)
-            plot.udf_scalar_values['Test date'] = adate
+            plot.udfs['Test date'] = adate
             plot.save_with_user(self.commander_user)
             return plot
 
@@ -185,7 +185,7 @@ class ScalarUDFFilterTest(TestCase):
 
         dates.sort()
 
-        selected_dates = [plot.udf_scalar_values['Test date']
+        selected_dates = [plot.udfs['Test date']
                           for plot in plots]
         self.assertEqual(dates, selected_dates)
 
@@ -197,7 +197,7 @@ class ScalarUDFFilterTest(TestCase):
         dates.sort()
         dates.reverse()
 
-        selected_dates = [plot.udf_scalar_values['Test date']
+        selected_dates = [plot.udfs['Test date']
                           for plot in plots]
         self.assertEqual(dates, selected_dates)
 
@@ -214,7 +214,7 @@ class ScalarUDFFilterTest(TestCase):
     def test_integer_gt_and_lte_constraints(self):
         def create_plot_with_num(anint):
             plot = Plot(geom=self.p, instance=self.instance)
-            plot.udf_scalar_values['Test int'] = anint
+            plot.udfs['Test int'] = anint
             plot.save_with_user(self.commander_user)
             return plot
 
@@ -228,7 +228,7 @@ class ScalarUDFFilterTest(TestCase):
     def test_float_gt_and_lte_constraints(self):
         def create_plot_with_num(afloat):
             plot = Plot(geom=self.p, instance=self.instance)
-            plot.udf_scalar_values['Test float'] = afloat
+            plot.udfs['Test float'] = afloat
             plot.save_with_user(self.commander_user)
             return plot
 
@@ -284,7 +284,7 @@ class ScalarUDFAuditTest(TestCase):
         psycopg2.extras.register_hstore(connection.cursor(), globally=True)
 
     def test_update_field_creates_audit(self):
-        self.plot.udf_scalar_values['Test choice'] = 'b'
+        self.plot.udfs['Test choice'] = 'b'
         self.plot.save_with_user(self.commander_user)
 
         last_audit = list(self.plot.audits())[-1]
@@ -295,7 +295,7 @@ class ScalarUDFAuditTest(TestCase):
         self.assertEqual(last_audit.previous_value, None)
         self.assertEqual(last_audit.current_value, 'b')
 
-        self.plot.udf_scalar_values['Test choice'] = 'c'
+        self.plot.udfs['Test choice'] = 'c'
         self.plot.save_with_user(self.commander_user)
 
         last_audit = list(self.plot.audits())[-1]
@@ -307,7 +307,7 @@ class ScalarUDFAuditTest(TestCase):
         self.assertEqual(last_audit.current_value, 'c')
 
     def test_cant_edit_unauthorized_field(self):
-        self.plot.udf_scalar_values['Test unauth'] = 'c'
+        self.plot.udfs['Test unauth'] = 'c'
         self.assertRaises(AuthorizeException,
                           self.plot.save_with_user, self.commander_user)
 
@@ -322,13 +322,13 @@ class ScalarUDFAuditTest(TestCase):
             permission_level=FieldPermission.WRITE_WITH_AUDIT,
             role=role, instance=self.instance)
 
-        self.plot.udf_scalar_values['Test unauth'] = 'c'
+        self.plot.udfs['Test unauth'] = 'c'
         self.plot.save_with_user(self.commander_user)
 
         reloaded_plot = Plot.objects.get(pk=self.plot.pk)
 
         self.assertEqual(
-            reloaded_plot.udf_scalar_values['Test unauth'],
+            reloaded_plot.udfs['Test unauth'],
             None)
 
         pending = self.plot.audits().filter(requires_auth=True)
@@ -345,7 +345,7 @@ class ScalarUDFAuditTest(TestCase):
         reloaded_plot = Plot.objects.get(pk=self.plot.pk)
 
         self.assertEqual(
-            reloaded_plot.udf_scalar_values['Test unauth'],
+            reloaded_plot.udfs['Test unauth'],
             'c')
 
 
@@ -483,13 +483,13 @@ class ScalarUDFTest(TestCase):
         psycopg2.extras.register_hstore(connection.cursor(), globally=True)
 
     def _test_datatype(self, field, value):
-        self.plot.udf_scalar_values[field] = value
+        self.plot.udfs[field] = value
         self.plot.save_with_user(self.commander_user)
 
         self.plot = Plot.objects.get(pk=self.plot.pk)
 
         self.assertEqual(
-            self.plot.udf_scalar_values[field], value)
+            self.plot.udfs[field], value)
 
     def test_int_datatype(self):
         self._test_datatype('Test int', 4)
@@ -535,15 +535,116 @@ class ScalarUDFTest(TestCase):
                           self._test_datatype, 'Test user', 'zztop')
 
     def test_in_operator(self):
-        self.assertEqual('Test string' in self.plot.udf_scalar_values,
+        self.assertEqual('Test string' in self.plot.udfs,
                          True)
-        self.assertEqual('RanDoM NAme' in self.plot.udf_scalar_values,
+        self.assertEqual('RanDoM NAme' in self.plot.udfs,
                          False)
 
     def test_returns_none_for_empty_but_valid_udfs(self):
-        self.assertEqual(self.plot.udf_scalar_values['Test string'],
+        self.assertEqual(self.plot.udfs['Test string'],
                          None)
 
     def test_raises_keyerror_for_invalid_udf(self):
         self.assertRaises(KeyError,
-                          lambda: self.plot.udf_scalar_values['RaNdoName'])
+                          lambda: self.plot.udfs['RaNdoName'])
+
+class CollectionUDFTest(TestCase):
+
+    #TODO: Test combo of "is collection" and "json arrays"
+    #TODO: Test name on all fields for iscollection
+
+    def setUp(self):
+        self.instance = make_instance()
+        self.p = Point(-8515941.0, 4953519.0)
+
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps([
+                {'type': 'string',
+                 'name': 'action'},
+                {'type': 'int',
+                 'name': 'height'}]),
+            iscollection=True,
+            name='Stewardship')
+
+        self.commander_user = make_commander_user(self.instance)
+        add_field_permissions(self.instance, self.commander_user,
+                              'Plot', ['udf:Stewardship'])
+
+        self.plot = Plot(geom=self.p, instance=self.instance)
+        self.plot.save_with_user(self.commander_user)
+
+        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
+    def test_can_get_and_set(self):
+        stews = [{'action': 'water',
+                  'height': 42},
+                 {'action': 'prune',
+                  'height': 12}]
+
+        self.plot.udfs['Stewardship'] = stews
+
+        self.plot.save_with_user(self.commander_user)
+
+        reloaded_plot = Plot.objects.get(pk=self.plot.pk)
+
+        new_stews = reloaded_plot.udfs['Stewardship']
+
+        for stew in new_stews:
+            # An 'id' param should be stamped in here
+            self.assertIn('id', stew)
+
+            # But delete it for easy testing
+            del stew['id']
+
+        self.assertEqual(new_stews, stews)
+
+    def test_can_delete(self):
+        stews = [{'action': 'water',
+                  'height': 42},
+                 {'action': 'prune',
+                  'height': 12}]
+
+        self.plot.udfs['Stewardship'] = stews
+        self.plot.save_with_user(self.commander_user)
+
+        reloaded_plot = Plot.objects.get(pk=self.plot.pk)
+        all_new_stews = reloaded_plot.udfs['Stewardship']
+
+        # Remove first one
+        new_stews = all_new_stews[1:]
+        reloaded_plot.udfs['Stewardship'] = new_stews
+        reloaded_plot.save_with_user(self.commander_user)
+
+        reloaded_plot = Plot.objects.get(pk=self.plot.pk)
+        newest_stews = reloaded_plot.udfs['Stewardship']
+
+        self.assertEqual(len(newest_stews), 1)
+        self.assertEqual(newest_stews[0]['action'], 'prune')
+        self.assertEqual(newest_stews[0]['height'], 12)
+
+    # Collection fields used the same validation logic as scalar
+    # udfs the point of this section is prove that the code is hooked
+    # up, not to exhaustively test datatype validation
+    def test_cannot_save_with_invalid_field_name(self):
+        self.plot.udfs['Stewardship'] = [
+            {'action': 'water',
+             'height': 32,
+             'random': 'test'}]
+
+        self.assertRaises(
+            ValidationError,
+            self.plot.save_with_user,
+            self.commander_user)
+
+    def test_cannot_save_with_invalid_value(self):
+        self.plot.udfs['Stewardship'] = [
+            {'action': 'water',
+             'height': 'too high'}]
+
+        self.assertRaises(
+            ValidationError,
+            self.plot.save_with_user,
+            self.commander_user)
+>>>>>>> 1cd5dd6... Rename udf_scalar_values to udfs

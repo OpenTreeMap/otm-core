@@ -314,7 +314,7 @@ class UDFModelBase(ModelBase):
             except Exception:
                 if name.startswith('udf:'):
                     udf, udfname = name.split(':', 1)
-                    field, model, direct, m2m = orig('udf_scalar_values')
+                    field, model, direct, m2m = orig('udfs')
                     field = _UDFProxy(udfname)
                     return (field, model, direct, m2m)
                 else:
@@ -327,21 +327,21 @@ class UDFModelBase(ModelBase):
 class UDFModel(UserTrackable, models.Model):
     """
     Classes that extend this model gain support for scalar UDF
-    fields via the `udf_scalar_values` field.
+    fields via the `udfs` field.
 
     This model works correctly with the Auditable and
     Authorizable mixins
     """
 
     __metaclass__ = UDFModelBase
-    udf_scalar_values = UDFField(db_index=True, blank=True)
+    udfs = UDFField(db_index=True, blank=True)
 
     class Meta:
         abstract = True
 
     def __init__(self, *args, **kwargs):
         super(UDFModel, self).__init__(*args, **kwargs)
-        self._do_not_track.add('udf_scalar_values')
+        self._do_not_track.add('udfs')
         self.populate_previous_state()
 
     def get_user_defined_fields(self):
@@ -357,7 +357,7 @@ class UDFModel(UserTrackable, models.Model):
         if key.startswith('udf:'):
             udf_field_name = key[4:]
             if udf_field_name in self.udf_field_names:
-                self.udf_scalar_values[udf_field_name] = val
+                self.udfs[udf_field_name] = val
             else:
                 raise Exception("cannot find udf field" % udf_field_name)
         else:
@@ -382,16 +382,19 @@ class UDFModel(UserTrackable, models.Model):
         base_model_dict = super(UDFModel, self).as_dict(*args, **kwargs)
 
         for field in self.udf_field_names:
-            base_model_dict['udf:' + field] = self.udf_scalar_values[field]
+            base_model_dict['udf:' + field] = self.udfs[field]
 
         return base_model_dict
 
-    def clean_udfs(self):
-        fields = {field.name: field
-                  for field in self.get_user_defined_fields()}
-        errors = {}
-        for (key, val) in self.udf_scalar_values.iteritems():
-            field = fields.get(key, None)
+    def clean_udfs():
+
+        scalar_fields = {field.name: field
+                         for field in self.get_user_defined_fields()
+                         if not field.iscollection}
+
+        # Clean scalar udfs
+        for (key, val) in self.udfs.iteritems():
+            field = scalar_fields.get(key, None)
             if field:
                 try:
                     field.clean_value(val)
@@ -405,7 +408,7 @@ class UDFModel(UserTrackable, models.Model):
             raise ValidationError(errors)
 
     def clean_fields(self, exclude):
-        exclude = exclude + ['udf_scalar_values']
+        exclude = exclude + ['udfs']
         errors = {}
         try:
             super(UDFModel, self).clean_fields(exclude)
@@ -435,7 +438,7 @@ class UDFWhereNode(GeoWhereNode):
 
     And transforms it into SQL looking something like:
 
-    ("treemap_plot"."udf_scalar_values"->'Plant Date')::timestamp ==
+    ("treemap_plot"."udfs"->'Plant Date')::timestamp ==
     '2000-01-02'::timestamp
 
     """
@@ -481,7 +484,7 @@ class UDFWhereNode(GeoWhereNode):
 
             # Update the field to the concrete data field
             # and force the type to 'hstore', just in case
-            udf_field_def = (lvalue[0], 'udf_scalar_values', 'hstore')
+            udf_field_def = (lvalue[0], 'udfs', 'hstore')
 
             # Apply normal quoting and alias rules
             field = super(UDFWhereNode, self).sql_for_columns(
@@ -578,7 +581,7 @@ class UDFQuery(GeoQuery):
             model_class = safe_get_udf_model_class(model)
             table_name = model_class._meta.db_table
 
-            accessor = ("%s%s.udf_scalar_values->'%s'" %
+            accessor = ("%s%s.udfs->'%s'" %
                         (sign, table_name, quotesingle(udffield)))
 
             return accessor
