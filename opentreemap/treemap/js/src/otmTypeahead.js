@@ -32,6 +32,10 @@ function setTypeaheadAfterDataLoaded($typeahead, key, query) {
     }
 }
 
+exports.getDatum = function($typeahead) {
+    return $typeahead.data('datum');
+};
+
 exports.create = function(options) {
     var config = options.config,
         template = mustache.compile($(options.template).html()),
@@ -49,17 +53,22 @@ exports.create = function(options) {
         template: template
     });
 
+    var selectStream = $input.asEventStream('typeahead:selected typeahead:autocompleted',
+                                            function(e, datum) { return datum; }),
+
+        backspaceOrDeleteStream = $input.asEventStream('keyup')
+                                        .filter(keyCodeIs([8, 46])),
+
+        editStream = selectStream.merge(backspaceOrDeleteStream.map(undefined)),
+
+        idStream = selectStream.map(".id")
+                                .merge(backspaceOrDeleteStream.map(""));
+
+
+    editStream.onValue($input, "data", "datum");
+
     if (options.hidden) {
-        var selectStream = $input.asEventStream('typeahead:selected typeahead:autocompleted',
-                                                function(e, datum) { return datum; })
-                                 .map(".id"),
-
-            backspaceOrDeleteStream = $input.asEventStream('keyup')
-                                            .filter(keyCodeIs([8, 46]))
-                                            .map("");
-
-        selectStream.merge(backspaceOrDeleteStream)
-                    .onValue($hidden_input, "val");
+        idStream.onValue($hidden_input, "val");
 
 
         // Specify a 'reverse' key to lookup data in reverse,

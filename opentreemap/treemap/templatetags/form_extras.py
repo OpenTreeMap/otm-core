@@ -286,12 +286,14 @@ class FieldNode(template.Node):
             is_visible = True
             is_editable = True
 
+        # TODO: Support pluggable formatting instead of unicode()
+        display_value = unicode(field_value) if field_value else None
+
         context['field'] = {
             'label': label,
             'identifier': identifier,
             'value': field_value,
-            # TODO: Support pluggable formatting instead of str()
-            'display_value': str(field_value),
+            'display_value': display_value,
             'data_type': _field_type_to_string(model, field_name),
             'is_visible': is_visible,
             'is_editable': is_editable,

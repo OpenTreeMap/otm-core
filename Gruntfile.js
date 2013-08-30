@@ -7,7 +7,6 @@ module.exports = function(grunt) {
     grunt.registerTask('check', ['jshint']);
     grunt.registerTask('default', ['browserify']);
 
-
     /*
      * Reads the extra.json file which should be a dictionary
      * where the keys are the require.js alias and the values
@@ -16,6 +15,7 @@ module.exports = function(grunt) {
     function getAliases() {
         var aliases = ['treemap/js/src/app.js:app',
                        'treemap/js/src/user.js:user',
+                       'treemap/js/src/plot.js:plot',
                        'treemap/js/src/openLayersMapEventStream:' +
                        'openLayersMapEventStream'];
 
