@@ -192,7 +192,9 @@ class ImportEvent(models.Model):
 #TODO:
 # Exclusion Zones
 # Proximity validation
-class Plot(Authorizable, Auditable, UDFModel):
+# UDFModel overrides implementations of methods in
+# authorizable and auditable, thus needs to be inherited first
+class Plot(UDFModel, Authorizable, Auditable):
     instance = models.ForeignKey(Instance)
     geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
 
@@ -268,7 +270,9 @@ class Plot(Authorizable, Auditable, UDFModel):
         return ', '.join(components)
 
 
-class Tree(Authorizable, Auditable, UDFModel):
+# UDFModel overrides implementations of methods in
+# authorizable and auditable, thus needs to be inherited first
+class Tree(UDFModel, Authorizable, Auditable):
     """
     Represents a single tree, belonging to an instance
     """
