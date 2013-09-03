@@ -152,6 +152,13 @@ def test(test_filter=""):
 
     _manage('test %s' % test_filter)
 
+def uitest():
+    """ Run selenium UI tests """
+    require('site_path')
+    require('venv_path')
+
+    _manage('uitest')
+
 def restart_app():
     """ Restart the gunicorns running the app """
     sudo("service otm-unicorn restart")

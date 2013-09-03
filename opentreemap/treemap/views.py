@@ -737,3 +737,5 @@ instance_not_available_view = render_template(
     "treemap/instance_not_available.html")
 
 unsupported_view = render_template("treemap/unsupported.html")
+
+landing_view = render_template("base.html")
