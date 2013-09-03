@@ -643,6 +643,7 @@ class UDFModel(UserTrackable, models.Model):
         return [(field.name, model_name + ".udf:" + field.name)
                 for field in self.get_user_defined_fields()]
 
+    @property
     def scalar_udf_field_names(self):
         return [field.name for field
                 in self.get_user_defined_fields()
