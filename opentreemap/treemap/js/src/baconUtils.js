@@ -21,6 +21,21 @@ exports.keyCodeIs = keyCodeIs;
 
 exports.isEnterKey = keyCodeIs([13]);
 
-exports.truthyOrError = function (value) {
-    return !!value ? value : Bacon.Error('The value ' + value + ' is not truthy');
+var isDefined = exports.isDefined = function (value) {
+    return value !== undefined;
+};
+
+var isUndefined = exports.isUndefined = function (value) {
+    return value === undefined;
+};
+
+exports.fetchFromIdStream = function (idStream, fetchFn, undefinedMapping, errorMapping) {
+    return Bacon.mergeAll(
+        idStream
+            .filter(isDefined)
+            .flatMap(fetchFn)
+            .mapError(errorMapping),
+        idStream
+            .filter(isUndefined)
+            .map(undefinedMapping));
 };
