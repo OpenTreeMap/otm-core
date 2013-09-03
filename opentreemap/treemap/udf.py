@@ -15,8 +15,11 @@ from djorm_hstore.fields import DictionaryField, HStoreDictionary
 from djorm_hstore.models import HStoreManager, HStoreQueryset
 
 from treemap.instance import Instance
-from treemap.audit import UserTrackable
+from treemap.audit import (UserTrackable, Audit, UserTrackingException,
+                           _reserve_model_id, FieldPermission,
+                           AuthorizeException)
 
+from django.db.models import Q
 from django.db.models.base import ModelBase
 from django.db.models.sql.constants import ORDER_PATTERN
 
@@ -54,6 +57,118 @@ def safe_get_udf_model_class(model_string):
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
+class UserDefinedCollectionValue(UserTrackable, models.Model):
+    """
+    UserDefinedCollectionValue does not inherit either the authorizable
+    or auditable traits, however it does participate in those systems.
+
+    In particular, the authorization for a collection UDF is based on
+    the udf name and model. So if there is a collection udf called
+    'Stewardship' on 'Plot' then the only field permission that matters
+    is 'Plot'/'udf:Stewardship'
+
+    Each UserDefinedCollectionValue represents a new entry in a
+    particular collection field. We audit all of the fields on this
+    object and expand the audits in the same way that scalar udfs work.
+    """
+    field_definition = models.ForeignKey('UserDefinedFieldDefinition')
+    model_id = models.IntegerField()
+    data = DictionaryField()
+
+    objects = HStoreManager()
+
+    def __init__(self, *args, **kwargs):
+        super(UserDefinedCollectionValue, self).__init__(*args, **kwargs)
+        self._do_not_track.add('data')
+        self.populate_previous_state()
+
+    @property
+    def tracked_fields(self):
+        return super(UserDefinedCollectionValue, self).tracked_fields + \
+            ['udf:' + name for name in self.udf_field_names]
+
+    def validate_foreign_keys_exist(self):
+        """
+        This is used to check if a given foreign key exists as part of
+        the audit system. However, this is no foreign key coupling to
+        other auditable/pending models, so we can skip this validation
+        step
+        """
+        pass
+
+    def as_dict(self, *args, **kwargs):
+        base_model_dict = super(
+            UserDefinedCollectionValue, self).as_dict(*args, **kwargs)
+
+        for field, value in self.data.iteritems():
+            base_model_dict['udf:' + field] = value
+
+        return base_model_dict
+
+    def apply_change(self, key, val):
+        if key.startswith('udf:'):
+            key = key[4:]
+            self.data[key] = val
+        else:
+            try:
+                super(UserDefinedCollectionValue, self)\
+                    .apply_change(key, val)
+            except ValueError:
+                pass
+
+    def save(self, *args, **kwargs):
+        raise UserTrackingException(
+            'All changes to %s objects must be saved via "save_with_user"' %
+            (self._model_name))
+
+    def save_with_user(self, user, *args, **kwargs):
+        updated_fields = self._updated_fields()
+
+        if self.pk is None:
+            audit_type = Audit.Type.Insert
+        else:
+            audit_type = Audit.Type.Update
+
+        field_perm = None
+        model = self.field_definition.model_type
+        field = 'udf:%s' % self.field_definition.name
+        perms = user.get_instance_permissions(self.field_definition.instance,
+                                              model_name=model)
+        for perm in perms:
+            if perm.field_name == field and perm.allows_writes:
+                field_perm = perm
+                break
+
+        if field_perm is None:
+            raise AuthorizeException('')
+
+        if field_perm.permission_level == FieldPermission.WRITE_WITH_AUDIT:
+            model_id = _reserve_model_id(UserDefinedCollectionValue)
+            pending = True
+            for field, (oldval, _) in updated_fields.iteritems():
+                self.apply_change(field, oldval)
+        else:
+            pending = False
+            super(UserDefinedCollectionValue, self).save_with_user(
+                user, *args, **kwargs)
+            model_id = self.pk
+
+        if audit_type == Audit.Type.Insert:
+            updated_fields['id'] = [None, model_id]
+
+        for field, (old_val, new_val) in updated_fields.iteritems():
+            Audit.objects.create(
+                current_value=new_val,
+                previous_value=old_val,
+                model='udf:%s' % self.field_definition.pk,
+                model_id=model_id,
+                field=field,
+                instance=self.field_definition.instance,
+                user=user,
+                action=audit_type,
+                requires_auth=pending)
+
+
 class UserDefinedFieldDefinition(models.Model):
     """
     These models represent user defined fields that are attached to
@@ -79,9 +194,14 @@ class UserDefinedFieldDefinition(models.Model):
 
     'type' - Field type (float, int, string, user, choice, date)
 
-    All types allow a 'description' key:
+    All types allow a 'description' and key:
 
     'description' - A text description of the field
+
+    If the type is a collection, you must provide a 'name' key
+    to each element:
+
+    'name' - Name of this particular field
 
     In addition, if the 'type' is 'choice' a 'choices' key is
     required:
@@ -125,6 +245,46 @@ class UserDefinedFieldDefinition(models.Model):
 
         datatype = self.datatype_dict
 
+        if self.iscollection:
+            errors = {}
+            datatypes = self.datatype_dict
+            if isinstance(datatypes, list):
+                for datatype in datatypes:
+                    try:
+                        self._validate_single_datatype(datatype)
+                    except ValidationError as e:
+                        errors['datatype'] = e.messages
+
+                    if not datatype.get('name', None):
+                        errors['name'] = [trans('Name must not be empty')]
+
+                names = {datatype.get('name') for datatype in datatypes}
+
+                if len(names) != len(datatypes):
+                    if 'name' not in errors:
+                        errors['name'] = []
+
+                    errors['name'].append(
+                        trans('Names must not be duplicates'))
+
+                if 'id' in names:
+                    if 'name' not in errors:
+                        errors['name'] = []
+                    errors['name'].append(trans('Id is an invalid name'))
+            else:
+                errors['datatype'] = 'Must provide a list with a collection'
+
+            if errors:
+                raise ValidationError(errors)
+
+        else:
+            datatype = self.datatype_dict
+            if isinstance(datatype, dict):
+                self._validate_single_datatype(datatype)
+            else:
+                raise ValidationError('Must be a dictionary')
+
+    def _validate_single_datatype(self, datatype):
         if 'type' not in datatype:
             raise ValidationError(trans('type required data type definition'))
 
@@ -159,7 +319,7 @@ class UserDefinedFieldDefinition(models.Model):
         else:
             return None
 
-    def clean_value(self, value):
+    def clean_value(self, value, datatype_dict=None):
         """
         Given a value for this data type, validate and return the
         correct python/django representation.
@@ -169,19 +329,27 @@ class UserDefinedFieldDefinition(models.Model):
         a 'User' object.
 
         If that user doesn't exist a ValidationError will be raised
+
+        If datatype_dict isn't passed specifically it will use the
+        standard one for this model.
         """
         from treemap.models import User  # Circular ref issue
+
         if value is None:
             return None
 
-        if self.datatype_dict['type'] == 'float':
+        if datatype_dict is None:
+            datatype_dict = self.datatype_dict
+
+        datatype = datatype_dict['type']
+        if datatype == 'float':
             try:
                 return float(value)
             except ValueError:
                 raise ValidationError(trans('%(fieldname)s '
                                             'must be a real number') %
                                       {'fieldname': self.name})
-        elif self.datatype_dict['type'] == 'int':
+        elif datatype == 'int':
             try:
                 if float(value) != int(value):
                     raise ValueError
@@ -191,7 +359,7 @@ class UserDefinedFieldDefinition(models.Model):
                 raise ValidationError(trans('%(fieldname)s '
                                             'must be an integer') %
                                       {'fieldname': self.name})
-        elif self.datatype_dict['type'] == 'user':
+        elif datatype == 'user':
             if isinstance(value, User):
                 return value
 
@@ -208,15 +376,42 @@ class UserDefinedFieldDefinition(models.Model):
                                             'user not found') %
                                       {'fieldname': self.name})
 
-        elif self.datatype_dict['type'] == 'date':
+        elif datatype == 'date':
             return datetime.strptime(value, DATETIME_FORMAT)
-        elif self.datatype_dict['type'] == 'choice':
-            if value in self.datatype_dict['choices']:
+        elif datatype == 'choice':
+            if value in datatype_dict['choices']:
                 return value
             else:
                 raise ValidationError(trans('Invalid choice'))
         else:
             return value
+
+    def clean_collection(self, data):
+        datatypes = {datatype['name']: datatype
+                     for datatype
+                     in self.datatype_dict}
+        errors = {}
+
+        for entry in data:
+            for subfield_name, subfield_val in entry.iteritems():
+                if subfield_name == 'id':
+                    continue
+
+                datatype = datatypes.get(subfield_name, None)
+                if datatype:
+                    try:
+                        subfield_val = self.clean_value(
+                            subfield_val, datatype)
+
+                    except ValidationError as e:
+                        msgs = e.messages
+                        errors['udf:%s' % self.name] = msgs
+                else:
+                    errors['udf:%s' % self.name] = ('Invalid subfield %s' %
+                                                    subfield_name)
+
+        if errors:
+            raise ValidationError(errors)
 
 
 class UDFDictionary(HStoreDictionary):
@@ -227,6 +422,54 @@ class UDFDictionary(HStoreDictionary):
         self.instance = obj
 
         self._fields = None
+        self._collection_fields = None
+
+    @property
+    def collection_data_loaded(self):
+        return self._collection_fields is not None
+
+    @property
+    def collection_fields(self):
+        """
+        Lazy loading of collection fields
+        """
+
+        if self._collection_fields is None:
+            self._collection_fields = {}
+            values = UserDefinedCollectionValue.objects.filter(
+                model_id=self.instance.pk)
+
+            for value in values:
+                name = value.field_definition.name
+
+                # Grab each datatype and assign the sub-name to the
+                # definition. These are used to clean the data
+                datatypes_raw = value.field_definition.datatype_dict
+                datatypes = {}
+
+                for datatype_dict in datatypes_raw:
+                    datatypes[datatype_dict['name']] = datatype_dict
+
+                if name not in self._collection_fields:
+                    self._collection_fields[name] = []
+
+                cleaned_data = {}
+                for subfield_name in value.data:
+                    sub_value = value.data.get(subfield_name, None)
+                    try:
+                        sub_value = value.field_definition.clean_value(
+                            sub_value, datatypes[subfield_name])
+                    except ValidationError:
+                        # If there was an error coming from the database
+                        # just continue with whatever the value was.
+                        pass
+
+                    cleaned_data[subfield_name] = sub_value
+
+                cleaned_data['id'] = value.pk
+                self._collection_fields[name].append(cleaned_data)
+
+        return self._collection_fields
 
     @property
     def fields(self):
@@ -263,19 +506,28 @@ class UDFDictionary(HStoreDictionary):
 
     def __getitem__(self, key):
         udf = self._get_udf_or_error(key)
-        if super(UDFDictionary, self).__contains__(key):
-            v = super(UDFDictionary, self).__getitem__(key)
-            try:
-                return udf.clean_value(v)
-            except:
-                return v
+
+        if udf.iscollection:
+            return self.collection_fields.get(key, [])
         else:
-            return None
+            if super(UDFDictionary, self).__contains__(key):
+                v = super(UDFDictionary, self).__getitem__(key)
+                try:
+                    return udf.clean_value(v)
+                except:
+                    return v
+            else:
+                return None
 
     def __setitem__(self, key, val):
         udf = self._get_udf_or_error(key)
-        val = udf.reverse_clean(val)
-        super(UDFDictionary, self).__setitem__(key, val)
+
+        if udf.iscollection:
+            self.collection_fields[key] = val
+        else:
+            val = udf.reverse_clean(val)
+
+            super(UDFDictionary, self).__setitem__(key, val)
 
 
 class UDFField(DictionaryField):
@@ -314,7 +566,7 @@ class UDFModelBase(ModelBase):
             except Exception:
                 if name.startswith('udf:'):
                     udf, udfname = name.split(':', 1)
-                    field, model, direct, m2m = orig('udf_scalar_values')
+                    field, model, direct, m2m = orig('udfs')
                     field = _UDFProxy(udfname)
                     return (field, model, direct, m2m)
                 else:
@@ -327,21 +579,21 @@ class UDFModelBase(ModelBase):
 class UDFModel(UserTrackable, models.Model):
     """
     Classes that extend this model gain support for scalar UDF
-    fields via the `udf_scalar_values` field.
+    fields via the `udfs` field.
 
     This model works correctly with the Auditable and
     Authorizable mixins
     """
 
     __metaclass__ = UDFModelBase
-    udf_scalar_values = UDFField(db_index=True, blank=True)
+    udfs = UDFField(db_index=True, blank=True)
 
     class Meta:
         abstract = True
 
     def __init__(self, *args, **kwargs):
         super(UDFModel, self).__init__(*args, **kwargs)
-        self._do_not_track.add('udf_scalar_values')
+        self._do_not_track.add('udfs')
         self.populate_previous_state()
 
     def get_user_defined_fields(self):
@@ -353,15 +605,33 @@ class UDFModel(UserTrackable, models.Model):
 
         return udfs
 
+    def audits(self):
+        regular_audits = Q(model=self._model_name,
+                           model_id=self.pk,
+                           instance=self.instance)
+        udf_collection_audits = Q()
+
+        for udf in self.get_user_defined_fields():
+            if udf.iscollection:
+                udf_collection_audits |= Q(model='udf:%s' % udf.pk)
+
+        all_audits = udf_collection_audits | regular_audits
+        return Audit.objects.filter(all_audits).order_by('created')
+
     def apply_change(self, key, val):
         if key.startswith('udf:'):
             udf_field_name = key[4:]
             if udf_field_name in self.udf_field_names:
-                self.udf_scalar_values[udf_field_name] = val
+                self.udfs[udf_field_name] = val
             else:
                 raise Exception("cannot find udf field" % udf_field_name)
         else:
             super(UDFModel, self).apply_change(key, val)
+
+    def save(self, *args, **kwargs):
+        raise UserTrackingException(
+            'All changes to %s objects must be saved via "save_with_user"' %
+            (self._model_name))
 
     @property
     def udf_field_names(self):
@@ -373,39 +643,114 @@ class UDFModel(UserTrackable, models.Model):
         return [(field.name, model_name + ".udf:" + field.name)
                 for field in self.get_user_defined_fields()]
 
+    def scalar_udf_field_names(self):
+        return [field.name for field
+                in self.get_user_defined_fields()
+                if not field.iscollection]
+
     @property
     def tracked_fields(self):
         return super(UDFModel, self).tracked_fields + \
-            ['udf:' + name for name in self.udf_field_names]
+            ['udf:' + name for name in self.scalar_udf_field_names]
 
     def as_dict(self, *args, **kwargs):
         base_model_dict = super(UDFModel, self).as_dict(*args, **kwargs)
 
-        for field in self.udf_field_names:
-            base_model_dict['udf:' + field] = self.udf_scalar_values[field]
+        for field in self.scalar_udf_field_names:
+            base_model_dict['udf:' + field] = self.udfs[field]
 
         return base_model_dict
 
-    def clean_udfs(self):
+    def save_with_user(self, user, *args, **kwargs):
+        """
+        Saving a UDF model now involves saving all of collection-based
+        udf fields, we do there here. They are valided in
+        "clean_collection_udfs"
+        """
+        collection_values = self.udfs.collection_fields
+
         fields = {field.name: field
                   for field in self.get_user_defined_fields()}
+
+        for field_name, values in collection_values.iteritems():
+            field = fields[field_name]
+
+            ids_specified = []
+            for value_dict in values:
+                if 'id' in value_dict:
+                    id = value_dict['id']
+                    del value_dict['id']
+
+                    udcv = UserDefinedCollectionValue.objects.get(
+                        pk=id,
+                        model_id=self.pk)
+                else:
+                    udcv = UserDefinedCollectionValue(
+                        field_definition=field,
+                        model_id=self.pk)
+
+                udcv.data = value_dict
+                udcv.save_with_user(user)
+
+                ids_specified.append(udcv.pk)
+
+            # Delete all values that weren't presented here
+            field.userdefinedcollectionvalue_set\
+                 .filter(model_id=self.pk)\
+                 .exclude(id__in=ids_specified)\
+                 .delete()
+
+        super(UDFModel, self).save_with_user(user, *args, **kwargs)
+
+    def clean_udfs(self):
         errors = {}
-        for (key, val) in self.udf_scalar_values.iteritems():
-            field = fields.get(key, None)
+
+        scalar_fields = {field.name: field
+                         for field in self.get_user_defined_fields()
+                         if not field.iscollection}
+
+        collection_fields = {field.name: field
+                             for field in self.get_user_defined_fields()
+                             if field.iscollection}
+
+        # Clean scalar udfs
+        for (key, val) in self.udfs.iteritems():
+            field = scalar_fields.get(key, None)
             if field:
                 try:
                     field.clean_value(val)
                 except ValidationError as e:
                     errors['udf:%s' % key] = e.messages
             else:
+<<<<<<< HEAD
                 errors['udf:%s' % key] = trans('Invalid user defined'
                                                ' field name')
+=======
+                errors['udf:%s' % key] = trans(
+                    'Invalid user defined field name')
+
+        # Clean collection values, but only if they were loaded
+        if self.udfs.collection_data_loaded:
+            collection_data = self.udfs.collection_fields
+            for collection_field_name, data in collection_data.iteritems():
+                collection_field = collection_fields.get(
+                    collection_field_name, None)
+
+                if collection_field:
+                    try:
+                        collection_field.clean_collection(data)
+                    except ValidationError as e:
+                        errors.update(e.message_dict)
+                else:
+                    errors['udf:%s' % collection_field_name] = trans(
+                        'Invalid user defined field name')
+>>>>>>> 4cf07fa... Add user defined collection backend
 
         if errors:
             raise ValidationError(errors)
 
     def clean_fields(self, exclude):
-        exclude = exclude + ['udf_scalar_values']
+        exclude = exclude + ['udfs']
         errors = {}
         try:
             super(UDFModel, self).clean_fields(exclude)
@@ -435,7 +780,7 @@ class UDFWhereNode(GeoWhereNode):
 
     And transforms it into SQL looking something like:
 
-    ("treemap_plot"."udf_scalar_values"->'Plant Date')::timestamp ==
+    ("treemap_plot"."udfs"->'Plant Date')::timestamp ==
     '2000-01-02'::timestamp
 
     """
@@ -481,7 +826,7 @@ class UDFWhereNode(GeoWhereNode):
 
             # Update the field to the concrete data field
             # and force the type to 'hstore', just in case
-            udf_field_def = (lvalue[0], 'udf_scalar_values', 'hstore')
+            udf_field_def = (lvalue[0], 'udfs', 'hstore')
 
             # Apply normal quoting and alias rules
             field = super(UDFWhereNode, self).sql_for_columns(
@@ -578,7 +923,7 @@ class UDFQuery(GeoQuery):
             model_class = safe_get_udf_model_class(model)
             table_name = model_class._meta.db_table
 
-            accessor = ("%s%s.udf_scalar_values->'%s'" %
+            accessor = ("%s%s.udfs->'%s'" %
                         (sign, table_name, quotesingle(udffield)))
 
             return accessor

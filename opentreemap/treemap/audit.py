@@ -236,6 +236,12 @@ def _lookup_model(modelname):
     'Tree' =(imports)=> treemap.models.Tree
     'treemap.audit.Audit' =(imports)=> treemap.audit.Audit
     """
+    # If the modelname begins with a 'udf:' prefix,
+    # this is going to be a UDF Collection value
+    if modelname.startswith('udf:'):
+        from udf import UserDefinedCollectionValue
+        return UserDefinedCollectionValue
+
     if "." in modelname:
         parts = modelname.split('.')
         modulename = '.'.join(parts[:-1])
@@ -252,26 +258,43 @@ def _lookup_model(modelname):
 def _verify_user_can_apply_audit(audit, user):
     """
     Make sure that user has "write direct" permissions
-    for the given audit's fields
+    for the given audit's fields.
+
+    If the model is a udf collection, verify the user has
+    write directly permission on the UDF
     """
+    # This comingling here isn't really great...
+    # However it allows us to have a pretty external interface in that
+    # UDF collections can have a single permission based on the original
+    # model, instead of having to assign a bunch of new ones.
+    from udf import UserDefinedFieldDefinition
+
+    if audit.model.startswith('udf:'):
+        udf = UserDefinedFieldDefinition.objects.get(pk=audit.model[4:])
+        field = 'udf:%s' % udf.name
+        model = udf.model_type
+    else:
+        field = audit.field
+        model = audit.model
+
     perms = user.get_instance_permissions(audit.instance,
-                                          model_name=audit.model)
+                                          model_name=model)
 
     foundperm = False
     for perm in perms:
-        if perm.field_name == audit.field:
+        if perm.field_name == field:
             if perm.permission_level == FieldPermission.WRITE_DIRECTLY:
                 foundperm = True
                 break
             else:
                 raise AuthorizeException(
                     "User %s can't edit field %s on model %s" %
-                    (user, audit.field, audit.model))
+                    (user, field, model))
 
     if not foundperm:
         raise AuthorizeException(
             "User %s can't edit field %s on model %s (No permissions found)" %
-            (user, audit.field, audit.model))
+            (user, field, model))
 
 
 class UserTrackingException(Exception):
@@ -878,7 +901,10 @@ class Audit(models.Model):
 
     @property
     def clean_current_value(self):
-        return self._deserialize_value(self.current_value)
+        if self.field.startswith('udf:'):
+            return self.current_value
+        else:
+            return self._deserialize_value(self.current_value)
 
     @property
     def clean_previous_value(self):
