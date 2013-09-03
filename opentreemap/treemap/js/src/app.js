@@ -1,98 +1,19 @@
 "use strict";
 
 var $ = require('jquery'),
-    OL = require('OpenLayers'),
     Bacon = require('baconjs'),
     U = require('./utility'),
     csrf = require('./csrf'),
 
+    mapManager = require('./mapManager'),
     Search = require('./search'),
     otmTypeahead = require('./otmTypeahead'),
-    makeLayerFilterable = require('./makeLayerFilterable'),
     modes = require('./modeManagerForMapPage'),
 
     isEnterKey = require('./baconUtils').isEnterKey;
 
-// This module augments the OpenLayers global so we don't need `var thing =`
-require('./openLayersMapEventStream');
-
 
 var app = {
-    createMap: function (elmt, config) {
-        var map = new OL.Map({
-            theme: null,
-            div: elmt,
-            projection: 'EPSG:3857',
-            layers: this.getBasemapLayers(config)
-        });
-
-        return map;
-    },
-
-    getBasemapLayers: function (config) {
-        var layer;
-        if (config.instance.basemap.type === 'bing') {
-            layer = new OL.Layer.Bing({
-                name: 'Road',
-                key: config.instance.basemap.bing_api_key,
-                type: 'Road',
-                isBaseLayer: true
-            });
-        } else if (config.instance.basemap.type === 'tms') {
-            layer = new OL.Layer.XYZ(
-                'xyz',
-                config.instance.basemap.data);
-        } else {
-            layer = new OL.Layer.Google(
-                "Google Streets",
-                {numZoomLevels: 20});
-        }
-        return [layer];
-    },
-
-    getPlotLayerURL: function(config, extension) {
-        return '/tile/' +
-            config.instance.rev +
-            '/database/otm/table/treemap_plot/${z}/${x}/${y}.' +
-            extension + '?instance_id=' + config.instance.id;
-    },
-
-    createPlotTileLayer: function (config) {
-        var url = this.getPlotLayerURL(config, 'png'),
-            layer = new OL.Layer.XYZ(
-                'tiles',
-                url,
-                { isBaseLayer: false,
-                  sphericalMercator: true });
-        makeLayerFilterable(layer, url, config.urls.filterQueryArgumentName);
-        return layer;
-    },
-
-    createPlotUTFLayer: function (config) {
-        var url = this.getPlotLayerURL(config, 'grid.json'),
-            layer = new OL.Layer.UTFGrid({
-                url: url,
-                utfgridResolution: 4
-            });
-        makeLayerFilterable(layer, url, config.urls.filterQueryArgumentName);
-        return layer;
-    },
-
-    getBoundsLayerURL: function(config, extension) {
-        return '/tile/' +
-            config.instance.rev +
-            '/database/otm/table/treemap_boundary/${z}/${x}/${y}.' +
-            extension + '?instance_id=' + config.instance.id;
-    },
-
-    createBoundsTileLayer: function (config) {
-        return new OL.Layer.XYZ(
-            'bounds',
-            this.getBoundsLayerURL(config, 'png'),
-            { isBaseLayer: false,
-              sphericalMercator: true });
-    },
-
     initTypeAheads: function(config) {
         otmTypeahead.create({
             name: "species",
@@ -151,11 +72,7 @@ module.exports = {
     },
 
     initMapPage: function (config) {
-        var map = app.createMap($("#map")[0], config),
-            plotLayer = app.createPlotTileLayer(config),
-            boundsLayer = app.createBoundsTileLayer(config),
-            utfLayer = app.createPlotUTFLayer(config),
-            zoom = 0,
+        var map = mapManager.init(config),
             searchEventStream = app.searchEventStream(),
             resetStream = app.resetEventStream();
 
@@ -164,37 +81,7 @@ module.exports = {
 
         app.initTypeAheads(config);
 
-        // Bing maps uses a 1-based zoom so XYZ layers
-        // on the base map have a zoom offset that is
-        // always one less than the map zoom:
-        // > map.setCenter(center, 11)
-        // > map.zoom
-        //   12
-        // So this forces the tile requests to use
-        // the correct Z offset
-        if (config.instance.basemap.type === 'bing') {
-            plotLayer.zoomOffset = 1;
-            utfLayer.zoomOffset = 1;
-        }
-
-        map.addLayer(plotLayer);
-        map.addLayer(utfLayer);
-        map.addLayer(boundsLayer);
-
-        zoom = map.getZoomForResolution(76.43702827453613);
-        map.setCenter(config.instance.center, zoom);
-
-        function onPlotAddOrUpdate(geoRevHash) {
-            if (geoRevHash !== config.instance.rev) {
-                config.instance.rev = geoRevHash;
-                plotLayer.url = app.getPlotLayerURL(config, 'png');
-                utfLayer.url = app.getPlotLayerURL(config, 'grid.json');
-                plotLayer.redraw({force: true});
-                utfLayer.redraw({force: true});
-            }
-        }
-
-        modes.init(config, map, onPlotAddOrUpdate);
+        modes.init(config, map, mapManager.updateGeoRevHash);
         modes.activateBrowseTreesMode();
 
         $('.addBtn').click(modes.activateAddTreeMode);

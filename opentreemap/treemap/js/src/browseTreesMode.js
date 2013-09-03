@@ -6,8 +6,9 @@ var $ = require('jquery'),
     Bacon = require('baconjs'),
     truthyOrError = require('./baconUtils').truthyOrError;
 
-// This module augments the OpenLayers global so we don't need `var thing =`
+// These modules augment the OpenLayers global so we don't need `var thing =`
 require('./openLayersUtfGridEventStream');
+require('./openLayersMapEventStream');
 
 var config,
     map,
