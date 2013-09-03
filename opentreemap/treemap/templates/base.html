@@ -46,7 +46,7 @@
               <li><a href="{% url 'profile' %}">{{ request.user }}</a></li>
               <li><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
             {% else %}
-              <li><a href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
+              <li><a id="login" href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
               <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
             {% endif %}
           </ul>

@@ -7,7 +7,7 @@ from opentreemap.util import route
 from treemap.views import (user_view, root_settings_js_view,
                            profile_to_user_view, user_audits_view,
                            instance_not_available_view, update_user_view,
-                           unsupported_view)
+                           unsupported_view, landing_view)
 
 from treemap.instance import URL_NAME_PATTERN
 instance_pattern = r'^(?P<instance_url_name>' + URL_NAME_PATTERN + r')'
@@ -33,6 +33,7 @@ urlpatterns = patterns(
     (r'^favicon\.ico$', RedirectView.as_view(
         url='/static/img/favicon.ico', permanent=False)),
     url(r'^', include('geocode.urls')),
+    url(r'^$', landing_view),
     url(instance_pattern + r'/', include('treemap.urls')),
     url(instance_pattern + r'/eco/', include('ecobenefits.urls')),
     url(r'^config/settings.js$', root_settings_js_view),

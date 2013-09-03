@@ -117,7 +117,7 @@ class UserCanReadTagTest(TestCase):
         udf_perm.save()
 
         plot = self.plot
-        plot.udf_scalar_values['Test choice'] = 'b'
+        plot.udfs['Test choice'] = 'b'
 
         def render():
             return Template(
@@ -331,7 +331,7 @@ class FieldTagTests(TestCase):
 
     def assert_plot_udf_template(self, user, template_text, value):
         plot = Plot(length=12.3, instance=self.instance)
-        plot.udf_scalar_values['Test choice'] = 'b'
+        plot.udfs['Test choice'] = 'b'
         template = self._form_template_with_request_user_for(
             'plot.udf:Test choice')
         self._write_field_template(template_text)

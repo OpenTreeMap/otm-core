@@ -301,14 +301,14 @@ class SearchTests(TestCase):
 
         if plotudfs:
             for k, v in plotudfs.iteritems():
-                plot.udf_scalar_values[k] = v
+                plot.udfs[k] = v
 
         plot.save_with_user(self.commander)
 
         tree = Tree(plot=plot, instance=self.instance)
         if treeudfs:
             for k, v in treeudfs.iteritems():
-                tree.udf_scalar_values[k] = v
+                tree.udfs[k] = v
 
         tree.save_with_user(self.commander)
 
