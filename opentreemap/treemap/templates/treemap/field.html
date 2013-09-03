@@ -26,6 +26,13 @@
                         </option>
                     {% endfor %}
                 </select>
+            {% elif field.data_type == 'bool' %}
+                <input name="{{ field.identifier }}"
+                      {% if field.value %}
+                       checked="checked"
+                      {% endif %}
+                       type="checkbox"
+                       value="{{ field.value }}" />
             {% else %}
                 <input name="{{ field.identifier }}"
                        type="text"

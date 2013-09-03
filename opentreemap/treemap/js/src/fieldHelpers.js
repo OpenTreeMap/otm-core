@@ -13,11 +13,16 @@ exports.formToDictionary = function ($form, $editFields) {
     var result = {};
     _.each($form.serializeArray(), function(item) {
         var type = exports.getField($editFields, item.name).data('type');
-        if (item.value === '' && (type === 'int' || type === 'float')) {
+        if (type === 'bool'){
+            return;
+        } else if (item.value === '' && (type === 'int' || type === 'float')) {
             // omit blank numbers
         } else {
             result[item.name] = item.value;
         }
+    });
+    $form.find('input[name][type="checkbox"]').each(function() {
+        result[this.name] = this.checked;
     });
     return result;
 };
