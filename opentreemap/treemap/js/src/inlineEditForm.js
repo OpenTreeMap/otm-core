@@ -51,12 +51,16 @@ exports.init = function(options) {
             $(displayFields).each(function(index, el) {
                 var field = $(el).attr('data-field');
                 var value = $(el).attr('data-value');
-                var input;
+                var $input;
                 if (field) {
-                    input = FH.getField($(editFields), field)
+                    $input = FH.getField($(editFields), field)
                                 .find('input,select')
                                 .first();
-                    $(input).val(value);
+                    if ($input.is('[type="checkbox"]')) {
+                        $input.prop('checked', value == "True");
+                    } else {
+                        $input.val(value);
+                    }
                 }
             });
             displayValuesToTypeahead();
@@ -80,12 +84,16 @@ exports.init = function(options) {
         formFieldsToDisplayValues = function() {
             $(editFields).each(function(index, el){
                 var field = $(el).attr('data-field');
-                var input, value, display;
+                var $input, value, display;
                 if ($(el).is('[data-field]')) {
-                    input = FH.getField($(editFields), field)
+                    $input = FH.getField($(editFields), field)
                         .find('input,select')
                         .first();
-                    value = input.val();
+                    if ($input.is('[type="checkbox"]')) {
+                        value = $input.is(':checked') ? "True" : "False";
+                    } else {
+                        value = $input.val();
+                    }
                     display = FH.getField($(displayFields), field);
                     $(display).attr('data-value', value);
                     $(display).html(value);

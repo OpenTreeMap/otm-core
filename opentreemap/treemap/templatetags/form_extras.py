@@ -202,7 +202,8 @@ class FieldNode(template.Node):
         'FloatField': 'float',
         'TextField': 'string',
         'CharField': 'string',
-        'DateTimeField': 'date'
+        'DateTimeField': 'date',
+        'BooleanField': 'bool'
     }
     _valid_field_keys = ','.join([k for k, v in _field_mappings.iteritems()])
 
@@ -287,13 +288,13 @@ class FieldNode(template.Node):
             is_editable = True
 
         # TODO: Support pluggable formatting instead of unicode()
-        display_value = unicode(field_value) if field_value else None
+        display_val = unicode(field_value) if field_value is not None else None
 
         context['field'] = {
             'label': label,
             'identifier': identifier,
             'value': field_value,
-            'display_value': display_value,
+            'display_value': display_val,
             'data_type': _field_type_to_string(model, field_name),
             'is_visible': is_visible,
             'is_editable': is_editable,
