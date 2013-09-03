@@ -4,23 +4,22 @@ var $ = require('jquery'),
     _ = require('underscore'),
     OL = require('OpenLayers'),
     Bacon = require('baconjs'),
-    truthyOrError = require('./baconUtils').truthyOrError;
+    fetchFromIdStream = require('./baconUtils').fetchFromIdStream;
 
 // These modules augment the OpenLayers global so we don't need `var thing =`
 require('./openLayersUtfGridEventStream');
 require('./openLayersMapEventStream');
 
-var config,
-    map,
-    inMyMode,               // function telling if my mode is active
-    $sidebar;
+// Module-level config set in `init` and read by helper functions
+var config;               
 
 function init(options) {
     config = options.config;
-    map = options.map;
-    inMyMode = options.inMyMode;
-    $sidebar = options.$sidebar;
 
+    var map = options.map;
+    var inMyMode = options.inMyMode; // function telling if my mode is active
+    var $sidebar = options.$sidebar;
+    var $accordionSection = options.$treeDetailAccordionSection;
     var utfGridMoveControl = new OL.Control.UTFGrid();
 
     utfGridMoveControl
@@ -29,7 +28,7 @@ function init(options) {
         .map(function (o) { return JSON.stringify(o || {}); })
         .assign($('#attrs'), 'html');
 
-    // The control must be added to the map after setting up the
+    // The utfGridMoveControl must be added to the map after setting up the
     // event stream
     map.addControl(utfGridMoveControl);
 
@@ -38,22 +37,21 @@ function init(options) {
     var clickedIdStream = utfGridClickControl
         .asEventStream('click')
         .filter(inMyMode)
-        .map('.' + config.utfGrid.plotIdKey)
-        .map(truthyOrError); // Prevents making requests if id is undefined
+        .map('.' + config.utfGrid.plotIdKey);
 
-    var popupHtmlStream = clickedIdStream
-        .flatMap(getPlotPopupContent)
-        .mapError(''); // No id or a server error both result in no content
+    var popupHtmlStream = fetchFromIdStream(clickedIdStream, 
+                                            getPlotPopupContent);
 
-    var accordionHtmlStream = clickedIdStream
-        .flatMap(getPlotAccordionContent)
-        .mapError('')
-        .onValue(showPlotAccordion);
+    var accordionHtmlStream = fetchFromIdStream(clickedIdStream, 
+                                                getPlotAccordionContent, 
+                                                '');
 
-    // The control must be added to the map after setting up the
+    // The utfGridClickControl must be added to the map after setting up the
     // event streams
     map.addControl(utfGridClickControl);
 
+    // A closure is used here to keep a reference to any currently
+    // displayed popup so it can be removed
     var showPlotDetailPopup = (function(map) {
         var existingPopup;
         return function(popup) {
@@ -66,16 +64,23 @@ function init(options) {
     // OpenLayers needs both the content and a coordinate to
     // show a popup, so zip map clicks together with content
     // requested via ajax
-    var clickedLatLonStream =
-        map.asEventStream('click')
-            .filter(inMyMode)
-            .map(function (e) {
-                return map.getLonLatFromPixel(e.xy);
-            });
+    map.asEventStream('click')
+       .filter(inMyMode)
+       .map(function (e) {
+            return map.getLonLatFromPixel(e.xy);
+        })
+       .zip(popupHtmlStream, makePopup) // TODO: size is not being sent to makePopup
+       .onValue(showPlotDetailPopup);
 
-    clickedLatLonStream
-        .zip(popupHtmlStream, makePopup) // TODO: size is not being sent to makePopup
-        .onValue(showPlotDetailPopup);
+    accordionHtmlStream.toProperty('').assign($('#plot-accordion'), "html");
+
+    accordionHtmlStream.onValue(function (html) {
+        if (html !== '' && html !== undefined) {
+            $accordionSection.removeClass('collapse');
+        } else {
+            $accordionSection.addClass('collapse'); 
+        }
+    });
 }
 
 function getPlotPopupContent(id) {
@@ -102,11 +107,6 @@ function getPlotAccordionContent(id) {
         dataType: 'html'
     });
     return Bacon.fromPromise(search);
-}
-
-function showPlotAccordion(html) {
-    $sidebar.find('#plot-accordion').html(html);
-    $sidebar.find("#treeDetails").removeClass('collapse');
 }
 
 module.exports = { init: init };
