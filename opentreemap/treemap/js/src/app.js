@@ -117,10 +117,7 @@ module.exports = {
 
         triggeredQueryBus.onValue(Search.applySearchToDom);
 
-        Search.init(builtSearchEvents, config, function (filter) {
-            plotLayer.setFilter(filter);
-            utfLayer.setFilter(filter);
-        });
+        Search.init(builtSearchEvents, config, mapManager.setFilter);
 
         builtSearchEvents
             .map(JSON.stringify)
