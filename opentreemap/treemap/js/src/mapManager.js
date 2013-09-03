@@ -5,8 +5,7 @@ var $ = require('jquery'),
     makeLayerFilterable = require('./makeLayerFilterable');
 
 exports.init = function(config) {
-    var config = config,
-        map = createMap($("#map")[0], config),
+    var map = createMap($("#map")[0], config),
         plotLayer = createPlotTileLayer(config),
         boundsLayer = createBoundsTileLayer(config),
         utfLayer = createPlotUTFLayer(config),
@@ -20,6 +19,11 @@ exports.init = function(config) {
             plotLayer.redraw({force: true});
             utfLayer.redraw({force: true});
         }
+    };
+
+    exports.setFilter = function (filter) {
+        plotLayer.setFilter(filter);
+        utfLayer.setFilter(filter);
     };
 
     // Bing maps uses a 1-based zoom so XYZ layers on the base map have
