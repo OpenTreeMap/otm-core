@@ -39,5 +39,5 @@ class Command(BaseCommand):
             uitests.tearDownModule()
             disp.stop()
 
-        if rslt.failures:
+        if not rslt.wasSuccessful():
             sys.exit(1)
