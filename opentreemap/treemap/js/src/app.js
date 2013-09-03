@@ -142,7 +142,10 @@ module.exports = {
     },
 
     initMapPage: function (config) {
-        var map = mapManager.init(config),
+        var map = mapManager.init({
+                config: config,
+                selector: '#map'
+            }),
             searchEventStream = app.searchEventStream(),
             resetStream = app.resetEventStream();
 

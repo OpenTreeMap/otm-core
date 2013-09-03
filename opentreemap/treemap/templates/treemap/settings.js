@@ -16,7 +16,10 @@ otm.settings.urls = {
         'url': '{{ SITE_ROOT }}{{ request.instance.url_name }}/',
         'name': '{{ request.instance.name }}',
         'rev': '{{ request.instance.geo_rev_hash }}',
-        'center': [{{ request.instance.center.x }}, {{ request.instance.center.y }}],
+        'center': {
+            'x': '{{ request.instance.center.x }}',
+            'y': '{{ request.instance.center.y }}'
+        },
         'basemap': {
             'type': '{{ request.instance.basemap_type }}',
             'data': '{{ request.instance.basemap_data }}',
