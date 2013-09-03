@@ -1,11 +1,15 @@
 from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import RegexValidator
 from django.utils.six import with_metaclass
 
 from south.modelsinspector import add_introspection_rules
 
 import hashlib
 import json
+
+
+URL_NAME_PATTERN = r'[a-z]+[a-z0-9\-]*'
 
 
 class JSONField(with_metaclass(models.SubfieldBase, models.TextField)):
@@ -29,6 +33,14 @@ class Instance(models.Model):
     Each "Tree Map" is a single instance
     """
     name = models.CharField(max_length=255, unique=True)
+
+    url_name = models.CharField(max_length=255, unique=True,
+                                validators=[RegexValidator(
+                                    r'^%s$' % URL_NAME_PATTERN,
+                                    'Must start with a lowercase letter and '
+                                    'may only contain lowercase letters, '
+                                    'numbers, or dashes ("-")',
+                                    'Invalid URL name')])
 
     """
     Basemap type     Basemap data
@@ -128,3 +140,7 @@ class Instance(models.Model):
     def scope_model(self, model):
         qs = model.objects.filter(instance=self)
         return qs
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(Instance, self).save(*args, **kwargs)

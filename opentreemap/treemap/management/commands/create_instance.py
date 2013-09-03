@@ -79,6 +79,12 @@ class Command(BaseCommand):
         else:
             bounds = GEOSGeometry(open(options['geojson']).read())
 
+        if not options.get('url_name', None):
+            raise Exception('You must specify a "url_name" starting with a '
+                            'lowercase letter and containing lowercase '
+                            'letters, numbers, and dashes ("-")')
+        url_name = options.get('url_name')
+
         # Instances need roles and roles needs instances... crazy
         # stuff we're going to create the needed role below however,
         # we'll temporarily use a 'dummy role'. The dummy role has
@@ -94,7 +100,8 @@ class Command(BaseCommand):
             name=name,
             bounds=bounds,
             is_public=True,
-            default_role=dummy_role)
+            default_role=dummy_role,
+            url_name=url_name)
 
         instance.full_clean()
         instance.save()
