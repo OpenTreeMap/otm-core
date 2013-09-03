@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import datetime
+import re
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
-import re
 
 
 class Migration(SchemaMigration):
@@ -17,10 +17,10 @@ class Migration(SchemaMigration):
         for instance in orm.Instance.objects.all():
             # Generate a reasonable url_name:
             #   - Lowercase name and remove non-word characters
-            #   - Append id to ensure uniqueness
+            #   - Append id for a better stab at uniqueness
             instance.url_name = re.sub(r'\W+', '', instance.name.lower()) + str(instance.id)
             instance.save()
-
+        
 
     def backwards(self, orm):
         # Deleting field 'Instance.url_name'
@@ -140,7 +140,7 @@ class Migration(SchemaMigration):
             'length': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'owner_orig_id': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'readonly': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'udf_scalar_values': ('treemap.udf.UDFField', [], {'db_index': 'True', 'blank': 'True'}),
+            'udfs': ('treemap.udf.UDFField', [], {'db_index': 'True', 'blank': 'True'}),
             'width': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'})
         },
         u'treemap.reputationmetric': {
@@ -195,7 +195,7 @@ class Migration(SchemaMigration):
             'plot': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Plot']"}),
             'readonly': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'species': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Species']", 'null': 'True', 'blank': 'True'}),
-            'udf_scalar_values': ('treemap.udf.UDFField', [], {'db_index': 'True', 'blank': 'True'})
+            'udfs': ('treemap.udf.UDFField', [], {'db_index': 'True', 'blank': 'True'})
         },
         u'treemap.user': {
             'Meta': {'object_name': 'User'},
@@ -212,6 +212,13 @@ class Migration(SchemaMigration):
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
             'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
+        },
+        u'treemap.userdefinedcollectionvalue': {
+            'Meta': {'object_name': 'UserDefinedCollectionValue'},
+            'data': ('djorm_hstore.fields.DictionaryField', [], {}),
+            'field_definition': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.UserDefinedFieldDefinition']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'model_id': ('django.db.models.fields.IntegerField', [], {})
         },
         u'treemap.userdefinedfielddefinition': {
             'Meta': {'object_name': 'UserDefinedFieldDefinition'},
