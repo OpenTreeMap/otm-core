@@ -722,10 +722,6 @@ class UDFModel(UserTrackable, models.Model):
                 except ValidationError as e:
                     errors['udf:%s' % key] = e.messages
             else:
-<<<<<<< HEAD
-                errors['udf:%s' % key] = trans('Invalid user defined'
-                                               ' field name')
-=======
                 errors['udf:%s' % key] = trans(
                     'Invalid user defined field name')
 
@@ -744,7 +740,6 @@ class UDFModel(UserTrackable, models.Model):
                 else:
                     errors['udf:%s' % collection_field_name] = trans(
                         'Invalid user defined field name')
->>>>>>> 4cf07fa... Add user defined collection backend
 
         if errors:
             raise ValidationError(errors)
