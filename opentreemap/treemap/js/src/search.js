@@ -21,7 +21,7 @@ var config,
 
 function executeSearch(config, search_query) {
     var search = $.ajax({
-        url: '/' + config.instance.id + '/benefit/search',
+        url: config.instance.url + 'benefit/search',
         data: {'q': search_query && Object.keys(search_query).length > 0 ?
                 JSON.stringify(search_query) :
                 ''},

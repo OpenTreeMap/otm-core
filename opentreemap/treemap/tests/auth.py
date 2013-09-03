@@ -69,21 +69,21 @@ class PublicInstanceTests(RequestTestCase):
 
     def test_public_instance_is_accessible_without_login(self):
         self.make_instance_public()
-        res = self.client.get('/%d/' % self.instance.pk)
+        res = self.client.get('/%s/' % self.instance.url_name)
         self.assertOk(res)
 
     def test_private_instance_is_not_accessible_without_login(self):
         self.make_instance_private()
-        res = self.client.get('/%d/' % self.instance.pk)
-        self.assertRedirects(res, 'http://testserver/accounts/login/?next=/%d/'
-                             % self.instance.pk)
+        res = self.client.get('/%s/' % self.instance.url_name)
+        self.assertRedirects(res, 'http://testserver/accounts/login/?next=/%s/'
+                             % self.instance.url_name)
 
     def test_private_instance_is_not_accessible_by_non_instance_user(self):
         self.make_instance_private()
         self.client.post('/accounts/login/',
                          {'username': 'user',
                           'password': 'password'})
-        res = self.client.get('/%d/' % self.instance.pk)
+        res = self.client.get('/%s/' % self.instance.url_name)
         self.assertRedirects(res, 'http://testserver/not-available')
 
     def test_private_instance_accessible_by_instance_user(self):
@@ -91,5 +91,5 @@ class PublicInstanceTests(RequestTestCase):
         self.client.post('/accounts/login/',
                          {'username': 'instance_user',
                           'password': 'password'})
-        res = self.client.get('/%d/' % self.instance.pk)
+        res = self.client.get('/%s/' % self.instance.url_name)
         self.assertOk(res)

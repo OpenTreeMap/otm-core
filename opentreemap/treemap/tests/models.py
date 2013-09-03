@@ -29,9 +29,11 @@ class CreateInstanceManagementTest(TestCase):
         center = '0,0'
         user = self.user.pk
         name = 'my_instance'
+        url_name = 'my-instance'
 
         self.assertEqual(Instance.objects.count(), 0)
-        create_instance.Command().handle(name, center=center, user=user)
+        create_instance.Command().handle(name, center=center, user=user,
+                                         url_name=url_name)
         self.assertEqual(Instance.objects.count(), 1)
 
 
@@ -571,3 +573,25 @@ class InstanceTest(TestCase):
 
     def test_verify_cant_do_lookup(self):
         self.assertRaises(TypeError, Instance.objects.filter, config='test')
+
+    def test_url_name_cannot_be_empty(self):
+        self.assertRaises(make_instance, url_name='')
+
+    def test_url_name_does_not_allow_capitals(self):
+        self.assertRaises(make_instance, url_name='A')
+
+    def test_url_name_does_not_allow_leading_number(self):
+        self.assertRaises(make_instance, url_name='0a')
+
+    def test_url_name_does_not_allow_leading_hyphen(self):
+        self.assertRaises(make_instance, url_name='-a')
+
+    def test_url_name_allows_lcase(self):
+        make_instance(url_name='mymap')
+
+    def test_url_name_allows_lcase_numbers_and_hyphens(self):
+        make_instance(url_name='my-map-42')
+
+    def test_url_name_must_be_unique(self):
+        make_instance(url_name='philly')
+        self.assertRaises(make_instance, url_name='philly')

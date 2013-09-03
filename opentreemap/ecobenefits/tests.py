@@ -51,11 +51,12 @@ class EcoTest(UrlTestCase):
 
     def test_tree_benefits_url(self):
         self.assert_200(
-            '/%s/eco/benefit/tree/%s/' % (self.instance.id, self.tree.id))
+            '/%s/eco/benefit/tree/%s/' % (self.instance.url_name,
+                                          self.tree.id))
 
     def test_tree_benefit_url_invalid(self):
         self.assert_404(
-            '/%s/eco/benefit/tree/999/' % self.instance.id)
+            '/%s/eco/benefit/tree/999/' % self.instance.url_name)
 
     def test_group_eco(self):
         pass  # TODO: Once filtering has been enabled

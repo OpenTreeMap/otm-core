@@ -63,8 +63,8 @@ def login_redirect(request):
 
 def instance_request(view_fn):
     @wraps(view_fn)
-    def wrapper(request, instance_id, *args, **kwargs):
-        instance = get_object_or_404(Instance, pk=instance_id)
+    def wrapper(request, instance_url_name, *args, **kwargs):
+        instance = get_object_or_404(Instance, url_name=instance_url_name)
         # Include the instance as both a request property and as an
         # view function argument for flexibility and to keep "template
         # only" requests simple.

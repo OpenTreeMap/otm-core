@@ -49,25 +49,25 @@ class VisitedInstancesTests(ViewTestCase):
         self.assertEqual(self.client.get('/test').content, '')
 
         # Going to an instance sets the context variable
-        self.client.get('/%d/map/' % self.instance1.pk)
+        self.client.get('/%s/map/' % self.instance1.url_name)
         self.assertEqual(self.client.get('/test').content,
                          str(self.instance1.pk))
 
         # Going to a non-public instance doesn't update it
-        self.client.get('/%d/map/' % self.instance3.pk)
+        self.client.get('/%s/map/' % self.instance3.url_name)
         self.assertEqual(self.client.get('/test').content,
                          str(self.instance1.pk))
 
         # Going to a private instance while not logged in
         # also doesn't update
-        self.client.get('/%d/map/' % self.instance4.pk)
+        self.client.get('/%s/map/' % self.instance4.url_name)
         self.assertEqual(self.client.get('/test').content,
                          str(self.instance1.pk))
 
         self.client.login(username='joe', password='joe')
 
         # But should change after logging in
-        self.client.get('/%d/map/' % self.instance4.pk)
+        self.client.get('/%s/map/' % self.instance4.url_name)
         self.assertEqual(self.client.get('/test').content,
                          str(self.instance4.pk))
 

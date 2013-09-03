@@ -17,7 +17,7 @@ var app = {
     initTypeAheads: function(config) {
         otmTypeahead.create({
             name: "species",
-            url: "/" + config.instance.id + "/species",
+            url: config.instance.url + "species",
             input: "#species-typeahead",
             template: "#species-element-template",
             hidden: "#search-species",
@@ -25,7 +25,7 @@ var app = {
         });
         otmTypeahead.create({
             name: "boundaries",
-            url: "/" + config.instance.id + "/boundaries",
+            url: config.instance.url + "boundaries",
             input: "#boundary-typeahead",
             template: "#boundary-element-template",
             hidden: "#boundary",
@@ -55,7 +55,7 @@ var app = {
         query = U.getUpdatedQueryString('q', JSON.stringify(query));
 
         window.location.href =
-            '/' + config.instance.id + '/map/?' + query;
+            config.instance.url + 'map/?' + query;
     }
 };
 

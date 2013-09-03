@@ -118,7 +118,7 @@ function addTree() {
     };
 
     $.ajax({
-        url: '/' + config.instance.id + '/plots/',
+        url: config.instance.url + 'plots/',
         type: 'POST',
         contentType: "application/json",
         data: JSON.stringify(data),

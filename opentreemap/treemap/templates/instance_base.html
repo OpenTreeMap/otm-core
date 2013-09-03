@@ -4,7 +4,7 @@
 {% block instance_title %} | {{ request.instance.name }}{% endblock %}
 
 {% block instancetopnav %}
-<li><a href="{% url 'map' instance_id=request.instance.pk %}">{% trans "Explore Trees" %}</a></li>
+<li><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Trees" %}</a></li>
 <li><a href="javascript:;">{% trans "Add a Tree" %}</a></li>
 {% endblock instancetopnav %}
 

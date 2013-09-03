@@ -210,17 +210,23 @@ def make_user_and_role(instance, username, rolename, permissions):
     return make_user(instance, username, make_role)
 
 
-def make_instance(name=None, is_public=False):
+def make_instance(name=None, is_public=False, url_name=None):
     if name is None:
         max_instance = Instance.objects.all().aggregate(
             Max('id'))['id__max'] or 0
         name = 'generated$%d' % (max_instance + 1)
+
+    if url_name is None:
+        max_instance = Instance.objects.all().aggregate(
+            Max('id'))['id__max'] or 0
+        url_name = 'generated-%d' % (max_instance + 1)
+
     global_role, _ = Role.objects.get_or_create(name='global', rep_thresh=0)
 
     p1 = Point(0, 0)
 
     instance = Instance(name=name, geo_rev=0, default_role=global_role,
-                        is_public=is_public)
+                        is_public=is_public, url_name=url_name)
 
     tri = Polygon(((p1.x, p1.y),
                    (p1.x + 10, p1.y + 10),
