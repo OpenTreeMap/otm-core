@@ -89,11 +89,11 @@ class RootUrlTests(UrlTestCase):
 
 class TreemapUrlTests(UrlTestCase):
     # Tests for URLs defined in treemap/urls.py
-    # All treemap URLs start with /<instance_id>/
+    # All treemap URLs start with /<instance_url_name>/
 
     def setUp(self):
         self.instance = make_instance(is_public=True)
-        self.prefix = '/%s/' % self.instance.id
+        self.prefix = '/%s/' % self.instance.url_name
 
     def make_plot(self):
         user = make_commander_user(self.instance)
@@ -114,7 +114,7 @@ class TreemapUrlTests(UrlTestCase):
         self.assert_404('/999/')
 
     def test_trailing_slash_added(self):
-        url = '/%s' % self.instance.id
+        url = '/%s' % self.instance.url_name
         self.assert_redirects(url, url + '/', 301)
 
     def test_boundary(self):

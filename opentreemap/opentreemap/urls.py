@@ -9,6 +9,9 @@ from treemap.views import (user_view, root_settings_js_view,
                            instance_not_available_view, update_user_view,
                            unsupported_view)
 
+from treemap.instance import URL_NAME_PATTERN
+instance_pattern = r'^(?P<instance_url_name>' + URL_NAME_PATTERN + r')'
+
 from django.contrib import admin
 admin.autodiscover()
 
@@ -30,8 +33,8 @@ urlpatterns = patterns(
     (r'^favicon\.ico$', RedirectView.as_view(
         url='/static/img/favicon.ico', permanent=False)),
     url(r'^', include('geocode.urls')),
-    url(r'^(?P<instance_id>\d+)/', include('treemap.urls')),
-    url(r'^(?P<instance_id>\d+)/eco/', include('ecobenefits.urls')),
+    url(instance_pattern + r'/', include('treemap.urls')),
+    url(instance_pattern + r'/eco/', include('ecobenefits.urls')),
     url(r'^config/settings.js$', root_settings_js_view),
     url(r'^users/(?P<username>\w+)/?$',
         route(GET=user_view, PUT=update_user_view)),
@@ -53,9 +56,9 @@ urlpatterns = patterns(
         name='unsupported'),
 )
 
-if settings.EXTRA_URLS:
-    for (url_pattern, url_module) in settings.EXTRA_URLS:
-        urlpatterns += patterns('', url(url_pattern, include(url_module)))
+# if settings.EXTRA_URLS:
+#     for (url_pattern, url_module) in settings.EXTRA_URLS:
+#         urlpatterns += patterns('', url(url_pattern, include(url_module)))
 
-if settings.DEBUG:
-    urlpatterns += patterns('', url(r'^admin/', include(admin.site.urls)))
+# if settings.DEBUG:
+#     urlpatterns += patterns('', url(r'^admin/', include(admin.site.urls)))

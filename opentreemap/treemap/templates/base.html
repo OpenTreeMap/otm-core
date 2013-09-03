@@ -36,8 +36,8 @@
           <ul class="nav pull-left">
             {% block instancetopnav %}
               {% if last_instance %}
-              <li><a href="{% url 'map' instance_id=last_instance.pk %}">{% trans "Explore Trees" %}</a></li>
-              <li><a href="{% url 'map' instance_id=last_instance.pk %}#editTree">{% trans "Add a Tree" %}</a></li>
+              <li><a href="{% url 'map' instance_url_name=last_instance.url_name %}">{% trans "Explore Trees" %}</a></li>
+              <li><a href="{% url 'map' instance_url_name=last_instance.url_name %}#editTree">{% trans "Add a Tree" %}</a></li>
               {% endif %}
             {% endblock instancetopnav %}
           </ul>
@@ -94,7 +94,7 @@
 
     {% block config_scripts %}
       {% if request.instance %}
-        <script src="{{ SITE_ROOT }}{{ request.instance.id }}/config/settings.js"></script>
+        <script src="{{ SITE_ROOT }}{{ request.instance.url_name }}/config/settings.js"></script>
       {% else %}
         <script src="{{ SITE_ROOT }}config/settings.js"></script>
       {% endif %}

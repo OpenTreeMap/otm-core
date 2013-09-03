@@ -8,7 +8,7 @@
 <h1>
 {% trans "Recent Edits" %}
 </h1>
-<a href="{% url 'recent_edits' instance_id=request.instance.pk %}">Reset</a>
+<a href="{% url 'recent_edits' instance_url_name=request.instance.url_name %}">Reset</a>
 
 <table>
   <tr>

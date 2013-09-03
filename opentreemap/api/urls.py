@@ -10,17 +10,20 @@ from views import (get_plot_list, create_plot_optional_tree, status,
                    register, add_profile_photo, update_password,
                    recent_edits)
 
+from treemap.instance import URL_NAME_PATTERN
+instance_pattern = r'^(?P<instance_url_name>' + URL_NAME_PATTERN + r')'
+
 urlpatterns = patterns(
     '',
     (r'^$', status),
     (r'^version$', version),
-    (r'^(?P<instance_id>\d+)/plots$',
+    (instance_pattern + r'/plots$',
      route(GET=get_plot_list, POST=create_plot_optional_tree)),
 
-    (r'^(?P<instance_id>\d+)/plots/(?P<plot_id>\d+)$',
+    (instance_pattern + r'/plots/(?P<plot_id>\d+)$',
      route(GET=get_plot, PUT=update_plot_and_tree, DELETE=remove_plot)),
 
-    (r'^(?P<instance_id>\d+)/plots/(?P<plot_id>\d+)/tree$',
+    (instance_pattern + r'/plots/(?P<plot_id>\d+)/tree$',
      route(GET=get_current_tree_from_plot,
            DELETE=remove_current_tree_from_plot)),
 
@@ -30,10 +33,10 @@ urlpatterns = patterns(
      '(?P<lat>-{0,1}\d+(\.\d+){0,1}),(?P<lon>-{0,1}\d+(\.\d+){0,1})'
      '/plots', plots_closest_to_point),
 
-    (r'^(?P<instance_id>\d+)/pending-edits/(?P<pending_edit_id>\d+)/approve',
+    (instance_pattern + r'/pending-edits/(?P<pending_edit_id>\d+)/approve',
      route(POST=approve_pending_edit)),
 
-    (r'^(?P<instance_id>\d+)/pending-edits/(?P<pending_edit_id>\d+)/reject',
+    (instance_pattern + r'/pending-edits/(?P<pending_edit_id>\d+)/reject',
      route(POST=reject_pending_edit)),
 
     (r'^species', species_list),

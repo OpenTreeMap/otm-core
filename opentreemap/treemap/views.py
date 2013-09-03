@@ -429,9 +429,10 @@ def user_audits(request, username):
                        models, model_id, page, page_size, exclude_pending)
 
 
-def instance_user_audits(request, instance_id, username):
+def instance_user_audits(request, instance_url_name, username):
+    instance = get_object_or_404(Instance, url_name=instance_url_name)
     return HttpResponseRedirect('/users/%s/recent_edits?instance_id=%s'
-                                % (username, instance_id))
+                                % (username, instance.pk))
 
 
 def boundary_to_geojson(request, instance, boundary_id):
@@ -671,9 +672,10 @@ def _get_map_view_context(request, instance_id):
             'fields_for_add_tree': fields_for_add_tree}
 
 
-def instance_user_view(request, instance_id, username):
+def instance_user_view(request, instance_url_name, username):
+    instance = get_object_or_404(Instance, url_name=instance_url_name)
     url = '/users/%(username)s?instance_id=%(instance_id)s' %\
-        {'username': username, 'instance_id': instance_id}
+        {'username': username, 'instance_id': instance.pk}
     return HttpResponseRedirect(url)
 
 

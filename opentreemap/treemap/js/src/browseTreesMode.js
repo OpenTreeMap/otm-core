@@ -85,7 +85,7 @@ function init(options) {
 
 function getPlotPopupContent(id) {
     var search = $.ajax({
-        url: '/' + config.instance.id + '/plots/' + id + '/popup',
+        url: config.instance.url + 'plots/' + id + '/popup',
         type: 'GET',
         dataType: 'html'
     });
@@ -102,7 +102,7 @@ function makePopup(latLon, html, size) {
 
 function getPlotAccordionContent(id) {
     var search = $.ajax({
-        url: '/' + config.instance.id + '/plots/' + id + '/detail',
+        url: config.instance.url + 'plots/' + id + '/detail',
         type: 'GET',
         dataType: 'html'
     });

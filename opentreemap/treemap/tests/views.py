@@ -1042,7 +1042,7 @@ class InstanceUserViewTests(ViewTestCase):
 
     def test_get_by_username_redirects(self):
         res = instance_user_view(make_request(),
-                                 self.instance.id,
+                                 self.instance.url_name,
                                  self.commander.username)
         expected_url = '/users/%s?instance_id=%d' %\
             (self.commander.username, self.instance.id)
@@ -1053,12 +1053,12 @@ class InstanceUserViewTests(ViewTestCase):
                           (expected_url, res['Location']))
 
     def test_get_with_invalid_username_redirects(self):
-        test_instance_id, test_username = 9999999999999, 'no_way_username'
+        test_username = 'no_way_username'
         res = instance_user_view(make_request(),
-                                 test_instance_id,
+                                 self.instance.url_name,
                                  test_username)
         expected_url = '/users/%s?instance_id=%d' %\
-            (test_username, test_instance_id)
+            (test_username, self.instance.id)
         self.assertEquals(res.status_code, 302, "should be a 302 Found \
             temporary redirect")
         self.assertEquals(expected_url, res['Location'],

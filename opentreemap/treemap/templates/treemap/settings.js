@@ -13,6 +13,7 @@ otm.settings.urls = {
 {% if request.instance %}
     otm.settings.instance = {
         'id': '{{ request.instance.id }}',
+        'url': '{{ SITE_ROOT }}{{ request.instance.url_name }}/',
         'name': '{{ request.instance.name }}',
         'rev': '{{ request.instance.geo_rev_hash }}',
         'center': [{{ request.instance.center.x }}, {{ request.instance.center.y }}],
