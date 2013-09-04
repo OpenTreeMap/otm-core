@@ -303,6 +303,7 @@ class Tree(UDFModel, Authorizable, Auditable):
                          if self.species else "")
         return "%s%s" % (diameter_chunk, species_chunk)
 
+
     ##########################
     # tree validation
     ##########################
@@ -315,6 +316,15 @@ class Tree(UDFModel, Authorizable, Auditable):
         self.full_clean_with_user(user)
         super(Tree, self).save_with_user(user, *args, **kwargs)
 
+    @property
+    def hash(self):
+        string_to_hash = super(Tree, self).hash
+
+        # We need to include tree photos in this hash as well
+        photos = [str(photo.pk) for photo in self.treephoto_set.all()]
+        string_to_hash += ":" + ",".join(photos)
+
+        return hashlib.md5(string_to_hash).hexdigest()
 
 
 
