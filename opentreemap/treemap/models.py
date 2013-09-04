@@ -5,8 +5,10 @@ from __future__ import division
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile, File
 from django.contrib.gis.db import models
 from django.db import IntegrityError
+from django.utils import timezone
 
 from django.contrib.auth.models import AbstractUser
 
@@ -15,6 +17,9 @@ from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
 
 import hashlib
 import re
+import Image
+
+from cStringIO import StringIO
 
 from treemap.udf import UDFModel, GeoHStoreManager
 from treemap.instance import Instance
@@ -309,6 +314,87 @@ class Tree(UDFModel, Authorizable, Auditable):
     def save_with_user(self, user, *args, **kwargs):
         self.full_clean_with_user(user)
         super(Tree, self).save_with_user(user, *args, **kwargs)
+
+
+
+
+class TreePhoto(models.Model, Authorizable, Auditable):
+    tree = models.ForeignKey(Tree)
+
+    image = models.ImageField(
+        upload_to='trees/%Y/%m/%d', editable=False)
+    thumbnail = models.ImageField(
+        upload_to='trees_thumbs/%Y/%m/%d', editable=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    instance = models.ForeignKey(Instance)
+
+    def __init__(self, *args, **kwargs):
+        super(TreePhoto, self).__init__(*args, **kwargs)
+        self._do_not_track.add('created_at')
+        self.populate_previous_state()
+
+    def _generate_name(self, hash, format):
+        return "%s-%s-%s.%s" % (
+            self.tree.plot.pk, self.tree.pk, hash, format)
+
+    def _set_thumbnail(self, image, name):
+        try:
+            size = 256, 256
+            image.thumbnail(size, Image.ANTIALIAS)
+            temp = StringIO()
+            image.save(temp, format=image.format)
+            temp.seek(0)
+
+            suf = SimpleUploadedFile(
+                'thumb-' + name, temp.read(),
+                'image/%s' % image.format.lower())
+
+            self.thumbnail = suf
+        except IOError:
+            raise ValidationError({'image': 'Could not upload image'})
+
+    def set_image(self, image_data):
+        image = Image.open(image_data)
+        image.verify()
+
+        # http://www.pythonware.com/library/pil/handbook/image.htm
+        # ...if you need to load the image after using this method,
+        # you must reopen the image file.
+        image_data.seek(0)
+        im = Image.open(image_data)
+
+        hash = hashlib.md5(image_data.read()).hexdigest()
+        name = self._generate_name(hash, image.format.lower())
+
+        self.image = File(image_data)
+        self.image.name = name
+
+        self._set_thumbnail(im, name)
+
+        # Reset image position
+        image_data.seek(0)
+
+    def save_with_user(self, *args, **kwargs):
+        if not self.thumbnail.name:
+            raise Exception('You need to call set_image instead')
+        if self.tree and self.tree.instance != self.instance:
+            raise ValidationError('Cannot save to a tree in another instance')
+
+        # The auto_now_add is acting up... set if here if we're new
+        if self.pk is None:
+            self.created_at = timezone.now()
+
+        super(TreePhoto, self).save_with_user(*args, **kwargs)
+
+    def delete_with_user(self, *args, **kwargs):
+        thumb = self.thumbnail
+        image = self.image
+
+        super(TreePhoto, self).delete_with_user(*args, **kwargs)
+
+        thumb.delete(False)
+        image.delete(False)
 
 
 class Boundary(models.Model):

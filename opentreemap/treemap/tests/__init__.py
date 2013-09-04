@@ -108,7 +108,10 @@ def _make_permissions(field_permission):
         ('Tree', 'height', field_permission),
         ('Tree', 'canopy_height', field_permission),
         ('Tree', 'date_planted', field_permission),
-        ('Tree', 'date_removed', field_permission))
+        ('Tree', 'date_removed', field_permission),
+        ('TreePhoto', 'thumbnail', field_permission),
+        ('TreePhoto', 'tree', field_permission),
+        ('TreePhoto', 'image', field_permission))
     return permissions
 
 
@@ -121,6 +124,7 @@ def make_commander_role(instance, extra_plot_fields=None):
     commander_permissions = (
         ('Plot', 'id', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
+        ('TreePhoto', 'id', FieldPermission.WRITE_DIRECTLY)
     )
 
     permissions = permissions + commander_permissions

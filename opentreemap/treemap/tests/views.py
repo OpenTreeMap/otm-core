@@ -2,6 +2,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import os.path
+import shutil
+import tempfile
 import json
 import unittest
 
@@ -20,7 +23,7 @@ from treemap.udf import UserDefinedFieldDefinition
 
 from treemap.audit import Role, Audit, approve_or_reject_audit_and_apply
 
-from treemap.models import (Instance, Species, User, Plot, Tree,
+from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, BenefitCurrencyConversion)
 
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
@@ -124,6 +127,96 @@ class BoundaryViewTest(ViewTestCase):
             self.instance)
 
         self.assertEqual(response, self.test_boundary_hashes[0:2])
+
+
+def media_dir(f):
+    "Helper method for PlotImageTest to force a specific media dir"
+    def m(self):
+        with self._media_dir():
+            f(self)
+    return m
+
+
+class PlotImageUpdateTest(TestCase):
+    def setUp(self):
+        self.photoDir = tempfile.mkdtemp()
+        self.mediaUrl = '/testingmedia/'
+
+        self.instance = make_instance()
+        self.user = make_commander_user(self.instance)
+
+        # Give this plot a unique number so we can check for
+        # correctness
+        self.plot = Plot(
+            geom=Point(0, 0), instance=self.instance, pk=449293)
+
+        self.plot.save_with_user(self.user)
+
+    def tearDown(self):
+        shutil.rmtree(self.photoDir)
+
+    def load_resource(self, name):
+        module_dir = os.path.dirname(__file__)
+        path = os.path.join(module_dir, 'resources', name)
+        return file(path)
+
+    def _media_dir(self):
+        return self.settings(DEFAULT_FILE_STORAGE=
+                             'django.core.files.storage.FileSystemStorage',
+                             MEDIA_ROOT=self.photoDir,
+                             MEDIA_URL=self.mediaUrl)
+
+    def _run_basic_test_with_image_file(self, image_file):
+        tp = TreePhoto(tree=self.tree, instance=self.instance)
+        tp.set_image(image_file)
+        tp.save_with_user(self.user)
+
+        reloaded_tp = TreePhoto.objects.get(pk=tp.pk)
+
+        # Verify our settings context manager worked and that
+        # things are where they say they are
+        image_path = reloaded_tp.image.path
+        thumb_path = reloaded_tp.thumbnail.path
+
+        image_url = reloaded_tp.image.url
+        thumb_url = reloaded_tp.thumbnail.url
+
+        all_of_em = [image_path, thumb_path, image_url, thumb_url]
+
+        # ids should be in all paths and urls
+        for path_or_url in all_of_em:
+            self.assertNotEqual(path_or_url.find('%s-' % self.tree.pk), -1)
+            self.assertNotEqual(path_or_url.find('%s-' % self.plot.pk), -1)
+
+        # media prefix and files should exist
+        for path in [image_path, thumb_path]:
+            self.assertEqual(path.index(self.photoDir), 0)
+            # File should be larger than 100 bytes
+            self.assertGreater(os.stat(path).st_size, 100)
+
+        for url in [image_url, thumb_url]:
+            self.assertEqual(url.index(self.mediaUrl), 0)
+
+        # Delete should remove objects
+        reloaded_tp.delete_with_user(self.user)
+
+        for path in [image_path, thumb_path]:
+            self.assertFalse(os.path.exists(path))
+
+    @media_dir
+    def test_photos_save_with_thumbnails_gif(self):
+        image_file = self.load_resource('tree1.gif')
+        self._run_basic_test_with_image_file(image_file)
+
+    @media_dir
+    def test_photos_save_with_thumbnails_jpg(self):
+        image_file = self.load_resource('tree2.jpg')
+        self._run_basic_test_with_image_file(image_file)
+
+    @media_dir
+    def test_photos_save_with_thumbnails_png(self):
+        image_file = self.load_resource('tree3.png')
+        self._run_basic_test_with_image_file(image_file)
 
 
 class PlotUpdateTest(unittest.TestCase):

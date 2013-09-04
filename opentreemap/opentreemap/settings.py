@@ -6,6 +6,16 @@ API_VERSION = 'v0.1'
 
 SYSTEM_USER_ID = -1
 
+# Storage backend config
+# Uncomment the following to enable S3-backed storage:
+# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+# AWS_ACCESS_KEY_ID = '...'
+# AWS_SECRET_ACCESS_KEY = '...'
+# AWS_STORAGE_BUCKET_NAME = '...'
+AWS_HEADERS = {
+    'Cache-Control': 'max-age=86400',
+}
+
 # API distance check, in meters
 MAP_CLICK_RADIUS = 100
 
@@ -54,12 +64,14 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/usr/local/otm/media'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://example.com/media/", "http://media.example.com/"
-MEDIA_URL = ''
+
+# TODO: Media serving via ansible
+MEDIA_URL = '/media/'
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
