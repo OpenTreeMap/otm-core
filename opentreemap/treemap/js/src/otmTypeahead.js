@@ -10,6 +10,7 @@ var $ = require("jquery"),
     Bacon = require("baconjs"),
     keyCodeIs = require("./baconUtils").keyCodeIs;
 
+
 function setTypeahead($typeahead, val) {
     $typeahead.typeahead('setQuery', val);
 }
@@ -30,6 +31,19 @@ function setTypeaheadAfterDataLoaded($typeahead, key, query) {
     } else {
         setTypeahead($typeahead, '');
     }
+}
+
+function eventToTargetValue(e) { return $(e.target).val(); }
+
+function inputProperty($input) {
+    return $input.asEventStream('input')
+                 .map(eventToTargetValue)
+                 .toProperty();
+}
+
+
+function firstIfSecondIsEmptyElseEmpty (first, second) {
+    return second === "" ? first : "";
 }
 
 exports.getDatum = function($typeahead) {
@@ -64,8 +78,15 @@ exports.create = function(options) {
         idStream = selectStream.map(".id")
                                 .merge(backspaceOrDeleteStream.map(""));
 
-
     editStream.onValue($input, "data", "datum");
+
+    // Set data-unmatched to the input value if the value was not
+    // matched to a typeahead datum. Allows for external code to take
+    // alternate action if there is no typeahead match.
+    inputProperty($input)
+        .combine(idStream.toProperty("").skipDuplicates(),
+                 firstIfSecondIsEmptyElseEmpty)
+        .onValue($input, 'attr', 'data-unmatched');
 
     if (options.hidden) {
         idStream.onValue($hidden_input, "val");
