@@ -40,6 +40,10 @@
     <input type="hidden" id="boundary" />
   </div>
 </div>
+<div class="search-block">
+  <ul id='geocode-results-list'>
+  </ul>
+</div>
 </div> <!-- end search block wrapper -->
 {% endblock search %}
 {% block searchoptions %}
@@ -76,5 +80,14 @@
   <p>{{name}}</p>
   <p>{{category}}</p>
 </script>
+
+<script id="geocode-results-template" type="text/x-mustache-template">
+<ul class="unstyled">
+{{#candidates}}
+<li><a href="javascript:;" data-class="geocode-result" data-x="{{x}}" data-y="{{y}}" data-srid="{{srid}}" data-address"{{address}}">{{address}}</a></li>
+{{/candidates}}
+</ul>
+</script>
+
 {% endverbatim %}
 {% endblock templates %}

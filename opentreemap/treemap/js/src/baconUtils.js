@@ -20,9 +20,14 @@ function keyCodeIs (keyCodes) {
 exports.keyCodeIs = keyCodeIs;
 
 exports.isEnterKey = keyCodeIs([13]);
+exports.isEscKey = keyCodeIs([27]);
 
 var isDefined = exports.isDefined = function (value) {
     return value !== undefined;
+};
+
+var isDefinedNonEmpty = exports.isDefinedNonEmpty = function (value) {
+    return value !== undefined && value !== "";
 };
 
 var isUndefined = exports.isUndefined = function (value) {
