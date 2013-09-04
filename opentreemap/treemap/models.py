@@ -303,6 +303,11 @@ class Tree(UDFModel, Authorizable, Auditable):
                          if self.species else "")
         return "%s%s" % (diameter_chunk, species_chunk)
 
+    def most_recent_photo(self):
+        try:
+            return self.treephoto_set.order_by('created_at')[0]
+        except IndexError:
+            return None
 
     ##########################
     # tree validation
@@ -326,6 +331,11 @@ class Tree(UDFModel, Authorizable, Auditable):
 
         return hashlib.md5(string_to_hash).hexdigest()
 
+    def add_photo(self, image, user):
+        tp = TreePhoto(tree=self, instance=self.instance)
+        tp.set_image(image)
+        tp.save_with_user(user)
+        return tp
 
 
 class TreePhoto(models.Model, Authorizable, Auditable):
@@ -365,8 +375,11 @@ class TreePhoto(models.Model, Authorizable, Auditable):
             raise ValidationError({'image': 'Could not upload image'})
 
     def set_image(self, image_data):
-        image = Image.open(image_data)
-        image.verify()
+        try:
+            image = Image.open(image_data)
+            image.verify()
+        except:
+            raise ValidationError({'treephoto.image': 'Invalid image'})
 
         # http://www.pythonware.com/library/pil/handbook/image.htm
         # ...if you need to load the image after using this method,

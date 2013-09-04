@@ -12,7 +12,8 @@ from treemap.views import (boundary_to_geojson_view, index_view, map_view,
                            search_tree_benefits_view, species_list_view,
                            boundary_autocomplete_view, instance_user_view,
                            plot_popup_view, instance_user_audits,
-                           plot_accordian_view, add_plot_view)
+                           plot_accordian_view, add_plot_view,
+                           add_tree_photo_endpoint)
 
 # Testing notes:
 # We want to test that every URL succeeds (200) or fails with bad data (404).
@@ -35,6 +36,10 @@ urlpatterns = patterns(
         name='plot_accordian'),
     url(r'^plots/(?P<plot_id>\d+)/popup$', plot_popup_view),
     url(r'^plots/$', route(POST=add_plot_view)),
+    url(r'^plots/(?P<plot_id>\d+)/photo$',
+        add_tree_photo_endpoint, name='add_photo_to_plot'),
+    url(r'^plots/(?P<plot_id>\d+)/tree/(?P<tree_id>\d+)/photo$',
+        add_tree_photo_endpoint, name='add_photo_to_tree'),
     url(r'^config/settings.js$', instance_settings_js_view),
     url(r'^benefit/search$', search_tree_benefits_view),
     url(r'^users/(?P<username>\w+)/?$', instance_user_view),

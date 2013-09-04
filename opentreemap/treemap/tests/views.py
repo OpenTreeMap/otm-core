@@ -7,6 +7,7 @@ import shutil
 import tempfile
 import json
 import unittest
+from StringIO import StringIO
 
 from django.test import TestCase
 from django.test.client import RequestFactory
@@ -29,7 +30,7 @@ from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, audits, user_audits,
                            search_tree_benefits, user, instance_user_view,
-                           update_plot_and_tree, update_user)
+                           update_plot_and_tree, update_user, add_tree_photo)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
@@ -152,6 +153,9 @@ class PlotImageUpdateTest(TestCase):
 
         self.plot.save_with_user(self.user)
 
+        self.tree = Tree(instance=self.instance, plot=self.plot)
+        self.tree.save_with_user(self.user)
+
     def tearDown(self):
         shutil.rmtree(self.photoDir)
 
@@ -217,6 +221,97 @@ class PlotImageUpdateTest(TestCase):
     def test_photos_save_with_thumbnails_png(self):
         image_file = self.load_resource('tree3.png')
         self._run_basic_test_with_image_file(image_file)
+
+    def assertPathExists(self, path):
+        self.assertTrue(os.path.exists(path), '%s does not exist' % path)
+
+    def assertTreePhotoExists(self, tp):
+        self.assertPathExists(tp.image.path)
+        self.assertPathExists(tp.thumbnail.path)
+
+    def _make_tree_photo_request(self, file, plot_id, tree_id=None):
+        return add_tree_photo(make_request(user=self.user,
+                                           file=file),
+                              self.instance, plot_id, tree_id)
+
+    @media_dir
+    def test_add_photo_to_tree(self):
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        tree_image = self.load_resource('tree1.gif')
+
+        self._make_tree_photo_request(
+            tree_image, self.plot.pk, self.tree.pk)
+
+        objects = self.tree.treephoto_set.all()
+        self.assertEqual(len(objects), 1)
+
+        tp = objects[0]
+
+        self.assertTreePhotoExists(tp)
+
+    @media_dir
+    def test_invalid_ids(self):
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        tree_image = self.load_resource('tree1.gif')
+
+        self.assertRaises(
+            Http404,
+            self._make_tree_photo_request, tree_image, -1, None)
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        # Reload
+        tree_image.seek(0)
+
+        self.assertRaises(
+            Http404,
+            self._make_tree_photo_request, tree_image, self.plot.pk, -1)
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+    @media_dir
+    def test_creates_tree_if_needed(self):
+        pass
+
+    @media_dir
+    def test_assigns_to_tree_if_exists(self):
+        tree_image = self.load_resource('tree1.gif')
+
+        # Note: No tree id given - will do a lookup
+        self._make_tree_photo_request(
+            tree_image, self.plot.pk, None)
+
+        objects = self.tree.treephoto_set.all()
+        self.assertEqual(len(objects), 1)
+
+        tp = objects[0]
+
+        self.assertTreePhotoExists(tp)
+
+    @media_dir
+    def test_rejects_non_image_files(self):
+        invalid_thing = StringIO()
+        invalid_thing.write('booyah')
+        invalid_thing.seek(0)
+        setattr(invalid_thing, 'name', 'blah.jpg')
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        self.assertRaises(ValidationError,
+                          self._make_tree_photo_request,
+                          invalid_thing, self.plot.pk, self.tree.pk)
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+    @media_dir
+    def test_can_create_and_apply_pending_images(self):
+        pass
+
+    @media_dir
+    def test_non_authorized_users_cant_create_images(self):
+        pass
 
 
 class PlotUpdateTest(unittest.TestCase):
