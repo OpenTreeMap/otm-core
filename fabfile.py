@@ -108,14 +108,14 @@ def check():
     if jshint.failed or flake8.failed:
         abort('Code linting failed')
 
-def bundle():
+def bundle(dev_mode=False):
     """ Update npm and bundle javascript """
     local('npm install')
-    local('grunt --no-color')
+    local('grunt --no-color %s' % ("--dev" if dev_mode else ""))
 
-def static():
+def static(dev_mode=False):
     """ Collect static files and bundle javascript. """
-    bundle()
+    bundle(dev_mode)
     _collectstatic()
 
 def syncdb(dev_data=False):

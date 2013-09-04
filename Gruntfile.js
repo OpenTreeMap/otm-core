@@ -1,11 +1,15 @@
 module.exports = function(grunt) {
     "use strict";
 
+    var debug = typeof grunt.option('dev') !== "undefined";
+
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.file.setBase('opentreemap');
+
     grunt.registerTask('check', ['jshint']);
-    grunt.registerTask('default', ['browserify']);
+    grunt.registerTask('default', debug ? ['browserify'] : ['browserify', 'uglify']);
 
     /*
      * Reads the extra.json file which should be a dictionary
@@ -63,7 +67,7 @@ module.exports = function(grunt) {
                             depends: { jquery: 'jQuery' }
                         }
                     },
-                    debug: true
+                    debug: debug
                 }
             }
         },
@@ -72,6 +76,18 @@ module.exports = function(grunt) {
                 jshintrc: "../.jshintrc"
             },
             treemap: ['../Gruntfile.js', '*/js/src/**/*.js']
+        },
+        uglify: {
+            options: {
+                mangle: {
+                    except: ['require', 'google']
+                }
+            },
+            treemap: {
+                files: {
+                    'treemap/static/js/treemap.min.js': ['treemap/static/js/treemap.js']
+                }
+            }
         }
     });
 };
