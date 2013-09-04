@@ -11,7 +11,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'Instance.url_name'
         db.add_column(u'treemap_instance', 'url_name',
-                      self.gf('django.db.models.fields.CharField')(default='dummy-default', unique=True, max_length=255, db_index=True),
+                      self.gf('django.db.models.fields.CharField')(default='dummy-default', max_length=255),
                       keep_default=False)
 
         for instance in orm.Instance.objects.all():
@@ -20,6 +20,8 @@ class Migration(SchemaMigration):
             #   - Append id for a better stab at uniqueness
             instance.url_name = re.sub(r'\W+', '', instance.name.lower()) + str(instance.id)
             instance.save()
+
+        db.create_index(u'treemap_instance', [u'url_name'], unique=True)
         
 
     def backwards(self, orm):
