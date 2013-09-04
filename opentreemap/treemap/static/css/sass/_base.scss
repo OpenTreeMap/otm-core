@@ -1,0 +1,13 @@
+// Fonts
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:300,400,700|Roboto:100,400,700);
+$base-font-family		: 'Open Sans', 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+$base-font-size			: 16px;
+
+// Colors
+$primary-color			: #8baa3d; // OTM Green
+$secondary-color		: #3d949a; // OTM Teal
+$success-color			: #add142; // OTM Lime Green
+
+// Modules
+@import "modules/animations";
+@import "modules/links";

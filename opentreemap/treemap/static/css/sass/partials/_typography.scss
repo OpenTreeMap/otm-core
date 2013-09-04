@@ -1,0 +1,34 @@
+// Partial: Typography
+
+// Convert ems to pixels
+// -- 16px = 1em, this converts appropriately
+@function em($px, $base: $base-font-size) {
+	@return ($px / $base) * 1em;
+}
+
+body {
+	font-family: $base-font-family
+}
+
+h1, h2, h4, h4, h5 {
+	font-family: $base-font-family;
+	font-weight: 300;
+	margin: 1em 0 0.5em;
+}
+
+p {
+	line-height: 1em;
+}
+
+input {
+	font-size: em(13px);
+}
+
+.btn,
+.btn-group .btn, {
+	font-size: em(14px);
+}
+
+.btn-mini {
+	font-size: em(11px);
+}

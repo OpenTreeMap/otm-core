@@ -1,0 +1,43 @@
+// Partial: Navbar
+
+.navbar {
+    font-size: 15px;
+    
+    .brand {
+        margin-left: 15px;
+        padding: 10px 20px 10px 0;
+
+        img {
+            max-width: 20px;
+        }
+    }
+}
+
+.navbar-static-top,
+.navbar-fixed-top,
+.navbar-fixed-bottom {
+    .container {
+        left: 0;
+        right: 0;
+        width: auto;
+    }
+}
+
+.container-fixedwidth {
+    width: 970px;
+    margin: 0 auto;
+
+    .nav {
+        margin: 0 -15px;
+
+        &.pull-right {
+            margin-right: -15px;
+        }
+    }
+    .right {
+            float: right;
+    }
+    .left {
+            float: left;
+    }
+}

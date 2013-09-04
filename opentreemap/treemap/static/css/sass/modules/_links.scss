@@ -1,0 +1,7 @@
+@mixin links($color: $default-link-color) {
+    color: $color;
+    text-decoration: none;
+    &:hover {
+        color: darken($color, 25%);
+    }
+}

@@ -1,0 +1,73 @@
+// Partial: Map Page
+
+.create_instance_map {
+    width: 100%;
+    height: 500px;
+}
+
+.map {
+  left: 0;
+  background: #eee;
+  position: absolute;
+  bottom: 35px;
+  top: 211px;
+  right: 350px;
+}
+
+.sidebar {
+  width: 350px;
+  background: #fff;
+  border-left: 1px solid #c2c2c2;
+  position: absolute;
+  top: 211px;
+  right: 0;
+  bottom: 35px;
+}
+  .sidebar .accordion-group {
+    border-left: none;
+    border-right: none;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+    margin-bottom: 0px;
+    border-top: none;
+  }
+  .sidebar .accordion-heading {
+    background: #eee;
+  }
+    .sidebar .accordion-heading a {
+      color: #000;
+      font-weight: bold;
+    }
+    .sidebar .accordion-heading a:hover {
+      text-decoration: none;
+      color: #000;
+    }
+
+  .benefit-label {
+    font-weight: bold;
+  }
+
+span.tt-dropdown-menu {
+                margin-top: 0;
+                padding: 10px;
+                width: 199px;
+                font-size: 13px !important;
+    border: 1px solid #c2c2c2;
+    background: #fff;
+                -webkit-border-radius: 3px;
+                -moz-border-radius:              3px;
+                border-radius:                           3px;
+                -webkit-box-shadow: 0px 0px 5px rgba(0, 3, 0, 0.3);
+                -moz-box-shadow:    0px 0px 5px rgba(0, 3, 0, 0.3);
+                box-shadow:         0px 0px 5px rgba(0, 3, 0, 0.3);
+}
+.tt-suggestion p {
+        padding: 0px 7px;
+}
+        .tt-suggestion p:hover {
+                background-color: #eee;
+                -webkit-border-radius: 3px;
+                -moz-border-radius:              3px;
+                border-radius:                           3px;
+}
