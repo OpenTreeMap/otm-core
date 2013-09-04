@@ -104,7 +104,11 @@
       <script type="text/javascript" src="{% url 'django.views.i18n.javascript_catalog' %}"></script>
       <script>
       </script>
+      {% if debug %}
       <script src="{{ STATIC_URL }}js/treemap.js"></script>
+      {% else %}
+      <script src="{{ STATIC_URL }}js/treemap.min.js"></script>
+      {% endif %}
     {% endblock global_scripts %}
 
     {% block templates %}
