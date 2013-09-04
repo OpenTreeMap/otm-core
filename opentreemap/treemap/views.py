@@ -14,14 +14,15 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django.http import (HttpResponse, HttpResponseRedirect,
                          HttpResponseForbidden)
-from django.views.decorators.http import etag, require_http_methods
+from django.views.decorators.http import etag
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
 from django.utils.translation import ugettext as trans
 from django.db import transaction
 from django.db.models import Q
 
-from treemap.util import json_api_call, render_template, instance_request
+from treemap.util import (json_api_call, render_template, instance_request,
+                          require_http_method)
 from treemap.search import create_filter
 from treemap.audit import Audit
 from treemap.models import (Plot, Tree, User, Species, Instance,
@@ -30,7 +31,7 @@ from treemap.models import (Plot, Tree, User, Species, Instance,
 from ecobenefits.models import ITreeRegion
 from ecobenefits.views import _benefits_for_trees
 
-from opentreemap.util import json_from_request
+from opentreemap.util import json_from_request, require_http_method
 
 
 def _plot_hash(request, instance, plot_id):
@@ -704,7 +705,7 @@ plot_popup_view = instance_request(etag(_plot_hash)(
 plot_accordian_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_accordian.html', plot_detail)))
 
-add_plot_view = require_http_methods(["POST"])(
+add_plot_view = require_http_method("POST")(
     json_api_call(instance_request(add_plot)))
 
 root_settings_js_view = render_template('treemap/settings.js',
@@ -730,7 +731,7 @@ species_list_view = json_api_call(instance_request(species_list))
 
 user_view = render_template("treemap/user.html", user)
 
-update_user_view = require_http_methods(["PUT"])(json_api_call(update_user))
+update_user_view = require_http_method("PUT")(json_api_call(update_user))
 
 user_audits_view = render_template("treemap/recent_user_edits.html",
                                    user_audits)
