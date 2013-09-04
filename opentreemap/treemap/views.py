@@ -744,8 +744,8 @@ update_plot_detail_view = json_api_call(instance_request(update_plot_detail))
 plot_popup_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_popup.html', plot_detail)))
 
-plot_accordian_view = instance_request(etag(_plot_hash)(
-    render_template('treemap/plot_accordian.html', plot_detail)))
+plot_accordion_view = instance_request(etag(_plot_hash)(
+    render_template('treemap/plot_accordion.html', plot_detail)))
 
 add_plot_view = require_http_method("POST")(
     json_api_call(instance_request(add_plot)))

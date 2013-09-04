@@ -169,13 +169,13 @@ class TreemapUrlTests(UrlTestCase):
     def test_plot_popup_invalid(self):
         self.assert_404(self.prefix + 'plots/999/popup')
 
-    def test_plot_accordian(self):
+    def test_plot_accordion(self):
         plot = self.make_plot()
         self.assert_template(
             self.prefix + 'plots/%s/detail' % plot.id,
-            'treemap/plot_accordian.html')
+            'treemap/plot_accordion.html')
 
-    def test_plot_accordian_invalid(self):
+    def test_plot_accordion_invalid(self):
         self.assert_404(self.prefix + 'plots/999/detail')
 
     def test_plot_create(self):
