@@ -19,6 +19,7 @@ exports.init = function(options) {
         displayFields = options.displayFields,
         editFields = options.editFields,
         validationFields = options.validationFields,
+        onSaveBefore = options.onSaveBefore || _.identity(),
 
         editStream = $(edit).asEventStream('click').map('edit:start'),
         saveStream = $(save).asEventStream('click').map('save:start'),
@@ -29,8 +30,8 @@ exports.init = function(options) {
             return _.contains(actions, action) ? '' : 'none';
         },
 
-        actionToEditFieldCssDisplay = _.partial(actionToCssDisplay,
-            ['edit:start', 'save:start', 'save:error']),
+        eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
+        actionToEditFieldCssDisplay = _.partial(actionToCssDisplay, eventsLandingInEditMode),
 
         actionToDisplayFieldCssDisplay = _.partial(actionToCssDisplay,
             ['idle', 'save:ok', 'cancel']),
@@ -102,6 +103,12 @@ exports.init = function(options) {
             typeaheadToDisplayValues();
         },
 
+        getDataToSave = function() {
+            var data = FH.formToDictionary($(form), $(editFields));
+            onSaveBefore(data);
+            return data;
+        },
+
         update = function(data) {
             return Bacon.fromPromise($.ajax({
                 url: updateUrl,
@@ -123,14 +130,15 @@ exports.init = function(options) {
         },
 
         responseStream = saveStream
-            .map(FH.formToDictionary, $(form), $(editFields))
+            .map(getDataToSave)
             .flatMap(update)
             .mapError(function (e) {
                 return e.responseJSON;
-            });
+            }),
 
-    responseStream.filter('.ok')
-                  .onValue(formFieldsToDisplayValues);
+        saveOkStream = responseStream.filter('.ok');
+
+    saveOkStream.onValue(formFieldsToDisplayValues);
 
     responseStream.filter('.error')
                   .map('.validationErrors')
@@ -150,7 +158,7 @@ exports.init = function(options) {
     );
 
     actionStream.plug(
-        responseStream.filter('.ok').map('save:ok')
+        saveOkStream.map('save:ok')
     );
 
     actionStream.filter(isEditStart).onValue(displayValuesToFormFields);
@@ -166,4 +174,11 @@ exports.init = function(options) {
     actionStream.map(actionToValidationErrorCssDisplay)
                 .toProperty('none')
                 .assign($(validationFields), "css", "display");
+
+    exports.inEditModeProperty = actionStream.map(function (event) {
+        return _.contains(eventsLandingInEditMode, event);
+    }).toProperty(false);
+
+    exports.saveOkStream = saveOkStream;
+    exports.cancelStream = cancelStream;
 };

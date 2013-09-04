@@ -130,8 +130,8 @@
       </table>
     <form>
 
-    <a href="javascript:;" class="btn editBtn">Move Tree</a>
-    <a href="javascript:;" class="btn cancelBtn" style="display:none">Cancel Move</a>
+    <a href="javascript:;" class="btn" style="display:none" id="edit-plot-location">Move Tree</a>
+    <a href="javascript:;" class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</a>
     <div id="map" class="map-small"></div>
 
     <hr>
@@ -203,9 +203,13 @@
               upload: '#addimage',
               show: '#toggleAddPhotoModal'
           }
-          location: {
-              x: {{ plot.geom.x }},
-              y: {{ plot.geom.y }}
+          plotLocation: {
+              edit: '#edit-plot-location',
+              cancel: '#cancel-edit-plot-location',
+              location: {
+                  x: {{ plot.geom.x }},
+                  y: {{ plot.geom.y }}
+              }
           }
       });
 })(require, otm.settings);
