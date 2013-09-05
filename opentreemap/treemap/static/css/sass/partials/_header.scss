@@ -3,60 +3,79 @@
 .header {
     padding: 59px 15px 15px;
     height: 75px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid $well-color;
     background: #fff;
-}
 
-.search-block {
-    padding: 8px;
-    border: 1px solid #eee;
-    border-radius: 3px;
-    float: left;
-    margin-left: 10px;
-
-    .dropdown-menu {
-        width: 257px;
-        -moz-border-radius: 3px;
-        -webkit-border-radius: 3px;
-        border-radius: 3px;
-    
-        > li > a {
-            padding: 3px 12px;
-        }
+    &:before {
+        content: '';
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+        margin-right: -0.25em;
     }
 }
 
 .logo {
-    float: left;
-    margin-top: 15px;
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
 
     img {
-        max-width: 200px;
+        max-width: 225px;
+        max-height: 65px;
+    }
+}
+
+.search-wrapper {
+    right: 15px;
+    position: absolute;
+    top: 56px;
+}
+
+.search-block-wrapper {
+    display: inline-block;
+
+    .search-block {
+        padding: 8px;
+        border: 1px solid #eee;
+        border-radius: 3px;
+        float: left;
+        margin-left: 10px;
+
+        .dropdown-menu {
+            width: 257px;
+            -moz-border-radius: 3px;
+            -webkit-border-radius: 3px;
+            border-radius: 3px;
+        
+            > li > a {
+                padding: 3px 12px;
+            }
+        }
     }
 }
 
 .search-options {
-    float: right;
-    margin-left: 20px;
-}
+    display: inline-block;
+    margin-left: 15px;
+    top: -18px;
+    position: relative;
 
-.search-submit-btn {
-    margin-bottom: 7px;
-    width: 149px;
-    padding: 14px 0;
-}
-
-.search-block-wrapper {
-    right: 190px;
-    position: absolute;
+    #perform-search {
+        margin-bottom: 6px;
+        padding: 8px 0;
+    }
 }
 
 .subhead {
     padding: 10px 15px;
-    border-bottom: 1px solid #c2c2c2;
+    border-bottom: 1px solid $well-color;
     font-size: em(16px);
     background: #fff;
     height: 24px;
+    position: relative;
+    z-index: 9;
+    box-shadow: 0 6px 0 rgba(0,0,0,.15);
 
     span {
         font-weight: bold;

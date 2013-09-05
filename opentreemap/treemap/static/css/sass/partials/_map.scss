@@ -2,7 +2,7 @@
 
 #map {
     left: 0;
-    background: #eee;
+    background: $well-color;
     position: absolute;
     bottom: 40px;
     top: 0;
@@ -11,32 +11,31 @@
 
 .sidebar {
     width: 350px;
-    background: #fff;
-    border-left: 1px solid #c2c2c2;
+    background: #FFF;
+    border-left: 1px solid $well-color;
     position: absolute;
     top: 0;
     right: 0;
     bottom: 40px;
     
     .accordion-group {
-        border-left: none;
-        border-right: none;
-        -webkit-border-radius: 0px;
-        -moz-border-radius: 0px;
-        border-radius: 0px;
-        margin-bottom: 0px;
-        border-top: none;
+        border-radius: 0;
+        margin-bottom: 0;
+        border: none;
+        border-top: 1px solid $well-color;
     }
     .accordion-heading {
-        background: #eee;
+        background: $secondary-color;
     
         a {
-            color: #000;
-            font-weight: bold;
+            color: #f1f1f2;
+            font-size: 1em;
+            font-weight: 700;
+            padding: 15px;
             
             &:hover {
                 text-decoration: none;
-                color: #000;
+                color: #FFF;
             }
         }
     }
@@ -51,7 +50,7 @@ span.tt-dropdown-menu {
     padding: 10px;
     width: 199px;
     font-size: em(13px) !important;
-    border: 1px solid #c2c2c2;
+    border: 1px solid $well-color;
     background: #fff;
     border-radius: 3px;
     box-shadow: 0px 0px 5px rgba(0, 3, 0, 0.3);
@@ -60,7 +59,7 @@ span.tt-dropdown-menu {
     padding: 0px 7px;
     
     &:hover {
-        background-color: #eee;
+        background-color: $well-color;
         border-radius: 3px;
     }
 }

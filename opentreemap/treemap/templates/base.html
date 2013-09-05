@@ -57,10 +57,12 @@
         </div>
         {% endblock logo %}
 
-        {% block search %}
-        {% endblock search %}
-        {% block searchoptions %}
-        {% endblock searchoptions %}
+        <div class="search-wrapper">
+          {% block search %}
+          {% endblock search %}
+          {% block searchoptions %}
+          {% endblock searchoptions %}
+        </div>
 
       </div> <!-- end header -->
       {% endblock header %}
@@ -75,14 +77,16 @@
 
     {% block footer %}
     <footer>
-      <ul class="inline pull-left">
-        <li><a href="javascript:;">{% trans "Tree Key" %}</a></li>
-        <li><a href="javascript:;">{% trans "Resources" %}</a></li>
-        <li><a href="javascript:;">{% trans "FAQ" %}</a></li>
-        <li><a href="javascript:;">{% trans "About" %}</a></li>
-        <li><a href="javascript:;">{% trans "Contact" %}</a></li>
-      </ul>
-      <a href="javascript:;" class="pull-right partners">Partners</a>
+      <div class="footer-inner">
+        <ul class="inline pull-left">
+          <li><a href="javascript:;">{% trans "Tree Key" %}</a></li>
+          <li><a href="javascript:;">{% trans "Resources" %}</a></li>
+          <li><a href="javascript:;">{% trans "FAQ" %}</a></li>
+          <li><a href="javascript:;">{% trans "About" %}</a></li>
+          <li><a href="javascript:;">{% trans "Contact" %}</a></li>
+        </ul>
+        <a href="javascript:;" class="pull-right partners">Partners</a>
+      </div>
     </footer>
     {% endblock footer %}
 

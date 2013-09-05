@@ -10,6 +10,9 @@ body {
 	height: auto !important;
 	height: 100%;
 	margin-bottom: -40px;
+
+	@include buttons;
+	@include links;
 }
 
 .content {

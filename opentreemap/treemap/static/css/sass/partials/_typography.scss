@@ -36,5 +36,9 @@ input[type="tel"],
 input[type="color"], 
 textarea, 
 .uneditable-input {
-	font-size: em(12px);
+	font-size: 0.75em;
+}
+
+.btn-group {
+	font-size: 14px;
 }

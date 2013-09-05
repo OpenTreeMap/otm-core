@@ -12,9 +12,7 @@
 <div class="subhead">
   <div style="display: inline;" id="tree-and-planting-site-counts">
     <!-- This is what the counts will look like -->
-    <!--
-        <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites
-        -->
+    <!-- <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites -->
   </div>
   <a href="javascript:;" class="btn btn-mini exportBtn"><i class="icon-share"></i> Export Search Results</a>
   <a href="javascript:;" class="btn addBtn">Add a Tree</a>
@@ -25,27 +23,27 @@
 <div class="search-block-wrapper">
   <!--Species Search-->
   <div class="search-block">
-    <p class="desktop-only">{% trans "Search by Species" %}</p></a>
-<div class="search-field-group">
-  <input type="text" data-class="search" id="species-typeahead" placeholder="American basswood"/>
-  <input type="hidden" id="search-species" />
-</div>
-</div>
-
-<!-- Location Search -->
-<div class="search-block">
-  <p class="desktop-only">{% trans "Search by Location" %}</p>
-  <div class="search-field-group">
-    <input type="text" data-class="search" id="boundary-typeahead" placeholder="340 N 12th St, Philadelphia"/>
-    <input type="hidden" id="boundary" />
+    <p class="desktop-only">{% trans "Search by Species" %}</p>
+    <div class="search-field-group">
+      <input type="text" data-class="search" id="species-typeahead" placeholder="American basswood"/>
+      <input type="hidden" id="search-species" />
+    </div>
   </div>
-</div>
+
+  <!-- Location Search -->
+  <div class="search-block">
+    <p class="desktop-only">{% trans "Search by Location" %}</p>
+    <div class="search-field-group">
+      <input type="text" data-class="search" id="boundary-typeahead" placeholder="340 N 12th St, Philadelphia"/>
+      <input type="hidden" id="boundary" />
+    </div>
+  </div>
 </div> <!-- end search block wrapper -->
 {% endblock search %}
+
 {% block searchoptions %}
 <div class="search-options">
-  <a id="perform-search" class="btn btn-primary search-submit-btn">{% trans "Search" %}</a>
-  <br>
+  <a id="perform-search" class="btn btn-primary btn-large btn-block">{% trans "Search" %}</a>
   <div class="btn-group">
     <button class="btn">{% trans "Advanced" %}</button>
     <button id="search-reset" class="btn">{% trans "Reset" %}</button>
