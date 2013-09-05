@@ -9,12 +9,12 @@ var U = require('./utility'),
     browseTreesMode     = require('./browseTreesMode'),
     addTreeMode         = require('./addTreeMode'),
     editTreeDetailsMode = require('./editTreeDetailsMode'),
+    inlineEditForm      = require('./inlineEditForm'),
     currentMode;
 
 var $sidebarBrowseTrees         = U.$find('#sidebar-browse-trees'),
     $treeDetailAccordionSection = U.$find('#tree-detail'),
-    $sidebarAddTree             = U.$find('#sidebar-add-tree'),
-    $sidebarEditTreeDetails     = U.$find('#sidebar-edit-tree-details');
+    $sidebarAddTree             = U.$find('#sidebar-add-tree');
 
 function activateMode(mode, $sidebar) {
     if (mode !== currentMode) {
@@ -32,19 +32,38 @@ function activateMode(mode, $sidebar) {
 
 function activateBrowseTreesMode()     { activateMode(browseTreesMode,     $sidebarBrowseTrees); }
 function activateAddTreeMode()         { activateMode(addTreeMode,         $sidebarAddTree); }
-function activateEditTreeDetailsMode() { activateMode(editTreeDetailsMode, $sidebarEditTreeDetails); }
+function activateEditTreeDetailsMode() { activateMode(editTreeDetailsMode, $sidebarBrowseTrees); }
 
 function inBrowseTreesMode()     { return currentMode === browseTreesMode; }
-function inAddTreeMode()         { return currentMode === addTreeMode; }
-function inEditTreeDetailsMode() { return currentMode === editTreeDetailsMode; }
 
 function init(config, map, onPlotAddOrUpdate) {
+    // browseTreesMode and editTreeDetailsMode share an inlineEditForm,
+    // so initialize it here.
+    inlineEditForm.init({
+          updateUrl: "look it up",         // TODO
+          form: '#details-form',
+          edit: '#edit-details-button',
+          save: '#save-details-button',
+          cancel: '#cancel-edit-details-button',
+          displayFields: '[data-class="display"]',
+          editFields: '[data-class="edit"]',
+          validationFields: '[data-class="error"]'
+    });
+    inlineEditForm.inEditModeProperty.onValue(function (inEditMode) {
+        // Form is changing to edit mode or display mode
+        if (inEditMode) {
+            activateEditTreeDetailsMode();
+        } else {
+            activateBrowseTreesMode();
+        }
+    });
+
     browseTreesMode.init({
         config: config,
         map: map,
         inMyMode: inBrowseTreesMode,
-        $sidebar: $sidebarBrowseTrees,
-        $treeDetailAccordionSection: $treeDetailAccordionSection
+        $treeDetailAccordionSection: $treeDetailAccordionSection,
+        inlineEditForm: inlineEditForm
     });
 
     addTreeMode.init({
@@ -56,16 +75,13 @@ function init(config, map, onPlotAddOrUpdate) {
     });
 
     editTreeDetailsMode.init({
-        config: config,
         map: map,
-        $sidebar: $sidebarEditTreeDetails,
-        onClose: activateBrowseTreesMode
+        inlineEditForm: inlineEditForm
     });
 }
 
 module.exports = {
     init: init,
     activateBrowseTreesMode: activateBrowseTreesMode,
-    activateAddTreeMode: activateAddTreeMode,
-    activateEditTreeDetailsMode: activateEditTreeDetailsMode
+    activateAddTreeMode: activateAddTreeMode
 };

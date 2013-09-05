@@ -18,7 +18,6 @@ function init(options) {
 
     var map = options.map;
     var inMyMode = options.inMyMode; // function telling if my mode is active
-    var $sidebar = options.$sidebar;
     var $accordionSection = options.$treeDetailAccordionSection;
     var utfGridMoveControl = new OL.Control.UTFGrid();
 
@@ -72,10 +71,9 @@ function init(options) {
        .zip(popupHtmlStream, makePopup) // TODO: size is not being sent to makePopup
        .onValue(showPlotDetailPopup);
 
-    accordionHtmlStream.toProperty('').assign($('#plot-accordion'), "html");
-
     accordionHtmlStream.onValue(function (html) {
         if (html !== '' && html !== undefined) {
+            $('#plot-accordion').html(html);
             $accordionSection.removeClass('collapse');
         } else {
             $accordionSection.addClass('collapse'); 

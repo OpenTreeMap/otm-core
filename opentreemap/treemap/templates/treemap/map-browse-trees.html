@@ -4,6 +4,10 @@
       <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#tree-details">Tree Details <span class="arrow pull-right"><i class="icon-right"></i></span></a>
     </div>
     <div id="tree-detail" class="accordion-body collapse">
+      <a href="javascript:;" class="btn" id="full-details-button">Full Details</a>
+      <a href="javascript:;" class="btn" data-class="display" id="edit-details-button">Edit Details</a>
+      <a href="javascript:;" class="btn" data-class="edit" id="save-details-button" style="display:none">Save</a>
+      <a href="javascript:;" class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</a>
       <div class="accordion-inner" id="plot-accordion">
         <!-- The markup returned from the plot detail endpoint looks like
              span.plot-label + br + span.content + p ...
