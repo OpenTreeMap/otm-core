@@ -89,16 +89,16 @@
           {% endusercanread %}
           {% with tree=plot.current_tree %}
           {% if tree %}
-            {# The "plot-species" label is used as an id prefix in "species_field.html" #}
-            {% field "plot-species" from "tree.species" for request.user withtemplate "treemap/species_field.html" %}
+            {# The "plot-species" label is used as an id prefix in "field_species_td.html" #}
+            {% field "plot-species" from "tree.species" for request.user withtemplate "treemap/field_species_td.html" %}
             {% trans "Trunk Diameter" as diameter %}
-            {% field diameter from "tree.diameter" for request.user withtemplate "treemap/plot_field.html" %}
+            {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field_td.html" %}
             {% trans "Tree Height" as height %}
-            {% field height from "tree.height" for request.user withtemplate "treemap/plot_field.html" %}
+            {% field height from "tree.height" for request.user withtemplate "treemap/field_td.html" %}
             {% trans "Canopy Height" as canopy %}
-            {% field canopy from "tree.canopy_height" for request.user withtemplate "treemap/plot_field.html" %}
+            {% field canopy from "tree.canopy_height" for request.user withtemplate "treemap/field_td.html" %}
             {% for label, udf in tree.udf_names_and_fields %}
-              {% field label from udf withtemplate "treemap/plot_field.html" %}
+              {% field label from udf withtemplate "treemap/field_td.html" %}
             {% endfor %}
           {% endif %}
           {% endwith %}
@@ -110,21 +110,21 @@
         <h5>{% trans "General Plot Information" %}</h5>
         <tbody>
           {% trans "Width" as width %}
-          {% field width from "plot.width" for request.user withtemplate "treemap/plot_field.html" %}
+          {% field width from "plot.width" for request.user withtemplate "treemap/field_td.html" %}
           {% trans "Length" as len %}
-          {% field len from "plot.length" for request.user withtemplate "treemap/plot_field.html" %}
+          {% field len from "plot.length" for request.user withtemplate "treemap/field_td.html" %}
           {% trans "Address" as street %}
-          {% field street from "plot.address_street" for request.user withtemplate "treemap/plot_field.html" %}
+          {% field street from "plot.address_street" for request.user withtemplate "treemap/field_td.html" %}
           {% trans "City" as city %}
-          {% field city from "plot.address_city" for request.user withtemplate "treemap/plot_field.html" %}
+          {% field city from "plot.address_city" for request.user withtemplate "treemap/field_td.html" %}
           {% trans "Postal Code" as zip %}
-          {% field zip from "plot.address_zip" for request.user withtemplate "treemap/plot_field.html" %}
+          {% field zip from "plot.address_zip" for request.user withtemplate "treemap/field_td.html" %}
           {% trans "Original Owner Id" as oid %}
-          {% field oid from "plot.owner_orig_id" for request.user withtemplate "treemap/plot_field.html" %}
+          {% field oid from "plot.owner_orig_id" for request.user withtemplate "treemap/field_td.html" %}
           {% trans "Read Only" as readonly %}
-          {% field readonly from "plot.readonly" for request.user withtemplate "treemap/plot_field.html" %}
+          {% field readonly from "plot.readonly" for request.user withtemplate "treemap/field_td.html" %}
           {% for label, udf in plot.udf_names_and_fields %}
-            {% field label from udf withtemplate "treemap/plot_field.html" %}
+            {% field label from udf withtemplate "treemap/field_td.html" %}
           {% endfor %}
         </tbody>
       </table>

@@ -1,0 +1,36 @@
+{% load i18n %}
+{% if field.is_visible %}
+  <ul class="chunk" data-class="display">
+    <li class="chunk-content" data-typeahead="{{ field.identifier }}"
+        data-datum="common_name">{{ field.value.common_name }}</li>
+    <li class="chunk-content">
+      <input type="hidden"
+             value="{{ field.value.id }}"
+             data-typeahead-restore="{{ field.identifier}}"
+             data-datum="id" />
+      <em data-typeahead="{{ field.identifier }}"
+          data-datum="scientific_name">{{ field.value.scientific_name }}</em>
+    </li>
+  </ul>
+  {% if field.is_editable %}
+  <ul class="chunk" style="display: none;" data-class="edit">
+    <li class="chunk-label">{% trans "Species" %}</li>
+    <li class="chunk-content">
+      <input type="hidden"
+             data-typeahead-hidden
+             id="{{ field.label }}-hidden"
+             name="{{ field.identifier }}"
+             value="{{ field.value.id }}"/>
+      <input type="text"
+             data-typeahead-input="{{ field.identifier }}"
+             id="{{ field.label }}-typeahead"
+             value="{{ field.value.display_name }}"/>
+    </li>
+    <li class="chunk-content text-error"
+        data-field="{{ field.identifier }}"
+        data-class="error"
+        style="display: none;">
+    </li>
+  </ul>
+  {% endif %}
+{% endif %}
