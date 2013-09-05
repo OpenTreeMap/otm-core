@@ -1,10 +1,10 @@
 "use strict";
 
-var $ = require('jquery');
-var Bacon = require('baconjs');
-var _ = require('underscore');
-var FH = require('./fieldHelpers');
-var getDatum = require('./otmTypeahead').getDatum;
+var $ = require('jquery'),
+    Bacon = require('baconjs'),
+    _ = require('underscore'),
+    FH = require('./fieldHelpers'),
+    getDatum = require('./otmTypeahead').getDatum;
 
 // Requiring this module handles wiring up the browserified
 // baconjs to jQuery
@@ -19,7 +19,7 @@ exports.init = function(options) {
         displayFields = options.displayFields,
         editFields = options.editFields,
         validationFields = options.validationFields,
-        onSaveBefore = options.onSaveBefore || _.identity(),
+        onSaveBefore = options.onSaveBefore || _.identity,
 
         editStream = $(edit).asEventStream('click').map('edit:start'),
         saveStream = $(save).asEventStream('click').map('save:start'),
@@ -98,7 +98,7 @@ exports.init = function(options) {
 
         update = function(data) {
             return Bacon.fromPromise($.ajax({
-                url: updateUrl,
+                url: exports.updateUrl,
                 type: 'PUT',
                 contentType: "application/json",
                 data: JSON.stringify(data)
@@ -174,4 +174,6 @@ exports.init = function(options) {
 
     exports.saveOkStream = saveOkStream;
     exports.cancelStream = cancelStream;
+    exports.updateUrl = updateUrl;
 };
+

@@ -200,6 +200,7 @@ def plot_detail(request, instance, plot_id):
             pass
 
     context['plot'] = plot
+    context['tree'] = tree
     context['recent_activity'] = _plot_audits(request.user, instance, plot)
 
     return context

@@ -1,26 +1,17 @@
 {% load i18n %}
 {% load auth_extras %}
+{% load form_extras %}
 
-{% usercanread plot.current_tree "species" as species %}
-<span class="plot-label">{{ species.common_name }}</span>
-<br />
-<span class="content"><em>{{ species.scientific_name }}</em></span>
-<p />
-{% endusercanread %}
-{% usercanread plot "address_street" as addr %}
-<span class="plot-label">{% trans "Nearby Address" %}</span>
-<br />
-<span class="content">{{ addr }}</span>
-<p />
-{% endusercanread %}
-{% usercanread plot.current_tree "diameter" as diameter %}
-<span class="plot-label">{% trans "Trunk Diameter" %}</span>
-<br />
-<span class="content">{{ diameter|floatformat }}</span>
-<p />
-{% endusercanread %}
-{% usercanread plot.current_tree "height" as height %}
-<span class="plot-label">{% trans "Height" %}</span>
-<br />
-<span class="content">{{ height }}</span>
-{% endusercanread %}
+<form id="details-form">
+    {# The "tree-species" label is used as an id prefix in "field_species.html" #}
+    {% field "tree-species" from "tree.species" for request.user withtemplate "treemap/field_species.html" %}
+
+    {% trans "Nearby Address" as addr %}
+    {% field addr from "plot.address_street" for request.user withtemplate "treemap/field.html" %}
+
+    {% trans "Tree Height" as height %}
+    {% field height from "tree.height" for request.user withtemplate "treemap/field.html" %}
+
+    {% trans "Trunk Diameter" as diameter %}
+    {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field.html" %}
+</form>

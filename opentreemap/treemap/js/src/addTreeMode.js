@@ -37,7 +37,7 @@ function init(options) {
     $addButton = U.$find('.saveBtn', $sidebar).click(addTree);
     U.$find('.cancelBtn', $sidebar).click(cancel);
 
-    $editFields.css('display', 'inline-block');
+    $editFields.show();
     $displayFields.hide();
     $validationFields.hide();
 }
@@ -108,7 +108,7 @@ function onAddTreeError(jqXHR, textStatus, errorThrown) {
     _.each(errorDict, function (errorList, fieldName) {
         FH.getField($validationFields, fieldName)
             .html(errorList.join(','))
-            .css('display', 'inline-block');
+            .show();
     });
 }
 

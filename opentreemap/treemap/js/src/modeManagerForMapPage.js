@@ -40,14 +40,14 @@ function init(config, map, onPlotAddOrUpdate) {
     // browseTreesMode and editTreeDetailsMode share an inlineEditForm,
     // so initialize it here.
     inlineEditForm.init({
-          updateUrl: "look it up",         // TODO
+          updateUrl: '', // set in browseTreesMode.js on map click
           form: '#details-form',
           edit: '#edit-details-button',
           save: '#save-details-button',
           cancel: '#cancel-edit-details-button',
-          displayFields: '[data-class="display"]',
-          editFields: '[data-class="edit"]',
-          validationFields: '[data-class="error"]'
+          displayFields: '#sidebar-browse-trees [data-class="display"]',
+          editFields: '#sidebar-browse-trees [data-class="edit"]',
+          validationFields: '#sidebar-browse-trees [data-class="error"]'
     });
     inlineEditForm.inEditModeProperty.onValue(function (inEditMode) {
         // Form is changing to edit mode or display mode
@@ -76,7 +76,15 @@ function init(config, map, onPlotAddOrUpdate) {
 
     editTreeDetailsMode.init({
         map: map,
-        inlineEditForm: inlineEditForm
+        inlineEditForm: inlineEditForm,
+        typeaheads: [{
+            name: "species",
+            url: "/" + config.instance.id + "/species",
+            input: "#tree-species-typeahead",
+            template: "#species-element-template",
+            hidden: "#tree-species-hidden",
+            reverse: "id"
+        }]
     });
 }
 
