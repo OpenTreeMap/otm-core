@@ -248,7 +248,7 @@ def create_mock_system_user():
     User._system_user = system_user
 
 
-def make_request(params={}, user=None, method='GET', body=None):
+def make_request(params={}, user=None, method='GET', body=None, file=None):
     if user is None:
         user = AnonymousUser()
 
@@ -258,8 +258,12 @@ def make_request(params={}, user=None, method='GET', body=None):
         extra['wsgi.input'] = body_stream
         extra['CONTENT_LENGTH'] = len(body)
 
-    req = RequestFactory().get("hello/world", params, **extra)
-    req.method = method
+    if file:
+        post_data = {'file': file}
+        req = RequestFactory().post("hello/world", post_data, **extra)
+    else:
+        req = RequestFactory().get("hello/world", params, **extra)
+        req.method = method
 
     setattr(req, 'user', user)
 
