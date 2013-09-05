@@ -420,6 +420,12 @@ footer .nav-pills > li > a:hover {
   right: 350px;
 }
 
+.map-small {
+  background: #eee;
+  width: 300px;
+  height: 300px;
+}
+
 .sidebar {
   width: 350px;
   background: #fff;

@@ -13,12 +13,15 @@ from opentreemap.local_settings import STATIC_ROOT
 class UrlTestCase(TestCase):
 
     def assert_status_code(self, url, code, method='GET', data=''):
-        client = {
+        send = {
             'GET': self.client.get,
             'PUT': self.client.put,
             'POST': self.client.post
-        }
-        response = client[method](url, data)
+        }[method]
+        if (method == 'POST'):
+            response = send(url, data, content_type="application/json")
+        else:
+            response = send(url, data)
         self.assertEqual(response.status_code, code,
                          "Actual code [%s] Expected code [%s]"
                          % (response.status_code, code))
@@ -174,6 +177,13 @@ class TreemapUrlTests(UrlTestCase):
 
     def test_plot_accordian_invalid(self):
         self.assert_404(self.prefix + 'plots/999/detail')
+
+    def test_plot_create(self):
+        username = make_commander_user(self.instance).username
+        self.client.login(username=username, password='password')
+        self.assert_200(
+            self.prefix + 'plots/', 'POST',
+            json.dumps({'plot.geom': {'x': 270, 'y': 45}}))
 
     def test_instance_settings_js(self):
         self.assert_template(
