@@ -12,6 +12,7 @@ MAP_CLICK_RADIUS = 100
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 AUTH_USER_MODEL = 'treemap.User'
+INTERNAL_IPS = ['127.0.0.1']
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
