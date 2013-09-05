@@ -15,7 +15,7 @@ var $ = require('jquery'),
     BU = require('./baconUtils');
 
 var app = {
-    initTypeAheads: function(config) {
+    initSearchUi: function(config) {
         otmTypeahead.create({
             name: "species",
             url: config.instance.url + "species",
@@ -31,6 +31,9 @@ var app = {
             template: "#boundary-element-template",
             hidden: "#boundary",
             reverse: "id"
+        });
+        $("#search-advanced").on("click", function() {
+            $("#advanced-search-pane").toggle(0); // Show/hide with 0 animation time
         });
     },
 
@@ -102,7 +105,7 @@ var app = {
                 trigger: 'manual',
                 title: 'Results'
             }).popover('show');
-        } else {  
+        } else {
             window.alert('There was a problem running your search.');
         }
     },
@@ -131,7 +134,7 @@ module.exports = {
         app.resetEventStream()
             .onValue(Search.reset);
 
-        app.initTypeAheads(config);
+        app.initSearchUi(config);
 
         app.searchEventStream()
             .map(Search.buildSearch)
@@ -185,7 +188,7 @@ module.exports = {
         // Set up cross-site forgery protection
         $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
-        app.initTypeAheads(config);
+        app.initSearchUi(config);
 
         modes.init(config, map, mapManager.updateGeoRevHash);
         modes.activateBrowseTreesMode();
