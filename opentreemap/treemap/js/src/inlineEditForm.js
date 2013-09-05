@@ -26,19 +26,6 @@ exports.init = function(options) {
         cancelStream = $(cancel).asEventStream('click').map('cancel'),
         actionStream = new Bacon.Bus(),
 
-        actionToCssDisplay = function(actions, action) {
-            return _.contains(actions, action) ? '' : 'none';
-        },
-
-        eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
-        actionToEditFieldCssDisplay = _.partial(actionToCssDisplay, eventsLandingInEditMode),
-
-        actionToDisplayFieldCssDisplay = _.partial(actionToCssDisplay,
-            ['idle', 'save:ok', 'cancel']),
-
-        actionToValidationErrorCssDisplay = _.partial(actionToCssDisplay,
-            ['save:error']),
-
         displayValuesToTypeahead = function() {
             $('[data-typeahead-restore]').each(function(index, el) {
                 var field = $(el).attr('data-typeahead-restore');
@@ -136,7 +123,23 @@ exports.init = function(options) {
                 return e.responseJSON;
             }),
 
-        saveOkStream = responseStream.filter('.ok');
+        saveOkStream = responseStream.filter('.ok'),
+
+        eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
+        eventsLandingInDisplayMode = ['idle', 'save:ok', 'cancel'],
+
+        hideAndShowElements = function (action) {
+            function hideOrShow(fields, actions) {
+                if (_.contains(actions, action)) {
+                    $(fields).show();
+                } else {
+                    $(fields).hide();
+                }
+            }
+            hideOrShow(editFields, eventsLandingInEditMode);
+            hideOrShow(displayFields, eventsLandingInDisplayMode);
+            hideOrShow(validationFields, ['save:error']);
+        };
 
     saveOkStream.onValue(formFieldsToDisplayValues);
 
@@ -163,17 +166,7 @@ exports.init = function(options) {
 
     actionStream.filter(isEditStart).onValue(displayValuesToFormFields);
 
-    actionStream.map(actionToDisplayFieldCssDisplay)
-                .toProperty('')
-                .assign($(displayFields), "css", "display");
-
-    actionStream.map(actionToEditFieldCssDisplay)
-                .toProperty('none')
-                .assign($(editFields), "css", "display");
-
-    actionStream.map(actionToValidationErrorCssDisplay)
-                .toProperty('none')
-                .assign($(validationFields), "css", "display");
+    actionStream.onValue(hideAndShowElements);
 
     exports.inEditModeProperty = actionStream.map(function (event) {
         return _.contains(eventsLandingInEditMode, event);
