@@ -4,9 +4,15 @@ $base-font-family		: 'Open Sans', 'Roboto', 'Helvetica Neue', Helvetica, Arial, 
 $base-font-size			: 16px;
 
 // Colors
-$primary-color			: #8baa3d; // OTM Green
-$secondary-color		: #3d949a; // OTM Teal
-$success-color			: #add142; // OTM Lime Green
+$primary-color			: #8baa3d; // OTM Green color
+$secondary-color		: #3d949a; // OTM Teal color 
+$success-color			: #add142; // OTM Lime Green color
+$alert-color			: #df4425; // OTM Red color
+
+$navbar-color			: #42424a; // Navbar gray color
+$well-color				: #d1d2d4; // Well gray color
+$main-text-color		: #231f20; // Black text color
+$subtext-color			: #799397; // Midtone gray text color
 
 // Modules
 @import "modules/animations";

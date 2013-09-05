@@ -1,6 +1,7 @@
-@mixin links($color: $default-link-color) {
+@mixin links($color: $navbar-color) {
     color: $color;
     text-decoration: none;
+    font-weight: 700;
     &:hover {
         color: darken($color, 25%);
     }

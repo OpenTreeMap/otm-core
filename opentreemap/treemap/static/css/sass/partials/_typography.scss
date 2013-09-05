@@ -7,7 +7,7 @@
 }
 
 body {
-	font-family: $base-font-family
+	font-family: $base-font-family;
 }
 
 h1, h2, h4, h4, h5 {
@@ -20,15 +20,21 @@ p {
 	line-height: 1em;
 }
 
-input {
-	font-size: em(13px);
-}
-
-.btn,
-.btn-group .btn, {
-	font-size: em(14px);
-}
-
-.btn-mini {
-	font-size: em(11px);
+input[type="text"], 
+input[type="password"], 
+input[type="datetime"], 
+input[type="datetime-local"], 
+input[type="date"], 
+input[type="month"], 
+input[type="time"], 
+input[type="week"], 
+input[type="number"], 
+input[type="email"], 
+input[type="url"], 
+input[type="search"], 
+input[type="tel"], 
+input[type="color"], 
+textarea, 
+.uneditable-input {
+	font-size: em(12px);
 }

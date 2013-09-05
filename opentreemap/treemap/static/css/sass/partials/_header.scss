@@ -1,9 +1,8 @@
 // Partial: Header
 
 .header {
-    margin-top: 41px;
-    padding: 15px;
-    height: 96px;
+    padding: 59px 15px 15px;
+    height: 75px;
     border-bottom: 1px solid #eee;
     background: #fff;
 }
@@ -52,20 +51,12 @@
     position: absolute;
 }
 
-.mobile-only {
-    display: none !important;
-
-    .btn {
-        float: right;
-        margin-bottom: 10px;
-    }
-}
-
 .subhead {
-    padding: 10px;
+    padding: 10px 15px;
     border-bottom: 1px solid #c2c2c2;
     font-size: em(16px);
     background: #fff;
+    height: 24px;
 
     span {
         font-weight: bold;

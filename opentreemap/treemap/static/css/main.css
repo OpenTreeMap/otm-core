@@ -1,79 +1,4 @@
 @import url(http://fonts.googleapis.com/css?family=Open+Sans:300,400,700|Roboto:100,400,700);
-/*
-   Animation example, for spinners
-*/
-.animate-spin {
-  -moz-animation: spin 2s infinite linear;
-  -o-animation: spin 2s infinite linear;
-  -webkit-animation: spin 2s infinite linear;
-  animation: spin 2s infinite linear;
-  display: inline-block; }
-
-@-moz-keyframes spin {
-  0% {
-    -moz-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    transform: rotate(0deg); }
-
-  100% {
-    -moz-transform: rotate(359deg);
-    -o-transform: rotate(359deg);
-    -webkit-transform: rotate(359deg);
-    transform: rotate(359deg); } }
-
-@-webkit-keyframes spin {
-  0% {
-    -moz-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    transform: rotate(0deg); }
-
-  100% {
-    -moz-transform: rotate(359deg);
-    -o-transform: rotate(359deg);
-    -webkit-transform: rotate(359deg);
-    transform: rotate(359deg); } }
-
-@-o-keyframes spin {
-  0% {
-    -moz-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    transform: rotate(0deg); }
-
-  100% {
-    -moz-transform: rotate(359deg);
-    -o-transform: rotate(359deg);
-    -webkit-transform: rotate(359deg);
-    transform: rotate(359deg); } }
-
-@-ms-keyframes spin {
-  0% {
-    -moz-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    transform: rotate(0deg); }
-
-  100% {
-    -moz-transform: rotate(359deg);
-    -o-transform: rotate(359deg);
-    -webkit-transform: rotate(359deg);
-    transform: rotate(359deg); } }
-
-@keyframes spin {
-  0% {
-    -moz-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    transform: rotate(0deg); }
-
-  100% {
-    -moz-transform: rotate(359deg);
-    -o-transform: rotate(359deg);
-    -webkit-transform: rotate(359deg);
-    transform: rotate(359deg); } }
-
 body {
   font-family: "Open Sans", "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif; }
 
@@ -85,63 +10,81 @@ h1, h2, h4, h4, h5 {
 p {
   line-height: 1em; }
 
-input {
-  font-size: 0.8125em; }
+input[type="text"],
+input[type="password"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="date"],
+input[type="month"],
+input[type="time"],
+input[type="week"],
+input[type="number"],
+input[type="email"],
+input[type="url"],
+input[type="search"],
+input[type="tel"],
+input[type="color"],
+textarea,
+.uneditable-input {
+  font-size: 0.75em; }
 
-.btn,
-.btn-group .btn {
-  font-size: 0.875em; }
+html,
+body {
+  height: 100%; }
 
-.btn-mini {
-  font-size: 0.6875em; }
+.wrapper {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  margin-bottom: -40px; }
 
 .content {
-  padding: 30px 0 120px; }
-
-@media (max-width: 767px) {
-  .content {
-    margin-top: 120px; }
-
-  .right {
+  position: relative;
+  overflow: auto; }
+  .content.map {
+    position: absolute;
+    overflow: hidden;
+    padding-bottom: 40px;
+    top: 195px;
     width: 100%;
-    clear: both;
-    border-top: 1px solid #eee;
-    margin-top: 50px;
-    padding-bottom: 120px; }
+    bottom: 0; }
 
-  .right textarea {
-    width: 98%; } }
 .navbar {
-  font-size: 15px; }
-  .navbar .brand {
-    margin-left: 15px;
-    padding: 10px 20px 10px 0; }
-    .navbar .brand img {
-      max-width: 20px; }
-
-.navbar-static-top .container,
-.navbar-fixed-top .container,
-.navbar-fixed-bottom .container {
-  left: 0;
-  right: 0;
-  width: auto; }
-
-.container-fixedwidth {
-  width: 970px;
-  margin: 0 auto; }
-  .container-fixedwidth .nav {
+  font-size: 16px; }
+  .navbar .navbar-inner {
+    background: #42424a;
+    border: none;
+    height: 44px; }
+  .navbar .nav {
     margin: 0 -15px; }
-    .container-fixedwidth .nav.pull-right {
-      margin-right: -15px; }
-  .container-fixedwidth .right {
-    float: right; }
-  .container-fixedwidth .left {
-    float: left; }
+    .navbar .nav.pull-left {
+      margin-left: 15px; }
+    .navbar .nav.pull-right {
+      margin-right: 15px; }
+    .navbar .nav > li {
+      margin-left: 25px;
+      height: 44px; }
+      .navbar .nav > li:first-child {
+        margin-left: 0; }
+      .navbar .nav > li.active > a {
+        background-color: #42424a;
+        border-bottom: 4px solid #8baa3d; }
+      .navbar .nav > li.user-img {
+        overflow: hidden;
+        height: 30px;
+        width: 30px;
+        border-radius: 4px;
+        top: 6px;
+        position: relative; }
+      .navbar .nav > li > a {
+        padding: 10px 0;
+        height: 20px; }
+        .navbar .nav > li > a:hover, .navbar .nav > li > a:focus {
+          background-color: #42424a; }
 
 .header {
-  margin-top: 41px;
-  padding: 15px;
-  height: 96px;
+  padding: 59px 15px 15px;
+  height: 75px;
   border-bottom: 1px solid #eee;
   background: #fff; }
 
@@ -178,17 +121,12 @@ input {
   right: 190px;
   position: absolute; }
 
-.mobile-only {
-  display: none !important; }
-  .mobile-only .btn {
-    float: right;
-    margin-bottom: 10px; }
-
 .subhead {
-  padding: 10px;
+  padding: 10px 15px;
   border-bottom: 1px solid #c2c2c2;
   font-size: 1em;
-  background: #fff; }
+  background: #fff;
+  height: 24px; }
   .subhead span {
     font-weight: bold; }
   .subhead .exportBtn {
@@ -218,42 +156,25 @@ input {
     top: 230px;
     right: 6px; } }
 footer {
-  bottom: 0;
-  position: fixed;
-  background: #000;
+  position: relative;
+  background: #FFF;
   width: 100%;
   font-size: 12px;
-  height: 35px; }
+  height: 20px;
+  padding: 10px 15px; }
+  footer a {
+    color: #799397;
+    font-weight: 700; }
+    footer a:hover {
+      color: #231f20;
+      text-decoration: none; }
 
-footer .nav {
-  margin-bottom: 0; }
-
-.partners {
-  margin-top: 7px;
-  margin-right: 15px;
-  color: #777; }
-
-.partners:hover {
-  color: #fff;
-  text-decoration: none; }
-
-footer .nav-pills > li > a {
-  color: #777; }
-
-footer .nav-pills > li > a:hover {
-  background: none;
-  color: #fff; }
-
-.create_instance_map {
-  width: 100%;
-  height: 500px; }
-
-.map {
+#map {
   left: 0;
   background: #eee;
   position: absolute;
-  bottom: 35px;
-  top: 211px;
+  bottom: 40px;
+  top: 0;
   right: 350px; }
 
 .sidebar {
@@ -261,55 +182,48 @@ footer .nav-pills > li > a:hover {
   background: #fff;
   border-left: 1px solid #c2c2c2;
   position: absolute;
-  top: 211px;
+  top: 0;
   right: 0;
-  bottom: 35px; }
-
-.sidebar .accordion-group {
-  border-left: none;
-  border-right: none;
-  -webkit-border-radius: 0px;
-  -moz-border-radius: 0px;
-  border-radius: 0px;
-  margin-bottom: 0px;
-  border-top: none; }
-
-.sidebar .accordion-heading {
-  background: #eee; }
-
-.sidebar .accordion-heading a {
-  color: #000;
-  font-weight: bold; }
-
-.sidebar .accordion-heading a:hover {
-  text-decoration: none;
-  color: #000; }
+  bottom: 40px; }
+  .sidebar .accordion-group {
+    border-left: none;
+    border-right: none;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+    margin-bottom: 0px;
+    border-top: none; }
+  .sidebar .accordion-heading {
+    background: #eee; }
+    .sidebar .accordion-heading a {
+      color: #000;
+      font-weight: bold; }
+      .sidebar .accordion-heading a:hover {
+        text-decoration: none;
+        color: #000; }
 
 .benefit-label {
-  font-weight: bold; }
+  font-weight: 700; }
 
 span.tt-dropdown-menu {
   margin-top: 0;
   padding: 10px;
   width: 199px;
-  font-size: 13px !important;
+  font-size: 0.8125em !important;
   border: 1px solid #c2c2c2;
   background: #fff;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
   border-radius: 3px;
-  -webkit-box-shadow: 0px 0px 5px rgba(0, 3, 0, 0.3);
-  -moz-box-shadow: 0px 0px 5px rgba(0, 3, 0, 0.3);
   box-shadow: 0px 0px 5px rgba(0, 3, 0, 0.3); }
 
 .tt-suggestion p {
   padding: 0px 7px; }
+  .tt-suggestion p:hover {
+    background-color: #eee;
+    border-radius: 3px; }
 
-.tt-suggestion p:hover {
-  background-color: #eee;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px; }
+.create_instance_map {
+  width: 100%;
+  height: 500px; }
 
 .tree-details {
   padding: 10px; }

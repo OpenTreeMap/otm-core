@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <title>{% block title %}OpenTreeMap{% block instance_title %}{% endblock %}{% block page_title %}{% endblock %}{% endblock title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8" />
 
     <link href="{{ STATIC_URL }}css/vendor/openlayers.css" rel="stylesheet">
     <link href="{{ STATIC_URL }}css/vendor/bootstrap.css" rel="stylesheet">
@@ -14,24 +15,16 @@
     <!--[if lt IE 9]>
       <script src="{{ STATIC_URL }}js/html5shiv.js"></script>
     <![endif]-->
-    <meta charset="utf-8" />
 
     {% block head_extra %}
     {% endblock head_extra %}
-    <style type="text/css">
-      header {
-        background-color: #dddddd;
-        padding: 0.5em;
-        margin: 0 0 0.5em 0;
-      }
-    </style>
   </head>
   <body>
-    {% block topnav %}
-    <!-- Top Nav -->
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
+    <div class="wrapper">
+      {% block topnav %}
+      <!-- Top Nav -->
+      <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar-inner">
           <ul class="nav pull-left">
             {% block instancetopnav %}
               {% if last_instance %}
@@ -42,8 +35,9 @@
           </ul>
           <ul class="nav pull-right">
             {% if request.user.is_authenticated %}
-              <li><a href="{% url 'profile' %}">{{ request.user }}</a></li>
+              <li><a href="{% url 'profile' %}">{% trans "My Account" %} <span class="reputation">({{ request.user.rep }} rep)</span></a></li>
               <li><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
+              <li class="user-img"></li>
             {% else %}
               <li><a id="login" href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
               <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
@@ -51,36 +45,37 @@
           </ul>
         </div>
       </div>
+      {% endblock topnav %}
+
+      {% block header %}
+      <!-- Logo and Search -->
+      <div class="header">
+
+        {% block logo %}
+        <div class="logo">
+          <a href="index.html"><img src="{{ STATIC_URL }}img/logo-main.svg" alt="OpenTreeMap"></a>
+        </div>
+        {% endblock logo %}
+
+        {% block search %}
+        {% endblock search %}
+        {% block searchoptions %}
+        {% endblock searchoptions %}
+
+      </div> <!-- end header -->
+      {% endblock header %}
+
+      {% block subhead %}
+      {% endblock subhead %}
+
+      {% block content %}
+      {% endblock content %}
+
     </div>
-    {% endblock topnav %}
-
-    {% block header %}
-    <!-- Logo and Search -->
-    <div class="header">
-
-      {% block logo %}
-      <div class="logo">
-        <a href="index.html"><img src="{{ STATIC_URL }}img/logo-main.svg" alt="OpenTreeMap"></a>
-      </div>
-      {% endblock logo %}
-
-      {% block search %}
-      {% endblock search %}
-      {% block searchoptions %}
-      {% endblock searchoptions %}
-
-    </div> <!-- end header -->
-    {% endblock header %}
-
-    {% block subhead %}
-    {% endblock subhead %}
-
-    {% block content %}
-    {% endblock content %}
 
     {% block footer %}
     <footer>
-      <ul class="nav nav-pills pull-left">
+      <ul class="inline pull-left">
         <li><a href="javascript:;">{% trans "Tree Key" %}</a></li>
         <li><a href="javascript:;">{% trans "Resources" %}</a></li>
         <li><a href="javascript:;">{% trans "FAQ" %}</a></li>

@@ -1,43 +1,54 @@
 // Partial: Navbar
 
 .navbar {
-    font-size: 15px;
-    
-    .brand {
-        margin-left: 15px;
-        padding: 10px 20px 10px 0;
+    font-size: 16px;
 
-        img {
-            max-width: 20px;
-        }
+    .navbar-inner {
+        background: $navbar-color;
+        border: none;
+        height: 44px;
     }
-}
-
-.navbar-static-top,
-.navbar-fixed-top,
-.navbar-fixed-bottom {
-    .container {
-        left: 0;
-        right: 0;
-        width: auto;
-    }
-}
-
-.container-fixedwidth {
-    width: 970px;
-    margin: 0 auto;
 
     .nav {
         margin: 0 -15px;
-
-        &.pull-right {
-            margin-right: -15px;
+        &.pull-left {
+            margin-left: 15px;
         }
-    }
-    .right {
-            float: right;
-    }
-    .left {
-            float: left;
+        &.pull-right {
+            margin-right: 15px;
+        }
+
+        > li {
+            margin-left: 25px;
+            height: 44px;
+
+            &:first-child {
+                margin-left: 0;
+            }
+            &.active {
+                > a {
+                    background-color: $navbar-color;
+                    border-bottom: 4px solid $primary-color;
+                }
+            }
+            &.user-img {
+                overflow: hidden;
+                height: 30px;
+                width: 30px;
+                border-radius: 4px;
+                top: 6px;
+                position: relative;
+            }
+
+            > a {
+                padding: 10px 0;
+                height: 20px;
+
+                &:hover,
+                &:focus {
+                    background-color: $navbar-color;
+                }
+            }
+        }
     }
 }
