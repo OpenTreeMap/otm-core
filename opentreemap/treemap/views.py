@@ -65,7 +65,7 @@ def add_tree_photo(request, instance, plot_id, tree_id=None):
     plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
     tree_ids = [t.pk for t in plot.tree_set.all()]
 
-    if int(tree_id) in tree_ids:
+    if tree_id and int(tree_id) in tree_ids:
         tree = Tree.objects.get(pk=tree_id)
     elif tree_id is None:
         # See if a tree already exists on this plot
