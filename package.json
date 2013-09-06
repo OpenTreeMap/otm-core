@@ -15,7 +15,10 @@
     "grunt-browserify": "~1.2",
     "grunt": "~0.4",
     "grunt-contrib-jshint": "~0.6.0",
-    "grunt-contrib-uglify": "~0.2.4"
+    "grunt-contrib-uglify": "~0.2.4",
+    "grunt-sass": "~0.6.1",
+    "grunt-contrib-cssmin": "~0.6.1",
+    "grunt-contrib-concat": "~0.3.0"
   },
   "repository": {
     "type": "git",

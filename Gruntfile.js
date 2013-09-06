@@ -6,10 +6,15 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-sass');
+    grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.file.setBase('opentreemap');
 
     grunt.registerTask('check', ['jshint']);
-    grunt.registerTask('default', debug ? ['browserify'] : ['browserify', 'uglify']);
+    grunt.registerTask('js', debug ? ['browserify'] : ['browserify', 'uglify']);
+    grunt.registerTask('css', debug ? ['sass', 'concat'] : ['sass', 'concat', 'cssmin']);
+    grunt.registerTask('default', ['js', 'css']);
 
     /*
      * Reads the extra.json file which should be a dictionary
@@ -86,6 +91,30 @@ module.exports = function(grunt) {
             treemap: {
                 files: {
                     'treemap/static/js/treemap.min.js': ['treemap/static/js/treemap.js']
+                }
+            }
+        },
+        sass: {
+            treemap: {
+                options: {
+                    includePaths: ['treemap/css/sass/']
+                },
+                files: {
+                    'treemap/static/css/main.css': 'treemap/css/sass/main.scss'
+                }
+            }
+        },
+        concat: {
+            treemap: {
+                src: ['treemap/css/vendor/*.css'],
+                dest: 'treemap/static/css/vendor.css'
+            }
+        },
+        cssmin: {
+            treemap: {
+                files: {
+                    'treemap/static/css/vendor.min.css': ['treemap/static/css/vendor.css'],
+                    'treemap/static/css/main.min.css': ['treemap/static/css/main.css']
                 }
             }
         }
