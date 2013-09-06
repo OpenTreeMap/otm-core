@@ -46,11 +46,12 @@ function applySearchToDom(search) {
         var pred = search[restoreTarget];
         var $domElem = $(k);
         if (pred) {
-            pred = _.values(pred)[0];
+            pred = pred[v.pred];
         } else {
             pred = null;
         }
 
+        $domElem.val(pred || '');
         $domElem.trigger('restore', pred);
     });
 }

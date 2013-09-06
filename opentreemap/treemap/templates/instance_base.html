@@ -45,11 +45,17 @@
 <div class="search-options">
   <a id="perform-search" class="btn btn-primary btn-large btn-block">{% trans "Search" %}</a>
   <div class="btn-group">
-    <button class="btn">{% trans "Advanced" %}</button>
+    <button id="search-advanced" class="btn">{% trans "Advanced" %}</button>
     <button id="search-reset" class="btn">{% trans "Reset" %}</button>
   </div>
 </div>
 {% endblock searchoptions %}
+{% block advancedsearch %}
+<div id="advanced-search-pane" style="display: none;">
+  <div>{% trans "DBH Min:" %}<input data-class="search" id="dbh-min"></div>
+  <div>{% trans "DBH Max:" %}<input data-class="search" id="dbh-max"></div>
+</div>
+{% endblock advancedsearch %}
 
 {% block scripts %}
 <script type="text/javascript">
