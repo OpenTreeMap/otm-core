@@ -9,10 +9,13 @@ from django.shortcuts import get_object_or_404, render_to_response, resolve_url
 from django.http import (HttpResponse, HttpResponseBadRequest,
                          HttpResponseRedirect)
 from django.views.decorators.http import require_http_methods
-from django.utils.encoding import force_str
+from django.utils.encoding import force_str, force_text
+from django.utils.functional import Promise
+from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.core.exceptions import ValidationError
 
 from treemap.models import Instance
 
@@ -147,3 +150,27 @@ def json_api_call(req_function):
 
         return response
     return newreq
+
+
+# https://docs.djangoproject.com/en/dev/topics/serialization/#id2
+class LazyEncoder(DjangoJSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Promise):
+            return force_text(obj)
+        return super(LazyEncoder, self).default(obj)
+
+
+def return_400_if_validation_errors(req):
+    def run_and_catch_validations(*args, **kwargs):
+        try:
+            return req(*args, **kwargs)
+        except ValidationError as e:
+            if hasattr(e, 'message_dict'):
+                message_dict = e.message_dict
+            else:
+                message_dict = {'errors': e.messages}
+
+            return HttpResponseBadRequest(
+                json.dumps(message_dict, cls=LazyEncoder))
+
+    return run_and_catch_validations
