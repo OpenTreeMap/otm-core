@@ -1,0 +1,41 @@
+// Partial: Registration Pages
+
+.login-signup {
+  background: #f8f8f8;
+}
+
+.login-signup-panel {
+  background-color: #fff;
+  box-shadow: none;
+  width: 940px;
+  margin: 0px auto;
+}
+
+.have-account {
+  font-size: 14px;
+}
+
+.signup-option {
+  text-align: center;
+  vertical-align: middle;
+  border: none;
+  background-color: #777;
+  color: #fff;
+  margin-top: 15px;
+}
+
+.signup-option p {
+  margin-bottom: 0;
+}
+
+.signup-option a {
+  margin-left: 20px;
+}
+
+.profile-photo-upload {
+  padding: 5px;
+  border: 1px solid #eee;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}

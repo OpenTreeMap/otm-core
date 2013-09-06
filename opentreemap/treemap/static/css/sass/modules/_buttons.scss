@@ -1,0 +1,36 @@
+@mixin buttons {
+	.btn {
+		@include button($light-gray-color, $main-text-color);
+		&.btn-primary 	{ @include button($primary-color, #FFF); }
+		&.btn-info 		{ @include button($secondary-color, #FFF); }
+		&.btn-success 	{ @include button($success-color, #FFF); }
+		&.btn-warning 	{ @include button($warning-color, #FFF); }
+		&.btn-danger 	{ @include button($alert-color, #FFF); }
+		&.btn-inverse 	{ @include button($main-text-color, #FFF); }
+	}
+}
+
+@mixin button($bg-color: $light-gray-color, $text-color: $main-text-color) {
+    background: $bg-color;
+    border: 1px solid darken($bg-color, 15%);
+    color: $text-color;
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+    	box-shadow: 0 3px 6px darken($bg-color, 15%);
+        box-shadow: 0 3px 6px rgba(0,0,0,.2) inset;
+        background: darken($bg-color, 5%);
+    }
+
+    @include button-size(em(14px));
+    &.btn-large		{ @include button-size(em(18px)); }
+    &.btn-small		{ @include button-size(em(12px)); }
+    &.btn-mini		{ @include button-size(em(10px)); }
+}
+
+@mixin button-size($text-size: em(14px)) {
+	font-family: $base-font-family;
+	font-size: $text-size;
+	font-weight: 400;
+}

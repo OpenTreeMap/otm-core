@@ -1,0 +1,44 @@
+// Partial: Typography
+
+// Convert ems to pixels
+// -- 16px = 1em, this converts appropriately
+@function em($px, $base: $base-font-size) {
+	@return ($px / $base) * 1em;
+}
+
+body {
+	font-family: $base-font-family;
+}
+
+h1, h2, h4, h4, h5 {
+	font-family: $base-font-family;
+	font-weight: 300;
+	margin: 1em 0 0.5em;
+}
+
+p {
+	line-height: 1em;
+}
+
+input[type="text"], 
+input[type="password"], 
+input[type="datetime"], 
+input[type="datetime-local"], 
+input[type="date"], 
+input[type="month"], 
+input[type="time"], 
+input[type="week"], 
+input[type="number"], 
+input[type="email"], 
+input[type="url"], 
+input[type="search"], 
+input[type="tel"], 
+input[type="color"], 
+textarea, 
+.uneditable-input {
+	font-size: 0.75em;
+}
+
+.btn-group {
+	font-size: 14px;
+}

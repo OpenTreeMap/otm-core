@@ -1,19 +1,6 @@
-@media (min-width: 1200px) {
-
-}
- 
-
-@media (min-width: 768px) and (max-width: 1023px) {
-
-}
-
-@media (max-width: 1024px) {
-
-}
- 
+// Partial: Responsive
 
 @media (max-width: 767px) {
-
 	.search-block-wrapper {
 		top: 230px;
 		right: 0;
@@ -49,10 +36,5 @@
 	.right textarea {
 		width: 98%;
 	}
-
-}
- 
-
-@media (max-width: 480px) {
 
 }
