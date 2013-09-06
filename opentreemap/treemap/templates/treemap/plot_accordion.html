@@ -2,7 +2,7 @@
 {% load auth_extras %}
 {% load form_extras %}
 
-<form id="details-form">
+<form id="details-form" data-location-x="{{ plot.geom.x }}" data-location-y="{{ plot.geom.y }}">
     {# The "tree-species" label is used as an id prefix in "field_species.html" #}
     {% field "tree-species" from "tree.species" for request.user withtemplate "treemap/field_species.html" %}
 

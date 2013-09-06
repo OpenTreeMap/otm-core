@@ -142,11 +142,7 @@ module.exports = {
     },
 
     initMapPage: function (config) {
-        var map = mapManager.init({
-                config: config,
-                selector: '#map'
-            }),
-            searchEventStream = app.searchEventStream(),
+        var searchEventStream = app.searchEventStream(),
             resetStream = app.resetEventStream();
 
         var geocodeResultsTemplate = mustache.compile(
@@ -193,7 +189,11 @@ module.exports = {
 
         app.initSearchUi(config);
 
-        modes.init(config, map, mapManager.updateGeoRevHash);
+        mapManager.init({
+            config: config,
+            selector: '#map'
+        });
+        modes.init(config, mapManager);
         modes.activateBrowseTreesMode();
 
         $('.addBtn').click(modes.activateAddTreeMode);

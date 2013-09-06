@@ -14,6 +14,8 @@ exports.init = function(options) {
         boundsLayer = createBoundsTileLayer(config),
         utfLayer = createPlotUTFLayer(config);
 
+    exports.map = map;
+
     exports.updateGeoRevHash = function(geoRevHash) {
         if (geoRevHash !== config.instance.rev) {
             config.instance.rev = geoRevHash;
@@ -47,8 +49,6 @@ exports.init = function(options) {
     var center = options.center || config.instance.center,
         zoom = options.zoom || exports.ZOOM_DEFAULT;
     map.setCenter(new OL.LonLat(center.x, center.y), zoom);
-
-    return map;
 };
 
 function createMap(elmt, config) {

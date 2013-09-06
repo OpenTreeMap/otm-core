@@ -2,12 +2,12 @@
 
 var $ = require('jquery'),
     _ = require('underscore'),
-    plotMarker = require('./plotMarker'),
     FH = require('./fieldHelpers'),
     U = require('./utility');
 
 var config,
-    map,
+    mapManager,
+    plotMarker,
     onAddTree,
     onClose,  // function to call when closing mode
     $sidebar,
@@ -16,18 +16,19 @@ var config,
     $editFields,
     $editControls,
     $displayFields,
-    $validationFields,
-    markerMovedStream;
+    $validationFields;
 
 function init(options) {
     config = options.config;
-    map = options.map;
+    mapManager = options.mapManager;
+    plotMarker = options.plotMarker;
     onAddTree = options.onAddTree;
     onClose = options.onClose;
     $sidebar = options.$sidebar;
 
-    plotMarker.init(map);
-    plotMarker.firstMoveStream.onValue(onMarkerMoved);
+    plotMarker.firstMoveStream
+        .filter(options.inMyMode)
+        .onValue(onMarkerMoved);
 
     $form = U.$find('#add-tree-form', $sidebar);
     $editFields = U.$find('[data-class="edit"]', $form);
@@ -64,6 +65,7 @@ function init(options) {
 
 function activate() {
     // Let user start creating a tree (by clicking the map)
+    plotMarker.hide();
     plotMarker.enablePlacing();
     $addButton.attr('disabled', true);
     $editControls.prop('disabled', true);
@@ -98,7 +100,7 @@ function onAddTreeSuccess(result) {
     // Tree was saved. Clean up and invoke callbacks.
     // TODO: Obey "After I add this tree" choice
     cleanup();
-    onAddTree(result.geoRevHash);
+    mapManager.updateGeoRevHash(result.geoRevHash);
     onClose();
 }
 

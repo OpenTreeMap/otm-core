@@ -64,18 +64,35 @@ module.exports = {
 
     enableMoving: function () {
         dragControl.activate();
-//        markerFeature.style = {
-//            strokeColor: '#00ff00',
-//            fillColor: '#77ff77'
-//        };
+
+        // TODO: Use a real well-designed marker (and remove this verbose style definition)
+        markerFeature.style = {
+            strokeColor: '#00ff00',
+            fillColor: '#77ff77',
+            cursor: "inherit",
+            fillOpacity: 0.4,
+            pointRadius: 6,
+            strokeDashstyle: "solid",
+            strokeOpacity: 1,
+            strokeWidth: 1
+        };
+        vectorLayer.redraw();
     },
 
     disableMoving: function () {
         dragControl.deactivate();
-//        markerFeature.style = {
-//            strokeColor: '#ff0000',
-//            fillColor: '#ff7777'
-//        };
+        // TODO: Use a real well-designed marker (and remove this verbose style definition)
+        markerFeature.style = {
+            strokeColor: '#ee9900',
+            fillColor: '#ee9900',
+            cursor: "inherit",
+            fillOpacity: 0.4,
+            pointRadius: 6,
+            strokeDashstyle: "solid",
+            strokeOpacity: 1,
+            strokeWidth: 1
+        };
+        vectorLayer.redraw();
         markerWasMoved = false;
     },
 
@@ -83,9 +100,8 @@ module.exports = {
         // Hide/deactivate/clear everything
         pointControl.deactivate();
         dragControl.deactivate();
+        vectorLayer.removeAllFeatures();
         vectorLayer.display(false);
-        if (markerFeature)
-            markerFeature.destroy();
         markerWasMoved = false;
     },
 

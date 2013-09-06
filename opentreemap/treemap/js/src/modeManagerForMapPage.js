@@ -10,6 +10,7 @@ var U = require('./utility'),
     addTreeMode         = require('./addTreeMode'),
     editTreeDetailsMode = require('./editTreeDetailsMode'),
     inlineEditForm      = require('./inlineEditForm'),
+    plotMarker          = require('./plotMarker'),
     currentMode;
 
 var $sidebarBrowseTrees         = U.$find('#sidebar-browse-trees'),
@@ -34,20 +35,22 @@ function activateBrowseTreesMode()     { activateMode(browseTreesMode,     $side
 function activateAddTreeMode()         { activateMode(addTreeMode,         $sidebarAddTree); }
 function activateEditTreeDetailsMode() { activateMode(editTreeDetailsMode, $sidebarBrowseTrees); }
 
-function inBrowseTreesMode()     { return currentMode === browseTreesMode; }
+function inBrowseTreesMode() { return currentMode === browseTreesMode; }
+function inAddTreeMode()     { return currentMode === addTreeMode; }
 
-function init(config, map, onPlotAddOrUpdate) {
+function init(config, mapManager) {
     // browseTreesMode and editTreeDetailsMode share an inlineEditForm,
     // so initialize it here.
     inlineEditForm.init({
-          updateUrl: '', // set in browseTreesMode.js on map click
-          form: '#details-form',
-          edit: '#edit-details-button',
-          save: '#save-details-button',
-          cancel: '#cancel-edit-details-button',
-          displayFields: '#sidebar-browse-trees [data-class="display"]',
-          editFields: '#sidebar-browse-trees [data-class="edit"]',
-          validationFields: '#sidebar-browse-trees [data-class="error"]'
+        updateUrl: '', // set in browseTreesMode.js on map click
+        form: '#details-form',
+        edit: '#edit-details-button',
+        save: '#save-details-button',
+        cancel: '#cancel-edit-details-button',
+        displayFields: '#sidebar-browse-trees [data-class="display"]',
+        editFields: '#sidebar-browse-trees [data-class="edit"]',
+        validationFields: '#sidebar-browse-trees [data-class="error"]',
+        onSaveBefore: editTreeDetailsMode.onSaveBefore
     });
     inlineEditForm.inEditModeProperty.onValue(function (inEditMode) {
         // Form is changing to edit mode or display mode
@@ -58,25 +61,30 @@ function init(config, map, onPlotAddOrUpdate) {
         }
     });
 
+    plotMarker.init(mapManager.map);
+
     browseTreesMode.init({
         config: config,
-        map: map,
+        map: mapManager.map,
         inMyMode: inBrowseTreesMode,
         $treeDetailAccordionSection: $treeDetailAccordionSection,
-        inlineEditForm: inlineEditForm
+        inlineEditForm: inlineEditForm,
+        plotMarker: plotMarker
     });
 
     addTreeMode.init({
         config: config,
-        map: map,
+        mapManager: mapManager,
+        plotMarker: plotMarker,
+        inMyMode: inAddTreeMode,
         $sidebar: $sidebarAddTree,
-        onAddTree: onPlotAddOrUpdate,
         onClose: activateBrowseTreesMode
     });
 
     editTreeDetailsMode.init({
-        map: map,
+        mapManager: mapManager,
         inlineEditForm: inlineEditForm,
+        plotMarker: plotMarker,
         typeaheads: [{
             name: "species",
             url: "/" + config.instance.id + "/species",

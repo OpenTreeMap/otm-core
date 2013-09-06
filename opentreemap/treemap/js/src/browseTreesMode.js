@@ -12,11 +12,13 @@ require('./openLayersMapEventStream');
 
 var config,  // Module-level config set in `init` and read by helper functions
     map,
-    popup;   // Most recent popup (so it can be deleted)
+    popup,
+    plotMarker;   // Most recent popup (so it can be deleted)
 
 function init(options) {
     config = options.config;
     map = options.map;
+    plotMarker = options.plotMarker;
 
     var inMyMode = options.inMyMode, // function telling if my mode is active
         inlineEditForm = options.inlineEditForm,
@@ -71,6 +73,10 @@ function init(options) {
         if (html !== '' && html !== undefined) {
             $('#plot-accordion').html(html);
             $accordionSection.removeClass('collapse');
+            plotMarker.place({
+                    x: $('#details-form').data('location-x'),
+                    y: $('#details-form').data('location-y')
+                });
         } else {
             $accordionSection.addClass('collapse'); 
         }
@@ -100,6 +106,8 @@ function showPlotDetailPopup(newPopup) {
     }
     if (newPopup) {
         map.addPopup(newPopup);
+    } else {
+        plotMarker.hide();
     }
     popup = newPopup;
 };
