@@ -8,6 +8,7 @@ from django.template import RequestContext
 from django.shortcuts import get_object_or_404, render_to_response, resolve_url
 from django.http import (HttpResponse, HttpResponseBadRequest,
                          HttpResponseRedirect)
+from django.views.decorators.http import require_http_methods
 from django.utils.encoding import force_str
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.conf import settings
@@ -22,6 +23,10 @@ class HttpBadRequestException(Exception):
 
 class InvalidInstanceException(Exception):
     pass
+
+
+def require_http_method(method):
+    return require_http_methods([method])
 
 
 def add_visited_instance(request, instance):

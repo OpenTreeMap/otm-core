@@ -10,12 +10,40 @@
 
 
 {% block content %}
+<div id="addPhotoModal" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h2>Add a Photo</h2>
+  </div>
+  <div class="modal-body">
+    <form id="add-photo-form" method="POST" enctype="multipart/form-data"
+          {% if plot.current_tree %}
+          action="{% url 'treemap.views.add_tree_photo_endpoint' instance_url_name=request.instance.url_name plot_id=plot.pk tree_id=plot.current_tree.pk %}"
+          {% else %}
+          action="{% url 'treemap.views.add_tree_photo_endpoint' instance_url_name=request.instance.url_name plot_id=plot.pk %}"
+          {% endif %}>
+      {% csrf_token %}
+      Image: <input type="file" name="file" id="file">
+    </form>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+    <a href="#" id="addimage" class="btn btn-primary">Upload</a>
+  </div>
+</div>
+
 <div class="content tree-details">
 
   <!-- Left Column -->
   <div class="left">
+    {% with photo=plot.current_tree.most_recent_photo %}
+    {% if photo %}
+    <img src="{{ photo.thumbnail.url }}">
+    {% else %}
     <img src="{{ STATIC_URL }}img/tree.png">
-    <a class="btn btn-mini add-photos" href="javascript:;">{% trans "Add Photos" %}</a>
+    {% endif %}
+    {% endwith %}
+    <a id="toggleAddPhotoModal" data-modal="#addPhotoModal" class="btn btn-mini add-photos">{% trans "Add Photos" %}</a>
     <hr>
     <a class="btn add-favorite" href="javascript:;">{% trans "Add to Favorites" %}</a>
     <hr>
@@ -143,7 +171,8 @@
 {% block scripts %}
 <script>
 (function(require, config) {
-      require('plot').init({
+      var plot = require('plot')
+      plot.init({
           inlineEditForm: {
               updateUrl: window.location.href,
               form: '#plot-form',
@@ -161,7 +190,12 @@
               template: "#species-element-template",
               hidden: "#plot-species-hidden",
               reverse: "id"
-          }]
+          }],
+          photos: {
+              form: '#add-photo-form',
+              upload: '#addimage',
+              show: '#toggleAddPhotoModal'
+          }
       });
 })(require, otm.settings);
 </script>

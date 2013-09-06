@@ -108,7 +108,10 @@ def _make_permissions(field_permission):
         ('Tree', 'height', field_permission),
         ('Tree', 'canopy_height', field_permission),
         ('Tree', 'date_planted', field_permission),
-        ('Tree', 'date_removed', field_permission))
+        ('Tree', 'date_removed', field_permission),
+        ('TreePhoto', 'thumbnail', field_permission),
+        ('TreePhoto', 'tree', field_permission),
+        ('TreePhoto', 'image', field_permission))
     return permissions
 
 
@@ -121,6 +124,7 @@ def make_commander_role(instance, extra_plot_fields=None):
     commander_permissions = (
         ('Plot', 'id', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
+        ('TreePhoto', 'id', FieldPermission.WRITE_DIRECTLY)
     )
 
     permissions = permissions + commander_permissions
@@ -248,7 +252,7 @@ def create_mock_system_user():
     User._system_user = system_user
 
 
-def make_request(params={}, user=None, method='GET', body=None):
+def make_request(params={}, user=None, method='GET', body=None, file=None):
     if user is None:
         user = AnonymousUser()
 
@@ -258,8 +262,12 @@ def make_request(params={}, user=None, method='GET', body=None):
         extra['wsgi.input'] = body_stream
         extra['CONTENT_LENGTH'] = len(body)
 
-    req = RequestFactory().get("hello/world", params, **extra)
-    req.method = method
+    if file:
+        post_data = {'file': file}
+        req = RequestFactory().post("hello/world", post_data, **extra)
+    else:
+        req = RequestFactory().get("hello/world", params, **extra)
+        req.method = method
 
     setattr(req, 'user', user)
 

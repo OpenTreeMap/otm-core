@@ -259,13 +259,18 @@ def add_tree_photo(request, plot_id):
         # Older versions of the iOS client sent PNGs exclusively
         content_type = "image/png"
 
-    file_type = content_type.lower().split('/')[-1]
-    uploaded_image = ContentFile(request.body)
-    uploaded_image.name = "plot_%s.%s" % (plot_id, file_type)
+    plot = get_object_or_404(Plot, pk=plot_id)
+    tree = plot.current_tree()
 
-    treephoto = add_tree_photo(request.user.pk, plot_id, uploaded_image)
+    if tree:
+        tree_pk = tree.pk
+    else:
+        tree_pk = None
 
-    return {"status": "success", "title": treephoto.title, "id": treephoto.pk}
+    treephoto = add_tree_photo(
+        request, plot.instance, plot.pk, tree_pk)
+
+    return {"status": "success", "title": '', "id": treephoto['id']}
 
 
 @require_http_methods(["POST"])

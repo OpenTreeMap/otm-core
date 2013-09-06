@@ -360,11 +360,11 @@ class UserTrackable(Dictable):
         return self.__class__.__name__
 
     def delete_with_user(self, user, *args, **kwargs):
-        super(UserTrackable, self).delete(*args, **kwargs)
+        models.Model.delete(self, *args, **kwargs)
         self._previous_state = {}
 
     def save_with_user(self, user, *args, **kwargs):
-        self.save_base(self, *args, **kwargs)
+        models.Model.save(self, *args, **kwargs)
         self.populate_previous_state()
 
     def save(self, *args, **kwargs):
