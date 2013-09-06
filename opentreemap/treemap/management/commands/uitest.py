@@ -5,6 +5,8 @@ from __future__ import division
 import unittest
 import sys
 
+from optparse import make_option
+
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
@@ -18,9 +20,14 @@ class Command(BaseCommand):
     Uses a custom test runner to run UI acceptance tests
     from the 'tests' package
     """
+    option_list = BaseCommand.option_list + (
+        make_option('-s', '--skip-debug-check',
+                    action='store_true',
+                    dest='skip_debug',
+                    help='skip the debug'), )
 
     def handle(self, *args, **options):
-        if settings.DEBUG is False:
+        if settings.DEBUG is False and not options['skip_debug']:
             raise Exception('These tests add data to the currently '
                             'select database backend. If this is a '
                             'production database a failing test could '
