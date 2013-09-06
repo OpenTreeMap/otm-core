@@ -232,8 +232,12 @@ class UserDefinedFieldDefinition(models.Model):
         field_names = [field.name for field in model_class._meta.fields]
 
         if self.name in field_names:
-            raise ValidationError(trans('cannot use fields that already '
-                                        'exist on the model'))
+            raise ValidationError(
+                {'name': trans('cannot use fields that already '
+                               'exist on the model')})
+        if not self.name:
+            raise ValidationError(
+                {'name': trans('name cannot be blank')})
 
         existing_objects = UserDefinedFieldDefinition.objects.filter(
             model_type=model_type,
@@ -298,8 +302,15 @@ class UserDefinedFieldDefinition(models.Model):
             if choices is None:
                 raise ValidationError(trans('missing choices key for key'))
 
+            for choice in choices:
+                if not choice:
+                    raise ValidationError(trans('empty choice not allowed'))
+
             if len(choices) == 0:
                 raise ValidationError(trans('empty choice list'))
+
+            if len(choices) != len(set(choices)):
+                raise ValidationError(trans('duplicate choices'))
 
     def save(self, *args, **kwargs):
         self.validate()
@@ -308,6 +319,13 @@ class UserDefinedFieldDefinition(models.Model):
     @property
     def datatype_dict(self):
         return json.loads(self.datatype)
+
+    @property
+    def permissions_for_udf(self):
+        return FieldPermission.objects.filter(
+            instance=self.instance,
+            model_name=self.model_type,
+            field_name=self.canonical_name)
 
     def reverse_clean(self, value):
         if self.datatype_dict['type'] == 'user':
@@ -412,6 +430,10 @@ class UserDefinedFieldDefinition(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+    @property
+    def canonical_name(self):
+        return 'udf:%s' % self.name
 
 
 class UDFDictionary(HStoreDictionary):
