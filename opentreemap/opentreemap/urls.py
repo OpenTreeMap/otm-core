@@ -15,11 +15,6 @@ instance_pattern = r'^(?P<instance_url_name>' + URL_NAME_PATTERN + r')'
 from django.contrib import admin
 admin.autodiscover()
 
-js_i18n_info_dict = {
-    'domain': 'djangojs',
-    'packages': settings.I18N_APPS,
-}
-
 # Testing notes:
 # We want to test that every URL succeeds (200) or fails with bad data (404).
 # If you add/remove/modify a URL, please update the corresponding test(s).
@@ -49,13 +44,20 @@ urlpatterns = patterns(
     # Create a redirect view for setting the session language preference
     # https://docs.djangoproject.com/en/1.0/topics/i18n/#the-set-language-redirect-view  # NOQA
     url(r'^i18n/', include('django.conf.urls.i18n')),
-    url(r'^jsi18n/$', 'django.views.i18n.javascript_catalog',
-        js_i18n_info_dict),
     url(r'^not-available$', instance_not_available_view,
         name='instance_not_available'),
     url(r'^unsupported$', unsupported_view,
         name='unsupported'),
 )
+
+if settings.USE_JS_I18N:
+    js_i18n_info_dict = {
+        'domain': 'djangojs',
+        'packages': settings.I18N_APPS,
+    }
+
+    urlpatterns += patterns('', url(r'^jsi18n/$',
+        'django.views.i18n.javascript_catalog', js_i18n_info_dict))
 
 if settings.EXTRA_URLS:
     for (url_pattern, url_module) in settings.EXTRA_URLS:
