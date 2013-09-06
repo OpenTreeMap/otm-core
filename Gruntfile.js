@@ -7,11 +7,12 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-sass');
+    grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.file.setBase('opentreemap');
 
     grunt.registerTask('check', ['jshint']);
     grunt.registerTask('js', debug ? ['browserify'] : ['browserify', 'uglify']);
-    grunt.registerTask('css', ['sass']);
+    grunt.registerTask('css', ['sass', 'concat']);
     grunt.registerTask('default', ['js', 'css']);
 
     /*
@@ -100,6 +101,12 @@ module.exports = function(grunt) {
                 files: {
                     'treemap/static/css/main.css': 'treemap/css/sass/main.scss'
                 }
+            }
+        },
+        concat: {
+            treemap: {
+                src: ['treemap/css/vendor/*.css'],
+                dest: 'treemap/static/css/vendor.css'
             }
         }
     });
