@@ -1,0 +1,16 @@
+@mixin links {
+	a {
+		@include link($navbar-color);
+	}
+}
+
+@mixin link($color: $navbar-color) {
+	color: $color;
+    text-decoration: none;
+    font-weight: 700;
+
+    &:hover,
+    &:focus {
+        color: darken($color, 25%);
+    }
+}

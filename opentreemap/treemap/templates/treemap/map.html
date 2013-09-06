@@ -4,7 +4,6 @@
 {% block page_title %} | {% trans "Map" %}{% endblock %}
 
 {% block head_extra %}
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/openlayers.css">
 {% endblock head_extra %}
 
 {% block scripts %}
@@ -28,8 +27,8 @@
     <div>{% trans "DBH Min:" %}<input data-class="search" id="dbh-min"></div>
     <div>{% trans "DBH Max:" %}<input data-class="search" id="dbh-max"></div>
 -->
-<div class="content">
-  <div id="map" class="map"> </div>
+<div class="content map">
+  <div id="map"></div>
   <div class="sidebar">
     <div id="sidebar-browse-trees">
       {% include "treemap/map-browse-trees.html" %}

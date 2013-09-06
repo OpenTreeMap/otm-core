@@ -1,0 +1,24 @@
+// Partial: Footer
+
+footer {
+    border-top: 1px solid $well-color;
+    position: relative;
+    background: #FFF;
+    width: 100%;
+    font-size: 12px;
+
+    .footer-inner {
+        padding: 9px 15px 10px;
+        height: 20px;
+    }
+
+    a {
+        color: $subtext-color;
+        font-weight: 700;
+
+        &:hover {
+            color: $main-text-color;
+            text-decoration: none;
+        }
+    }
+}

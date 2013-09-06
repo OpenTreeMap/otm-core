@@ -1,0 +1,23 @@
+// Fonts
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:300,400,700|Roboto:100,400,700);
+$base-font-family		: 'Open Sans', 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+$base-font-size			: 16px;
+
+// Colors
+$primary-color			: #8baa3d; // OTM Green color
+$secondary-color		: #56abb2; // OTM Teal color 
+$success-color			: #add142; // OTM Lime Green color
+$warning-color			: #ffdd17; // Warning color
+$alert-color			: #df4425; // OTM Red color
+
+$navbar-color			: #42424a; // Navbar gray color
+$well-color				: #d1d2d4; // Well gray color
+
+$main-text-color		: #231f20; // Black text color
+$subtext-color			: #799397; // Midtone gray text color
+$light-gray-color		: #f1f2f2; // Light gray color
+
+// Modules
+@import "modules/animations";
+@import "modules/links";
+@import "modules/buttons";
