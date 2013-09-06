@@ -5,6 +5,7 @@ env
 local_settings.py
 /static
 .coverage
+.sass-cache
 Guardfile
 opentreemap/.idea
 node_modules/

@@ -1,0 +1,56 @@
+// Partial: Navbar
+
+.navbar {
+    font-size: 16px;
+
+    .navbar-inner {
+        background: $navbar-color;
+        border: none;
+        height: 44px;
+        box-shadow: none;
+    }
+
+    .nav {
+        margin: 0 -15px;
+        &.pull-left {
+            margin-left: 15px;
+        }
+        &.pull-right {
+            margin-right: 15px;
+        }
+
+        > li {
+            margin-left: 25px;
+            height: 44px;
+
+            &:first-child {
+                margin-left: 0;
+            }
+            &.active {
+                > a {
+                    background-color: $navbar-color;
+                    border-bottom: 4px solid $primary-color;
+                }
+            }
+            &.user-img {
+                overflow: hidden;
+                height: 30px;
+                width: 30px;
+                border-radius: 4px;
+                top: 6px;
+                position: relative;
+            }
+
+            > a {
+                padding: 10px 0;
+                height: 20px;
+                font-weight: 400;
+
+                &:hover,
+                &:focus {
+                    background-color: $navbar-color;
+                }
+            }
+        }
+    }
+}

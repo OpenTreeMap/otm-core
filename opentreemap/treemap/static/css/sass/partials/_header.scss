@@ -1,0 +1,117 @@
+// Partial: Header
+
+.header {
+    padding: 59px 15px 15px;
+    height: 75px;
+    border-bottom: 1px solid $well-color;
+    background: #fff;
+
+    &:before {
+        content: '';
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+        margin-right: -0.25em;
+    }
+}
+
+.logo {
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+
+    img {
+        max-width: 225px;
+        max-height: 65px;
+    }
+}
+
+.search-wrapper {
+    right: 15px;
+    position: absolute;
+    top: 56px;
+}
+
+.search-block-wrapper {
+    display: inline-block;
+
+    .search-block {
+        padding: 8px;
+        border: 1px solid #eee;
+        border-radius: 3px;
+        float: left;
+        margin-left: 10px;
+
+        .dropdown-menu {
+            width: 257px;
+            -moz-border-radius: 3px;
+            -webkit-border-radius: 3px;
+            border-radius: 3px;
+        
+            > li > a {
+                padding: 3px 12px;
+            }
+        }
+    }
+}
+
+.search-options {
+    display: inline-block;
+    margin-left: 15px;
+    top: -18px;
+    position: relative;
+
+    #perform-search {
+        margin-bottom: 6px;
+        padding: 8px 0;
+    }
+}
+
+.subhead {
+    padding: 10px 15px;
+    border-bottom: 1px solid $well-color;
+    font-size: em(16px);
+    background: #fff;
+    height: 24px;
+    position: relative;
+    z-index: 9;
+    box-shadow: 0 6px 0 rgba(0,0,0,.15);
+
+    span {
+        font-weight: bold;
+    }
+
+    .exportBtn {
+        margin-left: 10px;
+    }
+
+    .addBtn {
+        float: right;
+        margin-top: -3px;
+    }
+}
+
+.additional-searches {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    width: 100%;
+}
+
+.stewardship {
+    right: 0;
+}
+
+@media (max-width: 767px) {
+    .search-block-wrapper {
+        top: 230px;
+        right: 0;
+        left: 0;
+        width: 100%;
+    }
+    .search-options {
+        position: absolute;
+        float: none;
+        top: 230px;
+        right: 6px;
+    }
+}

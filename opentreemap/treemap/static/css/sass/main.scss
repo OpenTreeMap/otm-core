@@ -1,0 +1,18 @@
+// Common Variables and Modules
+@import "base";
+
+// Partials
+// -- General
+@import "partials/typography";
+@import "partials/layout";
+@import "partials/navbar";
+@import "partials/header";
+@import "partials/footer";
+
+// -- Page Specific
+@import "partials/map";
+@import "partials/treedetails";
+@import "partials/registration";
+@import "partials/profile";
+@import "partials/admin";
+@import "partials/content";
