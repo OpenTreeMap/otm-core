@@ -11,6 +11,7 @@ opentreemap/.idea
 node_modules/
 opentreemap/cloud_management
 opentreemap/treemap/static/js/
+opentreemap/treemap/static/css/
 prototype/css/.sass-cache
 
 # .mo files are compiled, binary language files created
