@@ -2,8 +2,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import os.path
+import shutil
+import tempfile
 import json
 import unittest
+from StringIO import StringIO
 
 from django.test import TestCase
 from django.test.client import RequestFactory
@@ -20,13 +24,13 @@ from treemap.udf import UserDefinedFieldDefinition
 
 from treemap.audit import Role, Audit, approve_or_reject_audit_and_apply
 
-from treemap.models import (Instance, Species, User, Plot, Tree,
+from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, BenefitCurrencyConversion)
 
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, audits, user_audits,
                            search_tree_benefits, user, instance_user_view,
-                           update_plot_and_tree, update_user)
+                           update_plot_and_tree, update_user, add_tree_photo)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
@@ -124,6 +128,190 @@ class BoundaryViewTest(ViewTestCase):
             self.instance)
 
         self.assertEqual(response, self.test_boundary_hashes[0:2])
+
+
+def media_dir(f):
+    "Helper method for PlotImageTest to force a specific media dir"
+    def m(self):
+        with self._media_dir():
+            f(self)
+    return m
+
+
+class PlotImageUpdateTest(TestCase):
+    def setUp(self):
+        self.photoDir = tempfile.mkdtemp()
+        self.mediaUrl = '/testingmedia/'
+
+        self.instance = make_instance()
+        self.user = make_commander_user(self.instance)
+
+        # Give this plot a unique number so we can check for
+        # correctness
+        self.plot = Plot(
+            geom=Point(0, 0), instance=self.instance, pk=449293)
+
+        self.plot.save_with_user(self.user)
+
+        self.tree = Tree(instance=self.instance, plot=self.plot)
+        self.tree.save_with_user(self.user)
+
+    def tearDown(self):
+        shutil.rmtree(self.photoDir)
+
+    def load_resource(self, name):
+        module_dir = os.path.dirname(__file__)
+        path = os.path.join(module_dir, 'resources', name)
+        return file(path)
+
+    def _media_dir(self):
+        return self.settings(DEFAULT_FILE_STORAGE=
+                             'django.core.files.storage.FileSystemStorage',
+                             MEDIA_ROOT=self.photoDir,
+                             MEDIA_URL=self.mediaUrl)
+
+    def _run_basic_test_with_image_file(self, image_file):
+        tp = TreePhoto(tree=self.tree, instance=self.instance)
+        tp.set_image(image_file)
+        tp.save_with_user(self.user)
+
+        reloaded_tp = TreePhoto.objects.get(pk=tp.pk)
+
+        # Verify our settings context manager worked and that
+        # things are where they say they are
+        image_path = reloaded_tp.image.path
+        thumb_path = reloaded_tp.thumbnail.path
+
+        image_url = reloaded_tp.image.url
+        thumb_url = reloaded_tp.thumbnail.url
+
+        all_of_em = [image_path, thumb_path, image_url, thumb_url]
+
+        # ids should be in all paths and urls
+        for path_or_url in all_of_em:
+            self.assertNotEqual(path_or_url.find('%s-' % self.tree.pk), -1)
+            self.assertNotEqual(path_or_url.find('%s-' % self.plot.pk), -1)
+
+        # media prefix and files should exist
+        for path in [image_path, thumb_path]:
+            self.assertEqual(path.index(self.photoDir), 0)
+            # File should be larger than 100 bytes
+            self.assertGreater(os.stat(path).st_size, 100)
+
+        for url in [image_url, thumb_url]:
+            self.assertEqual(url.index(self.mediaUrl), 0)
+
+        # Delete should remove objects
+        reloaded_tp.delete_with_user(self.user)
+
+        for path in [image_path, thumb_path]:
+            self.assertFalse(os.path.exists(path))
+
+    @media_dir
+    def test_photos_save_with_thumbnails_gif(self):
+        image_file = self.load_resource('tree1.gif')
+        self._run_basic_test_with_image_file(image_file)
+
+    @media_dir
+    def test_photos_save_with_thumbnails_jpg(self):
+        image_file = self.load_resource('tree2.jpg')
+        self._run_basic_test_with_image_file(image_file)
+
+    @media_dir
+    def test_photos_save_with_thumbnails_png(self):
+        image_file = self.load_resource('tree3.png')
+        self._run_basic_test_with_image_file(image_file)
+
+    def assertPathExists(self, path):
+        self.assertTrue(os.path.exists(path), '%s does not exist' % path)
+
+    def assertTreePhotoExists(self, tp):
+        self.assertPathExists(tp.image.path)
+        self.assertPathExists(tp.thumbnail.path)
+
+    def _make_tree_photo_request(self, file, plot_id, tree_id=None):
+        return add_tree_photo(make_request(user=self.user,
+                                           file=file),
+                              self.instance, plot_id, tree_id)
+
+    @media_dir
+    def test_add_photo_to_tree(self):
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        tree_image = self.load_resource('tree1.gif')
+
+        self._make_tree_photo_request(
+            tree_image, self.plot.pk, self.tree.pk)
+
+        objects = self.tree.treephoto_set.all()
+        self.assertEqual(len(objects), 1)
+
+        tp = objects[0]
+
+        self.assertTreePhotoExists(tp)
+
+    @media_dir
+    def test_invalid_ids(self):
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        tree_image = self.load_resource('tree1.gif')
+
+        self.assertRaises(
+            Http404,
+            self._make_tree_photo_request, tree_image, -1, None)
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        # Reload
+        tree_image.seek(0)
+
+        self.assertRaises(
+            Http404,
+            self._make_tree_photo_request, tree_image, self.plot.pk, -1)
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+    @media_dir
+    def test_creates_tree_if_needed(self):
+        pass
+
+    @media_dir
+    def test_assigns_to_tree_if_exists(self):
+        tree_image = self.load_resource('tree1.gif')
+
+        # Note: No tree id given - will do a lookup
+        self._make_tree_photo_request(
+            tree_image, self.plot.pk, None)
+
+        objects = self.tree.treephoto_set.all()
+        self.assertEqual(len(objects), 1)
+
+        tp = objects[0]
+
+        self.assertTreePhotoExists(tp)
+
+    @media_dir
+    def test_rejects_non_image_files(self):
+        invalid_thing = StringIO()
+        invalid_thing.write('booyah')
+        invalid_thing.seek(0)
+        setattr(invalid_thing, 'name', 'blah.jpg')
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        self.assertRaises(ValidationError,
+                          self._make_tree_photo_request,
+                          invalid_thing, self.plot.pk, self.tree.pk)
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+    @media_dir
+    def test_can_create_and_apply_pending_images(self):
+        pass
+
+    @media_dir
+    def test_non_authorized_users_cant_create_images(self):
+        pass
 
 
 class PlotUpdateTest(unittest.TestCase):
@@ -996,7 +1184,7 @@ class UserUpdateViewTests(ViewTestCase):
     def test_change_first_name(self):
         self.joe.first_name = 'Joe'
         self.joe.save()
-        update = '{"user.first_name": "Joseph"}'
+        update = b'{"user.first_name": "Joseph"}'
         self.assertOk(update_user(
             make_request(user=self.joe, body=update), self.joe.username))
         self.assertEquals('Joseph',
@@ -1006,7 +1194,7 @@ class UserUpdateViewTests(ViewTestCase):
     def test_expects_keys_prefixed_with_user(self):
         self.joe.name = 'Joe'
         self.joe.save()
-        update = '{"name": "Joseph"}'
+        update = b'{"name": "Joseph"}'
         response = update_user(
             make_request(user=self.joe, body=update), self.joe.username)
         self.assertBadRequest(response)
@@ -1016,7 +1204,7 @@ class UserUpdateViewTests(ViewTestCase):
     def test_email_validation(self):
         self.joe.email = 'joe@gmail.com'
         self.joe.save()
-        update = '{"user.email": "@not_valid@"}'
+        update = b'{"user.email": "@not_valid@"}'
         response = update_user(
             make_request(user=self.joe, body=update), self.joe.username)
         self.assertBadRequest(response)
@@ -1027,7 +1215,7 @@ class UserUpdateViewTests(ViewTestCase):
     def test_cant_change_password_through_update_view(self):
         self.joe.set_password = 'joe'
         self.joe.save()
-        update = '{"user.password": "sekrit"}'
+        update = b'{"user.password": "sekrit"}'
         self.assertBadRequest(update_user(
             make_request(user=self.joe, body=update), self.joe.username))
 

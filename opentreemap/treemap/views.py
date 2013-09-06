@@ -11,17 +11,19 @@ import hashlib
 from PIL import Image
 
 from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.http import (HttpResponse, HttpResponseRedirect,
-                         HttpResponseForbidden)
-from django.views.decorators.http import etag, require_http_methods
+                         HttpResponseForbidden, Http404)
+from django.views.decorators.http import etag
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
 from django.utils.translation import ugettext as trans
 from django.db import transaction
 from django.db.models import Q
 
-from treemap.util import json_api_call, render_template, instance_request
+from treemap.util import (json_api_call, render_template, instance_request,
+                          require_http_method)
 from treemap.search import create_filter
 from treemap.audit import Audit
 from treemap.models import (Plot, Tree, User, Species, Instance,
@@ -59,19 +61,62 @@ def _search_hash(request, instance):
     return hashlib.md5(string_to_hash).hexdigest()
 
 
+def add_tree_photo(request, instance, plot_id, tree_id=None):
+    plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
+    tree_ids = [t.pk for t in plot.tree_set.all()]
+
+    if int(tree_id) in tree_ids:
+        tree = Tree.objects.get(pk=tree_id)
+    elif tree_id is None:
+        # See if a tree already exists on this plot
+        tree = plot.current_tree()
+
+        if tree is None:
+            # A tree doesn't exist, create a new tree create a
+            # new tree, and attach it to this plot
+            tree = Tree(plot=plot, instance=instance)
+
+            # TODO: it is possible that a user has the ability to
+            # 'create tree photos' but not trees. In this case we
+            # raise an authorization exception here.
+            # It is, however, possible to have both a pending
+            # tree and a pending tree photo
+            # This will be added later, when auth/admin work
+            # correctly with this system
+            tree.save_with_user(request.user)
+
+    else:
+        # Tree id is invalid or not in this plot
+        raise Http404('Tree id %s not found on plot %s' % (tree_id, plot_id))
+
+    #TODO: Validation Error
+    #TODO: Auth Error
+    if 'file' in request.FILES:
+        #TODO: Check size before reading
+        data = request.FILES['file'].file
+    else:
+        data = request.body
+
+    photo = tree.add_photo(data, request.user)
+
+    return photo
+
+
+def add_tree_photo_view(*args, **kwargs):
+    tree_photo = add_tree_photo(*args, **kwargs)
+
+    url = reverse('plot_detail',
+                  kwargs={
+                      'instance_url_name': tree_photo.instance.url_name,
+                      'plot_id': tree_photo.tree.plot.pk})
+
+    return HttpResponseRedirect(url)
+
 #
 # These are calls made by the API that aren't currently implemented
 # as we make these features, please use these functions to share the
 # love with mobile
 #
-def add_tree_photo(user_id, plot_id, uploaded_image):
-    class TPShim(object):
-
-        def __init__(self):
-            self.pk = 2
-            self.title = 'shim'
-
-    return TPShim()
 
 
 def _rotate_image_based_on_exif(img_path):
@@ -704,7 +749,7 @@ plot_popup_view = instance_request(etag(_plot_hash)(
 plot_accordian_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_accordian.html', plot_detail)))
 
-add_plot_view = require_http_methods(["POST"])(
+add_plot_view = require_http_method("POST")(
     json_api_call(instance_request(add_plot)))
 
 root_settings_js_view = render_template('treemap/settings.js',
@@ -730,7 +775,7 @@ species_list_view = json_api_call(instance_request(species_list))
 
 user_view = render_template("treemap/user.html", user)
 
-update_user_view = require_http_methods(["PUT"])(json_api_call(update_user))
+update_user_view = require_http_method("PUT")(json_api_call(update_user))
 
 user_audits_view = render_template("treemap/recent_user_edits.html",
                                    user_audits)
@@ -741,3 +786,6 @@ instance_not_available_view = render_template(
 unsupported_view = render_template("treemap/unsupported.html")
 
 landing_view = render_template("base.html")
+
+add_tree_photo_endpoint = require_http_method("POST")(
+    instance_request(add_tree_photo_view))
