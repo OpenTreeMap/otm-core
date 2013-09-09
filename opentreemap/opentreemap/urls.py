@@ -57,7 +57,8 @@ if settings.USE_JS_I18N:
     }
 
     urlpatterns += patterns('', url(r'^jsi18n/$',
-        'django.views.i18n.javascript_catalog', js_i18n_info_dict))
+                            'django.views.i18n.javascript_catalog',
+                            js_i18n_info_dict))
 
 if settings.EXTRA_URLS:
     for (url_pattern, url_module) in settings.EXTRA_URLS:
