@@ -1,12 +1,17 @@
 // Partial: Map Page
 
-#map {
-    left: 0;
-    background: $well-color;
-    position: absolute;
-    bottom: 40px;
-    top: 0;
-    right: 350px;
+.map {
+  left: 0;
+  background: $well-color;
+  position: absolute;
+  bottom: 40px;
+  top: 0;
+  right: 350px; }
+
+.map-small {
+  background: $well-color;
+  width: 300px;
+  height: 300px;
 }
 
 .sidebar {
@@ -38,6 +43,11 @@
                 color: #FFF;
             }
         }
+    }
+    .chunk {
+        list-style: none;
+        padding: 5px 0 5px;
+        margin: 0;
     }
 }
 

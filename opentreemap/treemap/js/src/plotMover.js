@@ -1,7 +1,9 @@
 "use strict";
 
-var $ = require('jquery'),
-    _ = require('underscore');
+// Manage view/edit modes for plot location.
+// In edit mode, user can change the plot location by dragging the marker.
+
+var $ = require('jquery');
 
 exports.init = function(options) {
     var mapManager = options.mapManager,
@@ -25,7 +27,8 @@ exports.init = function(options) {
     });
 
     inlineEditForm.cancelStream.onValue(function () {
-        // User clicked the form's "Cancel" button. Restore plot location.
+        // User clicked the inlineEditForm's "Cancel" button (distinct from the
+        // "Cancel Tree Move" button managed by this module). Restore plot location.
         plotMarker.place(location);
     });
 
@@ -50,12 +53,12 @@ exports.init = function(options) {
             // Add plot location to data object
             data['plot.geom'] = plotMarker.getLocation();
         }
-    }
+    };
 
     inlineEditForm.saveOkStream.onValue(function (result) {
         // Form successfully saved its data. Update cached plot location.
         location = plotMarker.getLocation();
-        // Refresh the map if appropriate
+        // Refresh the map if needed
         mapManager.updateGeoRevHash(result.geoRevHash);
     });
 };

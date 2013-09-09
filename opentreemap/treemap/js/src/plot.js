@@ -1,5 +1,8 @@
 "use strict";
 
+// For modal dialog on jquery
+require('bootstrap');
+
 var $ = require('jquery'),
     _ = require('underscore'),
     otmTypeahead = require('./otmTypeahead'),
@@ -7,9 +10,6 @@ var $ = require('jquery'),
     mapManager = require('./mapManager'),
     plotMover = require('./plotMover'),
     plotMarker = require('./plotMarker');
-
-// For modal dialog on jquery
-require('bootstrap');
 
 // Override typeahead from bootstrap
 
@@ -32,7 +32,7 @@ exports.init = function(options) {
     $(options.photos.upload).click(function() { $form.submit(); });
     
     inlineEditForm.init(
-        _.extend(options.inlineEditForm, { onSaveBefore: onSaveBefore }))
+        _.extend(options.inlineEditForm, { onSaveBefore: onSaveBefore }));
 
     mapManager.init({
         config: options.config,
@@ -50,7 +50,7 @@ exports.init = function(options) {
         editLocationButton: options.plotLocation.edit,
         cancelEditLocationButton: options.plotLocation.cancel,
         location: options.plotLocation.location
-    })
+    });
 
     function onSaveBefore(data) {
         plotMover.onSaveBefore(data);

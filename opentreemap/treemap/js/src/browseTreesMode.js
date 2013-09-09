@@ -12,8 +12,8 @@ require('./openLayersMapEventStream');
 
 var config,  // Module-level config set in `init` and read by helper functions
     map,
-    popup,
-    plotMarker;   // Most recent popup (so it can be deleted)
+    popup,  // Most recent popup (so it can be deleted)
+    plotMarker;
 
 function init(options) {
     config = options.config;
@@ -50,7 +50,7 @@ function init(options) {
                                                 '');
 
     clickedIdStream.onValue(function (id) {
-        inlineEditForm.updateUrl = '/' + config.instance.id + '/plots/' + id;
+        inlineEditForm.updateUrl = config.instance.url + 'plots/' + id;
     }
 );
 
@@ -73,10 +73,11 @@ function init(options) {
         if (html !== '' && html !== undefined) {
             $('#plot-accordion').html(html);
             $accordionSection.removeClass('collapse');
+            // Show location marker (get x/y from data attributes on form)
             plotMarker.place({
-                    x: $('#details-form').data('location-x'),
-                    y: $('#details-form').data('location-y')
-                });
+                x: $('#details-form').data('location-x'),
+                y: $('#details-form').data('location-y')
+            });
         } else {
             $accordionSection.addClass('collapse'); 
         }
@@ -110,7 +111,7 @@ function showPlotDetailPopup(newPopup) {
         plotMarker.hide();
     }
     popup = newPopup;
-};
+}
 
 function getPlotAccordionContent(id) {
     var search = $.ajax({
@@ -125,10 +126,9 @@ function deactivate() {
     if (popup) {
         map.removePopup(popup);
     }
-};
+}
 
 module.exports = {
     init: init,
-    //activate: activate,
     deactivate: deactivate
 };

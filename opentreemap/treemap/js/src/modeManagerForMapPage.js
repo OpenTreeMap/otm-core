@@ -87,7 +87,7 @@ function init(config, mapManager) {
         plotMarker: plotMarker,
         typeaheads: [{
             name: "species",
-            url: "/" + config.instance.id + "/species",
+            url: "/" + config.instance.url + "species",
             input: "#tree-species-typeahead",
             template: "#species-element-template",
             hidden: "#tree-species-hidden",
