@@ -70,18 +70,35 @@ function init(options) {
        .onValue(showPlotDetailPopup);
 
     accordionHtmlStream.onValue(function (html) {
-        if (html !== '' && html !== undefined) {
+        var visible = html !== '' && html !== undefined;
+
+        if (visible) {
             $('#plot-accordion').html(html);
-            $accordionSection.removeClass('collapse');
             // Show location marker (get x/y from data attributes on form)
             plotMarker.place({
                 x: $('#details-form').data('location-x'),
                 y: $('#details-form').data('location-y')
             });
-        } else {
-            $accordionSection.addClass('collapse');
+        }
+
+        $accordionSection.collapse(visible ? 'show' : 'hide');
+    });
+    accordionHtmlStream.toProperty('').assign($('#plot-accordion'), "html");
+
+    var showTreeDetailLink = $accordionSection.parent().find('a');
+    showTreeDetailLink.on('click', function(event) {
+        if ($('#plot-accordion').html().length == 0) {
+            event.stopPropagation();
         }
     });
+
+    // Need to manually wire this here or we wont get the accordion effect
+    $accordionSection.collapse({
+        parent: $('#map-info'),
+        toggle: false
+    });
+
+    $accordionSection.collapse('hide');
 }
 
 function getPlotPopupContent(id) {
