@@ -2,12 +2,12 @@
 
 var $ = require('jquery'),
     _ = require('underscore'),
-    OL = require('OpenLayers'),
     FH = require('./fieldHelpers'),
     U = require('./utility');
 
 var config,
-    map,
+    mapManager,
+    plotMarker,
     onAddTree,
     onClose,  // function to call when closing mode
     $sidebar,
@@ -16,35 +16,19 @@ var config,
     $editFields,
     $editControls,
     $displayFields,
-    $validationFields,
-    vectorLayer,
-    pointControl,
-    dragControl,
-    pointFeature,
-    userHasMovedTree;
+    $validationFields;
 
 function init(options) {
     config = options.config;
-    map = options.map;
+    mapManager = options.mapManager;
+    plotMarker = options.plotMarker;
     onAddTree = options.onAddTree;
     onClose = options.onClose;
     $sidebar = options.$sidebar;
 
-    vectorLayer = new OL.Layer.Vector(
-        "Vector Layer",
-        { renderers: OL.Layer.Vector.prototype.renderers });
-
-    pointControl = new OL.Control.DrawFeature(
-        vectorLayer,
-        OL.Handler.Point,
-        { 'featureAdded': onMarkerPlaced });
-
-    dragControl = new OL.Control.DragFeature(vectorLayer);
-    dragControl.onDrag = onMarkerMoved;
-
-    map.addLayer(vectorLayer);
-    map.addControl(pointControl);
-    map.addControl(dragControl);
+    plotMarker.firstMoveStream
+        .filter(options.inMyMode)
+        .onValue(onMarkerMoved);
 
     $form = U.$find('#add-tree-form', $sidebar);
     $editFields = U.$find('[data-class="edit"]', $form);
@@ -54,7 +38,7 @@ function init(options) {
     $addButton = U.$find('.saveBtn', $sidebar).click(addTree);
     U.$find('.cancelBtn', $sidebar).click(cancel);
 
-    $editFields.css('display', 'inline-block');
+    $editFields.show();
     $displayFields.hide();
     $validationFields.hide();
 }
@@ -81,41 +65,26 @@ function init(options) {
 
 function activate() {
     // Let user start creating a tree (by clicking the map)
-    vectorLayer.display(true);
-    pointControl.activate();
+    plotMarker.hide();
+    plotMarker.enablePlacing();
     $addButton.attr('disabled', true);
     $editControls.prop('disabled', true);
-    userHasMovedTree = false;
 }
 
-function onMarkerPlaced(feature) {
-    // User clicked the map. Let them drag the tree position.
-    pointFeature = feature;
-    pointControl.deactivate();
-    dragControl.activate();
-}
-
-function onMarkerMoved(feature) {
-    // User moved the tree location. Remember feature.
-    if (!userHasMovedTree) {
-        // This is the first move. Let them edit fields.
-        userHasMovedTree = true;
-        $addButton.attr('disabled', false);
-        $editControls.prop('disabled', false);
-        setTimeout(function () {
-            $editControls.first().focus().select();
-        }, 0);
-    }
+function onMarkerMoved() {
+    // User moved tree for the first time. Let them edit fields.
+    $addButton.attr('disabled', false);
+    $editControls.prop('disabled', false);
+    setTimeout(function () {
+        $editControls.first().focus().select();
+    }, 0);
 }
 
 function addTree() {
     // User hit "Add Tree".
     $validationFields.hide();
     var data = FH.formToDictionary($form, $editFields);
-    data['plot.geom'] = {
-        x: pointFeature.geometry.x,
-        y: pointFeature.geometry.y
-    };
+    data['plot.geom'] = plotMarker.getLocation();
 
     $.ajax({
         url: config.instance.url + 'plots/',
@@ -131,7 +100,7 @@ function onAddTreeSuccess(result) {
     // Tree was saved. Clean up and invoke callbacks.
     // TODO: Obey "After I add this tree" choice
     cleanup();
-    onAddTree(result.geoRevHash);
+    mapManager.updateGeoRevHash(result.geoRevHash);
     onClose();
 }
 
@@ -141,7 +110,7 @@ function onAddTreeError(jqXHR, textStatus, errorThrown) {
     _.each(errorDict, function (errorList, fieldName) {
         FH.getField($validationFields, fieldName)
             .html(errorList.join(','))
-            .css('display', 'inline-block');
+            .show();
     });
 }
 
@@ -158,11 +127,7 @@ function deactivate() {
 
 function cleanup() {
     // Hide/deactivate/clear everything
-    pointControl.deactivate();
-    dragControl.deactivate();
-    vectorLayer.display(false);
-    if (pointFeature)
-        pointFeature.destroy();
+    plotMarker.hide();
     $editControls.val("");
 }
 

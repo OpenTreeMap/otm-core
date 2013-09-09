@@ -62,7 +62,7 @@ exports.reset = function () {
     applySearchToDom({});
 };
 
-exports.buildSearch = function (stream) {
+exports.buildSearch = function () {
     return _.reduce(elems, function(preds, key_and_pred, id) {
         var val = $(id).val(),
             pred = {};

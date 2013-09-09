@@ -1,0 +1,17 @@
+{% load i18n %}
+{% load auth_extras %}
+{% load form_extras %}
+
+<form id="details-form" data-location-x="{{ plot.geom.x }}" data-location-y="{{ plot.geom.y }}">
+    {# The "tree-species" label is used as an id prefix in "field_species.html" #}
+    {% field "tree-species" from "tree.species" for request.user withtemplate "treemap/field_species.html" %}
+
+    {% trans "Nearby Address" as addr %}
+    {% field addr from "plot.address_street" for request.user withtemplate "treemap/field.html" %}
+
+    {% trans "Tree Height" as height %}
+    {% field height from "tree.height" for request.user withtemplate "treemap/field.html" %}
+
+    {% trans "Trunk Diameter" as diameter %}
+    {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field.html" %}
+</form>

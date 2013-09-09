@@ -10,17 +10,20 @@ var $ = require('jquery'),
 require('./openLayersUtfGridEventStream');
 require('./openLayersMapEventStream');
 
-// Module-level config set in `init` and read by helper functions
-var config;               
+var config,  // Module-level config set in `init` and read by helper functions
+    map,
+    popup,  // Most recent popup (so it can be deleted)
+    plotMarker;
 
 function init(options) {
     config = options.config;
+    map = options.map;
+    plotMarker = options.plotMarker;
 
-    var map = options.map;
-    var inMyMode = options.inMyMode; // function telling if my mode is active
-    var $sidebar = options.$sidebar;
-    var $accordionSection = options.$treeDetailAccordionSection;
-    var utfGridMoveControl = new OL.Control.UTFGrid();
+    var inMyMode = options.inMyMode, // function telling if my mode is active
+        inlineEditForm = options.inlineEditForm,
+        $accordionSection = options.$treeDetailAccordionSection,
+        utfGridMoveControl = new OL.Control.UTFGrid();
 
     utfGridMoveControl
         .asEventStream('move')
@@ -46,20 +49,14 @@ function init(options) {
                                                 getPlotAccordionContent, 
                                                 '');
 
+    clickedIdStream.onValue(function (id) {
+        inlineEditForm.updateUrl = config.instance.url + 'plots/' + id;
+    }
+);
+
     // The utfGridClickControl must be added to the map after setting up the
     // event streams
     map.addControl(utfGridClickControl);
-
-    // A closure is used here to keep a reference to any currently
-    // displayed popup so it can be removed
-    var showPlotDetailPopup = (function(map) {
-        var existingPopup;
-        return function(popup) {
-            if (existingPopup) { map.removePopup(existingPopup); }
-            if (popup) { map.addPopup(popup); }
-            existingPopup = popup;
-        };
-    }(map));
 
     // OpenLayers needs both the content and a coordinate to
     // show a popup, so zip map clicks together with content
@@ -72,11 +69,15 @@ function init(options) {
        .zip(popupHtmlStream, makePopup) // TODO: size is not being sent to makePopup
        .onValue(showPlotDetailPopup);
 
-    accordionHtmlStream.toProperty('').assign($('#plot-accordion'), "html");
-
     accordionHtmlStream.onValue(function (html) {
         if (html !== '' && html !== undefined) {
+            $('#plot-accordion').html(html);
             $accordionSection.removeClass('collapse');
+            // Show location marker (get x/y from data attributes on form)
+            plotMarker.place({
+                x: $('#details-form').data('location-x'),
+                y: $('#details-form').data('location-y')
+            });
         } else {
             $accordionSection.addClass('collapse'); 
         }
@@ -100,6 +101,18 @@ function makePopup(latLon, html, size) {
     }
 }
 
+function showPlotDetailPopup(newPopup) {
+    if (popup) {
+        map.removePopup(popup);
+    }
+    if (newPopup) {
+        map.addPopup(newPopup);
+    } else {
+        plotMarker.hide();
+    }
+    popup = newPopup;
+}
+
 function getPlotAccordionContent(id) {
     var search = $.ajax({
         url: config.instance.url + 'plots/' + id + '/detail',
@@ -109,4 +122,13 @@ function getPlotAccordionContent(id) {
     return Bacon.fromPromise(search);
 }
 
-module.exports = { init: init };
+function deactivate() {
+    if (popup) {
+        map.removePopup(popup);
+    }
+}
+
+module.exports = {
+    init: init,
+    deactivate: deactivate
+};
