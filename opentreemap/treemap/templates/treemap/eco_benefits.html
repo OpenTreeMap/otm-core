@@ -1,4 +1,6 @@
 {% load i18n %}
+{% load l10n %}
+
 <div id="benefit-values">
     {% for benefit in benefits %}
       <span class="benefit-label">{{ benefit.label }}</span>
@@ -15,16 +17,12 @@
     {% endfor %}
     <div>
       {% blocktrans with used=basis.n_trees_used %}
-        Based on {{ used }} out of
-      {% endblocktrans %}
-      {% blocktrans count basis.n_trees_total as tree_count %}
-        {{ tree_count }} total tree.
-      {% plural %}
-        {{ tree_count }} total trees.
+        Based on {{ used }} out of {{ basis.n_trees_total }} total trees
       {% endblocktrans %}
     </div>
 </div>
 <div id="tree-and-planting-site-counts">
+  {% localize on %}
   <span id="tree-count">
   {% blocktrans count basis.n_trees_total as tree_count %}
     {{ tree_count }}</span> tree,
@@ -38,4 +36,5 @@
   {% plural %}
     {{ plot_count }}</span> planting sites
   {% endblocktrans %}
+  {% endlocalize %}
 </div>
