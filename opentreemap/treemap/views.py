@@ -207,19 +207,24 @@ def plot_detail(request, instance, plot_id):
 
 
 def add_plot(request, instance):
-    try:
-        return update_plot_and_tree(request, Plot(instance=instance))
-    except ValidationError, ve:
-        return _bad_request_json_response(
-            'One or more of the specified values are invalid.',
-            ve.message_dict)
+    return update_plot_and_tree_request(request, Plot(instance=instance))
 
 
 def update_plot_detail(request, instance, plot_id):
+    InstancePlot = instance.scope_model(Plot)
+    plot = get_object_or_404(InstancePlot, pk=plot_id)
+    return update_plot_and_tree_request(request, plot)
+
+
+def update_plot_and_tree_request(request, plot):
     try:
-        InstancePlot = instance.scope_model(Plot)
-        plot = get_object_or_404(InstancePlot, pk=plot_id)
-        return update_plot_and_tree(request, plot)
+        plot = update_plot_and_tree(request, plot)
+        # Refresh plot.instance in case geo_rev_hash was updated
+        plot.instance = Instance.objects.get(id=plot.instance.id)
+        return {
+            'ok': True,
+            'geoRevHash': plot.instance.geo_rev_hash
+        }
     except ValidationError as ve:
         return _bad_request_json_response(
             'One or more of the specified values are invalid.',
@@ -308,13 +313,7 @@ def update_plot_and_tree(request, plot):
     if errors:
         raise ValidationError(errors)
 
-    # Refresh plot.instance in case geo_rev_hash was updated
-    plot.instance = Instance.objects.get(id=plot.instance.id)
-
-    return {
-        'ok': True,
-        'geoRevHash': plot.instance.geo_rev_hash
-    }
+    return plot
 
 
 def _get_audits(logged_in_user, instance, query_vars, user, models,
