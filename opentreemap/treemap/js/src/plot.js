@@ -5,13 +5,11 @@ require('bootstrap');
 
 var $ = require('jquery'),
     _ = require('underscore'),
-    otmTypeahead = require('./otmTypeahead'),
+    otmTypeahead = require('./otmTypeahead'),  // Override typeahead from bootstrap
     inlineEditForm = require('./inlineEditForm'),
     mapManager = require('./mapManager'),
     plotMover = require('./plotMover'),
     plotMarker = require('./plotMarker');
-
-// Override typeahead from bootstrap
 
 function addModalTrigger(element) {
     var $e = $(element);
