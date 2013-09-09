@@ -14,7 +14,7 @@
       {% if field.data_type == 'choice' %}
         <select name="{{ field.identifier }}"
                 value="{{ field.value|default_if_none:"" }}">
-            {% for option in field.options %}
+            {% for option in field.choices %}
                 <option value="{{ option }}">
                     {{option}}
                 </option>

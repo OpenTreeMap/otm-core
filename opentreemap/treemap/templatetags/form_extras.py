@@ -237,12 +237,10 @@ class FieldNode(template.Node):
                 .filter(name=field_name.replace('udf:', ''))[0]\
                 .datatype_dict
 
-        def _field_type_to_string_and_options(model, field_name):
+        def _field_type_to_string(model, field_name):
             try:
                 field_type = model._meta.get_field(field_name)\
                     .get_internal_type()
-                options = []
-
                 try:
                     field_type = FieldNode._field_mappings[field_type]
                 except KeyError:
@@ -250,11 +248,9 @@ class FieldNode(template.Node):
                                     % (FieldNode._valid_field_keys,
                                        field_type))
             except FieldDoesNotExist:
-                udf_dict = _udf_dict(model, field_name)
-                field_type = udf_dict['type']
-                options = udf_dict['choices']
+                field_type = _udf_dict(model, field_name)['type']
 
-            return field_type, options
+            return field_type
 
         def _field_value_and_choices(model, field_name):
             choices = None
@@ -294,16 +290,12 @@ class FieldNode(template.Node):
         # TODO: Support pluggable formatting instead of unicode()
         display_val = unicode(field_value) if field_value is not None else None
 
-        datatype, options = _field_type_to_string_and_options(
-            model, field_name)
-
         context['field'] = {
             'label': label,
             'identifier': identifier,
             'value': field_value,
             'display_value': display_val,
-            'data_type': datatype,
-            'options': options,
+            'data_type': _field_type_to_string(model, field_name),
             'is_visible': is_visible,
             'is_editable': is_editable,
             'choices': choices
