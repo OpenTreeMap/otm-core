@@ -8,7 +8,7 @@ register = template.Library()
 # Used to whitelist the model.field values that are valid for the
 # template tag
 _identifier_regex = re.compile(
-    r'^(?:tree|plot|instance|user|species)\.(?:udf\:)?[\w ]+$')
+    r"^(?:tree|plot|instance|user|species)\.(?:udf\:)?[\w ']+$")
 
 
 @register.tag('field')
@@ -224,13 +224,13 @@ class FieldNode(template.Node):
 
         if not isinstance(identifier, basestring):
             raise template.TemplateSyntaxError(
-                'expected a string with the format "model.property"'
+                'expected a string with the format "model.property" '
                 'to follow "from"')
 
         if not _identifier_regex.match(identifier):
             raise template.TemplateSyntaxError(
-                'expected a string with the format "model.property"'
-                'to follow "from"')
+                'expected a string with the format "model.property" '
+                'to follow "from" %s' % identifier)
 
         def _udf_dict(model, field_name):
             return model.get_user_defined_fields()\
