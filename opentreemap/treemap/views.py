@@ -615,16 +615,11 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
             trans('Air Quality'), '%.1f')
     ]
 
-    locale.setlocale(locale.LC_ALL, '')
-    n_trees_used = locale.format("%d", num_calculated_trees, grouping=True)
-    n_trees_total = locale.format("%d", total_trees, grouping=True)
-    n_plots = locale.format("%d", total_plots, grouping=True)
-
     rslt = {'benefits': benefits_for_display,
             'currency_symbol': conversion.currency_symbol,
-            'basis': {'n_trees_used': n_trees_used,
-                      'n_trees_total': n_trees_total,
-                      'n_plots': n_plots,
+            'basis': {'n_trees_used': num_calculated_trees,
+                      'n_trees_total': total_trees,
+                      'n_plots': total_plots,
                       'percent': percent}}
 
     return rslt
