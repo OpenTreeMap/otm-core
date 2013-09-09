@@ -681,7 +681,7 @@ def update_user(request, username):
     if user != request.user:
         return HttpResponseForbidden()
 
-    new_values = json_from_request(request)
+    new_values = json_from_request(request) or {}
     for key in new_values:
         try:
             model, field = key.split('.', 1)
