@@ -56,6 +56,9 @@ SITE_ID = 1
 # to load the internationalization machinery.
 USE_I18N = True
 
+# Setting this to False will remove the jsi18n url configuration
+USE_JS_I18N = False
+
 # If you set this to False, Django will not format dates, numbers and
 # calendars according to the current locale.
 USE_L10N = True

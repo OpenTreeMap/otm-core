@@ -104,9 +104,9 @@
     {% endblock config_scripts %}
 
     {% block global_scripts %}
+      {% if settings.USE_JS_I18N %}
       <script type="text/javascript" src="{% url 'django.views.i18n.javascript_catalog' %}"></script>
-      <script>
-      </script>
+      {% endif %}
       {% if debug %}
       <script src="{{ STATIC_URL }}js/treemap.js"></script>
       {% else %}
