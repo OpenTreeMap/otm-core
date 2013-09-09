@@ -12,7 +12,7 @@ from treemap.views import (boundary_to_geojson_view, index_view, map_view,
                            search_tree_benefits_view, species_list_view,
                            boundary_autocomplete_view, instance_user_view,
                            plot_popup_view, instance_user_audits,
-                           plot_accordian_view, add_plot_view,
+                           plot_accordion_view, add_plot_view,
                            add_tree_photo_endpoint)
 
 # Testing notes:
@@ -32,8 +32,8 @@ urlpatterns = patterns(
     url(r'^plots/(?P<plot_id>\d+)/$',
         route(GET=get_plot_detail_view, PUT=update_plot_detail_view),
         name='plot_detail'),
-    url(r'^plots/(?P<plot_id>\d+)/detail$', plot_accordian_view,
-        name='plot_accordian'),
+    url(r'^plots/(?P<plot_id>\d+)/detail$', plot_accordion_view,
+        name='plot_accordion'),
     url(r'^plots/(?P<plot_id>\d+)/popup$', plot_popup_view),
     url(r'^plots/$', route(POST=add_plot_view)),
     url(r'^plots/(?P<plot_id>\d+)/photo$',

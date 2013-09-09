@@ -22,16 +22,13 @@
 
 {% block content %}
 <div class="content map">
-  <div id="map"></div>
+  <div id="map" class="map"></div>
   <div class="sidebar">
     <div id="sidebar-browse-trees">
       {% include "treemap/map-browse-trees.html" %}
     </div>
     <div id="sidebar-add-tree" style="display:none">
       {% include "treemap/map-add-tree.html" %}
-    </div>
-    <div id="sidebar-edit-tree-details" style="display:none">
-      {% include "treemap/map-edit-tree-details.html" %}
     </div>
   </div>
 </div>

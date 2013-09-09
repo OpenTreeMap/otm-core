@@ -9,12 +9,13 @@ var U = require('./utility'),
     browseTreesMode     = require('./browseTreesMode'),
     addTreeMode         = require('./addTreeMode'),
     editTreeDetailsMode = require('./editTreeDetailsMode'),
+    inlineEditForm      = require('./inlineEditForm'),
+    plotMarker          = require('./plotMarker'),
     currentMode;
 
 var $sidebarBrowseTrees         = U.$find('#sidebar-browse-trees'),
     $treeDetailAccordionSection = U.$find('#tree-detail'),
-    $sidebarAddTree             = U.$find('#sidebar-add-tree'),
-    $sidebarEditTreeDetails     = U.$find('#sidebar-edit-tree-details');
+    $sidebarAddTree             = U.$find('#sidebar-add-tree');
 
 function activateMode(mode, $sidebar) {
     if (mode !== currentMode) {
@@ -32,40 +33,71 @@ function activateMode(mode, $sidebar) {
 
 function activateBrowseTreesMode()     { activateMode(browseTreesMode,     $sidebarBrowseTrees); }
 function activateAddTreeMode()         { activateMode(addTreeMode,         $sidebarAddTree); }
-function activateEditTreeDetailsMode() { activateMode(editTreeDetailsMode, $sidebarEditTreeDetails); }
+function activateEditTreeDetailsMode() { activateMode(editTreeDetailsMode, $sidebarBrowseTrees); }
 
-function inBrowseTreesMode()     { return currentMode === browseTreesMode; }
-function inAddTreeMode()         { return currentMode === addTreeMode; }
-function inEditTreeDetailsMode() { return currentMode === editTreeDetailsMode; }
+function inBrowseTreesMode() { return currentMode === browseTreesMode; }
+function inAddTreeMode()     { return currentMode === addTreeMode; }
 
-function init(config, map, onPlotAddOrUpdate) {
+function init(config, mapManager) {
+    // browseTreesMode and editTreeDetailsMode share an inlineEditForm,
+    // so initialize it here.
+    inlineEditForm.init({
+        updateUrl: '', // set in browseTreesMode.js on map click
+        form: '#details-form',
+        edit: '#edit-details-button',
+        save: '#save-details-button',
+        cancel: '#cancel-edit-details-button',
+        displayFields: '#sidebar-browse-trees [data-class="display"]',
+        editFields: '#sidebar-browse-trees [data-class="edit"]',
+        validationFields: '#sidebar-browse-trees [data-class="error"]',
+        onSaveBefore: editTreeDetailsMode.onSaveBefore
+    });
+    inlineEditForm.inEditModeProperty.onValue(function (inEditMode) {
+        // Form is changing to edit mode or display mode
+        if (inEditMode) {
+            activateEditTreeDetailsMode();
+        } else {
+            activateBrowseTreesMode();
+        }
+    });
+
+    plotMarker.init(mapManager.map);
+
     browseTreesMode.init({
         config: config,
-        map: map,
+        map: mapManager.map,
         inMyMode: inBrowseTreesMode,
-        $sidebar: $sidebarBrowseTrees,
-        $treeDetailAccordionSection: $treeDetailAccordionSection
+        $treeDetailAccordionSection: $treeDetailAccordionSection,
+        inlineEditForm: inlineEditForm,
+        plotMarker: plotMarker
     });
 
     addTreeMode.init({
         config: config,
-        map: map,
+        mapManager: mapManager,
+        plotMarker: plotMarker,
+        inMyMode: inAddTreeMode,
         $sidebar: $sidebarAddTree,
-        onAddTree: onPlotAddOrUpdate,
         onClose: activateBrowseTreesMode
     });
 
     editTreeDetailsMode.init({
-        config: config,
-        map: map,
-        $sidebar: $sidebarEditTreeDetails,
-        onClose: activateBrowseTreesMode
+        mapManager: mapManager,
+        inlineEditForm: inlineEditForm,
+        plotMarker: plotMarker,
+        typeaheads: [{
+            name: "species",
+            url: "/" + config.instance.url + "species",
+            input: "#tree-species-typeahead",
+            template: "#species-element-template",
+            hidden: "#tree-species-hidden",
+            reverse: "id"
+        }]
     });
 }
 
 module.exports = {
     init: init,
     activateBrowseTreesMode: activateBrowseTreesMode,
-    activateAddTreeMode: activateAddTreeMode,
-    activateEditTreeDetailsMode: activateEditTreeDetailsMode
+    activateAddTreeMode: activateAddTreeMode
 };

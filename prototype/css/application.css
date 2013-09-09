@@ -399,6 +399,12 @@ footer .nav-pills > li > a:hover {
   right: 350px;
 }
 
+.map-small {
+  background: #eee;
+  width: 300px;
+  height: 300px;
+}
+
 .sidebar {
   width: 350px;
   background: #fff;
@@ -433,11 +439,17 @@ footer .nav-pills > li > a:hover {
     font-weight: bold;
   }
 
+  .sidebar .chunk {
+    list-style: none;
+    padding: 5px 0 5px;
+    margin: 0;
+  }
+
 span.tt-dropdown-menu {
     margin-top: 0;
     padding: 10px;
     width: 199px;
-    font-size: 13px !important
+    font-size: 13px !important;
     border: 1px solid #c2c2c2;
     background: #fff;
     -webkit-border-radius: 3px;

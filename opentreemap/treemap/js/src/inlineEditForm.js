@@ -1,10 +1,10 @@
 "use strict";
 
-var $ = require('jquery');
-var Bacon = require('baconjs');
-var _ = require('underscore');
-var FH = require('./fieldHelpers');
-var getDatum = require('./otmTypeahead').getDatum;
+var $ = require('jquery'),
+    Bacon = require('baconjs'),
+    _ = require('underscore'),
+    FH = require('./fieldHelpers'),
+    getDatum = require('./otmTypeahead').getDatum;
 
 // Requiring this module handles wiring up the browserified
 // baconjs to jQuery
@@ -19,24 +19,12 @@ exports.init = function(options) {
         displayFields = options.displayFields,
         editFields = options.editFields,
         validationFields = options.validationFields,
+        onSaveBefore = options.onSaveBefore || _.identity,
 
         editStream = $(edit).asEventStream('click').map('edit:start'),
         saveStream = $(save).asEventStream('click').map('save:start'),
         cancelStream = $(cancel).asEventStream('click').map('cancel'),
         actionStream = new Bacon.Bus(),
-
-        actionToCssDisplay = function(actions, action) {
-            return _.contains(actions, action) ? '' : 'none';
-        },
-
-        actionToEditFieldCssDisplay = _.partial(actionToCssDisplay,
-            ['edit:start', 'save:start', 'save:error']),
-
-        actionToDisplayFieldCssDisplay = _.partial(actionToCssDisplay,
-            ['idle', 'save:ok', 'cancel']),
-
-        actionToValidationErrorCssDisplay = _.partial(actionToCssDisplay,
-            ['save:error']),
 
         displayValuesToTypeahead = function() {
             $('[data-typeahead-restore]').each(function(index, el) {
@@ -102,9 +90,15 @@ exports.init = function(options) {
             typeaheadToDisplayValues();
         },
 
+        getDataToSave = function() {
+            var data = FH.formToDictionary($(form), $(editFields));
+            onSaveBefore(data);
+            return data;
+        },
+
         update = function(data) {
             return Bacon.fromPromise($.ajax({
-                url: updateUrl,
+                url: exports.updateUrl,
                 type: 'PUT',
                 contentType: "application/json",
                 data: JSON.stringify(data)
@@ -123,14 +117,31 @@ exports.init = function(options) {
         },
 
         responseStream = saveStream
-            .map(FH.formToDictionary, $(form), $(editFields))
+            .map(getDataToSave)
             .flatMap(update)
             .mapError(function (e) {
                 return e.responseJSON;
-            });
+            }),
 
-    responseStream.filter('.ok')
-                  .onValue(formFieldsToDisplayValues);
+        saveOkStream = responseStream.filter('.ok'),
+
+        eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
+        eventsLandingInDisplayMode = ['idle', 'save:ok', 'cancel'],
+
+        hideAndShowElements = function (action) {
+            function hideOrShow(fields, actions) {
+                if (_.contains(actions, action)) {
+                    $(fields).show();
+                } else {
+                    $(fields).hide();
+                }
+            }
+            hideOrShow(editFields, eventsLandingInEditMode);
+            hideOrShow(displayFields, eventsLandingInDisplayMode);
+            hideOrShow(validationFields, ['save:error']);
+        };
+
+    saveOkStream.onValue(formFieldsToDisplayValues);
 
     responseStream.filter('.error')
                   .map('.validationErrors')
@@ -150,20 +161,19 @@ exports.init = function(options) {
     );
 
     actionStream.plug(
-        responseStream.filter('.ok').map('save:ok')
+        saveOkStream.map('save:ok')
     );
 
     actionStream.filter(isEditStart).onValue(displayValuesToFormFields);
 
-    actionStream.map(actionToDisplayFieldCssDisplay)
-                .toProperty('')
-                .assign($(displayFields), "css", "display");
+    actionStream.onValue(hideAndShowElements);
 
-    actionStream.map(actionToEditFieldCssDisplay)
-                .toProperty('none')
-                .assign($(editFields), "css", "display");
+    exports.inEditModeProperty = actionStream.map(function (event) {
+        return _.contains(eventsLandingInEditMode, event);
+    }).toProperty(false);
 
-    actionStream.map(actionToValidationErrorCssDisplay)
-                .toProperty('none')
-                .assign($(validationFields), "css", "display");
+    exports.saveOkStream = saveOkStream;
+    exports.cancelStream = cancelStream;
+    exports.updateUrl = updateUrl;
 };
+

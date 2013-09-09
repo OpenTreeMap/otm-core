@@ -200,30 +200,31 @@ def plot_detail(request, instance, plot_id):
             pass
 
     context['plot'] = plot
+    context['tree'] = tree
     context['recent_activity'] = _plot_audits(request.user, instance, plot)
 
     return context
 
 
 def add_plot(request, instance):
+    return update_plot_and_tree_request(request, Plot(instance=instance))
+
+
+def update_plot_detail(request, instance, plot_id):
+    InstancePlot = instance.scope_model(Plot)
+    plot = get_object_or_404(InstancePlot, pk=plot_id)
+    return update_plot_and_tree_request(request, plot)
+
+
+def update_plot_and_tree_request(request, plot):
     try:
-        plot = update_plot_and_tree(request, Plot(instance=instance))
+        plot = update_plot_and_tree(request, plot)
+        # Refresh plot.instance in case geo_rev_hash was updated
+        plot.instance = Instance.objects.get(id=plot.instance.id)
         return {
             'ok': True,
             'geoRevHash': plot.instance.geo_rev_hash
         }
-    except ValidationError, ve:
-        return _bad_request_json_response(
-            'One or more of the specified values are invalid.',
-            ve.message_dict)
-
-
-def update_plot_detail(request, instance, plot_id):
-    try:
-        InstancePlot = instance.scope_model(Plot)
-        plot = get_object_or_404(InstancePlot, pk=plot_id)
-        update_plot_and_tree(request, plot)
-        return {'ok': True}
     except ValidationError as ve:
         return _bad_request_json_response(
             'One or more of the specified values are invalid.',
@@ -311,9 +312,6 @@ def update_plot_and_tree(request, plot):
 
     if errors:
         raise ValidationError(errors)
-
-    # Refresh plot.instance in case geo_rev_hash was updated
-    plot.instance = Instance.objects.get(id=plot.instance.id)
 
     return plot
 
@@ -746,8 +744,8 @@ update_plot_detail_view = json_api_call(instance_request(update_plot_detail))
 plot_popup_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_popup.html', plot_detail)))
 
-plot_accordian_view = instance_request(etag(_plot_hash)(
-    render_template('treemap/plot_accordian.html', plot_detail)))
+plot_accordion_view = instance_request(etag(_plot_hash)(
+    render_template('treemap/plot_accordion.html', plot_detail)))
 
 add_plot_view = require_http_method("POST")(
     json_api_call(instance_request(add_plot)))

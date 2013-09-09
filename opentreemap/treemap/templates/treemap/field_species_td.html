@@ -1,0 +1,41 @@
+{% load i18n %}
+{% if field.is_visible %}
+  <tr data-class="display">
+    <td>{% trans "Common Name" %}</td>
+    <td data-typeahead="{{ field.identifier }}"
+        data-datum="common_name">{{ field.value.common_name }}</td>
+  </tr>
+  <tr data-class="display">
+    <td>{% trans "Scientific Name" %}</td>
+    <td>
+      <input type="hidden"
+             value="{{ field.value.id }}"
+             data-typeahead-restore="{{ field.identifier}}"
+             data-datum="id" />
+      <em data-typeahead="{{ field.identifier }}"
+          data-datum="scientific_name">{{ field.value.scientific_name }}</em>
+    </td>
+  </tr>
+  {% if field.is_editable %}
+  <tr style="display: none;"
+      data-class="edit">
+    <td>{% trans "Species" %}</td>
+    <td>
+      <input type="hidden"
+             data-typeahead-hidden
+             id="{{ field.label }}-hidden"
+             name="{{ field.identifier }}"
+             value="{{ field.value.id }}"/>
+      <input type="text"
+             data-typeahead-input="{{ field.identifier }}"
+             id="{{ field.label }}-typeahead"
+             value="{{ field.value.display_name }}"/>
+    </td>
+    <td class="text-error"
+        data-field="{{ field.identifier }}"
+        data-class="error"
+        style="display: none;">
+    </td>
+  </tr>
+  {% endif %}
+{% endif %}

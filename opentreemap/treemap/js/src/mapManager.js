@@ -4,12 +4,17 @@ var $ = require('jquery'),
     OL = require('OpenLayers'),
     makeLayerFilterable = require('./makeLayerFilterable');
 
-exports.init = function(config) {
-    var map = createMap($("#map")[0], config),
+exports.ZOOM_DEFAULT = 11;
+exports.ZOOM_PLOT = 18;
+
+exports.init = function(options) {
+    var config = options.config,
+        map = createMap($(options.selector)[0], config),
         plotLayer = createPlotTileLayer(config),
         boundsLayer = createBoundsTileLayer(config),
-        utfLayer = createPlotUTFLayer(config),
-        zoom = 0;
+        utfLayer = createPlotUTFLayer(config);
+
+    exports.map = map;
 
     exports.updateGeoRevHash = function(geoRevHash) {
         if (geoRevHash !== config.instance.rev) {
@@ -41,10 +46,9 @@ exports.init = function(config) {
     map.addLayer(utfLayer);
     map.addLayer(boundsLayer);
 
-    zoom = map.getZoomForResolution(76.43702827453613);
-    map.setCenter(config.instance.center, zoom);
-
-    return map;
+    var center = options.center || config.instance.center,
+        zoom = options.zoom || exports.ZOOM_DEFAULT;
+    map.setCenter(new OL.LonLat(center.x, center.y), zoom);
 };
 
 function createMap(elmt, config) {

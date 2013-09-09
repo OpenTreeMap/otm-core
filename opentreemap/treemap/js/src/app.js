@@ -142,8 +142,7 @@ module.exports = {
     },
 
     initMapPage: function (config) {
-        var map = mapManager.init(config),
-            searchEventStream = app.searchEventStream(),
+        var searchEventStream = app.searchEventStream(),
             resetStream = app.resetEventStream();
 
         var geocodeResultsTemplate = mustache.compile(
@@ -173,6 +172,7 @@ module.exports = {
         // if the map is not already zoomed in.
         singleGeocodeMatchStream.merge(app.selectGeocodeCandidateStream())
             .onValue(function (result) {
+                var map = mapManager.map;
                 map.setCenter(result.coordinates, Math.max(map.getZoom(), 18));
             });
 
@@ -180,7 +180,7 @@ module.exports = {
         // user.
         geocodeResponseStream
             .filter(app.geocodeResponseHasMultipleCandidates)
-            .onValue(app.showGeocodeCandidates, map, geocodeResultsTemplate);
+            .onValue(app.showGeocodeCandidates, mapManager.map, geocodeResultsTemplate);
 
         // Let the user know if there was a problem geocoding
         geocodeResponseStream.onError(app.showGeocodeError);
@@ -190,7 +190,11 @@ module.exports = {
 
         app.initSearchUi(config);
 
-        modes.init(config, map, mapManager.updateGeoRevHash);
+        mapManager.init({
+            config: config,
+            selector: '#map'
+        });
+        modes.init(config, mapManager);
         modes.activateBrowseTreesMode();
 
         $('.addBtn').click(modes.activateAddTreeMode);
