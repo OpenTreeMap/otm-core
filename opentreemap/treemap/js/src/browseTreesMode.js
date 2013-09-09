@@ -42,11 +42,11 @@ function init(options) {
         .filter(inMyMode)
         .map('.' + config.utfGrid.plotIdKey);
 
-    var popupHtmlStream = fetchFromIdStream(clickedIdStream, 
+    var popupHtmlStream = fetchFromIdStream(clickedIdStream,
                                             getPlotPopupContent);
 
-    var accordionHtmlStream = fetchFromIdStream(clickedIdStream, 
-                                                getPlotAccordionContent, 
+    var accordionHtmlStream = fetchFromIdStream(clickedIdStream,
+                                                getPlotAccordionContent,
                                                 '');
 
     clickedIdStream.onValue(function (id) {
@@ -79,7 +79,7 @@ function init(options) {
                 y: $('#details-form').data('location-y')
             });
         } else {
-            $accordionSection.addClass('collapse'); 
+            $accordionSection.addClass('collapse');
         }
     });
 }
@@ -95,7 +95,9 @@ function getPlotPopupContent(id) {
 
 function makePopup(latLon, html, size) {
     if (latLon && html) {
-        return new OL.Popup("plot-popup", latLon, size, html, true);
+        var popup = new OL.Popup("plot-popup", latLon, size, html, true);
+        popup.panMapIfOutOfView = true;
+        return popup;
     } else {
         return null;
     }
