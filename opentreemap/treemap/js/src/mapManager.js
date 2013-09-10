@@ -31,6 +31,10 @@ exports.init = function(options) {
         utfLayer.setFilter(filter);
     };
 
+    exports.setCenterAndZoomIn = function(coords, zoom) {
+        map.setCenter(coords, Math.max(map.getZoom(), zoom));
+    }
+
     // Bing maps uses a 1-based zoom so XYZ layers on the base map have
     // a zoom offset that is always one less than the map zoom:
     // > map.setCenter(center, 11)

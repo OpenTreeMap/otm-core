@@ -1,8 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    Bacon = require('baconjs'),
-    BU = require('./baconUtils');
+    Bacon = require('baconjs');
 
 exports = module.exports = function (config) {
 
