@@ -1,13 +1,14 @@
 // Partial: Navbar
 
 .navbar {
-    font-size: 16px;
+    font-size: 1em;
 
     .navbar-inner {
         background: $navbar-color;
         border: none;
         height: 44px;
         box-shadow: none;
+        padding: 0;
     }
 
     .nav {
@@ -52,5 +53,12 @@
                 }
             }
         }
+    }
+}
+
+@media (max-width: 767px) {
+    .navbar {
+        margin: 0;
+        font-size: em(14px);
     }
 }
