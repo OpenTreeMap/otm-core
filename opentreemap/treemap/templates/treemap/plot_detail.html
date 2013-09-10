@@ -64,6 +64,14 @@
 
   <!-- Center Column -->
   <div class="center">
+    {% if errors %}
+    <div class="error">
+      <h1>Errors</h1>
+      {% for field, msg in errors.iteritems %}
+      <li>{{ msg }}</li>
+      {% endfor %}
+    </div>
+    {% endif %}
     <h1>{{ tree.species.common_name }}</h1>
     <h2>{{ tree.species.scientific_name }}</h2>
     <h3>{{ plot.address_full }}</h3>
