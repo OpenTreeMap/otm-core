@@ -12,6 +12,9 @@ var config,
     onClose,  // function to call when closing mode
     $sidebar,
     $addButton,
+    $address,
+    $geocodeError,
+    $geolocateError,
     $form,
     $editFields,
     $editControls,
@@ -36,11 +39,15 @@ function init(options) {
     $displayFields = U.$find('[data-class="display"]', $form);
     $validationFields = U.$find('[data-class="error"]', $form);
     $addButton = U.$find('.saveBtn', $sidebar).click(addTree);
+    $address = U.$find('#add-tree-address', $sidebar);
+    $geocodeError = U.$find('.geocode-error', $sidebar);
+    $geolocateError = U.$find('geolocate-error', $sidebar);
+    U.$find('.geocode', $sidebar).click(geocode);
+    U.$find('.geolocate', $sidebar).click(geolocate);
     U.$find('.cancelBtn', $sidebar).click(cancel);
 
     $editFields.show();
     $displayFields.hide();
-    $validationFields.hide();
 }
 
 // Adding a tree uses a state machine with these states and transitions:
@@ -71,13 +78,54 @@ function activate() {
     $editControls.prop('disabled', true);
 }
 
+function geocode()
+{
+}
+
+function geolocate()
+{
+    if (navigator.geolocation)
+    {
+        hideLocationErrors();
+        var options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        };
+        navigator.geolocation.getCurrentPosition(onSuccess, onError, options);
+    }
+    else {
+        onError();
+    }
+
+    function onSuccess(lonLat) {
+        var location = U.lonLatToWebMercator(lonLat.coords.longitude, lonLat.coords.latitude)
+        plotMarker.place(location);
+        plotMarker.enableMoving();
+        enableStep2(false);
+    }
+
+    function onError(error) {
+        $geolocateError.show();
+    }
+}
+
+function hideLocationErrors() {
+    $geocodeError.hide();
+    $geolocateError.hide();
+}
+
 function onMarkerMoved() {
     // User moved tree for the first time. Let them edit fields.
-    $addButton.attr('disabled', false);
-    $editControls.prop('disabled', false);
-    setTimeout(function () {
+    enableStep2(true);
+    _.defer(function () {
         $editControls.first().focus().select();
-    }, 0);
+    });
+}
+
+function enableStep2(shouldEnable) {
+    $addButton.attr('disabled', !shouldEnable);
+    $editControls.prop('disabled', !shouldEnable);
 }
 
 function addTree() {

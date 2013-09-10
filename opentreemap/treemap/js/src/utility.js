@@ -2,6 +2,7 @@
 
 var Url = require('url'),
     QS = require('querystring'),
+    OL = require('OpenLayers'),
     $ = require('jquery');
 
 exports.getUpdatedQueryString = function (k, v) {
@@ -64,3 +65,14 @@ exports.$find = function (selector, $parent) {
     }
     return $el;
 };
+
+exports.lonLatToWebMercator = function(lon, lat) {
+    var lonLatProjection = new OL.Projection("EPSG:4326"),
+        webMercatorProjection = new OL.Projection("EPSG:3857"),
+        location = new OL.LonLat(lon, lat);
+    location.transform(lonLatProjection, webMercatorProjection);
+    return {
+        x: location.lon,
+        y: location.lat
+    }
+}
