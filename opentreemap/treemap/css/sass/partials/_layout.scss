@@ -3,6 +3,7 @@
 html,
 body {
 	height: 100%;
+	background: #f1f1f2;
 }
 
 .wrapper {
@@ -27,6 +28,15 @@ body {
 		width: 100%;
 		bottom: 0;
 	}
+}
+
+.container.contained {
+	padding: 25px;
+	background: white;
+	border-radius: 6px;
+	box-shadow: 0 3px 0 gray;
+	box-shadow: 0 3px 0 rgba(0,0,0,.35);
+	margin: 50px auto 90px;
 }
 
 @media (max-width: 767px) {

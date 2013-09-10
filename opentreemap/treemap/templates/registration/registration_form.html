@@ -24,6 +24,7 @@
         <input type="file" class="profile-photo-upload"><br><br>
         -->
         {% csrf_token %}
+        <legend>{% trans "Create an Account" %}</legend>
         {{ form.as_p }}
         <button type="submit" class="btn btn-large input-block-level btn-primary" value="{% trans 'Submit' %}" >{% trans "Submit" %}</button>
       </fieldset>
