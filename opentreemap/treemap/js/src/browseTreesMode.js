@@ -87,7 +87,7 @@ function init(options) {
 
     var showTreeDetailLink = $accordionSection.parent().find('a');
     showTreeDetailLink.on('click', function(event) {
-        if ($('#plot-accordion').html().length == 0) {
+        if ($('#plot-accordion').html().length === 0) {
             event.stopPropagation();
         }
     });
