@@ -2,12 +2,14 @@
   <tr>
     <td>{{ field.label }}</td>
     <td data-field="{{ field.identifier }}"
+        data-type="{{ field.data_type }}"
         data-class="display"
         data-value="{{ field.value|default_if_none:"" }}">
         {{ field.display_value|default_if_none:"" }}
     </td>
     {% if field.is_editable %}
       <td data-field="{{ field.identifier }}"
+          data-type="{{ field.data_type }}"
           data-class="edit"
           data-value="{{ field.value|default_if_none:"" }}"
           style="display: none;">
