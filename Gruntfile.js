@@ -25,6 +25,7 @@ module.exports = function(grunt) {
         var aliases = ['treemap/js/src/app.js:app',
                        'treemap/js/src/user.js:user',
                        'treemap/js/src/plot.js:plot',
+                       'treemap/js/src/baconUtils:BaconUtils',
                        'treemap/js/src/openLayersMapEventStream:' +
                        'openLayersMapEventStream'];
 
