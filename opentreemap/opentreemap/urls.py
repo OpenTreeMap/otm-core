@@ -40,6 +40,8 @@ urlpatterns = patterns(
     # The profile view is handled specially by redirecting to
     # the page of the currently logged in user
     url(r'^accounts/profile/$', profile_to_user_view, name='profile'),
+    url(r'^accounts/logout/$', 'django.contrib.auth.views.logout',
+        {'next_page': '/'}),
     url(r'^accounts/', include('registration_backend.urls')),
     # Create a redirect view for setting the session language preference
     # https://docs.djangoproject.com/en/1.0/topics/i18n/#the-set-language-redirect-view  # NOQA
