@@ -6,7 +6,7 @@ from treemap.tests import (RequestTestCase, make_instance,
 class LogoutTests(RequestTestCase):
     def test_logout(self):
         res = self.client.get('/accounts/logout/')
-        self.assertOk(res)
+        self.assertRedirects(res, '/')
 
 
 class LoginTests(RequestTestCase):
