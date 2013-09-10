@@ -17,8 +17,8 @@
   </div>
   <div class="modal-body">
     <form id="add-photo-form" method="POST" enctype="multipart/form-data"
-          {% if plot.current_tree %}
-          action="{% url 'treemap.views.add_tree_photo_endpoint' instance_url_name=request.instance.url_name plot_id=plot.pk tree_id=plot.current_tree.pk %}"
+          {% if tree %}
+          action="{% url 'treemap.views.add_tree_photo_endpoint' instance_url_name=request.instance.url_name plot_id=plot.pk tree_id=tree.pk %}"
           {% else %}
           action="{% url 'treemap.views.add_tree_photo_endpoint' instance_url_name=request.instance.url_name plot_id=plot.pk %}"
           {% endif %}>
@@ -36,7 +36,7 @@
 
   <!-- Left Column -->
   <div class="left">
-    {% with photo=plot.current_tree.most_recent_photo %}
+    {% with photo=tree.most_recent_photo %}
     {% if photo %}
     <img src="{{ photo.thumbnail.url }}">
     {% else %}
@@ -64,8 +64,8 @@
 
   <!-- Center Column -->
   <div class="center">
-    <h1>{{ plot.current_tree.species.common_name }}</h1>
-    <h2>{{ plot.current_tree.species.scientific_name }}</h2>
+    <h1>{{ tree.species.common_name }}</h1>
+    <h2>{{ tree.species.scientific_name }}</h2>
     <h3>{{ plot.address_full }}</h3>
     <form id="plot-form">
       <a href="javascript:;" id="edit-plot"
@@ -78,13 +78,14 @@
       <table class="table table-striped">
         <h5>{% trans "General Tree Information" %}</h5>
         <tbody>
-          {% usercanread plot.current_tree "id" as value %}
+          {% usercanread tree "id" as value %}
           <tr>
             <td>{% trans "Tree Number" %}</td>
-            <td>{{ value }}</td>
+            <td>
+              <a href="{% url 'tree_detail' instance_url_name=request.instance.url_name plot_id=plot.pk tree_id=tree.pk %}">{{ value }}</a>
+            </td>
           </tr>
           {% endusercanread %}
-          {% with tree=plot.current_tree %}
           {% if tree %}
             {# The "plot-species" label is used as an id prefix in "field_species_td.html" #}
             {% field "plot-species" from "tree.species" for request.user withtemplate "treemap/field_species_td.html" %}
@@ -98,7 +99,6 @@
               {% field label from udf withtemplate "treemap/field_td.html" %}
             {% endfor %}
           {% endif %}
-          {% endwith %}
         </tbody>
       </table>
       <hr>

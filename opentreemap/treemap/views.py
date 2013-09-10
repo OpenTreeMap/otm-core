@@ -35,7 +35,15 @@ from ecobenefits.views import _benefits_for_trees
 from opentreemap.util import json_from_request
 
 
-def _plot_hash(request, instance, plot_id):
+def _plot_hash(request, instance, plot_id, tree_id=None):
+    """
+    Compute a unique hash for a given plot or tree
+
+    tree_id is ignored since trees are included as a
+    subset of the plot's hash. It is present here because
+    this function is wrapped around views that can take
+    tree_id as an argument
+    """
     instance_plots = instance.scope_model(Plot)
     return get_object_or_404(instance_plots, pk=plot_id).hash
 
@@ -176,10 +184,17 @@ def create_plot(user, instance, *args, **kwargs):
     return p
 
 
-def plot_detail(request, instance, plot_id):
+def plot_detail(request, instance, plot_id, tree_id=None):
     InstancePlot = instance.scope_model(Plot)
     plot = get_object_or_404(InstancePlot, pk=plot_id)
-    tree = plot.current_tree()
+
+    if tree_id:
+        tree = get_object_or_404(Tree,
+                                 instance=instance,
+                                 plot=plot,
+                                 pk=tree_id)
+    else:
+        tree = plot.current_tree()
 
     context = {}
     # If the the benefits calculation can't be done or fails, still display the
