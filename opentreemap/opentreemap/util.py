@@ -12,12 +12,9 @@ def route(**kwargs):
 
 
 def json_from_request(request):
-    """
-    Accessing body throws an exception when using the Django test
-    client in to make requests in unit tests.
-    """
-    try:
-        data = json.loads(request.body)
-    except Exception:
-        data = request.POST
-    return data
+    body = request.body
+
+    if body:
+        return json.loads(body)
+    else:
+        return None
