@@ -110,13 +110,21 @@ def add_tree_photo(request, instance, plot_id, tree_id=None):
     return photo
 
 
-def add_tree_photo_view(*args, **kwargs):
-    tree_photo = add_tree_photo(*args, **kwargs)
+def add_tree_photo_view(request, instance, plot_id, tree_id=None):
+    errors = ''
+
+    try:
+        tree_photo = add_tree_photo(request, instance, plot_id, tree_id)
+    except ValidationError as e:
+        errors = '?errors=%s' % urllib.quote(json.dumps(e.message_dict))
+
 
     url = reverse('plot_detail',
                   kwargs={
-                      'instance_url_name': tree_photo.instance.url_name,
-                      'plot_id': tree_photo.tree.plot.pk})
+                      'instance_url_name': instance.url_name,
+                      'plot_id': plot_id})
+
+    url += errors
 
     return HttpResponseRedirect(url)
 
@@ -213,6 +221,9 @@ def plot_detail(request, instance, plot_id, tree_id=None):
             context = _tree_benefits_helper([eco_tree], 1, 1, instance)
         except Exception:
             pass
+
+    if 'errors' in request.REQUEST:
+        context['errors'] = json.loads(request.REQUEST['errors'])
 
     context['plot'] = plot
     context['tree'] = tree
