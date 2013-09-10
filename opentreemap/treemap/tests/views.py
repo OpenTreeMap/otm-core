@@ -22,7 +22,9 @@ from ecobenefits.models import ITreeRegion
 
 from treemap.udf import UserDefinedFieldDefinition
 
-from treemap.audit import Role, Audit, approve_or_reject_audit_and_apply
+from treemap.audit import (Role, Audit, approve_or_reject_audit_and_apply,
+                           approve_or_reject_audits_and_apply,
+                           FieldPermission)
 
 from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, BenefitCurrencyConversion)
@@ -169,6 +171,72 @@ class PlotImageUpdateTest(TestCase):
                              'django.core.files.storage.FileSystemStorage',
                              MEDIA_ROOT=self.photoDir,
                              MEDIA_URL=self.mediaUrl)
+
+    def _make_audited_request(self):
+        # Update user to only have pending permission
+        perms = self.user.get_instance_permissions(self.instance)
+
+        def update_perms(plevel):
+            for perm in perms:
+                perm.permission_level = plevel
+                perm.save()
+
+        update_perms(FieldPermission.WRITE_WITH_AUDIT)
+
+        # Delete any audits already in the system
+        Audit.objects.all().delete()
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        tree_image = self.load_resource('tree1.gif')
+
+        photo = self._make_tree_photo_request(
+            tree_image, self.plot.pk, self.tree.pk)
+
+        # Restore permissions
+        update_perms(FieldPermission.WRITE_DIRECTLY)
+
+        return photo
+
+    @media_dir
+    def test_can_create_pending_image(self):
+        objects = self.tree.treephoto_set.all()
+        self.assertEqual(len(objects), 0)
+
+        self._make_audited_request()
+
+        objects = self.tree.treephoto_set.all()
+        self.assertEqual(len(objects), 0)
+
+        # Approve audits
+        approve_or_reject_audits_and_apply(
+            Audit.objects.all(), self.user, approved=True)
+
+        # Verify tree photo exists
+        objects = self.tree.treephoto_set.all()
+        self.assertEqual(len(objects), 1)
+
+        photo = objects[0]
+
+        self.assertTreePhotoExists(photo)
+
+    @media_dir
+    def test_can_reject_pending_image(self):
+        objects = self.tree.treephoto_set.all()
+        self.assertEqual(len(objects), 0)
+
+        self._make_audited_request()
+
+        objects = self.tree.treephoto_set.all()
+        self.assertEqual(len(objects), 0)
+
+        # Reject audits
+        approve_or_reject_audits_and_apply(
+            Audit.objects.all(), self.user, approved=False)
+
+        # Verify no tree photos were created
+        objects = self.tree.treephoto_set.all()
+        self.assertEqual(len(objects), 0)
 
     def _run_basic_test_with_image_file(self, image_file):
         tp = TreePhoto(tree=self.tree, instance=self.instance)
