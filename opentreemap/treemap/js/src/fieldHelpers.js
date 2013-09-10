@@ -16,7 +16,12 @@ exports.formToDictionary = function ($form, $editFields) {
         if (type === 'bool'){
             return;
         } else if (item.value === '' && (type === 'int' || type === 'float')) {
-            // omit blank numbers
+            // convert empty numeric fields to null
+            result[item.name] = null;
+        } else if (item.name === 'tree.species') {
+            // convert empty species id strings to null
+
+            result[item.name] = null;
         } else {
             result[item.name] = item.value;
         }
