@@ -16,6 +16,14 @@ function uriEncodeFilterObject(o) {
 
 var _urlTemplate = _.template('<%= originalUrl %>&<%= filterQueryArgumentName %>=<%= uriEncodedFilterObject %>');
 
+function makeFilterUrl(originalUrl, filterQueryArgumentName, filter) {
+    return _urlTemplate({
+        originalUrl: originalUrl,
+        filterQueryArgumentName: filterQueryArgumentName,
+        uriEncodedFilterObject: uriEncodeFilterObject(filter)
+    });
+}
+
 function makeLayerFilterable(layer, originalUrl, filterQueryArgumentName) {
     layer.clearFilter = function() {
         layer.url = originalUrl;
@@ -26,11 +34,17 @@ function makeLayerFilterable(layer, originalUrl, filterQueryArgumentName) {
         if (filterObjectIsEmpty(filter)) {
             layer.clearFilter();
         } else {
-            layer.url = _urlTemplate({
-                originalUrl: originalUrl,
-                filterQueryArgumentName: filterQueryArgumentName,
-                uriEncodedFilterObject: uriEncodeFilterObject(filter)
-            });
+            if (_.isArray(originalUrl)) {
+                layer.url = _.reduce(originalUrl,
+                    function (urls, url) {
+                        urls.push(makeFilterUrl(
+                            url, filterQueryArgumentName, filter));
+                        return urls;
+                    }, []);
+            } else {
+                layer.url = makeFilterUrl(originalUrl,
+                    filterQueryArgumentName, filter);
+            }
             layer.redraw({force: true});
         }
     };

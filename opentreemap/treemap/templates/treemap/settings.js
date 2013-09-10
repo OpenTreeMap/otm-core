@@ -10,6 +10,10 @@ otm.settings.urls = {
     'filterQueryArgumentName': 'q'
 }
 
+{% if not settings.TILE_HOSTS = None %}
+    otm.settings.tileHosts = ["{{ settings.TILE_HOSTS|join:'", "' }}"];
+{% endif %}
+
 {% if request.instance %}
     otm.settings.instance = {
         'id': '{{ request.instance.id }}',
