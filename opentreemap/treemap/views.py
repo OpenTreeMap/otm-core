@@ -114,10 +114,9 @@ def add_tree_photo_view(request, instance, plot_id, tree_id=None):
     errors = ''
 
     try:
-        tree_photo = add_tree_photo(request, instance, plot_id, tree_id)
+        add_tree_photo(request, instance, plot_id, tree_id)
     except ValidationError as e:
         errors = '?errors=%s' % urllib.quote(json.dumps(e.message_dict))
-
 
     url = reverse('plot_detail',
                   kwargs={
