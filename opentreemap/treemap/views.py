@@ -346,7 +346,15 @@ def _get_audits(logged_in_user, instance, query_vars, user, models,
     start_pos = page * page_size
     end_pos = start_pos + page_size
 
-    audits = Audit.objects.filter(model__in=models)\
+    model_filter = Q(model__in=models)
+
+    # We only want to show the TreePhoto's image, not other fields
+    # and we want to do it automatically if 'Tree' was specified as
+    # a model
+    if 'Tree' in models:
+        model_filter = model_filter | Q(model='TreePhoto', field='image')
+
+    audits = Audit.objects.filter(model_filter)\
                           .order_by('-created', 'id')
 
     if instance:

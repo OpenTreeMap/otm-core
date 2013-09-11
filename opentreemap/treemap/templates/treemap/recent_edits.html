@@ -1,5 +1,6 @@
 {% extends "instance_base.html" %}
 {% load i18n %}
+{% load image %}
 
 {% block page_title %} | {% trans "Recent Edits" %} {{plot.pk}}{% endblock %}
 
@@ -36,7 +37,28 @@
     </td>
     <td>{{ audit.field }}</td>
 
-    {% if audit.field == 'user' %}
+    {% if audit.field == 'image' %}
+
+    <td>
+      {% if audit.clean_previous_value %}
+      <a href="{{ audit.clean_previous_value|image_to_url }}">
+        View Image
+      </a>
+      {% else %}
+        None
+      {% endif %}
+    </td>
+    <td>
+      {% if audit.clean_current_value %}
+      <a href="{{ audit.clean_current_value|image_to_url }}">
+        View Image
+      </a>
+      {% else %}
+        None
+      {% endif %}
+    </td>
+
+    {% elif audit.field == 'user' %}
 
     <td>
       {% if audit.clean_previous_value %}
