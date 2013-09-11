@@ -9,6 +9,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile, File
 from django.contrib.gis.db import models
 from django.db import IntegrityError
 from django.utils import timezone
+from django.utils.translation import ugettext as trans
 
 from django.contrib.auth.models import AbstractUser
 
@@ -53,6 +54,35 @@ class BenefitCurrencyConversion(Dictable, models.Model):
     factor.
     """
     airquality_aggregate_lb_to_currency = models.FloatField()
+
+    def clean(self):
+        errors = {}
+
+        if len(self.currency_symbol) > 4:
+            errors['currency_symbol'] = trans(
+                'Symbol is too long')
+
+        positive_fields = ['kwh_to_currency',
+                           'airquality_aggregate_lb_to_currency',
+                           'carbon_dioxide_lb_to_currency',
+                           'stormwater_gal_to_currency']
+
+        for field in positive_fields:
+            value = getattr(self, field)
+            try:
+                value = float(value or '')
+                if value < 0:
+                    errors[field] = [trans('Values must be not be negative')]
+            except ValueError:
+                pass
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+
+        super(BenefitCurrencyConversion, self).save(*args, **kwargs)
 
 
 class User(Auditable, AbstractUser):
