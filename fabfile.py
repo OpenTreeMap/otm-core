@@ -54,7 +54,8 @@ def vagrant():
 
     env.key_filename = vagrant_ssh_config['IdentityFile']
     env.user = vagrant_ssh_config['User']
-    env.hosts = ['localhost:%s' % vagrant_ssh_config['Port']]
+    env.hosts = [vagrant_ssh_config['HostName']]
+    env.port = vagrant_ssh_config['Port']
 
 def me():
     """ Configure fabric to use localhost as a host.
