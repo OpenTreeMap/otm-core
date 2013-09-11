@@ -46,13 +46,9 @@ var app = {
     },
 
     cancelGeocodeSuggestionStream: function() {
-        // Hide the suggestion list if...
-        return Bacon.mergeAll([
-            // the user edits the search text
-            $('#boundary-typeahead').asEventStream('keyup'),
-            // the user resets the search
-            app.resetEventStream()
-        ]);
+        // Hide suggestion list if user edits search text or resets search
+        return $('#boundary-typeahead').asEventStream('keyup')
+            .merge(app.resetEventStream())
     },
 
     searchEventStream: function() {
