@@ -8,6 +8,7 @@ var $ = require('jquery'),
 
     mapManager = require('./mapManager'),
     Search = require('./search'),
+    searchEventStream = require('./searchEventStream'),
     otmTypeahead = require('./otmTypeahead'),
     modes = require('./modeManagerForMapPage'),
     geocoder = require('./geocoder'),
@@ -52,17 +53,10 @@ var app = {
     },
 
     searchEventStream: function() {
-        var enterKeyPressStream = $('input[data-class="search"]')
-                .asEventStream("keyup")
-                .filter(BU.isEnterKey),
-
-            performSearchClickStream = $("#perform-search")
-                .asEventStream("click"),
-
-            triggerEventStream = enterKeyPressStream.merge(
-                performSearchClickStream);
-
-        return triggerEventStream;
+        return searchEventStream({
+            searchInputs: 'input[data-class="search"]',
+            searchButton: '#perform-search'
+        });
     },
 
     redirectToSearchPage: function (config, query) {
