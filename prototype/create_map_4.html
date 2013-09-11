@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>OpenTreeMap - Payment Information | Create Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/application.css" rel="stylesheet">
+    <link href="css/responsive.css" rel="stylesheet">
+
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.js"></script>
+    <![endif]-->
+
+  </head>
+
+  <body>
+
+    <!-- Top Nav -->
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <ul class="nav pull-left">
+            <li><a href="#">Explore Trees</a></li>
+            <li><a href="#">Add a Tree</a></li>
+            <li class="divider-vertical"></li>
+            <li><a href="#">Log In</a></li>
+            <li><a href="#">Sign Up</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo and Search -->
+    <div class="header">
+      <div class="logo">
+        <a href="index.html"><img src="img/logo-main.svg" alt="OpenTreeMap"></a>
+      </div>
+      <div class="pull-right create-map-progress">
+        <div class="progress">
+          <a class="bar bar-complete" style="width: 25%">Select Plan</a>
+          <a class="bar bar-complete" style="width: 25%">Define Map</a>
+          <a class="bar bar-complete" style="width: 25%">Customize</a>
+          <a class="bar bar-success" style="width: 25%">Payment Info</a>
+        </div>
+      </div>
+    </div><!-- end header -->
+
+    <div class="container contained create-map">
+      <div class="row">
+        <div class="span12 create-map-header">
+          <h1><span>4.</span> Payment Information</h1>
+          <h4>Last step before you’re adding trees. Feel free to <a>contact us</a> with questions.</a>
+        </div>
+        <div class="create-map-body">
+          <div class="span9">
+            <form>
+              <fieldset>
+                <legend>Payment Information</legend>
+                <div class="row">
+                  <div class="span9">
+                    <label>Payment Type*</label>
+                    <label class="radio inline">
+                      <input type="radio" name="paymentRadios" value="option1"> Credit Card
+                    </label>
+                    <label class="radio inline">
+                      <input type="radio" name="paymentRadios" value="option2"> Check
+                    </label>
+                    <label class="radio inline">
+                      <input type="radio" name="paymentRadios" value="option3"> Invoice/PO
+                    </label>
+                  </div>
+                  <div class="span4 last">
+                    <label>Name on Card*</label>
+                    <input type="text" class="span4" placeholder="">
+                  </div>
+                  <div class="span4" style="clear:left;">
+                    <label>Card Number*</label>
+                    <input type="text" class="span4" placeholder="">
+                  </div>
+                  <div class="span2">
+                    <label>CCV*</label>
+                    <input type="text" class="span2" placeholder="" >
+                  </div>
+                  <div class="span2">
+                    <label>Expiration*</label>
+                    <input type="text" class="span1" placeholder="MM" >
+                    <input type="text" class="span1" placeholder="YY" >
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend>Billing Information</legend>
+                <div class="row">
+                  <div class="span9">
+                    <label>Billing Frequency*</label>
+                    <label class="radio inline">
+                      <input type="radio" name="billingRadios" value="option4"> Monthly
+                    </label>
+                    <label class="radio inline">
+                      <input type="radio" name="billingRadios" value="option5"> Annually
+                    </label>
+                  </div>
+                  <div class="span4">
+                    <label>Organization Name</label>
+                    <input type="text" class="span4" placeholder="">
+                  </div>
+                  <div class="span4" style="clear:left;">
+                    <label>Billing Address*</label>
+                    <input type="text" class="span4" placeholder="">
+                  </div>
+                  <div class="span2 last">
+                    <label>Suite or Apt</label>
+                    <input type="text" class="span2" placeholder="" >
+                  </div>
+                  <div class="span4">
+                    <label>City*</label>
+                    <input type="text" class="span4" placeholder="">
+                  </div>
+                  <div class="span2">
+                    <label>State*</label>
+                    <select class="span2">
+                      <option>Pennsylvania</select>
+                    </select>
+                  </div>
+                  <div class="span2">
+                    <label>Zip Code*</label>
+                    <input type="text" class="span2" placeholder="" >
+                  </div>
+                  <div class="span4">
+                    <label>Email*</label>
+                    <input type="text" class="span4" placeholder="">
+                  </div>
+                  <div class="span4">
+                    <label>Phone*</label>
+                    <input type="text" class="span4" placeholder="">
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend>Optional Components</legend>
+                <small>Interested in advanced options? Add items to your cart and we'll contact you directly for pricing.</small>
+                <div class="row">
+                  <div class="span4">
+                    <label>Custom Options</label>
+                    <label class="checkbox">
+                      <input type="checkbox"> Option #1
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox"> Option #1
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox"> Option #1
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox"> Option #1
+                    </label>
+                  </div>
+                  <div class="span4">
+                    <label>Custom Options</label>
+                    <label class="checkbox">
+                      <input type="checkbox"> Option #1
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox"> Option #1
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox"> Option #1
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox"> Option #1
+                    </label>
+                  </div>
+                </div>
+              </fieldset>
+            </form>
+          </div>
+          <div class="span3">
+            <div class="well">
+              <h5>Summary</h5>
+              <dl>
+                <dt>Redwood Plan (<a>change</a>)<dt>
+                <dd>$2,999/mo</dd>
+              </dl>
+              <h5>Options</h5>
+              <dl>
+                <dt>Custom Homepage <a>&times;</a><dt>
+                <dt>Custom Mobile Apps <a>&times;</a><dt>
+              </dl>
+              <h5>Total Due</h5>
+              <dl>
+                <dl>$2,999<dt>
+              </dl>
+            </div>
+          </div>
+        </div>
+        <div class="span12 create-map-footer">
+          <div class="pull-right">
+            <a class="btn btn-default">Create Map</a>
+            <small>Note: You won't be charged until you click "Create Map."</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <ul class="nav nav-pills pull-left">
+        <li><a href="#">Tree Key</a></li>
+        <li><a href="#">Resources</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+      <a href="#" class="pull-right partners">Partners</a>
+    </footer>
+
+    <!-- Javascript -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/response.js"></script>
+    <script src="js/application.js"></script>
+
+  </body>
+  </html>

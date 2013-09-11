@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>OpenTreeMap - Customize Map | Create Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/application.css" rel="stylesheet">
+    <link href="css/responsive.css" rel="stylesheet">
+
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.js"></script>
+    <![endif]-->
+
+  </head>
+
+  <body>
+
+    <!-- Top Nav -->
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <ul class="nav pull-left">
+            <li><a href="#">Explore Trees</a></li>
+            <li><a href="#">Add a Tree</a></li>
+            <li class="divider-vertical"></li>
+            <li><a href="#">Log In</a></li>
+            <li><a href="#">Sign Up</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo and Search -->
+    <div class="header">
+      <div class="logo">
+        <a href="index.html"><img src="img/logo-main.svg" alt="OpenTreeMap"></a>
+      </div>
+      <div class="pull-right create-map-progress">
+        <div class="progress">
+          <a class="bar bar-complete" style="width: 25%">Select Plan</a>
+          <a class="bar bar-complete" style="width: 25%">Define Map</a>
+          <a class="bar bar-success" style="width: 25%">Customize</a>
+          <a class="bar bar-unavailable" style="width: 25%">Payment Info</a>
+        </div>
+      </div>
+    </div><!-- end header -->
+
+    <div class="container contained create-map">
+      <div class="row">
+        <div class="span12 create-map-header">
+          <h1><span>3.</span> Customize Map</h1>
+          <h4>Make this the coolest darn map you’ve ever seen.</a>
+        </div>
+        <div class="create-map-body">
+          <div class="span3">
+            <ul class="nav nav-list">
+              <li class="nav-header">Customization</li>
+              <li class="active"><a href="#">Site Details</a></li>
+              <li><a href="#">Colors & Theme</a></li>
+              <li><a href="#">Options</a></li>
+            </ul>
+          </div>
+          <div class="span9">
+            <form>
+              <fieldset>
+                <legend>Site Information</legend>
+                <label>Tree Map Name</label>
+                <input type="text" placeholder="">
+                <span class="help-block">This is the public name of your tree map.</span>
+                <label>Tree Map Description</label>
+                <textarea></textarea>
+              </fieldset>
+              <fieldset>
+                <legend>Site Logo</legend>
+                <label>Upload Logo</label>
+                <input type="file">
+                <span class="help-block">Add a custom logo to your site.</span>
+              </fieldset>
+              <fieldset>
+                <button type="submit" class="btn">Save</button>
+              </fieldset>
+            </form>
+          </div>
+        </div>
+        <div class="span12 create-map-footer">
+          <div class="pull-right">
+            <a class="btn btn-default">Next Step &raquo;</a>
+            <small>Next: Payment Information</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <ul class="nav nav-pills pull-left">
+        <li><a href="#">Tree Key</a></li>
+        <li><a href="#">Resources</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+      <a href="#" class="pull-right partners">Partners</a>
+    </footer>
+
+    <!-- Javascript -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/response.js"></script>
+    <script src="js/application.js"></script>
+
+  </body>
+  </html>

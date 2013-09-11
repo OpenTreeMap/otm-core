@@ -67,6 +67,13 @@
     }
 }
 
+#advanced-search-pane {
+    position: relative;
+    z-index: 999;
+    background: #F1F2F2;
+    padding: 20px;
+}
+
 .subhead {
     padding: 10px 15px;
     border-bottom: 1px solid $well-color;
@@ -102,16 +109,5 @@
 }
 
 @media (max-width: 767px) {
-    .search-block-wrapper {
-        top: 230px;
-        right: 0;
-        left: 0;
-        width: 100%;
-    }
-    .search-options {
-        position: absolute;
-        float: none;
-        top: 230px;
-        right: 6px;
-    }
+
 }
