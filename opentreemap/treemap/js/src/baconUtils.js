@@ -44,3 +44,21 @@ exports.fetchFromIdStream = function (idStream, fetchFn, undefinedMapping, error
             .filter(isUndefined)
             .map(undefinedMapping));
 };
+
+exports.jsonRequest = function(verb, url) {
+    return function(payload) {
+        // url wasn't specififed
+        if (arguments.length == 2) {
+            payload = url;
+        }
+
+        var req = $.ajax({
+            method: verb,
+            url: url,
+            contentType: 'application/json',
+            data: JSON.stringify(payload)
+        });
+
+        return Bacon.fromPromise(req);
+    };
+};
