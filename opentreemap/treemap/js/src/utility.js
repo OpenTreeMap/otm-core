@@ -74,5 +74,5 @@ exports.lonLatToWebMercator = function(lon, lat) {
     return {
         x: location.lon,
         y: location.lat
-    }
-}
+    };
+};

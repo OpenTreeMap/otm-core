@@ -11,7 +11,7 @@ var $ = require('jquery'),
     otmTypeahead = require('./otmTypeahead'),
     modes = require('./modeManagerForMapPage'),
     geocoder = require('./geocoder'),
-    geocoderUi = require('./GeocoderUi'),
+    geocoderUi = require('./geocoderUi'),
     BU = require('./baconUtils');
 
 var app = {
@@ -48,7 +48,7 @@ var app = {
     cancelGeocodeSuggestionStream: function() {
         // Hide suggestion list if user edits search text or resets search
         return $('#boundary-typeahead').asEventStream('keyup')
-            .merge(app.resetEventStream())
+            .merge(app.resetEventStream());
     },
 
     searchEventStream: function() {

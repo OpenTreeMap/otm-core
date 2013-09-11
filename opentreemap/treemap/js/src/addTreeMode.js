@@ -99,7 +99,7 @@ function geolocate()
     }
 
     function onSuccess(lonLat) {
-        var location = U.lonLatToWebMercator(lonLat.coords.longitude, lonLat.coords.latitude)
+        var location = U.lonLatToWebMercator(lonLat.coords.longitude, lonLat.coords.latitude);
         plotMarker.place(location);
         plotMarker.enableMoving();
         enableStep2(false);
