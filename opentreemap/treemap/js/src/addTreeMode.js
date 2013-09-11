@@ -3,23 +3,24 @@
 var $ = require('jquery'),
     _ = require('underscore'),
     FH = require('./fieldHelpers'),
-    U = require('./utility');
+    U = require('./utility'),
+    Bacon = require('baconjs'),
+    geocoder = require('./geocoder'),
+    geocoderUi = require('./GeocoderUi'),
+    searchEventStream = require('./searchEventStream');
 
 var config,
     mapManager,
     plotMarker,
     onAddTree,
     onClose,  // function to call when closing mode
-    $sidebar,
     $addButton,
     $address,
-    $geocodeError,
-    $geolocateError,
     $form,
     $editFields,
     $editControls,
-    $displayFields,
-    $validationFields;
+    $validationFields,
+    deactivateBus;
 
 function init(options) {
     config = options.config;
@@ -27,27 +28,96 @@ function init(options) {
     plotMarker = options.plotMarker;
     onAddTree = options.onAddTree;
     onClose = options.onClose;
-    $sidebar = options.$sidebar;
 
-    plotMarker.firstMoveStream
-        .filter(options.inMyMode)
-        .onValue(onMarkerMoved);
+    var $sidebar = options.$sidebar,
+        addressInput = '#add-tree-address',
+        $geolocateButton = U.$find('.geolocate', $sidebar),
+        $geocodeError = U.$find('.geocode-error', $sidebar),
+        $geolocateError = U.$find('.geolocate-error', $sidebar);
 
     $form = U.$find('#add-tree-form', $sidebar);
     $editFields = U.$find('[data-class="edit"]', $form);
     $editControls = $editFields.find('input,select');
-    $displayFields = U.$find('[data-class="display"]', $form);
     $validationFields = U.$find('[data-class="error"]', $form);
-    $addButton = U.$find('.saveBtn', $sidebar).click(addTree);
-    $address = U.$find('#add-tree-address', $sidebar);
-    $geocodeError = U.$find('.geocode-error', $sidebar);
-    $geolocateError = U.$find('geolocate-error', $sidebar);
-    U.$find('.geocode', $sidebar).click(geocode);
-    U.$find('.geolocate', $sidebar).click(geolocate);
-    U.$find('.cancelBtn', $sidebar).click(cancel);
+    $addButton = U.$find('.addBtn', $sidebar);
+    $address = U.$find(addressInput, $sidebar);
 
     $editFields.show();
-    $displayFields.hide();
+    U.$find('[data-class="display"]', $form).hide();  // Hide display fields
+
+    // Handle setting initial tree position via geolocate button
+    var geolocateStream;
+    if (navigator.geolocation) {
+        geolocateStream = $geolocateButton
+            .asEventStream('click')
+            .flatMap(geolocate);
+        geolocateStream
+            .filter('.coords')
+            .onValue(onGeolocateSuccess);
+        geolocateStream.onError(function () {
+            $geolocateError.show();
+        });
+    } else {
+        geolocateStream = Bacon.never();
+        $geolocateButton.attr('disabled', true);
+    }
+
+    // Handle user dragging the marker
+    var markerFirstMoveStream = plotMarker.firstMoveStream.filter(options.inMyMode);
+    markerFirstMoveStream.onValue(onMarkerMoved);
+
+    // Handle user adding a tree
+    var addTreeStream = $addButton.asEventStream('click');
+    addTreeStream.onValue(addTree);
+
+    // Handle user clicking "Cancel"
+    var cancelStream = U.$find('.cancelBtn', $sidebar).asEventStream('click');
+    cancelStream.onValue(onClose);
+
+    // Handle internal and external deactivation
+    deactivateBus = new Bacon.Bus();
+    deactivateBus.plug(cancelStream);
+    deactivateBus.onValue(function () {
+        // Hide/deactivate/clear everything
+        plotMarker.hide();
+        $address.val("");
+        $editControls.val("");
+    });
+
+    // Handle setting initial tree position via address search
+    var searchTriggerStream = searchEventStream({
+            searchInputs: addressInput,
+            searchButton: '.geocode'
+        }),
+        addressStream = searchTriggerStream.map(function () {
+            return $(addressInput).val();
+        }),
+        geocodeResponseStream = geocoder(config).geocodeStream(addressStream),
+        cleanupLocationFeedbackStream = Bacon.mergeAll([
+            plotMarker.markerPlacedByClickStream,
+            searchTriggerStream,
+            geolocateStream,
+            markerFirstMoveStream,
+            addTreeStream,
+            deactivateBus
+        ]),
+        geocodedLocationStream = geocoderUi({
+            geocodeResponseStream: geocodeResponseStream,
+            cancelGeocodeSuggestionStream: cleanupLocationFeedbackStream,
+            resultTemplate: '#geocode-results-template',
+            addressInput: addressInput,
+            displayedResults: '#sidebar-add-tree [data-class="geocode-result"]'
+        });
+
+    cleanupLocationFeedbackStream.onValue(function hideLocationErrors() {
+        $geocodeError.hide();
+        $geolocateError.hide();
+    });
+    geocodedLocationStream.onValue(onLocationChosen);
+    geocodeResponseStream.onError(function () {
+        $geocodeError.show();
+    });
+
 }
 
 // Adding a tree uses a state machine with these states and transitions:
@@ -57,6 +127,7 @@ function init(options) {
 //
 // CanPlaceMarker:
 //     onMarkerPlaced() -> CanMoveMarker
+//     onLocationChosen() -> CanMoveMarker
 //     cancel() -> Inactive
 //     deactivate() -> Inactive
 //
@@ -78,52 +149,40 @@ function activate() {
     $editControls.prop('disabled', true);
 }
 
-function geocode()
-{
+function geolocate() {
+    var options = {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+    };
+    var deferred = $.Deferred();
+    navigator.geolocation.getCurrentPosition(deferred.resolve, deferred.reject, options);
+    return Bacon.fromPromise(deferred.promise());
 }
 
-function geolocate()
-{
-    if (navigator.geolocation)
-    {
-        hideLocationErrors();
-        var options = {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-        };
-        navigator.geolocation.getCurrentPosition(onSuccess, onError, options);
-    }
-    else {
-        onError();
-    }
-
-    function onSuccess(lonLat) {
-        var location = U.lonLatToWebMercator(lonLat.coords.longitude, lonLat.coords.latitude);
-        plotMarker.place(location);
-        plotMarker.enableMoving();
-        enableStep2(false);
-    }
-
-    function onError(error) {
-        $geolocateError.show();
-    }
+function onGeolocateSuccess(lonLat) {
+    var location = U.lonLatToWebMercator(lonLat.coords.longitude, lonLat.coords.latitude);
+    onLocationChosen(location);
 }
 
-function hideLocationErrors() {
-    $geocodeError.hide();
-    $geolocateError.hide();
+function onLocationChosen(location) {
+    // User has chosen an initial tree location via geocode or geolocate.
+    // Show the marker (zoomed and centered), and let them drag it.
+    mapManager.setCenterAndZoomIn(location, mapManager.ZOOM_PLOT);
+    plotMarker.place(location);
+    plotMarker.enableMoving();
+    enableFormFields(false);
 }
 
 function onMarkerMoved() {
     // User moved tree for the first time. Let them edit fields.
-    enableStep2(true);
+    enableFormFields(true);
     _.defer(function () {
         $editControls.first().focus().select();
     });
 }
 
-function enableStep2(shouldEnable) {
+function enableFormFields(shouldEnable) {
     $addButton.attr('disabled', !shouldEnable);
     $editControls.prop('disabled', !shouldEnable);
 }
@@ -145,9 +204,9 @@ function addTree() {
 }
 
 function onAddTreeSuccess(result) {
-    // Tree was saved. Clean up and invoke callbacks.
+    // Tree was saved. Clean up and invoke callback.
     // TODO: Obey "After I add this tree" choice
-    cleanup();
+    deactivateBus.push();
     mapManager.updateGeoRevHash(result.geoRevHash);
     onClose();
 }
@@ -162,21 +221,9 @@ function onAddTreeError(jqXHR, textStatus, errorThrown) {
     });
 }
 
-function cancel() {
-    // User hit "Cancel". Clean up and invoke callback.
-    cleanup();
-    onClose();
-}
-
 function deactivate() {
     // We're being deactivated by an external event
-    cleanup();
-}
-
-function cleanup() {
-    // Hide/deactivate/clear everything
-    plotMarker.hide();
-    $editControls.val("");
+    deactivateBus.push();
 }
 
 module.exports = {
