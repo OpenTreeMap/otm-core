@@ -15,10 +15,13 @@
 
 <h4>2. {% trans "Additional information" %}</h4>
 <form id="add-tree-form">
+    {# The "add-tree-species" label is used as an id prefix in "field_species.html" #}
+    {% field "add-tree-species" from "tree.species" withtemplate "treemap/field_species.html" %}
+
     {% for label, identifier in fields_for_add_tree %}
         {% field label from identifier withtemplate "treemap/field.html" %}
     {% endfor %}
-    </form>
+</form>
 
 <h4>3. {% trans "After I add this tree..." %}</h4>
 <input type="radio" name="addTreeOptions" value="copy">{% trans "I want to add another tree using the same tree details" %}<br/>

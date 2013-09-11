@@ -5,6 +5,7 @@ var $ = require('jquery'),
     FH = require('./fieldHelpers'),
     U = require('./utility'),
     Bacon = require('baconjs'),
+    otmTypeahead = require('./otmTypeahead'),
     geocoder = require('./geocoder'),
     geocoderUi = require('./geocoderUi'),
     searchEventStream = require('./searchEventStream');
@@ -45,6 +46,10 @@ function init(options) {
 
     $editFields.show();
     U.$find('[data-class="display"]', $form).hide();  // Hide display fields
+
+    _.each(options.typeaheads, function(typeahead) {
+        otmTypeahead.create(typeahead);
+    });
 
     // Handle setting initial tree position via geolocate button
     var geolocateStream;
