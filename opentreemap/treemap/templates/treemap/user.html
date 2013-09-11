@@ -15,71 +15,67 @@
 {% block header %}
 {% load i18n %}
 <div class="header">
-    <div class="container-fixedwidth">
-        <div class="logo">
-            <a href="index.html"><img src="{{STATIC_URL}}img/logo-main.svg" alt="OpenTreeMap"></a>
-        </div>
-        <div class="quick-info">
-            <ul>
-                <li>
-                    <h1>{{ user.username }}</h1>
-                    <p>{% trans "User Profile" %}</p>
-                </li>
-                <li><img class="img-circle img-polaroid user-photo" src="{{STATIC_URL}}img/profile.jpg"></li>
-            </ul>
-        </div>
+    <div class="logo">
+        <a href="index.html"><img src="{{STATIC_URL}}img/logo-main.svg" alt="OpenTreeMap"></a>
     </div>
 </div> <!-- end header -->
 {% endblock header %}
 
 {% block content %}
 {% load i18n %}
-<div class="container-fixedwidth profile">
-    <div class="left">
-        <form id="user-form">
-            {% for label, identifier in public_fields %}
-                {% field label from identifier withtemplate "treemap/field.html" %}
-            {% endfor %}
-            {% usercontent for user %}
-                {% for label, identifier in private_fields %}
+<div class="container contained profile">
+    <div class="row">
+        <div class="span4">
+            <div class="account-info">
+                <img class="img-circle img-polaroid user-photo" src="{{STATIC_URL}}img/profile.jpg">
+                <h1>{{ user.username }}</h1>
+                <p>{% trans "User Profile" %}</p>
+            </div>
+            <form id="user-form">
+                {% for label, identifier in public_fields %}
                     {% field label from identifier withtemplate "treemap/field.html" %}
                 {% endfor %}
-                <ul class="chunk" data-class="display">
-                    <li class="chunk-label">{% trans "Password" %}</li>
-                    <li class="chunk-content"><a href="javascript:;">{% trans "Reset" %}</a></li>
-                </ul>
-                <ul class="chunk">
-                    <li class="chunk-label">{% trans "Emails" %}</li>
-                    <li class="chunk-content">{% trans "Not Subscribed" %}</li>
-                </ul>
-            {% endusercontent %}
+                {% usercontent for user %}
+                    {% for label, identifier in private_fields %}
+                        {% field label from identifier withtemplate "treemap/field.html" %}
+                    {% endfor %}
+                    <ul class="chunk" data-class="display">
+                        <li class="chunk-label">{% trans "Password" %}</li>
+                        <li class="chunk-content"><a href="javascript:;">{% trans "Reset" %}</a></li>
+                    </ul>
+                    <ul class="chunk">
+                        <li class="chunk-label">{% trans "Emails" %}</li>
+                        <li class="chunk-content">{% trans "Not Subscribed" %}</li>
+                    </ul>
+                {% endusercontent %}
 
-            {% if reputation %}
-                <ul class="chunk" >
-                    <li class="chunk-label">{% trans "Reputation" %}</li>
-                    <li class="chunk-content">{{ reputation }}</li>
-                </ul>
-            {% endif %}
-        </form>
-    </div>
-    <div class="right">
-        <ul class="chunk">
-            <li class="chunk-label">{% trans "Favorite Trees" %}</li>
-            {% if user == request.user %}
-                <li class="chunk-content">{% trans "You haven't favorited any trees yet!" %}</li>
-            {% else %}
-                <li class="chunk-content">{% trans "This person hasn't favorited any trees yet!" %}</li>
-            {% endif %}
-        </ul>
-        <hr>
-        <ul class="chunk">
-            <li class="chunk-label">{% trans "Recently Added and Edited Trees" %}</li>
-            <li class="chunk-content extra">
-                <div id="recent-user-edits-container">
-                {% include 'treemap/recent_user_edits.html' %}
-                </div>
-            </li>
-        </ul>
+                {% if reputation %}
+                    <ul class="chunk" >
+                        <li class="chunk-label">{% trans "Reputation" %}</li>
+                        <li class="chunk-content">{{ reputation }}</li>
+                    </ul>
+                {% endif %}
+            </form>
+        </div>
+        <div class="span8">
+            <ul class="chunk">
+                <li class="chunk-label">{% trans "Favorite Trees" %}</li>
+                {% if user == request.user %}
+                    <li class="chunk-content">{% trans "You haven't favorited any trees yet!" %}</li>
+                {% else %}
+                    <li class="chunk-content">{% trans "This person hasn't favorited any trees yet!" %}</li>
+                {% endif %}
+            </ul>
+            <hr>
+            <ul class="chunk">
+                <li class="chunk-label">{% trans "Recently Added and Edited Trees" %}</li>
+                <li class="chunk-content extra">
+                    <div id="recent-user-edits-container">
+                    {% include 'treemap/recent_user_edits.html' %}
+                    </div>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
 {% endblock content %}
