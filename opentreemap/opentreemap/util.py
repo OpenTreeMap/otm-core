@@ -18,3 +18,12 @@ def json_from_request(request):
         return json.loads(body)
     else:
         return None
+
+def merge_view_contexts(viewfns):
+    def wrapped(*args, **kwargs):
+        context = {}
+        for viewfn in viewfns:
+            context.update(viewfn(*args, **kwargs))
+
+        return context
+    return wrapped
