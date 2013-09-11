@@ -358,6 +358,30 @@ class TreePhoto(models.Model, Authorizable, Auditable):
         return "%s-%s-%s.%s" % (
             self.tree.plot.pk, self.tree.pk, hash, format)
 
+    def _get_db_prep_for_image(self, field):
+        """
+        Images are stored in various ways based on the storage backend
+        but they all get serialized to a text field. For auditing, we
+        store this value
+        """
+        thing = getattr(self, field)
+
+        if thing is None:
+            return None
+
+        field, _, _, _ = TreePhoto._meta.get_field_by_name(field)
+
+        saved_rep = field.pre_save(self, thing)
+        return str(saved_rep)
+
+    def as_dict(self):
+        data = super(TreePhoto, self).as_dict()
+
+        data['image'] = self._get_db_prep_for_image('image')
+        data['thumbnail'] = self._get_db_prep_for_image('thumbnail')
+
+        return data
+
     def _set_thumbnail(self, image, name):
         try:
             size = 256, 256
