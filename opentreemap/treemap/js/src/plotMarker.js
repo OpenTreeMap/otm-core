@@ -21,7 +21,7 @@ module.exports = {
         function onMarkerPlaced(feature) {
             markerFeature = feature;
             pointControl.deactivate();
-            dragControl.activate();
+            enableMoving();
         }
 
         function onMarkerMoved(feature) {
@@ -57,8 +57,9 @@ module.exports = {
         pointControl.activate();
     },
 
-    // Put marker at the specified location
+    // Put marker at the specified location (WebMercator, {x: lon, y: lat})
     place: function (location) {
+        pointControl.deactivate();
         if (markerFeature) {
             markerFeature.destroy();
         }
@@ -68,41 +69,8 @@ module.exports = {
         vectorLayer.display(true);
     },
 
-    // Let user move the marker by dragging it with the mouse
-    enableMoving: function () {
-        dragControl.activate();
-
-        // TODO: Use a real well-designed marker (and remove this verbose style definition)
-        markerFeature.style = {
-            strokeColor: '#00ff00',
-            fillColor: '#77ff77',
-            cursor: "inherit",
-            fillOpacity: 0.4,
-            pointRadius: 6,
-            strokeDashstyle: "solid",
-            strokeOpacity: 1,
-            strokeWidth: 1
-        };
-        vectorLayer.redraw();
-    },
-
-    // Prevent user from dragging the marker
-    disableMoving: function () {
-        dragControl.deactivate();
-        // TODO: Use a real well-designed marker (and remove this verbose style definition)
-        markerFeature.style = {
-            strokeColor: '#ee9900',
-            fillColor: '#ee9900',
-            cursor: "inherit",
-            fillOpacity: 0.4,
-            pointRadius: 6,
-            strokeDashstyle: "solid",
-            strokeOpacity: 1,
-            strokeWidth: 1
-        };
-        vectorLayer.redraw();
-        markerWasMoved = false;
-    },
+    enableMoving: enableMoving,
+    disableMoving: disableMoving,
 
     // Hide/deactivate/clear everything (but keep feature so its location can still be retrieved)
     hide: function () {
@@ -126,3 +94,38 @@ module.exports = {
         return markerWasMoved;
     }
 };
+
+// Let user move the marker by dragging it with the mouse
+function enableMoving() {
+    dragControl.activate();
+    // TODO: Use a real well-designed marker (and remove this verbose style definition)
+    markerFeature.style = {
+        strokeColor: '#00ff00',
+        fillColor: '#77ff77',
+        cursor: "inherit",
+        fillOpacity: 0.4,
+        pointRadius: 6,
+        strokeDashstyle: "solid",
+        strokeOpacity: 1,
+        strokeWidth: 1
+    };
+    vectorLayer.redraw();
+}
+
+// Prevent user from dragging the marker
+function disableMoving() {
+    dragControl.deactivate();
+    // TODO: Use a real well-designed marker (and remove this verbose style definition)
+    markerFeature.style = {
+        strokeColor: '#ee9900',
+        fillColor: '#ee9900',
+        cursor: "inherit",
+        fillOpacity: 0.4,
+        pointRadius: 6,
+        strokeDashstyle: "solid",
+        strokeOpacity: 1,
+        strokeWidth: 1
+    };
+    vectorLayer.redraw();
+    markerWasMoved = false;
+}
