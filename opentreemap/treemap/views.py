@@ -248,7 +248,8 @@ def update_plot_and_tree_request(request, plot):
         plot.instance = Instance.objects.get(id=plot.instance.id)
         return {
             'ok': True,
-            'geoRevHash': plot.instance.geo_rev_hash
+            'geoRevHash': plot.instance.geo_rev_hash,
+            'plotId': plot.id
         }
     except ValidationError as ve:
         return _bad_request_json_response(
