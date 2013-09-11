@@ -19,6 +19,7 @@ def json_from_request(request):
     else:
         return None
 
+
 def merge_view_contexts(viewfns):
     def wrapped(*args, **kwargs):
         context = {}
