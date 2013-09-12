@@ -19,6 +19,7 @@ body {
 .content {
 	position: relative;
 	overflow: auto;
+	padding-bottom: 50px;
 
 	&.map {
 		position: absolute;

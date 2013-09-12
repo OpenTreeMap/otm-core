@@ -21,6 +21,12 @@ p {
 	line-height: 1em;
 }
 
+label {
+	color: $subtext-color;
+	font-size: em(14px);
+	font-weight: 400;
+}
+
 input[type="text"], 
 input[type="password"], 
 input[type="datetime"], 
@@ -37,9 +43,22 @@ input[type="tel"],
 input[type="color"], 
 textarea, 
 .uneditable-input {
-	font-size: 0.75em;
+	font-size: 1em;
+	padding: 8px 8px;
+	color: $subtext-color;
+	box-shadow: 0 2px 0 #DDD inset;
+	box-shadow: 0 2px 0 rgba(0,0,0,.1) inset;
+	height: auto;
+
+	&:focus {
+		color: $main-text-color;
+		box-shadow: 0 2px 0 rgba(0,0,0,.15) inset,
+					0 1px 1px rgba(0, 0, 0, 0.075) inset, 
+					0 0 8px rgba(82, 168, 236, 0.6);
+	}
 }
 
-.btn-group {
-	font-size: 14px;
+.btn-mini [class^="icon-"], 
+.btn-mini [class*=" icon-"] {
+	margin-top: 0;
 }

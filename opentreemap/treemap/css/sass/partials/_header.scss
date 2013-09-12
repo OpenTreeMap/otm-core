@@ -42,6 +42,10 @@
         float: left;
         margin-left: 10px;
 
+        input[type="text"] {
+            font-size: 0.75em;
+        }
+
         .dropdown-menu {
             width: 257px;
             -moz-border-radius: 3px;
@@ -76,12 +80,14 @@
 
 .subhead {
     padding: 10px 15px;
+    border-left: 8px solid $primary-color;
     border-bottom: 1px solid $well-color;
     font-size: em(16px);
-    background: #fff;
+    background: lighten($primary-color, 50%);
     height: 24px;
     position: relative;
     z-index: 9;
+    color: darken($primary-color, 25%);
     box-shadow: 0 6px 0 rgba(0,0,0,.15);
 
     span {
@@ -90,6 +96,7 @@
 
     .exportBtn {
         margin-left: 10px;
+        margin-top: -2px;
     }
 
     .addBtn {

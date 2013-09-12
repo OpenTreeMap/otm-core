@@ -31,7 +31,7 @@
     }
     .accordion-heading {
         background: $secondary-color;
-    
+
         a {
             color: #f1f1f2;
             font-size: 1em;
@@ -41,6 +41,9 @@
             &:hover {
                 text-decoration: none;
                 color: #FFF;
+                box-shadow: 0 3px 6px darken($secondary-color, 15%);
+                box-shadow: 0 3px 6px rgba(0,0,0,.2) inset;
+                background: darken($secondary-color, 5%);
             }
         }
     }

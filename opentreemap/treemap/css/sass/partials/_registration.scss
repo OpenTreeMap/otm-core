@@ -2,9 +2,19 @@
 
 .login-signup-panel {
     background-color: #fff;
-    box-shadow: none;
+    border-radius: 6px;
+    box-shadow: 0 3px 0 gray;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
     width: 540px;
     margin: 30px auto 15px;
+
+    legend {
+        padding: 0 20px 15px 20px;
+        font-size: 24px;
+        font-weight: 300;
+        color: $main-text-color;
+        margin: 0 -20px 20px -20px;
+    }
 }
 
 .have-account {
