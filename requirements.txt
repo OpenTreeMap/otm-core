@@ -14,3 +14,4 @@ pep8==1.4.6
 flake8==2.0
 python-omgeo==1.5
 git+git://github.com/azavea/django-registration.git
+modgrammar-py2==0.9.1

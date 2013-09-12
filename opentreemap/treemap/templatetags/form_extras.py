@@ -1,5 +1,6 @@
 import re
-from functools import partial
+
+from modgrammar import Grammar, OPTIONAL, G, WORD, OR, ParseError
 
 from django import template
 from django.template.loader import get_template
@@ -10,12 +11,28 @@ from treemap.util import safe_get_model_class
 register = template.Library()
 
 # Used to whitelist the model.field values that are valid for the
-# template tag
+# template tag, can't be done in the grammar as it can't be checked
+# until looked up in the context
 _identifier_regex = re.compile(
     r"^(?:tree|plot|instance|user|species)\.(?:udf\:)?[\w ']+$")
 
 
-def inline_edit_tag(tag, Node, parser, token):
+class Variable(Grammar):
+    grammar = (G('"', WORD('^"'), '"') | G("'", WORD("^'"), "'")
+               | WORD("a-zA-Z_", "a-zA-Z0-9_."))
+
+
+class InlineEditGrammar(Grammar):
+    grammar = (OR("field", "create", "search"), OPTIONAL(Variable),
+               "from", Variable, OPTIONAL("for", Variable),
+               OPTIONAL("in", Variable), "withtemplate", Variable)
+    grammar_whitespace = True
+
+
+_inline_edit_parser = InlineEditGrammar.parser()
+
+
+def inline_edit_tag(tag, Node):
     """
     Adds a "field" dictionary to the context with field metadata then
     renders the specified child template, which can use the metadata
@@ -67,9 +84,15 @@ def inline_edit_tag(tag, Node, parser, token):
 
     If used by the alternate field name of "create" the tag will not look in
     the current template context for field values, and instead just give the
-    default for that field. It will also look up min and max for numeric fields
+    default for that field.
 
     {% create "Width" from "plot.width" for user withtemplate "field.html" %}
+
+    If used by the alternate field name of "search" the tag will behave
+    similarly to "edit", but will also look up search parameters by field name
+    from a required instance parameter
+
+    {% search from field for user in instance withtemplate "index.html" %}
 
     To allow using the tag with models that are not Authorizable, the tag
     supports omitting the "for user" section.
@@ -112,69 +135,35 @@ def inline_edit_tag(tag, Node, parser, token):
             ... check for other field.data_type values ...
 
         {% endif %}
+
+    Like the standard {% include %} tag, you can pass data into the template:
+
+    {% field from "plot.width" withtemplate "plot.html" with units="inches" %}
+
+    Which will be available in the template context:
+        {{ field.value }} {{ units }}
     """
+    def tag_parser(parser, token):
+        try:
+            results = _inline_edit_parser.parse_string(token.contents,
+                                                       reset=True, eof=True)
+        except ParseError as e:
+            raise template.TemplateSyntaxError(
+                'expected format: %s [{label}] from {model.property}'
+                ' [for {user}] in {instance} withtemplate {template}, %s'
+                % (tag, e.message))
 
-    syntaxErrorWithFormatMessage = template.TemplateSyntaxError(
-        'expected format is: %s [{label}] from {model.property} [for {user}]'
-        ' withtemplate {template}' % tag)
+        elems = results.elements
 
-    try:
-        tokens = token.split_contents()
-    except ValueError:
-        raise syntaxErrorWithFormatMessage
+        label = _token_to_variable(elems[1].string if elems[1] else None)
+        identifier = _token_to_variable(elems[3].string)
+        user = _token_to_variable(elems[4][1].string if elems[4] else None)
+        instance = _token_to_variable(elems[5][1].string if elems[5] else None)
+        field_template = _token_to_variable(elems[7].string)
 
-    if len(tokens) < 5:
-        raise syntaxErrorWithFormatMessage
+        return Node(label, identifier, user, field_template, instance)
 
-    field_token = tokens[0]
-
-    if len(tokens) in {5, 7}:
-        label = None
-        from_token = tokens[1]
-        identifier = tokens[2]
-    elif len(tokens) in {6, 8}:
-        label = tokens[1]
-        from_token = tokens[2]
-        identifier = tokens[3]
-
-    if len(tokens) == 5:
-        for_token = None
-        user = None
-        with_token = tokens[3]
-        field_template = tokens[4]
-    elif len(tokens) == 6:
-        for_token = None
-        user = None
-        with_token = tokens[4]
-        field_template = tokens[5]
-    elif len(tokens) == 7:
-        for_token = tokens[3]
-        user = tokens[4]
-        with_token = tokens[5]
-        field_template = tokens[6]
-    elif len(tokens) == 8:
-        for_token = tokens[4]
-        user = tokens[5]
-        with_token = tokens[6]
-        field_template = tokens[7]
-    else:
-        raise syntaxErrorWithFormatMessage
-
-    if field_token != tag or from_token != 'from' \
-    or with_token != 'withtemplate':  # NOQA
-        raise syntaxErrorWithFormatMessage
-
-    if for_token is not None and for_token != "for":
-        raise syntaxErrorWithFormatMessage
-
-    label = _token_to_variable(label)
-
-    identifier = _token_to_variable(identifier)
-
-    user = _token_to_variable(user)
-    field_template = _token_to_variable(field_template)
-
-    return Node(label, identifier, user, field_template)
+    return tag_parser
 
 
 def _token_to_variable(token):
@@ -215,17 +204,22 @@ class AbstractNode(template.Node):
     }
     _valid_field_keys = ','.join([k for k, v in _field_mappings.iteritems()])
 
-    def __init__(self, label, identifier, user, field_template):
+    def __init__(self, label, identifier, user, field_template, instance):
         self.label = label
         self.identifier = identifier
         self.user = user
         self.field_template = field_template
+        self.instance = instance
+
+    def get_additional_context(field, *args):
+        return field  # Overriden in SearchNode
 
     def render(self, context):
         label = _resolve_variable(self.label, context)
         identifier = _resolve_variable(self.identifier, context)
         model_name, field_name = identifier.split('.')
-        model = self.get_model(context, model_name)
+        instance = _resolve_variable(self.instance, context)
+        model = self.get_model(context, model_name, instance)
         user = _resolve_variable(self.user, context)
         field_template = get_template(_resolve_variable(
                                       self.field_template, context))
@@ -307,28 +301,39 @@ class AbstractNode(template.Node):
             'identifier': identifier,
             'value': field_value,
             'display_value': display_val,
-            'data_type': _field_type_to_string(model, field_name),
+            'data_type': data_type,
             'is_visible': is_visible,
             'is_editable': is_editable,
             'choices': choices
         }
+        self.get_additional_context(context['field'], identifier, instance)
 
         return field_template.render(context)
 
 
 class FieldNode(AbstractNode):
-    def get_model(self, context, model_name):
+    def get_model(self, context, model_name, instance=None):
         return context[model_name]
 
 
 class CreateNode(AbstractNode):
-    def get_model(self, context, model_name):
-        ModelClass = safe_get_model_class(model_name.capitalize())
-        request = context['request']
+    def get_model(self, context, model_name, instance=None):
+        Model = safe_get_model_class(model_name.capitalize())
 
-        if hasattr(request, 'instance'):
-            return ModelClass(instance=request.instance)
-        return ModelClass()
+        return Model(instance=instance) if instance else Model()
 
-register.tag('field', partial(inline_edit_tag, 'field', FieldNode))
-register.tag('create', partial(inline_edit_tag, 'create', CreateNode))
+
+class SearchNode(CreateNode):
+    def get_additional_context(self, field, identifier, instance):
+        json = next((json for json in instance.advanced_search_fields
+                     if json['identifier'] == identifier), {})
+
+        # Only overwrite field values when there is a new value
+        field.update({key: value for key, value in json.iteritems()
+                      if key not in field or value is not None})
+
+        return field
+
+register.tag('field', inline_edit_tag('field', FieldNode))
+register.tag('create', inline_edit_tag('create', CreateNode))
+register.tag('search', inline_edit_tag('search', SearchNode))
