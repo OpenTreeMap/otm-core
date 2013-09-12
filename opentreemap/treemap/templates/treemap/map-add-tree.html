@@ -21,12 +21,10 @@
     </form>
 
 <h4>3. {% trans "After I add this tree..." %}</h4>
-<div style="color: #aaa">
-    <input type="radio" disabled="disabled">{% trans "I want to add another tree using the same tree details" %}<br/>
-    <input type="radio" disabled="disabled">{% trans "I want to add another tree with new details" %}<br/>
-    <input type="radio" disabled="disabled">{% trans "Let me continue editing this tree" %}<br/>
-</div>
-<input type="radio" checked="true">{% trans "I'm done!" %}<br/>
+<input type="radio" name="addTreeOptions" value="copy">{% trans "I want to add another tree using the same tree details" %}<br/>
+<input type="radio" name="addTreeOptions" value="new">{% trans "I want to add another tree with new details" %}<br/>
+<input type="radio" name="addTreeOptions" value="edit">{% trans "Let me continue editing this tree" %}<br/>
+<input type="radio" name="addTreeOptions" value="close" checked="true">{% trans "I'm done!" %}<br/>
 
 <div>
     &nbsp;<br/>
