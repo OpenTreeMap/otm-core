@@ -182,7 +182,7 @@ function onMarkerMoved() {
     // User moved tree for the first time. Let them edit fields.
     enableFormFields(true);
     _.defer(function () {
-        $editControls.first().focus().select();
+        $editControls.not('[type="hidden"]').first().focus().select();
     });
 }
 
