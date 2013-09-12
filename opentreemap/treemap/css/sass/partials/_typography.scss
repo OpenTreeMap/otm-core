@@ -11,14 +11,18 @@ body {
 	font-size: $base-font-size;
 }
 
-h1, h2, h4, h4, h5 {
+h1, h2, h3, h4, h4, h5 {
 	font-family: $base-font-family;
 	font-weight: 300;
 	margin: 1em 0 0.5em;
 }
 
-p {
-	line-height: 1em;
+
+p,
+li {
+	line-height: 1.25em;
+	font-size: em(14px);
+	color: $main-text-color;
 }
 
 label {

@@ -10,14 +10,17 @@
 {% endblock subhead %}
 
 {% block content %}
-<h3>{% trans "Sorry. OpenTreeMap requires Internet Explorer 9 or above." %}</h3>
-
-<p>{% trans "If you cannot upgrade your version of Internet Explorer, try using one of these alternate web browsers." %}</p>
-
-<ul>
-    <li><a href="http://www.google.com/chrome">Chrome</a></li>
-    <li><a href="http://www.mozilla.org/firefox">Firefox</a></li>
-</ul>
+<div class="content login-signup">
+  	<div class="well login-signup-panel">
+  		<div class="error-icon error-icon-sad">:(</div>
+		<h3>{% trans "OpenTreeMap requires Internet Explorer 9+." %}</h3>
+		<p>{% trans "If you cannot upgrade your version of Internet Explorer, try using one of these alternate web browsers:" %}</p>
+		<ul>
+		    <li><a href="http://www.google.com/chrome">Chrome</a></li>
+		    <li><a href="http://www.mozilla.org/firefox">Firefox</a></li>
+		</ul>
+	</div>
+</div>
 {% endblock content %}
 
 {% block scripts %}
