@@ -1,6 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('underscore'),
     OL = require('OpenLayers'),
     makeLayerFilterable = require('./makeLayerFilterable');
 
@@ -109,11 +110,25 @@ function createPlotUTFLayer(config) {
     return layer;
 }
 
+// The ``url`` property of the OpenLayers XYZ layer supports a single
+// string or an array of strings. ``getPlotLayerURL`` looks at
+// ``config.tileHosts`` and returns a single string if only one host
+// is defined, or an array of strings if multiple hosts are defined.
 function getPlotLayerURL(config, extension) {
-    return '/tile/' +
+    var urls = [],
+        // Using an array with a single undefined element when
+        // ``config.tileHosts`` is falsy allows us to always
+        // use an ``_.each`` loop to generate the url string,
+        // simplifying the code path
+        hosts = config.tileHosts || [undefined];
+    _.each(hosts, function(host) {
+        var prefix = host ? '//' + host : '';
+        urls.push(prefix + '/tile/' +
         config.instance.rev +
         '/database/otm/table/treemap_plot/${z}/${x}/${y}.' +
-        extension + '?instance_id=' + config.instance.id;
+        extension + '?instance_id=' + config.instance.id);
+    });
+    return urls.length === 1 ? urls[0] : urls;
 }
 
 function createBoundsTileLayer(config) {
