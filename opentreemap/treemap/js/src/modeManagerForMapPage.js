@@ -100,7 +100,7 @@ function getSpeciesTypeaheadOptions(config, idPrefix) {
         template: "#species-element-template",
         hidden: "#" + idPrefix + "-hidden",
         reverse: "id"
-    }
+    };
 }
 
 module.exports = {
