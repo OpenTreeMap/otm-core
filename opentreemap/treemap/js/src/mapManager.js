@@ -32,7 +32,13 @@ exports.init = function(options) {
         utfLayer.setFilter(filter);
     };
 
-    exports.setCenterAndZoomIn = function(location, zoom) {
+    var setCenterAndZoomIn = exports.setCenterAndZoomIn = function(location, zoom) {
+        // I could not find a documented way of getting the max
+        // zoom level allowed by the current base layer so
+        // I am using isValidZoomLevel to find it.
+        while (zoom > 1 && !map.isValidZoomLevel(zoom)) {
+            zoom -= 1;
+        }
         map.setCenter(new OL.LonLat(location.x, location.y),
                       Math.max(map.getZoom(), zoom));
     };
@@ -54,7 +60,7 @@ exports.init = function(options) {
 
     var center = options.center || config.instance.center,
         zoom = options.zoom || exports.ZOOM_DEFAULT;
-    map.setCenter(new OL.LonLat(center.x, center.y), zoom);
+    setCenterAndZoomIn(center, zoom);
 };
 
 function createMap(elmt, config) {
