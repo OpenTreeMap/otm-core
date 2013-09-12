@@ -13,12 +13,22 @@ require('./openLayersMapEventStream');
 var config,  // Module-level config set in `init` and read by helper functions
     map,
     popup,  // Most recent popup (so it can be deleted)
-    plotMarker;
+    plotMarker,
+    $fullDetailsButton;
+
+function idToPlotDetailUrl(id) {
+    if (id) {
+        return config.instance.url + 'plots/' + id;
+    } else {
+        return '';
+    }
+}
 
 function init(options) {
     config = options.config;
     map = options.map;
     plotMarker = options.plotMarker;
+    $fullDetailsButton = options.$fullDetailsButton;
 
     var inMyMode = options.inMyMode, // function telling if my mode is active
         inlineEditForm = options.inlineEditForm,
@@ -49,10 +59,15 @@ function init(options) {
                                                 getPlotAccordionContent,
                                                 '');
 
+
+    var plotUrlProperty = clickedIdStream
+        .map(idToPlotDetailUrl)
+        .toProperty()
+        .assign($fullDetailsButton, 'attr', 'href');
+
     clickedIdStream.onValue(function (id) {
-        inlineEditForm.updateUrl = config.instance.url + 'plots/' + id;
-    }
-);
+        inlineEditForm.updateUrl = idToPlotDetailUrl(id);
+    });
 
     // The utfGridClickControl must be added to the map after setting up the
     // event streams
