@@ -5,8 +5,9 @@ var $ = require('jquery'),
     FH = require('./fieldHelpers'),
     U = require('./utility'),
     Bacon = require('baconjs'),
+    otmTypeahead = require('./otmTypeahead'),
     geocoder = require('./geocoder'),
-    geocoderUi = require('./GeocoderUi'),
+    geocoderUi = require('./geocoderUi'),
     searchEventStream = require('./searchEventStream');
 
 var config,
@@ -45,6 +46,10 @@ function init(options) {
 
     $editFields.show();
     U.$find('[data-class="display"]', $form).hide();  // Hide display fields
+
+    _.each(options.typeaheads, function(typeahead) {
+        otmTypeahead.create(typeahead);
+    });
 
     // Handle setting initial tree position via geolocate button
     var geolocateStream;
@@ -177,7 +182,7 @@ function onMarkerMoved() {
     // User moved tree for the first time. Let them edit fields.
     enableFormFields(true);
     _.defer(function () {
-        $editControls.first().focus().select();
+        $editControls.not('[type="hidden"]').first().focus().select();
     });
 }
 
@@ -207,21 +212,21 @@ function onAddTreeSuccess(result) {
     mapManager.updateGeoRevHash(result.geoRevHash);
     var option = U.$find('input[name="addTreeOptions"]:checked', $sidebar).val();
     switch (option) {
-        case 'copy':
-            requireDrag();
-            break;
-        case 'new':
-            $editControls.val("");
-            requireDrag();
-            break;
-        case 'edit':
-            var url = config.instance.url + 'plots/' + result.plotId;
-            window.location.pathname = url;
-            break;
-        case 'close':
-            deactivateBus.push();
-            onClose();
-            break;
+    case 'copy':
+        requireDrag();
+        break;
+    case 'new':
+        $editControls.val("");
+        requireDrag();
+        break;
+    case 'edit':
+        var url = config.instance.url + 'plots/' + result.plotId;
+        window.location.pathname = url;
+        break;
+    case 'close':
+        deactivateBus.push();
+        onClose();
+        break;
     }
     function requireDrag() {
         enableFormFields(false);

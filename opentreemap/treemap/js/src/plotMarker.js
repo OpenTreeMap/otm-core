@@ -24,7 +24,8 @@ module.exports = {
             pointControl.deactivate();
             enableMoving();
             markerPlacedByClickBus.push();
-            markerWasMoved = false;
+            firstMoveBus.push();
+            markerWasMoved = true;
         }
 
         function onMarkerMoved(feature) {
