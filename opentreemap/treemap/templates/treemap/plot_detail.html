@@ -103,12 +103,21 @@
             {% field height from "tree.height" for request.user withtemplate "treemap/field_td.html" %}
             {% trans "Canopy Height" as canopy %}
             {% field canopy from "tree.canopy_height" for request.user withtemplate "treemap/field_td.html" %}
-            {% for label, udf in tree.udf_names_and_fields %}
+            {% for label, udf in tree.scalar_udf_names_and_fields %}
               {% field label from udf withtemplate "treemap/field_td.html" %}
             {% endfor %}
           {% endif %}
         </tbody>
       </table>
+
+      {% if tree %}
+      {% for udf in tree.get_user_defined_fields %}
+        {% if udf.iscollection %}
+          {% include "treemap/partials/collectionudf.html" with udf=udf %}
+        {% endif %}
+      {% endfor %}
+      {% endif %}
+
       <hr>
 
       <table class="table table-striped">
@@ -128,11 +137,17 @@
           {% field oid from "plot.owner_orig_id" for request.user withtemplate "treemap/field_td.html" %}
           {% trans "Read Only" as readonly %}
           {% field readonly from "plot.readonly" for request.user withtemplate "treemap/field_td.html" %}
-          {% for label, udf in plot.udf_names_and_fields %}
+          {% for label, udf in plot.scalar_udf_names_and_fields %}
             {% field label from udf withtemplate "treemap/field_td.html" %}
           {% endfor %}
         </tbody>
       </table>
+
+      {% for udf in plot.get_user_defined_fields %}
+        {% if udf.iscollection %}
+          {% include "treemap/partials/collectionudf.html" with udf=udf %}
+        {% endif %}
+      {% endfor %}
     <form>
 
     <a href="javascript:;" class="btn" style="display:none" id="edit-plot-location">Move Tree</a>

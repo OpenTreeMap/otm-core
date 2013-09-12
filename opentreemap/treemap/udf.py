@@ -241,6 +241,7 @@ class UserDefinedFieldDefinition(models.Model):
 
         existing_objects = UserDefinedFieldDefinition.objects.filter(
             model_type=model_type,
+            instance=self.instance,
             name=self.name)
 
         if existing_objects.count() != 0:
@@ -395,17 +396,16 @@ class UserDefinedFieldDefinition(models.Model):
                                       {'fieldname': self.name})
 
         elif datatype == 'date':
-            return datetime.strptime(value, DATETIME_FORMAT)
+            return datetime.strptime(value.strip(), DATETIME_FORMAT)
         elif datatype == 'choice':
             if value in datatype_dict['choices']:
                 return value
             else:
                 raise ValidationError(
                     trans('Invalid choice (%(given)s).'
-                          'Expecting %(allowed)s') % {
-                              'given': value,
-                              'allowed': ', '.join(datatype_dict['choices'])
-                          })
+                          'Expecting %(allowed)s') %
+                    {'given': value,
+                     'allowed': ', '.join(datatype_dict['choices'])})
         else:
             return value
 
@@ -463,8 +463,11 @@ class UDFDictionary(HStoreDictionary):
 
         if self._collection_fields is None:
             self._collection_fields = {}
+            udfs_on_model = self.instance.get_user_defined_fields()
+
             values = UserDefinedCollectionValue.objects.filter(
-                model_id=self.instance.pk)
+                model_id=self.instance.pk,
+                field_definition__in=udfs_on_model)
 
             for value in values:
                 name = value.field_definition.name
@@ -550,6 +553,7 @@ class UDFDictionary(HStoreDictionary):
         udf = self._get_udf_or_error(key)
 
         if udf.iscollection:
+            self.instance.dirty_collection_udfs = True
             self.collection_fields[key] = val
         else:
             val = udf.reverse_clean(val)
@@ -623,6 +627,13 @@ class UDFModel(UserTrackable, models.Model):
         self._do_not_track.add('udfs')
         self.populate_previous_state()
 
+        self.dirty_collection_udfs = False
+
+    def fields_were_updated(self):
+        normal_fields = super(UDFModel, self).fields_were_updated()
+
+        return normal_fields or self.dirty_collection_udfs
+
     def get_user_defined_fields(self):
         udfs = UserDefinedFieldDefinition.objects.filter(
             model_type=self._model_name)
@@ -671,6 +682,20 @@ class UDFModel(UserTrackable, models.Model):
                 for field in self.get_user_defined_fields()]
 
     @property
+    def scalar_udf_names_and_fields(self):
+        model_name = self.__class__.__name__.lower()
+        return [(field.name, model_name + ".udf:" + field.name)
+                for field in self.get_user_defined_fields()
+                if not field.iscollection]
+
+    @property
+    def collection_udf_names_and_fields(self):
+        model_name = self.__class__.__name__.lower()
+        return [(field.name, model_name + ".udf:" + field.name)
+                for field in self.get_user_defined_fields()
+                if field.iscollection]
+
+    @property
     def scalar_udf_field_names(self):
         return [field.name for field
                 in self.get_user_defined_fields()
@@ -692,9 +717,12 @@ class UDFModel(UserTrackable, models.Model):
     def save_with_user(self, user, *args, **kwargs):
         """
         Saving a UDF model now involves saving all of collection-based
-        udf fields, we do there here. They are valided in
+        udf fields, we do there here. They are validated in
         "clean_collection_udfs"
         """
+        # We may need to get a primary key here before we continue
+        super(UDFModel, self).save_with_user(user, *args, **kwargs)
+
         collection_values = self.udfs.collection_fields
 
         fields = {field.name: field
@@ -711,6 +739,7 @@ class UDFModel(UserTrackable, models.Model):
 
                     udcv = UserDefinedCollectionValue.objects.get(
                         pk=id,
+                        field_definition=field,
                         model_id=self.pk)
                 else:
                     udcv = UserDefinedCollectionValue(
@@ -728,7 +757,7 @@ class UDFModel(UserTrackable, models.Model):
                  .exclude(id__in=ids_specified)\
                  .delete()
 
-        super(UDFModel, self).save_with_user(user, *args, **kwargs)
+        self.dirty_collection_udfs = False
 
     def clean_udfs(self):
         errors = {}
