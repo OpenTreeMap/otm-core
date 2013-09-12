@@ -8,6 +8,7 @@ var $ = require('jquery'),
 
     mapManager = require('./mapManager'),
     Search = require('./search'),
+    searchEventStream = require('./searchEventStream'),
     otmTypeahead = require('./otmTypeahead'),
     modes = require('./modeManagerForMapPage'),
     geocoder = require('./geocoder'),
@@ -45,24 +46,11 @@ var app = {
         return $("#search-reset").asEventStream("click");
     },
 
-    cancelGeocodeSuggestionStream: function() {
-        // Hide suggestion list if user edits search text or resets search
-        return $('#boundary-typeahead').asEventStream('keyup')
-            .merge(app.resetEventStream());
-    },
-
     searchEventStream: function() {
-        var enterKeyPressStream = $('input[data-class="search"]')
-                .asEventStream("keyup")
-                .filter(BU.isEnterKey),
-
-            performSearchClickStream = $("#perform-search")
-                .asEventStream("click"),
-
-            triggerEventStream = enterKeyPressStream.merge(
-                performSearchClickStream);
-
-        return triggerEventStream;
+        return searchEventStream({
+            searchInputs: 'input[data-class="search"]',
+            searchButton: '#perform-search'
+        });
     },
 
     redirectToSearchPage: function (config, query) {
@@ -110,7 +98,7 @@ module.exports = {
         var geocodedLocationStream = geocoderUi(
             {
                 geocodeResponseStream: geocodeResponseStream,
-                cancelGeocodeSuggestionStream: app.cancelGeocodeSuggestionStream(),
+                cancelGeocodeSuggestionStream: app.resetEventStream(),
                 resultTemplate: '#geocode-results-template',
                 addressInput: '#boundary-typeahead',
                 displayedResults: '.search-block [data-class="geocode-result"]'
@@ -119,13 +107,12 @@ module.exports = {
         // When there is a single geocode result (either by an exact match
         // or the user selects a candidate) move the map to it and zoom
         // if the map is not already zoomed in.
-        geocodedLocationStream.onValue(function (result) {
-            mapManager.setCenterAndZoomIn(result.coordinates, mapManager.ZOOM_PLOT);
+        geocodedLocationStream.onValue(function (location) {
+            mapManager.setCenterAndZoomIn(location, mapManager.ZOOM_PLOT);
         });
 
         // Let the user know if there was a problem geocoding
         geocodeResponseStream.onError(app.showGeocodeError);
-        //geocoderUi.errorStream.onValue(app.showGeocodeError);
 
         // Set up cross-site forgery protection
         $.ajaxSetup(csrf.jqueryAjaxSetupOptions);

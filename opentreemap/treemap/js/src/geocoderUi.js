@@ -18,7 +18,7 @@ module.exports = function (options) {
         .filter(geocodeResponseHasASingleCandidate)
         .map(function (res) {
             var match = res.candidates[0];
-            match.coordinates = [match.x,  match.y];
+            match.coordinates = [match.x, match.y];
             return match;
         });
 
@@ -36,14 +36,20 @@ module.exports = function (options) {
             return {
                 x: $result.data('x'),
                 y: $result.data('y'),
-                coordinates: [$result.data('x'),  $result.data('y')],
+                coordinates: [$result.data('x'), $result.data('y')],
                 address: $result.data('address')
             };
         });
 
-    // Connect geocode cancel events to destroying the suggestion popover
-    cancelGeocodeSuggestionStream
-        .merge(resultChosenStream)
+    // Destroy the suggestion popover if...
+    Bacon.mergeAll([
+            // the caller wants us to
+            cancelGeocodeSuggestionStream,
+            // the user chooses a result
+            resultChosenStream,
+            // the user types in the input box
+            $(addressInput).asEventStream('keyup')
+        ])
         .onValue(function () {
             $(addressInput).popover('hide').popover('destroy');
         });
