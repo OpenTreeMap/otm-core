@@ -17,12 +17,9 @@ h1, h2, h3, h4, h4, h5 {
 	margin: 1em 0 0.5em;
 }
 
-
-p,
-li {
+p, li {
 	line-height: 1.25em;
 	font-size: em(14px);
-	color: $main-text-color;
 }
 
 label {
@@ -50,6 +47,7 @@ textarea,
 	font-size: 1em;
 	padding: 8px 8px;
 	color: $subtext-color;
+	border-radius: 6px;
 	box-shadow: 0 2px 0 #DDD inset;
 	box-shadow: 0 2px 0 rgba(0,0,0,.1) inset;
 	height: auto;
