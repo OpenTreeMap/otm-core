@@ -10,6 +10,7 @@ import unittest
 from StringIO import StringIO
 
 from django.test import TestCase
+from django.test.utils import override_settings
 from django.test.client import RequestFactory
 from django.http import Http404, HttpResponse
 from django.core.exceptions import ValidationError
@@ -32,12 +33,13 @@ from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, audits, user_audits,
                            search_tree_benefits, user, instance_user_view,
-                           update_plot_and_tree, update_user, add_tree_photo)
+                           update_plot_and_tree, update_user, add_tree_photo,
+                           root_settings_js_view, instance_settings_js_view)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request,
-                           add_field_permissions)
+                           add_field_permissions, MockSession)
 
 import psycopg2
 
@@ -1316,3 +1318,56 @@ class InstanceUserViewTests(ViewTestCase):
         self.assertEquals(expected_url, res['Location'],
                           'the view should redirect to %s not %s ' %
                           (expected_url, res['Location']))
+
+
+class SettingsJsViewTests(ViewTestCase):
+
+    def assertInResponse(self, text, res):
+        self.assertIn(text, str(res),
+                      'expected %s to be in the response:\n%s' %
+                      (text, str(res)))
+
+    def assertNotInResponse(self, text, res):
+        self.assertNotIn(text, str(res),
+                         'expected %s to NOT be in the response:\n%s' %
+                         (text, str(res)))
+
+    def setUp(self):
+        super(SettingsJsViewTests, self).setUp()
+        self.user = make_commander_user(self.instance)
+        self.req = make_request(user=self.user)
+        self.req.session = MockSession()
+        self.get_response = lambda: root_settings_js_view(self.req)
+
+    @override_settings(TILE_HOSTS=None)
+    def test_none_tile_hosts_omits_tilehosts_setting(self):
+        self.assertNotInResponse('otm.settings.tileHosts',
+                                 self.get_response())
+
+    @override_settings(TILE_HOSTS=[])
+    def test_empty_tile_hosts_omits_empty_string_host(self):
+        self.assertInResponse('otm.settings.tileHosts = [""];',
+                              self.get_response())
+
+    @override_settings(TILE_HOSTS=['a'])
+    def test_single_tile_host_in_tilehosts_setting(self):
+        self.assertInResponse('otm.settings.tileHosts = ["a"];',
+                              self.get_response())
+
+    @override_settings(TILE_HOSTS=['a', 'b:81'])
+    def test_multiple_tile_hosts_in_tilehosts_setting(self):
+        self.assertInResponse('otm.settings.tileHosts = ["a", "b:81"];',
+                              self.get_response())
+
+
+class InstanceSettingsJsViewTests(SettingsJsViewTests):
+    """
+    The settings.js view for an instance contains all the same
+    settings as the root settings.js view, so this inherited
+    test case ensures that we run all the root tests on the
+    instance versision of the view as well.
+    """
+    def setUp(self):
+        super(InstanceSettingsJsViewTests, self).setUp()
+        self.get_response = lambda: instance_settings_js_view(
+            self.req, self.instance.url_name)

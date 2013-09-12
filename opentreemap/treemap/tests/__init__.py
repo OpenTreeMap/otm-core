@@ -325,6 +325,27 @@ class RequestTestCase(TestCase):
                         'not %d' % res.status_code)
 
 
+class MockSession():
+    def __init__(self):
+        self.modified = False
+        self._dict = {}
+
+    def __setitem__(self, key, val):
+        self._dict[key] = val
+
+    def __getitem__(self, key):
+        return self._dict[key]
+
+    def __iter__(self):
+        return self._dict.__iter__()
+
+    def get(self, name, default):
+        if name in self._dict:
+            return self._dict[name]
+        else:
+            return default
+
+
 create_mock_system_user()
 
 from templatetags import *  # NOQA

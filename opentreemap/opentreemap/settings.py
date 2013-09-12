@@ -36,6 +36,23 @@ OMGEO_SETTINGS = [[
     'omgeo.services.EsriWGS', {}
 ]]
 
+# Set TILE_HOSTS to None if the tiler is running on the same host
+# as this app. Otherwise, provide an array of hostnames
+# or hostname:port combinations
+#
+#   TILE_HOSTS = ['serverA', 'serverB:4000']
+#
+# To include the app host in the host list, include an empty
+# string in the array
+#
+#   TILE_HOSTS = ['dedicated-tile-host', '']
+#
+# Tile hosts must be serving tiles on a 'tile' endpoint
+#
+#   //host/tile/
+#
+TILE_HOSTS = None
+
 IE_VERSION_MINIMUM = 9
 
 IE_VERSION_UNSUPPORTED_REDIRECT_PATH = '/unsupported'
