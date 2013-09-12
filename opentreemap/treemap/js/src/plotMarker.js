@@ -11,8 +11,9 @@ var vectorLayer,
     pointControl,
     dragControl,
     markerFeature,
+    markerPlacedByClickBus = new Bacon.Bus(),
     firstMoveBus = new Bacon.Bus(),
-    markerWasMoved = false;
+    markerWasMoved;
 
 
 module.exports = {
@@ -22,6 +23,8 @@ module.exports = {
             markerFeature = feature;
             pointControl.deactivate();
             enableMoving();
+            markerPlacedByClickBus.push();
+            markerWasMoved = false;
         }
 
         function onMarkerMoved(feature) {
@@ -48,6 +51,9 @@ module.exports = {
         map.addControl(dragControl);
     },
 
+    // Allows clients to be notified when user places marker by clicking the map
+    markerPlacedByClickStream: markerPlacedByClickBus,
+
     // Allows clients to be notified when a newly-placed marker is moved for the first time
     firstMoveStream: firstMoveBus,
 
@@ -67,6 +73,7 @@ module.exports = {
             new OL.Geometry.Point(location.x, location.y));
         vectorLayer.addFeatures(markerFeature);
         vectorLayer.display(true);
+        markerWasMoved = false;
     },
 
     enableMoving: enableMoving,
