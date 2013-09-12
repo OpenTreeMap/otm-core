@@ -81,6 +81,8 @@ module.exports = {
         app.searchEventStream()
             .map(Search.buildSearch)
             .onValue(app.redirectToSearchPage, config);
+
+        $('.addBtn').attr('href', config.instance.url + 'map/#addtree');
     },
 
     initMapPage: function (config) {
@@ -124,7 +126,11 @@ module.exports = {
             selector: '#map'
         });
         modes.init(config, mapManager);
-        modes.activateBrowseTreesMode();
+        if (window.location.hash === '#addtree') {
+            modes.activateAddTreeMode();
+        } else {
+            modes.activateBrowseTreesMode();
+        }
 
         $('.addBtn').click(modes.activateAddTreeMode);
 

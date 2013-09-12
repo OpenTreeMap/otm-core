@@ -182,7 +182,9 @@
 <script src="http://maps.google.com/maps/api/js?v=3&sensor=false"></script>
 <script>
 (function(require, config) {
-      var plot = require('plot')
+      var app = require('app'),
+          plot = require('plot');
+      app.init(config);
       plot.init({
           config: config,
           inlineEditForm: {
