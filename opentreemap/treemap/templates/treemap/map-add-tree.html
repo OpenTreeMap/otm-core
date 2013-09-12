@@ -1,48 +1,50 @@
 <!-- Note: rough and without translation tags until we have prototype markup -->
 {% load form_extras %}
 {% load i18n %}
+<div class="sidebar-inner">
+    <h3>{% trans "Add a Tree" %}</h3>
+    <a href="javascript:;" class="close cancelBtn">&times;</a>
 
-<h3>{% trans "Add a Tree" %}</h3>
+    <h4>1. {% trans "Set the tree’s location" %}</h4>
+    <div>{% trans "Search by address or use your current location, then drag the marker to the correct location. Or click the map." %}</div>
+    <input type="text" id="add-tree-address" placeholder="{% trans "340 N 12th St, Philadelphia" %}">
+    <a href="javascript:;" class="btn geocode">{% trans "Search" %}</a>
+    <div class="text-error geocode-error" style="display: none;">{% trans "Unable to locate address in this region" %}</div>
+    <br>
+    <a href="javascript:;" class="btn geolocate">Use current location</a>
+    <div class="text-error geolocate-error" style="display: none;">{% trans "Unable to determine current location" %}</div>
 
-<h4>1. {% trans "Set the tree’s location" %}</h4>
-<div>{% trans "Search by address or use your current location, then drag the marker to the correct location. Or click the map." %}</div>
-<input type="text" id="add-tree-address" placeholder="{% trans "340 N 12th St, Philadelphia" %}">
-<a href="javascript:;" class="btn geocode">{% trans "Search" %}</a>
-<div class="text-error geocode-error" style="display: none;">{% trans "Unable to locate address in this region" %}</div>
-<br>
-<a href="javascript:;" class="btn geolocate">Use current location</a>
-<div class="text-error geolocate-error" style="display: none;">{% trans "Unable to determine current location" %}</div>
+    <h4>2. {% trans "Additional information" %}</h4>
+    <form id="add-tree-form">
+        {# The "add-tree-species" label is used as an id prefix in "field_species.html" #}
+        {% field "add-tree-species" from "tree.species" withtemplate "treemap/field_species.html" %}
 
-<h4>2. {% trans "Additional information" %}</h4>
-<form id="add-tree-form">
-    {# The "add-tree-species" label is used as an id prefix in "field_species.html" #}
-    {% field "add-tree-species" from "tree.species" withtemplate "treemap/field_species.html" %}
+        {% for label, identifier in fields_for_add_tree %}
+            {% field label from identifier withtemplate "treemap/field.html" %}
+        {% endfor %}
+    </form>
 
-    {% for label, identifier in fields_for_add_tree %}
-        {% field label from identifier withtemplate "treemap/field.html" %}
-    {% endfor %}
-</form>
+    <h4>3. {% trans "After I add this tree..." %}</h4>
+    <label>
+        <input type="radio" name="addTreeOptions" value="copy">
+        {% trans "I want to add another tree using the same tree details" %}
+    </label>
+    <label>
+        <input type="radio" name="addTreeOptions" value="new">
+        {% trans "I want to add another tree with new details" %}
+    </label>
+    <label>
+        <input type="radio" name="addTreeOptions" value="edit">
+        {% trans "Let me continue editing this tree" %}
+    </label>
+    <label>
+        <input type="radio" name="addTreeOptions" value="close" checked="true">
+        {% trans "I'm done!" %}
+    </label>
 
-<h4>3. {% trans "After I add this tree..." %}</h4>
-<label>
-    <input type="radio" name="addTreeOptions" value="copy">
-    {% trans "I want to add another tree using the same tree details" %}
-</label>
-<label>
-    <input type="radio" name="addTreeOptions" value="new">
-    {% trans "I want to add another tree with new details" %}
-</label>
-<label>
-    <input type="radio" name="addTreeOptions" value="edit">
-    {% trans "Let me continue editing this tree" %}
-</label>
-<label>
-    <input type="radio" name="addTreeOptions" value="close" checked="true">
-    {% trans "I'm done!" %}
-</label>
-
-<div>
-    &nbsp;<br/>
-    <a href="javascript:;" class="btn addBtn">{% trans "Add This Tree" %}</a>
-    <a href="javascript:;" class="btn cancelBtn">{% trans "Cancel" %}</a>
+    <div>
+        &nbsp;<br/>
+        <a href="javascript:;" class="btn addBtn">{% trans "Add This Tree" %}</a>
+        <a href="javascript:;" class="btn cancelBtn">{% trans "Cancel" %}</a>
+    </div>
 </div>
