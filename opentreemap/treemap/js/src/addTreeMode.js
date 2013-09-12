@@ -14,6 +14,7 @@ var config,
     plotMarker,
     onAddTree,
     onClose,  // function to call when closing mode
+    $sidebar,
     $addButton,
     $address,
     $form,
@@ -28,9 +29,9 @@ function init(options) {
     plotMarker = options.plotMarker;
     onAddTree = options.onAddTree;
     onClose = options.onClose;
+    $sidebar = options.$sidebar;
 
-    var $sidebar = options.$sidebar,
-        addressInput = '#add-tree-address',
+    var addressInput = '#add-tree-address',
         $geolocateButton = U.$find('.geolocate', $sidebar),
         $geocodeError = U.$find('.geocode-error', $sidebar),
         $geolocateError = U.$find('.geolocate-error', $sidebar);
@@ -117,7 +118,6 @@ function init(options) {
     geocodeResponseStream.onError(function () {
         $geocodeError.show();
     });
-
 }
 
 // Adding a tree uses a state machine with these states and transitions:
@@ -145,8 +145,7 @@ function activate() {
     // Let user start creating a tree (by clicking the map)
     plotMarker.hide();
     plotMarker.enablePlacing();
-    $addButton.attr('disabled', true);
-    $editControls.prop('disabled', true);
+    enableFormFields(false);
 }
 
 function geolocate() {
@@ -204,11 +203,30 @@ function addTree() {
 }
 
 function onAddTreeSuccess(result) {
-    // Tree was saved. Clean up and invoke callback.
-    // TODO: Obey "After I add this tree" choice
-    deactivateBus.push();
+    // Tree was saved. Update map if appropriate.
     mapManager.updateGeoRevHash(result.geoRevHash);
-    onClose();
+    var option = U.$find('input[name="addTreeOptions"]:checked', $sidebar).val();
+    switch (option) {
+        case 'copy':
+            requireDrag();
+            break;
+        case 'new':
+            $editControls.val("");
+            requireDrag();
+            break;
+        case 'edit':
+            var url = config.instance.url + 'plots/' + result.plotId;
+            window.location.pathname = url;
+            break;
+        case 'close':
+            deactivateBus.push();
+            onClose();
+            break;
+    }
+    function requireDrag() {
+        enableFormFields(false);
+        plotMarker.enableMoving();
+    }
 }
 
 function onAddTreeError(jqXHR, textStatus, errorThrown) {

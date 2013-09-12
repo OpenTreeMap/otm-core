@@ -117,6 +117,7 @@ function enableMoving() {
         strokeWidth: 1
     };
     vectorLayer.redraw();
+    markerWasMoved = false;
 }
 
 // Prevent user from dragging the marker
@@ -134,5 +135,4 @@ function disableMoving() {
         strokeWidth: 1
     };
     vectorLayer.redraw();
-    markerWasMoved = false;
 }
