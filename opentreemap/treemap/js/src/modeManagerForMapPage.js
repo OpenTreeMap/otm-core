@@ -80,22 +80,27 @@ function init(config, mapManager) {
         plotMarker: plotMarker,
         inMyMode: inAddTreeMode,
         $sidebar: $sidebarAddTree,
-        onClose: activateBrowseTreesMode
+        onClose: activateBrowseTreesMode,
+        typeaheads: [getSpeciesTypeaheadOptions(config, "add-tree-species")]
     });
 
     editTreeDetailsMode.init({
         mapManager: mapManager,
         inlineEditForm: inlineEditForm,
         plotMarker: plotMarker,
-        typeaheads: [{
-            name: "species",
-            url: "/" + config.instance.url + "species",
-            input: "#tree-species-typeahead",
-            template: "#species-element-template",
-            hidden: "#tree-species-hidden",
-            reverse: "id"
-        }]
+        typeaheads: [getSpeciesTypeaheadOptions(config, "edit-tree-species")]
     });
+}
+
+function getSpeciesTypeaheadOptions(config, idPrefix) {
+    return {
+        name: "species",
+        url: "/" + config.instance.url + "species",
+        input: "#" + idPrefix + "-typeahead",
+        template: "#species-element-template",
+        hidden: "#" + idPrefix + "-hidden",
+        reverse: "id"
+    };
 }
 
 module.exports = {
