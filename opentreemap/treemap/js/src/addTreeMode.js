@@ -6,7 +6,7 @@ var $ = require('jquery'),
     U = require('./utility'),
     Bacon = require('baconjs'),
     geocoder = require('./geocoder'),
-    geocoderUi = require('./GeocoderUi'),
+    geocoderUi = require('./geocoderUi'),
     searchEventStream = require('./searchEventStream');
 
 var config,
@@ -207,21 +207,21 @@ function onAddTreeSuccess(result) {
     mapManager.updateGeoRevHash(result.geoRevHash);
     var option = U.$find('input[name="addTreeOptions"]:checked', $sidebar).val();
     switch (option) {
-        case 'copy':
-            requireDrag();
-            break;
-        case 'new':
-            $editControls.val("");
-            requireDrag();
-            break;
-        case 'edit':
-            var url = config.instance.url + 'plots/' + result.plotId;
-            window.location.pathname = url;
-            break;
-        case 'close':
-            deactivateBus.push();
-            onClose();
-            break;
+    case 'copy':
+        requireDrag();
+        break;
+    case 'new':
+        $editControls.val("");
+        requireDrag();
+        break;
+    case 'edit':
+        var url = config.instance.url + 'plots/' + result.plotId;
+        window.location.pathname = url;
+        break;
+    case 'close':
+        deactivateBus.push();
+        onClose();
+        break;
     }
     function requireDrag() {
         enableFormFields(false);
