@@ -1,17 +1,18 @@
 // Partial: Map Page
 
 .map {
-  left: 0;
-  background: $well-color;
-  position: absolute;
-  bottom: 40px;
-  top: 0;
-  right: 350px; }
+    left: 0;
+    background: $well-color;
+    position: absolute;
+    bottom: 40px;
+    top: 0;
+    right: 350px; 
+}
 
 .map-small {
-  background: $well-color;
-  width: 300px;
-  height: 300px;
+    background: $well-color;
+    width: 300px;
+    height: 300px;
 }
 
 .sidebar {
@@ -27,12 +28,14 @@
         height: 100%;
         overflow: auto;
     }
-
+    .accordion {
+        margin: 0;
+    }
     .accordion-group {
         border-radius: 0;
         margin-bottom: 0;
         border: none;
-        border-top: 1px solid $well-color;
+        border-top: 1px solid $light-gray-color;
     }
     .accordion-heading {
         background: $secondary-color;
@@ -52,6 +55,10 @@
             }
         }
     }
+    .accordion-inner {
+        padding: 0;
+    }
+
     .chunk {
         list-style: none;
         padding: 5px 0 5px;
@@ -66,8 +73,54 @@
 }
 
 #benefit-values {
-    .benefit-label {
-        font-weight: 700;
+    .benefit-value-row {
+        border-bottom: 1px solid $well-color;
+        padding: 15px;
+
+        .benefit-icon {
+            padding: 7px;
+            background: $primary-color;
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            color: white;
+            float: left;
+            margin-right: 10px;
+
+            > i {
+                margin-top: 2px;
+            }
+        }
+        .benefit-label {
+            font-weight: 400;
+            font-size: 18px;
+            float: left;
+            margin: 0;
+            line-height: 32px;
+            color: $primary-color;
+        }
+        .benefit-content {
+            clear: both;
+            margin: 0 0 0 46px;
+
+            dt {
+                text-align: left;
+                font-weight: 700;
+                color: $main-text-color;
+            }
+            dd {
+                text-align: right;
+                font-size: em(14px);
+                color: $subtext-color;
+                margin-left: 150px;
+            }
+        }
+    }
+    .benefit-tree-count {
+        padding: 10px 15px;
+        font-size: 14px;
+        font-style: italic;
+        color: $subtext-color;
     }
 }
 
@@ -100,7 +153,7 @@ span.tt-dropdown-menu {
 
         .tt-suggestion {
             padding: 8px 10px;
-            border-bottom: 1px solid $well-color;
+            border-bottom: 1px solid $light-gray-color;
             
             &:hover {
                 background-color: $light-gray-color;
