@@ -1,0 +1,22 @@
+// Partial: Errors (Unsupported, 404, 500)
+
+.error-icon {
+	background: $well-color;
+	border-radius: 999px;
+	width: 50px;
+	height: 50px;
+	overflow: hidden;
+	color: white;
+	padding: 40px;
+	margin: 0 auto 15px;
+	font-size: 72px;
+
+	&.error-icon-sad {
+		padding: 45px 40px 35px;
+	}
+}
+
+.errorlist {
+	margin: 0 0 8px;
+	list-style: none;
+}

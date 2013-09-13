@@ -23,13 +23,13 @@
         background: darken($bg-color, 5%);
     }
 
-    @include button-size(em(14px));
-    &.btn-large		{ @include button-size(em(18px)); }
-    &.btn-small		{ @include button-size(em(12px)); }
-    &.btn-mini		{ @include button-size(em(10px)); }
+    @include button-size(14px);
+    &.btn-large		{ @include button-size(18px); }
+    &.btn-small		{ @include button-size(12px); }
+    &.btn-mini		{ @include button-size(10px); }
 }
 
-@mixin button-size($text-size: em(14px)) {
+@mixin button-size($text-size: 14px) {
 	font-family: $base-font-family;
 	font-size: $text-size;
 	font-weight: 400;
