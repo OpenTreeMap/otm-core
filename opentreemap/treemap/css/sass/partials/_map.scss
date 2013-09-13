@@ -41,10 +41,10 @@
         width: auto !important;
 
         h4 {
-            margin: 0;
+            margin: 0 0 6px;
             font-weight: 400;
             font-size: 18px;
-            line-height: 32px;
+            line-height: 24px;
             color: $primary-color;
         }
         dl {
@@ -70,7 +70,21 @@
         }
     }
     .olPopupCloseBox {
+        background: none;
+        margin-right: -6px;
 
+        &:before {
+            content: '\00d7';
+            font-size: 20px;
+            font-weight: bold;
+            line-height: 20px;
+            color: #000000;
+            text-shadow: 0 1px 0 #ffffff;
+            opacity: 0.2;
+        }
+        &:hover:before {
+            opacity: 0.4;
+        }
     }
 }
 
