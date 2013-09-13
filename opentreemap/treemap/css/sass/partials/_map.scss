@@ -15,112 +15,62 @@
     height: 300px;
 }
 
-.sidebar {
-    width: 350px;
-    background: #FFF;
-    border-left: 1px solid $well-color;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 40px;
-    
-    > div {
-        height: 100%;
-        overflow: auto;
+.olPopup {
+    border-radius: 6px;
+    margin-top: 20px;
+    margin-left: -23px;
+    border: 1px solid #d1d2d4 !important;
+    overflow: visible !important;
+    box-shadow: 0px 3px 0px rgba(0, 3, 0, 0.3);
+
+    &:before {
+        content: '';
+        width: 0;
+        height: 0;
+        position: absolute;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 10px solid $well-color;
+        top: -10px;
+        left: 10px;
     }
-    .accordion {
+
+    .olPopupContent {
+        padding: 12px;
         margin: 0;
-    }
-    .accordion-group {
-        border-radius: 0;
-        margin-bottom: 0;
-        border: none;
-        border-top: 1px solid $light-gray-color;
-    }
-    .accordion-heading {
-        background: $secondary-color;
+        width: auto !important;
 
-        a {
-            color: #f1f1f2;
-            font-size: 1em;
-            font-weight: 700;
-            padding: 15px;
-            
-            &:hover {
-                text-decoration: none;
-                color: #FFF;
-                box-shadow: 0 3px 6px darken($secondary-color, 15%);
-                box-shadow: 0 3px 6px rgba(0,0,0,.2) inset;
-                background: darken($secondary-color, 5%);
-            }
-        }
-    }
-    .accordion-inner {
-        padding: 0;
-    }
-
-    .chunk {
-        list-style: none;
-        padding: 5px 0 5px;
-        margin: 0;
-    }
-}
-
-#sidebar-add-tree {
-    > .sidebar-inner {
-        padding: 20px;
-    }
-}
-
-#benefit-values {
-    .benefit-value-row {
-        border-bottom: 1px solid $well-color;
-        padding: 15px;
-
-        .benefit-icon {
-            padding: 7px;
-            background: $primary-color;
-            width: 20px;
-            height: 20px;
-            border-radius: 999px;
-            color: white;
-            float: left;
-            margin-right: 10px;
-
-            > i {
-                margin-top: 2px;
-            }
-        }
-        .benefit-label {
+        h4 {
+            margin: 0;
             font-weight: 400;
             font-size: 18px;
-            float: left;
-            margin: 0;
             line-height: 32px;
             color: $primary-color;
         }
-        .benefit-content {
+        dl {
+            margin: 0;
             clear: both;
-            margin: 0 0 0 46px;
+            font-size: 14px;
 
             dt {
                 text-align: left;
-                font-weight: 700;
-                color: $main-text-color;
+                width: 100px;
+                color: $subtext-color;
             }
             dd {
                 text-align: right;
-                font-size: em(14px);
-                color: $subtext-color;
-                margin-left: 150px;
+                margin-left: 110px;
+            }
+        }
+        address {
+            font-size: em(14px);
+            strong {
+                display: block;
             }
         }
     }
-    .benefit-tree-count {
-        padding: 10px 15px;
-        font-size: 14px;
-        font-style: italic;
-        color: $subtext-color;
+    .olPopupCloseBox {
+
     }
 }
 
