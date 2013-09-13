@@ -127,6 +127,7 @@ function getPlotPopupContent(id) {
 
 function makePopup(latLon, html, size) {
     if (latLon && html) {
+        size = size || new OL.Size(320, 130);
         var popup = new OL.Popup("plot-popup", latLon, size, html, true);
         popup.panMapIfOutOfView = true;
         return popup;
