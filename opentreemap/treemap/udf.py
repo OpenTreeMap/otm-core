@@ -400,7 +400,12 @@ class UserDefinedFieldDefinition(models.Model):
             if value in datatype_dict['choices']:
                 return value
             else:
-                raise ValidationError(trans('Invalid choice'))
+                raise ValidationError(
+                    trans('Invalid choice (%(given)s).'
+                          'Expecting %(allowed)s') % {
+                              'given': value,
+                              'allowed': ', '.join(datatype_dict['choices'])
+                          })
         else:
             return value
 
