@@ -1,6 +1,16 @@
 {% load i18n %}
-<div><label>{% trans "ID:" %}</label>{{ plot.pk }}</div>
-<div><label>{% trans "Species:" %}</label>{{ plot.current_tree.species }}</div>
-<div><label>{% trans "Nearby Address:" %}</label>{{ plot.address_full }}</div>
-<div><a href="{% url 'plot_detail' instance_url_name=request.instance.url_name plot_id=plot.pk %}">{% trans "View all details" %}</a></div>
-<div><a href="{% url 'plot_detail' instance_url_name=request.instance.url_name plot_id=plot.pk %}#edit">{% trans "Edit details" %}</a></div>
+<div>
+	<h4>{{ plot.current_tree.species }}</h4>
+	<dl class="dl-horizontal">
+		<dt>{% trans "ID:" %}</dt>
+		<dd>{{ plot.pk }}</dd>
+	</dl>
+	<address>
+		<strong>{% trans "Nearby Address:" %}</strong>
+		{{ plot.address_full }}
+	</address>
+</div>
+<div>
+	<a href="{% url 'plot_detail' instance_url_name=request.instance.url_name plot_id=plot.pk %}" class="btn btn-small btn-secondary">{% trans "View all details" %}</a>
+	<a href="{% url 'plot_detail' instance_url_name=request.instance.url_name plot_id=plot.pk %}#edit" class="btn btn-small btn-info">{% trans "Edit details" %}</a>
+</div>

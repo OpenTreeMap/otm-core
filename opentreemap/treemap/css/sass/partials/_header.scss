@@ -2,8 +2,7 @@
 
 .header {
     padding: 59px 15px 15px;
-    height: 75px;
-    border-bottom: 1px solid $well-color;
+    height: 85px;
     background: #fff;
 
     &:before {
@@ -27,20 +26,33 @@
 }
 
 .search-wrapper {
-    right: 15px;
-    position: absolute;
-    top: 56px;
+    position: relative;
+    float: right;
+    display: inline-block;
 }
 
 .search-block-wrapper {
     display: inline-block;
 
     .search-block {
-        padding: 8px;
-        border: 1px solid #eee;
-        border-radius: 3px;
+        padding: 12px 14px;
+        background: $light-gray-color;
+        border: 1px solid $well-color;
+        border-radius: 6px;
         float: left;
         margin-left: 10px;
+
+        h3 {
+            font-size: em(14px);
+            font-weight: 400;
+            line-height: 1em;
+            margin: 0 00 6px;
+            color: $navbar-color;
+        }
+        input[type="text"] {
+            font-size: 0.75em;
+            margin: 0;
+        }
 
         .dropdown-menu {
             width: 257px;
@@ -58,12 +70,12 @@
 .search-options {
     display: inline-block;
     margin-left: 15px;
-    top: -18px;
     position: relative;
+    vertical-align: top;
 
     #perform-search {
-        margin-bottom: 6px;
-        padding: 8px 0;
+        margin-bottom: 7px;
+        padding: 12px 0;
     }
 }
 
@@ -76,12 +88,14 @@
 
 .subhead {
     padding: 10px 15px;
-    border-bottom: 1px solid $well-color;
+    border-left: 8px solid $primary-color;
+    border-top: 1px solid lighten($primary-color, 35%);
     font-size: em(16px);
-    background: #fff;
+    background: lighten($primary-color, 50%);
     height: 24px;
     position: relative;
     z-index: 9;
+    color: darken($primary-color, 25%);
     box-shadow: 0 6px 0 rgba(0,0,0,.15);
 
     span {
@@ -90,6 +104,7 @@
 
     .exportBtn {
         margin-left: 10px;
+        margin-top: -2px;
     }
 
     .addBtn {

@@ -8,11 +8,14 @@
 @import "partials/navbar";
 @import "partials/header";
 @import "partials/footer";
+@import "partials/error";
 
 // -- Page Specific
 @import "partials/map";
+@import "partials/sidebar";
 @import "partials/treedetails";
 @import "partials/registration";
+@import "partials/createmap";
 @import "partials/profile";
 @import "partials/admin";
 @import "partials/content";

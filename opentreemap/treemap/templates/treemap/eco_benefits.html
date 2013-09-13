@@ -3,19 +3,23 @@
 
 <div id="benefit-values">
     {% for benefit in benefits %}
-      <span class="benefit-label">{{ benefit.label }}</span>
-      <br>
-      <span class="content">{{ benefit.value }} {{ benefit.unit }}
+    <div class="benefit-value-row">
+      <div class="benefit-icon"><i class="icon-leaf"></i></div>
+      <h3 class="benefit-label">{{ benefit.label }} {% trans "Benefits" %}</h3>
+      <dl class="dl-horizontal benefit-content">
+        <dt>{{ benefit.value }}</dt>
+        <dd>{{ benefit.unit }}</dd>
         {% if benefit.currency_saved %}
-        <br>
-        {{ currency_symbol }}{{ benefit.currency_saved }}
-        {% comment %}Translators: Money saved{% endcomment %}
-        {% trans "saved" %}
+          <dt>{{ currency_symbol }}{{ benefit.currency_saved }}</dt>
+          <dd>
+            {% comment %}Translators: Money saved{% endcomment %}
+            {% trans "saved" %}
+          </dd>
         {% endif %}
-      </span>
-    <hr>
+      </dl>
+    </div>
     {% endfor %}
-    <div>
+    <div class="benefit-tree-count">
       {% blocktrans with used=basis.n_trees_used %}
         Based on {{ used }} out of {{ basis.n_trees_total }} total trees
       {% endblocktrans %}

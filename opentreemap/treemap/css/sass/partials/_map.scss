@@ -1,80 +1,121 @@
 // Partial: Map Page
 
 .map {
-  left: 0;
-  background: $well-color;
-  position: absolute;
-  bottom: 40px;
-  top: 0;
-  right: 350px; }
-
-.map-small {
-  background: $well-color;
-  width: 300px;
-  height: 300px;
+    left: 0;
+    background: $well-color;
+    position: absolute;
+    bottom: 40px;
+    top: 0;
+    right: 350px; 
 }
 
-.sidebar {
-    width: 350px;
-    background: #FFF;
-    border-left: 1px solid $well-color;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 40px;
-    
-    .accordion-group {
-        border-radius: 0;
-        margin-bottom: 0;
-        border: none;
-        border-top: 1px solid $well-color;
+.map-small {
+    background: $well-color;
+    width: 300px;
+    height: 300px;
+}
+
+.olPopup {
+    border-radius: 6px;
+    margin-top: 20px;
+    margin-left: -23px;
+    border: 1px solid #d1d2d4 !important;
+    overflow: visible !important;
+    box-shadow: 0px 3px 0px rgba(0, 3, 0, 0.3);
+
+    &:before {
+        content: '';
+        width: 0;
+        height: 0;
+        position: absolute;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 10px solid $well-color;
+        top: -10px;
+        left: 10px;
     }
-    .accordion-heading {
-        background: $secondary-color;
-    
-        a {
-            color: #f1f1f2;
-            font-size: 1em;
-            font-weight: 700;
-            padding: 15px;
-            
-            &:hover {
-                text-decoration: none;
-                color: #FFF;
+
+    .olPopupContent {
+        padding: 12px;
+        margin: 0;
+        width: auto !important;
+
+        h4 {
+            margin: 0;
+            font-weight: 400;
+            font-size: 18px;
+            line-height: 32px;
+            color: $primary-color;
+        }
+        dl {
+            margin: 0;
+            clear: both;
+            font-size: 14px;
+
+            dt {
+                text-align: left;
+                width: 100px;
+                color: $subtext-color;
+            }
+            dd {
+                text-align: right;
+                margin-left: 110px;
+            }
+        }
+        address {
+            font-size: em(14px);
+            strong {
+                display: block;
             }
         }
     }
-    .chunk {
-        list-style: none;
-        padding: 5px 0 5px;
-        margin: 0;
-    }
-}
+    .olPopupCloseBox {
 
-.benefit-label {
-    font-weight: 700;
+    }
 }
 
 span.tt-dropdown-menu {
-    margin-top: 0;
-    padding: 10px;
-    width: 199px;
-    font-size: em(13px) !important;
+    margin-top: 10px;
+    padding: 0;
+    width: 221px;
+    font-size: 0.875em;
+    position: relative;
     border: 1px solid $well-color;
-    background: #fff;
-    border-radius: 3px;
-    box-shadow: 0px 0px 5px rgba(0, 3, 0, 0.3);
-}
-.tt-suggestion p {
-    padding: 0px 7px;
-    
-    &:hover {
-        background-color: $well-color;
-        border-radius: 3px;
-    }
-}
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0px 3px 0px rgba(0, 3, 0, 0.3);
 
-.create_instance_map {
-    width: 100%;
-    height: 500px;
+    &:before {
+        content: '';
+        width: 0;
+        height: 0;
+        position: absolute;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 10px solid $well-color;
+        top: -10px;
+        left: 10px;
+    }
+
+    .tt-suggestions {
+        max-height: 300px;
+        overflow: auto;
+
+        .tt-suggestion {
+            padding: 8px 10px;
+            border-bottom: 1px solid $light-gray-color;
+            
+            &:hover {
+                background-color: $light-gray-color;
+            }
+            &:last-child {
+                border: none;
+            }
+
+            p {
+                line-height: 1.5em;
+                margin: 0;
+            }
+        }
+    }
 }
