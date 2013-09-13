@@ -4,139 +4,162 @@
 
 {% block page_title %} | {% trans "Recent Edits" %} {{plot.pk}}{% endblock %}
 
+{% block header %}
+{% load i18n %}
+<div class="header">
+    <div class="logo">
+        <a href="index.html"><img src="{{STATIC_URL}}img/logo-main.svg" alt="OpenTreeMap"></a>
+    </div>
+</div> <!-- end header -->
+{% endblock header %}
+
 {% block content %}
+<div class="container contained profile">
+  <div class="row">
+    <div class="span12">
+      <h1>
+        {% trans "Recent Edits" %}
+        <a class="btn pull-right" href="{% url 'recent_edits' instance_url_name=request.instance.url_name %}">Reset</a>
+      </h1>
+      
+      <table class="table table-striped">
+        <tr>
+          <th>{% trans "Audit ID" %}</th>
+          <th>{% trans "Model" %}</th>
+          <th>{% trans "Model #" %}</th>
+          <th>{% trans "Field" %}</th>
+          <th>{% trans "Old Value" %}</th>
+          <th>{% trans "Current Value" %}</th>
+          <th>{% trans "Commit By" %}</th>
+          <th>{% trans "Commit On" %}</th>
+        </tr>
+        {% for audit in audits %}
+        <tr>
+          <td>{{ audit.pk }}</td>
+          <td>
+            <a href="?models={{ audit.model }}">
+            {{ audit.model }}
+            </a>
+          </td>
+          <td>
+            <a href="?models={{ audit.model }}&model_id={{ audit.model_id }}">
+              {{ audit.model_id }}
+            </a>
+          </td>
+          <td>{{ audit.field }}</td>
 
-<h1>
-{% trans "Recent Edits" %}
-</h1>
-<a href="{% url 'recent_edits' instance_url_name=request.instance.url_name %}">Reset</a>
+          {% if audit.field == 'image' %}
 
-<table>
-  <tr>
-    <th>{% trans "Audit ID" %}</th>
-    <th>{% trans "Model" %}</th>
-    <th>{% trans "Model #" %}</th>
-    <th>{% trans "Field" %}</th>
-    <th>{% trans "Old Value" %}</th>
-    <th>{% trans "Current Value" %}</th>
-    <th>{% trans "Commit By" %}</th>
-    <th>{% trans "Commit On" %}</th>
-  </tr>
-  {% for audit in audits %}
-  <tr>
-    <td>{{ audit.pk }}</td>
-    <td>
-      <a href="?models={{ audit.model }}">
-      {{ audit.model }}
-      </a>
-    </td>
-    <td>
-      <a href="?models={{ audit.model }}&model_id={{ audit.model_id }}">
-        {{ audit.model_id }}
-      </a>
-    </td>
-    <td>{{ audit.field }}</td>
+          <td>
+            {% if audit.clean_previous_value %}
+            <a href="{{ audit.clean_previous_value|image_to_url }}">
+              View Image
+            </a>
+            {% else %}
+              None
+            {% endif %}
+          </td>
+          <td>
+            {% if audit.clean_current_value %}
+            <a href="{{ audit.clean_current_value|image_to_url }}">
+              View Image
+            </a>
+            {% else %}
+              None
+            {% endif %}
+          </td>
 
-    {% if audit.field == 'image' %}
+          {% elif audit.field == 'user' %}
 
-    <td>
-      {% if audit.clean_previous_value %}
-      <a href="{{ audit.clean_previous_value|image_to_url }}">
-        View Image
-      </a>
-      {% else %}
-        None
-      {% endif %}
-    </td>
-    <td>
-      {% if audit.clean_current_value %}
-      <a href="{{ audit.clean_current_value|image_to_url }}">
-        View Image
-      </a>
-      {% else %}
-        None
-      {% endif %}
-    </td>
+          <td>
+            {% if audit.clean_previous_value %}
+            <a href="?user={{ audit.clean_previous_value.pk }}">
+              {{ audit.clean_previous_value }}
+            </a>
+            {% else %}
+              None
+            {% endif %}
+          </td>
+          <td>
+            <a href="?user={{ audit.clean_current_value.pk }}">
+              {{ audit.clean_current_value }}
+            </a>
+          </td>
 
-    {% elif audit.field == 'user' %}
+          {% elif audit.field == 'plot' %}
 
-    <td>
-      {% if audit.clean_previous_value %}
-      <a href="?user={{ audit.clean_previous_value.pk }}">
-        {{ audit.clean_previous_value }}
-      </a>
-      {% else %}
-        None
-      {% endif %}
-    </td>
-    <td>
-      <a href="?user={{ audit.clean_current_value.pk }}">
-        {{ audit.clean_current_value }}
-      </a>
-    </td>
+          <td>
+            {% if audit.clean_previous_value %}
+            <a href="?models=Plot,id={{ audit.clean_previous_value.pk }}">
+              Plot {{ audit.clean_previous_value }}
+            </a>
+            {% else %}
+              None
+            {% endif %}
+          </td>
+          <td>
+            <a href="?models=Plot,id={{ audit.clean_current_value.pk }}">
+              Plot {{ audit.clean_current_value }}
+            </a>
+          </td>
 
-    {% elif audit.field == 'plot' %}
+          {% elif audit.field == 'species' %}
+          <td>
+            {{ audit.clean_previous_value.scientific_name|default:"None" }}
+          </td>
+          <td>
+            {{ audit.clean_current_value.scientific_name }}
+          </td>
 
-    <td>
-      {% if audit.clean_previous_value %}
-      <a href="?models=Plot,id={{ audit.clean_previous_value.pk }}">
-        Plot {{ audit.clean_previous_value }}
-      </a>
-      {% else %}
-        None
-      {% endif %}
-    </td>
-    <td>
-      <a href="?models=Plot,id={{ audit.clean_current_value.pk }}">
-        Plot {{ audit.clean_current_value }}
-      </a>
-    </td>
+          {% elif audit.field == 'geom' %}
+          <td>
+            {{ audit.clean_previous_value.x|floatformat:0 }},
+            {{ audit.clean_previous_value.y|floatformat:0 }}
+          </td>
+          <td>
+            {{ audit.clean_current_value.x|floatformat:0 }},
+            {{ audit.clean_current_value.y|floatformat:0 }}
+          </td>
+          {% else %}
+          <td>{{ audit.clean_previous_value }}</td>
+          <td>{{ audit.clean_current_value }}</td>
+          {% endif %}
 
-    {% elif audit.field == 'species' %}
-    <td>
-      {{ audit.clean_previous_value.scientific_name|default:"None" }}
-    </td>
-    <td>
-      {{ audit.clean_current_value.scientific_name }}
-    </td>
+          <td>
+            <a href="?user={{ audit.user.pk }}">
+              {{ audit.user }}
+            </a>
+          </td>
+          <td>
+            {{ audit.created }}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
 
-    {% elif audit.field == 'geom' %}
-    <td>
-      {{ audit.clean_previous_value.x|floatformat:0 }},
-      {{ audit.clean_previous_value.y|floatformat:0 }}
-    </td>
-    <td>
-      {{ audit.clean_current_value.x|floatformat:0 }},
-      {{ audit.clean_current_value.y|floatformat:0 }}
-    </td>
-    {% else %}
-    <td>{{ audit.clean_previous_value }}</td>
-    <td>{{ audit.clean_current_value }}</td>
-    {% endif %}
+      <ul class="pager">
+        {% if prev_page %}
+        <li class="previous">
+          <a href="{{ prev_page }}">
+        {% else %}
+        <li class="previous disabled">
+          <a>
+        {% endif %}
+          &larr; {% trans "Previous" %}</a>
+        </li>
 
-    <td>
-      <a href="?user={{ audit.user.pk }}">
-        {{ audit.user }}
-      </a>
-    </td>
-    <td>
-      {{ audit.created }}
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-
-{% if prev_page %}
-<a href="{{ prev_page }}">&lt;&lt; {% trans "Previous" %}</a>
-{% else %}
-&lt;&lt; {% trans "Previous" %}
-{% endif %}
-|
-{% if next_page %}
-<a href="{{ next_page }}">{% trans "Next" %} &gt;&gt;</a>
-{% else %}
-{% trans "Next" %} &gt;&gt;
-{% endif %}
-
+        {% if next_page %}
+        <li class="next">
+          <a href="{{ next_page }}">
+        {% else %}
+        <li class="next disabled">
+          <a>
+        {% endif %}
+          {% trans "Next" %} &rarr;</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
 
 {% endblock content %}

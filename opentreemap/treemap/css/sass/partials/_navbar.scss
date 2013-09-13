@@ -21,7 +21,7 @@
         }
 
         > li {
-            margin-left: 25px;
+            margin-left: 20px;
             height: 44px;
 
             &:first-child {
@@ -40,6 +40,14 @@
                 border-radius: 4px;
                 top: 6px;
                 position: relative;
+
+                a {
+                    padding: 0;
+                    height: auto;
+                }
+                img {
+                    max-width: 105%;
+                }
             }
 
             > a {
@@ -47,6 +55,11 @@
                 height: 20px;
                 font-size: 1.125em;
                 font-weight: 400;
+
+                > .reputation {
+                    font-size: em(14px);
+                    color: white;
+                }
 
                 &:hover,
                 &:focus {
