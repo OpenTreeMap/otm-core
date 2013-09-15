@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load form_extras %}
 
 {% block instance_title %} | {{ request.instance.name }}{% endblock %}
 
@@ -52,8 +53,9 @@
 {% endblock searchoptions %}
 {% block advancedsearch %}
 <div id="advanced-search-pane" style="display: none;">
-  <div>{% trans "DBH Min:" %}<input data-class="search" id="dbh-min"></div>
-  <div>{% trans "DBH Max:" %}<input data-class="search" id="dbh-max"></div>
+  {% for search in request.instance.advanced_search_fields %}
+  {% search from search.identifier for request.user in request.instance withtemplate "treemap/field/search.html" %}
+  {% endfor %}
 </div>
 {% endblock advancedsearch %}
 
@@ -65,7 +67,7 @@
 
         $(function(){
             app.init(otm.settings);
-        })
+        });
     })(require);
 </script>
 {% endblock scripts %}
