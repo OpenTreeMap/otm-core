@@ -1,7 +1,7 @@
 {% if field.data_type == 'choice' %}
     <select name="{{ field.identifier }}"
             value="{{ field.value|default_if_none:"" }}"
-            {% if extra %}{{ extra }}{% endif %}/>
+            {% if extra %}{{ extra }}{% endif %} />
         {% for option in field.choices %}
             <option value="{{ option }}">
                 {{option}}
@@ -15,11 +15,11 @@
           {% endif %}
            type="checkbox"
            value="{{ field.value }}"
-           {% if extra %}{{ extra }}{% endif %}/>
+           {% if extra %}{{ extra }}{% endif %} />
 {% else %}
     <input name="{{ field.identifier }}"
            type="text"
            value="{{ field.value|default_if_none:"" }}"
-           {% if extra %}{{ extra }}{% endif %}/>
+           {% if extra %}{{ extra }}{% endif %} />
 {% endif %}
 
