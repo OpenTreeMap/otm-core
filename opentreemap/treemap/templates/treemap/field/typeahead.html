@@ -1,0 +1,13 @@
+<input type="hidden"
+       data-typeahead-hidden
+       id="{{ field.label }}-hidden"
+       name="{{ field.identifier }}"
+       value="{{ field.value.id }}"/>
+<input type="text"
+       data-typeahead-input="{{ field.identifier }}"
+       id="{{ field.label }}-typeahead"
+       value="{{ field.value.display_name }}"/>
+<input type="hidden"
+       value="{{ field.value.id }}"
+       data-typeahead-restore="{{ field.identifier}}"
+       data-datum="id" />
