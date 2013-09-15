@@ -434,10 +434,10 @@ class InlineFieldTagTests(TestCase):
         user = make_observer_user(self.instance)
         self.assert_plot_length_context_value(user, 'field.choices', 'None')
 
-    def test_labelless_sets_label_to_none(self):
+    def test_labelless_sets_label_to_default(self):
         user = make_observer_user(self.instance)
         self.assert_plot_length_context_value(
-            user, 'field.label', 'None',
+            user, 'field.label', Plot._meta.get_field('length').help_text,
             self._form_template_labelless_with_request_user_for)
 
     def test_labelless_sets_identifier(self):

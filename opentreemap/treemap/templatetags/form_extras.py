@@ -245,20 +245,22 @@ class AbstractNode(template.Node):
                 .filter(name=field_name.replace('udf:', ''))[0]\
                 .datatype_dict
 
-        def _field_type_to_string(model, field_name):
+        def _field_type_and_label(model, field_name, label):
             try:
-                field_type = model._meta.get_field(field_name)\
-                    .get_internal_type()
+                field = model._meta.get_field(field_name)
+                field_type = field.get_internal_type()
                 try:
                     field_type = FieldNode._field_mappings[field_type]
                 except KeyError:
                     raise Exception('This template tag only supports %s not %s'
                                     % (FieldNode._valid_field_keys,
                                        field_type))
+                label = label if label else field.help_text
             except FieldDoesNotExist:
                 field_type = _udf_dict(model, field_name)['type']
+                label = label if label else field_name.replace('udf:', '')
 
-            return field_type
+            return field_type, label
 
         def _field_value_and_choices(model, field_name):
             choices = None
@@ -297,6 +299,8 @@ class AbstractNode(template.Node):
 
         # TODO: Support pluggable formatting instead of unicode()
         display_val = unicode(field_value) if field_value is not None else None
+
+        data_type, label = _field_type_and_label(model, field_name, label)
 
         context['field'] = {
             'label': label,
