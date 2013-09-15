@@ -1,9 +1,10 @@
 {% if field.data_type == 'choice' %}
     <select name="{{ field.identifier }}"
-            value="{{ field.value|default_if_none:"" }}"
             {% if extra %}{{ extra }}{% endif %} />
+            <option value=""></option>
         {% for option in field.choices %}
-            <option value="{{ option }}">
+            <option value="{{ option }}"
+              {% ifequal option field.value %}selected="selected"{% endifequal %}>
                 {{option}}
             </option>
         {% endfor %}
