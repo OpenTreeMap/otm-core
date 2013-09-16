@@ -11,7 +11,7 @@ from treemap.audit import FieldPermission, Role
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.models import User, Plot, InstanceUser
 from treemap.tests import (make_instance, make_observer_user,
-                           make_commander_user)
+                           make_commander_user, make_user)
 
 
 class UserCanReadTagTest(TestCase):
@@ -261,6 +261,9 @@ class InlineFieldTagTests(TestCase):
         self.role = Role(name='role', instance=self.instance, rep_thresh=0)
         self.role.save()
 
+        self.udf_role = Role(name='udf', instance=self.instance, rep_thresh=0)
+        self.udf_role.save()
+
         self.template_dir = tempfile.mkdtemp()
         self.template_file_path = os.path.join(self.template_dir,
                                                "field_template.html")
@@ -278,6 +281,11 @@ class InlineFieldTagTests(TestCase):
             permission_level=FieldPermission.READ_ONLY,
             role=self.role, instance=self.instance)
         udf_perm.save()
+        udf_write_perm, _ = FieldPermission.objects.get_or_create(
+            model_name='Plot', field_name='udf:Test choice',
+            permission_level=FieldPermission.WRITE_DIRECTLY,
+            role=self.udf_role, instance=self.instance)
+        udf_write_perm.save()
 
     def tearDown(self):
         rmtree(self.template_dir)
@@ -399,6 +407,24 @@ class InlineFieldTagTests(TestCase):
         user = make_commander_user(self.instance)
         self.assert_plot_length_context_value(user, 'field.is_editable',
                                               'True')
+
+    def test_udf_sets_is_visible_to_false_for_user_without_perms(self):
+        user = User(username='testuser')
+        self.assert_plot_udf_context_value(user, 'field.is_visible', 'False')
+
+    def test_udf_sets_is_visible_to_true_for_user_with_perms(self):
+        user = make_user(self.instance, username='udf_user',
+                         make_role=lambda _: self.udf_role)
+        self.assert_plot_udf_context_value(user, 'field.is_visible', 'True')
+
+    def test_udf_sets_is_editable_to_false_for_user_without_perms(self):
+        user = User(username='testuser')
+        self.assert_plot_udf_context_value(user, 'field.is_editable', 'False')
+
+    def test_udf_sets_is_editable_to_true_for_user_with_perms(self):
+        user = make_user(self.instance, username='udf_user',
+                         make_role=lambda _: self.udf_role)
+        self.assert_plot_udf_context_value(user, 'field.is_editable', 'True')
 
     def test_sets_label(self):
         user = make_observer_user(self.instance)
