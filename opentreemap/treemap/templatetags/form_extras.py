@@ -1,7 +1,11 @@
 import re
+from functools import partial
+
 from django import template
 from django.template.loader import get_template
 from django.db.models.fields import FieldDoesNotExist
+
+from treemap.util import safe_get_model_class
 
 register = template.Library()
 
@@ -11,8 +15,7 @@ _identifier_regex = re.compile(
     r"^(?:tree|plot|instance|user|species)\.(?:udf\:)?[\w ']+$")
 
 
-@register.tag('field')
-def field_tag(parser, token):
+def inline_edit_tag(tag, Node, parser, token):
     """
     Adds a "field" dictionary to the context with field metadata then
     renders the specified child template, which can use the metadata
@@ -62,14 +65,20 @@ def field_tag(parser, token):
     If the user does not have permission to view plot width, nothing is
     rendered.
 
+    If used by the alternate field name of "create" the tag will not look in
+    the current template context for field values, and instead just give the
+    default for that field. It will also look up min and max for numeric fields
+
+    {% create "Width" from "plot.width" for user withtemplate "field.html" %}
+
     To allow using the tag with models that are not Authorizable, the tag
     supports omitting the "for user" section.
 
     {% field "First" from "user.first_name" withtemplate "template.html" %}
 
-    To allow using the tag with a more complex read-only representation, the
-    label can be omitted, in which case the template is expected to provide
-    a translated label.
+    For simple use cases, the label can be omitted, in which case the
+    translated help_text property (for Django fields) or the name (for UDFs) of
+    the underlying field is provided as the label.
 
     {% field from "user.first_name" withtemplate "template.html" %}
     {% field from "user.first_name" for user withtemplate "template.html" %}
@@ -106,9 +115,8 @@ def field_tag(parser, token):
     """
 
     syntaxErrorWithFormatMessage = template.TemplateSyntaxError(
-        'expected format is: '
-        'field [{label}] from {model.property}'
-        ' [for {user}] withtemplate {template}')
+        'expected format is: %s [{label}] from {model.property} [for {user}]'
+        ' withtemplate {template}' % tag)
 
     try:
         tokens = token.split_contents()
@@ -152,7 +160,7 @@ def field_tag(parser, token):
     else:
         raise syntaxErrorWithFormatMessage
 
-    if field_token != 'field' or from_token != 'from' \
+    if field_token != tag or from_token != 'from' \
     or with_token != 'withtemplate':  # NOQA
         raise syntaxErrorWithFormatMessage
 
@@ -166,7 +174,7 @@ def field_tag(parser, token):
     user = _token_to_variable(user)
     field_template = _token_to_variable(field_template)
 
-    return FieldNode(label, identifier, user, field_template)
+    return Node(label, identifier, user, field_template)
 
 
 def _token_to_variable(token):
@@ -195,7 +203,7 @@ def _resolve_variable(variable, context):
         return variable
 
 
-class FieldNode(template.Node):
+class AbstractNode(template.Node):
     _field_mappings = {
         'IntegerField': 'int',
         'ForeignKey': 'int',
@@ -217,7 +225,7 @@ class FieldNode(template.Node):
         label = _resolve_variable(self.label, context)
         identifier = _resolve_variable(self.identifier, context)
         model_name, field_name = identifier.split('.')
-        model = context[model_name]
+        model = self.get_model(context, model_name)
         user = _resolve_variable(self.user, context)
         field_template = get_template(_resolve_variable(
                                       self.field_template, context))
@@ -302,3 +310,21 @@ class FieldNode(template.Node):
         }
 
         return field_template.render(context)
+
+
+class FieldNode(AbstractNode):
+    def get_model(self, context, model_name):
+        return context[model_name]
+
+
+class CreateNode(AbstractNode):
+    def get_model(self, context, model_name):
+        ModelClass = safe_get_model_class(model_name.capitalize())
+        request = context['request']
+
+        if hasattr(request, 'instance'):
+            return ModelClass(instance=request.instance)
+        return ModelClass()
+
+register.tag('field', partial(inline_edit_tag, 'field', FieldNode))
+register.tag('create', partial(inline_edit_tag, 'create', CreateNode))

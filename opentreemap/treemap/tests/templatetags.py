@@ -252,7 +252,7 @@ class UserContentTagTests(TestCase):
 
 @override_settings(TEMPLATE_LOADERS=(
     'django.template.loaders.filesystem.Loader',))
-class FieldTagTests(TestCase):
+class InlineFieldTagTests(TestCase):
 
     def setUp(self):
         self.instance = make_instance()
@@ -305,6 +305,13 @@ class FieldTagTests(TestCase):
         field_name = '"' + identifier + '"'
         template_text = """{% load form_extras %}""" +\
             """{% field from """ + field_name +\
+            """ withtemplate "field_template.html" %}"""
+        return Template(template_text)
+
+    def _form_template_create(self, identifier):
+        field_name = '"' + identifier + '"'
+        template_text = """{% load form_extras %}""" +\
+            """{% create from """ + field_name +\
             """ withtemplate "field_template.html" %}"""
         return Template(template_text)
 
@@ -438,3 +445,9 @@ class FieldTagTests(TestCase):
         self.assert_plot_length_context_value(
             user, 'field.identifier', 'plot.length',
             self._form_template_labelless_with_request_user_for)
+
+    def test_create_uses_new_model(self):
+        user = make_observer_user(self.instance)
+        self.assert_plot_length_context_value(
+            user, 'field.value', unicode(Plot().length),
+            self._form_template_create)

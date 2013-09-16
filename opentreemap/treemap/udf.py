@@ -18,6 +18,7 @@ from treemap.instance import Instance
 from treemap.audit import (UserTrackable, Audit, UserTrackingException,
                            _reserve_model_id, FieldPermission,
                            AuthorizeException)
+from treemap.util import safe_get_model_class
 
 from django.db.models import Q
 from django.db.models.base import ModelBase
@@ -38,14 +39,7 @@ def safe_get_udf_model_class(model_string):
     if it exists in 'treemap.models' and the class's objects are a
     subtype of UDFModel
     """
-    # All of our models live in 'treemap.models', so
-    # we can start with that namespace
-    models_module = __import__('treemap.models')
-
-    if not hasattr(models_module.models, model_string):
-        raise ValidationError(trans('invalid model type'))
-
-    model_class = getattr(models_module.models, model_string)
+    model_class = safe_get_model_class(model_string)
 
     # It must have be a UDF subclass
     if not isinstance(model_class(), UDFModel):
