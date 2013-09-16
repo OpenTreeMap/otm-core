@@ -62,12 +62,7 @@
 {% block scripts %}
 <script type="text/javascript">
     (function(require) {
-        var $ = require("jquery"),
-        app = require("app");
-
-        $(function(){
-            app.init(otm.settings);
-        });
+        require("searchBar").init(otm.settings);
     })(require);
 </script>
 {% endblock scripts %}

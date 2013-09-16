@@ -8,7 +8,7 @@ var $ = require('jquery'),
     otmTypeahead = require('./otmTypeahead'),
     geocoder = require('./geocoder'),
     geocoderUi = require('./geocoderUi'),
-    searchEventStream = require('./searchEventStream');
+    enterOrClickEventStream = require('./baconUtils').enterOrClickEventStream;
 
 var config,
     mapManager,
@@ -91,9 +91,9 @@ function init(options) {
     });
 
     // Handle setting initial tree position via address search
-    var searchTriggerStream = searchEventStream({
-            searchInputs: addressInput,
-            searchButton: '.geocode'
+    var searchTriggerStream = enterOrClickEventStream({
+            inputs: addressInput,
+            button: '.geocode'
         }),
         addressStream = searchTriggerStream.map(function () {
             return $(addressInput).val();
