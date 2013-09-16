@@ -104,7 +104,7 @@
             {% trans "Canopy Height" as canopy %}
             {% field canopy from "tree.canopy_height" for request.user withtemplate "treemap/field/tr.html" %}
             {% for label, udf in tree.scalar_udf_names_and_fields %}
-              {% field label from udf withtemplate "treemap/field/tr.html" %}
+              {% field label from udf for request.user withtemplate "treemap/field/tr.html" %}
             {% endfor %}
           {% endif %}
         </tbody>
@@ -138,7 +138,7 @@
           {% trans "Read Only" as readonly %}
           {% field readonly from "plot.readonly" for request.user withtemplate "treemap/field/tr.html" %}
           {% for label, udf in plot.scalar_udf_names_and_fields %}
-            {% field label from udf withtemplate "treemap/field/tr.html" %}
+            {% field label from udf for request.user withtemplate "treemap/field/tr.html" %}
           {% endfor %}
         </tbody>
       </table>
