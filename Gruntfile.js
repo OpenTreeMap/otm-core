@@ -109,7 +109,10 @@ module.exports = function(grunt) {
         },
         concat: {
             treemap: {
-                src: ['treemap/css/vendor/*.css'],
+                src: ['treemap/css/vendor/bootstrap.css',
+                      'treemap/css/vendor/bootstrap-responsive.css',
+                      'treemap/css/vendor/fontello.css',
+                      'treemap/css/vendor/openlayers.css'],
                 dest: 'treemap/static/css/vendor.css'
             }
         },
