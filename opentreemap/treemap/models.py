@@ -9,7 +9,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile, File
 from django.contrib.gis.db import models
 from django.db import IntegrityError
 from django.utils import timezone
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext_lazy as trans
 
 from django.contrib.auth.models import AbstractUser
 
@@ -233,8 +233,10 @@ class Plot(UDFModel, Authorizable, Auditable):
     instance = models.ForeignKey(Instance)
     geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
 
-    width = models.FloatField(null=True, blank=True)
-    length = models.FloatField(null=True, blank=True)
+    width = models.FloatField(null=True, blank=True,
+                              help_text=trans("Plot Width"))
+    length = models.FloatField(null=True, blank=True,
+                               help_text=trans("Plot Length"))
 
     address_street = models.CharField(max_length=255, blank=True, null=True)
     address_city = models.CharField(max_length=255, blank=True, null=True)
@@ -318,11 +320,16 @@ class Tree(UDFModel, Authorizable, Auditable):
     import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
 
     readonly = models.BooleanField(default=False)
-    diameter = models.FloatField(null=True, blank=True)
-    height = models.FloatField(null=True, blank=True)
-    canopy_height = models.FloatField(null=True, blank=True)
-    date_planted = models.DateField(null=True, blank=True)
-    date_removed = models.DateField(null=True, blank=True)
+    diameter = models.FloatField(null=True, blank=True,
+                                 help_text=trans("Tree Diameter"))
+    height = models.FloatField(null=True, blank=True,
+                               help_text=trans("Tree Height"))
+    canopy_height = models.FloatField(null=True, blank=True,
+                                      help_text=trans("Canopy Height"))
+    date_planted = models.DateField(null=True, blank=True,
+                                    help_text=trans("Date Planted"))
+    date_removed = models.DateField(null=True, blank=True,
+                                    help_text=trans("Date Removed"))
 
     objects = GeoHStoreManager()
 

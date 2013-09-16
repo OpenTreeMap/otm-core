@@ -4,20 +4,20 @@ var $ = require('jquery'),
     Bacon = require('baconjs'),
     _ = require("underscore");
 
-var config,
-    // Quite manual right now but should be nicer in the future
-    elems = { '#search-species':
-              { 'key': 'species.id',
-                'pred': 'IS' },
-              '#dbh-min':
-              { 'key': 'tree.diameter',
-                'pred': 'MIN' },
-              '#boundary':
-              { 'key': 'plot.geom',
-                'pred': 'IN_BOUNDARY' },
-              '#dbh-max':
-              { 'key': 'tree.diameter',
-                'pred': 'MAX' }};
+var config;
+
+exports.buildElems = function (inputSelector) {
+    return _.object(_.map($(inputSelector), function(el) {
+        var $el = $(el),
+            name = $el.attr('name'),
+            type = $el.attr('data-search-type'),
+            selector = inputSelector + '[name="' + name + '"][data-search-type="' + type + '"]';
+        return[selector, {
+            'key': name,
+            'pred': type
+        }];
+    }));
+};
 
 function executeSearch(config, search_query) {
     var search = $.ajax({
@@ -40,7 +40,7 @@ function updateSearchResults(newMarkup) {
     $('#benefit-values').html(benefitsMarkup);
 }
 
-function applySearchToDom(search) {
+function applySearchToDom(elems, search) {
     _.each(elems, function(v, k) {
         var restoreTarget = v['restore-to'] || v.key;
         var pred = search[restoreTarget];
@@ -58,11 +58,11 @@ function applySearchToDom(search) {
 
 exports.applySearchToDom = applySearchToDom;
 
-exports.reset = function () {
-    applySearchToDom({});
+exports.reset = function (elems) {
+    applySearchToDom(elems, {});
 };
 
-exports.buildSearch = function () {
+exports.buildSearch = function (elems) {
     return _.reduce(elems, function(preds, key_and_pred, id) {
         var val = $(id).val(),
             pred = {};

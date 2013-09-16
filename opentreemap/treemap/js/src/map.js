@@ -1,6 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('underscore'),
     Bootstrap = require('bootstrap'),  // for $(...).collapse()
     Bacon = require('baconjs'),
     U = require('./utility'),
@@ -8,99 +9,45 @@ var $ = require('jquery'),
 
     mapManager = require('./mapManager'),
     Search = require('./search'),
-    searchEventStream = require('./searchEventStream'),
-    otmTypeahead = require('./otmTypeahead'),
+    searchBar = require('./searchBar'),
     modes = require('./modeManagerForMapPage'),
     geocoder = require('./geocoder'),
     geocoderUi = require('./geocoderUi'),
     BU = require('./baconUtils');
 
-var app = {
-    initSearchUi: function(config) {
-        otmTypeahead.create({
-            name: "species",
-            url: config.instance.url + "species",
-            input: "#species-typeahead",
-            template: "#species-element-template",
-            hidden: "#search-species",
-            reverse: "id"
-        });
-        otmTypeahead.create({
-            name: "boundaries",
-            url: config.instance.url + "boundaries",
-            input: "#boundary-typeahead",
-            template: "#boundary-element-template",
-            hidden: "#boundary",
-            reverse: "id"
-        });
-        $("#search-advanced").on("click", function() {
-            $("#advanced-search-pane").toggle(0); // Show/hide with 0 animation time
-        });
-    },
+// Map-page specific search code here
+var unmatchedBoundarySearchValue = function() {
+    return $('#boundary-typeahead').attr('data-unmatched');
+};
 
-    unmatchedBoundarySearchValue: function() {
-        return $('#boundary-typeahead').attr('data-unmatched');
-    },
-
-    resetEventStream: function() {
-        return $("#search-reset").asEventStream("click");
-    },
-
-    searchEventStream: function() {
-        return searchEventStream({
-            searchInputs: 'input[data-class="search"]',
-            searchButton: '#perform-search'
-        });
-    },
-
-    redirectToSearchPage: function (config, query) {
-        query = U.getUpdatedQueryString('q', JSON.stringify(query));
-
-        window.location.href =
-            config.instance.url + 'map/?' + query;
-    },
-
-    showGeocodeError: function (e) {
-        if (e.status && e.status === 404) {
-            // TODO: Toast
-            window.alert('There were no results matching your search.');
-        } else {
-            // TODO: Toast
-            window.alert('There was a problem running your search.');
-        }
+var showGeocodeError = function (e) {
+    if (e.status && e.status === 404) {
+        // TODO: Toast
+        window.alert('There were no results matching your search.');
+    } else {
+        // TODO: Toast
+        window.alert('There was a problem running your search.');
     }
 };
 
 module.exports = {
-    init: function (config) {
-        app.resetEventStream()
-            .onValue(Search.reset);
-
-        app.initSearchUi(config);
-
-        app.searchEventStream()
-            .map(Search.buildSearch)
-            .onValue(app.redirectToSearchPage, config);
-
-        $('.addBtn').attr('href', config.instance.url + 'map/#addtree');
-    },
-
     initMapPage: function (config) {
-        var searchEventStream = app.searchEventStream(),
-            resetStream = app.resetEventStream();
+        var searchEventStream = searchBar.searchEventStream(),
+            resetStream = searchBar.resetEventStream(),
+            elems = searchBar.getElems();
 
         // If a search is submitted with a boundary value that does
         // not match any autocomplete value, run it through the geocoder
-        var geocodeResponseStream = 
+        var geocodeResponseStream =
             geocoder(config).geocodeStream(
-                searchEventStream.map(app.unmatchedBoundarySearchValue)
+                searchEventStream.map(unmatchedBoundarySearchValue)
                                  .filter(BU.isDefinedNonEmpty)
             );
 
         var geocodedLocationStream = geocoderUi(
             {
                 geocodeResponseStream: geocodeResponseStream,
-                cancelGeocodeSuggestionStream: app.resetEventStream(),
+                cancelGeocodeSuggestionStream: searchBar.resetEventStream(),
                 resultTemplate: '#geocode-results-template',
                 addressInput: '#boundary-typeahead',
                 displayedResults: '.search-block [data-class="geocode-result"]'
@@ -114,12 +61,12 @@ module.exports = {
         });
 
         // Let the user know if there was a problem geocoding
-        geocodeResponseStream.onError(app.showGeocodeError);
+        geocodeResponseStream.onError(showGeocodeError);
 
         // Set up cross-site forgery protection
         $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
-        app.initSearchUi(config);
+        searchBar.initSearchUi(config);
 
         mapManager.init({
             config: config,
@@ -156,10 +103,10 @@ module.exports = {
 
         var builtSearchEvents = searchEventStream
                 .merge(resetStream)
-                .map(Search.buildSearch)
+                .map(Search.buildSearch, elems)
                 .merge(triggeredQueryBus);
 
-        triggeredQueryBus.onValue(Search.applySearchToDom);
+        triggeredQueryBus.onValue(Search.applySearchToDom, elems);
 
         Search.init(builtSearchEvents, config, mapManager.setFilter);
 

@@ -738,14 +738,7 @@ def _get_map_view_context(request, instance_id):
         (trans('Trunk Diameter (inches)'), 'tree.diameter'),
         (trans('Tree Height (feet)'), 'tree.height')
     ]
-    # Adding a tree uses the "field" template tag, which expects a "tree"
-    # context object to grab field values from. Since we're adding trees there
-    # are no values to grab, hence the empty Tree instance.
-    return {
-        'request': request,
-        'tree': Tree(),
-        'fields_for_add_tree': fields_for_add_tree
-    }
+    return {'fields_for_add_tree': fields_for_add_tree}
 
 
 def instance_user_view(request, instance_url_name, username):

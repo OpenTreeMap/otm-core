@@ -1,0 +1,26 @@
+{% if field.data_type == 'choice' %}
+    <select name="{{ field.identifier }}"
+            {% if extra %}{{ extra }}{% endif %} />
+            <option value=""></option>
+        {% for option in field.choices %}
+            <option value="{{ option }}"
+              {% ifequal option field.value %}selected="selected"{% endifequal %}>
+                {{option}}
+            </option>
+        {% endfor %}
+    </select>
+{% elif field.data_type == 'bool' %}
+    <input name="{{ field.identifier }}"
+          {% if field.value %}
+           checked="checked"
+          {% endif %}
+           type="checkbox"
+           value="{{ field.value }}"
+           {% if extra %}{{ extra }}{% endif %} />
+{% else %}
+    <input name="{{ field.identifier }}"
+           type="text"
+           value="{{ field.value|default_if_none:"" }}"
+           {% if extra %}{{ extra }}{% endif %} />
+{% endif %}
+

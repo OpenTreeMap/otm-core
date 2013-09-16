@@ -8,10 +8,6 @@
   <tr data-class="display">
     <td>{% trans "Scientific Name" %}</td>
     <td>
-      <input type="hidden"
-             value="{{ field.value.id }}"
-             data-typeahead-restore="{{ field.identifier}}"
-             data-datum="id" />
       <em data-typeahead="{{ field.identifier }}"
           data-datum="scientific_name">{{ field.value.scientific_name }}</em>
     </td>
@@ -21,20 +17,11 @@
       data-class="edit">
     <td>{% trans "Species" %}</td>
     <td>
-      <input type="hidden"
-             data-typeahead-hidden
-             id="{{ field.label }}-hidden"
-             name="{{ field.identifier }}"
-             value="{{ field.value.id }}"/>
-      <input type="text"
-             data-typeahead-input="{{ field.identifier }}"
-             id="{{ field.label }}-typeahead"
-             value="{{ field.value.display_name }}"/>
+      {% include "treemap/field/typeahead.html" %}
     </td>
     <td class="text-error"
-        data-field="{{ field.identifier }}"
-        data-class="error"
-        style="display: none;">
+        style="display: none;"
+        {% include "treemap/field/attrs.html" with class="error"%}>
     </td>
   </tr>
   {% endif %}

@@ -16,8 +16,29 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy as trans
 
-from treemap.models import Instance
+from treemap.instance import Instance
+
+
+def safe_get_model_class(model_string):
+    """
+    In a couple of cases we want to be able to convert a string
+    into a valid django model class. For instance, if we have
+    'Plot' we want to get the actual class for 'treemap.models.Plot'
+    in a safe way.
+
+    This function returns the class represented by the given model
+    if it exists in 'treemap.models'
+    """
+    # All of our models live in 'treemap.models', so
+    # we can start with that namespace
+    models_module = __import__('treemap.models')
+
+    if not hasattr(models_module.models, model_string):
+        raise ValidationError(trans('invalid model type'))
+
+    return getattr(models_module.models, model_string)
 
 
 class HttpBadRequestException(Exception):
