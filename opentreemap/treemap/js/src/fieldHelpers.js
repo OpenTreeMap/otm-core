@@ -10,6 +10,9 @@ exports.getField = function getField($fields, name) {
 };
 
 exports.formToDictionary = function ($form, $editFields) {
+    var isTypeaheadHiddenField = function(name) {
+        $form.find('[name="' + name + '"]').is('[data-typeahead-hidden]');
+    };
     var result = {};
     _.each($form.serializeArray(), function(item) {
         var type = exports.getField($editFields, item.name).data('type');
@@ -18,8 +21,8 @@ exports.formToDictionary = function ($form, $editFields) {
         } else if (item.value === '' && (type === 'int' || type === 'float')) {
             // convert empty numeric fields to null
             result[item.name] = null;
-        } else if (item.value === '' && item.name === 'tree.species') {
-            // convert empty species id strings to null
+        } else if (item.value === '' && isTypeaheadHiddenField(name)) {
+            // convert empty foreign key id strings to null
             result[item.name] = null;
         } else {
             result[item.name] = item.value;
