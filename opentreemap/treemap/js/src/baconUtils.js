@@ -19,7 +19,7 @@ function keyCodeIs (keyCodes) {
 }
 exports.keyCodeIs = keyCodeIs;
 
-exports.isEnterKey = keyCodeIs([13]);
+var isEnterKey = exports.isEnterKey = keyCodeIs([13]);
 exports.isEscKey = keyCodeIs([27]);
 
 var isDefined = exports.isDefined = function (value) {
@@ -61,4 +61,19 @@ exports.jsonRequest = function(verb, url) {
 
         return Bacon.fromPromise(req);
     };
+};
+
+exports.enterOrClickEventStream = function(options) {
+    var inputs = $(options.inputs),
+        button = $(options.button),
+        enterKeyPressStream = inputs
+            .asEventStream("keyup")
+            .filter(isEnterKey),
+
+        performSearchClickStream = button.asEventStream("click"),
+
+        triggerEventStream = enterKeyPressStream.merge(
+            performSearchClickStream);
+
+    return triggerEventStream;
 };

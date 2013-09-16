@@ -22,9 +22,10 @@ module.exports = function(grunt) {
      * are the path to a file, relative to `opentreemap`
      */
     function getAliases() {
-        var aliases = ['treemap/js/src/app.js:app',
+        var aliases = ['treemap/js/src/map.js:map',
                        'treemap/js/src/user.js:user',
                        'treemap/js/src/plot.js:plot',
+                       'treemap/js/src/searchBar.js:searchBar',
                        'treemap/js/src/csrf.js:csrf',
                        'treemap/js/src/baconUtils:BaconUtils',
                        'treemap/js/src/openLayersMapEventStream:' +

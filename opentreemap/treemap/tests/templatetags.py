@@ -11,7 +11,7 @@ from treemap.audit import FieldPermission, Role
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.models import User, Plot, InstanceUser
 from treemap.tests import (make_instance, make_observer_user,
-                           make_commander_user)
+                           make_commander_user, make_user)
 
 
 class UserCanReadTagTest(TestCase):
@@ -252,12 +252,17 @@ class UserContentTagTests(TestCase):
 
 @override_settings(TEMPLATE_LOADERS=(
     'django.template.loaders.filesystem.Loader',))
-class FieldTagTests(TestCase):
+class InlineFieldTagTests(TestCase):
 
     def setUp(self):
         self.instance = make_instance()
+        self.instance.config['advanced_search_fields'] = {}
+        self.instance.save()
         self.role = Role(name='role', instance=self.instance, rep_thresh=0)
         self.role.save()
+
+        self.udf_role = Role(name='udf', instance=self.instance, rep_thresh=0)
+        self.udf_role.save()
 
         self.template_dir = tempfile.mkdtemp()
         self.template_file_path = os.path.join(self.template_dir,
@@ -276,6 +281,11 @@ class FieldTagTests(TestCase):
             permission_level=FieldPermission.READ_ONLY,
             role=self.role, instance=self.instance)
         udf_perm.save()
+        udf_write_perm, _ = FieldPermission.objects.get_or_create(
+            model_name='Plot', field_name='udf:Test choice',
+            permission_level=FieldPermission.WRITE_DIRECTLY,
+            role=self.udf_role, instance=self.instance)
+        udf_write_perm.save()
 
     def tearDown(self):
         rmtree(self.template_dir)
@@ -308,6 +318,21 @@ class FieldTagTests(TestCase):
             """ withtemplate "field_template.html" %}"""
         return Template(template_text)
 
+    def _form_template_create(self, identifier):
+        field_name = '"' + identifier + '"'
+        template_text = """{% load form_extras %}""" +\
+            """{% create from """ + field_name +\
+            """ withtemplate "field_template.html" %}"""
+        return Template(template_text)
+
+    def _form_template_search(self, identifier):
+        field_name = '"' + identifier + '"'
+        template_text = """{% load form_extras %}""" +\
+            """{% search from """ + field_name +\
+            """ for request.user in request.instance """ +\
+            """ withtemplate "field_template.html" %}"""
+        return Template(template_text)
+
     def _write_field_template(self, text):
         with open(self.template_file_path, 'w') as f:
                 f.write(text)
@@ -322,7 +347,7 @@ class FieldTagTests(TestCase):
         self._write_field_template("{{" + name + "}}")
         with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
             content = template.render(Context({
-                'request': {'user': user},
+                'request': {'user': user, 'instance': self.instance},
                 'plot': plot})).strip()
             self.assertEqual(content, value)
 
@@ -383,6 +408,24 @@ class FieldTagTests(TestCase):
         self.assert_plot_length_context_value(user, 'field.is_editable',
                                               'True')
 
+    def test_udf_sets_is_visible_to_false_for_user_without_perms(self):
+        user = User(username='testuser')
+        self.assert_plot_udf_context_value(user, 'field.is_visible', 'False')
+
+    def test_udf_sets_is_visible_to_true_for_user_with_perms(self):
+        user = make_user(self.instance, username='udf_user',
+                         make_role=lambda _: self.udf_role)
+        self.assert_plot_udf_context_value(user, 'field.is_visible', 'True')
+
+    def test_udf_sets_is_editable_to_false_for_user_without_perms(self):
+        user = User(username='testuser')
+        self.assert_plot_udf_context_value(user, 'field.is_editable', 'False')
+
+    def test_udf_sets_is_editable_to_true_for_user_with_perms(self):
+        user = make_user(self.instance, username='udf_user',
+                         make_role=lambda _: self.udf_role)
+        self.assert_plot_udf_context_value(user, 'field.is_editable', 'True')
+
     def test_sets_label(self):
         user = make_observer_user(self.instance)
         self.assert_plot_length_context_value(user, 'field.label',
@@ -427,10 +470,10 @@ class FieldTagTests(TestCase):
         user = make_observer_user(self.instance)
         self.assert_plot_length_context_value(user, 'field.choices', 'None')
 
-    def test_labelless_sets_label_to_none(self):
+    def test_labelless_sets_label_to_default(self):
         user = make_observer_user(self.instance)
         self.assert_plot_length_context_value(
-            user, 'field.label', 'None',
+            user, 'field.label', Plot._meta.get_field('length').help_text,
             self._form_template_labelless_with_request_user_for)
 
     def test_labelless_sets_identifier(self):
@@ -438,3 +481,72 @@ class FieldTagTests(TestCase):
         self.assert_plot_length_context_value(
             user, 'field.identifier', 'plot.length',
             self._form_template_labelless_with_request_user_for)
+
+    def test_create_uses_new_model(self):
+        user = make_observer_user(self.instance)
+        self.assert_plot_length_context_value(
+            user, 'field.value', unicode(Plot().length),
+            self._form_template_create)
+
+    def test_search_uses_new_model(self):
+        user = make_observer_user(self.instance)
+        self.assert_plot_length_context_value(
+            user, 'field.value', unicode(Plot().length),
+            self._form_template_search)
+
+    def test_search_adds_field_config(self):
+        user = make_observer_user(self.instance)
+        self.instance.config['advanced_search_fields'] = [
+            {'identifier': 'plot.length',
+             'label': 'testing',
+             'search_type': 'range',
+             'default': [0, 100]}
+        ]
+        self.assert_plot_length_context_value(
+            user, 'field.identifier', 'plot.length',
+            self._form_template_search)
+
+        self.assert_plot_length_context_value(
+            user, 'field.label', 'testing',
+            self._form_template_search)
+
+        self.assert_plot_length_context_value(
+            user, 'field.search_type', 'range',
+            self._form_template_search)
+
+        self.assert_plot_length_context_value(
+            user, 'field.default', '[0, 100]',
+            self._form_template_search)
+
+    def test_search_gets_default_label_when_none_given(self):
+        user = make_observer_user(self.instance)
+        self.instance.config['advanced_search_fields'] = [
+            {'identifier': 'plot.length',
+             'label': None,
+             'search_type': 'range',
+             'default': [0, 100]}
+        ]
+        self.assert_plot_length_context_value(
+            user, 'field.label',
+            unicode(Plot._meta.get_field('length').help_text),
+            self._form_template_search)
+
+    def test_search_fields_get_added_only_if_identifier_matches(self):
+        user = make_observer_user(self.instance)
+        self.instance.config['advanced_search_fields'] = [
+            {'identifier': 'plot.width',
+             'label': 'testing',
+             'search_type': 'range',
+             'default': [0, 100]}
+        ]
+        self.assert_plot_length_context_value(
+            user, 'field.identifier', 'plot.length',
+            self._form_template_search)
+
+        self.assert_plot_length_context_value(
+            user, 'field.search_type', '',
+            self._form_template_search)
+
+        self.assert_plot_length_context_value(
+            user, 'field.default', '',
+            self._form_template_search)

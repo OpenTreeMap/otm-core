@@ -125,6 +125,16 @@ class Instance(models.Model):
     def center_lat_lng(self):
         return self.center.transform(4326, clone=True)
 
+    @property
+    def advanced_search_fields(self):
+        fields = (self.config['advanced_search_fields']
+                  if 'advanced_search_fields' in self.config else [])
+        return [{'identifier': field['identifier'],
+                 'search_type': field.get('search_type', 'IS'),
+                 'default': field.get('default'),
+                 'label': field.get('label')}
+                for field in fields]
+
     def is_accessible_by(self, user):
         try:
             if self.is_public:
