@@ -32,165 +32,153 @@
   </div>
 </div>
 
-<div class="content tree-details">
-
-  <!-- Left Column -->
-  <div class="left">
-    {% with photo=tree.most_recent_photo %}
-    {% if photo %}
-    <img src="{{ photo.thumbnail.url }}">
-    {% else %}
-    <img src="{{ STATIC_URL }}img/tree.png">
-    {% endif %}
-    {% endwith %}
-    <a id="toggleAddPhotoModal" data-modal="#addPhotoModal" class="btn btn-mini add-photos">{% trans "Add Photos" %}</a>
-    <hr>
-    <a class="btn add-favorite" href="javascript:;">{% trans "Add to Favorites" %}</a>
-    <hr>
-    <h3>{% trans "Latest Update" %}</h3>
-    <p>{{ recent_activity.0.short_descr }}</p>
-    <h5>20% {% trans "Complete" %}</h5>
-    <div class="progress">
-      <div class="bar" style="width: 20%;"></div>
-    </div>
-    <hr>
-    <h3>{% trans "Recent Edits" %}</h3>
-    <ul>
-      {% for audit in recent_activity %}
-      <li>{{ audit.short_descr }}</li>
-      {% endfor %}
-    </ul>
-  </div>
-
-  <!-- Center Column -->
-  <div class="center">
-    {% if errors %}
-    <div class="error">
-      <h1>Errors</h1>
-      {% for field, msg in errors.iteritems %}
-      <li>{{ msg }}</li>
-      {% endfor %}
-    </div>
-    {% endif %}
-    <h1>{{ tree.species.common_name }}</h1>
-    <h2>{{ tree.species.scientific_name }}</h2>
-    <h3>{{ plot.address_full }}</h3>
-    <form id="plot-form">
-      <a href="javascript:;" id="edit-plot"
-         data-class="display" class="btn">{% trans "Edit" %}</a>
-      <a href="javascript:;" id="save-edit-plot"
-         data-class="edit" class="btn" style="display: none;">{% trans "Save" %}</a>
-      <a href="javascript:;" id="cancel-edit-plot"
-         data-class="edit" class="btn" style="display: none;">{% trans "Cancel" %}</a>
-      <!-- General Tree Information -->
-      <table class="table table-striped">
-        <h5>{% trans "General Tree Information" %}</h5>
-        <tbody>
-          {% usercanread tree "id" as value %}
-          <tr>
-            <td>{% trans "Tree Number" %}</td>
-            <td>
-              <a href="{% url 'tree_detail' instance_url_name=request.instance.url_name plot_id=plot.pk tree_id=tree.pk %}">{{ value }}</a>
-            </td>
-          </tr>
-          {% endusercanread %}
-          {% if tree %}
-            {# The "plot-species" label is used as an id prefix in "field_species_td.html" #}
-            {% field "plot-species" from "tree.species" for request.user withtemplate "treemap/field_species_td.html" %}
-            {% trans "Trunk Diameter" as diameter %}
-            {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field_td.html" %}
-            {% trans "Tree Height" as height %}
-            {% field height from "tree.height" for request.user withtemplate "treemap/field_td.html" %}
-            {% trans "Canopy Height" as canopy %}
-            {% field canopy from "tree.canopy_height" for request.user withtemplate "treemap/field_td.html" %}
-            {% for label, udf in tree.scalar_udf_names_and_fields %}
-              {% field label from udf withtemplate "treemap/field_td.html" %}
-            {% endfor %}
-          {% endif %}
-        </tbody>
-      </table>
-
-      {% if tree %}
-      {% for udf in tree.get_user_defined_fields %}
-        {% if udf.iscollection %}
-          {% include "treemap/partials/collectionudf.html" with udf=udf %}
-        {% endif %}
-      {% endfor %}
+<div class="image-background"></div>
+<div class="container contained tree-details">
+  <div class="row">
+    <div class="span3">
+      {% with photo=tree.most_recent_photo %}
+      {% if photo %}
+      <img src="{{ photo.thumbnail.url }}">
+      {% else %}
+      <img src="{{ STATIC_URL }}img/tree.png">
       {% endif %}
-
+      {% endwith %}
+      <a id="toggleAddPhotoModal" data-modal="#addPhotoModal" class="btn btn-mini add-photos">{% trans "Add Photos" %}</a>
       <hr>
+      <a class="btn add-favorite" href="javascript:;">{% trans "Add to Favorites" %}</a>
+      <hr>
+      <h3>{% trans "Latest Update" %}</h3>
+      <p>{{ recent_activity.0.short_descr }}</p>
+      <h5>20% {% trans "Complete" %}</h5>
+      <div class="progress">
+        <div class="bar" style="width: 20%;"></div>
+      </div>
+      <hr>
+      <h3>{% trans "Recent Edits" %}</h3>
+      <ul>
+        {% for audit in recent_activity %}
+        <li>{{ audit.short_descr }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="span6">
+      {% if errors %}
+      <div class="error">
+        <h1>Errors</h1>
+        {% for field, msg in errors.iteritems %}
+        <li>{{ msg }}</li>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <h1>{{ tree.species.common_name }}</h1>
+      <h2>{{ tree.species.scientific_name }}</h2>
+      <h3>{{ plot.address_full }}</h3>
+      <form id="plot-form">
+        <a href="javascript:;" id="edit-plot"
+           data-class="display" class="btn">{% trans "Edit" %}</a>
+        <a href="javascript:;" id="save-edit-plot"
+           data-class="edit" class="btn" style="display: none;">{% trans "Save" %}</a>
+        <a href="javascript:;" id="cancel-edit-plot"
+           data-class="edit" class="btn" style="display: none;">{% trans "Cancel" %}</a>
 
+        <!-- General Tree Information -->
+        <table class="table table-striped">
+          <h5>{% trans "General Tree Information" %}</h5>
+          <tbody>
+            {% usercanread tree "id" as value %}
+            <tr>
+              <td>{% trans "Tree Number" %}</td>
+              <td>
+                <a href="{% url 'tree_detail' instance_url_name=request.instance.url_name plot_id=plot.pk tree_id=tree.pk %}">{{ value }}</a>
+              </td>
+            </tr>
+            {% endusercanread %}
+            {% if tree %}
+              {# The "plot-species" label is used as an id prefix in "field_species_td.html" #}
+              {% field "plot-species" from "tree.species" for request.user withtemplate "treemap/field_species_td.html" %}
+              {% trans "Trunk Diameter" as diameter %}
+              {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field_td.html" %}
+              {% trans "Tree Height" as height %}
+              {% field height from "tree.height" for request.user withtemplate "treemap/field_td.html" %}
+              {% trans "Canopy Height" as canopy %}
+              {% field canopy from "tree.canopy_height" for request.user withtemplate "treemap/field_td.html" %}
+              {% for label, udf in tree.scalar_udf_names_and_fields %}
+                {% field label from udf withtemplate "treemap/field_td.html" %}
+              {% endfor %}
+            {% endif %}
+          </tbody>
+        </table>
+
+        {% if tree %}
+        {% for udf in tree.get_user_defined_fields %}
+          {% if udf.iscollection %}
+            {% include "treemap/partials/collectionudf.html" with udf=udf %}
+          {% endif %}
+        {% endfor %}
+        {% endif %}
+
+          <table class="table table-striped">
+            <h5>{% trans "General Plot Information" %}</h5>
+            <tbody>
+              {% trans "Width" as width %}
+              {% field width from "plot.width" for request.user withtemplate "treemap/field_td.html" %}
+              {% trans "Length" as len %}
+              {% field len from "plot.length" for request.user withtemplate "treemap/field_td.html" %}
+              {% trans "Address" as street %}
+              {% field street from "plot.address_street" for request.user withtemplate "treemap/field_td.html" %}
+              {% trans "City" as city %}
+              {% field city from "plot.address_city" for request.user withtemplate "treemap/field_td.html" %}
+              {% trans "Postal Code" as zip %}
+              {% field zip from "plot.address_zip" for request.user withtemplate "treemap/field_td.html" %}
+              {% trans "Original Owner Id" as oid %}
+              {% field oid from "plot.owner_orig_id" for request.user withtemplate "treemap/field_td.html" %}
+              {% trans "Read Only" as readonly %}
+              {% field readonly from "plot.readonly" for request.user withtemplate "treemap/field_td.html" %}
+              {% for label, udf in plot.udf_names_and_fields %}
+                {% field label from udf withtemplate "treemap/field_td.html" %}
+              {% endfor %}
+            </tbody>
+          </table>
+        <form>
+
+        <a href="javascript:;" class="btn" style="display:none" id="edit-plot-location">Move Tree</a>
+        <a href="javascript:;" class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</a>
+        <div id="map" class="map-small"></div>
+
+        <hr>
+
+      <!-- Yearly Ecosystem Services -->
+      <h5>{% trans "Yearly Ecosystem Services" %}</h5>
+      {% if benefits %}
       <table class="table table-striped">
-        <h5>{% trans "General Plot Information" %}</h5>
         <tbody>
-          {% trans "Width" as width %}
-          {% field width from "plot.width" for request.user withtemplate "treemap/field_td.html" %}
-          {% trans "Length" as len %}
-          {% field len from "plot.length" for request.user withtemplate "treemap/field_td.html" %}
-          {% trans "Address" as street %}
-          {% field street from "plot.address_street" for request.user withtemplate "treemap/field_td.html" %}
-          {% trans "City" as city %}
-          {% field city from "plot.address_city" for request.user withtemplate "treemap/field_td.html" %}
-          {% trans "Postal Code" as zip %}
-          {% field zip from "plot.address_zip" for request.user withtemplate "treemap/field_td.html" %}
-          {% trans "Original Owner Id" as oid %}
-          {% field oid from "plot.owner_orig_id" for request.user withtemplate "treemap/field_td.html" %}
-          {% trans "Read Only" as readonly %}
-          {% field readonly from "plot.readonly" for request.user withtemplate "treemap/field_td.html" %}
-          {% for label, udf in plot.scalar_udf_names_and_fields %}
-            {% field label from udf withtemplate "treemap/field_td.html" %}
-          {% endfor %}
+        {% for benefit in benefits %}
+          <tr>
+            <td>{{ benefit.label }}</td>
+            <td>{{ benefit.value }} {{ benefit.unit}}</td>
+            <td>{{ currency_symbol }}{{ benefit.currency_saved }}</td>
+          </tr>
+        {% endfor %}
         </tbody>
       </table>
-
-      {% for udf in plot.get_user_defined_fields %}
-        {% if udf.iscollection %}
-          {% include "treemap/partials/collectionudf.html" with udf=udf %}
-        {% endif %}
-      {% endfor %}
-    <form>
-
-    <a href="javascript:;" class="btn" style="display:none" id="edit-plot-location">Move Tree</a>
-    <a href="javascript:;" class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</a>
-    <div id="map" class="map-small"></div>
-
-    <hr>
-
-    <!-- Yearly Ecosystem Services -->
-    <h5>{% trans "Yearly Ecosystem Services" %}</h5>
-    {% if benefits %}
-    <table class="table table-striped">
-      <tbody>
-      {% for benefit in benefits %}
-        <tr>
-          <td>{{ benefit.label }}</td>
-          <td>{{ benefit.value }} {{ benefit.unit}}</td>
-          <td>{{ currency_symbol }}{{ benefit.currency_saved }}</td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div>
-      {% trans "Add the diameter of the tree and select a species to calculate the yearly ecosystem services." %}
+      {% else %}
+      <div>
+        {% trans "Add the diameter of the tree and select a species to calculate the yearly ecosystem services." %}
+      </div>
     </div>
-    {% endif %}
-    <hr>
+    <div class="span3">
+      <h3>{% trans "Commments" %}</h3>
+
+      {% if request.user.is_authenticated %}
+        <form>
+          <textarea rows=8></textarea><br>
+          <button type="submit" class="btn">{% trans "Submit" %}</button>
+        </form>
+      {% else %}
+        <p><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a> {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "log in" %}</a> {% trans "to add comments" %}</p>
+      {% endif %}
+    </div>
   </div>
-
-  <div class="right">
-    <h3>{% trans "Commments" %}</h3>
-
-    {% if request.user.is_authenticated %}
-      <form>
-        <textarea rows=8></textarea><br>
-        <button type="submit" class="btn">{% trans "Submit" %}</button>
-      </form>
-    {% else %}
-      <p><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a> {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "log in" %}</a> {% trans "to add comments" %}</p>
-    {% endif %}
-  </div>
-
 </div>
 {% endblock content %}
 {% block scripts %}
