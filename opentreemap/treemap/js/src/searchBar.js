@@ -5,6 +5,7 @@
 // the input boxes or clicking the "search" button.
 
 var $ = require('jquery'),
+    _ = require('underscore'),
     Bacon = require('baconjs'),
     otmTypeahead = require('./otmTypeahead'),
     U = require('./utility'),
@@ -52,14 +53,18 @@ module.exports = exports = {
             config.instance.url + 'map/?' + query;
     },
 
+    getElems: _.partial(Search.buildElems, '[data-search-type]'),
+
     init: function (config) {
+        var elems = exports.getElems();
+
         exports.resetEventStream()
-               .onValue(Search.reset);
+               .onValue(Search.reset, elems);
 
         exports.initSearchUi(config);
 
         exports.searchEventStream()
-           .map(Search.buildSearch)
+           .map(Search.buildSearch, elems)
            .onValue(exports.redirectToSearchPage, config);
 
         $('.addBtn').attr('href', config.instance.url + 'map/#addtree');

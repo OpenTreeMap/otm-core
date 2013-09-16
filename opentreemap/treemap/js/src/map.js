@@ -1,6 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('underscore'),
     Bootstrap = require('bootstrap'),  // for $(...).collapse()
     Bacon = require('baconjs'),
     U = require('./utility'),
@@ -32,7 +33,8 @@ var showGeocodeError = function (e) {
 module.exports = {
     initMapPage: function (config) {
         var searchEventStream = searchBar.searchEventStream(),
-            resetStream = searchBar.resetEventStream();
+            resetStream = searchBar.resetEventStream(),
+            elems = searchBar.getElems();
 
         // If a search is submitted with a boundary value that does
         // not match any autocomplete value, run it through the geocoder
@@ -101,10 +103,10 @@ module.exports = {
 
         var builtSearchEvents = searchEventStream
                 .merge(resetStream)
-                .map(Search.buildSearch)
+                .map(Search.buildSearch, elems)
                 .merge(triggeredQueryBus);
 
-        triggeredQueryBus.onValue(Search.applySearchToDom);
+        triggeredQueryBus.onValue(Search.applySearchToDom, elems);
 
         Search.init(builtSearchEvents, config, mapManager.setFilter);
 
