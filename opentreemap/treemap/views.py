@@ -291,7 +291,7 @@ def update_plot_and_tree(request, plot):
             if udf_name in [field.name
                             for field
                             in model.get_user_defined_fields()]:
-                model.apply_change(attr[4:], val)
+                model.udfs[udf_name] = val
             else:
                 raise KeyError('Invalid UDF %s' % attr)
         else:

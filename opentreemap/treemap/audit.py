@@ -108,12 +108,19 @@ def add_all_permissions_on_model_to_role(
 
     Specifiy an instance to grab UDFs as well
     """
+    from udf import UserDefinedFieldDefinition
+
     mobj = Model()
     if instance:
         mobj.instance = instance
 
     model_name = mobj._model_name
-    model_fields = mobj.tracked_fields
+    udfs = [udf.canonical_name for udf in
+            UserDefinedFieldDefinition.objects.filter(
+                instance=instance, model_type=model_name)]
+
+    model_fields = set(mobj.tracked_fields + udfs)
+
     for field_name in model_fields:
         FieldPermission.objects.get_or_create(
             model_name=model_name,
@@ -529,7 +536,8 @@ class Authorizable(UserTrackable):
         A user is able to delete an object if they have all
         field permissions on a model.
         """
-        return self._get_perms_set(user) == set(self.tracked_fields)
+        #TODO: This isn't checking for UDFs... should it?
+        return self._get_perms_set(user) >= set(self.tracked_fields)
 
     def _user_can_create(self, user, direct_only=False):
         """

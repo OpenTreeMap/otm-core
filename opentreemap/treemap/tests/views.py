@@ -391,7 +391,9 @@ class PlotUpdateTest(unittest.TestCase):
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
         add_field_permissions(self.instance, self.user,
-                              'Plot', ['udf:Test choice'])
+                              'Plot', ['udf:Test choice', 'udf:Test col'])
+        add_field_permissions(self.instance, self.user,
+                              'Tree', ['udf:Test col'])
 
         self.p = Point(-7615441.0, 5953519.0)
 
@@ -402,6 +404,28 @@ class PlotUpdateTest(unittest.TestCase):
                                  'choices': ['a', 'b', 'c']}),
             iscollection=False,
             name='Test choice')
+
+        self.col_field_plot = UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps([{'name': 'pick',
+                                  'type': 'choice',
+                                  'choices': ['a', 'b', 'c']},
+                                 {'name': 'num',
+                                  'type': 'int'}]),
+            iscollection=True,
+            name='Test col')
+
+        self.col_field_tree = UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Tree',
+            datatype=json.dumps([{'name': 'pick',
+                                  'type': 'choice',
+                                  'choices': ['a', 'b', 'c']},
+                                 {'name': 'num',
+                                  'type': 'int'}]),
+            iscollection=True,
+            name='Test col')
 
         self.plot = Plot(instance=self.instance, geom=self.p)
         self.plot.save_with_user(self.user)
@@ -455,6 +479,40 @@ class PlotUpdateTest(unittest.TestCase):
         update = json.dumps({'plot.udf:INVaLiD UTF': 'z'})
 
         self.assertRaises(KeyError,
+                          update_plot_and_tree,
+                          make_request(user=self.user, body=update),
+                          self.plot)
+
+    def test_collection_udf_works(self):
+        plot_data = [{'pick': 'a', 'num': 4},
+                     {'pick': 'b', 'num': 9}]
+        tree_data = [{'pick': 'c', 'num': 1},
+                     {'pick': 'a', 'num': 33}]
+
+        update = json.dumps({'plot.udf:Test col': plot_data,
+                             'tree.udf:Test col': tree_data})
+
+        update_plot_and_tree(
+            make_request(user=self.user, body=update), self.plot)
+
+        updated_plot = Plot.objects.get(pk=self.plot.pk)
+
+        plotudf = updated_plot.udfs['Test col']
+        for exp, act in zip(plot_data, plotudf):
+            self.assertDictContainsSubset(exp, act)
+
+        treeudf = updated_plot.current_tree().udfs['Test col']
+
+        for exp, act in zip(tree_data, treeudf):
+            self.assertDictContainsSubset(exp, act)
+
+    def test_collection_udf_errors_show_up_as_validations(self):
+        plot_data = [{'pick': 'invalid choice', 'num': 4}]
+
+        update = json.dumps({'plot.udf:Test col':
+                             plot_data})
+
+        self.assertRaises(ValidationError,
                           update_plot_and_tree,
                           make_request(user=self.user, body=update),
                           self.plot)

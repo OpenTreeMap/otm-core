@@ -1,0 +1,7 @@
+{% load util %}
+
+<tr data-value-id="{{ value.pk }}">
+  {% for field in udf.datatype_dict %}
+  <td>{{ value.data|get:field.name }}</td>
+  {% endfor %}
+</tr>

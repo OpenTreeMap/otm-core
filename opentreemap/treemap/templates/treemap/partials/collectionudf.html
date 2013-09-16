@@ -1,0 +1,25 @@
+{% load i18n %}
+
+<div>
+  <h2>{{ udf.name }}</h2>
+  <table data-udf-id="{{ udf.pk }}" data-udf-name="{{ udf.model_type.lower }}.{{ udf.canonical_name }}">
+    <tr class="headerrow" style="{{ udf.userdefinedcollectionvalue_set.all|default:"display:none" }}">
+      {% for field in udf.datatype_dict %}
+      <td>{{ field.name }}</td>
+      {% endfor %}
+    </tr>
+    <tr class="editrow" style="display: none">
+      {% for field in udf.datatype_dict %}
+      <td>
+        {% include 'treemap/partials/udf_edit_field.html' with field=field %}
+      </td>
+      {% endfor %}
+      <td><a data-udf-id="{{ udf.pk }}" class="btn">+</a></td>
+    </tr>
+    {% for value in udf.userdefinedcollectionvalue_set.all %}
+    {% include 'treemap/partials/collection_udf_row.html' with field=field value=value %}
+    {% empty %}
+    <tr class="placeholder"><td>{% trans "No entries yet!" %}</td>
+    {% endfor %}
+  </table>
+</div>
