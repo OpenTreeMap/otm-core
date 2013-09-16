@@ -10,6 +10,9 @@ var $ = require('jquery'),
 // baconjs to jQuery
 require('./baconUtils');
 
+var eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
+    eventsLandingInDisplayMode = ['idle', 'save:ok', 'cancel'];
+
 exports.init = function(options) {
     var updateUrl = options.updateUrl,
         form = options.form,
@@ -33,6 +36,45 @@ exports.init = function(options) {
                     $('input[name="' + field + '"]').trigger('restore', $(el).val());
                 }
             });
+        },
+
+        resetCollectionUdfs = function() {
+            // Hide the edit row
+            $("table[data-udf-id] .editrow").hide();
+
+            // If there are no 'data' rows on a given table
+            // hide the header and show the placeholder
+            $("table[data-udf-id]").map(function() {
+                var $table = $(this);
+
+                // If the table has 3 rows they are:
+                //
+                // header, edit row (hidden), placeholder row (hidden)
+                //
+                // This means there is no user data, so
+                // show the placeholder and hide the header
+                if ($table.find('tr').length === 3) {
+                    $table.find('.placeholder').show();
+                    $table.find('.headerrow').hide();
+                } else {
+                    // We have some data rows so show the header
+                    // and not the placeholder
+                    $table.find('.placeholder').hide();
+                    $table.find('.headerrow').show();
+                }
+            });
+        },
+
+        showCollectionUdfs = function() {
+            // By default collection udfs have their input row
+            // hidden, so show that row
+            $("table[data-udf-id] .editrow").css('display', '');
+
+            // The header row may also be hidden if there are no
+            // items so show that as well
+            $("table[data-udf-id] .headerrow").css('display', '');
+
+            $("table[data-udf-id] .placeholder").css('display', 'none');
         },
 
         displayValuesToFormFields = function() {
@@ -92,6 +134,28 @@ exports.init = function(options) {
 
         getDataToSave = function() {
             var data = FH.formToDictionary($(form), $(editFields));
+
+            // Extract data for all rows of the collection,
+            // whether entered in this session or pre-existing.
+            $('table[data-udf-name]').map(function() {
+                var $table = $(this);
+                var name = $table.data('udf-name');
+
+                var headers = $table.find('tr.headerrow td')
+                        .map(function() {
+                            return $(this).html();
+                        });
+
+                data[name] =
+                    _.map($table.find('tr[data-value-id]').toArray(), function(row) {
+                        return _.object(headers, $(row)
+                                        .find('td')
+                                        .map(function() {
+                                            return $.trim($(this).html());
+                                        }));
+                    });
+            });
+
             onSaveBefore(data);
             return data;
         },
@@ -116,6 +180,10 @@ exports.init = function(options) {
             return action === 'edit:start';
         },
 
+        isEditCancel = function (action) {
+            return action === 'cancel';
+        },
+
         responseStream = saveStream
             .map(getDataToSave)
             .flatMap(update)
@@ -124,9 +192,6 @@ exports.init = function(options) {
             }),
 
         saveOkStream = responseStream.filter('.ok'),
-
-        eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
-        eventsLandingInDisplayMode = ['idle', 'save:ok', 'cancel'],
 
         hideAndShowElements = function (action) {
             function hideOrShow(fields, actions) {
@@ -165,6 +230,11 @@ exports.init = function(options) {
     );
 
     actionStream.filter(isEditStart).onValue(displayValuesToFormFields);
+    actionStream.filter(isEditStart).onValue(showCollectionUdfs);
+
+    actionStream
+        .filter(_.contains, eventsLandingInDisplayMode)
+        .onValue(resetCollectionUdfs);
 
     actionStream.onValue(hideAndShowElements);
 
@@ -176,4 +246,3 @@ exports.init = function(options) {
     exports.cancelStream = cancelStream;
     exports.updateUrl = updateUrl;
 };
-

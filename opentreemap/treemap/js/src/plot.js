@@ -8,6 +8,7 @@ var $ = require('jquery'),
     otmTypeahead = require('./otmTypeahead'),  // Override typeahead from bootstrap
     inlineEditForm = require('./inlineEditForm'),
     mapManager = require('./mapManager'),
+    BU = require('BaconUtils'),
     plotMover = require('./plotMover'),
     plotMarker = require('./plotMarker');
 
@@ -25,10 +26,29 @@ exports.init = function(options) {
         otmTypeahead.create(typeahead);
     });
 
+    var udfRowTemplate = _.template(
+        '<tr data-value-id="">' +
+            '<% _.each(fields, function (field) { %>' +
+            '<td> <%= field %> </td>' +
+            '<% }) %>' +
+            '</tr>');
+
+    // Wire up collection udfs
+    $('a[data-udf-id]').click(function() {
+        var id = $(this).data('udf-id');
+        var fields = $('table[data-udf-id="' + id + '"] * [data-field-name]').toArray();
+
+        var data = _.map(fields, function(field) { return $(field).val(); });
+
+        $(this).closest('table').append(udfRowTemplate({
+            fields: data
+        }));
+    });
+
     addModalTrigger(options.photos.show);
     var $form = $(options.photos.form);
     $(options.photos.upload).click(function() { $form.submit(); });
-    
+
     inlineEditForm.init(
         _.extend(options.inlineEditForm, { onSaveBefore: onSaveBefore }));
 
