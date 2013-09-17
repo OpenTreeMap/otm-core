@@ -228,4 +228,3 @@ INSTALLED_APPS = MANAGED_APPS + UNMANAGED_APPS
 #       to a valid redis URL in local_settings.py
 import djcelery
 djcelery.setup_loader()
-
