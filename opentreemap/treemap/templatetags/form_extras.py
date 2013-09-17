@@ -7,6 +7,7 @@ from django.template.loader import get_template
 from django.db.models.fields import FieldDoesNotExist
 
 from treemap.util import safe_get_model_class
+from treemap.json_field import is_json_field_reference, get_attr_from_json_field
 
 register = template.Library()
 
@@ -14,7 +15,7 @@ register = template.Library()
 # template tag, can't be done in the grammar as it can't be checked
 # until looked up in the context
 _identifier_regex = re.compile(
-    r"^(?:tree|plot|instance|user|species)\.(?:udf\:)?[\w ']+$")
+    r"^(?:tree|plot|instance|user|species)\.(?:udf\:)?[\w '|]+$")
 
 
 class Variable(Grammar):
@@ -217,17 +218,18 @@ class AbstractNode(template.Node):
     def render(self, context):
         label = _resolve_variable(self.label, context)
         identifier = _resolve_variable(self.identifier, context)
+
+        if not isinstance(identifier, basestring) or '.' not in identifier:
+            raise template.TemplateSyntaxError(
+                'expected a string with the format "model.property" '
+                'to follow "from"')
+
         model_name, field_name = identifier.split('.')
         instance = _resolve_variable(self.instance, context)
         model = self.get_model(context, model_name, instance)
         user = _resolve_variable(self.user, context)
         field_template = get_template(_resolve_variable(
                                       self.field_template, context))
-
-        if not isinstance(identifier, basestring):
-            raise template.TemplateSyntaxError(
-                'expected a string with the format "model.property" '
-                'to follow "from"')
 
         if not _identifier_regex.match(identifier):
             raise template.TemplateSyntaxError(
@@ -278,23 +280,29 @@ class AbstractNode(template.Node):
 
             return val, choices
 
-        field_value, choices = _field_value_and_choices(model, field_name)
+        if is_json_field_reference(field_name):
+            field_value = get_attr_from_json_field(model, field_name)
+            choices = None
+            is_visible = is_editable = True
+            data_type = "TextField"
 
-        if user is not None:
-            is_visible = model.field_is_visible(user, field_name)
-            is_editable = model.field_is_editable(user, field_name)
         else:
-            # This tag can be used without specifying a user. In that case
-            # we assume that the content is visible and upstream code is
-            # responsible for only showing the content to the appropriate
-            # user
-            is_visible = True
-            is_editable = True
+            field_value, choices = _field_value_and_choices(model, field_name)
+            data_type, label = _field_type_and_label(model, field_name, label)
+
+            if user is not None:
+                is_visible = model.field_is_visible(user, field_name)
+                is_editable = model.field_is_editable(user, field_name)
+            else:
+                # This tag can be used without specifying a user. In that case
+                # we assume that the content is visible and upstream code is
+                # responsible for only showing the content to the appropriate
+                # user
+                is_visible = True
+                is_editable = True
 
         # TODO: Support pluggable formatting instead of unicode()
         display_val = unicode(field_value) if field_value is not None else None
-
-        data_type, label = _field_type_and_label(model, field_name, label)
 
         context['field'] = {
             'label': label,
