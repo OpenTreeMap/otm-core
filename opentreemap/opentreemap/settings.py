@@ -189,6 +189,7 @@ UNMANAGED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.gis',
+    'djcelery',
     'south',
 )
 
@@ -221,3 +222,10 @@ from opentreemap.local_settings import *  # NOQA
 
 MANAGED_APPS += EXTRA_INSTALLED_APPS
 INSTALLED_APPS = MANAGED_APPS + UNMANAGED_APPS
+
+# CELERY
+# NOTE: BROKER_URL and CELERY_RESULT_BACKEND must be set
+#       to a valid redis URL in local_settings.py
+import djcelery
+djcelery.setup_loader()
+
