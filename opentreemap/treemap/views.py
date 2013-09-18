@@ -23,7 +23,8 @@ from django.db import transaction
 from django.db.models import Q
 
 from treemap.util import (json_api_call, render_template, instance_request,
-                          require_http_method)
+                          require_http_method, package_validation_errors,
+                          bad_request_json_response)
 from treemap.search import create_filter
 from treemap.audit import Audit
 from treemap.models import (Plot, Tree, User, Species, Instance,
@@ -252,9 +253,8 @@ def update_plot_and_tree_request(request, plot):
             'plotId': plot.id
         }
     except ValidationError as ve:
-        return _bad_request_json_response(
-            'One or more of the specified values are invalid.',
-            ve.message_dict)
+        return bad_request_json_response(
+            validation_error_dict=ve.message_dict)
 
 
 @transaction.commit_on_success
@@ -302,8 +302,7 @@ def update_plot_and_tree(request, plot):
             thing.save_with_user(user)
             return {}
         except ValidationError as e:
-            return {'%s.%s' % (thing._model_name.lower(), field): msg
-                    for (field, msg) in e.message_dict.iteritems()}
+            return package_validation_errors(thing._model_name, e)
 
     def get_tree():
         return plot.current_tree() or Tree(instance=plot.instance)
@@ -691,18 +690,6 @@ def user(request, username):
             'private_fields': private_fields}
 
 
-def _bad_request_json_response(message, validation_error_dict=None):
-    response = HttpResponse()
-    response.status_code = 400
-    content = {'error': message}
-    if validation_error_dict:
-        content['validationErrors'] = validation_error_dict
-    response.write(json.dumps(content))
-    response['Content-length'] = str(len(response.content))
-    response['Content-Type'] = "application/json"
-    return response
-
-
 def update_user(request, username):
     user = get_object_or_404(User, username=username)
     if user != request.user:
@@ -713,24 +700,21 @@ def update_user(request, username):
         try:
             model, field = key.split('.', 1)
             if model != 'user':
-                return _bad_request_json_response(
+                return bad_request_json_response(
                     'All fields should be prefixed with "user."')
             if field not in ['first_name', 'last_name', 'email']:
-                return _bad_request_json_response(
+                return bad_request_json_response(
                     field + ' is not an updatable field')
         except ValueError:
-            return _bad_request_json_response(
+            return bad_request_json_response(
                 'All fields should be prefixed with "user."')
         setattr(user, field, new_values[key])
     try:
         user.save()
         return {"ok": True}
     except ValidationError, ve:
-        validation_error_dict =\
-            {'user.' + k: v for (k, v) in ve.message_dict.iteritems()}
-        return _bad_request_json_response(
-            'One or more of the specified values are invalid.',
-            validation_error_dict)
+        return bad_request_json_response(
+            validation_error_dict=package_validation_errors('user', ve))
 
 
 def _get_map_view_context(request, instance_id):
