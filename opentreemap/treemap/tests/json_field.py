@@ -7,7 +7,7 @@ from treemap.json_field import get_attr_from_json_field, set_attr_on_json_field
 class JsonFieldTests(TestCase):
     def setUp(self):
         self.instance = make_instance()
-        self.instance.config = '{"a":"x", "b":{"c":"y"}}';
+        self.instance.config = '{"a":"x", "b":{"c":"y"}}'
 
     def _assert_get(self, model, field_name, value):
         val = get_attr_from_json_field(model, field_name)
@@ -38,7 +38,6 @@ class JsonFieldTests(TestCase):
         self._assert_set(self.instance, "config|b|c", "3")
         self._assert_set(self.instance, "config|b|n", "4")
         self._assert_set(self.instance, "config|x|y|z", "5")
-
 
     def test_set_fails_on_non_dict(self):
         self.assertRaises(ValueError, set_attr_on_json_field,

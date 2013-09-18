@@ -7,7 +7,8 @@ from django.template.loader import get_template
 from django.db.models.fields import FieldDoesNotExist
 
 from treemap.util import safe_get_model_class
-from treemap.json_field import is_json_field_reference, get_attr_from_json_field
+from treemap.json_field import (is_json_field_reference,
+                                get_attr_from_json_field)
 
 register = template.Library()
 

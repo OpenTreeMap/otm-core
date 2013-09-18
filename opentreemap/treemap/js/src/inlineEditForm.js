@@ -188,10 +188,17 @@ exports.init = function(options) {
             .map(getDataToSave)
             .flatMap(update)
             .mapError(function (e) {
-                return e.responseJSON;
+                var result = ('responseJSON' in e) ? e.responseJSON : {};
+                if (!('error' in result)) {
+                    // Make sure there's an "error" property; we look for it below
+                    result.error = "Error";
+                }
+                return result;
             }),
 
-        saveOkStream = responseStream.filter('.ok'),
+        saveOkStream = responseStream.filter(function (result) {
+            return !('error' in result);
+        }),
 
         hideAndShowElements = function (action) {
             function hideOrShow(fields, actions) {
@@ -208,7 +215,7 @@ exports.init = function(options) {
 
     saveOkStream.onValue(formFieldsToDisplayValues);
 
-    responseStream.filter('.error')
+    responseStream.filter('.validationErrors')
                   .map('.validationErrors')
                   .onValue(showValidationErrorsInline);
 
