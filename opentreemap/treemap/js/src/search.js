@@ -2,9 +2,12 @@
 
 var $ = require('jquery'),
     Bacon = require('baconjs'),
-    _ = require("underscore");
+    _ = require('underscore'),
+    moment = require("moment"),
+    isTypeaheadHiddenField = require('./fieldHelpers');
 
-var config;
+var DATETIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
+
 
 exports.buildElems = function (inputSelector) {
     return _.object(_.map($(inputSelector), function(el) {
@@ -51,8 +54,21 @@ function applySearchToDom(elems, search) {
             pred = null;
         }
 
-        $domElem.val(pred || '');
-        $domElem.trigger('restore', pred);
+
+        if ($domElem.is('[data-typeahead-hidden]')) {
+            $domElem.trigger('restore', value);
+        } else if ($domElem.is('[data-date-format]')) {
+            var date = moment(value, DATETIME_FORMAT);
+            if (date && date.isValid()) {
+                $domElem.datepicker('update', date);
+            } else {
+                $domElem.val('');
+            }
+        } else if($domElem.is(':checkbox')) {
+            $domElem.prop('checked', value);
+        } else if ($domElem.is('input')) {
+            $domElem.val(value || '');
+        }
     });
 }
 
@@ -73,6 +89,15 @@ exports.buildSearch = function (elems) {
             // instead
             if (preds[key_and_pred.key]) {
                 preds[key_and_pred.key][key_and_pred.pred] = val;
+            if ($elem.is('[data-date-format]')) {
+                var date = moment($elem.datepicker('getDate'));
+                if (key_and_pred.pred === "MIN") {
+                    date = date.startOf("day");
+                } else if (key_and_pred.pred === "MAX") {
+                    date = date.endOf("day");
+                }
+                val = date.format(DATETIME_FORMAT);
+            }
             } else {
                 pred[key_and_pred.pred] = val;
                 preds[key_and_pred.key] = pred;

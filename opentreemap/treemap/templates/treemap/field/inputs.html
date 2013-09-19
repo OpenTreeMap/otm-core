@@ -1,3 +1,5 @@
+{# vim: set filetype=htmldjango : #}
+{% load dateformat %}
 {% if field.data_type == 'choice' %}
     <select name="{{ field.identifier }}"
             {% if extra %}{{ extra }}{% endif %} />
@@ -17,10 +19,20 @@
            type="checkbox"
            value="{{ field.value }}"
            {% if extra %}{{ extra }}{% endif %} />
+{% elif field.data_type == 'date' %}
+    <input name="{{ field.identifier }}"
+           type="text"
+           {% if request.instance %}
+           value="{{ field.value|date:request.instance.short_date_format }}"
+           data-date-format="{{ request.instance.short_date_format|datepicker_format }}"
+           {% else %}
+           value="{{ field.value|date:"SHORT_DATE_FORMAT" }}"
+           data-date-format="{{ settings.SHORT_DATE_FORMAT|datepicker_format }}"
+           {% endif %}
+           {% if extra %}{{ extra }}{% endif %} />
 {% else %}
     <input name="{{ field.identifier }}"
            type="text"
            value="{{ field.value|default_if_none:"" }}"
            {% if extra %}{{ extra }}{% endif %} />
 {% endif %}
-
