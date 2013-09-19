@@ -190,8 +190,9 @@ exports.init = function(options) {
             .mapError(function (e) {
                 var result = ('responseJSON' in e) ? e.responseJSON : {};
                 if (!('error' in result)) {
-                    // Make sure there's an "error" property; we look for it below
-                    result.error = "Error";
+                    // Make sure there's an "error" property; we look for it below.
+                    // Give it the error object to help with debugging.
+                    result.error = e;
                 }
                 return result;
             }),

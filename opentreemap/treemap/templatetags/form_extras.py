@@ -16,7 +16,7 @@ register = template.Library()
 # template tag, can't be done in the grammar as it can't be checked
 # until looked up in the context
 _identifier_regex = re.compile(
-    r"^(?:tree|plot|instance|user|species)\.(?:udf\:)?[\w '|]+$")
+    r"^(?:tree|plot|instance|user|species)\.(?:udf\:)?[\w '\.]+$")
 
 
 class Variable(Grammar):
@@ -225,7 +225,7 @@ class AbstractNode(template.Node):
                 'expected a string with the format "model.property" '
                 'to follow "from"')
 
-        model_name, field_name = identifier.split('.')
+        model_name, field_name = identifier.split('.', 1)
         instance = _resolve_variable(self.instance, context)
         model = self.get_model(context, model_name, instance)
         user = _resolve_variable(self.user, context)
