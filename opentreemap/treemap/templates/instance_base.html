@@ -58,6 +58,11 @@
     {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
   {% endfor %}
   </div>
+  <div id="missing-search">
+  {% for json in request.instance.advanced_search_fields.missing %}
+    {% search from json for request.user in request.instance withtemplate "treemap/field/search_missing.html" %}
+  {% endfor %}
+  </div>
 </div>
 {% endblock advancedsearch %}
 

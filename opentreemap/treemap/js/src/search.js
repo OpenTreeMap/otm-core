@@ -8,6 +8,13 @@ var $ = require('jquery'),
 
 var DATETIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
 
+var isOr = function(pred) {
+    return _.isArray(pred) && pred[0] === "OR";
+};
+
+var isNullPredicate = function(pred) {
+    return _.isObject(pred) && "IS" in pred && pred.IS === null;
+};
 
 exports.buildElems = function (inputSelector) {
     return _.object(_.map($(inputSelector), function(el) {
@@ -46,12 +53,20 @@ function updateSearchResults(newMarkup) {
 function applySearchToDom(elems, search) {
     _.each(elems, function(v, k) {
         var restoreTarget = v['restore-to'] || v.key;
-        var pred = search[restoreTarget];
         var $domElem = $(k);
-        if (pred) {
-            pred = pred[v.pred];
+        var pred = search[restoreTarget];
+        var value = pred ? pred[v.pred] : null;
+
+        if (isOr(pred)) {
+            if (v.pred === "MISSING") {
+                value = true;
+            } else {
+                value = pred ? pred[1][v.pred] : null;
+            }
+        } else if (isNullPredicate(pred) && v.pred === "MISSING") {
+            value = true;
         } else {
-            pred = null;
+            value = pred ? pred[v.pred] : null;
         }
 
 
@@ -79,16 +94,14 @@ exports.reset = function (elems) {
 };
 
 exports.buildSearch = function (elems) {
-    return _.reduce(elems, function(preds, key_and_pred, id) {
-        var val = $(id).val(),
-            pred = {};
+    return _.reduce(elems, function(preds, key_and_pred, selector) {
+        var $elem = $(selector),
+            val = $elem.val(),
+            key = key_and_pred.key,
+            pred = {},
+            query = {};
 
-        if (val && val.length > 0) {
-            // If a predicate field (such as tree.diameter)
-            // is already specified, merge the resulting dicts
-            // instead
-            if (preds[key_and_pred.key]) {
-                preds[key_and_pred.key][key_and_pred.pred] = val;
+        if ($elem.is(':checked') || ($elem.is(':not(:checkbox)') && val && val.length > 0)) {
             if ($elem.is('[data-date-format]')) {
                 var date = moment($elem.datepicker('getDate'));
                 if (key_and_pred.pred === "MIN") {
@@ -98,9 +111,29 @@ exports.buildSearch = function (elems) {
                 }
                 val = date.format(DATETIME_FORMAT);
             }
+
+            if (key_and_pred.pred === "MISSING") {
+                if ($elem.is(":checked")) {
+                    pred = {"IS": null};
+                }
             } else {
                 pred[key_and_pred.pred] = val;
-                preds[key_and_pred.key] = pred;
+            }
+
+            // We do a deep extend so that if a predicate field
+            // (such as tree.diameter) is already specified,
+            // we merge the resulting dicts
+            if (isOr(preds[key])) {
+                // If this is an or, we've probably already found an is null
+                // predicate
+                $.extend(true, preds[key][1], pred);
+            } else if (isNullPredicate(preds[key])) {
+                preds[key] = ["OR", pred, preds[key]];
+            } else if (preds[key] && isNullPredicate(pred)) {
+                preds[key] = ["OR", preds[key], pred];
+            } else {
+                query[key] = pred;
+                $.extend(true, preds, query);
             }
         }
 
