@@ -1,31 +1,12 @@
 from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import RegexValidator
-from django.utils.six import with_metaclass
-
-from south.modelsinspector import add_introspection_rules
 
 import hashlib
-import json
 
+from json_field import JSONField
 
 URL_NAME_PATTERN = r'[a-z]+[a-z0-9\-]*'
-
-
-class JSONField(with_metaclass(models.SubfieldBase, models.TextField)):
-    def to_python(self, value):
-        if isinstance(value, basestring):
-            return json.loads(value or "{}")
-        else:
-            return value
-
-    def get_prep_value(self, value):
-        return json.dumps(value or {})
-
-    def get_prep_lookup(self, lookup_type, value):
-        raise TypeError("JSONField doesn't support lookups")
-
-add_introspection_rules([], ["^treemap\.instance\.JSONField"])
 
 
 class Instance(models.Model):
