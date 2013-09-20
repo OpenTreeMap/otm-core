@@ -14,7 +14,8 @@ from django.utils.translation import ugettext_lazy as trans
 from django.contrib.auth.models import AbstractUser
 
 from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
-                           Dictable, Audit)
+                           Dictable, Audit, AuthorizableQuerySet,
+                           AuthorizableManager)
 
 import hashlib
 import re
@@ -22,8 +23,20 @@ import Image
 
 from cStringIO import StringIO
 
-from treemap.udf import UDFModel, GeoHStoreManager
+from treemap.udf import UDFModel, GeoHStoreUDFManager, GeoHStoreUDFQuerySet
 from treemap.instance import Instance
+
+
+class AuthorizableGeoHStoreUDFQuerySet(AuthorizableQuerySet,
+                                       GeoHStoreUDFQuerySet):
+    pass
+
+
+class AuthorizableGeoHStoreUDFManager(AuthorizableManager,
+                                      GeoHStoreUDFManager):
+    def get_query_set(self):
+        return AuthorizableGeoHStoreUDFQuerySet(self.model,
+                                                using=self._db)
 
 
 class BenefitCurrencyConversion(Dictable, models.Model):
@@ -246,7 +259,7 @@ class Plot(UDFModel, Authorizable, Auditable):
     owner_orig_id = models.CharField(max_length=255, null=True, blank=True)
     readonly = models.BooleanField(default=False)
 
-    objects = GeoHStoreManager()
+    objects = AuthorizableGeoHStoreUDFManager()
 
     def get_tree_history(self):
         """
@@ -331,7 +344,7 @@ class Tree(UDFModel, Authorizable, Auditable):
     date_removed = models.DateField(null=True, blank=True,
                                     help_text=trans("Date Removed"))
 
-    objects = GeoHStoreManager()
+    objects = AuthorizableGeoHStoreUDFManager()
 
     def __unicode__(self):
         diameter_chunk = ("Diameter: %s, " % self.diameter
