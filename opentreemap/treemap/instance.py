@@ -1,6 +1,7 @@
 from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import RegexValidator
+from django.conf import settings
 
 import hashlib
 
@@ -96,8 +97,12 @@ class Instance(models.Model):
 
         return property(get_config, set_config)
 
-    advanced_search_filters = _make_config_property(
-        'advanced_search_fields')
+    advanced_search_fields = _make_config_property('advanced_search_fields',
+                                                   {'standard': [],
+                                                    'missing': []})
+
+    short_date_format = _make_config_property('short_date_format',
+                                              settings.SHORT_DATE_FORMAT)
 
     @property
     def center(self):
@@ -110,16 +115,6 @@ class Instance(models.Model):
     @property
     def center_lat_lng(self):
         return self.center.transform(4326, clone=True)
-
-    @property
-    def advanced_search_fields(self):
-        fields = (self.config['advanced_search_fields']
-                  if 'advanced_search_fields' in self.config else [])
-        return [{'identifier': field['identifier'],
-                 'search_type': field.get('search_type', 'IS'),
-                 'default': field.get('default'),
-                 'label': field.get('label')}
-                for field in fields]
 
     def is_accessible_by(self, user):
         try:

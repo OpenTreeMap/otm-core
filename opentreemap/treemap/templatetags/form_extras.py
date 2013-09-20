@@ -25,7 +25,7 @@ class Variable(Grammar):
 
 
 class InlineEditGrammar(Grammar):
-    grammar = (OR("field", "create", "search"), OPTIONAL(Variable),
+    grammar = (OR(G(OR("field", "create"), OPTIONAL(Variable)), "search"),
                "from", Variable, OPTIONAL("for", Variable),
                OPTIONAL("in", Variable), "withtemplate", Variable)
     grammar_whitespace = True
@@ -91,10 +91,11 @@ def inline_edit_tag(tag, Node):
     {% create "Width" from "plot.width" for user withtemplate "field.html" %}
 
     If used by the alternate field name of "search" the tag will behave
-    similarly to "edit", but will also look up search parameters by field name
-    from a required instance parameter
+    similarly to "edit", but will get it's label and identifier from a
+    dictionary, and pass along any other values in the dictionary to the
+    template as part of the field object.
 
-    {% search from field for user in instance withtemplate "index.html" %}
+    {% search from dict for user in instance withtemplate "index.html" %}
 
     To allow using the tag with models that are not Authorizable, the tag
     supports omitting the "for user" section.
@@ -157,11 +158,16 @@ def inline_edit_tag(tag, Node):
 
         elems = results.elements
 
-        label = _token_to_variable(elems[1].string if elems[1] else None)
-        identifier = _token_to_variable(elems[3].string)
-        user = _token_to_variable(elems[4][1].string if elems[4] else None)
-        instance = _token_to_variable(elems[5][1].string if elems[5] else None)
-        field_template = _token_to_variable(elems[7].string)
+        one_or_none = lambda e: e[1].string if e else None
+
+        label = _token_to_variable(
+            elems[0][1].string
+            if len(elems[0].elements) > 1 and elems[0][1]
+            else None)
+        identifier = _token_to_variable(elems[2].string)
+        user = _token_to_variable(one_or_none(elems[3]))
+        instance = _token_to_variable(one_or_none(elems[4]))
+        field_template = _token_to_variable(elems[6].string)
 
         return Node(label, identifier, user, field_template, instance)
 
@@ -202,6 +208,7 @@ class AbstractNode(template.Node):
         'TextField': 'string',
         'CharField': 'string',
         'DateTimeField': 'date',
+        'DateField': 'date',
         'BooleanField': 'bool'
     }
     _valid_field_keys = ','.join([k for k, v in _field_mappings.iteritems()])
@@ -210,25 +217,24 @@ class AbstractNode(template.Node):
         self.label = label
         self.identifier = identifier
         self.user = user
-        self.field_template = field_template
         self.instance = instance
+        self.field_template = field_template
 
-    def get_additional_context(field, *args):
-        return field  # Overriden in SearchNode
-
-    def render(self, context):
+    # Overriden in SearchNode
+    def resolve_label_and_identifier(self, context):
         label = _resolve_variable(self.label, context)
         identifier = _resolve_variable(self.identifier, context)
 
-        if not isinstance(identifier, basestring) or '.' not in identifier:
-            raise template.TemplateSyntaxError(
-                'expected a string with the format "model.property" '
-                'to follow "from"')
+        return label, identifier
 
-        model_name, field_name = identifier.split('.', 1)
-        instance = _resolve_variable(self.instance, context)
-        model = self.get_model(context, model_name, instance)
+    # Overriden in SearchNode
+    def get_additional_context(self, field, *args):
+        return field
+
+    def render(self, context):
+        label, identifier = self.resolve_label_and_identifier(context)
         user = _resolve_variable(self.user, context)
+        instance = _resolve_variable(self.instance, context)
         field_template = get_template(_resolve_variable(
                                       self.field_template, context))
 
@@ -236,6 +242,9 @@ class AbstractNode(template.Node):
             raise template.TemplateSyntaxError(
                 'expected a string with the format "model.property" '
                 'to follow "from" %s' % identifier)
+
+        model_name, field_name = identifier.split('.')
+        model = self.get_model(context, model_name, instance)
 
         def _udf_dict(model, field_name):
             return model.get_user_defined_fields()\
@@ -315,7 +324,7 @@ class AbstractNode(template.Node):
             'is_editable': is_editable,
             'choices': choices
         }
-        self.get_additional_context(context['field'], identifier, instance)
+        self.get_additional_context(context['field'])
 
         return field_template.render(context)
 
@@ -326,21 +335,27 @@ class FieldNode(AbstractNode):
 
 
 class CreateNode(AbstractNode):
-    def get_model(self, context, model_name, instance=None):
+    def get_model(self, _, model_name, instance=None):
         Model = safe_get_model_class(model_name.capitalize())
 
         return Model(instance=instance) if instance else Model()
 
 
 class SearchNode(CreateNode):
-    def get_additional_context(self, field, identifier, instance):
-        json = next((json for json in instance.advanced_search_fields
-                     if json['identifier'] == identifier), {})
+    def __init__(self, _, identifier, user, template, instance):
+        super(SearchNode, self).__init__(None, None, user, template, instance)
+        self.json = identifier
 
-        # Only overwrite field values when there is a new value
-        field.update({key: value for key, value in json.iteritems()
-                      if key not in field or value is not None})
+    def resolve_label_and_identifier(self, context):
+        self.search_json = _resolve_variable(self.json, context)
+        label = self.search_json.get('label')
+        identifier = self.search_json.get('identifier')
 
+        return label, identifier
+
+    def get_additional_context(self, field):
+        field.update({k: v for k, v in self.search_json.items()
+                      if v is not None})
         return field
 
 register.tag('field', inline_edit_tag('field', FieldNode))
