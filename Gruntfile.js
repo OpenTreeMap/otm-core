@@ -74,6 +74,10 @@ module.exports = function(grunt) {
                             path: './treemap/js/shim/bootstrap.js',
                             exports: null,
                             depends: { jquery: 'jQuery' }
+                        },
+                        jscolor: {
+                            path: './treemap/js/shim/jscolor.js',
+                            exports: null
                         }
                     },
                     debug: debug
