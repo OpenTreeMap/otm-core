@@ -12,8 +12,11 @@ exports.init = function(options) {
     var config = options.config,
         map = createMap($(options.selector)[0], config),
         plotLayer = createPlotTileLayer(config),
+        allPlotsLayer = createPlotTileLayer(config),
         boundsLayer = createBoundsTileLayer(config),
         utfLayer = createPlotUTFLayer(config);
+
+    allPlotsLayer.setOpacity(0.3);
 
     exports.map = map;
 
@@ -21,6 +24,7 @@ exports.init = function(options) {
         if (geoRevHash !== config.instance.rev) {
             config.instance.rev = geoRevHash;
             plotLayer.url = getPlotLayerURL(config, 'png');
+            allPlotsLayer.url = getPlotLayerURL(config, 'png');
             utfLayer.url = getPlotLayerURL(config, 'grid.json');
             plotLayer.redraw({force: true});
             utfLayer.redraw({force: true});
@@ -29,7 +33,14 @@ exports.init = function(options) {
 
     exports.setFilter = function (filter) {
         plotLayer.setFilter(filter);
-        utfLayer.setFilter(filter);
+
+        if (!allPlotsLayer.map) {
+            map.addLayers([allPlotsLayer]);
+        }
+        if (_.isEmpty(filter)) {
+            map.removeLayer(allPlotsLayer);
+        }
+
     };
 
     var setCenterAndZoomIn = exports.setCenterAndZoomIn = function(location, zoom) {
@@ -140,7 +151,6 @@ function createPlotUTFLayer(config) {
             utfgridResolution: 4,
             displayInLayerSwitcher: false
         });
-    makeLayerFilterable(layer, url, config.urls.filterQueryArgumentName);
     return layer;
 }
 
