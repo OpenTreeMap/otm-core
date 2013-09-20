@@ -1,24 +1,13 @@
 "use strict";
 
-// For modal dialog on jquery
-require('bootstrap');
-
 var $ = require('jquery'),
     _ = require('underscore'),
     otmTypeahead = require('./otmTypeahead'),  // Override typeahead from bootstrap
     inlineEditForm = require('./inlineEditForm'),
     mapManager = require('./mapManager'),
     plotMover = require('./plotMover'),
-    plotMarker = require('./plotMarker');
-
-function addModalTrigger(element) {
-    var $e = $(element);
-    var $target = $($e.data('modal'));
-
-    $e.click(function() {
-        $target.modal('toggle');
-    });
-}
+    plotMarker = require('./plotMarker'),
+    imageUploadPanel = require('./imageUploadPanel');
 
 exports.init = function(options) {
     _.each(options.typeaheads, function(typeahead) {
@@ -44,9 +33,7 @@ exports.init = function(options) {
         }));
     });
 
-    addModalTrigger(options.photos.show);
-    var $form = $(options.photos.form);
-    $(options.photos.upload).click(function() { $form.submit(); });
+    imageUploadPanel.init(options.photos);
 
     inlineEditForm.init(
         _.extend(options.inlineEditForm, { onSaveBefore: onSaveBefore }));
