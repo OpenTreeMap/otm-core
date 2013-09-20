@@ -26,12 +26,22 @@
         background: $secondary-color;
 
         a {
-            color: #f1f1f2;
+            color: lighten($secondary-color, 35%);
+            color: rgba(255,255,255,.5);
             font-size: 1em;
             font-weight: 700;
             padding: 15px;
             
             &:hover {
+                text-decoration: none;
+                color: #FFF;
+                box-shadow: 0 3px 6px darken($secondary-color, 15%);
+                box-shadow: 0 3px 6px rgba(0,0,0,.2) inset;
+                background: darken($secondary-color, 5%);
+            }
+        }
+        &.in {
+            a {
                 text-decoration: none;
                 color: #FFF;
                 box-shadow: 0 3px 6px darken($secondary-color, 15%);
@@ -59,7 +69,7 @@
 
 #benefit-values {
     .benefit-value-row {
-        border-bottom: 1px solid $well-color;
+        border-bottom: 1px solid $light-gray-color;
         padding: 15px;
 
         .benefit-icon {

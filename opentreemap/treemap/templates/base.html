@@ -40,7 +40,7 @@
             {% if request.user.is_authenticated %}
               <li><a href="{% url 'profile' %}">{% trans "My Account" %} <span class="reputation">({{ request.user.rep }} rep)</span></a></li>
               <li><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
-              <li class="user-img"></li>
+              <li class="user-img"><a href="{% url 'profile' %}"><img src="/static/img/profile.jpg"></a></li>
             {% else %}
               <li><a id="login" href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
               <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>

@@ -5,11 +5,6 @@
 {% block page_title %} | {{ user.username }}{% endblock %}
 
 {% block subhead %}
-    {% usercontent for user %}
-        <a href="javascript:;" id="edit-user" data-class="display" class="btn">Edit</a>
-        <a href="javascript:;" id="save-edit" data-class="edit" class="btn" style="display: none;">Save</a>
-        <a href="javascript:;" id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</a>
-    {% endusercontent %}
 {% endblock subhead %}
 
 {% block header %}
@@ -23,6 +18,7 @@
 
 {% block content %}
 {% load i18n %}
+<div class="image-background"></div>
 <div class="container contained profile">
     <div class="row">
         <div class="span4">
@@ -30,6 +26,11 @@
                 <img class="img-circle img-polaroid user-photo" src="{{STATIC_URL}}img/profile.jpg">
                 <h1>{{ user.username }}</h1>
                 <p>{% trans "User Profile" %}</p>
+                {% usercontent for user %}
+                    <a href="javascript:;" id="edit-user" data-class="display" class="btn">Edit</a>
+                    <a href="javascript:;" id="save-edit" data-class="edit" class="btn" style="display: none;">Save</a>
+                    <a href="javascript:;" id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</a>
+                {% endusercontent %}
             </div>
             <form id="user-form">
                 {% for label, identifier in public_fields %}
