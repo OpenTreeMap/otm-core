@@ -4,12 +4,15 @@ from __future__ import division
 
 from json import loads
 
+from datetime import datetime
+
 from django.db.models import Q
 
 from django.contrib.gis.measure import Distance
 from django.contrib.gis.geos import Point
 
 from treemap.models import Plot, Boundary
+from treemap.udf import DATETIME_FORMAT
 
 
 class ParseException (Exception):
@@ -84,7 +87,6 @@ def _parse_predicate_key(key, mapping=MODEL_MAPPING):
     return mapping[model] + field
 
 
-#TODO: Date not supported
 def _parse_value(value):
     """
     A value can be either:
@@ -94,7 +96,10 @@ def _parse_value(value):
     """
     if type(value) is list:
         return [_parse_value(v) for v in value]
-    else:
+
+    try:
+        return datetime.strptime(value, DATETIME_FORMAT)
+    except ValueError:
         return value
 
 

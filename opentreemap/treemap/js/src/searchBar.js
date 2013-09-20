@@ -12,8 +12,13 @@ var $ = require('jquery'),
     Search = require('./search'),
     BU = require('./baconUtils');
 
+// Placed onto the jquery object
+require('bootstrap-datepicker');
+
 module.exports = exports = {
     initSearchUi: function(config) {
+        var $advancedToggle = $("#search-advanced"),
+            $advancedPane = $("#advanced-search-pane");
         otmTypeahead.create({
             name: "species",
             url: config.instance.url + "species",
@@ -30,9 +35,10 @@ module.exports = exports = {
             hidden: "#boundary",
             reverse: "id"
         });
-        $("#search-advanced").on("click", function() {
-            $("#advanced-search-pane").toggle(0); // Show/hide with 0 animation time
+        $advancedToggle.on("click", function() {
+            $advancedPane.toggle(0); // Show/hide with 0 animation time
         });
+        $advancedPane.find("input[data-date-format]").datepicker();
     },
 
     resetEventStream: function() {

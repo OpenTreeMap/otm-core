@@ -78,6 +78,12 @@ module.exports = function(grunt) {
                         jscolor: {
                             path: './treemap/js/shim/jscolor.js',
                             exports: null
+                        },
+                        // Bootstrap-datepicker puts itself onto the jQuery object
+                        "bootstrap-datepicker": {
+                            path: './treemap/js/shim/bootstrap-datepicker.js',
+                            exports: null,
+                            depends: { jquery: 'jQuery', bootstrap: 'bootstrap' }
                         }
                     },
                     debug: debug
@@ -116,6 +122,7 @@ module.exports = function(grunt) {
             treemap: {
                 src: ['treemap/css/vendor/bootstrap.css',
                       'treemap/css/vendor/bootstrap-responsive.css',
+                      'treemap/css/vendor/datepicker.css',
                       'treemap/css/vendor/fontello.css',
                       'treemap/css/vendor/openlayers.css'],
                 dest: 'treemap/static/css/vendor.css'
