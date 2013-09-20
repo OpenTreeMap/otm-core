@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('underscore'),
+    google = require('googlemaps'),
     OL = require('OpenLayers'),
     makeLayerFilterable = require('./makeLayerFilterable');
 
@@ -111,7 +112,8 @@ function getBasemapLayers(config) {
                 key: config.instance.basemap.bing_api_key,
                 type: 'AerialWithLabels',
                 isBaseLayer: true
-            })];
+            })
+        ];
     } else if (config.instance.basemap.type === 'tms') {
         layers = [new OL.Layer.XYZ(
             'xyz',
@@ -127,7 +129,8 @@ function getBasemapLayers(config) {
                  numZoomLevels: 20}),
             new OL.Layer.Google(
                 "Google Satellite",
-                {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 22})];
+                {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 22})
+        ];
     }
     return layers;
 }
