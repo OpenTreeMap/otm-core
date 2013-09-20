@@ -37,7 +37,8 @@ module.exports = {
 
         vectorLayer = new OL.Layer.Vector(
             "Vector Layer",
-            { renderers: OL.Layer.Vector.prototype.renderers });
+            { renderers: OL.Layer.Vector.prototype.renderers,
+              displayInLayerSwitcher: false });
 
         pointControl = new OL.Control.DrawFeature(
             vectorLayer,
