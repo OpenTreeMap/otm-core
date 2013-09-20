@@ -1,6 +1,9 @@
 import json
 import datetime
+import Image
+import hashlib
 from collections import OrderedDict
+from cStringIO import StringIO
 
 from functools import wraps
 from urlparse import urlparse
@@ -17,6 +20,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as trans
+from django.core.files.uploadedfile import SimpleUploadedFile, File
 
 from treemap.instance import Instance
 
@@ -219,3 +223,40 @@ def return_400_if_validation_errors(req):
                 json.dumps(message_dict, cls=LazyEncoder))
 
     return run_and_catch_validations
+
+
+def save_uploaded_image(image_data, name_prefix, error_key, thumb_size=None):
+    try:
+        image = Image.open(image_data)
+        image.verify()
+    except:
+        raise ValidationError({error_key: 'Invalid image'})
+
+    try:
+        hash = hashlib.md5(image_data.read()).hexdigest()
+        name = "%s-%s.%s" % (name_prefix, hash, image.format.lower())
+
+        image_file = File(image_data)
+        image_file.name = name
+        thumb_file = None
+
+        if thumb_size is not None:
+            # http://www.pythonware.com/library/pil/handbook/image.htm
+            # ...if you need to load the image after using this method,
+            # you must reopen the image file.
+            image_data.seek(0)
+            image = Image.open(image_data)
+            image.thumbnail(thumb_size, Image.ANTIALIAS)
+            temp = StringIO()
+            image.save(temp, format=image.format)
+            temp.seek(0)
+            thumb_file = SimpleUploadedFile(
+                'thumb-' + name, temp.read(),
+                'image/%s' % image.format.lower())
+
+        # Reset image position
+        image_data.seek(0)
+
+        return image_file, thumb_file
+    except:
+        raise ValidationError({error_key: 'Could not upload image'})

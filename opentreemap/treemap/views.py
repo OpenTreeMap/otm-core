@@ -229,13 +229,13 @@ def plot_detail(request, instance, plot_id, tree_id=None):
         context['upload_tree_photo_url'] = \
             reverse('add_photo_to_tree',
                     kwargs={'instance_url_name': instance.url_name,
-                            'plot_id' : plot.pk,
+                            'plot_id': plot.pk,
                             'tree_id': tree.pk})
     else:
         context['upload_tree_photo_url'] = \
             reverse('add_photo_to_plot',
                     kwargs={'instance_url_name': instance.url_name,
-                            'plot_id' : plot.pk})
+                            'plot_id': plot.pk})
 
     context['plot'] = plot
     context['tree'] = tree

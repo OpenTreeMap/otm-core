@@ -1,3 +1,5 @@
+"use strict";
+
 // For modal dialog on jquery
 require('bootstrap');
 
@@ -7,7 +9,7 @@ module.exports.init = function(options) {
     addModalTrigger(options.show);
     var $form = $(options.form);
     $(options.upload).click(function() { $form.submit(); });
-}
+};
 
 function addModalTrigger(element) {
     var $e = $(element);
