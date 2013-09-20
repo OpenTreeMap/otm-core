@@ -8,7 +8,6 @@ var $ = require('jquery'),
     otmTypeahead = require('./otmTypeahead'),  // Override typeahead from bootstrap
     inlineEditForm = require('./inlineEditForm'),
     mapManager = require('./mapManager'),
-    BU = require('BaconUtils'),
     plotMover = require('./plotMover'),
     plotMarker = require('./plotMarker');
 

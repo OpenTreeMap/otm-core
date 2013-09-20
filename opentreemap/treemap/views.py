@@ -225,6 +225,18 @@ def plot_detail(request, instance, plot_id, tree_id=None):
     if 'errors' in request.REQUEST:
         context['errors'] = json.loads(request.REQUEST['errors'])
 
+    if tree:
+        context['upload_tree_photo_url'] = \
+            reverse('add_photo_to_tree',
+                    kwargs={'instance_url_name': instance.url_name,
+                            'plot_id' : plot.pk,
+                            'tree_id': tree.pk})
+    else:
+        context['upload_tree_photo_url'] = \
+            reverse('add_photo_to_plot',
+                    kwargs={'instance_url_name': instance.url_name,
+                            'plot_id' : plot.pk})
+
     context['plot'] = plot
     context['tree'] = tree
     context['recent_activity'] = _plot_audits(request.user, instance, plot)
