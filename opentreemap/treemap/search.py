@@ -99,7 +99,7 @@ def _parse_value(value):
 
     try:
         return datetime.strptime(value, DATETIME_FORMAT)
-    except ValueError:
+    except (ValueError, TypeError):
         return value
 
 
