@@ -173,6 +173,30 @@ def json_api_call(req_function):
     return newreq
 
 
+def bad_request_json_response(message=None, validation_error_dict=None):
+    if message is None:
+        message = 'One or more of the specified values are invalid.'
+    response = HttpResponse()
+    response.status_code = 400
+    content = {'error': message}
+    if validation_error_dict:
+        content['validationErrors'] = validation_error_dict
+    response.write(json.dumps(content))
+    response['Content-length'] = str(len(response.content))
+    response['Content-Type'] = "application/json"
+    return response
+
+
+def package_validation_errors(model_name, validation_error):
+    """
+    validation_error contains a dictionary of error messages of the form
+    {fieldname1: [messages], fieldname2: [messages]}.
+    Return a version keyed by "modelname.fieldname" instead of "fieldname".
+    """
+    return {'%s.%s' % (model_name.lower(), field): msgs
+            for (field, msgs) in validation_error.message_dict.iteritems()}
+
+
 # https://docs.djangoproject.com/en/dev/topics/serialization/#id2
 class LazyEncoder(DjangoJSONEncoder):
     def default(self, obj):
