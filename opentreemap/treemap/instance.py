@@ -71,7 +71,12 @@ class Instance(models.Model):
     """
     Config contains a bunch of config variables for a given instance
     these can be accessed via per-config properties such as
-    `advanced_search_fields`
+    `advanced_search_fields`. Note that it is a DotDict, and so supports
+    get() with a dotted key and a default, e.g.
+        instance.config.get('fruit.apple.type', 'delicious')
+    as well as creating dotted keys when no keys in the path exist yet, e.g.
+        instance.config = DotDict({})
+        instance.config.fruit.apple.type = 'macoun'
     """
     config = JSONField(blank=True)
 
@@ -84,7 +89,7 @@ class Instance(models.Model):
 
     def _make_config_property(prop, default=None):
         def get_config(self):
-            return self.config[prop] or default
+            return self.config.get(prop, default)
 
         def set_config(self, value):
             self.config[prop] = value
