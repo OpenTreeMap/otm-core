@@ -64,6 +64,8 @@ exports.init = function(options) {
 };
 
 function createMap(elmt, config) {
+    OL.ImgPath = "/static/img/";
+
     var map = new OL.Map({
         theme: null,
         div: elmt,
@@ -71,28 +73,52 @@ function createMap(elmt, config) {
         layers: getBasemapLayers(config)
     });
 
+    var switcher = new OL.Control.LayerSwitcher();
+    map.addControls([switcher]);
+
     return map;
 }
 
 function getBasemapLayers(config) {
-    var layer;
+    var layers;
     if (config.instance.basemap.type === 'bing') {
-        layer = new OL.Layer.Bing({
-            name: 'Road',
-            key: config.instance.basemap.bing_api_key,
-            type: 'Road',
-            isBaseLayer: true
-        });
+        layers = [
+            new OL.Layer.Bing({
+                name: 'Road',
+                key: config.instance.basemap.bing_api_key,
+                type: 'Road',
+                isBaseLayer: true
+            }),
+            new OL.Layer.Bing({
+                name: 'Aerial',
+                key: config.instance.basemap.bing_api_key,
+                type: 'Aerial',
+                isBaseLayer: true
+            }),
+            new OL.Layer.Bing({
+                name: 'Hybrid',
+                key: config.instance.basemap.bing_api_key,
+                type: 'AerialWithLabels',
+                isBaseLayer: true
+            })];
     } else if (config.instance.basemap.type === 'tms') {
-        layer = new OL.Layer.XYZ(
+        layers = [new OL.Layer.XYZ(
             'xyz',
-            config.instance.basemap.data);
+            config.instance.basemap.data)];
     } else {
-        layer = new OL.Layer.Google(
-            "Google Streets",
-            {numZoomLevels: 20});
+        layers = [
+            new OL.Layer.Google(
+                "Google Streets",
+                {numZoomLevels: 20}),
+            new OL.Layer.Google(
+                "Google Hybrid",
+                {type: google.maps.MapTypeId.HYBRID,
+                 numZoomLevels: 20}),
+            new OL.Layer.Google(
+                "Google Satellite",
+                {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 22})];
     }
-    return [layer];
+    return layers;
 }
 
 function createPlotTileLayer(config) {
@@ -101,7 +127,8 @@ function createPlotTileLayer(config) {
             'tiles',
             url,
             { isBaseLayer: false,
-              sphericalMercator: true });
+              sphericalMercator: true,
+              displayInLayerSwitcher: false });
     makeLayerFilterable(layer, url, config.urls.filterQueryArgumentName);
     return layer;
 }
@@ -110,7 +137,8 @@ function createPlotUTFLayer(config) {
     var url = getPlotLayerURL(config, 'grid.json'),
         layer = new OL.Layer.UTFGrid({
             url: url,
-            utfgridResolution: 4
+            utfgridResolution: 4,
+            displayInLayerSwitcher: false
         });
     makeLayerFilterable(layer, url, config.urls.filterQueryArgumentName);
     return layer;
@@ -142,7 +170,8 @@ function createBoundsTileLayer(config) {
         'bounds',
         getBoundsLayerURL(config, 'png'),
         { isBaseLayer: false,
-          sphericalMercator: true });
+          sphericalMercator: true,
+          displayInLayerSwitcher: false });
 }
 
 function getBoundsLayerURL(config, extension) {
