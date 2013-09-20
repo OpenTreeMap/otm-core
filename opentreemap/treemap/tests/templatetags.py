@@ -1,4 +1,4 @@
-from django.template import Template, Context
+from django.template import Template, Context, TemplateSyntaxError
 from django.test import TestCase
 from django.test.utils import override_settings
 
@@ -326,9 +326,9 @@ class InlineFieldTagTests(TestCase):
         return Template(template_text)
 
     def _form_template_search(self, identifier):
-        field_name = '"' + identifier + '"'
         template_text = """{% load form_extras %}""" +\
-            """{% search from """ + field_name +\
+            """{% search from""" +\
+            """ request.instance.advanced_search_fields.standard.0""" +\
             """ for request.user in request.instance """ +\
             """ withtemplate "field_template.html" %}"""
         return Template(template_text)
@@ -490,18 +490,25 @@ class InlineFieldTagTests(TestCase):
 
     def test_search_uses_new_model(self):
         user = make_observer_user(self.instance)
+        self.instance.config['advanced_search_fields'] = {
+            'standard': [
+                {'identifier': 'plot.length'}
+            ]
+        }
         self.assert_plot_length_context_value(
             user, 'field.value', unicode(Plot().length),
             self._form_template_search)
 
     def test_search_adds_field_config(self):
         user = make_observer_user(self.instance)
-        self.instance.config['advanced_search_fields'] = [
-            {'identifier': 'plot.length',
-             'label': 'testing',
-             'search_type': 'range',
-             'default': [0, 100]}
-        ]
+        self.instance.config['advanced_search_fields'] = {
+            'standard': [
+                {'identifier': 'plot.length',
+                 'label': 'testing',
+                 'search_type': 'range',
+                 'default': [0, 100]}
+            ]
+        }
         self.assert_plot_length_context_value(
             user, 'field.identifier', 'plot.length',
             self._form_template_search)
@@ -520,33 +527,27 @@ class InlineFieldTagTests(TestCase):
 
     def test_search_gets_default_label_when_none_given(self):
         user = make_observer_user(self.instance)
-        self.instance.config['advanced_search_fields'] = [
-            {'identifier': 'plot.length',
-             'label': None,
-             'search_type': 'range',
-             'default': [0, 100]}
-        ]
+        self.instance.config['advanced_search_fields'] = {
+            'standard': [
+                {'identifier': 'plot.length',
+                 'label': None}
+            ]
+        }
         self.assert_plot_length_context_value(
             user, 'field.label',
             unicode(Plot._meta.get_field('length').help_text),
             self._form_template_search)
 
-    def test_search_fields_get_added_only_if_identifier_matches(self):
+    def test_search_fields_get_added_only_for_valid_json_matches(self):
         user = make_observer_user(self.instance)
-        self.instance.config['advanced_search_fields'] = [
-            {'identifier': 'plot.width',
-             'label': 'testing',
-             'search_type': 'range',
-             'default': [0, 100]}
-        ]
-        self.assert_plot_length_context_value(
-            user, 'field.identifier', 'plot.length',
-            self._form_template_search)
-
-        self.assert_plot_length_context_value(
-            user, 'field.search_type', '',
-            self._form_template_search)
-
-        self.assert_plot_length_context_value(
-            user, 'field.default', '',
-            self._form_template_search)
+        self.instance.config['advanced_search_fields'] = {
+            'standard': [
+                {'identifiers': 'plot.width'}
+            ]
+        }
+        with self.assertRaises(TemplateSyntaxError):
+            with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+                self._write_field_template("{{ field.identifier }}")
+                self._form_template_search(None).render(Context({
+                    'request': {'user': user, 'instance': self.instance}}
+                )).strip()

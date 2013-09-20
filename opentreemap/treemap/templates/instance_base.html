@@ -53,9 +53,11 @@
 {% endblock searchoptions %}
 {% block advancedsearch %}
 <div id="advanced-search-pane" style="display: none;">
-  {% for search in request.instance.advanced_search_fields %}
-  {% search from search.identifier for request.user in request.instance withtemplate "treemap/field/search.html" %}
+  <div id="standard-search">
+  {% for json in request.instance.advanced_search_fields.standard %}
+    {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
   {% endfor %}
+  </div>
 </div>
 {% endblock advancedsearch %}
 
