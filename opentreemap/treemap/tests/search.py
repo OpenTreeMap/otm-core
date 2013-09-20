@@ -289,6 +289,16 @@ class FilterParserTests(TestCase):
 
         self.assertEqual(self.destructure_query_set(pred), ('OR', {p1, p2}))
 
+    def test_parse_normal_value(self):
+        self.assertEqual(search._parse_value(1), 1)
+
+    def test_parse_list(self):
+        self.assertEqual(search._parse_value([1, 2]), [1, 2])
+
+    def test_parse_date(self):
+        date = datetime(2013, 4, 1, 12, 0, 0)
+        self.assertEqual(search._parse_value("2013-04-01 12:00:00"), date)
+
 
 class SearchTests(TestCase):
     def setUp(self):
@@ -375,6 +385,14 @@ class SearchTests(TestCase):
             {p1, p3},
             self._execute_and_process_filter(
                 {'tree.udf:Test float': {'MAX': 10.0}}))
+
+    def test_udf_date_search(self):
+        p1, p2, _ = self._setup_udfs()
+
+        self.assertEqual(
+            {p1, p2},
+            self._execute_and_process_filter(
+                {'plot.udf:Test date': {'MAX': "2013-01-01 00:00:00"}}))
 
     def test_udf_like_search(self):
         p1, p2, p3 = self._setup_udfs()
