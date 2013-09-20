@@ -21,8 +21,10 @@ from django.conf.urls import patterns
 
 from treemap.models import User, InstanceUser
 
+from djcelery.contrib.test_runner import CeleryTestSuiteRunner
 
-class OTM2TestRunner(DjangoTestSuiteRunner):
+
+class OTM2TestRunner(CeleryTestSuiteRunner, DjangoTestSuiteRunner):
     def run_tests(self, *args, **kwargs):
         logging.disable(logging.CRITICAL)
         return super(OTM2TestRunner, self).run_tests(*args, **kwargs)
