@@ -10,7 +10,8 @@ from DotDict import DotDict
 class JSONField(with_metaclass(models.SubfieldBase, models.TextField)):
     def to_python(self, value):
         if isinstance(value, basestring):
-            return DotDict(json.loads(value or "{}"))
+            obj = json.loads(value or "{}")
+            return DotDict(obj) if isinstance(obj, dict) else obj
         else:
             return value
 
