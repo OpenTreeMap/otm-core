@@ -554,20 +554,20 @@ class InstanceTest(TestCase):
 
     def test_config_accessors_work(self):
         instance = make_instance()
-        instance.advanced_search_filters = ['field 1', 'field 2']
+        instance.advanced_search_fields = ['field 1', 'field 2']
         instance.save()
 
         reloaded_instance = Instance.objects.get(pk=instance.pk)
 
-        self.assertEqual(reloaded_instance.advanced_search_filters,
+        self.assertEqual(reloaded_instance.advanced_search_fields,
                          ['field 1', 'field 2'])
 
-        instance.advanced_search_filters.append('field 3')
+        instance.advanced_search_fields.append('field 3')
         instance.save()
 
         reloaded_instance = Instance.objects.get(pk=instance.pk)
 
-        self.assertEqual(reloaded_instance.advanced_search_filters,
+        self.assertEqual(reloaded_instance.advanced_search_fields,
                          ['field 1', 'field 2', 'field 3'])
 
     def test_verify_cant_do_lookup(self):

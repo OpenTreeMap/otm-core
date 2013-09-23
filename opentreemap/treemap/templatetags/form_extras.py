@@ -238,7 +238,8 @@ class AbstractNode(template.Node):
         field_template = get_template(_resolve_variable(
                                       self.field_template, context))
 
-        if not _identifier_regex.match(identifier):
+        if not isinstance(identifier, basestring)\
+           or not _identifier_regex.match(identifier):
             raise template.TemplateSyntaxError(
                 'expected a string with the format "model.property" '
                 'to follow "from" %s' % identifier)
