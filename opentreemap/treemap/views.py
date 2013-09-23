@@ -3,12 +3,14 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import string
-
+import re
 import urllib
 import json
 import locale
 import hashlib
+
 from PIL import Image
+import sass
 
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
@@ -24,7 +26,7 @@ from django.db.models import Q
 
 from treemap.util import (json_api_call, render_template, instance_request,
                           require_http_method, package_validation_errors,
-                          bad_request_json_response)
+                          bad_request_json_response, string_as_file_call)
 from treemap.search import create_filter
 from treemap.audit import Audit
 from treemap.models import (Plot, Tree, User, Species, Instance,
@@ -738,6 +740,35 @@ def profile_to_user_view(request):
     else:
         return HttpResponseRedirect(settings.LOGIN_URL)
 
+
+_scss_var_name_re = re.compile('^[_a-zA-Z][-_a-zA-Z0-9]*$')
+_color_re = re.compile(r'^(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$')
+
+
+def compile_scss(request):
+    """
+    Reads key value pairs from the query parameters and adds them as scss
+    variables with color values, then imports the main entry point to our scss
+    file.
+
+    Any variables provided will be put in the scss file, but only those which
+    override variables with '!default' in our normal .scss files should have
+    any effect
+    """
+    # We can probably be a bit looser with what we allow here in the future if
+    # we need to, but we must do some checking so that libsass doesn't explode
+    scss = ''
+    for key, value in request.GET.items():
+        if _scss_var_name_re.match(key) and _color_re.match(value):
+            scss += '$%s: #%s;\n' % (key, value)
+        else:
+            raise ValidationError("Invalid SCSS values %s: %s" % (key, value))
+    scss += '@import "%s";' % settings.SCSS_ENTRY
+    scss = scss.encode('utf-8')
+
+    return sass.compile(string=scss, include_paths=[settings.SCSS_ROOT])
+
+
 audits_view = instance_request(
     render_template('treemap/recent_edits.html', audits))
 
@@ -797,3 +828,6 @@ landing_view = render_template("base.html")
 
 add_tree_photo_endpoint = require_http_method("POST")(
     instance_request(add_tree_photo_view))
+
+scss_view = require_http_method("GET")(
+    string_as_file_call("text/css", compile_scss))
