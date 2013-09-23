@@ -89,6 +89,9 @@ class RootUrlTests(UrlTestCase):
         self.assert_404('/users/fake/recent_edits')
         self.assert_404('/users/%s/recent_edits?instance_id=0' % username)
 
+    def test_dynamic_scss(self):
+        self.assert_200('/main.css?primary-color=fff')
+
 
 class TreemapUrlTests(UrlTestCase):
     # Tests for URLs defined in treemap/urls.py

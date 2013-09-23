@@ -7,7 +7,7 @@ from opentreemap.util import route
 from treemap.views import (user_view, root_settings_js_view,
                            profile_to_user_view, user_audits_view,
                            instance_not_available_view, update_user_view,
-                           unsupported_view, landing_view)
+                           unsupported_view, landing_view, scss_view)
 
 from treemap.instance import URL_NAME_PATTERN
 instance_pattern = r'^(?P<instance_url_name>' + URL_NAME_PATTERN + r')'
@@ -48,8 +48,8 @@ urlpatterns = patterns(
     url(r'^i18n/', include('django.conf.urls.i18n')),
     url(r'^not-available$', instance_not_available_view,
         name='instance_not_available'),
-    url(r'^unsupported$', unsupported_view,
-        name='unsupported'),
+    url(r'^unsupported$', unsupported_view, name='unsupported'),
+    url(r'^main\.css$', scss_view, name='scss')
 )
 
 if settings.USE_JS_I18N:
