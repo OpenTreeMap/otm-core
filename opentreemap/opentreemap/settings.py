@@ -1,3 +1,5 @@
+import os
+
 # Django settings for opentreemap project.
 
 OTM_VERSION = 'dev'
@@ -82,6 +84,15 @@ USE_L10N = True
 
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
+
+# Path to the Django Project root
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
+
+# Path to the location of SCSS files, used for on-the-fly compilation to CSS
+SCSS_ROOT = os.path.join(PROJECT_ROOT, 'treemap', 'css', 'sass')
+
+# Entry point .scss file for on-the-fly compilation to CSS
+SCSS_ENTRY = 'main'
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"

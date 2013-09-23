@@ -34,7 +34,8 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, audits, user_audits,
                            search_tree_benefits, user, instance_user_view,
                            update_plot_and_tree, update_user, add_tree_photo,
-                           root_settings_js_view, instance_settings_js_view)
+                           root_settings_js_view, instance_settings_js_view,
+                           compile_scss)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
@@ -1429,3 +1430,25 @@ class InstanceSettingsJsViewTests(SettingsJsViewTests):
         super(InstanceSettingsJsViewTests, self).setUp()
         self.get_response = lambda: instance_settings_js_view(
             self.req, self.instance.url_name)
+
+
+class ScssCompilationTests(ViewTestCase):
+
+    def test_css_content_differs_by_argument(self):
+        request1 = self.factory.get("", {"primary-color": "fff",
+                                         "secondary-color": "fff"})
+        request2 = self.factory.get("", {"primary-color": "000000",
+                                         "secondary-color": "000"})
+        css1 = compile_scss(request1)
+        css2 = compile_scss(request2)
+
+        self.assertNotEqual(css1, css2)
+
+    def test_compile_scss_raises_on_invalid_values(self):
+        request = self.factory.get("", {"primary-color": "ffg"})
+        with self.assertRaises(ValidationError):
+            compile_scss(request)
+
+        request = self.factory.get("", {"-color": "fff"})
+        with self.assertRaises(ValidationError):
+            compile_scss(request)

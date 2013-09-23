@@ -155,16 +155,31 @@ def json_api_call(req_function):
     """
     @wraps(req_function)
     def newreq(request, *args, **kwargs):
+        outp = req_function(request, *args, **kwargs)
+        if issubclass(outp.__class__, HttpResponse):
+            return outp
+        else:
+            return '%s' % json.dumps(outp)
+    return string_as_file_call("application/json", newreq)
+
+
+def string_as_file_call(content_type, req_function):
+    """
+    Wrap a view-like function that returns a string and marshalls it into an
+    HttpResponse with the given Content-Type
+    """
+    @wraps(req_function)
+    def newreq(request, *args, **kwargs):
         try:
             outp = req_function(request, *args, **kwargs)
             if issubclass(outp.__class__, HttpResponse):
                 response = outp
             else:
                 response = HttpResponse()
-                response.write('%s' % json.dumps(outp))
+                response.write(outp)
                 response['Content-length'] = str(len(response.content))
 
-            response['Content-Type'] = "application/json"
+            response['Content-Type'] = content_type
 
         except HttpBadRequestException, bad_request:
             response = HttpResponseBadRequest(bad_request.message)

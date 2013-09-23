@@ -2,6 +2,17 @@
 {% load i18n %}
 {% load form_extras %}
 
+
+{% block application_css %}
+{% if request.instance.scss_variables %}
+<link href="{% url 'scss' %}?{{ request.instance.scss_query_string }}" rel="stylesheet">
+{% elif settings.TEMPLATE_DEBUG %}
+<link href="{{ STATIC_URL }}css/main.css" rel="stylesheet">
+{% else %}
+<link href="{{ STATIC_URL }}css/main.min.css" rel="stylesheet">
+{% endif %}
+{% endblock application_css %}
+
 {% block instance_title %} | {{ request.instance.name }}{% endblock %}
 
 {% block instancetopnav %}

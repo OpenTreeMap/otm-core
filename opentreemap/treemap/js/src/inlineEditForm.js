@@ -246,11 +246,14 @@ exports.init = function(options) {
 
     actionStream.onValue(hideAndShowElements);
 
-    exports.inEditModeProperty = actionStream.map(function (event) {
+    var inEditModeProperty = actionStream.map(function (event) {
         return _.contains(eventsLandingInEditMode, event);
     }).toProperty(false);
 
-    exports.saveOkStream = saveOkStream;
-    exports.cancelStream = cancelStream;
-    exports.updateUrl = updateUrl;
+    return {
+        saveOkStream: saveOkStream,
+        cancelStream: cancelStream,
+        updateUrl: updateUrl,
+        inEditModeProperty: inEditModeProperty
+    };
 };

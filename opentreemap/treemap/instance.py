@@ -4,6 +4,7 @@ from django.core.validators import RegexValidator
 from django.conf import settings
 
 import hashlib
+from urllib import urlencode
 
 from json_field import JSONField
 
@@ -104,6 +105,8 @@ class Instance(models.Model):
     short_date_format = _make_config_property('short_date_format',
                                               settings.SHORT_DATE_FORMAT)
 
+    scss_variables = _make_config_property('scss_variables')
+
     @property
     def center(self):
         return self.bounds.centroid
@@ -115,6 +118,10 @@ class Instance(models.Model):
     @property
     def center_lat_lng(self):
         return self.center.transform(4326, clone=True)
+
+    @property
+    def scss_query_string(self):
+        return urlencode(self.scss_variables or {})
 
     def is_accessible_by(self, user):
         try:
