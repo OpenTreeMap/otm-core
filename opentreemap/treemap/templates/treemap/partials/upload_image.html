@@ -1,0 +1,16 @@
+<div id="{{ panel_id }}" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h2>{{ title }}</h2>
+  </div>
+  <div class="modal-body">
+    <form method="POST" enctype="multipart/form-data" action="{{ endpoint }}">
+      {% csrf_token %}
+      Image: <input type="file" name="file">
+    </form>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+    <a href="#" class="btn btn-primary uploadBtn">Upload</a>
+  </div>
+</div>
