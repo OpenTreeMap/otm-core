@@ -33,7 +33,7 @@ exports.init = function(options) {
         }));
     });
 
-    imageUploadPanel.init(options.photos);
+    imageUploadPanel.init(options.imageUploadPanel);
 
     inlineEditForm.init(
         _.extend(options.inlineEditForm, { onSaveBefore: onSaveBefore }));

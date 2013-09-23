@@ -7,8 +7,10 @@ var $ = require('jquery');
 
 module.exports.init = function(options) {
     addModalTrigger(options.show);
-    var $form = $(options.form);
-    $(options.upload).click(function() { $form.submit(); });
+    var $panel = $(options.panelId),
+        $form = $panel.find('form'),
+        $upload = $panel.find('.uploadBtn');
+    $upload.click(function() { $form.submit(); });
 };
 
 function addModalTrigger(element) {

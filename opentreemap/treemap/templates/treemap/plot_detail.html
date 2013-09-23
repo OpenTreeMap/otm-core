@@ -10,7 +10,7 @@
 
 
 {% block content %}
-{% include "treemap/partials/upload_image.html" with title="Add a Photo" endpoint=upload_tree_photo_url %}
+{% include "treemap/partials/upload_image.html" with panel_id="addPhotoModal" title="Add a Photo" endpoint=upload_tree_photo_url %}
 
 <div class="image-background"></div>
 <div class="container contained tree-details">
@@ -189,9 +189,8 @@
               hidden: "#plot-species-hidden",
               reverse: "id"
           }],
-          photos: {
-              form: '#add-photo-form',
-              upload: '#addimage',
+          imageUploadPanel: {
+              panelId: '#addPhotoModal',
               show: '#toggleAddPhotoModal'
           },
           plotLocation: {
