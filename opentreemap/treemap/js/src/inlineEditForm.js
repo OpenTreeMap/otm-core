@@ -14,7 +14,9 @@ var eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
     eventsLandingInDisplayMode = ['idle', 'save:ok', 'cancel'];
 
 exports.init = function(options) {
-    var updateUrl = options.updateUrl,
+    var self = {
+            updateUrl: options.updateUrl
+        },
         form = options.form,
         edit = options.edit,
         save = options.save,
@@ -162,7 +164,7 @@ exports.init = function(options) {
 
         update = function(data) {
             return Bacon.fromPromise($.ajax({
-                url: exports.updateUrl,
+                url: self.updateUrl,
                 type: 'PUT',
                 contentType: "application/json",
                 data: JSON.stringify(data)
@@ -250,10 +252,9 @@ exports.init = function(options) {
         return _.contains(eventsLandingInEditMode, event);
     }).toProperty(false);
 
-    return {
+    return $.extend(self, {
         saveOkStream: saveOkStream,
         cancelStream: cancelStream,
-        updateUrl: updateUrl,
         inEditModeProperty: inEditModeProperty
-    };
+    });
 };
