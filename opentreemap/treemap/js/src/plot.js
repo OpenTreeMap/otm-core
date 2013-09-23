@@ -49,8 +49,8 @@ exports.init = function(options) {
     var $form = $(options.photos.form);
     $(options.photos.upload).click(function() { $form.submit(); });
 
-    inlineEditForm.init(
-        _.extend(options.inlineEditForm, { onSaveBefore: onSaveBefore }));
+    var form = inlineEditForm.init(
+            _.extend(options.inlineEditForm,{ onSaveBefore: onSaveBefore }));
 
     mapManager.init({
         config: options.config,
@@ -64,7 +64,7 @@ exports.init = function(options) {
     plotMover.init({
         mapManager: mapManager,
         plotMarker: plotMarker,
-        inlineEditForm: inlineEditForm,
+        inlineEditForm: form,
         editLocationButton: options.plotLocation.edit,
         cancelEditLocationButton: options.plotLocation.cancel,
         location: options.plotLocation.location

@@ -42,7 +42,7 @@ function inAddTreeMode()     { return currentMode === addTreeMode; }
 function init(config, mapManager) {
     // browseTreesMode and editTreeDetailsMode share an inlineEditForm,
     // so initialize it here.
-    inlineEditForm.init({
+    var form = inlineEditForm.init({
         updateUrl: '', // set in browseTreesMode.js on map click
         form: '#details-form',
         edit: '#edit-details-button',
@@ -53,7 +53,7 @@ function init(config, mapManager) {
         validationFields: '#sidebar-browse-trees [data-class="error"]',
         onSaveBefore: editTreeDetailsMode.onSaveBefore
     });
-    inlineEditForm.inEditModeProperty.onValue(function (inEditMode) {
+    form.inEditModeProperty.onValue(function (inEditMode) {
         // Form is changing to edit mode or display mode
         if (inEditMode) {
             activateEditTreeDetailsMode();
@@ -70,7 +70,7 @@ function init(config, mapManager) {
         inMyMode: inBrowseTreesMode,
         $treeDetailAccordionSection: $treeDetailAccordionSection,
         $fullDetailsButton: $fullDetailsButton,
-        inlineEditForm: inlineEditForm,
+        inlineEditForm: form,
         plotMarker: plotMarker
     });
 
@@ -86,7 +86,7 @@ function init(config, mapManager) {
 
     editTreeDetailsMode.init({
         mapManager: mapManager,
-        inlineEditForm: inlineEditForm,
+        inlineEditForm: form,
         plotMarker: plotMarker,
         typeaheads: [getSpeciesTypeaheadOptions(config, "edit-tree-species")]
     });
