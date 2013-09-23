@@ -415,8 +415,7 @@ class TreePhoto(models.Model, Authorizable, Auditable):
     def set_image(self, image_data):
         name_prefix = "%s-%s" % (self.tree.plot.pk, self.tree.pk)
         self.image, self.thumbnail = save_uploaded_image(
-            image_data, name_prefix, 'treephoto.image',
-            thumb_size=(256, 256))
+            image_data, name_prefix, thumb_size=(256, 256))
 
     def save_with_user(self, *args, **kwargs):
         if not self.thumbnail.name:

@@ -1,3 +1,5 @@
+// Manage panel for image uploading
+
 "use strict";
 
 // For modal dialog on jquery
@@ -10,7 +12,9 @@ module.exports.init = function(options) {
     var $panel = $(options.panelId),
         $form = $panel.find('form'),
         $upload = $panel.find('.uploadBtn');
-    $upload.click(function() { $form.submit(); });
+    $upload.click(function() {
+        $form.submit();
+    });
 };
 
 function addModalTrigger(element) {

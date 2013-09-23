@@ -225,12 +225,12 @@ def return_400_if_validation_errors(req):
     return run_and_catch_validations
 
 
-def save_uploaded_image(image_data, name_prefix, error_key, thumb_size=None):
+def save_uploaded_image(image_data, name_prefix, thumb_size=None):
     try:
         image = Image.open(image_data)
         image.verify()
-    except:
-        raise ValidationError({error_key: 'Invalid image'})
+    except IOError:
+        raise ValidationError('Invalid image')
 
     try:
         hash = hashlib.md5(image_data.read()).hexdigest()
@@ -259,4 +259,4 @@ def save_uploaded_image(image_data, name_prefix, error_key, thumb_size=None):
 
         return image_file, thumb_file
     except:
-        raise ValidationError({error_key: 'Could not upload image'})
+        raise ValidationError('Could not upload image')

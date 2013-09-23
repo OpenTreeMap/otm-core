@@ -24,6 +24,9 @@
       {% endif %}
       {% endwith %}
       <a id="toggleAddPhotoModal" data-modal="#addPhotoModal" class="btn btn-mini add-photos">{% trans "Add Photos" %}</a>
+      {% if upload_error %}
+      <div class="text-error">{{ upload_error }}</div>
+      {% endif %}
       <hr>
       <a class="btn add-favorite" href="javascript:;">{% trans "Add to Favorites" %}</a>
       <hr>
@@ -42,14 +45,6 @@
       </ul>
     </div>
     <div class="span6">
-      {% if errors %}
-      <div class="error">
-        <h1>Errors</h1>
-        {% for field, msg in errors.iteritems %}
-        <li>{{ msg }}</li>
-        {% endfor %}
-      </div>
-      {% endif %}
       <h1>{{ tree.species.common_name }}</h1>
       <h2>{{ tree.species.scientific_name }}</h2>
       <h3>{{ plot.address_full }}</h3>

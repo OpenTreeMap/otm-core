@@ -112,19 +112,19 @@ def add_tree_photo(request, instance, plot_id, tree_id=None):
 
 
 def add_tree_photo_view(request, instance, plot_id, tree_id=None):
-    errors = ''
+    error = ''
 
     try:
         add_tree_photo(request, instance, plot_id, tree_id)
     except ValidationError as e:
-        errors = '?errors=%s' % urllib.quote(json.dumps(e.message_dict))
+        error = '?error=%s' % urllib.quote('; '.join(e.messages))
 
     url = reverse('plot_detail',
                   kwargs={
                       'instance_url_name': instance.url_name,
                       'plot_id': plot_id})
 
-    url += errors
+    url += error
 
     return HttpResponseRedirect(url)
 
@@ -222,8 +222,8 @@ def plot_detail(request, instance, plot_id, tree_id=None):
         except Exception:
             pass
 
-    if 'errors' in request.REQUEST:
-        context['errors'] = json.loads(request.REQUEST['errors'])
+    if 'error' in request.REQUEST:
+        context['upload_error'] = request.REQUEST['error']
 
     if tree:
         context['upload_tree_photo_url'] = \
