@@ -244,7 +244,7 @@ class AbstractNode(template.Node):
                 'expected a string with the format "model.property" '
                 'to follow "from" %s' % identifier)
 
-        model_name, field_name = identifier.split('.')
+        model_name, field_name = identifier.split('.', 1)
         model = self.get_model(context, model_name, instance)
 
         def _udf_dict(model, field_name):
@@ -296,7 +296,6 @@ class AbstractNode(template.Node):
             choices = None
             is_visible = is_editable = True
             data_type = "TextField"
-
         else:
             field_value, choices = _field_value_and_choices(model, field_name)
             data_type, label = _field_type_and_label(model, field_name, label)
