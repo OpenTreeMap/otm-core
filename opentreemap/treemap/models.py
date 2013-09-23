@@ -5,7 +5,6 @@ from __future__ import division
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.files.uploadedfile import SimpleUploadedFile, File
 from django.contrib.gis.db import models
 from django.db import IntegrityError
 from django.utils import timezone
@@ -16,12 +15,10 @@ from django.contrib.auth.models import AbstractUser
 from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
                            Dictable, Audit, AuthorizableQuerySet,
                            AuthorizableManager)
+from treemap.util import save_uploaded_image
 
 import hashlib
 import re
-import Image
-
-from cStringIO import StringIO
 
 from treemap.udf import UDFModel, GeoHStoreUDFManager, GeoHStoreUDFQuerySet
 from treemap.instance import Instance
@@ -355,7 +352,7 @@ class Tree(UDFModel, Authorizable, Auditable):
 
     def most_recent_photo(self):
         try:
-            return self.treephoto_set.order_by('created_at')[0]
+            return self.treephoto_set.order_by('-created_at')[0]
         except IndexError:
             return None
 
@@ -404,10 +401,6 @@ class TreePhoto(models.Model, Authorizable, Auditable):
         self._do_not_track.add('created_at')
         self.populate_previous_state()
 
-    def _generate_name(self, hash, format):
-        return "%s-%s-%s.%s" % (
-            self.tree.plot.pk, self.tree.pk, hash, format)
-
     def _get_db_prep_for_image(self, field):
         """
         Images are stored in various ways based on the storage backend
@@ -432,45 +425,10 @@ class TreePhoto(models.Model, Authorizable, Auditable):
 
         return data
 
-    def _set_thumbnail(self, image, name):
-        try:
-            size = 256, 256
-            image.thumbnail(size, Image.ANTIALIAS)
-            temp = StringIO()
-            image.save(temp, format=image.format)
-            temp.seek(0)
-
-            suf = SimpleUploadedFile(
-                'thumb-' + name, temp.read(),
-                'image/%s' % image.format.lower())
-
-            self.thumbnail = suf
-        except IOError:
-            raise ValidationError({'image': 'Could not upload image'})
-
     def set_image(self, image_data):
-        try:
-            image = Image.open(image_data)
-            image.verify()
-        except:
-            raise ValidationError({'treephoto.image': 'Invalid image'})
-
-        # http://www.pythonware.com/library/pil/handbook/image.htm
-        # ...if you need to load the image after using this method,
-        # you must reopen the image file.
-        image_data.seek(0)
-        im = Image.open(image_data)
-
-        hash = hashlib.md5(image_data.read()).hexdigest()
-        name = self._generate_name(hash, image.format.lower())
-
-        self.image = File(image_data)
-        self.image.name = name
-
-        self._set_thumbnail(im, name)
-
-        # Reset image position
-        image_data.seek(0)
+        name_prefix = "%s-%s" % (self.tree.plot.pk, self.tree.pk)
+        self.image, self.thumbnail = save_uploaded_image(
+            image_data, name_prefix, thumb_size=(256, 256))
 
     def save_with_user(self, *args, **kwargs):
         if not self.thumbnail.name:

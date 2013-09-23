@@ -10,27 +10,7 @@
 
 
 {% block content %}
-<div id="addPhotoModal" class="modal hide fade">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-    <h2>Add a Photo</h2>
-  </div>
-  <div class="modal-body">
-    <form id="add-photo-form" method="POST" enctype="multipart/form-data"
-          {% if tree %}
-          action="{% url 'treemap.views.add_tree_photo_endpoint' instance_url_name=request.instance.url_name plot_id=plot.pk tree_id=tree.pk %}"
-          {% else %}
-          action="{% url 'treemap.views.add_tree_photo_endpoint' instance_url_name=request.instance.url_name plot_id=plot.pk %}"
-          {% endif %}>
-      {% csrf_token %}
-      Image: <input type="file" name="file" id="file">
-    </form>
-  </div>
-  <div class="modal-footer">
-    <a href="#" class="btn" data-dismiss="modal">Close</a>
-    <a href="#" id="addimage" class="btn btn-primary">Upload</a>
-  </div>
-</div>
+{% include "treemap/partials/upload_image.html" with panel_id="add-photo-modal" title="Add a Photo" endpoint=upload_tree_photo_url %}
 
 <div class="image-background"></div>
 <div class="container contained tree-details">
@@ -38,12 +18,13 @@
     <div class="span3">
       {% with photo=tree.most_recent_photo %}
       {% if photo %}
-      <img src="{{ photo.thumbnail.url }}">
+      <img id="tree-photo" src="{{ photo.thumbnail.url }}">
       {% else %}
       <img src="{{ STATIC_URL }}img/tree.png">
       {% endif %}
       {% endwith %}
-      <a id="toggleAddPhotoModal" data-modal="#addPhotoModal" class="btn btn-mini add-photos">{% trans "Add Photos" %}</a>
+      <a id="toggle-add-photo-modal" data-toggle="modal" data-target="#add-photo-modal" class="btn btn-mini add-photos">{% trans "Add Photos" %}</a>
+      <div id="upload-error" class="text-error" style="display: none"></div>
       <hr>
       <a class="btn add-favorite" href="javascript:;">{% trans "Add to Favorites" %}</a>
       <hr>
@@ -62,14 +43,6 @@
       </ul>
     </div>
     <div class="span6">
-      {% if errors %}
-      <div class="error">
-        <h1>Errors</h1>
-        {% for field, msg in errors.iteritems %}
-        <li>{{ msg }}</li>
-        {% endfor %}
-      </div>
-      {% endif %}
       <h1>{{ tree.species.common_name }}</h1>
       <h2>{{ tree.species.scientific_name }}</h2>
       <h3>{{ plot.address_full }}</h3>
@@ -176,7 +149,9 @@
           <button type="submit" class="btn">{% trans "Submit" %}</button>
         </form>
       {% else %}
-        <p><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a> {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "log in" %}</a> {% trans "to add comments" %}</p>
+      <p><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a>
+         {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "log in" %}</a>
+         {% trans "to add comments" %}</p>
       {% endif %}
     </div>
   </div>
@@ -207,10 +182,11 @@
               hidden: "#plot-species-hidden",
               reverse: "id"
           }],
-          photos: {
-              form: '#add-photo-form',
-              upload: '#addimage',
-              show: '#toggleAddPhotoModal'
+          imageUploadPanel: {
+              panelId: '#add-photo-modal',
+              show: '#toggle-add-photo-modal',
+              imageElement: '#tree-photo',
+              error: '#upload-error'
           },
           plotLocation: {
               edit: '#edit-plot-location',
