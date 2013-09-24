@@ -121,7 +121,9 @@ class Instance(models.Model):
 
     @property
     def scss_query_string(self):
-        return urlencode(self.scss_variables or {})
+        scss_vars = ({k: val for k, val in self.scss_variables.items() if val}
+                     if self.scss_variables else {})
+        return urlencode(scss_vars)
 
     def is_accessible_by(self, user):
         try:

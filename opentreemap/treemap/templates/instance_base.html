@@ -5,11 +5,11 @@
 
 {% block application_css %}
 {% if request.instance.scss_variables %}
-<link href="{% url 'scss' %}?{{ request.instance.scss_query_string }}" rel="stylesheet">
+<link id="application-css" href="{% url 'scss' %}?{{ request.instance.scss_query_string }}" rel="stylesheet">
 {% elif settings.TEMPLATE_DEBUG %}
-<link href="{{ STATIC_URL }}css/main.css" rel="stylesheet">
+<link id="application-css" href="{{ STATIC_URL }}css/main.css" rel="stylesheet">
 {% else %}
-<link href="{{ STATIC_URL }}css/main.min.css" rel="stylesheet">
+<link id="application-css" href="{{ STATIC_URL }}css/main.min.css" rel="stylesheet">
 {% endif %}
 {% endblock application_css %}
 
