@@ -63,18 +63,33 @@ module.exports = function(grunt) {
                             exports: 'OpenLayers',
                             depends: { googlemaps: 'google' }
                         },
-                        // Typeahead puts itself onto the jQuery object
+                        // BEGIN modules which add themselves to the jQuery object
                         typeahead: {
                             path: './treemap/js/shim/typeahead.js',
                             exports: null,
                             depends: { jquery: 'jQuery' }
                         },
-                        // Bootstrap puts itself onto the jQuery object
                         bootstrap: {
                             path: './treemap/js/shim/bootstrap.js',
                             exports: null,
                             depends: { jquery: 'jQuery' }
                         },
+                        jqueryFileUpload: {
+                            path: './treemap/js/shim/jquery.fileupload.js',
+                            exports: null,
+                            depends: { jquery: 'jQuery' }
+                        },
+                        jqueryIframeTransport: {
+                            path: './treemap/js/shim/jquery.iframe-transport.js',
+                            exports: null,
+                            depends: { jquery: 'jQuery' }
+                        },
+                        jqueryUiWidget: {
+                            path: './treemap/js/shim/jquery.ui.widget.js',
+                            exports: null,
+                            depends: { jquery: 'jQuery' }
+                        },
+                        // END modules which add themselves to the jQuery object
                         jscolor: {
                             path: './treemap/js/shim/jscolor.js',
                             exports: null

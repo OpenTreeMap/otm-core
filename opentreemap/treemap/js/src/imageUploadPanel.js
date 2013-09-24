@@ -1,0 +1,43 @@
+// Manage panel for image uploading
+
+"use strict";
+
+// For modal dialog on jquery
+require('bootstrap');
+
+var $ = require('jquery');
+
+// jQuery-File-Upload and its dependencies
+require('jqueryUiWidget');
+require('jqueryIframeTransport');
+require('jqueryFileUpload');
+
+module.exports.init = function(options) {
+    var $panel = $(options.panelId),
+        $chooser = $panel.find('.fileChooser'),
+        $progressBar = $panel.find('.progress-bar'),
+        $image = $(options.imageElement),
+        $error = $(options.error);
+
+    $chooser.fileupload({
+        dataType: 'json',
+        start: function () {
+            $progressBar.css({width: '0%', height: '100%'});
+            $error.hide();
+        },
+        progressall: function (e, data) {
+            var progress = parseInt(data.loaded / data.total * 100, 10);
+            $progressBar.css('width', progress + '%');
+        },
+        done: function (e, data) {
+            $image.attr('src', data.result.url);
+            $panel.modal('hide');
+        },
+        fail: function (e, data) {
+            var json = data.jqXHR.responseJSON,
+                message = (json && json.error ? json.error : "Unable to upload image");
+            $error.text(message).show();
+            $panel.modal('hide');
+        }
+    });
+};

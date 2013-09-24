@@ -114,21 +114,11 @@ def add_tree_photo(request, instance, plot_id, tree_id=None):
 
 
 def add_tree_photo_view(request, instance, plot_id, tree_id=None):
-    errors = ''
-
     try:
-        add_tree_photo(request, instance, plot_id, tree_id)
+        photo = add_tree_photo(request, instance, plot_id, tree_id)
+        return {'url': photo.thumbnail.url}
     except ValidationError as e:
-        errors = '?errors=%s' % urllib.quote(json.dumps(e.message_dict))
-
-    url = reverse('plot_detail',
-                  kwargs={
-                      'instance_url_name': instance.url_name,
-                      'plot_id': plot_id})
-
-    url += errors
-
-    return HttpResponseRedirect(url)
+        return bad_request_json_response('; '.join(e.messages))
 
 #
 # These are calls made by the API that aren't currently implemented
@@ -224,8 +214,17 @@ def plot_detail(request, instance, plot_id, tree_id=None):
         except Exception:
             pass
 
-    if 'errors' in request.REQUEST:
-        context['errors'] = json.loads(request.REQUEST['errors'])
+    if tree:
+        context['upload_tree_photo_url'] = \
+            reverse('add_photo_to_tree',
+                    kwargs={'instance_url_name': instance.url_name,
+                            'plot_id': plot.pk,
+                            'tree_id': tree.pk})
+    else:
+        context['upload_tree_photo_url'] = \
+            reverse('add_photo_to_plot',
+                    kwargs={'instance_url_name': instance.url_name,
+                            'plot_id': plot.pk})
 
     context['plot'] = plot
     context['tree'] = tree
@@ -827,7 +826,7 @@ unsupported_view = render_template("treemap/unsupported.html")
 landing_view = render_template("base.html")
 
 add_tree_photo_endpoint = require_http_method("POST")(
-    instance_request(add_tree_photo_view))
+    json_api_call(instance_request(add_tree_photo_view)))
 
 scss_view = require_http_method("GET")(
     string_as_file_call("text/css", compile_scss))
