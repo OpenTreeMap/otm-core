@@ -86,7 +86,9 @@ USE_L10N = True
 USE_TZ = True
 
 # Path to the Django Project root
-PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
+PROJECT_ROOT = '/usr/local/otm/app/opentreemap'
+# The following is less brittle, but fails on RM's VM
+#PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
 
 # Path to the location of SCSS files, used for on-the-fly compilation to CSS
 SCSS_ROOT = os.path.join(PROJECT_ROOT, 'treemap', 'css', 'sass')
