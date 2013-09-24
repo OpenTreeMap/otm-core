@@ -18,7 +18,7 @@
     <div class="span3">
       {% with photo=tree.most_recent_photo %}
       {% if photo %}
-      <img id="tree-photo" src="{{ photo.thumbnail.url }}">
+      <a href="{{ photo.image.url }}"><img id="tree-photo" src="{{ photo.thumbnail.url }}"></a>
       {% else %}
       <img src="{{ STATIC_URL }}img/tree.png">
       {% endif %}
