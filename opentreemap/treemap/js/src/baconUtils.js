@@ -52,11 +52,15 @@ exports.jsonRequest = function(verb, url) {
             payload = url;
         }
 
+        if (verb != 'GET') {
+            payload = JSON.stringify(payload);
+        }
+
         var req = $.ajax({
             method: verb,
             url: url,
             contentType: 'application/json',
-            data: JSON.stringify(payload)
+            data: payload
         });
 
         return Bacon.fromPromise(req);
