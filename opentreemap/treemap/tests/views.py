@@ -35,7 +35,7 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            search_tree_benefits, user, instance_user_view,
                            update_plot_and_tree, update_user, add_tree_photo,
                            root_settings_js_view, instance_settings_js_view,
-                           compile_scss)
+                           compile_scss, approve_or_reject_photo)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
@@ -143,25 +143,25 @@ def media_dir(f):
     return m
 
 
-class MediaTest(TestCase):
+class LocalMediaTestCase(TestCase):
     def setUp(self):
-        self.imageDir = tempfile.mkdtemp()
+        self.photoDir = tempfile.mkdtemp()
         self.mediaUrl = '/testingmedia/'
-        self.instance = make_instance()
 
-    def tearDown(self):
-        shutil.rmtree(self.imageDir)
+
+    def _media_dir(self):
+        return self.settings(DEFAULT_FILE_STORAGE=
+                             'django.core.files.storage.FileSystemStorage',
+                             MEDIA_ROOT=self.photoDir,
+                             MEDIA_URL=self.mediaUrl)
 
     def load_resource(self, name):
         module_dir = os.path.dirname(__file__)
         path = os.path.join(module_dir, 'resources', name)
         return file(path)
 
-    def _media_dir(self):
-        return self.settings(DEFAULT_FILE_STORAGE=
-                             'django.core.files.storage.FileSystemStorage',
-                             MEDIA_ROOT=self.imageDir,
-                             MEDIA_URL=self.mediaUrl)
+    def tearDown(self):
+        shutil.rmtree(self.photoDir)
 
     def assertPathExists(self, path):
         self.assertTrue(os.path.exists(path), '%s does not exist' % path)
@@ -170,10 +170,130 @@ class MediaTest(TestCase):
         self.assertFalse(os.path.exists(path), '%s exists' % path)
 
 
-class PlotImageUpdateTest(MediaTest):
+class ApproveOrRejectPhotoTest(LocalMediaTestCase):
+
+    def setUp(self):
+        super(ApproveOrRejectPhotoTest, self).setUp()
+
+        self.instance = make_instance()
+        self.user = make_commander_user(self.instance)
+        self.p1 = Point(-7615441.0, 5953519.0)
+        self.plot = Plot(geom=self.p1, instance=self.instance)
+        self.plot.save_with_user(self.user)
+
+        self.tree = Tree(plot=self.plot, instance=self.instance)
+        self.tree.save_with_user(self.user)
+
+        self.image = self.load_resource('tree1.gif')
+
+    def test_approve_photo_no_pending(self):
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        self.tree.add_photo(self.image, self.user)
+
+        tp = TreePhoto.objects.all()[0]
+        all_audits = list(tp.audits())
+
+        approve_or_reject_photo(
+            make_request(user=self.user),
+            self.instance, self.plot.pk, self.tree.pk, tp.pk, 'approve')
+
+        for audit in all_audits:
+            audit = Audit.objects.get(pk=audit.pk)
+            self.assertEqual(audit.ref.action, Audit.Type.ReviewApprove)
+
+    def test_reject_photo_no_pending(self):
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        self.tree.add_photo(self.image, self.user)
+
+        self.assertEqual(TreePhoto.objects.count(), 1)
+
+        tp = TreePhoto.objects.all()[0]
+        audit_list = list(tp.audits())
+
+        approve_or_reject_photo(
+            make_request(user=self.user),
+            self.instance, self.plot.pk, self.tree.pk, tp.pk, 'reject')
+
+        for audit in audit_list:
+            audit = Audit.objects.get(pk=audit.pk)
+            self.assertEqual(audit.ref.action, Audit.Type.ReviewReject)
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+    def test_approve_photo_that_is_pending(self):
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        FieldPermission.objects.all().update(
+            permission_level=FieldPermission.WRITE_WITH_AUDIT)
+
+        self.tree.add_photo(self.image, self.user)
+
+        FieldPermission.objects.all().update(
+            permission_level=FieldPermission.WRITE_DIRECTLY)
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        # Get most recent tree photo id
+        tp_audit = Audit.objects.filter(
+            model='TreePhoto', field='id').order_by('-created')[0]
+
+        tp_pk = tp_audit.current_value
+
+        approve_or_reject_photo(
+            make_request(user=self.user),
+            self.instance, self.plot.pk, self.tree.pk, tp_pk, 'approve')
+
+        tp = TreePhoto.objects.get(pk=tp_pk)
+        for audit in tp.audits():
+            if audit.ref:
+                self.assertEqual(audit.ref.action, Audit.Type.PendingApprove)
+            else:
+                self.assertEqual(audit.action, Audit.Type.PendingApprove)
+
+        self.assertEqual(TreePhoto.objects.count(), 1)
+
+    def test_reject_photo_that_is_pending(self):
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        FieldPermission.objects.all().update(
+            permission_level=FieldPermission.WRITE_WITH_AUDIT)
+
+        self.tree.add_photo(self.image, self.user)
+
+        FieldPermission.objects.all().update(
+            permission_level=FieldPermission.WRITE_DIRECTLY)
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        # Get most recent tree photo id
+        tp_audit = Audit.objects.filter(
+            model='TreePhoto', field='id').order_by('-created')[0]
+
+        tp_pk = tp_audit.current_value
+
+        approve_or_reject_photo(
+            make_request(user=self.user),
+            self.instance, self.plot.pk, self.tree.pk, tp_pk, 'reject')
+
+        audit_list = Audit.objects.filter(
+            model='TreePhoto', field='id', model_id=tp_pk)
+
+        for audit in audit_list:
+            if audit.ref:
+                self.assertEqual(audit.ref.action, Audit.Type.PendingReject)
+            else:
+                self.assertEqual(audit.action, Audit.Type.PendingReject)
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+
+class PlotImageUpdateTest(LocalMediaTestCase):
     def setUp(self):
         super(PlotImageUpdateTest, self).setUp()
 
+        self.instance = make_instance()
         self.user = make_commander_user(self.instance)
 
         # Give this plot a unique number so we can check for
@@ -276,7 +396,7 @@ class PlotImageUpdateTest(MediaTest):
 
         # media prefix and files should exist
         for path in [image_path, thumb_path]:
-            self.assertEqual(path.index(self.imageDir), 0)
+            self.assertEqual(path.index(self.photoDir), 0)
             # File should be larger than 100 bytes
             self.assertGreater(os.stat(path).st_size, 100)
 
