@@ -31,6 +31,7 @@ urlpatterns = patterns(
     url(r'^$', landing_view),
     url(instance_pattern + r'/', include('treemap.urls')),
     url(instance_pattern + r'/eco/', include('ecobenefits.urls')),
+    url(instance_pattern + r'/export/', include('exporter.urls')),
     url(r'^config/settings.js$', root_settings_js_view),
     url(r'^users/(?P<username>\w+)/?$',
         route(GET=user_view, PUT=update_user_view)),
