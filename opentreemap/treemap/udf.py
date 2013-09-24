@@ -1021,7 +1021,7 @@ class GeoHStoreUDFQuerySet(HStoreQueryset, UDFQuerySet):
     pass
 
 
-class GeoHStoreManager(models.GeoManager, HStoreManager):
+class GeoHStoreUDFManager(models.GeoManager, HStoreManager):
     """
     Merges the normal geo manager with the hstore manager backend
     """

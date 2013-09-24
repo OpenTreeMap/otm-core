@@ -21,7 +21,7 @@ class JSONField(with_metaclass(models.SubfieldBase, models.TextField)):
     def get_prep_lookup(self, lookup_type, value):
         raise TypeError("JSONField doesn't support lookups")
 
-add_introspection_rules([], ["^treemap\.instance\.JSONField"])
+add_introspection_rules([], ["^treemap\.json_field\.JSONField"])
 
 
 def is_json_field_reference(field_path):

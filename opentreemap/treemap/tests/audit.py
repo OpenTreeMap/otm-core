@@ -857,3 +857,36 @@ class FieldPermMgmtTest(TestCase):
 
     def test_invalid_field_name_unit(self):
         self.assertInvalidFPRaises(model_name='Tree', field_name='model_name')
+
+
+class AuthorizableManagerTest(TestCase):
+
+    def setUp(self):
+        self.instance = make_instance()
+        commander = make_commander_user(self.instance)
+        plot = Plot(geom=Point(0, 0), instance=self.instance,
+                    width=3)
+        plot.save_with_user(commander)
+
+    def test_qs_has_custom_methods(self):
+        for qs in (Plot.objects.all(),
+                   Tree.objects.all()):
+            self.assertTrue(hasattr(qs, 'limit_fields_by_user'))
+
+    def test_limit_fields_by_user_returns_none(self):
+        user = make_user_with_default_role(self.instance, 'user')
+        qs = Plot.objects.all().limit_fields_by_user(self.instance, user)
+        self.assertEqual(qs.count(), 0)
+
+    def test_limit_fields_by_user_limits_values(self):
+        user = make_user_with_default_role(self.instance, 'user')
+
+        FieldPermission(model_name='Plot', field_name='width',
+                        permission_level=FieldPermission.WRITE_DIRECTLY,
+                        role=user.get_instance_user(self.instance).role,
+                        instance=self.instance).save()
+        qs = Plot.objects.all().limit_fields_by_user(self.instance, user)
+
+        self.assertEqual(qs.count(), 1)
+        self.assertEqual(qs[0]['width'], 3)
+        self.assertEqual('NO_KEY', qs[0].get('address_street', 'NO_KEY'))

@@ -188,6 +188,7 @@ MANAGED_APPS = (
     'geocode',
     'api',
     'management',
+    'exporter',
 )
 
 UNMANAGED_APPS = (
