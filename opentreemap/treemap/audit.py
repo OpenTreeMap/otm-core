@@ -131,6 +131,104 @@ def add_all_permissions_on_model_to_role(
     return role
 
 
+def approve_or_reject_existing_edit(audit, user, approved):
+    """
+    Approve or reject a given audit that has already been
+    applied
+
+    audit    - Audit record to update
+    user     - The user who is approving or rejecting
+    approved - True to generate an approval, False to
+               revert the change
+
+    Note that reverting is done outside of the audit system
+    to make it appear as if the change had never happend
+    """
+
+    # If the ref has already been set, this audit has
+    # already been accepted or rejected so we can't do anything
+    if audit.ref:
+        raise Exception('This audit has already been approved or rejected')
+
+    # If this is a 'pending' audit, you must use the pending system
+    if audit.requires_auth:
+        raise Exception("This audit is pending, so it can't be approved")
+
+    # this audit will be attached to the main audit via
+    # the refid
+    review_audit = Audit(model=audit.model, model_id=audit.model_id,
+                         instance=audit.instance, field=audit.field,
+                         previous_value=audit.previous_value,
+                         current_value=audit.current_value,
+                         user=user)
+
+    # Regardless of what we're doing, we need to make sure
+    # 'user' is authorized to approve this edit
+    _verify_user_can_apply_audit(audit, user)
+
+    TheModel = _lookup_model(audit.model)
+
+    # If we want to 'review approve' this audit nothing
+    # happens to the model, we're just saying "looks good!"
+    if approved:
+        review_audit.action = Audit.Type.ReviewApprove
+    else:
+        # If we are 'review rejecting' this audit we want to revert
+        # the change
+        #
+        # note that audits cannot be pending before they have been
+        # reviewed. That means that all of these audits are
+        # concrete and thus can be reverted.
+        review_audit.action = Audit.Type.ReviewReject
+
+        # If the audit that we're reverting is an 'id' audit
+        # it reverts the *entire* object (i.e. deletes it)
+        #
+        # This leads to an awkward sitution that must be handled
+        # elsewhere where there are audits that appear to have
+        # been applied but are on objects that have been
+        # deleted.
+        try:
+            obj = TheModel.objects.get(pk=audit.model_id)
+
+            # Delete the object, outside of the audit system
+            if audit.field == 'id':
+                models.Model.delete(obj)
+            else:
+                # For non-id fields we want to know if this is
+                # the most recent audit on the field. If it isn't
+                # the most recent then rejecting this audit doesn't
+                # actually change the data
+                most_recent_audits = Audit.objects\
+                                          .filter(model=audit.model,
+                                                  model_id=audit.model_id,
+                                                  instance=audit.instance,
+                                                  field=audit.field)\
+                                          .order_by('-created')
+
+                is_most_recent_audit = False
+                try:
+                    most_recent_audit_pk = most_recent_audits[0].pk
+                    is_most_recent_audit = most_recent_audit_pk == audit.pk
+
+                    if is_most_recent_audit:
+                        obj.apply_change(audit.field,
+                                         audit.clean_previous_value)
+                        models.Model.save(obj)
+                except IndexError:
+                    pass
+        except ObjectDoesNotExist:
+            # As noted above, this is okay. Just mark the audit as
+            # rejected
+            pass
+
+    review_audit.save()
+    audit.ref = review_audit
+    audit.save()
+
+    return review_audit
+
+
 def approve_or_reject_audit_and_apply(audit, user, approved):
     """
     Approve or reject a given audit and apply it to the
@@ -145,7 +243,7 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
     # If the ref has already been set, this audit has
     # already been accepted or rejected so we can't do anything
     if audit.ref:
-        raise Exception('The pending status of an audit cannot be changed')
+        raise Exception('This audit has already been approved or rejected')
 
     # Regardless of what we're doing, we need to make sure
     # 'user' is authorized to approve this edit
@@ -810,7 +908,10 @@ class Auditable(UserTrackable):
             self.is_pending_insert = True
 
         if is_insert:
-            updates['id'] = [None, model_id]
+            if self.is_pending_insert:
+                pending_audits.append(('id', (None, model_id)))
+            else:
+                updates['id'] = [None, model_id]
 
         def make_audit_and_save(field, prev_val, cur_val, pending):
 
@@ -872,6 +973,13 @@ class Audit(models.Model):
     When an authorized user approves a pending edit
     it creates an audit record on this model with an action
     type of either "PendingApprove" or "PendingReject"
+
+    ref can be set on *any* audit to note that it has been looked
+    at and approved or rejected. If this is the case, the ref
+    audit will be of type "ReviewApproved" or "ReviewRejected"
+
+    An audit that is "PendingApproved/Rejected" cannot be be
+    "ReviewApproved/Rejected"
     """
     requires_auth = models.BooleanField(default=False)
     ref = models.ForeignKey('Audit', null=True)
@@ -885,6 +993,8 @@ class Audit(models.Model):
         Update = 3
         PendingApprove = 4
         PendingReject = 5
+        ReviewApprove = 6
+        ReviewReject = 7
 
     TYPES = {
         Type.Insert: 'Create',
@@ -947,7 +1057,7 @@ class Audit(models.Model):
         if cpv is None:
             return ""
         else:
-            return ""
+            return cpv
 
     @property
     def display_action(self):
