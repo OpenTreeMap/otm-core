@@ -204,6 +204,7 @@ class AbstractNode(template.Node):
     _field_mappings = {
         'IntegerField': 'int',
         'ForeignKey': 'int',
+        'AutoField': 'int',
         'FloatField': 'float',
         'TextField': 'string',
         'CharField': 'string',
@@ -300,7 +301,7 @@ class AbstractNode(template.Node):
             field_value, choices = _field_value_and_choices(model, field_name)
             data_type, label = _field_type_and_label(model, field_name, label)
 
-            if user is not None:
+            if user is not None and hasattr(model, 'field_is_visible'):
                 is_visible = model.field_is_visible(user, field_name)
                 is_editable = model.field_is_editable(user, field_name)
             else:
@@ -338,7 +339,10 @@ class CreateNode(AbstractNode):
     def get_model(self, _, model_name, instance=None):
         Model = safe_get_model_class(model_name.capitalize())
 
-        return Model(instance=instance) if instance else Model()
+        if instance and hasattr(Model, 'instance'):
+            return Model(instance=instance)
+        else:
+            return Model()
 
 
 class SearchNode(CreateNode):
