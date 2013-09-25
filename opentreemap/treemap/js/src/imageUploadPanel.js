@@ -30,7 +30,9 @@ module.exports.init = function(options) {
             $progressBar.css('width', progress + '%');
         },
         done: function (e, data) {
-            $image.attr('src', data.result.url);
+            if ($image.length > 0) {
+                $image.attr('src', data.result.url);
+            }
             $panel.modal('hide');
         },
         fail: function (e, data) {
