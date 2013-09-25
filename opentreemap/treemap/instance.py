@@ -84,6 +84,8 @@ class Instance(models.Model):
 
     is_public = models.BooleanField(default=False)
 
+    logo = models.ImageField(upload_to='logos', null=True, blank=True)
+
     objects = models.GeoManager()
 
     def __unicode__(self):

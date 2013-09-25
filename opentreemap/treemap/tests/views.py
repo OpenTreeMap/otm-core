@@ -136,19 +136,44 @@ class BoundaryViewTest(ViewTestCase):
 
 
 def media_dir(f):
-    "Helper method for PlotImageTest to force a specific media dir"
+    "Helper method for MediaTest classes to force a specific media dir"
     def m(self):
         with self._media_dir():
             f(self)
     return m
 
 
-class PlotImageUpdateTest(TestCase):
+class MediaTest(TestCase):
     def setUp(self):
-        self.photoDir = tempfile.mkdtemp()
+        self.imageDir = tempfile.mkdtemp()
         self.mediaUrl = '/testingmedia/'
-
         self.instance = make_instance()
+
+    def tearDown(self):
+        shutil.rmtree(self.imageDir)
+
+    def load_resource(self, name):
+        module_dir = os.path.dirname(__file__)
+        path = os.path.join(module_dir, 'resources', name)
+        return file(path)
+
+    def _media_dir(self):
+        return self.settings(DEFAULT_FILE_STORAGE=
+                             'django.core.files.storage.FileSystemStorage',
+                             MEDIA_ROOT=self.imageDir,
+                             MEDIA_URL=self.mediaUrl)
+
+    def assertPathExists(self, path):
+        self.assertTrue(os.path.exists(path), '%s does not exist' % path)
+
+    def assertPathDoesNotExist(self, path):
+        self.assertFalse(os.path.exists(path), '%s exists' % path)
+
+
+class PlotImageUpdateTest(MediaTest):
+    def setUp(self):
+        super(PlotImageUpdateTest, self).setUp()
+
         self.user = make_commander_user(self.instance)
 
         # Give this plot a unique number so we can check for
@@ -160,20 +185,6 @@ class PlotImageUpdateTest(TestCase):
 
         self.tree = Tree(instance=self.instance, plot=self.plot)
         self.tree.save_with_user(self.user)
-
-    def tearDown(self):
-        shutil.rmtree(self.photoDir)
-
-    def load_resource(self, name):
-        module_dir = os.path.dirname(__file__)
-        path = os.path.join(module_dir, 'resources', name)
-        return file(path)
-
-    def _media_dir(self):
-        return self.settings(DEFAULT_FILE_STORAGE=
-                             'django.core.files.storage.FileSystemStorage',
-                             MEDIA_ROOT=self.photoDir,
-                             MEDIA_URL=self.mediaUrl)
 
     def _make_audited_request(self):
         # Update user to only have pending permission
@@ -265,7 +276,7 @@ class PlotImageUpdateTest(TestCase):
 
         # media prefix and files should exist
         for path in [image_path, thumb_path]:
-            self.assertEqual(path.index(self.photoDir), 0)
+            self.assertEqual(path.index(self.imageDir), 0)
             # File should be larger than 100 bytes
             self.assertGreater(os.stat(path).st_size, 100)
 
@@ -292,9 +303,6 @@ class PlotImageUpdateTest(TestCase):
     def test_photos_save_with_thumbnails_png(self):
         image_file = self.load_resource('tree3.png')
         self._run_basic_test_with_image_file(image_file)
-
-    def assertPathExists(self, path):
-        self.assertTrue(os.path.exists(path), '%s does not exist' % path)
 
     def assertTreePhotoExists(self, tp):
         self.assertPathExists(tp.image.path)

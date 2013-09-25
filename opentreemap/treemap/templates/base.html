@@ -62,7 +62,9 @@
 
         {% block logo %}
         <div class="logo">
-          <a href="{% if last_instance %}{% url 'map' instance_url_name=last_instance.url_name %}{% else %}/{% endif %}"><img src="{{ STATIC_URL }}img/logo-main.svg" alt="OpenTreeMap"></a>
+          <a href="{% if last_instance %}{% url 'map' instance_url_name=last_instance.url_name %}{% else %}/{% endif %}"
+            ><img id="site-logo" src="{{ logo_url }}" alt="OpenTreeMap">
+          </a>
         </div>
         {% endblock logo %}
 
