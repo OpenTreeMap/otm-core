@@ -66,6 +66,17 @@ exports.$find = function (selector, $parent) {
     return $el;
 };
 
+exports.webMercatorToLonLat = function(x, y) {
+    var lonLatProjection = new OL.Projection("EPSG:4326"),
+        webMercatorProjection = new OL.Projection("EPSG:3857"),
+        point = new OL.Geometry.Point(x, y);
+    point.transform(webMercatorProjection, lonLatProjection);
+    return {
+        lon: point.x,
+        lat: point.y
+    };
+};
+
 exports.lonLatToWebMercator = function(lon, lat) {
     var lonLatProjection = new OL.Projection("EPSG:4326"),
         webMercatorProjection = new OL.Projection("EPSG:3857"),

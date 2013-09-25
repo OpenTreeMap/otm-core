@@ -112,11 +112,12 @@
               {% endfor %}
             </tbody>
           </table>
-        <form>
+        </form>
 
         <a href="javascript:;" class="btn" style="display:none" id="edit-plot-location">Move Tree</a>
         <a href="javascript:;" class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</a>
         <div id="map" class="map-small"></div>
+        <div id="street-view" class="street-view-small" style="display: none;"></div>
 
         <hr>
 
@@ -195,7 +196,9 @@
                   x: {{ plot.geom.x }},
                   y: {{ plot.geom.y }}
               }
-          }
+          },
+          streetView: '#street-view',
+          noStreetViewText: '{% trans "Could not load street view for this location" %}'
       });
 })(require, otm.settings);
 </script>
