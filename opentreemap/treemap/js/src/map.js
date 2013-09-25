@@ -79,7 +79,7 @@ module.exports = {
             modes.activateBrowseTreesMode();
         }
 
-        $('.addBtn').click(modes.activateAddTreeMode);
+        $('[data-action="addtree"]').click(modes.activateAddTreeMode);
 
         // Don't duplicate queries
         var lastQuery = null;
