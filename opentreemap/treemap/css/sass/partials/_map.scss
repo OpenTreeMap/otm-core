@@ -11,8 +11,14 @@
 
 .map-small {
     background: $well-color;
-    width: 300px;
-    height: 300px;
+    width: 280px;
+    height: 280px;
+    float: left;
+}
+
+.street-vew-small {
+    @extend .map-small;
+    margin-left: 10px;
 }
 
 .olPopup {

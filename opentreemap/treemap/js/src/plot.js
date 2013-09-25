@@ -5,10 +5,12 @@ var $ = require('jquery'),
     otmTypeahead = require('./otmTypeahead'),  // Override typeahead from bootstrap
     inlineEditForm = require('./inlineEditForm'),
     mapManager = require('./mapManager'),
+    BU = require('BaconUtils'),
     plotMover = require('./plotMover'),
     plotMarker = require('./plotMarker'),
     csrf = require('./csrf'),
-    imageUploadPanel = require('./imageUploadPanel');
+    imageUploadPanel = require('./imageUploadPanel'),
+    streetView = require('./streetView');
 
 exports.init = function(options) {
     // Set up cross-site forgery protection
@@ -62,5 +64,21 @@ exports.init = function(options) {
 
     function onSaveBefore(data) {
         plotMover.onSaveBefore(data);
+    }
+
+    if (options.config.instance.basemap.type === 'google') {
+        var $streetViewContainer = $(options.streetView);
+        $streetViewContainer.show();
+        var panorama = streetView.create({
+            streetViewElem: $streetViewContainer[0],
+            noStreetViewText: options.noStreetViewText,
+            location: options.plotLocation.location
+        });
+        form.saveOkStream
+            .map(function(value) {
+                return value['plot.geom'];
+            })
+            .filter(BU.isDefined)
+            .onValue(panorama.update);
     }
 };

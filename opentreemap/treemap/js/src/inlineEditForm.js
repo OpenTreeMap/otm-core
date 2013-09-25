@@ -201,7 +201,7 @@ exports.init = function(options) {
 
         saveOkStream = responseStream.filter(function (result) {
             return !('error' in result);
-        }),
+        }).map(getDataToSave),
 
         hideAndShowElements = function (action) {
             function hideOrShow(fields, actions) {
