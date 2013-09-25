@@ -2,7 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('underscore'),
-    otmTypeahead = require('./otmTypeahead'),  // Override typeahead from bootstrap
+    otmTypeahead = require('./otmTypeahead'),
     inlineEditForm = require('./inlineEditForm'),
     mapManager = require('./mapManager'),
     BU = require('BaconUtils'),
