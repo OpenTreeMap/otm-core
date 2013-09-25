@@ -113,7 +113,7 @@
       {% if settings.USE_JS_I18N %}
       <script type="text/javascript" src="{% url 'django.views.i18n.javascript_catalog' %}"></script>
       {% endif %}
-      {% if debug %}
+      {% if settings.TEMPLATE_DEBUG %}
       <script src="{{ STATIC_URL }}js/treemap.js"></script>
       {% else %}
       <script src="{{ STATIC_URL }}js/treemap.min.js"></script>
