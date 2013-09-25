@@ -13,17 +13,9 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True),
                       keep_default=False)
 
-
-        # Changing field 'Instance.config'
-        db.alter_column(u'treemap_instance', 'config', self.gf('treemap.json_field.JSONField')())
-
     def backwards(self, orm):
         # Deleting field 'Instance.logo'
         db.delete_column(u'treemap_instance', 'logo')
-
-
-        # Changing field 'Instance.config'
-        db.alter_column(u'treemap_instance', 'config', self.gf('treemap.instance.JSONField')())
 
     models = {
         u'auth.group': {
