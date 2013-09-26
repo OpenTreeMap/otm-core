@@ -18,4 +18,4 @@ modgrammar-py2==0.9.1
 django-celery-with-redis==3.0
 libsass==0.2.4
 # it is planned to add this to pyPi when it is more stable
-git+https://github.com/steventlamb/django-queryset-csv.git
+git+git://github.com/azavea/django-queryset-csv.git
