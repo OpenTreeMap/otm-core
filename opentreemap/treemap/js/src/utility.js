@@ -31,7 +31,11 @@ exports.getUpdateUrlByUpdatingQueryStringParam = function (k, v) {
 };
 
 exports.pushState = function (url) {
-    history.pushState({}, '', url);
+    if (history.pushState) {
+        history.pushState({}, '', url);
+    } else {
+        window.location = url;
+    }
 };
 
 exports.parseQueryString = function () {

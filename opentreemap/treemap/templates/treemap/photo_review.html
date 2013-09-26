@@ -1,0 +1,21 @@
+{% extends "instance_base.html" %}
+{% load i18n %}
+
+{% block page_title %} | {% trans "Recent Edits" %} {{plot.pk}}{% endblock %}
+
+{% block content %}
+
+<div class="content">
+  {% include "treemap/partials/photo_review.html" %}
+</div>
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+(function(require) {
+   require('photoReview').init();
+})(require);
+</script>
+{% endblock scripts %}

@@ -19,6 +19,7 @@ from treemap.audit import (Audit, Role, UserTrackingException,
                            AuthorizeException, ReputationMetric,
                            approve_or_reject_audits_and_apply,
                            approve_or_reject_audit_and_apply,
+                           approve_or_reject_existing_edit,
                            get_id_sequence_name)
 
 from treemap.udf import UserDefinedFieldDefinition
@@ -222,6 +223,160 @@ class AuditTest(TestCase):
     def test_get_id_sequence_name(self):
         self.assertEqual(get_id_sequence_name(Tree), 'treemap_tree_id_seq')
         self.assertEqual(get_id_sequence_name(Plot), 'treemap_plot_id_seq')
+
+
+class ReviewTest(TestCase):
+    def setUp(self):
+        self.instance = make_instance()
+        self.commander_user = make_commander_user(self.instance)
+        self.direct_user = make_officer_user(self.instance)
+        self.pending_user = make_apprentice_user(self.instance)
+        self.observer_user = make_observer_user(self.instance)
+
+        self.p1 = Point(-7615441.0, 5953519.0)
+        self.plot = Plot(geom=self.p1, instance=self.instance)
+        self.plot.save_with_user(self.commander_user)
+
+    def test_simple_approve(self):
+        self.plot.width = 444
+        self.plot.save_with_user(self.commander_user)
+
+        width_audit = self.plot.audits().order_by('-created')[0]
+
+        # Sanity check
+        self.assertEqual(width_audit.field, 'width')
+
+        # Should not have a reference associated with it
+        self.assertIsNone(width_audit.ref)
+
+        approve_or_reject_existing_edit(
+            width_audit, self.commander_user, approved=True)
+
+        width_audit_reloaded = Audit.objects.get(pk=width_audit.pk)
+        self.assertIsNotNone(width_audit_reloaded.ref)
+
+        refd = width_audit_reloaded.ref
+        self.assertEqual(refd.action, Audit.Type.ReviewApprove)
+
+    def test_reject_regular_edit(self):
+        self.plot.width = 444
+        self.plot.save_with_user(self.commander_user)
+
+        self.plot.width = 555
+        self.plot.save_with_user(self.commander_user)
+
+        width_audit = self.plot.audits().order_by('-created')[0]
+
+        # Sanity check
+        self.assertEqual(width_audit.field, 'width')
+
+        # Should not have a reference associated with it
+        self.assertIsNone(width_audit.ref)
+
+        approve_or_reject_existing_edit(
+            width_audit, self.commander_user, approved=False)
+
+        width_audit_reloaded = Audit.objects.get(pk=width_audit.pk)
+        self.assertIsNotNone(width_audit_reloaded.ref)
+
+        refd = width_audit_reloaded.ref
+        self.assertEqual(refd.action, Audit.Type.ReviewReject)
+
+        plot_reloaded = Plot.objects.get(pk=self.plot.pk)
+        self.assertEqual(plot_reloaded.width, 444)
+
+    def test_reject_id_edit(self):
+        id_audit = self.plot.audits().get(field='id')
+
+        approve_or_reject_existing_edit(
+            id_audit, self.commander_user, approved=False)
+
+        all_audits = list(self.plot.audits())
+
+        self.assertNotEqual(len(all_audits), 0)
+
+        updated_audit = Audit.objects.get(pk=id_audit.pk)
+        ref_audit = updated_audit.ref
+
+        self.assertIsNotNone(ref_audit)
+        self.assertEqual(ref_audit.action, Audit.Type.ReviewReject)
+
+        self.assertRaises(Plot.DoesNotExist,
+                          Plot.objects.get, pk=self.plot.pk)
+
+    def test_requires_write_permissions_on_field(self):
+        self.plot.width = 333
+        self.plot.save_with_user(self.commander_user)
+
+        width_audit = self.plot.audits().order_by('-created')[0]
+
+        # Read only can't edit
+        FieldPermission.objects.filter(field_name='width').update(
+            permission_level=FieldPermission.READ_ONLY)
+
+        self.assertRaises(AuthorizeException,
+                          approve_or_reject_existing_edit,
+                          width_audit, self.commander_user, approved=True)
+
+        # Neither can 'write with audit'
+        FieldPermission.objects.filter(field_name='width').update(
+            permission_level=FieldPermission.WRITE_WITH_AUDIT)
+
+        self.assertRaises(AuthorizeException,
+                          approve_or_reject_existing_edit,
+                          width_audit, self.commander_user, approved=True)
+
+        # But write directly can
+        FieldPermission.objects.filter(field_name='width').update(
+            permission_level=FieldPermission.WRITE_DIRECTLY)
+
+        approve_or_reject_existing_edit(
+            width_audit, self.commander_user, approved=True)
+
+    def test_reject_or_approve_pending_edit_fails(self):
+        FieldPermission.objects.filter(field_name='width').update(
+            permission_level=FieldPermission.WRITE_WITH_AUDIT)
+
+        self.plot.width = 333
+        self.plot.save_with_user(self.commander_user)
+
+        pdg_width_audit = self.plot.audits().order_by('-created')[0]
+
+        FieldPermission.objects.filter(field_name='width').update(
+            permission_level=FieldPermission.WRITE_DIRECTLY)
+
+        self.assertRaises(Exception,
+                          approve_or_reject_existing_edit,
+                          pdg_width_audit, self.commander_user, approved=True)
+
+    def test_rejecting_old_edits_doesnt_update_object(self):
+        self.plot.width = 333
+        self.plot.save_with_user(self.commander_user)
+
+        self.plot.width = 444
+        self.plot.save_with_user(self.commander_user)
+
+        width_audit = self.plot.audits().order_by('-created')[0]
+
+        self.plot.width = 555
+        self.plot.save_with_user(self.commander_user)
+
+        approve_or_reject_existing_edit(
+            width_audit, self.commander_user, approved=False)
+
+        reloaded_plot = Plot.objects.get(pk=self.plot.pk)
+        self.assertEqual(reloaded_plot.width, 555)
+
+    def test_approving_edits_on_deleted_obj_doesnt_fail(self):
+        self.plot.width = 444
+        self.plot.save_with_user(self.commander_user)
+
+        width_audit = self.plot.audits().order_by('-created')[0]
+
+        self.plot.delete_with_user(self.commander_user)
+
+        approve_or_reject_existing_edit(
+            width_audit, self.commander_user, approved=False)
 
 
 class PendingTest(TestCase):

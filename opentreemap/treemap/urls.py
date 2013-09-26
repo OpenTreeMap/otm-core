@@ -13,7 +13,9 @@ from treemap.views import (boundary_to_geojson_view, index_view, map_view,
                            boundary_autocomplete_view, instance_user_view,
                            plot_popup_view, instance_user_audits,
                            plot_accordion_view, add_plot_view,
-                           add_tree_photo_endpoint)
+                           add_tree_photo_endpoint, photo_review_endpoint,
+                           approve_or_reject_photo_view, next_photo_endpoint,
+                           photo_review_partial_endpoint)
 
 # Testing notes:
 # We want to test that every URL succeeds (200) or fails with bad data (404).
@@ -27,6 +29,9 @@ urlpatterns = patterns(
         boundary_to_geojson_view),
     url(r'^boundaries/$', boundary_autocomplete_view),
     url(r'^recent_edits', audits_view, name='recent_edits'),
+    url(r'^photo_review/$', photo_review_endpoint),
+    url(r'^photo_review/next$', next_photo_endpoint),
+    url(r'^photo_review/partial$', photo_review_partial_endpoint),
     url(r'^species/$', species_list_view),
     url(r'^map/$', map_view, name='map'),
     url(r'^plots/(?P<plot_id>\d+)/$',
@@ -43,6 +48,10 @@ urlpatterns = patterns(
         add_tree_photo_endpoint, name='add_photo_to_plot'),
     url(r'^plots/(?P<plot_id>\d+)/tree/(?P<tree_id>\d+)/photo$',
         add_tree_photo_endpoint, name='add_photo_to_tree'),
+    url('^plots/(?P<plot_id>\d+)/tree/'
+        '(?P<tree_id>\d+)/photo/(?P<photo_id>\d+)/'
+        '(?P<action>(approve)|(reject))$',
+        approve_or_reject_photo_view, name='approve_or_reject_photo'),
     url(r'^config/settings.js$', instance_settings_js_view),
     url(r'^benefit/search$', search_tree_benefits_view),
     url(r'^users/(?P<username>\w+)/?$', instance_user_view),
