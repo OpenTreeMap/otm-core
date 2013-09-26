@@ -28,14 +28,15 @@ from treemap.util import (json_api_call, render_template, instance_request,
                           require_http_method, package_validation_errors,
                           bad_request_json_response, string_as_file_call)
 from treemap.search import create_filter
-from treemap.audit import Audit
+from treemap.audit import (Audit, approve_or_reject_existing_edit,
+                           approve_or_reject_audits_and_apply)
 from treemap.models import (Plot, Tree, User, Species, Instance,
-                            BenefitCurrencyConversion)
+                            BenefitCurrencyConversion, TreePhoto)
 
 from ecobenefits.models import ITreeRegion
 from ecobenefits.views import _benefits_for_trees
 
-from opentreemap.util import json_from_request
+from opentreemap.util import json_from_request, route
 
 
 def _plot_hash(request, instance, plot_id, tree_id=None):
@@ -739,7 +740,6 @@ def profile_to_user_view(request):
     else:
         return HttpResponseRedirect(settings.LOGIN_URL)
 
-
 _scss_var_name_re = re.compile('^[_a-zA-Z][-_a-zA-Z0-9]*$')
 _color_re = re.compile(r'^(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$')
 
@@ -766,6 +766,140 @@ def compile_scss(request):
     scss = scss.encode('utf-8')
 
     return sass.compile(string=scss, include_paths=[settings.SCSS_ROOT])
+
+
+PHOTO_PAGE_SIZE = 12
+
+
+def _photo_audits(instance):
+    unverified_actions = {Audit.Type.Insert,
+                          Audit.Type.Delete,
+                          Audit.Type.Update}
+
+    photos = Audit.objects.filter(instance=instance,
+                                  model='TreePhoto',
+                                  field='image',
+                                  ref__isnull=True,
+                                  action__in=unverified_actions)\
+                          .order_by('-created')
+
+    return photos
+
+
+def next_photo(request, instance):
+    photos = _photo_audits(instance)
+
+    total = photos.count()
+    page = int(request.REQUEST.get('n', '1'))
+    total_pages = int(total / PHOTO_PAGE_SIZE + 0.5)
+
+    startidx = (page-1) * PHOTO_PAGE_SIZE
+    endidx = startidx + PHOTO_PAGE_SIZE
+
+    # We're done!
+    if total == 0:
+        photo = None
+    else:
+        try:
+            photo_id = photos[endidx].model_id
+        except IndexError:
+            # We may have finished an entire page
+            # in that case, simply return the last image
+            photo_id = photos[total-1].model_id
+
+        photo = TreePhoto.objects.get(pk=photo_id)
+
+    return {
+        'photo': photo,
+        'total_pages': total_pages
+    }
+
+
+def photo_review(request, instance):
+    photos = _photo_audits(instance)
+
+    total = photos.count()
+    page = int(request.REQUEST.get('n', '1'))
+    total_pages = int(total / PHOTO_PAGE_SIZE + 0.5)
+
+    startidx = (page-1) * PHOTO_PAGE_SIZE
+    endidx = startidx + PHOTO_PAGE_SIZE
+
+    photos = photos[startidx:endidx]
+
+    prev_page = page - 1
+    if prev_page <= 0:
+        prev_page = None
+
+    next_page = page + 1
+    if next_page > total_pages:
+        next_page = None
+
+    pages = xrange(1, total_pages+1)
+    if len(pages) > 10:
+        pages = pages[0:8] + [pages[-1]]
+
+    return {
+        'photos': [TreePhoto.objects.get(pk=audit.model_id)
+                   for audit in photos],
+        'pages': pages,
+        'total_pages': total_pages,
+        'cur_page': page,
+        'next_page': next_page,
+        'prev_page': prev_page
+    }
+
+
+@transaction.commit_on_success
+def approve_or_reject_photo(
+        request, instance, plot_id, tree_id, photo_id, action):
+
+    approved = action == 'approve'
+
+    if approved:
+        msg = trans('Approved')
+    else:
+        msg = trans('Rejected')
+
+    resp = HttpResponse(msg)
+
+    tree = get_object_or_404(
+        Tree, plot_id=plot_id, instance=instance, pk=tree_id)
+
+    try:
+        photo = TreePhoto.objects.get(pk=photo_id, tree=tree)
+    except TreePhoto.DoesNotExist:
+        # This may be a pending tree. Let's see if there
+        # are pending audits
+        pending_audits = Audit.objects\
+                              .filter(instance=instance)\
+                              .filter(model='TreePhoto')\
+                              .filter(model_id=photo_id)\
+                              .filter(requires_auth=True)
+
+        if len(pending_audits) > 0:
+            # Process as pending and quit
+            approve_or_reject_audits_and_apply(
+                pending_audits, request.user, approved)
+
+            return resp
+        else:
+            # Error - no pending or regular
+            raise Http404('Tree Photo Not Found')
+
+    # Handle the id audit first
+    all_audits = []
+    for audit in photo.audits():
+        if audit.field == 'id':
+            all_audits = [audit] + all_audits
+        else:
+            all_audits.append(audit)
+
+    for audit in all_audits:
+        approve_or_reject_existing_edit(
+            audit, request.user, approved)
+
+    return resp
 
 
 audits_view = instance_request(
@@ -830,3 +964,21 @@ add_tree_photo_endpoint = require_http_method("POST")(
 
 scss_view = require_http_method("GET")(
     string_as_file_call("text/css", compile_scss))
+
+photo_review_endpoint = instance_request(
+    route(
+        GET=render_template("treemap/photo_review.html",
+                            photo_review)))
+
+photo_review_partial_endpoint = instance_request(
+    route(
+        GET=render_template("treemap/partials/photo_review.html",
+                            photo_review)))
+
+next_photo_endpoint = instance_request(
+    route(
+        GET=render_template("treemap/partials/photo.html",
+                            next_photo)))
+
+approve_or_reject_photo_view = instance_request(
+    approve_or_reject_photo)
