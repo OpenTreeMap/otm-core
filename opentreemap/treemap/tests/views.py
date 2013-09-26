@@ -148,7 +148,6 @@ class LocalMediaTestCase(TestCase):
         self.photoDir = tempfile.mkdtemp()
         self.mediaUrl = '/testingmedia/'
 
-
     def _media_dir(self):
         return self.settings(DEFAULT_FILE_STORAGE=
                              'django.core.files.storage.FileSystemStorage',
