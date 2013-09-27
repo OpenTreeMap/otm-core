@@ -13,6 +13,7 @@ var $ = require('jquery'),
     modes = require('./modeManagerForMapPage'),
     geocoder = require('./geocoder'),
     geocoderUi = require('./geocoderUi'),
+    boundarySelect = require('./boundarySelect'),
     BU = require('./baconUtils');
 
 // Map-page specific search code here
@@ -27,6 +28,18 @@ var showGeocodeError = function (e) {
     } else {
         // TODO: Toast
         window.alert('There was a problem running your search.');
+    }
+};
+
+// ``searchToBoundaryId`` takes a JSON search object and
+// extracts the numeric region ID included in the search.
+// If a region is not specified in the search object 
+// ``searchToBoundaryId`` returns undefined. 
+var searchToBoundaryId = function(search) {
+    if (search !== undefined && search['plot.geom']) {
+        return parseFloat(search['plot.geom'].IN_BOUNDARY, 10);
+    } else {
+        return undefined;
     }
 };
 
@@ -105,6 +118,16 @@ module.exports = {
                 .merge(resetStream)
                 .map(Search.buildSearch, elems)
                 .merge(triggeredQueryBus);
+
+        boundarySelect.init({
+            config: config,
+            idStream: builtSearchEvents.map(searchToBoundaryId),
+            map: mapManager.map,
+            style: {
+                fillOpacity: 0.3,
+                fillColor: config.instance.secondaryColor || '#56abb2'
+            }
+        });
 
         triggeredQueryBus.onValue(Search.applySearchToDom, elems);
 

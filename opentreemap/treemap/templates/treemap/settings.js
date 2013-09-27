@@ -1,3 +1,5 @@
+{% load instance_config %}
+
 // Data structures pull from django
 var otm = otm || {};
 otm.settings = otm.settings || {};
@@ -28,6 +30,8 @@ otm.settings.urls = {
             'type': '{{ request.instance.basemap_type }}',
             'data': '{{ request.instance.basemap_data }}',
             'bing_api_key': '{{ BING_API_KEY }}'
-        }
+        },
+        'primaryColor': '{{ request.instance.config|primary_color }}',
+        'secondaryColor': '{{ request.instance.config|secondary_color }}'
     }
 {% endif %}
