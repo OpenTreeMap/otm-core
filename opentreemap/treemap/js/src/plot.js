@@ -63,7 +63,8 @@ exports.init = function(options) {
         location: options.plotLocation.location
     });
 
-    diameterCalculator.init();
+    diameterCalculator.init({ cancelStream: form.cancelStream,
+                              saveOkStream: form.saveOkStream });
 
     function onSaveBefore(data) {
         plotMover.onSaveBefore(data);

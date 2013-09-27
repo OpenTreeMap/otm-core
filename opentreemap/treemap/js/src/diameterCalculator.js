@@ -8,7 +8,9 @@ var $ = require('jquery'),
     addRowBtnSelector = '#add-trunk-row',
     tbodySelector = '#diameter-worksheet',
     trunkRowSelector = '#trunk-row',
-    totalFieldSelector = 'input[name="tree.diameter"]';
+    totalFieldSelector = 'input[name="tree.diameter"]',
+
+    initialDiameter;
 
 
 function eventToText(e) {
@@ -63,6 +65,23 @@ function createWorksheetRow () {
     $tbody.append($newEl);
 }
 
+function saveInitialWorkSheet () {
+    initialDiameter = $(totalFieldSelector).val();
+}
+
+function resetToInitialWorkSheet () {
+    $(totalFieldSelector)
+        .val(initialDiameter);
+    $(trunkRowSelector)
+        .find(diameterSelector)
+        .val(initialDiameter);
+    $(trunkRowSelector)
+        .find(circumferenceSelector)
+        .val(diameterToCircumference(initialDiameter));
+
+    $(tbodySelector).find('tr').not(trunkRowSelector).remove();
+}
+
 function updateTotalDiameter () {
     // update the readonly total field that gets written
     // to the db with the values from the worksheet
@@ -99,6 +118,13 @@ function updateCorrespondingRowValue (event) {
 }
 
 exports.init = function(options) {
+
+    saveInitialWorkSheet();
+    options.cancelStream.onValue(resetToInitialWorkSheet);
+    options.saveOkStream.onValue(function () {
+        saveInitialWorkSheet();
+        resetToInitialWorkSheet();
+    });
     $(tbodySelector).on('input', 'input', updateCorrespondingRowValue);
     $(addRowBtnSelector).click(createWorksheetRow);
 };
