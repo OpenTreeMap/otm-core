@@ -25,6 +25,7 @@ module.exports = function(grunt) {
         var aliases = ['treemap/js/src/map.js:map',
                        'treemap/js/src/user.js:user',
                        'treemap/js/src/plot.js:plot',
+                       'treemap/js/src/OpenLayers.js:OpenLayers',
                        'treemap/js/src/searchBar.js:searchBar',
                        'treemap/js/src/csrf.js:csrf',
                        'treemap/js/src/photoReview.js:photoReview',
@@ -60,7 +61,7 @@ module.exports = function(grunt) {
                     },
                     noParse: grunt.file.expand('*/js/lib/*.js'),
                     shim: {
-                        OpenLayers: {
+                        UnpatchedOpenLayers: {
                             path: './treemap/js/shim/OpenLayers.js',
                             exports: 'OpenLayers',
                             depends: { googlemaps: 'google' }
