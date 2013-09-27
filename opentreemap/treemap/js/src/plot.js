@@ -10,7 +10,8 @@ var $ = require('jquery'),
     plotMarker = require('./plotMarker'),
     csrf = require('./csrf'),
     imageUploadPanel = require('./imageUploadPanel'),
-    streetView = require('./streetView');
+    streetView = require('./streetView'),
+    diameterCalculator = require('./diameterCalculator');
 
 exports.init = function(options) {
     // Set up cross-site forgery protection
@@ -61,6 +62,8 @@ exports.init = function(options) {
         cancelEditLocationButton: options.plotLocation.cancel,
         location: options.plotLocation.location
     });
+
+    diameterCalculator.init();
 
     function onSaveBefore(data) {
         plotMover.onSaveBefore(data);
