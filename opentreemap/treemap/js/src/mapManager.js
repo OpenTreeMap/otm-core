@@ -161,7 +161,7 @@ function createPlotUTFLayer(config) {
 // string or an array of strings. ``getPlotLayerURL`` looks at
 // ``config.tileHosts`` and returns a single string if only one host
 // is defined, or an array of strings if multiple hosts are defined.
-function getPlotLayerURL(config, extension) {
+function getLayerURL(config, layer, extension) {
     var urls = [],
         // Using an array with a single undefined element when
         // ``config.tileHosts`` is falsy allows us to always
@@ -172,10 +172,18 @@ function getPlotLayerURL(config, extension) {
         var prefix = host ? '//' + host : '';
         urls.push(prefix + '/tile/' +
         config.instance.rev +
-        '/database/otm/table/treemap_plot/${z}/${x}/${y}.' +
+        '/database/otm/table/' + layer + '/${z}/${x}/${y}.' +
         extension + '?instance_id=' + config.instance.id);
     });
     return urls.length === 1 ? urls[0] : urls;
+}
+
+function getPlotLayerURL(config, extension) {
+    return getLayerURL(config, 'treemap_plot', extension);
+}
+
+function getBoundsLayerURL(config, extension) {
+    return getLayerURL(config, 'treemap_boundary', extension);
 }
 
 function createBoundsTileLayer(config) {
@@ -185,11 +193,4 @@ function createBoundsTileLayer(config) {
         { isBaseLayer: false,
           sphericalMercator: true,
           displayInLayerSwitcher: false });
-}
-
-function getBoundsLayerURL(config, extension) {
-    return '/tile/' +
-        config.instance.rev +
-        '/database/otm/table/treemap_boundary/${z}/${x}/${y}.' +
-        extension + '?instance_id=' + config.instance.id;
 }
