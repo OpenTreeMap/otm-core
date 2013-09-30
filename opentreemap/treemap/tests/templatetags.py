@@ -2,6 +2,7 @@ from django.template import Template, Context, TemplateSyntaxError
 from django.test import TestCase
 from django.test.utils import override_settings
 
+import unittest
 import tempfile
 import json
 import os
@@ -551,3 +552,18 @@ class InlineFieldTagTests(TestCase):
                 self._form_template_search(None).render(Context({
                     'request': {'user': user, 'instance': self.instance}}
                 )).strip()
+
+
+class DiameterTagsTest(unittest.TestCase):
+    def setUp(self):
+        self.template = Template("{% load diameter %}"
+                                 "{{ value|to_circumference }}")
+
+    def test_none_yields_none(self):
+        """
+        Test that a None value will return the empty string.
+
+        This test is in response to a bug observed in github issue #463
+        """
+        rt = self.template.render(Context({'value': None}))
+        self.assertEqual(rt, '')
