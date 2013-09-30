@@ -174,7 +174,7 @@ def make_observer_role(instance):
     return make_loaded_role(instance, 'observer', 2, permissions)
 
 
-def make_user(instance, username, make_role=None):
+def make_user(instance, username, make_role=None, admin=False):
     """
     Create a User with the given username, and an InstanceUser for the
     given instance. The InstanceUser's role comes from calling make_role()
@@ -184,13 +184,17 @@ def make_user(instance, username, make_role=None):
     user.set_password("password")  # hashes password, allowing authentication
     user.save()
     role = make_role(instance) if make_role else instance.default_role
-    iuser = InstanceUser(instance=instance, user=user, role=role)
+    iuser = InstanceUser(instance=instance, user=user, role=role, admin=admin)
     iuser.save_with_user(user)
     return user
 
 
 def make_commander_user(instance, username='commander'):
     return make_user(instance, username, make_commander_role)
+
+
+def make_admin_user(instance, username='admin'):
+    return make_user(instance, username, make_commander_role, admin=True)
 
 
 def make_officer_user(instance, username='officer'):
