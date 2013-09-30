@@ -48,7 +48,9 @@
       <h3>{{ plot.address_full }}</h3>
       <form id="plot-form">
         <a href="javascript:;" id="edit-plot"
-           data-class="display" class="btn">{% trans "Edit" %}</a>
+           data-class="display" class="btn"
+           title="{% trans "Editing of the tree details is not available to all users" %}"
+           disabled="disabled">{% trans "Edit" %}</a>
         <a href="javascript:;" id="save-edit-plot"
            data-class="edit" class="btn" style="display: none;">{% trans "Save" %}</a>
         <a href="javascript:;" id="cancel-edit-plot"
