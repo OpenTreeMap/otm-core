@@ -42,8 +42,12 @@ exports.init = function(options) {
 
     imageUploadPanel.init(options.imageUploadPanel);
 
+    var startInEditMode = window.location.hash == '#edit';
+
     var form = inlineEditForm.init(
-            _.extend(options.inlineEditForm,{ onSaveBefore: onSaveBefore }));
+            _.extend(options.inlineEditForm,
+                     { onSaveBefore: onSaveBefore,
+                       startInEditMode: startInEditMode }));
 
     mapManager.init({
         config: options.config,
