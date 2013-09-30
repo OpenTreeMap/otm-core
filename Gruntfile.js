@@ -32,6 +32,7 @@ module.exports = function(grunt) {
                        'treemap/js/src/baconUtils:BaconUtils',
                        'treemap/js/src/inlineEditForm:inlineEditForm',
                        'treemap/js/src/imageUploadPanel:imageUploadPanel',
+                       'treemap/js/src/utility:utility',
                        'treemap/js/src/openLayersMapEventStream:' +
                        'openLayersMapEventStream'];
 
