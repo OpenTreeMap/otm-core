@@ -20,8 +20,8 @@
     </div>
     {% endfor %}
     <div class="benefit-tree-count">
-      {% blocktrans with used=basis.n_trees_used %}
-        Based on {{ used }} out of {{ basis.n_trees_total }} total trees
+      {% blocktrans with used=basis.n_trees_used total=basis.n_trees_total %}
+        Based on {{ used }} out of {{ total }} total trees
       {% endblocktrans %}
     </div>
 </div>
