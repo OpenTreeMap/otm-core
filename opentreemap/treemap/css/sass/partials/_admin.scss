@@ -129,3 +129,13 @@ $nav-width: 200px;
 .view-label {
         float: right;
 }
+
+/* Tree Map creation steps ---------------------- */
+
+.plan-selected {
+        background-color: #bfffa3;
+}
+
+.error-on-tab {
+        border-bottom: 8px solid red;
+}
