@@ -113,12 +113,6 @@
             </tbody>
           </table>
         </form>
-
-        <a href="javascript:;" class="btn" style="display:none" id="edit-plot-location">Move Tree</a>
-        <a href="javascript:;" class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</a>
-        <div id="map" class="map-small"></div>
-        <div id="street-view" class="street-view-small" style="display: none;"></div>
-
         <hr>
 
       <!-- Yearly Ecosystem Services -->
@@ -142,6 +136,10 @@
       {% endif %}
     </div>
     <div class="span3">
+      <a href="javascript:;" class="btn" style="display:none" id="edit-plot-location">Move Tree</a>
+        <a href="javascript:;" class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</a>
+        <div id="map" class="map-small"></div>
+        <div id="street-view" class="street-view-small" style="display: none;"></div>
       <h3>{% trans "Commments" %}</h3>
 
       {% if request.user.is_authenticated %}

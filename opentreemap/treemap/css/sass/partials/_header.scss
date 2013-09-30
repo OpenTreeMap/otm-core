@@ -12,6 +12,10 @@
         vertical-align: middle;
         margin-right: -0.25em;
     }
+
+    @media (max-width: 979px) {
+        padding: 15px;
+    }
 }
 
 .logo {
@@ -121,8 +125,4 @@
 
 .stewardship {
     right: 0;
-}
-
-@media (max-width: 767px) {
-
 }

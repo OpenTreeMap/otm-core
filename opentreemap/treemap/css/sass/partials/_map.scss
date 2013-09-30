@@ -9,18 +9,6 @@
     right: 350px; 
 }
 
-.map-small {
-    background: $well-color;
-    width: 280px;
-    height: 280px;
-    float: left;
-}
-
-.street-vew-small {
-    @extend .map-small;
-    margin-left: 10px;
-}
-
 .olPopup {
     border-radius: 6px;
     margin-top: 20px;
