@@ -1,3 +1,5 @@
+"use strict";
+
 var OL = require('UnpatchedOpenLayers');
 
 // Lifted from
