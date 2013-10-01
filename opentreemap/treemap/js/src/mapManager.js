@@ -142,7 +142,8 @@ function createPlotTileLayer(config) {
             url,
             { isBaseLayer: false,
               sphericalMercator: true,
-              displayInLayerSwitcher: false });
+              displayInLayerSwitcher: false,
+              numZoomLevels: 20 });
     makeLayerFilterable(layer, url, config.urls.filterQueryArgumentName);
     return layer;
 }
@@ -192,5 +193,6 @@ function createBoundsTileLayer(config) {
         getBoundsLayerURL(config, 'png'),
         { isBaseLayer: false,
           sphericalMercator: true,
-          displayInLayerSwitcher: false });
+          displayInLayerSwitcher: false,
+          numZoomLevels: 20 });
 }
