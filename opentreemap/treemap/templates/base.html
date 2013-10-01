@@ -38,7 +38,11 @@
             {% block instancetopnav %}
               {% if last_instance %}
               <li><a href="{% url 'map' instance_url_name=last_instance.url_name %}">{% trans "Explore Trees" %}</a></li>
+              {% if request.user.is_authenticated %}
               <li><a data-class='add-tree' href="{% url 'map' instance_url_name=last_instance.url_name %}#addtree">{% trans "Add a Tree" %}</a></li>
+              {% else %}
+              <li><a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}">{% trans "Add a Tree" %}</a>
+              {% endif %}
               {% endif %}
             {% endblock instancetopnav %}
           </ul>
