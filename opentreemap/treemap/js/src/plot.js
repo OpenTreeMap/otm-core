@@ -52,7 +52,8 @@ exports.init = function(options) {
             if (!options.config.loggedIn) {
                 window.location = options.config.loginUrl +
                     window.location.href + 'edit';
-            }});
+            }
+        });
 
     var shouldBeInEditModeBus = new Bacon.Bus();
     var shouldBeInEditModeStream = shouldBeInEditModeBus.merge(

@@ -249,7 +249,8 @@ exports.init = function(options) {
     if (options.shouldBeInEditModeStream) {
         actionStream.plug(options.shouldBeInEditModeStream
                           .map(function(isInEdit) {
-                              return isInEdit ? 'edit:start' : 'cancel'; }));
+                                return isInEdit ? 'edit:start' : 'cancel';
+                            }));
     }
 
     actionStream.plug(
