@@ -58,7 +58,7 @@ exports.init = function(options) {
     var shouldBeInEditModeBus = new Bacon.Bus();
     var shouldBeInEditModeStream = shouldBeInEditModeBus.merge(
         $(window).asEventStream('popstate')
-            .map(function() { return U.endsWith(window.location.href, '/edit'); }));
+            .map(function() { return U.getLastUrlSegment() === 'edit'; }));
 
     var form = inlineEditForm.init(
             _.extend(options.inlineEditForm,
@@ -69,12 +69,10 @@ exports.init = function(options) {
     var firstEditEventFound = false;
 
     form.inEditModeProperty.onValue(function(inEditMode) {
-        var href = window.location.href;
-        var hrefHasEdit = U.endsWith(href, '/edit');
+        var hrefHasEdit = U.getLastUrlSegment() === 'edit';
 
         if (inEditMode && !hrefHasEdit) {
-            href += 'edit';
-            U.pushState(href);
+            U.pushState(U.appendSegmentToUrl('edit'));
         } else if (!inEditMode && hrefHasEdit) {
             // inEditModeProperty fires a bunch of startup events.
             // if we're starting in edit mode we want to ignore
@@ -84,8 +82,7 @@ exports.init = function(options) {
             if (startInEditMode && !firstEditEventFound) {
                 firstEditEventFound = true;
             } else {
-                href = href.substring(0, href.length - 'edit'.length);
-                U.pushState(href);
+                U.pushState(U.removeLastUrlSegment());
             }
         }
     });

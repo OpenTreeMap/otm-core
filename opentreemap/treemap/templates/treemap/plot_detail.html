@@ -23,7 +23,11 @@
       <img src="{{ STATIC_URL }}img/tree.png">
       {% endif %}
       {% endwith %}
+      {% if request.user.is_authenticated %}
       <a id="toggle-add-photo-modal" data-toggle="modal" data-target="#add-photo-modal" class="btn btn-mini add-photos">{% trans "Add Photos" %}</a>
+      {% else %}
+      <a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}" class="btn btn-mini">{% trans "Add Photos" %}</a>
+      {% endif %}
       <div id="upload-error" class="text-error" style="display: none"></div>
       <hr>
       <a class="btn add-favorite" href="javascript:;">{% trans "Add to Favorites" %}</a>
