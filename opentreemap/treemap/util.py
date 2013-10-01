@@ -102,6 +102,12 @@ def instance_request(view_fn):
         # view function argument for flexibility and to keep "template
         # only" requests simple.
         request.instance = instance
+
+        user = request.user
+        if user.is_authenticated():
+            instance_user = user.get_instance_user(instance)
+            request.instance_user = instance_user
+
         if instance.is_accessible_by(request.user):
             add_visited_instance(request, instance)
             return view_fn(request, instance, *args, **kwargs)
