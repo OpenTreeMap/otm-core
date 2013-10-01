@@ -1,21 +1,31 @@
 {# vim: set filetype=htmldjango : #}
 {% load i18n %}
 {% if field.is_visible %}
-  <div>
-    {{ field.label }}
+  <form class="form-inline" role="form">
+    <div class="form-group">
+      {{ field.label }}
+    </div>
     {% if field.search_type == 'RANGE' %}
       {% with 'data-class=search data-search-type=MIN' as extras %}
-        {% include "treemap/field/inputs.html" with extra=extras %}
+        <div class="form-group">
+          {% include "treemap/field/inputs.html" with extra=extras %}
+        </div>
       {% endwith %}
       {# Translators: text in-between min and max search filter boxes #}
-      {% trans " to " %}
+      <div class="form-group">
+        {% trans " to " %}
+      </div>
       {% with 'data-class=search data-search-type=MIN' as extra %}
-        {% include "treemap/field/inputs.html" with extra=extras %}
+        <div class="form-group">
+          {% include "treemap/field/inputs.html" with extra=extras %}
+        </div>
       {% endwith %}
     {% else %}
       {% with 'data-class=search data-search-type='|add:field.search_type as extras %}
-        {% include "treemap/field/inputs.html" with extra=extras %}
+        <div class="form-group">
+          {% include "treemap/field/inputs.html" with extra=extras %}
+        </div>
       {% endwith %}
     {% endif %}
-  </div>
+  </form>
 {% endif %}

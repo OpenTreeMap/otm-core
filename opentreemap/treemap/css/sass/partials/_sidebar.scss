@@ -102,6 +102,10 @@
                 text-align: left;
                 font-weight: 700;
                 color: $main-text-color;
+
+                @media (max-width: 767px) {
+                    float: left;
+                }
             }
             dd {
                 text-align: right;

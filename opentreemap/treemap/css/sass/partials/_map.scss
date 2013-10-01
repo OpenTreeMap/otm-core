@@ -13,7 +13,7 @@
     border-radius: 6px;
     margin-top: 15px;
     margin-left: -15px;
-    border: 1px solid #d1d2d4 !important;
+    border: 1px solid $well-color !important;
     overflow: visible !important;
     box-shadow: 0px 3px 0px rgba(0, 3, 0, 0.3);
     min-height: 150px;
@@ -110,7 +110,7 @@ div.olControlZoom {
 .olControlLayerSwitcher {
     top: 16px;
     right: 16px;
-    width: 16em;
+    width: 12em;
     font-family: $base-font-family;
     font-size: $base-font-size;
     font-weight: 300;
@@ -165,12 +165,16 @@ div.olControlZoom {
     }
     .maximizeDiv {
         position: absolute;
-        width: 120px;
+        width: 100px;
         background: rgba(66, 66, 74, 0.85);
         padding: 6px 10px 10px;
         top: 0px;
         border-radius: 6px;
+        opacity: 0.5;
 
+        &:hover {
+            opacity: 1.0;
+        }
         &:before {
             content: '\e8b9';
             top: 7px;
