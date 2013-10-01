@@ -91,3 +91,11 @@ exports.lonLatToWebMercator = function(lon, lat) {
         y: location.lat
     };
 };
+
+exports.endsWith = function(str, ends) {
+    if (ends === '') return true;
+    if (str == null || ends == null) return false;
+
+    return str.length >= ends.length &&
+        str.slice(str.length - ends.length) === ends;
+};

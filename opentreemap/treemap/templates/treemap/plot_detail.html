@@ -163,10 +163,18 @@
 <script>
 (function(require, config) {
       var plot = require('plot');
+
+      var updateUrl = window.location.href;
+      var U = require('utility');
+      if (U.endsWith(updateUrl, '/edit')) {
+            updateUrl = updateUrl.substring(0, updateUrl.length - '/edit'.length);
+      }
+
       plot.init({
           config: config,
+          startInEditMode: {% if editmode %}true{% else %}false{% endif %},
           inlineEditForm: {
-              updateUrl: window.location.href,
+              updateUrl: updateUrl,
               form: '#plot-form',
               edit: '#edit-plot',
               save: '#save-edit-plot',

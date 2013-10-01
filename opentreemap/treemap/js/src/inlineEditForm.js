@@ -231,8 +231,10 @@ exports.init = function(options) {
     actionStream.plug(saveStream);
     actionStream.plug(cancelStream);
 
-    if (options.startInEditMode) {
-        $(function() { actionStream.push('edit:start'); });
+    if (options.shouldBeInEditModeStream) {
+        actionStream.plug(options.shouldBeInEditModeStream
+                          .map(function(isInEdit) {
+                              return isInEdit ? 'edit:start' : 'cancel'; }));
     }
 
     actionStream.plug(
@@ -247,13 +249,9 @@ exports.init = function(options) {
     editStartStream.onValue(displayValuesToFormFields);
     editStartStream.onValue(showCollectionUdfs);
 
-    editStartStream.onValue(function() { window.location.hash = '#edit'; });
-
     var displayModeStream = actionStream
-            .filter(_.contains, eventsLandingInDisplayMode);
-
-    displayModeStream.onValue(resetCollectionUdfs);
-    displayModeStream.onValue(function() { window.location.hash = '#'; });
+            .filter(_.contains, eventsLandingInDisplayMode)
+            .onValue(resetCollectionUdfs);
 
     actionStream.onValue(hideAndShowElements);
 

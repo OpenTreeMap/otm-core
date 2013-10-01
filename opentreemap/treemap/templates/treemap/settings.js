@@ -16,6 +16,14 @@ otm.settings.urls = {
     otm.settings.tileHosts = ["{{ settings.TILE_HOSTS|join:'", "' }}"];
 {% endif %}
 
+{% if request.user.is_authenticated %}
+    otm.settings.loggedIn = true;
+{% else %}
+    otm.settings.loggedIn = false;
+{% endif %}
+
+otm.settings.loginUrl = "{% url 'django.contrib.auth.views.login' %}?next=";
+
 {% if request.instance %}
     otm.settings.instance = {
         'id': '{{ request.instance.id }}',

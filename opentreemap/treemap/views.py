@@ -20,6 +20,7 @@ from django.http import (HttpResponse, HttpResponseRedirect,
 from django.views.decorators.http import etag
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
+from django.contrib.auth.decorators import login_required
 from django.utils.translation import ugettext as trans
 from django.db import transaction
 from django.db.models import Q
@@ -39,7 +40,7 @@ from ecobenefits.views import _benefits_for_trees
 from opentreemap.util import json_from_request, route
 
 
-def _plot_hash(request, instance, plot_id, tree_id=None):
+def _plot_hash(request, instance, plot_id, edit=False, tree_id=None):
     """
     Compute a unique hash for a given plot or tree
 
@@ -185,7 +186,7 @@ def create_plot(user, instance, *args, **kwargs):
     return p
 
 
-def plot_detail(request, instance, plot_id, tree_id=None):
+def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
     InstancePlot = instance.scope_model(Plot)
     plot = get_object_or_404(InstancePlot, pk=plot_id)
 
@@ -227,6 +228,7 @@ def plot_detail(request, instance, plot_id, tree_id=None):
                     kwargs={'instance_url_name': instance.url_name,
                             'plot_id': plot.pk})
 
+    context['editmode'] = edit
     context['plot'] = plot
     context['tree'] = tree
     context['recent_activity'] = _plot_audits(request.user, instance, plot)
@@ -912,6 +914,8 @@ map_view = instance_request(
 
 get_plot_detail_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_detail.html', plot_detail)))
+
+edit_plot_detail_view = login_required(get_plot_detail_view)
 
 update_plot_detail_view = json_api_call(instance_request(update_plot_detail))
 
