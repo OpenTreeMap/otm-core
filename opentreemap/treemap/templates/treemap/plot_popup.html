@@ -13,5 +13,5 @@
 </div>
 <div>
     <a href="{% url 'plot_detail' instance_url_name=request.instance.url_name plot_id=plot.pk %}" class="btn btn-small btn-secondary">{% trans "View all details" %}</a>
-    <a href="{% url 'plot_detail' instance_url_name=request.instance.url_name plot_id=plot.pk %}#edit" class="btn btn-small btn-info">{% trans "Edit details" %}</a>
+    <a href="{% url 'plot_detail_edit' instance_url_name=request.instance.url_name plot_id=plot.pk edit='edit' %}" class="btn btn-small btn-info">{% trans "Edit details" %}</a>
 </div>
