@@ -33,8 +33,8 @@ var showGeocodeError = function (e) {
 
 // ``searchToBoundaryId`` takes a JSON search object and
 // extracts the numeric region ID included in the search.
-// If a region is not specified in the search object 
-// ``searchToBoundaryId`` returns undefined. 
+// If a region is not specified in the search object
+// ``searchToBoundaryId`` returns undefined.
 var searchToBoundaryId = function(search) {
     if (search !== undefined && search['plot.geom']) {
         return parseFloat(search['plot.geom'].IN_BOUNDARY, 10);
@@ -81,11 +81,13 @@ module.exports = {
 
         searchBar.initSearchUi(config);
 
+        var triggerSearchFromSidebar = new Bacon.Bus();
+
         mapManager.init({
             config: config,
             selector: '#map'
         });
-        modes.init(config, mapManager);
+        modes.init(config, mapManager, triggerSearchFromSidebar);
         if (window.location.hash === '#addtree') {
             modes.activateAddTreeMode();
         } else {
@@ -98,30 +100,29 @@ module.exports = {
             modes.activateAddTreeMode();
         });
 
-        // Don't duplicate queries
-        var lastQuery = null;
-
         var triggerSearchFromUrl = new Bacon.Bus();
-        var initialQueryBus = triggerSearchFromUrl.flatMap(function() {
-            var query = U.parseQueryString().q || '{}';
-            if (lastQuery != query) {
-                lastQuery = query;
-                return JSON.parse(query);
-            } else {
-                return Bacon.never();
-            }
-        });
+
+        var initialQueryBus = triggerSearchFromUrl
+            .map(U.getCurrentFilterString)
+            .skipDuplicates()
+            .map(JSON.parse);
+
+        var repeatableQueryBus = triggerSearchFromSidebar
+            .map(U.getCurrentFilterString)
+            .map(JSON.parse);
+
         var triggeredQueryBus = resetStream.map({})
                                            .merge(initialQueryBus);
 
         window.addEventListener('popstate', function(event) {
-            triggerSearchFromUrl.push({});
+            triggerSearchFromUrl.push();
         }, false);
 
         var builtSearchEvents = searchEventStream
-                .merge(resetStream)
                 .map(Search.buildSearch, elems)
                 .merge(triggeredQueryBus);
+
+        var ecoBenefitsSearchEvents = builtSearchEvents.merge(repeatableQueryBus);
 
         boundarySelect.init({
             config: config,
@@ -135,7 +136,7 @@ module.exports = {
 
         triggeredQueryBus.onValue(Search.applySearchToDom, elems);
 
-        Search.init(builtSearchEvents, config, mapManager.setFilter);
+        Search.init(ecoBenefitsSearchEvents, config, mapManager.setFilter);
 
         builtSearchEvents
             .map(JSON.stringify)
@@ -152,6 +153,6 @@ module.exports = {
             })
             .onValue(U.pushState);
 
-        triggerSearchFromUrl.push({});
+        triggerSearchFromUrl.push();
     }
 };

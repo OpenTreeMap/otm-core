@@ -35,7 +35,8 @@ function init(options) {
     var addressInput = '#add-tree-address',
         $geolocateButton = U.$find('.geolocate', $sidebar),
         $geocodeError = U.$find('.geocode-error', $sidebar),
-        $geolocateError = U.$find('.geolocate-error', $sidebar);
+        $geolocateError = U.$find('.geolocate-error', $sidebar),
+        triggerSearchBus = options.triggerSearchBus;
 
     $form = U.$find('#add-tree-form', $sidebar);
     $editFields = U.$find('[data-class="edit"]', $form);
@@ -74,7 +75,7 @@ function init(options) {
 
     // Handle user adding a tree
     var addTreeStream = $addButton.asEventStream('click');
-    addTreeStream.onValue(addTree);
+    addTreeStream.onValue(addTree, [onAddTreeSuccess, triggerSearchBus.push]);
 
     // Handle user clicking "Cancel"
     var cancelStream = U.$find('.cancelBtn', $sidebar).asEventStream('click');
@@ -191,7 +192,7 @@ function enableFormFields(shouldEnable) {
     $editControls.prop('disabled', !shouldEnable);
 }
 
-function addTree() {
+function addTree(success) {
     // User hit "Add Tree".
     $validationFields.hide();
     var data = FH.formToDictionary($form, $editFields);
@@ -209,7 +210,7 @@ function addTree() {
         type: 'POST',
         contentType: "application/json",
         data: JSON.stringify(data),
-        success: onAddTreeSuccess,
+        success: success,
         error: onAddTreeError
     });
 }
