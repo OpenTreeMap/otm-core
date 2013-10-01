@@ -196,6 +196,13 @@ function addTree() {
     $validationFields.hide();
     var data = FH.formToDictionary($form, $editFields);
     data['plot.geom'] = plotMarker.getLocation();
+    // Exclude null fields to allow defaults to be set by the server
+    // If all tree fields are null, this will cause a plot w/o tree to be added
+    _.each(data, function(value, key) {
+        if (value === null) {
+            delete data[key];
+        }
+    });
 
     $.ajax({
         url: config.instance.url + 'plots/',

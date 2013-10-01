@@ -23,7 +23,15 @@
       <img src="{{ STATIC_URL }}img/tree.png">
       {% endif %}
       {% endwith %}
+      {% if request.user.is_authenticated %}
+      {% if request.instance_user.can_add_photos_to_tree %}
       <a id="toggle-add-photo-modal" data-toggle="modal" data-target="#add-photo-modal" class="btn btn-mini add-photos">{% trans "Add Photos" %}</a>
+      {% else %}
+      <a data-toggle="modal" disabled="disabled" class="btn btn-mini add-photos" title="{% trans "Adding tree photos is not available to all users" %}">{% trans "Add Photos" %}</a>
+      {% endif %}
+      {% else %}
+      <a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}" class="btn btn-mini">{% trans "Add Photos" %}</a>
+      {% endif %}
       <div id="upload-error" class="text-error" style="display: none"></div>
       <hr>
       <a class="btn add-favorite" href="javascript:;">{% trans "Add to Favorites" %}</a>
@@ -48,7 +56,9 @@
       <h3>{{ plot.address_full }}</h3>
       <form id="plot-form">
         <a href="javascript:;" id="edit-plot"
-           data-class="display" class="btn">{% trans "Edit" %}</a>
+           data-class="display" class="btn"
+           title="{% trans "Editing of the tree details is not available to all users" %}"
+           disabled="disabled">{% trans "Edit" %}</a>
         <a href="javascript:;" id="save-edit-plot"
            data-class="edit" class="btn" style="display: none;">{% trans "Save" %}</a>
         <a href="javascript:;" id="cancel-edit-plot"
@@ -161,10 +171,18 @@
 <script>
 (function(require, config) {
       var plot = require('plot');
+
+      var updateUrl = window.location.href;
+      var U = require('utility');
+      if (U.endsWith(updateUrl, '/edit')) {
+            updateUrl = updateUrl.substring(0, updateUrl.length - '/edit'.length);
+      }
+
       plot.init({
           config: config,
+          startInEditMode: {% if editmode %}true{% else %}false{% endif %},
           inlineEditForm: {
-              updateUrl: window.location.href,
+              updateUrl: updateUrl,
               form: '#plot-form',
               edit: '#edit-plot',
               save: '#save-edit-plot',

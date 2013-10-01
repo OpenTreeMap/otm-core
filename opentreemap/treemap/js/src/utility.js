@@ -30,6 +30,46 @@ exports.getUpdateUrlByUpdatingQueryStringParam = function (k, v) {
     return Url.format(url);
 };
 
+exports.getLastUrlSegment = function() {
+    var parts = getUrlSegments();
+    return parts[parts.length - 1];
+};
+
+var getUrlSegments = exports.getUrlSegments = function() {
+    var pathname = Url.parse(window.location.href, false).pathname;
+
+    if (endsWith(pathname, '/')) {
+        pathname = pathname.substring(0, pathname.length - 1);
+    }
+
+    return pathname.split('/');
+};
+
+exports.removeLastUrlSegment = function() {
+    var url = Url.parse(window.location.href, false);
+    var segs = getUrlSegments();
+    segs.pop();
+
+    url.pathname = segs.join('/');
+
+    if (url.pathname[url.pathname.length - 1] != '/') {
+        url.pathname += '/';
+    }
+
+    return Url.format(url);
+};
+
+exports.appendSegmentToUrl = function (segment) {
+    var url = Url.parse(window.location.href, false);
+    var segs = getUrlSegments();
+
+    segs.push(segment);
+
+    url.pathname = segs.join('/');
+
+    return Url.format(url);
+};
+
 exports.pushState = function (url) {
     if (history.pushState) {
         history.pushState({}, '', url);
@@ -90,4 +130,12 @@ exports.lonLatToWebMercator = function(lon, lat) {
         x: location.lon,
         y: location.lat
     };
+};
+
+var endsWith = exports.endsWith = function(str, ends) {
+    if (ends === '') return true;
+    if (str === null || ends === null) return false;
+
+    return str.length >= ends.length &&
+        str.slice(str.length - ends.length) === ends;
 };

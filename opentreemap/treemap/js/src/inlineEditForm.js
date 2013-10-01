@@ -18,17 +18,32 @@ exports.init = function(options) {
             updateUrl: options.updateUrl
         },
         form = options.form,
-        edit = options.edit,
-        save = options.save,
-        cancel = options.cancel,
+        $edit = $(options.edit),
+        $save = $(options.save),
+        $cancel = $(options.cancel),
         displayFields = options.displayFields,
         editFields = options.editFields,
         validationFields = options.validationFields,
-        onSaveBefore = options.onSaveBefore || _.identity,
+        onSaveBefore = options.onSaveBefore || _.identity;
 
-        editStream = $(edit).asEventStream('click').map('edit:start'),
-        saveStream = $(save).asEventStream('click').map('save:start'),
-        cancelStream = $(cancel).asEventStream('click').map('cancel'),
+    if ($(editFields).filter(':not(a)').length === 0) {
+        return $.extend(self, {
+            saveOkStream: Bacon.never(),
+            cancelStream: Bacon.never(),
+            inEditModeProperty: Bacon.never().toProperty(false)
+        });
+    }
+
+    // the initial styling of $edit is disabled with title text notifying
+    // the user that editing is disallowed. Since we haven't returned yet,
+    // we can assume at this point that editing is allowed and remove these
+    // styles.
+    $edit.attr('disabled', false);
+    $edit.attr('title', '');
+
+    var editStream = $edit.asEventStream('click').map('edit:start'),
+        saveStream = $save.asEventStream('click').map('save:start'),
+        cancelStream = $cancel.asEventStream('click').map('cancel'),
         actionStream = new Bacon.Bus(),
 
         displayValuesToTypeahead = function() {
@@ -231,6 +246,13 @@ exports.init = function(options) {
     actionStream.plug(saveStream);
     actionStream.plug(cancelStream);
 
+    if (options.shouldBeInEditModeStream) {
+        actionStream.plug(options.shouldBeInEditModeStream
+                          .map(function(isInEdit) {
+                                return isInEdit ? 'edit:start' : 'cancel';
+                            }));
+    }
+
     actionStream.plug(
         responseStream.filter('.error').map('save:error')
     );
@@ -239,12 +261,13 @@ exports.init = function(options) {
         saveOkStream.map('save:ok')
     );
 
-    actionStream.filter(isEditStart).onValue(displayValuesToFormFields);
-    actionStream.filter(isEditStart).onValue(showCollectionUdfs);
+    var editStartStream = actionStream.filter(isEditStart);
+    editStartStream.onValue(displayValuesToFormFields);
+    editStartStream.onValue(showCollectionUdfs);
 
-    actionStream
-        .filter(_.contains, eventsLandingInDisplayMode)
-        .onValue(resetCollectionUdfs);
+    var displayModeStream = actionStream
+            .filter(_.contains, eventsLandingInDisplayMode)
+            .onValue(resetCollectionUdfs);
 
     actionStream.onValue(hideAndShowElements);
 

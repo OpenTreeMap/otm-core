@@ -6,6 +6,8 @@ var $ = require('jquery'),
     inlineEditForm = require('./inlineEditForm'),
     mapManager = require('./mapManager'),
     BU = require('BaconUtils'),
+    Bacon = require('baconjs'),
+    U = require('./utility'),
     plotMover = require('./plotMover'),
     plotMarker = require('./plotMarker'),
     csrf = require('./csrf'),
@@ -42,8 +44,56 @@ exports.init = function(options) {
 
     imageUploadPanel.init(options.imageUploadPanel);
 
+    $(options.inlineEditForm.edit)
+        .asEventStream('click')
+        .onValue(function() {
+            // Don't allow editing if not logged in
+            // instead - go to the login page
+            if (!options.config.loggedIn) {
+                window.location = options.config.loginUrl +
+                    window.location.href + 'edit';
+            }
+        });
+
+    var shouldBeInEditModeBus = new Bacon.Bus();
+    var shouldBeInEditModeStream = shouldBeInEditModeBus.merge(
+        $(window).asEventStream('popstate')
+            .map(function() { return U.getLastUrlSegment() === 'edit'; }));
+
     var form = inlineEditForm.init(
-            _.extend(options.inlineEditForm,{ onSaveBefore: onSaveBefore }));
+            _.extend(options.inlineEditForm,
+                     { onSaveBefore: onSaveBefore,
+                       shouldBeInEditModeStream: shouldBeInEditModeStream }));
+
+    var startInEditMode = options.startInEditMode;
+    var firstEditEventFound = false;
+
+    form.inEditModeProperty.onValue(function(inEditMode) {
+        var hrefHasEdit = U.getLastUrlSegment() === 'edit';
+
+        if (inEditMode && !hrefHasEdit) {
+            U.pushState(U.appendSegmentToUrl('edit'));
+        } else if (!inEditMode && hrefHasEdit) {
+            // inEditModeProperty fires a bunch of startup events.
+            // if we're starting in edit mode we want to ignore
+            // all events until we hit the first 'transition' to normal
+            // mode. When we hit that we swallow the event and then
+            // let things go as normal.
+            if (startInEditMode && !firstEditEventFound) {
+                firstEditEventFound = true;
+            } else {
+                U.pushState(U.removeLastUrlSegment());
+            }
+        }
+    });
+
+    if (startInEditMode) {
+        if (options.config.loggedIn) {
+            shouldBeInEditModeBus.push(true);
+        } else {
+            window.location = options.config.loginUrl + window.location.href;
+        }
+    }
 
     mapManager.init({
         config: options.config,

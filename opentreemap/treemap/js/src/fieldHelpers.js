@@ -11,7 +11,7 @@ exports.getField = function getField($fields, name) {
 
 exports.formToDictionary = function ($form, $editFields) {
     var isTypeaheadHiddenField = function(name) {
-        $form.find('[name="' + name + '"]').is('[data-typeahead-hidden]');
+        return $form.find('[name="' + name + '"]').is('[data-typeahead-hidden]');
     };
     var result = {};
     _.each($form.serializeArray(), function(item) {
@@ -21,7 +21,7 @@ exports.formToDictionary = function ($form, $editFields) {
         } else if (item.value === '' && (type === 'int' || type === 'float')) {
             // convert empty numeric fields to null
             result[item.name] = null;
-        } else if (item.value === '' && isTypeaheadHiddenField(name)) {
+        } else if (item.value === '' && isTypeaheadHiddenField(item.name)) {
             // convert empty foreign key id strings to null
             result[item.name] = null;
         } else {

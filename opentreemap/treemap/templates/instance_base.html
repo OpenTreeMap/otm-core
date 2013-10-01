@@ -17,7 +17,12 @@
 
 {% block instancetopnav %}
 <li><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Trees" %}</a></li>
+{% if request.user.is_authenticated %}
 <li><a data-action="addtree" href="{% url 'map' instance_url_name=request.instance.url_name %}#addtree">{% trans "Add a Tree" %}</a></li>
+{% else %}
+<li><a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}">{% trans "Add a Tree" %}</a>
+{% endif %}
+
 {% endblock instancetopnav %}
 
 {% block subhead %}
@@ -27,7 +32,11 @@
     <!-- <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites -->
   </div>
   <a href="javascript:;" class="btn btn-primary btn-mini exportBtn"><i class="icon-export"></i> Export Search Results</a>
+  {% if request.user.is_authenticated %}
   <a data-action="addtree" href="{% url 'map' instance_url_name=request.instance.url_name %}#addtree" class="btn btn-primary addBtn">Add a Tree</a>
+  {% else %}
+  <a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}" class="btn btn-primary addBtn">{% trans "Add a Tree" %}</a>
+  {% endif %}
 </div>
 {% endblock subhead %}
 
