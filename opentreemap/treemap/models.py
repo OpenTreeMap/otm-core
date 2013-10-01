@@ -218,6 +218,22 @@ class InstanceUser(Auditable, models.Model):
     reputation = models.IntegerField(default=0)
     admin = models.BooleanField(default=False)
 
+    def can_add_photos_to_tree(self):
+        # Users can add photos only if they have all
+        # WRITE_DIRECTLY or WRITE_WITH_AUDIT permissions
+        # on tree photo
+        fields = {'tree', 'image', 'thumbnail', 'id'}
+
+        perms = self.user.get_instance_permissions(
+            self.instance, 'TreePhoto')
+
+        fieldperms = {perm.field_name
+                      for perm
+                      in perms
+                      if perm.allows_writes}
+
+        return fieldperms == fields
+
     def save_with_user(self, user):
         self.full_clean()
         super(InstanceUser, self).save_with_user(user)
