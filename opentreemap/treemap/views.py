@@ -49,8 +49,14 @@ def _plot_hash(request, instance, plot_id, edit=False, tree_id=None):
     this function is wrapped around views that can take
     tree_id as an argument
     """
+
     instance_plots = instance.scope_model(Plot)
-    return get_object_or_404(instance_plots, pk=plot_id).hash
+    base = get_object_or_404(instance_plots, pk=plot_id).hash
+
+    if request.user:
+        pk = request.user.pk or ''
+
+    return hashlib.md5(base + ':' + str(pk)).hexdigest()
 
 
 def _search_hash(request, instance):
