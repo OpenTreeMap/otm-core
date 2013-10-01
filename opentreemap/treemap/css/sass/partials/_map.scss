@@ -11,11 +11,13 @@
 
 .olPopup {
     border-radius: 6px;
-    margin-top: 20px;
-    margin-left: -23px;
+    margin-top: 15px;
+    margin-left: -15px;
     border: 1px solid #d1d2d4 !important;
     overflow: visible !important;
     box-shadow: 0px 3px 0px rgba(0, 3, 0, 0.3);
+    min-height: 150px;
+    height: auto !important;
 
     &:before {
         content: '';
@@ -33,12 +35,14 @@
         padding: 12px;
         margin: 0;
         width: auto !important;
+        padding-right: 26px;
+        height: auto !important;
 
         h4 {
             margin: 0 0 6px;
             font-weight: 400;
             font-size: 18px;
-            line-height: 24px;
+            line-height: 22px;
             color: $primary-color;
         }
         dl {
@@ -65,7 +69,8 @@
     }
     .olPopupCloseBox {
         background: none;
-        margin-right: -6px;
+        margin-right: -20px;
+        margin-top: -4px;
 
         &:before {
             content: '\00d7';
@@ -78,6 +83,108 @@
         }
         &:hover:before {
             opacity: 0.4;
+        }
+    }
+}
+
+div.olControlZoom {
+    top: 14px;
+    left: 14px;
+    background: none;
+
+    a {
+        background: rgba($navbar-color, .75);
+        font-family: 'Open Sans';
+        font-size: 21px;
+        width: 26px;
+        height: 26px;
+        line-height: 25px;
+
+        &:hover {
+            background: rgba($navbar-color, .85);
+            color: white;
+        }
+    }
+}
+
+.olControlLayerSwitcher {
+    top: 16px;
+    right: 16px;
+    width: 16em;
+    font-family: $base-font-family;
+    font-size: $base-font-size;
+    font-weight: 300;
+    color: white;
+    background-color: transparent;
+    margin: 0;
+
+    .layersDiv {
+        padding: 5px 15px 15px;
+        background: rgba($navbar-color, .85);
+        border-radius: 6px;
+
+        .baseLbl, 
+        .dataLbl {
+            margin: 10px 0 2px;
+        }
+        .baseLayersDiv,
+        .dataLayersDiv {
+            padding: 0;
+        }
+
+        input[type="checkbox"],
+        input[type="radio"] {
+            margin: 0 6px 0 0;
+        }
+        label.labelSpan {
+            width: auto;
+            display: inline-block;
+            margin: 0;
+            color: white;
+            font-size: 0.75em;
+        }
+    }
+    .maximizeDiv,
+    .minimizeDiv {
+        width: 18px;
+        height: 18px;
+        top: 5px;
+        right: 0;
+        cursor: pointer;
+
+        > img {
+            display: none;
+        }
+        &:before {
+            font-family: "fontello";
+            font-style: normal;
+            font-weight: normal;
+            right: 8px;
+            position: absolute;
+        }
+    }
+    .maximizeDiv {
+        position: absolute;
+        width: 120px;
+        background: rgba(66, 66, 74, 0.85);
+        padding: 6px 10px 10px;
+        top: 0px;
+        border-radius: 6px;
+
+        &:before {
+            content: '\e8b9';
+            top: 7px;
+        }
+        &:after {
+            content: 'Map Options';
+            font-size: 12px;
+            font-weight: 700;
+        }
+    }
+    .minimizeDiv {
+        &:before {
+            content: '\e8b7';
+            top: 2px;
         }
     }
 }
