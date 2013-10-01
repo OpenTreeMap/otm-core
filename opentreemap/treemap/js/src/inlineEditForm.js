@@ -26,7 +26,7 @@ exports.init = function(options) {
         validationFields = options.validationFields,
         onSaveBefore = options.onSaveBefore || _.identity;
 
-    if ($(editFields).filter(':not(a)').length === 0) {
+    if ($(editFields).filter(':not(.btn)').length === 0) {
         return $.extend(self, {
             saveOkStream: Bacon.never(),
             cancelStream: Bacon.never(),
@@ -96,13 +96,13 @@ exports.init = function(options) {
 
         displayValuesToFormFields = function() {
             $(displayFields).each(function(index, el) {
-                var field = $(el).attr('data-field');
-                var value = $(el).attr('data-value');
-                var $input;
-                if (field) {
-                    $input = FH.getField($(editFields), field)
-                                .find('input,select')
-                                .first();
+                var $el = $(el),
+                    field = $el.attr('data-field'),
+                    value = $el.attr('data-value'),
+                    $input;
+
+                if (field && $el.is('[data-value]')) {
+                    $input = FH.getSerializableField($(editFields), field);
                     if ($input.is('[type="checkbox"]')) {
                         $input.prop('checked', value == "True");
                     } else {
@@ -130,20 +130,25 @@ exports.init = function(options) {
 
         formFieldsToDisplayValues = function() {
             $(editFields).each(function(index, el){
-                var field = $(el).attr('data-field');
-                var $input, value, display;
+                var field = $(el).attr('data-field'),
+                    $input, value, display;
+
+                // if the edit field has a data-field property,
+                // look for a corresponding display value and if
+                // found, populate the display value
                 if ($(el).is('[data-field]')) {
-                    $input = FH.getField($(editFields), field)
-                        .find('input,select')
-                        .first();
-                    if ($input.is('[type="checkbox"]')) {
-                        value = $input.is(':checked') ? "True" : "False";
-                    } else {
-                        value = $input.val();
-                    }
                     display = FH.getField($(displayFields), field);
-                    $(display).attr('data-value', value);
-                    $(display).html(value);
+
+                    if ($(display).is('[data-value]')) {
+                        $input = FH.getSerializableField($(editFields), field);
+                        if ($input.is('[type="checkbox"]')) {
+                            value = $input.is(':checked') ? "True" : "False";
+                        } else {
+                            value = $input.val();
+                        }
+                        $(display).attr('data-value', value);
+                        $(display).html(value);
+                    }
                 }
             });
             typeaheadToDisplayValues();
@@ -223,9 +228,29 @@ exports.init = function(options) {
                 if (_.contains(actions, action)) {
                     $(fields).show();
                 } else {
-                    $(fields).hide();
+                    if (action === 'edit:start') {
+                        // always hide the applicable runmode buttons
+                        $(fields).filter('.btn').hide();
+
+                        // hide the display fields if there is a corresponding
+                        // edit field to show in its place
+                        _.each($(fields).filter(":not(.btn)"), function (field) {
+                            var $field = $(field),
+                                $edit = FH.getField($(editFields),
+                                                    $field.attr('data-field'));
+
+                            if ($edit.length === 1) {
+                                $field.hide();
+                            }
+
+                        });
+
+                    } else {
+                        $(fields).hide();
+                    }
                 }
             }
+
             hideOrShow(editFields, eventsLandingInEditMode);
             hideOrShow(displayFields, eventsLandingInDisplayMode);
             hideOrShow(validationFields, ['save:error']);

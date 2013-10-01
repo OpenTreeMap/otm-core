@@ -1,11 +1,11 @@
 {% load i18n %}
 {% if field.is_visible %}
-  <tr data-class="display">
+  <tr data-class="display" data-field="{{ field.identifier }}">
     <td>{% trans "Common Name" %}</td>
     <td data-typeahead="{{ field.identifier }}"
         data-datum="common_name">{{ field.value.common_name }}</td>
   </tr>
-  <tr data-class="display">
+  <tr data-class="display" data-field="{{ field.identifier }}">
     <td>{% trans "Scientific Name" %}</td>
     <td>
       <em data-typeahead="{{ field.identifier }}"
@@ -14,6 +14,7 @@
   </tr>
   {% if field.is_editable %}
   <tr style="display: none;"
+      data-field="{{ field.identifier }}"
       data-class="edit">
     <td>{% trans "Species" %}</td>
     <td>
