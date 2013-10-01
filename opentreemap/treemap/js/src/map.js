@@ -92,7 +92,11 @@ module.exports = {
             modes.activateBrowseTreesMode();
         }
 
-        $('[data-action="addtree"]').click(modes.activateAddTreeMode);
+        $('[data-action="addtree"]').click(function(e) {
+            e.preventDefault();
+            window.location.hash = "#addTree";
+            modes.activateAddTreeMode();
+        });
 
         // Don't duplicate queries
         var lastQuery = null;
