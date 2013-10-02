@@ -5,6 +5,7 @@ from modgrammar import Grammar, OPTIONAL, G, WORD, OR, ParseError
 from django import template
 from django.template.loader import get_template
 from django.db.models.fields import FieldDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist
 
 from treemap.util import safe_get_model_class
 from treemap.json_field import (is_json_field_reference,
@@ -279,8 +280,11 @@ class AbstractNode(template.Node):
             else:
                 field_is_udf = False
 
-            if hasattr(model, field_name):
-                val = getattr(model, field_name)
+            if field_name in model._meta.get_all_field_names():
+                try:
+                    val = getattr(model, field_name)
+                except ObjectDoesNotExist:
+                    val = None
             elif model_has_udfs and field_is_udf:
                 val = model.udfs[udf_field_name]
                 try:
