@@ -8,9 +8,9 @@
     <small>{% trans "Search by address or use your current location, then drag the marker to the correct location. Or click the map." %}</small>
     <form class="form-search">
         <input type="text" class="search-query" id="add-tree-address" placeholder="{% trans "340 N 12th St, Philadelphia" %}">
-        <a href="javascript:;" class="btn geocode">{% trans "Search" %}</a>
+        <button class="btn geocode">{% trans "Search" %}</button>
     </form>
-    <a href="javascript:;" class="geolocate"><i class="icon-direction"></i> Use Current Location</a>
+    <button class="geolocate"><i class="icon-direction"></i> Use Current Location</a>
     <div class="alert alert-error text-error geocode-error" style="display: none;">{% trans "Unable to locate address in this region" %}</div>
     <div class="alert alert-error text-error geolocate-error" style="display: none;">{% trans "Unable to determine current location" %}</div>
 
@@ -44,7 +44,7 @@
 
     <div>
         &nbsp;<br/>
-        <a href="javascript:;" class="btn addBtn">{% trans "Add This Tree" %}</a>
-        <a href="javascript:;" class="btn cancelBtn">{% trans "Cancel" %}</a>
+        <button class="btn addBtn">{% trans "Add This Tree" %}</button>
+        <button class="btn cancelBtn">{% trans "Cancel" %}</button>
     </div>
 </div>

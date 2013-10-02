@@ -27,9 +27,9 @@
                 <h1>{{ user.username }}</h1>
                 <p>{% trans "User Profile" %}</p>
                 {% usercontent for user %}
-                    <a href="javascript:;" id="edit-user" data-class="display" class="btn">Edit</a>
-                    <a href="javascript:;" id="save-edit" data-class="edit" class="btn" style="display: none;">Save</a>
-                    <a href="javascript:;" id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</a>
+                    <button id="edit-user" data-class="display" class="btn">Edit</button>
+                    <button id="save-edit" data-class="edit" class="btn" style="display: none;">Save</button>
+                    <button id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</button>
                 {% endusercontent %}
             </div>
             <form id="user-form">
@@ -42,7 +42,7 @@
                     {% endfor %}
                     <ul class="chunk" data-class="display">
                         <li class="chunk-label">{% trans "Password" %}</li>
-                        <li class="chunk-content"><a href="javascript:;">{% trans "Reset" %}</a></li>
+                        <li class="chunk-content"><button>{% trans "Reset" %}</button></li>
                     </ul>
                     <ul class="chunk">
                         <li class="chunk-label">{% trans "Emails" %}</li>
