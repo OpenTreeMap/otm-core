@@ -102,7 +102,7 @@ exports.init = function(options) {
         zoom: mapManager.ZOOM_PLOT
     });
 
-    plotMarker.init(mapManager.map);
+    plotMarker.init(options.config, mapManager.map);
 
     plotMover.init({
         mapManager: mapManager,

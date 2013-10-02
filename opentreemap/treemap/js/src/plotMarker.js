@@ -15,12 +15,14 @@ var vectorLayer,
     markerPlacedByClickBus = new Bacon.Bus(),
     firstMoveBus = new Bacon.Bus(),
     markerWasMoved,
-    config = otm.settings;
+    config;
 
 
 module.exports = {
 
-    init: function(map) {
+    init: function(theConfig, map) {
+        config = theConfig;
+
         function onMarkerPlaced(feature) {
             markerFeature = feature;
             pointControl.deactivate();

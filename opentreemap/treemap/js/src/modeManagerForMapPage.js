@@ -62,7 +62,7 @@ function init(config, mapManager, triggerSearchBus) {
         }
     });
 
-    plotMarker.init(mapManager.map);
+    plotMarker.init(config, mapManager.map);
 
     browseTreesMode.init({
         config: config,
