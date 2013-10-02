@@ -69,8 +69,7 @@ function applySearchToDom(elems, search) {
             value = pred ? pred[v.pred] : null;
         }
 
-
-        if ($domElem.is('[data-typeahead-hidden]')) {
+        if ($domElem.is('[type="hidden"]')) {
             $domElem.trigger('restore', value);
         } else if ($domElem.is('[data-date-format]')) {
             var date = moment(value, DATETIME_FORMAT);
