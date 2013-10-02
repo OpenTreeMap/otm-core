@@ -1,6 +1,6 @@
 {% load i18n %}
 {% if field.is_visible %}
-  <ul class="chunk" data-class="display">
+  <ul class="chunk" data-class="display" data-field="{{ field.identifier }}">
     <li class="chunk-content" data-typeahead="{{ field.identifier }}"
         data-datum="common_name">{{ field.value.common_name }}</li>
     <li class="chunk-content">
@@ -9,7 +9,8 @@
     </li>
   </ul>
   {% if field.is_editable %}
-  <ul class="chunk" style="display: none;" data-class="edit">
+  <ul class="chunk" style="display: none;" data-class="edit"
+      data-field="{{ field.identifier }}">
     <li class="chunk-label">{% trans "Species" %}</li>
     <li class="chunk-content">
       {% include "treemap/field/typeahead.html" %}
