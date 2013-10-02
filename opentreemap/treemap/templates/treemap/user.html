@@ -60,15 +60,6 @@
         </div>
         <div class="span8">
             <ul class="chunk">
-                <li class="chunk-label">{% trans "Favorite Trees" %}</li>
-                {% if user == request.user %}
-                    <li class="chunk-content">{% trans "You haven't favorited any trees yet!" %}</li>
-                {% else %}
-                    <li class="chunk-content">{% trans "This person hasn't favorited any trees yet!" %}</li>
-                {% endif %}
-            </ul>
-            <hr>
-            <ul class="chunk">
                 <li class="chunk-label">{% trans "Recently Added and Edited Trees" %}</li>
                 <li class="chunk-content extra">
                     <div id="recent-user-edits-container">
@@ -93,12 +84,12 @@
             cancel: '#cancel-edit',
             displayFields: '[data-class="display"]',
             editFields: '[data-class="edit"]',
-            validationFields: '[data-class="error"]'    
+            validationFields: '[data-class="error"]'
         },
         recentEdits: {
             recentEditsContainer: '#recent-user-edits-container',
             prevLink: '#recent-user-edits-prev',
-            nextLink: '#recent-user-edits-next',    
+            nextLink: '#recent-user-edits-next',
         }
     });
 })(require);
