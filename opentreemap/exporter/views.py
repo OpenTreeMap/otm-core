@@ -3,7 +3,7 @@ from tasks import async_csv_export
 
 from django.shortcuts import get_object_or_404
 
-from treemap.util import json_api_call, instance_request
+from treemap.util import json_api_call, instance_request, requires_feature
 
 
 def begin_export(request, instance, model):
@@ -38,5 +38,11 @@ def check_export(request, instance, job_id):
                 'url': job.get_url_if_ready()}
 
 
-begin_export_endpoint = json_api_call(instance_request(begin_export))
-check_export_endpoint = json_api_call(instance_request(check_export))
+begin_export_endpoint = json_api_call(
+    instance_request(
+        requires_feature('exports')(
+            begin_export)))
+check_export_endpoint = json_api_call(
+    instance_request(
+        requires_feature('exports')(
+            check_export)))
