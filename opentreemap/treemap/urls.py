@@ -55,7 +55,8 @@ urlpatterns = patterns(
         '(?P<tree_id>\d+)/photo/(?P<photo_id>\d+)/'
         '(?P<action>(approve)|(reject))$',
         approve_or_reject_photo_view, name='approve_or_reject_photo'),
-    url(r'^config/settings.js$', instance_settings_js_view),
+    url(r'^config/settings.js$',
+        instance_settings_js_view, name='settings'),
     url(r'^benefit/search$', search_tree_benefits_view),
     url(r'^users/(?P<username>\w+)/?$', instance_user_view),
     url(r'^users/(?P<username>\w+)/recent_edits/?$', instance_user_audits),
