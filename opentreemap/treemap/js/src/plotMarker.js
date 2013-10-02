@@ -14,7 +14,8 @@ var vectorLayer,
     markerFeature,
     markerPlacedByClickBus = new Bacon.Bus(),
     firstMoveBus = new Bacon.Bus(),
-    markerWasMoved;
+    markerWasMoved,
+    config = otm.settings;
 
 
 module.exports = {
@@ -135,9 +136,9 @@ function showMarker(inEditMode) {
 
 function getMarkerStyle(inEditMode) {
     return {
-        externalGraphic: inEditMode ?
-            '/static/img/mapmarker_editmode.png' :
-            '/static/img/mapmarker_viewmode.png',
+        externalGraphic: config.staticUrl +
+            (inEditMode ? 'img/mapmarker_editmode.png' :
+                          'img/mapmarker_viewmode.png'),
         // Use half actual size to look good on IOS retina display
         graphicHeight: 75,
         graphicWidth: 78,
