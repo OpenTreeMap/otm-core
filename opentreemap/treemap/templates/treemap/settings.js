@@ -24,6 +24,8 @@ otm.settings.urls = {
 
 otm.settings.loginUrl = "{% url 'django.contrib.auth.views.login' %}?next=";
 
+otm.settings.staticUrl = '{{ STATIC_URL }}';
+
 {% if request.instance %}
     otm.settings.instance = {
         'id': '{{ request.instance.id }}',
