@@ -98,6 +98,7 @@ exports.init = function(options) {
     mapManager.init({
         config: options.config,
         selector: '#map',
+        disableScrollWithMouseWheel: true,
         center: options.plotLocation.location,
         zoom: mapManager.ZOOM_PLOT
     });

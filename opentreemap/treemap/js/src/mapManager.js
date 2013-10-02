@@ -11,7 +11,10 @@ exports.ZOOM_PLOT = 18;
 
 exports.init = function(options) {
     var config = options.config,
-        map = createMap($(options.selector)[0], config),
+        mapOptions = {
+            disableScrollWithMouseWheel: options.disableScrollWithMouseWheel
+        },
+        map = createMap($(options.selector)[0], config, mapOptions),
         plotLayer = createPlotTileLayer(config),
         allPlotsLayer = createPlotTileLayer(config),
         boundsLayer = createBoundsTileLayer(config),
@@ -75,7 +78,8 @@ exports.init = function(options) {
     setCenterAndZoomIn(center, zoom);
 };
 
-function createMap(elmt, config) {
+function createMap(elmt, config, options) {
+    options = options || {};
     OL.ImgPath = "/static/img/";
 
     var map = new OL.Map({
@@ -86,7 +90,13 @@ function createMap(elmt, config) {
     });
 
     var switcher = new OL.Control.LayerSwitcher();
+
     map.addControls([switcher]);
+
+    if (options.disableScrollWithMouseWheel) {
+        var controls = map.getControlsByClass('OpenLayers.Control.Navigation');
+        _.each(controls, function(control) { control.disableZoomWheel(); });
+    }
 
     return map;
 }
