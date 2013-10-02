@@ -5,8 +5,14 @@
 var $ = require('jquery'),
     _ = require('underscore');
 
-exports.getField = function getField($fields, name) {
+var getField = exports.getField = function ($fields, name) {
     return $fields.filter('[data-field="' + name + '"]');
+};
+
+exports.getSerializableField = function ($fields, name) {
+    // takes a jQuery collection of edit fields and returns the
+    // actual input or select field that will be serialized
+    return getField($fields, name).find('[name="' + name + '"]');
 };
 
 exports.formToDictionary = function ($form, $editFields) {
