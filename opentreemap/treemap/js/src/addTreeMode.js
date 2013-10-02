@@ -66,7 +66,7 @@ function init(options) {
         });
     } else {
         geolocateStream = Bacon.never();
-        $geolocateButton.attr('disabled', true);
+        $geolocateButton.prop('disabled', true);
     }
 
     // Handle user dragging the marker
@@ -188,7 +188,7 @@ function onMarkerMoved() {
 }
 
 function enableFormFields(shouldEnable) {
-    $addButton.attr('disabled', !shouldEnable);
+    $addButton.prop('disabled', !shouldEnable);
     $editControls.prop('disabled', !shouldEnable);
 }
 

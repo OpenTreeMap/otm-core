@@ -98,7 +98,10 @@ function init(options) {
 
         $accordionSection.collapse(visible ? 'show' : 'hide');
     });
-    accordionHtmlStream.toProperty('').assign($('#plot-accordion'), "html");
+    accordionHtmlStream.onValue(function (html) {
+            $('#plot-accordion').html(html);
+            inlineEditForm.enableOrDisableEditButton();
+        });
 
     var showTreeDetailLink = $accordionSection.parent().find('a');
     showTreeDetailLink.on('click', function(event) {

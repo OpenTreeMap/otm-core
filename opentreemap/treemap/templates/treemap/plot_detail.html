@@ -55,14 +55,11 @@
       <h2>{{ tree.species.scientific_name }}</h2>
       <h3>{{ plot.address_full }}</h3>
       <form id="plot-form">
-        <a href="javascript:;" id="edit-plot"
-           data-class="display" class="btn"
+        <button id="edit-plot" data-class="display" class="btn"
            title="{% trans "Editing of the tree details is not available to all users" %}"
-           disabled="disabled">{% trans "Edit" %}</a>
-        <a href="javascript:;" id="save-edit-plot"
-           data-class="edit" class="btn" style="display: none;">{% trans "Save" %}</a>
-        <a href="javascript:;" id="cancel-edit-plot"
-           data-class="edit" class="btn" style="display: none;">{% trans "Cancel" %}</a>
+           disabled="disabled">{% trans "Edit" %}</button>
+        <button id="save-edit-plot" data-class="edit" class="btn" style="display: none;">{% trans "Save" %}</button>
+        <button id="cancel-edit-plot" data-class="edit" class="btn" style="display: none;">{% trans "Cancel" %}</button>
 
         <!-- General Tree Information -->
         <table class="table table-striped">
@@ -146,8 +143,8 @@
       {% endif %}
     </div>
     <div class="span3">
-      <a href="javascript:;" class="btn" style="display:none" id="edit-plot-location">Move Tree</a>
-        <a href="javascript:;" class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</a>
+      <button class="btn" style="display:none" id="edit-plot-location">Move Tree</button>
+        <button class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</button>
         <div id="map" class="map-small"></div>
         <div id="street-view" class="street-view-small" style="display: none;"></div>
       <h3>{% trans "Commments" %}</h3>

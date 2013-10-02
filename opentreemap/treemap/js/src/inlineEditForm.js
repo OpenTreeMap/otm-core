@@ -24,24 +24,9 @@ exports.init = function(options) {
         displayFields = options.displayFields,
         editFields = options.editFields,
         validationFields = options.validationFields,
-        onSaveBefore = options.onSaveBefore || _.identity;
-
-    if ($(editFields).filter(':not(.btn)').length === 0) {
-        return $.extend(self, {
-            saveOkStream: Bacon.never(),
-            cancelStream: Bacon.never(),
-            inEditModeProperty: Bacon.never().toProperty(false)
-        });
-    }
-
-    // the initial styling of $edit is disabled with title text notifying
-    // the user that editing is disallowed. Since we haven't returned yet,
-    // we can assume at this point that editing is allowed and remove these
-    // styles.
-    $edit.attr('disabled', false);
-    $edit.attr('title', '');
-
-    var editStream = $edit.asEventStream('click').map('edit:start'),
+        disabledMessage = $edit.attr('title'),
+        onSaveBefore = options.onSaveBefore || _.identity,
+        editStream = $edit.asEventStream('click').map('edit:start'),
         saveStream = $save.asEventStream('click').map('save:start'),
         cancelStream = $cancel.asEventStream('click').map('cancel'),
         actionStream = new Bacon.Bus(),
@@ -254,6 +239,12 @@ exports.init = function(options) {
             hideOrShow(editFields, eventsLandingInEditMode);
             hideOrShow(displayFields, eventsLandingInDisplayMode);
             hideOrShow(validationFields, ['save:error']);
+        },
+
+        enableOrDisableEditButton = function () {
+            var disable = $(editFields).filter(':not(.btn)').length === 0;
+            $edit.prop('disabled', disable);
+            $edit.attr('title', disable ? disabledMessage : '');
         };
 
     saveOkStream.onValue(formFieldsToDisplayValues);
@@ -300,9 +291,12 @@ exports.init = function(options) {
         return _.contains(eventsLandingInEditMode, event);
     }).toProperty(false);
 
+    enableOrDisableEditButton();
+
     return $.extend(self, {
         saveOkStream: saveOkStream,
         cancelStream: cancelStream,
-        inEditModeProperty: inEditModeProperty
+        inEditModeProperty: inEditModeProperty,
+        enableOrDisableEditButton: enableOrDisableEditButton
     });
 };
