@@ -78,7 +78,7 @@ exports.pushState = function (url) {
     }
 };
 
-exports.parseQueryString = function () {
+var parseQueryString = exports.parseQueryString = function () {
     var match,
         pl     = /\+/g,  // Regex for replacing addition symbol with a space
         search = /([^&=]+)=?([^&]*)/g,
@@ -91,6 +91,10 @@ exports.parseQueryString = function () {
     }
 
     return urlParams;
+};
+
+exports.getCurrentFilterString = function() {
+    return parseQueryString().q || '{}';
 };
 
 exports.$find = function (selector, $parent) {
