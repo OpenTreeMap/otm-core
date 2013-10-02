@@ -3,6 +3,10 @@
 .navbar {
     font-size: 1em;
 
+    @media (max-width: 979px) {
+        margin-bottom: 0;
+    }
+
     .navbar-inner {
         background: $navbar-color;
         border: none;
@@ -44,6 +48,8 @@
                 a {
                     padding: 0;
                     height: auto;
+                    overflow: hidden;
+                    border-radius: 4px;
                 }
                 img {
                     max-width: 105%;
@@ -53,7 +59,7 @@
             > a {
                 padding: 12px 0 8px;
                 height: 20px;
-                font-size: 1.125em;
+                font-size: 1em;
                 font-weight: 400;
 
                 > .reputation {

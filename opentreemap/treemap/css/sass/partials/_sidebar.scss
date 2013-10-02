@@ -65,6 +65,29 @@
     > .sidebar-inner {
         padding: 20px;
     }
+
+    .cancelBtn.small {
+        position: relative;
+        font-size: 1.5em;
+    }
+
+    .form-search {
+        margin: 0;
+        }
+        .geocode {
+            padding: 8px 12px;
+        }
+        .geolocate {
+            font-size: em(12px);
+            color: $secondary-color;
+            display: block;
+            margin: 3px 0 10px -3px;
+        }
+}
+
+#add-tree-address {
+    width: 200px;
+    font-size: em(14px);
 }
 
 #benefit-values {
@@ -102,6 +125,10 @@
                 text-align: left;
                 font-weight: 700;
                 color: $main-text-color;
+
+                @media (max-width: 767px) {
+                    float: left;
+                }
             }
             dd {
                 text-align: right;

@@ -14,7 +14,7 @@
 
 <div class="image-background"></div>
 <div class="container contained tree-details">
-  <div class="row">
+  <div class="row-fluid">
     <div class="span3">
       {% with photo=tree.most_recent_photo %}
       {% if photo %}
@@ -123,12 +123,6 @@
             </tbody>
           </table>
         </form>
-
-        <a href="javascript:;" class="btn" style="display:none" id="edit-plot-location">Move Tree</a>
-        <a href="javascript:;" class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</a>
-        <div id="map" class="map-small"></div>
-        <div id="street-view" class="street-view-small" style="display: none;"></div>
-
         <hr>
 
       <!-- Yearly Ecosystem Services -->
@@ -152,6 +146,10 @@
       {% endif %}
     </div>
     <div class="span3">
+      <a href="javascript:;" class="btn" style="display:none" id="edit-plot-location">Move Tree</a>
+        <a href="javascript:;" class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</a>
+        <div id="map" class="map-small"></div>
+        <div id="street-view" class="street-view-small" style="display: none;"></div>
       <h3>{% trans "Commments" %}</h3>
 
       {% if request.user.is_authenticated %}

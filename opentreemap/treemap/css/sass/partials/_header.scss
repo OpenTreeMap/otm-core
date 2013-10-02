@@ -12,6 +12,10 @@
         vertical-align: middle;
         margin-right: -0.25em;
     }
+
+    @media (max-width: 979px) {
+        padding: 15px;
+    }
 }
 
 .logo {
@@ -80,10 +84,29 @@
 }
 
 #advanced-search-pane {
-    position: relative;
+    position: absolute;
     z-index: 999;
-    background: #F1F2F2;
-    padding: 20px;
+    background: #FFF;
+    border: 1px solid $well-color !important;
+    box-shadow: 0px 3px 0px rgba(0, 3, 0, 0.3);
+    padding: 15px 15px 12px;
+    right: 0;
+    border-radius: 6px;
+    min-width: 320px;
+    max-width: 767px;
+    margin-top: 4px;
+
+    &:before {
+        content: '';
+        width: 0;
+        height: 0;
+        position: absolute;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 10px solid $well-color;
+        top: -10px;
+        right: 95px;
+    }
 }
 
 .subhead {
@@ -121,8 +144,4 @@
 
 .stewardship {
     right: 0;
-}
-
-@media (max-width: 767px) {
-
 }
