@@ -4,6 +4,7 @@
 // different location.
 
 var $ = require('jquery'),
+    _ = require('underscore'),
     Bacon = require('baconjs'),
     OL = require('OpenLayers');
 
@@ -13,7 +14,8 @@ var vectorLayer,
     markerFeature,
     markerPlacedByClickBus = new Bacon.Bus(),
     firstMoveBus = new Bacon.Bus(),
-    markerWasMoved;
+    markerWasMoved,
+    config = otm.settings;
 
 
 module.exports = {
@@ -40,9 +42,15 @@ module.exports = {
             { renderers: OL.Layer.Vector.prototype.renderers,
               displayInLayerSwitcher: false });
 
+        var pointControlFeature = new OL.Feature.Vector(new OL.Geometry.Point());
+        pointControlFeature.style = getMarkerStyle(true);
         pointControl = new OL.Control.DrawFeature(
             vectorLayer,
-            OL.Handler.Point, { 'featureAdded': onMarkerPlaced }
+            OL.Handler.Point,
+            {
+                'featureAdded': onMarkerPlaced,
+                'handlerOptions': { point: pointControlFeature }
+            }
         );
 
         dragControl = new OL.Control.DragFeature(vectorLayer);
@@ -75,6 +83,7 @@ module.exports = {
             new OL.Geometry.Point(location.x, location.y));
         vectorLayer.addFeatures(markerFeature);
         vectorLayer.display(true);
+        showViewMarker();
         markerWasMoved = false;
     },
 
@@ -107,34 +116,33 @@ module.exports = {
 // Let user move the marker by dragging it with the mouse
 function enableMoving() {
     dragControl.activate();
-    // TODO: Use a real well-designed marker (and remove this verbose style definition)
-    markerFeature.style = {
-        strokeColor: '#00ff00',
-        fillColor: '#77ff77',
-        cursor: "inherit",
-        fillOpacity: 0.4,
-        pointRadius: 6,
-        strokeDashstyle: "solid",
-        strokeOpacity: 1,
-        strokeWidth: 1
-    };
-    vectorLayer.redraw();
+    showEditMarker();
     markerWasMoved = false;
 }
 
 // Prevent user from dragging the marker
 function disableMoving() {
     dragControl.deactivate();
-    // TODO: Use a real well-designed marker (and remove this verbose style definition)
-    markerFeature.style = {
-        strokeColor: '#ee9900',
-        fillColor: '#ee9900',
-        cursor: "inherit",
-        fillOpacity: 0.4,
-        pointRadius: 6,
-        strokeDashstyle: "solid",
-        strokeOpacity: 1,
-        strokeWidth: 1
-    };
+    showViewMarker();
+}
+
+var showViewMarker = _.partial(showMarker, false),
+    showEditMarker = _.partial(showMarker, true);
+
+function showMarker(inEditMode) {
+    markerFeature.style = getMarkerStyle(inEditMode);
     vectorLayer.redraw();
+}
+
+function getMarkerStyle(inEditMode) {
+    return {
+        externalGraphic: config.staticUrl +
+            (inEditMode ? 'img/mapmarker_editmode.png' :
+                          'img/mapmarker_viewmode.png'),
+        // Use half actual size to look good on IOS retina display
+        graphicHeight: 75,
+        graphicWidth: 78,
+        graphicXOffset: -36,
+        graphicYOffset: -62
+    };
 }
