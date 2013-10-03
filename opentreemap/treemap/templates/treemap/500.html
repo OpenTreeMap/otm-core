@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block search %}
+{% comment %} Hide search options on error pages {% endcomment %}
+{% endblock search %}
+
+{% block subhead %}
+{% comment %} Hide subhead on error pages {% endcomment %}
+{% endblock subhead %}
+
+{% block content %}
+<div class="content">
+  	<div class="well error-panel">
+  		<div class="error-icon error-icon-img"><img src="/static/img/500.png"></div>
+		<h2>{% trans "That doesn't look right" %}</h2>
+		<p>{% trans "Oh dear, it looks like something is broken on our end. We'll fix the problem shortly!" %}</a>
+		</p>
+	</div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+{% comment %} This page has no interactivity {% endcomment %}
+{% endblock scripts %}
