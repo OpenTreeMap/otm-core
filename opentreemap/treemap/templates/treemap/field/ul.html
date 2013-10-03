@@ -1,20 +1,18 @@
 {% if field.is_visible %}
-    <ul class="chunk">
-        <li class="chunk-label">{{ field.label }}</li>
-        <li class="chunk-content"
-            {% include "treemap/field/attrs.html" with class="display" %}>
-            {{ field.display_value }}
-        </li>
-        {% if field.is_editable %}
-            <li class="chunk-content"
-                style="display: none;"
-                {% include "treemap/field/attrs.html" with class="edit" %}>
-                {% include "treemap/field/inputs.html" %}
-            </li>
-            <li class="chunk-content text-error"
-                style="display: none;"
-                {% include "treemap/field/attrs.html" with class="error" %}>
-            </li>
-        {% endif %}
-    </ul>
+    <label>{{ field.label }}</label>
+    <div class="chunk-content"
+        {% include "treemap/field/attrs.html" with class="display" %}>
+        {{ field.display_value }}
+    </div>
+    {% if field.is_editable %}
+        <div class="chunk-content"
+            style="display: none;"
+            {% include "treemap/field/attrs.html" with class="edit" %}>
+            {% include "treemap/field/inputs.html" %}
+        </div>
+        <div class="chunk-content text-error"
+            style="display: none;"
+            {% include "treemap/field/attrs.html" with class="error" %}>
+        </div>
+    {% endif %}
 {% endif %}
