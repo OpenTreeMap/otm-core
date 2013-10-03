@@ -27,9 +27,9 @@
                 <h1>{{ user.username }}</h1>
                 <p>{% trans "User Profile" %}</p>
                 {% usercontent for user %}
-                    <a href="javascript:;" id="edit-user" data-class="display" class="btn">Edit</a>
-                    <a href="javascript:;" id="save-edit" data-class="edit" class="btn" style="display: none;">Save</a>
-                    <a href="javascript:;" id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</a>
+                    <button id="edit-user" data-class="display" class="btn">Edit</button>
+                    <button id="save-edit" data-class="edit" class="btn" style="display: none;">Save</button>
+                    <button id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</button>
                 {% endusercontent %}
             </div>
             <form id="user-form">
@@ -42,7 +42,7 @@
                     {% endfor %}
                     <ul class="chunk" data-class="display">
                         <li class="chunk-label">{% trans "Password" %}</li>
-                        <li class="chunk-content"><a href="javascript:;">{% trans "Reset" %}</a></li>
+                        <li class="chunk-content"><button>{% trans "Reset" %}</button></li>
                     </ul>
                     <ul class="chunk">
                         <li class="chunk-label">{% trans "Emails" %}</li>
@@ -59,15 +59,6 @@
             </form>
         </div>
         <div class="span8">
-            <ul class="chunk">
-                <li class="chunk-label">{% trans "Favorite Trees" %}</li>
-                {% if user == request.user %}
-                    <li class="chunk-content">{% trans "You haven't favorited any trees yet!" %}</li>
-                {% else %}
-                    <li class="chunk-content">{% trans "This person hasn't favorited any trees yet!" %}</li>
-                {% endif %}
-            </ul>
-            <hr>
             <ul class="chunk">
                 <li class="chunk-label">{% trans "Recently Added and Edited Trees" %}</li>
                 <li class="chunk-content extra">
@@ -93,12 +84,12 @@
             cancel: '#cancel-edit',
             displayFields: '[data-class="display"]',
             editFields: '[data-class="edit"]',
-            validationFields: '[data-class="error"]'    
+            validationFields: '[data-class="error"]'
         },
         recentEdits: {
             recentEditsContainer: '#recent-user-edits-container',
             prevLink: '#recent-user-edits-prev',
-            nextLink: '#recent-user-edits-next',    
+            nextLink: '#recent-user-edits-next',
         }
     });
 })(require);

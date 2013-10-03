@@ -1,0 +1,15 @@
+{# vim: set filetype=htmldjango : #}
+{% if field.is_visible %}
+<div style="display: none;">
+  <div {% include "treemap/field/attrs.html" with class="display" %}>
+    {{ field.display_value|default_if_none:"" }}
+  </div>
+  {% if field.is_editable %}
+    <div {% include "treemap/field/attrs.html" with class="edit" %}>
+      {% include "treemap/field/inputs.html" %}
+    </div>
+    <div {% include "treemap/field/attrs.html" with class="error" %}>
+    </div>
+  {% endif %}
+</div>
+{% endif %}

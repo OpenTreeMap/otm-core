@@ -5,19 +5,47 @@
 var $ = require('jquery'),
     _ = require('underscore');
 
-exports.getField = function getField($fields, name) {
+var getField = exports.getField = function ($fields, name) {
     return $fields.filter('[data-field="' + name + '"]');
 };
+var getSerializableField = exports.getSerializableField = function ($fields, name) {
+    // takes a jQuery collection of edit fields and returns the
+    // actual input or select field that will be serialized
+    return getField($fields, name).find('[name="' + name + '"]');
+};
 
-exports.formToDictionary = function ($form, $editFields) {
+exports.formToDictionary = function ($form, $editFields, $displayFields) {
+    $displayFields = $displayFields || $();
+
     var isTypeaheadHiddenField = function(name) {
-        return $form.find('[name="' + name + '"]').is('[data-typeahead-hidden]');
+        return getSerializableField($editFields, name).is('[data-typeahead-hidden]');
     };
+    var getDisplayValue = function(type, name) {
+        var $displayField;
+        if (isTypeaheadHiddenField(name)) {
+            return $form.find('[data-typeahead-restore="' + name + '"]').val();
+        }
+        $displayField = getField($displayFields, name);
+        if ($displayField.is('[data-value]')) {
+            if (type === 'bool') {
+                return $displayField.attr('data-value') === "True";
+            }
+            return $displayField.attr('data-value');
+        }
+        return undefined;
+    };
+
     var result = {};
     _.each($form.serializeArray(), function(item) {
-        var type = exports.getField($editFields, item.name).data('type');
-        if (type === 'bool'){
-            return;
+        var type = getField($editFields, item.name).attr('data-type'),
+            displayValue = getDisplayValue(type, item.name);
+
+        if (item.value === displayValue) {
+            return;  // Don't serialize unchanged values
+        }
+
+        if (type === 'bool') {
+            result[item.name] = getSerializableField($editFields, item.name).is(":checked");
         } else if (item.value === '' && (type === 'int' || type === 'float')) {
             // convert empty numeric fields to null
             result[item.name] = null;
@@ -27,9 +55,6 @@ exports.formToDictionary = function ($form, $editFields) {
         } else {
             result[item.name] = item.value;
         }
-    });
-    $form.find('input[name][type="checkbox"]').each(function() {
-        result[this.name] = this.checked;
     });
     return result;
 };

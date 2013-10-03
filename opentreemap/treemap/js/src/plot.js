@@ -6,6 +6,7 @@ var $ = require('jquery'),
     inlineEditForm = require('./inlineEditForm'),
     mapManager = require('./mapManager'),
     BU = require('BaconUtils'),
+    FH = require('./fieldHelpers'),
     Bacon = require('baconjs'),
     U = require('./utility'),
     plotMover = require('./plotMover'),
@@ -16,6 +17,11 @@ var $ = require('jquery'),
     diameterCalculator = require('./diameterCalculator');
 
 exports.init = function(options) {
+    var $addTree = $(options.addTree),
+        $cancelAddTree = $(options.cancelAddTree),
+        $addTreeSection = $(options.addTreeSection),
+        $treeSection = $(options.treeSection);
+
     // Set up cross-site forgery protection
     $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
@@ -90,6 +96,7 @@ exports.init = function(options) {
     if (startInEditMode) {
         if (options.config.loggedIn) {
             shouldBeInEditModeBus.push(true);
+            showAddTree();
         } else {
             window.location = options.config.loginUrl + window.location.href;
         }
@@ -98,11 +105,12 @@ exports.init = function(options) {
     mapManager.init({
         config: options.config,
         selector: '#map',
+        disableScrollWithMouseWheel: true,
         center: options.plotLocation.location,
         zoom: mapManager.ZOOM_PLOT
     });
 
-    plotMarker.init(mapManager.map);
+    plotMarker.init(options.config, mapManager.map);
 
     plotMover.init({
         mapManager: mapManager,
@@ -120,6 +128,37 @@ exports.init = function(options) {
         plotMover.onSaveBefore(data);
     }
 
+    function showAddTree() {
+        $addTree.show();
+        $cancelAddTree.hide();
+    }
+    function hideAddTree() {
+        $addTree.hide();
+        $cancelAddTree.hide();
+    }
+    $(options.inlineEditForm.edit).click(showAddTree);
+    $(options.inlineEditForm.cancel).click(hideAddTree);
+    $addTree.click(function() {
+        var $editFields = $(options.inlineEditForm.editFields),
+            plotId = FH.getSerializableField($editFields, 'plot.id').val();
+        $addTree.hide();
+        $cancelAddTree.show();
+        $treeSection.show();
+        FH.getSerializableField($editFields, 'tree.plot').val(plotId);
+    });
+    $cancelAddTree.click(function() {
+        var $editFields = $(options.inlineEditForm.editFields);
+        $addTree.show();
+        $cancelAddTree.hide();
+        $treeSection.hide();
+        FH.getSerializableField($editFields, 'tree.plot').val('');
+    });
+    form.saveOkStream.onValue(hideAddTree);
+    form.saveOkStream
+        .map(BU.getValueForKey, 'tree.plot')
+        .filter(BU.isDefined)
+        .onValue(_.bind($addTreeSection.show, $addTreeSection));
+
     if (options.config.instance.basemap.type === 'google') {
         var $streetViewContainer = $(options.streetView);
         $streetViewContainer.show();
@@ -129,9 +168,7 @@ exports.init = function(options) {
             location: options.plotLocation.location
         });
         form.saveOkStream
-            .map(function(value) {
-                return value['plot.geom'];
-            })
+            .map(BU.getValueForKey, 'plot.geom')
             .filter(BU.isDefined)
             .onValue(panorama.update);
     }

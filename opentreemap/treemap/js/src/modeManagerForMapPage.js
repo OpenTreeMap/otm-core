@@ -39,7 +39,7 @@ function activateEditTreeDetailsMode() { activateMode(editTreeDetailsMode, $side
 function inBrowseTreesMode() { return currentMode === browseTreesMode; }
 function inAddTreeMode()     { return currentMode === addTreeMode; }
 
-function init(config, mapManager) {
+function init(config, mapManager, triggerSearchBus) {
     // browseTreesMode and editTreeDetailsMode share an inlineEditForm,
     // so initialize it here.
     var form = inlineEditForm.init({
@@ -62,7 +62,7 @@ function init(config, mapManager) {
         }
     });
 
-    plotMarker.init(mapManager.map);
+    plotMarker.init(config, mapManager.map);
 
     browseTreesMode.init({
         config: config,
@@ -81,7 +81,8 @@ function init(config, mapManager) {
         inMyMode: inAddTreeMode,
         $sidebar: $sidebarAddTree,
         onClose: activateBrowseTreesMode,
-        typeaheads: [getSpeciesTypeaheadOptions(config, "add-tree-species")]
+        typeaheads: [getSpeciesTypeaheadOptions(config, "add-tree-species")],
+        triggerSearchBus: triggerSearchBus
     });
 
     editTreeDetailsMode.init({

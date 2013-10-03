@@ -24,6 +24,8 @@ var config,
     $validationFields,
     deactivateBus;
 
+var hash = "#addTree";
+
 function init(options) {
     config = options.config;
     mapManager = options.mapManager;
@@ -35,7 +37,8 @@ function init(options) {
     var addressInput = '#add-tree-address',
         $geolocateButton = U.$find('.geolocate', $sidebar),
         $geocodeError = U.$find('.geocode-error', $sidebar),
-        $geolocateError = U.$find('.geolocate-error', $sidebar);
+        $geolocateError = U.$find('.geolocate-error', $sidebar),
+        triggerSearchBus = options.triggerSearchBus;
 
     $form = U.$find('#add-tree-form', $sidebar);
     $editFields = U.$find('[data-class="edit"]', $form);
@@ -65,7 +68,7 @@ function init(options) {
         });
     } else {
         geolocateStream = Bacon.never();
-        $geolocateButton.attr('disabled', true);
+        $geolocateButton.prop('disabled', true);
     }
 
     // Handle user dragging the marker
@@ -74,7 +77,7 @@ function init(options) {
 
     // Handle user adding a tree
     var addTreeStream = $addButton.asEventStream('click');
-    addTreeStream.onValue(addTree);
+    addTreeStream.onValue(addTree, [onAddTreeSuccess, triggerSearchBus.push]);
 
     // Handle user clicking "Cancel"
     var cancelStream = U.$find('.cancelBtn', $sidebar).asEventStream('click');
@@ -147,6 +150,7 @@ function init(options) {
 //     deactivate() -> Inactive
 
 function activate() {
+    window.location.hash = hash;
     // Let user start creating a tree (by clicking the map)
     plotMarker.hide();
     plotMarker.enablePlacing();
@@ -187,11 +191,11 @@ function onMarkerMoved() {
 }
 
 function enableFormFields(shouldEnable) {
-    $addButton.attr('disabled', !shouldEnable);
+    $addButton.prop('disabled', !shouldEnable);
     $editControls.prop('disabled', !shouldEnable);
 }
 
-function addTree() {
+function addTree(success) {
     // User hit "Add Tree".
     $validationFields.hide();
     var data = FH.formToDictionary($form, $editFields);
@@ -209,7 +213,7 @@ function addTree() {
         type: 'POST',
         contentType: "application/json",
         data: JSON.stringify(data),
-        success: onAddTreeSuccess,
+        success: success,
         error: onAddTreeError
     });
 }
@@ -228,6 +232,7 @@ function onAddTreeSuccess(result) {
         break;
     case 'edit':
         var url = config.instance.url + 'plots/' + result.plotId;
+        window.location.hash = '';
         window.location.pathname = url;
         break;
     case 'close':
@@ -252,6 +257,7 @@ function onAddTreeError(jqXHR, textStatus, errorThrown) {
 }
 
 function deactivate() {
+    window.location.hash = '';
     // We're being deactivated by an external event
     deactivateBus.push();
 }
@@ -259,5 +265,6 @@ function deactivate() {
 module.exports = {
     init: init,
     activate: activate,
-    deactivate: deactivate
+    deactivate: deactivate,
+    hash: hash
 };

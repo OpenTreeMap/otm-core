@@ -1,21 +1,25 @@
+{% load i18n %}
+
 <div class="accordion" id="map-info">
   <div class="accordion-group">
     <div class="accordion-heading">
       <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#tree-detail">Tree Details <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
     </div>
     <div id="tree-detail" class="accordion-body collapse">
-      <a href="javascript:;" class="btn" id="full-details-button">Full Details</a>
-      <a href="javascript:;" class="btn" data-class="display" id="edit-details-button">Edit Details</a>
-      <a href="javascript:;" class="btn" data-class="edit" id="save-details-button" style="display:none">Save</a>
-      <a href="javascript:;" class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</a>
+      <button class="btn" id="full-details-button">Full Details</button>
+      <button class="btn" data-class="display" id="edit-details-button"
+              title="{% trans "Editing of the tree details is not available to all users" %}"
+              >Edit Details</button>
+      <button class="btn" data-class="edit" id="save-details-button" style="display:none">Save</button>
+      <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</button>
       <div class="accordion-inner" id="plot-accordion">
         <!-- The markup returned from the plot detail endpoint looks like
              span.plot-label + br + span.content + p ...
         -->
       </div>
       <div id="move-plot-buttons">
-        <a href="javascript:;" class="btn" style="display:none" id="edit-plot-location">Move Tree</a>
-        <a href="javascript:;" class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</a>
+        <button class="btn" style="display:none" id="edit-plot-location">Move Tree</button>
+        <button class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</button>
       </div>
     </div>
   </div>
