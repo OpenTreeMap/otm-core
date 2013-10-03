@@ -1,0 +1,21 @@
+{% load i18n %}
+
+
+<h5>{% trans "Yearly Ecosystem Services" %}</h5>
+{% if benefits %}
+<table class="table table-striped">
+  <tbody>
+    {% for benefit in benefits %}
+    <tr>
+      <td>{{ benefit.label }}</td>
+      <td>{{ benefit.value }} {{ benefit.unit}}</td>
+      <td>{{ currency_symbol }}{{ benefit.currency_saved }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div>
+  {% trans "Add the diameter of the tree and select a species to calculate the yearly ecosystem services." %}
+</div>
+{% endif %}

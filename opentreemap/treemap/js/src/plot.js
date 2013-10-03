@@ -71,6 +71,16 @@ exports.init = function(options) {
                      { onSaveBefore: onSaveBefore,
                        shouldBeInEditModeStream: shouldBeInEditModeStream }));
 
+    form.saveOkStream
+        .flatMap(function() {
+            return Bacon.fromPromise(
+                $.ajax({
+                    url: options.updateEcoUrl
+                }));
+        })
+        .onValue($(options.ecoBenefits), 'html');
+
+
     var startInEditMode = options.startInEditMode;
     var firstEditEventFound = false;
 

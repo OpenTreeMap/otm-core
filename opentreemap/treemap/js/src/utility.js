@@ -30,13 +30,13 @@ exports.getUpdateUrlByUpdatingQueryStringParam = function (k, v) {
     return Url.format(url);
 };
 
-exports.getLastUrlSegment = function() {
-    var parts = getUrlSegments();
+exports.getLastUrlSegment = function(url) {
+    var parts = getUrlSegments(url);
     return parts[parts.length - 1];
 };
 
-var getUrlSegments = exports.getUrlSegments = function() {
-    var pathname = Url.parse(window.location.href, false).pathname;
+var getUrlSegments = exports.getUrlSegments = function(url) {
+    var pathname = Url.parse(url || window.location.href, false).pathname;
 
     if (endsWith(pathname, '/')) {
         pathname = pathname.substring(0, pathname.length - 1);
@@ -45,23 +45,23 @@ var getUrlSegments = exports.getUrlSegments = function() {
     return pathname.split('/');
 };
 
-exports.removeLastUrlSegment = function() {
-    var url = Url.parse(window.location.href, false);
-    var segs = getUrlSegments();
+exports.removeLastUrlSegment = function(url) {
+    var updatedurl = Url.parse(url || window.location.href, false);
+    var segs = getUrlSegments(url);
     segs.pop();
 
-    url.pathname = segs.join('/');
+    updatedurl.pathname = segs.join('/');
 
-    if (url.pathname[url.pathname.length - 1] != '/') {
-        url.pathname += '/';
+    if (updatedurl.pathname[updatedurl.pathname.length - 1] != '/') {
+        updatedurl.pathname += '/';
     }
 
-    return Url.format(url);
+    return Url.format(updatedurl);
 };
 
-exports.appendSegmentToUrl = function (segment) {
-    var url = Url.parse(window.location.href, false);
-    var segs = getUrlSegments();
+exports.appendSegmentToUrl = function (segment, inputurl) {
+    var url = Url.parse(inputurl || window.location.href, false);
+    var segs = getUrlSegments(inputurl);
 
     segs.push(segment);
 
