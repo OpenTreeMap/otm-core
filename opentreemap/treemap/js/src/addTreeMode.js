@@ -24,6 +24,8 @@ var config,
     $validationFields,
     deactivateBus;
 
+var hash = "#addTree";
+
 function init(options) {
     config = options.config;
     mapManager = options.mapManager;
@@ -148,6 +150,7 @@ function init(options) {
 //     deactivate() -> Inactive
 
 function activate() {
+    window.location.hash = hash;
     // Let user start creating a tree (by clicking the map)
     plotMarker.hide();
     plotMarker.enablePlacing();
@@ -229,6 +232,7 @@ function onAddTreeSuccess(result) {
         break;
     case 'edit':
         var url = config.instance.url + 'plots/' + result.plotId;
+        window.location.hash = '';
         window.location.pathname = url;
         break;
     case 'close':
@@ -253,6 +257,7 @@ function onAddTreeError(jqXHR, textStatus, errorThrown) {
 }
 
 function deactivate() {
+    window.location.hash = '';
     // We're being deactivated by an external event
     deactivateBus.push();
 }
@@ -260,5 +265,6 @@ function deactivate() {
 module.exports = {
     init: init,
     activate: activate,
-    deactivate: deactivate
+    deactivate: deactivate,
+    hash: hash
 };
