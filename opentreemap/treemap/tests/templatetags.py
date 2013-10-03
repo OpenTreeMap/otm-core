@@ -1,6 +1,12 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 from django.template import Template, Context, TemplateSyntaxError
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.contrib.auth.models import AnonymousUser
 
 import unittest
 import tempfile
@@ -139,6 +145,46 @@ class UserCanReadTagTest(TestCase):
         udf_perm.save()
 
         self.assertEqual(render(), 'plot udf b')
+
+
+class UserCanCreateTagTest(TestCase):
+
+    def setUp(self):
+        self.instance = make_instance()
+        self.plot = Plot(instance=self.instance)
+
+    basic_template = Template(
+        """
+        {% load auth_extras %}
+        {% usercancreate plot %}
+        true
+        {% endusercancreate %}
+        """)
+
+    def _render_basic_template_with_vars(self, user, plot):
+        return UserCanCreateTagTest.basic_template.render(
+            Context({
+                'request': {'user': user},
+                'plot': plot})).strip()
+
+    def test_works_with_empty_user(self):
+        self.assertEqual(
+            self._render_basic_template_with_vars(None, self.plot), '')
+
+    def test_works_with_anonymous_user(self):
+        self.assertEqual(
+            self._render_basic_template_with_vars(AnonymousUser, self.plot),
+            '')
+
+    def test_works_with_user_with_no_create_perms(self):
+        user = make_observer_user(self.instance)
+        self.assertEqual(
+            self._render_basic_template_with_vars(user, self.plot), '')
+
+    def test_works_with_user_with_create_perms(self):
+        user = make_commander_user(self.instance)
+        self.assertEqual(
+            self._render_basic_template_with_vars(user, self.plot), 'true')
 
 
 class UserContentTagTests(TestCase):

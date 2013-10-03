@@ -29,12 +29,12 @@ def usercanread_tag(parser, token):
     except ValueError:
         raise template.TemplateSyntaxError(
             'expected format is: '
-            'field {python for model} "{field}" as {var}')
+            'usercanread {python for model} "{field}" as {var}')
 
     if field_token != 'usercanread' or as_token != 'as':
         raise template.TemplateSyntaxError(
             'expected format is: '
-            'field {python for model} "{field}" as {var}')
+            'usercanread {python for model} "{field}" as {var}')
 
     if field[0] == '"' and field[0] == field[-1] and len(field) >= 2:
         field = field[1:-1]
@@ -76,6 +76,53 @@ class FieldVisibilityNode(template.Node):
                     raise ValueError('Could not find field: %s' % field)
 
             context[self.binding] = val
+            content = self.nodelist.render(context)
+        else:
+            content = ''
+
+        return content
+
+
+@register.tag('usercancreate')
+def usercancreate_tag(parser, token):
+    """
+    Template tag that can wrap a block of code that executes only
+    if the current user has permission to create the given model
+
+    For instance,
+
+    {% usercancreate tree %}
+    <a>Create A Tree</a>
+    {% endusercancreate %}
+
+    If the user doesn't have that permission nothing is rendered
+    """
+    try:
+        tag_token, model = token.split_contents()
+    except ValueError:
+        raise template.TemplateSyntaxError(
+            'expected format is: usercancreate {model}')
+
+    if tag_token != 'usercancreate':
+        raise template.TemplateSyntaxError(
+            'expected format is: usercancreate {model}')
+
+    nodelist = parser.parse(('endusercancreate',))
+    parser.delete_first_token()
+    return CreateVisibilityNode(nodelist, model)
+
+
+class CreateVisibilityNode(template.Node):
+    def __init__(self, nodelist, model_variable):
+        self.model_variable = template.Variable(model_variable)
+        self.nodelist = nodelist
+
+    def render(self, context):
+        req_user = template.Variable('request.user').resolve(context)
+        model = self.model_variable.resolve(context)
+
+        if (model and req_user and req_user.is_authenticated()
+           and model.user_can_create(req_user)):
             content = self.nodelist.render(context)
         else:
             content = ''
