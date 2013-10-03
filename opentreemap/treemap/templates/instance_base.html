@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load instance_config %}
 {% load form_extras %}
 
 
@@ -31,7 +32,9 @@
     <!-- This is what the counts will look like -->
     <!-- <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites -->
   </div>
+  {% if request.instance|feature_enabled:'exports' %}
   <a href="javascript:;" class="btn btn-primary btn-mini exportBtn"><i class="icon-export"></i> Export Search Results</a>
+  {% endif %}
   {% if request.user.is_authenticated %}
   <a data-action="addtree" href="{% url 'map' instance_url_name=request.instance.url_name %}#addtree" class="btn btn-primary addBtn">Add a Tree</a>
   {% else %}

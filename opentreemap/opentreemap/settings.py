@@ -5,6 +5,7 @@ import os
 OTM_VERSION = 'dev'
 API_VERSION = 'v0.1'
 
+FEATURE_BACKEND_FUNCTION = None
 
 SYSTEM_USER_ID = -1
 
@@ -134,7 +135,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'r*b9!2rc^*w1m$pqjcue5n@wz3-x3hq*(^owy^67k4hb)s-x1p'
+SECRET_KEY = 'secret key'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -229,11 +230,13 @@ ACCOUNT_ACTIVATION_DAYS = 7
 EXTRA_URLS = ()
 
 EXTRA_INSTALLED_APPS = ()
+EXTRA_MIDDLEWARE_CLASSES = ()
 
 from opentreemap.local_settings import *  # NOQA
 
 MANAGED_APPS += EXTRA_INSTALLED_APPS
 INSTALLED_APPS = MANAGED_APPS + UNMANAGED_APPS
+MIDDLEWARE_CLASSES += EXTRA_MIDDLEWARE_CLASSES
 
 # CELERY
 # NOTE: BROKER_URL and CELERY_RESULT_BACKEND must be set

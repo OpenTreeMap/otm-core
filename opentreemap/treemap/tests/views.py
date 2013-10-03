@@ -185,6 +185,7 @@ class ApproveOrRejectPhotoTest(LocalMediaTestCase):
 
         self.image = self.load_resource('tree1.gif')
 
+    @media_dir
     def test_approve_photo_no_pending(self):
         self.assertEqual(TreePhoto.objects.count(), 0)
 
@@ -201,6 +202,7 @@ class ApproveOrRejectPhotoTest(LocalMediaTestCase):
             audit = Audit.objects.get(pk=audit.pk)
             self.assertEqual(audit.ref.action, Audit.Type.ReviewApprove)
 
+    @media_dir
     def test_reject_photo_no_pending(self):
         self.assertEqual(TreePhoto.objects.count(), 0)
 
@@ -221,6 +223,7 @@ class ApproveOrRejectPhotoTest(LocalMediaTestCase):
 
         self.assertEqual(TreePhoto.objects.count(), 0)
 
+    @media_dir
     def test_approve_photo_that_is_pending(self):
         self.assertEqual(TreePhoto.objects.count(), 0)
 
@@ -253,6 +256,7 @@ class ApproveOrRejectPhotoTest(LocalMediaTestCase):
 
         self.assertEqual(TreePhoto.objects.count(), 1)
 
+    @media_dir
     def test_reject_photo_that_is_pending(self):
         self.assertEqual(TreePhoto.objects.count(), 0)
 

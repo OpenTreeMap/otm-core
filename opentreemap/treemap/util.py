@@ -94,6 +94,23 @@ def login_redirect(request):
         path, resolved_login_url, REDIRECT_FIELD_NAME)
 
 
+class FeatureNotEnabledException(Exception):
+    pass
+
+
+def requires_feature(ft):
+    def wrapper_function(view_fn):
+        def wrapped(request, instance, *args, **kwargs):
+            if instance.feature_enabled(ft):
+                return view_fn(request, instance, *args, **kwargs)
+            else:
+                raise FeatureNotEnabledException('Feature Not Enabled')
+
+        return wrapped
+
+    return wrapper_function
+
+
 def instance_request(view_fn):
     @wraps(view_fn)
     def wrapper(request, instance_url_name, *args, **kwargs):
