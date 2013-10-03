@@ -8,6 +8,11 @@
     width: 540px;
     margin: 30px auto 15px;
 
+    @media screen and (max-width: 767px) {
+        width: auto;
+        margin: 30px 20px 15px;
+    }
+
     legend {
         padding: 0 20px 15px 20px;
         font-size: 24px;
