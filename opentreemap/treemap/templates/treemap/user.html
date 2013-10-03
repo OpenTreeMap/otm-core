@@ -42,7 +42,7 @@
                     {% endfor %}
                     <ul class="chunk" data-class="display">
                         <li class="chunk-label">{% trans "Password" %}</li>
-                        <li class="chunk-content"><button>{% trans "Reset" %}</button></li>
+                        <li class="chunk-content"><a href="javascript:;">{% trans "Reset" %}</a></li>
                     </ul>
                     <ul class="chunk">
                         <li class="chunk-label">{% trans "Emails" %}</li>
@@ -93,12 +93,12 @@
             cancel: '#cancel-edit',
             displayFields: '[data-class="display"]',
             editFields: '[data-class="edit"]',
-            validationFields: '[data-class="error"]'    
+            validationFields: '[data-class="error"]'
         },
         recentEdits: {
             recentEditsContainer: '#recent-user-edits-container',
             prevLink: '#recent-user-edits-prev',
-            nextLink: '#recent-user-edits-next',    
+            nextLink: '#recent-user-edits-next',
         }
     });
 })(require);
