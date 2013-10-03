@@ -140,7 +140,7 @@ exports.init = function(options) {
         },
 
         getDataToSave = function() {
-            var data = FH.formToDictionary($(form), $(editFields));
+            var data = FH.formToDictionary($(form), $(editFields), $(displayFields));
 
             // Extract data for all rows of the collection,
             // whether entered in this session or pre-existing.

@@ -659,7 +659,7 @@ class Authorizable(UserTrackable):
         #TODO: This isn't checking for UDFs... should it?
         return self._get_perms_set(user) >= set(self.tracked_fields)
 
-    def _user_can_create(self, user, direct_only=False):
+    def user_can_create(self, user, direct_only=False):
         """
         A user is able to create an object if they have permission on
         any of the fields in that model.
@@ -758,7 +758,7 @@ class Authorizable(UserTrackable):
                     raise AuthorizeException("Can't edit field %s on %s" %
                                             (field, self._model_name))
 
-        elif not self._user_can_create(user):
+        elif not self.user_can_create(user):
             raise AuthorizeException("%s does not have permission to "
                                      "create new %s objects." %
                                      (user, self._model_name))
@@ -804,7 +804,7 @@ class Auditable(UserTrackable):
 
     def full_clean_with_user(self, user):
         if ((not isinstance(self, Authorizable) or
-             self._user_can_create(user, direct_only=True))):
+             self.user_can_create(user, direct_only=True))):
             exclude_fields = []
         else:
             # If we aren't making a real object then we shouldn't
@@ -898,7 +898,7 @@ class Auditable(UserTrackable):
         instance = self.instance if hasattr(self, 'instance') else None
 
         if ((not isinstance(self, Authorizable) or
-             self._user_can_create(user, direct_only=True) or
+             self.user_can_create(user, direct_only=True) or
              self.pk is not None)):
             super(Auditable, self).save_with_user(user, *args, **kwargs)
             model_id = self.pk

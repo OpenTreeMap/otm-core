@@ -236,7 +236,9 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
 
     context['editmode'] = edit
     context['plot'] = plot
-    context['tree'] = tree
+    context['has_tree'] = tree is not None
+    # Give an empty tree when there is none in order to show tree fields easily
+    context['tree'] = tree or Tree(plot=plot, instance=instance)
     context['recent_activity'] = _plot_audits(request.user, instance, plot)
 
     return context
@@ -332,6 +334,8 @@ def update_plot_and_tree(request, plot):
             model = tree
             if field == 'species' and value:
                 value = Species.objects.get(pk=value)
+            elif field == 'plot' and value == unicode(plot.pk):
+                value = plot
         else:
             raise Exception('Malformed request - invalid model %s' % model)
 
