@@ -134,25 +134,9 @@
       </form>
       <hr>
 
-      <!-- Yearly Ecosystem Services -->
-      <h5>{% trans "Yearly Ecosystem Services" %}</h5>
-      {% if benefits %}
-      <table class="table table-striped">
-        <tbody>
-        {% for benefit in benefits %}
-          <tr>
-            <td>{{ benefit.label }}</td>
-            <td>{{ benefit.value }} {{ benefit.unit}}</td>
-            <td>{{ currency_symbol }}{{ benefit.currency_saved }}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <div>
-        {% trans "Add the diameter of the tree and select a species to calculate the yearly ecosystem services." %}
-      </div>
-      {% endif %}
+        <div id="ecobenefits">
+        {% include "treemap/partials/plot_eco.html" with benefits=benefits %}
+        </div>
     </div>
     <div class="span3">
       <button class="btn" style="display:none" id="edit-plot-location">Move Tree</button>
@@ -183,13 +167,18 @@
 
       var updateUrl = window.location.href;
       var U = require('utility');
-      if (U.endsWith(updateUrl, '/edit')) {
-            updateUrl = updateUrl.substring(0, updateUrl.length - '/edit'.length);
+
+      if (U.getLastUrlSegment(updateUrl) == 'edit') {
+            updateUrl = U.removeLastUrlSegment(updateUrl);
       }
+
+      var updateEcoUrl = U.appendSegmentToUrl('eco', updateUrl);
 
       plot.init({
           config: config,
           startInEditMode: {% if editmode %}true{% else %}false{% endif %},
+          updateEcoUrl: updateEcoUrl,
+          ecoBenefits: '#ecobenefits',
           inlineEditForm: {
               updateUrl: updateUrl,
               form: '#plot-form',
