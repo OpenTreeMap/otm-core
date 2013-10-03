@@ -104,7 +104,7 @@ def check():
         print(jshint)
 
         with cd(env.site_path):
-            flake8 = run(_venv_exec('flake8 --exclude migrations *'))
+            flake8 = run(_venv_exec('flake8 --exclude migrations,opentreemap/local_settings.py *'))
 
     if jshint.failed or flake8.failed:
         abort('Code linting failed')
