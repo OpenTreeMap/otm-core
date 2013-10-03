@@ -5,6 +5,7 @@ from django.conf import settings
 
 import hashlib
 from urllib import urlencode
+from treemap.features import feature_enabled
 
 from json_field import JSONField
 
@@ -142,6 +143,9 @@ class Instance(models.Model):
     def scope_model(self, model):
         qs = model.objects.filter(instance=self)
         return qs
+
+    def feature_enabled(self, feature):
+        return feature_enabled(self, feature)
 
     def save(self, *args, **kwargs):
         self.full_clean()

@@ -21,3 +21,8 @@ def primary_color(config):
 def secondary_color(config):
     return _get_color_from_config(config,
                                   "scss_variables.secondary-color")
+
+
+@register.filter
+def feature_enabled(instance, feature):
+    return instance.feature_enabled(feature)

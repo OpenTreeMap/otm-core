@@ -3,7 +3,7 @@ from treemap.models import Species, InstanceSpecies, Plot, Tree, User
 
 from django.contrib.gis.geos import Point
 
-from django.test import TestCase
+from treemap.tests.views import LocalMediaTestCase, media_dir
 
 from exporter.models import ExportJob
 from exporter import tasks
@@ -12,9 +12,10 @@ from exporter.views import begin_export, check_export
 import csv
 
 
-class AsyncCSVTestCase(TestCase):
+class AsyncCSVTestCase(LocalMediaTestCase):
 
     def setUp(self):
+        super(AsyncCSVTestCase, self).setUp()
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
 
@@ -68,10 +69,12 @@ class ExportTreeTaskTest(AsyncCSVTestCase):
         t = Tree(plot=p, instance=self.instance, diameter=2)
         t.save_with_user(self.user)
 
+    @media_dir
     def test_tree_task_unit(self):
         self.assertTaskProducesCSV('tree', 'diameter', '2.0',
                                    user=self.user)
 
+    @media_dir
     def test_export_view_permission_failure(self):
         request = make_request(user=self.unprivileged_user)
         begin_ctx = begin_export(request, self.instance, 'tree')
@@ -80,6 +83,7 @@ class ExportTreeTaskTest(AsyncCSVTestCase):
         self.assertEqual(check_ctx['message'],
                          'User has no permissions on this model')
 
+    @media_dir
     def test_psuedo_async_tree_export(self):
         self.assertPsuedoAsyncTaskWorks('tree', self.user, 'diameter', '2.0',
                                         '.*tree_export(_\d+)?\.csv')
@@ -94,9 +98,11 @@ class ExportSpeciesTaskTest(AsyncCSVTestCase):
                         species=Species.objects.create(common_name='foo'),
                         common_name='foo').save_with_user(self.user)
 
+    @media_dir
     def test_species_task_unit(self):
         self.assertTaskProducesCSV('species', 'common_name', 'foo')
 
+    @media_dir
     def test_psuedo_async_species_export(self):
         self.assertPsuedoAsyncTaskWorks('species', None, 'common_name', 'foo',
                                         '.*species_export(_\d+)?\.csv')
