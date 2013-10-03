@@ -3,7 +3,6 @@
 {% load instance_config %}
 {% load form_extras %}
 
-
 {% block application_css %}
 {% if request.instance.scss_variables %}
 <link id="application-css" href="{% url 'scss' %}?{{ request.instance.scss_query_string }}" rel="stylesheet">
@@ -39,7 +38,7 @@
     <!-- <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites -->
   </div>
   {% if request.instance|feature_enabled:'exports' %}
-  <a href="javascript:;" class="btn btn-primary btn-mini exportBtn"><i class="icon-export"></i> Export Search Results</a>
+  <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
   {% endif %}
   {% if request.user.is_authenticated %}
   <a data-action="addtree" href="{% url 'map' instance_url_name=request.instance.url_name %}#addtree" class="btn btn-primary addBtn">Add a Tree</a>
@@ -48,6 +47,23 @@
   {% endif %}
 </div>
 {% endblock subhead %}
+
+{% block export %}
+<div id="export-panel" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h2></h2>
+  </div>
+  <div class="modal-body">
+    <span class="prep-msg">{% trans "Preparing your export..." %}</span>
+    <span style="display: none;" class="error-msg">{% trans "There was  an error while generating your export. Please try again later." %}</span>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn dismiss-cancel" data-dismiss="modal">{% trans "Cancel" %}</a>
+    <a style="display: none;" href="#" class="btn dismiss-ok" data-dismiss="modal">{% trans "OK" %}</a>
+  </div>
+</div>
+{% endblock export %}
 
 {% block search %}
 <div class="search-block-wrapper">
@@ -98,6 +114,20 @@
   </div>
 </div>
 {% endblock advancedsearch %}
+
+{% block exportscript %}
+<script type="text/javascript">
+    (function(require) {
+        require('export').init({
+            trigger: '#exportbutton',
+            panel: '#export-panel',
+            cancel: '#export-panel * [data-dismiss]',
+            startTreeExportUrl: '{% url 'start_export' instance_url_name=request.instance.url_name model='tree' %}',
+            checkTreeExportUrl: '{{ SITE_ROOT }}{{ request.instance.url_name }}/export/check'
+        });
+    })(require);
+</script>
+{% endblock exportscript %}
 
 {% block searchscripts %}
 <script type="text/javascript">
