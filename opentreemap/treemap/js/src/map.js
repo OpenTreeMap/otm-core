@@ -8,6 +8,7 @@ var $ = require('jquery'),
     csrf = require('./csrf'),
 
     mapManager = require('./mapManager'),
+    addTreeMode = require('./addTreeMode'),
     Search = require('./search'),
     searchBar = require('./searchBar'),
     modes = require('./modeManagerForMapPage'),
@@ -88,7 +89,7 @@ module.exports = {
             selector: '#map'
         });
         modes.init(config, mapManager, triggerSearchFromSidebar);
-        if (window.location.hash === '#addtree') {
+        if (window.location.hash === addTreeMode.hash) {
             modes.activateAddTreeMode();
         } else {
             modes.activateBrowseTreesMode();
@@ -96,7 +97,6 @@ module.exports = {
 
         $('[data-action="addtree"]').click(function(e) {
             e.preventDefault();
-            window.location.hash = "#addTree";
             modes.activateAddTreeMode();
         });
 
