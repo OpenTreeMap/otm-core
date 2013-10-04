@@ -650,7 +650,7 @@ def plot_to_dict(plot, longform=False, user=None):
 
 
 def tree_resource_to_dict(tree):
-    if tree.species and tree.species.itree_code and tree.diameter:
+    if tree.species and tree.species.otm_code and tree.diameter:
         return tree_benefits(tree.instance, tree.pk)
     else:
         return {}

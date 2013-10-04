@@ -151,29 +151,31 @@ class User(Auditable, AbstractUser):
         self.save_with_user(system_user, *args, **kwargs)
 
 
-class Species(models.Model):
+class Species(UDFModel, Authorizable, Auditable):
     """
     http://plants.usda.gov/adv_search.html
     """
     ### Base required info
-    symbol = models.CharField(max_length=255)
+    instance = models.ForeignKey(Instance)
+    # ``otm_code`` is the key used to link this instance
+    # species row to a cannonical species. An otm_code
+    # is usually the USDA code, but this is not guaranteed.
+    otm_code = models.CharField(max_length=255)
     common_name = models.CharField(max_length=255)
     genus = models.CharField(max_length=255)
     species = models.CharField(max_length=255, null=True, blank=True)
     cultivar = models.CharField(max_length=255, null=True, blank=True)
-    gender = models.CharField(max_length=50, null=True, blank=True)
+    other = models.CharField(max_length=255, null=True, blank=True)
 
     ### Copied from original OTM ###
     native_status = models.NullBooleanField()
+    gender = models.CharField(max_length=50, null=True, blank=True)
     bloom_period = models.CharField(max_length=255, null=True, blank=True)
     fruit_period = models.CharField(max_length=255, null=True, blank=True)
     fall_conspicuous = models.NullBooleanField()
     flower_conspicuous = models.NullBooleanField()
     palatable_human = models.NullBooleanField()
     wildlife_value = models.NullBooleanField()
-
-    itree_code = models.CharField(max_length=255, null=True, blank=True)
-
     fact_sheet = models.URLField(max_length=255, null=True, blank=True)
     plant_guide = models.URLField(max_length=255, null=True, blank=True)
 
@@ -181,7 +183,7 @@ class Species(models.Model):
     max_dbh = models.IntegerField(default=200)
     max_height = models.IntegerField(default=800)
 
-    objects = models.GeoManager()
+    objects = AuthorizableGeoHStoreUDFManager()
 
     @property
     def display_name(self):
@@ -201,15 +203,6 @@ class Species(models.Model):
 
     class Meta:
         verbose_name_plural = "Species"
-
-
-class InstanceSpecies(Auditable, models.Model):
-    instance = models.ForeignKey(Instance)
-    species = models.ForeignKey(Species)
-    common_name = models.CharField(max_length=255, null=True, blank=True)
-
-    def __unicode__(self):
-        return self.common_name
 
 
 class InstanceUser(Auditable, models.Model):

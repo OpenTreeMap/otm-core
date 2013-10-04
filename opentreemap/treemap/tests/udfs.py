@@ -451,7 +451,7 @@ class ScalarUDFDefTest(TestCase):
             ValidationError,
             self._create_and_save_with_datatype,
             {'type': 'string'},
-            model_type='Species')
+            model_type='InstanceUser')
 
     def test_cannot_create_duplicate_udfs(self):
         self._create_and_save_with_datatype(
