@@ -139,3 +139,14 @@ $nav-width: 200px;
 .error-on-tab {
         border-bottom: 8px solid red;
 }
+
+/* Units tables ---------------------- */
+
+table.units th {
+  padding: 5px 15px 0 0;
+  text-align: left;
+}
+
+table.units td {
+  padding: 5px 15px 0 0;
+}

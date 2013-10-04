@@ -235,8 +235,9 @@ def package_validation_errors(model_name, validation_error):
     {fieldname1: [messages], fieldname2: [messages]}.
     Return a version keyed by "modelname.fieldname" instead of "fieldname".
     """
-    return {'%s.%s' % (model_name.lower(), field): msgs
+    dict = {'%s.%s' % (model_name.lower(), field): msgs
             for (field, msgs) in validation_error.message_dict.iteritems()}
+    return dict
 
 
 # https://docs.djangoproject.com/en/dev/topics/serialization/#id2

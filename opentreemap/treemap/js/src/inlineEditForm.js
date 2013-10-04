@@ -132,6 +132,10 @@ exports.init = function(options) {
                             value = $input.val();
                         }
                         $(display).attr('data-value', value);
+                        if ($input.is('select')) {
+                            // Use dropdown text (not value) as display value
+                            value = $input.find('option:selected').text();
+                        }
                         $(display).html(value);
                     }
                 }

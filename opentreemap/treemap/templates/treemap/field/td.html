@@ -1,0 +1,10 @@
+<td>
+  <div {% include "treemap/field/attrs.html" with class="display" %}>
+    {{ field.display_value|default_if_none:"" }}
+  </div>
+  <div {% include "treemap/field/attrs.html" with class="edit" %} style="display: none;">
+    {% include "treemap/field/inputs.html" %}
+  </div>
+  <div class="text-error" style="display: none;"
+          {% include "treemap/field/attrs.html" with class="error" %}></div>
+</td>
