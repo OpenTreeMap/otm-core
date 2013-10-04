@@ -52,12 +52,13 @@
       <h1>{{ tree.species.common_name }}</h1>
       <h2>{{ tree.species.scientific_name }}</h2>
       <h3>{{ plot.address_full }}</h3>
-      <form id="plot-form">
-        <button id="edit-plot" data-class="display" class="btn"
-           title="{% trans "Editing of the tree details is not available to all users" %}"
+      <button id="edit-plot" data-class="display" class="btn"
+              title="{% trans "Editing of the tree details is not available to all users" %}"
            disabled="disabled">{% trans "Edit" %}</button>
         <button id="save-edit-plot" data-class="edit" class="btn" style="display: none;">{% trans "Save" %}</button>
         <button id="cancel-edit-plot" data-class="edit" class="btn" style="display: none;">{% trans "Cancel" %}</button>
+      <form id="plot-form">
+
 
         <!-- General Tree Information -->
         <h5>{% trans "General Tree Information" %}</h5>
