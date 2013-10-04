@@ -18,8 +18,8 @@ exports.create = function(options) {
         }
         curLocation = location;
 
-        var lonlat = utility.webMercatorToLonLat(location.x, location.y);
-        var pos = new google.maps.LatLng(lonlat.lat, lonlat.lon);
+        var latlon = utility.webMercatorToLatLng(location.x, location.y);
+        var pos = new google.maps.LatLng(latlon.lat, latlon.lon);
         new google.maps.StreetViewService().getPanoramaByLocation(pos, 50, function(data, status) {
             if (status == google.maps.StreetViewStatus.OK) {
                 if (panorama === null) {
