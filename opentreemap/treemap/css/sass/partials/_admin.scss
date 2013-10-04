@@ -3,25 +3,29 @@
 .management {
     min-height: 650px;
 
-    .nav.nav-list {        
+    .nav.nav-list { 
+        margin-top: 60px;
+
         li {
             padding: 0;
 
             &.nav-header {
-                margin-bottom: 6px;
             }
             &.active {
                 a {
-
+                    background: $secondary-color;
                 }
             }
             a {
                 font-weight: 400;
+                padding: 5px 15px;
             }
         }
     }
 
     .page-header {
+        margin: 0 0 20px;
+
         h1 {
             margin-bottom: 0.25em;
             
@@ -31,6 +35,33 @@
                 left: 10px;
             }
         }
+    }
+
+    .form-horizontal {
+        .control-label {
+            float: left;
+            width: 190px;
+            padding-top: 5px;
+            text-align: left;
+            padding-right: 10px;
+            position: relative;
+            top: 4px;
+        }
+    }
+
+    .table {
+        select {
+            margin: 0;
+        }
+    }
+
+    .field-view {
+        margin-bottom: 20px;
+        top: 4px;
+        position: relative;
+    }
+    .field-edit {
+
     }
 }
 
