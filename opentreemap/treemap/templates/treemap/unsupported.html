@@ -10,15 +10,15 @@
 {% endblock subhead %}
 
 {% block content %}
-<div class="content login-signup">
-  	<div class="well login-signup-panel">
+<div class="content">
+  	<div class="well error-panel">
   		<div class="error-icon error-icon-sad">:(</div>
 		<h3>{% trans "OpenTreeMap requires Internet Explorer 9+." %}</h3>
-		<p>{% trans "If you cannot upgrade your version of Internet Explorer, try using one of these alternate web browsers:" %}</p>
-		<ul>
-		    <li><a href="http://www.google.com/chrome">Chrome</a></li>
-		    <li><a href="http://www.mozilla.org/firefox">Firefox</a></li>
-		</ul>
+		<p>{% trans "If you cannot upgrade your version of Internet Explorer, we recommend using either" %}
+			<a href="http://www.google.com/chrome">Chrome</a>
+			{% trans " or " %}
+			<a href="http://www.mozilla.org/firefox">Firefox</a>.
+		</p>
 	</div>
 </div>
 {% endblock content %}
