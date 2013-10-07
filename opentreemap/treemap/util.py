@@ -69,7 +69,7 @@ def add_visited_instance(request, instance):
 
 
 def get_last_visited_instance(request):
-    if 'visited_instances' in request.session:
+    if hasattr(request, 'session') and 'visited_instances' in request.session:
         instance_id = next(reversed(request.session['visited_instances']))
         return Instance.objects.get(pk=instance_id)
     else:
