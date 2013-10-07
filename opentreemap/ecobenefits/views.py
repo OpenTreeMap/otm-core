@@ -20,7 +20,8 @@ def get_codes_for_species(species, region):
     return codes
 
 
-def _benefits_for_trees(trees):
+def _benefits_for_trees(trees, region_default=None):
+    # TODO: actually use region_default
     regions = {}
     for tree in trees:
         region = tree['itree_region_code']

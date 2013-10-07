@@ -608,7 +608,8 @@ def search_tree_benefits(request, instance):
 
 
 def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
-    benefits, num_calculated_trees = _benefits_for_trees(trees_for_eco)
+    benefits, num_calculated_trees = _benefits_for_trees(
+        trees_for_eco, instance.itree_region_default)
 
     percent = 0
     if num_calculated_trees > 0 and total_trees > 0:
