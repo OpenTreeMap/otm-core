@@ -87,6 +87,9 @@ class Instance(models.Model):
 
     logo = models.ImageField(upload_to='logos', null=True, blank=True)
 
+    itree_region_default = models.CharField(max_length=20, null=True,
+                                            blank=True)
+
     objects = models.GeoManager()
 
     def __unicode__(self):
