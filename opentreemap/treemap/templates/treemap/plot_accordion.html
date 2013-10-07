@@ -9,7 +9,7 @@
     {% field "edit-tree-species" from "tree.species" for request.user withtemplate "treemap/field/species_ul.html" %}
 
     {% trans "Trunk Diameter" as diameter %}
-    {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field/ul.html" %}
+    {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field/diameter_ul.html" %}
 
     {% trans "Tree Height" as height %}
     {% field height from "tree.height" for request.user withtemplate "treemap/field/ul.html" %}

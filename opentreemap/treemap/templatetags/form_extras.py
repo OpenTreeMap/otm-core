@@ -139,13 +139,6 @@ def inline_edit_tag(tag, Node):
             ... check for other field.data_type values ...
 
         {% endif %}
-
-    Like the standard {% include %} tag, you can pass data into the template:
-
-    {% field from "plot.width" withtemplate "plot.html" with units="inches" %}
-
-    Which will be available in the template context:
-        {{ field.value }} {{ units }}
     """
     def tag_parser(parser, token):
         try:

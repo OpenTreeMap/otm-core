@@ -1,14 +1,16 @@
 {% if field.is_visible %}
-    <label>{{ field.label }}</label>
+    <label>{% block label %}{{ field.label }}{% endblock label %}</label>
     <div class="field-view"
         {% include "treemap/field/attrs.html" with class="display" %}>
-        {{ field.display_value }}
+        {{ field.display_value|default_if_none:"" }}
     </div>
     {% if field.is_editable %}
         <div class="field-edit"
             style="display: none;"
             {% include "treemap/field/attrs.html" with class="edit" %}>
+            {% block inputs %}
             {% include "treemap/field/inputs.html" %}
+            {% endblock inputs %}
         </div>
         <div class="alert alert-error text-error"
             style="display: none;"
