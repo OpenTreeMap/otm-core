@@ -270,6 +270,7 @@ def update_plot_and_tree_request(request, plot):
 
 
 @transaction.commit_on_success
+@login_required
 def update_plot_and_tree(request, plot):
     """
     Update a plot. Expects JSON in the request body to be:
