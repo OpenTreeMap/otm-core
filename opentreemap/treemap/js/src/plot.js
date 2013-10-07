@@ -167,7 +167,7 @@ exports.init = function(options) {
     form.saveOkStream
         .map(BU.getValueForKey, 'tree.plot')
         .filter(BU.isDefined)
-        .onValue(_.bind($addTreeSection.show, $addTreeSection));
+        .onValue(_.bind($addTreeSection.hide, $addTreeSection));
 
     if (options.config.instance.basemap.type === 'google') {
         var $streetViewContainer = $(options.streetView);
