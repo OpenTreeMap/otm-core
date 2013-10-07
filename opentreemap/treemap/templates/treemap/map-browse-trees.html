@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load instance_config %}
 
 <div class="accordion" id="map-info">
   <div class="accordion-group">
@@ -18,8 +19,16 @@
         -->
       </div>
       <div id="move-plot-buttons">
+        {% with iuser=user|instanceuser:request.instance %}
+        {% if iuser|plot_field_is_writable:"geom" %}
         <button class="btn" style="display:none" id="edit-plot-location">Move Tree</button>
         <button class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</button>
+        {% else %}
+        <button data-class="display" class="btn" disabled="disabled">
+          "{% trans "Editing a plot's location is not available to all users" %}"
+        </button>
+        {% endif %}
+        {% endwith %}
       </div>
     </div>
   </div>

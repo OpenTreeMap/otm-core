@@ -1,4 +1,5 @@
 {% extends "instance_base.html" %}
+{% load instance_config %}
 {% load i18n %}
 {% load auth_extras %}
 {% load form_extras %}
@@ -140,8 +141,16 @@
         </div>
     </div>
     <div class="span3">
+      {% with iuser=user|instanceuser:request.instance %}
+      {% if iuser|plot_field_is_writable:"geom" %}
       <button class="btn" style="display:none" id="edit-plot-location">Move Tree</button>
         <button class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</button>
+        {% else %}
+        <button data-class="display" class="btn" disabled="disabled">
+          "{% trans "Editing a plot's location is not available to all users" %}"
+        </button>
+        {% endif %}
+        {% endwith %}
         <div id="map" class="map-small"></div>
         <div id="street-view" class="street-view-small" style="display: none;"></div>
       <h3>{% trans "Commments" %}</h3>
