@@ -915,6 +915,19 @@ def approve_or_reject_photo(
     return resp
 
 
+def static_page(request, instance, page):
+    # TODO: Right now all pages simply return
+    #       the same string. In the future, they'll grab
+    #       from the instance config
+
+    allowed_pages = ['Resources', 'FAQ', 'About']
+
+    if page not in allowed_pages:
+        raise Http404()
+
+    return {'content': trans('There is no content for this page yet'),
+            'title': page}
+
 audits_view = instance_request(
     render_template('treemap/recent_edits.html', audits))
 
@@ -1000,3 +1013,6 @@ next_photo_endpoint = instance_request(
 
 approve_or_reject_photo_view = instance_request(
     approve_or_reject_photo)
+
+static_page_view = instance_request(
+    render_template("treemap/staticpage.html", static_page))
