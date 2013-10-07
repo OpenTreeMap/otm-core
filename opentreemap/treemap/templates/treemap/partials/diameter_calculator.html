@@ -5,10 +5,12 @@
     <tr>
       <th>Diameter</th>
       <th>Circumference</th>
-      <th>
-        <a id="add-trunk-row"
-           class="btn" href="javascript:;">+</a>
-      </th>
+        {% if not hide_multiple_trunks %}
+          <th>
+            <a id="add-trunk-row"
+               class="btn" href="javascript:;">+</a>
+          </th>
+        {% endif %}
     </tr>
   </thead>
   <tbody id="diameter-worksheet">
@@ -17,7 +19,7 @@
         <input class="input-small"
                data-class="diameter-input"
                type="text"
-               value="{{ field.value }}"/>
+               value="{{ field.value|default_if_none:"" }}"/>
       </td>
       <td>
         <input class="input-small"
@@ -26,8 +28,12 @@
                value="{{ field.value|to_circumference|floatformat:"3" }}"
                />
       </td>
-      <td></td>
+      {% if not hide_multiple_trunks %}
+        <td></td>
+      {% endif %}
     </tr>
   </tbody>
 </table>
+{% if not hide_multiple_trunks %}
 <a href="http://player.vimeo.com/video/11119129" target="_blank">measuring multiple trunks?</a>
+{% endif %}

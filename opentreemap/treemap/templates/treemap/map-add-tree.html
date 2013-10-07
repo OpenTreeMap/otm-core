@@ -19,7 +19,9 @@
         {# The "add-tree-species" label is used as an id prefix in "species_ul.html" #}
         {% create "add-tree-species" from "tree.species" withtemplate "treemap/field/species_ul.html" %}
 
+      {% with hide_multiple_trunks=True %}
         {% create "add-tree-diameter" from "tree.diameter" withtemplate "treemap/field/diameter_ul.html" %}
+      {% endwith %}
 
         {% for label, identifier in fields_for_add_tree %}
             {% create label from identifier withtemplate "treemap/field/ul.html" %}
