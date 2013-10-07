@@ -12,7 +12,7 @@
             <legend>{% trans "Login" %}<a class="pull-right have-account" href="{% url 'registration_register' %}">{% trans "Need an account?" %}</a></legend>
             {{ form.as_p }}
             <button type="submit" value="{% trans 'Log in' %}" class="btn btn-large btn-primary">{% trans 'Log in' %}</button>
-            <input type="hidden" name="next" value="{{request.GET.next}}" />
+            <input type="hidden" name="next" value="{{ next }}" />
         </fieldset>
     </form>
   </div>
