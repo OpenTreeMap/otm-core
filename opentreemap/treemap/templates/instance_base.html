@@ -17,13 +17,15 @@
 {% block instance_title %} | {{ request.instance.name }}{% endblock %}
 
 {% block instancetopnav %}
-<li><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Trees" %}</a></li>
+<li class="{% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Trees" %}</a></li>
 {% if request.user.is_authenticated %}
 <li><a data-action="addtree" href="{% url 'map' instance_url_name=request.instance.url_name %}#addtree">{% trans "Add a Tree" %}</a></li>
 {% else %}
-<li><a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}">{% trans "Add a Tree" %}</a>
+<li><a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}">{% trans "Add a Tree" %}</a></li>
 {% endif %}
-
+{% if settings.MANAGEMENT_VIEW_NAME %}
+<li class="{% block activemanagement %}{% endblock %}"><a href="{% url settings.MANAGEMENT_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Manage Tree Map" %}</a></li>
+{% endif %}
 {% endblock instancetopnav %}
 
 {% block subhead %}
