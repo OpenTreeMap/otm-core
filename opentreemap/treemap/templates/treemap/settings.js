@@ -1,6 +1,6 @@
 {% load instance_config %}
 
-// Data structures pull from django
+// Data structures pulled from django
 var otm = otm || {};
 otm.settings = otm.settings || {};
 
@@ -36,6 +36,7 @@ otm.settings.staticUrl = '{{ STATIC_URL }}';
             'x': '{{ request.instance.center.x }}',
             'y': '{{ request.instance.center.y }}'
         },
+        'extent': {{ request.instance.extent_as_json|safe }},
         'basemap': {
             'type': '{{ request.instance.basemap_type }}',
             'data': '{{ request.instance.basemap_data }}',
