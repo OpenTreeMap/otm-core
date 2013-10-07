@@ -10,6 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from treemap.util import safe_get_model_class
 from treemap.json_field import (is_json_field_reference,
                                 get_attr_from_json_field)
+from treemap.units import get_float_format, get_units
 
 register = template.Library()
 
@@ -295,7 +296,7 @@ class AbstractNode(template.Node):
             field_value = get_attr_from_json_field(model, field_name)
             choices = None
             is_visible = is_editable = True
-            data_type = "TextField"
+            data_type = "string"
         else:
             field_value, choices = _field_value_and_choices(model, field_name)
             data_type, label = _field_type_and_label(model, field_name, label)
@@ -311,14 +312,27 @@ class AbstractNode(template.Node):
                 is_visible = True
                 is_editable = True
 
-        # TODO: Support pluggable formatting instead of unicode()
-        display_val = unicode(field_value) if field_value is not None else None
+        units = ''
+        if data_type == 'float':
+            units = get_units(model.instance, model_name, field_name)
+
+        digits = ''
+        if field_value is None:
+            display_val = None
+        elif data_type == 'float':
+            digits, fmt = get_float_format(model.instance, model_name,
+                                           field_name)
+            display_val = (fmt % field_value) + (' %s' % units)
+        else:
+            display_val = unicode(field_value)
 
         context['field'] = {
             'label': label,
             'identifier': identifier,
             'value': field_value,
             'display_value': display_val,
+            'units': units,
+            'digits': digits,
             'data_type': data_type,
             'is_visible': is_visible,
             'is_editable': is_editable,

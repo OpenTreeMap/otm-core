@@ -21,3 +21,6 @@ prototype/css/.sass-cache
 # the local directory is a place for keeping unversioned
 # scripts, etc 
 local/
+
+opentreemap/treemap/management/commands/extracollect.py
+

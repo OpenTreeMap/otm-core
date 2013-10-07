@@ -15,6 +15,7 @@ import os
 from shutil import rmtree
 
 from treemap.audit import FieldPermission, Role
+from treemap.json_field import set_attr_on_json_field
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.models import User, Plot, InstanceUser
 from treemap.tests import (make_instance, make_observer_user,
@@ -371,6 +372,7 @@ class InlineFieldTagTests(TestCase):
         field_name = '"' + identifier + '"'
         template_text = """{% load form_extras %}""" +\
             """{% create from """ + field_name +\
+            """ in request.instance""" +\
             """ withtemplate "field_template.html" %}"""
         return Template(template_text)
 
@@ -486,9 +488,25 @@ class InlineFieldTagTests(TestCase):
         self.assert_plot_length_context_value(
             self.observer, 'field.value', '12.3')
 
+    def test_sets_units(self):
+        self.assert_plot_length_context_value(
+            self.observer, 'field.units', 'in')
+
+    def test_sets_digits(self):
+        self.assert_plot_length_context_value(
+            self.observer, 'field.digits', '1')
+
     def test_sets_display_value(self):
         self.assert_plot_length_context_value(
             self.observer, 'field.display_value', '12.3 in')
+
+    def test_uses_custom_units_and_digits(self):
+        set_attr_on_json_field(
+            self.instance, 'config.value_display.plot.length.units', 'm')
+        set_attr_on_json_field(
+            self.instance, 'config.value_display.plot.length.digits', '3')
+        self.assert_plot_length_context_value(
+            self.observer, 'field.display_value', '12.300 m')  # Mike, here!
 
     def test_sets_data_type(self):
         self.assert_plot_length_context_value(
@@ -588,7 +606,8 @@ class InlineFieldTagTests(TestCase):
             with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
                 self._write_field_template("{{ field.identifier }}")
                 self._form_template_search(None).render(Context({
-                    'request': {'user': self.observer, 'instance': self.instance}}
+                    'request': {'user': self.observer,
+                                'instance': self.instance}}
                 )).strip()
 
 

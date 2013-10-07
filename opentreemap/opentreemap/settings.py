@@ -263,8 +263,8 @@ DISPLAY_DEFAULTS = {
     },
     'eco': {
         'energy':     {'units': 'kwh', 'digits': 1},
-        'co2':        {'units': 'lbs', 'digits': 1},
         'stormwater': {'units': 'gal', 'digits': 1},
-        'airquality': {'units': 'lbs', 'digits': 1}
+        'co2':        {'units': 'lbs/year', 'digits': 1},
+        'airquality': {'units': 'lbs/year', 'digits': 1}
     }
 }
