@@ -36,20 +36,25 @@
       <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="navbar-inner">
           <ul class="nav pull-left">
+            {#
+            Since the active style changes on a page-by-page basis
+            we use nested blocks below. These nested blocks can then be
+            overriden to change which tab is active.
+            #}
             {% block instancetopnav %}
               {% if last_instance %}
-              <li><a href="{% url 'map' instance_url_name=last_instance.url_name %}">{% trans "Explore Trees" %}</a></li>
+              <li class="{% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=last_instance.url_name %}">{% trans "Explore Trees" %}</a></li>
               {% if request.user.is_authenticated %}
               <li><a data-class='add-tree' href="{% url 'map' instance_url_name=last_instance.url_name %}#addtree">{% trans "Add a Tree" %}</a></li>
               {% else %}
-              <li><a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}">{% trans "Add a Tree" %}</a>
+              <li><a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}">{% trans "Add a Tree" %}</a></li>
               {% endif %}
               {% endif %}
             {% endblock instancetopnav %}
           </ul>
           <ul class="nav pull-right">
             {% if request.user.is_authenticated %}
-              <li>
+              <li class="{% block activeuser %}{% endblock %}">
                 <a href="{% url 'profile' %}">{% trans "My Account" %}
                   {% if last_instance %}
                   {% with iuser=request.user|instanceuser:last_instance %}
