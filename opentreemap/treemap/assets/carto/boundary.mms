@@ -1,5 +1,11 @@
 #treemap_boundary {
-   line-color: #C00;
-   line-width: 1;
-   line-opacity: 0.5;
+	::case {
+    	line-width: 5;
+    	line-color:#ddd;
+  	}
+  	::fill {
+    	line-width: 0.5;
+    	line-color: #444;
+    	line-dasharray: 10, 8;
+  	}
 }
