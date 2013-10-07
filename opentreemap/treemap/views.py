@@ -1012,3 +1012,7 @@ approve_or_reject_photo_view = instance_request(
 
 static_page_view = instance_request(
     render_template("treemap/staticpage.html", static_page))
+
+error_404_view = render_template('404.html')
+error_500_view = render_template('500.html')
+error_503_view = render_template('503.html')
