@@ -8,12 +8,14 @@ var $ = require('jquery'),
     otmTypeahead = require('./otmTypeahead'),
     geocoder = require('./geocoder'),
     geocoderUi = require('./geocoderUi'),
-    enterOrClickEventStream = require('./baconUtils').enterOrClickEventStream;
+    enterOrClickEventStream = require('./baconUtils').enterOrClickEventStream,
+    diameterCalculator = require('./diameterCalculator');
 
 var config,
     mapManager,
     plotMarker,
     onAddTree,
+    formSelector = '#add-tree-form',
     onClose,  // function to call when closing mode
     $sidebar,
     $addButton,
@@ -40,7 +42,7 @@ function init(options) {
         $geolocateError = U.$find('.geolocate-error', $sidebar),
         triggerSearchBus = options.triggerSearchBus;
 
-    $form = U.$find('#add-tree-form', $sidebar);
+    $form = U.$find(formSelector, $sidebar);
     $editFields = U.$find('[data-class="edit"]', $form);
     $editControls = $editFields.find('input,select');
     $validationFields = U.$find('[data-class="error"]', $form);
@@ -92,6 +94,11 @@ function init(options) {
         $address.val("");
         $editControls.val("");
     });
+
+    diameterCalculator({ formSelector: formSelector,
+                         cancelStream: cancelStream,
+                         saveOkStream: addTreeStream });
+
 
     // Handle setting initial tree position via address search
     var searchTriggerStream = enterOrClickEventStream({
