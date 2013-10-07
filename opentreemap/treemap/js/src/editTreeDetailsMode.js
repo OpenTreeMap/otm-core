@@ -3,12 +3,15 @@
 var $ = require('jquery'),
     _ = require('underscore'),
     otmTypeahead = require('./otmTypeahead'),
-    plotMover = require('./plotMover');
+    plotMover = require('./plotMover'),
+    diameterCalculator = require('./diameterCalculator');
+
 
 var mapManager,
     inlineEditForm,
     typeaheads,
-    plotMarker;
+    plotMarker,
+    calculator;
 
 function init(options) {
     mapManager = options.mapManager;
@@ -30,9 +33,17 @@ function activate() {
         cancelEditLocationButton: '#cancel-edit-plot-location',
         location: plotMarker.getLocation()
     });
+
+    calculator = diameterCalculator({
+        formSelector: '#details-form',
+        cancelStream: inlineEditForm.cancelStream,
+        saveOkStream: inlineEditForm.saveOkStream
+    });
+
 }
 
 function deactivate() {
+    calculator.destroy();
 }
 
 function onSaveBefore(data) {

@@ -1,15 +1,17 @@
 {% if field.is_visible %}
     <ul class="chunk">
-        <li class="chunk-label">{{ field.label }}</li>
+        <li class="chunk-label">{% block label %}{{ field.label }}{% endblock label %}</li>
         <li class="chunk-content"
             {% include "treemap/field/attrs.html" with class="display" %}>
-            {{ field.display_value }}
+            {{ field.display_value|default_if_none:"" }}
         </li>
         {% if field.is_editable %}
             <li class="chunk-content"
                 style="display: none;"
                 {% include "treemap/field/attrs.html" with class="edit" %}>
+                {% block inputs %}
                 {% include "treemap/field/inputs.html" %}
+                {% endblock inputs %}
             </li>
             <li class="chunk-content text-error"
                 style="display: none;"
