@@ -48,6 +48,14 @@
         <li>{{ audit.short_descr }}</li>
         {% endfor %}
       </ul>
+      <h3>{% trans "Nearby Trees" %}</h3>
+      <ul>
+        {% for plot in plot.nearby_plots %}
+        <li><a href="{% url 'plot_detail' instance_url_name=request.instance.url_name plot_id=plot.pk %}">{{ plot.pk }}</a></li>
+        {% empty %}
+        <li>{% trans "None" %}</li>
+        {% endfor %}
+      </ul>
     </div>
     <div class="span6">
       <h1>{{ tree.species.common_name }}</h1>

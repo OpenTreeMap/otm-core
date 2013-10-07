@@ -22,6 +22,9 @@ AWS_HEADERS = {
 # API distance check, in meters
 MAP_CLICK_RADIUS = 100
 
+# Default nearby tree distance in meters
+NEARBY_TREE_DISTANCE = 5.0
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 AUTH_USER_MODEL = 'treemap.User'
