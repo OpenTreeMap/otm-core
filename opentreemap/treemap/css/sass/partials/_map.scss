@@ -184,6 +184,14 @@ div.olControlZoom {
             font-size: 12px;
             font-weight: 700;
         }
+
+        .map-small & {
+            width: 12px;
+
+            &:after {
+                content: none;
+            }
+        }
     }
     .minimizeDiv {
         &:before {

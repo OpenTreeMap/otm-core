@@ -1,141 +1,77 @@
 // Partial: Admin
 
-.admin {
-//        margin-top: 50px;
-}
+.management {
+    min-height: 650px;
 
-$nav-width: 200px;
+    .nav.nav-list { 
+        margin-top: 60px;
 
-.single-line h1 {
-        margin-top: 15px;
-}
+        li {
+            padding: 0;
 
-        .admin .left {
-                width: $nav-width;
-                height: 100px;
-                margin-top: 25px;
-                float: left;
-        }
-                .admin .left ul {
-                        margin: 0;
-                        background: #fff;
-                        border-radius: 3px;
+            &.nav-header {
+            }
+            &.active {
+                a {
+                    background: $secondary-color;
                 }
-                        .admin .left ul > li a {
-                                color: #000;
-                                font-size: 13px;
-                        }
-
-                .admin .right h2 {
-                        padding: 0;
-                }
-
-        .admin .right {
-                border: 1px solid #ddd;
-                padding: 20px;
-                background: #fff;
-                margin-top: 25px;
-                margin-left: $nav-width + 6;
-                margin-right: 10px;
-                margin-bottom: 50px;
-                -webkit-border-radius: 4px;
-                -moz-border-radius:      4px;
-                border-radius:                           4px;
+            }
+            a {
+                font-weight: 400;
+                padding: 5px 15px;
+            }
         }
+    }
 
-        .config-tabs {
-                margin: 0 !important;
+    .page-header {
+        margin: 0 0 20px;
+
+        h1 {
+            margin-bottom: 0.25em;
+            
+            small {
+                top: -6px;
+                position: relative;
+                left: 10px;
+            }
         }
+    }
 
-        .nav-stacked li.active a {
-                background: #c2c2c2 !important;
+    .form-horizontal {
+        .control-label {
+            float: left;
+            width: 190px;
+            padding-top: 5px;
+            text-align: left;
+            padding-right: 10px;
+            position: relative;
+            top: 4px;
         }
+    }
 
-        .admin .chunk {
-            list-style: none;
-            padding: 5px 0 15px;
+    .table {
+        select {
             margin: 0;
         }
+    }
 
-/* Bulk Uploader ---------------------- */
-
-.uploader {
-        margin-top: 35px;
-}
-        .uploader h4 {
-                font-family: "Helvetica", Arial, sans-serif;
-                padding: 0;
-        }
-        .uploader .nav {
-                margin: 0;
-        }
-                .uploader .nav li a {
-                        border: 1px solid #ddd;
-                        margin-right: 10px;
-                        font-size: 13px;
-                }
-
-.upload-box {
-        width: 45%;
-        padding: 10px 15px;
-        background: #fff;
-        border: 1px solid #ddd;
-        -webkit-border-radius: 4px;
-        -moz-border-radius: 4px;
-        border-radius: 4px;
-}
-        .upload-box input {
-                position: relative;
-                -webkit-border-radius: 4px;
-                -moz-border-radius: 4px;
-                border-radius: 4px;
-                border: 1px solid #ddd;
-                padding: 3px 7px;
-        }
-        .upload-box .btn {
-                padding: 8px 15px;
-                float: right;
-        }
-        .tree-import {
-                float: left;
-        }
-        .species-import {
-                float: right;
-        }
-
-.table-container {
-        margin-top: 30px;
-        background: #fff;
-        padding: 15px;
-        -webkit-border-radius: 4px;
-        -moz-border-radius: 4px;
-        border-radius: 4px;
-        border: 1px solid #ddd;
-}
-        .table-container.first {
-                margin-top: 130px;
-        }
-        .table-container.scroll {
-        }
-                .table-container.scroll th {
-                        font-size: 13px;
-                        vertical-align: top;
-                }
-
-.view-export .btn {
-        float: right;
-        margin-left: 10px;
-}
-.view-label {
-        float: right;
+    .field-view {
+        margin-bottom: 20px;
+        top: 4px;
+        position: relative;
+    }
+    
+    .tab-content {
+        overflow: hidden;
+    }
 }
 
-/* Tree Map creation steps ---------------------- */
+// Create Map Styles
 
 .plan-selected {
-        background-color: #bfffa3;
+    background-color: #bfffa3;
 }
 
 .error-on-tab {
-        border-bottom: 8px solid red;
+    border-bottom: 8px solid red;
 }

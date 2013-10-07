@@ -36,11 +36,7 @@
       <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="navbar-inner">
           <ul class="nav pull-left">
-            {#
-            Since the active style changes on a page-by-page basis
-            we use nested blocks below. These nested blocks can then be
-            overriden to change which tab is active.
-            #}
+            {# Since the active style changes on a page-by-page basis we use nested blocks below. These nested blocks can then be overriden to change which tab is active. #}
             {% block instancetopnav %}
               {% if last_instance %}
               <li class="{% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=last_instance.url_name %}">{% trans "Explore Trees" %}</a></li>
