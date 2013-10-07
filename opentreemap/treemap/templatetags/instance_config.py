@@ -26,3 +26,18 @@ def secondary_color(config):
 @register.filter
 def feature_enabled(instance, feature):
     return instance.feature_enabled(feature)
+
+
+@register.filter
+def instanceuser(user, instance):
+    return user.get_instance_user(instance)
+
+
+@register.filter
+def plot_field_is_writable(instanceuser, field):
+    perms = instanceuser.role.plot_permissions.filter(field_name=field)
+
+    if len(perms) == 0:
+        return False
+    else:
+        return perms[0].allows_writes
