@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load instance_config %}
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -36,11 +37,11 @@
       <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="navbar-inner">
           <ul class="nav pull-left">
-            {#
+            {% comment %}
             Since the active style changes on a page-by-page basis
             we use nested blocks below. These nested blocks can then be
             overriden to change which tab is active.
-            #}
+            {% endcomment %}
             {% block instancetopnav %}
               {% if last_instance %}
               <li class="{% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=last_instance.url_name %}">{% trans "Explore Trees" %}</a></li>
@@ -110,7 +111,7 @@
     <footer>
       <div class="footer-inner">
         <ul class="inline pull-left">
-          {% with linkData=request.instance.config.linkData %}
+          {% with linkData=request.instance|instance_config:"linkData" %}
           <li><a href="{% if linkData.treekey %}{{ linkData.treekey }}{% else %}http://www.arborday.org/trees/whatTree/{% endif %}">{% trans "Tree Key" %}</a></li>
           <li><a href="javascript:;">{% trans "Resources" %}</a></li>
           <li><a href="javascript:;">{% trans "FAQ" %}</a></li>

@@ -1,4 +1,5 @@
 from django import template
+from treemap.json_field import get_attr_from_json_field
 
 register = template.Library()
 
@@ -47,3 +48,11 @@ def plot_field_is_writable(instanceuser, field):
             return False
         else:
             return perms[0].allows_writes
+
+
+@register.filter
+def instance_config(instance, field):
+    if instance:
+        return get_attr_from_json_field(instance, "config." + field)
+    else:
+        return None
