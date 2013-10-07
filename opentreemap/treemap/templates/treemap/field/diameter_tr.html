@@ -1,5 +1,4 @@
 {% load i18n %}
-{% load diameter %}
 
 {% if field.is_visible %}
   <tr>
@@ -13,41 +12,7 @@
           {% with 'readonly=readonly' as extras %}
             {% include "treemap/field/inputs.html" with extra=extras %}
           {% endwith %}
-            <table>
-              <thead>
-                <tr>
-                  <th>Diameter</th>
-                  <th>Circumference</th>
-                  <th>
-                    <a id="add-trunk-row"
-                       class="btn" href="javascript:;">+</a>
-                  </th>
-                </tr>
-              </thead>
-              <tbody id="diameter-worksheet">
-                <tr id="trunk-row">
-                  <td>
-                    <input class="input-small"
-                           data-class="diameter-input"
-                           type="text"
-                           value="{{ field.value }}"/>
-                  </td>
-                  <td>
-                    <input class="input-small"
-                           data-class="circumference-input"
-                           type="text"
-                           value="{{ field.value|to_circumference|floatformat:"3" }}"
-                           />
-                  </td>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
-            <a href="//player.vimeo.com/video/11119129" target="_blank">measuring multiple trunks?</a>
-          </div>
-
-
-
+      {% include "treemap/partials/diameter_calculator.html" %}
       </td>
     <td style="display:none;"
         {% include "treemap/field/attrs.html" with class="error" %}>

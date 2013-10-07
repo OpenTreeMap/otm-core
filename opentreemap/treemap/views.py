@@ -735,7 +735,6 @@ def update_user(request, username):
 
 def _get_map_view_context(request, instance_id):
     fields_for_add_tree = [
-        (trans('Trunk Diameter (inches)'), 'tree.diameter'),
         (trans('Tree Height (feet)'), 'tree.height')
     ]
     return {'fields_for_add_tree': fields_for_add_tree}
