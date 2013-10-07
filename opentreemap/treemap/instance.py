@@ -4,6 +4,8 @@ from django.core.validators import RegexValidator
 from django.conf import settings
 
 import hashlib
+import json
+
 from urllib import urlencode
 from treemap.features import feature_enabled
 
@@ -109,6 +111,14 @@ class Instance(models.Model):
                                               settings.SHORT_DATE_FORMAT)
 
     scss_variables = _make_config_property('scss_variables')
+
+    @property
+    def extent_as_json(self):
+        boundary = self.bounds.boundary
+        xmin, ymin, xmax, ymax = boundary.extent
+
+        return json.dumps({'xmin': xmin, 'ymin': ymin,
+                           'xmax': xmax, 'ymax': ymax})
 
     @property
     def center(self):
