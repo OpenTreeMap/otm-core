@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load instance_config %}
 <!DOCTYPE html>
 <html>
   <head>
@@ -48,7 +49,15 @@
           </ul>
           <ul class="nav pull-right">
             {% if request.user.is_authenticated %}
-              <li><a href="{% url 'profile' %}">{% trans "My Account" %} <span class="reputation">({{ request.user.rep }} rep)</span></a></li>
+              <li>
+                <a href="{% url 'profile' %}">{% trans "My Account" %}
+                  {% if last_instance %}
+                  {% with iuser=request.user|instanceuser:last_instance %}
+                  <span class="reputation">({{ iuser.reputation }} rep)</span>
+                  {% endwith  %}
+                  {% endif %}
+                </a>
+              </li>
               <li><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
               <li class="user-img"><a href="{% url 'profile' %}"><img src="/static/img/profile.jpg"></a></li>
             {% else %}
