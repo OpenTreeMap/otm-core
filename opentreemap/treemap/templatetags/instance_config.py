@@ -30,14 +30,20 @@ def feature_enabled(instance, feature):
 
 @register.filter
 def instanceuser(user, instance):
-    return user.get_instance_user(instance)
+    if user.is_authenticated():
+        return user.get_instance_user(instance)
+    else:
+        return None
 
 
 @register.filter
 def plot_field_is_writable(instanceuser, field):
-    perms = instanceuser.role.plot_permissions.filter(field_name=field)
-
-    if len(perms) == 0:
+    if instanceuser is None:
         return False
     else:
-        return perms[0].allows_writes
+        perms = instanceuser.role.plot_permissions.filter(field_name=field)
+
+        if len(perms) == 0:
+            return False
+        else:
+            return perms[0].allows_writes
