@@ -6,61 +6,23 @@
 var $ = require('jquery'),
     _ = require('underscore'),
     Bacon = require('baconjs'),
-    OL = require('OpenLayers');
+    U = require('utility'),
+    L = require('leaflet');
 
-var vectorLayer,
-    pointControl,
-    dragControl,
-    markerFeature,
+var marker,
     markerPlacedByClickBus = new Bacon.Bus(),
     firstMoveBus = new Bacon.Bus(),
     markerWasMoved,
-    config;
+    trackingMarker,
+    config,
+    lastMarkerLocation,
+    map;
 
+exports = module.exports = {
 
-module.exports = {
-
-    init: function(theConfig, map) {
+    init: function(theConfig, theMap) {
+        map = theMap;
         config = theConfig;
-
-        function onMarkerPlaced(feature) {
-            markerFeature = feature;
-            pointControl.deactivate();
-            enableMoving();
-            markerPlacedByClickBus.push();
-            firstMoveBus.push();
-            markerWasMoved = true;
-        }
-
-        function onMarkerMoved(feature) {
-            if (!markerWasMoved) {
-                markerWasMoved = true;
-                firstMoveBus.push();
-            }
-        }
-
-        vectorLayer = new OL.Layer.Vector(
-            "Vector Layer",
-            { renderers: OL.Layer.Vector.prototype.renderers,
-              displayInLayerSwitcher: false });
-
-        var pointControlFeature = new OL.Feature.Vector(new OL.Geometry.Point());
-        pointControlFeature.style = getMarkerStyle(true);
-        pointControl = new OL.Control.DrawFeature(
-            vectorLayer,
-            OL.Handler.Point,
-            {
-                'featureAdded': onMarkerPlaced,
-                'handlerOptions': { point: pointControlFeature }
-            }
-        );
-
-        dragControl = new OL.Control.DragFeature(vectorLayer);
-        dragControl.onComplete = onMarkerMoved;
-
-        map.addLayer(vectorLayer);
-        map.addControl(pointControl);
-        map.addControl(dragControl);
     },
 
     // Allows clients to be notified when user places marker by clicking the map
@@ -71,20 +33,64 @@ module.exports = {
 
     // Let user place the marker by clicking the map
     enablePlacing: function () {
-        vectorLayer.display(true);
-        pointControl.activate();
+        // Add a 'tracking marker' that follows the mouse, until
+        // the object is placed
+        if (!trackingMarker) {
+            trackingMarker = L.marker({lat:0, lng:0}, {
+                icon: getMarkerIcon(false)
+            });
+
+            map.on('mousemove', function(event) {
+                trackingMarker.setLatLng(event.latlng);
+            });
+        }
+
+        trackingMarker.addTo(map);
+
+        map.on('click', exports.addMarkerToMap);
+    },
+
+    disablePlacing: function() {
+        if (trackingMarker) {
+            map.removeLayer(trackingMarker);
+        }
+
+        map.off('click', exports.addMarkerToMap);
+    },
+
+    addMarkerToMap: function(event) {
+        exports.disablePlacing();
+        exports.place(event.latlng);
+
+        marker.on('dragend', onMarkerMoved);
+
+        enableMoving();
+
+        markerPlacedByClickBus.push();
+        firstMoveBus.push();
+        markerWasMoved = true;
     },
 
     // Put marker at the specified location (WebMercator, {x: lon, y: lat})
     place: function (location) {
-        pointControl.deactivate();
-        if (markerFeature) {
-            markerFeature.destroy();
+        var latlng;
+
+        if (location.x && location.y) {
+            latlng = U.webMercatorToLatLng(location.x, location.y);
+            latlng = L.latLng(latlng.lat, latlng.lng);
+        } else {
+            latlng = location;
         }
-        markerFeature = new OL.Feature.Vector(
-            new OL.Geometry.Point(location.x, location.y));
-        vectorLayer.addFeatures(markerFeature);
-        vectorLayer.display(true);
+
+        if (marker) {
+            map.removeLayer(marker);
+        }
+
+        marker = L.marker(latlng, {
+            icon: getMarkerIcon(true),
+            draggable: true
+        });
+
         showViewMarker();
         markerWasMoved = false;
     },
@@ -94,19 +100,23 @@ module.exports = {
 
     // Hide/deactivate/clear everything (but keep feature so its location can still be retrieved)
     hide: function () {
-        pointControl.deactivate();
-        dragControl.deactivate();
-        vectorLayer.removeAllFeatures();
-        vectorLayer.display(false);
+        if (marker) {
+            lastMarkerLocation = marker.getLatLng();
+            map.removeLayer(marker);
+        }
+
+        if (trackingMarker) {
+            map.removeLayer(trackingMarker);
+        }
+
         markerWasMoved = false;
     },
 
     // Return current marker location
     getLocation: function () {
-        return {
-            x: markerFeature.geometry.x,
-            y: markerFeature.geometry.y
-        };
+        var latlng = marker ? marker.getLatLng() : lastMarkerLocation;
+
+        return U.lonLatToWebMercator(latlng.lng, latlng.lat);
     },
 
     // Returns "True" if user dragged the marker; false otherwise
@@ -117,14 +127,14 @@ module.exports = {
 
 // Let user move the marker by dragging it with the mouse
 function enableMoving() {
-    dragControl.activate();
+    marker.dragging.enable();
     showEditMarker();
     markerWasMoved = false;
 }
 
 // Prevent user from dragging the marker
 function disableMoving() {
-    dragControl.deactivate();
+    marker.dragging.disable();
     showViewMarker();
 }
 
@@ -132,19 +142,24 @@ var showViewMarker = _.partial(showMarker, false),
     showEditMarker = _.partial(showMarker, true);
 
 function showMarker(inEditMode) {
-    markerFeature.style = getMarkerStyle(inEditMode);
-    vectorLayer.redraw();
+    marker.setIcon(getMarkerIcon(inEditMode));
+    marker.addTo(map);
 }
 
-function getMarkerStyle(inEditMode) {
-    return {
-        externalGraphic: config.staticUrl +
+function getMarkerIcon(inEditMode) {
+    return L.icon({
+        iconUrl: config.staticUrl +
             (inEditMode ? 'img/mapmarker_editmode.png' :
                           'img/mapmarker_viewmode.png'),
         // Use half actual size to look good on IOS retina display
-        graphicHeight: 75,
-        graphicWidth: 78,
-        graphicXOffset: -36,
-        graphicYOffset: -62
-    };
+        iconSize: [78, 75],
+        iconAnchor: [36, 62]
+    });
+}
+
+function onMarkerMoved() {
+    if (!markerWasMoved) {
+        markerWasMoved = true;
+        firstMoveBus.push();
+    }
 }

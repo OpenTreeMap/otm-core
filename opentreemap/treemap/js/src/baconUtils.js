@@ -102,3 +102,12 @@ exports.enterOrClickEventStream = function(options) {
 
     return triggerEventStream;
 };
+
+exports.wrapOnEvent = function(thing, event) {
+    return Bacon.fromBinder(function (handler) {
+        thing.on(event, handler);
+        return function() {
+            return thing.off(event, handler);
+        };
+    });
+};
