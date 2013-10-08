@@ -237,7 +237,7 @@ exports.init = function(options) {
 
                         // hide the display fields if there is a corresponding
                         // edit field to show in its place
-                        _.each($(fields).filter(":not(.btn)"), function (field) {
+                        _.each(FH.excludeControlButtons(fields), function (field) {
                             var $field = $(field),
                                 $edit = FH.getField($(editFields),
                                                     $field.attr('data-field'));
@@ -260,7 +260,7 @@ exports.init = function(options) {
         },
 
         enableOrDisableEditButton = function () {
-            var disable = $(editFields).filter(':not(.btn)').length === 0;
+            var disable = FH.excludeControlButtons(editFields).length === 0;
             $edit.prop('disabled', disable);
             $edit.attr('title', disable ? disabledMessage : '');
         };
