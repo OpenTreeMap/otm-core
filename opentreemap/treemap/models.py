@@ -279,10 +279,12 @@ class Plot(UDFModel, Authorizable, Auditable):
         if distance_in_meters is None:
             distance_in_meters = settings.NEARBY_TREE_DISTANCE
 
-        return Plot.objects.filter(
-            geom__distance_lte=(self.geom, D(m=distance_in_meters)))\
-                           .filter(instance=self.instance)\
-                           .exclude(pk=self.pk)
+        distance_filter = Plot.objects.filter(
+            geom__distance_lte=(self.geom, D(m=distance_in_meters)))
+
+        return distance_filter\
+            .filter(instance=self.instance)\
+            .exclude(pk=self.pk)
 
     def get_tree_history(self):
         """
