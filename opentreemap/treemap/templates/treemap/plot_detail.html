@@ -97,7 +97,7 @@
               </tr>
               {% endusercanread %}
               {# The "plot-species" label is used as an id prefix in "field/species_tr.html" #}
-{#               {% field "plot-species" from "tree.species" for request.user withtemplate "treemap/field/species_tr.html" %} #}
+              {% field "plot-species" from "tree.species" for request.user withtemplate "treemap/field/species_tr.html" %}
               {% trans "Trunk Diameter" as diameter %}
               {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field/diameter_tr.html" %}
               {% trans "Tree Height" as height %}
