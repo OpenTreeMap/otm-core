@@ -111,7 +111,8 @@ class BoundaryViewTest(ViewTestCase):
             self.instance,
             boundary.pk)
 
-        self.assertEqual(response.content, boundary.geom.geojson)
+        self.assertEqual(response.content,
+                         boundary.geom.transform(4326, clone=True).geojson)
 
     def test_autocomplete_view(self):
         response = boundary_autocomplete(make_request(), self.instance)
@@ -1529,24 +1530,14 @@ class SettingsJsViewTests(ViewTestCase):
         self.req.session = MockSession()
         self.get_response = lambda: root_settings_js_view(self.req)
 
-    @override_settings(TILE_HOSTS=None)
+    @override_settings(TILE_HOST=None)
     def test_none_tile_hosts_omits_tilehosts_setting(self):
         self.assertNotInResponse('otm.settings.tileHosts',
                                  self.get_response())
 
-    @override_settings(TILE_HOSTS=[])
-    def test_empty_tile_hosts_omits_empty_string_host(self):
-        self.assertInResponse('otm.settings.tileHosts = [""];',
-                              self.get_response())
-
-    @override_settings(TILE_HOSTS=['a'])
+    @override_settings(TILE_HOST='{s}.a')
     def test_single_tile_host_in_tilehosts_setting(self):
-        self.assertInResponse('otm.settings.tileHosts = ["a"];',
-                              self.get_response())
-
-    @override_settings(TILE_HOSTS=['a', 'b:81'])
-    def test_multiple_tile_hosts_in_tilehosts_setting(self):
-        self.assertInResponse('otm.settings.tileHosts = ["a", "b:81"];',
+        self.assertInResponse('otm.settings.tileHost = "{s}.a";',
                               self.get_response())
 
 
