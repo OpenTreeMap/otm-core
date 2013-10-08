@@ -24,14 +24,16 @@
       <img src="{{ STATIC_URL }}img/tree.png">
       {% endif %}
       {% endwith %}
-      {% if request.user.is_authenticated %}
-      {% if request.instance_user.can_add_photos_to_tree %}
-      <a id="toggle-add-photo-modal" data-toggle="modal" data-target="#add-photo-modal" class="btn btn-mini add-photos">{% trans "Add Photos" %}</a>
-      {% else %}
-      <a data-toggle="modal" disabled="disabled" class="btn btn-mini add-photos" title="{% trans "Adding tree photos is not available to all users" %}">{% trans "Add Photos" %}</a>
-      {% endif %}
-      {% else %}
-      <a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}" class="btn btn-mini">{% trans "Add Photos" %}</a>
+      {% if request.instance|feature_enabled:"tree_image_upload" %}
+          {% if request.user.is_authenticated %}
+              {% if request.instance_user.can_add_photos_to_tree %}
+              <a id="toggle-add-photo-modal" data-toggle="modal" data-target="#add-photo-modal" class="btn btn-mini add-photos">{% trans "Add Photos" %}</a>
+              {% else %}
+              <a data-toggle="modal" disabled="disabled" class="btn btn-mini add-photos" title="{% trans "Adding tree photos is not available to all users" %}">{% trans "Add Photos" %}</a>
+              {% endif %}
+          {% else %}
+          <a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}" class="btn btn-mini">{% trans "Add Photos" %}</a>
+          {% endif %}
       {% endif %}
       <div id="upload-error" class="text-error" style="display: none"></div>
       <hr>

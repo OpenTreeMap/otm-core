@@ -27,7 +27,9 @@ from django.db.models import Q
 
 from treemap.util import (json_api_call, render_template, instance_request,
                           require_http_method, package_validation_errors,
-                          bad_request_json_response, string_as_file_call)
+                          bad_request_json_response, string_as_file_call,
+                          requires_feature)
+
 from treemap.search import create_filter
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
@@ -928,8 +930,10 @@ def static_page(request, instance, page):
     return {'content': trans('There is no content for this page yet'),
             'title': page}
 
+
 audits_view = instance_request(
-    render_template('treemap/recent_edits.html', audits))
+    requires_feature('recent_edits_report')(
+        render_template('treemap/recent_edits.html', audits)))
 
 index_view = instance_request(render_template('treemap/index.html'))
 
