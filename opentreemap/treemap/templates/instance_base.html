@@ -99,6 +99,23 @@
 </script>
 {% endblock searchscripts %}
 
+{% block footer %}
+<div class="footer-inner">
+  <ul class="inline pull-left">
+    {% with linkData=request.instance|instance_config:"linkData" %}
+    <li><a href="{% if linkData.treekey %}{{ linkData.treekey }}{% else %}http://www.arborday.org/trees/whatTree/{% endif %}">{% trans "Tree Key" %}</a></li>
+    <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page='Resources' %}">{% trans "Resources" %}</a></li>
+    <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page='FAQ' %}">{% trans "FAQ" %}</a></li>
+    <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page='About' %}">{% trans "About" %}</a></li>
+    {% if linkData.contact %}
+    <li><a href="mailto:{{ linkData.contact }}">{% trans "Contact" %}</a></li>
+    {% endif %}
+    {% endwith %}
+  </ul>
+  <a href="javascript:;" class="pull-right partners">Partners</a>
+</div>
+{% endblock footer %}
+
 {% block templates %}
 {% verbatim %}
 <script id="species-element-template" type="text/x-mustache-template">
