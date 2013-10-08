@@ -151,18 +151,19 @@
     <div class="span3">
       {% with iuser=user|instanceuser:request.instance %}
       {% if iuser|plot_field_is_writable:"geom" %}
-      <button class="btn" style="display:none" id="edit-plot-location">Move Tree</button>
-        <button class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</button>
-        {% else %}
-        <button data-class="display" class="btn" disabled="disabled">
-          "{% trans "Editing a plot's location is not available to all users" %}"
-        </button>
-        {% endif %}
-        {% endwith %}
-        <div id="map" class="map-small"></div>
-        <div id="street-view" class="street-view-small" style="display: none;"></div>
-      <h3>{% trans "Commments" %}</h3>
+      <button class="btn" style="display:none" id="edit-plot-location">{% trans "Move Tree" %}</button>
+      <button class="btn" style="display:none"
+              id="cancel-edit-plot-location">{% trans "Cancel Tree Move" %}</button>
+      {% else %}
+      {% trans "Editing a plot's location is not available to all users" as title %}
+      <button class="btn" style="display:none" disabled="disabled" id="edit-plot-location"
+              title="{{ title }}">{% trans "Move Tree" %}</button>
+      {% endif %}
+      {% endwith %}
+      <div id="map" class="map-small"></div>
+      <div id="street-view" class="street-view-small" style="display: none;"></div>
 
+      <h3>{% trans "Commments" %}</h3>
       {% if request.user.is_authenticated %}
         <form>
           <textarea rows=8></textarea><br>
