@@ -12,8 +12,8 @@ otm.settings.urls = {
     'filterQueryArgumentName': 'q'
 }
 
-{% if not settings.TILE_HOSTS = None %}
-    otm.settings.tileHosts = ["{{ settings.TILE_HOSTS|join:'", "' }}"];
+{% if not settings.TILE_HOST = None %}
+    otm.settings.tileHost = "{{ settings.TILE_HOST }}";
 {% endif %}
 
 {% if request.user.is_authenticated %}

@@ -3,11 +3,20 @@
 var $ = require('jquery'),
     _ = require('underscore'),
     google = require('googlemaps'),
-    OL = require('OpenLayers'),
+    L = require('leaflet'),
+    U = require('utility'),
+    Bacon = require('baconjs'),
+    BU = require('BaconUtils'),
     makeLayerFilterable = require('./makeLayerFilterable');
+
+// Leaflet extensions
+require('utfgrid');
+require('leafletbing');
+require('leafletgoogle');
 
 exports.ZOOM_DEFAULT = 11;
 exports.ZOOM_PLOT = 18;
+
 
 exports.init = function(options) {
     var config = options.config,
@@ -24,14 +33,17 @@ exports.init = function(options) {
 
     exports.map = map;
 
+    map.utfEvents = BU.wrapOnEvent(utfLayer, 'click');
+
     exports.updateGeoRevHash = function(geoRevHash) {
         if (geoRevHash !== config.instance.rev) {
             config.instance.rev = geoRevHash;
-            plotLayer.url = getPlotLayerURL(config, 'png');
-            allPlotsLayer.url = getPlotLayerURL(config, 'png');
-            utfLayer.url = getPlotLayerURL(config, 'grid.json');
-            plotLayer.redraw({force: true});
-            utfLayer.redraw({force: true});
+
+            var pngUrl = getPlotLayerURL(config, 'png');
+            plotLayer.setUnfilteredUrl(pngUrl);
+            allPlotsLayer.setUnfilteredUrl(pngUrl);
+
+            utfLayer.setUrl(getPlotLayerURL(config, 'grid.json'));
         }
     };
 
@@ -39,38 +51,26 @@ exports.init = function(options) {
         plotLayer.setFilter(filter);
 
         if (!allPlotsLayer.map) {
-            map.addLayers([allPlotsLayer]);
+            map.addLayer(allPlotsLayer);
         }
         if (_.isEmpty(filter)) {
             map.removeLayer(allPlotsLayer);
         }
-
     };
 
-    var setCenterAndZoomIn = exports.setCenterAndZoomIn = function(location, zoom) {
-        // I could not find a documented way of getting the max
-        // zoom level allowed by the current base layer so
-        // I am using isValidZoomLevel to find it.
-        while (zoom > 1 && !map.isValidZoomLevel(zoom)) {
-            zoom -= 1;
+    var setCenterAndZoomIn = exports.setCenterAndZoomIn = function(location, zoom, reset) {
+        if (zoom > map.getMaxZoom()) {
+            zoom = map.getMaxZoom();
         }
-        map.setCenter(new OL.LonLat(location.x, location.y),
-                      Math.max(map.getZoom(), zoom));
+
+        var ll = U.webMercatorToLatLng(location.x, location.y);
+        map.setView(new L.LatLng(ll.lat, ll.lng),
+                    Math.max(map.getZoom(), zoom),
+                    {reset: !!reset});
     };
 
-    // Bing maps uses a 1-based zoom so XYZ layers on the base map have
-    // a zoom offset that is always one less than the map zoom:
-    // > map.setCenter(center, 11)
-    // > map.zoom
-    //   12
-    // So this forces the tile requests to use the correct Z offset
-    if (config.instance.basemap.type === 'bing') {
-        plotLayer.zoomOffset = 1;
-        utfLayer.zoomOffset = 1;
-    }
-
-    map.addLayer(plotLayer);
     map.addLayer(utfLayer);
+    map.addLayer(plotLayer);
     map.addLayer(boundsLayer);
 
     var center = options.center || config.instance.center,
@@ -78,115 +78,90 @@ exports.init = function(options) {
     setCenterAndZoomIn(center, zoom);
 };
 
-function createMap(elmt, config, options) {
+var createMap = exports.createMap = function(elmt, config, options) {
     options = options || {};
-    OL.ImgPath = "/static/img/";
 
-    var map = new OL.Map({
-        theme: null,
-        div: elmt,
-        projection: 'EPSG:3857',
-        layers: getBasemapLayers(config)
-    });
+    var basemapMapping = getBasemapLayers(config);
 
-    var switcher = new OL.Control.LayerSwitcher();
+    var map = L.map(elmt, {center: new L.LatLng(0.0, 0.0), zoom: 2});
 
-    map.addControls([switcher]);
+    if (_.isArray(basemapMapping)) {
+        _.each(_.values(basemapMapping),
+               function(layer) { map.addLayer(layer); });
+    } else {
+        var visible = _.keys(basemapMapping)[0];
+
+        map.addLayer(basemapMapping[visible]);
+
+        L.control.layers(basemapMapping).addTo(map);
+    }
 
     if (options.disableScrollWithMouseWheel) {
-        var controls = map.getControlsByClass('OpenLayers.Control.Navigation');
-        _.each(controls, function(control) { control.disableZoomWheel(); });
+        map.scrollWheelZoom = false;
     }
 
     return map;
 }
 
 function getBasemapLayers(config) {
+    function makeBingLayer(layer) {
+        return new L.BingLayer(
+            config.instance.basemap.bing_api_key,
+            {type: layer});
+    }
+
     var layers;
     if (config.instance.basemap.type === 'bing') {
-        layers = [
-            new OL.Layer.Bing({
-                name: 'Road',
-                key: config.instance.basemap.bing_api_key,
-                type: 'Road',
-                isBaseLayer: true
-            }),
-            new OL.Layer.Bing({
-                name: 'Aerial',
-                key: config.instance.basemap.bing_api_key,
-                type: 'Aerial',
-                isBaseLayer: true
-            }),
-            new OL.Layer.Bing({
-                name: 'Hybrid',
-                key: config.instance.basemap.bing_api_key,
-                type: 'AerialWithLabels',
-                isBaseLayer: true
-            })
-        ];
+        return {
+            'Road': makeBingLayer('Road'),
+            'Aerial': makeBingLayer('Aerial'),
+            'Hybrid': makeBingLayer('AerialWithLabels')
+        };
     } else if (config.instance.basemap.type === 'tms') {
-        layers = [new OL.Layer.XYZ(
-            'xyz',
-            config.instance.basemap.data)];
+        layers = [L.tileLayer(config.instance.basemap.data)];
     } else {
-        layers = [
-            new OL.Layer.Google(
-                "Google Streets",
-                {numZoomLevels: 20}),
-            new OL.Layer.Google(
-                "Google Hybrid",
-                {type: google.maps.MapTypeId.HYBRID,
-                 numZoomLevels: 20}),
-            new OL.Layer.Google(
-                "Google Satellite",
-                {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 22})
-        ];
+        return {'Streets': new L.Google('ROADMAP'),
+                'Hybird': new L.Google('HYBRID'),
+                'Satellite': new L.Google('SATELLITE')};
     }
     return layers;
 }
 
 function createPlotTileLayer(config) {
     var url = getPlotLayerURL(config, 'png'),
-        layer = new OL.Layer.XYZ(
-            'tiles',
-            url,
-            { isBaseLayer: false,
-              sphericalMercator: true,
-              displayInLayerSwitcher: false,
-              numZoomLevels: 20 });
+        layer = L.tileLayer(url);
     makeLayerFilterable(layer, url, config.urls.filterQueryArgumentName);
     return layer;
 }
 
 function createPlotUTFLayer(config) {
-    var url = getPlotLayerURL(config, 'grid.json'),
-        layer = new OL.Layer.UTFGrid({
-            url: url,
-            utfgridResolution: 4,
-            displayInLayerSwitcher: false
-        });
+    var layer = new L.UtfGrid(getPlotLayerURL(config, 'grid.json'), {
+        resolution: 4,
+        useJsonP: false
+    });
+
+    layer.setUrl = function(url) {
+        // Poke some internals
+        // Update the url
+        layer._url = url;
+        // bust the cache
+        layer._cache = {};
+
+        // Trigger update
+        layer._update();
+    };
+
     return layer;
 }
 
-// The ``url`` property of the OpenLayers XYZ layer supports a single
-// string or an array of strings. ``getPlotLayerURL`` looks at
-// ``config.tileHosts`` and returns a single string if only one host
-// is defined, or an array of strings if multiple hosts are defined.
+// Leaflet uses {s} to indicate subdomains
 function getLayerURL(config, layer, extension) {
-    var urls = [],
-        // Using an array with a single undefined element when
-        // ``config.tileHosts`` is falsy allows us to always
-        // use an ``_.each`` loop to generate the url string,
-        // simplifying the code path
-        hosts = config.tileHosts || [undefined];
-    _.each(hosts, function(host) {
-        var prefix = host ? '//' + host : '';
-        urls.push(prefix + '/tile/' +
+    var host = config.tileHost || '';
+    var prefix = host ? '//' + host : '';
+    return prefix + '/tile/' +
         config.instance.rev +
-        '/database/otm/table/' + layer + '/${z}/${x}/${y}.' +
-        extension + '?instance_id=' + config.instance.id);
-    });
-    return urls.length === 1 ? urls[0] : urls;
+        '/database/otm/table/' + layer + '/{z}/{x}/{y}.' +
+        extension + '?instance_id=' + config.instance.id;
 }
 
 function getPlotLayerURL(config, extension) {
@@ -198,11 +173,6 @@ function getBoundsLayerURL(config, extension) {
 }
 
 function createBoundsTileLayer(config) {
-    return new OL.Layer.XYZ(
-        'bounds',
-        getBoundsLayerURL(config, 'png'),
-        { isBaseLayer: false,
-          sphericalMercator: true,
-          displayInLayerSwitcher: false,
-          numZoomLevels: 20 });
+    return L.tileLayer(
+        getBoundsLayerURL(config, 'png'));
 }

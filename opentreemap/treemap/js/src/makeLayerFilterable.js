@@ -26,8 +26,7 @@ function makeFilterUrl(originalUrl, filterQueryArgumentName, filter) {
 
 function makeLayerFilterable(layer, originalUrl, filterQueryArgumentName) {
     layer.clearFilter = function() {
-        layer.url = originalUrl;
-        layer.redraw({force: true});
+        layer.setUrl(originalUrl);
     };
 
     layer.setFilter = function(filter) {
@@ -35,18 +34,22 @@ function makeLayerFilterable(layer, originalUrl, filterQueryArgumentName) {
             layer.clearFilter();
         } else {
             if (_.isArray(originalUrl)) {
-                layer.url = _.reduce(originalUrl,
+                layer.setUrl(_.reduce(originalUrl,
                     function (urls, url) {
                         urls.push(makeFilterUrl(
                             url, filterQueryArgumentName, filter));
                         return urls;
-                    }, []);
+                    }, []));
             } else {
-                layer.url = makeFilterUrl(originalUrl,
-                    filterQueryArgumentName, filter);
+                layer.setUrl(makeFilterUrl(originalUrl,
+                    filterQueryArgumentName, filter));
             }
-            layer.redraw({force: true});
         }
+    };
+
+    layer.setUnfilteredUrl = function (url) {
+        originalUrl = url;
+        layer.setUrl(url);
     };
 
     return layer;

@@ -528,7 +528,12 @@ def instance_user_audits(request, instance_url_name, username):
 
 def boundary_to_geojson(request, instance, boundary_id):
     boundary = get_object_or_404(instance.boundaries, pk=boundary_id)
-    return HttpResponse(boundary.geom.geojson)
+    geom = boundary.geom
+
+    # Leaflet prefers to work with lat/lng so we do the transformation
+    # here, since it way easier than doing it client-side
+    geom.transform('4326')
+    return HttpResponse(geom.geojson)
 
 
 def boundary_autocomplete(request, instance):

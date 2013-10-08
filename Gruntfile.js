@@ -24,17 +24,15 @@ module.exports = function(grunt) {
     function getAliases() {
         var aliases = ['treemap/js/src/map.js:map',
                        'treemap/js/src/user.js:user',
+                       'treemap/js/src/mapManager.js:mapManager',
                        'treemap/js/src/plot.js:plot',
-                       'treemap/js/src/OpenLayers.js:OpenLayers',
                        'treemap/js/src/searchBar.js:searchBar',
                        'treemap/js/src/csrf.js:csrf',
                        'treemap/js/src/photoReview.js:photoReview',
                        'treemap/js/src/baconUtils:BaconUtils',
                        'treemap/js/src/inlineEditForm:inlineEditForm',
                        'treemap/js/src/imageUploadPanel:imageUploadPanel',
-                       'treemap/js/src/utility:utility',
-                       'treemap/js/src/openLayersMapEventStream:' +
-                       'openLayersMapEventStream'];
+                       'treemap/js/src/utility:utility'];
 
         var extras = require('./extra.json');
         for (var alias in extras) {
@@ -62,10 +60,20 @@ module.exports = function(grunt) {
                     },
                     noParse: grunt.file.expand('*/js/lib/*.js'),
                     shim: {
-                        UnpatchedOpenLayers: {
-                            path: './treemap/js/shim/OpenLayers.js',
-                            exports: 'OpenLayers',
-                            depends: { googlemaps: 'google' }
+                        leafletgoogle: {
+                            path: './treemap/js/shim/leaflet.google.js',
+                            exports: null,
+                            depends: { leaflet: 'L' }
+                        },
+                        leafletbing: {
+                            path: './treemap/js/shim/leaflet.bing.js',
+                            exports: null,
+                            depends: { leaflet: 'L' }
+                        },
+                        utfgrid: {
+                            path: './treemap/js/shim/leaflet.utfgrid.js',
+                            exports: null,
+                            depends: { leaflet: 'L' }
                         },
                         // BEGIN modules which add themselves to the jQuery object
                         typeahead: {
@@ -143,7 +151,7 @@ module.exports = function(grunt) {
                       'treemap/css/vendor/bootstrap-responsive.css',
                       'treemap/css/vendor/datepicker.css',
                       'treemap/css/vendor/fontello.css',
-                      'treemap/css/vendor/openlayers.css'],
+                      'treemap/css/vendor/leaflet.css'],
                 dest: 'treemap/static/css/vendor.css'
             }
         },
