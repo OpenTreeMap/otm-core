@@ -157,8 +157,7 @@ function createPlotUTFLayer(config) {
 // Leaflet uses {s} to indicate subdomains
 function getLayerURL(config, layer, extension) {
     var host = config.tileHost || '';
-    var prefix = host ? '//' + host : '';
-    return prefix + '/tile/' +
+    return host + '/tile/' +
         config.instance.rev +
         '/database/otm/table/' + layer + '/{z}/{x}/{y}.' +
         extension + '?instance_id=' + config.instance.id;
