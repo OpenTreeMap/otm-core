@@ -281,7 +281,9 @@ class AbstractNode(template.Node):
             elif model_has_udfs and field_is_udf:
                 val = model.udfs[udf_field_name]
                 try:
-                    choices = _udf_dict(model, udf_field_name)['choices']
+                    values = [''] + _udf_dict(model, udf_field_name)['choices']
+                    choices = [{'value': value, 'display_value': value}
+                               for value in values]
                 except KeyError:
                     choices = None
             else:
