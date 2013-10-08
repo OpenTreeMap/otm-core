@@ -510,8 +510,9 @@ class InlineFieldTagTests(TestCase):
 
     def test_sets_choices_for_udf_field(self):
         user = make_observer_user(self.instance)
-        template_string = """{% for c in field.choices %}{{c}}{% endfor %}"""
-        self.assert_plot_udf_template(user, template_string, 'abc')
+        template_string = """
+            {% for c in field.choices %}{{c.value}}-{% endfor %}"""
+        self.assert_plot_udf_template(user, template_string, '-a-b-c-')
 
     def test_sets_choices_to_none_for_normal_field(self):
         user = make_observer_user(self.instance)
