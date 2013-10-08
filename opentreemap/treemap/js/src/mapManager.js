@@ -69,9 +69,9 @@ exports.init = function(options) {
                     {reset: !!reset});
     };
 
+    map.addLayer(boundsLayer);
     map.addLayer(utfLayer);
     map.addLayer(plotLayer);
-    map.addLayer(boundsLayer);
 
     var center = options.center || config.instance.center,
         zoom = options.zoom || exports.ZOOM_DEFAULT;
