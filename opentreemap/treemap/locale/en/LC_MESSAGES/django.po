@@ -333,23 +333,23 @@ msgstr ""
 msgid "to add comments"
 msgstr ""
 
-#: templates/treemap/plot_popup.html:2
+#: templates/treemap/partials/plot_popup.html:2
 msgid "ID:"
 msgstr ""
 
-#: templates/treemap/plot_popup.html:3
+#: templates/treemap/partials/plot_popup.html:3
 msgid "Species:"
 msgstr ""
 
-#: templates/treemap/plot_popup.html:4
+#: templates/treemap/partials/plot_popup.html:4
 msgid "Nearby Address:"
 msgstr ""
 
-#: templates/treemap/plot_popup.html:5
+#: templates/treemap/partials/plot_popup.html:5
 msgid "View all details"
 msgstr ""
 
-#: templates/treemap/plot_popup.html:6
+#: templates/treemap/partials/plot_popup.html:6
 msgid "Edit details"
 msgstr ""
 
