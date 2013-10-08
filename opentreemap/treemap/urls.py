@@ -16,7 +16,7 @@ from treemap.views import (boundary_to_geojson_view, index_view, map_view,
                            add_tree_photo_endpoint, photo_review_endpoint,
                            approve_or_reject_photo_view, next_photo_endpoint,
                            photo_review_partial_endpoint, get_plot_eco_view,
-                           edit_plot_detail_view)
+                           edit_plot_detail_view, static_page_view)
 
 # Testing notes:
 # We want to test that every URL succeeds (200) or fails with bad data (404).
@@ -26,6 +26,8 @@ from treemap.views import (boundary_to_geojson_view, index_view, map_view,
 urlpatterns = patterns(
     '',
     url(r'^$', index_view),
+    url(r'page/(?P<page>[a-zA-Z0-9]+)/$',
+        static_page_view, name='static_page'),
     url(r'^boundaries/(?P<boundary_id>\d+)/geojson/$',
         boundary_to_geojson_view),
     url(r'^boundaries/$', boundary_autocomplete_view),
