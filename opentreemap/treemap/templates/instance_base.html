@@ -24,7 +24,11 @@
 <li><a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}">{% trans "Add a Tree" %}</a></li>
 {% endif %}
 {% if settings.MANAGEMENT_VIEW_NAME %}
+{% with iuser=request.user|instanceuser:request.instance %}
+{% if iuser.admin %}
 <li class="{% block activemanagement %}{% endblock %}"><a href="{% url settings.MANAGEMENT_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Manage Tree Map" %}</a></li>
+{% endif %}
+{% endwith %}
 {% endif %}
 {% endblock instancetopnav %}
 
