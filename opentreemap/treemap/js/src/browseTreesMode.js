@@ -109,7 +109,8 @@ function makePopup(latLon, html, size) {
     if (latLon && html) {
         var popupOptions = {
             maxWidth: size.width || 320,
-            maxHeight: size.height || 130 };
+            maxHeight: size.height || 130
+        };
 
         return L.popup(popupOptions)
             .setLatLng(latLon)

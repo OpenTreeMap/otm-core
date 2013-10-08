@@ -101,7 +101,7 @@ var createMap = exports.createMap = function(elmt, config, options) {
     }
 
     return map;
-}
+};
 
 function getBasemapLayers(config) {
     function makeBingLayer(layer) {
