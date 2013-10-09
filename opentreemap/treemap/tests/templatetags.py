@@ -15,6 +15,7 @@ import os
 from shutil import rmtree
 
 from treemap.audit import FieldPermission, Role
+from treemap.json_field import set_attr_on_json_field
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.models import User, Plot, InstanceUser
 from treemap.tests import (make_instance, make_observer_user,
@@ -308,6 +309,8 @@ class InlineFieldTagTests(TestCase):
         self.role = Role(name='role', instance=self.instance, rep_thresh=0)
         self.role.save()
 
+        self.observer = make_observer_user(self.instance)
+
         self.udf_role = Role(name='udf', instance=self.instance, rep_thresh=0)
         self.udf_role.save()
 
@@ -369,6 +372,7 @@ class InlineFieldTagTests(TestCase):
         field_name = '"' + identifier + '"'
         template_text = """{% load form_extras %}""" +\
             """{% create from """ + field_name +\
+            """ in request.instance""" +\
             """ withtemplate "field_template.html" %}"""
         return Template(template_text)
 
@@ -441,9 +445,8 @@ class InlineFieldTagTests(TestCase):
                                               'False')
 
     def test_sets_is_visible_to_true_for_user_with_perms(self):
-        user = make_observer_user(self.instance)
-        self.assert_plot_length_context_value(user, 'field.is_visible',
-                                              'True')
+        self.assert_plot_length_context_value(
+            self.observer, 'field.is_visible', 'True')
 
     def test_sets_is_editable_to_false_for_user_without_perms(self):
         user = User(username='testuser')
@@ -474,81 +477,89 @@ class InlineFieldTagTests(TestCase):
         self.assert_plot_udf_context_value(user, 'field.is_editable', 'True')
 
     def test_sets_label(self):
-        user = make_observer_user(self.instance)
-        self.assert_plot_length_context_value(user, 'field.label',
-                                              'Test Field')
+        self.assert_plot_length_context_value(
+            self.observer, 'field.label', 'Test Field')
 
     def test_sets_identifier(self):
-        user = make_observer_user(self.instance)
-        self.assert_plot_length_context_value(user, 'field.identifier',
-                                              'plot.length')
+        self.assert_plot_length_context_value(
+            self.observer, 'field.identifier', 'plot.length')
 
     def test_sets_value(self):
-        user = make_observer_user(self.instance)
-        self.assert_plot_length_context_value(user, 'field.value', '12.3')
+        self.assert_plot_length_context_value(
+            self.observer, 'field.value', '12.3')
+
+    def test_sets_units(self):
+        self.assert_plot_length_context_value(
+            self.observer, 'field.units', 'in')
+
+    def test_sets_digits(self):
+        self.assert_plot_length_context_value(
+            self.observer, 'field.digits', '1')
 
     def test_sets_display_value(self):
-        user = make_observer_user(self.instance)
-        self.assert_plot_length_context_value(user, 'field.display_value',
-                                              '12.3')
+        self.assert_plot_length_context_value(
+            self.observer, 'field.display_value', '12.3 in')
+
+    def test_uses_custom_units_and_digits(self):
+        set_attr_on_json_field(
+            self.instance, 'config.value_display.plot.length.units', 'm')
+        set_attr_on_json_field(
+            self.instance, 'config.value_display.plot.length.digits', '3')
+        self.assert_plot_length_context_value(
+            self.observer, 'field.display_value', '12.300 m')  # Mike, here!
 
     def test_sets_data_type(self):
-        user = make_observer_user(self.instance)
-        self.assert_plot_length_context_value(user, 'field.data_type', 'float')
+        self.assert_plot_length_context_value(
+            self.observer, 'field.data_type', 'float')
 
     def test_sets_value_for_udf_field(self):
-        user = make_observer_user(self.instance)
-        self.assert_plot_udf_context_value(user, 'field.value', 'b')
+        self.assert_plot_udf_context_value(self.observer, 'field.value', 'b')
 
     def test_sets_display_value_for_udf_field(self):
-        user = make_observer_user(self.instance)
-        self.assert_plot_udf_context_value(user, 'field.display_value', 'b')
+        self.assert_plot_udf_context_value(
+            self.observer, 'field.display_value', 'b')
 
     def test_sets_data_type_for_udf_field(self):
-        user = make_observer_user(self.instance)
-        self.assert_plot_udf_context_value(user, 'field.data_type', 'choice')
+        self.assert_plot_udf_context_value(
+            self.observer, 'field.data_type', 'choice')
 
     def test_sets_choices_for_udf_field(self):
-        user = make_observer_user(self.instance)
         template_string = """
             {% for c in field.choices %}{{c.value}}-{% endfor %}"""
-        self.assert_plot_udf_template(user, template_string, '-a-b-c-')
+        self.assert_plot_udf_template(
+            self.observer, template_string, '-a-b-c-')
 
     def test_sets_choices_to_none_for_normal_field(self):
-        user = make_observer_user(self.instance)
-        self.assert_plot_length_context_value(user, 'field.choices', 'None')
+        self.assert_plot_length_context_value(
+            self.observer, 'field.choices', 'None')
 
     def test_labelless_sets_label_to_default(self):
-        user = make_observer_user(self.instance)
         self.assert_plot_length_context_value(
-            user, 'field.label', Plot._meta.get_field('length').help_text,
+            self.observer, 'field.label',
+            Plot._meta.get_field('length').help_text,
             self._form_template_labelless_with_request_user_for)
 
     def test_labelless_sets_identifier(self):
-        user = make_observer_user(self.instance)
         self.assert_plot_length_context_value(
-            user, 'field.identifier', 'plot.length',
+            self.observer, 'field.identifier', 'plot.length',
             self._form_template_labelless_with_request_user_for)
 
     def test_create_uses_new_model(self):
-        user = make_observer_user(self.instance)
         self.assert_plot_length_context_value(
-            user, 'field.value', unicode(Plot().length),
+            self.observer, 'field.value', unicode(Plot().length),
             self._form_template_create)
 
     def test_search_uses_new_model(self):
-        user = make_observer_user(self.instance)
         self.instance.config['advanced_search_fields'] = {
             'standard': [
                 {'identifier': 'plot.length'}
             ]
         }
         self.assert_plot_length_context_value(
-            user, 'field.value', unicode(Plot().length),
+            self.observer, 'field.value', unicode(Plot().length),
             self._form_template_search)
 
     def test_search_adds_field_config(self):
-        user = make_observer_user(self.instance)
         self.instance.config['advanced_search_fields'] = {
             'standard': [
                 {'identifier': 'plot.length',
@@ -558,23 +569,22 @@ class InlineFieldTagTests(TestCase):
             ]
         }
         self.assert_plot_length_context_value(
-            user, 'field.identifier', 'plot.length',
+            self.observer, 'field.identifier', 'plot.length',
             self._form_template_search)
 
         self.assert_plot_length_context_value(
-            user, 'field.label', 'testing',
+            self.observer, 'field.label', 'testing',
             self._form_template_search)
 
         self.assert_plot_length_context_value(
-            user, 'field.search_type', 'range',
+            self.observer, 'field.search_type', 'range',
             self._form_template_search)
 
         self.assert_plot_length_context_value(
-            user, 'field.default', '[0, 100]',
+            self.observer, 'field.default', '[0, 100]',
             self._form_template_search)
 
     def test_search_gets_default_label_when_none_given(self):
-        user = make_observer_user(self.instance)
         self.instance.config['advanced_search_fields'] = {
             'standard': [
                 {'identifier': 'plot.length',
@@ -582,12 +592,11 @@ class InlineFieldTagTests(TestCase):
             ]
         }
         self.assert_plot_length_context_value(
-            user, 'field.label',
+            self.observer, 'field.label',
             unicode(Plot._meta.get_field('length').help_text),
             self._form_template_search)
 
     def test_search_fields_get_added_only_for_valid_json_matches(self):
-        user = make_observer_user(self.instance)
         self.instance.config['advanced_search_fields'] = {
             'standard': [
                 {'identifiers': 'plot.width'}
@@ -597,7 +606,8 @@ class InlineFieldTagTests(TestCase):
             with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
                 self._write_field_template("{{ field.identifier }}")
                 self._form_template_search(None).render(Context({
-                    'request': {'user': user, 'instance': self.instance}}
+                    'request': {'user': self.observer,
+                                'instance': self.instance}}
                 )).strip()
 
 

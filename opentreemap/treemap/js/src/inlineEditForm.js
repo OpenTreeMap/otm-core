@@ -116,7 +116,7 @@ exports.init = function(options) {
         formFieldsToDisplayValues = function() {
             $(editFields).each(function(index, el){
                 var field = $(el).attr('data-field'),
-                    $input, value, display;
+                    $input, value, display, digits, units;
 
                 // if the edit field has a data-field property,
                 // look for a corresponding display value and if
@@ -135,6 +135,15 @@ exports.init = function(options) {
                         if ($input.is('select')) {
                             // Use dropdown text (not value) as display value
                             value = $input.find('option:selected').text();
+                        } else if (value) {
+                            digits = $(display).data('digits');
+                            if (digits) {
+                                value = parseFloat(value).toFixed(digits);
+                            }
+                            units = $(display).data('units');
+                            if (units) {
+                                value = value + ' ' + units;
+                            }
                         }
                         $(display).html(value);
                     }
