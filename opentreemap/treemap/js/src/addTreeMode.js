@@ -238,9 +238,9 @@ function onAddTreeSuccess(result) {
         requireDrag();
         break;
     case 'edit':
-        var url = config.instance.url + 'plots/' + result.plotId;
+        var url = config.instance.url + 'plots/' + result.plotId + '/edit';
         window.location.hash = '';
-        window.location.pathname = url;
+        window.location.href = url;
         break;
     case 'close':
         deactivateBus.push();
