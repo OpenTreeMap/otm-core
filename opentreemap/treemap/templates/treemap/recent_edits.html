@@ -23,9 +23,9 @@
     <div class="span12">
       <h1>
         {% trans "Recent Edits" %}
-        <a class="btn pull-right" href="{% url 'recent_edits' instance_url_name=request.instance.url_name %}">Reset</a>
+        <a class="btn pull-right" href="{% url 'recent_edits' instance_url_name=request.instance.url_name %}">{% trans "Reset" %}</a>
       </h1>
-      
+
       <table class="table table-striped">
         <tr>
           <th>{% trans "Audit ID" %}</th>
