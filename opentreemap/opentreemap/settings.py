@@ -22,6 +22,9 @@ AWS_HEADERS = {
 # API distance check, in meters
 MAP_CLICK_RADIUS = 100
 
+# Default nearby tree distance in meters
+NEARBY_TREE_DISTANCE = 5.0
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 AUTH_USER_MODEL = 'treemap.User'
@@ -243,3 +246,25 @@ MIDDLEWARE_CLASSES += EXTRA_MIDDLEWARE_CLASSES
 #       to a valid redis URL in local_settings.py
 import djcelery
 djcelery.setup_loader()
+
+#
+# Units and decimal digits for fields and eco values
+#
+
+DISPLAY_DEFAULTS = {
+    'plot': {
+        'width':  {'units': 'in', 'digits': 1},
+        'length': {'units': 'in', 'digits': 1},
+    },
+    'tree': {
+        'diameter':      {'units': 'in', 'digits': 1},
+        'height':        {'units': 'ft', 'digits': 1},
+        'canopy_height': {'units': 'ft', 'digits': 1}
+    },
+    'eco': {
+        'energy':     {'units': 'kwh', 'digits': 1},
+        'stormwater': {'units': 'gal', 'digits': 1},
+        'co2':        {'units': 'lbs/year', 'digits': 1},
+        'airquality': {'units': 'lbs/year', 'digits': 1}
+    }
+}

@@ -1,0 +1,14 @@
+{% extends "instance_base.html" %}
+
+{% block page_title %} | {{ title }}{% endblock %}
+
+{% block content %}
+<div class="image-background"></div>
+<div class="container contained profile">
+    <div class="row">
+        <div class="span12">
+          {{ content|safe }}
+        </div>
+    </div>
+</div>
+{% endblock content %}

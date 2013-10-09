@@ -6,6 +6,7 @@ from __future__ import division
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
+from django.contrib.gis.measure import D
 from django.db import IntegrityError
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as trans
@@ -273,6 +274,17 @@ class Plot(UDFModel, Authorizable, Auditable):
     readonly = models.BooleanField(default=False)
 
     objects = AuthorizableGeoHStoreUDFManager()
+
+    def nearby_plots(self, distance_in_meters=None):
+        if distance_in_meters is None:
+            distance_in_meters = settings.NEARBY_TREE_DISTANCE
+
+        distance_filter = Plot.objects.filter(
+            geom__distance_lte=(self.geom, D(m=distance_in_meters)))
+
+        return distance_filter\
+            .filter(instance=self.instance)\
+            .exclude(pk=self.pk)
 
     def get_tree_history(self):
         """

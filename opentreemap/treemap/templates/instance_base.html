@@ -24,7 +24,11 @@
 <li><a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}">{% trans "Add a Tree" %}</a></li>
 {% endif %}
 {% if settings.MANAGEMENT_VIEW_NAME %}
+{% with iuser=request.user|instanceuser:request.instance %}
+{% if iuser.admin %}
 <li class="{% block activemanagement %}{% endblock %}"><a href="{% url settings.MANAGEMENT_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Manage Tree Map" %}</a></li>
+{% endif %}
+{% endwith %}
 {% endif %}
 {% endblock instancetopnav %}
 
@@ -51,6 +55,7 @@
   <div class="search-block visible-desktop">
     <h3>{% trans "Search by Species" %}</h3>
     <div class="search-field-group">
+      <a class="btn" id="species-toggle"><i class="icon-menu"></i></a>
       <input type="text" data-class="search" id="species-typeahead" placeholder="American basswood"/>
       <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
     </div>
@@ -60,6 +65,7 @@
   <div class="search-block">
     <h3>{% trans "Search by Location" %}</h3>
     <div class="search-field-group">
+      <a class="btn" id="boundary-toggle"><i class="icon-menu"></i></a>
       <input type="text" data-class="search" id="boundary-typeahead" placeholder="340 N 12th St, Philadelphia"/>
       <input name="plot.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />
     </div>
@@ -98,6 +104,23 @@
     })(require);
 </script>
 {% endblock searchscripts %}
+
+{% block footer %}
+<div class="footer-inner">
+  <ul class="inline pull-left">
+    {% with linkData=request.instance|instance_config:"linkData" %}
+    <li><a href="{% if linkData.treekey %}{{ linkData.treekey }}{% else %}http://www.arborday.org/trees/whatTree/{% endif %}">{% trans "Tree Key" %}</a></li>
+    <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page='Resources' %}">{% trans "Resources" %}</a></li>
+    <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page='FAQ' %}">{% trans "FAQ" %}</a></li>
+    <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page='About' %}">{% trans "About" %}</a></li>
+    {% if linkData.contact %}
+    <li><a href="mailto:{{ linkData.contact }}">{% trans "Contact" %}</a></li>
+    {% endif %}
+    {% endwith %}
+  </ul>
+  <a href="javascript:;" class="pull-right partners">Partners</a>
+</div>
+{% endblock footer %}
 
 {% block templates %}
 {% verbatim %}

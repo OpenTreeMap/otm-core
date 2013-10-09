@@ -1,36 +1,26 @@
 "use strict";
 
 var $ = require('jquery'),
-    Bacon = require('baconjs'),
     BU = require('BaconUtils'),
     _ = require('underscore'),
-    OL = require('OpenLayers');
+    L = require('leaflet');
 
 var boundaryUrlTemplate = _.template('<%= instanceUrl %>boundaries/<%= boundaryId %>/geojson/');
-var geoJsonParser = new OL.Format.GeoJSON();
+var currentLayer = null;
 
-function addRegionLayerToMap(map, style) {
-    var defaultStyle = OL.Util.extend({}, OL.Feature.Vector.style['default']);
-    var layerStyle = OL.Util.extend(defaultStyle, style);
-
-    var boundaryHighlightLayer = new OL.Layer.Vector(
-        "Selected Boundary", { style: layerStyle });
-
-    map.addLayer(boundaryHighlightLayer);
-    // Push the boundary highlight layer below the tile layers
-    map.setLayerIndex(boundaryHighlightLayer, 0);
-    return boundaryHighlightLayer;
+function clearLayer(map) {
+    if (currentLayer) {
+        map.removeLayer(currentLayer);
+    }
 }
 
-function clearRegionLayer(layer) {
-    layer.removeAllFeatures();
-}
+function showBoundaryGeomOnMapLayerAndZoom(map, boundaryGeom) {
+    clearLayer(map);
 
-function showBoundaryGeomOnMapLayerAndZoom(map, layer, boundaryGeom) {
-    var polygonFeature = new OL.Feature.Vector(boundaryGeom);
-    clearRegionLayer(layer);
-    layer.addFeatures([polygonFeature]);
-    map.zoomToExtent(boundaryGeom.getBounds());
+    currentLayer = boundaryGeom;
+
+    map.addLayer(boundaryGeom);
+    map.fitBounds(boundaryGeom.getBounds());
 }
 
 function instanceBoundaryIdToUrl(instanceUrl, id) {
@@ -40,19 +30,25 @@ function instanceBoundaryIdToUrl(instanceUrl, id) {
     });
 }
 
+function parseGeoJson(style, geojson) {
+    return L.geoJson(geojson, {
+        style: function() { return style; }
+    });
+}
+
 exports.init = function (options) {
     var map = options.map,
-        layer = addRegionLayerToMap(map, options.style),
-        clearLayer = _.partial(clearRegionLayer, layer),
         idStream = options.idStream,
-        geoJsonToBoundaryGeom = _.bind(geoJsonParser.parseGeometry, geoJsonParser),
         boundaries = idStream
             .filter(BU.isDefined)
             .map(instanceBoundaryIdToUrl, options.config.instance.url)
             .flatMap(BU.getJsonFromUrl);
 
-    boundaries.map(geoJsonToBoundaryGeom)
-              .onValue(showBoundaryGeomOnMapLayerAndZoom, map, layer);
+    // Make overlay layer be below tiles
+    $(map.getPanes().overlayPane).css('z-index', -2);
+
+    boundaries.map(parseGeoJson, options.style)
+        .onValue(showBoundaryGeomOnMapLayerAndZoom, map);
 
     // If there is an error fetching or parsing the
     // boundary, we should clear any existing, stale

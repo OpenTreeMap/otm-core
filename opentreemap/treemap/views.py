@@ -33,9 +33,11 @@ from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
 from treemap.models import (Plot, Tree, User, Species, Instance,
                             BenefitCurrencyConversion, TreePhoto)
+from treemap.units import get_units, get_float_format
 
 from ecobenefits.models import ITreeRegion
 from ecobenefits.views import _benefits_for_trees
+from ecobenefits.util import get_benefit_label
 
 from opentreemap.util import json_from_request, route
 
@@ -528,7 +530,12 @@ def instance_user_audits(request, instance_url_name, username):
 
 def boundary_to_geojson(request, instance, boundary_id):
     boundary = get_object_or_404(instance.boundaries, pk=boundary_id)
-    return HttpResponse(boundary.geom.geojson)
+    geom = boundary.geom
+
+    # Leaflet prefers to work with lat/lng so we do the transformation
+    # here, since it way easier than doing it client-side
+    geom.transform('4326')
+    return HttpResponse(geom.geojson)
 
 
 def boundary_autocomplete(request, instance):
@@ -619,15 +626,18 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
         for key in benefits:
             benefits[key]['value'] /= percent
 
-    def displayize_benefit(key, currency_factor, label, format):
+    def displayize_benefit(key, currency_factor):
         benefit = benefits[key]
+
         if currency_factor:
             benefit['currency_saved'] = locale.format(
                 '%d', benefit['value'] * currency_factor, grouping=True)
 
-        benefit['label'] = label
-        benefit['value'] = locale.format(format, benefit['value'],
+        _, fmt = get_float_format(instance, 'eco', key)
+        benefit['value'] = locale.format(fmt, benefit['value'],
                                          grouping=True)
+        benefit['label'] = get_benefit_label(key)
+        benefit['unit'] = get_units(instance, 'eco', key)
 
         return benefit
 
@@ -635,33 +645,15 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
     if conversion is None:
         conversion = BenefitCurrencyConversion()
 
-    # TODO: i18n of labels
-    # TODO: get units from locale, and convert value
-    # TODO: how many decimal places do we really want? Is it unit-sensitive?
     benefits_for_display = [
-        # Translators: 'Energy' is the name of an eco benefit
-        displayize_benefit(
-            'energy',
-            conversion.kwh_to_currency,
-            trans('Energy'), '%.1f'),
-
-        # Translators: 'Stormwater' is the name of an eco benefit
-        displayize_benefit(
-            'stormwater',
-            conversion.stormwater_gal_to_currency,
-            trans('Stormwater'), '%.1f'),
-
-        # Translators: 'Carbon Dioxide' is the name of an eco benefit
-        displayize_benefit(
-            'co2',
-            conversion.carbon_dioxide_lb_to_currency,
-            trans('Carbon Dioxide'), '%.1f'),
-
-        # Translators: 'Air Quaility' is the name of an eco benefit
-        displayize_benefit(
-            'airquality',
-            conversion.airquality_aggregate_lb_to_currency,
-            trans('Air Quality'), '%.1f')
+        displayize_benefit('energy',
+                           conversion.kwh_to_currency),
+        displayize_benefit('stormwater',
+                           conversion.stormwater_gal_to_currency),
+        displayize_benefit('co2',
+                           conversion.carbon_dioxide_lb_to_currency),
+        displayize_benefit('airquality',
+                           conversion.airquality_aggregate_lb_to_currency)
     ]
 
     rslt = {'benefits': benefits_for_display,
@@ -735,7 +727,7 @@ def update_user(request, username):
 
 def _get_map_view_context(request, instance_id):
     fields_for_add_tree = [
-        (trans('Tree Height (feet)'), 'tree.height')
+        (trans('Tree Height'), 'tree.height')
     ]
     return {'fields_for_add_tree': fields_for_add_tree}
 
@@ -915,6 +907,19 @@ def approve_or_reject_photo(
     return resp
 
 
+def static_page(request, instance, page):
+    # TODO: Right now all pages simply return
+    #       the same string. In the future, they'll grab
+    #       from the instance config
+
+    allowed_pages = ['Resources', 'FAQ', 'About']
+
+    if page not in allowed_pages:
+        raise Http404()
+
+    return {'content': trans('There is no content for this page yet'),
+            'title': page}
+
 audits_view = instance_request(
     render_template('treemap/recent_edits.html', audits))
 
@@ -923,8 +928,8 @@ index_view = instance_request(render_template('treemap/index.html'))
 map_view = instance_request(
     render_template('treemap/map.html', _get_map_view_context))
 
-get_plot_detail_view = instance_request(etag(_plot_hash)(
-    render_template('treemap/plot_detail.html', plot_detail)))
+get_plot_detail_view = instance_request(
+    render_template('treemap/plot_detail.html', plot_detail))
 
 get_plot_eco_view = instance_request(etag(_plot_hash)(
     render_template('treemap/partials/plot_eco.html', plot_detail)))
@@ -936,8 +941,8 @@ update_plot_detail_view = json_api_call(instance_request(update_plot_detail))
 plot_popup_view = instance_request(etag(_plot_hash)(
     render_template('treemap/plot_popup.html', plot_detail)))
 
-plot_accordion_view = instance_request(etag(_plot_hash)(
-    render_template('treemap/plot_accordion.html', plot_detail)))
+plot_accordion_view = instance_request(
+    render_template('treemap/plot_accordion.html', plot_detail))
 
 add_plot_view = require_http_method("POST")(
     json_api_call(instance_request(add_plot)))
@@ -1000,3 +1005,6 @@ next_photo_endpoint = instance_request(
 
 approve_or_reject_photo_view = instance_request(
     approve_or_reject_photo)
+
+static_page_view = instance_request(
+    render_template("treemap/staticpage.html", static_page))

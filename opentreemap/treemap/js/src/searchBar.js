@@ -25,6 +25,7 @@ module.exports = exports = {
             input: "#species-typeahead",
             template: "#species-element-template",
             hidden: "#search-species",
+            button: "#species-toggle",
             reverse: "id"
         });
         otmTypeahead.create({
@@ -33,6 +34,7 @@ module.exports = exports = {
             input: "#boundary-typeahead",
             template: "#boundary-element-template",
             hidden: "#boundary",
+            button: "#boundary-toggle",
             reverse: "id"
         });
         $advancedToggle.on("click", function() {

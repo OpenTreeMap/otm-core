@@ -1,13 +1,11 @@
 {# vim: set filetype=htmldjango : #}
 {% load dateformat %}
 {% if field.data_type == 'choice' %}
-    <select name="{{ field.identifier }}"
-            {% if extra %}{{ extra }}{% endif %} />
-            <option value=""></option>
+    <select name="{{ field.identifier }}" {{ extra|default:"" }} />
         {% for option in field.choices %}
-            <option value="{{ option }}"
-              {% ifequal option field.value %}selected="selected"{% endifequal %}>
-                {{option}}
+            <option value="{{ option.value }}"
+              {% ifequal option.value field.value %}selected="selected"{% endifequal %}>
+                {{option.display_value}}
             </option>
         {% endfor %}
     </select>
@@ -18,7 +16,7 @@
           {% endif %}
            type="checkbox"
            value="{{ field.value }}"
-           {% if extra %}{{ extra }}{% endif %} />
+           {{ extra|default:"" }} />
 {% elif field.data_type == 'date' %}
     <input name="{{ field.identifier }}"
            type="text"
@@ -29,10 +27,11 @@
            value="{{ field.value|date:"SHORT_DATE_FORMAT" }}"
            data-date-format="{{ settings.SHORT_DATE_FORMAT|datepicker_format }}"
            {% endif %}
-           {% if extra %}{{ extra }}{% endif %} />
+           {{ extra|default:"" }} />
 {% else %}
     <input name="{{ field.identifier }}"
            type="text"
            value="{{ field.value|default_if_none:"" }}"
-           {% if extra %}{{ extra }}{% endif %} />
+           {{ extra|default:"" }} />
+    {{ field.units }}
 {% endif %}
