@@ -21,12 +21,13 @@
       <div id="move-plot-buttons">
         {% with iuser=user|instanceuser:request.instance %}
         {% if iuser|plot_field_is_writable:"geom" %}
-        <button class="btn" style="display:none" id="edit-plot-location">Move Tree</button>
-        <button class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</button>
+        <button class="btn" style="display:none" id="edit-plot-location">{% trans "Move Tree" %}</button>
+        <button class="btn" style="display:none"
+                id="cancel-edit-plot-location">{% trans "Cancel Tree Move" %}</button>
         {% else %}
-        <button data-class="display" class="btn" disabled="disabled">
-          "{% trans "Editing a plot's location is not available to all users" %}"
-        </button>
+        {% trans "Editing a plot's location is not available to all users" as title %}
+        <button data-class="display" class="btn" disabled="disabled" title="{{ title }}"
+                id="edit-plot-location">{% trans "Move Tree" %}</button>
         {% endif %}
         {% endwith %}
       </div>

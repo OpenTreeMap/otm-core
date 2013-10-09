@@ -48,6 +48,14 @@
         <li>{{ audit.short_descr }}</li>
         {% endfor %}
       </ul>
+      <h3>{% trans "Nearby Trees" %}</h3>
+      <ul>
+        {% for plot in plot.nearby_plots %}
+        <li><a href="{% url 'plot_detail' instance_url_name=request.instance.url_name plot_id=plot.pk %}">{{ plot.pk }}</a></li>
+        {% empty %}
+        <li>{% trans "None" %}</li>
+        {% endfor %}
+      </ul>
     </div>
     <div class="span6">
       <h1>{{ tree.species.common_name }}</h1>
@@ -89,7 +97,7 @@
               </tr>
               {% endusercanread %}
               {# The "plot-species" label is used as an id prefix in "field/species_tr.html" #}
-{#               {% field "plot-species" from "tree.species" for request.user withtemplate "treemap/field/species_tr.html" %} #}
+              {% field "plot-species" from "tree.species" for request.user withtemplate "treemap/field/species_tr.html" %}
               {% trans "Trunk Diameter" as diameter %}
               {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field/diameter_tr.html" %}
               {% trans "Tree Height" as height %}
@@ -143,18 +151,19 @@
     <div class="span3">
       {% with iuser=user|instanceuser:request.instance %}
       {% if iuser|plot_field_is_writable:"geom" %}
-      <button class="btn" style="display:none" id="edit-plot-location">Move Tree</button>
-        <button class="btn" style="display:none" id="cancel-edit-plot-location">Cancel Tree Move</button>
-        {% else %}
-        <button data-class="display" class="btn" disabled="disabled">
-          "{% trans "Editing a plot's location is not available to all users" %}"
-        </button>
-        {% endif %}
-        {% endwith %}
-        <div id="map" class="map-small"></div>
-        <div id="street-view" class="street-view-small" style="display: none;"></div>
-      <h3>{% trans "Commments" %}</h3>
+      <button class="btn" style="display:none" id="edit-plot-location">{% trans "Move Tree" %}</button>
+      <button class="btn" style="display:none"
+              id="cancel-edit-plot-location">{% trans "Cancel Tree Move" %}</button>
+      {% else %}
+      {% trans "Editing a plot's location is not available to all users" as title %}
+      <button class="btn" style="display:none" disabled="disabled" id="edit-plot-location"
+              title="{{ title }}">{% trans "Move Tree" %}</button>
+      {% endif %}
+      {% endwith %}
+      <div id="map" class="map-small"></div>
+      <div id="street-view" class="street-view-small" style="display: none;"></div>
 
+      <h3>{% trans "Comments" %}</h3>
       {% if request.user.is_authenticated %}
         <form>
           <textarea rows=8></textarea><br>

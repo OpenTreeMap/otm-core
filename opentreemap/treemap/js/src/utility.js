@@ -2,7 +2,6 @@
 
 var Url = require('url'),
     QS = require('querystring'),
-    OL = require('OpenLayers'),
     $ = require('jquery');
 
 exports.getUpdatedQueryString = function (k, v) {
@@ -114,25 +113,22 @@ exports.$find = function (selector, $parent) {
     return $el;
 };
 
-exports.webMercatorToLonLat = function(x, y) {
-    var lonLatProjection = new OL.Projection("EPSG:4326"),
-        webMercatorProjection = new OL.Projection("EPSG:3857"),
-        point = new OL.Geometry.Point(x, y);
-    point.transform(webMercatorProjection, lonLatProjection);
-    return {
-        lon: point.x,
-        lat: point.y
-    };
+
+exports.webMercatorToLatLng = function(x, y) {
+    var originShift =  (2.0 * Math.PI * 6378137.0 / 2.0) / 180.0;
+    var d2r = Math.PI / 180.0;
+    var r2d = 180.0 / Math.PI;
+
+    var lat = r2d * ((2.0 * Math.atan(Math.exp(d2r * y / originShift))) - Math.PI / 2.0);
+    return {lat: lat, lng: x / originShift};
+
 };
 
 exports.lonLatToWebMercator = function(lon, lat) {
-    var lonLatProjection = new OL.Projection("EPSG:4326"),
-        webMercatorProjection = new OL.Projection("EPSG:3857"),
-        location = new OL.LonLat(lon, lat);
-    location.transform(lonLatProjection, webMercatorProjection);
+    var originShift = (2.0 * Math.PI * (6378137.0 / 2.0)) / 180.0;
     return {
-        x: location.lon,
-        y: location.lat
+        x: originShift * lon,
+        y: originShift * (Math.log(Math.tan((90.0 + lat) * (Math.PI / 360.0)))) / (Math.PI / 180.0)
     };
 };
 

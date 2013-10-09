@@ -57,6 +57,7 @@ exports.create = function(options) {
         template = mustache.compile($(options.template).html()),
         $input = $(options.input),
         $hidden_input = $(options.hidden),
+        $openButton = $(options.button),
         reverse = options.reverse;
 
     $input.typeahead({
@@ -65,8 +66,9 @@ exports.create = function(options) {
             url: options.url,
             ttl: 0 // TODO: Use high TTL and invalidate cache on change
         },
-        limit: 10,
-        template: template
+        limit: 1000,
+        template: template,
+        minLength: 0
     });
 
     var selectStream = $input.asEventStream('typeahead:selected typeahead:autocompleted',
@@ -114,5 +116,27 @@ exports.create = function(options) {
             $hidden_input.val(value || '');
         });
 
+    }
+
+    if (options.button) {
+        $openButton.on('click', function(e) {
+            e.preventDefault();
+            if ($input.typeahead('isOpen')) {
+                $input.typeahead('close');
+            } else {
+                setTypeahead($input, '');
+                $input.typeahead('open');
+
+                // The open may fail if there is no data to show
+                // If so don't add the active class, because then it can never
+                // be removed
+                if ($input.typeahead('isOpen')) {
+                    $openButton.addClass('active');
+                }
+            }
+        });
+        $input.on('typeahead:closed', function() {
+            $openButton.removeClass('active');
+        });
     }
 };
