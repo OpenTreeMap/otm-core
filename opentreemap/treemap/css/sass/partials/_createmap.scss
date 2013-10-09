@@ -1,6 +1,179 @@
 // Partial: Create Map Pages
 
+.create-map-progress {
+	.nav {
+		margin-bottom: 0;
+
+		li {
+			a {
+				padding: 0;
+				margin: 0;
+				border-radius: 0;
+				color: $subtext-color;
+				border-bottom: 4px solid $light-gray-color;
+
+				&:hover,
+				&:focus {
+					background-color: white;
+					color: $subtext-color;
+					border-bottom: 4px solid $well-color;
+				}
+
+				&.error-on-tab {
+					border-bottom: 4px solid $alert-color;
+				}
+			}
+			&.active {
+				a,
+				a:hover,
+				a:focus {
+					background-color: white;
+					color: $subtext-color;
+					border-bottom: 4px solid $secondary-color;
+				}
+			}
+		}
+	}
+}
+
+.create-map-header {
+	clear: both;
+	border-bottom: 1px solid #F1f2f2;
+	padding-bottom: 10px;
+
+	h2 {
+		margin-bottom: 5px;
+	}
+}
+
+.create-map-body {
+	margin: 20px 0 20px 20px;
+}
+
 .create_instance_map {
     width: 100%;
     height: 500px;
+}
+
+.create-map-footer {
+	padding-top: 15px;
+	border-top: 1px solid #f1f2f2;
+	margin-top: 20px;
+	text-align: right;
+
+	.btn {
+		margin-bottom: 5px;
+	}
+	small {
+		clear: both;
+		display: block;
+		font-size: 0.75em;
+		color: $subtext-color;
+	}
+}
+
+#price-table {
+	margin: 0 15px;
+	text-align: center;
+
+	[class*="span"] {
+		margin-left: 0;
+	}
+
+	h1, h2, h3, h4, h5, h6 {
+		margin-top: 12px;
+		margin-bottom: 1px;
+	}
+	hr {
+		margin: 40px 0;
+	}
+
+	.plan-details {
+		&.plan-selected {
+			.price-body {
+				background-color: lighten($light-gray-color, 1%);
+			}
+		}
+	}
+	
+	.price-level {
+		padding: 0;
+
+		&:first-child .price-body {
+			border-left: solid 1px $light-gray-color;
+		}
+
+		h6 {
+			margin-top: -4px;
+			text-transform: uppercase;
+			color: $subtext-color;
+		}		
+
+		.price-body {
+			border-color: $light-gray-color;
+			border-width: 1px 1px 1px 0;
+			border-style: solid;
+		}		
+		.price-header {
+			height: 200px;
+			padding-top: 15px;
+
+			h4 {
+				font-weight: 700;
+
+				&.aspen {
+					color: #ADD142;
+				}
+				&.maple {
+					color: #598139;
+				}
+				&.oak {
+					color: #598139;
+				}
+				&.redwood {
+					color: #4B5E2A;
+				}	
+			}
+			h6 {
+				text-transform: none;
+				width: 75%;
+				margin: 6px auto 0px;
+				line-height: 16px;
+			}
+			img {
+				width: 114px;
+			}
+		}	
+		.price-aspect {
+			&:last-child {
+				border-bottom: 0;
+			}
+			border-bottom: 1px solid $light-gray-color;
+			padding: 6px 20px;
+			text-align: center;
+
+			.per-month {
+				font-size: 12px;
+				vertical-align: text-top;
+				line-height: 33px;
+				color: $subtext-color;
+			}
+
+			&.select-plan {
+				.label {
+					padding: 6px 12px;
+					margin-top: 6px;
+					margin-bottom: 12px;
+					border-radius: 0;
+				}
+				.btn-select-plan {
+					margin-bottom: 14px;
+				}
+				h6 {
+					text-transform: none;
+				}
+			}
+		}
+	}
+
 }

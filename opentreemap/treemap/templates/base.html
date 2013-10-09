@@ -60,7 +60,7 @@
                 </a>
               </li>
               <li><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
-              <li class="user-img"><a href="{% url 'profile' %}"><img src="/static/img/profile.jpg"></a></li>
+              <li class="user-img"><a href="{% url 'profile' %}"><img src="/static/img/profile.png"></a></li>
             {% else %}
               <li><a id="login" href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
               <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
@@ -106,6 +106,7 @@
     <footer>
       <div class="footer-inner">
         <ul class="inline pull-left">
+          {% comment %}
           {% with linkData=request.instance.config.linkData %}
           <li><a href="{% if linkData.treekey %}{{ linkData.treekey }}{% else %}http://www.arborday.org/trees/whatTree/{% endif %}">{% trans "Tree Key" %}</a></li>
           <li><a href="javascript:;">{% trans "Resources" %}</a></li>
@@ -115,6 +116,7 @@
           <li><a href="mailto:{{ linkData.contact }}">{% trans "Contact" %}</a></li>
           {% endif %}
           {% endwith %}
+          {% endcomment %}
         </ul>
         <a href="javascript:;" class="pull-right partners">Partners</a>
       </div>
