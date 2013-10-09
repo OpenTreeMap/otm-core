@@ -35,7 +35,7 @@ from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
 from treemap.models import (Plot, Tree, User, Species, Instance,
                             BenefitCurrencyConversion, TreePhoto)
-from treemap.units import get_units, get_float_format
+from treemap.units import (get_units, get_display_value)
 
 from ecobenefits.models import ITreeRegion
 from ecobenefits.views import _benefits_for_trees
@@ -329,11 +329,11 @@ def update_plot_and_tree(request, plot):
     request_dict = json.loads(request.body)
 
     for (model_and_field, value) in request_dict.iteritems():
-        model, field = split_model_or_raise(model_and_field)
+        model_name, field = split_model_or_raise(model_and_field)
 
-        if model == 'plot':
+        if model_name == 'plot':
             model = plot
-        elif model == 'tree':
+        elif model_name == 'tree':
             # Get the tree or spawn a new one if needed
             tree = tree or get_tree()
             model = tree
@@ -636,9 +636,8 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
             benefit['currency_saved'] = locale.format(
                 '%d', benefit['value'] * currency_factor, grouping=True)
 
-        _, fmt = get_float_format(instance, 'eco', key)
-        benefit['value'] = locale.format(fmt, benefit['value'],
-                                         grouping=True)
+        _, value = get_display_value(instance, 'eco', key, benefit['value'])
+        benefit['value'] = value
         benefit['label'] = get_benefit_label(key)
         benefit['unit'] = get_units(instance, 'eco', key)
 
