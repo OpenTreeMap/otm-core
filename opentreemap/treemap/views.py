@@ -33,9 +33,11 @@ from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
 from treemap.models import (Plot, Tree, User, Species, Instance,
                             BenefitCurrencyConversion, TreePhoto)
+from treemap.units import get_units, get_float_format
 
 from ecobenefits.models import ITreeRegion
 from ecobenefits.views import _benefits_for_trees
+from ecobenefits.util import get_benefit_label
 
 from opentreemap.util import json_from_request, route
 
@@ -624,15 +626,18 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
         for key in benefits:
             benefits[key]['value'] /= percent
 
-    def displayize_benefit(key, currency_factor, label, format):
+    def displayize_benefit(key, currency_factor):
         benefit = benefits[key]
+
         if currency_factor:
             benefit['currency_saved'] = locale.format(
                 '%d', benefit['value'] * currency_factor, grouping=True)
 
-        benefit['label'] = label
-        benefit['value'] = locale.format(format, benefit['value'],
+        _, fmt = get_float_format(instance, 'eco', key)
+        benefit['value'] = locale.format(fmt, benefit['value'],
                                          grouping=True)
+        benefit['label'] = get_benefit_label(key)
+        benefit['unit'] = get_units(instance, 'eco', key)
 
         return benefit
 
@@ -640,33 +645,15 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
     if conversion is None:
         conversion = BenefitCurrencyConversion()
 
-    # TODO: i18n of labels
-    # TODO: get units from locale, and convert value
-    # TODO: how many decimal places do we really want? Is it unit-sensitive?
     benefits_for_display = [
-        # Translators: 'Energy' is the name of an eco benefit
-        displayize_benefit(
-            'energy',
-            conversion.kwh_to_currency,
-            trans('Energy'), '%.1f'),
-
-        # Translators: 'Stormwater' is the name of an eco benefit
-        displayize_benefit(
-            'stormwater',
-            conversion.stormwater_gal_to_currency,
-            trans('Stormwater'), '%.1f'),
-
-        # Translators: 'Carbon Dioxide' is the name of an eco benefit
-        displayize_benefit(
-            'co2',
-            conversion.carbon_dioxide_lb_to_currency,
-            trans('Carbon Dioxide'), '%.1f'),
-
-        # Translators: 'Air Quaility' is the name of an eco benefit
-        displayize_benefit(
-            'airquality',
-            conversion.airquality_aggregate_lb_to_currency,
-            trans('Air Quality'), '%.1f')
+        displayize_benefit('energy',
+                           conversion.kwh_to_currency),
+        displayize_benefit('stormwater',
+                           conversion.stormwater_gal_to_currency),
+        displayize_benefit('co2',
+                           conversion.carbon_dioxide_lb_to_currency),
+        displayize_benefit('airquality',
+                           conversion.airquality_aggregate_lb_to_currency)
     ]
 
     rslt = {'benefits': benefits_for_display,
@@ -740,7 +727,7 @@ def update_user(request, username):
 
 def _get_map_view_context(request, instance_id):
     fields_for_add_tree = [
-        (trans('Tree Height (feet)'), 'tree.height')
+        (trans('Tree Height'), 'tree.height')
     ]
     return {'fields_for_add_tree': fields_for_add_tree}
 

@@ -33,4 +33,5 @@
            type="text"
            value="{{ field.value|default_if_none:"" }}"
            {{ extra|default:"" }} />
+    {{ field.units }}
 {% endif %}
