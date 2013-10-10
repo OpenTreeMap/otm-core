@@ -159,6 +159,12 @@
     .addBtn {
         float: right;
         margin-top: -3px;
+        font-weight: 700;
+
+        i {
+            position: relative;
+            left: -3px;
+        }
     }
 }
 

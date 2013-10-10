@@ -54,6 +54,21 @@
         padding: 0;
     }
 
+    .accordion-body {
+        .accordion-body-buttons {
+            padding: 10px 15px;
+        }
+        .tree-details-species {
+            h3 {
+                margin: 0 0 5px;
+                line-height: 27px;
+            }
+        }
+        .field-view {
+            margin-bottom: 10px;
+        }
+    }
+
     .chunk {
         list-style: none;
         padding: 5px 0 5px;
@@ -85,6 +100,14 @@
         }
 }
 
+#details-form {
+    margin: 10px 15px 15px;
+}
+
+#move-plot-buttons {
+    margin: 0 15px 15px;
+}
+
 #add-tree-address {
     width: 200px;
     font-size: em(14px);
@@ -96,7 +119,7 @@
         padding: 15px;
 
         .benefit-icon {
-            padding: 7px;
+            padding: 7px 8px 7px 6px;
             background: $primary-color;
             width: 20px;
             height: 20px;
@@ -125,6 +148,7 @@
                 text-align: left;
                 font-weight: 700;
                 color: $main-text-color;
+                width: auto;
 
                 @media (max-width: 767px) {
                     float: left;
@@ -134,7 +158,9 @@
                 text-align: right;
                 font-size: em(14px);
                 color: $subtext-color;
-                margin-left: 150px;
+                margin-left: 5px;
+                width: auto;
+                display: inline-block;
             }
         }
     }
