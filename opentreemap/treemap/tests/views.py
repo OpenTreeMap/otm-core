@@ -782,10 +782,11 @@ class PlotViewTest(ViewTestCase):
         m1 = MultiPolygon([p1.buffer(50)])
         m2 = MultiPolygon([p2.buffer(50)])
 
-        s = Species.objects.create(
-            symbol='BDM OTHER',
+        s = Species(
+            otm_code='BDM OTHER',
             common_name='other',
-            itree_code='BDM OTHER')
+            instance=self.instance)
+        s.save_with_user(self.user)
 
         ITreeRegion.objects.all().delete()
         ITreeRegion.objects.create(code='NoEastXXX', geometry=m1)
@@ -874,8 +875,8 @@ class PlotViewTest(ViewTestCase):
         self.assertEqual(insert_audit.action, Audit.Type.Insert)
 
     def test_plot_with_tree(self):
-        species = Species(itree_code='CEM OTHER')
-        species.save()
+        species = Species(instance=self.instance)
+        species.save_with_user(self.user)
 
         plot_w_tree = Plot(geom=self.p, instance=self.instance)
         plot_w_tree.save_with_user(self.user)
@@ -1212,6 +1213,8 @@ class SpeciesViewTests(ViewTestCase):
 
     def setUp(self):
         super(SpeciesViewTests, self).setUp()
+        self.instance = make_instance()
+        self.commander = make_commander_user(self.instance)
 
         self.species_dict = [
             {'common_name': "apple 'Red Devil'", 'genus': 'applesauce'},
@@ -1234,8 +1237,9 @@ class SpeciesViewTests(ViewTestCase):
                               genus=item.get('genus'),
                               species=item.get('species'),
                               cultivar=item.get('cultivar'),
-                              symbol=str(i))
-            species.save()
+                              otm_code=str(i),
+                              instance=self.instance)
+            species.save_with_user(self.commander)
 
             js_species = self.species_json[i]
             js_species['id'] = species.id
@@ -1244,12 +1248,12 @@ class SpeciesViewTests(ViewTestCase):
             js_species['value'] = species.display_name
 
     def test_get_species_list(self):
-        self.assertEquals(species_list(make_request(), None),
+        self.assertEquals(species_list(make_request(), self.instance),
                           self.species_json)
 
     def test_get_species_list_max_items(self):
         self.assertEquals(
-            species_list(make_request({'max_items': 3}), None),
+            species_list(make_request({'max_items': 3}), self.instance),
             self.species_json[:3])
 
 
@@ -1265,10 +1269,11 @@ class SearchTreeBenefitsTests(ViewTestCase):
             code='PiedmtCLT',
             geometry=MultiPolygon((self.p1.buffer(10),)))
 
-        self.species_good = Species(itree_code='CEM OTHER')
-        self.species_good.save()
-        self.species_bad = Species()
-        self.species_bad.save()
+        # Assuming that CEAT has an itree_code of CEM OTHER in PiedmtCLT
+        self.species_good = Species(instance=self.instance, otm_code='CEAT')
+        self.species_good.save_with_user(self.commander)
+        self.species_bad = Species(instance=self.instance)
+        self.species_bad.save_with_user(self.commander)
 
     def make_tree(self, diameter, species):
         plot = Plot(geom=self.p1, instance=self.instance)

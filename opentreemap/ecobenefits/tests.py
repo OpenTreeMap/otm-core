@@ -10,7 +10,7 @@ from treemap.tests import UrlTestCase, make_instance, make_commander_user
 
 from ecobenefits.models import ITreeRegion
 from ecobenefits.views import tree_benefits
-
+from ecobenefits import species_codes_for_regions
 
 class EcoTest(UrlTestCase):
     def setUp(self):
@@ -20,13 +20,13 @@ class EcoTest(UrlTestCase):
 
         self.user = make_commander_user(self.instance)
 
-        self.species = Species(symbol='CEDR',
+        self.species = Species(otm_code='CEAT',
                                genus='cedrus',
                                species='atlantica',
-                               itree_code='CEM OTHER',
                                max_dbh=2000,
-                               max_height=100)
-        self.species.save()
+                               max_height=100,
+                               instance=self.instance)
+        self.species.save_with_user(self.user)
 
         ITreeRegion.objects.all().delete()
 
@@ -75,3 +75,21 @@ class EcoTest(UrlTestCase):
         assertBValue('airquality', 'lbs/year', 6)
         assertBValue('stormwater', 'gal', 3185)
         assertBValue('co2', 'lbs/year', 563)
+
+    def test_species_for_none_region_lookup(self):
+        self.assertIsNone(species_codes_for_regions(None))
+
+    def test_species_for_region_lookup(self):
+        northeast = species_codes_for_regions(['NoEastXXX'])
+        self.assertEqual(258, len(northeast))
+
+        south = species_codes_for_regions(['PiedmtCLT'])
+        self.assertEqual(244, len(south))
+
+        combined = species_codes_for_regions(['NoEastXXX', 'PiedmtCLT'])
+        self.assertEqual(338, len(combined))
+
+        combined_set = set(combined)
+        self.assertEqual(len(combined), len(combined_set), 
+            "Getting the species for more than one region should result "
+            "in a unique set of otm_codes")

@@ -9,7 +9,7 @@ from django.test import TestCase
 from django.contrib.gis.geos import Point
 
 from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
-                            InstanceSpecies, ImportEvent, User)
+                            ImportEvent, User)
 from treemap.audit import Audit, ReputationMetric
 from treemap.management.commands.migrate_otm1 import hash_to_model
 from treemap.management.commands import create_instance
@@ -166,16 +166,12 @@ class ModelUnicodeTests(TestCase):
     def setUp(self):
         self.instance = make_instance(name='Test Instance')
 
-        self.species = Species(common_name='Test Common Name',
+        self.species = Species(instance=self.instance,
+                               common_name='Test Common Name',
                                genus='Test Genus',
                                cultivar='Test Cultivar',
                                species='Test Species')
         self.species.save_base()
-
-        self.instance_species = InstanceSpecies(instance=self.instance,
-                                                species=self.species,
-                                                common_name='Test Common Name')
-        self.instance_species.save_base()
 
         self.user = User(username='commander', password='pw')
         self.user.save()
@@ -227,9 +223,6 @@ class ModelUnicodeTests(TestCase):
         self.assertEqual(
             unicode(self.species),
             "Test Common Name [Test Genus Test Species 'Test Cultivar']")
-
-    def test_instance_species_model(self):
-        self.assertEqual(unicode(self.instance_species), 'Test Common Name')
 
     def test_user_model(self):
         self.assertEqual(unicode(self.user), 'commander')
@@ -470,8 +463,8 @@ class MigrationCommandTests(TestCase):
         species_dict = json.loads(self.species_blob)
         species = hash_to_model('species', species_dict,
                                 self.instance, self.commander)
-        species.save()
-        self.assertEqual(species.symbol, 'SAVI')
+        species.save_with_user(self.commander)
+        self.assertEqual(species.otm_code, 'SAVI')
         self.assertEqual(species.genus, 'Salix')
         self.assertEqual(species.species, 'viminalis')
         self.assertEqual(species.cultivar, '')

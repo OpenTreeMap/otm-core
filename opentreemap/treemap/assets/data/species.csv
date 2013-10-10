@@ -1,0 +1,1094 @@
+otm_code,genus,species,cultivar,other,common_name
+AB,Abies,,,,Fir
+ABAL,Abies,alba,,,Silver fir
+ABBA,Abies,balsamea,,,Balsam fir
+ABCO,Abies,concolor,,,White fir
+ABFR,Abies,fraseri,,,Fraser fir
+ABGR,Abies,grandis,,,Grand fir
+ABHO,Abies,holophylla,,,Manchurian fir
+ABHO2,Abies,homolepis,,,Japanese fir
+ABLA,Abies,lasiocarpa,,,Subalpine fir
+ABMA,Abies,magnifica,,,California red fir
+ABPI,Abies,pinsapo,,,Abeto de españa
+ABPR,Abies,procera,,,Noble fir
+AC,Acer,,,,Maple
+ACAC2,Acrocomia,aculeata,,,Grugru palm
+ACAN,Acacia,aneura,,,Mulga
+ACBA2,Acacia,baileyana,,,Bailey acacia
+ACBU,Acer,buergerianum,,,Trident maple
+ACCA,Acer,campestre,,,Hedge maple
+ACCAQE,Acer,campestre,Queen Elizabeth,,Hedge maple 'Queen Elizabeth'
+ACCI,Acer,circinatum,,,Vine maple
+ACCO,Acacia,confusa,,,Formosan koa
+ACDE,Acacia,decurrens,,,Green acacia
+ACDE2,Acacia,dealbata,,,Aromo del paÍs
+ACFA,Acacia,farnesiana,,,Sweet acacia
+ACFR,Acer,x freemanii,,,Freeman maple
+ACGI,Acer,ginnala,,,Amur maple
+ACGL,Acer,glabrum,,,Rocky mountain maple
+ACGR,Acer,griseum,,,Paperbark maple
+ACGR3,Acer,grandidentatum,,,Bigtooth maple
+ACKO,Acacia,koa,,,Koa
+ACLO,Acacia,longifolia,,,Sydney golden wattle
+ACMA,Acer,macrophyllum,,,Bigleaf maple
+ACME,Acacia,melanoxylon,,,Black acacia
+ACMI,Acacia,millefolia,,,Milfoil wattle
+ACNE,Acer,negundo,,,Boxelder
+ACNI,Acer,nigrum,,,Black maple
+ACOB,Acer,oblongum,,,Evergreen maple
+ACPA,Acer,palmatum,,,Japanese maple
+ACPADI,Acer,palmatum,Dissectum,,Lace-leaf maple
+ACPE,Acer,pensylvanicum,,,Striped maple
+ACPE1,Acacia,pendula,,,Weeping myall
+ACPL,Acer,platanoides,,,Norway maple
+ACPLC,Acer,platanoides,Columnar,,Norway maple 'Columnar'
+ACPLCK,Acer,platanoides,Crimson King,,Norway maple 'Crimson King'
+ACPLCO,Acer,platanoides,Columnare,,Columnare maple
+ACPLCR,Acer,platanoides,Crimson King,,Crimson king maple
+ACPLFA,Acer,platanoides,Fairview,,Norway maple 'Fairveiw'
+ACPLQE,Acer,platanoides,Queen Elizabeth,,Norway maple 'Queen Elizabeth'
+ACPLSC,Acer,platanoides,Schwedleri,,Norway maple 'Schwedler'
+ACPS,Acer,pseudoplatanus,,,Sycamore maple
+ACPS_S,Acer,pseudoplatanus,Spaethii,,Sycamore maple 'Spaethii'
+ACRU,Acer,rubrum,,,Red maple
+ACRUA,Acer,rubrum,Armstrong,,Red maple 'Armstrong'
+ACRUG,Acer,rubrum,Gerling,,Red maple 'Gerling'
+ACRUMO,Acer,rubrum,Morgan,,Red maple 'Morgan'
+ACRUOG,Acer,rubrum,October Glory,,Red maple 'October Glory'
+ACRURS,Acer,rubrum,Red Sunset,,Red maple 'Red Sunset'
+ACSA,Acacia,saligna,,,Orange wattle
+ACSA1,Acer,saccharinum,,,Silver maple
+ACSA2,Acer,saccharum,,,Sugar maple
+ACSA2GR,Acer,saccharum,Green Mountain,,Green mountain sugar maple
+ACSA3,Acacia,salicina,,,Willow acacia
+ACSP2,Acacia,,,,Acacia
+ACST,Acacia,stenophylla,,,Shoestring acacia
+ACTA,Acer,tataricum,,,Tatar maple
+ACTR,Acer,truncatum,,,Purple blow maple
+ACVE2,Acacia,verticillata,,,Prickly moses
+ACWR,Acoelorraphe,wrightii,,,Silver saw palmetto
+AE,Aesculus,,,,Buckeye
+AECA,Aesculus,x carnea,,,Red horsechestnut
+AECA2,Aesculus,californica,, ,California buckeye
+AECA3,Aesculus,carnea,,,Red horsechestunt
+AECA3_B,Aesculus,carnea,Briottii,,Red horsechestnut 'Briotti'
+AECA3_S,Aesculus,carnea,Stafford,,Red horsechestnut 'Stafford '
+AEFL,Aesculus,octandra,,,Yellow buckeye
+AEGL,Aesculus,glabra,,,Ohio buckeye
+AEHI,Aesculus,hippocastanum,,,Horsechestnut
+AEOC,Aesculus,octandra,,,Yellow buckeye
+AEPA,Aesculus,pavia,,,Red buckeye
+AGFL,Agonis,flexuosa,,,Peppermint tree; astralian willow myrtle
+AGVI14,Agathis,vitiensis,,,Nandu
+AIAL,Ailanthus,altissima,,,Tree of heaven
+AL,Alnus,,,,Alder
+ALAR,Aloe,arborescens,,,Tree aloe
+ALCO2,Alnus,cordata,,,Italian alder
+ALEX,Alectryon,excelsus,,,Titoki
+ALFA,Falcataria,moluccana,,,Moluccan albizia
+ALGL,Alnus,glutinosa,,,European alder
+ALJU,Albizia,julibrissin,,,Mimosa
+ALLE,Albizia,lebbeck,,,Siris tree
+ALMO,Aleurites,moluccana,,,Kukui
+ALRH,Alnus,rhombifolia,,,White alder
+ALRU2,Alnus,rubra,,,Red alder
+AM,Amelanchier,,,,Serviceberry
+AMAR,Amelanchier,arborea,,,Downy serviceberry
+AMCA,Amelanchier,canadensis,,,Eastern service berry
+AMNO4,Amherstia,nobilis,,,Pride of Burma
+AMUT,Amelanchier,x Grandiflora,Autumn,,Utah serviceberry
+ANCH4,Annona,cherimola,,,Cherimoya
+ANIM,Andira,inermis,,,Partridgewood
+ANMU,Annona,muricata,,,Soursop
+ANRE,Annona,reticulata,,,Custard apple
+ANSQ,Annona,squamosa,,,Sugar apple
+ARAL,Archontophoenix,alexandrae,,,Alexandra palm
+ARAL2,Artocarpus,altilis,,,Ulu
+ARAR,Araucaria,araucana,,,Monkeypuzzle tree
+ARBI,Araucaria,bidwillii,,,Bunya bunya
+ARCO24,Araucaria,columnaris,,,Coral reef araucaria
+ARCU,Archontophoenix,cunninghamiana,,,King palm
+AREX,Araucaria,excelsa,,,Norfolk island pine
+ARHE,Araucaria,heterophylla,,,Norfolk Island pine
+ARHE2,Artocarpus,heterophyllus,,,Jack fruit
+ARMA2,Arbutus,,,var. marina,Marina arbutus
+ARME,Arbutus,menziesii,,,Pacific madrone
+ARRO,Arecastrum,romanzoffianum,,,Queen palm
+ARSP,Aralia,spinosa,,,Devils walking stick
+ARUN,Arbutus,unedo,,,Strawberry tree
+ASTR,Asimina,triloba,,,Pawpaw
+AU1,Aucuba,,,,Acuba
+AVBI,Averrhoa,bilimbi,,,Cucumber tree
+AVCA,Averrhoa,carambola,,,Star fruit
+AZIN2,Azadirachta,indica,,,Neem tree
+BA,Bamboo,,,,Bamboo
+BA13,Bauhinia,,,,Orchid tree
+BABL,Bauhinia,x blakeana,,,Hong Kong orchid tree
+BAFO,Bauhinia,forficata,,,Bauhinia
+BAHO3,Bauhinia,hookeri,,,Orchid tree 'hookeri'
+BAPU,Bauhinia,purpurea,,,Orchid tree 'purpurea'
+BAVA,Bauhinia,variegata,,,"Orchid tree, variegated"
+BDL OTHER,Broadleaf Deciduous Large,,,,Broadleaf Deciduous Large
+BDM OTHER,Broadleaf Deciduous Medium,,,,Broadleaf Deciduous Medium
+BDS OTHER,Broadleaf Deciduous Small,,,,Broadleaf Deciduous Small
+BE,Betula,,,,Birch
+BEAL,Betula,alleghaniensis,,,Yellow birch
+BEAL2,Betula,albo-sinensis,,,Chinese birch
+BELE,Betula,lenta,,,Black birch
+BEL OTHER,Broadleaf Evergreen Large,,,,Broadleaf Evergreen Large
+BEM OTHER,Broadleaf Evergreen Medium,,,,Broadleaf Evergreen Medium
+BENI,Betula,nigra,,,River birch
+BEPA,Betula,papyrifera,,,Paper birch
+BEPE,Betula,pendula,,,European white birch
+BEPEGR,Betula,pendula,Gracilis,,Weeping birch
+BEPL2,Betula,platyphylla,,,Asian white birch
+BEPO,Betula,populifolia,,,Gray birch
+BERE,Beaucarnea,recurvata,,,Pony-tail palm
+BES OTHER,Broadleaf Evergreen Small,,,,Broadleaf Evergreen Small
+BEUT2,Betula,utilis,,,Indian paper birch
+BIJA,Bischofia,javanica,,,Toog
+BINO,Bismarckia,nobilis,,,Bismarckia palm
+BIOR,Bixa,orellana,,,Lipstick plant
+BO9,Bougainvillea,,,,Bouganvillea
+BOSP,Bougainvillea,spectabilis,,,Bougainvillea
+BOSP8,Bolusanthus,speciosus,,,Tree wisteria
+BR,Brahea,,,,Palm(brahea)
+BR1,Brachychiton,,,,Brachychiton
+BRAC,Schefflera,actinophylla,,,Schefflera
+BRAC2,Brachychiton,acerifolium,,,Arbol de la llama
+BRAR,Brahea,armata,,,Mexican blue palm
+BRBR,Brahea,brandegeei,,,San jose hesper palm
+BRDI9,Brachychiton,discolor,,,Pink flame tree
+BRED,Brahea,edulis,,,Guadalupe palm
+BRPA,Broussonetia,papyrifera,,,Paper mulberry
+BRPO,Brachychiton,populneum,,,Kurrajong
+BRSU,Brugmansia,suaveolens,,,Datura
+BUBU,Bucida,buceras,,,Geometry tree
+BUCA,Butia,capitata,,,Jelly palm
+BUDA2,Buddleja,davidii,,,Orange eye butterflybush
+BUSP,Buxus,,,,Boxwood
+CA1,Carya,,,,Hickory
+CA3,Catalpa,,,,Catalpa
+CA4,Castanea,,,,Chestnut
+CA40,Carpinus,,,,Hornbeam
+CA52,Casuarina,,,,Sheoak
+CABE,Carpinus,betulus,,,European hornbeam
+CABEF,Carpinus,betulus,Fastigiata,,Hornbeam 'Fastigiata'
+CABI,Catalpa,bignonioides,,,Southern catalpa
+CABI2,Cassia,bicapsularis,,,Winter cassia
+CACA,Carpinus,caroliniana,,,American hornbeam
+CACA3,Calodendrum,capense,,,Cape chesnut
+CACA73,Calycophyllum,candidissimum,,,Lemonwood
+CACI,Callistemon,citrinus,,,Red bottlebrush
+CACO,Carya,cordiformis,,,Bitternut hickory
+CACU8,Casuarina,cunninghamiana,,,River sheoak
+CADE,Castanea,dentata,,,American chestnut
+CADE2,Calocedrus,decurrens,,,Incense cedar
+CAED,Casimiroa,edulis,,,White sapote
+CAEQ,Casuarina,equisetifolia,,,Ironwood
+CAER,Catalpa,erubescens,,,Purple toned catalpa
+CAEX,Cassia,excelsa,,,Crown of gold tree
+CAFI,Cassia,fistula,,,Golden shower
+CAGL,Carya,glabra,,,Pignut hickory
+CAGR11,Cassia,grandis,,,Pink shower
+CAIL,Carya,illinoinensis,,,Pecan
+CAIN4,Calophyllum,inophyllum,,,Kamani
+CAJA,Carpinus,japonica,,,Japanese hornbeam
+CAJA9,Camellia,japonica,,,Camellia
+CALA,Carya,laciniosa,,,Shellbark hickory
+CALE,Cassia,leptophylla,,,Gold medallion tree
+CALO,Catalpa,longissima,,,Yokewood
+CAMA37,Carissa,macrocarpa,,,Natal plum
+CAME,Caesalpinia,mexicana,,,Mexican holdback
+CAMI36,Caryota,mitis,,,Fishtail palm
+CAMO,Castanea,mollissima,,,Chinese chestnut
+CANE33,Cassia,x nealiae,,,Rainbow shower tree
+CAOV,Carya,ovata,,,Shagbark hickory
+CAOV2,Carya,ovalis,,,Red hickory
+CAPA3,Carica,papaya,,,Papaya
+CAPU,Castanea,pumila,,,Alleghany chinkapin
+CAPU13,Caesalpinia,pulcherrima,,,Dwarf poinciana
+CARI9,Callistemon,rigidus,,,Stiff bottlebrush
+CARO,Cassia,javanica,,,Pink and white shower
+CASA,Camellia,sasanqua,,,Sasanqua camellia
+CASA5,Callistemon,salignus,,,White bottlebrush
+CASP,Catalpa,speciosa,,,Western catalpa
+CASP11,Caesalpinia,spinosa,,,Spiny holdback
+CASSI,Cassia,,,,Cassia
+CAST,Casuarina,stricta,,,Coast beefwood
+CASU34,Calliandra,schultzii,,,Pink powder puff tree
+CATE,Carya,texana,,,Black hickory
+CATO,Carya,alba,,,Mockernut hickory
+CATW,Calliandra,tweedii,,,Trinidad flame bush
+CAVI,Callistemon,viminalis,,,Weeping bottlebrush
+CE2,Celtis,,,,Hackberry
+CE7,Cedrus,,,,Cedar
+CEAT,Cedrus,atlantica,,,Atlas cedar
+CEAU,Celtis,australis,,,European hackberry
+CECA,Cercis,canadensis,,,Eastern redbud
+CEDE,Cedrus,deodara,,,Deodar cedar
+CEFI2,Cedrela,fissilis,,,Brazilian cedar wood
+CEFL,Parkinsonia,florida,,,Blue paloverde
+CEJA,Cercidiphyllum,japonicum,,,Katsura tree
+CELA,Celtis,laevigata,,,Sugarberry
+CEL OTHER,Conifer Evergreen Large,,,,Conifer Evergreen Large
+CEMI,Parkinsonia,microphylla,,,Yellow paloverde
+CEM OTHER,Conifer Evergreen Medium,,,,Conifer Evergreen Medium
+CEOC,Celtis,occidentalis,,,Northern hackberry
+CEOC2,Cercis,occidentalis,,,Western redbud
+CEOC3,Cercis,canadensis,,var. texensis,Western redbud
+CEPR,Cercidium,praecox,,,Sonoran palo verde
+CERE,Celtis,reticulata,,,Western hackberry
+CERE2,Cercis,reniformis,,,Southwestern redbud
+CESI2,Cercis,siliquastrum,,,Arbol de judea
+CESI3,Ceratonia,siliqua,,,Kelakid
+CESI4,Celtis,sinensis,,,Chinese hackberry
+CES OTHER,Conifer Evergreen Small,,,,Conifer Evergreen Small
+CETH,Ceanothus,thyrsiflorus,,,Blue blossom
+CH,Chamaecyparis,,,,Cedar
+CH31,Chitalpa,,,,Chitalpa
+CHFU,Chamaecyparis,funebris,,,Mourning cypress
+CHHU,Chamaerops,humilis,,,Mediterranean fan palm
+CHLA2,Chamaecyparis,lawsoniana,,,Port Orford cedar
+CHLI,Chilopsis,linearis,,,Desert willow
+CHLU,Dypsis,lutescens,,,Areca palm
+CHNO,Chamaecyparis,nootkatensis,,,Alaska cedar
+CHOB,Chamaecyparis,obtusa,,,Hinoki cypress
+CHOL,Chrysophyllum,oliviforme,,,Satinleaf
+CHPI,Chamaecyparis,pisifera,,,Sawara false cypress
+CHRE,Chionanthus,retusus,,,Chinese fringe tree
+CHSP,Chorisia,speciosa,,,Silk floss tree
+CHTA,Chitalpa,tashkentensis,,,Chitalpa
+CHTH,Chamaecyparis,thyoides,,,Atlantic white cedar
+CHVI,Chionanthus,virginicus,,,Fringe tree
+CIAU,Citrus,aurantifolia,,,Lime
+CIAU2,Citrus,aurantium,,,Sour orange
+CICA,Cinnamomum,camphora,,,Camphor tree
+CIGR,Citrus,maxima,,,Pummelo
+CILI,Citrus,limon,,,Lemon
+CIPA,Citrus,x paradisi,,,Grapefruit
+CIRE3,Citrus,reticulata,,,Mandarin orange
+CISI,Citrus,sinensis,,,Orange
+CISP,Citrus,,,,Citrus
+CISP2,Citharexylum,spinosum,,,Fiddlewood
+CIVE2,Cinnamomum,verum,,,Cinnamon
+CL6,Clerodendrum,,,,Pagoda flower
+CLLU,Cladrastis,kentukea,,,Yellowwood
+CLQU,Clerodendrum,quadriloculare,,,Shooting star
+CLRO,Clusia,rosea,,,Autograph tree
+CLTR,Clerodendrun,trichotomum,,,Harlequin glorybower
+CO1,Cornus,,,,Dogwood
+CO2,Corylus,,,,Hazelnut
+COAL,Cornus,alternifolia,,,Alternateleaf dogwood
+COAM,Corylus,americana,,,American hazlenut
+COAU,Cordyline,australis,,,Giant dracaena
+COBU,Cotoneaster,buxifolius,,,Cotoneaster
+COCI,Corymbia,citriodora,,,Lemon scented gum
+COCO1,Cotinus,coggygria,,,Smoke tree
+COCO2,Corylus,colurna,,,Turkish hazelnut
+COERA2,Conocarpus,erectus,,var. argenteus,Silver buttonwood
+COFL,Cornus,florida,,,Flowering dogwood
+COKO,Cornus,kousa,,,Kousa dogwood
+COLA,Cocculus,laurifolius,,,Laurel-leafed snailseed
+COLA18,Cotoneaster,lacteus,,,Milkflower cotoneaster
+COMA,Cornus,mas,,,Cornelian cherry
+COMA2,Corylus,maxima,,var. purpurea,Purpule giant filbert
+CONU,Cocos,nucifera,,,Coconut palm
+CONU2,Cornus,nuttallii,,,Pacific dogwood
+COOB,Cotinus,obovatus,,,American smoketree
+COPR,Copernicia,prunifera,,,Carnauba wax palm
+CORA,Cornus,racemosa,,,Gray dogwood
+CORA13,Colvillea,racemosa,,,Colville's glory
+COSE2,Cordia,sebestena,,,Geiger tree
+COSU2,Cordia,subcordata,,,Kou
+COUT,Corypha,utan,,,Buri palm
+COUV,Coccoloba,uvifera,,,Sea-grape
+COVI,Cochlospermum,vitifolium,,,Buttercup tree
+CR,Crataegus,,,,Hawthorn
+CRCR,Crataegus,crus-galli,,,Cockspur hawthorn
+CRCRI,Crataegus,crus-galli,,var. inermis,Cockspur hawthorn
+CRCU,Crescentia,cujete,,,Calabash tree
+CRDO,Crataegus,douglasii,,,Black hawthorn
+CRJA,Cryptomeria,japonica,,,Japanese red cedar
+CRLA,Crataegus,x lavallei,,,Carriere hawthorn
+CRLA80,Crataegus,laevigata,,,Smooth hawthorn
+CRMO2,Crataegus,mollis,Scheele,,Arnold hawthorn
+CROX,Crataegus,monogyna,,,Oneseed hawthorn
+CRPA,Crinodendron,patagua,,,Patagua
+CRPH,Crataegus,phaenopyrum,,,Washington hawthorn
+CRRU,Cryptocarya,rubra,,,Cryptocarya
+CRVI,Crataegus,viridis,,,Green hawthorn
+CRVI2,Crataegus,viridis,Winter King,,Green hawthorn
+CU,Cupressus,,,,Cypress
+CUAN,Cupaniopsis,anacardioides,,,Carrotwood
+CUAR,Cupressus,arizonica,,,Arizona cypress
+CUGU,Cupressus,guadalupensis,,,Guadaluoe cypress
+CULA,Cunninghamia,lanceolata,,,Blue Chinese fir
+CULE,x Cupressocyparis,leylandii,,,Leyland cypress
+CUMA,Cupressus,macrocarpa,,,Monterey cypress
+CUSE,Cupressus,sempervirens,,,Italian cypress
+CYCI,Cycas,circinalis,,,Queen sago
+CYOB,Cydonia,oblonga,,,Quince
+CYRE11,Cycas,revoluta,,,Sago palm
+CYSC4,Cytisus,scoparius,,,Scotchbroom
+DA2,Dalbergia,,,,Sissoo
+DAIM,Dahlia,imperialis,,,Tree dahlia
+DASI,Dalbergia,sissoo,,,India rosewood
+DERE,Delonix,regia,,,Royal poinciana
+DIKA,Diospyros,kaki,,,Japanese persimmon
+DIVI,Diospyros,virginiana,,,Common persimmon
+DOVI,Dodonaea,viscosa,,,Florida hopbush
+DR,Dracaena,,,,Dragon tree
+DRDR,Dracaena,draco,,,Dragon tree
+DUER,Duranta,erecta,,,Golden dewdrops
+DYDE2,Dypsis,decaryi,,,Triangle palm
+EBEB,Ebenopsis,ebano,,,Texas ebony
+EL1,Elaeagnus,,,,Elaeagnus
+ELAN,Elaeagnus,angustifolia,,,Russian olive
+ELDE,Elaeocarpus,decipiens,,,Japanese blueberry tree
+ELOR2,Elaeodendron,orientale,,,False olive
+ELUM,Elaeagnus,umbellata,,,Autumn olive
+ENCY,Enterolobium,cyclocarpum,,,Ear pod tree
+ER15,Erythrina,,,,Coral tree species
+ERBI,Erythrina,bidwillii,,,Bidwill's coral tree
+ERCA,Erythrina,caffra,,,Kaffirboom coral tree
+ERCO,Erythrina,coralloides,,,Naked coral tree
+ERCR,Erythrina,crista-galli,,,Coral tree
+ERDE,Eriobotrya,deflexa,,,Bronze loquat
+ERFA,Erythrina,falcata,,,Corticeira-da-serra
+ERHU4,Erythrina,humeana,,,Natal coral tree
+ERJA,Eriobotrya,japonica,,,Loquat tree
+ERLY,Erythrina,lysistemon,,,Lysistemon coral tree
+ERSA11,Erythrina,sandwicensis,,,Wiliwili
+ERVA7,Erythrina,variegata,,,Indian coral tree
+ERVAO,Erythrina,variegata,,var. orientalis,"Indian coral tree, oriental"
+EU1,Eucalyptus,,,,Gum
+EUCA,Eucalyptus,calophylla,,,Redgum
+EUCA1,Eucalyptus,camaldulensis,,,Red gum eucalyptus
+EUCI,Eucalyptus,cinerea,,,Silver dollar eucalyptus
+EUCI2,Eucalyptus,citriodora,,,Lemonscented gum
+EUCL,Eucalyptus,cladocalyx,,,Sugargum
+EUCO24,Euphorbia,cotinifolia,,,Mexican shrubby spurge
+EUCO3,Eucalyptus,cornuta,,,Yate
+EUCR,Eucalyptus,crebra,,,Narrowleaf red ironbark
+EUDE,Eucalyptus,deglupta,,,Mindanao gum
+EUER,Eucalyptus,erythrocorys,,,Red-cap gum
+EUFI81,Eucalyptus,ficifolia,,,Redflower gum
+EUGL,Eucalyptus,globulus,,,Blue gum eucalyptus
+EUGLCO,Eucalyptus,globulus,,var. compacta,Dwarf blue gum
+EUGR,Eucalyptus,grandis,,,Flooded gum eucalyptus
+EUGU,Eucalyptus,gunnii,,,Cicer gum eucalyptus
+EULE,Eucalyptus,leucoxylon,,,White ironbark
+EULE2,Eucalyptus,lehmannii,,,Bushy yate
+EUMA,Eucalyptus,macrocarpa,,,Bluebush
+EUMA23,Eucalyptus,maculata,,,Spotted gum
+EUMI2,Eucalyptus,microtheca,,,Coolibah tree
+EUNI,Eucalyptus,nicholii,,,Willow-leaved gimlet
+EUNY,Eucryphia,x nymansensis,,,Namansay' eucryphia
+EUOC9,Eucalyptus,occidentalis,,,Flat-top yate
+EUPA2,Eugenia,paniculata,,,Brush cherry
+EUPA26,Eucalyptus,parvula,,,Kybean gum
+EUPO,Eucalyptus,polyanthemos,,,Sliver dollar gum eucalyptus
+EURO,Eucalyptus,robusta,,,Swamp mahagony
+EURU,Eucalyptus,rudis,,,Desert gum eucalyptus
+EUSA,Eucalyptus,saligna,,,Sydney blue gum
+EUSI,Eucalyptus,sideroxylon,,,Red ironbark
+EUSM,Eugenia,smithii,,,Lilly-pilly tree
+EUSP,Eucalyptus,spathulata,,,Narrow-leaved gimlet
+EUSP,Euonymus,,,,Narrow-leaved gimlet
+EUTE,Eucalyptus,tereticornis,,,Horn cap eucalyptus
+EUTI,Euphorbia,tirucalli,,,Pencil tree
+EUTO11,Eucalyptus,torquata,,,Coral gum
+EUUL,Eucommia,ulmoides,,,Hardy rubber tree
+EUUN2,Eugenia,uniflora,,,Surinam-cherry
+EUVI,Eucalyptus,viminalis,,,Ribbon gum eucalyptus
+FA,Fagus,,,,Beech
+FABE,Fagraea,berteroana,,,Pua kenikeni
+FAGR,Fagus,grandifolia,,,American beech
+FASY,Fagus,sylvatica,,,European beech
+FASYAT,Fagus,sylvatica,Atropunicea,,Purple leaf beech
+FASYP,Fagus,sylvatica,Purpurea,,Copper Beech
+FE,Feijoa,,,,Feijoa
+FESE,Feijoa,sellowiana,,,Pineapple guava
+FI1,Ficus,,,,Fig
+FIAL5,Ficus,binnendijkii,,,Alii ficus
+FIBE,Ficus,benjamina,,,Benjamin fig
+FIBE2,Ficus,benghalensis,,,Indian banyan
+FICA,Ficus,carica,,,Common fig
+FIDE6,Filicium,decipiens,,,Fern tree
+FIEL,Ficus,elastica,,,Rubber plant
+FILY,Ficus,lyrata,,,Fiddle-leaf fig
+FIMA2,Ficus,macrophylla,,,Morton Bay fig
+FIMI,Ficus,thonningii,,,Figueira benjamin
+FIMI2,Ficus,microcarpa,,,Chinese banyan
+FIMINI,Ficus,microcarpa,nitida,var. green gem,Green gem indian laurel fig
+FIRE3,Ficus,religiosa,,,Bo tree
+FIRE4,Ficus,retusa,,ssp. nitida,Indian laurel fig
+FIRU,Ficus,rubiginosa,,,Rustyleaf fig
+FISI,Firmiana,simplex,,,Chinese parasoltree
+FIVI3,Ficus,virens,,,Ara
+FIWA,Ficus,watkinsiana,,,Watkins fig
+FOIN3,Forsythia,x intermedia,,,Showy forsythia
+FOPU2,Forestiera,pubescens,,,New Mexico olive
+FORS,Forsythia,,,,Forsythia
+FR,Fraxinus,,,,Ash
+FRAM,Fraxinus,americana,,,White ash
+FRAM_A,Fraxinus,americana,Autumn Purple,,Autumn purple ash
+FRAMAA,Fraxinus,americana,Autumn Applause,,Autumn applause ash
+FRAMCC,Fraxinus,americana,Champaign County,,Champaign County Ash
+FRAM_R,Fraxinus,americana,Rosehill,,Rosehill ash
+FRAN2,Fraxinus,angustifolia,,,Raywood ash
+FRANR,Fraxinus,oxycarpa,Raywood,,Raywood ash
+FRAN_R,Fraxinus,angustifolia,Raywood,,Raywood ash
+FRBE,Fraxinus,berlandieriana,,,Arizona ash
+FRCA,Fraxinus,caroliniana,,,Carolina ash
+FRCA6,Fremontodendron,californicum,,,California flannelbush
+FREX,Fraxinus,excelsior,,,European ash
+FREXH,Fraxinus,excelsior,Hessei,,Hesse ash
+FREX_K,Fraxinus,excelsior,Kimberly,,Kimberly ash
+FRHO,Fraxinus,holotricha,,,Moraine ash
+FRLA,Fraxinus,latifolia,,,Oregon ash
+FRMA,Fraxinus,mandshurica,,,Manchurian ash
+FRMA6,Fraxinus,malacophylla,,,Ash
+FRME2,Fremontodendron,mexicanum,,,Mexican flannelbush
+FRNI,Fraxinus,nigra,,,Black ash
+FROR,Fraxinus,ornus,,,Flowering ash
+FROR2,Fraxinus,oregana,,,Oregon ash
+FROX,Fraxinus,oxycarpa,,,Caucasian ash
+FROXA,Fraxinus,oxycarpa,Aureafolia,,Golden desert ash
+FROX_F,Fraxinus,oxycarpa,Flame,,Flame ash
+FRPE,Fraxinus,pennsylvanica,,,Green ash
+FRPE2,Fraxinus,pennsylvanica,Patmore,,Patmore ash
+FRPEM,Fraxinus,pennsylvanica,Marshall,,Marshall ash
+FRPE_P,Fraxinus,pennsylvanica,Patmore,,Patmore ash
+FRPES,Fraxinus,pennsylvanica,Summit,,Summit ash
+FRPESG,Fraxinus,pennsylvanica,Sherwood Glen,,Green ash 'Sherwood Glen'
+FRQU,Fraxinus,quadrangulata,,,Blue ash
+FRUH,Fraxinus,uhdei,,,Tropical ash
+FRVE,Fraxinus,velutina,,,Velvet ash
+FRVE_FW,Fraxinus,velutina,Fan West,,Velvet ash 'Fan West'
+FRVEG,Fraxinus,velutina,Modesto,,Modesto ash
+GA2,Gardenia,,,,Gardenia
+GAEL,Garrya,elliptica,,,Wavyleaf silktassel
+GEPA,Geijera,parviflora,,,Wilga; australian willow
+GIBI,Ginkgo,biloba,,,Ginkgo
+GIBI_AG,Ginkgo,biloba,Autumn Gold,,Ginkgo 'Autumn Gold'
+GIBI_F,Ginkgo,biloba,Fairmont,,Ginkgo 'Fairmont'
+GIBI(F),Gingko,biloba,,female,Female ginkgo
+GIBIF2,Ginkgo,biloba,Fastigiata,,Sentry ginkgo
+GL3,Gleditsia,,,,Locust
+GLCA,Gleditsia,caspica,,,Caspian locust
+GLTR,Gleditsia,triacanthos,,,Honeylocust
+GLTRI,Gleditsia,triacanthos,Imperial,,Imperial Honeylocust
+GLTRIN,Gleditsia,triacanthos,,var. inermis,Thornless honeylocust
+GLTRS,Gleditsia,triacanthos,Shademaster,,Shademaster honeylocust
+GLTRS1,Gleditsia,triacanthos,Sunburst,,Sunburst Honeylocust
+GRRO,Grevillea,robusta,,,Silky-oak
+GUOF,Guaiacum,officinale,,,Lignum-vitae
+GYDI,Gymnocladus,dioicus,,,Kentucky coffeetree
+HA4,Hakea,,,,Hakea
+HACA,Halesia,carolina,,,Snowdrop tree
+HACA3,Harpephyllum,caffrum,,,Kaffir-plum
+HADI,Halesia,diptera,,,Two-wing silverbell
+HALA,Hakea,laurina,,,Pincushion tree
+HAPE7,Harpullia,pendula,,,Tulipwood
+HASU,Hakea,suaveolens,,,Sweet hakea; Scented hakea
+HAVI,Hamamelis,virginiana,,,Witch hazel
+HEAR,Heteromeles,arbutifolia,,,Christmasberry
+HELI9,Heritiera,littoralis,,,Looking-glass tree
+HENY,Hernandia,nymphaeifolia,,,Jack in the box tree
+HIMO,Hibiscus,moschuetos,,,Rose mallow hibiscus
+HIMU3,Hibiscus,mutabilis,,,Dixie rosemallow
+HIRO-SI,Hibiscus,rosa-sinensis,,,Chinese hibiscus
+HISP,Hibiscus,,,,Rosemallow
+HISY,Hibiscus,syriacus,,,Rose-of-sharon
+HITI,Hibiscus,tiliaceus,,,Sea hibiscus
+HOFO,Howea,forsteriana,,,Forster sentry palm
+HUCR,Hura,crepitans,,,Sandbox tree
+HYFL,Hymenosporum,flavum,,,Sweetshade; Australian fragipani
+HYLA,Hyophorbe,lagenicaulis,,,Bottle palm
+HYVE9,Hyophorbe,verschaffeltii,,,Spindle palm
+ILAL,Ilex,altaclarensis,,,Wilson holly
+ILAQ,Ilex,aquifolium,,,English holly
+ILAT,Ilex,x attenuata,,,Topal holly
+ILCA,Ilex,cassine,,,Dahoon
+ILCO2,Ilex,cornuta,,,Chinese Holly
+ILMY,Ilex,myrtifolia,,,Myrtle dahoon
+ILOP,Ilex,opaca,,,American holly
+ILOP_S,Ilex,x attenuata,Savannah,,Savannah holly
+ILPA2,Ilex,paraguariensis,,,Paraguay-tea
+ILSP,Ilex,,,,Holly
+ILVO,Ilex,vomitoria,,,Yaupon
+JA6,Jasminum,,,,Jasmine
+JAIN,Jatropha,integerrima,,,Jatropha
+JAMI,Jacaranda,mimosifolia,,,Jacaranda
+JU,Juniperus,,,,Juniper
+JU1,Juglans,,,,Walnut
+JUCA1,Juniperus,californica,,,California juniper
+JUCA2,Juglans,californica,,,Southern california walnut
+JUCH,Juniperus,chinensis,,,Chinese juniper
+JUCHS6,Juniperus,chinensis,Torulosa,,Hollywood juniper
+JUCI,Juglans,cinerea,,,Butternut
+JUCO1,Juniperus,communis,,,Common juniper
+JUCO3,Juniperus,conferta,,,Shore juniper
+JUHI,Juglans,hindsii,,,Hind walnut
+JUMO,Juniperus,monosperma,,,One seed juniper
+JUNI,Juglans,nigra,,,Black walnut
+JUOC,Juniperus,occidentalis,,,Western juniper
+JUPR,Juniperus,procumbens,,,Japanese garden juniper
+JURE,Juglans,regia,,,English walnut
+JUSC,Juniperus,scopulorum,,,Rocky mountain juniper
+JUSI,Juniperus,virginiana,,var. silicicola,Southern redcedar
+JUVI,Juniperus,virginiana,,,Eastern red cedar
+KOBI,Koelreuteria,bipinnata,,,Chinese flame tree
+KOEL,Koelreuteria,elegans,,,Goldenrain tree
+KOPA,Koelreuteria,paniculata,,,Goldenrain tree
+KOPA_F,Koelreuteria,paniculata,Fastigiata,,Goldenrain 'Fastigiata'
+LA10,Larix,,,,Larch
+LA6,Lagerstroemia,,,,Common crapemyrtle
+LA6_M,Lagerstroemia,x 'Muskogee',,,Muskogee crapemyrtle
+LA6_N,Lagerstroemia,x 'Natchez',,,Natchez crapemyrtle
+LA6_T1,Lagerstroemia,x 'Tuscarora',,,Tuscarora crapemyrtle
+LA6_T2,Lagerstroemia,x 'Tuskegee',,,Tuskegee crapemyrtle
+LAAN2,Laburnum,anagyroides,,,Golden chain tree
+LADE,Larix,decidua,,,European larch
+LADEWPE,Larix,decidua,Pendula,,European larch 'Pendula'
+LAIN,Lagerstroemia,indica,,,Crapemyrtle
+LANO,Laurus,nobilis,,,Laurel de olor
+LAPA,Lagunaria,patersonii,,,Primrose tree; cow itch tree
+LASP,Lagerstroemia,speciosa,,,Giant crapemyrtle
+LAWA,Laburnum,x watereri,,,Golden-chain tree
+LE14,Leptospermum,,,,Teatree
+LELA12,Leptospermum,laevigata,,,Coastal teatree
+LELE,Leucaena,leucocephala,,,Koa haole
+LIAU9,Livistona,australis,,,Australian fan palm
+LICH,Livistona,chinensis,,,Chinese fan palm
+LICH4,Litchi,chinensis,,,Litchi
+LIDE,Lithocarpus,densiflorus,,,Tanoak
+LIDE2,Livistona,decipiens,,,Ribbon palm
+LIFO,Liquidambar,formosana,,,Chinese sweet gum
+LIJA,Ligustrum,japonicum,,,Ligustro
+LILU,Ligustrum,lucidum,,,Glossy privet
+LIOR,Liquidambar,orientalis,,,Oriental sweetgum
+LIOV,Ligustrum,ovalifolium,,,California privet
+LISI,Ligustrum,sinense,,,Ligustro
+LISP,Ligustrum,,,,Privet
+LIST,Liquidambar,styraciflua,,,Sweetgum
+LITU,Liriodendron,tulipifera,,,Tulip tree
+LOGO,Gordonia,lasianthus,,,Loblolly bay
+LOSP,Lonicera,,,,Honeysuckle
+LYAS,Lyonothamnus,floribundus,,ssp. asplenifolius,Fernleaf catalina ironwood
+LYFL,Lyonothamnus,floribundus,,,Lyontree
+LYMI,Lysiloma,microphyllum,,,Feather bush
+LYRA,Lycianthes,rantonnei,,,Paraguay nightshade
+MA1,Magnolia,,,,Magnolia
+MA2,Malus,,,,Crabapple
+MA2,Malus,,,,Apple
+MAAC,Magnolia,acuminata,,,Cucumber tree
+MAAM,Maackia,amurensis,,,Amur maackia
+MABE,Mahonia,bealei,,,Leatherleaf mahonia
+MABO,Maytenus,boaria,,,Mayten tree
+MADE,Magnolia,denudata,,,Chinese magnolia
+MAFL80,Malus,floribunda,,,Japanese flowering crabapple
+MAGR,Magnolia,grandiflora,,,Southern magnolia
+MAGR_L,Magnolia,grandiflora,Little Gem,,Little gem southern magnolia
+MAHA,Malus,,Harvest Gold,,Crabapple harvest gold
+MAIN,Mangifera,indica,,,Mango
+MAIN8,Macadamia,integrifolia,,,Macadamia nut
+MAIO,Malus,ioensis,,var. plena,Bechtel crabapple
+MAIS,Malus,,Indian Summer,,Crabapple Indian summer
+MALA6,Malosma,laurina,,,Laurel sumac
+MALU4,Markhamia,lutea,,,Siala
+MAMA,Magnolia,macrophylla,,,Bigleaf magnolia
+MAPO,Maclura,pomifera,,,Osage orange
+MAPU,Malus,pumila,,,Paradise apple
+MAPUEL,Malus,x purpurea,,var. eleyi,Eleyi crapapple
+MAPY,Magnolia,soulangiana,,,Pyramid magnolia
+MASO,Magnolia,x soulangiana,,,Chinese magnolia; Saucer magnolia
+MASO_G,Magnolia,soulangiana,Galaxy,,Galaxy magnolia
+MAST,Magnolia,stellata,,,Star magnolia
+MASY2,Malus,sylvestris,,,Paradise apple
+MATE,Macadamia,tetraphylla,,,Rough-shell macadamia
+MATI,Machaerium,tipu,,,Tipa
+MATR,Magnolia,tripetala,,,Umbrella magnolia
+MATS,Malus,tschonoskii,,,Crabapple
+MAVI,Magnolia,virginiana,,,Sweetbay
+MAZA,Manilkara,zapota,,,Sapodilla
+MEAR,Melaleuca,armillaris,,,Drooping melaleuca
+MEAZ,Melia,azedarach,,,Pride-of-India
+MEBR9,Melaleuca,bracteata,,,River teatree
+MEEX,Metrosideros,excelsus,,,New zealand christmas tree
+MEGL,Metasequoia,glyptostroboides,,,Dawn redwood
+MELE,Melaleuca,leucadendra,,,Punk tree
+MELI7,Melaleuca,linariifolia,,,Cajeput tree
+MENE,Melaleuca,nesophila,,,Pink melaleuca
+MEPO5,Metrosideros,polymorpha,,,Ohi'a lehua
+MEQU,Melaleuca,quinquenervia,,,Punktree
+MEST,Melaleuca,styphelioides,,,Melaleuca
+MICA21,Mimusops,caffra,,,Red milkwood
+MO,Morus,,,,Mulberry
+MOAL,Morus,alba,,,White mulberry
+MOAR,Montanoa,arborescens,,,Daisy tree
+MOCI3,Morinda,citrifolia,,,Noni
+MONI,Morus,nigra,,,Black mulberry
+MOOL,Moringa,oleifera,,,Horseradish tree
+MORU,Morus,rubra,,,Red mulberry
+MU5,Musa,,,,Banana
+MUPA,Murraya,exotica,,,Orange-jessamine
+MUPA3,Musa,x paradisiaca,,,French plantain
+MUPA4,Murraya,paniculata,,,Mock orange
+MYCA,Morella,californica,,,Pacific bayberry
+MYCE,Morella,cerifera,,,Southern bayberry
+MYCE2,Myrica,cerifera,,,Southern bayberry
+MYCO,Myrtus,communis,,,Myrtle
+MYLA,Myoporum,laetum,,,Mioporo
+NEOL,Nerium,oleander,,,Oleander
+NIGL,Nicotiana,glauca,,,Tree tobacco
+NOEM,Noronhia,emarginata,,,Madagascar-olive
+NORE,Nolina,recurvata,,,Pony-tail palm
+NYSY,Nyssa,sylvatica,,,Black tupelo
+OCEL,Ochrosia,elliptica,,,New Caledonia tree
+OCSE2,Ochna,serrulata,,,Mickey Mouse plant
+OLEU,Olea,europaea,,,Olive
+OLEU2,Olea,europaea,Swan Hill,,Swan hill olive
+OLTE,Olneya,tesota,,,Tesota
+OPFI,Opuntia,ficus-indica,,,Tuna cactus
+ORCO9,Orbignya,cohune,,,Cohune palm
+OSFR,Osmanthus,fragrans,,,Sweet olive
+OSVI,Ostrya,virginiana,,,Eastern hophornbeam
+OXAR,Oxydendrum,arboreum,,,Sourwood
+PA19,Paulownia,,,,Paulownia
+PAAC,Parkinsonia,aculeata,,,Jerusalem thorn
+PACE8,Parmentiera,cereifera,,,Candle tree
+PALO8,Paraserianthes,lophantha,,,Plume albizia
+PAPE,Parrotia,persica,,,Persian ironwood
+PASP,Palm,,,,Palm
+PATE2,Pandanus,tectorius,,,Hala
+PATO,Paulownia,tomentosa,,,Royal paulownia
+PEAM,Persea,americana,,,Avocado
+PEBO,Persea,borbonia,,,Redbay
+PEIN17,Persea,indica,,,Indian bay
+PEL OTHER,Palm Evergreen Large,,,,Palm Evergreen Large
+PEM OTHER,Palm Evergreen Medium,,,,Palm Evergreen Medium
+PEPT,Peltophorum,pterocarpum,,,Yellow poinciana
+PES OTHER,Palm Evergreen Small,,,,Palm Evergreen Small
+PH18,Phyllostachys,,,,Bamboo
+PH7,Phoenix,,,,Date palm species
+PHAM,Phellodendron,amurense,,,Amur corktree
+PHCA,Phoenix,canariensis,,,Canary Island date palm
+PHDA4,Phoenix,dactylifera,,,Date palm
+PHFR,Photinia,x fraseri,,,Fraser photinia
+PHRE,Phoenix,reclinata,,,Senegal date palm
+PHRO,Phoenix,roebelenii,,,Pygmy date palm
+PHSE,Photinia,serratifolia,,,Taiwanese photinia
+PHSP2,Photinia,,,,Chokeberry
+PHSY,Phoenix,sylvestris,,,Toddy palm
+PI1,Picea,,,,Spruce
+PI2,Pinus,,,,Pine
+PI23,Pittosporum,,,,Cheesewood
+PIAB,Picea,abies,,,Norway spruce
+PIAR,Pinus,aristata,,,Bristlecone pine
+PIAR9,Pittosporum,arborescens,,,Pittosporum
+PIAS,Picea,asperata,,,Chinese spruce
+PIAT,Pinus,attenuata,,,Knobcone pine
+PIAT4,Pistacia,atlantica,,,Mt. atlas mastic tree
+PIBA,Pinus,banksiana,,,Jack pine
+PIBR2,Pinus,brutia,,,Turkish pine; east mediterranean pine
+PICA,Pinus,canariensis,,,Canary Island pine
+PICE,Pinus,cembroides,,,Mexican pinyon
+PICE2,Pinus,cembra,,,Swiss stone pine
+PICH,Pistacia,chinensis,,,Chinese pistache
+PICH_PS,Pistacia,chinensis,Pearl Street,,Chinese pistache 'Pearl street'
+PICL,Pinus,clausa,,,Sand pine
+PICO,Pinus,contorta,,,Lodgepole pine
+PICO2,Pinus,coulteri,,,Coulter pine
+PICO5,Pinus,contorta,,var. bolanderi,Bolander beach pine
+PICO6,Pinus,contorta,,var. latifolia,Tall lodgepole pine
+PICR,Pittosporum,crassifolium,,,Stiffleaf cheesewood
+PIDE,Pinus,densiflora,,,Japanese red pine
+PIDI3,Pimenta,dioica,,,Allspice
+PIDU,Pithecellobium,dulce,,,Opiuma
+PIEC,Pinus,echinata,,,Shortleaf pine
+PIED,Pinus,edulis,,,Pinyon pine
+PIEL,Pinus,elliottii,,,Slash pine
+PIEL2,Pinus,eldarica,,,Afghan pine
+PIEN,Picea,engelmannii,,,Engelmann spruce
+PIEU,Pittosporum,eugenioides,,,Tarata
+PIFE,Pittosporum,ferrugineum,,,Rusty pittosporum
+PIFL,Pinus,flexilis,,,Limber pine
+PIGL1,Picea,glauca,,,White spruce
+PIGL2,Pinus,glabra,,,Spruce pine
+PIHA,Pinus,halepensis,,,Aleppo pine
+PIMA,Picea,mariana,,,Black spruce
+PIMO3,Pinus,monticola,,,Western white pine
+PIMU,Pinus,mugo,,,Sweet mountain pine
+PIMU2,Pinus,muricata,,,Bishop pine
+PINI,Pinus,nigra,,,Austrian pine
+PIOM,Picea,omorika,,,Serbian spruce
+PIOR,Picea,orientalis,,,Oriental spruce
+PIPA,Pinus,palustris,,,Longleaf pine
+PIPA4,Pinus,patula,,,NCN
+PIPE8,Pittosporum,pentandrum,,,Mamalis
+PIPH2,Pittosporum,phillyraeoides,,,Pittosporum willow
+PIPI2,Pinus,pinea,,,Umbrella pine
+PIPI6,Pinus,pinaster,,,Maritime pine
+PIPO,Pinus,ponderosa,,,Ponderosa pine
+PIPU,Picea,pungens,,,Blue spruce
+PIPUGL,Picea,pungens,Glauca,,Blue spruce
+PIRA,Pinus,radiata,,,Montery pine
+PIRA2,Pimenta,racemosa,,,Bay-rum tree
+PIRE,Pinus,resinosa,,,Red pine
+PIRH,Pittosporum,rhombifolium,,,Queensland pittosporum
+PIRI,Pinus,rigida,,,Pitch pine
+PIRO,Pinus,roxburghii,,,Chir pine
+PIRU,Picea,rubens,,,Red spruce
+PISA2,Samanea,saman,,,Monkeypod
+PISE,Pinus,serotina,,,Pond pine
+PISI,Picea,sitchensis,,,Sitka spruce
+PIST,Pinus,strobus,,,Eastern white pine
+PIST2,Pinus,strobiformis,,,Southwestern white pine
+PISY,Pinus,sylvestris,,,Scotch pine
+PITA,Pinus,taeda,,,Loblolly pine
+PITH,Pinus,thunbergiana,,,Japanese black pine
+PITO,Pittosporum,tobira,,,Japanese pittosporum
+PITO2,Pinus,torreyana,,,Torrey pine
+PIUN,Pittosporum,undulatum,,,Victorian box
+PIVI,Pinus,virginiana,,,Virginia pine
+PIVI5,Pittosporum,viridiflorum,,,Cape cheesewood
+PIWA3,Pinus,wallichiana,,,Himalayan pine
+PL13,Plumeria,,,,Plumeria
+PL3,Platanus,,,,Sycamore
+PLAC,Platanus,acerifolia,,,London planetree
+PLAC1,Plumeria,acuminata,,,Frangipani
+PLAC_B,Platanus,acerifolia,Bloodgood,,London planetree 'Bloodgood'
+PLAC_C,Platanus,acerifolia,Columbia,,London planetree 'Columbia'
+PLOC,Platanus,occidentalis,,,American sycamore
+PLOR,Platanus,orientalis,,,Oriental planetree
+PLOR80,Platycladus,orientalis,,,Oriental arbor vitae
+PLPI4,Platymiscium,pinnatum,,,Chachimbo
+PLRA,Platanus,racemosa,,,California sycamore
+PLWR,Platanus,wrightii,,,Arizona sycamore
+PO,Populus,,,,Cottonwood
+PO3,Podocarpus,,,,Podocarpus
+POAC5,Populus,x acuminata,,,Lanceleaf cottonwood
+POAL,Populus,alba,,,White poplar
+POALPY,Populus,alba,Pyramidalis,,White poplar 'Pyramidalis'
+POAN,Populus,angustifolia,,,Narrowleaf cottonwood
+POBA,Populus,balsamifera,,,Balsam poplar
+POBAB2,Populus,balsamifera,,ssp. balsamifera,Balsam popular
+POCA,Populus,x canescens,,,Gray poplar
+POCA2,Populus,x canadensis,,,Carolina poplar
+PODE,Populus,deltoides,,,Eastern cottonwood
+POFR,Populus,fremontii,,,Valley cottonwood
+POGR,Populus,grandidentata,,,Bigtooth aspen
+POGR2,Podocarpus,gracilior,,,Fern pine
+POHE2,Podocarpus,henkelii,,,Long-leafed yellowwood
+POLO21,Polyalthia,longifolia,,,Cemetery tree
+POMA,Podocarpus,macrophyllus,,,Yew podocarpus
+PONA,Podocarpus,nagi,,,Broad leaf podocarpus
+PONE21,Podocarpus,neriifolius,,,Brown pine
+PONI,Populus,nigra,,,Black poplar
+PONIIT,Populus,nigra,Italica,,Lombardy poplar
+POPI,Derris,indica,,,Poonga oil tree
+POSA,Populus,sargentii,,,Plains cottonwood
+POTR1,Populus,tremuloides,,,Quaking aspen
+POTR2,Populus,balsamifera,,ssp. trichocarpa,Black cottonwood
+POUS2,Podocarpus,usambarensis,,,East African yellow wood
+PR,Prunus,,,,Plum
+PR,Prunus,,,,Cherry
+PR2,Prestoea,,,,Prestoea
+PR6,Prosopis,,,,Mesquite
+PRAL2,Prosopis,alba,,,Argentine mesquite
+PRAM,Prunus,americana,,,American plum
+PRAM2,Prunus,amygdalus,,,Almendro
+PRAN,Prunus,angustifolia,,,Chickasaw plum
+PRAR,Prunus,armeniaca,,,Apricot
+PRAV,Prunus,avium,,,Sweet cherry
+PRBL,Prunus,blieriana,,,Blierana plum
+PRCA,Prunus,caroliniana,,,Carolina laurelcherry
+PRCA2,Prunus,campanulata,,,Taiwan cherry
+PRCE,Prunus,cerasifera,,,Purple leaf plum
+PRCEKV,Prunus,cerasifera,Krauter Vesuvius,,Krauter vesuvius plum
+PRCEKW,Prunus,cerasifera,Thundercloud,,Thundercloud purple plum
+PRCH,Prosopis,chilensis,,,Algarrobo
+PRCI,Prunus,x cistena,,,Purpleleaf sand cherry
+PRDO,Prunus,domestica,,,Common plum
+PRDU,Prunus,dulcis,,,Sweet almond
+PRGL2,Prosopis,glandulosa,,,Honey mesquite
+PRHAJO,Prunus,hally,,,Hally Jolivette Cherry
+PRIL,Prunus,ilicifolia,,,Hollyleaf cherry
+PRLA,Prunus,laurocerasus,,,Common cherry laurel
+PRLY,Prunus,ilicifolia,,ssp. lyonii,Catalina cherry
+PRMA,Prunus,maackii,,,Amur chokecherry
+PRPA,Prunus,padus,,,European bird cherry
+PRPA11,Pritchardia,pacifica,,,Fiji fan palm
+PRPA2,Prosopis,pallida,,,Kiawe
+PRPE1,Prunus,pennsylvanica,,,Pin cherry
+PRPE2,Prunus,persica,,,Peach
+PRPI,Prunus,pissardii,,,Purpleleaf plum
+PRPU2,Prosopis,pubescens,,,Screwbean mesquite
+PRSA,Prunus,sargentii,,,Sargent cherry
+PRSE1,Prunus,serotina,,,Black cherry
+PRSE2,Prunus,serrulata,,,Kwanzan cherry
+PRSEAM,Prunus,serrulata,Amanogawa,,Amanogawa cherry
+PRSESH,Prunus,serrulata,Shirofugen,,Shirofugen cherry
+PRSESO,Prunus,serrulata,Shirotae,,Shirotae cherry
+PRSU,Prunus,subhirtella,,,Higan cherry
+PRTO,Prunus,tomentosa,,,Manchu cherry
+PRTR,Prunus,triloba,,,Flowering plum
+PRVE,Prosopis,velutina,,,Velvet mesquite
+PRVI,Prunus,virginiana,,,Common chokecherry
+PRVISH,Prunus,virginiana,Shubert,,Shubert chokecherry
+PRYE,Prunus,yedoensis,,,Yoshino flowering cherry
+PSCA,Psidium,cattleianum,,,Strawberry guava
+PSEL5,Pseudobombax,ellipticum,,,Shaving brush tree
+PSGU,Psidium,guajava,,,Guava
+PSME,Pseudotsuga,menziesii,,,Douglas fir
+PTCO,Pterostyrax,corymbosa,,,Little epaulettetree
+PTIN,Pterocarpus,indicus,,,Narra
+PTMA8,Ptychosperma,macarthurii,,,Macarthur palm
+PTST,Pterocarya,stenoptera,,,Chinese wingnut
+PTTR,Ptelea,trifoliata,,,Common hoptree
+PUGR,Punica,granatum,,,Pomegranate
+PY,Pyrus,,,,Pear
+PYAN,Malus,angustifolia,,,Southern crabapple
+PYCA,Pyrus,calleryana,,,Callery pear
+PYCAA,Pyrus,calleryana,Aristocrat,,Callery pear 'Aristocrat'
+PYCA_B,Pyrus,calleryana,Bradford,,Callery pear 'Bradford'
+PYCA_C,Pyrus,calleryana,Capital,,Callery pear 'Capital'
+PYCA_CH,Pyrus,calleryana,Chanticleer,,Callery pear 'Chanticleer'
+PYCACL,Pyrus,calleryana,Cleveland,,Callery pear 'Cleveland'
+PYCA_R,Pyrus,calleryana,Red Spire,,Callery pear 'Redspire'
+PYCA_T,Pyrus,calleryana,Trinity,,Callery pear 'Trinity'
+PYCA_W,Pyrus,calleryana,Whitehouse,,Callery pear 'Whitehouse'
+PYCO,Pyrus,communis,,,Common pear
+PYCO2,Pyracantha,coccinea,,,Fire thorn
+PYFA,Pyrus,fauriei,,,Korean sun pear
+PYIO,Malus,ioensis,,,Prairie crabapple
+PYKA,Pyrus,kawakamii,,,Evergreen pear
+PYKO,Pyracantha,koidzumii,,,Formosa firethorn
+PYSP,Pyracantha,,,,Firethorn
+QU,Quercus,,,,Oak
+QUAC,Quercus,acutissima,,,Sawtooth oak
+QUAC2,Quercus,acerifolia,,,Sawtooth oak
+QUAG,Quercus,agrifolia,,,Coastal live oak; California live oak
+QUAL,Quercus,alba,,,White oak
+QUAL3,Quercus,aliena,,,Oriental white oak
+QUAU,Quercus,austrina,,,Bluff oak
+QUBI,Quercus,bicolor,,,Swamp white oak
+QUCH,Quercus,chrysolepis,,,Canyon live oak
+QUCI,Quercus,incana,,,Bluejack oak
+QUCO,Quercus,coccinea,,,Scarlet oak
+QUEL,Quercus,ellipsoidalis,,,Northern pin oak
+QUEN,Quercus,engelmannii,,,Engelmann oak
+QUFA,Quercus,falcata,,,Southern red oak
+QUGE,Quercus,georgiana,,,Sand live oak
+QUHE,Quercus,hemisphaerica,,,Darlington oak
+QUIL2,Quercus,ilex,,,Roble negro
+QUIM,Quercus,imbricaria,,,Shingle oak
+QUKE,Quercus,kelloggii,,,California black oak
+QULA,Quercus,laceyi,,,Turkey oak
+QULA1,Quercus,laevis,,,Turkey oak
+QULA2,Quercus,laurifolia,,,Laurel oak
+QULO,Quercus,lobata,,,California white oak
+QULY,Quercus,lyrata,,,Overcup oak
+QUMA1,Quercus,macrocarpa,,,Bur oak
+QUMA2,Quercus,marilandica,,,Blackjack oak
+QUMI,Quercus,michauxii,,,Swamp chestnut oak
+QUMU,Quercus,muehlenbergii,,,Chinkapin oak
+QUNI,Quercus,nigra,,,Water oak
+QUNU,Quercus,texana,,,Texas red oak
+QUPA,Quercus,palustris,,,Pin oak
+QUPAFA,Quercus,palustris,Fastigiata,,Fastigiate pin oak
+QUPH,Quercus,phellos,,,Willow oak
+QUPR,Quercus,prinus,,,Chestnut oak
+QURO,Quercus,robur,,,English oak
+QUROF,Quercus,robur,Fastigiata,,English oak 'Fastigiato'
+QURU,Quercus,rubra,,,Northern red oak
+QUSA2,Quillaja,saponaria,,,Quillay
+QUSE,Quercus,glandulifera,,,Konara oak
+QUSH,Quercus,shumardii,,,Shumard oak
+QUST,Quercus,stellata,,,Post oak
+QUSU,Quercus,suber,,,Cork oak
+QUVE,Quercus,velutina,,,Black oak
+QUVI,Quercus,virginiana,,,Live oak
+QUWI,Quercus,wislizeni,,,Interior live oak
+RAGL,Ravenea,glauca,,,Majesty palm
+RAMA,Ravenala,madagascariensis,,,Traveller's palm
+RARI,Ravenea,rivularis,,,Majesty palm
+RASA5,Rauvolfia,samarensis,,,Rauvolfia
+RHBA7,Rhopalostylis,baueri,,,Norfolk Island palm
+RHCA,Rhamnus,cathartica,,,European buckthorn
+RHFR,Frangula,alnus,,,Glossy buckthorn
+RHGL,Rhus,glabra,,,Smooth sumac
+RHIN,Rhus,integrifolia,,,Lemonade berry
+RHIN2,Rhaphiolepis,,,,Indian hawthorn
+RHIN62,Rhaphiolepis,indica,,,Indian hawthorn
+RHLA,Rhus,lancea,,,African sumac
+RHOV,Rhus,ovata,,,Sugar sumac
+RHSP,Rhus,,,,Sumac
+RHSP1,Rhododendron,,,,Rhododendron
+RHSP2,Rhamnus,,,,Buckthorn
+RHTR,Rhus,typhina,,,Staghorn sumac
+RHTY,Rhus,hirta,,,Staghorn sumac
+ROAMI,Robinia,x ambigua,Idahoenis,,Idaho locust
+ROBA,Rosa,banksiae,,,Banksian rose; Lady Bank's rose
+ROPS,Robinia,pseudoacacia,,,Black locust
+ROPS_PR,Robinia,pseudoacacia,Purple Robe,,Black locust 'Purple robe'
+RORE2,Roystonea,regia,,,Cuban royal palm
+ROVI,Robinia,viscosa,,,Clammy locust
+SA,Salix,,,,Willow  
+SA12,Salvia,,,,Sage
+SAAL,Sassafras,albidum,,,Sassafras
+SAAL4,Salix,alba,,,White willow
+SAALT,Salix,alba,Tristis,,Golden weeping willow
+SAAM,Salix,amygdaloides,,,Peachleaf willow
+SABA,Salix,x sepulcralis,Simonkai,,Weeping willow
+SACA,Sambucus,nigra,,ssp. canadensis,Common elderberry
+SACANE,Sambucus,caerulea,,var. neomexicana,Neomexican blue elderberry
+SADI,Salix,discolor,,,Pussy willow
+SAFR,Salix,fragilis,,,Crack willow
+SAGR,Salix,gracilistyla,,,Rosegold pussy willow
+SALA1,Salix,lasiolepis,,,Arroya willow
+SALU,Salix,lucida,,,Shining willow
+SAMA,Salix,matsudana,,,Weeping willow
+SAMA_T,Salix,matsudana,Tortuosa,,Corkscrew willow
+SAMI8,Sabal,minor,,,Dwarf palmetto
+SANI,Salix,nigra,,,Black willow
+SANI4,Sambucus,nigra,,,European black elderberry
+SAPA,Sabal,palmetto,,,Cabbage palmetto
+SAPE12,Salix,x pendulina,Wenderoth,,Wisconsin weeping willow
+SASA,Sapindus,saponaria,,,Wingleaf soapberry
+SASC,Salix,scouleriana,,,Scouler willow
+SC3,Schefflera,,,,Schefflera
+SCMO,Schinus,molle,,,Pepper tree
+SCPO,Schinus,polygamus,,,Huingan
+SCPU18,Schefflera,pueckleri,,,Mallet flower
+SCTE,Schinus,terebinthifolius,,,Christmas berry
+SCVE,Sciadopitys,verticillata,,,Umbrella pine
+SEBI5,Cassia,bicapsularis,,,Winter cassia
+SECO9,Senna,corymbosa,,,Argentine senna
+SEGI,Sequoiadendron,giganteum,,,Giant sequoia
+SEGR5,Sesbania,grandiflora,,,Sesban
+SEPU7,Sesbania,punicea,,,Rattlebox
+SERE2,Serenoa,repens,,,Saw palmetto
+SESE,Sequoia,sempervirens,,,Coast redwood
+SESU4,Senna,surattensis,,,Scrambled egg tree
+SETR,Sesbania,tripetii,,,Scarlett wisteria
+SIGL,Simarouba,glauca,,,Paradise tree
+SO,Sorbus,,,,Mountain ash
+SO1,Lycianthes,rantonnei,,,Paraguay nightshade
+SOAL,Sorbus,alnifolia,,,Korean mountain ash
+SOAM,Sorbus,americana,,,American mountain ash
+SOAU,Sorbus,aucuparia,,,European mountain ash
+SOHUCF,Sorbus,hupehensis,,var. coral fire,Mountain ash 'Coral Fire'
+SOHUCQ,Sorbus,hupehensis,,var. columbia queen,Mountain ash 'Columbia Queen'
+SOJA,Sophora,japonica,,,Japanese pagoda tree
+SOSE,Sophora,secundiflora,,,Mescalbean
+SPCA,Spathodea,campanulata,,,African-tulip tree
+SPVA2,Spirea,,,,Van houtt's spirea
+STJA,Styrax,japonicus,,,Japanese snowbell
+STNI,Strelitzia,nicolai,,,Bird of paradise tree
+STSI,Stenocarpus,sinuatus,,,Firewheel tree
+SWMA,Swietenia,mahagoni,,,West Indian mahogany
+SYCO,Syagrus,coronata,,,Licury palm
+SYJA,Syzygium,jambos,,,Rose-apple
+SYPA2,Syzygium,paniculatum,,,Brush cherry
+SYRE,Syringa,reticulata,,,Japanese tree lilac
+SYRO,Syagrus,romanzoffiana,,,Queen palm
+SYSP,Syringa,,,,Lilac
+SYVU,Syringa,vulgaris,,,Common lilac
+TA,Taxus,,,,Yew
+TAAR,Tabebuia,aurea,,,Silver trumpet tree
+TAAS,Taxodium,ascendens,,,Pond cypress
+TAAV,Tabebuia,avellanedae,,,Ipe-roxo
+TABA,Taxus,baccata,,,English yew
+TABA2,Tabebuia,bahamensis,,,White dwarf tabebuia
+TABR,Taxus,brevifolia,,,Pacific yew
+TACA,Taxus,canadensis,,,Canada yew
+TACH,Tabebuia,chrysantha,,,Golden tabebuia
+TACH2,Tamarix,chinensis,,,Fivestamen tamarisk
+TACH3,Tabebuia,chrysotricha,,,Ipe-amarelo
+TACH4,Tabebuia,ochracea,,subsp. neochrysantha,Golden trumpet tree
+TADI,Taxodium,distichum,,,Baldcypress
+TADO2,Tabebuia,donnell-smithii,,,Gold tree
+TAIM,Tabebuia,impetiginosa,,,Pink trumpet tree
+TAIN,Tamarindus,indica,,,India tamarind
+TAMU,Taxodium,mucronatum,,,Montezuma cypress
+TAPA,Tabebuia,heterophylla,,,White cedar
+TAPA13,Tabernaemontana,pandacaqui,,,Bitter bark
+TASP,Tabebuia,,,,Trumpet-tree
+TECA,Terminalia,catappa,,,False kamani
+TH9,Thuja,,,,Red cedar
+THOC,Thuja,occidentalis,,,Northern white cedar
+THOR,Platycladus,orientalis,,,Oriental arbor vitae
+THPE3,Thevetia,peruviana,,,Luckynut
+THPL,Thuja,plicata,,,Western red cedar
+THPU,Thespesia,populnea,,,Milo
+TI,Tilia,,,,Basswood
+TIAM,Tilia,americana,,,American basswood
+TICO,Tilia,cordata,,,Littleleaf linden
+TICOG,Tilia,cordata,Greenspire,,Littleleaf linden 'Greenspire'
+TIEU,Tilia,x vulgaris,,,Common linden
+TIGR3,Tibouchina,granulosa,,,Purple glory tree
+TIHE,Tilia,americana,,var. heterophylla,White basswood
+TIPL,Tilia,platyphyllos,,,Bigleaf linden
+TITI2,Tipuana,tipu,,,Tipu tree
+TITO,Tilia,tomentosa,,,Silver linden
+TITOSS,Tilia,tomentosa,Sterling Silver,,Sterling silver linden
+TITU,Tipuana,tipu,,,Tipu tree
+TIUR,Tibouchina,urvilleana,,,Princess-flower
+TOAR2,Tournefortia,argentea,,,Tree heliotrope
+TOTA,Torreya,taxifolia,,,Florida torreya
+TRAC,Trithrinax,acanthocoma,,,Brizilian needle palm
+TRCO,Tristaniopsis,conferta,,,Brisbane box
+TRFO,Trachycarpus,fortunei,,,Windmill palm
+TRLA,Tristaniopsis,laurina,,,Water gum; kanooka
+TRLA_E,Tristania,laurina,Elegans,,Water gum 'Elegans'
+TRSE6,Triadica,sebifera,,,Tallowtree
+TSCA,Tsuga,canadensis,,,Eastern hemlock
+TSHE,Tsuga,heterophylla,,,Western hemlock
+TSME,Tsuga,mertensiana,,,Mountain hemlock
+TUCA,Tupidanthus,calyptratus,,,Tupidanthus
+ULAL,Ulmus,alata,,,Winged elm
+ULAM,Ulmus,americana,,,American elm
+ULAMLI,Ulmus,american,Liberty,,Liberty elm
+ULCAHO,Ulmus,carpinifolia,Hollandica,,Smoothleaf elm
+ULGL,Ulmus,glabra,,,Wych elm
+ULPA,Ulmus,parvifolia,,,Chinese elm
+ULPA99,Ulmus,parvifolia,Evergreen,,Chinese elm evergreen
+ULPA_D,Ulmus,parvifolia,Drake,,Drake Chinese elm
+ULPA_E,Ulmus,parvifolia,Emer II,,Emer II/Emerald Vase Chinese elm
+ULPR,Ulmus,procera,,,English elm
+ULPU,Ulmus,pumila,,,Siberian elm
+ULRU,Ulmus,rubra,,,Slippery elm
+ULS,Ulmus,,,,Elm
+ULSE,Ulmus,serotina,,,September elm
+ULTH,Ulmus,thomasii,,,Rock elm
+ULX,Ulmus,x,,,Hybrid elm
+UMCA,Umbellularia,californica,,,California laurel
+VEME,Veitchia,merrillii,,,Manila palm
+VI5,Vitex,,,,Chaste tree
+VIAG,Vitex,agnus-castus,,,Chaste tree
+VIJA,Viburnum,japonicum,,,Japanese viburnum
+VILU6,Vitex,lucens,,,Puriri
+VIOD,Viburnum,odoratissimum,,,Sweet viburnum
+VIPA6,Vitex,parviflora,,,Molave
+VIPR,Viburnum,prunifolium,,,Black haw
+VISP2,Viburnum,,,,Viburnum
+VITI2,Viburnum,tinus,,,Laurustinus
+WAFI,Washingtonia,filifera,,,California palm
+WARO,Washingtonia,robusta,,,Mexican washingtonia
+WIFL,Wisteria,floribunda,,,Japanese wisteria
+WISI,Wisteria,sinensis,,,Purple wisteria
+WOBI2,Wodyetia,bifurcata,,,Foxtail palm
+XYCO,Xylosma,congestum,,,Shiny xylosma
+YU1,Yucca,,,,Yucca
+YUAL,Yucca,aloifolia,,,Aloe yucca
+YUGL2,Yucca,gloriosa,,,Moundlily yucca
+YUGU,Yucca,guatemalensis,,,Bluestem yucca
+YURE,Yucca,recurvifolia,,,Curveleaf yucca
+YUTO,Yucca,torreyi,,,Torrey yucca
+ZE,Zelkova,,,,Zelkova
+ZESE,Zelkova,serrata,,,Japanese zelkova
+ZESE_V,Zelkova,serrata,Village Green,,Japanese zelkova 'Village Green'

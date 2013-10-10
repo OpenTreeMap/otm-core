@@ -9,13 +9,14 @@ from treemap.models import Species, Tree
 from models import ExportJob
 
 
-def csv_export(job, model, query):
+def csv_export(job_pk, model, query):
 
+    job = ExportJob.objects.get(pk=job_pk)
     instance = job.instance
 
     if model == 'species':
         initial_qs = (Species.objects.
-                      filter(instancespecies__instance_id=instance.id))
+                      filter(instance=instance))
     else:
         # model == 'tree'
 
