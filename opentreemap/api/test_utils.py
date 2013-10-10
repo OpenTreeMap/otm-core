@@ -51,7 +51,7 @@ def setupTreemapEnv():
     instance = make_instance(is_public=True)
 
     make_user_with_default_role(instance, 'jim')
-    make_commander_user(instance, 'commander')
+    commander = make_commander_user(instance, 'commander')
     make_apprentice_user(instance, 'apprentice')
 
     n1geom = MultiPolygon(Polygon(
@@ -66,12 +66,12 @@ def setupTreemapEnv():
     n1.save()
     n2.save()
 
-    s1 = Species(symbol="s1", genus="testus1", species="specieius1",
-                 cultivar='', itree_code='BDL OTHER')
-    s2 = Species(symbol="s2", genus="testus2", species="specieius2",
-                 cultivar='', itree_code='BDL OTHER')
-    s3 = Species(symbol="s3", genus="testus2", species="specieius3",
-                 cultivar='', itree_code='BDL OTHER')
+    s1 = Species(otm_code="s1", genus="testus1", species="specieius1",
+                 cultivar='', instance=instance)
+    s2 = Species(otm_code="s2", genus="testus2", species="specieius2",
+                 cultivar='', instance=instance)
+    s3 = Species(otm_code="s3", genus="testus2", species="specieius3",
+                 cultivar='', instance=instance)
 
     s1.native_status = True
     s1.fall_conspicuous = True
@@ -86,9 +86,9 @@ def setupTreemapEnv():
 
     s3.wildlife_value = True
 
-    s1.save()
-    s2.save()
-    s3.save()
+    s1.save_with_user(commander)
+    s2.save_with_user(commander)
+    s3.save_with_user(commander)
 
     return instance
 
@@ -112,4 +112,4 @@ def teardownTreemapEnv():
         r.delete()
 
     for r in Species.objects.all():
-        r.delete()
+        r.delete_with_user(commander)

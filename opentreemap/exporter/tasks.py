@@ -16,7 +16,7 @@ def csv_export(job_pk, model, query):
 
     if model == 'species':
         initial_qs = (Species.objects.
-                      filter(instancespecies__instance_id=instance.id))
+                      filter(instance=instance))
     else:
         # model == 'tree'
 

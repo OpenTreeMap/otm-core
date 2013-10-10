@@ -214,11 +214,11 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
 
     has_tree_diameter = tree is not None and tree.diameter is not None
     has_tree_species_with_code = tree is not None \
-        and tree.species is not None and tree.species.itree_code is not None
+        and tree.species is not None and tree.species.otm_code is not None
 
     if has_tree_diameter and has_tree_species_with_code:
         try:
-            eco_tree = {'species__itree_code': tree.species.itree_code,
+            eco_tree = {'species__otm_code': tree.species.otm_code,
                         'diameter': tree.diameter,
                         'itree_region_code': ITreeRegion.objects.get(
                             geometry__contains=plot.geom).code}
@@ -556,7 +556,8 @@ def boundary_autocomplete(request, instance):
 def species_list(request, instance):
     max_items = request.GET.get('max_items', None)
 
-    species_set = Species.objects.order_by('common_name')[:max_items]
+    species_set = instance.scope_model(Species).order_by('common_name')
+    species_set = species_set[:max_items]
 
     # Split names by space so that "el" will match common_name="Delaware Elm"
     def tokenize(species):
@@ -600,7 +601,7 @@ def search_tree_benefits(request, instance):
     total_plots = plots.count()
     total_trees = trees.count()
 
-    trees_for_eco = trees.exclude(species__itree_code__isnull=True)\
+    trees_for_eco = trees.exclude(species__otm_code__isnull=True)\
                          .exclude(diameter__isnull=True)\
                          .extra(select={'itree_region_code':
                                         'ecobenefits_itreeregion.code'},
@@ -609,7 +610,7 @@ def search_tree_benefits(request, instance):
                                        'treemap_plot.the_geom_webmercator)'],
                                 tables=['ecobenefits_itreeregion'])\
                          .values('diameter',
-                                 'species__itree_code',
+                                 'species__otm_code',
                                  'itree_region_code',
                                  'plot__geom')
 

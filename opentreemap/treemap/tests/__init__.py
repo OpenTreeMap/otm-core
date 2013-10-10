@@ -113,7 +113,25 @@ def _make_permissions(field_permission):
         ('Tree', 'date_removed', field_permission),
         ('TreePhoto', 'thumbnail', field_permission),
         ('TreePhoto', 'tree', field_permission),
-        ('TreePhoto', 'image', field_permission))
+        ('TreePhoto', 'image', field_permission),
+        ('Species', 'otm_code', field_permission),
+        ('Species', 'common_name', field_permission),
+        ('Species', 'genus', field_permission),
+        ('Species', 'species', field_permission),
+        ('Species', 'cultivar', field_permission),
+        ('Species', 'other', field_permission),
+        ('Species', 'native_status', field_permission),
+        ('Species', 'gender', field_permission),
+        ('Species', 'bloom_period', field_permission),
+        ('Species', 'fruit_period', field_permission),
+        ('Species', 'fall_conspicuous', field_permission),
+        ('Species', 'flower_conspicuous', field_permission),
+        ('Species', 'palatable_human', field_permission),
+        ('Species', 'wildlife_value', field_permission),
+        ('Species', 'fact_sheet', field_permission),
+        ('Species', 'plant_guide', field_permission),
+        ('Species', 'max_dbh', field_permission),
+        ('Species', 'max_height', field_permission))
     return permissions
 
 
@@ -126,7 +144,8 @@ def make_commander_role(instance, extra_plot_fields=None):
     commander_permissions = (
         ('Plot', 'id', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
-        ('TreePhoto', 'id', FieldPermission.WRITE_DIRECTLY)
+        ('TreePhoto', 'id', FieldPermission.WRITE_DIRECTLY),
+        ('Species', 'id', FieldPermission.WRITE_DIRECTLY)
     )
 
     permissions = permissions + commander_permissions

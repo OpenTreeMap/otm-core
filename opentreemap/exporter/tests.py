@@ -1,5 +1,5 @@
 from treemap.tests import make_instance, make_commander_user, make_request
-from treemap.models import Species, InstanceSpecies, Plot, Tree, User
+from treemap.models import Species, Plot, Tree, User
 
 from django.contrib.gis.geos import Point
 
@@ -94,15 +94,15 @@ class ExportSpeciesTaskTest(AsyncCSVTestCase):
     def setUp(self):
         super(ExportSpeciesTaskTest, self).setUp()
 
-        InstanceSpecies(instance=self.instance,
-                        species=Species.objects.create(common_name='foo'),
-                        common_name='foo').save_with_user(self.user)
+        species = Species(common_name='foo', instance=self.instance)
+        species.save_with_user(self.user)
 
     @media_dir
     def test_species_task_unit(self):
-        self.assertTaskProducesCSV('species', 'common_name', 'foo')
+        self.assertTaskProducesCSV('species', 'common_name', 'foo',
+                                   user=self.user)
 
     @media_dir
     def test_psuedo_async_species_export(self):
-        self.assertPsuedoAsyncTaskWorks('species', None, 'common_name', 'foo',
-                                        '.*species_export(_\d+)?\.csv')
+        self.assertPsuedoAsyncTaskWorks('species', self.user, 'common_name',
+                                        'foo', '.*species_export(_\d+)?\.csv')
