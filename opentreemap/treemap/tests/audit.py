@@ -12,8 +12,8 @@ from django.core.exceptions import (FieldError, ValidationError,
 from django.db import IntegrityError, connection
 from django.contrib.gis.geos import Point
 
-from treemap.models import (Tree, Plot, Species, FieldPermission,
-                            User, InstanceUser)
+from treemap.models import (Tree, Plot, FieldPermission, User, InstanceUser,
+                            Instance)
 
 from treemap.audit import (Audit, Role, UserTrackingException,
                            AuthorizeException, ReputationMetric,
@@ -100,7 +100,9 @@ class ScopeModelTest(TestCase):
         self.assertNotEquals(list(all_trees), method_instance_1_trees)
         self.assertNotEquals(list(all_trees), method_instance_2_trees)
 
-        self.assertRaises(FieldError, self.instance1.scope_model, Species)
+        # Models that do not have any relation to Instance should
+        # raise an error if you attempt to scope them.
+        self.assertRaises(FieldError, self.instance1.scope_model, Instance)
 
     def test_plot_tree_same_instance(self):
         plot = Plot(geom=self.p1, instance=self.instance2)

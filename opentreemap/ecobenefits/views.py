@@ -11,6 +11,8 @@ from treemap.util import instance_request, json_api_call, strip_request
 
 from ecobenefits.models import ITreeRegion
 
+from ecobenefits import CODES
+
 
 def get_codes_for_species(species, region):
     "Get the iTree codes for a specific in a specific region"
@@ -20,24 +22,46 @@ def get_codes_for_species(species, region):
     return codes
 
 
+def _itree_code_for_species_in_region(otm_code, region):
+    if region in CODES:
+        if otm_code in CODES[region]:
+            return CODES[region][otm_code]
+    return None
+
+
 def _benefits_for_trees(trees, region_default=None):
     # TODO: actually use region_default
+
+    # A species may be assigned to a tree for which there is
+    # no itree code defined for the region in which the tree is
+    # planted. This counter keeps track of the number of
+    # trees for which the itree code lookup was successful
+    num_trees_used_in_calculation = 0
+
     regions = {}
     for tree in trees:
-        region = tree['itree_region_code']
-        if region not in regions:
-            regions[region] = []
+        region_code = tree['itree_region_code']
+        if region_code not in regions:
+            regions[region_code] = []
 
-        regions[region].append((tree['species__itree_code'],
-                                tree['diameter']))
+        itree_code = _itree_code_for_species_in_region(
+            tree['species__otm_code'], region_code)
+
+        if itree_code is not None:
+            regions[region_code].append((itree_code, tree['diameter']))
+            num_trees_used_in_calculation += 1
 
     kwh, gal, co2, airq = 0.0, 0.0, 0.0, 0.0
 
-    for (region, trees) in regions.iteritems():
-        kwh += benefits.get_energy_conserved(region, trees)
-        gal += benefits.get_stormwater_management(region, trees)
-        co2 += benefits.get_co2_stats(region, trees)['reduced']
-        airq += benefits.get_air_quality_stats(region, trees)['improvement']
+    for (region_code, trees) in regions.iteritems():
+        kwh += benefits.get_energy_conserved(
+            region_code, trees)
+        gal += benefits.get_stormwater_management(
+            region_code, trees)
+        co2 += benefits.get_co2_stats(
+            region_code, trees)['reduced']
+        airq += benefits.get_air_quality_stats(
+            region_code, trees)['improvement']
 
     def fmt(val, lbl):
         return {'value': val, 'unit': lbl}
@@ -47,7 +71,7 @@ def _benefits_for_trees(trees, region_default=None):
             'co2': fmt(co2, 'lbs/year'),
             'airquality': fmt(airq, 'lbs/year')}
 
-    return (rslt, len(trees))
+    return (rslt, num_trees_used_in_calculation)
 
 
 def tree_benefits(instance, tree_id):
@@ -56,7 +80,7 @@ def tree_benefits(instance, tree_id):
     tree = get_object_or_404(InstanceTree, pk=tree_id)
 
     dbh = tree.diameter
-    species = tree.species.itree_code
+    otm_code = tree.species.otm_code
 
     region = ITreeRegion.objects.filter(
         geometry__contains=tree.plot.geom)[0].code
@@ -64,12 +88,12 @@ def tree_benefits(instance, tree_id):
     rslt = {}
     if not dbh:
         rslt = {'benefits': {}, 'error': 'MISSING_DBH'}
-    elif not species:
+    elif not otm_code:
         rslt = {'benefits': {}, 'error': 'MISSING_SPECIES'}
     else:
         rslt = {'benefits':
                 _benefits_for_trees(
-                    [{'species__itree_code': species,
+                    [{'species__otm_code': otm_code,
                       'diameter': dbh,
                       'itree_region_code': region}])}
 

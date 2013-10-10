@@ -416,15 +416,19 @@ class SearchTests(TestCase):
                 {'plot.udf:Test string': {'IS': 'baz'}}))
 
     def test_species_id_search(self):
-        species1 = Species.objects.create(
+        species1 = Species(
             common_name='Species-1',
             genus='Genus-1',
-            symbol='S1')
+            otm_code='S1',
+            instance=self.instance)
+        species1.save_with_user(self.commander)
 
-        species2 = Species.objects.create(
+        species2 = Species(
             common_name='Species-2',
             genus='Genus-2',
-            symbol='S1')
+            otm_code='S1',
+            instance=self.instance)
+        species2.save_with_user(self.commander)
 
         p1, t1 = self.create_tree_and_plot()
         p2, t2 = self.create_tree_and_plot()
@@ -596,10 +600,12 @@ class SearchTests(TestCase):
         self.assertEqual(ids, {p2.pk, p3.pk})
 
     def test_like_filter(self):
-        species = Species.objects.create(
+        species = Species(
+            instance=self.instance,
             common_name='this is a test species',
             genus='Genus-1',
-            symbol='S1')
+            otm_code='S1')
+        species.save_with_user(self.commander)
 
         p, t = self.create_tree_and_plot()
 
@@ -617,7 +623,7 @@ class SearchTests(TestCase):
         self.assertEqual(result, [p.pk])
 
         species.common_name = 'no match'
-        species.save()
+        species.save_with_user(self.commander)
 
         result = _execute_filter(
             self.instance, species_like_filter)
