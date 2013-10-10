@@ -985,7 +985,7 @@ class Audit(models.Model):
     ref = models.ForeignKey('Audit', null=True)
 
     created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
+    updated = models.DateTimeField(auto_now=True, db_index=True)
 
     class Type:
         Insert = 1
