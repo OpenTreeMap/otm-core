@@ -23,6 +23,13 @@
         background: darken($bg-color, 5%);
     }
 
+    &.disabled,
+    &:disabled {
+        box-shadow: none;
+        background: $bg-color;
+        cursor: default;
+    }
+
     @include button-size(14px);
     &.btn-large		{ @include button-size(18px); }
     &.btn-small		{ @include button-size(12px); }
