@@ -41,9 +41,9 @@
   <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
   {% endif %}
   {% if request.user.is_authenticated %}
-  <a data-action="addtree" href="{% url 'map' instance_url_name=request.instance.url_name %}#addtree" class="btn btn-primary addBtn">Add a Tree</a>
+  <a data-action="addtree" href="{% url 'map' instance_url_name=request.instance.url_name %}#addtree" class="btn btn-primary addBtn"><i class="icon-plus"></i> Add a Tree</a>
   {% else %}
-  <a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}" class="btn btn-primary addBtn">{% trans "Add a Tree" %}</a>
+  <a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}" class="btn btn-primary addBtn"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>
   {% endif %}
 </div>
 {% endblock subhead %}
@@ -71,7 +71,7 @@
   <div class="search-block visible-desktop">
     <h3>{% trans "Search by Species" %}</h3>
     <div class="search-field-group">
-      <a class="btn" id="species-toggle"><i class="icon-menu"></i></a>
+      <a class="typeahead-toggle" id="species-toggle"><i class="icon-menu"></i></a>
       <input type="text" data-class="search" id="species-typeahead" placeholder="American basswood"/>
       <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
     </div>
@@ -81,7 +81,7 @@
   <div class="search-block">
     <h3>{% trans "Search by Location" %}</h3>
     <div class="search-field-group">
-      <a class="btn" id="boundary-toggle"><i class="icon-menu"></i></a>
+      <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
       <input type="text" data-class="search" id="boundary-typeahead" placeholder="340 N 12th St, Philadelphia"/>
       <input name="plot.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />
     </div>
@@ -95,8 +95,10 @@
   <div class="btn-group">
     {% if request.instance|feature_enabled:'advanced_search_filters' %}
     <button id="search-advanced" class="btn">{% trans "Advanced" %}</button>
-    {% endif %}
     <button id="search-reset" class="btn">{% trans "Reset" %}</button>
+    {% else %}
+    <button id="search-reset" class="btn btn-block">{% trans "Reset" %}</button>
+    {% endif %}
   </div>
 </div>
 {% endblock searchoptions %}
