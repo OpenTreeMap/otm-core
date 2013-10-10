@@ -30,8 +30,6 @@ def _itree_code_for_species_in_region(otm_code, region):
 
 
 def _benefits_for_trees(trees, region_default=None):
-    # TODO: actually use region_default
-
     # A species may be assigned to a tree for which there is
     # no itree code defined for the region in which the tree is
     # planted. This counter keeps track of the number of
@@ -41,15 +39,19 @@ def _benefits_for_trees(trees, region_default=None):
     regions = {}
     for tree in trees:
         region_code = tree['itree_region_code']
-        if region_code not in regions:
-            regions[region_code] = []
+        if region_code is None:
+            region_code = region_default
 
-        itree_code = _itree_code_for_species_in_region(
-            tree['species__otm_code'], region_code)
+        if region_code is not None:
+            if region_code not in regions:
+                regions[region_code] = []
 
-        if itree_code is not None:
-            regions[region_code].append((itree_code, tree['diameter']))
-            num_trees_used_in_calculation += 1
+            itree_code = _itree_code_for_species_in_region(
+                tree['species__otm_code'], region_code)
+
+            if itree_code is not None:
+                regions[region_code].append((itree_code, tree['diameter']))
+                num_trees_used_in_calculation += 1
 
     kwh, gal, co2, airq = 0.0, 0.0, 0.0, 0.0
 
@@ -78,12 +80,15 @@ def tree_benefits(instance, tree_id):
     "Given a tree id, determine eco benefits via eco.py"
     InstanceTree = instance.scope_model(Tree)
     tree = get_object_or_404(InstanceTree, pk=tree_id)
-
     dbh = tree.diameter
     otm_code = tree.species.otm_code
 
-    region = ITreeRegion.objects.filter(
-        geometry__contains=tree.plot.geom)[0].code
+    region_list = list(ITreeRegion.objects.filter(
+        geometry__contains=tree.plot.geom))
+    if len(region_list) > 0:
+        region_code = region_list[0].code
+    else:
+        region_code = instance.itree_region_default
 
     rslt = {}
     if not dbh:
@@ -95,7 +100,7 @@ def tree_benefits(instance, tree_id):
                 _benefits_for_trees(
                     [{'species__otm_code': otm_code,
                       'diameter': dbh,
-                      'itree_region_code': region}])}
+                      'itree_region_code': region_code}])}
 
     return rslt
 
