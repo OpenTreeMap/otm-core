@@ -6,7 +6,7 @@ def all_region_codes():
 
 
 def all_species_codes():
-    return species_codes_for_regions(all_region_codes)
+    return species_codes_for_regions(all_region_codes())
 
 
 def species_codes_for_regions(region_codes):
