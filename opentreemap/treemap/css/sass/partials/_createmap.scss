@@ -201,3 +201,23 @@
 	}
 
 }
+
+#temporarily-disabled {
+	background: white;
+	background: rgba(255,255,255,.75);
+	width: 98%;
+	height: 715px;
+	position: absolute;
+	z-index: 99;
+	top: 110px;
+
+	h3 {
+		text-align: center;
+		margin: 150px auto 0;
+		padding: 20px;
+		background: white;
+		background: rgba(255,255,255,.5);
+		display: block;
+		width: 85%;
+	}
+}
