@@ -53,9 +53,30 @@
             margin: 0 00 6px;
             color: $navbar-color;
         }
-        input[type="text"] {
-            font-size: 0.75em;
-            margin: 0;
+
+        .search-field-group {
+            position: relative;
+        
+            input[type="text"] {
+                font-size: 0.75em;
+                margin: 0;
+                text-indent: 24px;
+            }
+
+            .typeahead-toggle {
+                padding: 10px 6px 7px;
+                position: absolute;
+                top: 0px;
+                z-index: 9;
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: $well-color;
+
+                &:hover {
+                    color: $main-text-color;
+                }
+            }
         }
 
         .dropdown-menu {
