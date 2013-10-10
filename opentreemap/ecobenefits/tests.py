@@ -12,6 +12,7 @@ from ecobenefits.models import ITreeRegion
 from ecobenefits.views import tree_benefits
 from ecobenefits import species_codes_for_regions
 
+
 class EcoTest(UrlTestCase):
     def setUp(self):
         self.factory = RequestFactory()
@@ -90,6 +91,6 @@ class EcoTest(UrlTestCase):
         self.assertEqual(338, len(combined))
 
         combined_set = set(combined)
-        self.assertEqual(len(combined), len(combined_set), 
-            "Getting the species for more than one region should result "
-            "in a unique set of otm_codes")
+        self.assertEqual(len(combined), len(combined_set),
+                         "Getting the species for more than one "
+                         "region should result in a unique set of otm_codes")
