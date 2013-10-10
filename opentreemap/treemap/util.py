@@ -145,7 +145,7 @@ def strip_request(view_fn):
     return wrapper
 
 
-def render_template(templ, callable_or_dict=None, **kwargs):
+def render_template(templ, callable_or_dict=None, statuscode=None, **kwargs):
     """
     takes a template to render to and an object to render
     the data for this template.
@@ -168,10 +168,15 @@ def render_template(templ, callable_or_dict=None, **kwargs):
         # type we can, that simply overrides the default
         # behavior
         if params is None or isinstance(params, dict):
-            return render_to_response(templ, params,
+            resp = render_to_response(templ, params,
                                       RequestContext(request), **kwargs)
         else:
-            return params
+            resp = params
+
+        if statuscode:
+            resp.status_code = statuscode
+
+        return resp
 
     return wrapper
 
