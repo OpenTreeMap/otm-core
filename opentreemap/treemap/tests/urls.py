@@ -3,6 +3,7 @@ import json
 
 from django.contrib.gis.geos.point import Point
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from treemap.models import Plot
 from treemap.tests import (make_instance, make_commander_user,
@@ -93,6 +94,7 @@ class RootUrlTests(UrlTestCase):
         self.assert_200('/main.css?primary-color=fff')
 
 
+@override_settings(FEATURE_BACKEND_FUNCTION=None)
 class TreemapUrlTests(UrlTestCase):
     # Tests for URLs defined in treemap/urls.py
     # All treemap URLs start with /<instance_url_name>/
