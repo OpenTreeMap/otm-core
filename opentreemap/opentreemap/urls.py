@@ -70,3 +70,8 @@ if settings.EXTRA_URLS:
 if settings.DEBUG:
     urlpatterns = patterns(
         '', url(r'^admin/', include(admin.site.urls))) + urlpatterns
+
+handler404 = 'treemap.views.error_404_view'
+handler500 = 'treemap.views.error_500_view'
+# Not hooked up yet
+handler503 = 'treemap.views.error_503_view'
