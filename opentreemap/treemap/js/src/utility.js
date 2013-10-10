@@ -1,11 +1,11 @@
 "use strict";
 
-var Url = require('url'),
+var url = require('url'),
     QS = require('querystring'),
     $ = require('jquery');
 
 exports.getUpdatedQueryString = function (k, v) {
-    var url = Url.parse(window.location.href, true);
+    var url = url.parse(window.location.href, true);
     var query = url.query || {};
 
     query[k] = v;
@@ -14,8 +14,8 @@ exports.getUpdatedQueryString = function (k, v) {
 };
 
 exports.getUpdateUrlByUpdatingQueryStringParam = function (k, v) {
-    var url = Url.parse(window.location.href, true);
-    var query = url.query || {};
+    var parsedUrl = url.parse(window.location.href, true);
+    var query = parsedUrl.query || {};
 
     if (v === null) {
         delete query[k];
@@ -26,7 +26,7 @@ exports.getUpdateUrlByUpdatingQueryStringParam = function (k, v) {
     url.query = query;
     url.search = null;
 
-    return Url.format(url);
+    return url.format(url);
 };
 
 exports.getLastUrlSegment = function(url) {
@@ -34,8 +34,8 @@ exports.getLastUrlSegment = function(url) {
     return parts[parts.length - 1];
 };
 
-var getUrlSegments = exports.getUrlSegments = function(url) {
-    var pathname = Url.parse(url || window.location.href, false).pathname;
+var getUrlSegments = exports.getUrlSegments = function(inputUrl) {
+    var pathname = url.parse(inputUrl || window.location.href, false).pathname;
 
     if (endsWith(pathname, '/')) {
         pathname = pathname.substring(0, pathname.length - 1);
@@ -44,9 +44,9 @@ var getUrlSegments = exports.getUrlSegments = function(url) {
     return pathname.split('/');
 };
 
-exports.removeLastUrlSegment = function(url) {
-    var updatedurl = Url.parse(url || window.location.href, false);
-    var segs = getUrlSegments(url);
+exports.removeLastUrlSegment = function(inputUrl) {
+    var updatedurl = url.parse(inputUrl || window.location.href, false);
+    var segs = getUrlSegments(inputUrl);
     segs.pop();
 
     updatedurl.pathname = segs.join('/');
@@ -55,18 +55,24 @@ exports.removeLastUrlSegment = function(url) {
         updatedurl.pathname += '/';
     }
 
-    return Url.format(updatedurl);
+    return url.format(updatedurl);
 };
 
-exports.appendSegmentToUrl = function (segment, inputurl) {
-    var url = Url.parse(inputurl || window.location.href, false);
-    var segs = getUrlSegments(inputurl);
+exports.appendSegmentToUrl = function (segment, inputUrl, appendSlash) {
+    var parsedUrl = url.parse(inputUrl || window.location.href, false);
+    var segs = getUrlSegments(inputUrl);
 
     segs.push(segment);
 
-    url.pathname = segs.join('/');
+    parsedUrl.pathname = segs.join('/');
 
-    return Url.format(url);
+    var formattedUrl = url.format(parsedUrl);
+
+    if (appendSlash) {
+        formattedUrl += '/';
+    }
+
+    return formattedUrl;
 };
 
 exports.pushState = function (url) {
