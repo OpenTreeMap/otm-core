@@ -23,7 +23,13 @@ var unmatchedBoundarySearchValue = function() {
 };
 
 var showGeocodeError = function (e) {
-    if (e.status && e.status === 404) {
+    // Bacon just returns an error string
+    if (_.isString(e)) {
+        // TODO: Toast
+        window.alert(e);
+    // If there was an error from the server the error
+    // object contains standard http info
+    } else if (e.status && e.status === 404) {
         // TODO: Toast
         window.alert('There were no results matching your search.');
     } else {
@@ -75,6 +81,7 @@ module.exports = {
         });
 
         // Let the user know if there was a problem geocoding
+        geocodeResponseStream.log();
         geocodeResponseStream.onError(showGeocodeError);
 
         // Set up cross-site forgery protection
