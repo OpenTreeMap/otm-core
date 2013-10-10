@@ -2,7 +2,7 @@ from species import CODES
 
 
 def all_region_codes():
-    return CODES.keys
+    return CODES.keys()
 
 
 def all_species_codes():
