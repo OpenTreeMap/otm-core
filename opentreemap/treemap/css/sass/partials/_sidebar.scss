@@ -2,7 +2,7 @@
 
 .sidebar {
     width: 350px;
-    background: #FFF;
+    background: $navbar-color;
     border-left: 1px solid $well-color;
     position: absolute;
     top: 0;
@@ -20,28 +20,27 @@
         border-radius: 0;
         margin-bottom: 0;
         border: none;
-        border-top: 1px solid $light-gray-color;
+        border-top: 1px solid darken($secondary-color, 25%);
     }
     .accordion-heading {
         background: $secondary-color;
 
         a {
-            color: lighten($secondary-color, 35%);
-            color: rgba(255,255,255,.5);
+            text-decoration: none;
+            color: #FFF;
+            box-shadow: 0 3px 6px darken($secondary-color, 15%);
+            box-shadow: 0 3px 6px rgba(0,0,0,.2) inset;
+            background: darken($secondary-color, 5%);
+            padding: 15px;
             font-size: 1em;
             font-weight: 700;
-            padding: 15px;
-            
-            &:hover {
-                text-decoration: none;
-                color: #FFF;
-                box-shadow: 0 3px 6px darken($secondary-color, 15%);
-                box-shadow: 0 3px 6px rgba(0,0,0,.2) inset;
-                background: darken($secondary-color, 5%);
+
+            &.collapsed {
+                color: lighten($secondary-color, 35%);
+                color: rgba(255,255,255,.5);
             }
-        }
-        &.in {
-            a {
+
+            &:hover {
                 text-decoration: none;
                 color: #FFF;
                 box-shadow: 0 3px 6px darken($secondary-color, 15%);
@@ -55,6 +54,8 @@
     }
 
     .accordion-body {
+        background: white;
+
         .accordion-body-buttons {
             padding: 10px 15px;
         }
@@ -101,11 +102,16 @@
 }
 
 #details-form {
-    margin: 10px 15px 15px;
+    padding: 10px 15px;
+    margin-bottom: 0;
 }
 
 #move-plot-buttons {
-    margin: 0 15px 15px;
+    padding: 0 15px;
+
+    > .btn {
+        margin-bottom: 15px;
+    }
 }
 
 #add-tree-address {
@@ -117,6 +123,10 @@
     .benefit-value-row {
         border-bottom: 1px solid $light-gray-color;
         padding: 15px;
+
+        &:hover {
+            background: $light-gray-color;
+        }
 
         .benefit-icon {
             padding: 7px 8px 7px 6px;
@@ -161,6 +171,7 @@
                 margin-left: 5px;
                 width: auto;
                 display: inline-block;
+                float: left;
             }
         }
     }
