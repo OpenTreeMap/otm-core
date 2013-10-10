@@ -11,15 +11,17 @@
 
 {% block content %}
 <div class="content">
-  	<div class="well error-panel">
-  		<div class="error-icon error-icon-img"><img src="/static/img/404.png"></div>
-		<h2>{% trans "No trees here!" %}</h2>
-		<p>{% trans "Uh oh! Looks like we couldn’t find what you’re looking for. How about " %}
-			<a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "exploring trees" %}</a> 
-			{% trans " or " %}
-			<a href="javascript:;">{% trans "contacting support." %}</a>
-		</p>
-	</div>
+        <div class="well error-panel">
+                <div class="error-icon error-icon-img"><img src="/static/img/404.png"></div>
+                <h2>{% trans "No trees here!" %}</h2>
+                <p>{% trans "Uh oh! Looks like we couldn’t find what you’re looking for. How about " %}
+                  {% if request.instance %}
+                        <a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "exploring trees" %}</a>
+                        {% trans " or " %}
+                  {% endif %}
+                        <a href="javascript:;">{% trans "contacting support." %}</a>
+                </p>
+        </div>
 </div>
 {% endblock content %}
 
