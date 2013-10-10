@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block search %}
+{% comment %} Hide search options on error pages {% endcomment %}
+{% endblock search %}
+
+{% block subhead %}
+{% comment %} Hide subhead on error pages {% endcomment %}
+{% endblock subhead %}
+
+{% block content %}
+<div class="content">
+        <div class="well error-panel">
+                <div class="error-icon error-icon-img"><img src="/static/img/403.png"></div>
+                <h2>{% trans "Shut the gates!" %}</h2>
+                <p>{% trans "I'm afraid you don't have permission to go here. Too bad! It's probably pretty cool." %}
+                </p>
+        </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+{% comment %} This page has no interactivity {% endcomment %}
+{% endblock scripts %}
