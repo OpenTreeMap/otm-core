@@ -53,7 +53,7 @@ exports.init = function (options) {
     // If there is an error fetching or parsing the
     // boundary, we should clear any existing, stale
     // boundary highlight.
-    boundaries.onError(clearLayer);
+    boundaries.onError(clearLayer, map);
 
     // Write the error to the console to allow for
     // debugging unexpected problems parsing the GeoJSON
@@ -64,5 +64,5 @@ exports.init = function (options) {
     // it means that the current search does not contain
     // a boundary component. In that case, we want to
     // clear any previouly highlighted area.
-    idStream.filter(BU.isUndefined).onValue(clearLayer);
+    idStream.filter(BU.isUndefined).onValue(clearLayer, map);
 };
