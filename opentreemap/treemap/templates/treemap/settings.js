@@ -1,4 +1,5 @@
 {% load instance_config %}
+{% load i18n %}
 
 // Data structures pulled from django
 var otm = otm || {};
@@ -25,6 +26,12 @@ otm.settings.urls = {
 otm.settings.loginUrl = "{% url 'django.contrib.auth.views.login' %}?next=";
 
 otm.settings.staticUrl = '{{ STATIC_URL }}';
+
+otm.settings.geocoder = {
+    maxLocations: 20,
+    errorString: '{% trans "That address was not found near this map" %}',
+    threshold: 80
+};
 
 {% if request.instance %}
     otm.settings.instance = {
