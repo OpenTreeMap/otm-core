@@ -1,7 +1,28 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
+import locale
+from functools import partial
+from numbers import Number
+
 from django.conf import settings
 
 from django.utils.translation import ugettext as trans
 from treemap.json_field import get_attr_from_json_field
+
+
+class Convertible(object):
+    def clean(self):
+        super(Convertible, self).clean()
+        model = self._meta.object_name.lower()
+        for field in self._meta.get_all_field_names():
+            if self.instance and is_convertible(model, field):
+                value = getattr(self, field)
+                converted_value = get_storage_value(self.instance, model,
+                                                    field, value)
+                setattr(self, field, converted_value)
 
 
 _unit_names = {
@@ -60,8 +81,66 @@ def get_units(instance, category_name, value_name):
     return units
 
 
+def get_digits(instance, category_name, value_name):
+    _, digits = get_value_display_attr(
+        instance, category_name, value_name, 'digits')
+    return digits
+
+
 def get_float_format(instance, category_name, value_name):
     _, digits = get_value_display_attr(
         instance, category_name, value_name, 'digits')
     fmt = '%.' + str(digits) + 'f'
     return digits, fmt
+
+
+def _is_configured_for(keys, category_name, value_name):
+    defaults = settings.DISPLAY_DEFAULTS
+    return (category_name in defaults
+            and value_name in defaults[category_name]
+            and keys & defaults[category_name][value_name].viewkeys())
+
+
+is_convertible_or_formattable = partial(_is_configured_for,
+                                        {'units', 'digits'})
+
+is_convertible = partial(_is_configured_for, {'units'})
+
+is_formattable = partial(_is_configured_for, {'digits'})
+
+
+def _get_conversion_factor(instance, category_name, value_name):
+    storage_unit = _get_display_default(category_name, value_name, 'units')
+    instance_unit = get_units(instance, category_name, value_name)
+    conversion_dict = _unit_conversions.get(storage_unit)
+
+    if instance_unit not in conversion_dict.keys():
+        raise Exception("Cannot convert from [%s] to [%s]"
+                        % (storage_unit, instance_unit))
+
+    return conversion_dict[instance_unit]
+
+
+def get_display_value(instance, category_name, value_name, value):
+    if not isinstance(value, Number):
+        return value, value
+    if is_convertible(category_name, value_name):
+        conversion_factor = _get_conversion_factor(instance, category_name,
+                                                   value_name)
+        converted_value = value * conversion_factor
+    else:
+        converted_value = value
+
+    if is_formattable(category_name, value_name):
+        _, fmt = get_float_format(instance, category_name, value_name)
+    else:
+        fmt = '%.1f'
+
+    return converted_value, locale.format(fmt, converted_value, grouping=True)
+
+
+def get_storage_value(instance, category_name, value_name, value):
+    if not isinstance(value, Number):
+        return value
+    return value / _get_conversion_factor(instance, category_name,
+                                          value_name)

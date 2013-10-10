@@ -3,6 +3,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import hashlib
+import re
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
@@ -17,10 +20,7 @@ from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
                            Dictable, Audit, AuthorizableQuerySet,
                            AuthorizableManager)
 from treemap.util import save_uploaded_image
-
-import hashlib
-import re
-
+from treemap.units import Convertible
 from treemap.udf import UDFModel, GeoHStoreUDFManager, GeoHStoreUDFQuerySet
 from treemap.instance import Instance
 
@@ -249,7 +249,7 @@ class ImportEvent(models.Model):
 # Proximity validation
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
-class Plot(UDFModel, Authorizable, Auditable):
+class Plot(Convertible, UDFModel, Authorizable, Auditable):
     instance = models.ForeignKey(Instance)
     geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
 
@@ -340,7 +340,7 @@ class Plot(UDFModel, Authorizable, Auditable):
 
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
-class Tree(UDFModel, Authorizable, Auditable):
+class Tree(Convertible, UDFModel, Authorizable, Auditable):
     """
     Represents a single tree, belonging to an instance
     """
@@ -382,6 +382,7 @@ class Tree(UDFModel, Authorizable, Auditable):
     ##########################
 
     def clean(self):
+        super(Tree, self).clean()
         if self.plot and self.plot.instance != self.instance:
             raise ValidationError('Cannot save to a plot in another instance')
 

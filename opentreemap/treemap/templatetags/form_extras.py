@@ -10,7 +10,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from treemap.util import safe_get_model_class
 from treemap.json_field import (is_json_field_reference,
                                 get_attr_from_json_field)
-from treemap.units import get_float_format, get_units
+from treemap.units import (get_digits, get_units, is_formattable,
+                           is_convertible_or_formattable, is_convertible,
+                           get_display_value)
 
 register = template.Library()
 
@@ -312,17 +314,20 @@ class AbstractNode(template.Node):
                 is_visible = True
                 is_editable = True
 
+        digits = (get_digits(model.instance, model_name, field_name)
+                  if is_formattable(model_name, field_name) else '')
+
         units = ''
-        if data_type == 'float':
+        if is_convertible(model_name, field_name):
             units = get_units(model.instance, model_name, field_name)
 
-        digits = ''
         if field_value is None:
             display_val = None
-        elif data_type == 'float':
-            digits, fmt = get_float_format(model.instance, model_name,
-                                           field_name)
-            display_val = (fmt % field_value) + (' %s' % units)
+        elif is_convertible_or_formattable(model_name, field_name):
+            field_value, display_val = get_display_value(
+                model.instance, model_name, field_name, field_value)
+            if units is not '':
+                display_val += (' %s' % units)
         else:
             display_val = unicode(field_value)
 

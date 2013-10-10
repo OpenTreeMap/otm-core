@@ -500,13 +500,17 @@ class InlineFieldTagTests(TestCase):
         self.assert_plot_length_context_value(
             self.observer, 'field.display_value', '12.3 in')
 
+    PLOT_LENGTH_DISPLAY_DEFAULTS = {'plot':
+                                    {'length': {'units': 'in', 'digits': 1}}}
+
+    @override_settings(DISPLAY_DEFAULTS=PLOT_LENGTH_DISPLAY_DEFAULTS)
     def test_uses_custom_units_and_digits(self):
         set_attr_on_json_field(
             self.instance, 'config.value_display.plot.length.units', 'm')
         set_attr_on_json_field(
             self.instance, 'config.value_display.plot.length.digits', '3')
         self.assert_plot_length_context_value(
-            self.observer, 'field.display_value', '12.300 m')  # Mike, here!
+            self.observer, 'field.display_value', '0.312 m')
 
     def test_sets_data_type(self):
         self.assert_plot_length_context_value(
