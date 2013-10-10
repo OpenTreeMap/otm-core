@@ -95,8 +95,10 @@
   <div class="btn-group">
     {% if request.instance|feature_enabled:'advanced_search_filters' %}
     <button id="search-advanced" class="btn">{% trans "Advanced" %}</button>
-    {% endif %}
     <button id="search-reset" class="btn">{% trans "Reset" %}</button>
+    {% else %}
+    <button id="search-reset" class="btn btn-block">{% trans "Reset" %}</button>
+    {% endif %}
   </div>
 </div>
 {% endblock searchoptions %}

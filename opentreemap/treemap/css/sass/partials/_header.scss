@@ -97,16 +97,21 @@
     margin-left: 15px;
     position: relative;
     vertical-align: top;
+    min-width: 100px;
 
     #perform-search {
         margin-bottom: 7px;
         padding: 12px 0;
     }
+
+    .btn-group {
+        width: 100%;
+    }
 }
 
 #advanced-search-pane {
     position: absolute;
-    z-index: 999;
+    z-index: 9999;
     background: #FFF;
     border: 1px solid $well-color !important;
     box-shadow: 0px 3px 0px rgba(0, 3, 0, 0.3);

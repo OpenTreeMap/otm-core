@@ -35,6 +35,11 @@
                 > a {
                     background-color: $navbar-color;
                     border-bottom: 4px solid $primary-color;
+
+                    &:hover,
+                    &:focus {
+                        background-color: $navbar-color;
+                    }
                 }
             }
             &.user-img {
