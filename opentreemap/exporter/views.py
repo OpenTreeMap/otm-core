@@ -15,7 +15,7 @@ def begin_export(request, instance, model):
         job.user = request.user
     job.save()
 
-    async_csv_export.delay(job, model, query)
+    async_csv_export.delay(job.pk, model, query)
 
     return {'start_status': 'OK', 'job_id': job.pk}
 
