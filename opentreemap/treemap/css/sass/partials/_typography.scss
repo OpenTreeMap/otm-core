@@ -26,6 +26,18 @@ label {
 	color: $subtext-color;
 	font-size: em(14px);
 	font-weight: 400;
+
+	&.radio.inline,
+	&.checkbox.inline {
+		padding-top: 0;
+		margin-bottom: 10px;
+	}
+}
+
+.text-info {
+	color: lighten($subtext-color, 35%);
+	font-size: 0.75em;
+	margin: -2px 0 16px;
 }
 
 input[type="text"], 
