@@ -29,9 +29,6 @@ urlpatterns = patterns(
         url='/static/img/favicon.ico', permanent=False)),
     url(r'^', include('geocode.urls')),
     url(r'^$', landing_view),
-    url(instance_pattern + r'/', include('treemap.urls')),
-    url(instance_pattern + r'/eco/', include('ecobenefits.urls')),
-    url(instance_pattern + r'/export/', include('exporter.urls')),
     url(r'^config/settings.js$', root_settings_js_view),
     url(r'^users/(?P<username>\w+)/?$',
         route(GET=user_view, PUT=update_user_view)),
@@ -50,7 +47,10 @@ urlpatterns = patterns(
     url(r'^not-available$', instance_not_available_view,
         name='instance_not_available'),
     url(r'^unsupported$', unsupported_view, name='unsupported'),
-    url(r'^main\.css$', scss_view, name='scss')
+    url(r'^main\.css$', scss_view, name='scss'),
+    url(instance_pattern + r'/', include('treemap.urls')),
+    url(instance_pattern + r'/eco/', include('ecobenefits.urls')),
+    url(instance_pattern + r'/export/', include('exporter.urls'))
 )
 
 if settings.USE_JS_I18N:
@@ -59,13 +59,14 @@ if settings.USE_JS_I18N:
         'packages': settings.I18N_APPS,
     }
 
-    urlpatterns += patterns('', url(r'^jsi18n/$',
-                            'django.views.i18n.javascript_catalog',
-                            js_i18n_info_dict))
+    urlpatterns = patterns('', url(r'^jsi18n/$',
+                           'django.views.i18n.javascript_catalog',
+                           js_i18n_info_dict)) + urlpatterns
 
 if settings.EXTRA_URLS:
     for (url_pattern, url_module) in settings.EXTRA_URLS:
-        urlpatterns += patterns('', url(url_pattern, include(url_module)))
+        urlpatterns = patterns('', url(url_pattern,
+                                       include(url_module))) + urlpatterns
 
 if settings.DEBUG:
     urlpatterns = patterns(
