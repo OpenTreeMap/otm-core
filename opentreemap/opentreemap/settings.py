@@ -214,6 +214,19 @@ I18N_APPS = (
     'ecobenefits',
 )
 
+RESERVED_INSTANCE_URL_NAMES = (
+    'geocode',
+    'config',
+    'users',
+    'api',
+    'accounts',
+    'i18n',
+    'not-available',
+    'unsupported',
+    'jsi18n',
+    'admin'
+)
+
 # From the django-registration quickstart
 # https://django-registration.readthedocs.org/en/latest/quickstart.html
 #
@@ -234,12 +247,14 @@ EXTRA_URLS = ()
 
 EXTRA_INSTALLED_APPS = ()
 EXTRA_MIDDLEWARE_CLASSES = ()
+EXTRA_RESERVED_INSTANCE_URL_NAMES = ()
 
 from opentreemap.local_settings import *  # NOQA
 
 MANAGED_APPS += EXTRA_INSTALLED_APPS
 INSTALLED_APPS = UNMANAGED_APPS + MANAGED_APPS
 MIDDLEWARE_CLASSES += EXTRA_MIDDLEWARE_CLASSES
+RESERVED_INSTANCE_URL_NAMES += EXTRA_RESERVED_INSTANCE_URL_NAMES
 
 # CELERY
 # NOTE: BROKER_URL and CELERY_RESULT_BACKEND must be set

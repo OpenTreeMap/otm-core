@@ -1,7 +1,12 @@
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 from django.contrib.gis.db import models
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import RegexValidator
 from django.conf import settings
+from django.utils.translation import ugettext as trans
 
 import hashlib
 import json
@@ -14,6 +19,12 @@ from json_field import JSONField
 URL_NAME_PATTERN = r'[a-z]+[a-z0-9\-]*'
 
 
+def reserved_name_validator(name):
+    if name in settings.RESERVED_INSTANCE_URL_NAMES:
+        raise ValidationError(trans('%(instancename)s is a reserved name and '
+                                    'cannot be used') % {'instancename': name})
+
+
 class Instance(models.Model):
     """
     Each "Tree Map" is a single instance
@@ -23,10 +34,11 @@ class Instance(models.Model):
     url_name = models.CharField(max_length=255, unique=True,
                                 validators=[RegexValidator(
                                     r'^%s$' % URL_NAME_PATTERN,
-                                    'Must start with a lowercase letter and '
-                                    'may only contain lowercase letters, '
-                                    'numbers, or dashes ("-")',
-                                    'Invalid URL name')])
+                                    trans('Must start with a lowercase letter '
+                                          'and may only contain lowercase '
+                                          'letters, numbers, or dashes ("-")'),
+                                    trans('Invalid URL name')),
+                                    reserved_name_validator])
 
     """
     Basemap type     Basemap data

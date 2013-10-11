@@ -6,7 +6,9 @@ import datetime
 import json
 
 from django.test import TestCase
+from django.test.utils import override_settings
 from django.contrib.gis.geos import Point
+from django.core.exceptions import ValidationError
 
 from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
                             ImportEvent, User)
@@ -567,16 +569,25 @@ class InstanceTest(TestCase):
         self.assertRaises(TypeError, Instance.objects.filter, config='test')
 
     def test_url_name_cannot_be_empty(self):
-        self.assertRaises(make_instance, url_name='')
+        with self.assertRaises(ValidationError):
+            make_instance(url_name='')
 
     def test_url_name_does_not_allow_capitals(self):
-        self.assertRaises(make_instance, url_name='A')
+        with self.assertRaises(ValidationError):
+            make_instance(url_name='A')
 
     def test_url_name_does_not_allow_leading_number(self):
-        self.assertRaises(make_instance, url_name='0a')
+        with self.assertRaises(ValidationError):
+            make_instance(url_name='0a')
 
     def test_url_name_does_not_allow_leading_hyphen(self):
-        self.assertRaises(make_instance, url_name='-a')
+        with self.assertRaises(ValidationError):
+            make_instance(url_name='-a')
+
+    @override_settings(RESERVED_INSTANCE_URL_NAMES=('jsi18n',))
+    def test_url_name_does_not_allow_reserved_words(self):
+        with self.assertRaises(ValidationError):
+            make_instance(url_name='jsi18n')
 
     def test_url_name_allows_lcase(self):
         make_instance(url_name='mymap')
