@@ -141,7 +141,6 @@ function init(options) {
 //     activate() -> CanPlaceMarker
 //
 // CanPlaceMarker:
-//     onMarkerPlaced() -> CanMoveMarker
 //     onLocationChosen() -> CanMoveMarker
 //     cancel() -> Inactive
 //     deactivate() -> Inactive
