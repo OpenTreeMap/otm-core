@@ -170,10 +170,10 @@ class LocalMediaTestCase(TestCase):
         self.assertFalse(os.path.exists(path), '%s exists' % path)
 
 
-class ApproveOrRejectPhotoTest(LocalMediaTestCase):
+class TreePhotoTestCase(LocalMediaTestCase):
 
     def setUp(self):
-        super(ApproveOrRejectPhotoTest, self).setUp()
+        super(TreePhotoTestCase, self).setUp()
 
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
@@ -185,6 +185,9 @@ class ApproveOrRejectPhotoTest(LocalMediaTestCase):
         self.tree.save_with_user(self.user)
 
         self.image = self.load_resource('tree1.gif')
+
+
+class ApproveOrRejectPhotoTest(TreePhotoTestCase):
 
     @media_dir
     def test_approve_photo_no_pending(self):
@@ -761,10 +764,10 @@ class PlotUpdateTest(unittest.TestCase):
         self.assertEqual(updated_plot.length, 100)
 
 
-class PlotViewTest(ViewTestCase):
+class PlotViewTestCase(ViewTestCase):
 
     def setUp(self):
-        super(PlotViewTest, self).setUp()
+        super(PlotViewTestCase, self).setUp()
 
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
@@ -774,6 +777,9 @@ class PlotViewTest(ViewTestCase):
         ITreeRegion.objects.create(
             code='PiedmtCLT',
             geometry=MultiPolygon((self.p.buffer(10),)))
+
+
+class PlotViewTest(PlotViewTestCase):
 
     def test_eco_benefits_change_based_on_zone(self):
         p1 = Point(5000, 5000)
@@ -900,6 +906,100 @@ class PlotViewTest(ViewTestCase):
 
         self.assertEquals(plot_wo_tree, context['plot'])
         self.assertNotIn('benefits', context)
+
+
+class PlotViewProgressTest(PlotViewTestCase):
+
+    def setUp(self):
+        super(PlotViewProgressTest, self).setUp()
+        self.plot_wo_tree = Plot(geom=self.p, instance=self.instance)
+        self.plot_wo_tree.save_with_user(self.user)
+
+        self.plot_w_tree = Plot(geom=self.p, instance=self.instance)
+        self.plot_w_tree.save_with_user(self.user)
+
+        tree = Tree(plot=self.plot_w_tree, instance=self.instance)
+        tree.save_with_user(self.user)
+
+        context = plot_detail(make_request(user=self.user),
+                              self.instance, self.plot_w_tree.pk)
+
+        self.initial_progress = context['progress_percent']
+        self.initial_message_count = len(context['progress_messages'])
+
+    def test_progress_starts_at_25(self):
+        # Having a plot location counts at 25%
+        context = plot_detail(make_request(user=self.user),
+                              self.instance, self.plot_wo_tree.pk)
+
+        self.assertEquals(25, context['progress_percent'])
+        self.assertEquals(4, len(context['progress_messages']))
+
+    def test_progress_messages_decrease_when_plot_has_tree(self):
+        wo_tree_context = plot_detail(make_request(user=self.user),
+                                      self.instance, self.plot_wo_tree.pk)
+        w_tree_context = plot_detail(make_request(user=self.user),
+                                     self.instance, self.plot_w_tree.pk)
+
+        self.assertTrue(len(wo_tree_context['progress_messages'])
+                        > len(w_tree_context['progress_messages']))
+        # Adding a tree without and details does not add progress
+        self.assertTrue(wo_tree_context['progress_percent']
+                        == w_tree_context['progress_percent'])
+
+    def test_progress_increases_when_diameter_is_added(self):
+        tree = self.plot_w_tree.current_tree()
+        tree.diameter = 2
+        tree.save_with_user(self.user)
+
+        context = plot_detail(make_request(user=self.user),
+                              self.instance, self.plot_w_tree.pk)
+
+        self.assertTrue(context['progress_percent'] > self.initial_progress)
+        self.assertTrue(len(context['progress_messages']) <
+                        self.initial_message_count)
+
+    def test_progress_increases_when_species_is_added(self):
+        species = Species(common_name="test",
+                          otm_code="TEST",
+                          instance=self.instance)
+        species.save_with_user(self.user)
+        tree = self.plot_w_tree.current_tree()
+        tree.species = species
+        tree.save_with_user(self.user)
+
+        context = plot_detail(make_request(user=self.user),
+                              self.instance, self.plot_w_tree.pk)
+
+        self.assertTrue(context['progress_percent'] > self.initial_progress)
+        self.assertTrue(len(context['progress_messages']) <
+                        self.initial_message_count)
+
+
+class PlotViewPhotoProgressTest(TreePhotoTestCase):
+
+    def setUp(self):
+        super(PlotViewPhotoProgressTest, self).setUp()
+        context = plot_detail(make_request(user=self.user),
+                              self.instance, self.plot.pk)
+
+        self.initial_progress = context['progress_percent']
+        self.initial_message_count = len(context['progress_messages'])
+
+    @media_dir
+    def test_progress_increases_when_photo_is_added(self):
+        photo = TreePhoto(tree=self.tree, instance=self.instance)
+        photo.set_image(self.image)
+        photo.save_with_user(self.user)
+        self.tree.save_with_user(self.user)
+
+        context = plot_detail(make_request(user=self.user),
+                              self.instance, self.plot.pk)
+
+        self.assertTrue(context['progress_percent'] >
+                        self.initial_progress)
+        self.assertTrue(len(context['progress_messages']) <
+                        self.initial_message_count)
 
 
 class RecentEditsViewTest(ViewTestCase):
