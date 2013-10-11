@@ -38,9 +38,17 @@
       {% endif %}
       <div id="upload-error" class="text-error" style="display: none"></div>
       <hr>
+      
       <h3>{% trans "Latest Update" %}</h3>
-      <p>{{ recent_activity.0.short_descr }}</p>
+
+      <p>
+        {{ latest_update.user.username }}
+        {{ latest_update.short_descr }} 
+        on {{ latest_update.updated|date:request.instance.date_format }}
+      </p>
+      
       <h5>{{ progress_percent }}% {% trans "Complete" %}</h5>
+
       <div class="progress">
         <div class="bar" style="width: {{ progress_percent }}%;"></div>
       </div>
@@ -52,8 +60,16 @@
       <hr>
       <h3>{% trans "Recent Edits" %}</h3>
       <ul>
-        {% for audit in recent_activity %}
-        <li>{{ audit.short_descr }}</li>
+        {% for user, updated, audits in recent_activity %}
+        <li>
+          <div>{{ user.username }}</div>
+          <ul>
+            {% for audit in audits %}
+              <li>{{ audit.short_descr }}</li>
+            {% endfor %}
+          </ul>
+          <div>{{ updated|date:_('DATE_FORMAT') }}</div>
+        </li>
         {% endfor %}
       </ul>
       <h3>{% trans "Nearby Trees" %}</h3>
