@@ -63,15 +63,6 @@ function init(options) {
     accordionHtmlStream.onValue(function (html) {
         var visible = html !== '' && html !== undefined;
 
-        if (visible) {
-            $('#plot-accordion').html(html);
-            // Show location marker (get x/y from data attributes on form)
-            plotMarker.place({
-                x: $('#details-form').data('location-x'),
-                y: $('#details-form').data('location-y')
-            });
-        }
-
         $accordionSection.collapse(visible ? 'show' : 'hide');
     });
     accordionHtmlStream.onValue(function (html) {
@@ -126,12 +117,21 @@ function showPlotDetailPopup(newPopup) {
     if (popup) {
         map.closePopup(popup);
     }
-    if (newPopup) {
-        map.openPopup(newPopup);
+
+    popup = newPopup;
+
+    if (popup) {
+        // Add the popup
+        map.openPopup(popup);
+
+        // Move the plot marker to this location
+        plotMarker.place(popup._latlng);
+        plotMarker.bindPopup(popup);
+
     } else {
+        plotMarker.unbindPopup();
         plotMarker.hide();
     }
-    popup = newPopup;
 }
 
 function getPlotAccordionContent(id) {

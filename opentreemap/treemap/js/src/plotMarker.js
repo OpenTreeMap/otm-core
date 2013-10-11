@@ -25,6 +25,9 @@ exports = module.exports = {
         config = theConfig;
     },
 
+    bindPopup: function(pop) { marker.bindPopup(pop); },
+    unbindPopup: function() { marker.unbindPopup(); },
+
     // Allows clients to be notified when user places marker by clicking the map
     markerPlacedByClickStream: markerPlacedByClickBus,
 
