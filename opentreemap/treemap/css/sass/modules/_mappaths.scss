@@ -4,3 +4,15 @@
 .leaflet-retina .leaflet-control-layers-toggle {
         background-image: url(/static/img/leaflet/layers-2x.png) !important;
         }
+
+/**
+ * We can't control typeahead using 100 so we have to move
+ * leaflet down
+ */
+.leaflet-bottom {
+        z-index: 99 !important;
+}
+
+.leaflet-top {
+        z-index: 99 !important;
+}
