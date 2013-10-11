@@ -55,10 +55,13 @@ exports.init = function(options) {
         }
     };
 
-    inlineEditForm.saveOkStream.onValue(function (result) {
-        // Form successfully saved its data. Update cached plot location.
-        location = plotMarker.getLocation();
-        // Refresh the map if needed
-        mapManager.updateGeoRevHash(result.geoRevHash);
-    });
+    inlineEditForm
+        .saveOkStream
+        .map('.responseData.geoRevHash')
+        .onValue(function (georev) {
+            // Form successfully saved its data. Update cached plot location.
+            location = plotMarker.getLocation();
+            // Refresh the map if needed
+            mapManager.updateGeoRevHash(georev);
+        });
 };
