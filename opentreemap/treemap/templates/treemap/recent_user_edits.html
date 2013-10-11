@@ -34,7 +34,7 @@
             </td>
             {% else %}
             <td>
-                {{ audit.clean_current_value|default_if_none:"" }}
+                {{ audit.current_display_value|default_if_none:"" }}
             </td>
             {% endif %}
 

@@ -121,8 +121,8 @@
             {% endif %}
           </td>
           {% else %}
-          <td>{{ audit.clean_previous_value|default_if_none:"" }}</td>
-          <td>{{ audit.clean_current_value|default_if_none:"" }}</td>
+          <td>{{ audit.previous_display_value|default_if_none:"" }}</td>
+          <td>{{ audit.current_display_value|default_if_none:"" }}</td>
           {% endif %}
 
           <td>

@@ -1059,16 +1059,22 @@ class Audit(models.Model):
         if self.field.startswith('udf:'):
             return self.current_value
         else:
-            return self._unit_format(
-                self._deserialize_value(self.current_value))
+            return self._deserialize_value(self.current_value)
 
     @property
     def clean_previous_value(self):
         if self.field.startswith('udf:'):
             return self.previous_value
         else:
-            return self._unit_format(
-                self._deserialize_value(self.previous_value))
+            return self._deserialize_value(self.previous_value)
+
+    @property
+    def current_display_value(self):
+        return self._unit_format(self.clean_current_value)
+
+    @property
+    def previous_display_value(self):
+        return self._unit_format(self.clean_previous_value)
 
     @property
     def display_action(self):
