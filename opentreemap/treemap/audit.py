@@ -6,13 +6,16 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 
 from django.forms.models import model_to_dict
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext as trans
 
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.db.models.fields import FieldDoesNotExist
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, connection, transaction
+
+from treemap.units import (is_convertible, is_convertible_or_formattable,
+                           get_display_value, get_units)
 
 import hashlib
 import importlib
@@ -1039,25 +1042,33 @@ class Audit(models.Model):
 
         return field_modified_value
 
+    def _unit_format(self, value):
+        model_name = self.model.lower()
+
+        if is_convertible_or_formattable(model_name, self.field):
+            _, value = get_display_value(
+                self.instance, model_name, self.field, value)
+        if value and is_convertible(model_name, self.field):
+            units = get_units(self.instance, model_name, self.field)
+            value += (' %s' % units)
+
+        return value
+
     @property
     def clean_current_value(self):
         if self.field.startswith('udf:'):
             return self.current_value
         else:
-            return self._deserialize_value(self.current_value)
+            return self._unit_format(
+                self._deserialize_value(self.current_value))
 
     @property
     def clean_previous_value(self):
-        cpv = self._deserialize_value(self.previous_value)
-
-        # empty strings respond equally well to truthy tests
-        # in templates but print better in the current use
-        # cases.
-        # TODO: handle this in the presentation layer
-        if cpv is None:
-            return ""
+        if self.field.startswith('udf:'):
+            return self.previous_value
         else:
-            return cpv
+            return self._unit_format(
+                self._deserialize_value(self.previous_value))
 
     @property
     def display_action(self):
@@ -1082,17 +1093,17 @@ class Audit(models.Model):
 
     def short_descr(self):
         lang = {
-            Audit.Type.Insert: _('%(username)s created a %(model)s'),
-            Audit.Type.Update: _('%(username)s updated the %(model)s'),
-            Audit.Type.Delete: _('%(username)s deleted the %(model)s'),
-            Audit.Type.PendingApprove: _('%(username)s approved an '
-                                         'edit on the %(model)s'),
-            Audit.Type.PendingReject: _('%(username)s rejected an '
-                                        'edit on the %(model)s')
+            Audit.Type.Insert: trans('%(username)s created a %(model)s'),
+            Audit.Type.Update: trans('%(username)s updated the %(model)s'),
+            Audit.Type.Delete: trans('%(username)s deleted the %(model)s'),
+            Audit.Type.PendingApprove: trans('%(username)s approved an '
+                                             'edit on the %(model)s'),
+            Audit.Type.PendingReject: trans('%(username)s rejected an '
+                                            'edit on the %(model)s')
         }
 
         return lang[self.action] % {'username': self.user,
-                                    'model': _(self.model).lower()}
+                                    'model': trans(self.model).lower()}
 
     def dict(self):
         return {'model': self.model,
