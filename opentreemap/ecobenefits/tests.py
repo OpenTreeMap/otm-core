@@ -33,6 +33,8 @@ class EcoTest(UrlTestCase):
 
         p1 = Point(-8515941.0, 4953519.0)
 
+        self.region_buffer_in_meters = 1000
+
         ITreeRegion.objects.create(
             code='NoEastXXX',
             geometry=MultiPolygon([p1.buffer(1000)]))
@@ -62,20 +64,20 @@ class EcoTest(UrlTestCase):
     def test_group_eco(self):
         pass  # TODO: Once filtering has been enabled
 
+    def assert_benefit_value(self, bens, benefit, unit, value):
+            self.assertEqual(bens[benefit]['unit'], unit)
+            self.assertEqual(int(float(bens[benefit]['value'])), value)
+
     def test_eco_benefit_sanity(self):
         rslt = tree_benefits(instance=self.instance,
                              tree_id=self.tree.pk)
 
         bens = rslt['benefits'][0]
 
-        def assertBValue(benefit, unit, value):
-            self.assertEqual(bens[benefit]['unit'], unit)
-            self.assertEqual(int(float(bens[benefit]['value'])), value)
-
-        assertBValue('energy', 'kwh', 1896)
-        assertBValue('airquality', 'lbs/year', 6)
-        assertBValue('stormwater', 'gal', 3185)
-        assertBValue('co2', 'lbs/year', 563)
+        self.assert_benefit_value(bens, 'energy', 'kwh', 1896)
+        self.assert_benefit_value(bens, 'airquality', 'lbs/year', 6)
+        self.assert_benefit_value(bens, 'stormwater', 'gal', 3185)
+        self.assert_benefit_value(bens, 'co2', 'lbs/year', 563)
 
     def test_species_for_none_region_lookup(self):
         self.assertIsNone(species_codes_for_regions(None))
@@ -92,5 +94,32 @@ class EcoTest(UrlTestCase):
 
         combined_set = set(combined)
         self.assertEqual(len(combined), len(combined_set),
-                         "Getting the species for more than one "
-                         "region should result in a unique set of otm_codes")
+                         "Getting the species for more than one region "
+                         "should result in a unique set of otm_codes")
+
+    def test_default_region(self):
+        # move the point outside the eco region
+        self.plot.geom.x += self.region_buffer_in_meters * 2
+        self.plot.save_with_user(self.user)
+
+        result = tree_benefits(instance=self.instance,
+                               tree_id=self.tree.pk)
+        bens_wo_default = result['benefits'][0]
+        self.assert_benefit_value(bens_wo_default, 'energy', 'kwh', 0)
+        self.assert_benefit_value(bens_wo_default, 'airquality', 'lbs/year', 0)
+        self.assert_benefit_value(bens_wo_default, 'stormwater', 'gal', 0)
+        self.assert_benefit_value(bens_wo_default, 'co2', 'lbs/year', 0)
+
+        self.instance.itree_region_default = 'NoEastXXX'
+        self.instance.save()
+        result = tree_benefits(instance=self.instance,
+                               tree_id=self.tree.pk)
+        bens_with_default = result['benefits'][0]
+        self.assert_benefit_value(bens_with_default,
+                                  'energy', 'kwh', 1896)
+        self.assert_benefit_value(bens_with_default,
+                                  'airquality', 'lbs/year', 6)
+        self.assert_benefit_value(bens_with_default,
+                                  'stormwater', 'gal', 3185)
+        self.assert_benefit_value(bens_with_default,
+                                  'co2', 'lbs/year', 563)
