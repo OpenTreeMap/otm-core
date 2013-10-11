@@ -27,12 +27,14 @@
             </td>
             {% elif audit.field == 'geom' %}
             <td>
+              {% if audit.clean_current_value %}
               {{ audit.clean_current_value.x|floatformat:0 }},
               {{ audit.clean_current_value.y|floatformat:0 }}
+              {% endif %}
             </td>
             {% else %}
             <td>
-                {{ audit.clean_current_value }}
+                {{ audit.clean_current_value|default_if_none:"" }}
             </td>
             {% endif %}
 
