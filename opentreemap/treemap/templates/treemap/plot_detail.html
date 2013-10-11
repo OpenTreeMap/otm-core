@@ -2,6 +2,7 @@
 {% load instance_config %}
 {% load i18n %}
 {% load l10n %}
+{% load humanize %}
 {% load auth_extras %}
 {% load form_extras %}
 
@@ -68,7 +69,8 @@
               <li>{{ audit.short_descr }}</li>
             {% endfor %}
           </ul>
-          <div>{{ updated|date:_('DATE_FORMAT') }}</div>
+          <div>{{ updated|date:request.instance.date_format }}</div>
+          <div>({{ latest_update.updated|naturaltime }})</div>
         </li>
         {% endfor %}
       </ul>
