@@ -3,6 +3,11 @@
  (c) 2010-2013, Vladimir Agafonkin
  (c) 2010-2011, CloudMade
 */
+
+// HOTFIX applied:
+// https://github.com/Leaflet/Leaflet/issues/1925
+// https://github.com/Leaflet/Leaflet/commit/14d934b6392147b903a483033a8680717b93d634
+
 (function (window, document, undefined) {
 var oldL = window.L,
     L = {};
@@ -6293,6 +6298,7 @@ L.DomEvent = {
 		} else {
 			e.cancelBubble = true;
 		}
+		L.DomEvent._skipped(e);
 		return this;
 	},
 

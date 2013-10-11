@@ -25,6 +25,9 @@ exports = module.exports = {
         config = theConfig;
     },
 
+    bindPopup: function(pop) { marker.bindPopup(pop); },
+    unbindPopup: function() { marker.unbindPopup(); },
+
     // Allows clients to be notified when user places marker by clicking the map
     markerPlacedByClickStream: markerPlacedByClickBus,
 
@@ -87,8 +90,7 @@ exports = module.exports = {
         }
 
         marker = L.marker(latlng, {
-            icon: getMarkerIcon(true),
-            draggable: true
+            icon: getMarkerIcon(true)
         });
 
         showViewMarker();
@@ -142,6 +144,8 @@ var showViewMarker = _.partial(showMarker, false),
     showEditMarker = _.partial(showMarker, true);
 
 function showMarker(inEditMode) {
+    marker.on('dragend', onMarkerMoved);
+
     marker.setIcon(getMarkerIcon(inEditMode));
     marker.addTo(map);
 }

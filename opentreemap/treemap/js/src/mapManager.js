@@ -118,18 +118,18 @@ function getBasemapLayers(config) {
             'Hybrid': makeBingLayer('AerialWithLabels')
         };
     } else if (config.instance.basemap.type === 'tms') {
-        layers = [L.tileLayer(config.instance.basemap.data)];
+        layers = [L.tileLayer(config.instance.basemap.data, { maxZoom: 20 })];
     } else {
-        return {'Streets': new L.Google('ROADMAP'),
-                'Hybird': new L.Google('HYBRID'),
-                'Satellite': new L.Google('SATELLITE')};
+        return {'Streets': new L.Google('ROADMAP', { maxZoom: 20 }),
+                'Hybird': new L.Google('HYBRID', { maxZoom: 20 }),
+                'Satellite': new L.Google('SATELLITE', { maxZoom: 20 })};
     }
     return layers;
 }
 
 function createPlotTileLayer(config) {
     var url = getPlotLayerURL(config, 'png'),
-        layer = L.tileLayer(url);
+        layer = L.tileLayer(url, { maxZoom: 20 });
     makeLayerFilterable(layer, url, config.urls.filterQueryArgumentName);
     return layer;
 }
@@ -137,6 +137,7 @@ function createPlotTileLayer(config) {
 function createPlotUTFLayer(config) {
     var layer = new L.UtfGrid(getPlotLayerURL(config, 'grid.json'), {
         resolution: 4,
+        maxZoom: 20,
         useJsonP: false
     });
 
@@ -173,5 +174,6 @@ function getBoundsLayerURL(config, extension) {
 
 function createBoundsTileLayer(config) {
     return L.tileLayer(
-        getBoundsLayerURL(config, 'png'));
+        getBoundsLayerURL(config, 'png'),
+        { maxZoom: 20 });
 }

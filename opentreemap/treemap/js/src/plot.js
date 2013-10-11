@@ -166,6 +166,7 @@ exports.init = function(options) {
     });
     form.saveOkStream.onValue(hideAddTree);
     form.saveOkStream
+        .map('.formData')
         .map(BU.getValueForKey, 'tree.plot')
         .filter(BU.isDefined)
         .onValue(_.bind($addTreeSection.hide, $addTreeSection));
@@ -179,6 +180,7 @@ exports.init = function(options) {
             location: options.plotLocation.location
         });
         form.saveOkStream
+            .map('.formData')
             .map(BU.getValueForKey, 'plot.geom')
             .filter(BU.isDefined)
             .onValue(panorama.update);
