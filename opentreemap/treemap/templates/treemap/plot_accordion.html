@@ -15,7 +15,4 @@
     {% field height from "tree.height" for request.user withtemplate "treemap/field/ul.html" %}
     {% endif %}
 
-    {% trans "Nearby Address" as addr %}
-    {% field addr from "plot.address_street" for request.user withtemplate "treemap/field/ul.html" %}
-
 </form>
