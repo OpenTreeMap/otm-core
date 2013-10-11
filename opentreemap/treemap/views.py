@@ -35,7 +35,7 @@ from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
 from treemap.models import (Plot, Tree, User, Species, Instance,
                             BenefitCurrencyConversion, TreePhoto)
-from treemap.units import (get_units, get_display_value)
+from treemap.units import get_units, get_display_value
 
 from ecobenefits.models import ITreeRegion
 from ecobenefits.views import _benefits_for_trees
