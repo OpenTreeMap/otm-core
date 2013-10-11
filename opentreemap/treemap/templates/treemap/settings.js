@@ -1,5 +1,8 @@
 {% load instance_config %}
 {% load i18n %}
+{% load l10n %}
+
+{% localize off %}
 
 // Data structures pulled from django
 var otm = otm || {};
@@ -53,3 +56,5 @@ otm.settings.geocoder = {
         'secondaryColor': '{{ request.instance.config|secondary_color }}'
     }
 {% endif %}
+
+{% endlocalize %}

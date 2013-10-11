@@ -183,6 +183,7 @@
 {% block scripts %}
 <script src="//maps.google.com/maps/api/js?v=3&sensor=false"></script>
 <script>
+{% localize off %}
 (function(require, config) {
       var plot = require('plot');
 
@@ -240,5 +241,6 @@
           noStreetViewText: '{% trans "Could not load street view for this location" %}'
       });
 })(require, otm.settings);
+{% endlocalize %}
 </script>
 {% endblock scripts %}
