@@ -219,7 +219,12 @@ exports.init = function(options) {
 
         saveOkStream = responseStream.filter(function (result) {
             return !('error' in result);
-        }).map(getDataToSave),
+        }).map(function(responseData) {
+            return {
+                formData: getDataToSave(),
+                responseData: responseData
+            };
+        }),
 
         hideAndShowElements = function (action) {
             function hideOrShow(fields, actions) {
@@ -260,7 +265,9 @@ exports.init = function(options) {
             $edit.attr('title', disable ? disabledMessage : '');
         };
 
-    saveOkStream.onValue(formFieldsToDisplayValues);
+    saveOkStream
+        .map('.formData')
+        .onValue(formFieldsToDisplayValues);
 
     responseStream.filter('.validationErrors')
                   .map('.validationErrors')
