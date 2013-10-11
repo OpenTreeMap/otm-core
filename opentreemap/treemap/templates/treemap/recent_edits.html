@@ -59,8 +59,6 @@
             <a href="{{ audit.clean_previous_value|image_to_url }}">
               View Image
             </a>
-            {% else %}
-              None
             {% endif %}
           </td>
           <td>
@@ -68,8 +66,6 @@
             <a href="{{ audit.clean_current_value|image_to_url }}">
               View Image
             </a>
-            {% else %}
-              None
             {% endif %}
           </td>
 
@@ -80,8 +76,6 @@
             <a href="?user={{ audit.clean_previous_value.pk }}">
               {{ audit.clean_previous_value }}
             </a>
-            {% else %}
-              None
             {% endif %}
           </td>
           <td>
@@ -97,36 +91,38 @@
             <a href="?models=Plot,id={{ audit.clean_previous_value.pk }}">
               Plot {{ audit.clean_previous_value }}
             </a>
-            {% else %}
-              None
             {% endif %}
           </td>
           <td>
             <a href="?models=Plot,id={{ audit.clean_current_value.pk }}">
-              Plot {{ audit.clean_current_value }}
+              Plot {{ audit.clean_current_value|default_if_none:"" }}
             </a>
           </td>
 
           {% elif audit.field == 'species' %}
           <td>
-            {{ audit.clean_previous_value.scientific_name|default:"None" }}
+            {{ audit.clean_previous_value.scientific_name|default_if_none:"" }}
           </td>
           <td>
-            {{ audit.clean_current_value.scientific_name }}
+            {{ audit.clean_current_value.scientific_name|default_if_none:"" }}
           </td>
 
           {% elif audit.field == 'geom' %}
           <td>
+            {% if audit.clean_previous_value %}
             {{ audit.clean_previous_value.x|floatformat:0 }},
             {{ audit.clean_previous_value.y|floatformat:0 }}
+            {% endif %}
           </td>
           <td>
+            {% if audit.clean_previous_value %}
             {{ audit.clean_current_value.x|floatformat:0 }},
             {{ audit.clean_current_value.y|floatformat:0 }}
+            {% endif %}
           </td>
           {% else %}
-          <td>{{ audit.clean_previous_value }}</td>
-          <td>{{ audit.clean_current_value }}</td>
+          <td>{{ audit.clean_previous_value|default_if_none:"" }}</td>
+          <td>{{ audit.clean_current_value|default_if_none:"" }}</td>
           {% endif %}
 
           <td>
