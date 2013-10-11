@@ -491,7 +491,8 @@ def audits(request, instance):
 def _plot_audits(user, instance, plot):
     readable_plot_fields = plot.visible_fields(user)
 
-    plot_filter = Q(model='Plot', field__in=readable_plot_fields)
+    plot_filter = Q(model='Plot', field__in=readable_plot_fields,
+                    model_id=plot.pk)
 
     tree_visible_fields = Tree(instance=instance)\
         .visible_fields(user)
