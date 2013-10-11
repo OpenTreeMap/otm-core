@@ -71,8 +71,8 @@
       <form id="plot-form">
 
 
-        <!-- General Tree Information -->
-        <h5>{% trans "General Tree Information" %}</h5>
+        <!-- Tree Information -->
+        <h5>{% trans "Tree Information" %}</h5>
         <div id="add-tree-section" {{ has_tree|yesno:"style=display:none;," }}>
           {% trans "There is no tree for this plot." %}
           {% usercancreate tree %}
@@ -122,7 +122,7 @@
         </div>
 
         <table class="table table-striped">
-          <h5>{% trans "General Plot Information" %}</h5>
+          <h5>{% trans "Plot Information" %}</h5>
           <tbody>
             {% trans "Width" as width %}
             {% field width from "plot.width" for request.user withtemplate "treemap/field/tr.html" %}
