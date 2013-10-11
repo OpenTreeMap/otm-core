@@ -5,14 +5,14 @@
 <form id="details-form" data-location-x="{{ plot.geom.x }}" data-location-y="{{ plot.geom.y }}">
 
     {% if tree %}
-    {# The "edit-tree-species" label is used as an id prefix in "species_ul.html" #}
-    {% field "edit-tree-species" from "tree.species" for request.user withtemplate "treemap/field/species_ul.html" %}
+    {# The "edit-tree-species" label is used as an id prefix in "species_div.html" #}
+    {% field "edit-tree-species" from "tree.species" for request.user withtemplate "treemap/field/species_div.html" %}
 
     {% trans "Trunk Diameter" as diameter %}
-    {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field/diameter_ul.html" %}
+    {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field/diameter_div.html" %}
 
     {% trans "Tree Height" as height %}
-    {% field height from "tree.height" for request.user withtemplate "treemap/field/ul.html" %}
+    {% field height from "tree.height" for request.user withtemplate "treemap/field/div.html" %}
     {% endif %}
 
 </form>
