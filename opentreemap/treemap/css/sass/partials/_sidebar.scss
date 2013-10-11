@@ -38,6 +38,8 @@
             &.collapsed {
                 color: lighten($secondary-color, 35%);
                 color: rgba(255,255,255,.5);
+                box-shadow: none;
+                background: $secondary-color;
             }
 
             &:hover {
