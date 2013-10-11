@@ -1,24 +1,23 @@
 {% load i18n %}
 {% if field.is_visible %}
-  <ul class="chunk" data-class="display" data-field="{{ field.identifier }}">
-    <li class="chunk-content" data-typeahead="{{ field.identifier }}"
-        data-datum="common_name">{{ field.value.common_name }}</li>
-    <li class="chunk-content">
+  <div class="tree-details-species" data-class="display" data-field="{{ field.identifier }}">
+    <h3 data-typeahead="{{ field.identifier }}"
+        data-datum="common_name">{{ field.value.common_name }}</h3>
+    <h5>
       <em data-typeahead="{{ field.identifier }}"
           data-datum="scientific_name">{{ field.value.scientific_name }}</em>
-    </li>
-  </ul>
+    </h5>
+  </div>
   {% if field.is_editable %}
-  <ul class="chunk" style="display: none;" data-class="edit"
-      data-field="{{ field.identifier }}">
-    <li class="chunk-label">{% trans "Species" %}</li>
-    <li class="chunk-content">
+  <div style="display: none;" data-class="edit" data-field="{{ field.identifier }}">
+    <label>{% trans "Species" %}</li>
+    <div>
       {% include "treemap/field/typeahead.html" %}
-    </li>
-    <li class="chunk-content text-error"
+    </div>
+    <div class="alert alert-error text-error"
         style="display: none;"
         {% include "treemap/field/attrs.html" with class="error"%}>
-    </li>
-  </ul>
+    </div>
+  </div>
   {% endif %}
 {% endif %}

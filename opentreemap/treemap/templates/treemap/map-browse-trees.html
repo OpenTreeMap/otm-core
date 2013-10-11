@@ -4,15 +4,17 @@
 <div class="accordion" id="map-info">
   <div class="accordion-group">
     <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#tree-detail">Tree Details <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
+      <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#map-info" href="#tree-detail">Tree Details <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
     </div>
     <div id="tree-detail" class="accordion-body collapse">
-      <button class="btn" id="full-details-button">Full Details</button>
-      <button class="btn" data-class="display" id="edit-details-button"
-              title="{% trans "Editing of the tree details is not available to all users" %}"
-              >Edit Details</button>
-      <button class="btn" data-class="edit" id="save-details-button" style="display:none">Save</button>
-      <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</button>
+      <div class="accordion-body-buttons">
+        <button class="btn" id="full-details-button">Full Details</button>
+        <button class="btn" data-class="display" id="edit-details-button"
+                title="{% trans "Editing of the tree details is not available to all users" %}"
+                >Edit Details</button>
+        <button class="btn" data-class="edit" id="save-details-button" style="display:none">Save</button>
+        <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</button>
+      </div>
       <div class="accordion-inner" id="plot-accordion">
         <!-- The markup returned from the plot detail endpoint looks like
              span.plot-label + br + span.content + p ...
@@ -21,12 +23,12 @@
       <div id="move-plot-buttons">
         {% with iuser=user|instanceuser:request.instance %}
         {% if iuser|plot_field_is_writable:"geom" %}
-        <button class="btn" style="display:none" id="edit-plot-location">{% trans "Move Tree" %}</button>
-        <button class="btn" style="display:none"
+        <button class="btn btn-success btn-block" style="display:none" id="edit-plot-location">{% trans "Move Tree" %}</button>
+        <button class="btn btn-block" style="display:none"
                 id="cancel-edit-plot-location">{% trans "Cancel Tree Move" %}</button>
         {% else %}
         {% trans "Editing a plot's location is not available to all users" as title %}
-        <button data-class="display" class="btn" disabled="disabled" title="{{ title }}"
+        <button data-class="display" class="btn btn-success btn-block" disabled="disabled" title="{{ title }}"
                 id="edit-plot-location">{% trans "Move Tree" %}</button>
         {% endif %}
         {% endwith %}
