@@ -42,14 +42,11 @@ function init(options) {
                                                    '');
 
 
-    var plotUrlProperty = clickedIdStream
-        .map(idToPlotDetailUrl)
-        .toProperty()
-        .assign($fullDetailsButton, 'attr', 'href');
+    var plotUrlStream = clickedIdStream
+        .map(idToPlotDetailUrl);
 
-    clickedIdStream.onValue(function (id) {
-        inlineEditForm.updateUrl = idToPlotDetailUrl(id);
-    });
+    plotUrlStream.onValue($fullDetailsButton, 'attr', 'href');
+    plotUrlStream.onValue(inlineEditForm.updateUrl);
 
     // Leaflet needs both the content and a coordinate to
     // show a popup, so zip map clicks together with content
