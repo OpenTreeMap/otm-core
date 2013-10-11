@@ -45,7 +45,8 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
         }
 
         if (type === 'bool') {
-            result[item.name] = getSerializableField($editFields, item.name).is(":checked");
+            // Handled below so we catch unchecked checkboxes which
+            // serializeArray ignores
         } else if (item.value === '' && (type === 'int' || type === 'float')) {
             // convert empty numeric fields to null
             result[item.name] = null;
@@ -54,6 +55,11 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
             result[item.name] = null;
         } else {
             result[item.name] = item.value;
+        }
+    });
+    $form.find('[name][type="checkbox"]').not('[disabled]').each(function(i, elem) {
+        if (elem.checked !== getDisplayValue('bool', elem.name)) {
+            result[elem.name] = elem.checked;
         }
     });
     return result;
