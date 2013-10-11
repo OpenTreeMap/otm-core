@@ -16,7 +16,8 @@ var U = require('./utility'),
 var $sidebarBrowseTrees         = U.$find('#sidebar-browse-trees'),
     $treeDetailAccordionSection = U.$find('#tree-detail'),
     $sidebarAddTree             = U.$find('#sidebar-add-tree'),
-    $fullDetailsButton          = U.$find('#full-details-button');
+    $fullDetailsButton          = U.$find('#full-details-button'),
+    $treeDetailButtonGroup      = U.$find('#map-plot-details-button');
 
 function activateMode(mode, $sidebar) {
     if (mode !== currentMode) {
@@ -71,7 +72,8 @@ function init(config, mapManager, triggerSearchBus) {
         $treeDetailAccordionSection: $treeDetailAccordionSection,
         $fullDetailsButton: $fullDetailsButton,
         inlineEditForm: form,
-        plotMarker: plotMarker
+        plotMarker: plotMarker,
+        $buttonGroup: $treeDetailButtonGroup
     });
 
     addTreeMode.init({

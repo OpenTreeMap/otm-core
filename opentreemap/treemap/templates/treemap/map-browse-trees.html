@@ -1,25 +1,23 @@
+{# vim: set filetype=htmldjango : #}
 {% load i18n %}
 {% load instance_config %}
 
 <div class="accordion" id="map-info">
   <div class="accordion-group">
     <div class="accordion-heading">
-      <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#map-info" href="#tree-detail">Tree Details <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
+      <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#map-info" href="#tree-detail">{% trans "Tree Details" %} <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
     </div>
     <div id="tree-detail" class="accordion-body collapse">
-      <div class="accordion-body-buttons">
-        <button class="btn" id="full-details-button">Full Details</button>
+      <!-- The button group is hidden until the first tree is clicked -->
+      <div class="accordion-body-buttons" id="map-plot-details-button" style="display: none;">
         <a class="btn" data-class="display" id="full-details-button">{% trans "Full Details" %}</a>
         <button class="btn" data-class="display" id="edit-details-button"
                 title="{% trans "Editing of the tree details is not available to all users" %}"
-                >Edit Details</button>
-        <button class="btn" data-class="edit" id="save-details-button" style="display:none">Save</button>
-        <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</button>
+                >{% trans "Edit Details" %}</button>
+        <button class="btn" data-class="edit" id="save-details-button" style="display:none">{% trans "Save" %}</button>
+        <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">{% trans "Cancel" %}</button>
       </div>
       <div class="accordion-inner" id="plot-accordion">
-        <!-- The markup returned from the plot detail endpoint looks like
-             span.plot-label + br + span.content + p ...
-        -->
       </div>
       <div id="move-plot-buttons">
         {% with iuser=user|instanceuser:request.instance %}
@@ -38,22 +36,10 @@
   </div>
   <div class="accordion-group">
     <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#yearlyEco">Yearly Eco Benefits <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#yearlyEco">{% trans "Yearly Eco Benefits" %} <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
     </div>
     <div id="yearlyEco" class="accordion-body collapse in">
-      <div class="accordion-inner" id="benefit-values">
-        <!-- The benefit markup returned from the search endpoint looks like this -->
-        <!--
-        <span class="benefit-label">Total Benefits</span>
-        <br>
-        <span class="content">$8,651,746 saved</span>
-        <hr>
-        <span class="benefit-label">Greenhouse Gas Benefits</span>
-        <br>
-        <span class="content">23,716,949 lbs CO2 reduced<br>$79,214 saved</span>
-        <hr>
-        -->
-      </div>
+      <div class="accordion-inner" id="benefit-values"></div>
     </div>
   </div>
 </div>

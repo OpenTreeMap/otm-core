@@ -28,11 +28,13 @@ function init(options) {
 
     var inMyMode = options.inMyMode, // function telling if my mode is active
         inlineEditForm = options.inlineEditForm,
-        $accordionSection = options.$treeDetailAccordionSection;
+        $accordionSection = options.$treeDetailAccordionSection,
+        $buttonGroup = options.$buttonGroup;
 
     var clickedIdStream = map.utfEvents
         .filter(inMyMode)
         .map('.data.' + config.utfGrid.plotIdKey);
+
 
     var popupHtmlStream = BU.fetchFromIdStream(clickedIdStream,
                                                getPlotPopupContent);
@@ -66,6 +68,7 @@ function init(options) {
             $('#plot-accordion').html(html);
             inlineEditForm.enableOrDisableEditButton();
         });
+    accordionHtmlStream.onValue(_.bind($buttonGroup.show, $buttonGroup));
 
     var showTreeDetailLink = $accordionSection.parent().find('a');
     showTreeDetailLink.on('click', function(event) {
