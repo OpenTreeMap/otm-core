@@ -87,8 +87,7 @@ exports = module.exports = {
         }
 
         marker = L.marker(latlng, {
-            icon: getMarkerIcon(true),
-            draggable: true
+            icon: getMarkerIcon(true)
         });
 
         showViewMarker();
