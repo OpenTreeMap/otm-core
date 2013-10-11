@@ -144,6 +144,8 @@ var showViewMarker = _.partial(showMarker, false),
     showEditMarker = _.partial(showMarker, true);
 
 function showMarker(inEditMode) {
+    marker.on('dragend', onMarkerMoved);
+
     marker.setIcon(getMarkerIcon(inEditMode));
     marker.addTo(map);
 }
