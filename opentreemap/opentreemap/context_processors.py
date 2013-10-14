@@ -10,7 +10,12 @@ def global_settings(request):
     else:
         logo_url = settings.STATIC_URL + "img/logo-main.svg"
 
-    return {'SITE_ROOT': settings.SITE_ROOT,
-            'settings': settings,
-            'last_instance': last_instance,
-            'logo_url': logo_url}
+    ctx = {'SITE_ROOT': settings.SITE_ROOT,
+           'settings': settings,
+           'last_instance': last_instance,
+           'logo_url': logo_url}
+
+    if hasattr(request, 'instance') and request.user.is_authenticated():
+        ctx['instance_user'] = request.user.get_instance_user(request.instance)
+
+    return ctx

@@ -1001,7 +1001,7 @@ edit_plot_detail_view = login_required(get_plot_detail_view)
 update_plot_detail_view = json_api_call(instance_request(update_plot_detail))
 
 plot_popup_view = instance_request(etag(_plot_hash)(
-    render_template('treemap/plot_popup.html', plot_detail)))
+    render_template('treemap/partials/plot_popup.html', plot_detail)))
 
 plot_accordion_view = instance_request(
     render_template('treemap/plot_accordion.html', plot_detail))
