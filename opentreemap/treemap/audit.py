@@ -948,6 +948,31 @@ class Auditable(UserTrackable):
 
         return hashlib.md5(string_to_hash).hexdigest()
 
+    @classmethod
+    def action_format_string_for_audit(clz, audit):
+        # return str(audit.dict())
+        if audit.field == 'id':
+            lang = {
+                Audit.Type.Insert: trans('created a %(model)s'),
+                Audit.Type.Update: trans('updated the %(model)s'),
+                Audit.Type.Delete: trans('deleted the %(model)s'),
+                Audit.Type.PendingApprove: trans('approved an '
+                                                 'edit to the %(model)s'),
+                Audit.Type.PendingReject: trans('rejected an '
+                                                'edit to the %(model)s')
+            }
+        else:
+            lang = {
+                Audit.Type.Insert: trans('set %(field)s to %(value)s'),
+                Audit.Type.Update: trans('set %(field)s to %(value)s'),
+                Audit.Type.Delete: trans('deleted %(field)s'),
+                Audit.Type.PendingApprove: trans('approved setting '
+                                                 '%(field)s to %(value)s'),
+                Audit.Type.PendingReject: trans('rejecting setting '
+                                                '%(field)s to %(value)s')
+            }
+        return lang[audit.action]
+
 
 ###
 # TODO:
@@ -1098,18 +1123,12 @@ class Audit(models.Model):
             obj._model_name, obj.instance, obj.pk)
 
     def short_descr(self):
-        lang = {
-            Audit.Type.Insert: trans('%(username)s created a %(model)s'),
-            Audit.Type.Update: trans('%(username)s updated the %(model)s'),
-            Audit.Type.Delete: trans('%(username)s deleted the %(model)s'),
-            Audit.Type.PendingApprove: trans('%(username)s approved an '
-                                             'edit on the %(model)s'),
-            Audit.Type.PendingReject: trans('%(username)s rejected an '
-                                            'edit on the %(model)s')
-        }
+        cls = _lookup_model(self.model)
+        format_string = cls.action_format_string_for_audit(self)
 
-        return lang[self.action] % {'username': self.user,
-                                    'model': trans(self.model).lower()}
+        return format_string % {'field': self.field.replace('_', ' '),
+                                'model': trans(self.model).lower(),
+                                'value': self.current_display_value}
 
     def dict(self):
         return {'model': self.model,

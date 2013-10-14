@@ -25,6 +25,41 @@ from treemap.udf import UDFModel, GeoHStoreUDFManager, GeoHStoreUDFQuerySet
 from treemap.instance import Instance
 
 
+def _action_format_string_for_location(action):
+    """A helper that allows multiple auditable models to return the
+    same action format string for a field value that should be displayed
+    as a location"""
+    lang = {
+        Audit.Type.Insert: trans('set the location'),
+        Audit.Type.Update: trans('updated the location'),
+        Audit.Type.Delete: trans('deleted the location'),
+        Audit.Type.PendingApprove: trans('approved an '
+                                         'edit of the location'),
+        Audit.Type.PendingReject: trans('rejected an '
+                                        'edit of the location')
+    }
+    return lang[action]
+
+
+def _action_format_string_for_readonly(action, readonly):
+    """A helper that allows multiple auditable models to return the
+    the state of a readonly boolean"""
+    if readonly:
+        value = trans("read only")
+    else:
+        value = trans("editable")
+    lang = {
+        Audit.Type.Insert: trans('made the tree %(value)s'),
+        Audit.Type.Update: trans('made the tree %(value)s'),
+        Audit.Type.Delete: trans('made the tree %(value)s'),
+        Audit.Type.PendingApprove: trans('approved making the tree '
+                                         '%(value)s'),
+        Audit.Type.PendingReject: trans('approved making the tree '
+                                        '%(value)s')
+    }
+    return lang[action] % {'value': value}
+
+
 class AuthorizableGeoHStoreUDFQuerySet(AuthorizableQuerySet,
                                        GeoHStoreUDFQuerySet):
     pass
@@ -337,6 +372,18 @@ class Plot(Convertible, UDFModel, Authorizable, Auditable):
             components.append(self.address_zip)
         return ', '.join(components)
 
+    @classmethod
+    def action_format_string_for_audit(clz, audit):
+        if audit.field in set(['geom', 'readonly']):
+            if audit.field == 'geom':
+                return _action_format_string_for_location(audit.action)
+            else:  # field == 'readonly'
+                return _action_format_string_for_readonly(
+                    audit.action,
+                    audit.clean_current_value)
+        else:
+            return super(Plot, clz).action_format_string_for_audit(audit)
+
 
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
@@ -405,6 +452,17 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
         tp.set_image(image)
         tp.save_with_user(user)
         return tp
+
+    @classmethod
+    def action_format_string_for_audit(clz, audit):
+        if audit.field in set(['plot', 'readonly']):
+            if audit.field == 'plot':
+                return _action_format_string_for_location(audit.action)
+            else:  # audit.field == 'readonly'
+                return _action_format_string_for_readonly(
+                    audit.action, audit.clean_current_value)
+        else:
+            return super(Tree, clz).action_format_string_for_audit(audit)
 
 
 class TreePhoto(models.Model, Authorizable, Auditable):
