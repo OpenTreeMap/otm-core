@@ -70,7 +70,7 @@
             {% endfor %}
           </ul>
           <div>{{ updated|date:request.instance.date_format }}</div>
-          <div>({{ latest_update.updated|naturaltime }})</div>
+          <div>({{ updated|naturaltime }})</div>
         </li>
         {% endfor %}
       </ul>
