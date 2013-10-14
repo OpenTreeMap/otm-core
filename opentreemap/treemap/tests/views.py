@@ -847,8 +847,8 @@ class PlotViewTest(PlotViewTestCase):
 
         audit_groups = details['recent_activity']
 
-        user, update, audits = audit_groups[0]
-        audit = audits[0]
+        _, _, audit_list = audit_groups[0]
+        audit = audit_list[0]
 
         self.assertEqual(audit.model, 'Plot')
         self.assertEqual(audit.field, 'width')
@@ -870,9 +870,9 @@ class PlotViewTest(PlotViewTestCase):
         self.assertIn('recent_activity', details)
 
         audit_groups = details['recent_activity']
-        user, updates, audits = audit_groups[0]
-        readonly_audit = audits[0]
-        insert_audit = audits[1]
+        _, _, audit_list = audit_groups[0]
+        readonly_audit = audit_list[0]
+        insert_audit = audit_list[1]
 
         self.assertEqual(readonly_audit.model, 'Tree')
         self.assertEqual(readonly_audit.field, 'readonly')
