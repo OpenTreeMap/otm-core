@@ -56,7 +56,9 @@
               <li class="{% block activeuser %}{% endblock %}">
                 <a href="{% url 'profile' %}">{% trans "My Account" %}
                   {% if last_instance %}
-                  <span class="reputation">({{ request.instance_user.reputation }} rep)</span>
+                    {% if reputation %}
+                    <span class="reputation">({{ request.instance_user.reputation }} rep)</span>
+                    {% endif %}
                   {% endif %}
                 </a>
               </li>

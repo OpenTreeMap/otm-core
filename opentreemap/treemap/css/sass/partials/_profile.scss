@@ -24,11 +24,15 @@
 }
 
 #user-form {
-    margin: 0;
+    margin: 10px 0 0;
     clear: both;
     padding: 20px;
     border-radius: 6px;
     border: 1px solid #EEE;
+}
+
+#recent-user-edits {
+    font-size: 0.75em;
 }
 
 .profile {
@@ -41,7 +45,4 @@
             padding-top: 10px;
         }
     }
-}
-.chunk-label {
-        font-weight: bold;
 }

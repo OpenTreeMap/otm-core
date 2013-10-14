@@ -27,13 +27,18 @@ active
 {% load i18n %}
 <div class="image-background"></div>
 <div class="container contained profile">
-    <div class="row-fluid">
+    <div class="row">
         <div class="span4">
             <div class="account-info">
                 <img class="user-photo" src="{{STATIC_URL}}img/profile.png">
                 <h1>{{ user.username }}</h1>
                 <p>{% trans "User Profile" %}</p>
             </div>
+            {% usercontent for user %}
+                <button id="edit-user" data-class="display" class="btn">Edit</button>
+                <button id="save-edit" data-class="edit" class="btn" style="display: none;">Save</button>
+                <button id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</button>
+            {% endusercontent %}
             <form id="user-form">
                 {% for label, identifier in public_fields %}
                     {% field label from identifier withtemplate "treemap/field/div.html" %}
@@ -52,27 +57,18 @@ active
                     </ul>
                 {% endusercontent %}
                 {% if reputation %}
-                    <ul class="chunk" >
+                    <ul class="chunk">
                         <li class="chunk-label">{% trans "Reputation" %}</li>
                         <li class="chunk-content">{{ reputation }}</li>
                     </ul>
                 {% endif %}
-                {% usercontent for user %}
-                    <button id="edit-user" data-class="display" class="btn">Edit</button>
-                    <button id="save-edit" data-class="edit" class="btn" style="display: none;">Save</button>
-                    <button id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</button>
-                {% endusercontent %}
             </form>
         </div>
         <div class="span8">
-            <ul class="chunk">
-                <li class="chunk-label">{% trans "Recently Added and Edited Trees" %}</li>
-                <li class="chunk-content extra">
-                    <div id="recent-user-edits-container">
-                    {% include 'treemap/recent_user_edits.html' %}
-                    </div>
-                </li>
-            </ul>
+            <h2>{% trans "Recently Added and Edited Trees" %}</h2>
+            <div id="recent-user-edits-container">
+            {% include 'treemap/recent_user_edits.html' %}
+            </div>
         </div>
     </div>
 </div>
