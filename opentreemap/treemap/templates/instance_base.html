@@ -18,7 +18,7 @@
 {% block instancetopnav %}
 <li class="{% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Trees" %}</a></li>
 {% if request.user.is_authenticated %}
-<li><a data-action="addtree" href="{% url 'map' instance_url_name=request.instance.url_name %}#addtree">{% trans "Add a Tree" %}</a></li>
+<li><a data-action="addtree" href="{% url 'map' instance_url_name=request.instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}">{% trans "Add a Tree" %}</a></li>
 {% else %}
 <li><a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}">{% trans "Add a Tree" %}</a></li>
 {% endif %}
@@ -41,9 +41,9 @@
   <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
   {% endif %}
   {% if request.user.is_authenticated %}
-  <a data-action="addtree" href="{% url 'map' instance_url_name=request.instance.url_name %}#addtree" class="btn btn-primary addBtn"><i class="icon-plus"></i> Add a Tree</a>
+  <a data-action="addtree" href="{% url 'map' instance_url_name=request.instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}" class="btn btn-primary addBtn"><i class="icon-plus"></i> Add a Tree</a>
   {% else %}
-  <a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}" class="btn btn-primary addBtn"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>
+  <a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}{{ settings.ADD_TREE_URL_HASH|urlencode }}" class="btn btn-primary addBtn"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>
   {% endif %}
 </div>
 {% endblock subhead %}

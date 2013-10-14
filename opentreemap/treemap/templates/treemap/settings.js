@@ -36,10 +36,14 @@ otm.settings.geocoder = {
     threshold: 80
 };
 
+otm.settings.addTreeUrlHash = '{{ settings.ADD_TREE_URL_HASH }}';
+
 {% if request.instance %}
     otm.settings.instance = {
         'id': '{{ request.instance.id }}',
         'url': '{{ SITE_ROOT }}{{ request.instance.url_name }}/',
+        'mapUrl': "{% url 'map' instance_url_name=last_instance.url_name %}",
+        'addTreeUrl': "{% url 'map' instance_url_name=last_instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}",
         'name': '{{ request.instance.name }}',
         'rev': '{{ request.instance.geo_rev_hash }}',
         'center': {

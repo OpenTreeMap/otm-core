@@ -285,3 +285,5 @@ DISPLAY_DEFAULTS = {
         'airquality': {'units': 'lbs/year', 'digits': 1}
     }
 }
+
+ADD_TREE_URL_HASH = '#addTree'
