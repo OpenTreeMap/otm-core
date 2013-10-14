@@ -271,8 +271,6 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
 
     audits = _plot_audits(request.user, instance, plot)
 
-    context['latest_update'] = audits[0]
-
     def _audits_are_in_different_groups(prev_audit, audit):
         if prev_audit is None:
             return True
@@ -298,6 +296,11 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
     # Converting the audit groups to tuples makes the template code cleaner
     context['recent_activity'] = [
         (ag['user'], ag['updated'], ag['audits']) for ag in audit_groups]
+
+    if len(audits) > 0:
+        context['latest_update'] = audits[0]
+    else:
+        context['latest_update'] = None
 
     return context
 
