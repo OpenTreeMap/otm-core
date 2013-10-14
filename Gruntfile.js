@@ -30,11 +30,11 @@ module.exports = function(grunt) {
                        'treemap/js/src/buttonEnabler.js:buttonEnabler',
                        'treemap/js/src/csrf.js:csrf',
                        'treemap/js/src/photoReview.js:photoReview',
-                       'treemap/js/src/baconUtils:BaconUtils',
-                       'treemap/js/src/inlineEditForm:inlineEditForm',
-                       'treemap/js/src/imageUploadPanel:imageUploadPanel',
+                       'treemap/js/src/baconUtils.js:BaconUtils',
+                       'treemap/js/src/inlineEditForm.js:inlineEditForm',
+                       'treemap/js/src/imageUploadPanel.js:imageUploadPanel',
                        'treemap/js/src/export.js:export',
-                       'treemap/js/src/utility:utility'];
+                       'treemap/js/src/utility.js:utility'];
 
         var extras = require('./extra.json');
         for (var alias in extras) {
