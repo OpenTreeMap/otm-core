@@ -37,9 +37,11 @@
     <!-- This is what the counts will look like -->
     <!-- <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites -->
   </div>
-  {% if request.instance|feature_enabled:'exports' %}
-  <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
-  {% endif %}
+  {% block subhead_exports %}
+    {% if request.instance|feature_enabled:'exports' %}
+    <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
+    {% endif %}
+  {% endblock subhead_exports %}
   <a class="btn btn-primary addBtn"
      data-class="add-tree"
      data-action='addtree'

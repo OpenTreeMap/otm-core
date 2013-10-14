@@ -11,6 +11,9 @@
 {% block head_extra %}
 {% endblock head_extra %}
 
+{% block subhead_exports %}
+{# Exporting is not available from the plot detail page #}
+{% endblock subhead_exports %}
 
 {% block content %}
 {% include "treemap/partials/upload_image.html" with panel_id="add-photo-modal" title="Add a Photo" endpoint=upload_tree_photo_url %}
