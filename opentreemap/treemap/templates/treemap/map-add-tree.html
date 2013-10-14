@@ -4,51 +4,53 @@
 <div class="sidebar-inner">
     <a href="javascript:;" class="close cancelBtn small">&times;</a>
     <h3>{% trans "Add a Tree" %}</h3>
-    <h4>1. {% trans "Set the tree’s location" %}</h4>
-    <small>{% trans "Search by address or use your current location, then drag the marker to the correct location. Or click the map." %}</small>
-    <form class="form-search">
-        <input type="text" class="search-query" id="add-tree-address" placeholder="{% trans "340 N 12th St, Philadelphia" %}">
-    </form>
-    <button class="btn geocode">{% trans "Search" %}</button>
-    <button class="geolocate"><i class="icon-direction"></i> Use Current Location</button>
-    <div class="alert alert-error text-error geocode-error" style="display: none;">{% trans "Unable to locate address in this region" %}</div>
-    <div class="alert alert-error text-error geolocate-error" style="display: none;">{% trans "Unable to determine current location" %}</div>
+    <div class="add-step">
+        <h4>1. {% trans "Set the tree’s location" %}</h4>
+        <small>{% trans "Search by address or use your current location, then drag the marker to the correct location. Or click the map." %}</small>
+        <form class="form-search">
+            <input type="text" class="search-query" id="add-tree-address" placeholder="{% trans "340 N 12th St, Philadelphia" %}">
+            <button class="btn btn-primary geocode">{% trans "Search" %}</button>
+        </form>
+        <a class="geolocate"><i class="icon-direction"></i> Use Current Location</a>
+        <div class="alert alert-error text-error geocode-error" style="display: none;">{% trans "Unable to locate this address" %}</div>
+        <div class="alert alert-error text-error geolocate-error" style="display: none;">{% trans "Unable to determine current location" %}</div>
+    </div>
+    <div class="add-step">
+        <h4>2. {% trans "Additional information" %}</h4>
+        <form id="add-tree-form">
+            {# The "add-tree-species" label is used as an id prefix in "species_ul.html" #}
+            {% create "add-tree-species" from "tree.species" withtemplate "treemap/field/species_ul.html" %}
 
-    <h4>2. {% trans "Additional information" %}</h4>
-    <form id="add-tree-form">
-        {# The "add-tree-species" label is used as an id prefix in "species_ul.html" #}
-        {% create "add-tree-species" from "tree.species" withtemplate "treemap/field/species_ul.html" %}
+          {% with hide_multiple_trunks=True %}
+            {% create "add-tree-diameter" from "tree.diameter" in request.instance withtemplate "treemap/field/diameter_ul.html" %}
+          {% endwith %}
 
-      {% with hide_multiple_trunks=True %}
-        {% create "add-tree-diameter" from "tree.diameter" in request.instance withtemplate "treemap/field/diameter_ul.html" %}
-      {% endwith %}
-
-        {% for label, identifier in fields_for_add_tree %}
-            {% create label from identifier in request.instance withtemplate "treemap/field/ul.html" %}
-        {% endfor %}
-    </form>
-
-    <h4>3. {% trans "After I add this tree..." %}</h4>
-    <label>
-        <input type="radio" name="addTreeOptions" value="copy">
-        {% trans "I want to add another tree using the same tree details" %}
-    </label>
-    <label>
-        <input type="radio" name="addTreeOptions" value="new">
-        {% trans "I want to add another tree with new details" %}
-    </label>
-    <label>
-        <input type="radio" name="addTreeOptions" value="edit">
-        {% trans "Let me continue editing this tree" %}
-    </label>
-    <label>
-        <input type="radio" name="addTreeOptions" value="close" checked="true">
-        {% trans "I'm done!" %}
-    </label>
-
-    <div>
-        &nbsp;<br/>
-        <button class="btn addBtn">{% trans "Add This Tree" %}</button>
+            {% for label, identifier in fields_for_add_tree %}
+                {% create label from identifier in request.instance withtemplate "treemap/field/ul.html" %}
+            {% endfor %}
+        </form>
+    </div>
+    <div class="add-step">
+        <h4>3. {% trans "After I add this tree..." %}</h4>
+        <label>
+            <input type="radio" name="addTreeOptions" value="copy">
+            {% trans "Add another tree using the same tree details" %}
+        </label>
+        <label>
+            <input type="radio" name="addTreeOptions" value="new">
+            {% trans "Add another tree with new details" %}
+        </label>
+        <label>
+            <input type="radio" name="addTreeOptions" value="edit">
+            {% trans "Continue editing this tree" %}
+        </label>
+        <label>
+            <input type="radio" name="addTreeOptions" value="close" checked="true">
+            {% trans "I'm done!" %}
+        </label>
+    </div>
+    <div class="add-step-final">
+        <button class="btn btn-primary addBtn">{% trans "Add This Tree" %}</button>
         <button class="btn cancelBtn">{% trans "Cancel" %}</button>
     </div>
 </div>
