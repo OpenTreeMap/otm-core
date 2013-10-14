@@ -39,10 +39,15 @@
       <hr>
       <h3>{% trans "Latest Update" %}</h3>
       <p>{{ recent_activity.0.short_descr }}</p>
-      <h5>20% {% trans "Complete" %}</h5>
+      <h5>{{ progress_percent }}% {% trans "Complete" %}</h5>
       <div class="progress">
-        <div class="bar" style="width: 20%;"></div>
+        <div class="bar" style="width: {{ progress_percent }}%;"></div>
       </div>
+      <ul>
+        {% for message in progress_messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
       <hr>
       <h3>{% trans "Recent Edits" %}</h3>
       <ul>

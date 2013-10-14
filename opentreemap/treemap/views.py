@@ -215,6 +215,7 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
     has_tree_diameter = tree is not None and tree.diameter is not None
     has_tree_species_with_code = tree is not None \
         and tree.species is not None and tree.species.otm_code is not None
+    has_photo = tree is not None and tree.treephoto_set.all().count() > 0
 
     if has_tree_diameter and has_tree_species_with_code:
         try:
@@ -225,6 +226,29 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
             context = _tree_benefits_helper([eco_tree], 1, 1, instance)
         except Exception:
             pass
+
+    total_progress_items = 4
+    completed_progress_items = 1  # there is always a plot
+
+    if has_tree_diameter:
+        completed_progress_items += 1
+    if has_tree_species_with_code:
+        completed_progress_items += 1
+    if has_photo:
+        completed_progress_items += 1
+
+    context['progress_percent'] = int(100 * (
+        completed_progress_items / total_progress_items))
+
+    context['progress_messages'] = []
+    if not tree:
+        context['progress_messages'].append(trans('Add a tree'))
+    if not has_tree_diameter:
+        context['progress_messages'].append(trans('Add the diameter'))
+    if not has_tree_species_with_code:
+        context['progress_messages'].append(trans('Add the species'))
+    if not has_photo:
+        context['progress_messages'].append(trans('Add a photo'))
 
     if tree:
         context['upload_tree_photo_url'] = \
