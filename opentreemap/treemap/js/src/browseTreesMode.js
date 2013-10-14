@@ -4,7 +4,8 @@ var $ = require('jquery'),
     _ = require('underscore'),
     L = require('leaflet'),
     Bacon = require('baconjs'),
-    BU = require('BaconUtils');
+    BU = require('BaconUtils'),
+    buttonEnabler = require('./buttonEnabler');
 
 var config,  // Module-level config set in `init` and read by helper functions
     map,
@@ -66,7 +67,6 @@ function init(options) {
     });
     accordionHtmlStream.onValue(function (html) {
             $('#plot-accordion').html(html);
-            inlineEditForm.enableOrDisableEditButton();
         });
     accordionHtmlStream.onValue(_.bind($buttonGroup.show, $buttonGroup));
 
@@ -132,6 +132,9 @@ function showPlotDetailPopup(newPopup) {
         plotMarker.unbindPopup();
         plotMarker.hide();
     }
+
+    buttonEnabler.run({ config: config });
+
 }
 
 function getPlotAccordionContent(id) {

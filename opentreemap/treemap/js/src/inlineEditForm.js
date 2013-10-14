@@ -24,7 +24,6 @@ exports.init = function(options) {
         displayFields = options.displayFields,
         editFields = options.editFields,
         validationFields = options.validationFields,
-        disabledMessage = $edit.attr('title'),
         onSaveBefore = options.onSaveBefore || _.identity,
         editStream = $edit.asEventStream('click').map('edit:start'),
         saveStream = $save.asEventStream('click').map('save:start'),
@@ -237,7 +236,7 @@ exports.init = function(options) {
 
                         // hide the display fields if there is a corresponding
                         // edit field to show in its place
-                        _.each($(fields).filter(":not(.btn)"), function (field) {
+                        _.each(FH.excludeButtons(fields), function (field) {
                             var $field = $(field),
                                 $edit = FH.getField($(editFields),
                                                     $field.attr('data-field'));
@@ -257,12 +256,6 @@ exports.init = function(options) {
             hideOrShow(editFields, eventsLandingInEditMode);
             hideOrShow(displayFields, eventsLandingInDisplayMode);
             hideOrShow(validationFields, ['save:error']);
-        },
-
-        enableOrDisableEditButton = function () {
-            var disable = $(editFields).filter(':not(.btn)').length === 0;
-            $edit.prop('disabled', disable);
-            $edit.attr('title', disable ? disabledMessage : '');
         };
 
     saveOkStream
@@ -311,12 +304,9 @@ exports.init = function(options) {
         return _.contains(eventsLandingInEditMode, event);
     }).toProperty(false);
 
-    enableOrDisableEditButton();
-
     return $.extend(self, {
         saveOkStream: saveOkStream,
         cancelStream: cancelStream,
-        inEditModeProperty: inEditModeProperty,
-        enableOrDisableEditButton: enableOrDisableEditButton
+        inEditModeProperty: inEditModeProperty
     });
 };

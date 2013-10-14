@@ -169,7 +169,7 @@ class TreemapUrlTests(UrlTestCase):
         plot = self.make_plot()
         self.assert_template(
             self.prefix + 'plots/%s/popup' % plot.id,
-            'treemap/plot_popup.html')
+            'treemap/partials/plot_popup.html')
 
     def test_plot_popup_invalid(self):
         self.assert_404(self.prefix + 'plots/999/popup')

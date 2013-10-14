@@ -15,7 +15,8 @@ var $ = require('jquery'),
     geocoder = require('./geocoder'),
     geocoderUi = require('./geocoderUi'),
     boundarySelect = require('./boundarySelect'),
-    BU = require('./baconUtils');
+    BU = require('./baconUtils'),
+    buttonEnabler = require('./buttonEnabler');
 
 // Map-page specific search code here
 var unmatchedBoundarySearchValue = function() {
@@ -159,6 +160,8 @@ module.exports = {
                 return url != window.location.href;
             })
             .onValue(U.pushState);
+
+        buttonEnabler.run({ config: config });
 
         triggerSearchFromUrl.push();
     }

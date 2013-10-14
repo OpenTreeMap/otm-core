@@ -1,0 +1,72 @@
+"use strict";
+
+// A button or anchor provides:
+//     disable="disabled": it should start disabled
+//     data-always-enable: true if it should always be enabled
+//     data-href: the URL that will either be a direct link or a "next=" after login
+//     data-disabled-title (optional) = a title to set on the disabled element
+//
+// If data-always-enable is true, enable the button/anchor.
+// If it's false then check config.loggedIn and determine whether to
+// modify the button or anchor into a loginUrl redirector or to
+// leave disabled and set the disabled text.
+//
+// When an anchor tag gets enabled, its href is set to its data-href.
+
+var $ = require('jquery'),
+    _ = require('underscore'),
+
+    enablePermAttr = 'data-always-enable',
+    disabledTitleAttr = 'data-disabled-title',
+    redirectUrlAttr = 'data-redirect-url',
+    hrefAttr = 'data-href',
+    enablePermSelector = '[' + enablePermAttr + ']',
+    config;
+
+function makeRedirectToLogin($el, href) {
+
+    var fullHref = config.loginUrl + href;
+
+    $el.attr('disabled', false);
+    $el.removeAttr('data-target'); // in case it triggers a modal
+
+    if ($el.is('a')) { $el.attr('href', fullHref); }
+    else if ($el.is('button')) {
+        $el.off('click');
+        $el.click(function () {
+            window.location = fullHref;
+        });
+    }
+}
+
+function fullyEnable($el, href) {
+    $el.attr('disabled', false);
+    if ($el.is('a')) { $el.attr('href', href); }
+}
+
+function fullyDisable($el, disabledTitle) {
+    $el.off('click');
+    $el.removeAttr('data-target'); // in case it triggers a modal
+    if (disabledTitle) { $el.attr('title', disabledTitle); }
+}
+
+exports.run = function (options) {
+    var $elements = $(enablePermSelector);
+
+    config = options.config;
+
+    _.each($elements, function(element) {
+        var $element = $(element),
+            hasPerm = $element.attr(enablePermAttr),
+            disabledTitle = $element.attr(disabledTitleAttr),
+            href = $element.attr(hrefAttr);
+
+        if (hasPerm === 'True') {
+            fullyEnable($element, href);
+        } else if (!config.loggedIn) {
+            makeRedirectToLogin($element, href);
+        } else {
+            fullyDisable($element, disabledTitle);
+        }
+    });
+};

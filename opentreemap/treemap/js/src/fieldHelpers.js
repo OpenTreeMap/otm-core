@@ -14,6 +14,10 @@ var getSerializableField = exports.getSerializableField = function ($fields, nam
     return getField($fields, name).find('[name="' + name + '"]');
 };
 
+var excludeButtons = exports.excludeButtons = function (selector) {
+    return $(selector).filter(":not(.btn)");
+};
+
 exports.formToDictionary = function ($form, $editFields, $displayFields) {
     $displayFields = $displayFields || $();
 

@@ -26,17 +26,14 @@
       <img src="{{ STATIC_URL }}img/tree.png">
       {% endif %}
       {% endwith %}
-      {% if request.instance|feature_enabled:"tree_image_upload" %}
-          {% if request.user.is_authenticated %}
-              {% if request.instance_user.can_add_photos_to_tree %}
-              <a id="toggle-add-photo-modal" data-toggle="modal" data-target="#add-photo-modal" class="btn btn-mini add-photos">{% trans "Add Photos" %}</a>
-              {% else %}
-              <a data-toggle="modal" disabled="disabled" class="btn btn-mini add-photos" title="{% trans "Adding tree photos is not available to all users" %}">{% trans "Add Photos" %}</a>
-              {% endif %}
-          {% else %}
-          <a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}" class="btn btn-mini">{% trans "Add Photos" %}</a>
-          {% endif %}
-      {% endif %}
+      <a id="toggle-add-photo-modal"
+         data-toggle="modal"
+         data-target="#add-photo-modal"
+         data-always-enable="{{ request.instance_user.can_add_photos_to_tree }}"
+         data-href="{{ request.get_full_path }}"
+         disabled="disabled"
+         data-disabled-title="{% trans "Adding tree photos is not available to all users" %}"
+         class="btn btn-mini add-photos">{% trans "Add Photo" %}</a>
       <div id="upload-error" class="text-error" style="display: none"></div>
       <hr>
       
@@ -87,9 +84,13 @@
       <h1>{{ tree.species.common_name }}</h1>
       <h2>{{ tree.species.scientific_name }}</h2>
       <h3>{{ plot.address_full }}</h3>
-      <button id="edit-plot" data-class="display" class="btn"
-              title="{% trans "Editing of the tree details is not available to all users" %}"
-           disabled="disabled">{% trans "Edit" %}</button>
+      <button id="edit-plot"
+              data-class="display"
+              disabled="disabled"
+              data-always-enable="{{ request.instance_user|plot_is_writable }}"
+              data-href="{{ request.get_full_path }}"
+              data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
+              class="btn">{% trans "Edit" %}</button>
         <button id="save-edit-plot" data-class="edit" class="btn" style="display: none;">{% trans "Save" %}</button>
         <button id="cancel-edit-plot" data-class="edit" class="btn" style="display: none;">{% trans "Cancel" %}</button>
       <form id="plot-form">
@@ -175,19 +176,17 @@
         </div>
     </div>
     <div class="span3">
-      {% with iuser=user|instanceuser:request.instance %}
-      {% if iuser|plot_field_is_writable:"geom" %}
-      <button class="btn" style="display:none" id="edit-plot-location">{% trans "Move Tree" %}</button>
-      <button class="btn" style="display:none"
-              id="cancel-edit-plot-location">{% trans "Cancel Tree Move" %}</button>
-      {% else %}
-      {% trans "Editing a plot's location is not available to all users" as title %}
-      <button class="btn" style="display:none" disabled="disabled" id="edit-plot-location"
-              title="{{ title }}">{% trans "Move Tree" %}</button>
-      {% endif %}
-      {% endwith %}
-      <div id="map" class="map-small"></div>
-      <div id="street-view" class="street-view-small" style="display: none;"></div>
+      <button
+         disabled="disabled"
+         data-enabled-perm='{{ request.instance_user|plot_field_is_writable:"geom" }}'
+         data-disabled-title="{% trans "Editing a plot's location is not available to all users" %}"
+         data-href="{{ request.get_full_path }}"
+         style="display:none"
+         id="edit-plot-location"
+         class="btn">{% trans "Move Tree" %}</button>
+        <button class="btn" style="display:none" id="cancel-edit-plot-location">{% trans "Cancel Tree Move" %}</button>
+        <div id="map" class="map-small"></div>
+        <div id="street-view" class="street-view-small" style="display: none;"></div>
 
       <!-- Comment backend is not yet implemented -->
       <!--

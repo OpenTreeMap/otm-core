@@ -41,11 +41,13 @@
             {% block instancetopnav %}
               {% if last_instance %}
               <li class="{% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=last_instance.url_name %}">{% trans "Explore Trees" %}</a></li>
-              {% if request.user.is_authenticated %}
-              <li><a data-class='add-tree' href="{% url 'map' instance_url_name=last_instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}">{% trans "Add a Tree" %}</a></li>
-              {% else %}
-              <li><a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}">{% trans "Add a Tree" %}</a></li>
-              {% endif %}
+            <li>
+              <a data-class='add-tree'
+                 data-always-enable='{{ request.instance_user|plot_is_writable }}'
+                 data-disabled-title='{% trans "Adding trees is not available to all users" %}'
+                 data-href="{% url 'map' instance_url_name=last_instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}"
+                 disabled='disabled'>{% trans "Add a Tree" %}</a>
+            </li>
               {% endif %}
             {% endblock instancetopnav %}
           </ul>
@@ -54,9 +56,7 @@
               <li class="{% block activeuser %}{% endblock %}">
                 <a href="{% url 'profile' %}">{% trans "My Account" %}
                   {% if last_instance %}
-                  {% with iuser=request.user|instanceuser:last_instance %}
-                  <span class="reputation">({{ iuser.reputation }} rep)</span>
-                  {% endwith  %}
+                  <span class="reputation">({{ request.instance_user.reputation }} rep)</span>
                   {% endif %}
                 </a>
               </li>
@@ -141,6 +141,12 @@
 
     {% block exportscript %}
     {% endblock exportscript %}
+
+    <script type="text/javascript">
+      (function(require) {
+          require("buttonEnabler").run({ config: otm.settings });
+      })(require);
+    </script>
 
     {% block endbody %}
     {% endblock endbody %}

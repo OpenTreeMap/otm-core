@@ -44,6 +44,7 @@ function init(config, mapManager, triggerSearchBus) {
     // browseTreesMode and editTreeDetailsMode share an inlineEditForm,
     // so initialize it here.
     var form = inlineEditForm.init({
+        config: config,
         updateUrl: '', // set in browseTreesMode.js on map click
         form: '#details-form',
         edit: '#edit-details-button',

@@ -17,17 +17,17 @@
 
 {% block instancetopnav %}
 <li class="{% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Trees" %}</a></li>
-{% if request.user.is_authenticated %}
-<li><a data-action="addtree" href="{% url 'map' instance_url_name=request.instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}">{% trans "Add a Tree" %}</a></li>
-{% else %}
-<li><a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}">{% trans "Add a Tree" %}</a></li>
-{% endif %}
+<li>
+  <a data-action='addtree'
+     data-always-enable='{{ request.instance_user|plot_is_writable }}'
+     data-disabled-title='{% trans "Adding trees is not available to all users" %}'
+     data-href="{% url 'map' instance_url_name=request.instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}"
+     disabled='disabled'>{% trans "Add a Tree" %}</a>
+</li>
 {% if settings.MANAGEMENT_VIEW_NAME %}
-{% with iuser=request.user|instanceuser:request.instance %}
-{% if iuser.admin %}
+{% if request.instance_user.admin %}
 <li class="{% block activemanagement %}{% endblock %}"><a href="{% url settings.MANAGEMENT_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Manage Tree Map" %}</a></li>
 {% endif %}
-{% endwith %}
 {% endif %}
 {% endblock instancetopnav %}
 
@@ -40,11 +40,13 @@
   {% if request.instance|feature_enabled:'exports' %}
   <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
   {% endif %}
-  {% if request.user.is_authenticated %}
-  <a data-action="addtree" href="{% url 'map' instance_url_name=request.instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}" class="btn btn-primary addBtn"><i class="icon-plus"></i> Add a Tree</a>
-  {% else %}
-  <a href="{% url 'django.contrib.auth.views.login' %}?next={{ request.get_full_path }}{{ settings.ADD_TREE_URL_HASH|urlencode }}" class="btn btn-primary addBtn"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>
-  {% endif %}
+  <a class="btn btn-primary addBtn"
+     data-class="add-tree"
+     data-action='addtree'
+     data-always-enable="{{ request.instance_user|plot_is_writable }}"
+     data-disabled-title="{% trans "Adding trees is not available to all users" %}"
+     data-href="{% url 'map' instance_url_name=request.instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}"
+     disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>
 </div>
 {% endblock subhead %}
 
