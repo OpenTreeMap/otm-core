@@ -50,17 +50,6 @@ exports.init = function(options) {
 
     imageUploadPanel.init(options.imageUploadPanel);
 
-    $(options.inlineEditForm.edit)
-        .asEventStream('click')
-        .onValue(function() {
-            // Don't allow editing if not logged in
-            // instead - go to the login page
-            if (!options.config.loggedIn) {
-                window.location = options.config.loginUrl +
-                    window.location.href + 'edit';
-            }
-        });
-
     var shouldBeInEditModeBus = new Bacon.Bus();
     var shouldBeInEditModeStream = shouldBeInEditModeBus.merge(
         $(window).asEventStream('popstate')
@@ -68,7 +57,8 @@ exports.init = function(options) {
 
     var form = inlineEditForm.init(
             _.extend(options.inlineEditForm,
-                     { onSaveBefore: onSaveBefore,
+                     { config: options.config,
+                       onSaveBefore: onSaveBefore,
                        shouldBeInEditModeStream: shouldBeInEditModeStream }));
 
     form.saveOkStream

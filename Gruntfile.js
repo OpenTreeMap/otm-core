@@ -27,6 +27,7 @@ module.exports = function(grunt) {
                        'treemap/js/src/mapManager.js:mapManager',
                        'treemap/js/src/plot.js:plot',
                        'treemap/js/src/searchBar.js:searchBar',
+                       'treemap/js/src/buttonEnabler.js:buttonEnabler',
                        'treemap/js/src/csrf.js:csrf',
                        'treemap/js/src/photoReview.js:photoReview',
                        'treemap/js/src/baconUtils:BaconUtils',

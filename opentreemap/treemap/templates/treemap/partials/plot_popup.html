@@ -1,4 +1,6 @@
 {% load i18n %}
+{% load instance_config %}
+
 <div>
     {% if plot.current_tree and plot.current_tree.species %}
         <h4>{{ plot.current_tree.species }}</h4>
@@ -12,6 +14,13 @@
     </address>
 </div>
 <div>
-    <a href="{% url 'plot_detail' instance_url_name=request.instance.url_name plot_id=plot.pk %}" class="btn btn-small btn-secondary">{% trans "View all details" %}</a>
-    <a href="{% url 'plot_detail_edit' instance_url_name=request.instance.url_name plot_id=plot.pk edit='edit' %}" class="btn btn-small btn-info">{% trans "Edit details" %}</a>
+    <a 
+         href="{% url 'plot_detail' instance_url_name=request.instance.url_name plot_id=plot.pk %}" 
+       class="btn btn-small btn-secondary">{% trans "View all details" %}</a>
+
+    <a disabled="disabled"
+       data-always-enable="{{ request.instance_user|plot_is_writable }}"
+       data-disabled-title="{% trans "Editing a tree's details is not available to all users" %}"
+       data-href="{% url 'plot_detail_edit' instance_url_name=request.instance.url_name plot_id=plot.pk edit='edit' %}"
+       class="btn btn-small btn-info">{% trans "Edit details" %}</a>
 </div>

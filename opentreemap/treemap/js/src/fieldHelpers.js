@@ -14,7 +14,7 @@ var getSerializableField = exports.getSerializableField = function ($fields, nam
     return getField($fields, name).find('[name="' + name + '"]');
 };
 
-var excludeControlButtons = exports.excludeControlButtons = function (selector) {
+var excludeButtons = exports.excludeButtons = function (selector) {
     return $(selector).filter(":not(.btn)");
 };
 
