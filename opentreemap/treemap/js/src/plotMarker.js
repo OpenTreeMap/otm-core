@@ -76,6 +76,11 @@ exports = module.exports = {
 
     // Put marker at the specified location (WebMercator, {x: lon, y: lat})
     place: function (location) {
+        // If we're tracking mouse movements, remove the tracker
+        if (trackingMarker) {
+            map.removeLayer(trackingMarker);
+        }
+
         var latlng;
 
         if (location.x && location.y) {
