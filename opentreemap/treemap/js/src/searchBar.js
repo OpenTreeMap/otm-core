@@ -74,7 +74,5 @@ module.exports = exports = {
         exports.searchEventStream()
            .map(Search.buildSearch, elems)
            .onValue(exports.redirectToSearchPage, config);
-
-        $('.addBtn').attr('href', config.instance.url + 'map/#addtree');
     }
 };
