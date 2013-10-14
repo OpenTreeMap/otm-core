@@ -5,7 +5,8 @@
 // For modal dialog on jquery
 require('bootstrap');
 
-var $ = require('jquery');
+var $ = require('jquery'),
+    Bacon = require('baconjs');
 
 // jQuery-File-Upload and its dependencies
 require('jqueryUiWidget');
@@ -17,7 +18,13 @@ module.exports.init = function(options) {
         $chooser = $panel.find('.fileChooser'),
         $progressBar = $panel.find('.progress').children().first(),
         $image = $(options.imageElement),
-        $error = $(options.error);
+        $error = $(options.error),
+        callback,
+        finishedStream = new Bacon.EventStream(function(subscribe) {
+            callback = subscribe;
+
+            return function() { callback = null; };
+        });
 
     $chooser.fileupload({
         dataType: 'json',
@@ -36,6 +43,10 @@ module.exports.init = function(options) {
             if ($image.length > 0) {
                 $image.attr('src', data.result.url);
             }
+
+            if (callback) {
+                callback(new Bacon.Next(e));
+            }
         },
         fail: function (e, data) {
             var json = data.jqXHR.responseJSON,
@@ -43,4 +54,6 @@ module.exports.init = function(options) {
             $error.text(message).show();
         }
     });
+
+    return finishedStream;
 };

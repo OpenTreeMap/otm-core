@@ -48,7 +48,7 @@ exports.init = function(options) {
         }));
     });
 
-    imageUploadPanel.init(options.imageUploadPanel);
+    var imageFinishedStream = imageUploadPanel.init(options.imageUploadPanel);
 
     var shouldBeInEditModeBus = new Bacon.Bus();
     var shouldBeInEditModeStream = shouldBeInEditModeBus.merge(
@@ -62,14 +62,13 @@ exports.init = function(options) {
                        shouldBeInEditModeStream: shouldBeInEditModeStream }));
 
     form.saveOkStream
-        .flatMap(function() {
-            return Bacon.fromPromise(
-                $.ajax({
-                    url: options.updateEcoUrl
-                }));
-        })
-        .onValue($(options.ecoBenefits), 'html');
+        .map($(options.ecoBenefits))
+        .onValue('.load', options.updatEcoUrl);
 
+    var sidebarUpdate = form.saveOkStream.merge(imageFinishedStream);
+    sidebarUpdate
+        .map($(options.sidebar))
+        .onValue('.load', options.updateSidebarUrl);
 
     var startInEditMode = options.startInEditMode;
     var firstEditEventFound = false;
