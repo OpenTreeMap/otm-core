@@ -205,7 +205,10 @@ exports.init = function(options) {
 
         responseStream = saveStream
             .map(getDataToSave)
-            .flatMap(update)
+            .flatMap(update),
+
+        responseErrorStream = responseStream
+            .errors()
             .mapError(function (e) {
                 var result = ('responseJSON' in e) ? e.responseJSON : {};
                 if (!('error' in result)) {
@@ -216,55 +219,55 @@ exports.init = function(options) {
                 return result;
             }),
 
-        saveOkStream = responseStream.filter(function (result) {
-            return !('error' in result);
-        }).map(function(responseData) {
+        saveOkStream = responseStream.map(function(responseData) {
             return {
                 formData: getDataToSave(),
                 responseData: responseData
             };
         }),
 
-        hideAndShowElements = function (action) {
-            function hideOrShow(fields, actions) {
-                if (_.contains(actions, action)) {
-                    $(fields).show();
+        hideAndShowElements = function (fields, actions, action) {
+            if (_.contains(actions, action)) {
+                $(fields).show();
+            } else {
+                if (action === 'edit:start') {
+                    // always hide the applicable runmode buttons
+                    $(fields).filter('.btn').hide();
+
+                    // hide the display fields if there is a corresponding
+                    // edit field to show in its place
+                    _.each($(fields).filter(":not(.btn)"), function (field) {
+                        var $field = $(field),
+                            $edit = FH.getField($(editFields),
+                                                $field.attr('data-field'));
+
+                        if ($edit.length === 1) {
+                            $field.hide();
+                        }
+
+                    });
+
                 } else {
-                    if (action === 'edit:start') {
-                        // always hide the applicable runmode buttons
-                        $(fields).filter('.btn').hide();
-
-                        // hide the display fields if there is a corresponding
-                        // edit field to show in its place
-                        _.each(FH.excludeButtons(fields), function (field) {
-                            var $field = $(field),
-                                $edit = FH.getField($(editFields),
-                                                    $field.attr('data-field'));
-
-                            if ($edit.length === 1) {
-                                $field.hide();
-                            }
-
-                        });
-
-                    } else {
-                        $(fields).hide();
-                    }
+                    $(fields).hide();
                 }
             }
+        },
 
-            hideOrShow(editFields, eventsLandingInEditMode);
-            hideOrShow(displayFields, eventsLandingInDisplayMode);
-            hideOrShow(validationFields, ['save:error']);
-        };
+        enableOrDisableEditButton = function () {
+            var disable = $(editFields).filter(':not(.btn)').length === 0;
+            $edit.prop('disabled', disable);
+            $edit.attr('title', disable ? disabledMessage : '');
+        },
+
+        validationErrorsStream = responseErrorStream
+            .filter('.validationErrors')
+            .map('.validationErrors');
 
     saveOkStream
         .map('.formData')
         .onValue(formFieldsToDisplayValues);
 
-    responseStream.filter('.validationErrors')
-                  .map('.validationErrors')
-                  .onValue(showValidationErrorsInline);
+    validationErrorsStream.onValue(showValidationErrorsInline);
 
     // TODO: Show success toast
     // TODO: Show error toast
@@ -283,7 +286,7 @@ exports.init = function(options) {
     }
 
     actionStream.plug(
-        responseStream.filter('.error').map('save:error')
+        responseErrorStream.map('save:error')
     );
 
     actionStream.plug(
@@ -298,7 +301,11 @@ exports.init = function(options) {
             .filter(_.contains, eventsLandingInDisplayMode)
             .onValue(resetCollectionUdfs);
 
-    actionStream.onValue(hideAndShowElements);
+    actionStream.onValue(hideAndShowElements, editFields, eventsLandingInEditMode);
+    actionStream.onValue(hideAndShowElements, displayFields, eventsLandingInDisplayMode);
+    validationErrorsStream
+        .map('save:error')
+        .onValue(hideAndShowElements, validationFields, ['save:error']);
 
     var inEditModeProperty = actionStream.map(function (event) {
         return _.contains(eventsLandingInEditMode, event);
