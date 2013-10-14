@@ -191,7 +191,7 @@ def json_api_call(req_function):
         if issubclass(outp.__class__, HttpResponse):
             return outp
         else:
-            return '%s' % json.dumps(outp)
+            return '%s' % json.dumps(outp, cls=LazyEncoder)
     return string_as_file_call("application/json", newreq)
 
 
@@ -228,7 +228,7 @@ def bad_request_json_response(message=None, validation_error_dict=None):
     content = {'error': message}
     if validation_error_dict:
         content['validationErrors'] = validation_error_dict
-    response.write(json.dumps(content))
+    response.write(json.dumps(content, cls=LazyEncoder))
     response['Content-length'] = str(len(response.content))
     response['Content-Type'] = "application/json"
     return response
@@ -240,8 +240,9 @@ def package_validation_errors(model_name, validation_error):
     {fieldname1: [messages], fieldname2: [messages]}.
     Return a version keyed by "modelname.fieldname" instead of "fieldname".
     """
-    dict = {'%s.%s' % (model_name.lower(), field): msgs
+    dict = {'%s.%s' % (model_name[0].lower() + model_name[1:], field): msgs
             for (field, msgs) in validation_error.message_dict.iteritems()}
+
     return dict
 
 
