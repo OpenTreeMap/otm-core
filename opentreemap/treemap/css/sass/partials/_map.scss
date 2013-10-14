@@ -9,13 +9,18 @@
     right: 350px; 
 }
 
-@each $direction in right, left, top {
+@each $direction in right, left, top, bottom {
     .leaflet-#{$direction} .leaflet-control {
         margin-#{$direction}: 16px;
     }
 }
 
 .leaflet-control {
+
+    &.leaflet-control-attribution {
+        margin-bottom: 12px;
+        margin-right: 0;
+    }
 
     &.leaflet-control-zoom {
 
