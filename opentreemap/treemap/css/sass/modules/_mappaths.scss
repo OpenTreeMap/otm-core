@@ -9,10 +9,10 @@
  * We can't control typeahead using 100 so we have to move
  * leaflet down
  */
-.leaflet-bottom {
+.leaflet-control-container .leaflet-bottom {
         z-index: 99 !important;
 }
 
-.leaflet-top {
+.leaflet-control-container .leaflet-top {
         z-index: 99 !important;
 }
