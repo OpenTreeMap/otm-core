@@ -1,4 +1,4 @@
-<!-- Note: rough and without translation tags until we have prototype markup -->
+{# vim: set filetype=htmldjango : #}
 {% load form_extras %}
 {% load i18n %}
 <div class="sidebar-inner">
@@ -18,16 +18,15 @@
     <div class="add-step">
         <h4>2. {% trans "Additional information" %}</h4>
         <form id="add-tree-form">
-            {# The "add-tree-species" label is used as an id prefix in "species_ul.html" #}
-            {% create "add-tree-species" from "tree.species" withtemplate "treemap/field/species_ul.html" %}
-
+          {# The "add-tree-species" label is used as an id prefix in "species_ul.html" #}
+          {% create "add-tree-species" from "tree.species" withtemplate "treemap/field/species_div.html" %}
           {% with hide_multiple_trunks=True %}
-            {% create "add-tree-diameter" from "tree.diameter" in request.instance withtemplate "treemap/field/diameter_ul.html" %}
+            {% create "add-tree-diameter" from "tree.diameter" in request.instance withtemplate "treemap/field/diameter_div.html" %}
           {% endwith %}
 
-            {% for label, identifier in fields_for_add_tree %}
-                {% create label from identifier in request.instance withtemplate "treemap/field/ul.html" %}
-            {% endfor %}
+          {% for label, identifier in fields_for_add_tree %}
+              {% create label from identifier in request.instance withtemplate "treemap/field/div.html" %}
+          {% endfor %}
         </form>
     </div>
     <div class="add-step">

@@ -41,11 +41,11 @@ active
             </div>
             <form id="user-form">
                 {% for label, identifier in public_fields %}
-                    {% field label from identifier withtemplate "treemap/field/ul.html" %}
+                    {% field label from identifier withtemplate "treemap/field/div.html" %}
                 {% endfor %}
                 {% usercontent for user %}
                     {% for label, identifier in private_fields %}
-                        {% field label from identifier withtemplate "treemap/field/ul.html" %}
+                        {% field label from identifier withtemplate "treemap/field/div.html" %}
                     {% endfor %}
                     <ul class="chunk" data-class="display">
                         <li class="chunk-label">{% trans "Password" %}</li>
