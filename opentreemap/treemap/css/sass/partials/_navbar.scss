@@ -35,6 +35,7 @@
                 > a {
                     background-color: $navbar-color;
                     border-bottom: 4px solid $primary-color;
+                    box-shadow: none;
 
                     &:hover,
                     &:focus {
