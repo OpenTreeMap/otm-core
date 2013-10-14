@@ -20,6 +20,7 @@
 {% elif field.data_type == 'date' %}
     <input name="{{ field.identifier }}"
            type="text"
+           class="span2"
            {% if request.instance %}
            value="{{ field.value|date:request.instance.short_date_format }}"
            data-date-format="{{ request.instance.short_date_format|datepicker_format }}"
@@ -29,9 +30,12 @@
            {% endif %}
            {{ extra|default:"" }} />
 {% else %}
+  <div class="input-append">
     <input name="{{ field.identifier }}"
            type="text"
+           class="span2" 
            value="{{ field.value|default_if_none:"" }}"
            {{ extra|default:"" }} />
-    {{ field.units }}
+    <span class="add-on">{{ field.units }}</span>
+  </div>
 {% endif %}
