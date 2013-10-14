@@ -73,6 +73,7 @@
                 cursor: pointer;
                 color: $well-color;
 
+                &.active, 
                 &:hover {
                     color: $main-text-color;
                 }
