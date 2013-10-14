@@ -72,6 +72,15 @@ textarea,
 	}
 }
 
+.input-append {
+	input {
+		border-radius: 6px 0 0 6px;
+	}
+	span.add-on {
+		padding: 8px;
+	}
+}
+
 textarea {
 	resize: none;
 }
@@ -79,4 +88,10 @@ textarea {
 .btn-mini [class^="icon-"], 
 .btn-mini [class*=" icon-"] {
 	margin-top: 0;
+}
+
+.text-separator {
+	display: inline-block;
+	margin: 0 5px;
+	color: $subtext-color;
 }
