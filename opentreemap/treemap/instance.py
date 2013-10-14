@@ -122,6 +122,9 @@ class Instance(models.Model):
                                                    {'standard': [],
                                                     'missing': []})
 
+    date_format = _make_config_property('date_format',
+                                        settings.DATE_FORMAT)
+
     short_date_format = _make_config_property('short_date_format',
                                               settings.SHORT_DATE_FORMAT)
 

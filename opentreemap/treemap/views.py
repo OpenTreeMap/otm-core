@@ -8,6 +8,7 @@ import urllib
 import json
 import locale
 import hashlib
+import datetime
 
 from PIL import Image
 import sass
@@ -267,7 +268,36 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
     context['has_tree'] = tree is not None
     # Give an empty tree when there is none in order to show tree fields easily
     context['tree'] = tree or Tree(plot=plot, instance=instance)
-    context['recent_activity'] = _plot_audits(request.user, instance, plot)
+
+    audits = _plot_audits(request.user, instance, plot)
+
+    context['latest_update'] = audits[0]
+
+    def _audits_are_in_different_groups(prev_audit, audit):
+        if prev_audit is None:
+            return True
+        elif prev_audit.user.pk != audit.user.pk:
+            return True
+        else:
+            time_difference = last_audit.updated - audit.updated
+            return time_difference > datetime.timedelta(days=1)
+
+    audit_groups = []
+    current_audit_group = None
+    last_audit = None
+
+    for audit in audits:
+        if _audits_are_in_different_groups(last_audit, audit):
+            current_audit_group = {
+                'updated': audit.updated,
+                'user': audit.user,
+                'audits': []}
+            audit_groups.append(current_audit_group)
+        current_audit_group['audits'].append(audit)
+        last_audit = audit
+    # Converting the audit groups to tuples makes the template code cleaner
+    context['recent_activity'] = [
+        (ag['user'], ag['updated'], ag['audits']) for ag in audit_groups]
 
     return context
 
@@ -515,7 +545,8 @@ def audits(request, instance):
 def _plot_audits(user, instance, plot):
     readable_plot_fields = plot.visible_fields(user)
 
-    plot_filter = Q(model='Plot', field__in=readable_plot_fields)
+    plot_filter = Q(model='Plot', model_id=plot.pk,
+                    field__in=readable_plot_fields)
 
     tree_visible_fields = Tree(instance=instance)\
         .visible_fields(user)
