@@ -24,12 +24,12 @@ var config,
     $editFields,
     $editControls,
     $validationFields,
-    deactivateBus;
-
-var hash = "#addTree";
+    deactivateBus,
+    addTreeUrlHash;
 
 function init(options) {
     config = options.config;
+    addTreeUrlHash = config.addTreeUrlHash;
     mapManager = options.mapManager;
     plotMarker = options.plotMarker;
     onAddTree = options.onAddTree;
@@ -156,7 +156,7 @@ function init(options) {
 //     deactivate() -> Inactive
 
 function activate() {
-    window.location.hash = hash;
+    window.location.hash = addTreeUrlHash;
     // Let user start creating a tree (by clicking the map)
     plotMarker.hide();
     plotMarker.enablePlacing();
@@ -271,6 +271,5 @@ function deactivate() {
 module.exports = {
     init: init,
     activate: activate,
-    deactivate: deactivate,
-    hash: hash
+    deactivate: deactivate
 };

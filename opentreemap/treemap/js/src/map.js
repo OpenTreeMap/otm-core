@@ -96,7 +96,7 @@ module.exports = {
             selector: '#map'
         });
         modes.init(config, mapManager, triggerSearchFromSidebar);
-        if (window.location.hash === addTreeMode.hash) {
+        if (window.location.hash === config.addTreeUrlHash) {
             modes.activateAddTreeMode();
         } else {
             modes.activateBrowseTreesMode();
