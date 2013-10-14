@@ -1,6 +1,6 @@
 {% load i18n %}
 
-<table id="recent-user-edits" class="table table-bordered">
+<table id="recent-user-edits" class="table table-hover table-condensed">
     <thead>
         <tr>
             <th>{% trans "Action" %}</th>
@@ -42,21 +42,20 @@
         </tr>
         {% endfor %}
     </tbody>
-    <tfoot>
-        <td>
-            {% if prev_page %}
-            <a id="recent-user-edits-prev" href="{% url 'user_audits' username=user.username %}{{prev_page }}">
-                &lt;&lt; {% trans "Previous" %}
-            </a>
-            {% endif %}
-        </td>
-        <td colspan="3"></td>
-        <td>
-            {% if next_page %}
-            <a id="recent-user-edits-next" href="{% url 'user_audits' username=user.username %}{{ next_page }}">
-                &gt;&gt; {% trans "Next" %}
-            </a>
-            {% endif %}
-        </td>
-    </tfoot>
 </table>
+<ul class="pager">
+    {% if prev_page %}
+        <li class="previous">
+            <a id="recent-user-edits-prev" href="{% url 'user_audits' username=user.username %}{{prev_page }}">
+                &larr; {% trans "Previous" %}
+            </a>
+        </li>
+    {% endif %}
+    {% if next_page %}
+        <li class="next">
+            <a id="recent-user-edits-next" href="{% url 'user_audits' username=user.username %}{{ next_page }}">
+                {% trans "Next" %} &rarr;
+            </a>
+        </li>
+    {% endif %}
+</ul>

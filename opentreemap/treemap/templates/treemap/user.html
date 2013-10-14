@@ -30,14 +30,9 @@ active
     <div class="row-fluid">
         <div class="span4">
             <div class="account-info">
-                <img class="img-circle img-polaroid user-photo" src="{{STATIC_URL}}img/profile.png">
+                <img class="user-photo" src="{{STATIC_URL}}img/profile.png">
                 <h1>{{ user.username }}</h1>
                 <p>{% trans "User Profile" %}</p>
-                {% usercontent for user %}
-                    <button id="edit-user" data-class="display" class="btn">Edit</button>
-                    <button id="save-edit" data-class="edit" class="btn" style="display: none;">Save</button>
-                    <button id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</button>
-                {% endusercontent %}
             </div>
             <form id="user-form">
                 {% for label, identifier in public_fields %}
@@ -56,13 +51,17 @@ active
                         <li class="chunk-content">{% trans "Not Subscribed" %}</li>
                     </ul>
                 {% endusercontent %}
-
                 {% if reputation %}
                     <ul class="chunk" >
                         <li class="chunk-label">{% trans "Reputation" %}</li>
                         <li class="chunk-content">{{ reputation }}</li>
                     </ul>
                 {% endif %}
+                {% usercontent for user %}
+                    <button id="edit-user" data-class="display" class="btn">Edit</button>
+                    <button id="save-edit" data-class="edit" class="btn" style="display: none;">Save</button>
+                    <button id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</button>
+                {% endusercontent %}
             </form>
         </div>
         <div class="span8">

@@ -30,6 +30,7 @@
            {% endif %}
            {{ extra|default:"" }} />
 {% else %}
+  {% if field.units %} 
   <div class="input-append">
     <input name="{{ field.identifier }}"
            type="text"
@@ -38,4 +39,11 @@
            {{ extra|default:"" }} />
     <span class="add-on">{{ field.units }}</span>
   </div>
+  {% else %}
+    <input name="{{ field.identifier }}"
+           type="text"
+           class="span2" 
+           value="{{ field.value|default_if_none:"" }}"
+           {{ extra|default:"" }} />
+  {% endif %}
 {% endif %}

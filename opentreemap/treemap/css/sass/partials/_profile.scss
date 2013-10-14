@@ -1,16 +1,34 @@
 // Partial: User Profile Page
 
 .account-info {
+    min-height: 85px;
+    margin-bottom: 15px;
+
     h1 {
-        line-height: 14px;
-        margin-top: 0;
+        line-height: 24px;
+        margin: 15px 0 4px;
+        float: left;
+        font-size: 24px;
     }
     p {
         color: #c2c2c2;
+        float: left;
     }
     .user-photo {
         max-width: 85px;
+        float: left;
+        margin-right: 10px;
+        border-radius: 12px;
+        overflow: hidden;
     }
+}
+
+#user-form {
+    margin: 0;
+    clear: both;
+    padding: 20px;
+    border-radius: 6px;
+    border: 1px solid #EEE;
 }
 
 .profile {
