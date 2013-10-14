@@ -5,8 +5,8 @@ var url = require('url'),
     $ = require('jquery');
 
 exports.getUpdatedQueryString = function (k, v) {
-    var url = url.parse(window.location.href, true);
-    var query = url.query || {};
+    var parsedUrl = url.parse(window.location.href, true);
+    var query = parsedUrl.query || {};
 
     query[k] = v;
 
@@ -23,14 +23,14 @@ exports.getUpdateUrlByUpdatingQueryStringParam = function (k, v) {
         query[k] = v;
     }
 
-    url.query = query;
-    url.search = null;
+    parsedUrl.query = query;
+    parsedUrl.search = null;
 
-    return url.format(url);
+    return url.format(parsedUrl);
 };
 
-exports.getLastUrlSegment = function(url) {
-    var parts = getUrlSegments(url);
+exports.getLastUrlSegment = function(urlString) {
+    var parts = getUrlSegments(urlString);
     return parts[parts.length - 1];
 };
 
@@ -75,11 +75,11 @@ exports.appendSegmentToUrl = function (segment, inputUrl, appendSlash) {
     return formattedUrl;
 };
 
-exports.pushState = function (url) {
+exports.pushState = function (urlString) {
     if (history.pushState) {
-        history.pushState({}, '', url);
+        history.pushState({}, '', urlString);
     } else {
-        window.location = url;
+        window.location = urlString;
     }
 };
 
