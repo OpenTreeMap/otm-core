@@ -88,7 +88,7 @@ exports = module.exports = function (config) {
     };
 
     var geocodeClient = function(address, box) {
-        var url = 'http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/find';
+        var url = '//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/find';
         var params = {
             'maxLocations': config.geocoder.maxLocations,
             'outFields': 'Loc_name,Score,Addr_Type,DisplayX,DisplayY',
