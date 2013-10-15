@@ -1,5 +1,5 @@
 {% if field.is_visible %}
-    <label>{% block label %}{{ field.label }}{% endblock label %}</label>
+    <label>{% block label %}{{ field.label|safe }}{% endblock label %}</label>
     <div class="field-view"
         {% include "treemap/field/attrs.html" with class="display" %}>
         {{ field.display_value|default_if_none:"" }}
