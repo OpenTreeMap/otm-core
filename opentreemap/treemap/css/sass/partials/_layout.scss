@@ -63,6 +63,33 @@ body {
 	}
 }
 
+.well {
+	border: 1px solid lighten($well-color, 10%);
+	background: $light-gray-color;
+	border-radius: 6px;
+	
+	> :last-child {
+		margin-bottom: 0;
+	}
+
+	h3 {
+		color: $secondary-color;
+		font-size: 1em;
+		font-weight: 400;
+		line-height: 21px;
+		margin-bottom: 8px;
+	}
+	h5 {
+		margin-bottom: 6px;
+	}
+	p {
+		font-size: 0.75em;
+	}
+	ul, ol {
+		font-size: 0.875em;
+	}
+}
+
 @media (max-width: 767px) {
 	body {
 		padding: 0;
