@@ -140,6 +140,15 @@
     form {
         margin: 0 0 10px;
     }
+
+    .input-append {
+        input[type="text"] {
+            width: 137px;
+        }
+    }
+    input[type="text"] {
+        width: 170px;
+    }
 }
 
 .subhead {

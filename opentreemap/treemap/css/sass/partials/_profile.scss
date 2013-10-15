@@ -5,14 +5,17 @@
     margin-bottom: 15px;
 
     h1 {
-        line-height: 24px;
-        margin: 15px 0 4px;
+        line-height: 1em;
+        margin: 15px 0 10px;
         float: left;
-        font-size: 24px;
-    }
-    p {
-        color: #c2c2c2;
-        float: left;
+        font-size: 1.5em;
+        width: 200px;
+
+        small {
+            font-size: 0.5em;
+            color: #c2c2c2;
+            float: left;
+        }
     }
     .user-photo {
         max-width: 85px;
@@ -29,6 +32,10 @@
     padding: 20px;
     border-radius: 6px;
     border: 1px solid #EEE;
+
+    input[type="text"] {
+        width: 90%;
+    }
 }
 
 #recent-user-edits {
