@@ -23,7 +23,7 @@ AWS_HEADERS = {
 MAP_CLICK_RADIUS = 100
 
 # Default nearby tree distance in meters
-NEARBY_TREE_DISTANCE = 5.0
+NEARBY_TREE_DISTANCE = 6.096  # 20ft
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
