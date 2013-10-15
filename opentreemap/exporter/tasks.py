@@ -1,11 +1,9 @@
 from celery import task
-from djqscsv import make_csv_file, generate_filename
-
 from django.core.files import File
 
+from exporter.djqscsv import make_csv_file, generate_filename
 from treemap.search import create_filter
 from treemap.models import Species, Tree
-
 from models import ExportJob
 
 

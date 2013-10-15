@@ -1,8 +1,9 @@
 import csv
 import datetime
-import re
 from django.core.exceptions import ValidationError
+from django.db.models.query import ValuesQuerySet
 from django.utils.text import slugify
+from django.http import HttpResponse
 from tempfile import TemporaryFile
 """ A simple python package for turning django models into csvs """
 
@@ -15,6 +16,7 @@ def make_csv_response(queryset,
     _write_csv_data(queryset, response)
     return response
 
+
 def make_csv_file(queryset,
                   filename=None,
                   append_timestamp=False):
@@ -22,12 +24,14 @@ def make_csv_file(queryset,
     _write_csv_data(queryset, csv_file)
     return csv_file
 
+
 def _write_csv_data(qs, obj):
     writer = csv.DictWriter(obj, _get_header_row_from_queryset(qs))
     writer.writeheader()
-    for record in qs.values():
+    for record in qs:
         record = _sanitize_unicode_record(record)
         writer.writerow(record)
+
 
 def _sanitize_unicode_record(record):
     obj = {}
@@ -40,6 +44,7 @@ def _sanitize_unicode_record(record):
             obj[key] = newval
     return obj
 
+
 ########################################
 # queryset reader functions
 ########################################
@@ -47,11 +52,15 @@ def _sanitize_unicode_record(record):
 class CSVException(Exception):
     pass
 
+
 def _get_header_row_from_queryset(qs):
+    if type(qs) is ValuesQuerySet:
+        return qs.field_names
     try:
-        return next(qs.values().iterator()).keys()
+        return next(qs.iterator()).keys()
     except StopIteration:
         raise CSVException("Empty queryset provided to exporter.")
+
 
 def generate_filename(queryset):
     """
@@ -60,20 +69,22 @@ def generate_filename(queryset):
     """
     return slugify(unicode(queryset.model.__name__)) + "_export.csv"
 
+
 ########################################
 # filename/response utility functions
 ########################################
 
-def _make_empty_csv_response(filename=None,
-                      append_timestamp=False):
-    # if they don't pass a filename, build one from the queryset underlying class
+def _make_empty_csv_response(filename=None, append_timestamp=False):
+    # if filename not passed, build one from the queryset underlying class
     if not filename:
         filename = generate_filename(filename)
 
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; %s;' % filename_param
+    response['Content-Disposition'] = 'attachment; %s;' % filename
+    response['Cache-Control'] = 'no-cache'
 
     return response
+
 
 def _validate_and_clean_filename(filename):
 
@@ -86,9 +97,10 @@ def _validate_and_clean_filename(filename):
     filename = slugify(filename)
     return filename
 
+
 def _timestamp_filename(filename):
     if filename != _validate_and_clean_filename:
         raise ValidationError('cannot timestamp unvalidated filename')
-    
+
     formatted_datestring = datetime.date.today().strftime("%Y%m%d")
     return '%s_%s' % (filename, formatted_datestring)
