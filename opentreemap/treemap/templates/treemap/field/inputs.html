@@ -1,7 +1,8 @@
 {# vim: set filetype=htmldjango : #}
 {% load dateformat %}
 {% if field.data_type == 'choice' %}
-    <select name="{{ field.identifier }}" {{ extra|default:"" }} />
+    <select name="{{ field.identifier }}" {{ extra|default_if_none:"" }}
+            class="{{ class|default_if_none:"" }}" />
         {% for option in field.choices %}
             <option value="{{ option.value }}"
               {% ifequal option.value field.value %}selected="selected"{% endifequal %}>
@@ -15,12 +16,13 @@
            checked="checked"
           {% endif %}
            type="checkbox"
+           class={{ class|default_if_none:"" }}
            value="{{ field.value }}"
            {{ extra|default:"" }} />
 {% elif field.data_type == 'date' %}
     <input name="{{ field.identifier }}"
            type="text"
-           class="span2"
+           class="span2 {{ class|default_if_none:"" }}"
            {% if request.instance %}
            value="{{ field.value|date:request.instance.short_date_format }}"
            data-date-format="{{ request.instance.short_date_format|datepicker_format }}"
@@ -30,11 +32,11 @@
            {% endif %}
            {{ extra|default:"" }} />
 {% else %}
-  {% if field.units %} 
+  {% if field.units %}
   <div class="input-append">
     <input name="{{ field.identifier }}"
            type="text"
-           class="span2" 
+           class="span2 {{ class|default_if_none:"" }}"
            value="{{ field.value|default_if_none:"" }}"
            {{ extra|default:"" }} />
     <span class="add-on">{{ field.units }}</span>
@@ -42,7 +44,7 @@
   {% else %}
     <input name="{{ field.identifier }}"
            type="text"
-           class="span2" 
+           class="span2 {{ class|default_if_none:"" }}"
            value="{{ field.value|default_if_none:"" }}"
            {{ extra|default:"" }} />
   {% endif %}
