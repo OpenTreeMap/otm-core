@@ -20,7 +20,8 @@ register = template.Library()
 # template tag, can't be done in the grammar as it can't be checked
 # until looked up in the context
 _identifier_regex = re.compile(
-    r"^(?:tree|plot|instance|user|species|benefitCurrencyConversion)\.(?:udf\:)?[\w '\._-]+$")
+    r"^(?:tree|plot|instance|user|species|"
+    "benefitCurrencyConversion)\.(?:udf\:)?[\w '\._-]+$")
 
 
 class Variable(Grammar):
