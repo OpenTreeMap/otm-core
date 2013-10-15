@@ -4,13 +4,15 @@ var $ = require('jquery'),
     Bacon = require('baconjs'),
     _ = require('underscore'),
     FH = require('./fieldHelpers'),
-    getDatum = require('./otmTypeahead').getDatum;
+    getDatum = require('./otmTypeahead').getDatum,
+    console = require('console-browserify'),
 
-// Requiring this module handles wiring up the browserified
-// baconjs to jQuery
-require('./baconUtils');
+    // Requiring this module handles wiring up the browserified
+    // baconjs to jQuery
+    BU = require('./baconUtils'),
 
-var eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
+
+    eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
     eventsLandingInDisplayMode = ['idle', 'save:ok', 'cancel'];
 
 exports.init = function(options) {
@@ -24,6 +26,8 @@ exports.init = function(options) {
         displayFields = options.displayFields,
         editFields = options.editFields,
         validationFields = options.validationFields,
+        errorCallback = options.errorCallback || $.noop,
+        disabledMessage = $edit.attr('title'),
         onSaveBefore = options.onSaveBefore || _.identity,
         editStream = $edit.asEventStream('click').map('edit:start'),
         saveStream = $save.asEventStream('click').map('save:start'),
@@ -261,7 +265,11 @@ exports.init = function(options) {
 
         validationErrorsStream = responseErrorStream
             .filter('.validationErrors')
-            .map('.validationErrors');
+            .map('.validationErrors'),
+
+        unhandledErrorStream = responseErrorStream
+            .filter(BU.isPropertyUndefined, 'validationErrors')
+            .map('.error');
 
     saveOkStream
         .map('.formData')
@@ -269,10 +277,8 @@ exports.init = function(options) {
 
     validationErrorsStream.onValue(showValidationErrorsInline);
 
-    // TODO: Show success toast
-    // TODO: Show error toast
-    // TODO: Keep the details of showing toast out of
-    //       this module (use EventEmitter or callbacks)
+    unhandledErrorStream.onValue(errorCallback);
+    unhandledErrorStream.onValue(_.bind(console.error, console), "Error uploading to " + self.updateUrl);
 
     actionStream.plug(editStream);
     actionStream.plug(saveStream);

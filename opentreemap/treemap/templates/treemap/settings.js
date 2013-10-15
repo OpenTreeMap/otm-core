@@ -36,6 +36,14 @@ otm.settings.geocoder = {
     threshold: 80
 };
 
+otm.settings.errorMessages = {
+    '500': {
+        title: "{% trans "Oops, that's not right." %}",
+        message: "{% trans "We're having some trouble saving that right now.  We'll fix it very soon!" %}"
+    }
+}
+otm.settings.errorMessages.default = otm.settings.errorMessages['500'];
+
 otm.settings.addTreeUrlHash = '{{ settings.ADD_TREE_URL_HASH }}';
 
 {% if request.instance %}
