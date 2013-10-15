@@ -8,7 +8,7 @@ def global_settings(request):
     if last_instance and last_instance.logo:
         logo_url = last_instance.logo.url
     else:
-        logo_url = settings.STATIC_URL + "img/logo-main.svg"
+        logo_url = settings.STATIC_URL + "img/logo-beta.png"
 
     ctx = {'SITE_ROOT': settings.SITE_ROOT,
            'settings': settings,
