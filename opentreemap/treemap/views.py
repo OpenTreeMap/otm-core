@@ -981,11 +981,16 @@ def static_page(request, instance, page):
             'title': page}
 
 
+def index(request, instance):
+    return HttpResponseRedirect(reverse('map', kwargs={
+        'instance_url_name': instance.url_name}))
+
+
 audits_view = instance_request(
     requires_feature('recent_edits_report')(
         render_template('treemap/recent_edits.html', audits)))
 
-index_view = instance_request(render_template('treemap/index.html'))
+index_view = instance_request(index)
 
 map_view = instance_request(
     render_template('treemap/map.html', _get_map_view_context))
