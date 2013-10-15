@@ -31,14 +31,17 @@ class Instance(models.Model):
     """
     name = models.CharField(max_length=255, unique=True)
 
-    url_name = models.CharField(max_length=255, unique=True,
-                                validators=[RegexValidator(
-                                    r'^%s$' % URL_NAME_PATTERN,
-                                    trans('Must start with a lowercase letter '
-                                          'and may only contain lowercase '
-                                          'letters, numbers, or dashes ("-")'),
-                                    trans('Invalid URL name')),
-                                    reserved_name_validator])
+    url_name = models.CharField(
+        max_length=255, unique=True,
+        validators=[
+            reserved_name_validator,
+            RegexValidator(
+                r'^%s$' % URL_NAME_PATTERN,
+                trans('Must start with a lowercase letter '
+                      'and may only contain lowercase '
+                      'letters, numbers, or dashes ("-")'),
+                trans('Invalid URL name'))
+        ])
 
     """
     Basemap type     Basemap data
