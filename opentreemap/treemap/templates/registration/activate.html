@@ -2,17 +2,15 @@
 {% load i18n %}
 
 {% block content %}
-
-{% if account %}
-
-<p>{% trans "Account successfully activated" %}</p>
-
-<p><a href="{% url 'auth_login' %}">{% trans "Log in" %}</a></p>
-
-{% else %}
-
-<p>{% trans "Account activation failed" %}</p>
-
-{% endif %}
-
+<div class="content login-signup">
+  <div class="well login-signup-panel">
+	{% if account %}
+  		<h3>{% trans "Account successfully activated" %}</h3>
+  		<p><a href="{% url 'auth_login' %}">{% trans "Log in" %}</a> {% trans "to start exploring trees!" %}</p>
+  	{% else %}
+  		<h3>{% trans "Account activation failed" %}</h3>
+  		<p>{% trans "Looks like something went wrong. Try again or contact support for assistance." %}</p>
+  	{% endif %}
+  </div>
+</div>
 {% endblock %}
