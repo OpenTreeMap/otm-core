@@ -1,12 +1,20 @@
 // Partial: Tree Detail Pages
 
-.tree-details {}
+.tree-details {
+	h1 {
+		margin-bottom: 10px;
+	}
+}
+
+#plot-form {
+	margin-top: 10px;
+}
 
 .map-small,
 .street-view-small {
-  background: $well-color;
-  width: auto;
-  height: 220px;
-  min-width: 100%;
-  margin-bottom: 10px;
+	background: $well-color;
+	width: auto;
+	height: 220px;
+	min-width: 100%;
+	margin-bottom: 10px;
 }

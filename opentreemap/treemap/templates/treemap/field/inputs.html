@@ -34,7 +34,6 @@
   <div class="input-append">
     <input name="{{ field.identifier }}"
            type="text"
-           class="span2" 
            value="{{ field.value|default_if_none:"" }}"
            {{ extra|default:"" }} />
     <span class="add-on">{{ field.units }}</span>
@@ -42,7 +41,6 @@
   {% else %}
     <input name="{{ field.identifier }}"
            type="text"
-           class="span2" 
            value="{{ field.value|default_if_none:"" }}"
            {{ extra|default:"" }} />
   {% endif %}
