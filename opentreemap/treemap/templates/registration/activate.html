@@ -9,7 +9,7 @@
   		<p><a href="{% url 'auth_login' %}">{% trans "Log in" %}</a> {% trans "to start exploring trees!" %}</p>
   	{% else %}
   		<h3>{% trans "Account activation failed" %}</h3>
-  		<p>{% trans "Looks like something went wrong. Try again or contact support for assistance." %}</p>
+  		<p>{% trans "Looks like something went wrong. Try again or" %} <a href="mailto:{{ settings.SUPPORT_EMAIL_ADDRESS }}">{% trans "contact support" %}</a> {% trans "for assistance." %}</p>
   	{% endif %}
   </div>
 </div>
