@@ -116,14 +116,14 @@ class TreemapUrlTests(UrlTestCase):
         return boundary
 
     def test_instance(self):
-        self.assert_template(self.prefix, 'treemap/index.html')
+        self.assert_redirects(self.prefix, self.prefix + 'map/', 302)
 
     def test_instance_invalid(self):
         self.assert_404('/999/')
 
     def test_trailing_slash_added(self):
         url = '/%s' % self.instance.url_name
-        self.assert_redirects(url, url + '/', 301)
+        self.assert_redirects(url + '/map', url + '/map/', 301)
 
     def test_boundary(self):
         boundary = self.make_boundary()
