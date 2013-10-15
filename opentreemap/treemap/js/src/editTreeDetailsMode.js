@@ -44,6 +44,7 @@ function activate() {
 
 function deactivate() {
     calculator.destroy();
+    inlineEditForm.cancel();
 }
 
 function onSaveBefore(data) {
