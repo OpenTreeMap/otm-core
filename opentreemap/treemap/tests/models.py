@@ -534,6 +534,11 @@ class InstanceUserModelTest(TestCase):
 
 class InstanceTest(TestCase):
 
+    def test_force_url_name_downcase(self):
+        up_name = "BiGNaMe"
+        instance = make_instance(url_name=up_name)
+        self.assertEqual(instance.url_name, 'bigname')
+
     def test_can_read_and_write_config(self):
         instance = make_instance()
 
@@ -571,10 +576,6 @@ class InstanceTest(TestCase):
     def test_url_name_cannot_be_empty(self):
         with self.assertRaises(ValidationError):
             make_instance(url_name='')
-
-    def test_url_name_does_not_allow_capitals(self):
-        with self.assertRaises(ValidationError):
-            make_instance(url_name='A')
 
     def test_url_name_does_not_allow_leading_number(self):
         with self.assertRaises(ValidationError):

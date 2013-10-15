@@ -29,7 +29,7 @@ from django.db.models import Q
 from treemap.util import (json_api_call, render_template, instance_request,
                           require_http_method, package_validation_errors,
                           bad_request_json_response, string_as_file_call,
-                          requires_feature)
+                          requires_feature, get_instance_or_404)
 
 from treemap.search import create_filter
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
@@ -573,7 +573,7 @@ def user_audits(request, username):
     user = get_object_or_404(User, username=username)
     instance_id = request.GET.get('instance_id', None)
 
-    instance = (get_object_or_404(Instance, pk=instance_id)
+    instance = (get_instance_or_404(pk=instance_id)
                 if instance_id else None)
 
     (page, page_size, models, model_id,
@@ -584,7 +584,7 @@ def user_audits(request, username):
 
 
 def instance_user_audits(request, instance_url_name, username):
-    instance = get_object_or_404(Instance, url_name=instance_url_name)
+    instance = get_instance_or_404(url_name=instance_url_name)
     return HttpResponseRedirect('/users/%s/recent_edits?instance_id=%s'
                                 % (username, instance.pk))
 
@@ -731,7 +731,7 @@ def user(request, username):
     user = get_object_or_404(User, username=username)
     instance_id = request.GET.get('instance_id', None)
 
-    instance = (get_object_or_404(Instance, pk=instance_id)
+    instance = (get_instance_or_404(pk=instance_id)
                 if instance_id else None)
 
     query_vars = {'instance_id': instance_id} if instance_id else {}
@@ -794,7 +794,7 @@ def _get_map_view_context(request, instance_id):
 
 
 def instance_user_view(request, instance_url_name, username):
-    instance = get_object_or_404(Instance, url_name=instance_url_name)
+    instance = get_instance_or_404(url_name=instance_url_name)
     url = '/users/%(username)s?instance_id=%(instance_id)s' %\
         {'username': username, 'instance_id': instance.pk}
     return HttpResponseRedirect(url)
