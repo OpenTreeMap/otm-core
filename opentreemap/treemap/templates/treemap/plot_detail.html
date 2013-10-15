@@ -44,9 +44,8 @@
       </div>
     </div>
     <div class="span6">
-      <h1>{{ tree.species.common_name }}</h1>
-      <h2>{{ tree.species.scientific_name }}</h2>
-      <h3>{{ plot.address_full }}</h3>
+      <h1>{{ tree.species.common_name }} <small>{{ tree.species.scientific_name }}</small></h1>
+      <h5>{{ plot.address_full }}</h5>
       <button id="edit-plot"
               data-class="display"
               disabled="disabled"
@@ -54,13 +53,12 @@
               data-href="{{ request.get_full_path }}"
               data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
               class="btn">{% trans "Edit" %}</button>
-        <button id="save-edit-plot" data-class="edit" class="btn" style="display: none;">{% trans "Save" %}</button>
-        <button id="cancel-edit-plot" data-class="edit" class="btn" style="display: none;">{% trans "Cancel" %}</button>
+      <button id="save-edit-plot" data-class="edit" class="btn" style="display: none;">{% trans "Save" %}</button>
+      <button id="cancel-edit-plot" data-class="edit" class="btn" style="display: none;">{% trans "Cancel" %}</button>
+
       <form id="plot-form">
-
-
         <!-- Tree Information -->
-        <h5>{% trans "Tree Information" %}</h5>
+        <h4>{% trans "Tree Information" %}</h4>
         <div id="add-tree-section" {{ has_tree|yesno:"style=display:none;," }}>
           {% trans "There is no tree for this plot." %}
           {% usercancreate tree %}
@@ -76,7 +74,7 @@
           {% endusercancreate %}
         </div>
         <div id="tree-details" {{ has_tree|yesno:",style=display:none;" }}>
-          <table class="table table-striped">
+          <table class="table table-striped table-hover">
             <tbody>
               {% usercanread tree "id" as value %}
               <tr>
@@ -112,7 +110,7 @@
         </div>
 
         <table class="table table-striped">
-          <h5>{% trans "Plot Information" %}</h5>
+          <h4>{% trans "Plot Information" %}</h4>
           <tbody>
             {% trans "Width" as width %}
             {% field width from "plot.width" for request.user withtemplate "treemap/field/tr.html" %}
