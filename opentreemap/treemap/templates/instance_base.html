@@ -17,13 +17,15 @@
 
 {% block instancetopnav %}
 <li class="{% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Trees" %}</a></li>
-<li>
+{% if request.instance|feature_enabled:'add_plot' %}
+<li data-feature="add_plot">
   <a data-action='addtree'
      data-always-enable='{{ request.instance_user|plot_is_writable }}'
      data-disabled-title='{% trans "Adding trees is not available to all users" %}'
      data-href="{% url 'map' instance_url_name=request.instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}"
      disabled='disabled'>{% trans "Add a Tree" %}</a>
 </li>
+{% endif %}
 {% if settings.MANAGEMENT_VIEW_NAME %}
 {% if request.instance_user.admin %}
 <li class="{% block activemanagement %}{% endblock %}"><a href="{% url settings.MANAGEMENT_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Manage Tree Map" %}</a></li>
@@ -42,13 +44,16 @@
     <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
     {% endif %}
   {% endblock subhead_exports %}
+  {% if request.instance|feature_enabled:'add_plot' %}
   <a class="btn btn-primary addBtn"
      data-class="add-tree"
      data-action='addtree'
+     data-feature="add_plot"
      data-always-enable="{{ request.instance_user|plot_is_writable }}"
      data-disabled-title="{% trans "Adding trees is not available to all users" %}"
      data-href="{% url 'map' instance_url_name=request.instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}"
      disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>
+   {% endif %}
 </div>
 {% endblock subhead %}
 

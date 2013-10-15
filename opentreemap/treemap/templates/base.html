@@ -39,16 +39,18 @@
           <ul class="nav pull-left">
             {# Since the active style changes on a page-by-page basis we use nested blocks below. These nested blocks can then be overriden to change which tab is active. #}
             {% block instancetopnav %}
-              {% if last_instance %}
+            {% if last_instance %}
               <li class="{% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=last_instance.url_name %}">{% trans "Explore Trees" %}</a></li>
-            <li>
-              <a data-class='add-tree'
-                 data-always-enable='{{ request.instance_user|plot_is_writable }}'
-                 data-disabled-title='{% trans "Adding trees is not available to all users" %}'
-                 data-href="{% url 'map' instance_url_name=last_instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}"
-                 disabled='disabled'>{% trans "Add a Tree" %}</a>
-            </li>
+              {% if last_instance|feature_enabled:'add_plot' %}
+              <li data-feature="add_plot">
+                <a data-class='add-tree'
+                   data-always-enable='{{ request.instance_user|plot_is_writable }}'
+                   data-disabled-title='{% trans "Adding trees is not available to all users" %}'
+                   data-href="{% url 'map' instance_url_name=last_instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}"
+                   disabled='disabled'>{% trans "Add a Tree" %}</a>
+              </li>
               {% endif %}
+            {% endif %}
             {% endblock instancetopnav %}
           </ul>
           <ul class="nav pull-right">

@@ -14,7 +14,6 @@ var $ = require('jquery'),
 var config,
     mapManager,
     plotMarker,
-    onAddTree,
     formSelector = '#add-tree-form',
     onClose,  // function to call when closing mode
     $sidebar,
@@ -32,8 +31,7 @@ function init(options) {
     addTreeUrlHash = config.addTreeUrlHash;
     mapManager = options.mapManager;
     plotMarker = options.plotMarker;
-    onAddTree = options.onAddTree;
-    onClose = options.onClose;
+    onClose = options.onClose || $.noop;
     $sidebar = options.$sidebar;
 
     var addressInput = '#add-tree-address',
@@ -224,10 +222,22 @@ function addTree(success) {
     });
 }
 
+function close() {
+    deactivateBus.push();
+    onClose();
+}
+
 function onAddTreeSuccess(result) {
     // Tree was saved. Update map if appropriate.
     mapManager.updateGeoRevHash(result.geoRevHash);
     var option = U.$find('input[name="addTreeOptions"]:checked', $sidebar).val();
+
+    if (!result.enabled) {
+        close();
+        $('[data-feature="add_plot"]').hide();
+        return;
+    }
+
     switch (option) {
     case 'copy':
         requireDrag();
@@ -242,8 +252,7 @@ function onAddTreeSuccess(result) {
         window.location.href = url;
         break;
     case 'close':
-        deactivateBus.push();
-        onClose();
+        close();
         break;
     }
     function requireDrag() {

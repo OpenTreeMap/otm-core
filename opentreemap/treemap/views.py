@@ -323,7 +323,8 @@ def update_plot_and_tree_request(request, plot):
         return {
             'ok': True,
             'geoRevHash': plot.instance.geo_rev_hash,
-            'plotId': plot.id
+            'plotId': plot.id,
+            'enabled': plot.instance.feature_enabled('add_plot')
         }
     except ValidationError as ve:
         return bad_request_json_response(
