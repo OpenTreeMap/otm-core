@@ -25,7 +25,8 @@ var config,
     $editControls,
     $validationFields,
     deactivateBus,
-    addTreeUrlHash;
+    addTreeUrlHash,
+    gcoder;
 
 function init(options) {
     config = options.config;
@@ -35,6 +36,7 @@ function init(options) {
     onAddTree = options.onAddTree;
     onClose = options.onClose;
     $sidebar = options.$sidebar;
+    gcoder = geocoder(config);
 
     var addressInput = '#add-tree-address',
         $geolocateButton = U.$find('.geolocate', $sidebar),
@@ -108,7 +110,7 @@ function init(options) {
         addressStream = searchTriggerStream.map(function () {
             return $(addressInput).val();
         }),
-        geocodeResponseStream = geocoder(config).geocodeStream(addressStream),
+        geocodeResponseStream = gcoder.geocodeStream(addressStream),
         cleanupLocationFeedbackStream = Bacon.mergeAll([
             plotMarker.markerPlacedByClickStream,
             searchTriggerStream,
@@ -133,6 +135,12 @@ function init(options) {
     geocodeResponseStream.onError(function () {
         $geocodeError.show();
     });
+
+    var markerMoveStream = plotMarker.moveStream.filter(options.inMyMode);
+    var reverseGeocodeStream = gcoder.reverseGeocodeStream(markerMoveStream);
+    reverseGeocodeStream.map(reverseGeocodeResponseToAddressString)
+                        .onValue($address, 'val');
+    reverseGeocodeStream.onError($address, 'val', '');
 }
 
 // Adding a tree uses a state machine with these states and transitions:
@@ -266,6 +274,15 @@ function deactivate() {
     window.location.hash = '';
     // We're being deactivated by an external event
     deactivateBus.push();
+}
+
+function reverseGeocodeResponseToAddressString(reverseGeocodeResponse) {
+    var a = reverseGeocodeResponse.address,
+        street = a.Address,
+        city = a.City,
+        state = a.Region,
+        postalCode = a.Postal;
+    return street + ' ' + city + ' ' + state + ' ' + postalCode;
 }
 
 module.exports = {

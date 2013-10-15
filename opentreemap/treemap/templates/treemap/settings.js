@@ -33,6 +33,8 @@ otm.settings.staticUrl = '{{ STATIC_URL }}';
 otm.settings.geocoder = {
     maxLocations: 20,
     errorString: '{% trans "That address was not found near this map" %}',
+    reverseGeocoderErrorString: '{% trans "Unable to find an address for the location" %}',
+    reverseGeocodeDistance: 200, // Meters
     threshold: 80
 };
 
