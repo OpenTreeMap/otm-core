@@ -16,7 +16,8 @@ from treemap.views import (boundary_to_geojson_view, index_view, map_view,
                            add_tree_photo_endpoint, photo_review_endpoint,
                            approve_or_reject_photo_view, next_photo_endpoint,
                            photo_review_partial_endpoint, get_plot_eco_view,
-                           edit_plot_detail_view, static_page_view)
+                           edit_plot_detail_view, static_page_view,
+                           get_plot_sidebar_view)
 
 # Testing notes:
 # We want to test that every URL succeeds (200) or fails with bad data (404).
@@ -42,6 +43,8 @@ urlpatterns = patterns(
         name='plot_detail'),
     url(r'^plots/(?P<plot_id>\d+)/eco$',
         get_plot_eco_view),
+    url(r'^plots/(?P<plot_id>\d+)/sidebar$',
+        get_plot_sidebar_view),
     url(r'^plots/(?P<plot_id>\d+)/trees/(?P<tree_id>\d+)/eco$',
         get_plot_eco_view),
     url(r'^plots/(?P<plot_id>\d+)/(?P<edit>edit)$',

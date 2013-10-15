@@ -996,6 +996,9 @@ get_plot_detail_view = instance_request(
 get_plot_eco_view = instance_request(etag(_plot_hash)(
     render_template('treemap/partials/plot_eco.html', plot_detail)))
 
+get_plot_sidebar_view = instance_request(etag(_plot_hash)(
+    render_template('treemap/partials/sidebar.html', plot_detail)))
+
 edit_plot_detail_view = login_required(get_plot_detail_view)
 
 update_plot_detail_view = json_api_call(instance_request(update_plot_detail))
