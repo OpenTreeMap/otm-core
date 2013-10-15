@@ -30,8 +30,9 @@
 }
 
 .search-wrapper {
-    position: relative;
-    float: right;
+    position: absolute;
+    right: 15px;
+    top: 60px;
     display: inline-block;
 }
 
@@ -60,7 +61,8 @@
             input[type="text"] {
                 font-size: 0.75em;
                 margin: 0;
-                text-indent: 24px;
+                padding-left: 32px;
+                width: 200px;
             }
 
             .typeahead-toggle {
