@@ -10,7 +10,7 @@ require('typeahead');
 var $ = require("jquery"),
     mustache = require("mustache"),
     Bacon = require("baconjs"),
-    keyCodeIs = require("./baconUtils").keyCodeIs;
+    BU = require("./baconUtils");
 
 
 function setTypeahead($typeahead, val) {
@@ -75,15 +75,25 @@ exports.create = function(options) {
                                             function(e, datum) { return datum; }),
 
         backspaceOrDeleteStream = $input.asEventStream('keyup')
-                                        .filter(keyCodeIs([8, 46])),
+                                        .filter(BU.keyCodeIs([8, 46])),
 
-        editStream = selectStream.merge(backspaceOrDeleteStream.map(undefined)),
+        editStream = selectStream.merge(backspaceOrDeleteStream.map(undefined)).skipDuplicates(),
 
         idStream = selectStream.map(".id")
                                 .merge(backspaceOrDeleteStream.map(""));
 
-    editStream.onValue($input, "data", "datum");
+    editStream.filter(BU.isDefined).onValue($input, "data", "datum");
+    editStream.filter(BU.isUndefined).onValue($input, "removeData", "datum");
 
+    if (options.forceMatch) {
+        $input.on('blur', function() {
+            if ($input.typeahead('isOpen')) return;
+
+            if ($input.data('datum') === undefined) {
+                setTypeahead($input, '');
+            }
+        });
+    }
     // Set data-unmatched to the input value if the value was not
     // matched to a typeahead datum. Allows for external code to take
     // alternate action if there is no typeahead match.

@@ -103,7 +103,8 @@ function getSpeciesTypeaheadOptions(config, idPrefix) {
         input: "#" + idPrefix + "-typeahead",
         template: "#species-element-template",
         hidden: "#" + idPrefix + "-hidden",
-        reverse: "id"
+        reverse: "id",
+        forceMatch: true
     };
 }
 
