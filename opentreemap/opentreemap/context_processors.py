@@ -5,8 +5,8 @@ from treemap.util import get_last_visited_instance
 
 def global_settings(request):
     last_instance = get_last_visited_instance(request)
-    if last_instance and last_instance.logo:
-        logo_url = last_instance.logo.url
+    if hasattr(request, 'instance') and request.instance.logo:
+        logo_url = request.instance.logo.url
     else:
         logo_url = settings.STATIC_URL + "img/logo-beta.png"
 
