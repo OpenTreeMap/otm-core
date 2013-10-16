@@ -68,7 +68,7 @@ exports.create = function(options) {
         },
         limit: 1000,
         template: template,
-        minLength: 0
+        minLength: options.minLength || 0
     });
 
     var selectStream = $input.asEventStream('typeahead:selected typeahead:autocompleted',

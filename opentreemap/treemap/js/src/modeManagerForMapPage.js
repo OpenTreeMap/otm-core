@@ -104,7 +104,8 @@ function getSpeciesTypeaheadOptions(config, idPrefix) {
         template: "#species-element-template",
         hidden: "#" + idPrefix + "-hidden",
         reverse: "id",
-        forceMatch: true
+        forceMatch: true,
+        minLength: 1
     };
 }
 
