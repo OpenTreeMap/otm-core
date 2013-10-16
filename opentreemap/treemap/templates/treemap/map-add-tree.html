@@ -7,8 +7,9 @@
     <div class="add-step">
         <h4>1. {% trans "Set the tree’s location" %}</h4>
         <small>{% trans "Search by address or use your current location, then drag the marker to the correct location. Or click the map." %}</small>
-        <form class="form-search">
-            <input type="text" class="search-query" id="add-tree-address" placeholder="{% trans "340 N 12th St, Philadelphia" %}">
+        {# Making onsubmit return false prevents the form from being submitted. We want to run JS code instead #}
+        <form class="form-search" onsubmit="return false;">
+            <input type="text" class="search-query" id="add-tree-address" placeholder="{% trans 'Address, City, State' %}">
             <button class="btn btn-primary geocode">{% trans "Search" %}</button>
         </form>
         <a class="geolocate"><i class="icon-direction"></i> Use Current Location</a>
