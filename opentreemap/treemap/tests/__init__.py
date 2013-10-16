@@ -193,15 +193,29 @@ def make_observer_role(instance):
     return make_loaded_role(instance, 'observer', 2, permissions)
 
 
+def make_plain_user(username):
+    user = User(username=username)
+    user.set_password("password")  # hashes password, allowing authentication
+    user.save()
+    return user
+
+
+def login(client, username):
+    client.post('/accounts/login/', {'username': username,
+                                     'password': 'password'})
+
+
+def logout(client):
+    client.get('/accounts/logout/')
+
+
 def make_user(instance, username, make_role=None, admin=False):
     """
     Create a User with the given username, and an InstanceUser for the
     given instance. The InstanceUser's role comes from calling make_role()
     (if provided) or from the instance's default role.
     """
-    user = User(username=username)
-    user.set_password("password")  # hashes password, allowing authentication
-    user.save()
+    user = make_plain_user(username)
     role = make_role(instance) if make_role else instance.default_role
     iuser = InstanceUser(instance=instance, user=user, role=role, admin=admin)
     iuser.save_with_user(user)
