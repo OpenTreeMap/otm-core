@@ -50,6 +50,15 @@ exports = module.exports = function (config) {
                 };
             });
 
+        // Only care about scores that are in the following
+        // list, in order of desirability
+        var supportedTypes = ['PointAddress', 'StreetAddress',
+                              'StreetName'];
+
+        candidates = candidates.filter(function(candidate) {
+            return _.contains(supportedTypes, candidate.type);
+        });
+
         // Remove duplicates based on location and name
         candidates = groupByAndExtractMaxScore(candidates, 'loc');
         candidates = groupByAndExtractMaxScore(candidates, 'address');
@@ -59,16 +68,20 @@ exports = module.exports = function (config) {
             return candidate.score >= config.geocoder.threshold;
         });
 
-        // Only accept 'PointAddress' and 'StreetAddress' types
+        // Only accept types types
         var types = candidates
                 .groupBy('type')
+                .map(function(list, type) {
+                    return [type, _.sortBy(list, 'score')];
+                })
+                .object()
                 .value();
 
-        var pointAddresses = _.sortBy(types.PointAddress, 'score');
-        var streetAddresses = _.sortBy(types.StreetAddress, 'score');
-
-        // Prefer point addresses first
-        var filteredCandidates = pointAddresses.concat(streetAddresses);
+        // Construct candidate list based on supportedType's order
+        var filteredCandidates = _.chain(supportedTypes)
+                .map(function(type) { return types[type] || []; })
+                .flatten()
+                .value();
 
         return { candidates: filteredCandidates };
     };

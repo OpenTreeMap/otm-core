@@ -82,7 +82,6 @@ module.exports = {
         });
 
         // Let the user know if there was a problem geocoding
-        geocodeResponseStream.log();
         geocodeResponseStream.onError(showGeocodeError);
 
         // Set up cross-site forgery protection
