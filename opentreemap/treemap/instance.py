@@ -16,11 +16,12 @@ from treemap.features import feature_enabled
 
 from json_field import JSONField
 
-URL_NAME_PATTERN = r'[a-z]+[a-z0-9\-]*'
+URL_NAME_PATTERN = r'[a-zA-Z]+[a-zA-Z0-9\-]*'
 
 
 def reserved_name_validator(name):
-    if name in settings.RESERVED_INSTANCE_URL_NAMES:
+    if name.lower() in [
+            r.lower() for r in settings.RESERVED_INSTANCE_URL_NAMES]:
         raise ValidationError(trans('%(instancename)s is a reserved name and '
                                     'cannot be used') % {'instancename': name})
 
@@ -31,14 +32,16 @@ class Instance(models.Model):
     """
     name = models.CharField(max_length=255, unique=True)
 
-    url_name = models.CharField(max_length=255, unique=True,
-                                validators=[RegexValidator(
-                                    r'^%s$' % URL_NAME_PATTERN,
-                                    trans('Must start with a lowercase letter '
-                                          'and may only contain lowercase '
-                                          'letters, numbers, or dashes ("-")'),
-                                    trans('Invalid URL name')),
-                                    reserved_name_validator])
+    url_name = models.CharField(
+        max_length=255, unique=True,
+        validators=[
+            reserved_name_validator,
+            RegexValidator(
+                r'^%s$' % URL_NAME_PATTERN,
+                trans('Must start with a letter and may only contain '
+                      'letters, numbers, or dashes ("-")'),
+                trans('Invalid URL name'))
+        ])
 
     """
     Basemap type     Basemap data
@@ -177,4 +180,7 @@ class Instance(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
+
+        self.url_name = self.url_name.lower()
+
         super(Instance, self).save(*args, **kwargs)
