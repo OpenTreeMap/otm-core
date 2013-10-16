@@ -1,7 +1,8 @@
 "use strict";
 
 var Bacon = require('baconjs'),
-    $ = require('jquery');
+    $ = require('jquery'),
+    _ = require('underscore');
 
 // Bacon.js is an npm module, but only extends jQuery if it's a global object
 // So we need to add extend jQuery with Bacon methods manually
@@ -110,4 +111,22 @@ exports.wrapOnEvent = function(thing, event) {
             return thing.off(event, handler);
         };
     });
+};
+
+exports.triggeredObjectStream = function (obj) {
+    var subscribers = [],
+        stream = new Bacon.EventStream(function (subscriber) {
+            subscribers.push(subscriber);
+            return function() {
+                subscribers = _.without(subscribers, subscriber);
+            };
+        });
+
+    stream.trigger = function () {
+        _.each(subscribers, function (subscriber) {
+            subscriber(new Bacon.Next(obj));
+        });
+    };
+
+    return stream;
 };

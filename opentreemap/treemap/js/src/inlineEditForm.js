@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     Bacon = require('baconjs'),
+    BU = require('./baconUtils'),
     _ = require('underscore'),
     FH = require('./fieldHelpers'),
     getDatum = require('./otmTypeahead').getDatum;
@@ -27,6 +28,7 @@ exports.init = function(options) {
         onSaveBefore = options.onSaveBefore || _.identity,
         editStream = $edit.asEventStream('click').map('edit:start'),
         saveStream = $save.asEventStream('click').map('save:start'),
+        externalCancelStream = BU.triggeredObjectStream('cancel'),
         cancelStream = $cancel.asEventStream('click').map('cancel'),
         actionStream = new Bacon.Bus(),
 
@@ -274,6 +276,7 @@ exports.init = function(options) {
     actionStream.plug(editStream);
     actionStream.plug(saveStream);
     actionStream.plug(cancelStream);
+    actionStream.plug(externalCancelStream);
 
     if (options.shouldBeInEditModeStream) {
         actionStream.plug(options.shouldBeInEditModeStream
@@ -305,6 +308,7 @@ exports.init = function(options) {
     }).toProperty(false);
 
     return $.extend(self, {
+        cancel: externalCancelStream.trigger,
         saveOkStream: saveOkStream,
         cancelStream: cancelStream,
         inEditModeProperty: inEditModeProperty
