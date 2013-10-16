@@ -5,13 +5,15 @@ var $ = require('jquery'),
     BU = require('./baconUtils'),
     _ = require('underscore'),
     FH = require('./fieldHelpers'),
-    getDatum = require('./otmTypeahead').getDatum;
+    getDatum = require('./otmTypeahead').getDatum,
+    console = require('console-browserify'),
 
-// Requiring this module handles wiring up the browserified
-// baconjs to jQuery
-require('./baconUtils');
+    // Requiring this module handles wiring up the browserified
+    // baconjs to jQuery
+    BU = require('./baconUtils'),
 
-var eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
+
+    eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
     eventsLandingInDisplayMode = ['idle', 'save:ok', 'cancel'];
 
 exports.init = function(options) {
@@ -25,6 +27,8 @@ exports.init = function(options) {
         displayFields = options.displayFields,
         editFields = options.editFields,
         validationFields = options.validationFields,
+        errorCallback = options.errorCallback || $.noop,
+        disabledMessage = $edit.attr('title'),
         onSaveBefore = options.onSaveBefore || _.identity,
         editStream = $edit.asEventStream('click').map('edit:start'),
         saveStream = $save.asEventStream('click').map('save:start'),
@@ -207,7 +211,10 @@ exports.init = function(options) {
 
         responseStream = saveStream
             .map(getDataToSave)
-            .flatMap(update)
+            .flatMap(update),
+
+        responseErrorStream = responseStream
+            .errors()
             .mapError(function (e) {
                 var result = ('responseJSON' in e) ? e.responseJSON : {};
                 if (!('error' in result)) {
@@ -218,60 +225,62 @@ exports.init = function(options) {
                 return result;
             }),
 
-        saveOkStream = responseStream.filter(function (result) {
-            return !('error' in result);
-        }).map(function(responseData) {
+        saveOkStream = responseStream.map(function(responseData) {
             return {
                 formData: getDataToSave(),
                 responseData: responseData
             };
         }),
 
-        hideAndShowElements = function (action) {
-            function hideOrShow(fields, actions) {
-                if (_.contains(actions, action)) {
-                    $(fields).show();
+        hideAndShowElements = function (fields, actions, action) {
+            if (_.contains(actions, action)) {
+                $(fields).show();
+            } else {
+                if (action === 'edit:start') {
+                    // always hide the applicable runmode buttons
+                    $(fields).filter('.btn').hide();
+
+                    // hide the display fields if there is a corresponding
+                    // edit field to show in its place
+                    _.each($(fields).filter(":not(.btn)"), function (field) {
+                        var $field = $(field),
+                            $edit = FH.getField($(editFields),
+                                                $field.attr('data-field'));
+
+                        if ($edit.length === 1) {
+                            $field.hide();
+                        }
+
+                    });
+
                 } else {
-                    if (action === 'edit:start') {
-                        // always hide the applicable runmode buttons
-                        $(fields).filter('.btn').hide();
-
-                        // hide the display fields if there is a corresponding
-                        // edit field to show in its place
-                        _.each(FH.excludeButtons(fields), function (field) {
-                            var $field = $(field),
-                                $edit = FH.getField($(editFields),
-                                                    $field.attr('data-field'));
-
-                            if ($edit.length === 1) {
-                                $field.hide();
-                            }
-
-                        });
-
-                    } else {
-                        $(fields).hide();
-                    }
+                    $(fields).hide();
                 }
             }
+        },
 
-            hideOrShow(editFields, eventsLandingInEditMode);
-            hideOrShow(displayFields, eventsLandingInDisplayMode);
-            hideOrShow(validationFields, ['save:error']);
-        };
+        enableOrDisableEditButton = function () {
+            var disable = $(editFields).filter(':not(.btn)').length === 0;
+            $edit.prop('disabled', disable);
+            $edit.attr('title', disable ? disabledMessage : '');
+        },
+
+        validationErrorsStream = responseErrorStream
+            .filter('.validationErrors')
+            .map('.validationErrors'),
+
+        unhandledErrorStream = responseErrorStream
+            .filter(BU.isPropertyUndefined, 'validationErrors')
+            .map('.error');
 
     saveOkStream
         .map('.formData')
         .onValue(formFieldsToDisplayValues);
 
-    responseStream.filter('.validationErrors')
-                  .map('.validationErrors')
-                  .onValue(showValidationErrorsInline);
+    validationErrorsStream.onValue(showValidationErrorsInline);
 
-    // TODO: Show success toast
-    // TODO: Show error toast
-    // TODO: Keep the details of showing toast out of
-    //       this module (use EventEmitter or callbacks)
+    unhandledErrorStream.onValue(errorCallback);
+    unhandledErrorStream.onValue(_.bind(console.error, console), "Error uploading to " + self.updateUrl);
 
     actionStream.plug(editStream);
     actionStream.plug(saveStream);
@@ -286,7 +295,7 @@ exports.init = function(options) {
     }
 
     actionStream.plug(
-        responseStream.filter('.error').map('save:error')
+        responseErrorStream.map('save:error')
     );
 
     actionStream.plug(
@@ -301,7 +310,11 @@ exports.init = function(options) {
             .filter(_.contains, eventsLandingInDisplayMode)
             .onValue(resetCollectionUdfs);
 
-    actionStream.onValue(hideAndShowElements);
+    actionStream.onValue(hideAndShowElements, editFields, eventsLandingInEditMode);
+    actionStream.onValue(hideAndShowElements, displayFields, eventsLandingInDisplayMode);
+    validationErrorsStream
+        .map('save:error')
+        .onValue(hideAndShowElements, validationFields, ['save:error']);
 
     var inEditModeProperty = actionStream.map(function (event) {
         return _.contains(eventsLandingInEditMode, event);

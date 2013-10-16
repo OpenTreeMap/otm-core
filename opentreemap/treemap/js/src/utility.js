@@ -2,7 +2,8 @@
 
 var url = require('url'),
     QS = require('querystring'),
-    $ = require('jquery');
+    $ = require('jquery'),
+    console = require('console-browserify');
 
 exports.getUpdatedQueryString = function (k, v) {
     var parsedUrl = url.parse(window.location.href, true);
@@ -112,9 +113,7 @@ exports.$find = function (selector, $parent) {
         $el = $(selector);
     }
     if ($el.length === 0) {
-        if (window.console) {
-            window.console.log('Selector not found: ' + selector);
-        }
+        console.warn('Selector not found: ' + selector);
     }
     return $el;
 };
