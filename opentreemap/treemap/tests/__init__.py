@@ -209,16 +209,17 @@ def logout(client):
     client.get('/accounts/logout/')
 
 
-def make_user(instance, username, make_role=None, admin=False):
+def make_user(instance=None, username='username', make_role=None, admin=False, password='password'):
     """
     Create a User with the given username, and an InstanceUser for the
     given instance. The InstanceUser's role comes from calling make_role()
     (if provided) or from the instance's default role.
     """
     user = make_plain_user(username)
-    role = make_role(instance) if make_role else instance.default_role
-    iuser = InstanceUser(instance=instance, user=user, role=role, admin=admin)
-    iuser.save_with_user(user)
+    if instance:
+        role = make_role(instance) if make_role else instance.default_role
+        iuser = InstanceUser(instance=instance, user=user, role=role, admin=admin)
+        iuser.save_with_user(user)
     return user
 
 
