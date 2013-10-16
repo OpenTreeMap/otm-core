@@ -121,7 +121,7 @@ function getBasemapLayers(config) {
         layers = [L.tileLayer(config.instance.basemap.data, { maxZoom: 20 })];
     } else {
         return {'Streets': new L.Google('ROADMAP', { maxZoom: 20 }),
-                'Hybird': new L.Google('HYBRID', { maxZoom: 20 }),
+                'Hybrid': new L.Google('HYBRID', { maxZoom: 20 }),
                 'Satellite': new L.Google('SATELLITE', { maxZoom: 20 })};
     }
     return layers;
