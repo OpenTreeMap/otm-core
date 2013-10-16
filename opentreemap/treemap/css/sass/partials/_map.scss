@@ -10,10 +10,25 @@
 }
 
 @each $direction in right, left, top, bottom {
-    .leaflet-#{$direction} .leaflet-control {
-        margin-#{$direction}: 16px;
+    .leaflet-#{$direction} {
+        z-index: 99;
+        
+        .leaflet-control {
+            margin-#{$direction}: 16px;
+        }
     }
 }
+
+.leaflet-control-layers-toggle {
+    background-image: url(/static/img/leaflet/layers.png) !important;
+}
+
+.leaflet-retina {
+    .leaflet-control-layers-toggle {
+        background-image: url(/static/img/leaflet/layers-2x.png) !important;
+    }
+}
+
 
 .leaflet-control {
 
