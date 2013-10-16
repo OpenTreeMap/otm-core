@@ -1,4 +1,5 @@
 {
     "mgmt": "cloud_management/js/src/app.js",
-    "createInstance": "cloud_management/js/src/createInstance.js"
+    "createInstance": "cloud_management/js/src/createInstance.js",
+    "superAdmin": "super_admin/js/src/superAdmin.js"
 }
