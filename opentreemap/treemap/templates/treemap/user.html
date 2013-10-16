@@ -77,7 +77,7 @@ active
 
 {% block scripts %}
 <script>
-(function(require) {
+(function(require, config) {
     require('user').init({
         inlineEditForm: {
             updateUrl: window.location.href,
@@ -87,7 +87,8 @@ active
             cancel: '#cancel-edit',
             displayFields: '[data-class="display"]',
             editFields: '[data-class="edit"]',
-            validationFields: '[data-class="error"]'
+            validationFields: '[data-class="error"]',
+            errorCallback: require('alerts').makeErrorCallback(config)
         },
         recentEdits: {
             recentEditsContainer: '#recent-user-edits-container',
@@ -95,6 +96,6 @@ active
             nextLink: '#recent-user-edits-next',
         }
     });
-})(require);
+})(require, otm.settings);
 </script>
 {% endblock scripts %}

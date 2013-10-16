@@ -35,6 +35,14 @@ var isUndefined = exports.isUndefined = function (value) {
     return value === undefined;
 };
 
+exports.isPropertyDefined = function(key, object) {
+    return isDefined(object) && isDefined(object[key]);
+};
+
+exports.isPropertyUndefined = function(key, object) {
+    return isUndefined(object) || isUndefined(object[key]);
+};
+
 // Used to get object property values
 // Needed for keys with '.' in them, as Bacon will treat a '.' a in key as an
 // indication that there are nested objects

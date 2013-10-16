@@ -174,7 +174,8 @@
 <script>
 {% localize off %}
 (function(require, config) {
-      var plot = require('plot');
+      var plot = require('plot'),
+          alerts = require('alerts');
 
       var updateUrl = window.location.href;
       var U = require('utility');
@@ -201,7 +202,8 @@
               cancel: '#cancel-edit-plot',
               displayFields: '[data-class="display"]',
               editFields: '[data-class="edit"]',
-              validationFields: '[data-class="error"]'
+              validationFields: '[data-class="error"]',
+              errorCallback: alerts.makeErrorCallback(config)
           },
           addTree: '#add-tree',
           cancelAddTree: '#cancel-add-tree',
