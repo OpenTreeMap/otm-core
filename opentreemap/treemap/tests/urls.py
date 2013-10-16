@@ -7,7 +7,7 @@ from django.test.utils import override_settings
 
 from treemap.models import Plot
 from treemap.tests import (make_instance, make_commander_user,
-                           make_simple_boundary)
+                           make_simple_boundary, RequestTestCase)
 from opentreemap.local_settings import STATIC_ROOT
 
 
@@ -210,3 +210,23 @@ class TreemapUrlTests(UrlTestCase):
             self.prefix + 'users/%s/recent_edits' % username,
             '/users/%s/recent_edits?instance_id=%s'
             % (username, self.instance.id))
+
+
+class InstanceUrlTests(RequestTestCase):
+    def setUp(self):
+        make_instance(name='The inztance',
+                      is_public=True,
+                      url_name='ThEiNsTaNCe')
+
+    def test_case_insensitive_url_lookup_upper(self):
+        res = self.client.get('/%s/map/' % 'THEINSTANCE')
+        self.assertOk(res)
+
+    def test_case_insensitive_url_lookup_lower(self):
+
+        res = self.client.get('/%s/map/' % 'theinstance')
+        self.assertOk(res)
+
+    def test_case_insensitive_url_lookup_mixed(self):
+        res = self.client.get('/%s/map/' % 'ThEINStanCe')
+        self.assertOk(res)

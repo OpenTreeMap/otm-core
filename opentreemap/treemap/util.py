@@ -111,10 +111,16 @@ def requires_feature(ft):
     return wrapper_function
 
 
+def get_instance_or_404(**kwargs):
+    new_kwargs = {('url_name__iexact' if k == 'url_name' else k): v
+                  for k, v in kwargs.iteritems()}
+    return get_object_or_404(Instance, **new_kwargs)
+
+
 def instance_request(view_fn):
     @wraps(view_fn)
     def wrapper(request, instance_url_name, *args, **kwargs):
-        instance = get_object_or_404(Instance, url_name=instance_url_name)
+        instance = get_instance_or_404(url_name=instance_url_name)
         # Include the instance as both a request property and as an
         # view function argument for flexibility and to keep "template
         # only" requests simple.
