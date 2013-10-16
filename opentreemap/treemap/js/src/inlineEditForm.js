@@ -273,6 +273,11 @@ exports.init = function(options) {
             .filter(BU.isPropertyUndefined, 'validationErrors')
             .map('.error');
 
+    // Prevent default form submission from clicking on buttons or pressing
+    // enter. Event is delegated on window since sometimes <form>s are inserted
+    // into the page via AJAX without reiniting inlineEditForm
+    $(window).on('submit', form, function(event) { event.preventDefault(); });
+
     saveOkStream
         .map('.formData')
         .onValue(formFieldsToDisplayValues);

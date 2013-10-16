@@ -17,7 +17,7 @@
     </div>
     <div class="add-step">
         <h4>2. {% trans "Additional information" %}</h4>
-        <form id="add-tree-form">
+        <form id="add-tree-form" onsubmit="return false;">
           {# The "add-tree-species" label is used as an id prefix in "species_ul.html" #}
           {% create "add-tree-species" from "tree.species" withtemplate "treemap/field/species_div.html" %}
           {% with hide_multiple_trunks=True %}
