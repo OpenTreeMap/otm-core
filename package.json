@@ -14,8 +14,7 @@
     "console-browserify": "~1.0.1"
   },
   "devDependencies": {
-    "grunt-browserify": "~1.2.8",
-    "browserify": "2.28",
+    "grunt-browserify": "1.2.5",
     "grunt": "~0.4",
     "grunt-contrib-jshint": "~0.6.0",
     "grunt-contrib-uglify": "~0.2.4",
