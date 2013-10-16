@@ -26,7 +26,8 @@ module.exports = exports = {
             template: "#species-element-template",
             hidden: "#search-species",
             button: "#species-toggle",
-            reverse: "id"
+            reverse: "id",
+            forceMatch: true
         });
         otmTypeahead.create({
             name: "boundaries",

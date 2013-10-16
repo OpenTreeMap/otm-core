@@ -1007,12 +1007,12 @@
                 if (this.showDefaultSuggestions) {
                     this._getSuggestions();
                 }
-                if (!this.dropdownView.isEmpty) {
-                    this._openDropdown();
-                }
+                this._openDropdown();
             },
             _openDropdown: function() {
-                this.dropdownView.open();
+                if (!this.dropdownView.isEmpty) {
+                    this.dropdownView.open();
+                }
             },
             _closeDropdown: function(e) {
                 this.dropdownView[e.type === "blured" ? "closeUnlessMouseIsOverDropdown" : "close"]();
