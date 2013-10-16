@@ -12,11 +12,16 @@ var $ = require('jquery'),
 var marker,
     markerPlacedByClickBus = new Bacon.Bus(),
     firstMoveBus = new Bacon.Bus(),
+    moveBus = new Bacon.Bus(),
     markerWasMoved,
     trackingMarker,
     config,
     lastMarkerLocation,
     map;
+
+var bindMarkerEventsOnce = _.once(function() {
+    marker.on('dragend', onMarkerMoved);   
+});
 
 exports = module.exports = {
 
@@ -33,6 +38,8 @@ exports = module.exports = {
 
     // Allows clients to be notified when a newly-placed marker is moved for the first time
     firstMoveStream: firstMoveBus,
+
+    moveStream: moveBus.map(_.identity),
 
     // Let user place the marker by clicking the map
     enablePlacing: function () {
@@ -65,12 +72,13 @@ exports = module.exports = {
         exports.disablePlacing();
         exports.place(event.latlng);
 
-        marker.on('dragend', onMarkerMoved);
+        bindMarkerEventsOnce();
 
         enableMoving();
 
-        markerPlacedByClickBus.push();
-        firstMoveBus.push();
+        markerPlacedByClickBus.push(marker.getLatLng());
+        firstMoveBus.push(marker.getLatLng());
+        moveBus.push(marker.getLatLng());
         markerWasMoved = true;
     },
 
@@ -149,7 +157,7 @@ var showViewMarker = _.partial(showMarker, false),
     showEditMarker = _.partial(showMarker, true);
 
 function showMarker(inEditMode) {
-    marker.on('dragend', onMarkerMoved);
+    bindMarkerEventsOnce();
 
     marker.setIcon(getMarkerIcon(inEditMode));
     marker.addTo(map);
@@ -167,8 +175,9 @@ function getMarkerIcon(inEditMode) {
 }
 
 function onMarkerMoved() {
+    moveBus.push(marker.getLatLng());
     if (!markerWasMoved) {
         markerWasMoved = true;
-        firstMoveBus.push();
+        firstMoveBus.push(marker.getLatLng());
     }
 }
