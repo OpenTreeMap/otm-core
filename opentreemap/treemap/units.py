@@ -3,13 +3,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import locale
 from functools import partial
 from numbers import Number
 
 from django.conf import settings
-
 from django.utils.translation import ugettext as trans
+from django.utils.formats import number_format
+
 from treemap.json_field import get_attr_from_json_field
 
 
@@ -87,13 +87,6 @@ def get_digits(instance, category_name, value_name):
     return digits
 
 
-def get_float_format(instance, category_name, value_name):
-    _, digits = get_value_display_attr(
-        instance, category_name, value_name, 'digits')
-    fmt = '%.' + str(digits) + 'f'
-    return digits, fmt
-
-
 def _is_configured_for(keys, category_name, value_name):
     defaults = settings.DISPLAY_DEFAULTS
     return (category_name in defaults
@@ -132,11 +125,11 @@ def get_display_value(instance, category_name, value_name, value):
         converted_value = value
 
     if is_formattable(category_name, value_name):
-        _, fmt = get_float_format(instance, category_name, value_name)
+        digits = int(get_digits(instance, category_name, value_name))
     else:
-        fmt = '%.1f'
+        digits = 1
 
-    return converted_value, locale.format(fmt, converted_value, grouping=True)
+    return converted_value, number_format(converted_value, decimal_pos=digits)
 
 
 def get_storage_value(instance, category_name, value_name, value):

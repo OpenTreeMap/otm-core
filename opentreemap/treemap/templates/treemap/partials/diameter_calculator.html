@@ -1,3 +1,4 @@
+{% load l10n %}
 {% load diameter %}
 
 <table id="diameter-calculator" class="table table-hover">
@@ -19,13 +20,13 @@
         <input class="input-small"
                data-class="diameter-input"
                type="text"
-               value="{{ field.value|default_if_none:"" }}"/>
+               value="{{ field.value|default_if_none:""|unlocalize }}"/>
       </td>
       <td>
         <input class="input-small"
                data-class="circumference-input"
                type="text"
-               value="{{ field.value|to_circumference|floatformat:"3" }}"
+               value="{{ field.value|to_circumference|unlocalize }}"
                />
       </td>
       {% if not hide_multiple_trunks %}

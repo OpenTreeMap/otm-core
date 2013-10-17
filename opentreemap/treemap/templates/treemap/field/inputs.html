@@ -1,4 +1,5 @@
 {# vim: set filetype=htmldjango : #}
+{% load l10n %}
 {% load dateformat %}
 {% if field.data_type == 'choice' %}
     <select name="{{ field.identifier }}" {{ extra|default_if_none:"" }}
@@ -37,7 +38,7 @@
     <input name="{{ field.identifier }}"
            type="text"
            class="{{ class|default_if_none:"" }}"
-           value="{{ field.value|default_if_none:"" }}"
+           value="{{ field.value|default_if_none:""|unlocalize }}"
            {{ extra|default:"" }} />
     <span class="add-on">{{ field.units }}</span>
   </div>
@@ -45,7 +46,7 @@
     <input name="{{ field.identifier }}"
            type="text"
            class="{{ class|default_if_none:"" }}"
-           value="{{ field.value|default_if_none:"" }}"
+           value="{{ field.value|default_if_none:""|unlocalize }}"
            {{ extra|default:"" }} />
   {% endif %}
 {% endif %}
