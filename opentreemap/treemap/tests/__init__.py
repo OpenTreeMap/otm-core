@@ -193,10 +193,11 @@ def make_observer_role(instance):
     return make_loaded_role(instance, 'observer', 2, permissions)
 
 
-def make_plain_user(username):
-    user = User(username=username)
-    user.set_password("password")  # hashes password, allowing authentication
+def make_plain_user(username, password='password'):
+    user = User(username=username, email='%s@example.com' % username)
+    user.set_password(password)  # hashes password, allowing authentication
     user.save()
+
     return user
 
 
@@ -209,16 +210,19 @@ def logout(client):
     client.get('/accounts/logout/')
 
 
-def make_user(instance, username, make_role=None, admin=False):
+def make_user(instance=None, username='username', make_role=None,
+              admin=False, password='password'):
     """
     Create a User with the given username, and an InstanceUser for the
     given instance. The InstanceUser's role comes from calling make_role()
     (if provided) or from the instance's default role.
     """
-    user = make_plain_user(username)
-    role = make_role(instance) if make_role else instance.default_role
-    iuser = InstanceUser(instance=instance, user=user, role=role, admin=admin)
-    iuser.save_with_user(user)
+    user = make_plain_user(username, password)
+    if instance:
+        role = make_role(instance) if make_role else instance.default_role
+        iuser = InstanceUser(instance=instance, user=user,
+                             role=role, admin=admin)
+        iuser.save_with_user(user)
     return user
 
 
@@ -253,6 +257,12 @@ def make_user_and_role(instance, username, rolename, permissions):
     return make_user(instance, username, make_role)
 
 
+def delete_all_app_users():
+    for app_user in User.objects.exclude(pk=User._system_user.pk):
+        InstanceUser.objects.filter(user_id=app_user.pk).delete()
+        app_user.delete_with_user(User._system_user)
+
+
 def make_instance(name=None, is_public=False, url_name=None):
     if name is None:
         max_instance = Instance.objects.all().aggregate(
@@ -285,7 +295,8 @@ def create_mock_system_user():
     try:
         system_user = User.objects.get(username="system_user")
     except Exception:
-        system_user = User(username="system_user")
+        system_user = User(username="system_user",
+                           email='noreplyx02x0@example.com')
         system_user.id = settings.SYSTEM_USER_ID
 
     User._system_user = system_user

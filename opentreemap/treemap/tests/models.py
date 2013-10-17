@@ -11,20 +11,19 @@ from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 
 from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
-                            ImportEvent, User)
+                            ImportEvent)
 from treemap.audit import Audit, ReputationMetric
 from treemap.management.commands.migrate_otm1 import hash_to_model
 from treemap.management.commands import create_instance
 
 from treemap.tests import (make_instance, make_commander_user,
-                           make_user_with_default_role,
+                           make_user_with_default_role, make_user,
                            make_simple_boundary, make_commander_role)
 
 
 class CreateInstanceManagementTest(TestCase):
     def setUp(self):
-        self.user = User(username='WALL-E', password='EVE')
-        self.user.save()
+        self.user = make_user(username='WALL-E', password='EVE')
 
     def test_can_create_instance(self):
         center = '0,0'
@@ -175,8 +174,7 @@ class ModelUnicodeTests(TestCase):
                                species='Test Species')
         self.species.save_base()
 
-        self.user = User(username='commander', password='pw')
-        self.user.save()
+        self.user = make_user(username='commander', password='pw')
 
         self.import_event = ImportEvent(imported_by=self.user)
         self.import_event.save_base()
@@ -527,8 +525,7 @@ class InstanceUserModelTest(TestCase):
         self.assertEqual(iuser.instance, self.instance)
 
     def test_get_instance_user_fails(self):
-        user = User(username='joe', password='pw')
-        user.save()
+        user = make_user(username='joe', password='pw')
         self.assertEqual(user.get_instance_user(self.instance), None)
 
 

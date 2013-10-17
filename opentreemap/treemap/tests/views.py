@@ -39,8 +39,9 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
-                           make_simple_boundary, make_request,
-                           add_field_permissions, MockSession)
+                           make_simple_boundary, make_request, make_user,
+                           add_field_permissions, MockSession,
+                           delete_all_app_users)
 
 import psycopg2
 
@@ -571,7 +572,7 @@ class PlotUpdateTest(unittest.TestCase):
     def tearDown(self):
         self.plot.delete_with_user(self.user)
         self.choice_field.delete()
-        self.user.delete_with_user(User._system_user)
+        delete_all_app_users()
 
     def test_creates_new_plot(self):
         plot = Plot(instance=self.instance)
@@ -1590,8 +1591,7 @@ class InstanceUserViewTests(ViewTestCase):
     def setUp(self):
         super(InstanceUserViewTests, self).setUp()
 
-        self.commander = User(username="commander", password='pw')
-        self.commander.save()
+        self.commander = make_user(username="commander", password='pw')
 
     def test_get_by_username_redirects(self):
         res = instance_user_view(make_request(),
