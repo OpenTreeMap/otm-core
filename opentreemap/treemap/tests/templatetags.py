@@ -8,7 +8,6 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.contrib.auth.models import AnonymousUser
 
-import unittest
 import tempfile
 import json
 import os
@@ -17,7 +16,7 @@ from shutil import rmtree
 from treemap.audit import FieldPermission, Role
 from treemap.json_field import set_attr_on_json_field
 from treemap.udf import UserDefinedFieldDefinition
-from treemap.models import User, Plot, InstanceUser
+from treemap.models import Plot, InstanceUser
 from treemap.tests import (make_instance, make_observer_user,
                            make_commander_user, make_user)
 
@@ -27,8 +26,7 @@ class UserCanReadTagTest(TestCase):
     def setUp(self):
         self.instance = make_instance()
 
-        self.user = User(username='user', password='user')
-        self.user.save()
+        self.user = make_user(username='user', password='user')
 
         self.role = Role(name='role', instance=self.instance, rep_thresh=0)
         self.role.save()
@@ -193,11 +191,9 @@ class UserContentTagTests(TestCase):
     def setUp(self):
         self.instance = make_instance()
 
-        self.user = User(username='someone', password='someone')
-        self.user.save()
+        self.user = make_user(username='someone', password='someone')
 
-        self.public_user = User(username='public', password='public')
-        self.public_user.save()
+        self.public_user = make_user(username='public', password='public')
 
     def _render_template_with_user(self, template, req_user, content_user):
         return template.render(Context({
@@ -440,7 +436,7 @@ class InlineFieldTagTests(TestCase):
             self._form_template_labelless_for)
 
     def test_sets_is_visible_to_false_for_user_without_perms(self):
-        user = User(username='testuser')
+        user = make_user(username='testuser')
         self.assert_plot_length_context_value(user, 'field.is_visible',
                                               'False')
 
@@ -449,7 +445,7 @@ class InlineFieldTagTests(TestCase):
             self.observer, 'field.is_visible', 'True')
 
     def test_sets_is_editable_to_false_for_user_without_perms(self):
-        user = User(username='testuser')
+        user = make_user(username='testuser')
         self.assert_plot_length_context_value(user, 'field.is_editable',
                                               'False')
 
@@ -459,7 +455,7 @@ class InlineFieldTagTests(TestCase):
                                               'True')
 
     def test_udf_sets_is_visible_to_false_for_user_without_perms(self):
-        user = User(username='testuser')
+        user = make_user(username='testuser')
         self.assert_plot_udf_context_value(user, 'field.is_visible', 'False')
 
     def test_udf_sets_is_visible_to_true_for_user_with_perms(self):
@@ -468,7 +464,7 @@ class InlineFieldTagTests(TestCase):
         self.assert_plot_udf_context_value(user, 'field.is_visible', 'True')
 
     def test_udf_sets_is_editable_to_false_for_user_without_perms(self):
-        user = User(username='testuser')
+        user = make_user(username='testuser')
         self.assert_plot_udf_context_value(user, 'field.is_editable', 'False')
 
     def test_udf_sets_is_editable_to_true_for_user_with_perms(self):
@@ -615,7 +611,7 @@ class InlineFieldTagTests(TestCase):
                 )).strip()
 
 
-class DiameterTagsTest(unittest.TestCase):
+class DiameterTagsTest(TestCase):
     def setUp(self):
         self.template = Template("{% load diameter %}"
                                  "{{ value|to_circumference }}")

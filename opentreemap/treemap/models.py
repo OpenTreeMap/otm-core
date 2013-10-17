@@ -182,8 +182,15 @@ class User(Auditable, AbstractUser):
     def save(self, *args, **kwargs):
         self.full_clean()
 
+        self.email = self.email.lower()
+
         system_user = User.system_user()
         self.save_with_user(system_user, *args, **kwargs)
+
+# dynamically modify User.email to be unique, instead of
+# inheriting and overriding AbstractBaseUser and PermissionMixin
+email_field, _, _, _ = User._meta.get_field_by_name('email')
+email_field._unique = True
 
 
 class Species(UDFModel, Authorizable, Auditable):

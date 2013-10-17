@@ -26,7 +26,7 @@ from api.models import APIKey, APILog
 from api.views import (InvalidAPIKeyException, plot_or_tree_permissions,
                        plot_permissions,
                        _parse_application_version_header_as_dict)
-from treemap.tests import create_mock_system_user
+from treemap.tests import create_mock_system_user, make_user
 
 import os
 import base64
@@ -311,6 +311,7 @@ class PlotListing(TestCase):
 
     def tearDown(self):
         teardownTreemapEnv()
+        User.objects.filter(username__in=['peon', 'duke', 'leroi']).delete()
 
     def test_recent_edits(self):
         #TODO: Test recent edits
@@ -328,13 +329,13 @@ class PlotListing(TestCase):
         ghost = AnonymousUser()
         self.ghost = ghost
 
-        peon = User(username="peon", password='pw')
+        peon = make_user(username="peon", password='pw')
         peon.save_with_user(self.u)
 
-        duke = User(username="duke", password='pw')
+        duke = make_user(username="duke", password='pw')
         duke.save_with_user(self.u)
 
-        leroi = User(username="leroi", password='pw')
+        leroi = make_user(username="leroi", password='pw')
         leroi.active = True
         leroi.save_with_user(self.u)
 
@@ -386,6 +387,7 @@ class PlotListing(TestCase):
             self.assertEqual(self.mkd(False, False),
                              plot_or_tree_permissions(t, None))
 
+    @skip("this is not a real test")
     def test_a_user_with_delete_access_can_delete(self):
         self.setup_edit_flags_test()
         #TODO::: Fill out this test
