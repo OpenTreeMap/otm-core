@@ -18,6 +18,7 @@ var $ = require('jquery'),
 
 exports.init = function(options) {
     var $addTree = $(options.addTree),
+        $noTreeMessage = $(options.noTreeMessage),
         $cancelAddTree = $(options.cancelAddTree),
         $addTreeSection = $(options.addTreeSection),
         $treeSection = $(options.treeSection);
@@ -130,10 +131,12 @@ exports.init = function(options) {
 
     function showAddTree() {
         $addTree.show();
+        $noTreeMessage.show();
         $cancelAddTree.hide();
     }
     function hideAddTree() {
         $addTree.hide();
+        $noTreeMessage.hide();
         $cancelAddTree.hide();
     }
     $(options.inlineEditForm.edit).click(showAddTree);
@@ -142,6 +145,7 @@ exports.init = function(options) {
         var $editFields = $(options.inlineEditForm.editFields),
             plotId = FH.getSerializableField($editFields, 'plot.id').val();
         $addTree.hide();
+        $noTreeMessage.hide();
         $cancelAddTree.show();
         $treeSection.show();
         FH.getSerializableField($editFields, 'tree.plot').val(plotId);
@@ -149,6 +153,7 @@ exports.init = function(options) {
     $cancelAddTree.click(function() {
         var $editFields = $(options.inlineEditForm.editFields);
         $addTree.show();
+        $noTreeMessage.show();
         $cancelAddTree.hide();
         $treeSection.hide();
         FH.getSerializableField($editFields, 'tree.plot').val('');
