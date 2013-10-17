@@ -24,14 +24,8 @@
     [zoom = 15] {
        marker-width: 8;
     }
-    [zoom = 14] {
+    [zoom <= 14] {
        marker-width: 5;
-    }
-    [zoom = 13] {
-       marker-width: 3;
-    }
-    [zoom < 13] {
-       marker-width: 2;
     }
 
 }
