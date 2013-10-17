@@ -7,6 +7,9 @@ API_VERSION = 'v0.1'
 
 FEATURE_BACKEND_FUNCTION = None
 
+# This email is shown in various contact/error pages
+# throughout the site
+SUPPORT_EMAIL_ADDRESS = 'support@yoursite.com'
 SYSTEM_USER_ID = -1
 
 # Storage backend config

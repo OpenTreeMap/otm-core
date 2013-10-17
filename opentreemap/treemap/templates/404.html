@@ -23,7 +23,7 @@
                     {% else %}
                         {% trans "You're welcome to " %}
                     {% endif %}
-                    <a href="mailto:opentreemap@azavea.com">{% trans "contact support" %}</a> 
+                    <a href="mailto:{{ settings.SUPPORT_EMAIL_ADDRESS }}">{% trans "contact support" %}</a>
                     {% trans "if you feel like you reached this page in error." %}
                 </p>
         </div>
