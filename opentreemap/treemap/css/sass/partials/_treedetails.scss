@@ -18,3 +18,9 @@
 	min-width: 100%;
 	margin-bottom: 10px;
 }
+
+// Needed because bootstrap breaks street view on firefox
+// by setting max-width: 100% on all <img> tags
+.street-view-small img {
+    max-width: none;
+}
