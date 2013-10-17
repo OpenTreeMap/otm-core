@@ -153,11 +153,11 @@
 <div class="footer-inner">
   <ul class="inline pull-left">
     {% with linkData=request.instance|instance_config:"linkData" %}
-    <li><a href="{% if linkData.treekey %}{{ linkData.treekey }}{% else %}http://www.arborday.org/trees/whatTree/{% endif %}">{% trans "Tree Key" %}</a></li>
+    <li><a href="{% if 'treekey' in linkData.keys and linkData.treekey %}{{ linkData.treekey }}{% else %}http://www.arborday.org/trees/whatTree/{% endif %}">{% trans "Tree Key" %}</a></li>
     <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page='Resources' %}">{% trans "Resources" %}</a></li>
     <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page='FAQ' %}">{% trans "FAQ" %}</a></li>
     <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page='About' %}">{% trans "About" %}</a></li>
-    {% if linkData.contact %}
+    {% if 'contact' in linkData.keys and linkData.contact %}
     <li><a href="mailto:{{ linkData.contact }}">{% trans "Contact" %}</a></li>
     {% endif %}
     {% endwith %}
