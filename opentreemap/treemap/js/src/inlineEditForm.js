@@ -234,7 +234,12 @@ exports.init = function(options) {
 
         hideAndShowElements = function (fields, actions, action) {
             if (_.contains(actions, action)) {
-                $(fields).show();
+                $(fields).each(function() {
+                    var $field = $(this);
+                    if ($field.html().trim() !== "") {
+                        $field.show();
+                    }
+                });
             } else {
                 if (action === 'edit:start') {
                     // always hide the applicable runmode buttons
@@ -317,9 +322,7 @@ exports.init = function(options) {
 
     actionStream.onValue(hideAndShowElements, editFields, eventsLandingInEditMode);
     actionStream.onValue(hideAndShowElements, displayFields, eventsLandingInDisplayMode);
-    validationErrorsStream
-        .map('save:error')
-        .onValue(hideAndShowElements, validationFields, ['save:error']);
+    actionStream.onValue(hideAndShowElements, validationFields, ['save:error']);
 
     var inEditModeProperty = actionStream.map(function (event) {
         return _.contains(eventsLandingInEditMode, event);
