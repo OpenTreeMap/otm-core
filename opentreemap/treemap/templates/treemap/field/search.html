@@ -7,15 +7,15 @@
     </div>
     <div class="form-group">
     {% if field.search_type == 'RANGE' %}
-      {% with 'data-class=search data-search-type=MIN' as extras %}
-          {% include "treemap/field/inputs.html" with extra=extras %}
+      {% with 'data-class=search data-search-type=MIN' as extra %}
+          {% include "treemap/field/inputs.html" %}
       {% endwith %}
         <div class="text-separator">
           {# Translators: text in-between min and max search filter boxes #}
           {% trans " to " %}
         </div>
-      {% with 'data-class=search data-search-type=MIN' as extra %}
-          {% include "treemap/field/inputs.html" with extra=extras %}
+      {% with 'data-class=search data-search-type=MAX' as extra %}
+          {% include "treemap/field/inputs.html" %}
       {% endwith %}
     {% else %}
       {% with 'data-class=search data-search-type='|add:field.search_type as extras %}

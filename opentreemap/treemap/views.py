@@ -6,7 +6,6 @@ import string
 import re
 import urllib
 import json
-import locale
 import hashlib
 import datetime
 
@@ -23,6 +22,7 @@ from django.conf import settings
 from django.contrib.gis.geos.point import Point
 from django.contrib.auth.decorators import login_required
 from django.utils.translation import ugettext as trans
+from django.utils.formats import number_format
 from django.db import transaction
 from django.db.models import Q
 
@@ -645,10 +645,6 @@ def _execute_filter(instance, filter_str):
 
 
 def search_tree_benefits(request, instance):
-    # locale.format does not insert grouping chars unless
-    # the locale is set
-    locale.setlocale(locale.LC_ALL, '')
-
     try:
         filter_str = request.REQUEST['q']
     except KeyError:
@@ -692,8 +688,8 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
         benefit = benefits[key]
 
         if currency_factor:
-            benefit['currency_saved'] = locale.format(
-                '%d', benefit['value'] * currency_factor, grouping=True)
+            benefit['currency_saved'] = number_format(
+                benefit['value'] * currency_factor, decimal_pos=0)
 
         _, value = get_display_value(instance, 'eco', key, benefit['value'])
         benefit['value'] = value
