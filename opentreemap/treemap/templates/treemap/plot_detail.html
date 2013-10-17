@@ -60,7 +60,7 @@
         <!-- Tree Information -->
         <h4>{% trans "Tree Information" %}</h4>
         <div id="add-tree-section" {{ has_tree|yesno:"style=display:none;," }}>
-          {% trans "There is no tree for this plot." %}
+          <span id="no-tree-message">{% trans "There is no tree for this plot." %}</span>
           {% usercancreate tree %}
           <a href="javascript:;" id="add-tree" class="btn" style="display: none;">{% trans "Add Tree" %}</a>
           <a href="javascript:;" id="cancel-add-tree" class="btn"
@@ -206,6 +206,7 @@
               errorCallback: alerts.makeErrorCallback(config)
           },
           addTree: '#add-tree',
+          noTreeMessage: '#no-tree-message',
           cancelAddTree: '#cancel-add-tree',
           addTreeSection: '#add-tree-section',
           treeSection: '#tree-details',
