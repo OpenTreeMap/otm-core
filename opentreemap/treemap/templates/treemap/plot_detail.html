@@ -141,7 +141,7 @@
     <div class="span3">
       <button
          disabled="disabled"
-         data-enabled-perm='{{ request.instance_user|plot_field_is_writable:"geom" }}'
+         data-always-enable="{{ request.instance_user|plot_field_is_writable:"geom" }}"
          data-disabled-title="{% trans "Editing a plot's location is not available to all users" %}"
          data-href="{{ request.get_full_path }}"
          style="display:none"
