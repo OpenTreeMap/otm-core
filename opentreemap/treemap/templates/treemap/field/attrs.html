@@ -1,6 +1,7 @@
+{% load l10n %}
 data-field="{{ field.identifier }}"
 data-class="{{ class }}"
-data-value="{{ field.value|default_if_none:"" }}"
+data-value="{{ field.value|default_if_none:""|unlocalize }}"
 data-type="{{ field.data_type }}"
 data-units="{{ field.units }}"
 data-digits="{{ field.digits }}"
