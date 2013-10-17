@@ -9,12 +9,14 @@
     right: 350px; 
 }
 
-@each $direction in right, left, top, bottom {
-    .leaflet-#{$direction} {
-        z-index: 99;
-        
-        .leaflet-control {
-            margin-#{$direction}: 16px;
+.leaflet-control-container {
+    @each $direction in right, left, top, bottom {
+        .leaflet-#{$direction} {
+            z-index: 99;
+            
+            .leaflet-control {
+                margin-#{$direction}: 16px;
+            }
         }
     }
 }
@@ -119,6 +121,7 @@ span.tt-dropdown-menu {
             padding: 8px 10px;
             border-bottom: 1px solid $light-gray-color;
             
+            &.tt-is-under-cursor, 
             &:hover {
                 background-color: $light-gray-color;
             }
