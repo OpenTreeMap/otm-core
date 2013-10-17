@@ -23,12 +23,19 @@ var $ = require('jquery'),
     enablePermSelector = '[' + enablePermAttr + ']',
     config;
 
+function removeActionableDataAttributes($el) {
+    // in case it triggers a modal
+    $el.removeAttr('data-target');
+    // in case an event is bound to this element
+    $el.removeAttr('data-action');
+}
+
 function makeRedirectToLogin($el, href) {
 
     var fullHref = config.loginUrl + href;
 
     $el.attr('disabled', false);
-    $el.removeAttr('data-target'); // in case it triggers a modal
+    removeActionableDataAttributes($el);
 
     if ($el.is('a')) { $el.attr('href', fullHref); }
     else if ($el.is('button')) {
@@ -46,7 +53,7 @@ function fullyEnable($el, href) {
 
 function fullyDisable($el, disabledTitle) {
     $el.off('click');
-    $el.removeAttr('data-target'); // in case it triggers a modal
+    removeActionableDataAttributes($el);
     if (disabledTitle) { $el.attr('title', disabledTitle); }
 }
 
