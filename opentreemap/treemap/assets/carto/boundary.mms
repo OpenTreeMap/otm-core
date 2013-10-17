@@ -2,6 +2,7 @@
 	::case {
     	line-width: 5;
     	line-color:#ddd;
+    	line-opacity: 0.4;
   	}
   	::fill {
     	line-width: 0.5;

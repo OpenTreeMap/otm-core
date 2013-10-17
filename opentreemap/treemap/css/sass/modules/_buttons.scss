@@ -30,7 +30,7 @@
         cursor: default;
     }
 
-    @include button-size(12px);
+    @include button-size(14px);
     &.btn-large		{ @include button-size(18px); }
     &.btn-small		{ @include button-size(12px); }
     &.btn-mini		{ @include button-size(10px); }

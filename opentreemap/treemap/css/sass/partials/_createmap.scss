@@ -122,6 +122,7 @@
 	
 	.price-level {
 		padding: 0;
+		width: 25%;
 
 		&:first-child .price-body {
 			border-left: solid 1px $light-gray-color;
@@ -219,5 +220,12 @@
 		background: rgba(255,255,255,.5);
 		display: block;
 		width: 85%;
+	}
+	.btn {
+		margin: 0 auto;
+		width: 250px;
+		padding: 22px 25px 25px;
+		font-size: 1.75em;
+		display: block;
 	}
 }

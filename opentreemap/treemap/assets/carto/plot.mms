@@ -22,16 +22,10 @@
        marker-width: 12;
     }
     [zoom = 15] {
-       marker-width: 7;
+       marker-width: 8;
     }
-    [zoom = 14] {
-       marker-width: 3;
-    }
-    [zoom = 13] {
-       marker-width: 2;
-    }
-    [zoom < 13] {
-       marker-width: 1;
+    [zoom <= 14] {
+       marker-width: 5;
     }
 
 }
