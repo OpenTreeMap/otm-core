@@ -7,14 +7,17 @@ import hashlib
 import re
 
 from django.conf import settings
+from django.core.mail import send_mail
 from django.core.exceptions import ValidationError
+from django.core import validators
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.db import IntegrityError
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as trans
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import (UserManager, AbstractBaseUser,
+                                        PermissionsMixin)
 
 from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
                            Dictable, Audit, AuthorizableQuerySet,
@@ -132,7 +135,85 @@ class BenefitCurrencyConversion(Dictable, models.Model):
         super(BenefitCurrencyConversion, self).save(*args, **kwargs)
 
 
-class User(Auditable, AbstractUser):
+# This is copy and pasted with syntex mods from the source for `AbstractUser`
+# from the django source code, which is suboptimal. This was done because you
+# can't have your cake and eat it too: inheriting AbstractUser but modifying
+# one of the core fields.
+#
+# This code caused failures in gunicorn but not django runserver or tests:
+#
+# # dynamically modify User.email to be unique, instead of
+# # inheriting and overriding AbstractBaseUser and PermissionMixin
+# email_field, _, _, _ = User._meta.get_field_by_name('email')
+# email_field._unique = True
+#
+# TODO: Fix this abstraction, and/or prune out parts of this class that
+# are not needed, and merge with the User class.
+#
+# see the following code sample for the original `AbstractUser` source
+# https://raw.github.com/django/django/53c7d66869636a6cf2b8c03c4de01ddff16f9892/django/contrib/auth/models.py  # NOQA
+class AbstractUniqueEmailUser(AbstractBaseUser, PermissionsMixin):
+    """
+    An abstract base class implementing a fully featured User model with
+    admin-compliant permissions.
+
+    Username, password and email are required. Other fields are optional.
+    """
+    username = models.CharField(
+        trans('username'), max_length=30, unique=True,
+        help_text=trans(
+            'Required. 30 characters or fewer. Letters, numbers and '
+            '@/./+/-/_ characters'),
+        validators=[
+            validators.RegexValidator(
+                re.compile('^[\w.@+-]+$'),
+                trans('Enter a valid username.'), 'invalid')
+        ])
+    first_name = models.CharField(
+        trans('first name'), max_length=30, blank=True)
+    last_name = models.CharField(
+        trans('last name'), max_length=30, blank=True)
+    email = models.EmailField(trans('email address'), blank=True, unique=True)
+    is_staff = models.BooleanField(
+        trans('staff status'), default=False,
+        help_text=trans('Designates whether the user can log into this admin '
+                        'site.'))
+    is_active = models.BooleanField(
+        trans('active'), default=True,
+        help_text=trans('Designates whether this user should be treated as '
+                        'active. Unselect this instead of deleting accounts.'))
+    date_joined = models.DateTimeField(trans('date joined'),
+                                       default=timezone.now)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email']
+
+    class Meta:
+        verbose_name = trans('user')
+        verbose_name_plural = trans('users')
+        abstract = True
+
+    def get_full_name(self):
+        """
+        Returns the first_name plus the last_name, with a space in between.
+        """
+        full_name = '%s %s' % (self.first_name, self.last_name)
+        return full_name.strip()
+
+    def get_short_name(self):
+        "Returns the short name for the user."
+        return self.first_name
+
+    def email_user(self, subject, message, from_email=None, **kwargs):
+        """
+        Sends an email to this User.
+        """
+        send_mail(subject, message, from_email, [self.email], **kwargs)
+
+
+class User(Auditable, AbstractUniqueEmailUser):
     _system_user = None
 
     @classmethod
@@ -187,11 +268,6 @@ class User(Auditable, AbstractUser):
 
         system_user = User.system_user()
         self.save_with_user(system_user, *args, **kwargs)
-
-# dynamically modify User.email to be unique, instead of
-# inheriting and overriding AbstractBaseUser and PermissionMixin
-email_field, _, _, _ = User._meta.get_field_by_name('email')
-email_field._unique = True
 
 
 class Species(UDFModel, Authorizable, Auditable):
