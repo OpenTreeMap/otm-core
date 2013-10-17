@@ -9,12 +9,16 @@
         margin: 15px 0 10px;
         float: left;
         font-size: 1.5em;
-        width: 200px;
+        width: auto;
+        text-overflow: ellipsis;
+        max-width: 250px;
+        overflow: hidden;
 
         small {
             font-size: 0.5em;
             color: #c2c2c2;
-            float: left;
+            display: block;
+            line-height: 21px;
         }
     }
     .user-photo {
