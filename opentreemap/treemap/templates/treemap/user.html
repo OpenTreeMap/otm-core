@@ -50,7 +50,7 @@ active
                     {% endfor %}
                     <ul class="chunk" data-class="display">
                         <li class="chunk-label">{% trans "Password" %}</li>
-                        <li class="chunk-content"><a href="javascript:;">{% trans "Reset" %}</a></li>
+                        <li class="chunk-content"><a href="{% url 'django.contrib.auth.views.password_reset' %}">{% trans "Reset" %}</a></li>
                     </ul>
                     <ul class="chunk">
                         <li class="chunk-label">{% trans "Emails" %}</li>
