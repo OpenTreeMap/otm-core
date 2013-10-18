@@ -12,6 +12,10 @@ FEATURE_BACKEND_FUNCTION = None
 SUPPORT_EMAIL_ADDRESS = 'support@yoursite.com'
 SYSTEM_USER_ID = -1
 
+# This should be the google analytics id without
+# the 'GTM-' prefix
+GOOGLE_ANALYTICS_ID = None
+
 # Storage backend config
 # Uncomment the following to enable S3-backed storage:
 # DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
