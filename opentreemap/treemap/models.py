@@ -241,6 +241,9 @@ class User(Auditable, AbstractUniqueEmailUser):
             raise IntegrityError(msg)
 
     def get_effective_instance_user(self, instance):
+        if instance is None:
+            return None
+
         instance_user = self.get_instance_user(instance)
         # If the user has no instance user yet, we need to provide a default so
         # that template filters can determine whether that user can perform an
