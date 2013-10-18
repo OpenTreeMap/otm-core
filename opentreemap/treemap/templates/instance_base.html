@@ -31,7 +31,6 @@
   <a href="{% url settings.MANAGEMENT_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Manage Tree Map" %}</a>
 </li>
 {% endif %}
-{% endwith %}
 <li class="{% block activerecentedits %}{% endblock %}">
   <a href="{% url 'recent_edits' instance_url_name=request.instance.url_name %}">{% trans "Recent Edits" %}</a>
 </li>
