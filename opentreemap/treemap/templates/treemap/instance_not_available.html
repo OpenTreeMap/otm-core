@@ -10,7 +10,11 @@
 {% endblock subhead %}
 
 {% block content %}
-<h3>{% trans "This map is not available." %}</h3>
+<div class="content">
+  <div class="well error-panel">
+    <h3>{% trans "The map you requested is not available all users." %}</h3>
+  </div>
+</div>
 {% endblock content %}
 
 {% block scripts %}
