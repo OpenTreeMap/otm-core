@@ -29,12 +29,13 @@ body {
 .content {
 	position: relative;
 	overflow: auto;
-	padding-bottom: 50px;
+	margin-bottom: 39px;
 
 	&.map {
 		position: absolute;
 		overflow: hidden;
 		padding-bottom: 40px;
+		margin-bottom: 0;
 		top: 203px;
 		width: 100%;
 		bottom: 0;
@@ -82,11 +83,10 @@ body {
 	h5 {
 		margin-bottom: 6px;
 	}
-	p {
-		font-size: 0.75em;
-	}
-	ul, ol {
+	p, li {
 		font-size: 0.875em;
+		font-weight: 300;
+		line-height: 1.5em;
 	}
 }
 
