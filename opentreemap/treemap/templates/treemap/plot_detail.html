@@ -32,7 +32,7 @@
       <button id="toggle-add-photo-modal"
          data-toggle="modal"
          data-target="#add-photo-modal"
-         data-always-enable="{{ request.instance_user.can_add_photos_to_tree }}"
+         data-always-enable="{{ last_effective_instance_user.can_add_photos_to_tree }}"
          data-href="{{ request.get_full_path }}"
          disabled="disabled"
          data-disabled-title="{% trans "Adding tree photos is not available to all users" %}"
@@ -49,7 +49,7 @@
       <button id="edit-plot"
               data-class="display"
               disabled="disabled"
-              data-always-enable="{{ request.instance_user|plot_is_writable }}"
+              data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
               data-href="{{ request.get_full_path }}"
               data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
               class="btn">{% trans "Edit" %}</button>
@@ -141,7 +141,7 @@
     <div class="span3">
       <button
          disabled="disabled"
-         data-always-enable="{{ request.instance_user|plot_field_is_writable:"geom" }}"
+         data-always-enable="{{ last_effective_isntance_user|plot_field_is_writable:"geom" }}"
          data-disabled-title="{% trans "Editing a plot's location is not available to all users" %}"
          data-href="{{ request.get_full_path }}"
          style="display:none"

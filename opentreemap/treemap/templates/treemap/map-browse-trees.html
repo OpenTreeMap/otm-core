@@ -13,7 +13,7 @@
         <button class="btn"
                 data-class="display"
                 id="edit-details-button"
-                data-always-enable="{{ request.instance_user|plot_is_writable }}"
+                data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
                 data-href="{{ request.get_full_path }}"
                 data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
                 disabled="disabled">Edit Details</button>
@@ -24,14 +24,14 @@
       </div>
       <div id="move-plot-buttons">
         <button class="btn btn-block"
-                data-always-enable="{{ request.instance_user|plot_field_is_writable:"geom" }}"
+                data-always-enable="{{ last_effective_instance_user|plot_field_is_writable:"geom" }}"
                 data-href="{{ request.get_full_path }}"
                 data-disabled-title="{% trans "Editing a plot's location is not available to all users" %}"
                 style="display:none"
                 id="edit-plot-location"
                 disabled="disabled">Move Tree</button>
         <button class="btn btn-success btn-block"
-                data-always-enable="{{ request.instance_user|plot_field_is_writable:"geom" }}"
+                data-always-enable="{{ last_effective_instance_user|plot_field_is_writable:"geom" }}"
                 data-href="{{ request.get_full_path }}"
                 data-disabled-title="{% trans "Editing a plot's location is not available to all users" %}"
                 style="display:none"

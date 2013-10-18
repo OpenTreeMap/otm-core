@@ -36,7 +36,6 @@ def plot_field_is_writable(instanceuser, field):
 
 @register.filter
 def plot_is_writable(instanceuser, field=None):
-
     if instanceuser is None or instanceuser == '':
         return False
     else:
