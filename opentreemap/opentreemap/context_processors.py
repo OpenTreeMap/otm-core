@@ -5,8 +5,11 @@ from treemap.util import get_last_visited_instance
 
 def global_settings(request):
     last_instance = get_last_visited_instance(request)
-    last_effective_instance_user = request.user.get_effective_instance_user(
-        last_instance)
+    if request.user.is_authenticated():
+        last_effective_instance_user =\
+            request.user.get_effective_instance_user(last_instance)
+    else:
+        last_effective_instance_user = None
     if hasattr(request, 'instance') and request.instance.logo:
         logo_url = request.instance.logo.url
     else:
