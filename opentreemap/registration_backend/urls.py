@@ -3,6 +3,8 @@ from django.conf.urls import include
 from django.conf.urls import url
 from django.views.generic.base import TemplateView
 
+from registration.forms import RegistrationFormUniqueEmail
+
 from views import RegistrationView, ActivationView
 
 
@@ -18,7 +20,7 @@ urlpatterns = patterns('',
        ActivationView.as_view(),
        name='registration_activate'),
     url(r'^register/$',
-       RegistrationView.as_view(),
+        RegistrationView.as_view(form_class=RegistrationFormUniqueEmail),
        name='registration_register'),
     url(r'^register/complete/$',
        TemplateView.as_view(template_name='registration/registration_complete.html'),  # NOQA
