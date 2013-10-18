@@ -33,7 +33,7 @@ exports.init = function(options) {
 
     exports.map = map;
 
-    map.utfEvents = BU.wrapOnEvent(utfLayer, 'click');
+    map.utfEvents = BU.leafletEventStream(utfLayer, 'click');
 
     exports.updateGeoRevHash = function(geoRevHash) {
         if (geoRevHash !== config.instance.rev) {
