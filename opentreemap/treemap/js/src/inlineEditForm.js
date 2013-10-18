@@ -195,6 +195,9 @@ exports.init = function(options) {
         },
 
         showValidationErrorsInline = function (errors) {
+            $(validationFields).each(function() {
+                $(this).html('');
+            });
             _.each(errors, function (errorList, fieldName) {
                 FH.getField($(validationFields), fieldName)
                     .html(errorList.join(','));
@@ -234,12 +237,7 @@ exports.init = function(options) {
 
         hideAndShowElements = function (fields, actions, action) {
             if (_.contains(actions, action)) {
-                $(fields).each(function() {
-                    var $field = $(this);
-                    if ($field.html().trim() !== "") {
-                        $field.show();
-                    }
-                });
+                $(fields).show();
             } else {
                 if (action === 'edit:start') {
                     // always hide the applicable runmode buttons
