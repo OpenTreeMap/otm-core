@@ -52,10 +52,10 @@
             {% block instancetopnav %}
             {% if last_instance %}
               <li class="{% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=last_instance.url_name %}">{% trans "Explore Trees" %}</a></li>
-              {% if last_instance|feature_enabled:'add_plot' %}
+              {% if last_instance|feature_enabled:'add_plot' and last_effective_instance_user %}
               <li data-feature="add_plot">
                 <a data-class='add-tree'
-                   data-always-enable='{{ request.instance_user|plot_is_writable }}'
+                   data-always-enable='{{ last_effective_instance_user|plot_is_writable }}'
                    data-disabled-title='{% trans "Adding trees is not available to all users" %}'
                    data-href="{% url 'map' instance_url_name=last_instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}"
                    disabled='disabled'>{% trans "Add a Tree" %}</a>
@@ -70,7 +70,7 @@
                 <a href="{% url 'profile' %}">{% trans "My Account" %}
                   {% if last_instance %}
                     {% if reputation %}
-                    <span class="reputation">({{ request.instance_user.reputation }} rep)</span>
+                    <span class="reputation">({{ last_effective_instance_user.reputation }} rep)</span>
                     {% endif %}
                   {% endif %}
                 </a>

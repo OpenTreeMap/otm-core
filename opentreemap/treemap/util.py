@@ -311,3 +311,44 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None):
         return image_file, thumb_file
     except:
         raise ValidationError('Could not upload image')
+
+
+def login_or_401(view_fn):
+    """
+    A function decorator that works similarly to Django's login_required,
+    except instead of redirecting to a login page, it returns an unauthorized
+    status code.
+    Intended for AJAX endpoints where it would not make sense to redirect
+    """
+    @wraps(view_fn)
+    def wrapper(request, *args, **kwargs):
+        if request.user.is_authenticated():
+            return view_fn(request, *args, **kwargs)
+        else:
+            return HttpResponse('Unauthorized', status=401)
+
+    return wrapper
+
+
+def creates_instance_user(view_fn):
+    @wraps(view_fn)
+    def wrapper(request, instance, *args, **kwargs):
+        # When I placed this import up top I got a AUTH_USER_MODEL error,
+        # which usually implies there an issue loading and validating models.
+        # Putting it here fixed it.
+        from treemap.models import InstanceUser
+
+        if request.user.get_instance_user(instance) is None:
+            if instance.feature_enabled('auto_add_instance_user'):
+                InstanceUser(
+                    instance=instance,
+                    user=request.user,
+                    role=instance.default_role
+                ).save_with_user(request.user)
+            else:
+                raise FeatureNotEnabledException(
+                    'Users cannot join this map automatically')
+
+        return view_fn(request, instance, *args, **kwargs)
+
+    return wrapper

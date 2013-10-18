@@ -240,6 +240,19 @@ class User(Auditable, AbstractUniqueEmailUser):
                    % (self, instance))
             raise IntegrityError(msg)
 
+    def get_effective_instance_user(self, instance):
+        instance_user = self.get_instance_user(instance)
+        # If the user has no instance user yet, we need to provide a default so
+        # that template filters can determine whether that user can perform an
+        # action that will make them into an instance user
+        if (instance_user is None
+           and instance.feature_enabled('auto_add_instance_user')):
+            return InstanceUser(user=self,
+                                instance=instance,
+                                role=instance.default_role)
+        else:
+            return instance_user
+
     def get_instance_permissions(self, instance, model_name=None):
         role = self.get_role(instance)
         perms = FieldPermission.objects.filter(role=role)
