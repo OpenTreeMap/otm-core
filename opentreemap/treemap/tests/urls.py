@@ -39,6 +39,9 @@ class UrlTestCase(TestCase):
     def assert_404(self, url, method='GET', data=''):
         return self.assert_status_code(url, 404, method, data)
 
+    def assert_401(self, url, method='GET', data=''):
+        return self.assert_status_code(url, 401, method, data)
+
     def assert_redirects(self, url, expected_url, status_code=302):
         response = self.client.get(url)
         self.assertRedirects(response, expected_url, status_code)
@@ -162,7 +165,7 @@ class TreemapUrlTests(UrlTestCase):
             json.dumps({"plot.length": "1"}))
 
     def test_plot_detail_update_invalid(self):
-        self.assert_404(self.prefix + 'plots/999/', 'PUT',
+        self.assert_401(self.prefix + 'plots/999/', 'PUT',
                         json.dumps({"plot.length": "1"}))
 
     def test_plot_popup(self):

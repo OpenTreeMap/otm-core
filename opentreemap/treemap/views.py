@@ -29,7 +29,8 @@ from django.db.models import Q
 from treemap.util import (json_api_call, render_template, instance_request,
                           require_http_method, package_validation_errors,
                           bad_request_json_response, string_as_file_call,
-                          requires_feature, get_instance_or_404)
+                          requires_feature, get_instance_or_404,
+                          creates_instance_user, login_or_401)
 
 from treemap.search import create_filter
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
@@ -995,15 +996,21 @@ map_view = instance_request(
 get_plot_detail_view = instance_request(
     render_template('treemap/plot_detail.html', plot_detail))
 
+edit_plot_detail_view = login_required(
+    instance_request(
+        creates_instance_user(
+            render_template('treemap/plot_detail.html', plot_detail))))
+
 get_plot_eco_view = instance_request(etag(_plot_hash)(
     render_template('treemap/partials/plot_eco.html', plot_detail)))
 
 get_plot_sidebar_view = instance_request(etag(_plot_hash)(
     render_template('treemap/partials/sidebar.html', plot_detail)))
 
-edit_plot_detail_view = login_required(get_plot_detail_view)
-
-update_plot_detail_view = json_api_call(instance_request(update_plot_detail))
+update_plot_detail_view = login_or_401(
+    json_api_call(
+        instance_request(
+            creates_instance_user(update_plot_detail))))
 
 plot_popup_view = instance_request(etag(_plot_hash)(
     render_template('treemap/partials/plot_popup.html', plot_detail)))
@@ -1012,7 +1019,10 @@ plot_accordion_view = instance_request(
     render_template('treemap/plot_accordion.html', plot_detail))
 
 add_plot_view = require_http_method("POST")(
-    json_api_call(instance_request(add_plot)))
+    login_or_401(
+        json_api_call(
+            instance_request(
+                creates_instance_user(add_plot)))))
 
 root_settings_js_view = render_template('treemap/settings.js',
                                         {'BING_API_KEY':
@@ -1050,7 +1060,10 @@ unsupported_view = render_template("treemap/unsupported.html")
 landing_view = render_template("base.html")
 
 add_tree_photo_endpoint = require_http_method("POST")(
-    json_api_call(instance_request(add_tree_photo_view)))
+    login_or_401(
+        json_api_call(
+            instance_request(
+                creates_instance_user(add_tree_photo_view)))))
 
 scss_view = require_http_method("GET")(
     string_as_file_call("text/css", compile_scss))
@@ -1070,8 +1083,9 @@ next_photo_endpoint = instance_request(
         GET=render_template("treemap/partials/photo.html",
                             next_photo)))
 
-approve_or_reject_photo_view = instance_request(
-    approve_or_reject_photo)
+approve_or_reject_photo_view = login_required(
+    instance_request(
+        creates_instance_user(approve_or_reject_photo)))
 
 static_page_view = instance_request(
     render_template("treemap/staticpage.html", static_page))
