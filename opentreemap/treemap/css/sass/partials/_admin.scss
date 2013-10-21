@@ -63,5 +63,21 @@
     
     .tab-content {
         overflow: hidden;
+
+        > .tab-pane {
+            min-height: 650px;
+        }
+    }
+
+    .messages,
+    .text-error {
+        &:empty {
+            display: none !important;
+        }
+
+        > ul,
+        > p {
+            margin: 0;
+        }
     }
 }
