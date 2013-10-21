@@ -73,6 +73,11 @@ class RootUrlTests(UrlTestCase):
         user = make_commander_user(self.instance)
         self.assert_template('/users/%s/' % user.username, 'treemap/user.html')
 
+    def test_user_with_weird_characters(self):
+        self.instance = make_instance()
+        user = make_commander_user(self.instance, username='dot.name-site.com')
+        self.assert_template('/users/%s/' % user.username, 'treemap/user.html')
+
     def test_user_invalid(self):
         self.assert_404('/users/nobody/')
 
