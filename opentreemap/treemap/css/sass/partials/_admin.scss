@@ -69,9 +69,10 @@
         }
     }
 
-    .messages {
+    .messages,
+    .text-error {
         &:empty {
-            display: none;
+            display: none !important;
         }
 
         > ul,
