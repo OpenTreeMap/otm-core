@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load l10n %}
 {% load diameter %}
 
@@ -9,6 +10,7 @@
         {% if not hide_multiple_trunks %}
           <th>
             <a id="add-trunk-row"
+               title="{% trans "Additional Trunk" %}"
                class="btn btn-mini" href="javascript:;"><i class="icon-plus"></i></a>
           </th>
         {% endif %}
