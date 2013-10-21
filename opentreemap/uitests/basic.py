@@ -1,6 +1,7 @@
 from unittest import TestCase
 from treemap.models import User
 from registration.models import RegistrationProfile
+from django.conf import settings
 
 import uitests
 
@@ -26,9 +27,12 @@ class LoginLogoutTest(TestCase):
         global userUUID
 
         username = 'autotest%s' % userUUID
+        email = '%s@testing.org' % username
         userUUID += 1
 
-        u = User(username=username, email='%s@testing.org' % username)
+        User.objects.filter(email=email).delete()
+
+        u = User(username=username, email=email)
         u.set_password(username)
         u.save()
         setattr(u, 'plain_password', username)
@@ -46,11 +50,9 @@ class LoginLogoutTest(TestCase):
         submit.click()
 
     def test_invalid_login(self):
-        self.driver.get("http://localhost/")
-
-        # find the element that's name attribute is q (the google search box)
-        login = self.driver.find_element_by_id("login")
-        login.click()
+        self.driver.get("http://localhost:%s/accounts/login/" %
+                        settings.UITESTS_PORT)
+        self.driver.implicitly_wait(10)
 
         login_url = self.driver.current_url
 
@@ -66,7 +68,8 @@ class LoginLogoutTest(TestCase):
         self.assertEqual(len(errors), 1)
 
     def test_valid_login(self):
-        self.driver.get("http://localhost/")
+        self.driver.get("http://localhost:%s/accounts/login/" %
+                        settings.UITESTS_PORT)
 
         login_url = self.driver.current_url
 
@@ -84,7 +87,7 @@ class LoginLogoutTest(TestCase):
         self.assertIn(self.user.username, self.driver.current_url)
 
         emails = self.driver.find_elements_by_xpath(
-            "//li[@data-field='user.email']")
+            "//*[@data-field='user.email']")
 
         self.assertGreater(len(emails), 0, 'data-field = user.email not found')
 
