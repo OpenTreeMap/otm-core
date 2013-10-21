@@ -586,8 +586,9 @@ def user_audits(request, username):
 
 def instance_user_audits(request, instance_url_name, username):
     instance = get_instance_or_404(url_name=instance_url_name)
-    return HttpResponseRedirect('/users/%s/recent_edits?instance_id=%s'
-                                % (username, instance.pk))
+    return HttpResponseRedirect(
+        reverse('user_audits', kwargs={'username': username})
+        + '?instance_id=%s' % instance.pk)
 
 
 def boundary_to_geojson(request, instance, boundary_id):
@@ -792,8 +793,8 @@ def _get_map_view_context(request, instance_id):
 
 def instance_user_view(request, instance_url_name, username):
     instance = get_instance_or_404(url_name=instance_url_name)
-    url = '/users/%(username)s?instance_id=%(instance_id)s' %\
-        {'username': username, 'instance_id': instance.pk}
+    url = reverse('user', kwargs={'username': username}) +\
+        '?instance_id=%s' % instance.pk
     return HttpResponseRedirect(url)
 
 

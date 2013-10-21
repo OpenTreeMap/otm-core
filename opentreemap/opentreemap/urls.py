@@ -30,9 +30,9 @@ urlpatterns = patterns(
     url(r'^', include('geocode.urls')),
     url(r'^$', landing_view),
     url(r'^config/settings.js$', root_settings_js_view),
-    url(r'^users/(?P<username>\w+)/?$',
+    url(r'^users/(?P<username>\w+)/$',
         route(GET=user_view, PUT=update_user_view), name='user'),
-    url(r'^users/(?P<username>\w+)/recent_edits$', user_audits_view,
+    url(r'^users/(?P<username>\w+)/edits/$', user_audits_view,
         name='user_audits'),
     url(r'^api/v2/', include('api.urls')),
     # The profile view is handled specially by redirecting to
