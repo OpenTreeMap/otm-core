@@ -13,6 +13,7 @@ from django.conf import settings
 
 from pyvirtualdisplay import Display
 
+
 class Command(BaseCommand):
     """
     Uses a custom test runner to run UI acceptance tests
