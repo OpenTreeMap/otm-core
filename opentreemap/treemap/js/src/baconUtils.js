@@ -128,7 +128,7 @@ exports.leafletSingleClickStream = function(leafletThing, doubleClickTime) {
     var clickStream = exports.leafletEventStream(leafletThing, 'click'),
         singleClickStream = clickStream.bufferWithTimeOrCount(doubleClickTime, 2)
             .filter(function (clicks) {
-                return clicks.length < 2
+                return clicks.length < 2;
             })
             .map(_.first);
     return singleClickStream;
