@@ -10,6 +10,8 @@ from treemap.views import (user_view, root_settings_js_view,
                            unsupported_view, landing_view, scss_view)
 
 from treemap.instance import URL_NAME_PATTERN
+from treemap.urls import USERNAME_PATTERN
+
 instance_pattern = r'^(?P<instance_url_name>' + URL_NAME_PATTERN + r')'
 
 from django.contrib import admin
@@ -30,10 +32,10 @@ urlpatterns = patterns(
     url(r'^', include('geocode.urls')),
     url(r'^$', landing_view),
     url(r'^config/settings.js$', root_settings_js_view),
-    url(r'^users/(?P<username>\w+)/$',
+    url(r'^users/%s/$' % USERNAME_PATTERN,
         route(GET=user_view, PUT=update_user_view), name='user'),
-    url(r'^users/(?P<username>\w+)/edits/$', user_audits_view,
-        name='user_audits'),
+    url(r'^users/%s/edits/$' % USERNAME_PATTERN,
+        user_audits_view, name='user_audits'),
     url(r'^api/v2/', include('api.urls')),
     # The profile view is handled specially by redirecting to
     # the page of the currently logged in user
