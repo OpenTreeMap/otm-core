@@ -4,6 +4,7 @@ from __future__ import division
 
 import unittest
 import sys
+import importlib
 
 from optparse import make_option
 
@@ -11,9 +12,6 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 
 from pyvirtualdisplay import Display
-
-import uitests
-
 
 class Command(BaseCommand):
     """
@@ -34,17 +32,26 @@ class Command(BaseCommand):
                             'leave extra data behind (such as users) or '
                             'delete data that already exists.')
 
-        suite = unittest.TestLoader().loadTestsFromModule(uitests)
-
         disp = Display(visible=0, size=(800, 600))
         disp.start()
 
-        try:
-            uitests.setUpModule()
-            rslt = unittest.TextTestRunner(verbosity=2).run(suite)
-        finally:
-            uitests.tearDownModule()
-            disp.stop()
+        errors = False
+        for module in settings.UITESTS:
+            uitests = importlib.import_module(module)
+            suite = unittest.TestLoader().loadTestsFromModule(uitests)
 
-        if not rslt.wasSuccessful():
+            try:
+                if hasattr(uitests, 'setUpModule'):
+                    uitests.setUpModule()
+
+                rslt = unittest.TextTestRunner(verbosity=2).run(suite)
+            finally:
+                if hasattr(uitests, 'tearDownModule'):
+                    uitests.tearDownModule()
+                disp.stop()
+
+            if not rslt.wasSuccessful():
+                errors = True
+
+        if errors:
             sys.exit(1)
