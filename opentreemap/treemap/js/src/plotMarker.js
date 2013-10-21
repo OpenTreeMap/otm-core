@@ -10,7 +10,6 @@ var $ = require('jquery'),
     L = require('leaflet');
 
 var marker,
-    markerPlacedByClickBus = new Bacon.Bus(),
     firstMoveBus = new Bacon.Bus(),
     moveBus = new Bacon.Bus(),
     markerWasMoved,
@@ -28,9 +27,6 @@ exports = module.exports = {
 
     bindPopup: function(pop) { marker.bindPopup(pop); },
     unbindPopup: function() { marker.unbindPopup(); },
-
-    // Allows clients to be notified when user places marker by clicking the map
-    markerPlacedByClickStream: markerPlacedByClickBus,
 
     // Allows clients to be notified when a newly-placed marker is moved for the first time
     firstMoveStream: firstMoveBus,
@@ -53,7 +49,7 @@ exports = module.exports = {
 
         trackingMarker.addTo(map);
 
-        map.on('click', exports.addMarkerToMap);
+        map.on('click', onMarkerPlacedByClick);
     },
 
     disablePlacing: function() {
@@ -61,19 +57,7 @@ exports = module.exports = {
             map.removeLayer(trackingMarker);
         }
 
-        map.off('click', exports.addMarkerToMap);
-    },
-
-    addMarkerToMap: function(event) {
-        exports.disablePlacing();
-        exports.place(event.latlng);
-
-        enableMoving();
-
-        markerPlacedByClickBus.push(marker.getLatLng());
-        firstMoveBus.push(marker.getLatLng());
-        moveBus.push(marker.getLatLng());
-        markerWasMoved = true;
+        map.off('click', onMarkerPlacedByClick);
     },
 
     // Put marker at the specified location (WebMercator, {x: lon, y: lat})
@@ -134,6 +118,14 @@ exports = module.exports = {
         return markerWasMoved;
     }
 };
+
+function onMarkerPlacedByClick(event) {
+    exports.disablePlacing();
+    exports.place(event.latlng);
+
+    enableMoving();
+    onMarkerMoved();
+}
 
 // Let user move the marker by dragging it with the mouse
 function enableMoving() {

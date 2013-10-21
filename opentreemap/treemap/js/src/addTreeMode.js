@@ -110,7 +110,6 @@ function init(options) {
         }),
         geocodeResponseStream = gcoder.geocodeStream(addressStream),
         cleanupLocationFeedbackStream = Bacon.mergeAll([
-            plotMarker.markerPlacedByClickStream,
             searchTriggerStream,
             geolocateStream,
             markerFirstMoveStream,
