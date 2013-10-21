@@ -32,7 +32,7 @@ urlpatterns = patterns(
     url(r'^boundaries/(?P<boundary_id>\d+)/geojson/$',
         boundary_to_geojson_view),
     url(r'^boundaries/$', boundary_autocomplete_view),
-    url(r'^recent_edits', audits_view, name='recent_edits'),
+    url(r'^edits/$', audits_view, name='recent_edits'),
     url(r'^photo_review/$', photo_review_endpoint),
     url(r'^photo_review/next$', next_photo_endpoint),
     url(r'^photo_review/partial$', photo_review_partial_endpoint),
@@ -67,6 +67,6 @@ urlpatterns = patterns(
     url(r'^config/settings.js$',
         instance_settings_js_view, name='settings'),
     url(r'^benefit/search$', search_tree_benefits_view),
-    url(r'^users/(?P<username>\w+)/?$', instance_user_view),
-    url(r'^users/(?P<username>\w+)/recent_edits/?$', instance_user_audits),
+    url(r'^users/(?P<username>\w+)/$', instance_user_view),
+    url(r'^users/(?P<username>\w+)/edits/$', instance_user_audits),
 )

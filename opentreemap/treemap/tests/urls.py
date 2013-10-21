@@ -81,17 +81,17 @@ class RootUrlTests(UrlTestCase):
     def test_user_audits(self):
         self.instance = make_instance()
         username = make_commander_user(self.instance).username
-        self.assert_template('/users/%s/recent_edits' % username,
+        self.assert_template('/users/%s/edits/' % username,
                              'treemap/recent_user_edits.html')
-        self.assert_template('/users/%s/recent_edits?instance_id=%s'
+        self.assert_template('/users/%s/edits/?instance_id=%s'
                              % (username, self.instance.id),
                              'treemap/recent_user_edits.html')
 
     def test_user_audits_invalid(self):
         self.instance = make_instance()
         username = make_commander_user(self.instance).username
-        self.assert_404('/users/fake/recent_edits')
-        self.assert_404('/users/%s/recent_edits?instance_id=0' % username)
+        self.assert_404('/users/fake/edits/')
+        self.assert_404('/users/%s/edits/?instance_id=0' % username)
 
     def test_dynamic_scss(self):
         self.assert_200('/main.css?primary-color=fff')
@@ -141,7 +141,7 @@ class TreemapUrlTests(UrlTestCase):
 
     def test_recent_edits(self):
         self.assert_template(
-            self.prefix + 'recent_edits/', 'treemap/recent_edits.html')
+            self.prefix + 'edits/', 'treemap/recent_edits.html')
 
     def test_species_list(self):
         self.assert_200(self.prefix + 'species/')
@@ -205,13 +205,13 @@ class TreemapUrlTests(UrlTestCase):
         username = make_commander_user(self.instance).username
         self.assert_redirects(
             self.prefix + 'users/%s/' % username,
-            '/users/%s?instance_id=%s' % (username, self.instance.id))
+            '/users/%s/?instance_id=%s' % (username, self.instance.id))
 
     def test_user_audits(self):
         username = make_commander_user(self.instance).username
         self.assert_redirects(
-            self.prefix + 'users/%s/recent_edits' % username,
-            '/users/%s/recent_edits?instance_id=%s'
+            self.prefix + 'users/%s/edits/' % username,
+            '/users/%s/edits/?instance_id=%s'
             % (username, self.instance.id))
 
 
