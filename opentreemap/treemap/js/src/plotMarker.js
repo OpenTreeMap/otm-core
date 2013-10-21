@@ -19,10 +19,6 @@ var marker,
     lastMarkerLocation,
     map;
 
-var bindMarkerEventsOnce = _.once(function() {
-    marker.on('dragend', onMarkerMoved);   
-});
-
 exports = module.exports = {
 
     init: function(theConfig, theMap) {
@@ -72,8 +68,6 @@ exports = module.exports = {
         exports.disablePlacing();
         exports.place(event.latlng);
 
-        bindMarkerEventsOnce();
-
         enableMoving();
 
         markerPlacedByClickBus.push(marker.getLatLng());
@@ -99,12 +93,13 @@ exports = module.exports = {
         }
 
         if (marker) {
-            map.removeLayer(marker);
+            marker.setLatLng(latlng);
+        } else {
+            marker = L.marker(latlng, {
+                icon: getMarkerIcon(true)
+            });
+            marker.on('dragend', onMarkerMoved);
         }
-
-        marker = L.marker(latlng, {
-            icon: getMarkerIcon(true)
-        });
 
         showViewMarker();
         markerWasMoved = false;
@@ -157,8 +152,6 @@ var showViewMarker = _.partial(showMarker, false),
     showEditMarker = _.partial(showMarker, true);
 
 function showMarker(inEditMode) {
-    bindMarkerEventsOnce();
-
     marker.setIcon(getMarkerIcon(inEditMode));
     marker.addTo(map);
 }
