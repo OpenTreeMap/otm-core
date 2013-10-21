@@ -13,8 +13,8 @@ from registration.backends.default.views\
 
 class RegistrationView(DefaultRegistrationView):
 
-    def _create_inactive_user_and_send_email(self, request, username,
-                                             email, password):
+    def create_inactive_user(self, request, username,
+                             email, password):
         """
         Register a inactive user account with the specified
         username, email, and password.
@@ -22,18 +22,7 @@ class RegistrationView(DefaultRegistrationView):
         Creates a new user model object, and a new
         ``registration.models.RegistrationProfile`` tied to the new user
         and containing the activation key used for this account.
-
-        An email will be sent to the supplied email address containing an
-        activation link. The email is rendered using two templates. See the
-        documentation for ``RegistrationProfile.send_activation_email()`` for
-        information about these templates and the contexts provided to
-        them.
         """
-        if Site._meta.installed:
-            site = Site.objects.get_current()
-        else:
-            site = RequestSite(request)
-
         new_user = get_user_model()()
         new_user.username = username
         new_user.set_password(password)
@@ -43,9 +32,19 @@ class RegistrationView(DefaultRegistrationView):
 
         registration_profile =\
             RegistrationProfile.objects.create_profile(new_user)
-        registration_profile.send_activation_email(site)
-    _create_inactive_user_and_send_email =\
-        transaction.commit_on_success(_create_inactive_user_and_send_email)
+
+        return registration_profile
+
+    create_inactive_user =\
+        transaction.commit_on_success(create_inactive_user)
+
+    def send_activation_email(self, profile, request):
+        if Site._meta.installed:
+            site = Site.objects.get_current()
+        else:
+            site = RequestSite(request)
+
+        profile.send_activation_email(site)
 
     def register(self, request, **cleaned_data):
         """
@@ -68,14 +67,17 @@ class RegistrationView(DefaultRegistrationView):
         the new ``User`` as the keyword argument ``user`` and the
         class of this backend as the sender.
         """
-        new_user = self._create_inactive_user_and_send_email(request,  # NOQA
+        profile = self.create_inactive_user(request,  # NOQA
             cleaned_data['username'],
             cleaned_data['email'],
             cleaned_data['password1'])
+
+        self.send_activation_email(profile, request)
+
         signals.user_registered.send(sender=self.__class__,
-                                     user=new_user,
+                                     user=profile.user,
                                      request=request)
-        return new_user
+        return profile.user
 
 
 class ActivationView(DefaultActivationView):
