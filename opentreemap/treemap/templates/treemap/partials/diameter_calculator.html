@@ -38,5 +38,6 @@
   </tbody>
 </table>
 {% if not hide_multiple_trunks %}
+<p id="diameter-calculator-total-row" style="visibility: hidden;">Total Diameter: <span id="diameter-calculator-total-reference">{{ field.value|default_if_none:""|unlocalize }}</span>{% if field.units %} {{ field.units }}{% endif %}</p>
 <a href="http://player.vimeo.com/video/11119129" target="_blank"><i class="icon-videocam"></i> Measuring multiple trunks?</a>
 {% endif %}

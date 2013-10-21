@@ -4,6 +4,6 @@
 {% block label %}{% trans "Total Trunk Diameter" %}{% endblock %}
 
 {% block inputs %}
-  {% include "treemap/field/inputs.html" with extra='readonly=readonly' %}
+  {% include "treemap/field/inputs.html" with extra='style="display:none"' unit_extra='style="display:none"' %}
   {% include "treemap/partials/diameter_calculator.html" %}
 {% endblock inputs %}
