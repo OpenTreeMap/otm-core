@@ -21,7 +21,7 @@ module.exports = exports = {
             $advancedPane = $("#advanced-search-pane");
         otmTypeahead.create({
             name: "species",
-            url: config.instance.url + "species",
+            url: config.instance.url + "species/",
             input: "#species-typeahead",
             template: "#species-element-template",
             hidden: "#search-species",
@@ -31,7 +31,7 @@ module.exports = exports = {
         });
         otmTypeahead.create({
             name: "boundaries",
-            url: config.instance.url + "boundaries",
+            url: config.instance.url + "boundaries/",
             input: "#boundary-typeahead",
             template: "#boundary-element-template",
             hidden: "#boundary",

@@ -98,8 +98,8 @@ function init(config, mapManager, triggerSearchBus) {
 
 function getSpeciesTypeaheadOptions(config, idPrefix) {
     return {
-        name: "species",
-        url: "/" + config.instance.url + "species",
+        name: "species-edit",
+        url: config.instance.url + "species/",
         input: "#" + idPrefix + "-typeahead",
         template: "#species-element-template",
         hidden: "#" + idPrefix + "-hidden",
