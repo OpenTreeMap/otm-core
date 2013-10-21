@@ -48,6 +48,8 @@ otm.settings.errorMessages.default = otm.settings.errorMessages['500'];
 
 otm.settings.addTreeUrlHash = '{{ settings.ADD_TREE_URL_HASH }}';
 
+otm.settings.doubleClickInterval = '{{ settings.DOUBLE_CLICK_INTERVAL }}';
+
 {% if request.instance %}
     otm.settings.instance = {
         'id': '{{ request.instance.id }}',

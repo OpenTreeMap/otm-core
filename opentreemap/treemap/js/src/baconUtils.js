@@ -112,13 +112,26 @@ exports.enterOrClickEventStream = function(options) {
     return triggerEventStream;
 };
 
-exports.wrapOnEvent = function(thing, event) {
+exports.leafletEventStream = function(leafletThing, event) {
     return Bacon.fromBinder(function (handler) {
-        thing.on(event, handler);
+        leafletThing.on(event, handler);
         return function() {
-            return thing.off(event, handler);
+            return leafletThing.off(event, handler);
         };
     });
+};
+
+exports.leafletSingleClickStream = function(leafletThing, doubleClickTime) {
+    // Return clicks on 'leafletThing' that aren't double clicks.
+    // We can't know what time interval the OS uses for double clicks,
+    // so we do our own interval checking.
+    var clickStream = exports.leafletEventStream(leafletThing, 'click'),
+        singleClickStream = clickStream.bufferWithTimeOrCount(doubleClickTime, 2)
+            .filter(function (clicks) {
+                return clicks.length < 2
+            })
+            .map(_.first);
+    return singleClickStream;
 };
 
 exports.triggeredObjectStream = function (obj) {

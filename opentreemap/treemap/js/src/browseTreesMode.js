@@ -54,7 +54,7 @@ function init(options) {
     // Leaflet needs both the content and a coordinate to
     // show a popup, so zip map clicks together with content
     // requested via ajax
-    BU.wrapOnEvent(map, 'click')
+    BU.leafletEventStream(map, 'click')
        .filter(inMyMode)
        .map('.latlng')
        .zip(popupHtmlStream, makePopup) // TODO: size is not being sent to makePopup
