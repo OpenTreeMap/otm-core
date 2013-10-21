@@ -40,7 +40,7 @@
            class="{{ class|default_if_none:"" }}"
            value="{{ field.value|default_if_none:""|unlocalize }}"
            {{ extra|default:"" }} />
-    <span class="add-on">{{ field.units }}</span>
+    <span class="add-on" {{ unit_extra|default:"" }}>{{ field.units }}</span>
   </div>
   {% else %}
     <input name="{{ field.identifier }}"

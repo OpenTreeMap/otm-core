@@ -8,6 +8,8 @@ var $ = require('jquery'),
     _addRowBtnSelector = '#add-trunk-row',
     _tbodySelector = '#diameter-worksheet',
     _trunkRowSelector = '#trunk-row',
+    _totalRowSelector = '#diameter-calculator-total-row',
+    _totalReferenceSelector = '#diameter-calculator-total-reference',
     _totalFieldSelector = 'input[name="tree.diameter"]';
 
 function eventToText(e) {
@@ -80,11 +82,13 @@ function updateTotalDiameter ($parentForm) {
     // to the db with the values from the worksheet
     var $diameterFields = $parentForm.find(_diameterSelector),
         $totalField = $parentForm.find(_totalFieldSelector),
+        $totalReference = $parentForm.find(_totalReferenceSelector),
         diameterValues = _.map($diameterFields,
                                _.compose(textToFloat, elementToText)),
         validValues = _.reject(diameterValues, isNaN),
         totalDiameter = calculateDiameterFromMultiple(validValues);
 
+    $totalReference.html(totalDiameter);
     $totalField.val(totalDiameter);
 }
 
@@ -103,11 +107,16 @@ function createWorksheetRow ($parentForm) {
         html = $templateTr.html(),
         $newEl = $('<tr>').append(html),
         $circEl = $newEl.find(_circumferenceSelector),
-        $diamEl = $newEl.find(_diameterSelector);
+        $diamEl = $newEl.find(_diameterSelector),
+        $totalRow = $(_totalRowSelector);
 
     $diamEl.val('');
     $circEl.val('');
     $tbody.append($newEl);
+
+    // when a row is added, make the total row visible.
+    // it will remain visible thereafter.
+    $totalRow.css('visibility', 'visible');
 }
 
 function updateCorrespondingRowValue ($parentForm, event) {
