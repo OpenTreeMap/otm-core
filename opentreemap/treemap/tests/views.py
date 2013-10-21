@@ -1597,7 +1597,7 @@ class InstanceUserViewTests(ViewTestCase):
         res = instance_user_view(make_request(),
                                  self.instance.url_name,
                                  self.commander.username)
-        expected_url = '/users/%s?instance_id=%d' %\
+        expected_url = '/users/%s/?instance_id=%d' %\
             (self.commander.username, self.instance.id)
         self.assertEquals(res.status_code, 302, "should be a 302 Found \
             temporary redirect")
@@ -1610,7 +1610,7 @@ class InstanceUserViewTests(ViewTestCase):
         res = instance_user_view(make_request(),
                                  self.instance.url_name,
                                  test_username)
-        expected_url = '/users/%s?instance_id=%d' %\
+        expected_url = '/users/%s/?instance_id=%d' %\
             (test_username, self.instance.id)
         self.assertEquals(res.status_code, 302, "should be a 302 Found \
             temporary redirect")
