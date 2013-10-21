@@ -24,6 +24,8 @@ from treemap.views import (boundary_to_geojson_view, index_view, map_view,
 # If you add/remove/modify a URL, please update the corresponding test(s)
 # in treemap/tests/urls.py
 
+username_pattern = r'(?P<username>[\w.@+-]+)'
+
 urlpatterns = patterns(
     '',
     url(r'^$', index_view),
@@ -67,6 +69,6 @@ urlpatterns = patterns(
     url(r'^config/settings.js$',
         instance_settings_js_view, name='settings'),
     url(r'^benefit/search$', search_tree_benefits_view),
-    url(r'^users/(?P<username>\w+)/$', instance_user_view),
-    url(r'^users/(?P<username>\w+)/edits/$', instance_user_audits),
+    url(r'^users/%s/$' % username_pattern, instance_user_view),
+    url(r'^users/%s/edits/$' % username_pattern, instance_user_audits),
 )
