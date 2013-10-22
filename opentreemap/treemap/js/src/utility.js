@@ -3,6 +3,7 @@
 var url = require('url'),
     QS = require('querystring'),
     $ = require('jquery'),
+    L = require('leaflet'),
     console = require('console-browserify');
 
 exports.getUpdatedQueryString = function (k, v) {
@@ -127,6 +128,12 @@ exports.webMercatorToLatLng = function(x, y) {
     var lat = r2d * ((2.0 * Math.atan(Math.exp(d2r * y / originShift))) - Math.PI / 2.0);
     return {lat: lat, lng: x / originShift};
 
+};
+
+exports.webMercatorToLeafletLatLng = function(x, y) {
+    var latLng = exports.webMercatorToLatLng(x, y),
+        leafletLatLng = L.latLng(latLng.lat, latLng.lng);
+    return leafletLatLng;
 };
 
 exports.lonLatToWebMercator = function(lon, lat) {

@@ -127,7 +127,7 @@ exports = module.exports = function (config) {
         return response;
     };
 
-    var geocodeClient = function(address, box) {
+    var geocodeClient = function(address, filter) {
         var url = '//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/find';
         var params = {
             'maxLocations': config.geocoder.maxLocations,
@@ -145,7 +145,7 @@ exports = module.exports = function (config) {
                 dataType: 'jsonp'
             }))
             .map(processGeocoderResponse)
-            .map(filterBbox, box);
+            .map(filter);
     };
 
     var reverseGeocodeClient = function(latLng, distance) {
@@ -171,7 +171,8 @@ exports = module.exports = function (config) {
     return {
         geocodeStream: function(addressStream) {
             return addressStream.flatMap(function (address) {
-                return geocodeClient(address, config.instance.extent);
+                var filter = config.instance ? _.partial(filterBbox, config.instance.extent) : _.identity;
+                return geocodeClient(address, filter);
             }).flatMap(function(response) {
                 if (response.candidates && response.candidates.length > 0) {
                     return Bacon.once(response);

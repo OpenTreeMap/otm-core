@@ -63,8 +63,7 @@ exports.init = function(options) {
             zoom = map.getMaxZoom();
         }
 
-        var ll = U.webMercatorToLatLng(location.x, location.y);
-        map.setView(new L.LatLng(ll.lat, ll.lng),
+        map.setView(U.webMercatorToLeafletLatLng(location.x, location.y),
                     Math.max(map.getZoom(), zoom),
                     {reset: !!reset});
     };
