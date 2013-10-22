@@ -135,11 +135,22 @@ function createPlotTileLayer(config) {
 }
 
 function createPlotUTFLayer(config) {
-    var layer = new L.UtfGrid(getPlotLayerURL(config, 'grid.json'), {
-        resolution: 4,
-        maxZoom: 20,
-        useJsonP: false
-    });
+    var layer, url = getPlotLayerURL(config, 'grid.json'),
+        options = {
+            resolution: 4,
+            maxZoom: 20
+        };
+    // Need to use JSONP on on browsers that do not support CORS (IE9)
+    // Only applies to plot layer because only UtfGrid is using XmlHttpRequest
+    // for cross-site requests
+    if (!$.support.cors) {
+        url += '&callback={cb}';
+        options.useJsonP = true;
+    } else {
+        options.useJsonP = false;
+    }
+
+    layer = new L.UtfGrid(url, options);
 
     layer.setUrl = function(url) {
         // Poke some internals

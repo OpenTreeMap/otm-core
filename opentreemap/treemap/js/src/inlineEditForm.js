@@ -288,7 +288,9 @@ exports.init = function(options) {
     validationErrorsStream.onValue(showValidationErrorsInline);
 
     unhandledErrorStream.onValue(errorCallback);
-    unhandledErrorStream.onValue(_.bind(console.error, console), "Error uploading to " + self.updateUrl);
+    unhandledErrorStream.onValue(function(error) {
+        console.error("Error uploading to " + self.updateUrl, error);
+    });
 
     actionStream.plug(editStream);
     actionStream.plug(saveStream);
