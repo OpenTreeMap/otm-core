@@ -4,9 +4,15 @@
  (c) 2010-2011, CloudMade
 */
 
-// HOTFIX applied:
+// HOTFIX 1 applied:
 // https://github.com/Leaflet/Leaflet/issues/1925
 // https://github.com/Leaflet/Leaflet/commit/14d934b6392147b903a483033a8680717b93d634
+
+// HOTFIX 2 applied:
+// https://github.com/Leaflet/Leaflet/issues/1983
+// Applied the fix suggested in the issue. Comment suggests the issue
+// is resolved in master, but the suggested fix doesn't appear there.
+// See https://github.com/azavea/OTM2/issues/776
 
 (function (window, document, undefined) {
 var oldL = window.L,
@@ -4139,10 +4145,12 @@ L.Marker.include({
 		if (this._popup) {
 			this._popup = null;
 			this
-			    .off('click', this.togglePopup)
-			    .off('remove', this.closePopup)
-			    .off('move', this._movePopup);
-		}
+//			    .off('click', this.togglePopup)
+//			    .off('remove', this.closePopup)
+//			    .off('move', this._movePopup);
+                .removeEventListener('click', this.togglePopup, this)
+                .removeEventListener('remove', this.closePopup, this)
+                .removeEventListener('move', this._movePopup, this);		}
 		return this;
 	},
 

@@ -148,6 +148,7 @@ function getPlotAccordionContent(id) {
 
 function deactivate() {
     if (popup) {
+        plotMarker.unbindPopup();
         map.closePopup(popup);
     }
 }
