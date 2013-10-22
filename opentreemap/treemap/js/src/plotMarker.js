@@ -70,8 +70,7 @@ exports = module.exports = {
         var latlng;
 
         if (location.x && location.y) {
-            latlng = U.webMercatorToLatLng(location.x, location.y);
-            latlng = L.latLng(latlng.lat, latlng.lng);
+            latlng = U.webMercatorToLeafletLatLng(location.x, location.y);
         } else {
             latlng = location;
         }

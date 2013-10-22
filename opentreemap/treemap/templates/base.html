@@ -148,6 +148,16 @@
     {% block templates %}
     {% endblock templates %}
 
+    {% verbatim %}
+    <script id="geocode-results-template" type="text/x-mustache-template">
+      <ul class="unstyled">
+        {{#candidates}}
+        <li><a href="javascript:;" data-class="geocode-result" data-x="{{x}}" data-y="{{y}}" data-srid="{{srid}}" data-address"{{address}}">{{address}}</a></li>
+        {{/candidates}}
+      </ul>
+    </script>
+    {% endverbatim %}
+
     {% block scripts %}
     {% endblock scripts %}
 

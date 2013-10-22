@@ -22,19 +22,20 @@ module.exports = function(grunt) {
      * are the path to a file, relative to `opentreemap`
      */
     function getAliases() {
-        var aliases = ['treemap/js/src/map.js:map',
-                       'treemap/js/src/user.js:user',
-                       'treemap/js/src/mapManager.js:mapManager',
-                       'treemap/js/src/plot.js:plot',
-                       'treemap/js/src/searchBar.js:searchBar',
+        var aliases = ['treemap/js/src/alerts.js:alerts',
+                       'treemap/js/src/baconUtils.js:BaconUtils',
                        'treemap/js/src/buttonEnabler.js:buttonEnabler',
                        'treemap/js/src/csrf.js:csrf',
-                       'treemap/js/src/photoReview.js:photoReview',
-                       'treemap/js/src/baconUtils.js:BaconUtils',
-                       'treemap/js/src/inlineEditForm.js:inlineEditForm',
+                       'treemap/js/src/geocoder.js:geocoder',
+                       'treemap/js/src/geocoderUi.js:geocoderUi',
                        'treemap/js/src/imageUploadPanel.js:imageUploadPanel',
-                       'treemap/js/src/export.js:export',
-                       'treemap/js/src/alerts.js:alerts',
+                       'treemap/js/src/inlineEditForm.js:inlineEditForm',
+                       'treemap/js/src/map.js:map',
+                       'treemap/js/src/mapManager.js:mapManager',
+                       'treemap/js/src/photoReview.js:photoReview',
+                       'treemap/js/src/plot.js:plot',
+                       'treemap/js/src/searchBar.js:searchBar',
+                       'treemap/js/src/user.js:user',
                        'treemap/js/src/utility.js:utility'];
 
         var extras = require('./extra.json');
