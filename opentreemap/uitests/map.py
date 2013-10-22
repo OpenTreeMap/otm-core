@@ -10,7 +10,7 @@ from registration.models import RegistrationProfile
 from uitests import create_instance
 import uitests
 
-from treemap.tests import make_instance, make_commander_user
+from treemap.tests import make_commander_user
 from treemap.models import Tree, Plot, User
 
 
