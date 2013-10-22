@@ -124,8 +124,10 @@
             {% field zip from "plot.address_zip" for request.user withtemplate "treemap/field/tr.html" %}
             {% trans "Original Owner Id" as oid %}
             {% field oid from "plot.owner_orig_id" for request.user withtemplate "treemap/field/tr.html" %}
-            {% trans "Read Only" as readonly %}
-            {% field readonly from "plot.readonly" for request.user withtemplate "treemap/field/tr.html" %}
+            <!-- Hiding readonly field temporarily -->
+            <!-- See github #379 and #772 for more details -->
+            <!-- {% trans "Read Only" as readonly %} -->
+            <!-- {% field readonly from "plot.readonly" for request.user withtemplate "treemap/field/tr.html" with extra='style="display:none" %} -->
             {% for label, udf in plot.udf_names_and_fields %}
               {% field label from udf withtemplate "treemap/field/tr.html" %}
             {% endfor %}
