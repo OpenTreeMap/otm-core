@@ -11,7 +11,7 @@ from uitests import create_instance
 import uitests
 
 from treemap.tests import make_commander_user
-from treemap.models import Tree, Plot, User
+from treemap.models import Tree, Plot, User, Instance
 
 
 userUUID = 1
@@ -24,8 +24,12 @@ class MapTest(TestCase):
 
         self.driver.implicitly_wait(10)
 
+        instance_name = 'autotest_instance'
+
+        Instance.objects.filter(name=instance_name).delete()
+
         self.instance = create_instance(
-            name='autotest_instance',
+            name=instance_name,
             is_public=False,
             url_name='autotest-instance')
 
@@ -36,6 +40,10 @@ class MapTest(TestCase):
         self.instance.delete()
         self.user.delete_with_user(User.system_user())
 
+    def _browse_to_url(self, url):
+        self.driver.get("http://localhost:%s%s" %
+                        (settings.UITESTS_PORT, url))
+
     def _create_user(self, instance):
         global userUUID
 
@@ -44,6 +52,7 @@ class MapTest(TestCase):
         userUUID += 1
 
         User.objects.filter(email=email).delete()
+        User.objects.filter(username=username).delete()
 
         u = make_commander_user(instance, username)
 
@@ -64,22 +73,31 @@ class MapTest(TestCase):
         submit.click()
 
     def _login_workflow(self):
-        self.driver.get("http://localhost:%s/accounts/logout/" %
-                        settings.UITESTS_PORT)
+        self._browse_to_url('/accounts/logout/')
+        self._browse_to_url('/accounts/login/')
 
-        self.driver.get("http://localhost:%s/accounts/login/" %
-                        settings.UITESTS_PORT)
-
-        # find the element that's name attribute is q (the google search box)
         login = self.driver.find_element_by_id("login")
         login.click()
 
         self._process_login_form(
             self.user.username, self.user.plain_password)
 
-    def _action_chain_for_moving_to_map_at_offset(self, x, y):
-        # We're in add tree mode, now we need to click somewhere
-        # on the map
+    def _drag_marker_on_map(self, endx, endy):
+        actions = ActionChains(self.driver)
+        marker = self.driver.find_elements_by_css_selector(
+            '.leaflet-marker-pane img')[0]
+
+        actions.drag_and_drop_by_offset(marker, endx, endy)
+        actions.perform()
+
+    def _start_add_tree_and_click_point(self, x, y):
+        # Enter add tree mode
+        add_tree = self.driver.find_elements_by_css_selector(
+            ".subhead .addBtn")[0]
+
+        add_tree.click()
+
+        # We're in add tree mode, now we need to click somewhere on the map
         map_div = self.driver.find_element_by_id('map')
 
         actions = ActionChains(self.driver)
@@ -89,7 +107,8 @@ class MapTest(TestCase):
         # move away from the center
         actions.move_by_offset(x, y)
 
-        return actions
+        actions.click()
+        actions.perform()
 
     def ntrees(self):
         return Tree.objects.filter(instance=self.instance).count()
@@ -97,39 +116,30 @@ class MapTest(TestCase):
     def nplots(self):
         return Plot.objects.filter(instance=self.instance).count()
 
-    def _go_to_map_page(self):
-        self.driver.get("http://localhost:%s/autotest-instance/map/" %
-                        settings.UITESTS_PORT)
+    def _go_to_map_page_workflow(self):
+        self._browse_to_url("/autotest-instance/map/")
 
-    def _start_add_tree_workflow(self):
-        add_tree = self.driver.find_elements_by_css_selector(
-            ".subhead .addBtn")[0]
-
-        add_tree.click()
-
-    def _end_add_tree_workflow_by_clicking_add_tree(self):
+    def _end_add_tree_by_clicking_add_tree(self):
         add_this_tree = self.driver.find_elements_by_css_selector(
             ".add-step-final .addBtn")[0]
 
         add_this_tree.click()
 
+    def _login_and_go_to_map_page(self):
+        self._login_workflow()
+        self._go_to_map_page_workflow()
+
     def test_simple_add_plot_to_map(self):
         initial_tree_count = self.ntrees()
         initial_plot_count = self.nplots()
 
-        self._login_workflow()
-        self._go_to_map_page()
+        self._login_and_go_to_map_page()
+        self._start_add_tree_and_click_point(0, 10)
 
-        self._start_add_tree_workflow()
+        # We don't have to put in any info to create a plot
+        # So just add the plot!
 
-        actions = self._action_chain_for_moving_to_map_at_offset(10, 10)
-
-        # Click on the map
-        actions.click()
-        actions.perform()
-
-        # NOTE: We shouldn't have to put in ANY info to create a plot
-        self._end_add_tree_workflow_by_clicking_add_tree()
+        self._end_add_tree_by_clicking_add_tree()
 
         # Need to wait for change in database
         sleep(DATABASE_COMMIT_DELAY)
@@ -144,23 +154,15 @@ class MapTest(TestCase):
         initial_tree_count = self.ntrees()
         initial_plot_count = self.nplots()
 
-        self._login_workflow()
-        self._go_to_map_page()
-
-        self._start_add_tree_workflow()
-
-        actions = self._action_chain_for_moving_to_map_at_offset(0, 10)
-
-        # Click on the map
-        actions.click()
-        actions.perform()
+        self._login_and_go_to_map_page()
+        self._start_add_tree_and_click_point(0, 10)
 
         diameter = self.driver.find_element_by_css_selector(
             'input[data-class="diameter-input"]')
 
         diameter.send_keys('44.0')
 
-        self._end_add_tree_workflow_by_clicking_add_tree()
+        self._end_add_tree_by_clicking_add_tree()
 
         # Need to wait for change in database
         sleep(DATABASE_COMMIT_DELAY)
@@ -173,3 +175,124 @@ class MapTest(TestCase):
         tree = Tree.objects.order_by('-id')[0]
 
         self.assertEqual(tree.diameter, 44.0)
+
+    def test_add_trees_with_same_details_to_map(self):
+        initial_tree_count = self.ntrees()
+        initial_plot_count = self.nplots()
+
+        self._login_and_go_to_map_page()
+        self._start_add_tree_and_click_point(0, 15)
+
+        diameter = self.driver.find_element_by_css_selector(
+            'input[data-class="diameter-input"]')
+
+        diameter.send_keys('33.0')
+
+        copy_radio_button = self.driver.find_element_by_css_selector(
+            'input[value="copy"]')
+
+        copy_radio_button.click()
+
+        add_this_tree = self.driver.find_elements_by_css_selector(
+            ".add-step-final .addBtn")[0]
+
+        # Add the first tree
+        add_this_tree.click()
+
+        # Add the next tree
+        self._drag_marker_on_map(15, 15)
+        add_this_tree.click()
+
+        # One more
+        self._drag_marker_on_map(-15, 15)
+        add_this_tree.click()
+
+        # Need to wait for change in database
+        sleep(DATABASE_COMMIT_DELAY)
+
+        self.assertEqual(initial_tree_count + 3, self.ntrees())
+        self.assertEqual(initial_plot_count + 3, self.nplots())
+
+        # And all the recent trees should have a diameter of 33.0
+        trees = Tree.objects.order_by('-id')[0:3]
+
+        for tree in trees:
+            self.assertEqual(tree.diameter, 33.0)
+
+    def test_add_trees_with_diff_details_to_map(self):
+        initial_tree_count = self.ntrees()
+        initial_plot_count = self.nplots()
+
+        self._login_and_go_to_map_page()
+        self._start_add_tree_and_click_point(0, 15)
+
+        diameter = self.driver.find_element_by_css_selector(
+            'input[data-class="diameter-input"]')
+
+        diameter.send_keys('33.0')
+
+        new_radio_button = self.driver.find_element_by_css_selector(
+            'input[value="new"]')
+
+        new_radio_button.click()
+
+        add_this_tree = self.driver.find_elements_by_css_selector(
+            ".add-step-final .addBtn")[0]
+
+        # Add the first tree
+        add_this_tree.click()
+
+        # Add the next tree
+        # All fields should reset
+        # since we don't set anything, this will generate a new
+        # plot but no tree
+        self._drag_marker_on_map(15, 15)
+        add_this_tree.click()
+
+        # One more, setting the diameter again
+        self._drag_marker_on_map(-15, 15)
+        diameter.send_keys('99.0')
+
+        add_this_tree.click()
+
+        # Need to wait for change in database
+        sleep(DATABASE_COMMIT_DELAY)
+
+        self.assertEqual(initial_tree_count + 2, self.ntrees())
+        self.assertEqual(initial_plot_count + 3, self.nplots())
+
+        # And all the recent trees should have a diameter of 33.0
+        tree_diams = [tree.diameter
+                      for tree in Tree.objects.order_by('-id')[0:2]]
+
+        self.assertEqual([99.0, 33.0], tree_diams)
+
+    def test_add_trees_and_continue_to_edit(self):
+        initial_tree_count = self.ntrees()
+        initial_plot_count = self.nplots()
+
+        self._login_and_go_to_map_page()
+        self._start_add_tree_and_click_point(0, 15)
+
+        add_this_tree = self.driver.find_elements_by_css_selector(
+            ".add-step-final .addBtn")[0]
+
+        copy_radio_button = self.driver.find_element_by_css_selector(
+            'input[value="edit"]')
+
+        copy_radio_button.click()
+
+        add_this_tree.click()
+
+        # Need to wait for change in database
+        sleep(DATABASE_COMMIT_DELAY)
+
+        plot = Plot.objects.order_by('-id')[0]
+
+        # Expect to be on edit page for the plot
+        self.assertTrue(
+            self.driver.current_url.endswith(
+                '/autotest-instance/plots/%s/edit' % plot.pk))
+
+        self.assertEqual(initial_tree_count, self.ntrees())
+        self.assertEqual(initial_plot_count + 1, self.nplots())

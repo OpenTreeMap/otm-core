@@ -21,17 +21,23 @@ def tearDownModule():
         driver.quit()
 
 
+def parse_function_string(module_and_function_string):
+    """
+    Given a string like:
+    a.b.c.f
+
+    Return the function 'f' from module 'a.b.c'
+    """
+    parts = module_and_function_string.split('.')
+    mod = '.'.join(parts[0:-1])
+    fn = parts[-1]
+
+    return getattr(importlib.import_module(mod), fn)
+
+
 def _get_create_instance():
-    create_instance_fn_str = settings.UITEST_CREATE_INSTANCE_FUNCTION
-    parts = create_instance_fn_str.split('.')
-    create_instance_mod = '.'.join(parts[0:-1])
-    create_instance_fn = parts[-1]
-
-    create_instance = getattr(
-        importlib.import_module(create_instance_mod),
-        create_instance_fn)
-
-    return create_instance
+    return parse_function_string(
+        settings.UITEST_CREATE_INSTANCE_FUNCTION)
 
 create_instance = _get_create_instance()
 
