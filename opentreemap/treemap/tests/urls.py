@@ -63,7 +63,7 @@ class RootUrlTests(UrlTestCase):
 
     def test_favicon(self):
         self.assert_redirects_to_static_file(
-            '/favicon.ico', '/static/img/favicon.ico')
+            '/favicon.png', '/static/img/favicon.png')
 
     def test_settings_js(self):
         self.assert_template('/config/settings.js', 'treemap/settings.js')
