@@ -27,8 +27,8 @@ urlpatterns = patterns(
     '',
     # Setting permanent=False in case we want to allow customizing favicons
     # per instance in the future
-    (r'^favicon\.ico$', RedirectView.as_view(
-        url='/static/img/favicon.ico', permanent=False)),
+    (r'^favicon\.png$', RedirectView.as_view(
+        url='/static/img/favicon.png', permanent=False)),
     url(r'^', include('geocode.urls')),
     url(r'^$', landing_view),
     url(r'^config/settings.js$', root_settings_js_view),
