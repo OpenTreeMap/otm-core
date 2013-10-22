@@ -16,7 +16,7 @@
                 data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
                 data-href="{{ request.get_full_path }}"
                 data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
-                disabled="disabled">Edit Details</button>
+                disabled="disabled">{% trans "Quick Edit" %}</button>
                 <button class="btn btn-success" data-class="edit" id="save-details-button" style="display:none">Save</button>
                 <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</button>
       </div>
