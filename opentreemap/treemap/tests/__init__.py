@@ -274,7 +274,11 @@ def make_instance(name=None, is_public=False, url_name=None):
             Max('id'))['id__max'] or 0
         url_name = 'generated-%d' % (max_instance + 1)
 
-    global_role, _ = Role.objects.get_or_create(name='global', rep_thresh=0)
+    global_role = Role.objects.filter(name='global', rep_thresh=0)
+    if not global_role.exists():
+        global_role = Role.objects.create(name='global', rep_thresh=0)
+    else:
+        global_role = global_role[0]
 
     p1 = Point(0, 0)
 

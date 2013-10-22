@@ -6,6 +6,8 @@ OTM_VERSION = 'dev'
 API_VERSION = 'v0.1'
 
 FEATURE_BACKEND_FUNCTION = None
+
+UITEST_CREATE_INSTANCE_FUNCTION = 'treemap.tests.make_instance'
 UITESTS = ['uitests']
 UITESTS_PORT = 80
 
