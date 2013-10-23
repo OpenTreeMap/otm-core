@@ -1,6 +1,7 @@
 {% load i18n %}
 
 
+{% if request.instance_supports_ecobenefits %}
 <h5>{% trans "Yearly Ecosystem Services" %}</h5>
 {% if benefits %}
 <table class="table table-striped">
@@ -18,4 +19,5 @@
 <div>
   {% trans "Add the diameter of the tree and select a species to calculate the yearly ecosystem services." %}
 </div>
+{% endif %}
 {% endif %}

@@ -7,7 +7,7 @@ import json
 
 from django.test import TestCase
 from django.test.utils import override_settings
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, MultiPolygon
 from django.core.exceptions import ValidationError
 
 from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
@@ -19,6 +19,8 @@ from treemap.management.commands import create_instance
 from treemap.tests import (make_instance, make_commander_user,
                            make_user_with_default_role, make_user,
                            make_simple_boundary, make_commander_role)
+
+from ecobenefits.models import ITreeRegion
 
 
 class CreateInstanceManagementTest(TestCase):
@@ -596,3 +598,22 @@ class InstanceTest(TestCase):
     def test_url_name_must_be_unique(self):
         make_instance(url_name='philly')
         self.assertRaises(make_instance, url_name='philly')
+
+    def test_has_itree_region_with_nothing(self):
+        instance = make_instance()
+        self.assertEqual(instance.has_itree_region(), False)
+
+    def test_has_itree_region_with_default(self):
+        instance = make_instance()
+        instance.itree_region_default = "foo"
+        instance.save()
+        self.assertEqual(instance.has_itree_region(), True)
+
+    def test_has_itree_region_with_intersects(self):
+        p1 = Point(0, 0)
+        instance = make_instance(point=p1)
+        instance.save()
+
+        ITreeRegion.objects.create(geometry=MultiPolygon((p1.buffer(10))))
+
+        self.assertEqual(instance.has_itree_region(), True)

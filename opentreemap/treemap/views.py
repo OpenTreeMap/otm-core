@@ -219,7 +219,11 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
     # If the the benefits calculation can't be done or fails, still display the
     # plot details
 
-    if has_tree_diameter and has_tree_species_with_code:
+    should_calculate_eco = (has_tree_diameter and
+                            has_tree_species_with_code and
+                            request.instance_supports_ecobenefits)
+
+    if should_calculate_eco:
         try:
             eco_tree = {'species__otm_code': tree.species.otm_code,
                         'diameter': tree.diameter,
@@ -647,32 +651,36 @@ def _execute_filter(instance, filter_str):
 
 
 def search_tree_benefits(request, instance):
-    try:
-        filter_str = request.REQUEST['q']
-    except KeyError:
-        filter_str = ''
+    if not request.instance_supports_ecobenefits:
+        return {}
+    else:
+        try:
+            filter_str = request.REQUEST['q']
+        except KeyError:
+            filter_str = ''
 
-    plots = _execute_filter(instance, filter_str)
-    trees = Tree.objects.filter(plot_id__in=plots)
+        plots = _execute_filter(instance, filter_str)
+        trees = Tree.objects.filter(plot_id__in=plots)
 
-    total_plots = plots.count()
-    total_trees = trees.count()
+        total_plots = plots.count()
+        total_trees = trees.count()
 
-    trees_for_eco = trees.exclude(species__otm_code__isnull=True)\
-                         .exclude(diameter__isnull=True)\
-                         .extra(select={'itree_region_code':
-                                        'ecobenefits_itreeregion.code'},
-                                where=['ST_Contains('
-                                       'ecobenefits_itreeregion.geometry, '
-                                       'treemap_plot.the_geom_webmercator)'],
-                                tables=['ecobenefits_itreeregion'])\
-                         .values('diameter',
-                                 'species__otm_code',
-                                 'itree_region_code',
-                                 'plot__geom')
+        trees_for_eco = trees.exclude(species__otm_code__isnull=True)\
+                             .exclude(diameter__isnull=True)\
+                             .extra(select={'itree_region_code':
+                                            'ecobenefits_itreeregion.code'},
+                                    where=[
+                                        'ST_Contains('
+                                        'ecobenefits_itreeregion.geometry, '
+                                        'treemap_plot.the_geom_webmercator)'],
+                                    tables=['ecobenefits_itreeregion'])\
+                             .values('diameter',
+                                     'species__otm_code',
+                                     'itree_region_code',
+                                     'plot__geom')
 
-    return _tree_benefits_helper(trees_for_eco, total_plots, total_trees,
-                                 instance)
+        return _tree_benefits_helper(trees_for_eco, total_plots, total_trees,
+                                     instance)
 
 
 def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):

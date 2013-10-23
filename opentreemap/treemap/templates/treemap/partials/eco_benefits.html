@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load l10n %}
 
+{% if request.instance_supports_ecobenefits %}
 <div id="benefit-values">
     {% for benefit in benefits %}
     <div class="benefit-value-row">
@@ -50,3 +51,4 @@
   {% endblocktrans %}
   {% endlocalize %}
 </div>
+{% endif %}

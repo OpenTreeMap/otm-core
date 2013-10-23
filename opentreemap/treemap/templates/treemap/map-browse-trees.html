@@ -40,6 +40,7 @@
       </div>
     </div>
   </div>
+  {% if request.instance_supports_ecobenefits %}
   <div class="accordion-group">
     <div class="accordion-heading">
       <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#yearlyEco">{% trans "Yearly Eco Benefits" %} <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
@@ -48,4 +49,5 @@
       <div class="accordion-inner" id="benefit-values"></div>
     </div>
   </div>
+  {% endif %}
 </div>

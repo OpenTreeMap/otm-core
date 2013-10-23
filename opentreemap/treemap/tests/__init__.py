@@ -263,7 +263,7 @@ def delete_all_app_users():
         app_user.delete_with_user(User._system_user)
 
 
-def make_instance(name=None, is_public=False, url_name=None):
+def make_instance(name=None, is_public=False, url_name=None, point=None):
     if name is None:
         max_instance = Instance.objects.all().aggregate(
             Max('id'))['id__max'] or 0
@@ -280,7 +280,7 @@ def make_instance(name=None, is_public=False, url_name=None):
     else:
         global_role = global_role[0]
 
-    p1 = Point(0, 0)
+    p1 = point or Point(0, 0)
 
     instance = Instance(name=name, geo_rev=0, default_role=global_role,
                         is_public=is_public, url_name=url_name)

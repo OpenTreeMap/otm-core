@@ -134,12 +134,16 @@
           </tbody>
         </table>
       </form>
+
+      {% if request.instance_supports_ecobenefits %}
       <hr>
 
-        <div id="ecobenefits">
+      <div id="ecobenefits">
         {% include "treemap/partials/plot_eco.html" with benefits=benefits %}
-        </div>
+      </div>
+      {% endif %}
     </div>
+
     <div class="span3">
       <button
          disabled="disabled"
