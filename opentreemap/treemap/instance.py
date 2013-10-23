@@ -14,7 +14,7 @@ import json
 from urllib import urlencode
 from treemap.features import feature_enabled
 
-from json_field import JSONField
+from treemap.json_field import JSONField
 
 URL_NAME_PATTERN = r'[a-zA-Z]+[a-zA-Z0-9\-]*'
 
