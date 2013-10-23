@@ -676,15 +676,6 @@ def search_tree_benefits(request, instance):
 
 
 def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
-    benefits, num_calculated_trees = _benefits_for_trees(
-        trees_for_eco, instance.itree_region_default)
-
-    percent = 0
-    if num_calculated_trees > 0 and total_trees > 0:
-        # Extrapolate an average over the rest of the urban forest
-        percent = float(num_calculated_trees) / total_trees
-        for key in benefits:
-            benefits[key]['value'] /= percent
 
     def displayize_benefit(key, currency_factor):
         benefit = benefits[key]
@@ -699,6 +690,16 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
         benefit['unit'] = get_units(instance, 'eco', key)
 
         return benefit
+
+    benefits, num_calculated_trees = _benefits_for_trees(
+        trees_for_eco, instance.itree_region_default)
+
+    percent = 0
+    if num_calculated_trees > 0 and total_trees > 0:
+        # Extrapolate an average over the rest of the urban forest
+        percent = float(num_calculated_trees) / total_trees
+        for key in benefits:
+            benefits[key]['value'] /= percent
 
     conversion = instance.eco_benefits_conversion
     if conversion is None:
