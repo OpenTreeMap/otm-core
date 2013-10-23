@@ -210,14 +210,14 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
     else:
         tree = plot.current_tree()
 
-    context = {}
-    # If the the benefits calculation can't be done or fails, still display the
-    # plot details
-
     has_tree_diameter = tree is not None and tree.diameter is not None
     has_tree_species_with_code = tree is not None \
         and tree.species is not None and tree.species.otm_code is not None
     has_photo = tree is not None and tree.treephoto_set.all().count() > 0
+
+    context = {}
+    # If the the benefits calculation can't be done or fails, still display the
+    # plot details
 
     if has_tree_diameter and has_tree_species_with_code:
         try:
@@ -225,7 +225,7 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
                         'diameter': tree.diameter,
                         'itree_region_code': ITreeRegion.objects.get(
                             geometry__contains=plot.geom).code}
-            context = _tree_benefits_helper([eco_tree], 1, 1, instance)
+            context.update(_tree_benefits_helper([eco_tree], 1, 1, instance))
         except Exception:
             pass
 
