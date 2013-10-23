@@ -26,6 +26,7 @@ module.exports = function(grunt) {
                        'treemap/js/src/baconUtils.js:BaconUtils',
                        'treemap/js/src/buttonEnabler.js:buttonEnabler',
                        'treemap/js/src/csrf.js:csrf',
+                       'treemap/js/src/export.js:export',
                        'treemap/js/src/geocoder.js:geocoder',
                        'treemap/js/src/geocoderUi.js:geocoderUi',
                        'treemap/js/src/imageUploadPanel.js:imageUploadPanel',
