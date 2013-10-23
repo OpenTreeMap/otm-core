@@ -1041,7 +1041,7 @@ boundary_autocomplete_view = instance_request(
 
 search_tree_benefits_view = instance_request(
     etag(_search_hash)(
-        render_template('treemap/eco_benefits.html',
+        render_template('treemap/partials/eco_benefits.html',
                         search_tree_benefits)))
 
 species_list_view = json_api_call(instance_request(species_list))

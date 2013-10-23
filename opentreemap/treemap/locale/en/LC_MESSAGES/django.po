@@ -192,7 +192,7 @@ msgstr ""
 msgid "Already have an account?"
 msgstr ""
 
-#: templates/treemap/eco_benefits.html:15
+#: templates/treemap/partials/eco_benefits.html:15
 #, python-format
 msgid ""
 "\n"
@@ -205,7 +205,7 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/treemap/eco_benefits.html:22
+#: templates/treemap/partials/eco_benefits.html:22
 #, python-format
 msgid ""
 "\n"
