@@ -101,6 +101,9 @@ class RootUrlTests(UrlTestCase):
     def test_dynamic_scss(self):
         self.assert_200('/main.css?primary-color=fff')
 
+    def test_point_within_itree_regions(self):
+        self.assert_200('/eco/benefit/within_itree_regions/')
+
 
 @override_settings(FEATURE_BACKEND_FUNCTION=None)
 class TreemapUrlTests(UrlTestCase):

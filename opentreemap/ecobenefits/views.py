@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.shortcuts import get_object_or_404
+from django.contrib.gis.geos.point import Point
 
 from eco import benefits
 
@@ -103,6 +104,17 @@ def tree_benefits(instance, tree_id):
                       'itree_region_code': region_code}])}
 
     return rslt
+
+
+def within_itree_regions(request):
+    x = request.GET.get('x', None)
+    y = request.GET.get('y', None)
+    return (bool(x) and bool(y) and
+            ITreeRegion.objects
+            .filter(geometry__contains=Point(float(x),
+                                             float(y))).exists())
+
+within_itree_regions_view = json_api_call(within_itree_regions)
 
 tree_benefits_view = json_api_call(
     instance_request(strip_request(tree_benefits)))
