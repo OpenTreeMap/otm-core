@@ -1,8 +1,9 @@
 {% extends "instance_base.html" %}
 {% load i18n %}
+{% load l10n %}
 {% load image %}
 
-{% block page_title %} | {% trans "Edits" %} {{plot.pk}}{% endblock %}
+{% block page_title %} | {% trans "Edits" %} {{plot.pk|unlocalize}}{% endblock %}
 
 {% block activeexplore %}
 {% endblock %}
@@ -35,17 +36,18 @@ active
 
       <table class="table table-striped">
         <tr>
-          <th>{% trans "Audit ID" %}</th>
+          <th>{% trans "Edit ID" %}</th>
           <th>{% trans "Model" %}</th>
           <th>{% trans "Model #" %}</th>
           <th>{% trans "Field" %}</th>
           <th>{% trans "Old Value" %}</th>
           <th>{% trans "Current Value" %}</th>
-          <th>{% trans "Commit By" %}</th>
-          <th>{% trans "Commit On" %}</th>
+          <th>{% trans "Edited By" %}</th>
+          <th>{% trans "Edited On" %}</th>
         </tr>
         {% for audit in audits %}
         <tr>
+          {% localize off %}  
           <td>{{ audit.pk }}</td>
           <td>
             <a href="?models={{ audit.model }}">
@@ -57,6 +59,7 @@ active
               {{ audit.model_id }}
             </a>
           </td>
+          {% endlocalize %}
           <td>{{ audit.field }}</td>
 
           {% if audit.field == 'image' %}
@@ -80,13 +83,13 @@ active
 
           <td>
             {% if audit.clean_previous_value %}
-            <a href="?user={{ audit.clean_previous_value.pk }}">
+            <a href="?user={{ audit.clean_previous_value.pk|unlocalize }}">
               {{ audit.clean_previous_value }}
             </a>
             {% endif %}
           </td>
           <td>
-            <a href="?user={{ audit.clean_current_value.pk }}">
+            <a href="?user={{ audit.clean_current_value.pk|unlocalize }}">
               {{ audit.clean_current_value }}
             </a>
           </td>
@@ -95,13 +98,13 @@ active
 
           <td>
             {% if audit.clean_previous_value %}
-            <a href="?models=Plot,id={{ audit.clean_previous_value.pk }}">
+            <a href="?models=Plot,id={{ audit.clean_previous_value.pk|unlocalize }}">
               Plot {{ audit.clean_previous_value }}
             </a>
             {% endif %}
           </td>
           <td>
-            <a href="?models=Plot,id={{ audit.clean_current_value.pk }}">
+            <a href="?models=Plot,id={{ audit.clean_current_value.pk|unlocalize }}">
               Plot {{ audit.clean_current_value|default_if_none:"" }}
             </a>
           </td>
@@ -127,13 +130,16 @@ active
             {{ audit.clean_current_value.y|floatformat:0 }}
             {% endif %}
           </td>
+          {% elif audit.field == 'id' %}
+          <td>{{ audit.previous_display_value|default_if_none:""|unlocalize }}</td>
+          <td>{{ audit.current_display_value|default_if_none:""|unlocalize }}</td>
           {% else %}
           <td>{{ audit.previous_display_value|default_if_none:"" }}</td>
           <td>{{ audit.current_display_value|default_if_none:"" }}</td>
           {% endif %}
 
           <td>
-            <a href="?user={{ audit.user.pk }}">
+            <a href="?user={{ audit.user.pk|unlocalize }}">
               {{ audit.user }}
             </a>
           </td>
