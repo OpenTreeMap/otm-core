@@ -32,7 +32,7 @@
 </li>
 {% endif %}
 <li class="{% block activerecentedits %}{% endblock %}">
-  <a href="{% url 'recent_edits' instance_url_name=request.instance.url_name %}">{% trans "Recent Edits" %}</a>
+  <a href="{% url 'edits' instance_url_name=request.instance.url_name %}">{% trans "Edits" %}</a>
 </li>
 {% endblock instancetopnav %}
 

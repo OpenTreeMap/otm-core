@@ -313,7 +313,7 @@ class PlotListing(TestCase):
         teardownTreemapEnv()
         User.objects.filter(username__in=['peon', 'duke', 'leroi']).delete()
 
-    def test_recent_edits(self):
+    def test_edits(self):
         #TODO: Test recent edits
         return None
         user = self.u

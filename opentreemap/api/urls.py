@@ -8,7 +8,7 @@ from views import (get_plot_list, create_plot_optional_tree, status,
                    approve_pending_edit, reject_pending_edit, species_list,
                    geocode_address, reset_password, verify_auth,
                    register, add_profile_photo, update_password,
-                   recent_edits)
+                   edits)
 
 from treemap.instance import URL_NAME_PATTERN
 instance_pattern = r'^(?P<instance_url_name>' + URL_NAME_PATTERN + r')'
@@ -48,5 +48,5 @@ urlpatterns = patterns(
     (r'^user/$', route(POST=register)),
     (r'^user/(?P<user_id>\d+)/photo/(?P<title>.+)$', add_profile_photo),
     (r'^user/(?P<user_id>\d+)/password$', update_password),
-    (r'^user/(?P<user_id>\d+)/edits$', recent_edits),
+    (r'^user/(?P<user_id>\d+)/edits$', edits),
 )

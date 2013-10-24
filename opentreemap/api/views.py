@@ -296,7 +296,7 @@ def extract_plot_from_audit(audit):
 @api_call()
 @instance_request
 @login_required
-def recent_edits(request, instance, user_id):
+def edits(request, instance, user_id):
     if (int(user_id) != request.user.pk):
         return create_401unauthorized()
 

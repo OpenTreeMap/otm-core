@@ -513,7 +513,7 @@ def _get_audits_params(request):
     return (page, page_size, models, model_id, exclude_pending)
 
 
-def audits(request, instance):
+def edits(request, instance):
     """
     Request a variety of different audit types.
     Params:
@@ -985,9 +985,9 @@ def index(request, instance):
         'instance_url_name': instance.url_name}))
 
 
-audits_view = instance_request(
+edits_view = instance_request(
     requires_feature('recent_edits_report')(
-        render_template('treemap/recent_edits.html', audits)))
+        render_template('treemap/edits.html', edits)))
 
 index_view = instance_request(index)
 

@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load image %}
 
-{% block page_title %} | {% trans "Recent Edits" %} {{plot.pk}}{% endblock %}
+{% block page_title %} | {% trans "Edits" %} {{plot.pk}}{% endblock %}
 
 {% block activeexplore %}
 {% endblock %}
@@ -29,8 +29,8 @@ active
   <div class="row-fluid">
     <div class="span12">
       <h1>
-        {% trans "Recent Edits" %}
-        <a class="btn pull-right" href="{% url 'recent_edits' instance_url_name=request.instance.url_name %}">{% trans "Reset" %}</a>
+        {% trans "Edits" %}
+        <a class="btn pull-right" href="{% url 'edits' instance_url_name=request.instance.url_name %}">{% trans "Reset" %}</a>
       </h1>
 
       <table class="table table-striped">

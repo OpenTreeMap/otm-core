@@ -31,7 +31,7 @@ from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, BenefitCurrencyConversion)
 
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
-                           boundary_autocomplete, audits, user_audits,
+                           boundary_autocomplete, edits, user_audits,
                            search_tree_benefits, user, instance_user_view,
                            update_plot_and_tree, update_user, add_tree_photo,
                            root_settings_js_view, instance_settings_js_view,
@@ -1090,7 +1090,7 @@ class RecentEditsViewTest(ViewTestCase):
         req.user = AnonymousUser()
         resulting_audits = [audit.dict()
                             for audit
-                            in audits(req, self.instance)['audits']]
+                            in edits(req, self.instance)['audits']]
 
         self._assert_dicts_equal(dicts, resulting_audits)
 
