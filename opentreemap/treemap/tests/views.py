@@ -770,10 +770,10 @@ class PlotViewTestCase(ViewTestCase):
     def setUp(self):
         super(PlotViewTestCase, self).setUp()
 
-        self.instance = make_instance()
-        self.user = make_commander_user(self.instance)
-
         self.p = Point(-7615441.0, 5953519.0)
+
+        self.instance = make_instance(point=self.p)
+        self.user = make_commander_user(self.instance)
 
         ITreeRegion.objects.create(
             code='PiedmtCLT',
@@ -783,6 +783,17 @@ class PlotViewTestCase(ViewTestCase):
 class PlotViewTest(PlotViewTestCase):
 
     def test_eco_benefits_change_based_on_zone(self):
+
+        def get_benefits_from_request():
+            request = make_request(user=self.user)
+            request.instance_supports_ecobenefits = self.instance\
+                                                        .has_itree_region()
+            details = plot_detail(request, self.instance, plot1.pk)
+
+            self.assertIn('benefits', details)
+            self.assertTrue(len(details['benefits']) > 2)
+            return details['benefits']
+
         p1 = Point(5000, 5000)
         p1b = Point(5001, 5001)
         p2 = Point(-5000, -5000)
@@ -796,6 +807,8 @@ class PlotViewTest(PlotViewTestCase):
         s.save_with_user(self.user)
 
         ITreeRegion.objects.all().delete()
+        self.instance.bounds = m1.union(m2)
+        self.instance.save()
         ITreeRegion.objects.create(code='NoEastXXX', geometry=m1)
         ITreeRegion.objects.create(code='PiedmtCLT', geometry=m2)
 
@@ -807,15 +820,6 @@ class PlotViewTest(PlotViewTestCase):
                      species=s)
 
         tree1.save_with_user(self.user)
-
-        def get_benefits_from_request():
-            details = plot_detail(make_request(user=self.user),
-                                  self.instance,
-                                  plot1.pk)
-
-            self.assertIn('benefits', details)
-            self.assertTrue(len(details['benefits']) > 2)
-            return details['benefits']
 
         benefits1 = get_benefits_from_request()
 
@@ -895,8 +899,10 @@ class PlotViewTest(PlotViewTestCase):
                     diameter=10, species=species)
         tree.save_with_user(self.user)
 
-        context = plot_detail(make_request(user=self.user),
-                              self.instance, plot_w_tree.pk)
+        request = make_request(user=self.user)
+        request.instance_supports_ecobenefits = self.instance\
+                                                    .has_itree_region()
+        context = plot_detail(request, self.instance, plot_w_tree.pk)
 
         self.assertEquals(plot_w_tree, context['plot'])
         self.assertIn('benefits', context)
@@ -1365,9 +1371,9 @@ class SearchTreeBenefitsTests(ViewTestCase):
 
     def setUp(self):
         super(SearchTreeBenefitsTests, self).setUp()
-        self.instance = make_instance()
-        self.commander = make_commander_user(self.instance)
         self.p1 = Point(-7615441.0, 5953519.0)
+        self.instance = make_instance(point=self.p1)
+        self.commander = make_commander_user(self.instance)
 
         ITreeRegion.objects.create(
             code='PiedmtCLT',
@@ -1389,6 +1395,8 @@ class SearchTreeBenefitsTests(ViewTestCase):
     def search_benefits(self):
         request = make_request(
             {'q': json.dumps({'tree.readonly': {'IS': False}})})  # all trees
+        request.instance_supports_ecobenefits = self.instance\
+                                                    .has_itree_region()
         result = search_tree_benefits(request, self.instance)
         return result
 

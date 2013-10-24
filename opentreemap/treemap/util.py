@@ -126,6 +126,8 @@ def instance_request(view_fn):
         # only" requests simple.
         request.instance = instance
 
+        request.instance_supports_ecobenefits = instance.has_itree_region()
+
         user = request.user
         if user.is_authenticated():
             instance_user = user.get_instance_user(instance)

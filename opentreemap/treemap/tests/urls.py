@@ -204,7 +204,8 @@ class TreemapUrlTests(UrlTestCase):
 
     def test_benefit_search(self):
         self.assert_template(
-            self.prefix + 'benefit/search', 'treemap/eco_benefits.html')
+            self.prefix + 'benefit/search',
+            'treemap/partials/eco_benefits.html')
 
     def test_user(self):
         username = make_commander_user(self.instance).username

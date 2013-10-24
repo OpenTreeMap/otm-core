@@ -210,22 +210,26 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
     else:
         tree = plot.current_tree()
 
-    context = {}
-    # If the the benefits calculation can't be done or fails, still display the
-    # plot details
-
     has_tree_diameter = tree is not None and tree.diameter is not None
     has_tree_species_with_code = tree is not None \
         and tree.species is not None and tree.species.otm_code is not None
     has_photo = tree is not None and tree.treephoto_set.all().count() > 0
 
-    if has_tree_diameter and has_tree_species_with_code:
+    context = {}
+    # If the the benefits calculation can't be done or fails, still display the
+    # plot details
+
+    should_calculate_eco = (has_tree_diameter and
+                            has_tree_species_with_code and
+                            request.instance_supports_ecobenefits)
+
+    if should_calculate_eco:
         try:
             eco_tree = {'species__otm_code': tree.species.otm_code,
                         'diameter': tree.diameter,
                         'itree_region_code': ITreeRegion.objects.get(
                             geometry__contains=plot.geom).code}
-            context = _tree_benefits_helper([eco_tree], 1, 1, instance)
+            context.update(_tree_benefits_helper([eco_tree], 1, 1, instance))
         except Exception:
             pass
 
@@ -647,44 +651,39 @@ def _execute_filter(instance, filter_str):
 
 
 def search_tree_benefits(request, instance):
-    try:
-        filter_str = request.REQUEST['q']
-    except KeyError:
-        filter_str = ''
+    if not request.instance_supports_ecobenefits:
+        return {}
+    else:
+        try:
+            filter_str = request.REQUEST['q']
+        except KeyError:
+            filter_str = ''
 
-    plots = _execute_filter(instance, filter_str)
-    trees = Tree.objects.filter(plot_id__in=plots)
+        plots = _execute_filter(instance, filter_str)
+        trees = Tree.objects.filter(plot_id__in=plots)
 
-    total_plots = plots.count()
-    total_trees = trees.count()
+        total_plots = plots.count()
+        total_trees = trees.count()
 
-    trees_for_eco = trees.exclude(species__otm_code__isnull=True)\
-                         .exclude(diameter__isnull=True)\
-                         .extra(select={'itree_region_code':
-                                        'ecobenefits_itreeregion.code'},
-                                where=['ST_Contains('
-                                       'ecobenefits_itreeregion.geometry, '
-                                       'treemap_plot.the_geom_webmercator)'],
-                                tables=['ecobenefits_itreeregion'])\
-                         .values('diameter',
-                                 'species__otm_code',
-                                 'itree_region_code',
-                                 'plot__geom')
+        trees_for_eco = trees.exclude(species__otm_code__isnull=True)\
+                             .exclude(diameter__isnull=True)\
+                             .extra(select={'itree_region_code':
+                                            'ecobenefits_itreeregion.code'},
+                                    where=[
+                                        'ST_Contains('
+                                        'ecobenefits_itreeregion.geometry, '
+                                        'treemap_plot.the_geom_webmercator)'],
+                                    tables=['ecobenefits_itreeregion'])\
+                             .values('diameter',
+                                     'species__otm_code',
+                                     'itree_region_code',
+                                     'plot__geom')
 
-    return _tree_benefits_helper(trees_for_eco, total_plots, total_trees,
-                                 instance)
+        return _tree_benefits_helper(trees_for_eco, total_plots, total_trees,
+                                     instance)
 
 
 def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
-    benefits, num_calculated_trees = _benefits_for_trees(
-        trees_for_eco, instance.itree_region_default)
-
-    percent = 0
-    if num_calculated_trees > 0 and total_trees > 0:
-        # Extrapolate an average over the rest of the urban forest
-        percent = float(num_calculated_trees) / total_trees
-        for key in benefits:
-            benefits[key]['value'] /= percent
 
     def displayize_benefit(key, currency_factor):
         benefit = benefits[key]
@@ -699,6 +698,16 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
         benefit['unit'] = get_units(instance, 'eco', key)
 
         return benefit
+
+    benefits, num_calculated_trees = _benefits_for_trees(
+        trees_for_eco, instance.itree_region_default)
+
+    percent = 0
+    if num_calculated_trees > 0 and total_trees > 0:
+        # Extrapolate an average over the rest of the urban forest
+        percent = float(num_calculated_trees) / total_trees
+        for key in benefits:
+            benefits[key]['value'] /= percent
 
     conversion = instance.eco_benefits_conversion
     if conversion is None:
@@ -1041,7 +1050,7 @@ boundary_autocomplete_view = instance_request(
 
 search_tree_benefits_view = instance_request(
     etag(_search_hash)(
-        render_template('treemap/eco_benefits.html',
+        render_template('treemap/partials/eco_benefits.html',
                         search_tree_benefits)))
 
 species_list_view = json_api_call(instance_request(species_list))

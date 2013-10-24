@@ -14,7 +14,9 @@ import json
 from urllib import urlencode
 from treemap.features import feature_enabled
 
-from json_field import JSONField
+from treemap.json_field import JSONField
+
+from ecobenefits.models import ITreeRegion
 
 URL_NAME_PATTERN = r'[a-zA-Z]+[a-zA-Z0-9\-]*'
 
@@ -158,6 +160,13 @@ class Instance(models.Model):
         scss_vars = ({k: val for k, val in self.scss_variables.items() if val}
                      if self.scss_variables else {})
         return urlencode(scss_vars)
+
+    def has_itree_region(self):
+        intersecting_regions = (ITreeRegion
+                                .objects
+                                .filter(geometry__intersects=self.bounds))
+
+        return bool(self.itree_region_default) or intersecting_regions.exists()
 
     def is_accessible_by(self, user):
         try:
