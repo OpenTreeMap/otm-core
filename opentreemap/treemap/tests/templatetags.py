@@ -15,6 +15,7 @@ from shutil import rmtree
 
 from treemap.audit import FieldPermission, Role
 from treemap.json_field import set_attr_on_json_field
+from treemap.templatetags.partial import PartialNode
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.models import Plot, InstanceUser
 from treemap.tests import (make_instance, make_observer_user,
@@ -624,3 +625,21 @@ class DiameterTagsTest(TestCase):
         """
         rt = self.template.render(Context({'value': None}))
         self.assertEqual(rt, '')
+
+
+class PartialTagTest(TestCase):
+    def _assert_renders_as(self, template_text, subdict_name, expected):
+        context = Context({
+            'mine': {'val': 'yes'},
+            'yours': {'val': 'no'}
+        })
+        template = Template(template_text)
+        partialNode = PartialNode(template, subdict_name)
+        text = partialNode.render(context)
+        self.assertEqual(text, expected)
+
+    def test_template_can_reference_subdict_value(self):
+        self._assert_renders_as("{{ val }}", 'mine', 'yes')
+
+    def test_template_cannot_reference_dict_value(self):
+        self._assert_renders_as("{{ yours }}", 'mine', '')
