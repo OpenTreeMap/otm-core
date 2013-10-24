@@ -144,9 +144,9 @@ class TreemapUrlTests(UrlTestCase):
         self.make_boundary()
         self.assert_200(self.prefix + 'boundaries/')
 
-    def test_recent_edits(self):
+    def test_edits(self):
         self.assert_template(
-            self.prefix + 'edits/', 'treemap/recent_edits.html')
+            self.prefix + 'edits/', 'treemap/edits.html')
 
     def test_species_list(self):
         self.assert_200(self.prefix + 'species/')

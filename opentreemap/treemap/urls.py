@@ -8,7 +8,7 @@ from opentreemap.util import route
 
 from treemap.views import (boundary_to_geojson_view, index_view, map_view,
                            get_plot_detail_view, update_plot_detail_view,
-                           instance_settings_js_view, audits_view,
+                           instance_settings_js_view, edits_view,
                            search_tree_benefits_view, species_list_view,
                            boundary_autocomplete_view, instance_user_view,
                            plot_popup_view, instance_user_audits,
@@ -34,7 +34,7 @@ urlpatterns = patterns(
     url(r'^boundaries/(?P<boundary_id>\d+)/geojson/$',
         boundary_to_geojson_view),
     url(r'^boundaries/$', boundary_autocomplete_view),
-    url(r'^edits/$', audits_view, name='recent_edits'),
+    url(r'^edits/$', edits_view, name='edits'),
     url(r'^photo_review/$', photo_review_endpoint),
     url(r'^photo_review/next$', next_photo_endpoint),
     url(r'^photo_review/partial$', photo_review_partial_endpoint),
