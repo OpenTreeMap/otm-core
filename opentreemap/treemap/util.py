@@ -146,6 +146,19 @@ def instance_request(view_fn):
 
 
 def strip_request(view_fn):
+    """
+    takes a regular function and modifies it to take a request as its first arg
+
+    useful for taking a plain python function and promoting it to a view, in
+    the case where it will only need access to the args provided by url params
+    or other wrapping function.
+
+    for example, with function:
+    fn = lambda foo, bar: foo + bar
+
+    url r'treemap/(?P<foo>)/(?P<bar>)/' can map to the view function
+    returned by strip_request(fn)
+    """
     @wraps(view_fn)
     def wrapper(request, *args, **kwargs):
         return view_fn(*args, **kwargs)

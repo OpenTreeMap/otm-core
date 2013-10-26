@@ -9,13 +9,12 @@ from treemap.models import Plot, Tree, Species
 from treemap.tests import UrlTestCase, make_instance, make_commander_user
 
 from ecobenefits.models import ITreeRegion
-from ecobenefits.views import tree_benefits
+from ecobenefits.views import tree_benefits, within_itree_regions
 from ecobenefits import species_codes_for_regions
 
 
 class EcoTest(UrlTestCase):
     def setUp(self):
-        self.factory = RequestFactory()
 
         self.instance = make_instance(is_public=True)
 
@@ -123,3 +122,50 @@ class EcoTest(UrlTestCase):
                                   'stormwater', 'gal', 3185)
         self.assert_benefit_value(bens_with_default,
                                   'co2', 'lbs/year', 563)
+
+
+class WithinITreeRegionsTest(UrlTestCase):
+
+    def assertViewPerformsCorrectly(self, before_add_expected_value,
+                                    after_add_expected_value,
+                                    x=-8515941.0,
+                                    y=4953519.0,
+                                    params=None,
+                                    make_point_from_x_y=True):
+
+        params = params or {'x': str(x), 'y': str(y)}
+        p = Point(x, y) if make_point_from_x_y else Point(0, 0)
+
+        request = RequestFactory().get('', params)
+
+        result = within_itree_regions(request)
+        self.assertEqual(result, before_add_expected_value)
+
+        ITreeRegion.objects.create(code='NoEastXXX',
+                                   geometry=MultiPolygon([p.buffer(1000)]))
+
+        result = within_itree_regions(request)
+        self.assertEqual(result, after_add_expected_value)
+
+    def test_within_itree_regions_valid(self):
+        self.assertViewPerformsCorrectly(before_add_expected_value=False,
+                                         after_add_expected_value=True)
+
+    def test_within_itree_regions_no_overlap(self):
+        self.assertViewPerformsCorrectly(before_add_expected_value=False,
+                                         after_add_expected_value=False,
+                                         make_point_from_x_y=False)
+
+    def test_within_itree_regions_no_x(self):
+        y = 4953519.0
+        self.assertViewPerformsCorrectly(before_add_expected_value=False,
+                                         after_add_expected_value=False,
+                                         y=y,
+                                         params={'y': str(y)})
+
+    def test_within_itree_regions_no_y(self):
+        x = -8515941.0
+        self.assertViewPerformsCorrectly(before_add_expected_value=False,
+                                         after_add_expected_value=False,
+                                         x=x,
+                                         params={'x': str(x)})

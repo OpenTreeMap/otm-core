@@ -9,6 +9,8 @@ from treemap.views import (user_view, root_settings_js_view,
                            instance_not_available_view, update_user_view,
                            unsupported_view, landing_view, scss_view)
 
+from ecobenefits.views import within_itree_regions_view
+
 from treemap.instance import URL_NAME_PATTERN
 from treemap.urls import USERNAME_PATTERN
 
@@ -50,6 +52,8 @@ urlpatterns = patterns(
         name='instance_not_available'),
     url(r'^unsupported$', unsupported_view, name='unsupported'),
     url(r'^main\.css$', scss_view, name='scss'),
+    url(r'^eco/benefit/within_itree_regions/$', within_itree_regions_view,
+        name='within_itree_regions'),
     url(instance_pattern + r'/', include('treemap.urls')),
     url(instance_pattern + r'/eco/', include('ecobenefits.urls')),
     url(instance_pattern + r'/export/', include('exporter.urls'))
