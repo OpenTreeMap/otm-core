@@ -8,11 +8,6 @@ var $ = require('jquery'),
     getDatum = require('./otmTypeahead').getDatum,
     console = require('console-browserify'),
 
-    // Requiring this module handles wiring up the browserified
-    // baconjs to jQuery
-    BU = require('./baconUtils'),
-
-
     eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
     eventsLandingInDisplayMode = ['idle', 'save:ok', 'cancel'];
 
