@@ -151,7 +151,7 @@ def test(test_filter=""):
     require('site_path')
     require('venv_path')
 
-    _manage('test %s' % test_filter)
+    _manage('test --settings=opentreemap.test_settings %s' % test_filter)
 
 def uitest(skip_debug_check=None):
     """ Run selenium UI tests """
