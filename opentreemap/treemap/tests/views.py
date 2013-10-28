@@ -1444,10 +1444,15 @@ class SearchTreeBenefitsTests(ViewTestCase):
 
     def test_currency_is_not_empty(self):
         benefit = BenefitCurrencyConversion(
-            kwh_to_currency=2.0,
-            stormwater_gal_to_currency=2.0,
-            carbon_dioxide_lb_to_currency=2.0,
-            airquality_aggregate_lb_to_currency=2.0,
+            electricity_kwh_to_currency=2.0,
+            natural_gas_kbtu_to_currency=2.0,
+            h20_gal_to_currency=2.0,
+            co2_lb_to_currency=2.0,
+            o3_lb_to_currency=2.0,
+            nox_lb_to_currency=2.0,
+            pm10_lb_to_currency=2.0,
+            sox_lb_to_currency=2.0,
+            voc_lb_to_currency=2.0,
             currency_symbol='$')
 
         benefit.save()
@@ -1458,9 +1463,7 @@ class SearchTreeBenefitsTests(ViewTestCase):
         benefits = self.search_benefits()
 
         for benefit in benefits['benefits']:
-            self.assertEqual(
-                benefit['currency_saved'],
-                '%d' % (float(benefit['value']) * 2.0))
+            self.assertIsNotNone(benefit['currency_saved'])
 
         self.assertEqual(benefits['currency_symbol'], '$')
 

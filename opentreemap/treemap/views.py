@@ -36,7 +36,7 @@ from treemap.search import create_filter
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
 from treemap.models import (Plot, Tree, User, Species, Instance,
-                            BenefitCurrencyConversion, TreePhoto)
+                            TreePhoto)
 from treemap.units import get_units, get_display_value
 
 from ecobenefits.models import ITreeRegion
@@ -691,12 +691,12 @@ def search_tree_benefits(request, instance):
 
 def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
 
-    def displayize_benefit(key, currency_factor):
+    def displayize_benefit(key):
         benefit = benefits[key]
 
-        if currency_factor:
+        if benefit['currency'] is not None:
             benefit['currency_saved'] = number_format(
-                benefit['value'] * currency_factor, decimal_pos=0)
+                benefit['currency'], decimal_pos=0)
 
         _, value = get_display_value(instance, 'eco', key, benefit['value'])
         benefit['value'] = value
@@ -706,7 +706,8 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
         return benefit
 
     benefits, num_calculated_trees = _benefits_for_trees(
-        trees_for_eco, instance.itree_region_default)
+        trees_for_eco, instance.itree_region_default,
+        instance.factor_conversions)
 
     percent = 0
     if num_calculated_trees > 0 and total_trees > 0:
@@ -715,23 +716,19 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
         for key in benefits:
             benefits[key]['value'] /= percent
 
-    conversion = instance.eco_benefits_conversion
-    if conversion is None:
-        conversion = BenefitCurrencyConversion()
+    currency = None
+    if instance.eco_benefits_conversion:
+        currency = instance.eco_benefits_conversion.currency_symbol
 
     benefits_for_display = [
-        displayize_benefit('energy',
-                           conversion.kwh_to_currency),
-        displayize_benefit('stormwater',
-                           conversion.stormwater_gal_to_currency),
-        displayize_benefit('co2',
-                           conversion.carbon_dioxide_lb_to_currency),
-        displayize_benefit('airquality',
-                           conversion.airquality_aggregate_lb_to_currency)
+        displayize_benefit('energy'),
+        displayize_benefit('stormwater'),
+        displayize_benefit('co2'),
+        displayize_benefit('airquality')
     ]
 
     rslt = {'benefits': benefits_for_display,
-            'currency_symbol': conversion.currency_symbol,
+            'currency_symbol': currency,
             'basis': {'n_trees_used': num_calculated_trees,
                       'n_trees_total': total_trees,
                       'n_plots': total_plots,

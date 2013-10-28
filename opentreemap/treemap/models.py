@@ -8,7 +8,7 @@ import re
 
 from django.conf import settings
 from django.core.mail import send_mail
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.core import validators
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
@@ -18,6 +18,9 @@ from django.utils.translation import ugettext_lazy as trans
 
 from django.contrib.auth.models import (UserManager, AbstractBaseUser,
                                         PermissionsMixin)
+
+from ecobenefits.species import ITREE_REGIONS
+from ecobenefits.models import ITreeRegion
 
 from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
                            Dictable, Audit, AuthorizableQuerySet,
@@ -93,17 +96,19 @@ class BenefitCurrencyConversion(Dictable, models.Model):
     """
     currency_symbol = models.CharField(max_length=5)
 
-    kwh_to_currency = models.FloatField()
-    stormwater_gal_to_currency = models.FloatField()
-    carbon_dioxide_lb_to_currency = models.FloatField()
-
-    """
-    Air quality is currently a mixture of:
-    NOx, PM10, SOx, VOC and BVOX so this conversion
-    should try to assign an aggregate (weighted) conversion
-    factor.
-    """
-    airquality_aggregate_lb_to_currency = models.FloatField()
+    # Energy conversions
+    electricity_kwh_to_currency = models.FloatField()
+    natural_gas_kbtu_to_currency = models.FloatField()
+    # Stormwater conversions
+    h20_gal_to_currency = models.FloatField()
+    # CO₂ conversions
+    co2_lb_to_currency = models.FloatField()
+    # Air quality conversions
+    o3_lb_to_currency = models.FloatField()
+    nox_lb_to_currency = models.FloatField()
+    pm10_lb_to_currency = models.FloatField()
+    sox_lb_to_currency = models.FloatField()
+    voc_lb_to_currency = models.FloatField()
 
     def clean(self):
         errors = {}
@@ -112,10 +117,15 @@ class BenefitCurrencyConversion(Dictable, models.Model):
             errors['currency_symbol'] = trans(
                 'Symbol is too long')
 
-        positive_fields = ['kwh_to_currency',
-                           'airquality_aggregate_lb_to_currency',
-                           'carbon_dioxide_lb_to_currency',
-                           'stormwater_gal_to_currency']
+        positive_fields = ['electricity_kwh_to_currency',
+                           'natural_gas_kbtu_to_currency',
+                           'h20_gal_to_currency',
+                           'co2_lb_to_currency',
+                           'o3_lb_to_currency',
+                           'nox_lb_to_currency',
+                           'pm10_lb_to_currency',
+                           'sox_lb_to_currency',
+                           'voc_lb_to_currency']
 
         for field in positive_fields:
             value = getattr(self, field)
@@ -134,8 +144,62 @@ class BenefitCurrencyConversion(Dictable, models.Model):
 
         super(BenefitCurrencyConversion, self).save(*args, **kwargs)
 
+    def get_factor_conversions_config(self):
+        return {
+            'electricity': self.electricity_kwh_to_currency,
+            'natural_gas': self.natural_gas_kbtu_to_currency,
+            'hydro_interception': self.h20_gal_to_currency,
+            'co2_sequestered': self.co2_lb_to_currency,
+            'co2_avoided': self.co2_lb_to_currency,
+            'co2_storage': self.co2_lb_to_currency,
+            'aq_ozone_dep': self.o3_lb_to_currency,
+            'aq_nox_dep': self.nox_lb_to_currency,
+            'aq_nox_avoided': self.nox_lb_to_currency,
+            'aq_pm10_dep': self.pm10_lb_to_currency,
+            'aq_sox_dep': self.sox_lb_to_currency,
+            'aq_sox_avoided': self.sox_lb_to_currency,
+            'aq_voc_avoided': self.voc_lb_to_currency
+            # TODO It is unclear if the 'bvoc' factor uses the 'VOC' costs
+            # Leaving it alone for now, as it seems better to incorrectly have
+            # lower eco-benefit money saved than higher.
+        }
 
-# This is copy and pasted with syntex mods from the source for `AbstractUser`
+    @classmethod
+    def get_default_for_point(cls, point):
+        """
+        Returns a new BenefitCurrencyConversion for the i-Tree region that
+        contains the given point.
+        """
+        regions_covered = ITreeRegion.objects.filter(geometry__contains=point)
+
+        if len(regions_covered) > 1:
+            raise MultipleObjectsReturned(
+                "There should not be overlapping i-Tree regions")
+        elif len(regions_covered) == 0:
+            return None
+
+        region_code = regions_covered[0].code
+
+        return cls.get_default_for_region(region_code)
+
+    @classmethod
+    def get_default_for_region(cls, region_code):
+        """
+        Returns a new BenefitCurrencyConversion for the given i-Tree region
+        """
+        config = ITREE_REGIONS.get(region_code, {})\
+                              .get('currency_conversion')
+        if config:
+            benefits_conversion = cls()
+            benefits_conversion.currency_symbol = '$'
+            for field, conversion in config.iteritems():
+                setattr(benefits_conversion, field, conversion)
+            return benefits_conversion
+        else:
+            return None
+
+
+# This is copy and pasted with syntax mods from the source for `AbstractUser`
 # from the django source code, which is suboptimal. This was done because you
 # can't have your cake and eat it too: inheriting AbstractUser but modifying
 # one of the core fields.

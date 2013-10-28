@@ -90,7 +90,7 @@ def _benefits_for_trees(trees, region_default=None, benefits_config=None):
 
 
 def tree_benefits(instance, tree_id):
-    "Given a tree id, determine eco benefits via eco.py"
+    """Given a tree id, determine eco benefits via eco.py"""
     InstanceTree = instance.scope_model(Tree)
     tree = get_object_or_404(InstanceTree, pk=tree_id)
     dbh = tree.diameter
@@ -103,6 +103,8 @@ def tree_benefits(instance, tree_id):
     else:
         region_code = instance.itree_region_default
 
+    factor_conversions = instance.factor_conversions
+
     rslt = {}
     if not dbh:
         rslt = {'benefits': {}, 'error': 'MISSING_DBH'}
@@ -113,7 +115,8 @@ def tree_benefits(instance, tree_id):
                 _benefits_for_trees(
                     [{'species__otm_code': otm_code,
                       'diameter': dbh,
-                      'itree_region_code': region_code}])}
+                      'itree_region_code': region_code}],
+                    factor_conversions)}
 
     return rslt
 
