@@ -180,11 +180,11 @@
 <script>
 {% localize off %}
 (function(require, config) {
-      var plot = require('plot'),
-          alerts = require('alerts');
+      var plot = require('treemap/plot'),
+          alerts = require('treemap/alerts');
 
       var updateUrl = window.location.href;
-      var U = require('utility');
+      var U = require('treemap/utility');
 
       if (U.getLastUrlSegment(updateUrl) == 'edit') {
             updateUrl = U.removeLastUrlSegment(updateUrl);

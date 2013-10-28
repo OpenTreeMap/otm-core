@@ -132,7 +132,7 @@
 {% block exportscript %}
 <script type="text/javascript">
     (function(require) {
-        require('export').init({
+        require('treemap/export').init({
             trigger: '#exportbutton',
             panel: '#export-panel',
             cancel: '#export-panel * [data-dismiss]',
@@ -146,7 +146,7 @@
 {% block searchscripts %}
 <script type="text/javascript">
     (function(require) {
-        require("searchBar").init(otm.settings);
+        require("treemap/searchBar").init(otm.settings);
     })(require);
 </script>
 {% endblock searchscripts %}

@@ -2,10 +2,10 @@
 
 var $ = require('jquery'),
     Bacon = require('baconjs'),
-    BU = require('./baconUtils'),
+    BU = require('treemap/baconUtils'),
     _ = require('underscore'),
-    FH = require('./fieldHelpers'),
-    getDatum = require('./otmTypeahead').getDatum,
+    FH = require('treemap/fieldHelpers'),
+    getDatum = require('treemap/otmTypeahead').getDatum,
     console = require('console-browserify'),
 
     eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],

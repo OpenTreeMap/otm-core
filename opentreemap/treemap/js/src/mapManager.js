@@ -4,10 +4,10 @@ var $ = require('jquery'),
     _ = require('underscore'),
     google = require('googlemaps'),
     L = require('leaflet'),
-    U = require('utility'),
+    U = require('treemap/utility'),
     Bacon = require('baconjs'),
-    BU = require('BaconUtils'),
-    makeLayerFilterable = require('./makeLayerFilterable');
+    BU = require('treemap/baconUtils'),
+    makeLayerFilterable = require('treemap/makeLayerFilterable');
 
 // Leaflet extensions
 require('utfgrid');

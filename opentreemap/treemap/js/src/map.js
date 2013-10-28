@@ -4,19 +4,19 @@ var $ = require('jquery'),
     _ = require('underscore'),
     Bootstrap = require('bootstrap'),  // for $(...).collapse()
     Bacon = require('baconjs'),
-    U = require('./utility'),
-    csrf = require('./csrf'),
+    U = require('treemap/utility'),
+    csrf = require('treemap/csrf'),
 
-    mapManager = require('./mapManager'),
-    addTreeMode = require('./addTreeMode'),
-    Search = require('./search'),
-    searchBar = require('./searchBar'),
-    modes = require('./modeManagerForMapPage'),
-    geocoder = require('./geocoder'),
-    geocoderUi = require('./geocoderUi'),
-    boundarySelect = require('./boundarySelect'),
-    BU = require('./baconUtils'),
-    buttonEnabler = require('./buttonEnabler');
+    mapManager = require('treemap/mapManager'),
+    addTreeMode = require('treemap/addTreeMode'),
+    Search = require('treemap/search'),
+    searchBar = require('treemap/searchBar'),
+    modes = require('treemap/modeManagerForMapPage'),
+    geocoder = require('treemap/geocoder'),
+    geocoderUi = require('treemap/geocoderUi'),
+    boundarySelect = require('treemap/boundarySelect'),
+    BU = require('treemap/baconUtils'),
+    buttonEnabler = require('treemap/buttonEnabler');
 
 // Map-page specific search code here
 var unmatchedBoundarySearchValue = function() {

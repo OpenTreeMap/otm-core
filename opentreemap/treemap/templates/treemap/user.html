@@ -78,7 +78,7 @@ active
 {% block scripts %}
 <script>
 (function(require, config) {
-    require('user').init({
+    require('treemap/user').init({
         inlineEditForm: {
             updateUrl: window.location.href,
             form: '#user-form',
@@ -88,7 +88,7 @@ active
             displayFields: '[data-class="display"]',
             editFields: '[data-class="edit"]',
             validationFields: '[data-class="error"]',
-            errorCallback: require('alerts').makeErrorCallback(config)
+            errorCallback: require('treemap/alerts').makeErrorCallback(config)
         },
         recentEdits: {
             recentEditsContainer: '#recent-user-edits-container',

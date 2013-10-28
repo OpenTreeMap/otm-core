@@ -4,7 +4,7 @@ var google = require('googlemaps'),
     $ = require('jquery'),
     _ = require('underscore'),
 
-    utility = require('./utility');
+    utility = require('treemap/utility');
 
 exports.create = function(options) {
     var panorama = null,
