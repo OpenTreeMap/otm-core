@@ -1102,6 +1102,14 @@ class Audit(models.Model):
         return self._unit_format(self.clean_previous_value)
 
     @property
+    def field_display_name(self):
+        name = self.field
+        if name.startswith('udf:'):
+            return name[4:]
+        else:
+            return name.replace('_', ' ')
+
+    @property
     def display_action(self):
         return Audit.TYPES[self.action]
 
@@ -1126,7 +1134,7 @@ class Audit(models.Model):
         cls = _lookup_model(self.model)
         format_string = cls.action_format_string_for_audit(self)
 
-        return format_string % {'field': self.field.replace('_', ' '),
+        return format_string % {'field': self.field_display_name,
                                 'model': trans(self.model).lower(),
                                 'value': self.current_display_value}
 
