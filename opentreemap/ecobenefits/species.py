@@ -2,9 +2,9 @@
 
 # The ``CODES`` dictionary has the following format
 #
-#   { 
-#     itree_region_code: { 
-#       otm_code: itree_code 
+#   {
+#     itree_region_code: {
+#       otm_code: itree_code
 #     }
 #   }
 #
@@ -14,7 +14,7 @@
 # Calculating eco benefits for a tree requires a diameter
 # and an itree code. The itree code for a tree is based on
 # the species of the tree, but the specific code assigned
-# to a species changes depending on where that species 
+# to a species changes depending on where that species
 # is located geographically.
 
 
@@ -329,7 +329,7 @@ CODES = {
         'ZESE': 'BDL OTHER'
     } # END CaNCCoJBK
     ,
-##################################################    
+##################################################
     'CenFlaXXX': {
         'ACAC2': 'PES OTHER',
         'ACNE': 'BDM OTHER',
