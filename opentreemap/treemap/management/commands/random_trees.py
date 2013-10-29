@@ -41,7 +41,8 @@ class Command(InstanceDataCommand):
         n = options['n']
         print("Will create %s plots" % n)
 
-        tree_prob = float(max(100, min(0, options['ptree']))) / 100.0
+        get_prob = lambda option: float(min(100, max(0, option))) / 100.0
+        tree_prob = get_prob(options['ptree'])
         max_radius = options['radius']
 
         center_x = instance.center.x
