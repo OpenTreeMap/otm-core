@@ -63,10 +63,6 @@ OMGEO_SETTINGS = [[
 #
 TILE_HOST = None
 
-IE_VERSION_MINIMUM = 9
-
-IE_VERSION_UNSUPPORTED_REDIRECT_PATH = '/unsupported'
-
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -296,3 +292,9 @@ ADD_TREE_URL_HASH = '#addTree'
 
 # Time in ms for two clicks to be considered a double-click in some scenarios
 DOUBLE_CLICK_INTERVAL = 300
+
+# We have... issues on IE9 right now
+# Disable it on production, but enable it in Debug mode
+IE_VERSION_MINIMUM = 9 if DEBUG else 10
+
+IE_VERSION_UNSUPPORTED_REDIRECT_PATH = '/unsupported'
