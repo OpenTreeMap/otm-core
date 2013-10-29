@@ -1,6 +1,12 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 from django.test import TestCase
 from django.conf import settings
 from django.http import HttpResponseRedirect
+from django.test.utils import override_settings
 from opentreemap.middleware import InternetExplorerRedirectMiddleware
 
 
@@ -21,6 +27,7 @@ class MockRequest():
         }
 
 
+@override_settings(IE_VERSION_MINIMUM=9)
 class InternetExplorerRedirectMiddlewareTests(TestCase):
 
     def _request_with_agent(self, http_user_agent):
