@@ -4,11 +4,11 @@ var $ = require('jquery'),
     _ = require('underscore'),
     Bootstrap = require('bootstrap'),  // for $(...).collapse()
     Bacon = require('baconjs'),
-    U = require('treemap/utility'),
     csrf = require('treemap/csrf'),
 
     mapManager = require('treemap/mapManager'),
     addTreeMode = require('treemap/addTreeMode'),
+    mapState = require('treemap/mapState'),
     Search = require('treemap/search'),
     searchBar = require('treemap/searchBar'),
     modes = require('treemap/modeManagerForMapPage'),
@@ -84,52 +84,72 @@ module.exports = {
         // Let the user know if there was a problem geocoding
         geocodeResponseStream.onError(showGeocodeError);
 
-        // Set up cross-site forgery protection
-        $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
-
-        searchBar.initSearchUi(config);
-
         var triggerSearchFromSidebar = new Bacon.Bus();
 
-        mapManager.init({
-            config: config,
-            selector: '#map'
-        });
-        modes.init(config, mapManager, triggerSearchFromSidebar);
-        if (window.location.hash === config.addTreeUrlHash) {
-            modes.activateAddTreeMode();
-        } else {
-            modes.activateBrowseTreesMode();
-        }
+        mapState.stateChangeStream
+            .filter('.zoomLatLng')
+            .onValue(function (state) {
+                var zll = state.zoomLatLng,
+                    center = new L.LatLng(zll.lat, zll.lng);
+                mapManager.map.setView(center, zll.zoom);
+            });
+
+        mapState.stateChangeStream
+            .map('.modeName')
+            .filter(BU.isDefined)
+            .onValue(function (modeName) {
+                if (modeName === addTreeMode.name) {
+                    modes.activateAddTreeMode();
+                } else {
+                    modes.activateBrowseTreesMode();
+                }
+            });
+
+        var triggeredQueryStream =
+            Bacon.mergeAll(
+                mapState.stateChangeStream // URL changed
+                    .filter('.search')     // search changed
+                    .map('.search'),       // get search string
+                resetStream.map({})
+            );
+
+        var builtSearchEvents =
+            Bacon.mergeAll(
+                triggeredQueryStream,
+                searchEventStream.map(Search.buildSearch, elems)
+            );
+
+        var ecoBenefitsSearchEvents =
+            Bacon.mergeAll(
+                builtSearchEvents,
+                triggerSearchFromSidebar.map(mapState.getSearch)
+            );
+
+        triggeredQueryStream.onValue(Search.applySearchToDom, elems);
+
+        builtSearchEvents.onValue(mapState.setSearch);
 
         $('[data-action="addtree"]').click(function(e) {
             e.preventDefault();
             modes.activateAddTreeMode();
         });
 
-        var triggerSearchFromUrl = new Bacon.Bus();
+        $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
-        var initialQueryBus = triggerSearchFromUrl
-            .map(U.getCurrentFilterString)
-            .skipDuplicates()
-            .map(JSON.parse);
+        mapManager.init({
+            config: config,
+            selector: '#map'
+        });
 
-        var repeatableQueryBus = triggerSearchFromSidebar
-            .map(U.getCurrentFilterString)
-            .map(JSON.parse);
+        mapManager.map.on("moveend", function () {
+            var zoom = mapManager.map.getZoom(),
+                center = mapManager.map.getCenter();
+            mapState.setZoomLatLng(zoom, center);
+        });
 
-        var triggeredQueryBus = resetStream.map({})
-                                           .merge(initialQueryBus);
+        Search.init(ecoBenefitsSearchEvents, config, mapManager.setFilter);
 
-        window.addEventListener('popstate', function(event) {
-            triggerSearchFromUrl.push();
-        }, false);
-
-        var builtSearchEvents = searchEventStream
-                .map(Search.buildSearch, elems)
-                .merge(triggeredQueryBus);
-
-        var ecoBenefitsSearchEvents = builtSearchEvents.merge(repeatableQueryBus);
+        searchBar.initSearchUi(config);
 
         boundarySelect.init({
             config: config,
@@ -141,27 +161,11 @@ module.exports = {
             }
         });
 
-        triggeredQueryBus.onValue(Search.applySearchToDom, elems);
-
-        Search.init(ecoBenefitsSearchEvents, config, mapManager.setFilter);
-
-        builtSearchEvents
-            .map(JSON.stringify)
-            .map(function(q) {
-                if (q == '{}') {
-                    return null;
-                } else {
-                    return q;
-                }
-            })
-            .map(U.getUpdateUrlByUpdatingQueryStringParam, 'q')
-            .filter(function(url) {
-                return url != window.location.href;
-            })
-            .onValue(U.pushState);
-
         buttonEnabler.run({ config: config });
 
-        triggerSearchFromUrl.push();
+        modes.init(config, mapManager, triggerSearchFromSidebar);
+
+        // Reads state from current URL, possibly triggering updates via mapState.stateChangeStream
+        mapState.init();
     }
 };

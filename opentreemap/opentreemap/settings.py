@@ -288,8 +288,6 @@ DISPLAY_DEFAULTS = {
     }
 }
 
-ADD_TREE_URL_HASH = '#addTree'
-
 # Time in ms for two clicks to be considered a double-click in some scenarios
 DOUBLE_CLICK_INTERVAL = 300
 

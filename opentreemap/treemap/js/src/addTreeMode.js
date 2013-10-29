@@ -24,12 +24,10 @@ var config,
     $editControls,
     $validationFields,
     deactivateBus,
-    addTreeUrlHash,
     gcoder;
 
 function init(options) {
     config = options.config;
-    addTreeUrlHash = config.addTreeUrlHash;
     mapManager = options.mapManager;
     plotMarker = options.plotMarker;
     onClose = options.onClose || $.noop;
@@ -161,7 +159,6 @@ function init(options) {
 //     deactivate() -> Inactive
 
 function activate() {
-    window.location.hash = addTreeUrlHash;
     // Let user start creating a tree (by clicking the map)
     plotMarker.hide();
     plotMarker.enablePlacing();
@@ -279,7 +276,6 @@ function onAddTreeError(jqXHR, textStatus, errorThrown) {
 }
 
 function deactivate() {
-    window.location.hash = '';
     // We're being deactivated by an external event
     deactivateBus.push();
 }
@@ -294,6 +290,7 @@ function reverseGeocodeResponseToAddressString(reverseGeocodeResponse) {
 }
 
 module.exports = {
+    name: 'addTree',
     init: init,
     activate: activate,
     deactivate: deactivate

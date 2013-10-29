@@ -72,7 +72,6 @@ exports.init = function(options) {
         .onValue('.load', options.updateSidebarUrl);
 
     var startInEditMode = options.startInEditMode;
-    var firstEditEventFound = false;
 
     form.inEditModeProperty.onValue(function(inEditMode) {
         var hrefHasEdit = U.getLastUrlSegment() === 'edit';
@@ -80,16 +79,7 @@ exports.init = function(options) {
         if (inEditMode && !hrefHasEdit) {
             U.pushState(U.appendSegmentToUrl('edit'));
         } else if (!inEditMode && hrefHasEdit) {
-            // inEditModeProperty fires a bunch of startup events.
-            // if we're starting in edit mode we want to ignore
-            // all events until we hit the first 'transition' to normal
-            // mode. When we hit that we swallow the event and then
-            // let things go as normal.
-            if (startInEditMode && !firstEditEventFound) {
-                firstEditEventFound = true;
-            } else {
-                U.pushState(U.removeLastUrlSegment());
-            }
+            U.pushState(U.removeLastUrlSegment());
         }
     });
 

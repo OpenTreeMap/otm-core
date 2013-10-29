@@ -6,31 +6,6 @@ var url = require('url'),
     L = require('leaflet'),
     console = require('console-browserify');
 
-exports.getUpdatedQueryString = function (k, v) {
-    var parsedUrl = url.parse(window.location.href, true);
-    var query = parsedUrl.query || {};
-
-    query[k] = v;
-
-    return QS.stringify(query);
-};
-
-exports.getUpdateUrlByUpdatingQueryStringParam = function (k, v) {
-    var parsedUrl = url.parse(window.location.href, true);
-    var query = parsedUrl.query || {};
-
-    if (v === null) {
-        delete query[k];
-    } else {
-        query[k] = v;
-    }
-
-    parsedUrl.query = query;
-    parsedUrl.search = null;
-
-    return url.format(parsedUrl);
-};
-
 exports.getLastUrlSegment = function(urlString) {
     var parts = getUrlSegments(urlString);
     return parts[parts.length - 1];
@@ -98,10 +73,6 @@ var parseQueryString = exports.parseQueryString = function () {
     }
 
     return urlParams;
-};
-
-exports.getCurrentFilterString = function() {
-    return parseQueryString().q || '{}';
 };
 
 exports.$find = function (selector, $parent) {
