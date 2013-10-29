@@ -2,9 +2,9 @@
 
 var $ = require('jquery'),
     _ = require('underscore'),
-    otmTypeahead = require('./otmTypeahead'),
-    plotMover = require('./plotMover'),
-    diameterCalculator = require('./diameterCalculator');
+    otmTypeahead = require('treemap/otmTypeahead'),
+    plotMover = require('treemap/plotMover'),
+    diameterCalculator = require('treemap/diameterCalculator');
 
 
 var mapManager,

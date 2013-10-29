@@ -2,16 +2,11 @@
 
 var $ = require('jquery'),
     Bacon = require('baconjs'),
-    BU = require('./baconUtils'),
+    BU = require('treemap/baconUtils'),
     _ = require('underscore'),
-    FH = require('./fieldHelpers'),
-    getDatum = require('./otmTypeahead').getDatum,
+    FH = require('treemap/fieldHelpers'),
+    getDatum = require('treemap/otmTypeahead').getDatum,
     console = require('console-browserify'),
-
-    // Requiring this module handles wiring up the browserified
-    // baconjs to jQuery
-    BU = require('./baconUtils'),
-
 
     eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
     eventsLandingInDisplayMode = ['idle', 'save:ok', 'cancel'];

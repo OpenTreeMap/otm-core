@@ -6,7 +6,7 @@
 var $ = require('jquery'),
     _ = require('underscore'),
     Bacon = require('baconjs'),
-    U = require('utility'),
+    U = require('treemap/utility'),
     L = require('leaflet');
 
 var marker,

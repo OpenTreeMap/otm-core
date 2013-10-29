@@ -1,9 +1,9 @@
 "use strict";
 
 var $ = require('jquery'),
-    BU = require('BaconUtils'),
+    BU = require('treemap/baconUtils'),
     url = require('url'),
-    U = require('utility'),
+    U = require('treemap/utility'),
     _ = require('underscore'),
     Bacon = require('baconjs');
 

@@ -2,14 +2,14 @@
 
 var $ = require('jquery'),
     _ = require('underscore'),
-    FH = require('./fieldHelpers'),
-    U = require('./utility'),
+    FH = require('treemap/fieldHelpers'),
+    U = require('treemap/utility'),
     Bacon = require('baconjs'),
-    otmTypeahead = require('./otmTypeahead'),
-    geocoder = require('./geocoder'),
-    geocoderUi = require('./geocoderUi'),
-    enterOrClickEventStream = require('./baconUtils').enterOrClickEventStream,
-    diameterCalculator = require('./diameterCalculator');
+    otmTypeahead = require('treemap/otmTypeahead'),
+    geocoder = require('treemap/geocoder'),
+    geocoderUi = require('treemap/geocoderUi'),
+    enterOrClickEventStream = require('treemap/baconUtils').enterOrClickEventStream,
+    diameterCalculator = require('treemap/diameterCalculator');
 
 var config,
     mapManager,

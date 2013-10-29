@@ -1,3 +1,5 @@
+var path = require('path');
+
 module.exports = function(grunt) {
     "use strict";
 
@@ -17,36 +19,16 @@ module.exports = function(grunt) {
     grunt.registerTask('default', ['js', 'css']);
 
     /*
-     * Reads the extra.json file which should be a dictionary
-     * where the keys are the require.js alias and the values
-     * are the path to a file, relative to `opentreemap`
+     * Maps all src/*.js files by their Django app name.
+     * Makes it easy to use treemap JS modules from other Django apps
      */
     function getAliases() {
-        var aliases = ['treemap/js/src/alerts.js:alerts',
-                       'treemap/js/src/baconUtils.js:BaconUtils',
-                       'treemap/js/src/buttonEnabler.js:buttonEnabler',
-                       'treemap/js/src/csrf.js:csrf',
-                       'treemap/js/src/export.js:export',
-                       'treemap/js/src/geocoder.js:geocoder',
-                       'treemap/js/src/geocoderUi.js:geocoderUi',
-                       'treemap/js/src/imageUploadPanel.js:imageUploadPanel',
-                       'treemap/js/src/inlineEditForm.js:inlineEditForm',
-                       'treemap/js/src/map.js:map',
-                       'treemap/js/src/mapManager.js:mapManager',
-                       'treemap/js/src/photoReview.js:photoReview',
-                       'treemap/js/src/plot.js:plot',
-                       'treemap/js/src/searchBar.js:searchBar',
-                       'treemap/js/src/user.js:user',
-                       'treemap/js/src/utility.js:utility'];
-
-        var extras = require('./extra.json');
-        for (var alias in extras) {
-            var filepath = extras[alias];
-            if (grunt.file.exists(filepath)) {
-                aliases.push(filepath + ':' + alias);
-            }
-        }
-        return aliases;
+        var files = grunt.file.expand('*/js/src/*.js');
+        return files.map(function(filename) {
+            var basename = path.basename(filename, '.js'),
+                app = filename.split(path.sep)[0];
+            return filename + ':' + app + '/' + basename;
+        });
     }
 
     grunt.initConfig({

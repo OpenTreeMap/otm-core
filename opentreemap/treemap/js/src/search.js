@@ -4,7 +4,7 @@ var $ = require('jquery'),
     Bacon = require('baconjs'),
     _ = require('underscore'),
     moment = require("moment"),
-    isTypeaheadHiddenField = require('./fieldHelpers');
+    isTypeaheadHiddenField = require('treemap/fieldHelpers');
 
 var DATETIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
 

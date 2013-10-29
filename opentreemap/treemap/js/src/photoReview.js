@@ -1,11 +1,11 @@
 "use strict";
 
 var $ = require('jquery'),
-    U = require('./utility'),
+    U = require('treemap/utility'),
     Bacon = require('baconjs'),
-    BU = require('BaconUtils');
+    BU = require('treemap/baconUtils');
 
-var csrf = require('csrf');
+var csrf = require('treemap/csrf');
 $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
 

@@ -2,19 +2,19 @@
 
 var $ = require('jquery'),
     _ = require('underscore'),
-    otmTypeahead = require('./otmTypeahead'),
-    inlineEditForm = require('./inlineEditForm'),
-    mapManager = require('./mapManager'),
-    BU = require('BaconUtils'),
-    FH = require('./fieldHelpers'),
+    otmTypeahead = require('treemap/otmTypeahead'),
+    inlineEditForm = require('treemap/inlineEditForm'),
+    mapManager = require('treemap/mapManager'),
+    BU = require('treemap/baconUtils'),
+    FH = require('treemap/fieldHelpers'),
     Bacon = require('baconjs'),
-    U = require('./utility'),
-    plotMover = require('./plotMover'),
-    plotMarker = require('./plotMarker'),
-    csrf = require('./csrf'),
-    imageUploadPanel = require('./imageUploadPanel'),
-    streetView = require('./streetView'),
-    diameterCalculator = require('./diameterCalculator');
+    U = require('treemap/utility'),
+    plotMover = require('treemap/plotMover'),
+    plotMarker = require('treemap/plotMarker'),
+    csrf = require('treemap/csrf'),
+    imageUploadPanel = require('treemap/imageUploadPanel'),
+    streetView = require('treemap/streetView'),
+    diameterCalculator = require('treemap/diameterCalculator');
 
 exports.init = function(options) {
     var $addTree = $(options.addTree),

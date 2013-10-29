@@ -5,12 +5,12 @@
 // module to handle UI events. This module initializes the mode modules and
 // orchestrates switching between modes.
 
-var U = require('./utility'),
-    browseTreesMode     = require('./browseTreesMode'),
-    addTreeMode         = require('./addTreeMode'),
-    editTreeDetailsMode = require('./editTreeDetailsMode'),
-    inlineEditForm      = require('./inlineEditForm'),
-    plotMarker          = require('./plotMarker'),
+var U = require('treemap/utility'),
+    browseTreesMode     = require('treemap/browseTreesMode'),
+    addTreeMode         = require('treemap/addTreeMode'),
+    editTreeDetailsMode = require('treemap/editTreeDetailsMode'),
+    inlineEditForm      = require('treemap/inlineEditForm'),
+    plotMarker          = require('treemap/plotMarker'),
     currentMode;
 
 var $sidebarBrowseTrees         = U.$find('#sidebar-browse-trees'),

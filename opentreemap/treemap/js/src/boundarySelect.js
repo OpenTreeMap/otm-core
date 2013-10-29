@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    BU = require('BaconUtils'),
+    BU = require('treemap/baconUtils'),
     _ = require('underscore'),
     L = require('leaflet');
 

@@ -4,8 +4,8 @@ var $ = require('jquery'),
     _ = require('underscore'),
     L = require('leaflet'),
     Bacon = require('baconjs'),
-    BU = require('BaconUtils'),
-    buttonEnabler = require('./buttonEnabler');
+    BU = require('treemap/baconUtils'),
+    buttonEnabler = require('treemap/buttonEnabler');
 
 var config,  // Module-level config set in `init` and read by helper functions
     map,

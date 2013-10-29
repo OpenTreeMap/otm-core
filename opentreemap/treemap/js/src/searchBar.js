@@ -8,9 +8,9 @@ var $ = require('jquery'),
     _ = require('underscore'),
     Bacon = require('baconjs'),
     otmTypeahead = require('./otmTypeahead'),
-    U = require('./utility'),
-    Search = require('./search'),
-    BU = require('./baconUtils');
+    U = require('treemap/utility'),
+    Search = require('treemap/search'),
+    BU = require('treemap/baconUtils');
 
 // Placed onto the jquery object
 require('bootstrap-datepicker');

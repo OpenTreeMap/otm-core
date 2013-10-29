@@ -10,7 +10,7 @@ require('typeahead');
 var $ = require("jquery"),
     mustache = require("mustache"),
     Bacon = require("baconjs"),
-    BU = require("./baconUtils");
+    BU = require("treemap/baconUtils");
 
 
 function setTypeahead($typeahead, val) {
