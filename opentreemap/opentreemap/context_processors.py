@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.staticfiles import finders
 
 from treemap.util import get_last_visited_instance
 
@@ -15,10 +16,18 @@ def global_settings(request):
     else:
         logo_url = settings.STATIC_URL + "img/logo-beta.png"
 
+    try:
+        comment_file_path = finders.find('version.txt')
+        with open(comment_file_path, 'r') as f:
+            header_comment = f.read()
+    except:
+        header_comment = "Version information not available\n"
+
     ctx = {'SITE_ROOT': settings.SITE_ROOT,
            'settings': settings,
            'last_instance': last_instance,
            'last_effective_instance_user': last_effective_instance_user,
-           'logo_url': logo_url}
+           'logo_url': logo_url,
+           'header_comment': header_comment}
 
     return ctx
