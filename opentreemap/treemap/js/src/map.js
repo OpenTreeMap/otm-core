@@ -4,10 +4,11 @@ var $ = require('jquery'),
     _ = require('underscore'),
     Bootstrap = require('bootstrap'),  // for $(...).collapse()
     Bacon = require('baconjs'),
+    L = require('leaflet'),
     csrf = require('treemap/csrf'),
 
     mapManager = require('treemap/mapManager'),
-    addTreeMode = require('treemap/addTreeMode'),
+    addTreeModeName = require('treemap/addTreeMode').name,
     mapState = require('treemap/mapState'),
     Search = require('treemap/search'),
     searchBar = require('treemap/searchBar'),
@@ -98,7 +99,7 @@ module.exports = {
             .map('.modeName')
             .filter(BU.isDefined)
             .onValue(function (modeName) {
-                if (modeName === addTreeMode.name) {
+                if (modeName === addTreeModeName) {
                     modes.activateAddTreeMode();
                 } else {
                     modes.activateBrowseTreesMode();

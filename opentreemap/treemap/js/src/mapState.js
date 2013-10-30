@@ -5,21 +5,14 @@ var _ = require('underscore'),
     url = require('url'),
     L = require('leaflet'),
     History = require('history'),
-    addTreeModeName = require('./addTreeMode').name ;
+    addTreeModeName = require('treemap/addTreeMode').name;
 
 var state,
     stateChangeBus = new Bacon.Bus();
 
 module.exports = {
     init: function () {
-        var defaultState = {
-                zoomLatLng: null,
-                search: {},
-                modeName: ''
-            },
-            initialState = getStateFromCurrentUrl(defaultState);
-        setStateAndPushToApp(initialState);
-        History.replaceState(state, '', getUrlFromCurrentState());
+        setStateAndPushToApp(getStateFromCurrentUrl());
 
         History.Adapter.bind(window, 'statechange', function() {
             setStateAndPushToApp(History.getState().data || getStateFromCurrentUrl());
@@ -49,7 +42,7 @@ module.exports = {
 
     setModeName: function (modeName) {
         // We only want "Add Tree" mode in the url
-        modeName = (modeName === addTreeModeName ? modeName : '')
+        modeName = (modeName === addTreeModeName ? modeName : '');
         if (modeName !== state.modeName) {
             state.modeName = modeName;
             History.replaceState(state, '', getUrlFromCurrentState());
@@ -63,8 +56,8 @@ module.exports = {
     stateChangeStream: stateChangeBus.map(_.identity)
 };
 
-function getStateFromCurrentUrl(defaultState) {
-    var newState = defaultState || {},
+function getStateFromCurrentUrl() {
+    var newState = {},
         query = url.parse(window.location.href, true).query,
         zoomLatLng = query.z;
     newState.zoomLatLng = null;
