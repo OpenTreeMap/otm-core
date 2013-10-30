@@ -665,11 +665,11 @@ def search_tree_benefits(request, instance):
     if not request.instance_supports_ecobenefits:
 
         return {'benefits': None,
-            'currency_symbol': None,
-            'basis': {'n_trees_used': None,
-                      'n_trees_total': total_trees,
-                      'n_plots': total_plots,
-                      'percent': None }}
+                'currency_symbol': None,
+                'basis': {'n_trees_used': None,
+                          'n_trees_total': total_trees,
+                          'n_plots': total_plots,
+                          'percent': None}}
     else:
         trees_for_eco = trees.exclude(species__otm_code__isnull=True)\
                              .exclude(diameter__isnull=True)\
