@@ -134,12 +134,18 @@
           </tbody>
         </table>
       </form>
-
-      {% if request.instance_supports_ecobenefits %}
       <hr>
 
+      {% if request.instance_supports_ecobenefits %}
       <div id="ecobenefits">
         {% include "treemap/partials/plot_eco.html" with benefits=benefits %}
+      </div>
+      {% else %}
+      <div>
+        {% blocktrans %}
+        Ecosystem benefits are not available for tree maps in locations outside the
+        United States. More info is available on the <a href="https://opentreemap.org/faq/#03">OpenTreeMap FAQ page.</a>
+        {% endblocktrans %}
       </div>
       {% endif %}
     </div>

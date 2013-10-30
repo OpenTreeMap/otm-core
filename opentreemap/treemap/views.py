@@ -651,20 +651,26 @@ def _execute_filter(instance, filter_str):
 
 
 def search_tree_benefits(request, instance):
+    try:
+        filter_str = request.REQUEST['q']
+    except KeyError:
+        filter_str = ''
+
+    plots = _execute_filter(instance, filter_str)
+    trees = Tree.objects.filter(plot_id__in=plots)
+
+    total_plots = plots.count()
+    total_trees = trees.count()
+
     if not request.instance_supports_ecobenefits:
-        return {}
+
+        return {'benefits': None,
+            'currency_symbol': None,
+            'basis': {'n_trees_used': None,
+                      'n_trees_total': total_trees,
+                      'n_plots': total_plots,
+                      'percent': None }}
     else:
-        try:
-            filter_str = request.REQUEST['q']
-        except KeyError:
-            filter_str = ''
-
-        plots = _execute_filter(instance, filter_str)
-        trees = Tree.objects.filter(plot_id__in=plots)
-
-        total_plots = plots.count()
-        total_trees = trees.count()
-
         trees_for_eco = trees.exclude(species__otm_code__isnull=True)\
                              .exclude(diameter__isnull=True)\
                              .extra(select={'itree_region_code':
