@@ -4,13 +4,17 @@
 {% block content %}
 <div class="content login-signup">
   <div class="well login-signup-panel">
-	{% if account %}
-  		<h3>{% trans "Account successfully activated" %}</h3>
-  		<p><a href="{% url 'auth_login' %}">{% trans "Log in" %}</a> {% trans "to start exploring trees!" %}</p>
-  	{% else %}
-  		<h3>{% trans "Account activation failed" %}</h3>
-  		<p>{% trans "Looks like something went wrong. Try again or" %} <a href="mailto:{{ settings.SUPPORT_EMAIL_ADDRESS }}">{% trans "contact support" %}</a> {% trans "for assistance." %}</p>
-  	{% endif %}
+  {% if account %}
+    <h3>{% trans "Account successfully activated" %}</h3>
+    <p><a href="{% url 'auth_login' %}">{% trans "Log in" %}</a> {% trans "to start exploring trees!" %}</p>
+  {% else %}
+    <h3>{% trans "Account Activation Issue" %}</h3>
+    {% url 'auth_login' as login_url %}
+    {% blocktrans with settings.SUPPORT_EMAIL_ADDRESS as support_email %}
+    <p>You may have clicked on the activation link twice or did not copy the entire URL into your web browser.  Please try <a href="{{ login_url }}">logging in.</a></p>
+    <p>If you cannot login successfully, <a href="mailto:{{ support_email }}">contact support</a> for assistance.</p>
+    {% endblocktrans %}
+  {% endif %}
   </div>
 </div>
 {% endblock %}
