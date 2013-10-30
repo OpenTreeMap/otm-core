@@ -2,9 +2,9 @@
 
 # The ``CODES`` dictionary has the following format
 #
-#   { 
-#     itree_region_code: { 
-#       otm_code: itree_code 
+#   {
+#     itree_region_code: {
+#       otm_code: itree_code
 #     }
 #   }
 #
@@ -14,7 +14,7 @@
 # Calculating eco benefits for a tree requires a diameter
 # and an itree code. The itree code for a tree is based on
 # the species of the tree, but the specific code assigned
-# to a species changes depending on where that species 
+# to a species changes depending on where that species
 # is located geographically.
 
 
@@ -329,7 +329,7 @@ CODES = {
         'ZESE': 'BDL OTHER'
     } # END CaNCCoJBK
     ,
-##################################################    
+##################################################
     'CenFlaXXX': {
         'ACAC2': 'PES OTHER',
         'ACNE': 'BDM OTHER',
@@ -3260,22 +3260,234 @@ CODES = {
     } # END TropicPacXXX
 }
 
-
+# The currency conversions are in the following units:
+# electricity: $/kWh
+# natural_gas: $/kBTU
+# h20: $/gal
+# co2, o3, nox, pm10, sox, voc: $/lb
 ITREE_REGIONS = {
-    'CaNCCoJBK': 'Northern California Coast',
-    'CenFlaXXX': 'Central Florida',
-    'GulfCoCHS': 'Coastal Plain',
-    'InlEmpCLM': 'Inland Empire',
-    'InlValMOD': 'Inland Valleys',
-    'InterWABQ': 'Interior West',
-    'LoMidWXXX': 'Lower Midwest',
-    'MidWstMSP': 'Midwest',
-    'NMtnPrFNL': 'North',
-    'NoEastXXX': 'Northeast',
-    'PacfNWLOG': 'Pacific Northwest',
-    'PiedmtCLT': 'South',
-    'SoCalCSMA': 'Southern California Coast',
-    'SWDsrtGDL': 'Southwest Desert',
-    'TpIntWBOI': 'Temperate Interior West',
-    'TropicPacXXX': 'Tropical'
+    'CaNCCoJBK': {
+        'name': 'Northern California Coast',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.1323,
+            'natural_gas_kbtu_to_currency': 0.013048,
+            'h20_gal_to_currency': 0.004,
+            'co2_lb_to_currency': 0.0075,
+            'o3_lb_to_currency': 10.3101,
+            'nox_lb_to_currency': 10.3101,
+            'pm10_lb_to_currency': 11.7901,
+            'sox_lb_to_currency': 3.67,
+            'voc_lb_to_currency': 7.22
+        }
+    },
+    'CenFlaXXX': {
+        'name': 'Central Florida',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.13182,
+            'natural_gas_kbtu_to_currency': 0.002678,
+            'h20_gal_to_currency': 0.003,
+            'co2_lb_to_currency': 0.0034,
+            'o3_lb_to_currency': 2.2,
+            'nox_lb_to_currency': 2.2,
+            'pm10_lb_to_currency': 2.1,
+            'sox_lb_to_currency': 2.01,
+            'voc_lb_to_currency': 1.03
+        }
+    },
+    'GulfCoCHS': {
+        'name': 'Coastal Plain',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.09339,
+            'natural_gas_kbtu_to_currency': 0.019742,
+            'h20_gal_to_currency': 0.00605,
+            'co2_lb_to_currency': 0.0075,
+            'o3_lb_to_currency': 1.04,
+            'nox_lb_to_currency': 1.04,
+            'pm10_lb_to_currency': 0.76,
+            'sox_lb_to_currency': 1.28,
+            'voc_lb_to_currency': 1.48
+        }
+    },
+    'InlEmpCLM': {
+        'name': 'Inland Empire',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.20148,
+            'natural_gas_kbtu_to_currency': 0.0066871,
+            'h20_gal_to_currency': 0.0055,
+            'co2_lb_to_currency': 0.00334,
+            'o3_lb_to_currency': 3.84,
+            'nox_lb_to_currency': 3.84,
+            'pm10_lb_to_currency': 4.63,
+            'sox_lb_to_currency': 2.43,
+            'voc_lb_to_currency': 1.92
+        }
+    },
+    'InlValMOD': {
+        'name': 'Inland Valleys',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.1166,
+            'natural_gas_kbtu_to_currency': 0.0125278,
+            'h20_gal_to_currency': 0.0078,
+            'co2_lb_to_currency': 0.0075,
+            'o3_lb_to_currency': 5.0032,
+            'nox_lb_to_currency': 12.79,
+            'pm10_lb_to_currency': 9.41,
+            'sox_lb_to_currency': 3.72,
+            'voc_lb_to_currency': 4.69
+        }
+    },
+    'InterWABQ': {
+        'name': 'Interior West',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.078844,
+            'natural_gas_kbtu_to_currency': 0.011,
+            'h20_gal_to_currency': 0.005,
+            'co2_lb_to_currency': 0.00334,
+            'o3_lb_to_currency': 0.61,
+            'nox_lb_to_currency': 0.61,
+            'pm10_lb_to_currency': 1.14,
+            'sox_lb_to_currency': 1.42,
+            'voc_lb_to_currency': 0.19
+        }
+    },
+    'LoMidWXXX': {
+        'name': 'Lower Midwest',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.068,
+            'natural_gas_kbtu_to_currency': 0.00973,
+            'h20_gal_to_currency': 0.0062,
+            'co2_lb_to_currency': 0.00334,
+            'o3_lb_to_currency': 0.82,
+            'nox_lb_to_currency': 0.82,
+            'pm10_lb_to_currency': 0.99,
+            'sox_lb_to_currency': 1.50,
+            'voc_lb_to_currency': 0.3
+        }
+    },
+    'MidWstMSP': {
+        'name': 'Midwest',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.0759,
+            'natural_gas_kbtu_to_currency': 0.0098,
+            'h20_gal_to_currency': 0.0271,
+            'co2_lb_to_currency': 0.0075,
+            'o3_lb_to_currency': 3.334,
+            'nox_lb_to_currency': 3.334,
+            'pm10_lb_to_currency': 2.84,
+            'sox_lb_to_currency': 2.06,
+            'voc_lb_to_currency': 3.75
+        }
+    },
+    'NMtnPrFNL': {
+        'name': 'North',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.636,
+            'natural_gas_kbtu_to_currency': 0.009066,
+            'h20_gal_to_currency': 0.0108,
+            'co2_lb_to_currency': 0.0075,
+            'o3_lb_to_currency': 2.77,
+            'nox_lb_to_currency': 2.77,
+            'pm10_lb_to_currency': 0.49,
+            'sox_lb_to_currency': 0.98,
+            'voc_lb_to_currency': 2.61
+        }
+    },
+    'NoEastXXX': {
+        'name': 'Northeast',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.1401,
+            'natural_gas_kbtu_to_currency': 0.01408,
+            'h20_gal_to_currency': 0.0008,
+            'co2_lb_to_currency': 0.00334,
+            'o3_lb_to_currency': 4.59,
+            'nox_lb_to_currency': 4.59,
+            'pm10_lb_to_currency': 8.31,
+            'sox_lb_to_currency': 3.48,
+            'voc_lb_to_currency': 2.31
+        }
+    },
+    'PacfNWLOG': {
+        'name': 'Pacific Northwest',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.0512,
+            'natural_gas_kbtu_to_currency': 0.01146,
+            'h20_gal_to_currency': 0.02779,
+            'co2_lb_to_currency': 0.00334,
+            'o3_lb_to_currency': 0.94,
+            'nox_lb_to_currency': 0.94,
+            'pm10_lb_to_currency': 1.67,
+            'sox_lb_to_currency': 1.88,
+            'voc_lb_to_currency': 0.35
+        }
+    },
+    'PiedmtCLT': {
+        'name': 'South',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.0759,
+            'natural_gas_kbtu_to_currency': 0.01046,
+            'h20_gal_to_currency': 0.0099,
+            'co2_lb_to_currency': 0.0075,
+            'o3_lb_to_currency': 6.55,
+            'nox_lb_to_currency': 6.55,
+            'pm10_lb_to_currency': 2.49,
+            'sox_lb_to_currency': 1.97,
+            'voc_lb_to_currency': 6.26
+        }
+    },
+    'SoCalCSMA': {
+        'name': 'Southern California Coast',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.16281,
+            'natural_gas_kbtu_to_currency': 0.0131,
+            'h20_gal_to_currency': 0.00183,
+            'co2_lb_to_currency': 0.0150,
+            'o3_lb_to_currency': 16.44,
+            'nox_lb_to_currency': 16.44,
+            'pm10_lb_to_currency': 51.32,
+            'sox_lb_to_currency': 21.47,
+            'voc_lb_to_currency': 3.34
+        }
+    },
+    'SWDsrtGDL': {
+        'name': 'Southwest Desert',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.1208,
+            'natural_gas_kbtu_to_currency': 0.009409,
+            'h20_gal_to_currency': 0.0048,
+            'co2_lb_to_currency': 0.0075,
+            'o3_lb_to_currency': 4.0,
+            'nox_lb_to_currency': 4.0,
+            'pm10_lb_to_currency': 6.0,
+            'sox_lb_to_currency': 15.7,
+            'voc_lb_to_currency': 4.0
+        }
+    },
+    'TpIntWBOI': {
+        'name': 'Temperate Interior West',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.060936,
+            'natural_gas_kbtu_to_currency': 0.0114245,
+            'h20_gal_to_currency': 0.005,
+            'co2_lb_to_currency': 0.00334,
+            'o3_lb_to_currency': 0.51,
+            'nox_lb_to_currency': 0.51,
+            'pm10_lb_to_currency': 0.92,
+            'sox_lb_to_currency': 0.06,
+            'voc_lb_to_currency': 0.14
+        }
+    },
+    'TropicPacXXX': {
+        'name': 'Tropical',
+        'currency_conversion': {
+            'electricity_kwh_to_currency': 0.122,
+            'natural_gas_kbtu_to_currency': 0.0235,
+            'h20_gal_to_currency': 0.01,
+            'co2_lb_to_currency': 0.00334,
+            'o3_lb_to_currency': 1.47,
+            'nox_lb_to_currency': 1.47,
+            'pm10_lb_to_currency': 1.34,
+            'sox_lb_to_currency': 1.52,
+            'voc_lb_to_currency': 0.60
+        }
+    }
 }

@@ -156,6 +156,17 @@ class Instance(models.Model):
         return self.center.transform(4326, clone=True)
 
     @property
+    def factor_conversions(self):
+        """
+        Returns a dict for use in eco.py Benefits from eco_benefits_conversion
+        """
+        benefits_conversion = self.eco_benefits_conversion
+        if benefits_conversion:
+            return benefits_conversion.get_factor_conversions_config()
+        else:
+            return None
+
+    @property
     def scss_query_string(self):
         scss_vars = ({k: val for k, val in self.scss_variables.items() if val}
                      if self.scss_variables else {})

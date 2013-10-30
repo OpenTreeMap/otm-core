@@ -5,18 +5,19 @@ from __future__ import division
 from django.shortcuts import get_object_or_404
 from django.contrib.gis.geos.point import Point
 
-from eco import benefits
+from eco.core import Benefits, sum_factor_and_conversion
 
 from treemap.models import Tree
 from treemap.util import instance_request, json_api_call, strip_request
 
 from ecobenefits.models import ITreeRegion
 
-from ecobenefits import CODES
+from ecobenefits.species import CODES
 
 
 def get_codes_for_species(species, region):
     "Get the iTree codes for a specific in a specific region"
+    benefits = Benefits()
     codes = benefits.lookup_species_code(
         region=region, species=species.species, genus=species.genus)
 
@@ -30,7 +31,7 @@ def _itree_code_for_species_in_region(otm_code, region):
     return None
 
 
-def _benefits_for_trees(trees, region_default=None):
+def _benefits_for_trees(trees, region_default=None, benefits_config=None):
     # A species may be assigned to a tree for which there is
     # no itree code defined for the region in which the tree is
     # planted. This counter keeps track of the number of
@@ -54,31 +55,42 @@ def _benefits_for_trees(trees, region_default=None):
                 regions[region_code].append((itree_code, tree['diameter']))
                 num_trees_used_in_calculation += 1
 
-    kwh, gal, co2, airq = 0.0, 0.0, 0.0, 0.0
+    kwh, gal, co2, aq = [], [], [], []
 
     for (region_code, trees) in regions.iteritems():
-        kwh += benefits.get_energy_conserved(
-            region_code, trees)
-        gal += benefits.get_stormwater_management(
-            region_code, trees)
-        co2 += benefits.get_co2_stats(
-            region_code, trees)['reduced']
-        airq += benefits.get_air_quality_stats(
-            region_code, trees)['improvement']
+        benefits = Benefits(benefits_config)
 
-    def fmt(val, lbl):
-        return {'value': val, 'unit': lbl}
+        kwh.append(benefits.get_energy_conserved(region_code, trees))
+        gal.append(benefits.get_stormwater_management(region_code, trees))
+        co2.append(benefits.get_co2_stats(region_code, trees)['reduced'])
+        aq.append(benefits.get_air_quality_stats(region_code,
+                                                 trees)['improvement'])
+
+    # sum_factor_and_conversion returns an empty list when given one
+    # so we need to provide a saner default
+    def sum_factors(factors_list):
+        return sum_factor_and_conversion(*factors_list) or (0.0, None)
+
+    kwh = sum_factors(kwh)
+    gal = sum_factors(gal)
+    co2 = sum_factors(co2)
+    aq = sum_factors(aq)
+
+    def fmt(factor_and_currency, lbl):
+        return {'value': factor_and_currency[0],
+                'currency': factor_and_currency[1],
+                'unit': lbl}
 
     rslt = {'energy': fmt(kwh, 'kwh'),
             'stormwater': fmt(gal, 'gal'),
             'co2': fmt(co2, 'lbs/year'),
-            'airquality': fmt(airq, 'lbs/year')}
+            'airquality': fmt(aq, 'lbs/year')}
 
     return (rslt, num_trees_used_in_calculation)
 
 
 def tree_benefits(instance, tree_id):
-    "Given a tree id, determine eco benefits via eco.py"
+    """Given a tree id, determine eco benefits via eco.py"""
     InstanceTree = instance.scope_model(Tree)
     tree = get_object_or_404(InstanceTree, pk=tree_id)
     dbh = tree.diameter
@@ -91,6 +103,8 @@ def tree_benefits(instance, tree_id):
     else:
         region_code = instance.itree_region_default
 
+    factor_conversions = instance.factor_conversions
+
     rslt = {}
     if not dbh:
         rslt = {'benefits': {}, 'error': 'MISSING_DBH'}
@@ -101,7 +115,8 @@ def tree_benefits(instance, tree_id):
                 _benefits_for_trees(
                     [{'species__otm_code': otm_code,
                       'diameter': dbh,
-                      'itree_region_code': region_code}])}
+                      'itree_region_code': region_code}],
+                    factor_conversions)}
 
     return rslt
 
