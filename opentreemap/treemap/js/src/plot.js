@@ -14,7 +14,8 @@ var $ = require('jquery'),
     csrf = require('treemap/csrf'),
     imageUploadPanel = require('treemap/imageUploadPanel'),
     streetView = require('treemap/streetView'),
-    diameterCalculator = require('treemap/diameterCalculator');
+    diameterCalculator = require('treemap/diameterCalculator'),
+    History = require('history');
 
 exports.init = function(options) {
     var $addTree = $(options.addTree),
@@ -77,9 +78,9 @@ exports.init = function(options) {
         var hrefHasEdit = U.getLastUrlSegment() === 'edit';
 
         if (inEditMode && !hrefHasEdit) {
-            U.pushState(U.appendSegmentToUrl('edit'));
+            History.replaceState(null, '', U.appendSegmentToUrl('edit'));
         } else if (!inEditMode && hrefHasEdit) {
-            U.pushState(U.removeLastUrlSegment());
+            History.replaceState(null, '', U.removeLastUrlSegment());
         }
     });
 

@@ -52,14 +52,6 @@ exports.appendSegmentToUrl = function (segment, inputUrl, appendSlash) {
     return formattedUrl;
 };
 
-exports.pushState = function (urlString) {
-    if (history.pushState) {
-        history.pushState({}, '', urlString);
-    } else {
-        window.location = urlString;
-    }
-};
-
 var parseQueryString = exports.parseQueryString = function () {
     var match,
         pl     = /\+/g,  // Regex for replacing addition symbol with a space

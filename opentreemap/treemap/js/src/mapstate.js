@@ -4,6 +4,7 @@ var _ = require('underscore'),
     Bacon = require('baconjs'),
     url = require('url'),
     L = require('leaflet'),
+    History = require('history'),
     addTreeModeName = require('./addTreeMode').name ;
 
 var state,
@@ -18,25 +19,31 @@ module.exports = {
             },
             initialState = getStateFromCurrentUrl(defaultState);
         setStateAndPushToApp(initialState);
-        history.replaceState(state, '', getUrlFromCurrentState());
+        History.replaceState(state, '', getUrlFromCurrentState());
 
-        window.onpopstate = function(event) {
-            setStateAndPushToApp(event.state || getStateFromCurrentUrl());
-        };
+        History.Adapter.bind(window, 'statechange', function() {
+            setStateAndPushToApp(History.getState().data || getStateFromCurrentUrl());
+        });
+// We use the "History" library for "pushState" etc. capabilities on IE9.
+// If we drop IE9 support we should change "History" to "history" in this
+// module, and replace the above "bind" call with:
+//        window.onpopstate = function(event) {
+//            setStateAndPushToApp(event.state || getStateFromCurrentUrl());
+//        };
     },
 
     setZoomLatLng: function (zoom, center) {
         var zoomLatLng = makeZoomLatLng(zoom, center.lat, center.lng);
         if (!_.isEqual(zoomLatLng, state.zoomLatLng)) {
             state.zoomLatLng = zoomLatLng;
-            history.replaceState(state, '', getUrlFromCurrentState());
+            History.replaceState(state, '', getUrlFromCurrentState());
         }
     },
 
     setSearch: function (otmSearch) {
         if (!_.isEqual(otmSearch, state.search)) {
             state.search = otmSearch;
-            history.pushState(state, '', getUrlFromCurrentState());
+            History.pushState(state, '', getUrlFromCurrentState());
         }
     },
 
@@ -45,7 +52,7 @@ module.exports = {
         modeName = (modeName === addTreeModeName ? modeName : '')
         if (modeName !== state.modeName) {
             state.modeName = modeName;
-            history.replaceState(state, '', getUrlFromCurrentState());
+            History.replaceState(state, '', getUrlFromCurrentState());
         }
     },
 

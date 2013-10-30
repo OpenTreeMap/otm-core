@@ -98,6 +98,10 @@ module.exports = function(grunt) {
                             path: './treemap/js/shim/bootstrap-datepicker.js',
                             exports: null,
                             depends: { jquery: 'jQuery', bootstrap: 'bootstrap' }
+                        },
+                        history: {
+                            path: './treemap/js/shim/native.history.js',
+                            exports: 'History'
                         }
                     },
                     debug: debug
