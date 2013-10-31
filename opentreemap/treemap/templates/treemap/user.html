@@ -27,51 +27,51 @@ active
 {% load i18n %}
 <div class="image-background"></div>
 <div class="container contained profile">
-    <div class="row-fluid">
-        <div class="span4">
-            <div class="account-info">
-                <img class="user-photo" src="{{STATIC_URL}}img/profile.png">
-                <h1>{{ user.username }}
-                    <small>{% trans "User Profile" %}</small>
-                </h1>
-            </div>
-            {% usercontent for user %}
-                <button id="edit-user" data-class="display" class="btn">Edit</button>
-                <button id="save-edit" data-class="edit" class="btn" style="display: none;">Save</button>
-                <button id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</button>
-            {% endusercontent %}
-            <form id="user-form">
-                {% for label, identifier in public_fields %}
-                    {% field label from identifier withtemplate "treemap/field/div.html" %}
-                {% endfor %}
-                {% usercontent for user %}
-                    {% for label, identifier in private_fields %}
-                        {% field label from identifier withtemplate "treemap/field/div.html" %}
-                    {% endfor %}
-                    <ul class="chunk" data-class="display">
-                        <li class="chunk-label">{% trans "Password" %}</li>
-                        <li class="chunk-content"><a href="{% url 'django.contrib.auth.views.password_reset' %}">{% trans "Reset" %}</a></li>
-                    </ul>
-                    <ul class="chunk">
-                        <li class="chunk-label">{% trans "Emails" %}</li>
-                        <li class="chunk-content">{% trans "Not Subscribed" %}</li>
-                    </ul>
-                {% endusercontent %}
-                {% if reputation %}
-                    <ul class="chunk">
-                        <li class="chunk-label">{% trans "Reputation" %}</li>
-                        <li class="chunk-content">{{ reputation }}</li>
-                    </ul>
-                {% endif %}
-            </form>
-        </div>
-        <div class="span8">
-            <h2>{% trans "Recently Added and Edited Trees" %}</h2>
-            <div id="recent-user-edits-container">
-            {% include 'treemap/recent_user_edits.html' %}
-            </div>
-        </div>
+  <div class="row-fluid">
+    <div class="span4">
+      <div class="account-info">
+        <img class="user-photo" src="{{STATIC_URL}}img/profile.png">
+        <h1>{{ user.username }}
+          <small>{% trans "User Profile" %}</small>
+        </h1>
+      </div>
+      {% usercontent for user %}
+      <button id="edit-user" data-class="display" class="btn">Edit</button>
+      <button id="save-edit" data-class="edit" class="btn" style="display: none;">Save</button>
+      <button id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</button>
+      {% endusercontent %}
+      <form id="user-form">
+        {% for label, identifier in public_fields %}
+          {% field label from identifier withtemplate "treemap/field/div.html" %}
+        {% endfor %}
+        {% usercontent for user %}
+        {% for label, identifier in private_fields %}
+          {% field label from identifier withtemplate "treemap/field/div.html" %}
+        {% endfor %}
+        <ul class="chunk" data-class="display">
+          <li class="chunk-label">{% trans "Password" %}</li>
+          <li class="chunk-content"><a href="{% url 'django.contrib.auth.views.password_reset' %}">{% trans "Reset" %}</a></li>
+        </ul>
+        <ul class="chunk">
+          <li class="chunk-label">{% trans "Emails" %}</li>
+          <li class="chunk-content">{% trans "Not Subscribed" %}</li>
+        </ul>
+        {% endusercontent %}
+        {% if reputation %}
+        <ul class="chunk">
+          <li class="chunk-label">{% trans "Reputation" %}</li>
+          <li class="chunk-content">{{ reputation }}</li>
+        </ul>
+        {% endif %}
+      </form>
     </div>
+    <div class="span8">
+      <h2>{% trans "Recently Added and Edited Trees" %}</h2>
+      <div id="recent-user-edits-container">
+        {% include 'treemap/recent_user_edits.html' %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock content %}
 
