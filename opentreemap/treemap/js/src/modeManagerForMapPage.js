@@ -5,11 +5,12 @@
 // module to handle UI events. This module initializes the mode modules and
 // orchestrates switching between modes.
 
-var U = require('treemap/utility'),
+var U                   = require('treemap/utility'),
     browseTreesMode     = require('treemap/browseTreesMode'),
     addTreeMode         = require('treemap/addTreeMode'),
     editTreeDetailsMode = require('treemap/editTreeDetailsMode'),
     inlineEditForm      = require('treemap/inlineEditForm'),
+    mapState            = require('treemap/mapState'),
     plotMarker          = require('treemap/plotMarker'),
     currentMode;
 
@@ -29,6 +30,7 @@ function activateMode(mode, $sidebar) {
         if (mode.activate) {
             mode.activate();
         }
+        mapState.setModeName(mode.name);
         currentMode = mode;
     }
 }

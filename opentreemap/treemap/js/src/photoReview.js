@@ -3,7 +3,8 @@
 var $ = require('jquery'),
     U = require('treemap/utility'),
     Bacon = require('baconjs'),
-    BU = require('treemap/baconUtils');
+    BU = require('treemap/baconUtils'),
+    History = require('history');
 
 var csrf = require('treemap/csrf');
 $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
@@ -55,7 +56,9 @@ exports.init = function() {
 
         pageStream
             .map(function(n) { return '?n=' + n; })
-            .onValue(U.pushState);
+            .onValue(function (url) {
+                History.pushState(null, '', url);
+            });
 
         var pageUpdateStream = pageStream
                 .merge(initialPageStream)

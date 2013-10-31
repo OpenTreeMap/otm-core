@@ -6,31 +6,6 @@ var url = require('url'),
     L = require('leaflet'),
     console = require('console-browserify');
 
-exports.getUpdatedQueryString = function (k, v) {
-    var parsedUrl = url.parse(window.location.href, true);
-    var query = parsedUrl.query || {};
-
-    query[k] = v;
-
-    return QS.stringify(query);
-};
-
-exports.getUpdateUrlByUpdatingQueryStringParam = function (k, v) {
-    var parsedUrl = url.parse(window.location.href, true);
-    var query = parsedUrl.query || {};
-
-    if (v === null) {
-        delete query[k];
-    } else {
-        query[k] = v;
-    }
-
-    parsedUrl.query = query;
-    parsedUrl.search = null;
-
-    return url.format(parsedUrl);
-};
-
 exports.getLastUrlSegment = function(urlString) {
     var parts = getUrlSegments(urlString);
     return parts[parts.length - 1];
@@ -77,14 +52,6 @@ exports.appendSegmentToUrl = function (segment, inputUrl, appendSlash) {
     return formattedUrl;
 };
 
-exports.pushState = function (urlString) {
-    if (history.pushState) {
-        history.pushState({}, '', urlString);
-    } else {
-        window.location = urlString;
-    }
-};
-
 var parseQueryString = exports.parseQueryString = function () {
     var match,
         pl     = /\+/g,  // Regex for replacing addition symbol with a space
@@ -98,10 +65,6 @@ var parseQueryString = exports.parseQueryString = function () {
     }
 
     return urlParams;
-};
-
-exports.getCurrentFilterString = function() {
-    return parseQueryString().q || '{}';
 };
 
 exports.$find = function (selector, $parent) {

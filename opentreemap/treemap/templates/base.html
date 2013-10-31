@@ -59,7 +59,7 @@
                 <a data-class='add-tree'
                    data-always-enable='{{ last_effective_instance_user|plot_is_writable }}'
                    data-disabled-title='{% trans "Adding trees is not available to all users" %}'
-                   data-href="{% url 'map' instance_url_name=last_instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}"
+                   data-href="{% url 'map' instance_url_name=last_instance.url_name %}?m=addTree"
                    disabled='disabled'>{% trans "Add a Tree" %}</a>
               </li>
               {% endif %}

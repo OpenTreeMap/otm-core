@@ -52,6 +52,7 @@ function onSaveBefore(data) {
 }
 
 module.exports = {
+    name: 'editTreeDetails',
     init: init,
     activate: activate,
     deactivate: deactivate,

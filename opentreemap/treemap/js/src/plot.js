@@ -14,7 +14,8 @@ var $ = require('jquery'),
     csrf = require('treemap/csrf'),
     imageUploadPanel = require('treemap/imageUploadPanel'),
     streetView = require('treemap/streetView'),
-    diameterCalculator = require('treemap/diameterCalculator');
+    diameterCalculator = require('treemap/diameterCalculator'),
+    History = require('history');
 
 exports.init = function(options) {
     var $addTree = $(options.addTree),
@@ -72,24 +73,14 @@ exports.init = function(options) {
         .onValue('.load', options.updateSidebarUrl);
 
     var startInEditMode = options.startInEditMode;
-    var firstEditEventFound = false;
 
     form.inEditModeProperty.onValue(function(inEditMode) {
         var hrefHasEdit = U.getLastUrlSegment() === 'edit';
 
         if (inEditMode && !hrefHasEdit) {
-            U.pushState(U.appendSegmentToUrl('edit'));
+            History.replaceState(null, '', U.appendSegmentToUrl('edit'));
         } else if (!inEditMode && hrefHasEdit) {
-            // inEditModeProperty fires a bunch of startup events.
-            // if we're starting in edit mode we want to ignore
-            // all events until we hit the first 'transition' to normal
-            // mode. When we hit that we swallow the event and then
-            // let things go as normal.
-            if (startInEditMode && !firstEditEventFound) {
-                firstEditEventFound = true;
-            } else {
-                U.pushState(U.removeLastUrlSegment());
-            }
+            History.replaceState(null, '', U.removeLastUrlSegment());
         }
     });
 

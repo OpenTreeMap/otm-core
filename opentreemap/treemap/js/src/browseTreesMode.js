@@ -156,6 +156,7 @@ function deactivate() {
 }
 
 module.exports = {
+    name: 'browseTrees',
     init: init,
     deactivate: deactivate
 };

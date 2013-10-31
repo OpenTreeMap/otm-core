@@ -321,7 +321,7 @@ exports.init = function(options) {
 
     var inEditModeProperty = actionStream.map(function (event) {
         return _.contains(eventsLandingInEditMode, event);
-    }).toProperty(false);
+    }).toProperty();
 
     return $.extend(self, {
         cancel: externalCancelStream.trigger,

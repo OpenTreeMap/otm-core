@@ -7,7 +7,7 @@
 var $ = require('jquery'),
     _ = require('underscore'),
     Bacon = require('baconjs'),
-    otmTypeahead = require('./otmTypeahead'),
+    otmTypeahead = require('treemap/otmTypeahead'),
     U = require('treemap/utility'),
     Search = require('treemap/search'),
     BU = require('treemap/baconUtils');
