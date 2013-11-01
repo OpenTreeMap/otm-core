@@ -78,7 +78,15 @@
                 </a>
               </li>
               <li><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
-              <li class="user-img"><a href="{% url 'profile' %}"><img src="/static/img/profile.png"></a></li>
+              <li class="user-img">
+                <a href="{% url 'profile' %}">
+                {% if request.user.thumbnail %}
+                  <img src="{{ request.user.thumbnail.url }}">
+                {% else %}
+                  <img src="{{ STATIC_URL }}img/profile.png">
+                {% endif %}
+                </a>
+              </li>
             {% else %}
               <li><a id="login" href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
               <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
