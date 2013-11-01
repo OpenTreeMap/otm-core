@@ -31,6 +31,7 @@ from treemap.util import (json_api_call, render_template, instance_request,
                           bad_request_json_response, string_as_file_call,
                           requires_feature, get_instance_or_404,
                           creates_instance_user, login_or_401,
+                          save_image_from_request,
                           username_matches_request_user)
 
 from treemap.search import create_filter
@@ -793,6 +794,19 @@ def update_user(request, user):
             validation_error_dict=package_validation_errors('user', ve))
 
 
+def upload_user_photo(request, user):
+    try:
+        user.photo, user.thumbnail = save_image_from_request(
+            request, name_prefix="user-%s" % user.pk, thumb_size=(85, 85))
+        user.save()
+    except ValidationError as e:
+        # Most of these ValidationError are not field-errors and so their
+        # messages are a Dict, which is why they simply joined together
+        return bad_request_json_response('; '.join(e.messages))
+
+    return {'url': user.thumbnail.url}
+
+
 def _get_map_view_context(request, instance_id):
     fields_for_add_tree = [
         (trans('Tree Height'), 'tree.height')
@@ -1063,6 +1077,10 @@ update_user_view = require_http_method("PUT")(
 
 user_audits_view = render_template("treemap/recent_user_edits.html",
                                    user_audits)
+
+upload_user_photo_view = require_http_method("POST")(
+    username_matches_request_user(
+        json_api_call(upload_user_photo)))
 
 instance_not_available_view = render_template(
     "treemap/instance_not_available.html")

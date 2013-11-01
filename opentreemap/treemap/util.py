@@ -2,6 +2,7 @@ import json
 import datetime
 import Image
 import hashlib
+import os
 from collections import OrderedDict
 from cStringIO import StringIO
 
@@ -291,12 +292,29 @@ def return_400_if_validation_errors(req):
     return run_and_catch_validations
 
 
+def save_image_from_request(request, name_prefix, thumb_size=None):
+    if 'file' in request.FILES:
+        image_data = request.FILES['file'].file
+    else:
+        image_data = request.body
+
+    return save_uploaded_image(image_data, name_prefix, thumb_size)
+
+
 def save_uploaded_image(image_data, name_prefix, thumb_size=None):
+    image_data.seek(0, os.SEEK_END)
+    file_size = image_data.tell()
+
+    if file_size > settings.MAXIMUM_IMAGE_SIZE:
+        raise ValidationError(trans('The uploaded image is too large'))
+
+    image_data.seek(0)
+
     try:
         image = Image.open(image_data)
         image.verify()
     except IOError:
-        raise ValidationError('Invalid image')
+        raise ValidationError(trans('Invalid image'))
 
     try:
         hash = hashlib.md5(image_data.read()).hexdigest()
@@ -307,7 +325,7 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None):
         thumb_file = None
 
         if thumb_size is not None:
-            # http://www.pythonware.com/library/pil/handbook/image.htm
+            # http://effbot.org/imagingbook/image.htm
             # ...if you need to load the image after using this method,
             # you must reopen the image file.
             image_data.seek(0)
@@ -325,7 +343,7 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None):
 
         return image_file, thumb_file
     except:
-        raise ValidationError('Could not upload image')
+        raise ValidationError(trans('Image upload issue'))
 
 
 def login_or_401(view_fn):

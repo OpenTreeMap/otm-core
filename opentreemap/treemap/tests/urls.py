@@ -6,41 +6,45 @@ from django.test import TestCase
 from django.test.utils import override_settings
 
 from treemap.models import Plot
-from treemap.tests import (make_instance, make_commander_user,
+from treemap.tests import (make_instance, make_commander_user, login,
                            make_simple_boundary, RequestTestCase)
 from opentreemap.local_settings import STATIC_ROOT
 
 
 class UrlTestCase(TestCase):
 
-    def assert_status_code(self, url, code, method='GET', data=''):
+    def assert_status_code(self, url, code, method='GET', data='',
+                           content_type=None):
         send = {
             'GET': self.client.get,
             'PUT': self.client.put,
             'POST': self.client.post
         }[method]
-        if (method == 'POST'):
-            response = send(url, data, content_type="application/json")
-        else:
+        if content_type is None:
             response = send(url, data)
+        else:
+            response = send(url, data, content_type)
         self.assertEqual(response.status_code, code,
                          "Actual code [%s] Expected code [%s]"
                          % (response.status_code, code))
         return response
 
-    def assert_200(self, url, method='GET', data=''):
-        return self.assert_status_code(url, 200, method, data)
+    def assert_200(self, url, method='GET', data='', content_type=None):
+        return self.assert_status_code(url, 200, method, data, content_type)
 
     def assert_template(self, url, template_path):
         response = self.assert_status_code(url, 200)
         self.assertTemplateUsed(response, template_path)
         return response
 
-    def assert_404(self, url, method='GET', data=''):
-        return self.assert_status_code(url, 404, method, data)
+    def assert_404(self, url, method='GET', data='', content_type=None):
+        return self.assert_status_code(url, 404, method, data, content_type)
 
-    def assert_401(self, url, method='GET', data=''):
-        return self.assert_status_code(url, 401, method, data)
+    def assert_401(self, url, method='GET', data='', content_type=None):
+        return self.assert_status_code(url, 401, method, data, content_type)
+
+    def assert_403(self, url, method='GET', data='', content_type=None):
+        return self.assert_status_code(url, 403, method, data, content_type)
 
     def assert_redirects(self, url, expected_url, status_code=302):
         response = self.client.get(url)
@@ -94,6 +98,13 @@ class RootUrlTests(UrlTestCase):
         self.assert_403('/users/%s/' % username, method='PUT', data='{}')
 
     # Not testing 200 since it would involve loading valid image data
+    def test_user_update_photo_invalid(self):
+        self.assert_404('/users/nobody/photo/', method='POST', data={})
+
+    def test_user_update_photo_forbidden(self):
+        username = make_commander_user().username
+        self.assert_403('/users/%s/photo/' % username, method='POST', data={})
+
     # Note: /accounts/profile/ is tested in tests/auth.py
 
     def test_user_audits(self):

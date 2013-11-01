@@ -35,7 +35,8 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            search_tree_benefits, user, instance_user_view,
                            update_plot_and_tree, update_user, add_tree_photo,
                            root_settings_js_view, instance_settings_js_view,
-                           compile_scss, approve_or_reject_photo)
+                           compile_scss, approve_or_reject_photo,
+                           upload_user_photo)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
@@ -519,6 +520,35 @@ class PlotImageUpdateTest(LocalMediaTestCase):
     @media_dir
     def test_non_authorized_users_cant_create_images(self):
         pass
+
+
+class UserPhotoUpdateTest(LocalMediaTestCase):
+    def setUp(self):
+        super(UserPhotoUpdateTest, self).setUp()
+        self.user = make_commander_user()
+
+    def upload_photo(self, filename):
+        file = self.load_resource(filename)
+        return upload_user_photo(make_request(file=file), self.user)
+
+    @media_dir
+    def test_upload_user_photo(self):
+        self.upload_photo('tree1.gif')
+        self.assertPathExists(self.user.photo.path)
+
+        self.upload_photo('tree2.jpg')
+        self.assertPathExists(self.user.photo.path)
+
+    @media_dir
+    def test_non_image(self):
+        response = self.upload_photo('nonImage.jpg')
+        self.assertEqual(response.status_code, 400)
+
+    @media_dir
+    @override_settings(MAXIMUM_IMAGE_SIZE=10)
+    def test_rejects_large_files(self):
+        response = self.upload_photo('tree2.jpg')
+        self.assertEqual(response.status_code, 400)
 
 
 class PlotUpdateTest(unittest.TestCase):

@@ -280,6 +280,9 @@ class AbstractUniqueEmailUser(AbstractBaseUser, PermissionsMixin):
 class User(Auditable, AbstractUniqueEmailUser):
     _system_user = None
 
+    photo = models.ImageField(upload_to='users', null=True, blank=True)
+    thumbnail = models.ImageField(upload_to='users', null=True, blank=True)
+
     @classmethod
     def system_user(clazz):
         if not User._system_user:

@@ -7,7 +7,8 @@ from opentreemap.util import route
 from treemap.views import (user_view, root_settings_js_view,
                            profile_to_user_view, user_audits_view,
                            instance_not_available_view, update_user_view,
-                           unsupported_view, landing_view, scss_view)
+                           unsupported_view, landing_view, scss_view,
+                           upload_user_photo_view)
 
 from ecobenefits.views import within_itree_regions_view
 
@@ -38,6 +39,8 @@ urlpatterns = patterns(
         route(GET=user_view, PUT=update_user_view), name='user'),
     url(r'^users/%s/edits/$' % USERNAME_PATTERN,
         user_audits_view, name='user_audits'),
+    url(r'^users/%s/photo/$' % USERNAME_PATTERN,
+        upload_user_photo_view, name='user_photo'),
     url(r'^api/v2/', include('api.urls')),
     # The profile view is handled specially by redirecting to
     # the page of the currently logged in user
