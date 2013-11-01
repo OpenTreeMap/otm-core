@@ -113,11 +113,17 @@ class MapTest(TestCase):
 
         self._click_point_on_map(x, y)
 
+    def instance_trees(self):
+        return Tree.objects.filter(instance=self.instance)
+
     def ntrees(self):
-        return Tree.objects.filter(instance=self.instance).count()
+        return self.instance_trees().count()
+
+    def instance_plots(self):
+        return Plot.objects.filter(instance=self.instance)
 
     def nplots(self):
-        return Plot.objects.filter(instance=self.instance).count()
+        return self.instance_plots().count()
 
     def _go_to_map_page(self):
         self._browse_to_url("/autotest-instance/map/")
@@ -175,7 +181,7 @@ class MapTest(TestCase):
         self.assertEqual(initial_plot_count + 1, self.nplots())
 
         # Assume that the most recent tree is ours
-        tree = Tree.objects.order_by('-id')[0]
+        tree = self.instance_trees().order_by('-id')[0]
 
         self.assertEqual(tree.diameter, 44.0)
 
@@ -201,23 +207,26 @@ class MapTest(TestCase):
 
         # Add the first tree
         add_this_tree.click()
+        # Wait for change in database
+        sleep(DATABASE_COMMIT_DELAY)
 
         # Add the next tree
         self._drag_marker_on_map(15, 15)
         add_this_tree.click()
+        # Wait for change in database
+        sleep(DATABASE_COMMIT_DELAY)
 
         # One more
         self._drag_marker_on_map(-15, 15)
         add_this_tree.click()
-
-        # Need to wait for change in database
+        # Wait for change in database
         sleep(DATABASE_COMMIT_DELAY)
 
         self.assertEqual(initial_tree_count + 3, self.ntrees())
         self.assertEqual(initial_plot_count + 3, self.nplots())
 
         # And all the recent trees should have a diameter of 33.0
-        trees = Tree.objects.order_by('-id')[0:3]
+        trees = self.instance_trees().order_by('-id')[0:3]
 
         for tree in trees:
             self.assertEqual(tree.diameter, 33.0)
@@ -244,6 +253,8 @@ class MapTest(TestCase):
 
         # Add the first tree
         add_this_tree.click()
+        # Wait for change in database
+        sleep(DATABASE_COMMIT_DELAY)
 
         # Add the next tree
         # All fields should reset
@@ -251,14 +262,14 @@ class MapTest(TestCase):
         # plot but no tree
         self._drag_marker_on_map(15, 15)
         add_this_tree.click()
+        # Wait for change in database
+        sleep(DATABASE_COMMIT_DELAY)
 
         # One more, setting the diameter again
         self._drag_marker_on_map(-15, 15)
         diameter.send_keys('99.0')
-
         add_this_tree.click()
-
-        # Need to wait for change in database
+        # Wait for change in database
         sleep(DATABASE_COMMIT_DELAY)
 
         self.assertEqual(initial_tree_count + 2, self.ntrees())
@@ -266,7 +277,7 @@ class MapTest(TestCase):
 
         # And all the recent trees should have a diameter of 33.0
         tree_diams = [tree.diameter
-                      for tree in Tree.objects.order_by('-id')[0:2]]
+                      for tree in self.instance_trees().order_by('-id')[0:2]]
 
         self.assertEqual([99.0, 33.0], tree_diams)
 
@@ -323,7 +334,7 @@ class MapTest(TestCase):
         self.assertEqual(initial_tree_count + 1, self.ntrees())
         self.assertEqual(initial_plot_count + 1, self.nplots())
 
-        tree = Tree.objects.order_by('-id')[0]
+        tree = self.instance_trees().order_by('-id')[0]
 
         self.assertEqual(tree.diameter, 124.0)
 
