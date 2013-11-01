@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load auth_extras %}
 {% load form_extras %}
+{% load i18n %}
 
 {% block page_title %} | {{ user.username }}{% endblock %}
 
@@ -24,54 +25,67 @@ active
 {% endblock header %}
 
 {% block content %}
-{% load i18n %}
+
+{% url 'user_photo' user.username as photo_url %}
+{% include "treemap/partials/upload_image.html" with panel_id="set-photo-modal" title="Set a Photo" endpoint=photo_url %}
 <div class="image-background"></div>
 <div class="container contained profile">
-    <div class="row-fluid">
-        <div class="span4">
-            <div class="account-info">
-                <img class="user-photo" src="{{STATIC_URL}}img/profile.png">
-                <h1>{{ user.username }}
-                    <small>{% trans "User Profile" %}</small>
-                </h1>
-            </div>
-            {% usercontent for user %}
-                <button id="edit-user" data-class="display" class="btn">Edit</button>
-                <button id="save-edit" data-class="edit" class="btn" style="display: none;">Save</button>
-                <button id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</button>
-            {% endusercontent %}
-            <form id="user-form">
-                {% for label, identifier in public_fields %}
-                    {% field label from identifier withtemplate "treemap/field/div.html" %}
-                {% endfor %}
-                {% usercontent for user %}
-                    {% for label, identifier in private_fields %}
-                        {% field label from identifier withtemplate "treemap/field/div.html" %}
-                    {% endfor %}
-                    <ul class="chunk" data-class="display">
-                        <li class="chunk-label">{% trans "Password" %}</li>
-                        <li class="chunk-content"><a href="{% url 'django.contrib.auth.views.password_reset' %}">{% trans "Reset" %}</a></li>
-                    </ul>
-                    <ul class="chunk">
-                        <li class="chunk-label">{% trans "Emails" %}</li>
-                        <li class="chunk-content">{% trans "Not Subscribed" %}</li>
-                    </ul>
-                {% endusercontent %}
-                {% if reputation %}
-                    <ul class="chunk">
-                        <li class="chunk-label">{% trans "Reputation" %}</li>
-                        <li class="chunk-content">{{ reputation }}</li>
-                    </ul>
-                {% endif %}
-            </form>
-        </div>
-        <div class="span8">
-            <h2>{% trans "Recently Added and Edited Trees" %}</h2>
-            <div id="recent-user-edits-container">
-            {% include 'treemap/recent_user_edits.html' %}
-            </div>
-        </div>
+  <div class="row-fluid">
+    <div class="span4">
+      <div class="account-info">
+        {% if user.thumbnail %}
+          <img class="user-photo" id="user-photo" src="{{ user.thumbnail.url }}">
+        {% else %}
+          <img class="user-photo" id="user-photo" src="{{STATIC_URL}}img/profile.png">
+        {% endif %}
+        <h1>{{ user.username }}
+          <small>{% trans "User Profile" %}</small>
+        </h1>
+      </div>
+      {% usercontent for user %}
+      <div>
+        <button id="toggle-set-photo-modal"
+           data-toggle="modal"
+           data-target="#set-photo-modal"
+           class="btn btn-mini add-photos">{% trans "Add Photo" %}</button>
+        <div id="upload-photo-error" class="text-error" style="display: none"></div>
+      </div>
+      <button id="edit-user" data-class="display" class="btn">Edit</button>
+      <button id="save-edit" data-class="edit" class="btn" style="display: none;">Save</button>
+      <button id="cancel-edit" data-class="edit" class="btn" style="display: none;">Cancel</button>
+      {% endusercontent %}
+      <form id="user-form">
+        {% for label, identifier in public_fields %}
+          {% field label from identifier withtemplate "treemap/field/div.html" %}
+        {% endfor %}
+        {% usercontent for user %}
+        {% for label, identifier in private_fields %}
+          {% field label from identifier withtemplate "treemap/field/div.html" %}
+        {% endfor %}
+        <ul class="chunk" data-class="display">
+          <li class="chunk-label">{% trans "Password" %}</li>
+          <li class="chunk-content"><a href="{% url 'django.contrib.auth.views.password_reset' %}">{% trans "Reset" %}</a></li>
+        </ul>
+        <ul class="chunk">
+          <li class="chunk-label">{% trans "Emails" %}</li>
+          <li class="chunk-content">{% trans "Not Subscribed" %}</li>
+        </ul>
+        {% endusercontent %}
+        {% if reputation %}
+        <ul class="chunk">
+          <li class="chunk-label">{% trans "Reputation" %}</li>
+          <li class="chunk-content">{{ reputation }}</li>
+        </ul>
+        {% endif %}
+      </form>
     </div>
+    <div class="span8">
+      <h2>{% trans "Recently Added and Edited Trees" %}</h2>
+      <div id="recent-user-edits-container">
+        {% include 'treemap/recent_user_edits.html' %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock content %}
 
@@ -90,6 +104,14 @@ active
             validationFields: '[data-class="error"]',
             errorCallback: require('treemap/alerts').makeErrorCallback(config)
         },
+      {% usercontent for user %}
+        imageUploadPanel: {
+            panelId: '#set-photo-modal',
+            show: '#toggle-set-photo-modal',
+            error: '#upload-photo-error',
+            imageElement: '#user-photo'
+        },
+      {% endusercontent %}
         recentEdits: {
             recentEditsContainer: '#recent-user-edits-container',
             prevLink: '#recent-user-edits-prev',

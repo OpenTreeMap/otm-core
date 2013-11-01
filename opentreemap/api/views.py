@@ -1,11 +1,11 @@
 from PIL import Image
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.files.base import ContentFile
 
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import (HttpResponse, HttpResponseBadRequest,
+                         HttpResponseForbidden)
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 
@@ -17,7 +17,7 @@ from django.contrib.auth.tokens import default_token_generator
 
 from treemap.models import Plot, Species, Tree, Instance
 from treemap.views import (create_user, get_tree_photos, create_plot,
-                           add_user_photo)
+                           upload_user_photo)
 from treemap.util import instance_request
 
 from opentreemap.util import json_from_request
@@ -276,13 +276,17 @@ def add_tree_photo(request, plot_id):
 @require_http_methods(["POST"])
 @api_call()
 @login_required
-def add_profile_photo(request, user_id, title):
-    uploaded_image = ContentFile(request.body)
-    uploaded_image.name = "%s.png" % title
+def add_profile_photo(request, user_id, _):
+    """
+    Uploads a user profile photo.
+    The third parameter to this function exists for backwards compatibility
+    reasons, but is ignored and unused.
+    """
+    user = get_object_or_404(User, id=user_id)
+    if user != request.user:
+        return HttpResponseForbidden()
 
-    add_user_photo(user_id, uploaded_image)
-
-    return {"status": "success"}
+    return upload_user_photo(request, user_id)
 
 
 def extract_plot_from_audit(audit):

@@ -30,6 +30,9 @@ AWS_HEADERS = {
     'Cache-Control': 'max-age=86400',
 }
 
+# Size is in bytes
+MAXIMUM_IMAGE_SIZE = 10485760  # 10mb
+
 # API distance check, in meters
 MAP_CLICK_RADIUS = 100
 

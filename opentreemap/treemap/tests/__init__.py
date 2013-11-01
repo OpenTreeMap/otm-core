@@ -226,7 +226,7 @@ def make_user(instance=None, username='username', make_role=None,
     return user
 
 
-def make_commander_user(instance, username='commander'):
+def make_commander_user(instance=None, username='commander'):
     return make_user(instance, username, make_commander_role)
 
 

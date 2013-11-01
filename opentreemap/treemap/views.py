@@ -15,8 +15,7 @@ import sass
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
-from django.http import (HttpResponse, HttpResponseRedirect,
-                         HttpResponseForbidden, Http404)
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views.decorators.http import etag
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
@@ -30,7 +29,9 @@ from treemap.util import (json_api_call, render_template, instance_request,
                           require_http_method, package_validation_errors,
                           bad_request_json_response, string_as_file_call,
                           requires_feature, get_instance_or_404,
-                          creates_instance_user, login_or_401)
+                          creates_instance_user, login_or_401,
+                          save_image_from_request,
+                          username_matches_request_user)
 
 from treemap.search import create_filter
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
@@ -156,10 +157,6 @@ def _rotate_image_based_on_exif(img_path):
 
 
 def get_tree_photos(plot_id, photo_id):
-    return None
-
-
-def add_user_photo(user_id, uploaded_image):
     return None
 
 
@@ -769,11 +766,7 @@ def user(request, username):
             'private_fields': private_fields}
 
 
-def update_user(request, username):
-    user = get_object_or_404(User, username=username)
-    if user != request.user:
-        return HttpResponseForbidden()
-
+def update_user(request, user):
     new_values = json_from_request(request) or {}
     for key in new_values:
         try:
@@ -794,6 +787,19 @@ def update_user(request, username):
     except ValidationError, ve:
         return bad_request_json_response(
             validation_error_dict=package_validation_errors('user', ve))
+
+
+def upload_user_photo(request, user):
+    try:
+        user.photo, user.thumbnail = save_image_from_request(
+            request, name_prefix="user-%s" % user.pk, thumb_size=(85, 85))
+        user.save()
+    except ValidationError as e:
+        # Most of these ValidationError are not field-errors and so their
+        # messages are a Dict, which is why they simply joined together
+        return bad_request_json_response('; '.join(e.messages))
+
+    return {'url': user.thumbnail.url}
 
 
 def _get_map_view_context(request, instance_id):
@@ -1060,10 +1066,16 @@ species_list_view = json_api_call(instance_request(species_list))
 
 user_view = render_template("treemap/user.html", user)
 
-update_user_view = require_http_method("PUT")(json_api_call(update_user))
+update_user_view = require_http_method("PUT")(
+    username_matches_request_user(
+        json_api_call(update_user)))
 
 user_audits_view = render_template("treemap/recent_user_edits.html",
                                    user_audits)
+
+upload_user_photo_view = require_http_method("POST")(
+    username_matches_request_user(
+        json_api_call(upload_user_photo)))
 
 instance_not_available_view = render_template(
     "treemap/instance_not_available.html")

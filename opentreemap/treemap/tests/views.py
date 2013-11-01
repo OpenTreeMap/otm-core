@@ -35,7 +35,8 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            search_tree_benefits, user, instance_user_view,
                            update_plot_and_tree, update_user, add_tree_photo,
                            root_settings_js_view, instance_settings_js_view,
-                           compile_scss, approve_or_reject_photo)
+                           compile_scss, approve_or_reject_photo,
+                           upload_user_photo)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
@@ -519,6 +520,35 @@ class PlotImageUpdateTest(LocalMediaTestCase):
     @media_dir
     def test_non_authorized_users_cant_create_images(self):
         pass
+
+
+class UserPhotoUpdateTest(LocalMediaTestCase):
+    def setUp(self):
+        super(UserPhotoUpdateTest, self).setUp()
+        self.user = make_commander_user()
+
+    def upload_photo(self, filename):
+        file = self.load_resource(filename)
+        return upload_user_photo(make_request(file=file), self.user)
+
+    @media_dir
+    def test_upload_user_photo(self):
+        self.upload_photo('tree1.gif')
+        self.assertPathExists(self.user.photo.path)
+
+        self.upload_photo('tree2.jpg')
+        self.assertPathExists(self.user.photo.path)
+
+    @media_dir
+    def test_non_image(self):
+        response = self.upload_photo('nonImage.jpg')
+        self.assertEqual(response.status_code, 400)
+
+    @media_dir
+    @override_settings(MAXIMUM_IMAGE_SIZE=10)
+    def test_rejects_large_files(self):
+        response = self.upload_photo('tree2.jpg')
+        self.assertEqual(response.status_code, 400)
 
 
 class PlotUpdateTest(unittest.TestCase):
@@ -1533,16 +1563,6 @@ class UserUpdateViewTests(ViewTestCase):
         self.assertFalse('error' in context)
         self.assertFalse('validationErrors' in context)
 
-    def assertForbidden(self, response):
-        self.assertTrue(issubclass(response.__class__, HttpResponse))
-        self.assertEquals(403, response.status_code)
-        try:
-            context = json.loads(response.content)
-            self.assertFalse('ok' in context)
-            self.assertTrue('error' in context)
-        except ValueError:
-            pass  # It is ok for the response to have no content
-
     def assertBadRequest(self, response):
         self.assertTrue(issubclass(response.__class__, HttpResponse))
         self.assertEquals(400, response.status_code)
@@ -1552,18 +1572,14 @@ class UserUpdateViewTests(ViewTestCase):
 
     def test_empty_update_returns_ok(self):
         self.assertOk(update_user(
-            make_request(user=self.joe), self.joe.username))
-
-    def test_updating_someone_else_is_forbidden(self):
-        self.assertForbidden(update_user(
-            make_request(user=self.public), self.joe.username))
+            make_request(user=self.joe), self.joe))
 
     def test_change_first_name(self):
         self.joe.first_name = 'Joe'
         self.joe.save()
         update = b'{"user.first_name": "Joseph"}'
         self.assertOk(update_user(
-            make_request(user=self.joe, body=update), self.joe.username))
+            make_request(user=self.joe, body=update), self.joe))
         self.assertEquals('Joseph',
                           User.objects.get(username='joe').first_name,
                           'The first_name was not updated')
@@ -1573,7 +1589,7 @@ class UserUpdateViewTests(ViewTestCase):
         self.joe.save()
         update = b'{"name": "Joseph"}'
         response = update_user(
-            make_request(user=self.joe, body=update), self.joe.username)
+            make_request(user=self.joe, body=update), self.joe)
         self.assertBadRequest(response)
         context = json.loads(response.content)
         self.assertFalse('validationErrors' in context)
@@ -1583,7 +1599,7 @@ class UserUpdateViewTests(ViewTestCase):
         self.joe.save()
         update = b'{"user.email": "@not_valid@"}'
         response = update_user(
-            make_request(user=self.joe, body=update), self.joe.username)
+            make_request(user=self.joe, body=update), self.joe)
         self.assertBadRequest(response)
         context = json.loads(response.content)
         self.assertTrue('validationErrors' in context)
@@ -1594,7 +1610,7 @@ class UserUpdateViewTests(ViewTestCase):
         self.joe.save()
         update = b'{"user.password": "sekrit"}'
         self.assertBadRequest(update_user(
-            make_request(user=self.joe, body=update), self.joe.username))
+            make_request(user=self.joe, body=update), self.joe))
 
 
 class InstanceUserViewTests(ViewTestCase):
