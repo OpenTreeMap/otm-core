@@ -6,7 +6,7 @@
 {% block application_css %}
 {% if request.instance.scss_variables %}
 <link id="application-css" href="{% url 'scss' %}?{{ request.instance.scss_query_string }}" rel="stylesheet">
-{% elif settings.TEMPLATE_DEBUG %}
+{% elif settings.DEBUG %}
 <link id="application-css" href="{{ STATIC_URL }}css/main.css" rel="stylesheet">
 {% else %}
 <link id="application-css" href="{{ STATIC_URL }}css/main.min.css" rel="stylesheet">

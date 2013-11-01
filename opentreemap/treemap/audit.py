@@ -935,7 +935,7 @@ class Auditable(UserTrackable):
     @property
     def hash(self):
         """ Return a unique hash for this object """
-        # Since this is an audited object each changes will
+        # Since this is an audited object each change will
         # manifest itself in the audit log, essentially keeping
         # a revision id of this instance. Since each primary
         # key will be unique, we can just use that for the hash
@@ -944,7 +944,14 @@ class Auditable(UserTrackable):
                               .filter(model_id=self.pk)\
                               .order_by('-updated')
 
-        string_to_hash = str(audits[0].pk)
+        # Occasionally Auditable objects will have no audit records,
+        # this can happen if it was imported without using save_with_user
+        try:
+            audit_string = str(audits[0].pk)
+        except IndexError:
+            audit_string = 'none'
+
+        string_to_hash = '%s:%s:%s' % (self._model_name, self.pk, audit_string)
 
         return hashlib.md5(string_to_hash).hexdigest()
 
