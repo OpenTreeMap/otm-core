@@ -30,7 +30,8 @@ from treemap.util import (json_api_call, render_template, instance_request,
                           require_http_method, package_validation_errors,
                           bad_request_json_response, string_as_file_call,
                           requires_feature, get_instance_or_404,
-                          creates_instance_user, login_or_401)
+                          creates_instance_user, login_or_401,
+                          username_matches_request_user)
 
 from treemap.search import create_filter
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
@@ -769,11 +770,7 @@ def user(request, username):
             'private_fields': private_fields}
 
 
-def update_user(request, username):
-    user = get_object_or_404(User, username=username)
-    if user != request.user:
-        return HttpResponseForbidden()
-
+def update_user(request, user):
     new_values = json_from_request(request) or {}
     for key in new_values:
         try:
@@ -1060,7 +1057,9 @@ species_list_view = json_api_call(instance_request(species_list))
 
 user_view = render_template("treemap/user.html", user)
 
-update_user_view = require_http_method("PUT")(json_api_call(update_user))
+update_user_view = require_http_method("PUT")(
+    username_matches_request_user(
+        json_api_call(update_user)))
 
 user_audits_view = render_template("treemap/recent_user_edits.html",
                                    user_audits)

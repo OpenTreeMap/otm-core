@@ -10,7 +10,7 @@ from urlparse import urlparse
 from django.template import RequestContext
 from django.shortcuts import get_object_or_404, render_to_response, resolve_url
 from django.http import (HttpResponse, HttpResponseBadRequest,
-                         HttpResponseRedirect)
+                         HttpResponseRedirect, HttpResponseForbidden)
 from django.views.decorators.http import require_http_methods
 from django.utils.encoding import force_str, force_text
 from django.utils.functional import Promise
@@ -341,6 +341,27 @@ def login_or_401(view_fn):
             return view_fn(request, *args, **kwargs)
         else:
             return HttpResponse('Unauthorized', status=401)
+
+    return wrapper
+
+
+def username_matches_request_user(view_fn):
+    """
+    A decorator intended for use on any feature gated in the template by
+    {% userccontent for request.user %}.  Checks if the username matches the
+    request user, and if so replaces username with the actual user object.
+    Returns 404 if the username does not exist, and 403 if it doesn't match.
+    """
+    @wraps(view_fn)
+    def wrapper(request, username, *args, **kwargs):
+        # Delayed import because models imports from util
+        from treemap.models import User
+
+        user = get_object_or_404(User, username=username)
+        if user != request.user:
+            return HttpResponseForbidden()
+        else:
+            return view_fn(request, user, *args, **kwargs)
 
     return wrapper
 

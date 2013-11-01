@@ -81,6 +81,19 @@ class RootUrlTests(UrlTestCase):
     def test_user_invalid(self):
         self.assert_404('/users/nobody/')
 
+    def test_user_update(self):
+        username = make_commander_user().username
+        login(self.client, username)
+        self.assert_200('/users/%s/' % username, method='PUT', data='{}')
+
+    def test_user_update_invalid(self):
+        self.assert_404('/users/nobody/', method='PUT', data='{}')
+
+    def test_user_update_forbidden(self):
+        username = make_commander_user().username
+        self.assert_403('/users/%s/' % username, method='PUT', data='{}')
+
+    # Not testing 200 since it would involve loading valid image data
     # Note: /accounts/profile/ is tested in tests/auth.py
 
     def test_user_audits(self):
@@ -199,7 +212,8 @@ class TreemapUrlTests(UrlTestCase):
         self.client.login(username=username, password='password')
         self.assert_200(
             self.prefix + 'plots/', 'POST',
-            json.dumps({'plot.geom': {'x': 270, 'y': 45}}))
+            json.dumps({'plot.geom': {'x': 270, 'y': 45}}),
+            content_type="application/json")
 
     def test_instance_settings_js(self):
         self.assert_template(

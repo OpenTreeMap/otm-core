@@ -1533,16 +1533,6 @@ class UserUpdateViewTests(ViewTestCase):
         self.assertFalse('error' in context)
         self.assertFalse('validationErrors' in context)
 
-    def assertForbidden(self, response):
-        self.assertTrue(issubclass(response.__class__, HttpResponse))
-        self.assertEquals(403, response.status_code)
-        try:
-            context = json.loads(response.content)
-            self.assertFalse('ok' in context)
-            self.assertTrue('error' in context)
-        except ValueError:
-            pass  # It is ok for the response to have no content
-
     def assertBadRequest(self, response):
         self.assertTrue(issubclass(response.__class__, HttpResponse))
         self.assertEquals(400, response.status_code)
@@ -1552,18 +1542,14 @@ class UserUpdateViewTests(ViewTestCase):
 
     def test_empty_update_returns_ok(self):
         self.assertOk(update_user(
-            make_request(user=self.joe), self.joe.username))
-
-    def test_updating_someone_else_is_forbidden(self):
-        self.assertForbidden(update_user(
-            make_request(user=self.public), self.joe.username))
+            make_request(user=self.joe), self.joe))
 
     def test_change_first_name(self):
         self.joe.first_name = 'Joe'
         self.joe.save()
         update = b'{"user.first_name": "Joseph"}'
         self.assertOk(update_user(
-            make_request(user=self.joe, body=update), self.joe.username))
+            make_request(user=self.joe, body=update), self.joe))
         self.assertEquals('Joseph',
                           User.objects.get(username='joe').first_name,
                           'The first_name was not updated')
@@ -1573,7 +1559,7 @@ class UserUpdateViewTests(ViewTestCase):
         self.joe.save()
         update = b'{"name": "Joseph"}'
         response = update_user(
-            make_request(user=self.joe, body=update), self.joe.username)
+            make_request(user=self.joe, body=update), self.joe)
         self.assertBadRequest(response)
         context = json.loads(response.content)
         self.assertFalse('validationErrors' in context)
@@ -1583,7 +1569,7 @@ class UserUpdateViewTests(ViewTestCase):
         self.joe.save()
         update = b'{"user.email": "@not_valid@"}'
         response = update_user(
-            make_request(user=self.joe, body=update), self.joe.username)
+            make_request(user=self.joe, body=update), self.joe)
         self.assertBadRequest(response)
         context = json.loads(response.content)
         self.assertTrue('validationErrors' in context)
@@ -1594,7 +1580,7 @@ class UserUpdateViewTests(ViewTestCase):
         self.joe.save()
         update = b'{"user.password": "sekrit"}'
         self.assertBadRequest(update_user(
-            make_request(user=self.joe, body=update), self.joe.username))
+            make_request(user=self.joe, body=update), self.joe))
 
 
 class InstanceUserViewTests(ViewTestCase):
