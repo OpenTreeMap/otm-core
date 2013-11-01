@@ -15,8 +15,7 @@ import sass
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
-from django.http import (HttpResponse, HttpResponseRedirect,
-                         HttpResponseForbidden, Http404)
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views.decorators.http import etag
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
@@ -158,10 +157,6 @@ def _rotate_image_based_on_exif(img_path):
 
 
 def get_tree_photos(plot_id, photo_id):
-    return None
-
-
-def add_user_photo(user_id, uploaded_image):
     return None
 
 
