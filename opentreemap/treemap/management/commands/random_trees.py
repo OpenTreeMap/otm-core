@@ -48,7 +48,7 @@ class Command(InstanceDataCommand):
         species_qs = instance.scope_model(Species)
 
         n = options['n']
-        print("Will create %s plots" % n)
+        self.stdout.write("Will create %s plots" % n)
 
         get_prob = lambda option: float(min(100, max(0, option))) / 100.0
         tree_prob = get_prob(options['ptree'])
@@ -97,4 +97,4 @@ class Command(InstanceDataCommand):
                 tree.save_with_user(user)
                 ct += 1
 
-        print("Created %s trees and %s plots" % (ct, cp))
+        self.stdout.write("Created %s trees and %s plots" % (ct, cp))

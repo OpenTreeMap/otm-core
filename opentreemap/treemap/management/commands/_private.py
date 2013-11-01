@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 from django.core.management.base import BaseCommand
 from optparse import make_option
 
@@ -27,7 +31,7 @@ class InstanceDataCommand(BaseCommand):
             user = User.system_user()
             instance_user = user.get_instance_user(instance)
         except Exception:
-            print('Error: Could not find a superuser to use')
+            self.stdout.write('Error: Could not find a superuser to use')
             return 1
 
         if instance_user is None:
@@ -37,7 +41,7 @@ class InstanceDataCommand(BaseCommand):
                                          user=user,
                                          role=r)
             instance_user.save_with_user(user)
-            print('Added system user to instance with global role')
+            self.stdout.write('Added system user to instance with global role')
 
         for field in Plot._meta.get_all_field_names():
             _, c = FieldPermission.objects.get_or_create(
@@ -47,7 +51,8 @@ class InstanceDataCommand(BaseCommand):
                 instance=instance,
                 permission_level=FieldPermission.WRITE_DIRECTLY)
             if c:
-                print('Created plot permission for field "%s"' % field)
+                self.stdout.write('Created plot permission for field "%s"'
+                                  % field)
 
         for field in Tree._meta.get_all_field_names():
             _, c = FieldPermission.objects.get_or_create(
@@ -57,7 +62,8 @@ class InstanceDataCommand(BaseCommand):
                 instance=instance,
                 permission_level=FieldPermission.WRITE_DIRECTLY)
             if c:
-                print('Created tree permission for field "%s"' % field)
+                self.stdout.write('Created tree permission for field "%s"'
+                                  % field)
 
         dt = 0
         dp = 0
@@ -69,6 +75,6 @@ class InstanceDataCommand(BaseCommand):
                 p.delete_with_user(user)
                 dp += 1
 
-            print("Deleted %s trees and %s plots" % (dt, dp))
+            self.stdout.write("Deleted %s trees and %s plots" % (dt, dp))
 
         return instance, user
