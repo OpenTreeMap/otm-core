@@ -23,7 +23,12 @@ class Command(BaseCommand):
         make_option('-s', '--skip-debug-check',
                     action='store_true',
                     dest='skip_debug',
-                    help='skip the debug'), )
+                    help='skip the debug'),
+        make_option('-x', '--use-x',
+                    action='store_true',
+                    dest='use_x',
+                    help='use X windows rather '
+                         'than a virtual distplay'), )
 
     def handle(self, *args, **options):
         if settings.DEBUG is False and not options['skip_debug']:
@@ -33,8 +38,9 @@ class Command(BaseCommand):
                             'leave extra data behind (such as users) or '
                             'delete data that already exists.')
 
-        disp = Display(visible=0, size=(800, 600))
-        disp.start()
+        if not options['use_x']:
+            disp = Display(visible=0, size=(800, 600))
+            disp.start()
 
         errors = False
         for module in settings.UITESTS:
@@ -49,7 +55,8 @@ class Command(BaseCommand):
             finally:
                 if hasattr(uitests, 'tearDownModule'):
                     uitests.tearDownModule()
-                disp.stop()
+                if not options['use_x']:
+                    disp.stop()
 
             if not rslt.wasSuccessful():
                 errors = True
