@@ -413,4 +413,5 @@ from views import *         # NOQA
 from util import *          # NOQA
 from middleware import *    # NOQA
 from json_field import *    # NOQA
-from units import *    # NOQA
+from units import *         # NOQA
+from management import *    # NOQA
