@@ -74,7 +74,7 @@ function applySearchToDom(elems, search) {
         } else if ($domElem.is('[data-date-format]')) {
             var date = moment(value, DATETIME_FORMAT);
             if (date && date.isValid()) {
-                $domElem.datepicker('update', date);
+                $domElem.datepicker('update', date.toDate());
             } else {
                 $domElem.val('');
             }
