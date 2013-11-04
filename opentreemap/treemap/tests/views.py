@@ -529,7 +529,8 @@ class UserPhotoUpdateTest(LocalMediaTestCase):
 
     def upload_photo(self, filename):
         file = self.load_resource(filename)
-        return upload_user_photo(make_request(file=file), self.user)
+        return upload_user_photo(
+            make_request(user=self.user, file=file), self.user)
 
     @media_dir
     def test_upload_user_photo(self):
