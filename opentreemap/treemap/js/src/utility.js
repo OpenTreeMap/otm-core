@@ -6,6 +6,15 @@ var url = require('url'),
     L = require('leaflet'),
     console = require('console-browserify');
 
+exports.getUpdatedQueryString = function (k, v) {
+    var parsedUrl = url.parse(window.location.href, true);
+    var query = parsedUrl.query || {};
+
+    query[k] = v;
+
+    return QS.stringify(query);
+};
+
 exports.getLastUrlSegment = function(urlString) {
     var parts = getUrlSegments(urlString);
     return parts[parts.length - 1];
