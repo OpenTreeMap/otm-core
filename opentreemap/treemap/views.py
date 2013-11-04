@@ -790,10 +790,14 @@ def update_user(request, user):
 
 
 def upload_user_photo(request, user):
+    """
+    Saves a user profile photo whose data is in the request.
+    The callee or decorator is reponsible for ensuring request.user == user
+    """
     try:
         user.photo, user.thumbnail = save_image_from_request(
             request, name_prefix="user-%s" % user.pk, thumb_size=(85, 85))
-        user.save()
+        user.save_with_user(request.user)
     except ValidationError as e:
         # Most of these ValidationError are not field-errors and so their
         # messages are a Dict, which is why they simply joined together
