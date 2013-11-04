@@ -28,6 +28,11 @@
           {% for label, identifier in fields_for_add_tree %}
               {% create label from identifier in request.instance withtemplate "treemap/field/div.html" %}
           {% endfor %}
+
+          <input type="hidden" name="plot.address_street">
+          <input type="hidden" name="plot.address_city">
+          <input type="hidden" name="plot.address_zip">
+
         </form>
     </div>
     <div class="add-step">

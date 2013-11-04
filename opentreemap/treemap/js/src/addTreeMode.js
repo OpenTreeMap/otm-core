@@ -6,6 +6,8 @@ var $ = require('jquery'),
     U = require('treemap/utility'),
     Bacon = require('baconjs'),
     otmTypeahead = require('treemap/otmTypeahead'),
+    reverseGeocodeStreamAndUpdateAddressesOnForm =
+        require('treemap/reverseGeocodeStreamAndUpdateAddressesOnForm'),
     geocoder = require('treemap/geocoder'),
     geocoderUi = require('treemap/geocoderUi'),
     enterOrClickEventStream = require('treemap/baconUtils').enterOrClickEventStream,
@@ -132,7 +134,10 @@ function init(options) {
     });
 
     var markerMoveStream = plotMarker.moveStream.filter(options.inMyMode);
-    var reverseGeocodeStream = gcoder.reverseGeocodeStream(markerMoveStream);
+    var reverseGeocodeStream =
+            reverseGeocodeStreamAndUpdateAddressesOnForm(
+                config, markerMoveStream, formSelector);
+
     reverseGeocodeStream.map(reverseGeocodeResponseToAddressString)
                         .onValue($address, 'val');
     reverseGeocodeStream.onError($address, 'val', '');

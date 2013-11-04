@@ -13,6 +13,8 @@ var $ = require('jquery'),
     plotMarker = require('treemap/plotMarker'),
     csrf = require('treemap/csrf'),
     imageUploadPanel = require('treemap/imageUploadPanel'),
+    reverseGeocodeStreamAndUpdateAddressesOnForm =
+        require('treemap/reverseGeocodeStreamAndUpdateAddressesOnForm'),
     streetView = require('treemap/streetView'),
     diameterCalculator = require('treemap/diameterCalculator'),
     History = require('history');
@@ -102,6 +104,9 @@ exports.init = function(options) {
     });
 
     plotMarker.init(options.config, mapManager.map);
+
+    reverseGeocodeStreamAndUpdateAddressesOnForm(
+        options.config, plotMarker.moveStream, '#plot-form');
 
     plotMover.init({
         mapManager: mapManager,

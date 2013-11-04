@@ -4,10 +4,13 @@ var $ = require('jquery'),
     _ = require('underscore'),
     otmTypeahead = require('treemap/otmTypeahead'),
     plotMover = require('treemap/plotMover'),
-    diameterCalculator = require('treemap/diameterCalculator');
+    diameterCalculator = require('treemap/diameterCalculator'),
+    reverseGeocodeStreamAndUpdateAddressesOnForm =
+        require('treemap/reverseGeocodeStreamAndUpdateAddressesOnForm');
 
 
-var mapManager,
+var formSelector = '#details-form',
+    mapManager,
     inlineEditForm,
     typeaheads,
     plotMarker,
@@ -18,6 +21,10 @@ function init(options) {
     inlineEditForm = options.inlineEditForm;
     typeaheads = options.typeaheads;
     plotMarker = options.plotMarker;
+
+    var markerMoveStream = plotMarker.moveStream.filter(options.inMyMode);
+    reverseGeocodeStreamAndUpdateAddressesOnForm(
+        options.config, markerMoveStream, formSelector);
 }
 
 function activate() {
@@ -35,7 +42,7 @@ function activate() {
     });
 
     calculator = diameterCalculator({
-        formSelector: '#details-form',
+        formSelector: formSelector,
         cancelStream: inlineEditForm.cancelStream,
         saveOkStream: inlineEditForm.saveOkStream
     });
@@ -58,4 +65,3 @@ module.exports = {
     deactivate: deactivate,
     onSaveBefore: onSaveBefore
 };
-
