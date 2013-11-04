@@ -31,9 +31,11 @@
   <a href="{% url settings.MANAGEMENT_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Manage Tree Map" %}</a>
 </li>
 {% endif %}
+{% if request.instance|feature_enabled:'recent_edits_report' %}
 <li class="{% block activerecentedits %}{% endblock %}">
   <a href="{% url 'edits' instance_url_name=request.instance.url_name %}">{% trans "Edits" %}</a>
 </li>
+{% endif %}
 {% endblock instancetopnav %}
 
 {% block subhead %}
