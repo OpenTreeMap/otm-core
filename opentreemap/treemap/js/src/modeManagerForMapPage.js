@@ -41,6 +41,7 @@ function activateEditTreeDetailsMode() { activateMode(editTreeDetailsMode, $side
 
 function inBrowseTreesMode() { return currentMode === browseTreesMode; }
 function inAddTreeMode()     { return currentMode === addTreeMode; }
+function inEditTreeMode()    { return currentMode === editTreeDetailsMode; }
 
 function init(config, mapManager, triggerSearchBus) {
     // browseTreesMode and editTreeDetailsMode share an inlineEditForm,
@@ -91,9 +92,11 @@ function init(config, mapManager, triggerSearchBus) {
     });
 
     editTreeDetailsMode.init({
+        config: config,
         mapManager: mapManager,
         inlineEditForm: form,
         plotMarker: plotMarker,
+        inMyMode: inEditTreeMode,
         typeaheads: [getSpeciesTypeaheadOptions(config, "edit-tree-species")]
     });
 }

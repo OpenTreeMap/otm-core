@@ -15,4 +15,8 @@
     {% field height from "tree.height" for request.user withtemplate "treemap/field/div.html" %}
     {% endif %}
 
+    <input type="hidden" name="plot.address_street" value="{{ plot.address_street}}">
+    <input type="hidden" name="plot.address_city" value="{{ plot.address_city}}">
+    <input type="hidden" name="plot.address_zip" value="{{ plot.address_zip}}">
+
 </form>
