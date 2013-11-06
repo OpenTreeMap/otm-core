@@ -65,5 +65,45 @@ module.exports.init = function(options) {
         }
     });
 
+    $imageContainer.on('slide', function(e) {
+        var $thumbnailList = $imageContainer.find('.carousel-indicators'),
+            $thumbnailListContainer = $thumbnailList.parent(),
+            index = $imageContainer.find('.carousel-inner .item').index(e.relatedTarget),
+            $thumbnail = $thumbnailList.find('[data-slide-to="' + index + '"]'),
+
+            // The $thumbnailListContainer has overflow-x:auto on it, and
+            // we want to scroll it so the currently selected thumbnail is
+            // around the center.  This was arrived at via trial and error,
+            // it could probably be tweaked to be a bit better.
+            scrollOffset = $thumbnail.offset().left + $thumbnail.width() -
+                ($thumbnailList.offset().left + $thumbnailListContainer.innerWidth() / 2);
+
+        // Bootstrap Carousel's animations are hardcoded to .6 seconds,
+        // which we should match when animating thumbnails
+        $thumbnailListContainer.animate({'scrollLeft': scrollOffset}, 600);
+    });
+
+    // To make the thumbnail scrolling work we need to prevent wrapping
+    // from the first to the last item, and vice versa
+    $imageContainer.on('slid', function(e) {
+        var isFirst = $imageContainer.find('.carousel-inner .item:first').hasClass('active'),
+            isLast = $imageContainer.find('.carousel-inner .item:last').hasClass('active');
+        $imageContainer
+            .find('.carousel-control')
+            .attr('href', '#' + $imageContainer.attr('id'))
+            .removeClass('disabled');
+        if (isFirst) {
+            $imageContainer
+                .find('.carousel-control.left')
+                .attr('href', '')
+                .addClass('disabled');
+        } else if (isLast) {
+            $imageContainer
+                .find('.carousel-control.right')
+                .attr('href', '')
+                .addClass('disabled');
+        }
+    });
+
     return finishedStream;
 };
