@@ -267,7 +267,7 @@ def add_tree_photo(request, plot_id):
     else:
         tree_pk = None
 
-    treephoto = add_tree_photo(
+    treephoto, _ = add_tree_photo(
         request, plot.instance, plot.pk, tree_pk)
 
     return {"status": "success", "title": '', "id": treephoto['id']}

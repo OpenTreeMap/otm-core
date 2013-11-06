@@ -118,22 +118,28 @@ def add_tree_photo(request, instance, plot_id, tree_id=None):
     #TODO: Validation Error
     #TODO: Auth Error
     if 'file' in request.FILES:
-        #TODO: Check size before reading
         data = request.FILES['file'].file
     else:
         data = request.body
 
-    photo = tree.add_photo(data, request.user)
+    treephoto = tree.add_photo(data, request.user)
 
-    return photo
+    return treephoto, tree
 
 
 def add_tree_photo_view(request, instance, plot_id, tree_id=None):
+    error = None
     try:
-        photo = add_tree_photo(request, instance, plot_id, tree_id)
-        return {'url': photo.thumbnail.url}
+        _, tree = add_tree_photo(request, instance, plot_id, tree_id)
+        photos = tree.photos()
     except ValidationError as e:
-        return bad_request_json_response('; '.join(e.messages))
+        trees = Tree.objects.filter(pk=tree_id)
+        if len(trees) == 1:
+            photos = trees[0].photos()
+        else:
+            photos = []
+        error = '; '.join(e.messages)
+    return {'photos': photos, 'error': error}
 
 #
 # These are calls made by the API that aren't currently implemented
@@ -1090,9 +1096,10 @@ landing_view = render_template("base.html")
 
 add_tree_photo_endpoint = require_http_method("POST")(
     login_or_401(
-        json_api_call(
-            instance_request(
-                creates_instance_user(add_tree_photo_view)))))
+        instance_request(
+            creates_instance_user(
+                render_template("treemap/partials/tree_carousel.html",
+                                add_tree_photo_view)))))
 
 scss_view = require_http_method("GET")(
     string_as_file_call("text/css", compile_scss))
