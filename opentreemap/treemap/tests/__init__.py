@@ -35,6 +35,13 @@ class OTM2TestRunner(CeleryTestSuiteRunner, DjangoTestSuiteRunner):
                                                        *args,
                                                        **kwargs)
 
+    def setup_databases(self, *args, **kwargs):
+        # We want to load a system user, but until the test database is created
+        # we can't, so we need to overload setup_databases and do it here
+        result = super(OTM2TestRunner, self).setup_databases(*args, **kwargs)
+        create_mock_system_user()
+        return result
+
 
 def make_simple_boundary(name, n=1):
     b = Boundary()
@@ -297,11 +304,13 @@ def make_instance(name=None, is_public=False, url_name=None, point=None):
 
 def create_mock_system_user():
     try:
-        system_user = User.objects.get(username="system_user")
+        system_user = User.objects.get(id=settings.SYSTEM_USER_ID)
     except Exception:
         system_user = User(username="system_user",
                            email='noreplyx02x0@example.com')
         system_user.id = settings.SYSTEM_USER_ID
+        system_user.set_password('password')
+        system_user.save()
 
     User._system_user = system_user
 
@@ -400,8 +409,6 @@ class MockSession():
             return default
 
 
-create_mock_system_user()
-
 from templatetags import *  # NOQA
 from udfs import *          # NOQA
 from audit import *         # NOQA
@@ -413,4 +420,5 @@ from views import *         # NOQA
 from util import *          # NOQA
 from middleware import *    # NOQA
 from json_field import *    # NOQA
-from units import *    # NOQA
+from units import *         # NOQA
+from management import *    # NOQA

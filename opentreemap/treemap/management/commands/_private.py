@@ -1,8 +1,12 @@
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 from django.core.management.base import BaseCommand
 from optparse import make_option
 
 from treemap.models import (Instance, User, Plot, Tree,
-                            FieldPermission, Role)
+                            FieldPermission, Role, InstanceUser)
 
 
 class InstanceDataCommand(BaseCommand):
@@ -23,40 +27,43 @@ class InstanceDataCommand(BaseCommand):
         """ Create some seed data """
         instance = Instance.objects.get(pk=options['instance'])
 
-        user = User.objects.filter(is_superuser=True)
-
-        if len(user) == 0:
-            print('Error: Could not find a superuser to use')
+        try:
+            user = User.system_user()
+            instance_user = user.get_instance_user(instance)
+        except Exception:
+            self.stdout.write('Error: Could not find a superuser to use')
             return 1
-        else:
-            user = user[0]
 
-        if user.roles.count() == 0:
-            print('Added global role to user')
+        if instance_user is None:
             r = Role(name='global', rep_thresh=0, instance=instance)
             r.save()
-            user.roles.add(r)
-            user.save_base()
+            instance_user = InstanceUser(instance=instance,
+                                         user=user,
+                                         role=r)
+            instance_user.save_with_user(user)
+            self.stdout.write('Added system user to instance with global role')
 
-        for field in ('geom', 'import_event'):
+        for field in Plot._meta.get_all_field_names():
             _, c = FieldPermission.objects.get_or_create(
                 model_name='Plot',
                 field_name=field,
-                role=user.roles.all()[0],
+                role=instance_user.role,
                 instance=instance,
                 permission_level=FieldPermission.WRITE_DIRECTLY)
             if c:
-                print('Created plot permission for field "%s"' % field)
+                self.stdout.write('Created plot permission for field "%s"'
+                                  % field)
 
-        for field in ('plot',):
+        for field in Tree._meta.get_all_field_names():
             _, c = FieldPermission.objects.get_or_create(
                 model_name='Tree',
                 field_name=field,
-                role=user.roles.all()[0],
+                role=instance_user.role,
                 instance=instance,
                 permission_level=FieldPermission.WRITE_DIRECTLY)
             if c:
-                print('Created tree permission for field "%s"' % field)
+                self.stdout.write('Created tree permission for field "%s"'
+                                  % field)
 
         dt = 0
         dp = 0
@@ -68,6 +75,6 @@ class InstanceDataCommand(BaseCommand):
                 p.delete_with_user(user)
                 dp += 1
 
-            print("Deleted %s trees and %s plots" % (dt, dp))
+            self.stdout.write("Deleted %s trees and %s plots" % (dt, dp))
 
         return instance, user

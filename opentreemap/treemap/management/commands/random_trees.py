@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib.gis.geos import Point
-from treemap.models import ImportEvent, Plot, Tree
+from treemap.models import ImportEvent, Plot, Tree, Species
 from optparse import make_option
 from ._private import InstanceDataCommand
 
@@ -32,16 +32,27 @@ class Command(InstanceDataCommand):
                     dest='ptree',
                     default=50,
                     help=('Probability that a given plot will '
-                          'have a tree (0-100)')))
+                          'have a tree (0-100)')),
+        make_option('-s', '--prob-of-species',
+                    action='store',
+                    type='int',
+                    dest='pspecies',
+                    default=50,
+                    help=('Probability that a given tree will '
+                          'have a species (0-100)')))
 
     def handle(self, *args, **options):
         """ Create some seed data """
         instance, user = self.setup_env(*args, **options)
 
-        n = options['n']
-        print("Will create %s plots" % n)
+        species_qs = instance.scope_model(Species)
 
-        tree_prob = float(max(100, min(0, options['ptree']))) / 100.0
+        n = options['n']
+        self.stdout.write("Will create %s plots" % n)
+
+        get_prob = lambda option: float(min(100, max(0, option))) / 100.0
+        tree_prob = get_prob(options['ptree'])
+        species_prob = get_prob(options['pspecies'])
         max_radius = options['radius']
 
         center_x = instance.center.x
@@ -68,10 +79,22 @@ class Command(InstanceDataCommand):
             cp += 1
 
             if mktree:
+                add_species = random.random() < species_prob
+                if add_species:
+                    species = random.choice(species_qs)
+                else:
+                    species = None
+
+                diameter = random.random() * 20
+                if diameter < 2:
+                    diameter = None
+
                 tree = Tree(plot=plot,
                             import_event=import_event,
+                            species=species,
+                            diameter=diameter,
                             instance=instance)
                 tree.save_with_user(user)
                 ct += 1
 
-        print("Created %s trees and %s plots" % (ct, cp))
+        self.stdout.write("Created %s trees and %s plots" % (ct, cp))
