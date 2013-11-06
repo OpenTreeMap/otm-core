@@ -1,0 +1,33 @@
+{# Template meant to be included as the contents of a Bootstrap Carousel #}
+{# Expects to be given - photos: a list of TreePhoto objects, error: an optional error message #}
+
+<div class="carousel-inner">
+{% for photo in photos %}
+  <div class="item {{ forloop.first|yesno:"active," }}">
+    <a href="{{ photo.image.url }}"><img src="{{ photo.thumbnail.url }}" alt=""></a>
+  </div>
+{% empty %}
+  <div class="item active">
+    <img id="tree-photo-placeholder" src="{{ STATIC_URL }}img/tree.png">
+  </div>
+{% endfor %}
+</div>
+<div id="tree-photo-thumbnails">
+  <div>
+    <ol class="carousel-indicators">
+    {% for photo in photos %}
+      <li data-target="#tree-photo-carousel" data-slide-to="{{ forloop.counter0 }}"
+            class="{{ forloop.first|yesno:"active," }}">
+        <img src="{{ photo.thumbnail.url }}" alt="" style="height: 30px;">
+      </li>
+    {% endfor %}
+    </ol>
+  </div>
+</div>
+{% if photos %}
+<a class="carousel-control left" href="#tree-photo-carousel" data-slide="prev">&lt;</a>
+<a class="carousel-control right" href="#tree-photo-carousel" data-slide="next">&gt;</a>
+{% endif %}
+{% if error %}
+<div class="text-error">{{ error }}</div>
+{% endif %}
