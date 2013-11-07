@@ -21,17 +21,37 @@
             line-height: 21px;
         }
     }
-    .user-photo {
-        max-width: 85px;
+    .user-photo-container {
+        width: 85px;
+        border-radius: 6px;
+        overflow: hidden;
+        height: 85px;
+        position: relative;
         float: left;
         margin-right: 10px;
-        border-radius: 12px;
-        overflow: hidden;
+
+        > img {
+
+        }
+        > button {
+            position: absolute;
+            bottom: 0;
+            opacity: 0;
+            width: 100%;
+            background: black;
+            color: white;
+            border: none;
+            transition: opacity 0.3s;
+        }
+        &:hover > button {
+            opacity: 0.85;
+            background: black;
+        }
     }
 }
 
 #user-form {
-    margin: 10px 0 0;
+    margin: 10px 0;
     clear: both;
     padding: 20px;
     border-radius: 6px;

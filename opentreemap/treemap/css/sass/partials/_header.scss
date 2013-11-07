@@ -66,7 +66,7 @@
             }
 
             .typeahead-toggle {
-                padding: 10px 6px 7px;
+                padding: 9px 4px 7px;
                 position: absolute;
                 top: 0px;
                 z-index: 9;
@@ -74,6 +74,8 @@
                 border: none;
                 cursor: pointer;
                 color: $well-color;
+                font-size: 18px;
+                line-height: 16px;
 
                 &.active, 
                 &:hover {
