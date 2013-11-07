@@ -69,6 +69,27 @@
     }
 }
 
+@keyframes pulse {
+    0% {opacity: 1;}
+    30% {opacity: 0.5;}
+    60% {opacity: 1;}
+}
+@-webkit-keyframes pulse {
+    0% {opacity: 1;}
+    30% {opacity: 0.5;}
+    60% {opacity: 1;}
+}
+
+.leaflet-marker-icon {
+
+    &.animated {
+        -webkit-animation: pulse 2s infinite;
+        -moz-animation: pulse 2s infinite;
+        -o-animation: pulse 2s infinite;
+        animation: pulse 2s infinite;
+    }
+}
+
 .leaflet-popup-close-button {
     margin-top: 6px;
     margin-right: 4px;

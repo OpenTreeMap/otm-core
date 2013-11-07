@@ -143,29 +143,6 @@
         }
 }
 
-#diameter-calculator {
-    width: 100%;
-    margin: 0;
-
-    & + a {
-        font-weight: 300;
-        font-size: 0.75em;
-        margin-bottom: 10px;
-        display: block;
-
-        > i {
-            margin-right: 5px;
-        }
-    }
-
-    th {
-        font-size: 0.75em;
-    }
-    input {
-        margin: 0;
-    }
-}
-
 #add-trunk-row {
     border-radius: 99px;
     padding: 2px 5px;

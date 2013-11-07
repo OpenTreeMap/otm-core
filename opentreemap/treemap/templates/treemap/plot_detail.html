@@ -47,10 +47,10 @@
               data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
               data-href="{{ request.get_full_path }}"
               data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
-              class="btn">{% trans "Edit" %}</button>
-      <button id="save-edit-plot" data-class="edit" class="btn" style="display: none;">{% trans "Save" %}</button>
-      <button id="cancel-edit-plot" data-class="edit" class="btn" style="display: none;">{% trans "Cancel" %}</button>
-
+              class="btn btn-small btn-info">{% trans "Edit" %}</button>
+      <button id="save-edit-plot" data-class="edit" class="btn btn-small btn-primary" style="display: none;">{% trans "Save" %}</button>
+      <button id="cancel-edit-plot" data-class="edit" class="btn btn-small" style="display: none;">{% trans "Cancel" %}</button>
+      <hr/>
       <form id="plot-form">
         <!-- Tree Information -->
         <h4>{% trans "Tree Information" %}</h4>
