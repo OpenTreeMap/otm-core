@@ -1,19 +1,29 @@
 // Partial: Map Page
 
+#streetview {
+    width: 200px;
+    height: 200px;
+    position: absolute;
+    left:20px;
+    bottom: 80px;
+    background: gray;
+    z-index: 10000;
+}
+
 .map {
     left: 0;
     background: $well-color;
     position: absolute;
     bottom: 40px;
     top: 0;
-    right: 350px; 
+    right: 350px;
 }
 
 .leaflet-control-container {
     @each $direction in right, left, top, bottom {
         .leaflet-#{$direction} {
             z-index: 99;
-            
+
             .leaflet-control {
                 margin-#{$direction}: 16px;
             }
@@ -141,8 +151,8 @@ span.tt-dropdown-menu {
         .tt-suggestion {
             padding: 8px 10px;
             border-bottom: 1px solid $light-gray-color;
-            
-            &.tt-is-under-cursor, 
+
+            &.tt-is-under-cursor,
             &:hover {
                 background-color: $light-gray-color;
             }

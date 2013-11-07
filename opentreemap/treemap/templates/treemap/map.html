@@ -22,7 +22,10 @@
 
 {% block content %}
 <div class="content map">
-  <div id="map" class="map"></div>
+  <div id="streetview" style="display: none">
+  </div>
+  <div id="map" class="map">
+  </div>
   <div class="sidebar">
     <div id="sidebar-browse-trees">
       {% include "treemap/map-browse-trees.html" %}

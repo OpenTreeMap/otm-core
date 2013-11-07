@@ -166,7 +166,7 @@ exports.init = function(options) {
         $streetViewContainer.show();
         var panorama = streetView.create({
             streetViewElem: $streetViewContainer[0],
-            noStreetViewText: options.noStreetViewText,
+            noStreetViewText: options.config.noStreetViewText,
             location: options.plotLocation.location
         });
         form.saveOkStream
