@@ -19,6 +19,7 @@ from treemap.models import Plot, Species, Tree, Instance
 from treemap.views import (create_user, get_tree_photos, create_plot,
                            upload_user_photo)
 from treemap.decorators import instance_request
+from treemap.exceptions import HttpBadRequestException
 
 from opentreemap.util import json_from_request
 
@@ -46,10 +47,6 @@ from distutils.version import StrictVersion
 #TODO: Kill this
 def change_reputation_for_user(*args, **kwargs):
     print "WARNING: Shim called for 'change_reputation_for_user'"
-
-
-class HttpBadRequestException(Exception):
-    pass
 
 
 class HttpConflictException(Exception):

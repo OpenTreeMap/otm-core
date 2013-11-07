@@ -13,9 +13,10 @@ from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_http_methods
 
-from treemap.util import (FeatureNotEnabledException, HttpBadRequestException,
-                          LazyEncoder, add_visited_instance,
+from treemap.util import (LazyEncoder, add_visited_instance,
                           get_instance_or_404, login_redirect)
+from treemap.exceptions import (FeatureNotEnabledException,
+                                HttpBadRequestException)
 
 
 def instance_request(view_fn):

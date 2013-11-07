@@ -45,14 +45,6 @@ def safe_get_model_class(model_string):
     return getattr(models_module.models, model_string)
 
 
-class HttpBadRequestException(Exception):
-    pass
-
-
-class InvalidInstanceException(Exception):
-    pass
-
-
 def add_visited_instance(request, instance):
     visited_instances = request.session.get('visited_instances', OrderedDict())
 
