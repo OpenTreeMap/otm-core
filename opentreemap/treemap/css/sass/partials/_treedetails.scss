@@ -24,3 +24,35 @@
 .street-view-small img {
     max-width: none;
 }
+
+#tree-photo-thumbnails {
+    overflow: hidden;
+    height: 50px;
+
+    > div {
+        overflow-x: auto;
+        overflow-y: hidden;
+        height: 65px;
+
+        .carousel-indicators {
+            display: inline-block;
+            position: static;
+            margin: 0 0 10px 25px;
+            white-space: nowrap;
+
+            li {
+                text-indent: 0;
+                border: $well-color;
+                width: 50px;
+                height: 50px;
+
+                img {
+                    width: auto;
+                    height: auto;
+                    max-width: 50px;
+                    max-height: 50px;
+                }
+            }
+        }
+    }
+}

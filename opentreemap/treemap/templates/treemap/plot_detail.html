@@ -22,22 +22,17 @@
 <div class="container contained tree-details">
   <div class="row-fluid">
     <div class="span3">
-      {% with photo=tree.most_recent_photo %}
-      {% if photo %}
-      <a href="{{ photo.image.url }}"><img id="tree-photo" src="{{ photo.thumbnail.url }}"></a>
-      {% else %}
-      <img id="tree-photo" src="{{ STATIC_URL }}img/tree.png">
-      {% endif %}
-      {% endwith %}
+      <div id="tree-photo-carousel" class="carousel slide" data-interval="">
+        {% include "treemap/partials/tree_carousel.html" with photos=tree.photos %}
+      </div>
       <button id="toggle-add-photo-modal"
-         data-toggle="modal"
-         data-target="#add-photo-modal"
-         data-always-enable="{{ last_effective_instance_user.can_add_photos_to_tree }}"
-         data-href="{{ request.get_full_path }}"
-         disabled="disabled"
-         data-disabled-title="{% trans "Adding tree photos is not available to all users" %}"
-         class="btn btn-mini add-photos">{% trans "Add Photo" %}</button>
-      <div id="upload-error" class="text-error" style="display: none"></div>
+        data-toggle="modal"
+        data-target="#add-photo-modal"
+        data-always-enable="{{ last_effective_instance_user.can_add_photos_to_tree }}"
+        data-href="{{ request.get_full_path }}"
+        disabled="disabled"
+        data-disabled-title="{% trans "Adding tree photos is not available to all users" %}"
+        class="btn btn-mini add-photos">{% trans "Add Photo" %}</button>
       <hr>
       <div id="sidebar">
         {% include "treemap/partials/sidebar.html" %}
@@ -233,9 +228,8 @@
           }],
           imageUploadPanel: {
               panelId: '#add-photo-modal',
-              show: '#toggle-add-photo-modal',
-              imageElement: '#tree-photo',
-              error: '#upload-error'
+              dataType: 'html',
+              imageContainer: '#tree-photo-carousel'
           },
           plotLocation: {
               edit: '#edit-plot-location',
