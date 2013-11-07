@@ -586,11 +586,8 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
                          if self.species else "")
         return "%s%s" % (diameter_chunk, species_chunk)
 
-    def most_recent_photo(self):
-        try:
-            return self.treephoto_set.order_by('-created_at')[0]
-        except IndexError:
-            return None
+    def photos(self):
+        return self.treephoto_set.order_by('-created_at')
 
     ##########################
     # tree validation
@@ -684,7 +681,7 @@ class TreePhoto(models.Model, Authorizable, Auditable):
         if self.tree and self.tree.instance != self.instance:
             raise ValidationError('Cannot save to a tree in another instance')
 
-        # The auto_now_add is acting up... set if here if we're new
+        # The auto_now_add is acting up... set it here if we're new
         if self.pk is None:
             self.created_at = timezone.now()
 
