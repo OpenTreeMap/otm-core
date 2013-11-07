@@ -43,18 +43,18 @@
 }
 
 #tree-photo-thumbnails {
-    height: 55px;
+    height: 50px;
 
     > div {
-        overflow-x: auto;
-        overflow-y: hidden;
-        height: 65px;
+        overflow: hidden;
+        height: 50px;
 
         .carousel-indicators {
             display: inline-block;
             position: static;
-            margin: 0 0 10px 0;
+            margin: 0 ;
             white-space: nowrap;
+            width: 999px;
 
             li {
 				text-indent: 0;
@@ -136,7 +136,7 @@
     }
     > button {
         position: absolute;
-        bottom: 65px;
+        bottom: 60px;
         opacity: 0.25;
         width: auto;
         background: black;
