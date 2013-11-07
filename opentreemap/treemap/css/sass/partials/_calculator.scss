@@ -1,0 +1,61 @@
+// Partial: Diameter Calculator
+
+#diameter-calculator {
+    width: 100%;
+    margin: 0;
+
+    & + a {
+        font-weight: 300;
+        font-size: 0.75em;
+        margin-bottom: 10px;
+        display: block;
+
+        > i {
+            margin-right: 5px;
+        }
+    }
+
+    th {
+        font-size: 1em;
+    }
+    tr {
+        td {
+            &:first-child,
+            &:nth-child(2n){
+                width: 45%;
+            }
+            &:last-child {
+                width: 10%;
+            }
+
+            input {
+                width: 85%;
+            }
+        }
+    }
+    input {
+        margin: 0;
+    }
+}
+
+#diameter-calculator-total-row {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    font-style: italic;
+    color: $subtext-color;
+}
+
+[data-field="tree.diameter"] {
+    .input-append {
+        display: none;
+    }
+
+    #diameter-video {
+        font-size: 12px;
+        font-weight: 400;
+
+        > i {
+            margin-right: 6px;
+        }
+    }
+}

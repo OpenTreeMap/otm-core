@@ -1,7 +1,7 @@
 {% load i18n %}
 
 {% if field.is_visible %}
-  <tr>
+  <tr class="diameter-row">
     <td>{{ field.label }}</td>
     <td {% include "treemap/field/attrs.html" with class="display" %}>
       {{ field.display_value|default_if_none:"" }}

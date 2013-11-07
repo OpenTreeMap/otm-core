@@ -8,6 +8,23 @@
 
 #plot-form {
 	margin-top: 10px;
+
+	table.table-striped {
+		> tbody {
+			> tr {
+				> td:first-child {
+					width: 30%;
+					vertical-align: middle;
+				}
+
+				&.diameter-row {
+					td:first-child {
+						vertical-align: top;
+					}
+				}
+			}
+		}
+	}
 }
 
 .map-small,
