@@ -153,7 +153,7 @@ def test(test_filter=""):
 
     _manage('test --settings=opentreemap.test_settings %s' % test_filter)
 
-def uitest(skip_debug_check=None, use_x=None):
+def uitest(skip_debug_check=None):
     """ Run selenium UI tests """
     require('site_path')
     require('venv_path')
@@ -163,12 +163,7 @@ def uitest(skip_debug_check=None, use_x=None):
     else:
         skip_debug_check = ''
 
-    if use_x:
-        use_x = '--use-x'
-    else:
-        use_x = ''
-            
-    _manage('uitest %s %s' % (skip_debug_check, use_x))
+    _manage('uitest %s' % skip_debug_check)
 
 def restart_app():
     """ Restart the gunicorns running the app """
