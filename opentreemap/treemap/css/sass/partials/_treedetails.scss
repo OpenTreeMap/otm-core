@@ -26,8 +26,7 @@
 }
 
 #tree-photo-thumbnails {
-    overflow: hidden;
-    height: 50px;
+    height: 55px;
 
     > div {
         overflow-x: auto;
@@ -37,22 +36,101 @@
         .carousel-indicators {
             display: inline-block;
             position: static;
-            margin: 0 0 10px 25px;
+            margin: 0 0 10px 0;
             white-space: nowrap;
 
             li {
-                text-indent: 0;
-                border: $well-color;
-                width: 50px;
-                height: 50px;
+				text-indent: 0;
+				border: none;
+				width: 50px;
+				height: 50px;
+				border-radius: 4px;
+				margin-left: 0;
+				margin-right: 5px;
+				overflow: hidden;
+				opacity: 0.65;
+				cursor: pointer;
+
+				&.active {
+					opacity: 1;
+				}
+				&:hover {
+					opacity: 0.9;
+				}
 
                 img {
-                    width: auto;
-                    height: auto;
-                    max-width: 50px;
-                    max-height: 50px;
+					width: 100%;
+					height: auto !important;
                 }
             }
         }
+    }
+}
+
+#tree-photo-carousel {
+	.carousel-inner {
+    	margin-bottom: 10px;
+    	height: 250px;
+    	overflow: hidden;
+    	border: none;
+
+    	.item {
+			img {
+        		width: 100%;
+        		height: auto;
+        	}
+    	}
+    }
+    > a.carousel-control {
+    	left: 0;
+		width: 50px;
+		height: 50px;
+		margin-top: -25px;
+		font-size: 40px;
+		line-height: normal;
+		text-align: center;
+		background: transparent;
+		border: none;
+		display: block;
+		border-radius: 0;
+		opacity: 0.5;
+		color: #42424a;
+
+		&.right {
+			left: auto;
+			right: 5px;
+		}
+		&:hover {
+			opacity: 0.9;
+			color: #42424a;
+		}
+		&.disabled {
+			opacity: 0.15;
+
+			&:hover {
+				opacity: 0.15;
+				color: #42424a;
+			}
+		}
+
+		> i {
+			display: block;
+		}
+    }
+    > button {
+        position: absolute;
+        bottom: 65px;
+        opacity: 0.25;
+        width: auto;
+        background: black;
+        color: white;
+        border: none;
+        transition: opacity 0.3s;
+        padding: 2px 8px;
+		border-radius: 0;
+    }
+    &:hover > button {
+        opacity: 0.85;
+        background: black;
     }
 }
