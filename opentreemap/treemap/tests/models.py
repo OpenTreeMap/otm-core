@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
@@ -12,7 +13,6 @@ from django.core.exceptions import ValidationError
 from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
                             ImportEvent)
 from treemap.audit import Audit, ReputationMetric
-
 from treemap.tests import (make_instance, make_commander_user,
                            make_user_with_default_role, make_user,
                            make_simple_boundary, make_commander_role)

@@ -1,16 +1,25 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 from django.conf.urls import patterns
+
 from opentreemap.util import route
-from views import (get_plot_list, create_plot_optional_tree, status,
-                   version, get_plot, remove_plot,
-                   update_plot_and_tree, get_current_tree_from_plot,
-                   remove_current_tree_from_plot, add_tree_photo,
-                   get_tree_image, plots_closest_to_point,
-                   approve_pending_edit, reject_pending_edit, species_list,
-                   geocode_address, reset_password, verify_auth,
-                   register, add_profile_photo, update_password,
-                   edits)
+
+from api.views import (get_plot_list, create_plot_optional_tree, status,
+                       version, get_plot, remove_plot,
+                       update_plot_and_tree, get_current_tree_from_plot,
+                       remove_current_tree_from_plot, add_tree_photo,
+                       get_tree_image, plots_closest_to_point,
+                       approve_pending_edit, reject_pending_edit, species_list,
+                       geocode_address, reset_password, verify_auth,
+                       register, add_profile_photo, update_password,
+                       edits)
 
 from treemap.instance import URL_NAME_PATTERN
+
+
 instance_pattern = r'^(?P<instance_url_name>' + URL_NAME_PATTERN + r')'
 
 urlpatterns = patterns(

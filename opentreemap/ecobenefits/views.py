@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
@@ -11,7 +12,6 @@ from treemap.models import Tree
 from treemap.decorators import instance_request, json_api_call, strip_request
 
 from ecobenefits.models import ITreeRegion
-
 from ecobenefits.species import CODES
 
 

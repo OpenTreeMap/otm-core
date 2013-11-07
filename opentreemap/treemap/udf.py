@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
@@ -8,8 +9,13 @@ from datetime import datetime
 
 from django.core.exceptions import ValidationError, FieldError
 from django.utils.translation import ugettext_lazy as trans
-
 from django.contrib.gis.db import models
+from django.db.models import Q
+from django.db.models.base import ModelBase
+from django.db.models.sql.constants import ORDER_PATTERN
+
+from django.contrib.gis.db.models.sql.where import GeoWhereNode
+from django.contrib.gis.db.models.sql.query import GeoQuery
 
 from djorm_hstore.fields import DictionaryField, HStoreDictionary
 from djorm_hstore.models import HStoreManager, HStoreQueryset
@@ -19,13 +25,6 @@ from treemap.audit import (UserTrackable, Audit, UserTrackingException,
                            _reserve_model_id, FieldPermission,
                            AuthorizeException)
 from treemap.util import safe_get_model_class
-
-from django.db.models import Q
-from django.db.models.base import ModelBase
-from django.db.models.sql.constants import ORDER_PATTERN
-
-from django.contrib.gis.db.models.sql.where import GeoWhereNode
-from django.contrib.gis.db.models.sql.query import GeoQuery
 
 
 def safe_get_udf_model_class(model_string):

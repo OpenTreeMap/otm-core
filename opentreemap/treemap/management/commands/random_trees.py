@@ -1,14 +1,17 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.contrib.gis.geos import Point
-from treemap.models import ImportEvent, Plot, Tree, Species
 from optparse import make_option
-from ._private import InstanceDataCommand
-
 import random
 import math
+
+from django.contrib.gis.geos import Point
+
+from treemap.models import ImportEvent, Plot, Tree, Species
+
+from ._private import InstanceDataCommand
 
 
 class Command(InstanceDataCommand):

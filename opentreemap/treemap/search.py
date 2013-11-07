@@ -1,9 +1,9 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
 from json import loads
-
 from datetime import datetime
 
 from django.db.models import Q

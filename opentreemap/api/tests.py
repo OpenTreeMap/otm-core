@@ -1,35 +1,31 @@
-"""
-This file demonstrates writing tests using the unittest module. These will pass
-when you run "manage.py test".
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
 
-Replace this with more appropriate tests for your application.
-"""
 from StringIO import StringIO
+from json import loads, dumps
+from urlparse import urlparse
+import urllib
+import os
+import base64
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 from django.test import TestCase
 from django.test.client import Client
 from django.utils.unittest.case import skip
-
-from json import loads, dumps
-
 from django.conf import settings
-from urlparse import urlparse
-import urllib
-from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 
 from treemap.models import Species, Plot, Tree, User
 from treemap.audit import ReputationMetric, Audit
+from treemap.tests import create_mock_system_user, make_user
 
+from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from api.models import APIKey, APILog
 from api.views import (InvalidAPIKeyException, plot_or_tree_permissions,
                        plot_permissions,
                        _parse_application_version_header_as_dict)
-from treemap.tests import create_mock_system_user, make_user
-
-import os
-import base64
 
 
 API_PFX = "/api/v2"

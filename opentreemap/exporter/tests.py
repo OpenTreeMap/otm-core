@@ -1,16 +1,20 @@
-from treemap.tests import make_instance, make_commander_user, make_request
-from treemap.models import Species, Plot, Tree, User
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
+import csv
 
 from django.contrib.gis.geos import Point
 from django.utils.unittest.case import skip
 
 from treemap.tests.views import LocalMediaTestCase, media_dir
+from treemap.tests import make_instance, make_commander_user, make_request
+from treemap.models import Species, Plot, Tree, User
 
 from exporter.models import ExportJob
 from exporter import tasks
 from exporter.views import begin_export, check_export
-
-import csv
 
 
 class AsyncCSVTestCase(LocalMediaTestCase):
@@ -25,7 +29,7 @@ class AsyncCSVTestCase(LocalMediaTestCase):
                                                           password='bar')
 
     def assertCSVRowValue(self, csv_file, row_index, header, value):
-        csvreader = csv.reader(csv_file, delimiter=",")
+        csvreader = csv.reader(csv_file, delimiter=b",")
         rows = list(csvreader)
         self.assertEqual(value,
                          rows[row_index][rows[0].index(header)])

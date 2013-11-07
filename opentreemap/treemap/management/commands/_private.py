@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.core.management.base import BaseCommand
 from optparse import make_option
+
+from django.core.management.base import BaseCommand
 
 from treemap.models import (Instance, User, Plot, Tree,
                             FieldPermission, Role, InstanceUser)

@@ -1,5 +1,9 @@
-import re
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
 
+import re
 from modgrammar import Grammar, OPTIONAL, G, WORD, OR, ParseError
 
 from django import template
@@ -25,14 +29,14 @@ _identifier_regex = re.compile(
 
 
 class Variable(Grammar):
-    grammar = (G('"', WORD('^"'), '"') | G("'", WORD("^'"), "'")
-               | WORD("a-zA-Z_", "a-zA-Z0-9_."))
+    grammar = (G(b'"', WORD(b'^"'), b'"') | G(b"'", WORD(b"^'"), b"'")
+               | WORD(b"a-zA-Z_", b"a-zA-Z0-9_."))
 
 
 class InlineEditGrammar(Grammar):
-    grammar = (OR(G(OR("field", "create"), OPTIONAL(Variable)), "search"),
-               "from", Variable, OPTIONAL("for", Variable),
-               OPTIONAL("in", Variable), "withtemplate", Variable)
+    grammar = (OR(G(OR(b"field", b"create"), OPTIONAL(Variable)), b"search"),
+               b"from", Variable, OPTIONAL(b"for", Variable),
+               OPTIONAL(b"in", Variable), b"withtemplate", Variable)
     grammar_whitespace = True
 
 

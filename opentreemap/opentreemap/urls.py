@@ -1,6 +1,12 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 from django.conf.urls import patterns, include, url
 from django.conf import settings
 from django.views.generic import RedirectView
+from django.contrib import admin
 
 from opentreemap.util import route
 
@@ -9,16 +15,15 @@ from treemap.views import (user_view, root_settings_js_view,
                            instance_not_available_view, update_user_view,
                            unsupported_view, landing_view, scss_view,
                            upload_user_photo_view)
-
-from ecobenefits.views import within_itree_regions_view
-
 from treemap.instance import URL_NAME_PATTERN
 from treemap.urls import USERNAME_PATTERN
 
+from ecobenefits.views import within_itree_regions_view
+
+
+admin.autodiscover()
 instance_pattern = r'^(?P<instance_url_name>' + URL_NAME_PATTERN + r')'
 
-from django.contrib import admin
-admin.autodiscover()
 
 # Testing notes:
 # We want to test that every URL succeeds (200) or fails with bad data (404).
