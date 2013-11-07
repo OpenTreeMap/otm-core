@@ -52,8 +52,9 @@
         .carousel-indicators {
             display: inline-block;
             position: static;
-            margin: 0 ;
+            margin: 0;
             white-space: nowrap;
+            height: 50px;
             width: 999px;
 
             li {
