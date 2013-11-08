@@ -43,6 +43,10 @@ module.exports.init = function(options) {
 
             if ($imageContainer.length > 0) {
                 $imageContainer.html(data.result);
+                // We need to remove the cached data because Bootstrap stores
+                // the carousel-indicators, and adds the active class onto its
+                // stored fragments
+                $imageContainer.removeData('carousel');
             }
         },
         done: function (e, data) {
