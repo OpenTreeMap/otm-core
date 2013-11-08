@@ -187,6 +187,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'opentreemap.context_processors.global_settings',
 )
 
+COMMENTS_APP = 'threadedcomments'
+
 # APPS THAT ARE DEVELOPED IN CONJUNCTION WITH OTM2
 # these are the apps we want to test by default using
 # 'python manage.py test'
@@ -200,6 +202,8 @@ MANAGED_APPS = (
 )
 
 UNMANAGED_APPS = (
+    'threadedcomments',
+    'django.contrib.comments',
     'registration',
     'django.contrib.auth',
     'django.contrib.contenttypes',
