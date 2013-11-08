@@ -310,7 +310,7 @@ def create_mock_system_user():
                            email='noreplyx02x0@example.com')
         system_user.id = settings.SYSTEM_USER_ID
         system_user.set_password('password')
-        system_user.save()
+        system_user.save_base()
 
     User._system_user = system_user
 
