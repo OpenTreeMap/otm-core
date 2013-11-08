@@ -3,7 +3,8 @@ from tasks import async_csv_export
 
 from django.shortcuts import get_object_or_404
 
-from treemap.util import json_api_call, instance_request, requires_feature
+from treemap.decorators import (json_api_call, instance_request,
+                                requires_feature)
 
 
 def begin_export(request, instance, model):

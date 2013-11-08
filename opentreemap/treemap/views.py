@@ -25,14 +25,14 @@ from django.utils.formats import number_format
 from django.db import transaction
 from django.db.models import Q
 
-from treemap.util import (json_api_call, render_template, instance_request,
-                          require_http_method, package_validation_errors,
-                          bad_request_json_response, string_as_file_call,
-                          requires_feature, get_instance_or_404,
-                          creates_instance_user, login_or_401,
-                          save_image_from_request,
-                          username_matches_request_user)
-
+from treemap.decorators import (json_api_call, render_template, login_or_401,
+                                require_http_method, string_as_file_call,
+                                requires_feature, get_instance_or_404,
+                                creates_instance_user, instance_request,
+                                username_matches_request_user)
+from treemap.util import (package_validation_errors,
+                          bad_request_json_response,
+                          save_image_from_request)
 from treemap.search import create_filter
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)

@@ -18,7 +18,7 @@ from django.contrib.auth.tokens import default_token_generator
 from treemap.models import Plot, Species, Tree, Instance
 from treemap.views import (create_user, get_tree_photos, create_plot,
                            upload_user_photo)
-from treemap.util import instance_request
+from treemap.decorators import instance_request
 
 from opentreemap.util import json_from_request
 

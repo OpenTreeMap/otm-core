@@ -13,7 +13,7 @@ from omgeo.places import Viewbox, PlaceQuery
 
 from django.contrib.gis.geos.point import Point
 
-from treemap.util import json_api_call
+from treemap.decorators import json_api_call
 
 
 geocoder = Geocoder(sources=settings.OMGEO_SETTINGS)
