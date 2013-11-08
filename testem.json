@@ -1,0 +1,10 @@
+{
+    "test_page": "opentreemap/treemap/js/test/test.html",
+    "before_tests": "fab vagrant bundle:dev_mode=True,skip_npm=True",
+    "src_files": [
+        "opentreemap/**/js/**/*.js"
+    ],
+    "serve_files": [
+        "opentreemap/treemap/static/js/treemap.test.js"
+    ]
+}

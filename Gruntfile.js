@@ -5,16 +5,21 @@ module.exports = function(grunt) {
 
     var debug = typeof grunt.option('dev') !== "undefined";
 
+    var appBundlePath = 'treemap/static/js/treemap.js';
+    var testBundlePath = 'treemap/static/js/treemap.test.js';
+
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-sass');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
+    grunt.loadNpmTasks('grunt-file-creator');
+
     grunt.file.setBase('opentreemap');
 
     grunt.registerTask('check', ['jshint']);
-    grunt.registerTask('js', debug ? ['browserify'] : ['browserify', 'uglify']);
+    grunt.registerTask('js', debug ? ['browserify', 'file-creator'] : ['browserify', 'uglify']);
     grunt.registerTask('css', debug ? ['sass', 'concat'] : ['sass', 'concat', 'cssmin']);
     grunt.registerTask('default', ['js', 'css']);
 
@@ -22,22 +27,67 @@ module.exports = function(grunt) {
      * Maps all src/*.js files by their Django app name.
      * Makes it easy to use treemap JS modules from other Django apps
      */
-    function getAliases() {
-        var files = grunt.file.expand('*/js/src/*.js');
+    function getSrcAliases() { return getAliases('src'); }
+    function getTestAliases() { return getAliases('test'); }
+
+    function getAliases(type) {
+        if (type !== 'src' && type !== 'test') {
+            throw new Error('type argument must be src or test');
+        }
+        var files = grunt.file.expand('*/js/' + type + '/*.js');
         return files.map(function(filename) {
             var basename = path.basename(filename, '.js'),
-                app = filename.split(path.sep)[0];
-            return filename + ':' + app + '/' + basename;
+                app = filename.split(path.sep)[0],
+                prefix = type === 'test' ? 'test/' : '';
+            return filename + ':' + app + '/' + prefix + basename;
+        });
+    }
+
+    function getSrcAliasNames() {
+        return getAliasNames(getSrcAliases());
+    }
+
+    function getTestAliasNames() {
+        return getAliasNames(getTestAliases());
+    }
+
+    function getAliasNames(aliases) {
+        return aliases.map(function(alias){
+            return alias.split(':')[1];
         });
     }
 
     grunt.initConfig({
+        'file-creator': {
+            test: {
+                'treemap/static/js/testModules.js': function(fs, fd, done) {
+                    fs.writeSync(fd, 'TEST_MODULES = ["' + getTestAliasNames().join('","') + '"];');
+                    done();
+                }
+            }
+        },
         browserify: {
+            test: {
+                src: ['./treemap/js/test/**/*.js'],
+                dest: testBundlePath,
+                options: {
+                    alias: getTestAliases(),
+                    external: getSrcAliasNames(),
+                    aliasMappings: { // Make libs available to test functions
+                        cwd:'treemap/js/lib/',
+                        src: ['*.js'],
+                        dest: '',
+                        ext: '',
+                        flatten: true
+                    }
+                    // setting debug: true causes tests to not be found
+                }
+            },
             treemap: {
                 src: [],
-                dest: 'treemap/static/js/treemap.js',
+                dest: appBundlePath,
                 options: {
-                    alias: getAliases(),
+                    alias: getSrcAliases(),
                     aliasMappings: {
                         cwd:'treemap/js/lib/',
                         src: ['*.js'],
@@ -122,7 +172,7 @@ module.exports = function(grunt) {
             },
             treemap: {
                 files: {
-                    'treemap/static/js/treemap.min.js': ['treemap/static/js/treemap.js']
+                    'treemap/static/js/treemap.min.js': [appBundlePath]
                 }
             }
         },
