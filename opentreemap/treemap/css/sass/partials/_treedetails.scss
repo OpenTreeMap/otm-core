@@ -1,39 +1,39 @@
 // Partial: Tree Detail Pages
 
 .tree-details {
-	h1 {
-		margin-bottom: 10px;
-	}
+    h1 {
+        margin-bottom: 10px;
+    }
 }
 
 #plot-form {
-	margin-top: 10px;
+    margin-top: 10px;
 
-	table.table-striped {
-		> tbody {
-			> tr {
-				> td:first-child {
-					width: 30%;
-					vertical-align: middle;
-				}
+    table.table-striped {
+        > tbody {
+            > tr {
+                > td:first-child {
+                    width: 30%;
+                    vertical-align: middle;
+                }
 
-				&.diameter-row {
-					td:first-child {
-						vertical-align: top;
-					}
-				}
-			}
-		}
-	}
+                &.diameter-row {
+                    td:first-child {
+                        vertical-align: top;
+                    }
+                }
+            }
+        }
+    }
 }
 
 .map-small,
 .street-view-small {
-	background: $well-color;
-	width: auto;
-	height: 220px;
-	min-width: 100%;
-	margin-bottom: 10px;
+    background: $well-color;
+    width: auto;
+    height: 220px;
+    min-width: 100%;
+    margin-bottom: 10px;
 }
 
 // Needed because bootstrap breaks street view on firefox
@@ -54,30 +54,34 @@
             position: static;
             margin: 0 ;
             white-space: nowrap;
-            width: 999px;
+            height: 50px;
 
             li {
-				text-indent: 0;
-				border: none;
-				width: 50px;
-				height: 50px;
-				border-radius: 4px;
-				margin-left: 0;
-				margin-right: 5px;
-				overflow: hidden;
-				opacity: 0.65;
-				cursor: pointer;
+                text-indent: 0;
+                border: none;
+                width: 50px;
+                height: 50px;
+                border-radius: 4px;
+                margin-left: 0;
+                margin-right: 5px;
+                overflow: hidden;
+                opacity: 0.65;
+                cursor: pointer;
+                float: none;
+                display: inline-block;
 
-				&.active {
-					opacity: 1;
-				}
-				&:hover {
-					opacity: 0.9;
-				}
+                &.active {
+                    opacity: 1;
+                }
+                &:hover {
+                    opacity: 0.9;
+                }
 
                 img {
-					width: 100%;
-					height: auto !important;
+                    width: auto;
+                    height: 100%;
+                    margin: 0 auto;
+                    display: block;
                 }
             }
         }
@@ -85,58 +89,60 @@
 }
 
 #tree-photo-carousel {
-	.carousel-inner {
-    	margin-bottom: 10px;
-    	height: 250px;
-    	overflow: hidden;
-    	border: none;
+    .carousel-inner {
+        margin-bottom: 10px;
+        height: 250px;
+        overflow: hidden;
+        border: none;
 
-    	.item {
-			img {
-        		width: 100%;
-        		height: auto;
-        	}
-    	}
+        .item {
+            img {
+                width: auto;
+                height: auto;
+                margin: 0 auto;
+            }
+        }
     }
     > a.carousel-control {
-    	left: 0;
-		width: 50px;
-		height: 50px;
-		margin-top: -25px;
-		font-size: 40px;
-		line-height: normal;
-		text-align: center;
-		background: transparent;
-		border: none;
-		display: block;
-		border-radius: 0;
-		opacity: 0.5;
-		color: #42424a;
+        left: 0;
+        width: 50px;
+        height: 50px;
+        margin-top: -25px;
+        font-size: 40px;
+        line-height: normal;
+        text-align: center;
+        background: transparent;
+        border: none;
+        display: block;
+        border-radius: 0;
+        opacity: 0.5;
+        color: #42424a;
 
-		&.right {
-			left: auto;
-			right: 5px;
-		}
-		&:hover {
-			opacity: 0.9;
-			color: #42424a;
-		}
-		&.disabled {
-			opacity: 0.15;
+        &.right {
+            left: auto;
+            right: 5px;
+        }
+        &:hover {
+            opacity: 0.9;
+            color: #42424a;
+        }
+        &.disabled {
+            opacity: 0.15;
 
-			&:hover {
-				opacity: 0.15;
-				color: #42424a;
-			}
-		}
+            &:hover {
+                opacity: 0.15;
+                color: #42424a;
+            }
+        }
 
-		> i {
-			display: block;
-		}
+        > i {
+            display: block;
+        }
     }
-    > button {
+
+    + button {
         position: absolute;
-        bottom: 60px;
+        margin-top: -104px;
         opacity: 0.25;
         width: auto;
         background: black;
@@ -144,9 +150,14 @@
         border: none;
         transition: opacity 0.3s;
         padding: 2px 8px;
-		border-radius: 0;
+        border-radius: 0;
+
+        &:hover {
+            opacity: 0.85;
+            background: black;
+        }
     }
-    &:hover > button {
+    &:hover + button {
         opacity: 0.85;
         background: black;
     }

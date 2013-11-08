@@ -43,6 +43,10 @@ module.exports.init = function(options) {
 
             if ($imageContainer.length > 0) {
                 $imageContainer.html(data.result);
+                // We need to remove the cached data because Bootstrap stores
+                // the carousel-indicators, and adds the active class onto its
+                // stored fragments
+                $imageContainer.removeData('carousel');
             }
         },
         done: function (e, data) {
@@ -75,8 +79,10 @@ module.exports.init = function(options) {
             // we want to scroll it so the currently selected thumbnail is
             // around the center.  This was arrived at via trial and error,
             // it could probably be tweaked to be a bit better.
+            // The 1.65 makes everything work, but is likely tied to the
+            // thumbnail width.
             scrollOffset = $thumbnail.offset().left + $thumbnail.width() -
-                ($thumbnailList.offset().left + $thumbnailListContainer.innerWidth() / 2);
+                ($thumbnailList.offset().left + $thumbnailListContainer.innerWidth() / 1.65);
 
         // Bootstrap Carousel's animations are hardcoded to .6 seconds,
         // which we should match when animating thumbnails

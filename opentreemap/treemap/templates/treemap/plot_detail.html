@@ -24,7 +24,8 @@
     <div class="span3">
       <div id="tree-photo-carousel" class="carousel slide" data-interval="">
         {% include "treemap/partials/tree_carousel.html" with photos=tree.photos %}
-        <button id="toggle-add-photo-modal"
+      </div>
+      <button id="toggle-add-photo-modal"
         data-toggle="modal"
         data-target="#add-photo-modal"
         data-always-enable="{{ last_effective_instance_user.can_add_photos_to_tree }}"
@@ -32,7 +33,6 @@
         disabled="disabled"
         data-disabled-title="{% trans "Adding tree photos is not available to all users" %}"
         class="btn btn-mini add-photos">{% trans "Add Photo" %}</button>
-      </div>
       <hr>
       <div id="sidebar">
         {% include "treemap/partials/sidebar.html" %}
