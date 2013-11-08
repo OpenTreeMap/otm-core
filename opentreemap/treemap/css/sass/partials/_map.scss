@@ -69,16 +69,17 @@
     }
 }
 
-@keyframes pulse {
-    0% {opacity: 1;}
-    30% {opacity: 0.5;}
-    60% {opacity: 1;}
-}
-@-webkit-keyframes pulse {
-    0% {opacity: 1;}
-    30% {opacity: 0.5;}
-    60% {opacity: 1;}
-}
+// This makes scss explode...
+// @keyframes pulse {
+//     0% {opacity: 1;}
+//     30% {opacity: 0.5;}
+//     60% {opacity: 1;}
+// }
+// @-webkit-keyframes pulse {
+//     0% {opacity: 1;}
+//     30% {opacity: 0.5;}
+//     60% {opacity: 1;}
+// }
 
 .leaflet-marker-icon {
 
