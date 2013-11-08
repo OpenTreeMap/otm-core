@@ -24,7 +24,7 @@
     </ol>
   </div>
 </div>
-{% if photos %}
+{% if photos|length > 1 %}
 <a class="carousel-control left disabled" href="" data-slide="prev"><i class="icon-left-circled"></i></a>
 <a class="carousel-control right" href="#tree-photo-carousel" data-slide="next"><i class="icon-right-circled"></i></a>
 {% endif %}
