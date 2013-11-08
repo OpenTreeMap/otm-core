@@ -75,8 +75,10 @@ module.exports.init = function(options) {
             // we want to scroll it so the currently selected thumbnail is
             // around the center.  This was arrived at via trial and error,
             // it could probably be tweaked to be a bit better.
+            // The 1.65 makes everything work, but is likely tied to the
+            // thumbnail width.
             scrollOffset = $thumbnail.offset().left + $thumbnail.width() -
-                ($thumbnailList.offset().left + $thumbnailListContainer.innerWidth() / 2);
+                ($thumbnailList.offset().left + $thumbnailListContainer.innerWidth() / 1.65);
 
         // Bootstrap Carousel's animations are hardcoded to .6 seconds,
         // which we should match when animating thumbnails

@@ -54,7 +54,7 @@
             position: static;
             margin: 0 ;
             white-space: nowrap;
-            width: 999px;
+            height: 50px;
 
             li {
 				text-indent: 0;
@@ -74,10 +74,14 @@
 				&:hover {
 					opacity: 0.9;
 				}
+                float: none;
+                display: inline-block;
 
                 img {
-					width: 100%;
-					height: auto !important;
+                    width: auto;
+                    height: 100%;
+                    margin: 0 auto;
+                    display: block;
                 }
             }
         }
@@ -97,6 +101,7 @@
         		height: auto;
         	}
     	}
+                margin: 0 auto;
     }
     > a.carousel-control {
     	left: 0;
@@ -136,7 +141,7 @@
     }
     > button {
         position: absolute;
-        bottom: 60px;
+        margin-top: -104px;
         opacity: 0.25;
         width: auto;
         background: black;
@@ -145,8 +150,13 @@
         transition: opacity 0.3s;
         padding: 2px 8px;
 		border-radius: 0;
+
+        &:hover {
+            opacity: 0.85;
+            background: black;
+        }
     }
-    &:hover > button {
+    &:hover + button {
         opacity: 0.85;
         background: black;
     }
