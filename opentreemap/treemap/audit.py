@@ -1032,11 +1032,13 @@ class Audit(models.Model):
         ReviewReject = 7
 
     TYPES = {
-        Type.Insert: 'Create',
-        Type.Delete: 'Delete',
-        Type.Update: 'Update',
-        Type.PendingApprove: 'Approved Pending Edit',
-        Type.PendingReject: 'Reject Pending Edit',
+        Type.Insert: trans('Create'),
+        Type.Delete: trans('Delete'),
+        Type.Update: trans('Update'),
+        Type.PendingApprove: trans('Approved Pending Edit'),
+        Type.PendingReject: trans('Reject Pending Edit'),
+        Type.ReviewReject: trans('Rejected Edit'),
+        Type.ReviewApprove: trans('Approved Edit')
     }
 
     def _deserialize_value(self, value):
