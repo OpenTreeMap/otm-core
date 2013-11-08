@@ -1,9 +1,14 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 import json
 import psycopg2
 
 from datetime import datetime
-from django.test import TestCase
 
+from django.test import TestCase
 from django.db.models import Q
 from django.db import connection
 from django.utils.tree import Node
@@ -13,11 +18,9 @@ from django.contrib.gis.measure import Distance
 
 from treemap.tests import (make_instance, make_commander_user,
                            make_simple_polygon, add_field_permissions)
-
 from treemap.views import _execute_filter
 from treemap.models import (Tree, Plot, Boundary, Species)
 from treemap.udf import UserDefinedFieldDefinition
-
 from treemap import search
 
 

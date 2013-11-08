@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
@@ -14,16 +15,13 @@ from django.contrib.gis.geos import Point
 
 from treemap.models import (Tree, Plot, FieldPermission, User, InstanceUser,
                             Instance)
-
 from treemap.audit import (Audit, Role, UserTrackingException,
                            AuthorizeException, ReputationMetric,
                            approve_or_reject_audits_and_apply,
                            approve_or_reject_audit_and_apply,
                            approve_or_reject_existing_edit,
                            get_id_sequence_name)
-
 from treemap.udf import UserDefinedFieldDefinition
-
 from treemap.tests import (make_instance, make_user_with_default_role,
                            make_user_and_role, make_commander_user,
                            make_officer_user, make_observer_user,

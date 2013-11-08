@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
@@ -8,6 +9,7 @@ import tempfile
 import json
 import unittest
 from StringIO import StringIO
+import psycopg2
 
 from django.test import TestCase
 from django.test.utils import override_settings
@@ -15,6 +17,7 @@ from django.test.client import RequestFactory
 from django.http import Http404, HttpResponse
 from django.core.exceptions import ValidationError
 from django.db import connection
+from django.db.models.query import QuerySet
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point, MultiPolygon
@@ -22,14 +25,11 @@ from django.contrib.gis.geos import Point, MultiPolygon
 from ecobenefits.models import ITreeRegion
 
 from treemap.udf import UserDefinedFieldDefinition
-
 from treemap.audit import (Role, Audit, approve_or_reject_audit_and_apply,
                            approve_or_reject_audits_and_apply,
                            FieldPermission)
-
 from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, BenefitCurrencyConversion)
-
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, edits, user_audits,
                            search_tree_benefits, user, instance_user_view,
@@ -37,16 +37,11 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            root_settings_js_view, instance_settings_js_view,
                            compile_scss, approve_or_reject_photo,
                            upload_user_photo)
-
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
                            add_field_permissions, MockSession,
                            delete_all_app_users)
-
-import psycopg2
-
-from django.db.models.query import QuerySet
 
 
 class InstanceValidationTest(TestCase):

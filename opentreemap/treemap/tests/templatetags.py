@@ -3,15 +3,15 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.template import Template, Context, TemplateSyntaxError
-from django.test import TestCase
-from django.test.utils import override_settings
-from django.contrib.auth.models import AnonymousUser
-
 import tempfile
 import json
 import os
 from shutil import rmtree
+
+from django.template import Template, Context, TemplateSyntaxError
+from django.test import TestCase
+from django.test.utils import override_settings
+from django.contrib.auth.models import AnonymousUser
 
 from treemap.audit import FieldPermission, Role
 from treemap.json_field import set_attr_on_json_field

@@ -1,6 +1,17 @@
-from PIL import Image
-from django.core.exceptions import PermissionDenied, ValidationError
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
 
+import json
+from distutils.version import StrictVersion
+from PIL import Image
+from functools import wraps
+
+from omgeo import Geocoder
+from omgeo.places import PlaceQuery, Viewbox
+
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -8,48 +19,31 @@ from django.http import (HttpResponse, HttpResponseBadRequest,
                          HttpResponseForbidden)
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
-
 from django.contrib.gis.measure import D
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.gis.geos import Point, fromstr
 
 from treemap.models import Plot, Species, Tree, Instance
 from treemap.views import (create_user, get_tree_photos, create_plot,
                            upload_user_photo)
-from treemap.util import instance_request
+from treemap.decorators import instance_request
+from treemap.exceptions import HttpBadRequestException
+from treemap.search import create_filter
+from treemap.audit import Audit, approve_or_reject_audit_and_apply
 
 from opentreemap.util import json_from_request
 
 from ecobenefits.views import tree_benefits
 
-from treemap.search import create_filter
-
-from treemap.audit import Audit, approve_or_reject_audit_and_apply
-
 from api.models import APIKey, APILog
-from django.contrib.gis.geos import Point, fromstr
-
 from api.auth import login_required, create_401unauthorized, login_optional
-
-from functools import wraps
-
-from omgeo import Geocoder
-from omgeo.places import PlaceQuery, Viewbox
-
-import json
-
-from distutils.version import StrictVersion
 
 
 #TODO: Kill this
 def change_reputation_for_user(*args, **kwargs):
-    print "WARNING: Shim called for 'change_reputation_for_user'"
-
-
-class HttpBadRequestException(Exception):
-    pass
+    print("WARNING: Shim called for 'change_reputation_for_user'")
 
 
 class HttpConflictException(Exception):

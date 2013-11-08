@@ -1,9 +1,9 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
 import logging
-
 from optparse import make_option
 
 from django.core.management.base import BaseCommand
@@ -12,7 +12,6 @@ from django.contrib.gis.geos import MultiPolygon, Polygon, GEOSGeometry
 
 from treemap.instance import Instance
 from treemap.models import Tree, Plot, Boundary, InstanceUser, User
-
 from treemap.audit import (Role, FieldPermission,
                            add_all_permissions_on_model_to_role)
 

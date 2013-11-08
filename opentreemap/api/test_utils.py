@@ -1,13 +1,18 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 from django.contrib.gis.geos.collections import MultiPolygon
 from django.contrib.gis.geos.point import Point
 from django.contrib.gis.geos.polygon import Polygon
+import django.shortcuts
+
 from api.models import APILog, APIKey
 
 from treemap.models import Species, Boundary, Tree, Plot, User
 from treemap.tests import (make_instance, make_commander_user,
                            make_apprentice_user, make_user_with_default_role)
-
-import django.shortcuts
 
 
 def mkPlot(instance, user, geom=Point(50, 50)):

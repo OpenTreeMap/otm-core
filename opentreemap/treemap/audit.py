@@ -2,12 +2,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import hashlib
+import importlib
+
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as trans
-
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.db.models.fields import FieldDoesNotExist
@@ -16,9 +18,6 @@ from django.db import IntegrityError, connection, transaction
 
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units)
-
-import hashlib
-import importlib
 
 
 def model_hasattr(obj, name):

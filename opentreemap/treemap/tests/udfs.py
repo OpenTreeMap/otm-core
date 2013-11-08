@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
@@ -5,6 +6,7 @@ from __future__ import division
 import json
 from random import shuffle
 from datetime import datetime
+import psycopg2
 
 from django.test import TestCase
 from django.db import connection
@@ -21,8 +23,6 @@ from treemap.models import Plot
 from treemap.audit import (AuthorizeException, FieldPermission,
                            approve_or_reject_audit_and_apply,
                            approve_or_reject_audits_and_apply)
-
-import psycopg2
 
 
 class ScalarUDFFilterTest(TestCase):

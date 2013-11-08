@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
@@ -5,7 +6,6 @@ from __future__ import division
 from django.contrib.sessions.middleware import SessionMiddleware
 
 from treemap.util import add_visited_instance, get_last_visited_instance
-
 from treemap.models import InstanceUser
 from treemap.tests import (ViewTestCase, make_instance, make_request,
                            make_user_with_default_role)

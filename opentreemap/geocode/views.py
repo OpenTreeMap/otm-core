@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
@@ -7,13 +8,12 @@ import json
 from django.http import HttpResponse
 from django.utils.translation import ugettext as trans
 from django.conf import settings
+from django.contrib.gis.geos.point import Point
 
 from omgeo import Geocoder
 from omgeo.places import Viewbox, PlaceQuery
 
-from django.contrib.gis.geos.point import Point
-
-from treemap.util import json_api_call
+from treemap.decorators import json_api_call
 
 
 geocoder = Geocoder(sources=settings.OMGEO_SETTINGS)

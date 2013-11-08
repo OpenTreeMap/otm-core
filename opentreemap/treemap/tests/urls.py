@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 import os
 import json
 
@@ -8,6 +13,7 @@ from django.test.utils import override_settings
 from treemap.models import Plot
 from treemap.tests import (make_instance, make_commander_user, login,
                            make_simple_boundary, RequestTestCase)
+
 from opentreemap.local_settings import STATIC_ROOT
 
 

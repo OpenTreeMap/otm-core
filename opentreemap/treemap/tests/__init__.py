@@ -1,9 +1,9 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
 import logging
-
 from cStringIO import StringIO
 
 from django.test import TestCase
@@ -11,13 +11,12 @@ from django.test.client import RequestFactory
 from django.test.simple import DjangoTestSuiteRunner
 from django.conf import settings
 from django.db.models import Max
-
-from django.contrib.gis.geos import Point, Polygon, MultiPolygon
-from django.contrib.auth.models import AnonymousUser
-
 from django.template import Template, RequestContext
 from django.http import HttpResponse
 from django.conf.urls import patterns
+
+from django.contrib.gis.geos import Point, Polygon, MultiPolygon
+from django.contrib.auth.models import AnonymousUser
 
 from treemap.models import User, InstanceUser
 

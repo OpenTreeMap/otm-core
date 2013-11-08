@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
@@ -8,10 +9,9 @@ from django.contrib.gis.geos.point import Point
 from eco.core import Benefits, sum_factor_and_conversion
 
 from treemap.models import Tree
-from treemap.util import instance_request, json_api_call, strip_request
+from treemap.decorators import instance_request, json_api_call, strip_request
 
 from ecobenefits.models import ITreeRegion
-
 from ecobenefits.species import CODES
 
 
