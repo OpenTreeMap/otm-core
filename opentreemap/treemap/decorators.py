@@ -75,6 +75,7 @@ def require_http_method(method):
 
 def requires_feature(ft):
     def wrapper_function(view_fn):
+        @wraps(view_fn)
         def wrapped(request, instance, *args, **kwargs):
             if instance.feature_enabled(ft):
                 return view_fn(request, instance, *args, **kwargs)
@@ -162,6 +163,7 @@ def string_as_file_call(content_type, req_function):
 
 
 def return_400_if_validation_errors(req):
+    @wraps(req)
     def run_and_catch_validations(*args, **kwargs):
         try:
             return req(*args, **kwargs)
