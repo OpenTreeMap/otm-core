@@ -16,6 +16,8 @@ python-omgeo==1.5
 git+https://github.com/azavea/django-registration.git
 modgrammar-py2==0.9.1
 django-celery-with-redis==3.0
-libsass==0.2.4
+# libsass==0.2.4
+# We need libsass version 3.0, which fixes libsass issue #54
+git+https://github.com/dahlia/libsass-python.git@4aa8fd3c2cef8c1
 # it is planned to add this to pyPi when it is more stable
 git+git://github.com/azavea/django-queryset-csv.git
