@@ -109,9 +109,10 @@ def check():
     if jshint.failed or flake8.failed:
         abort('Code linting failed')
 
-def bundle(dev_mode=False):
+def bundle(dev_mode=False, skip_npm=False):
     """ Update npm and bundle javascript """
-    local('npm install')
+    if not skip_npm:
+        local('npm install')
     local('grunt --no-color %s' % ("--dev" if dev_mode else ""))
 
 def static(dev_mode=False):
