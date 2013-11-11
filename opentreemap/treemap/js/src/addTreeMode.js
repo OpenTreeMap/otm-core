@@ -5,6 +5,7 @@ var $ = require('jquery'),
     FH = require('treemap/fieldHelpers'),
     U = require('treemap/utility'),
     Bacon = require('baconjs'),
+    streetView = require('treemap/streetView'),
     otmTypeahead = require('treemap/otmTypeahead'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
         require('treemap/reverseGeocodeStreamAndUpdateAddressesOnForm'),
@@ -141,6 +142,31 @@ function init(options) {
     reverseGeocodeStream.map(reverseGeocodeResponseToAddressString)
                         .onValue($address, 'val');
     reverseGeocodeStream.onError($address, 'val', '');
+
+    if (options.config.instance.basemap.type === 'google') {
+        var $streetViewContainer = $("#streetview");
+        var container = null;
+
+        markerMoveStream.onValue(function(latlng) {
+            $streetViewContainer.show();
+            if (!container) {
+                container = streetView.create({
+                    streetViewElem: $streetViewContainer[0],
+                    noStreetViewText: options.config.noStreetViewText,
+                    hideAddress: true,
+                    location: latlng
+                });
+            }
+
+            container.update(latlng);
+        });
+
+        deactivateBus.onValue(function () {
+            $streetViewContainer.hide();
+        });
+
+
+    }
 }
 
 // Adding a tree uses a state machine with these states and transitions:

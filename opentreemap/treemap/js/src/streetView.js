@@ -8,7 +8,8 @@ var google = require('googlemaps'),
 
 exports.create = function(options) {
     var panorama = null,
-        curLocation = null;
+        curLocation = null,
+        showAddress = !options.hideAddress;
 
     var div = options.streetViewElem;
 
@@ -18,18 +19,28 @@ exports.create = function(options) {
         }
         curLocation = location;
 
-        var latlng = utility.webMercatorToLatLng(location.x, location.y);
+        var latlng;
+        if (location.lat && location.lng) {
+            latlng = location;
+        } else {
+            latlng = utility.webMercatorToLatLng(location.x, location.y);
+        }
+
         var pos = new google.maps.LatLng(latlng.lat, latlng.lng);
         new google.maps.StreetViewService().getPanoramaByLocation(pos, 50, function(data, status) {
             if (status == google.maps.StreetViewStatus.OK) {
                 if (panorama === null) {
-                    panorama = new google.maps.StreetViewPanorama(div, {position:pos, addressControl: true});
+                    panorama = new google.maps.StreetViewPanorama(div, {
+                        position:pos,
+                        addressControl: showAddress
+                    });
                 } else {
                     panorama.setPosition(pos);
                 }
             }
             else {
-                $(div).html(options.noStreetViewText);
+                panorama = null;
+                $(div).html(options.noStreetViewText || '');
             }
         });
     }

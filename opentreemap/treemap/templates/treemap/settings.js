@@ -38,6 +38,8 @@ otm.settings.geocoder = {
     threshold: 80
 };
 
+otm.settings.noStreetViewText = '{% trans "Could not load street view for this location" %}';
+
 otm.settings.errorMessages = {
     '500': {
         title: "{% trans "Oops, that's not right." %}",
