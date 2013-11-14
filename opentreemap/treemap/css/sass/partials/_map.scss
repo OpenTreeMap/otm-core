@@ -10,6 +10,11 @@
     z-index: 10000;
 }
 
+#streetview img {
+    border: none !important;
+    max-width: none !important;
+}
+
 .map {
     left: 0;
     background: $well-color;
