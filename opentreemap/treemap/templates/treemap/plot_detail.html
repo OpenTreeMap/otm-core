@@ -160,7 +160,7 @@
         <div id="street-view" class="street-view-small" style="display: none;"></div>
 
       <h3>{% trans "Comments" %}</h3>
-      {% if request.user.is_authenticated %}
+      <div id="comments-container">
       {% get_comment_list for plot as comments %}
       {% for comment in comments|fill_tree|annotate_tree %}
          {% ifchanged comment.parent_id %}{% else %}</li>{% endifchanged %}
@@ -173,7 +173,9 @@
                <div class="comment_user">{{ comment.user_name }}</div>
                <div class="comment_data">
                  {{ comment.submit_date|date:"d M Y, H:i" }}
+                 {% if request.user.is_authenticated %}
                  | <a data-comment-id="{{ comment.id }}" class="comment_reply_link">Reply</a>
+                 {% endif %}
                </div>
              </div>
              <div class="comment_text">
@@ -181,23 +183,21 @@
              </div>
            </div>
          {% for close in comment.close %}</li></ul>{% endfor %}
-
        {% endfor %}
-        <div id="comment_disclaimer">The comment system does not serve as a way to report problems with a tree.</div>
-
-      {% else %}
+      {% if not request.user.is_authenticated %}
       <p><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a>
          {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "log in" %}</a>
          {% trans "to add comments" %}</p>
       {% endif %}
     </div>
+    <div id="comment_disclaimer">The comment system does not serve as a way to report problems with a tree.</div>
   </div>
 </div>
 {% endblock content %}
 {% block scripts %}
 <script id="template-comment" type="template/underscore">
   {% get_comment_form for plot as form %}
-  <form action="{% url 'comments-post-comment' %}" class="comment-reply-form" method="post">
+  <form action="{% url 'comments-post-comment' %}" class="<%= classname %>" method="post">
     {% csrf_token %}
     {{ form.comment }}
     <input style="display: none" id="id_honeypot" name="honeypot" type="text">
