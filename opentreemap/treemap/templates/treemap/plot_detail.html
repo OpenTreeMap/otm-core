@@ -1,4 +1,5 @@
 {% extends "instance_base.html" %}
+{% load threadedcomments_tags %}
 {% load instance_config %}
 {% load i18n %}
 {% load l10n %}
@@ -158,25 +159,61 @@
         <div id="map" class="map-small"></div>
         <div id="street-view" class="street-view-small" style="display: none;"></div>
 
-      <!-- Comment backend is not yet implemented -->
-      <!--
       <h3>{% trans "Comments" %}</h3>
       {% if request.user.is_authenticated %}
-        <form>
-          <textarea rows=8></textarea><br>
-          <button type="submit" class="btn">{% trans "Submit" %}</button>
-        </form>
+      {% get_comment_list for plot as comments %}
+      {% for comment in comments|fill_tree|annotate_tree %}
+         {% ifchanged comment.parent_id %}{% else %}</li>{% endifchanged %}
+         {% if not comment.open and not comment.close %}</li>{% endif %}
+         {% if comment.open %}<ul>{% endif %}
+
+         <li class="comment_li" id="c{{ comment.id }}">
+           <div class="comment">
+             <div class="comment_info">
+               <div class="comment_user">{{ comment.user_name }}</div>
+               <div class="comment_data">
+                 {{ comment.submit_date|date:"d M Y, H:i" }}
+                 | <a data-comment-id="{{ comment.id }}" class="comment_reply_link">Reply</a>
+               </div>
+             </div>
+             <div class="comment_text">
+               {{ comment.comment }}
+             </div>
+           </div>
+         {% for close in comment.close %}</li></ul>{% endfor %}
+
+       {% endfor %}
+        <div id="comment_disclaimer">The comment system does not serve as a way to report problems with a tree.</div>
+
       {% else %}
       <p><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a>
          {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "log in" %}</a>
          {% trans "to add comments" %}</p>
       {% endif %}
-      -->
     </div>
   </div>
 </div>
 {% endblock content %}
 {% block scripts %}
+<script id="template-comment" type="template/underscore">
+  {% get_comment_form for plot as form %}
+  <form action="{% url 'comments-post-comment' %}" class="comment-reply-form" method="post">
+    {% csrf_token %}
+    {{ form.comment }}
+    <input style="display: none" id="id_honeypot" name="honeypot" type="text">
+    {{ form.content_type }}
+    {{ form.object_pk }}
+    {{ form.timestamp }}
+    {{ form.security_hash }}
+    <input type="hidden" name="parent" value="<%= parent %>">
+
+    <input type="hidden" name="next" value="{{request.get_full_path}}" />
+    <input type="hidden" name="markup" value="5"></input>
+    <div class="submit">
+      <input type="submit" name="post" class="submit-post buttonSmall" value="Post" />
+    </div>
+  </form>
+</script>
 <script src="//maps.google.com/maps/api/js?v=3&sensor=false"></script>
 <script>
 {% localize off %}

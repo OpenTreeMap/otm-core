@@ -33,6 +33,19 @@ exports.init = function(options) {
         otmTypeahead.create(typeahead);
     });
 
+    // Add threaded comments "reply" links
+    $('a[data-comment-id]').click(function () {
+        var $a = $(this);
+
+        // Close other forms
+        $(".comment-reply-form").remove();
+
+        var templ = $("#template-comment").html();
+        $a.closest(".comment").append(_.template(templ, {
+            parent: $a.data("comment-id")
+        }));
+    });
+
     var udfRowTemplate = _.template(
         '<tr data-value-id="">' +
             '<% _.each(fields, function (field) { %>' +

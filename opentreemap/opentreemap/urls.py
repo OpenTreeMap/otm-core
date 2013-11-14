@@ -39,6 +39,7 @@ urlpatterns = patterns(
     # per instance in the future
     (r'^favicon\.png$', RedirectView.as_view(
         url='/static/img/favicon.png', permanent=False)),
+    url('^comments/', include('django.contrib.comments.urls')),
     url(r'^', include('geocode.urls')),
     url(r'^$', landing_view),
     url(r'^config/settings.js$', root_settings_js_view),
