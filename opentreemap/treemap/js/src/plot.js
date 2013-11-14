@@ -34,6 +34,8 @@ exports.init = function(options) {
     });
 
     // Add threaded comments "reply" links
+    var commentFormTempl = $("#template-comment").html();
+
     $('a[data-comment-id]').click(function () {
         var $a = $(this);
 
@@ -41,10 +43,18 @@ exports.init = function(options) {
         $(".comment-reply-form").remove();
 
         var templ = $("#template-comment").html();
-        $a.closest(".comment").append(_.template(templ, {
-            parent: $a.data("comment-id")
+        $a.closest(".comment").append(_.template(commentFormTempl, {
+            parent: $a.data("comment-id"),
+            classname: 'comment-reply-form'
         }));
     });
+
+    if (options.config.loggedIn) {
+        $('#comments-container').append(_.template(commentFormTempl, {
+            parent: '',
+            classname: 'comment-create-form'
+        }));
+    }
 
     var udfRowTemplate = _.template(
         '<tr data-value-id="">' +
