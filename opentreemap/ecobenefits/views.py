@@ -13,6 +13,7 @@ from treemap.decorators import instance_request, json_api_call, strip_request
 
 from ecobenefits.models import ITreeRegion
 from ecobenefits.species import CODES
+from ecobenefits.util import get_trees_for_eco
 
 
 def get_codes_for_species(species, region):
@@ -31,34 +32,47 @@ def _itree_code_for_species_in_region(otm_code, region):
     return None
 
 
-def _benefits_for_trees(trees, region_default=None, benefits_config=None):
+def _benefits_for_trees(trees, instance):
     # A species may be assigned to a tree for which there is
     # no itree code defined for the region in which the tree is
     # planted. This counter keeps track of the number of
     # trees for which the itree code lookup was successful
     num_trees_used_in_calculation = 0
 
-    regions = {}
+    factor_conversions = instance.factor_conversions
+
+    regions = ITreeRegion.objects.filter(geometry__intersects=instance.bounds)\
+                                 .distance(instance.center)\
+                                 .order_by('distance')
+
+    # Using prepared geometries provides a 40% perfomance boost
+    for region in regions:
+        region.prepared_geometry = region.geometry.prepared
+
+    trees_by_region = {}
     for tree in trees:
-        region_code = tree['itree_region_code']
-        if region_code is None:
-            region_code = region_default
+        region_code = instance.itree_region_default
+        for region in regions:
+            if region.prepared_geometry.contains(tree['plot__geom']):
+                region_code = region.code
+                break
 
         if region_code is not None:
-            if region_code not in regions:
-                regions[region_code] = []
+            if region_code not in trees_by_region:
+                trees_by_region[region_code] = []
 
             itree_code = _itree_code_for_species_in_region(
                 tree['species__otm_code'], region_code)
 
             if itree_code is not None:
-                regions[region_code].append((itree_code, tree['diameter']))
+                trees_by_region[region_code].append((itree_code,
+                                                     tree['diameter']))
                 num_trees_used_in_calculation += 1
 
     kwh, gal, co2, aq = [], [], [], []
 
-    for (region_code, trees) in regions.iteritems():
-        benefits = Benefits(benefits_config)
+    for (region_code, trees) in trees_by_region.iteritems():
+        benefits = Benefits(factor_conversions)
 
         kwh.append(benefits.get_energy_conserved(region_code, trees))
         gal.append(benefits.get_stormwater_management(region_code, trees))
@@ -93,30 +107,14 @@ def tree_benefits(instance, tree_id):
     """Given a tree id, determine eco benefits via eco.py"""
     InstanceTree = instance.scope_model(Tree)
     tree = get_object_or_404(InstanceTree, pk=tree_id)
-    dbh = tree.diameter
-    otm_code = tree.species.otm_code
 
-    region_list = list(ITreeRegion.objects.filter(
-        geometry__contains=tree.plot.geom))
-    if len(region_list) > 0:
-        region_code = region_list[0].code
-    else:
-        region_code = instance.itree_region_default
-
-    factor_conversions = instance.factor_conversions
-
-    rslt = {}
-    if not dbh:
+    if not tree.diameter:
         rslt = {'benefits': {}, 'error': 'MISSING_DBH'}
-    elif not otm_code:
+    elif not tree.species:
         rslt = {'benefits': {}, 'error': 'MISSING_SPECIES'}
     else:
         rslt = {'benefits':
-                _benefits_for_trees(
-                    [{'species__otm_code': otm_code,
-                      'diameter': dbh,
-                      'itree_region_code': region_code}],
-                    factor_conversions)}
+                _benefits_for_trees(get_trees_for_eco(tree), instance)}
 
     return rslt
 
