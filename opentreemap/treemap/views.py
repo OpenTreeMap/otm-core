@@ -41,9 +41,8 @@ from treemap.models import (Plot, Tree, User, Species, Instance,
                             TreePhoto)
 from treemap.units import get_units, get_display_value
 
-from ecobenefits.models import ITreeRegion
 from ecobenefits.views import _benefits_for_trees
-from ecobenefits.util import get_benefit_label
+from ecobenefits.util import get_benefit_label, get_trees_for_eco
 
 from opentreemap.util import json_from_request, route
 
@@ -229,11 +228,8 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
 
     if should_calculate_eco:
         try:
-            eco_tree = {'species__otm_code': tree.species.otm_code,
-                        'diameter': tree.diameter,
-                        'itree_region_code': ITreeRegion.objects.get(
-                            geometry__contains=plot.geom).code}
-            context.update(_tree_benefits_helper([eco_tree], 1, 1, instance))
+            eco_trees = get_trees_for_eco(tree)
+            context.update(_tree_benefits_helper(eco_trees, 1, 1, instance))
         except Exception:
             pass
 
@@ -675,19 +671,7 @@ def search_tree_benefits(request, instance):
                           'n_plots': total_plots,
                           'percent': None}}
     else:
-        trees_for_eco = trees.exclude(species__otm_code__isnull=True)\
-                             .exclude(diameter__isnull=True)\
-                             .extra(select={'itree_region_code':
-                                            'ecobenefits_itreeregion.code'},
-                                    where=[
-                                        'ST_Contains('
-                                        'ecobenefits_itreeregion.geometry, '
-                                        'treemap_plot.the_geom_webmercator)'],
-                                    tables=['ecobenefits_itreeregion'])\
-                             .values('diameter',
-                                     'species__otm_code',
-                                     'itree_region_code',
-                                     'plot__geom')
+        trees_for_eco = get_trees_for_eco(trees)
 
         return _tree_benefits_helper(trees_for_eco, total_plots, total_trees,
                                      instance)
@@ -709,9 +693,8 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
 
         return benefit
 
-    benefits, num_calculated_trees = _benefits_for_trees(
-        trees_for_eco, instance.itree_region_default,
-        instance.factor_conversions)
+    benefits, num_calculated_trees = _benefits_for_trees(trees_for_eco,
+                                                         instance)
 
     percent = 0
     if num_calculated_trees > 0 and total_trees > 0:

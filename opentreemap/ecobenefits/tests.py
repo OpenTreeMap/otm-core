@@ -31,7 +31,7 @@ class EcoTest(UrlTestCase):
 
         ITreeRegion.objects.all().delete()
 
-        p1 = Point(-8515941.0, 4953519.0)
+        p1 = self.instance.center
 
         self.region_buffer_in_meters = 1000
 
