@@ -154,7 +154,8 @@ function getMarkerIcon(inEditMode) {
                           'img/mapmarker_viewmode.png'),
         // Use half actual size to look good on IOS retina display
         iconSize: [78, 75],
-        iconAnchor: [36, 62]
+        iconAnchor: [36, 62],
+        className: inEditMode ? 'animated' : ''
     });
 }
 
