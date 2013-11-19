@@ -31,15 +31,6 @@ exports.init = function(options) {
         cancelStream = $cancel.asEventStream('click').map('cancel'),
         actionStream = new Bacon.Bus(),
 
-        displayValuesToTypeahead = function() {
-            $('[data-typeahead-restore]').each(function(index, el) {
-                var field = $(el).attr('data-typeahead-restore');
-                if (field) {
-                    $('input[name="' + field + '"]').trigger('restore', $(el).val());
-                }
-            });
-        },
-
         resetCollectionUdfs = function() {
             // Hide the edit row
             $("table[data-udf-id] .editrow").hide();
@@ -77,6 +68,15 @@ exports.init = function(options) {
             $("table[data-udf-id] .headerrow").css('display', '');
 
             $("table[data-udf-id] .placeholder").css('display', 'none');
+        },
+
+        displayValuesToTypeahead = function() {
+            $('[data-typeahead-restore]').each(function(index, el) {
+                var field = $(el).attr('data-typeahead-restore');
+                if (field) {
+                    $('input[name="' + field + '"]').trigger('restore', $(el).val());
+                }
+            });
         },
 
         displayValuesToFormFields = function() {

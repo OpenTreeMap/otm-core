@@ -3,7 +3,10 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore');
+    _ = require('underscore'),
+    moment = require('moment');
+
+var DATETIME_FORMAT = exports.DATETIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
 
 var getField = exports.getField = function ($fields, name) {
     return $fields.filter('[data-field="' + name + '"]');
@@ -16,6 +19,15 @@ var getSerializableField = exports.getSerializableField = function ($fields, nam
 
 var excludeButtons = exports.excludeButtons = function (selector) {
     return $(selector).filter(":not(.btn)");
+};
+
+exports.applyDateToDatepicker = function($elem, value) {
+    var date = moment(value, DATETIME_FORMAT);
+    if (date && date.isValid()) {
+        $elem.datepicker('update', date.toDate());
+    } else {
+        $elem.val('');
+    }
 };
 
 exports.formToDictionary = function ($form, $editFields, $displayFields) {
