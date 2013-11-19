@@ -10,6 +10,8 @@ from django import template
 from django.template.loader import get_template
 from django.db.models.fields import FieldDoesNotExist
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import dateformat
+from django.conf import settings
 
 from treemap.util import safe_get_model_class
 from treemap.json_field import (is_json_field_reference,
@@ -328,6 +330,12 @@ class AbstractNode(template.Node):
 
         if field_value is None:
             display_val = None
+        elif data_type == 'date' and model.instance:
+            display_val = dateformat.format(field_value,
+                                            model.instance.short_date_format)
+        elif data_type == 'date':
+            display_val = dateformat.format(field_value,
+                                            settings.SHORT_DATE_FORMAT)
         elif is_convertible_or_formattable(model_name, field_name):
             field_value, display_val = get_display_value(
                 model.instance, model_name, field_name, field_value)

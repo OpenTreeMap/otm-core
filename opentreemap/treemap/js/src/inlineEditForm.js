@@ -4,12 +4,16 @@ var $ = require('jquery'),
     Bacon = require('baconjs'),
     BU = require('treemap/baconUtils'),
     _ = require('underscore'),
+    moment = require('moment'),
     FH = require('treemap/fieldHelpers'),
     getDatum = require('treemap/otmTypeahead').getDatum,
     console = require('console-browserify'),
 
     eventsLandingInEditMode = ['edit:start', 'save:start', 'save:error'],
     eventsLandingInDisplayMode = ['idle', 'save:ok', 'cancel'];
+
+// Placed onto the jquery object
+require('bootstrap-datepicker');
 
 exports.init = function(options) {
     var self = {
@@ -90,6 +94,9 @@ exports.init = function(options) {
                     $input = FH.getSerializableField($(editFields), field);
                     if ($input.is('[type="checkbox"]')) {
                         $input.prop('checked', value == "True");
+                    }
+                    else if ($input.is('[data-date-format]')) {
+                        FH.applyDateToDatepicker($input, value);
                     } else {
                         $input.val(value);
                     }
@@ -128,6 +135,8 @@ exports.init = function(options) {
                         $input = FH.getSerializableField($(editFields), field);
                         if ($input.is('[type="checkbox"]')) {
                             value = $input.is(':checked') ? "True" : "False";
+                        } else if ($input.is('[data-date-format]')) {
+                            value = FH.getTimestampFromDatepicker($input);
                         } else {
                             value = $input.val();
                         }
@@ -135,6 +144,8 @@ exports.init = function(options) {
                         if ($input.is('select')) {
                             // Use dropdown text (not value) as display value
                             value = $input.find('option:selected').text();
+                        } else if (value && $input.is('[data-date-format]')) {
+                            value = $input.val();
                         } else if (value) {
                             digits = $(display).data('digits');
                             if (digits) {
@@ -270,6 +281,8 @@ exports.init = function(options) {
         unhandledErrorStream = responseErrorStream
             .filter(BU.isPropertyUndefined, 'validationErrors')
             .map('.error');
+
+    $(editFields).find("input[data-date-format]").datepicker();
 
     // Prevent default form submission from clicking on buttons or pressing
     // enter. Event is delegated on window since sometimes <form>s are inserted

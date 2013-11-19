@@ -30,6 +30,10 @@ exports.applyDateToDatepicker = function($elem, value) {
     }
 };
 
+var getTimestampFromDatepicker = exports.getTimestampFromDatepicker = function($elem) {
+    return moment($elem.datepicker("getDate")).format(DATETIME_FORMAT);
+};
+
 exports.formToDictionary = function ($form, $editFields, $displayFields) {
     $displayFields = $displayFields || $();
 
@@ -54,7 +58,8 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
     var result = {};
     _.each($form.serializeArray(), function(item) {
         var type = getField($editFields, item.name).attr('data-type'),
-            displayValue = getDisplayValue(type, item.name);
+            displayValue = getDisplayValue(type, item.name),
+            $field = getSerializableField($editFields, item.name);
 
         if (item.value === displayValue) {
             return;  // Don't serialize unchanged values
@@ -63,9 +68,11 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
         if (type === 'bool') {
             // Handled below so we catch unchecked checkboxes which
             // serializeArray ignores
-        } else if (item.value === '' && (type === 'int' || type === 'float')) {
+        } else if (item.value === '' && (type === 'int' || type === 'float' || type === 'date')) {
             // convert empty numeric fields to null
             result[item.name] = null;
+        } else if (type === 'date') {
+            result[item.name] = getTimestampFromDatepicker($field);
         } else if (item.value === '' && isTypeaheadHiddenField(item.name)) {
             // convert empty foreign key id strings to null
             result[item.name] = null;
