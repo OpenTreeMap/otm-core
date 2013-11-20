@@ -4,9 +4,10 @@ var $ = require('jquery'),
     Bacon = require('baconjs'),
     _ = require('underscore'),
     moment = require("moment"),
-    isTypeaheadHiddenField = require('treemap/fieldHelpers');
+    isTypeaheadHiddenField = require('treemap/fieldHelpers'),
+    FH = require('treemap/fieldHelpers');
 
-var DATETIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
+var DATETIME_FORMAT = FH.DATETIME_FORMAT;
 
 var isOr = function(pred) {
     return _.isArray(pred) && pred[0] === "OR";
@@ -72,12 +73,7 @@ function applySearchToDom(elems, search) {
         if ($domElem.is('[type="hidden"]')) {
             $domElem.trigger('restore', value);
         } else if ($domElem.is('[data-date-format]')) {
-            var date = moment(value, DATETIME_FORMAT);
-            if (date && date.isValid()) {
-                $domElem.datepicker('update', date.toDate());
-            } else {
-                $domElem.val('');
-            }
+            FH.applyDateToDatepicker($domElem, value);
         } else if($domElem.is(':checkbox')) {
             $domElem.prop('checked', value);
         } else if ($domElem.is('input')) {

@@ -3491,3 +3491,6 @@ ITREE_REGIONS = {
         }
     }
 }
+
+
+ITREE_REGION_CHOICES = [(code, conf['name']) for code, conf in ITREE_REGIONS.items()]

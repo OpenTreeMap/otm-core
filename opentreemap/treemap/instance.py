@@ -18,6 +18,7 @@ from treemap.features import feature_enabled
 from treemap.json_field import JSONField
 
 from ecobenefits.models import ITreeRegion
+from ecobenefits.species import ITREE_REGION_CHOICES
 
 URL_NAME_PATTERN = r'[a-zA-Z]+[a-zA-Z0-9\-]*'
 
@@ -107,8 +108,8 @@ class Instance(models.Model):
 
     logo = models.ImageField(upload_to='logos', null=True, blank=True)
 
-    itree_region_default = models.CharField(max_length=20, null=True,
-                                            blank=True)
+    itree_region_default = models.CharField(
+        max_length=20, null=True, blank=True, choices=ITREE_REGION_CHOICES)
 
     objects = models.GeoManager()
 

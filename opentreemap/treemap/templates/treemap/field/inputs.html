@@ -1,7 +1,7 @@
 {# vim: set filetype=htmldjango : #}
 {% load l10n %}
 {% load dateformat %}
-{% if field.data_type == 'choice' %}
+{% if field.choices %}
     <select name="{{ field.identifier }}" {{ extra|default_if_none:"" }}
             class="{{ class|default_if_none:"" }}" />
         {% for option in field.choices %}
