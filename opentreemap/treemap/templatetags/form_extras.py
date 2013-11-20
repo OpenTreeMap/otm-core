@@ -21,12 +21,11 @@ from treemap.units import (get_digits, get_units, is_formattable,
 
 register = template.Library()
 
-# Used to whitelist the model.field values that are valid for the
-# template tag, can't be done in the grammar as it can't be checked
+# Used to check that the identifier follows the format model.field or
+# model.udf:field name, can't be done in the grammar as it can't be checked
 # until looked up in the context
 _identifier_regex = re.compile(
-    r"^(?:tree|plot|instance|user|species|"
-    "benefitCurrencyConversion)\.(?:udf\:)?[\w '\._-]+$")
+    r"^[a-zA-Z_]+\.(?:udf\:[\w '\._-]+|[a-zA-Z_]+)$")
 
 
 class Variable(Grammar):
