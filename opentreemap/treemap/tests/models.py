@@ -401,7 +401,7 @@ class InstanceTest(TestCase):
 
     def test_has_itree_region_with_default(self):
         instance = make_instance()
-        instance.itree_region_default = "foo"
+        instance.itree_region_default = 'PiedmtCLT'
         instance.save()
         self.assertEqual(instance.has_itree_region(), True)
 

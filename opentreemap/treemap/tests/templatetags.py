@@ -530,9 +530,9 @@ class InlineFieldTagTests(TestCase):
         self.assert_plot_udf_template(
             self.observer, template_string, '-a-b-c-')
 
-    def test_sets_choices_to_none_for_normal_field(self):
+    def test_sets_choices_to_empty_if_not_set(self):
         self.assert_plot_length_context_value(
-            self.observer, 'field.choices', 'None')
+            self.observer, 'field.choices', '[]')
 
     def test_labelless_sets_label_to_default(self):
         self.assert_plot_length_context_value(

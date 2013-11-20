@@ -8,7 +8,6 @@ from modgrammar import Grammar, OPTIONAL, G, WORD, OR, ParseError
 
 from django import template
 from django.template.loader import get_template
-from django.db.models.fields import FieldDoesNotExist
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import dateformat
 from django.conf import settings
@@ -252,13 +251,19 @@ class AbstractNode(template.Node):
         model_name, field_name = identifier.split('.', 1)
         model = self.get_model(context, model_name, instance)
 
+        def _is_udf(model, udf_field_name):
+            return (hasattr(model, 'udf_field_names') and
+                    udf_field_name in model.udf_field_names)
+
         def _udf_dict(model, field_name):
             return model.get_user_defined_fields()\
                 .filter(name=field_name.replace('udf:', ''))[0]\
                 .datatype_dict
 
-        def _field_type_and_label(model, field_name, label):
-            try:
+        def _field_type_label_choices(model, field_name, label):
+            choices = None
+            udf_field_name = field_name.replace('udf:', '')
+            if not _is_udf(model, udf_field_name):
                 field = model._meta.get_field(field_name)
                 field_type = field.get_internal_type()
                 try:
@@ -268,38 +273,34 @@ class AbstractNode(template.Node):
                                     % (FieldNode._valid_field_keys,
                                        field_type))
                 label = label if label else field.help_text
-            except FieldDoesNotExist:
-                field_type = _udf_dict(model, field_name)['type']
-                label = label if label else field_name.replace('udf:', '')
-
-            return field_type, label
-
-        def _field_value_and_choices(model, field_name):
-            choices = None
-            udf_field_name = field_name.replace('udf:', '')
-            model_has_udfs = hasattr(model, 'udf_field_names')
-            if model_has_udfs:
-                field_is_udf = (udf_field_name in model.udf_field_names)
+                choices = [{'value': choice[0], 'display_value': choice[1]}
+                           for choice in field.choices]
+                if choices and field.null:
+                    choices = [{'value': '', 'display_value': ''}] + choices
             else:
-                field_is_udf = False
+                udf_dict = _udf_dict(model, field_name)
+                field_type = udf_dict['type']
+                label = label if label else udf_field_name
+                if 'choices' in udf_dict:
+                    values = [''] + udf_dict['choices']
+                    choices = [{'value': value, 'display_value': value}
+                               for value in values]
 
+            return field_type, label, choices
+
+        def _field_value(model, field_name):
+            udf_field_name = field_name.replace('udf:', '')
             if field_name in model._meta.get_all_field_names():
                 try:
                     val = getattr(model, field_name)
                 except ObjectDoesNotExist:
                     val = None
-            elif model_has_udfs and field_is_udf:
+            elif _is_udf(model, udf_field_name):
                 val = model.udfs[udf_field_name]
-                try:
-                    values = [''] + _udf_dict(model, udf_field_name)['choices']
-                    choices = [{'value': value, 'display_value': value}
-                               for value in values]
-                except KeyError:
-                    choices = None
             else:
                 raise ValueError('Could not find field: %s' % field_name)
 
-            return val, choices
+            return val
 
         if is_json_field_reference(field_name):
             field_value = get_attr_from_json_field(model, field_name)
@@ -307,8 +308,9 @@ class AbstractNode(template.Node):
             is_visible = is_editable = True
             data_type = "string"
         else:
-            field_value, choices = _field_value_and_choices(model, field_name)
-            data_type, label = _field_type_and_label(model, field_name, label)
+            field_value = _field_value(model, field_name)
+            data_type, label, choices = _field_type_label_choices(
+                model, field_name, label)
 
             if user is not None and hasattr(model, 'field_is_visible'):
                 is_visible = model.field_is_visible(user, field_name)
