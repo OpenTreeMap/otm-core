@@ -1,2 +1,4 @@
 PyVirtualDisplay==0.1.2
 selenium==2.37.0
+django-extensions==1.2.5
+six==1.4.1
