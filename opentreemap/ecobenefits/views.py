@@ -58,13 +58,13 @@ def _benefits_for_trees(trees, instance):
                 break
 
         if region_code is not None:
-            if region_code not in trees_by_region:
-                trees_by_region[region_code] = []
-
             itree_code = _itree_code_for_species_in_region(
                 tree['species__otm_code'], region_code)
 
             if itree_code is not None:
+                if region_code not in trees_by_region:
+                    trees_by_region[region_code] = []
+
                 trees_by_region[region_code].append((itree_code,
                                                      tree['diameter']))
                 num_trees_used_in_calculation += 1
