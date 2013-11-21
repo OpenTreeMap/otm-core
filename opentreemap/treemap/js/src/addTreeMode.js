@@ -26,6 +26,7 @@ var config,
     $editFields,
     $editControls,
     $validationFields,
+    $moveTreeMessage,
     deactivateBus,
     gcoder;
 
@@ -49,6 +50,7 @@ function init(options) {
     $validationFields = U.$find('[data-class="error"]', $form);
     $addButton = U.$find('.addBtn', $sidebar);
     $address = U.$find(addressInput, $sidebar);
+    $moveTreeMessage = U.$find('.move-tree-message', $sidebar);
 
     $editFields.show();
     U.$find('[data-class="display"]', $form).hide();  // Hide display fields
@@ -215,6 +217,7 @@ function onGeolocateSuccess(lonLat) {
 function onLocationChosen(location) {
     // User has chosen an initial tree location via geocode or geolocate.
     // Show the marker (zoomed and centered), and let them drag it.
+    // Show a message so they need the marker must be moved to continue
     mapManager.setCenterAndZoomIn(location, mapManager.ZOOM_PLOT);
     plotMarker.place(location);
     plotMarker.enableMoving();
@@ -230,6 +233,11 @@ function onMarkerMoved() {
 }
 
 function enableFormFields(shouldEnable) {
+    if (shouldEnable) {
+        $moveTreeMessage.hide();
+    } else {
+        $moveTreeMessage.show();
+    }
     $addButton.prop('disabled', !shouldEnable);
     $editControls.prop('disabled', !shouldEnable);
 }

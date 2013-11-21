@@ -129,7 +129,7 @@ function onMarkerPlacedByClick(event) {
 // Let user move the marker by dragging it with the mouse
 function enableMoving() {
     marker.dragging.enable();
-    showEditMarker();
+    showFirstEditMarker();
     markerWasMoved = false;
 }
 
@@ -139,15 +139,15 @@ function disableMoving() {
     showViewMarker();
 }
 
-var showViewMarker = _.partial(showMarker, false),
-    showEditMarker = _.partial(showMarker, true);
+var showViewMarker = _.partial(showMarker, false, ''),
+    showFirstEditMarker = _.partial(showMarker, true, 'animated');
 
-function showMarker(inEditMode) {
-    marker.setIcon(getMarkerIcon(inEditMode));
+function showMarker(inEditMode, className) {
+    marker.setIcon(getMarkerIcon(inEditMode, className));
     marker.addTo(map);
 }
 
-function getMarkerIcon(inEditMode) {
+function getMarkerIcon(inEditMode, className) {
     return L.icon({
         iconUrl: config.staticUrl +
             (inEditMode ? 'img/mapmarker_editmode.png' :
@@ -155,7 +155,7 @@ function getMarkerIcon(inEditMode) {
         // Use half actual size to look good on IOS retina display
         iconSize: [78, 75],
         iconAnchor: [36, 62],
-        className: inEditMode ? 'animated' : ''
+        className: className
     });
 }
 
@@ -164,5 +164,6 @@ function onMarkerMoved() {
     if (!markerWasMoved) {
         markerWasMoved = true;
         firstMoveBus.push(marker.getLatLng());
+        marker.setIcon(getMarkerIcon(true, ''));
     }
 }
