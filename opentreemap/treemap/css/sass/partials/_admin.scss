@@ -69,6 +69,10 @@
         }
     }
 
+    input {
+        width: 80%;
+    }
+
     .messages,
     .text-error {
         &:empty {
