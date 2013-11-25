@@ -29,22 +29,34 @@ module.exports = function(grunt) {
      */
     function getSrcAliases() { return getAliases('src'); }
     function getTestAliases() { return getAliases('test'); }
+    function getLibAliases() { return getAliases('lib'); }
+    function getRegularAliases() {
+        return getAliases('src').concat(getAliases('lib'));
+    }
 
     function getAliases(type) {
-        if (type !== 'src' && type !== 'test') {
-            throw new Error('type argument must be src or test');
+        if (type !== 'src' && type !== 'test' && type !== 'lib') {
+            throw new Error('type argument must be src, test, or lib');
         }
         var files = grunt.file.expand('*/js/' + type + '/*.js');
         return files.map(function(filename) {
             var basename = path.basename(filename, '.js'),
                 app = filename.split(path.sep)[0],
-                prefix = type === 'test' ? 'test/' : '';
+                prefix = type === 'src' ? '' : (type + '/');
             return filename + ':' + app + '/' + prefix + basename;
         });
     }
 
     function getSrcAliasNames() {
         return getAliasNames(getSrcAliases());
+    }
+
+    function getLibAliasNames() {
+        return getAliasNames(getLibAliases());
+    }
+
+    function getRegularAliasNames() {
+        return getSrcAliasNames().concat(getLibAliasNames());
     }
 
     function getTestAliasNames() {
@@ -72,7 +84,7 @@ module.exports = function(grunt) {
                 dest: testBundlePath,
                 options: {
                     alias: getTestAliases(),
-                    external: getSrcAliasNames(),
+                    external: getRegularAliasNames(),
                     aliasMappings: { // Make libs available to test functions
                         cwd:'treemap/js/lib/',
                         src: ['*.js'],
@@ -87,7 +99,7 @@ module.exports = function(grunt) {
                 src: [],
                 dest: appBundlePath,
                 options: {
-                    alias: getSrcAliases(),
+                    alias: getRegularAliases(),
                     aliasMappings: {
                         cwd:'treemap/js/lib/',
                         src: ['*.js'],
