@@ -5,8 +5,10 @@ from __future__ import division
 
 import logging
 from cStringIO import StringIO
+from optparse import make_option
+from unittest import TestSuite
 
-from django.test import TestCase
+from django.test import TestCase, LiveServerTestCase
 from django.test.client import RequestFactory
 from django.test.simple import DjangoTestSuiteRunner
 from django.conf import settings
@@ -24,15 +26,36 @@ from djcelery.contrib.test_runner import CeleryTestSuiteRunner
 
 
 class OTM2TestRunner(CeleryTestSuiteRunner, DjangoTestSuiteRunner):
+
+    option_list = (
+        make_option('--live-server-tests',
+                    help="Run the live server tests (selenium tests)",
+                    action='store_const',
+                    dest='live_server_tests',
+                    const=True,
+                    default=False),
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.live_server_tests = kwargs['live_server_tests']
+        return super(OTM2TestRunner, self).__init__(*args, **kwargs)
+
     def run_tests(self, *args, **kwargs):
         logging.disable(logging.CRITICAL)
         return super(OTM2TestRunner, self).run_tests(*args, **kwargs)
 
     def build_suite(self, test_labels, *args, **kwargs):
         test_labels = test_labels or settings.MANAGED_APPS
-        return super(OTM2TestRunner, self).build_suite(test_labels,
-                                                       *args,
-                                                       **kwargs)
+        base_suite = super(OTM2TestRunner, self).build_suite(test_labels,
+                                                             *args,
+                                                             **kwargs)
+
+        if self.live_server_tests:
+            return TestSuite([test for test in base_suite
+                              if isinstance(test, LiveServerTestCase)])
+        else:
+            return TestSuite([test for test in base_suite
+                              if not isinstance(test, LiveServerTestCase)])
 
     def setup_databases(self, *args, **kwargs):
         # We want to load a system user, but until the test database is created
@@ -421,3 +444,5 @@ from middleware import *    # NOQA
 from json_field import *    # NOQA
 from units import *         # NOQA
 from management import *    # NOQA
+from ui.basic import *      # NOQA
+from ui.map import *        # NOQA
