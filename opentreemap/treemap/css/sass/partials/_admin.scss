@@ -3,7 +3,7 @@
 .management {
     min-height: 650px;
 
-    .nav.nav-list { 
+    .nav.nav-list {
         margin-top: 60px;
 
         li {
@@ -28,7 +28,7 @@
 
         h1 {
             margin-bottom: 0.25em;
-            
+
             small {
                 top: -6px;
                 position: relative;
@@ -60,13 +60,17 @@
         top: 4px;
         position: relative;
     }
-    
+
     .tab-content {
         overflow: hidden;
 
         > .tab-pane {
             min-height: 650px;
         }
+    }
+
+    input {
+        width: 80%;
     }
 
     .messages,
