@@ -629,6 +629,24 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
         else:
             return super(Tree, clz).action_format_string_for_audit(audit)
 
+    @property
+    def species_in_region(self):
+        # Import done here to prevent circular imports
+        from ecobenefits.views import itree_code_for_species_in_region
+
+        # Return True if we have no species so we can tell the user to add one
+        if self.species is None:
+            return True
+
+        try:
+            region = ITreeRegion.objects.filter(
+                geometry__contains=self.plot.geom)[0]
+        except IndexError:
+            return False
+        species_code = itree_code_for_species_in_region(self.species.otm_code,
+                                                        region.code)
+        return species_code is not None
+
 
 class TreePhoto(models.Model, Authorizable, Auditable):
     tree = models.ForeignKey(Tree)
