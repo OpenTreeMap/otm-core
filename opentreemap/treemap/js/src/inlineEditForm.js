@@ -30,7 +30,7 @@ exports.init = function(options) {
         disabledMessage = $edit.attr('title'),
         onSaveBefore = options.onSaveBefore || _.identity,
         editStream = $edit.asEventStream('click').map('edit:start'),
-        saveStream = $save.asEventStream('click').map('save:start'),
+        saveStream = (options.saveStream || $save.asEventStream('click')).map('save:start'),
         externalCancelStream = BU.triggeredObjectStream('cancel'),
         cancelStream = $cancel.asEventStream('click').map('cancel'),
         actionStream = new Bacon.Bus(),
@@ -337,6 +337,8 @@ exports.init = function(options) {
     }).toProperty();
 
     return $.extend(self, {
+        // immutable access to all actions
+        actionStream: actionStream.map(_.identity),
         cancel: externalCancelStream.trigger,
         saveOkStream: saveOkStream,
         cancelStream: cancelStream,
