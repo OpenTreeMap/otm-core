@@ -185,6 +185,11 @@ class Instance(models.Model):
         try:
             if self.is_public:
                 return True
+
+            # Extension point
+            if hasattr(user, 'is_super_admin') and user.is_super_admin():
+                return True
+
             # If a user is not logged in, trying to check
             # user=user raises a type error so I am checking
             # pk instead
