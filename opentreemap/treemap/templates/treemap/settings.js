@@ -69,7 +69,8 @@ otm.settings.doubleClickInterval = '{{ settings.DOUBLE_CLICK_INTERVAL }}';
             'bing_api_key': '{{ BING_API_KEY }}'
         },
         'primaryColor': '{{ request.instance.config|primary_color }}',
-        'secondaryColor': '{{ request.instance.config|secondary_color }}'
+        'secondaryColor': '{{ request.instance.config|secondary_color }}',
+        'supportsEcobenefits': {{ request.instance_supports_ecobenefits|yesno:"true,false" }}
     }
 {% endif %}
 

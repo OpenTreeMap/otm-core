@@ -24,7 +24,8 @@ exports.init = function(options) {
         $noTreeMessage = $(options.noTreeMessage),
         $cancelAddTree = $(options.cancelAddTree),
         $addTreeSection = $(options.addTreeSection),
-        $treeSection = $(options.treeSection);
+        $treeSection = $(options.treeSection),
+        $ecoBenefits = $(options.ecoBenefits);
 
     // Set up cross-site forgery protection
     $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
@@ -88,9 +89,11 @@ exports.init = function(options) {
                        onSaveBefore: onSaveBefore,
                        shouldBeInEditModeStream: shouldBeInEditModeStream }));
 
-    form.saveOkStream
-        .map($(options.ecoBenefits))
-        .onValue('.load', options.updatEcoUrl);
+    if (options.config.instance.supportsEcobenefits) {
+        form.saveOkStream
+            .map($ecoBenefits)
+            .onValue('.load', options.updateEcoUrl);
+    }
 
     var sidebarUpdate = form.saveOkStream.merge(imageFinishedStream);
     sidebarUpdate
