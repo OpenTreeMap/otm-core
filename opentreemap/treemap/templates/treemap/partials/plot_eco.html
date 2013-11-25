@@ -1,9 +1,14 @@
 {% load i18n %}
 
-
-{% if request.instance_supports_ecobenefits %}
 <h5>{% trans "Yearly Ecosystem Services" %}</h5>
-{% if benefits %}
+{% if tree.species and not tree.species_in_region %}
+<div>
+  {% blocktrans %}
+  <p>Ecosystem benefits cannot be calculated for this species of tree based on the location of the tree.
+  <p>The tree's location falls within a climate region that does not support benefit calculations for this species.
+  {% endblocktrans %}
+</div>
+{% elif benefits %}
 <table class="table table-striped">
   <tbody>
     {% for benefit in benefits %}
@@ -19,5 +24,4 @@
 <div>
   {% trans "Add the diameter of the tree and select a species to calculate the yearly ecosystem services." %}
 </div>
-{% endif %}
 {% endif %}

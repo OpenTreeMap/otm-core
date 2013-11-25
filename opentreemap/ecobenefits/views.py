@@ -25,7 +25,7 @@ def get_codes_for_species(species, region):
     return codes
 
 
-def _itree_code_for_species_in_region(otm_code, region):
+def itree_code_for_species_in_region(otm_code, region):
     if region in CODES:
         if otm_code in CODES[region]:
             return CODES[region][otm_code]
@@ -58,7 +58,7 @@ def _benefits_for_trees(trees, instance):
                 break
 
         if region_code is not None:
-            itree_code = _itree_code_for_species_in_region(
+            itree_code = itree_code_for_species_in_region(
                 tree['species__otm_code'], region_code)
 
             if itree_code is not None:
