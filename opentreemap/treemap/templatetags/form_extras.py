@@ -25,7 +25,7 @@ register = template.Library()
 # model.udf:field name, can't be done in the grammar as it can't be checked
 # until looked up in the context
 _identifier_regex = re.compile(
-    r"^[a-zA-Z_.\-]+(?:udf\:[\w '\._-]+|[a-zA-Z_\-]+)$")
+    r"^[a-zA-Z_.\-]+(?:udf\:[\w '\._-]+|[a-zA-Z0-9_\-]+)$")
 
 
 class Variable(Grammar):
