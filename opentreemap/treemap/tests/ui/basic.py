@@ -3,49 +3,25 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from unittest import TestCase
-
-from django.conf import settings
-
-from treemap.models import User
-
 from registration.models import RegistrationProfile
 
-import uitests
+from treemap.tests.ui import UITestCase
+from treemap.tests import make_user, create_mock_system_user
 
 # Testing requirements:
 # apt-get install firefox
 # pip install -r requirements.txt
-# Selenium
-# PyVirtualDisplay
-userUUID = 1
+# pip install -r test-requirements.txt
 
 
-class LoginLogoutTest(TestCase):
+class LoginLogoutTest(UITestCase):
     def setUp(self):
-        self.driver = uitests.driver
 
-        self.user = self._create_test_user()
+        create_mock_system_user()
+
+        super(LoginLogoutTest, self).setUp()
+        self.user = make_user(username='username', password='password')
         self.profile = RegistrationProfile.objects.create_profile(self.user)
-
-    def tearDown(self):
-        self.user.delete_with_user(User.system_user())
-
-    def _create_test_user(self):
-        global userUUID
-
-        username = 'autotest%s' % userUUID
-        email = '%s@testing.org' % username
-        userUUID += 1
-
-        User.objects.filter(email=email).delete()
-
-        u = User(username=username, email=email)
-        u.set_password(username)
-        u.save()
-        setattr(u, 'plain_password', username)
-
-        return u
 
     def _process_login_form(self, username, password):
         username_elmt = self.driver.find_element_by_name('username')
@@ -58,14 +34,12 @@ class LoginLogoutTest(TestCase):
         submit.click()
 
     def test_invalid_login(self):
-        self.driver.get("http://localhost:%s/accounts/login/" %
-                        settings.UITESTS_PORT)
-        self.driver.implicitly_wait(10)
+        self.driver.get("%s/accounts/login/" % self.live_server_url)
 
         login_url = self.driver.current_url
 
         self._process_login_form(
-            self.user.username, self.user.plain_password + 'invalid')
+            self.user.username, 'passwordinvalid')
 
         # We should be on the same page
         self.assertEqual(login_url, self.driver.current_url)
@@ -76,8 +50,7 @@ class LoginLogoutTest(TestCase):
         self.assertEqual(len(errors), 1)
 
     def test_valid_login(self):
-        self.driver.get("http://localhost:%s/accounts/login/" %
-                        settings.UITESTS_PORT)
+        self.driver.get(self.live_server_url + "/accounts/login/")
 
         login_url = self.driver.current_url
 
@@ -85,8 +58,7 @@ class LoginLogoutTest(TestCase):
         login = self.driver.find_element_by_id("login")
         login.click()
 
-        self._process_login_form(
-            self.user.username, self.user.plain_password)
+        self._process_login_form(self.user.username, 'password')
 
         # We should not be on the same page
         self.assertNotEqual(login_url, self.driver.current_url)

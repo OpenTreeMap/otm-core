@@ -1,24 +1,42 @@
 import importlib
 
-from selenium import webdriver
+from django.test import LiveServerTestCase
+
+from selenium.common.exceptions import WebDriverException
+
+from selenium.webdriver.firefox.webdriver import WebDriver
+
 from django.conf import settings
 
 
-driver = None
+class UITestCase(LiveServerTestCase):
+    def use_xvfb(self):
+        from pyvirtualdisplay import Display
+        self.display = Display('xvfb',
+                               visible=1,
+                               size=(1280, 1024))
+        self.display.start()
+        self.driver = WebDriver()
 
+    def setUp(self):
+        try:
+            self.driver = WebDriver()
+            ui_is_not_available = False
+        except WebDriverException:
+            ui_is_not_available = True
 
-def setUpModule():
-    global driver
+        if ui_is_not_available:
+            self.use_xvfb()
 
-    if driver is None:
-        driver = webdriver.Firefox()
+        self.driver.implicitly_wait(10)
+        super(UITestCase, self).setUp()
 
+    def tearDown(self):
+        self.driver.quit()
+        if hasattr(self, 'display'):
+            self.display.stop()
 
-def tearDownModule():
-    global driver
-
-    if driver is not None:
-        driver.quit()
+        super(UITestCase, self).tearDown()
 
 
 def parse_function_string(module_and_function_string):
