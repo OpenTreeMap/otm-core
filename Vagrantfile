@@ -5,6 +5,9 @@ Vagrant.configure("2") do |config|
   # Every Vagrant virtual environment requires a box to build off of.
   config.vm.box = "precise64"
 
+  # for selenium tests
+  config.ssh.forward_x11 = true
+
   config.vm.network :forwarded_port, guest: 80, host: 6060
 
   config.vm.synced_folder ".", "/usr/local/otm/app/"
