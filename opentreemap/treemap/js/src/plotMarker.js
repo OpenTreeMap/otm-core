@@ -10,6 +10,7 @@ var $ = require('jquery'),
     L = require('leaflet');
 
 var marker,
+    markerDraggingContext,
     firstMoveBus = new Bacon.Bus(),
     moveBus = new Bacon.Bus(),
     markerWasMoved,
@@ -128,14 +129,28 @@ function onMarkerPlacedByClick(event) {
 
 // Let user move the marker by dragging it with the mouse
 function enableMoving() {
-    marker.dragging.enable();
     showFirstEditMarker();
     markerWasMoved = false;
+
+    // Normally we'd simply use:
+    // marker.dragging.enable/disable
+    //
+    // However, the dragging context gets lost
+    // somewhere between here and "disableMoving"
+    //
+    // Once lost we can't unbind the drag handler
+    // and we're stuck. The workaround is to
+    // hang on to the most recently added context
+    // and disable when needed
+    markerDraggingContext = marker.dragging;
+    markerDraggingContext.enable();
 }
 
 // Prevent user from dragging the marker
 function disableMoving() {
-    marker.dragging.disable();
+    if (markerDraggingContext) {
+        markerDraggingContext.disable();
+    }
     showViewMarker();
 }
 
