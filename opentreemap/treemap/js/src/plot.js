@@ -134,7 +134,7 @@ exports.init = function(options) {
     reverseGeocodeStreamAndUpdateAddressesOnForm(
         options.config, plotMarker.moveStream, '#plot-form');
 
-    plotMover.init({
+    var currentPlotMover = plotMover.init({
         mapManager: mapManager,
         plotMarker: plotMarker,
         inlineEditForm: form,
@@ -148,7 +148,7 @@ exports.init = function(options) {
                          saveOkStream: form.saveOkStream });
 
     function onSaveBefore(data) {
-        plotMover.onSaveBefore(data);
+        currentPlotMover.onSaveBefore(data);
     }
 
     function showAddTree() {
