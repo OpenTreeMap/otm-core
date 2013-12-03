@@ -47,13 +47,13 @@ exports.init = function(options) {
         plotMarker.place(location);  // Restore plot location
     });
 
-    exports.onSaveBefore = function(data) {
+    function onSaveBefore(data) {
         // Form is about to save its data
         if (plotMarker.wasMoved()) {
             // Add plot location to data object
             data['plot.geom'] = plotMarker.getLocation();
         }
-    };
+    }
 
     inlineEditForm
         .saveOkStream
@@ -64,4 +64,8 @@ exports.init = function(options) {
             // Refresh the map if needed
             mapManager.updateGeoRevHash(georev);
         });
+
+    return {
+        onSaveBefore: onSaveBefore
+    };
 };

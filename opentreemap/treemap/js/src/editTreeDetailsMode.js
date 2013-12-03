@@ -14,7 +14,8 @@ var formSelector = '#details-form',
     inlineEditForm,
     typeaheads,
     plotMarker,
-    calculator;
+    calculator,
+    currentPlotMover;
 
 function init(options) {
     mapManager = options.mapManager;
@@ -32,7 +33,7 @@ function activate() {
         otmTypeahead.create(typeahead);
     });
 
-    plotMover.init({
+    currentPlotMover = plotMover.init({
         mapManager: mapManager,
         plotMarker: plotMarker,
         inlineEditForm: inlineEditForm,
@@ -55,7 +56,9 @@ function deactivate() {
 }
 
 function onSaveBefore(data) {
-    plotMover.onSaveBefore(data);
+    if (currentPlotMover) {
+        currentPlotMover.OnSaveBefore(data);
+    }
 }
 
 module.exports = {
