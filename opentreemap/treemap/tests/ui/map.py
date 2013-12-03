@@ -11,7 +11,7 @@ from django.utils.unittest.case import skip
 
 from registration.models import RegistrationProfile
 
-from treemap.tests.ui import create_instance, UITestCase
+from treemap.tests.ui import create_instance, UITestCase, ui_test_urls
 
 from treemap.tests import make_commander_user, create_mock_system_user
 from treemap.models import Tree, Plot, User, Instance
@@ -21,6 +21,8 @@ DATABASE_COMMIT_DELAY = 2
 
 
 class MapTest(UITestCase):
+    urls = 'treemap.tests.ui.ui_test_urls'
+
     def setUp(self):
 
         # for some reason, the call to this helper
@@ -330,6 +332,8 @@ class MapTest(UITestCase):
         tree = self.instance_trees().order_by('-id')[0]
 
         self.assertEqual(tree.diameter, 124.0)
+
+        ui_test_urls.testing_id = tree.plot.pk
 
         # Reload the page
         self._go_to_map_page()
