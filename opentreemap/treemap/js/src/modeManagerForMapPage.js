@@ -50,7 +50,7 @@ function init(config, mapManager, triggerSearchBus) {
         config: config,
         updateUrl: '', // set in browseTreesMode.js on map click
         form: '#details-form',
-        edit: '#edit-details-button',
+        edit: '#quick-edit-button',
         save: '#save-details-button',
         cancel: '#cancel-edit-details-button',
         displayFields: '#sidebar-browse-trees [data-class="display"]',

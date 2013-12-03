@@ -57,7 +57,7 @@ function deactivate() {
 
 function onSaveBefore(data) {
     if (currentPlotMover) {
-        currentPlotMover.OnSaveBefore(data);
+        currentPlotMover.onSaveBefore(data);
     }
 }
 
