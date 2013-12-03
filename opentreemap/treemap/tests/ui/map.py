@@ -337,11 +337,11 @@ class MapTest(UITestCase):
         # Click on the tree we added
         self._click_point_on_map(20, 20)
 
-        # Click on "edit details"
-        edit_details_button = self.driver.find_element_by_id(
-            'edit-details-button')
+        # Click on "quick edit"
+        quick_edit_button = self.driver.find_element_by_id(
+            'quick-edit-button')
 
-        edit_details_button.click()
+        quick_edit_button.click()
 
         diameter = self.driver.find_element_by_css_selector(
             'input[data-class="diameter-input"]')
