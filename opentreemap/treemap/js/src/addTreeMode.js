@@ -26,7 +26,8 @@ var config,
     $editFields,
     $editControls,
     $validationFields,
-    $moveTreeMessage,
+    $placeMarkerMessage,
+    $moveMarkerMessage,
     deactivateBus,
     gcoder;
 
@@ -50,7 +51,8 @@ function init(options) {
     $validationFields = U.$find('[data-class="error"]', $form);
     $addButton = U.$find('.addBtn', $sidebar);
     $address = U.$find(addressInput, $sidebar);
-    $moveTreeMessage = U.$find('.move-tree-message', $sidebar);
+    $placeMarkerMessage = U.$find('.place-marker-message', $sidebar);
+    $moveMarkerMessage = U.$find('.move-marker-message', $sidebar);
 
     $editFields.show();
     U.$find('[data-class="display"]', $form).hide();  // Hide display fields
@@ -196,6 +198,7 @@ function activate() {
     plotMarker.hide();
     plotMarker.enablePlacing();
     enableFormFields(false);
+    $placeMarkerMessage.show();
 }
 
 function geolocate() {
@@ -217,27 +220,30 @@ function onGeolocateSuccess(lonLat) {
 function onLocationChosen(location) {
     // User has chosen an initial tree location via geocode or geolocate.
     // Show the marker (zoomed and centered), and let them drag it.
-    // Show a message so they need the marker must be moved to continue
+    // Show a message so they know the marker must be moved to continue.
     mapManager.setCenterAndZoomIn(location, mapManager.ZOOM_PLOT);
     plotMarker.place(location);
-    plotMarker.enableMoving();
+    requireMarkerDrag();
+}
+
+function requireMarkerDrag() {
     enableFormFields(false);
+    plotMarker.enableMoving();
+    $placeMarkerMessage.hide();
+    $moveMarkerMessage.show();
 }
 
 function onMarkerMoved() {
-    // User moved tree for the first time. Let them edit fields.
+    // User moved tree for the first time (or clicked the map). Let them edit fields.
     enableFormFields(true);
     _.defer(function () {
         $editControls.not('[type="hidden"]').first().focus().select();
     });
+    $placeMarkerMessage.hide();
+    $moveMarkerMessage.hide();
 }
 
 function enableFormFields(shouldEnable) {
-    if (shouldEnable) {
-        $moveTreeMessage.hide();
-    } else {
-        $moveTreeMessage.show();
-    }
     $addButton.prop('disabled', !shouldEnable);
     $editControls.prop('disabled', !shouldEnable);
 }
@@ -283,11 +289,11 @@ function onAddTreeSuccess(result) {
 
     switch (option) {
     case 'copy':
-        requireDrag();
+        requireMarkerDrag();
         break;
     case 'new':
         $editControls.val("");
-        requireDrag();
+        requireMarkerDrag();
         break;
     case 'edit':
         var url = config.instance.url + 'plots/' + result.plotId + '/edit';
@@ -297,10 +303,6 @@ function onAddTreeSuccess(result) {
     case 'close':
         close();
         break;
-    }
-    function requireDrag() {
-        enableFormFields(false);
-        plotMarker.enableMoving();
     }
 }
 
