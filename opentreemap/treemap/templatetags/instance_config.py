@@ -48,10 +48,7 @@ def plot_is_writable(instanceuser, field=None):
         if field:
             perms = perms.filter(field_name=field)
 
-        if len(perms) == 0:
-            return False
-        else:
-            return perms[0].allows_writes
+        return any(perm.allows_writes for perm in perms)
 
 
 @register.filter
