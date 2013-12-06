@@ -18,7 +18,9 @@ var $sidebarBrowseTrees         = U.$find('#sidebar-browse-trees'),
     $treeDetailAccordionSection = U.$find('#tree-detail'),
     $sidebarAddTree             = U.$find('#sidebar-add-tree'),
     $fullDetailsButton          = U.$find('#full-details-button'),
-    $treeDetailButtonGroup      = U.$find('#map-plot-details-button');
+    $treeDetailButtonGroup      = U.$find('#map-plot-details-button'),
+    $exploreTreesHeaderLink     = U.$find('.navbar li.explore-trees'),
+    $addTreeHeaderLink          = U.$find('.navbar li[data-feature=add_plot]');
 
 function activateMode(mode, $sidebar) {
     if (mode !== currentMode) {
@@ -82,6 +84,8 @@ function init(config, mapManager, triggerSearchBus) {
 
     addTreeMode.init({
         config: config,
+        $addTreeHeaderLink: $addTreeHeaderLink,
+        $exploreTreesHeaderLink: $exploreTreesHeaderLink,
         mapManager: mapManager,
         plotMarker: plotMarker,
         inMyMode: inAddTreeMode,

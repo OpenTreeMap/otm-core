@@ -16,7 +16,7 @@
 {% block instance_title %} | {{ request.instance.name }}{% endblock %}
 
 {% block instancetopnav %}
-<li class="{% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Trees" %}</a></li>
+<li class="explore-trees {% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Trees" %}</a></li>
 {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
 <li data-feature="add_plot">
   <a data-action='addtree'
