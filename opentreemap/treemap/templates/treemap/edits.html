@@ -19,9 +19,9 @@ active
 {% block header %}
 {% load i18n %}
 <div class="header">
-    <div class="logo">
-        <a href="index.html"><img src="{{STATIC_URL}}img/logo-main.svg" alt="OpenTreeMap"></a>
-    </div>
+  {% block logo %}
+  {{ block.super }}
+  {% endblock logo %}
 </div> <!-- end header -->
 {% endblock header %}
 
