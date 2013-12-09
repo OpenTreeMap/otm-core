@@ -22,9 +22,7 @@
         <form id="add-tree-form" onsubmit="return false;">
           {# The "add-tree-species" label is used as an id prefix in "species_ul.html" #}
           {% create "add-tree-species" from "tree.species" withtemplate "treemap/field/species_div.html" %}
-          {% with hide_multiple_trunks=True %}
-            {% create "add-tree-diameter" from "tree.diameter" in request.instance withtemplate "treemap/field/diameter_div.html" %}
-          {% endwith %}
+          {% create "add-tree-diameter" from "tree.diameter" in request.instance withtemplate "treemap/field/diameter_div.html" %}
 
           {% for label, identifier in fields_for_add_tree %}
               {% create label from identifier in request.instance withtemplate "treemap/field/div.html" %}
