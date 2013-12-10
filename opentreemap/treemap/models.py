@@ -559,6 +559,12 @@ class Plot(Convertible, UDFModel, Authorizable, Auditable):
         else:
             return super(Plot, clz).action_format_string_for_audit(audit)
 
+    def delete_with_user(self, user, cascade=False, *args, **kwargs):
+        if self.current_tree() and cascade is False:
+            raise ValidationError(trans(
+                "Cannot delete plot with existing trees."))
+        super(Plot, self).delete_with_user(user, *args, **kwargs)
+
 
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
@@ -653,6 +659,17 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
         species_code = itree_code_for_species_in_region(self.species.otm_code,
                                                         region.code)
         return species_code is not None
+
+    def delete_with_user(self, user, *args, **kwargs):
+        # All callers should decorate with @transaction.commit_on_success
+        # TODO: upgrade to django 1.6 so that we can decorate this with
+        # @transaction.atomically which supports nesting. Since
+        # @commit_on_success does not, we have to defer using it to the
+        # calling functions.
+        photos = self.photos()
+        for photo in photos:
+            photo.delete_with_user(user)
+        super(Tree, self).delete_with_user(user, *args, **kwargs)
 
 
 class TreePhoto(models.Model, Authorizable, Auditable):

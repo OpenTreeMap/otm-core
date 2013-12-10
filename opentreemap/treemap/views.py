@@ -340,6 +340,24 @@ def update_plot_and_tree_request(request, plot):
 
 
 @transaction.commit_on_success
+def delete_tree(request, instance, tree_id):
+    InstanceTree = instance.scope_model(Tree)
+    tree = get_object_or_404(InstanceTree, pk=tree_id)
+    tree.delete_with_user(request.user)
+    return {'ok': True}
+
+
+def delete_plot(request, instance, plot_id):
+
+    plot = _get_plot_or_404(plot_id, instance)
+    try:
+        plot.delete_with_user(request.user)
+        return {'ok': True}
+    except ValidationError as ve:
+        return "; ".join(ve.messages)
+
+
+@transaction.commit_on_success
 @login_required
 def update_plot_and_tree(request, plot):
     """
@@ -1033,6 +1051,16 @@ update_plot_detail_view = login_or_401(
     json_api_call(
         instance_request(
             creates_instance_user(update_plot_detail))))
+
+delete_tree_view = login_or_401(
+    json_api_call(
+        instance_request(
+            creates_instance_user(delete_tree))))
+
+delete_plot_view = login_or_401(
+    json_api_call(
+        instance_request(
+            creates_instance_user(delete_plot))))
 
 get_plot_eco_view = instance_request(etag(_plot_hash)(
     render_template('treemap/partials/plot_eco.html', plot_detail)))

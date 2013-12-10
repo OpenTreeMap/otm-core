@@ -37,7 +37,9 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            update_plot_and_tree, update_user, add_tree_photo,
                            root_settings_js_view, instance_settings_js_view,
                            compile_scss, approve_or_reject_photo,
-                           upload_user_photo, static_page)
+                           upload_user_photo, static_page,
+                           delete_plot, delete_tree)
+
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
@@ -637,7 +639,7 @@ class PlotUpdateTest(unittest.TestCase):
         psycopg2.extras.register_hstore(connection.cursor(), globally=True)
 
     def tearDown(self):
-        self.plot.delete_with_user(self.user)
+        self.plot.delete_with_user(self.user, cascade=True)
         self.choice_field.delete()
         delete_all_app_users()
 
@@ -1746,3 +1748,56 @@ class ScssCompilationTests(ViewTestCase):
         request = self.factory.get("", {"-color": "fff"})
         with self.assertRaises(ValidationError):
             compile_scss(request)
+
+
+class DeleteViewTests(ViewTestCase):
+    def setUp(self):
+        super(DeleteViewTests, self).setUp()
+        self.instance = make_instance()
+        self.user = make_commander_user(self.instance)
+        self.p1 = Point(-7615441.0, 5953519.0)
+
+        self.request = self.factory.get('')
+        self.request.user = self.user
+
+    def test_delete_plot_view_failure(self):
+        plot = Plot(geom=self.p1, instance=self.instance)
+        plot.save_with_user(self.user)
+        self.assertEqual(Plot.objects.count(), 1)
+
+        Tree(plot=plot, instance=self.instance,
+             diameter=10).save_with_user(self.user)
+
+        raw_response = delete_plot(self.request, self.instance, plot.pk)
+
+        self.assertEqual(raw_response,
+                         "Cannot delete plot with existing trees.")
+        self.assertEqual(Plot.objects.count(), 1)
+
+    def test_delete_plot_view_success(self):
+        plot = Plot(geom=self.p1, instance=self.instance)
+        plot.save_with_user(self.user)
+        self.assertEqual(Plot.objects.count(), 1)
+
+        raw_response = delete_plot(self.request, self.instance, plot.pk)
+
+        self.assertEqual(raw_response, {'ok': True})
+        self.assertEqual(Plot.objects.count(), 0)
+
+    def test_delete_tree_view_failure(self):
+        with self.assertRaises(Http404):
+            delete_tree(self.request, self.instance, 1)
+
+    def test_delete_tree_view_success(self):
+        plot = Plot(geom=self.p1, instance=self.instance)
+        plot.save_with_user(self.user)
+
+        tree = Tree(plot=plot, instance=self.instance, diameter=10)
+        tree.save_with_user(self.user)
+
+        self.assertEqual(Tree.objects.count(), 1)
+
+        raw_response = delete_tree(self.request, self.instance, tree.pk)
+
+        self.assertEqual(raw_response, {'ok': True})
+        self.assertEqual(Tree.objects.count(), 0)

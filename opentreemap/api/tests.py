@@ -1137,8 +1137,13 @@ class UpdatePlotAndTree(TestCase):
         tree = mkTree(self.instance, self.user, plot=plot)
         tree_id = tree.pk
         url = "%s/%s/plots/%d" % (API_PFX, self.instance.url_name, plot_id)
-        response = self.client.delete(url, **self.sign)
 
+        response = self.client.delete(url, **self.sign)
+        self.assertEqual(403, response.status_code,
+                         "Expected 403 when there's still a tree")
+
+        tree.delete_with_user(self.user)
+        response = self.client.delete(url, **self.sign)
         self.assertEqual(200, response.status_code,
                          "Expected 200 status code after delete")
 
