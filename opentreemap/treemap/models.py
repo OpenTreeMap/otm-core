@@ -79,6 +79,13 @@ class AuthorizableGeoHStoreUDFManager(AuthorizableManager,
                                                 using=self._db)
 
 
+class StaticPage(models.Model):
+    instance = models.ForeignKey(Instance)
+    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+
+
 class BenefitCurrencyConversion(Dictable, models.Model):
     """
     These conversion factors are used to convert a unit of benefit

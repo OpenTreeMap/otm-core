@@ -29,14 +29,15 @@ from treemap.audit import (Role, Audit, approve_or_reject_audit_and_apply,
                            approve_or_reject_audits_and_apply,
                            FieldPermission)
 from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
-                            InstanceUser, BenefitCurrencyConversion)
+                            InstanceUser, BenefitCurrencyConversion,
+                            StaticPage)
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, edits, user_audits,
                            search_tree_benefits, user, instance_user_view,
                            update_plot_and_tree, update_user, add_tree_photo,
                            root_settings_js_view, instance_settings_js_view,
                            compile_scss, approve_or_reject_photo,
-                           upload_user_photo)
+                           upload_user_photo, static_page)
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
@@ -61,6 +62,46 @@ class InstanceValidationTest(TestCase):
                                   default_role=global_role)
 
         self.instance2.save()
+
+
+class StaticPageViewTest(ViewTestCase):
+    def setUp(self):
+        super(StaticPageViewTest, self).setUp()
+
+        self.staticPage = StaticPage(content="content",
+                                     name="blah",
+                                     title="yo",
+                                     instance=self.instance)
+        self.staticPage.save()
+
+        global_role = Role(name='global', rep_thresh=0)
+        global_role.save()
+
+        p = Point(-8515941.0, 4953519.0)
+        self.otherInstance = Instance(name='i1', geo_rev=0, center=p,
+                                      default_role=global_role)
+
+    def test_can_get_page(self):
+        # Note- case insensitive match
+        rslt = static_page(None, self.instance, "bLaH")
+
+        self.assertEqual(rslt['content'], self.staticPage.content)
+        self.assertEqual(rslt['title'], self.staticPage.title)
+
+    def test_instance_mismatch(self):
+        self.assertRaises(Http404,
+                          static_page, None, self.otherInstance, "blah")
+
+    def test_missing_name(self):
+        self.assertRaises(Http404,
+                          static_page, None, self.instance, "missing")
+
+    def test_can_get_pre_defined_page(self):
+        # Note- case insensitive match
+        rslt = static_page(None, self.instance, "AbOUt")
+
+        self.assertIsNotNone(rslt['content'])
+        self.assertIsNotNone(rslt['title'])
 
 
 class BoundaryViewTest(ViewTestCase):
