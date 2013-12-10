@@ -1026,16 +1026,16 @@ edit_plot_detail_view = login_required(
         creates_instance_user(
             render_template('treemap/plot_detail.html', plot_detail))))
 
+update_plot_detail_view = login_or_401(
+    json_api_call(
+        instance_request(
+            creates_instance_user(update_plot_detail))))
+
 get_plot_eco_view = instance_request(etag(_plot_hash)(
     render_template('treemap/partials/plot_eco.html', plot_detail)))
 
 get_plot_sidebar_view = instance_request(etag(_plot_hash)(
     render_template('treemap/partials/sidebar.html', plot_detail)))
-
-update_plot_detail_view = login_or_401(
-    json_api_call(
-        instance_request(
-            creates_instance_user(update_plot_detail))))
 
 plot_popup_view = instance_request(etag(_plot_hash)(
     render_template('treemap/partials/plot_popup.html', plot_detail)))
