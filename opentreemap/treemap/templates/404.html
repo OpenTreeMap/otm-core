@@ -17,14 +17,14 @@
                 <p>
                     {% trans "Sorry, we couldn't find the page you requested." %}
                     {% if request.instance %}
-                        {% trans "Try"}
+                        {% trans "Try" %}
                         <a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "exploring trees" %}</a>
                         {% trans "or feel free to" %}
                     {% else %}
                         {% trans "You're welcome to " %}
                     {% endif %}
                     <a href="mailto:{{ settings.SUPPORT_EMAIL_ADDRESS }}">{% trans "contact support" %}</a>
-                    {% trans "if you feel like you reached this page in error." %}
+                    {% trans "if you believe you reached this page in error." %}
                 </p>
         </div>
 </div>
