@@ -14,5 +14,6 @@ admin.site.register(models.BenefitCurrencyConversion)
 admin.site.register(models.Species)
 admin.site.register(models.Tree)
 admin.site.register(models.User)
+admin.site.register(models.StaticPage)
 
 admin.site.register(udf.UserDefinedFieldDefinition)

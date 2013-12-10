@@ -38,7 +38,7 @@ from treemap.search import create_filter
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
 from treemap.models import (Plot, Tree, User, Species, Instance,
-                            TreePhoto)
+                            TreePhoto, StaticPage)
 from treemap.units import get_units, get_display_value
 
 from ecobenefits.views import _benefits_for_trees
@@ -979,17 +979,29 @@ def approve_or_reject_photo(
 
 
 def static_page(request, instance, page):
-    # TODO: Right now all pages simply return
-    #       the same string. In the future, they'll grab
-    #       from the instance config
+    # TODO: Right now there is no UI for static pages
+    #       and we only allow access to a few specific
+    #       pages or those that were manually created
+    #
+    #       In the future we will want to add a full
+    #       UI and perhaps auto-create these pages
+    try:
+        staticpage = StaticPage.objects.get(name__iexact=page,
+                                            instance=instance)
 
-    allowed_pages = ['Resources', 'FAQ', 'About']
+        content = staticpage.content
+        title = staticpage.title
+    except StaticPage.DoesNotExist:
+        allowed_pages = ['resources', 'faq', 'about']
 
-    if page not in allowed_pages:
-        raise Http404()
+        if page.lower() not in allowed_pages:
+            raise Http404()
 
-    return {'content': trans('There is no content for this page yet'),
-            'title': page}
+        content = trans('There is no content for this page yet')
+        title = page
+
+    return {'content': content,
+            'title': title}
 
 
 def index(request, instance):
