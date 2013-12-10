@@ -10,14 +10,15 @@ var $ = require('jquery'),
     _trunkRowSelector = '#trunk-row',
     _totalRowSelector = '#diameter-calculator-total-row',
     _totalReferenceSelector = '#diameter-calculator-total-reference',
-    _totalFieldSelector = 'input[name="tree.diameter"]';
+    _totalFieldSelector = 'input[name="tree.diameter"]',
+    _diameterFieldSelector = '[data-field="tree.diameter"]';
 
 function eventToText(e) {
     return $(e.target).val();
 }
 
-function elementToText(el) {
-    return $(el).val();
+function elementToValue(el) {
+    return $(el).data('value');
 }
 
 function zeroToEmptyString(n) {
@@ -38,6 +39,12 @@ function circumferenceToDiameter(circumference) {
     return circumference / Math.PI;
 }
 
+function toFixed(value, $parentForm) {
+    var $field = $parentForm.find(_diameterFieldSelector).first(),
+        digits = $field.data('digits');
+    return value.toFixed(digits);
+}
+
 function calculateDiameterFromMultiple(diameters) {
     // this formula is a shortcut for:
     // 1) calculate area of each diameter
@@ -54,18 +61,21 @@ function getDiameter ($parentForm) {
     return $parentForm.find(_totalFieldSelector).val();
 }
 
-function reset ($parentForm, initialDiameter) {
+function init ($parentForm, diameter) {
     var $trunkRow = $parentForm.find(_trunkRowSelector),
-        $totalField = $parentForm.find(_totalFieldSelector),
+        $totalRow = $parentForm.find(_totalRowSelector),
+        $totalReference = $parentForm.find(_totalReferenceSelector),
         $singleDiameterEntryField = $trunkRow.find(_diameterSelector),
         $singleCircumferenceEntryField = $trunkRow.find(_circumferenceSelector);
 
-    $totalField.val(initialDiameter);
-
-    $singleDiameterEntryField.val(initialDiameter);
-
-    $singleCircumferenceEntryField
-        .val(diameterToCircumference(initialDiameter));
+    if (diameter) {
+        var diameterDisplay = toFixed(textToFloat(diameter), $parentForm);
+        $totalReference.html(diameterDisplay);
+        $singleDiameterEntryField.val(diameterDisplay);
+        $singleCircumferenceEntryField
+            .val(toFixed(diameterToCircumference(diameter), $parentForm));
+    }
+    $totalRow.hide();
 
     // delete additional rows that were added to the worksheet
     // for multiple trunks, resetting to just the initial row
@@ -83,12 +93,11 @@ function updateTotalDiameter ($parentForm) {
     var $diameterFields = $parentForm.find(_diameterSelector),
         $totalField = $parentForm.find(_totalFieldSelector),
         $totalReference = $parentForm.find(_totalReferenceSelector),
-        diameterValues = _.map($diameterFields,
-                               _.compose(textToFloat, elementToText)),
+        diameterValues = _.map($diameterFields, elementToValue),
         validValues = _.reject(diameterValues, isNaN),
         totalDiameter = calculateDiameterFromMultiple(validValues);
 
-    $totalReference.html(totalDiameter);
+    $totalReference.html(toFixed(totalDiameter, $parentForm));
     $totalField.val(totalDiameter);
 }
 
@@ -114,29 +123,33 @@ function createWorksheetRow ($parentForm) {
     $circEl.val('');
     $tbody.append($newEl);
 
-    // when a row is added, make the total row visible.
-    // it will remain visible thereafter.
-    $totalRow.css('visibility', 'visible');
+    // when a row is added, show the total row.
+    // it will remain visible until this module is re-initialized.
+    $totalRow.show();
 }
 
-function updateCorrespondingRowValue ($parentForm, event) {
-    // when a worksheet row is modified, update the corresponding 
-    // circ/diam as well, and finally, update the readonly total field
+function updateRowValues ($parentForm, event) {
+    // when diameter or circumference is changed: compute the other value,
+    // store both values in "data-value" attributes, display a fixed
+    // point version of the other value, and update the readonly total field.
     var $eventTarget = $(event.target),
         isDiameter = $eventTarget.is(_diameterSelector),
         isCircumference = $eventTarget.is(_circumferenceSelector),
         conversionFn = isDiameter ?
             diameterToCircumference : circumferenceToDiameter,
         selector = isDiameter ?
-            _circumferenceSelector : _diameterSelector,
-        transFn = _.compose(zeroToEmptyString, conversionFn,
-                            textToFloat, eventToText);
+            _circumferenceSelector : _diameterSelector;
 
     if (isDiameter || isCircumference) {
+        var value = textToFloat(eventToText(event)),
+            otherValue = conversionFn(value),
+            otherValueDisplay = zeroToEmptyString(toFixed(otherValue, $parentForm));
         $eventTarget
+            .data('value', value)
             .closest('tr')
             .find(selector)
-            .val(transFn(event));
+            .data('value', otherValue)
+            .val(otherValueDisplay);
         updateTotalDiameter($parentForm);
     }
 }
@@ -148,21 +161,21 @@ exports = module.exports = function diameterCalculator (options) {
         initialDiameter = getDiameter($parentForm),
 
         unsubscribeCancel = options.cancelStream
-            .onValue(reset, $parentForm, initialDiameter),
+            .onValue(init, $parentForm, initialDiameter),
 
         unsubscribeOk = options.saveOkStream
             .onValue(function () {
                 initialDiameter = getDiameter($parentForm);
-                reset($parentForm, initialDiameter);
+                init($parentForm, initialDiameter);
             });
 
     $parentForm.find(_tbodySelector).on('input', 'input',
-                         _.partial(updateCorrespondingRowValue,
-                                   $parentForm));
+                         _.partial(updateRowValues, $parentForm));
 
     $parentForm.find(_addRowBtnSelector).click(
         _.partial(createWorksheetRow, $parentForm));
 
+    init($parentForm, initialDiameter);
 
     return {
         destroy: function () {

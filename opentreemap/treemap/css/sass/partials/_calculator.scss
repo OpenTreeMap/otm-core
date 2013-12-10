@@ -29,7 +29,7 @@
             }
 
             input {
-                width: 85%;
+                width: 56%;
             }
         }
     }
@@ -46,10 +46,6 @@
 }
 
 [data-field="tree.diameter"] {
-    .input-append {
-        display: none;
-    }
-
     #diameter-video {
         font-size: 12px;
         font-weight: 400;

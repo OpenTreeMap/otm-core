@@ -129,7 +129,9 @@ def get_display_value(instance, category_name, value_name, value):
     else:
         digits = 1
 
-    return converted_value, number_format(converted_value, decimal_pos=digits)
+    rounded_value = round(converted_value, digits)
+
+    return converted_value, number_format(rounded_value, decimal_pos=digits)
 
 
 def get_storage_value(instance, category_name, value_name, value):
