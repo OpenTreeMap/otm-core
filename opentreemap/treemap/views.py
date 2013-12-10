@@ -87,6 +87,11 @@ def _search_hash(request, instance):
     return hashlib.md5(string_to_hash).hexdigest()
 
 
+def _get_plot_or_404(plot_id, instance):
+    InstancePlot = instance.scope_model(Plot)
+    return get_object_or_404(InstancePlot, pk=plot_id)
+
+
 def add_tree_photo(request, instance, plot_id, tree_id=None):
     plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
     tree_ids = [t.pk for t in plot.tree_set.all()]
@@ -202,8 +207,7 @@ def create_plot(user, instance, *args, **kwargs):
 
 
 def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
-    InstancePlot = instance.scope_model(Plot)
-    plot = get_object_or_404(InstancePlot, pk=plot_id)
+    plot = _get_plot_or_404(plot_id, instance)
 
     if tree_id:
         tree = get_object_or_404(Tree,
@@ -315,8 +319,7 @@ def add_plot(request, instance):
 
 
 def update_plot_detail(request, instance, plot_id):
-    InstancePlot = instance.scope_model(Plot)
-    plot = get_object_or_404(InstancePlot, pk=plot_id)
+    plot = _get_plot_or_404(plot_id, instance)
     return update_plot_and_tree_request(request, plot)
 
 
