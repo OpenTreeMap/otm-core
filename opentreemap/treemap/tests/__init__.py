@@ -37,7 +37,7 @@ class OTM2TestRunner(CeleryTestSuiteRunner, DjangoTestSuiteRunner):
     )
 
     def __init__(self, *args, **kwargs):
-        self.live_server_tests = kwargs['live_server_tests']
+        self.live_server_tests = kwargs.get('live_server_tests', False)
         return super(OTM2TestRunner, self).__init__(*args, **kwargs)
 
     def run_tests(self, *args, **kwargs):

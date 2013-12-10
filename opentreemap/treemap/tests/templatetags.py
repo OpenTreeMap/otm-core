@@ -612,21 +612,6 @@ class InlineFieldTagTests(TestCase):
                 )).strip()
 
 
-class DiameterTagsTest(TestCase):
-    def setUp(self):
-        self.template = Template("{% load diameter %}"
-                                 "{{ value|to_circumference }}")
-
-    def test_none_yields_none(self):
-        """
-        Test that a None value will return the empty string.
-
-        This test is in response to a bug observed in github issue #463
-        """
-        rt = self.template.render(Context({'value': None}))
-        self.assertEqual(rt, '')
-
-
 class PartialTagTest(TestCase):
     def _assert_renders_as(self, template_text, subdict_name, expected):
         context = Context({
