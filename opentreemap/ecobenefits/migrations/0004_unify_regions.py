@@ -42,7 +42,6 @@ class Migration(DataMigration):
             if area != multi.area:
                 raise Exception('Area of multipolygon is incorrect')
 
-        print 'ccc'
         orm.ITreeRegion.objects.all().delete()
 
         for code in regions:
