@@ -1,5 +1,5 @@
 """ Fabric script to handle common building tasks """
-from fabric.api import cd, run, require, sudo, env, local, settings, abort
+from fabric.api import cd, run, require, sudo, env, local, settings, abort, get
 from fabric.contrib.files import exists as host_exists
 from fabric.colors import yellow
 from fabric import operations
@@ -71,14 +71,43 @@ def _venv_exec(cmd):
     require('venv_path')
     return '%s/bin/%s' % (env.venv_path, cmd)
 
-def _python(cmd):
+def _python(cmd, coverage=False):
     require('venv_path')
-    return _venv_exec('python %s' % cmd)
 
-def _manage(cmd):
-    """ Execute 'cmd' as a django management command in the venv """
+    if coverage:
+        bin = "coverage run --source='.'"
+    else:
+        bin = "python"
+
+    return _venv_exec('%s %s' % (bin, cmd))
+
+def _report_coverage():
+    require('venv_path')
+
     with cd(env.site_path):
-        sudo(_python('manage.py %s' % cmd))
+        run(_venv_exec('coverage report'))
+
+def _fetch_coverage(local_path):
+    require('venv_path')
+
+    with cd("/tmp"):
+        # Clean up in case something was left over...
+        sudo('rm -rf htmlcov coverage.tar.gz')
+
+    with cd(env.site_path):
+        run(_venv_exec('coverage html -d /tmp/htmlcov'))
+
+    with cd("/tmp"):
+        run('tar czf coverage.tar.gz htmlcov')
+        get('/tmp/coverage.tar.gz', local_path)
+
+        sudo('rm -rf htmlcov coverage.tar.gz')
+
+def _manage(cmd, coverage=False):
+    """ Execute 'cmd' as a django management command in the venv """
+
+    with cd(env.site_path):
+        sudo(_python('manage.py %s' % cmd, coverage=coverage))
 
 def _admin(cmd):
     """ Execute 'cmd' as a django-admin command in the venv """
@@ -147,20 +176,30 @@ def runserver(bind_to='0.0.0.0',port='12000'):
 
     _manage('runserver %s:%s' % (bind_to, port))
 
-def test(test_filter=""):
+def test(test_filter="", coverage=None):
     """ Run app tests on the server """
     require('site_path')
     require('venv_path')
 
-    _manage('test --settings=opentreemap.test_settings %s' % test_filter)
+    _manage('test --settings=opentreemap.test_settings %s' % test_filter,
+            coverage=coverage)
 
-def uitest(test_filter=""):
+    if coverage:
+        _report_coverage()
+        _fetch_coverage('coverage.tar.gz')
+
+def uitest(test_filter="", coverage=False):
     """ Run selenium UI tests """
     require('site_path')
     require('venv_path')
 
     _manage('test --live-server-tests '
-            '--settings=opentreemap.test_settings %s' % test_filter)
+            '--settings=opentreemap.test_settings %s' % test_filter,
+            coverage=coverage)
+
+    if coverage:
+        _report_coverage()
+        _fetch_coverage('coverage.tar.gz')
 
 def restart_app():
     """ Restart the gunicorns running the app """
