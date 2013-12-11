@@ -1150,11 +1150,11 @@ class UpdatePlotAndTree(TestCase):
                         'Expected a json object response with a "ok" key'
                         'set to True')
 
-        plot = Plot.objects.filter(pk=plot_id)
-        tree = Tree.objects.filter(pk=tree_id)
+        plots = Plot.objects.filter(pk=plot_id)
+        trees = Tree.objects.filter(pk=tree_id)
 
-        self.assertTrue(len(plot) == 0, 'Expected plot to be gone')
-        self.assertTrue(len(tree) == 0, 'Expected tree to be gone')
+        self.assertTrue(len(plots) == 0, 'Expected plot to be gone')
+        self.assertTrue(len(trees) == 0, 'Expected tree to be gone')
 
     def test_remove_tree(self):
         plot = mkPlot(self.instance, self.user)
