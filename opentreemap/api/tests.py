@@ -1137,8 +1137,13 @@ class UpdatePlotAndTree(TestCase):
         tree = mkTree(self.instance, self.user, plot=plot)
         tree_id = tree.pk
         url = "%s/%s/plots/%d" % (API_PFX, self.instance.url_name, plot_id)
-        response = self.client.delete(url, **self.sign)
 
+        response = self.client.delete(url, **self.sign)
+        self.assertEqual(403, response.status_code,
+                         "Expected 403 when there's still a tree")
+
+        tree.delete_with_user(self.user)
+        response = self.client.delete(url, **self.sign)
         self.assertEqual(200, response.status_code,
                          "Expected 200 status code after delete")
 
@@ -1150,11 +1155,11 @@ class UpdatePlotAndTree(TestCase):
                         'Expected a json object response with a "ok" key'
                         'set to True')
 
-        plot = Plot.objects.filter(pk=plot_id)
-        tree = Tree.objects.filter(pk=tree_id)
+        plots = Plot.objects.filter(pk=plot_id)
+        trees = Tree.objects.filter(pk=tree_id)
 
-        self.assertTrue(len(plot) == 0, 'Expected plot to be gone')
-        self.assertTrue(len(tree) == 0, 'Expected tree to be gone')
+        self.assertTrue(len(plots) == 0, 'Expected plot to be gone')
+        self.assertTrue(len(trees) == 0, 'Expected tree to be gone')
 
     def test_remove_tree(self):
         plot = mkPlot(self.instance, self.user)

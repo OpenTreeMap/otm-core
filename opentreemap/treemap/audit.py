@@ -641,7 +641,14 @@ class Authorizable(UserTrackable):
         self._has_been_clobbered = False
 
     def _get_perms_set(self, user, direct_only=False):
-        perms = user.get_instance_permissions(self.instance, self._model_name)
+
+        try:
+            perms = user.get_instance_permissions(self.instance,
+                                                  self._model_name)
+        except ObjectDoesNotExist:
+            raise AuthorizeException(trans(
+                "Cannot retrieve permissions for this object because "
+                "it does not have an instance associated with it."))
 
         if direct_only:
             perm_set = {perm.field_name

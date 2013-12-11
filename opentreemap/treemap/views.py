@@ -87,6 +87,11 @@ def _search_hash(request, instance):
     return hashlib.md5(string_to_hash).hexdigest()
 
 
+def _get_plot_or_404(plot_id, instance):
+    InstancePlot = instance.scope_model(Plot)
+    return get_object_or_404(InstancePlot, pk=plot_id)
+
+
 def add_tree_photo(request, instance, plot_id, tree_id=None):
     plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
     tree_ids = [t.pk for t in plot.tree_set.all()]
@@ -202,8 +207,7 @@ def create_plot(user, instance, *args, **kwargs):
 
 
 def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
-    InstancePlot = instance.scope_model(Plot)
-    plot = get_object_or_404(InstancePlot, pk=plot_id)
+    plot = _get_plot_or_404(plot_id, instance)
 
     if tree_id:
         tree = get_object_or_404(Tree,
@@ -315,8 +319,7 @@ def add_plot(request, instance):
 
 
 def update_plot_detail(request, instance, plot_id):
-    InstancePlot = instance.scope_model(Plot)
-    plot = get_object_or_404(InstancePlot, pk=plot_id)
+    plot = _get_plot_or_404(plot_id, instance)
     return update_plot_and_tree_request(request, plot)
 
 
@@ -334,6 +337,24 @@ def update_plot_and_tree_request(request, plot):
     except ValidationError as ve:
         return bad_request_json_response(
             validation_error_dict=ve.message_dict)
+
+
+@transaction.commit_on_success
+def delete_tree(request, instance, tree_id):
+    InstanceTree = instance.scope_model(Tree)
+    tree = get_object_or_404(InstanceTree, pk=tree_id)
+    tree.delete_with_user(request.user)
+    return {'ok': True}
+
+
+def delete_plot(request, instance, plot_id):
+
+    plot = _get_plot_or_404(plot_id, instance)
+    try:
+        plot.delete_with_user(request.user)
+        return {'ok': True}
+    except ValidationError as ve:
+        return "; ".join(ve.messages)
 
 
 @transaction.commit_on_success
@@ -1026,16 +1047,26 @@ edit_plot_detail_view = login_required(
         creates_instance_user(
             render_template('treemap/plot_detail.html', plot_detail))))
 
+update_plot_detail_view = login_or_401(
+    json_api_call(
+        instance_request(
+            creates_instance_user(update_plot_detail))))
+
+delete_tree_view = login_or_401(
+    json_api_call(
+        instance_request(
+            creates_instance_user(delete_tree))))
+
+delete_plot_view = login_or_401(
+    json_api_call(
+        instance_request(
+            creates_instance_user(delete_plot))))
+
 get_plot_eco_view = instance_request(etag(_plot_hash)(
     render_template('treemap/partials/plot_eco.html', plot_detail)))
 
 get_plot_sidebar_view = instance_request(etag(_plot_hash)(
     render_template('treemap/partials/sidebar.html', plot_detail)))
-
-update_plot_detail_view = login_or_401(
-    json_api_call(
-        instance_request(
-            creates_instance_user(update_plot_detail))))
 
 plot_popup_view = instance_request(etag(_plot_hash)(
     render_template('treemap/partials/plot_popup.html', plot_detail)))

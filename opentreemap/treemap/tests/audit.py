@@ -373,7 +373,7 @@ class ReviewTest(TestCase):
 
         width_audit = self.plot.audits().order_by('-created')[0]
 
-        self.plot.delete_with_user(self.commander_user)
+        self.plot.delete_with_user(self.commander_user, cascade=True)
 
         approve_or_reject_existing_edit(
             width_audit, self.commander_user, approved=False)
@@ -914,20 +914,20 @@ class UserRoleFieldPermissionTest(TestCase):
                           tree.save_with_user, self.outlaw)
 
     def test_delete_object(self):
-        self.assertRaises(AuthorizeException,
-                          self.tree.delete_with_user, self.outlaw)
+        with self.assertRaises(AuthorizeException):
+            self.tree.delete_with_user(self.outlaw)
 
-        self.assertRaises(AuthorizeException,
-                          self.plot.delete_with_user, self.outlaw)
+        with self.assertRaises(AuthorizeException):
+            self.plot.delete_with_user(self.outlaw, cascade=True)
 
-        self.assertRaises(AuthorizeException,
-                          self.tree.delete_with_user, self.officer)
+        with self.assertRaises(AuthorizeException):
+            self.tree.delete_with_user(self.officer)
 
-        self.assertRaises(AuthorizeException,
-                          self.plot.delete_with_user, self.officer)
+        with self.assertRaises(AuthorizeException):
+            self.plot.delete_with_user(self.officer, cascade=True)
 
         self.tree.delete_with_user(self.commander)
-        self.plot.delete_with_user(self.commander)
+        self.plot.delete_with_user(self.commander, cascade=True)
 
     def test_clobbering_authorized(self):
         "When clobbering with a superuser, nothing should happen"
