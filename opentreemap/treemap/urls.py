@@ -70,6 +70,7 @@ urlpatterns = patterns(
     url(r'^config/settings.js$',
         instance_settings_js_view, name='settings'),
     url(r'^benefit/search$', search_tree_benefits_view),
-    url(r'^users/%s/$' % USERNAME_PATTERN, instance_user_view),
+    url(r'^users/%s/$' % USERNAME_PATTERN, instance_user_view,
+        name="user_profile"),
     url(r'^users/%s/edits/$' % USERNAME_PATTERN, instance_user_audits),
 )
