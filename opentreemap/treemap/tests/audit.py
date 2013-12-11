@@ -10,8 +10,12 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from django.core.exceptions import (FieldError, ValidationError,
                                     ObjectDoesNotExist)
+from django.core.urlresolvers import reverse
+
 from django.db import IntegrityError, connection
 from django.contrib.gis.geos import Point
+
+from treemap.templatetags.util import audit_detail_link
 
 from treemap.models import (Tree, Plot, FieldPermission, User, InstanceUser,
                             Instance)
@@ -1045,3 +1049,52 @@ class AuthorizableManagerTest(TestCase):
         self.assertEqual(qs.count(), 1)
         self.assertEqual(qs[0]['width'], 3)
         self.assertEqual('NO_KEY', qs[0].get('address_street', 'NO_KEY'))
+
+
+class AuditDetailTagTest(TestCase):
+
+    def setUp(self):
+        self.p1 = Point(-8515222.0, 4953200.0)
+
+        self.instance = make_instance()
+        self.user = make_commander_user(self.instance)
+
+        self.plot = Plot(geom=self.p1, instance=self.instance)
+        self.plot.save_with_user(self.user)
+
+        self.tree = Tree(
+            plot=self.plot, instance=self.instance, readonly=False)
+        self.tree.save_with_user(self.user)
+
+    def test_tree_link(self):
+        audit = self.tree.audits()[0]
+        link = audit_detail_link(audit)
+
+        target = reverse('tree_detail',
+                         kwargs={'instance_url_name': self.instance.url_name,
+                                 'plot_id': self.tree.plot.pk,
+                                 'tree_id': self.tree.pk })
+
+        self.assertEqual(link, target)
+
+    def test_plot_link(self):
+        audit = self.plot.audits()[0]
+        link = audit_detail_link(audit)
+
+        target = reverse('plot_detail',
+                         kwargs={'instance_url_name': self.instance.url_name,
+                                 'plot_id': self.plot.pk })
+
+        self.assertEqual(link, target)
+
+    def test_bad_model_returns_none(self):
+        audit = self.plot.audits()[0]
+        audit.model = 'invaild'
+
+        self.assertIsNone(audit_detail_link(audit))
+
+    def test_bad_id_returns_none(self):
+        audit = self.plot.audits()[0]
+        audit.model_id = -1000
+
+        self.assertIsNone(audit_detail_link(audit))

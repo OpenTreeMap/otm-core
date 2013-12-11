@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load l10n %}
 {% load image %}
+{% load util %}
 
 {% block page_title %} | {% trans "Edits" %} {{plot.pk|unlocalize}}{% endblock %}
 
@@ -36,9 +37,10 @@ active
 
       <table class="table table-striped">
         <tr>
+          <th>{% trans "Details" %}</th>
           <th>{% trans "Edit ID" %}</th>
-          <th>{% trans "Model" %}</th>
-          <th>{% trans "Model #" %}</th>
+          <th>{% trans "Type" %}</th>
+          <th>{% trans "Object ID" %}</th>
           <th>{% trans "Field" %}</th>
           <th>{% trans "Old Value" %}</th>
           <th>{% trans "Current Value" %}</th>
@@ -47,7 +49,14 @@ active
         </tr>
         {% for audit in audits %}
         <tr>
-          {% localize off %}  
+          {% localize off %}
+          <td>
+            {% with link=audit|audit_detail_link %}
+            {% if link %}
+            <a href="{{ link }}">Detail</a>
+            {% endif %}
+            {% endwith %}
+          </td>
           <td>{{ audit.pk }}</td>
           <td>
             <a href="?models={{ audit.model }}">
