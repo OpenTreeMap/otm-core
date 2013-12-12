@@ -839,14 +839,11 @@ class PlotViewTestCase(ViewTestCase):
     def setUp(self):
         super(PlotViewTestCase, self).setUp()
 
-        self.p = Point(-7615441.0, 5953519.0)
+        region = ITreeRegion.objects.get(code='NoEastXXX')
+        self.p = region.geometry.point_on_surface
 
         self.instance = make_instance(point=self.p)
         self.user = make_commander_user(self.instance)
-
-        ITreeRegion.objects.create(
-            code='PiedmtCLT',
-            geometry=MultiPolygon((self.p.buffer(10),)))
 
 
 class PlotViewTest(PlotViewTestCase):
@@ -863,23 +860,19 @@ class PlotViewTest(PlotViewTestCase):
             self.assertTrue(len(details['benefits']) > 2)
             return details['benefits']
 
-        p1 = Point(5000, 5000)
-        p1b = Point(5001, 5001)
-        p2 = Point(-5000, -5000)
-        m1 = MultiPolygon([p1.buffer(50)])
-        m2 = MultiPolygon([p2.buffer(50)])
-
         s = Species(
             otm_code='BDM OTHER',
             common_name='other',
             instance=self.instance)
         s.save_with_user(self.user)
 
-        ITreeRegion.objects.all().delete()
-        self.instance.bounds = m1.union(m2)
+        region1 = ITreeRegion.objects.get(code='NoEastXXX')
+        region2 = ITreeRegion.objects.get(code='PiedmtCLT')
+        p1 = region1.geometry.point_on_surface
+        p2 = region2.geometry.point_on_surface
+
+        self.instance.bounds = p1.buffer(10).union(p2.buffer(10))
         self.instance.save()
-        ITreeRegion.objects.create(code='NoEastXXX', geometry=m1)
-        ITreeRegion.objects.create(code='PiedmtCLT', geometry=m2)
 
         plot1 = Plot(instance=self.instance, geom=p1)
         plot1.save_with_user(self.user)
@@ -898,13 +891,6 @@ class PlotViewTest(PlotViewTestCase):
         benefits2 = get_benefits_from_request()
 
         self.assertNotEqual(benefits1, benefits2)
-
-        plot1.geom = p1b
-        plot1.save_with_user(self.user)
-
-        benefits3 = get_benefits_from_request()
-
-        self.assertEqual(benefits1, benefits3)
 
     def test_simple_audit_history(self):
         plot = Plot(instance=self.instance, geom=self.p)
@@ -1440,13 +1426,11 @@ class SearchTreeBenefitsTests(ViewTestCase):
 
     def setUp(self):
         super(SearchTreeBenefitsTests, self).setUp()
-        self.p1 = Point(-7615441.0, 5953519.0)
+
+        region = ITreeRegion.objects.get(code='PiedmtCLT')
+        self.p1 = region.geometry.point_on_surface
         self.instance = make_instance(point=self.p1)
         self.commander = make_commander_user(self.instance)
-
-        ITreeRegion.objects.create(
-            code='PiedmtCLT',
-            geometry=MultiPolygon((self.p1.buffer(10),)))
 
         # Assuming that CEAT has an itree_code of CEM OTHER in PiedmtCLT
         self.species_good = Species(instance=self.instance, otm_code='CEAT')

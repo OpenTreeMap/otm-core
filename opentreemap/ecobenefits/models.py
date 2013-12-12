@@ -6,7 +6,7 @@ from django.contrib.gis.db import models
 
 
 class ITreeRegion(models.Model):
-    code = models.CharField(max_length=40)
+    code = models.CharField(max_length=40, unique=True)
     geometry = models.MultiPolygonField(srid=3857)
 
     objects = models.GeoManager()

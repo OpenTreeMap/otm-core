@@ -16,8 +16,10 @@ from ecobenefits import species_codes_for_regions
 
 class EcoTest(UrlTestCase):
     def setUp(self):
+        region = ITreeRegion.objects.get(code='NoEastXXX')
+        p = region.geometry.point_on_surface
 
-        self.instance = make_instance(is_public=True)
+        self.instance = make_instance(is_public=True, point=p)
 
         self.user = make_commander_user(self.instance)
 
@@ -29,18 +31,7 @@ class EcoTest(UrlTestCase):
                                instance=self.instance)
         self.species.save_with_user(self.user)
 
-        ITreeRegion.objects.all().delete()
-
-        p1 = self.instance.center
-
-        self.region_buffer_in_meters = 1000
-
-        ITreeRegion.objects.create(
-            code='NoEastXXX',
-            geometry=MultiPolygon([p1.buffer(1000)]))
-
-        self.plot = Plot(geom=p1,
-                         instance=self.instance)
+        self.plot = Plot(geom=p, instance=self.instance)
 
         self.plot.save_with_user(self.user)
 
@@ -99,7 +90,7 @@ class EcoTest(UrlTestCase):
 
     def test_default_region(self):
         # move the point outside the eco region
-        self.plot.geom.x += self.region_buffer_in_meters * 2
+        self.plot.geom = Point(0, 0)
         self.plot.save_with_user(self.user)
 
         result = tree_benefits(instance=self.instance,
@@ -127,46 +118,17 @@ class EcoTest(UrlTestCase):
 
 class WithinITreeRegionsTest(UrlTestCase):
 
-    def assertViewPerformsCorrectly(self, before_add_expected_value,
-                                    after_add_expected_value,
-                                    x=-8515941.0,
-                                    y=4953519.0,
-                                    params=None,
-                                    make_point_from_x_y=True):
-
-        params = params or {'x': str(x), 'y': str(y)}
-        p = Point(x, y) if make_point_from_x_y else Point(0, 0)
-
+    def assertViewPerformsCorrectly(self, x, y, expected_value):
+        params = {'x': str(x), 'y': str(y)}
         request = RequestFactory().get('', params)
+        self.assertEqual(within_itree_regions(request), expected_value)
 
-        result = within_itree_regions(request)
-        self.assertEqual(result, before_add_expected_value)
-
-        ITreeRegion.objects.create(code='NoEastXXX',
-                                   geometry=MultiPolygon([p.buffer(1000)]))
-
-        result = within_itree_regions(request)
-        self.assertEqual(result, after_add_expected_value)
 
     def test_within_itree_regions_valid(self):
-        self.assertViewPerformsCorrectly(before_add_expected_value=False,
-                                         after_add_expected_value=True)
+        region = ITreeRegion.objects.get(code='NoEastXXX')
+        p = region.geometry.point_on_surface
+        self.assertViewPerformsCorrectly(p.x, p.y, True)
+
 
     def test_within_itree_regions_no_overlap(self):
-        self.assertViewPerformsCorrectly(before_add_expected_value=False,
-                                         after_add_expected_value=False,
-                                         make_point_from_x_y=False)
-
-    def test_within_itree_regions_no_x(self):
-        y = 4953519.0
-        self.assertViewPerformsCorrectly(before_add_expected_value=False,
-                                         after_add_expected_value=False,
-                                         y=y,
-                                         params={'y': str(y)})
-
-    def test_within_itree_regions_no_y(self):
-        x = -8515941.0
-        self.assertViewPerformsCorrectly(before_add_expected_value=False,
-                                         after_add_expected_value=False,
-                                         x=x,
-                                         params={'x': str(x)})
+        self.assertViewPerformsCorrectly(0, 0, False)
