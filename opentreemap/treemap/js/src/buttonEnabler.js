@@ -1,7 +1,7 @@
 "use strict";
 
 // A button or anchor provides:
-//     disable="disabled": it should start disabled
+//     disabled="disabled": it should start disabled
 //     data-always-enable: true if it should always be enabled
 //     data-href: the URL that will either be a direct link or a "next=" after login
 //     data-disabled-title (optional) = a title to set on the disabled element
