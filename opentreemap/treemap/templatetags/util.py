@@ -9,6 +9,7 @@ register = template.Library()
 
 register.filter('get', lambda a, b: a[b])
 
+
 def _instance_reverse(name, thing, **kwargs):
     kwargs['instance_url_name'] = thing.instance.url_name
     return reverse(name, kwargs=kwargs)
@@ -43,6 +44,7 @@ AUDIT_MODEL_LOOKUP_FNS = {
     'tree': lambda id: Tree.objects.get(pk=id),
     'treephoto': lambda id: TreePhoto.objects.get(pk=id),
 }
+
 
 @register.filter
 def audit_detail_link(audit):

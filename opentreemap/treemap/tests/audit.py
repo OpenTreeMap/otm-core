@@ -1073,7 +1073,7 @@ class AuditDetailTagTest(TestCase):
         target = reverse('tree_detail',
                          kwargs={'instance_url_name': self.instance.url_name,
                                  'plot_id': self.tree.plot.pk,
-                                 'tree_id': self.tree.pk })
+                                 'tree_id': self.tree.pk})
 
         self.assertEqual(link, target)
 
@@ -1083,7 +1083,7 @@ class AuditDetailTagTest(TestCase):
 
         target = reverse('plot_detail',
                          kwargs={'instance_url_name': self.instance.url_name,
-                                 'plot_id': self.plot.pk })
+                                 'plot_id': self.plot.pk})
 
         self.assertEqual(link, target)
 
