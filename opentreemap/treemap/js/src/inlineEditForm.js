@@ -273,6 +273,11 @@ exports.init = function(options) {
         eventsLandingInDisplayModeStream =
             actionStream.filter(_.contains, eventsLandingInDisplayMode),
 
+        shouldBeInEditModeStream = options.ShouldBeInEditModeStream || Bacon.never(),
+        modeChangeStream = shouldBeInEditModeStream
+            .map(function(isInEdit) {
+                return isInEdit ? 'edit:start' : 'cancel';
+            });
 
     $(editFields).find("input[data-date-format]").datepicker();
 
@@ -296,13 +301,8 @@ exports.init = function(options) {
     actionStream.plug(saveStream);
     actionStream.plug(cancelStream);
     actionStream.plug(externalCancelStream);
+    actionStream.plug(modeChangeStream);
 
-    if (options.shouldBeInEditModeStream) {
-        actionStream.plug(options.shouldBeInEditModeStream
-                          .map(function(isInEdit) {
-                                return isInEdit ? 'edit:start' : 'cancel';
-                            }));
-    }
 
     actionStream.plug(
         responseErrorStream.map('save:error')
