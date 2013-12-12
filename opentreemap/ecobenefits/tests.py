@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.test.client import RequestFactory
-from django.contrib.gis.geos import Point, MultiPolygon
+from django.contrib.gis.geos import Point
 
 from treemap.models import Plot, Tree, Species
 from treemap.tests import UrlTestCase, make_instance, make_commander_user
@@ -123,12 +123,10 @@ class WithinITreeRegionsTest(UrlTestCase):
         request = RequestFactory().get('', params)
         self.assertEqual(within_itree_regions(request), expected_value)
 
-
     def test_within_itree_regions_valid(self):
         region = ITreeRegion.objects.get(code='NoEastXXX')
         p = region.geometry.point_on_surface
         self.assertViewPerformsCorrectly(p.x, p.y, True)
-
 
     def test_within_itree_regions_no_overlap(self):
         self.assertViewPerformsCorrectly(0, 0, False)

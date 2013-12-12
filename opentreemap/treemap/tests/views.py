@@ -20,7 +20,7 @@ from django.db import connection
 from django.db.models.query import QuerySet
 
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.gis.geos import Point, MultiPolygon
+from django.contrib.gis.geos import Point
 
 from ecobenefits.models import ITreeRegion
 
