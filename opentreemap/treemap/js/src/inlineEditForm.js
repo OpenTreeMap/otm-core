@@ -271,11 +271,20 @@ exports.init = function(options) {
 
         unhandledErrorStream = responseErrorStream
             .filter(BU.isPropertyUndefined, 'validationErrors')
-            .map('.error');
+            .map('.error'),
+
+        editStartStream = actionStream.filter(isEditStart),
+
+        inEditModeProperty = actionStream.map(function (event) {
+            return _.contains(eventsLandingInEditMode, event);
+        }).toProperty(),
+
+        saveOKFormDataStream = saveOkStream.map('.formData'),
+
         eventsLandingInDisplayModeStream =
             actionStream.filter(_.contains, eventsLandingInDisplayMode),
 
-        shouldBeInEditModeStream = options.ShouldBeInEditModeStream || Bacon.never(),
+        shouldBeInEditModeStream = options.shouldBeInEditModeStream || Bacon.never(),
         modeChangeStream = shouldBeInEditModeStream
             .map(function(isInEdit) {
                 return isInEdit ? 'edit:start' : 'cancel';
@@ -288,40 +297,29 @@ exports.init = function(options) {
     // into the page via AJAX without reiniting inlineEditForm
     $(window).on('submit', form, function(event) { event.preventDefault(); });
 
-    saveOkStream
-        .map('.formData')
-        .onValue(formFieldsToDisplayValues);
-
-    validationErrorsStream.onValue(showValidationErrorsInline);
-
-    unhandledErrorStream.onValue(errorCallback);
+    // Merge the major streams on the page together so that it can centrally
+    // manage the cleanup of ui forms after the change in run mode
     actionStream.plug(editStream);
     actionStream.plug(saveStream);
     actionStream.plug(cancelStream);
     actionStream.plug(externalCancelStream);
+    actionStream.plug(saveOkStream.map('save:ok'));
+    actionStream.plug(responseErrorStream.map('save:error'));
     actionStream.plug(modeChangeStream);
-
-
-    actionStream.plug(
-        responseErrorStream.map('save:error')
-    );
-
-    actionStream.plug(
-        saveOkStream.map('save:ok')
-    );
-    unhandledErrorStream.onValue(logError);
-
-    var editStartStream = actionStream.filter(isEditStart);
-    editStartStream.onValue(displayValuesToFormFields);
-    editStartStream.onValue(showCollectionUdfs);
-
     actionStream.onValue(hideAndShowElements, editFields, eventsLandingInEditMode);
     actionStream.onValue(hideAndShowElements, displayFields, eventsLandingInDisplayMode);
     actionStream.onValue(hideAndShowElements, validationFields, ['save:error']);
 
-    var inEditModeProperty = actionStream.map(function (event) {
-        return _.contains(eventsLandingInEditMode, event);
-    }).toProperty();
+    saveOKFormDataStream.onValue(formFieldsToDisplayValues);
+
+    validationErrorsStream.onValue(showValidationErrorsInline);
+
+    unhandledErrorStream.onValue(errorCallback);
+    unhandledErrorStream.onValue(logError);
+
+    editStartStream.onValue(displayValuesToFormFields);
+    editStartStream.onValue(showCollectionUdfs);
+
     eventsLandingInDisplayModeStream.onValue(resetCollectionUdfs);
 
     return {
