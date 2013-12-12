@@ -27,7 +27,6 @@ exports.init = function(options) {
         editFields = options.editFields,
         validationFields = options.validationFields,
         errorCallback = options.errorCallback || $.noop,
-        disabledMessage = $edit.attr('title'),
         onSaveBefore = options.onSaveBefore || _.identity,
         editStream = $edit.asEventStream('click').map('edit:start'),
         saveStream = (options.saveStream || $save.asEventStream('click')).map('save:start'),
@@ -214,10 +213,6 @@ exports.init = function(options) {
             return action === 'edit:start';
         },
 
-        isEditCancel = function (action) {
-            return action === 'cancel';
-        },
-
         responseStream = saveStream
             .map(getDataToSave)
             .flatMap(update),
@@ -266,12 +261,6 @@ exports.init = function(options) {
                     $(fields).hide();
                 }
             }
-        },
-
-        enableOrDisableEditButton = function () {
-            var disable = $(editFields).filter(':not(.btn)').length === 0;
-            $edit.prop('disabled', disable);
-            $edit.attr('title', disable ? disabledMessage : '');
         },
 
         validationErrorsStream = responseErrorStream
