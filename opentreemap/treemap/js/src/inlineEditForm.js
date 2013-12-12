@@ -16,9 +16,7 @@ var $ = require('jquery'),
 require('bootstrap-datepicker');
 
 exports.init = function(options) {
-    var self = {
-            updateUrl: options.updateUrl
-        },
+    var updateUrl = options.updateUrl,
         form = options.form,
         $edit = $(options.edit),
         $save = $(options.save),
@@ -33,6 +31,10 @@ exports.init = function(options) {
         externalCancelStream = BU.triggeredObjectStream('cancel'),
         cancelStream = $cancel.asEventStream('click').map('cancel'),
         actionStream = new Bacon.Bus(),
+
+        logError = function(error) {
+            console.error("Error uploading to " + updateUrl, error);
+        },
 
         resetCollectionUdfs = function() {
             // Hide the edit row
@@ -192,7 +194,7 @@ exports.init = function(options) {
 
         update = function(data) {
             return Bacon.fromPromise($.ajax({
-                url: self.updateUrl,
+                url: updateUrl,
                 type: 'PUT',
                 contentType: "application/json",
                 data: JSON.stringify(data)
@@ -293,10 +295,6 @@ exports.init = function(options) {
     validationErrorsStream.onValue(showValidationErrorsInline);
 
     unhandledErrorStream.onValue(errorCallback);
-    unhandledErrorStream.onValue(function(error) {
-        console.error("Error uploading to " + self.updateUrl, error);
-    });
-
     actionStream.plug(editStream);
     actionStream.plug(saveStream);
     actionStream.plug(cancelStream);
@@ -311,6 +309,7 @@ exports.init = function(options) {
     actionStream.plug(
         saveOkStream.map('save:ok')
     );
+    unhandledErrorStream.onValue(logError);
 
     var editStartStream = actionStream.filter(isEditStart);
     editStartStream.onValue(displayValuesToFormFields);
@@ -325,12 +324,13 @@ exports.init = function(options) {
     }).toProperty();
     eventsLandingInDisplayModeStream.onValue(resetCollectionUdfs);
 
-    return $.extend(self, {
+    return {
         // immutable access to all actions
         actionStream: actionStream.map(_.identity),
         cancel: externalCancelStream.trigger,
         saveOkStream: saveOkStream,
         cancelStream: cancelStream,
-        inEditModeProperty: inEditModeProperty
-    });
+        inEditModeProperty: inEditModeProperty,
+        setUpdateUrl: function (url) { updateUrl = url; }
+    };
 };
