@@ -270,6 +270,9 @@ exports.init = function(options) {
         unhandledErrorStream = responseErrorStream
             .filter(BU.isPropertyUndefined, 'validationErrors')
             .map('.error');
+        eventsLandingInDisplayModeStream =
+            actionStream.filter(_.contains, eventsLandingInDisplayMode),
+
 
     $(editFields).find("input[data-date-format]").datepicker();
 
@@ -313,10 +316,6 @@ exports.init = function(options) {
     editStartStream.onValue(displayValuesToFormFields);
     editStartStream.onValue(showCollectionUdfs);
 
-    var displayModeStream = actionStream
-            .filter(_.contains, eventsLandingInDisplayMode)
-            .onValue(resetCollectionUdfs);
-
     actionStream.onValue(hideAndShowElements, editFields, eventsLandingInEditMode);
     actionStream.onValue(hideAndShowElements, displayFields, eventsLandingInDisplayMode);
     actionStream.onValue(hideAndShowElements, validationFields, ['save:error']);
@@ -324,6 +323,7 @@ exports.init = function(options) {
     var inEditModeProperty = actionStream.map(function (event) {
         return _.contains(eventsLandingInEditMode, event);
     }).toProperty();
+    eventsLandingInDisplayModeStream.onValue(resetCollectionUdfs);
 
     return $.extend(self, {
         // immutable access to all actions
