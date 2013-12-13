@@ -5,12 +5,15 @@ from __future__ import division
 
 from django.test.client import RequestFactory
 from django.contrib.gis.geos import Point
+from unittest import TestCase
 
-from treemap.models import Plot, Tree, Species, ITreeRegion
-from treemap.tests import UrlTestCase, make_instance, make_commander_user
+from treemap.models import Plot, Tree, Species, ITreeRegion, ITreeCodeOverride
+from treemap.tests import (UrlTestCase, make_instance, make_commander_user,
+                           delete_all_app_users)
 
 from treemap.ecobenefits import (tree_benefits, within_itree_regions,
-                                 species_codes_for_regions)
+                                 species_codes_for_regions,
+                                 itree_code_for_species_in_region)
 
 
 class EcoTest(UrlTestCase):
@@ -106,7 +109,7 @@ class EcoTest(UrlTestCase):
                                   'co2', 'lbs/year', 563)
 
 
-class WithinITreeRegionsTest(UrlTestCase):
+class WithinITreeRegionsTest(TestCase):
 
     def assertViewPerformsCorrectly(self, x, y, expected_value):
         params = {'x': str(x), 'y': str(y)}
@@ -120,3 +123,35 @@ class WithinITreeRegionsTest(UrlTestCase):
 
     def test_within_itree_regions_no_overlap(self):
         self.assertViewPerformsCorrectly(0, 0, False)
+
+
+class ITreeCodeForSpeciesInRegionTest(TestCase):
+
+    def setUp(self):
+        self.instance = make_instance()
+        self.commander = make_commander_user(self.instance)
+        self.region = ITreeRegion.objects.get(code='PiedmtCLT')
+
+    def tearDown(self):
+        delete_all_app_users()
+
+    def make_species(self, otm_code):
+        species = Species(instance=self.instance, otm_code=otm_code)
+        species.save_with_user(self.commander)
+        return species
+
+    def assert_itree_code(self, species, expected_itree_code):
+        itree_code = itree_code_for_species_in_region(species, self.region)
+        self.assertEqual(itree_code, expected_itree_code)
+
+    def test_no_override(self):
+        species = self.make_species('CEAT')
+        self.assert_itree_code(species, 'CEM OTHER')
+
+    def test_override(self):
+        species = self.make_species('ACRU')
+        ITreeCodeOverride(
+            instance_species=species,
+            region=self.region,
+            itree_code='BDM OTHER').save_with_user(self.commander)
+        self.assert_itree_code(species, 'BDM OTHER')

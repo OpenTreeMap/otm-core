@@ -10,7 +10,7 @@ from django.contrib.gis.geos.point import Point
 
 from eco.core import Benefits, sum_factor_and_conversion
 
-from treemap.models import Tree
+from treemap.models import Tree, ITreeCodeOverride
 from treemap.decorators import json_api_call
 from treemap.species import CODES
 from treemap.models import ITreeRegion
@@ -50,48 +50,81 @@ def get_benefit_label(benefit_name):
     return _benefit_labels[benefit_name]
 
 
-def get_trees_for_eco(trees):
+def _get_trees_for_eco(trees):
     """
     Converts a QuerySet of trees, a single tree, or any iterable of trees into
-    input appropriate for _benefits_for_trees
+    input appropriate for benefits_for_trees.
     """
     if isinstance(trees, QuerySet):
         return trees.exclude(species__otm_code__isnull=True)\
                     .exclude(diameter__isnull=True)\
-                    .values('diameter', 'species__otm_code', 'plot__geom')
+                    .values('diameter', 'species__pk', 'species__otm_code',
+                            'plot__geom')
 
     if not hasattr(trees, '__iter__'):
         trees = (trees,)
 
     return [{'diameter': tree.diameter,
+             'species__pk': tree.species.pk,
              'species__otm_code': tree.species.otm_code,
              'plot__geom': tree.plot.geom}
             for tree in trees
             if tree.diameter is not None and tree.species is not None]
 
 
-def get_codes_for_species(species, region):
-    "Get the iTree codes for a specific in a specific region"
-    benefits = Benefits()
-    codes = benefits.lookup_species_code(
-        region=region, species=species.species, genus=species.genus)
-
-    return codes
+def itree_code_for_species_in_region(species, region):
+    return _itree_code_for_species_in_region(species.pk, region,
+                                             species.otm_code)
 
 
-def itree_code_for_species_in_region(otm_code, region):
-    if region in CODES:
-        if otm_code in CODES[region]:
-            return CODES[region][otm_code]
+def _itree_code_for_species_in_region(species_pk, region, otm_code,
+                                      overrides=None):
+    if region:
+        if overrides is not None:
+            # Look for an override in dict (pre-loaded from database)
+            if region in overrides and species_pk in overrides[region]:
+                return overrides[region][species_pk]
+        else:
+            # Look for an override in database
+            qs = ITreeCodeOverride.objects.filter(
+                instance_species__pk=species_pk, region=region)
+            if qs:
+                return qs[0].itree_code
+
+        # No override, so look up default code
+        if otm_code and region.code in CODES:
+            if otm_code in CODES[region.code]:
+                return CODES[region.code][otm_code]
+
     return None
 
 
-def _benefits_for_trees(trees, instance):
+def get_default_region(instance):
+    region_code = instance.itree_region_default
+    if region_code:
+        return ITreeRegion.objects.get(code=region_code)
+    else:
+        return None
+
+
+def _load_itree_code_overrides(instance):
+    dict = {}
+    qs = ITreeCodeOverride.objects.filter(instance_species__instance=instance)
+    for override in qs:
+        if override.region not in dict:
+            dict[override.region] = {}
+        dict[override.region][override.species.pk] = override.itree_code
+    return dict
+
+
+def benefits_for_trees(trees, instance):
     # A species may be assigned to a tree for which there is
     # no itree code defined for the region in which the tree is
     # planted. This counter keeps track of the number of
     # trees for which the itree code lookup was successful
     num_trees_used_in_calculation = 0
+
+    default_region = get_default_region(instance)
 
     factor_conversions = instance.factor_conversions
 
@@ -103,29 +136,34 @@ def _benefits_for_trees(trees, instance):
     for region in regions:
         region.prepared_geometry = region.geometry.prepared
 
+    itree_code_overrides = _load_itree_code_overrides(instance)
+
+    trees = _get_trees_for_eco(trees)
+
     trees_by_region = {}
     for tree in trees:
-        region_code = instance.itree_region_default
+        tree_region = default_region
+
         for region in regions:
             if region.prepared_geometry.contains(tree['plot__geom']):
-                region_code = region.code
+                tree_region = region
                 break
 
-        if region_code is not None:
-            itree_code = itree_code_for_species_in_region(
-                tree['species__otm_code'], region_code)
+        itree_code = _itree_code_for_species_in_region(
+            tree['species__pk'], tree_region,
+            tree['species__otm_code'], overrides=itree_code_overrides)
 
-            if itree_code is not None:
-                if region_code not in trees_by_region:
-                    trees_by_region[region_code] = []
+        if itree_code is not None:
+            if tree_region not in trees_by_region:
+                trees_by_region[tree_region] = []
 
-                trees_by_region[region_code].append((itree_code,
-                                                     tree['diameter']))
-                num_trees_used_in_calculation += 1
+            trees_by_region[tree_region].append((itree_code, tree['diameter']))
+            num_trees_used_in_calculation += 1
 
     kwh, gal, co2, aq = [], [], [], []
 
-    for (region_code, trees) in trees_by_region.iteritems():
+    for (tree_region, trees) in trees_by_region.iteritems():
+        region_code = tree_region.code
         benefits = Benefits(factor_conversions)
 
         kwh.append(benefits.get_energy_conserved(region_code, trees))
@@ -168,7 +206,7 @@ def tree_benefits(instance, tree_id):
         rslt = {'benefits': {}, 'error': 'MISSING_SPECIES'}
     else:
         rslt = {'benefits':
-                _benefits_for_trees(get_trees_for_eco(tree), instance)}
+                benefits_for_trees(tree, instance)}
 
     return rslt
 

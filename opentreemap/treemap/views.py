@@ -41,8 +41,7 @@ from treemap.models import (Plot, Tree, User, Species, Instance,
                             TreePhoto, StaticPage)
 from treemap.units import get_units, get_display_value
 
-from treemap.ecobenefits import (_benefits_for_trees, get_benefit_label,
-                                 get_trees_for_eco)
+from treemap.ecobenefits import (benefits_for_trees, get_benefit_label)
 
 from opentreemap.util import json_from_request, route
 
@@ -232,8 +231,7 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
 
     if should_calculate_eco:
         try:
-            eco_trees = get_trees_for_eco(tree)
-            context.update(_tree_benefits_helper(eco_trees, 1, 1, instance))
+            context.update(_tree_benefits_helper(tree, 1, 1, instance))
         except Exception:
             pass
 
@@ -692,13 +690,10 @@ def search_tree_benefits(request, instance):
                           'n_plots': total_plots,
                           'percent': None}}
     else:
-        trees_for_eco = get_trees_for_eco(trees)
-
-        return _tree_benefits_helper(trees_for_eco, total_plots, total_trees,
-                                     instance)
+        return _tree_benefits_helper(trees, total_plots, total_trees, instance)
 
 
-def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
+def _tree_benefits_helper(trees, total_plots, total_trees, instance):
 
     def displayize_benefit(key):
         benefit = benefits[key]
@@ -714,8 +709,7 @@ def _tree_benefits_helper(trees_for_eco, total_plots, total_trees, instance):
 
         return benefit
 
-    benefits, num_calculated_trees = _benefits_for_trees(trees_for_eco,
-                                                         instance)
+    benefits, num_calculated_trees = benefits_for_trees(trees, instance)
 
     percent = 0
     if num_calculated_trees > 0 and total_trees > 0:

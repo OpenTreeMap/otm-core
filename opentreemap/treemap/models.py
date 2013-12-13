@@ -642,22 +642,19 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
             return super(Tree, clz).action_format_string_for_audit(audit)
 
     @property
-    def species_in_region(self):
+    def has_itree_code(self):
         # Import done here to prevent circular imports
-        from treemap.ecobenefits import itree_code_for_species_in_region
+        from treemap.ecobenefits import (itree_code_for_species_in_region,
+                                         get_default_region)
 
-        # Return True if we have no species so we can tell the user to add one
         if self.species is None:
-            return True
-
-        try:
-            region = ITreeRegion.objects.filter(
-                geometry__contains=self.plot.geom)[0]
-        except IndexError:
             return False
-        species_code = itree_code_for_species_in_region(self.species.otm_code,
-                                                        region.code)
-        return species_code is not None
+
+        qs = ITreeRegion.objects.filter(geometry__contains=self.plot.geom)
+        region = qs[0] if qs else get_default_region(self.species.instance)
+
+        itree_code = itree_code_for_species_in_region(self.species, region)
+        return itree_code is not None
 
     def delete_with_user(self, user, *args, **kwargs):
         # All callers should decorate with @transaction.commit_on_success
@@ -769,3 +766,12 @@ class ITreeRegion(models.Model):
     geometry = models.MultiPolygonField(srid=3857)
 
     objects = models.GeoManager()
+
+
+class ITreeCodeOverride(models.Model, Auditable):
+    instance_species = models.ForeignKey(Species)
+    region = models.ForeignKey(ITreeRegion)
+    itree_code = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = ('instance_species', 'region',)
