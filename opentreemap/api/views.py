@@ -32,10 +32,10 @@ from treemap.decorators import instance_request
 from treemap.exceptions import HttpBadRequestException
 from treemap.search import create_filter
 from treemap.audit import Audit, approve_or_reject_audit_and_apply
+from treemap.ecobenefits import tree_benefits
 
 from opentreemap.util import json_from_request
 
-from ecobenefits.views import tree_benefits
 
 from api.models import APIKey, APILog
 from api.auth import login_required, create_401unauthorized, login_optional

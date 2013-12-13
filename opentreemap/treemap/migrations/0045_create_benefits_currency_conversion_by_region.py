@@ -53,12 +53,6 @@ class Migration(DataMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        u'ecobenefits.itreeregion': {
-            'Meta': {'object_name': 'ITreeRegion'},
-            'code': ('django.db.models.fields.CharField', [], {'max_length': '40'}),
-            'geometry': ('django.contrib.gis.db.models.fields.MultiPolygonField', [], {'srid': '3857'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
-        },
         u'treemap.audit': {
             'Meta': {'object_name': 'Audit'},
             'action': ('django.db.models.fields.IntegerField', [], {}),
@@ -253,5 +247,5 @@ class Migration(DataMigration):
         }
     }
 
-    complete_apps = ['ecobenefits', 'treemap']
+    complete_apps = ['treemap']
     symmetrical = True

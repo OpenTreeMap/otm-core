@@ -19,8 +19,7 @@ from django.utils.translation import ugettext_lazy as trans
 from django.contrib.auth.models import (UserManager, AbstractBaseUser,
                                         PermissionsMixin)
 
-from ecobenefits.species import ITREE_REGIONS
-from ecobenefits.models import ITreeRegion
+from treemap.species import ITREE_REGIONS
 
 from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
                            Dictable, Audit, AuthorizableQuerySet,
@@ -645,7 +644,7 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
     @property
     def species_in_region(self):
         # Import done here to prevent circular imports
-        from ecobenefits.views import itree_code_for_species_in_region
+        from treemap.ecobenefits import itree_code_for_species_in_region
 
         # Return True if we have no species so we can tell the user to add one
         if self.species is None:

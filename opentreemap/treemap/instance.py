@@ -17,8 +17,7 @@ from treemap.features import feature_enabled
 
 from treemap.json_field import JSONField
 
-from ecobenefits.models import ITreeRegion
-from ecobenefits.species import ITREE_REGION_CHOICES
+from treemap.species import ITREE_REGION_CHOICES
 
 URL_NAME_PATTERN = r'[a-zA-Z]+[a-zA-Z0-9\-]*'
 
@@ -175,6 +174,7 @@ class Instance(models.Model):
         return urlencode(scss_vars)
 
     def has_itree_region(self):
+        from treemap.models import ITreeRegion  # prevent circular import
         intersecting_regions = (ITreeRegion
                                 .objects
                                 .filter(geometry__intersects=self.bounds))

@@ -22,15 +22,13 @@ from django.db.models.query import QuerySet
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 
-from ecobenefits.models import ITreeRegion
-
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.audit import (Role, Audit, approve_or_reject_audit_and_apply,
                            approve_or_reject_audits_and_apply,
                            FieldPermission)
 from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, BenefitCurrencyConversion,
-                            StaticPage)
+                            StaticPage, ITreeRegion)
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, edits, user_audits,
                            search_tree_benefits, user, instance_user_view,

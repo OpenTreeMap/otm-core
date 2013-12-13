@@ -11,13 +11,11 @@ from django.contrib.gis.geos import Point, MultiPolygon
 from django.core.exceptions import ValidationError
 
 from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
-                            ImportEvent)
+                            ImportEvent, ITreeRegion)
 from treemap.audit import Audit, ReputationMetric
 from treemap.tests import (make_instance, make_commander_user,
                            make_user_with_default_role, make_user,
                            make_simple_boundary, make_commander_role)
-
-from ecobenefits.models import ITreeRegion
 
 
 class HashModelTest(TestCase):

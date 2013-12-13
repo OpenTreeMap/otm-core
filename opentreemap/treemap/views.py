@@ -41,8 +41,8 @@ from treemap.models import (Plot, Tree, User, Species, Instance,
                             TreePhoto, StaticPage)
 from treemap.units import get_units, get_display_value
 
-from ecobenefits.views import _benefits_for_trees
-from ecobenefits.util import get_benefit_label, get_trees_for_eco
+from treemap.ecobenefits import (_benefits_for_trees, get_benefit_label,
+                                 get_trees_for_eco)
 
 from opentreemap.util import json_from_request, route
 

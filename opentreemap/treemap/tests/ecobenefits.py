@@ -6,12 +6,11 @@ from __future__ import division
 from django.test.client import RequestFactory
 from django.contrib.gis.geos import Point
 
-from treemap.models import Plot, Tree, Species
+from treemap.models import Plot, Tree, Species, ITreeRegion
 from treemap.tests import UrlTestCase, make_instance, make_commander_user
 
-from ecobenefits.models import ITreeRegion
-from ecobenefits.views import tree_benefits, within_itree_regions
-from ecobenefits import species_codes_for_regions
+from treemap.ecobenefits import (tree_benefits, within_itree_regions,
+                                 species_codes_for_regions)
 
 
 class EcoTest(UrlTestCase):
@@ -42,15 +41,6 @@ class EcoTest(UrlTestCase):
                          diameter=1630)
 
         self.tree.save_with_user(self.user)
-
-    def test_tree_benefits_url(self):
-        self.assert_200(
-            '/%s/eco/benefit/tree/%s/' % (self.instance.url_name,
-                                          self.tree.id))
-
-    def test_tree_benefit_url_invalid(self):
-        self.assert_404(
-            '/%s/eco/benefit/tree/999/' % self.instance.url_name)
 
     def test_group_eco(self):
         pass  # TODO: Once filtering has been enabled
