@@ -172,3 +172,4 @@ create_instance = _get_create_instance()
 
 from basic import *  # NOQA
 from map import *  # NOQA
+from plot_detail import *  # NOQA
