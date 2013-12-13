@@ -30,9 +30,7 @@ exports.init = function(options) {
     // Set up cross-site forgery protection
     $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
-    _.each(options.typeaheads, function(typeahead) {
-        otmTypeahead.create(typeahead);
-    });
+    otmTypeahead.bulkCreate(options.typeaheads);
 
     // Add threaded comments "reply" links
     var commentFormTempl = $("#template-comment").html();

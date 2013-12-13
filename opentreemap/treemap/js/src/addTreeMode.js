@@ -62,9 +62,7 @@ function init(options) {
     $editFields.show();
     U.$find('[data-class="display"]', $form).hide();  // Hide display fields
 
-    _.each(options.typeaheads, function(typeahead) {
-        otmTypeahead.create(typeahead);
-    });
+    otmTypeahead.bulkCreate(options.typeaheads);
 
     // Handle setting initial tree position via geolocate button
     var geolocateStream;

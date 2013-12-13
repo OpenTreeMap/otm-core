@@ -29,9 +29,7 @@ function init(options) {
 }
 
 function activate() {
-    _.each(typeaheads, function(typeahead) {
-        otmTypeahead.create(typeahead);
-    });
+    otmTypeahead.bulkCreate(typeaheads);
 
     currentPlotMover = plotMover.init({
         mapManager: mapManager,

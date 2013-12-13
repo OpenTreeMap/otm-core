@@ -8,6 +8,7 @@ require('bootstrap');
 require('typeahead');
 
 var $ = require("jquery"),
+    _ = require("underscore"),
     mustache = require("mustache"),
     Bacon = require("baconjs"),
     BU = require("treemap/baconUtils");
@@ -52,7 +53,7 @@ exports.getDatum = function($typeahead) {
     return $typeahead.data('datum');
 };
 
-exports.create = function(options) {
+var create = exports.create = function(options) {
     var config = options.config,
         template = mustache.compile($(options.template).html()),
         $input = $(options.input),
@@ -149,4 +150,8 @@ exports.create = function(options) {
             $openButton.removeClass('active');
         });
     }
+};
+
+exports.bulkCreate = function (typeaheads) {
+    _.each(typeaheads, create);
 };
