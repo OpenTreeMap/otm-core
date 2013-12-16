@@ -3,12 +3,14 @@ import importlib
 from django.test import LiveServerTestCase
 
 from selenium.common.exceptions import WebDriverException
-
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.webdriver import WebDriver
 
 from django.conf import settings
 
-from treemap.tests import create_mock_system_user
+from treemap.tests import create_mock_system_user, make_commander_user
+
+from treemap.models import Tree, Plot, Instance, User
 
 
 class UITestCase(LiveServerTestCase):
