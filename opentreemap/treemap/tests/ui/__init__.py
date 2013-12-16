@@ -8,6 +8,8 @@ from selenium.webdriver.firefox.webdriver import WebDriver
 
 from django.conf import settings
 
+from treemap.tests import create_mock_system_user
+
 
 class UITestCase(LiveServerTestCase):
     def use_xvfb(self):
@@ -39,6 +41,115 @@ class UITestCase(LiveServerTestCase):
         super(UITestCase, self).tearDown()
 
 
+class TreemapUITestCase(UITestCase):
+    def setUp(self):
+        # for some reason, the call to this helper
+        # in setup_databases() on the test runner
+        # is not executing in this context.
+        # this is required to make the test work.
+        create_mock_system_user()
+
+        super(TreemapUITestCase, self).setUp()
+
+        instance_name = 'autotest_instance'
+
+        Instance.objects.filter(name=instance_name).delete()
+
+        self.instance = create_instance(
+            name=instance_name,
+            is_public=False,
+            url_name='autotest-instance')
+
+        self.user = make_commander_user(instance=self.instance,
+                                        username='username')
+
+        self.profile = RegistrationProfile.objects.create_profile(self.user)
+
+    def tearDown(self):
+        self.instance.delete()
+        self.user.delete_with_user(User.system_user())
+        super(TreemapUITestCase, self).tearDown()
+
+    def _browse_to_url(self, url):
+        self.driver.get(self.live_server_url + url)
+
+    def _process_login_form(self, username, password):
+        username_elmt = self.driver.find_element_by_name('username')
+        password_elmt = self.driver.find_element_by_name('password')
+
+        username_elmt.send_keys(username)
+        password_elmt.send_keys(password)
+
+        submit = self.driver.find_element_by_css_selector('form * button')
+        submit.click()
+
+    def _login_workflow(self):
+        self._browse_to_url('/accounts/logout/')
+        self._browse_to_url('/accounts/login/')
+
+        login = self.driver.find_element_by_id("login")
+        login.click()
+
+        self._process_login_form(self.user.username, 'password')
+
+    def _drag_marker_on_map(self, endx, endy):
+        actions = ActionChains(self.driver)
+        marker = self.driver.find_elements_by_css_selector(
+            '.leaflet-marker-pane img')[0]
+
+        actions.drag_and_drop_by_offset(marker, endx, endy)
+        actions.perform()
+
+    def _click_point_on_map(self, x, y):
+        # We're in add tree mode, now we need to click somewhere on the map
+        map_div = self.driver.find_element_by_id('map')
+
+        actions = ActionChains(self.driver)
+        # move to the center of the map
+        actions.move_to_element(map_div)
+
+        # move away from the center
+        actions.move_by_offset(x, y)
+
+        actions.click()
+        actions.perform()
+
+    def _start_add_tree_and_click_point(self, x, y):
+        # Enter add tree mode
+
+        add_tree = self.driver.find_elements_by_css_selector(
+            ".subhead .addBtn")[0]
+
+        add_tree.click()
+
+        self._click_point_on_map(x, y)
+
+    def instance_trees(self):
+        return Tree.objects.filter(instance=self.instance)
+
+    def ntrees(self):
+        return self.instance_trees().count()
+
+    def instance_plots(self):
+        return Plot.objects.filter(instance=self.instance)
+
+    def nplots(self):
+        return self.instance_plots().count()
+
+    def _go_to_map_page(self):
+        self._browse_to_url("/autotest-instance/map/")
+
+    def _end_add_tree_by_clicking_add_tree(self):
+        add_this_tree = self.driver.find_elements_by_css_selector(
+            ".add-step-final .addBtn")[0]
+
+        add_this_tree.click()
+
+    def _login_and_go_to_map_page(self):
+        self._login_workflow()
+        self._go_to_map_page()
+
+
 def parse_function_string(module_and_function_string):
     """
     Given a string like:
@@ -61,3 +172,4 @@ create_instance = _get_create_instance()
 
 from basic import *  # NOQA
 from map import *  # NOQA
+from plot_detail import *  # NOQA

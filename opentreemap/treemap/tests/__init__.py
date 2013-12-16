@@ -431,18 +431,19 @@ class MockSession():
             return default
 
 
-from templatetags import *  # NOQA
-from udfs import *          # NOQA
-from audit import *         # NOQA
-from auth import *          # NOQA
-from models import *        # NOQA
-from search import *        # NOQA
-from urls import *          # NOQA
-from views import *         # NOQA
-from util import *          # NOQA
-from middleware import *    # NOQA
-from json_field import *    # NOQA
-from units import *         # NOQA
-from management import *    # NOQA
-from ui.basic import *      # NOQA
-from ui.map import *        # NOQA
+from templatetags import *    # NOQA
+from udfs import *            # NOQA
+from audit import *           # NOQA
+from auth import *            # NOQA
+from models import *          # NOQA
+from search import *          # NOQA
+from urls import *            # NOQA
+from views import *           # NOQA
+from util import *            # NOQA
+from middleware import *      # NOQA
+from json_field import *      # NOQA
+from units import *           # NOQA
+from management import *      # NOQA
+from ui.basic import *        # NOQA
+from ui.map import *          # NOQA
+from ui.plot_detail import *  # NOQA
