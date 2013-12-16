@@ -5,10 +5,14 @@ from __future__ import division
 
 from time import sleep
 
+from selenium.common.exceptions import ElementNotVisibleException
+from django.contrib.gis.geos import Point
+
+from django.utils.unittest.case import skip
+
 from treemap.tests.ui import TreemapUITestCase
 
-from treemap.models import Plot
-
+from treemap.models import Plot, Tree
 
 DATABASE_COMMIT_DELAY = 2
 
@@ -54,3 +58,31 @@ class PlotDetailTest(TreemapUITestCase):
         plot = Plot.objects.get(pk=plot.pk)
 
         self.assertEqual(plot.width, 5)
+
+    @skip("This test will pass when issue #943 is fixed "
+          "https://github.com/azavea/OTM2/issues/943")
+    def test_tree_add_cancel(self):
+
+        plot = Plot(instance=self.instance,
+                    geom=Point(0, 0))
+
+        plot.save_with_user(self.user)
+
+        self._login_workflow()
+        self._go_to_plot_detail_edit(plot.pk)
+
+        add_tree_button = self.driver.find_element_by_id(
+            'add-tree')
+        add_tree_button.click()
+
+        cancel_edit_button = self.driver.find_element_by_id(
+            'cancel-edit-plot')
+        cancel_edit_button.click()
+
+        tree_details_div = self.driver.find_element_by_id(
+            'tree-details')
+
+        with self.assertRaises(ElementNotVisibleException):
+            tree_details_div.click()
+
+        self.assertFalse(Tree.objects.filter(plot=plot).exists())
