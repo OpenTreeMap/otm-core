@@ -11,7 +11,7 @@ from django.contrib.gis.geos.point import Point
 from eco.core import Benefits, sum_factor_and_conversion
 
 from treemap.models import Tree
-from treemap.decorators import instance_request, json_api_call, strip_request
+from treemap.decorators import json_api_call
 from treemap.species import CODES
 from treemap.models import ITreeRegion
 
