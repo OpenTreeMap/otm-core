@@ -29,7 +29,9 @@ var config,
     $placeMarkerMessage,
     $moveMarkerMessage,
     deactivateBus,
-    gcoder;
+    gcoder,
+    $addTreeHeaderLink,
+    $exploreTreesHeaderLink;
 
 function init(options) {
     config = options.config;
@@ -38,6 +40,9 @@ function init(options) {
     onClose = options.onClose || $.noop;
     $sidebar = options.$sidebar;
     gcoder = geocoder(config);
+
+    $addTreeHeaderLink = options.$addTreeHeaderLink;
+    $exploreTreesHeaderLink = options.$exploreTreesHeaderLink;
 
     var addressInput = '#add-tree-address',
         $geolocateButton = U.$find('.geolocate', $sidebar),
@@ -194,6 +199,9 @@ function init(options) {
 //     deactivate() -> Inactive
 
 function activate() {
+    $addTreeHeaderLink.addClass("active");
+    $exploreTreesHeaderLink.removeClass("active");
+
     // Let user start creating a tree (by clicking the map)
     plotMarker.hide();
     plotMarker.enablePlacing();
@@ -317,6 +325,9 @@ function onAddTreeError(jqXHR, textStatus, errorThrown) {
 }
 
 function deactivate() {
+    $addTreeHeaderLink.removeClass("active");
+    $exploreTreesHeaderLink.addClass("active");
+
     // We're being deactivated by an external event
     deactivateBus.push();
 }
