@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.utils.translation import ugettext_lazy as trans
+from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from django.contrib.gis.geos.point import Point
 
@@ -10,10 +12,62 @@ from eco.core import Benefits, sum_factor_and_conversion
 
 from treemap.models import Tree
 from treemap.decorators import instance_request, json_api_call, strip_request
+from treemap.species import CODES
+from treemap.models import ITreeRegion
 
-from ecobenefits.models import ITreeRegion
-from ecobenefits.species import CODES
-from ecobenefits.util import get_trees_for_eco
+
+def _all_region_codes():
+    return CODES.keys()
+
+
+def all_species_codes():
+    return species_codes_for_regions(_all_region_codes())
+
+
+def species_codes_for_regions(region_codes):
+    if region_codes is None:
+        return None
+    species_codes = []
+    for region_code in region_codes:
+        species_codes.extend(CODES[region_code])
+    # Converting to a set removes duplicates
+    return list(set(species_codes))
+
+
+_benefit_labels = {
+    # Translators: 'Energy' is the name of an eco benefit
+    'energy':     trans('Energy'),
+    # Translators: 'Stormwater' is the name of an eco benefit
+    'stormwater': trans('Stormwater'),
+    # Translators: 'Carbon Dioxide' is the name of an eco benefit
+    'co2':        trans('Carbon Dioxide'),
+    # Translators: 'Air Quality' is the name of an eco benefit
+    'airquality': trans('Air Quality')
+}
+
+
+def get_benefit_label(benefit_name):
+    return _benefit_labels[benefit_name]
+
+
+def get_trees_for_eco(trees):
+    """
+    Converts a QuerySet of trees, a single tree, or any iterable of trees into
+    input appropriate for _benefits_for_trees
+    """
+    if isinstance(trees, QuerySet):
+        return trees.exclude(species__otm_code__isnull=True)\
+                    .exclude(diameter__isnull=True)\
+                    .values('diameter', 'species__otm_code', 'plot__geom')
+
+    if not hasattr(trees, '__iter__'):
+        trees = (trees,)
+
+    return [{'diameter': tree.diameter,
+             'species__otm_code': tree.species.otm_code,
+             'plot__geom': tree.plot.geom}
+            for tree in trees
+            if tree.diameter is not None and tree.species is not None]
 
 
 def get_codes_for_species(species, region):
@@ -128,6 +182,3 @@ def within_itree_regions(request):
                                              float(y))).exists())
 
 within_itree_regions_view = json_api_call(within_itree_regions)
-
-tree_benefits_view = json_api_call(
-    instance_request(strip_request(tree_benefits)))

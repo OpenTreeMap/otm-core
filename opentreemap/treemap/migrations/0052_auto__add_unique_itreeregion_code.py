@@ -1,36 +1,21 @@
 # -*- coding: utf-8 -*-
 import datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
 
-from copy import deepcopy
 
-class Migration(DataMigration):
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Logic for getting a BenefitCurrencyConversion by region is on the model
-        # But we need to save it using an orm['...'] model
-        from treemap.models import BenefitCurrencyConversion as CurrentCurrencyConversion
+        # Adding unique constraint on 'ITreeRegion', fields ['code']
+        db.create_unique(u'treemap_itreeregion', ['code'])
 
-        FrozenCurrencyConversion = orm['treemap.BenefitCurrencyConversion']
-
-        instances = orm['treemap.Instance'].objects.all()
-        for instance in instances:
-            current_conversion =\
-                CurrentCurrencyConversion.get_default_for_point(instance.bounds.centroid)
-            if current_conversion:
-                frozen_conversion = FrozenCurrencyConversion()
-                for field, value in current_conversion.__dict__.iteritems():
-                    setattr(frozen_conversion, field, value)
-
-                frozen_conversion.save()
-                instance.eco_benefits_conversion = frozen_conversion
-                instance.save()
 
     def backwards(self, orm):
-        orm['treemap.Instance'].objects.update(eco_benefits_conversion=None)
-        orm['treemap.BenefitCurrencyConversion'].objects.all().delete()
+        # Removing unique constraint on 'ITreeRegion', fields ['code']
+        db.delete_unique(u'treemap_itreeregion', ['code'])
+
 
     models = {
         u'auth.group': {
@@ -133,6 +118,12 @@ class Migration(DataMigration):
             'role': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Role']"}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.User']"})
         },
+        u'treemap.itreeregion': {
+            'Meta': {'object_name': 'ITreeRegion'},
+            'code': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '40'}),
+            'geometry': ('django.contrib.gis.db.models.fields.MultiPolygonField', [], {'srid': '3857'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
+        },
         u'treemap.plot': {
             'Meta': {'object_name': 'Plot'},
             'address_city': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
@@ -189,6 +180,14 @@ class Migration(DataMigration):
             'udfs': ('treemap.udf.UDFField', [], {'db_index': 'True', 'blank': 'True'}),
             'wildlife_value': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'})
         },
+        u'treemap.staticpage': {
+            'Meta': {'object_name': 'StaticPage'},
+            'content': ('django.db.models.fields.TextField', [], {}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'instance': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Instance']"}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '100'})
+        },
         u'treemap.tree': {
             'Meta': {'object_name': 'Tree'},
             'canopy_height': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
@@ -226,6 +225,8 @@ class Migration(DataMigration):
             'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
+            'photo': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'thumbnail': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
             'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
         },
@@ -248,4 +249,3 @@ class Migration(DataMigration):
     }
 
     complete_apps = ['treemap']
-    symmetrical = True

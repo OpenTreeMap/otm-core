@@ -18,7 +18,7 @@ from treemap.views import (user_view, root_settings_js_view,
 from treemap.instance import URL_NAME_PATTERN
 from treemap.urls import USERNAME_PATTERN
 
-from ecobenefits.views import within_itree_regions_view
+from treemap.ecobenefits import within_itree_regions_view
 
 
 admin.autodiscover()
@@ -66,7 +66,6 @@ urlpatterns = patterns(
     url(r'^eco/benefit/within_itree_regions/$', within_itree_regions_view,
         name='within_itree_regions'),
     url(instance_pattern + r'/', include('treemap.urls')),
-    url(instance_pattern + r'/eco/', include('ecobenefits.urls')),
     url(instance_pattern + r'/export/', include('exporter.urls'))
 )
 

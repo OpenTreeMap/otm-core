@@ -192,7 +192,6 @@ COMMENTS_APP = 'threadedcomments'
 # 'python manage.py test'
 MANAGED_APPS = (
     'treemap',
-    'ecobenefits',
     'geocode',
     'api',
     'management',
@@ -218,7 +217,6 @@ UNMANAGED_APPS = (
 
 I18N_APPS = (
     'treemap',
-    'ecobenefits',
 )
 
 RESERVED_INSTANCE_URL_NAMES = (
