@@ -1,9 +1,9 @@
 {% load i18n %}
 
-{% if tree.species and not tree.species_in_region %}
+{% if not tree.has_itree_code %}
 <div>
   {% blocktrans %}
-  <p>Ecosystem benefits cannot be calculated for this species of tree based on the location of the tree.
+  <p>Ecosystem benefits cannot be calculated for this species of tree in this location.
   <p>The tree's location falls within a climate region that does not support benefit calculations for this species.
   {% endblocktrans %}
 </div>
