@@ -1779,7 +1779,8 @@ class DeleteViewTests(ViewTestCase):
 
         self.assertEqual(Tree.objects.count(), 1)
 
-        raw_response = delete_tree(self.request, self.instance, plot.pk, tree.pk)
+        raw_response = delete_tree(self.request, self.instance,
+                                   plot.pk, tree.pk)
 
         self.assertEqual(raw_response, {'ok': True})
         self.assertEqual(Tree.objects.count(), 0)

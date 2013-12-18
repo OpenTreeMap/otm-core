@@ -49,8 +49,26 @@
               data-href="{{ request.get_full_path }}"
               data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
               class="btn btn-small btn-info">{% trans "Edit" %}</button>
+      <button id="delete-plot-or-tree"
+              data-class="display"
+              disabled="disabled"
+              data-always-enable="{{ last_effective_instance_user|plot_is_deletable }}"
+              data-href="{{ request.get_full_path }}"
+              data-disabled-title="{% trans "Deleting of trees is not available to all users" %}"
+              class="btn btn-small btn-primary">{% trans "Delete" %}</button>
       <button id="save-edit-plot" data-class="edit" class="btn btn-small btn-primary" style="display: none;">{% trans "Save" %}</button>
       <button id="cancel-edit-plot" data-class="edit" class="btn btn-small" style="display: none;">{% trans "Cancel" %}</button>
+      <div id="delete-confirmation-box" data-class="delete" class="alert alert-error" style="display: none;">
+        <b>{% trans "Warning!" %}</b>
+        <div id="delete-tree-warning" style="display: none;">
+          {% trans "You are about to delete this tree. Do you want to continue?" %}
+        </div>
+        <div id="delete-plot-warning" style="display: none;">
+          {% trans "You are about to delete this plot. Once deleted, it will not be possible to view the details of this plot or the trees it has contained in the past. Are you sure you want to continue?" %}
+        </div>
+        <button id="delete-confirm" class="btn btm-small btn-primary">{% trans "Confirm Deletion" %}</button>
+        <button id="delete-cancel" class="btn btm-small btn-primary">{% trans "Cancel Deletion" %}</button>
+      </div>
       <hr/>
       <form id="plot-form">
         <!-- Tree Information -->
@@ -236,6 +254,10 @@
           startInEditMode: {% if editmode %}true{% else %}false{% endif %},
           updateEcoUrl: updateEcoUrl,
           treeIdColumn: '#tree-id-column',
+          delete: '#delete-plot-or-tree',
+          deleteConfirm: '#delete-confirm',
+          deleteCancel: '#delete-cancel',
+          deleteConfirmationBox: '#delete-confirmation-box',
           ecoBenefits: '#ecobenefits',
           updateSidebarUrl: updateSidebarUrl,
           sidebar: '#sidebar',

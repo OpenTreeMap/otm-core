@@ -10,6 +10,7 @@ var $ = require('jquery'),
     Bacon = require('baconjs'),
     U = require('treemap/utility'),
     plotMover = require('treemap/plotMover'),
+    plotDelete = require('treemap/plotDelete'),
     plotMarker = require('treemap/plotMarker'),
     csrf = require('treemap/csrf'),
     imageUploadPanel = require('treemap/imageUploadPanel'),
@@ -86,6 +87,16 @@ exports.init = function(options) {
                      { config: options.config,
                        onSaveBefore: onSaveBefore,
                        shouldBeInEditModeStream: shouldBeInEditModeStream }));
+
+
+    var deleter = plotDelete.init({
+        config: options.config,
+        delete: options.delete,
+        deleteConfirm: options.deleteConfirm,
+        deleteCancel: options.deleteCancel,
+        deleteConfirmationBox: options.deleteConfirmationBox,
+        treeIdColumn: options.treeIdColumn
+    });
 
     if (options.config.instance.supportsEcobenefits) {
         form.saveOkStream
