@@ -22,6 +22,12 @@ class PlotDetailTest(TreemapUITestCase):
     def _go_to_plot_detail_edit(self, plot_id):
         self._browse_to_url("/autotest-instance/plots/%s/edit" % plot_id)
 
+    def _go_to_plot_detail(self, plot_id):
+        self._browse_to_url("/autotest-instance/plots/%s/" % plot_id)
+
+
+class PlotEditTest(PlotDetailTest):
+
     def test_empty_plot_edit_url(self):
 
         self._login_and_go_to_map_page()
@@ -86,3 +92,99 @@ class PlotDetailTest(TreemapUITestCase):
             tree_details_div.click()
 
         self.assertFalse(Tree.objects.filter(plot=plot).exists())
+
+
+class DeleteTest(PlotDetailTest):
+
+    def tearDown(self, *args, **kwargs):
+        sleep(10)
+        super(DeleteTest, self).tearDown(*args, **kwargs)
+
+    def select_buttons(self):
+        self.delete_begin = self.driver.find_element_by_id(
+            'delete-plot-or-tree')
+        self.delete_confirm = self.driver.find_element_by_id('delete-confirm')
+        self.delete_cancel = self.driver.find_element_by_id('delete-cancel')
+        self.add_tree = self.driver.find_element_by_id('add-tree')
+        self.diameter_input = self.driver.find_element_by_css_selector(
+            'input[data-class="diameter-input"]')
+        self.save_edit = self.driver.find_element_by_id('save-edit-plot')
+
+    def assertCantClickDeleteOrCancel(self):
+        with self.assertRaises(ElementNotVisibleException):
+            self.delete_confirm.click()
+            self.delete_cancel.click()
+
+    def test_delete_tree(self):
+        plot = Plot(instance=self.instance,
+                    geom=Point(0, 0))
+        plot.save_with_user(self.user)
+        tree = Tree(instance=self.instance,
+                    plot=plot)
+        tree.save_with_user(self.user)
+
+        self.assertEqual(Plot.objects.count(), 1)
+        self.assertEqual(Tree.objects.count(), 1)
+
+        self._login_workflow()
+        self._go_to_plot_detail(plot.pk)
+        self.select_buttons()
+        self.assertCantClickDeleteOrCancel()
+        self.assertEqual(Plot.objects.count(), 1)
+        self.assertEqual(Tree.objects.count(), 1)
+
+        self.delete_begin.click()
+        self.delete_cancel.click()
+        self.assertCantClickDeleteOrCancel()
+        self.assertEqual(Plot.objects.count(), 1)
+        self.assertEqual(Tree.objects.count(), 1)
+
+        self.select_buttons()
+        self.delete_begin.click()
+        self.delete_confirm.click()
+        sleep(DATABASE_COMMIT_DELAY)
+        self.assertEqual(Plot.objects.count(), 1)
+        self.assertEqual(Tree.objects.count(), 0)
+
+    def test_delete_plot(self):
+        plot = Plot(instance=self.instance,
+                    geom=Point(0, 0))
+        plot.save_with_user(self.user)
+
+        self._login_workflow()
+        self._go_to_plot_detail(plot.pk)
+        self.select_buttons()
+        self.assertCantClickDeleteOrCancel()
+        self.assertEqual(Plot.objects.count(), 1)
+
+        self.select_buttons()
+        self.delete_begin.click()
+        self.delete_cancel.click()
+        self.assertEqual(Plot.objects.count(), 1)
+        self.assertCantClickDeleteOrCancel()
+
+        self.delete_begin.click()
+        self.delete_confirm.click()
+        sleep(DATABASE_COMMIT_DELAY)
+        self.assertEqual(Plot.objects.count(), 0)
+
+    def test_add_tree_then_delete(self):
+        plot = Plot(instance=self.instance,
+                    geom=Point(0, 0))
+        plot.save_with_user(self.user)
+        self._login_workflow()
+        self._go_to_plot_detail_edit(plot.pk)
+
+        self.select_buttons()
+        self.add_tree.click()
+        self.diameter_input.clear()
+        self.diameter_input.send_keys('11')
+        self.save_edit.click()
+
+        sleep(DATABASE_COMMIT_DELAY)
+        self.assertEqual(Tree.objects.count(), 1)
+
+        self.delete_begin.click()
+        self.delete_confirm.click()
+        sleep(DATABASE_COMMIT_DELAY)
+        self.assertEqual(Tree.objects.count(), 0)

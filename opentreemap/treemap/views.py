@@ -323,13 +323,14 @@ def update_plot_detail(request, instance, plot_id):
 
 def update_plot_and_tree_request(request, plot):
     try:
-        plot = update_plot_and_tree(request, plot)
+        plot, tree = update_plot_and_tree(request, plot)
         # Refresh plot.instance in case geo_rev_hash was updated
         plot.instance = Instance.objects.get(id=plot.instance.id)
         return {
             'ok': True,
             'geoRevHash': plot.instance.geo_rev_hash,
             'plotId': plot.id,
+            'treeId': tree.id if tree else None,
             'enabled': plot.instance.feature_enabled('add_plot')
         }
     except ValidationError as ve:
@@ -338,9 +339,9 @@ def update_plot_and_tree_request(request, plot):
 
 
 @transaction.commit_on_success
-def delete_tree(request, instance, tree_id):
+def delete_tree(request, instance, plot_id, tree_id):
     InstanceTree = instance.scope_model(Tree)
-    tree = get_object_or_404(InstanceTree, pk=tree_id)
+    tree = get_object_or_404(InstanceTree, pk=tree_id, plot_id=plot_id)
     tree.delete_with_user(request.user)
     return {'ok': True}
 
@@ -439,7 +440,7 @@ def update_plot_and_tree(request, plot):
     if errors:
         raise ValidationError(errors)
 
-    return plot
+    return plot, tree
 
 
 def _get_audits(logged_in_user, instance, query_vars, user, models,
@@ -586,8 +587,14 @@ def _plot_audits(user, instance, plot):
                     field__in=tree_visible_fields,
                     model_id__in=tree_history)
 
+    tree_delete_filter = Q(model='Tree',
+                           action=Audit.Type.Delete,
+                           model_id__in=tree_history)
+
     audits = Audit.objects.filter(instance=instance)\
-                          .filter(tree_filter | plot_filter)\
+                          .filter(tree_filter |
+                                  tree_delete_filter |
+                                  plot_filter)\
                           .order_by('-updated')[:5]
 
     return audits

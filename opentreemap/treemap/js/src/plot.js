@@ -10,6 +10,7 @@ var $ = require('jquery'),
     Bacon = require('baconjs'),
     U = require('treemap/utility'),
     plotMover = require('treemap/plotMover'),
+    plotDelete = require('treemap/plotDelete'),
     plotMarker = require('treemap/plotMarker'),
     csrf = require('treemap/csrf'),
     imageUploadPanel = require('treemap/imageUploadPanel'),
@@ -30,9 +31,7 @@ exports.init = function(options) {
     // Set up cross-site forgery protection
     $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
-    _.each(options.typeaheads, function(typeahead) {
-        otmTypeahead.create(typeahead);
-    });
+    otmTypeahead.bulkCreate(options.typeaheads);
 
     // Add threaded comments "reply" links
     var commentFormTempl = $("#template-comment").html();
@@ -88,6 +87,16 @@ exports.init = function(options) {
                      { config: options.config,
                        onSaveBefore: onSaveBefore,
                        shouldBeInEditModeStream: shouldBeInEditModeStream }));
+
+
+    var deleter = plotDelete.init({
+        config: options.config,
+        delete: options.delete,
+        deleteConfirm: options.deleteConfirm,
+        deleteCancel: options.deleteCancel,
+        deleteConfirmationBox: options.deleteConfirmationBox,
+        treeIdColumn: options.treeIdColumn
+    });
 
     if (options.config.instance.supportsEcobenefits) {
         form.saveOkStream
@@ -181,11 +190,21 @@ exports.init = function(options) {
         FH.getSerializableField($editFields, 'tree.plot').val('');
     });
     form.saveOkStream.onValue(hideAddTree);
-    form.saveOkStream
-        .map('.formData')
-        .map(BU.getValueForKey, 'tree.plot')
-        .filter(BU.isDefined)
-        .onValue(_.bind($addTreeSection.hide, $addTreeSection));
+
+    var newTreeIdStream = form.saveOkStream
+            .map('.responseData.treeId')
+            .filter(BU.isDefined);
+
+    newTreeIdStream.onValue(function (val) {
+        initializeTreeIdSection(val);
+        $addTreeSection.hide();
+    });
+
+    function initializeTreeIdSection (id) {
+        var $section = $(options.treeIdColumn);
+        $section.attr('data-tree-id', id);
+        $section.html('<a href="trees/' + id + '/">' + id + '</a>');
+    }
 
     if (options.config.instance.basemap.type === 'google') {
         var $streetViewContainer = $(options.streetView);

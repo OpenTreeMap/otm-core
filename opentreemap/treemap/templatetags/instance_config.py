@@ -33,13 +33,7 @@ def feature_enabled(instance, feature):
     return instance.feature_enabled(feature)
 
 
-@register.filter
-def plot_field_is_writable(instanceuser, field):
-    return plot_is_writable(instanceuser, field)
-
-
-@register.filter
-def plot_is_writable(instanceuser, field=None):
+def plot_perm_manager(instanceuser, predicate, field=None):
     if instanceuser is None or instanceuser == '':
         return False
     else:
@@ -48,7 +42,22 @@ def plot_is_writable(instanceuser, field=None):
         if field:
             perms = perms.filter(field_name=field)
 
-        return any(perm.allows_writes for perm in perms)
+        return predicate(perm.allows_writes for perm in perms)
+
+
+@register.filter
+def plot_is_deletable(instanceuser):
+    return plot_perm_manager(instanceuser, predicate=all, field=None)
+
+
+@register.filter
+def plot_is_writable(instanceuser, field=None):
+    return plot_perm_manager(instanceuser, predicate=any, field=field)
+
+
+@register.filter
+def plot_field_is_writable(instanceuser, field):
+    return plot_is_writable(instanceuser, field=field)
 
 
 @register.filter
