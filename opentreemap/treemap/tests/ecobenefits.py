@@ -5,7 +5,7 @@ from __future__ import division
 
 from django.test.client import RequestFactory
 from django.contrib.gis.geos import Point
-from unittest import TestCase
+from django.test import TestCase
 
 from treemap.models import Plot, Tree, Species, ITreeRegion, ITreeCodeOverride
 from treemap.tests import (UrlTestCase, make_instance, make_commander_user,
@@ -131,9 +131,6 @@ class ITreeCodeForSpeciesInRegionTest(TestCase):
         self.instance = make_instance()
         self.commander = make_commander_user(self.instance)
         self.region = ITreeRegion.objects.get(code='PiedmtCLT')
-
-    def tearDown(self):
-        delete_all_app_users()
 
     def make_species(self, otm_code):
         species = Species(instance=self.instance, otm_code=otm_code)
