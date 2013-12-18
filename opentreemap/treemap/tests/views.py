@@ -1768,7 +1768,7 @@ class DeleteViewTests(ViewTestCase):
 
     def test_delete_tree_view_failure(self):
         with self.assertRaises(Http404):
-            delete_tree(self.request, self.instance, 1)
+            delete_tree(self.request, self.instance, 1, 1)
 
     def test_delete_tree_view_success(self):
         plot = Plot(geom=self.p1, instance=self.instance)
@@ -1779,7 +1779,7 @@ class DeleteViewTests(ViewTestCase):
 
         self.assertEqual(Tree.objects.count(), 1)
 
-        raw_response = delete_tree(self.request, self.instance, tree.pk)
+        raw_response = delete_tree(self.request, self.instance, plot.pk, tree.pk)
 
         self.assertEqual(raw_response, {'ok': True})
         self.assertEqual(Tree.objects.count(), 0)

@@ -338,9 +338,9 @@ def update_plot_and_tree_request(request, plot):
 
 
 @transaction.commit_on_success
-def delete_tree(request, instance, tree_id):
+def delete_tree(request, instance, plot_id, tree_id):
     InstanceTree = instance.scope_model(Tree)
-    tree = get_object_or_404(InstanceTree, pk=tree_id)
+    tree = get_object_or_404(InstanceTree, pk=tree_id, plot_id=plot_id)
     tree.delete_with_user(request.user)
     return {'ok': True}
 
