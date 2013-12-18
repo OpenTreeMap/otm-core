@@ -587,8 +587,14 @@ def _plot_audits(user, instance, plot):
                     field__in=tree_visible_fields,
                     model_id__in=tree_history)
 
+    tree_delete_filter = Q(model='Tree',
+                           action=Audit.Type.Delete,
+                           model_id__in=tree_history)
+
     audits = Audit.objects.filter(instance=instance)\
-                          .filter(tree_filter | plot_filter)\
+                          .filter(tree_filter |
+                                  tree_delete_filter |
+                                  plot_filter)\
                           .order_by('-updated')[:5]
 
     return audits

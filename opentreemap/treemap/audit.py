@@ -963,8 +963,7 @@ class Auditable(UserTrackable):
 
     @classmethod
     def action_format_string_for_audit(clz, audit):
-        # return str(audit.dict())
-        if audit.field == 'id':
+        if audit.field == 'id' or audit.field is None:
             lang = {
                 Audit.Type.Insert: trans('created a %(model)s'),
                 Audit.Type.Update: trans('updated the %(model)s'),
@@ -1096,7 +1095,7 @@ class Audit(models.Model):
 
     @property
     def clean_current_value(self):
-        if self.field.startswith('udf:'):
+        if self.field and self.field.startswith('udf:'):
             return self.current_value
         else:
             return self._deserialize_value(self.current_value)
@@ -1118,6 +1117,8 @@ class Audit(models.Model):
 
     @property
     def field_display_name(self):
+        if not self.field:
+            return ''
         name = self.field
         if name.startswith('udf:'):
             return name[4:]
