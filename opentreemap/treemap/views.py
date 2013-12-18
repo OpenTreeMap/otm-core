@@ -323,13 +323,14 @@ def update_plot_detail(request, instance, plot_id):
 
 def update_plot_and_tree_request(request, plot):
     try:
-        plot = update_plot_and_tree(request, plot)
+        plot, tree = update_plot_and_tree(request, plot)
         # Refresh plot.instance in case geo_rev_hash was updated
         plot.instance = Instance.objects.get(id=plot.instance.id)
         return {
             'ok': True,
             'geoRevHash': plot.instance.geo_rev_hash,
             'plotId': plot.id,
+            'treeId': tree.id if tree else None,
             'enabled': plot.instance.feature_enabled('add_plot')
         }
     except ValidationError as ve:
@@ -439,7 +440,7 @@ def update_plot_and_tree(request, plot):
     if errors:
         raise ValidationError(errors)
 
-    return plot
+    return plot, tree
 
 
 def _get_audits(logged_in_user, instance, query_vars, user, models,

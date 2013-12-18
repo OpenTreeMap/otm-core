@@ -647,9 +647,9 @@ class PlotUpdateTest(unittest.TestCase):
         update = json.dumps({'plot.geom': {'x': 4, 'y': 9},
                              'plot.readonly': False})
 
-        created_plot = update_plot_and_tree(make_request(user=self.user,
-                                                         body=update),
-                                            plot)
+        created_plot, _ = update_plot_and_tree(make_request(user=self.user,
+                                                            body=update),
+                                               plot)
 
         created_plot_update = Plot.objects.get(pk=created_plot.pk)
         self.assertIsNotNone(created_plot_update, created_plot_update.pk)
@@ -666,9 +666,9 @@ class PlotUpdateTest(unittest.TestCase):
                              'plot.readonly': False,
                              'tree.readonly': False})
 
-        created_plot = update_plot_and_tree(make_request(user=self.user,
-                                                         body=update),
-                                            plot)
+        created_plot, _ = update_plot_and_tree(make_request(user=self.user,
+                                                            body=update),
+                                               plot)
 
         created_plot_update = Plot.objects.get(pk=created_plot.pk)
         self.assertIsNotNone(created_plot_update, created_plot_update.pk)
@@ -754,9 +754,9 @@ class PlotUpdateTest(unittest.TestCase):
                              'plot.width': 25,
                              'plot.udf:Test choice': 'b'})
 
-        rslt = update_plot_and_tree(make_request(user=self.user,
-                                                 body=update),
-                                    self.plot)
+        rslt, _ = update_plot_and_tree(make_request(user=self.user,
+                                                    body=update),
+                                       self.plot)
 
         self.assertEqual(rslt.pk, self.plot.pk)
 

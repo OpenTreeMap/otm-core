@@ -75,7 +75,8 @@
               {% usercanread tree "id" as value %}
               <tr>
                 <td>{% trans "Tree Number" %}</td>
-                <td>
+                <td id="tree-id-column"
+                    data-tree-id="{% if has_tree %}{{ tree.pk }}{% endif %}">
                 {% if has_tree %}
                   <a href="{% url 'tree_detail' instance_url_name=request.instance.url_name plot_id=plot.pk tree_id=tree.pk %}">{{ value }}</a>
                 {% endif %}
@@ -234,6 +235,7 @@
           config: config,
           startInEditMode: {% if editmode %}true{% else %}false{% endif %},
           updateEcoUrl: updateEcoUrl,
+          treeIdColumn: '#tree-id-column',
           ecoBenefits: '#ecobenefits',
           updateSidebarUrl: updateSidebarUrl,
           sidebar: '#sidebar',
