@@ -8,8 +8,7 @@ from django.contrib.gis.geos import Point
 from django.test import TestCase
 
 from treemap.models import Plot, Tree, Species, ITreeRegion, ITreeCodeOverride
-from treemap.tests import (UrlTestCase, make_instance, make_commander_user,
-                           delete_all_app_users)
+from treemap.tests import (UrlTestCase, make_instance, make_commander_user)
 
 from treemap.ecobenefits import (tree_benefits, within_itree_regions,
                                  species_codes_for_regions,
