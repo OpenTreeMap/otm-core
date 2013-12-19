@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
-from distutils.version import StrictVersion
 from PIL import Image
 from functools import wraps
 
@@ -21,29 +20,24 @@ from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
-from django.contrib.gis.measure import D
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.gis.geos import Point, fromstr
 
-from treemap.models import Plot, Species, Tree, Instance
-from treemap.views import (create_user, get_tree_photos, create_plot,
-                           upload_user_photo)
-from treemap.decorators import instance_request
+from opentreemap.util import route
+
+from treemap.models import Plot, Tree
+from treemap.views import (create_user, get_tree_photos, species_list,
+                           upload_user_photo, context_dict_for_plot)
+
+from treemap.decorators import instance_request, json_api_call
 from treemap.exceptions import HttpBadRequestException
-from treemap.search import create_filter
 from treemap.audit import Audit, approve_or_reject_audit_and_apply
-from treemap.ecobenefits import tree_benefits
-
-from opentreemap.util import json_from_request
-
 
 from api.models import APIKey, APILog
 from api.auth import login_required, create_401unauthorized, login_optional
 
-
-#TODO: Kill this
-def change_reputation_for_user(*args, **kwargs):
-    print("WARNING: Shim called for 'change_reputation_for_user'")
+from instance import instance_info
+from plots import plots_closest_to_point, get_plot, update_or_create_plot
+from user import user_info
 
 
 class HttpConflictException(Exception):
@@ -150,79 +144,12 @@ def datetime_to_iso_string(d):
         return None
 
 
-def plot_permissions(plot, user):
-    ####TODO- Totally broke
-    perms = {"plot": plot_or_tree_permissions(plot, user)}
-
-    tree = plot.current_tree()
-    if tree:
-        perms["tree"] = plot_or_tree_permissions(tree, user)
-
-    return perms
-
-
-def plot_or_tree_permissions(obj, user):
-    """ Determine what the given user can do with a tree or plot
-        Returns {
-           can_delete: <boolean>,
-           can_edit: <boolean>,
-        } """
-
-    can_delete = False
-    can_edit = False
-
-    # If user is none or anonymous, they can't do anything
-    if not user or user.is_anonymous():
-        can_delete = False
-        can_edit = False
-    # If an object is readonly, it can never be deleted or edited
-    elif obj.readonly:
-        can_delete = False
-        can_edit = False
-    # Use the normal admin system
-    else:
-        can_delete = obj.user_can_delete(user)
-        ###TODO
-        ###OTM only support the concept of 'can edit' and 'can delete'
-        ###but OTM2 defines 'delete' as 'can edit all fields'
-        ###at least right now, so these are the same
-        can_edit = can_delete
-
-        ###TODO
-        ###This ignores things like 'can delete if they created it'
-        ###and such. Those business rules should, however, be
-        ###put in 'user_can_delete'
-
-    return {"can_delete": can_delete, "can_edit": can_edit}
-
-
-def can_delete_tree_or_plot(obj, user):
-    permissions = plot_or_tree_permissions(obj, user)
-    if "can_delete" in permissions:
-        return permissions["can_delete"]
-    else:
-        # This should never happen, but raising an exception ensures
-        # that it will fail loudly if a future refactoring
-        # introduces a bug.
-        raise Exception("Expected the dict returned from "
-                        "plot_or_tree_permissions to contain 'can_delete'")
-
-
 @require_http_methods(["GET"])
 @api_call()
 def status(request):
     return [{'api_version': 'v2',
              'status': 'online',
              'message': ''}]
-
-
-@require_http_methods(["GET"])
-@api_call()
-@login_required
-def verify_auth(request):
-    user_dict = user_to_dict(request.user)
-    user_dict["status"] = "success"
-    return user_dict
 
 
 @require_http_methods(["POST"])
@@ -317,8 +244,7 @@ def edits(request, instance, user_id):
         d["plot_id"] = plot.pk
 
         if plot.pk:
-            d["plot"] = plot_to_dict(
-                plot, longform=True, user=user)
+            d["plot"] = context_dict_for_plot(plot, user=user)
 
         d["id"] = audit.pk
         d["name"] = audit.display_action
@@ -447,236 +373,7 @@ def get_plot_list(request, instance):
     plots = Plot.objects.filter(instance=instance)\
                         .order_by('id')[start:end]
 
-    return plots_to_list_of_dict(plots, user=request.user)
-
-
-@require_http_methods(["GET"])
-@api_call()
-def species_list(request, lat=None, lon=None):
-    allspecies = Species.objects.all()
-
-    return [species_to_dict(z) for z in allspecies]
-
-
-@require_http_methods(["GET"])
-@api_call()
-@login_optional
-def plots_closest_to_point(request, lat=None, lon=None):
-    ###TODO: Need to pin to an instance
-    instance = Instance.objects.all()[0]
-    point = Point(float(lon), float(lat), srid=4326)
-
-    try:
-        max_plots = int(request.GET.get('max_plots', '1'))
-    except ValueError:
-        raise HttpBadRequestException(
-            'The max_plots parameter must be a number between 1 and 500')
-
-    if max_plots > 500 or max_plots < 1:
-        raise HttpBadRequestException(
-            'The max_plots parameter must be a number between 1 and 500')
-
-    try:
-        distance = float(request.GET.get(
-            'distance', settings.MAP_CLICK_RADIUS))
-
-    except ValueError:
-        raise HttpBadRequestException(
-            'The distance parameter must be a number')
-
-    # 100 meters
-    plots = Plot.objects.distance(point)\
-                        .filter(instance=instance)\
-                        .filter(geom__distance_lte=(point, D(m=distance)))\
-                        .order_by('distance')[0:max_plots]
-
-    if 'q' in request.REQUEST:
-        q = request.REQUEST['q']
-        plots = plots.filter(create_filter(q))
-
-    return plots_to_list_of_dict(
-        plots, longform=True, user=request.user)
-
-
-def str2bool(ahash, akey):
-    if akey in ahash:
-        return ahash[akey] == "true"
-    else:
-        return None
-
-
-def plots_to_list_of_dict(plots, longform=False, user=None):
-    return [plot_to_dict(plot, longform=longform, user=user)
-            for plot in plots]
-
-
-def point_wkt_to_dict(wkt):
-    point = fromstr(wkt)
-    return {
-        'y': point.y,
-        'x': point.x,
-        'srid': '3857'
-    }
-
-
-def pending_edit_to_dict(pending_edit):
-    if pending_edit.field == 'geometry':
-        # Pending geometry edits are stored as WKT
-        pending_value = point_wkt_to_dict(pending_edit.current_value)
-    else:
-        pending_value = pending_edit.current_value
-
-    return {
-        'id': pending_edit.pk,
-        'submitted': datetime_to_iso_string(pending_edit.created),
-        'value': pending_value,
-        'username': pending_edit.user.username
-    }
-
-
-def plot_to_dict(plot, longform=False, user=None):
-    pending_edit_dict = {}
-    current_tree = plot.current_tree()
-    if current_tree:
-        tree_dict = {"id": current_tree.pk}
-
-        if current_tree.species:
-            tree_dict["species"] = current_tree.species.pk
-            tree_dict["species_name"] = current_tree.species.common_name
-            tree_dict["sci_name"] = current_tree.species.scientific_name
-
-        if current_tree.diameter:
-            tree_dict["dbh"] = current_tree.diameter
-
-        if current_tree.height:
-            tree_dict["height"] = current_tree.height
-
-        if current_tree.canopy_height:
-            tree_dict["canopy_height"] = current_tree.canopy_height
-
-        #TODO: Support for tree images
-        # images = current_tree.treephoto_set.all()
-
-        # if len(images) > 0:
-        #     tree_dict["images"] = [{"id": image.pk,
-        # "title": image.title, "url": image.photo.url}
-        #                            for image in images]
-
-        pending_edit_dict = {}
-
-        if longform:
-            tree_dict['eco'] = tree_resource_to_dict(current_tree)
-            tree_dict['readonly'] = current_tree.readonly
-
-            tree_field_reverse_property_name_dict = {'species_id': 'species'}
-            for audit in current_tree.get_active_pending_audits():
-                raw_field_name = audit.field
-
-                if raw_field_name in tree_field_reverse_property_name_dict:
-                    field_name = tree_field_reverse_property_name_dict.get(
-                        raw_field_name)
-                else:
-                    field_name = raw_field_name
-
-                if 'tree.' + field_name not in pending_edit_dict:
-                    pending_edit_dict['tree.' + field_name] = {
-                        'latest_value': audit.previous_value,
-                        'pending_edits': []}
-
-                pend_dict = pending_edit_to_dict(audit)
-                if field_name == 'species':
-                    species_set = Species.objects.filter(
-                        pk=audit.current_value)
-                    if species_set:
-                        pend_dict['related_fields'] = {
-                            'tree.sci_name': species_set[0].scientific_name,
-                            'tree.species_name': species_set[0].common_name
-                        }
-                pending_edit_dict['tree.' + field_name]['pending_edits']\
-                    .append(pend_dict)
-
-    else:
-        tree_dict = None
-
-    base = {
-        "id": plot.pk,
-        "plot_width": plot.width,
-        "plot_length": plot.length,
-        "readonly": plot.readonly,
-        "tree": tree_dict,
-        "geom": {
-            "srid": plot.geom.srid,
-            "y": plot.geom.y,
-            "x": plot.geom.x
-        }
-    }
-
-    if user:
-        base["perm"] = plot_permissions(plot, user)
-
-    if longform:
-
-        plot_field_reverse_property_name_dict = {
-            'width': 'plot_width',
-            'length': 'plot_length'
-        }
-
-        for audit in plot.get_active_pending_audits():
-            raw_field_name = audit.field
-            if raw_field_name in plot_field_reverse_property_name_dict:
-                field_name = plot_field_reverse_property_name_dict.get(
-                    raw_field_name)
-            else:
-                field_name = raw_field_name
-
-            if field_name == 'geom':
-                latest_value = point_wkt_to_dict(audit.previous_value)
-            else:
-                latest_value = audit.current_value
-
-            if field_name not in pending_edit_dict:
-                pending_edit_dict[field_name] = {
-                    'latest_value': latest_value,
-                    'pending_edits': []}
-
-            pending_edit_dict[field_name]['pending_edits'].append(
-                pending_edit_to_dict(audit))
-
-        base['pending_edits'] = pending_edit_dict
-
-    return base
-
-
-def tree_resource_to_dict(tree):
-    if tree.species and tree.species.otm_code and tree.diameter:
-        return tree_benefits(tree.instance, tree.pk)
-    else:
-        return {}
-
-
-def species_to_dict(s):
-    return {
-        "id": s.pk,
-        "scientific_name": s.scientific_name,
-        "genus": s.genus,
-        "species": s.species,
-        "cultivar": s.cultivar,
-        "common_name": s.common_name}
-
-
-def user_to_dict(user):
-    #TODO: permissions?
-    # what are these in OTM2 vs OTM1
-    # user_type permissions need to be updated
-    # is this even used in the app?
-    #TODO: reputation now needs an instance
-    return {
-        "id": user.pk,
-        #"reputation": user.reputation,
-        "username": user.username
-        #"permissions": list(user.get_all_permissions()),
-        #"user_type": user_access_type(user)
-        }
+    return [context_dict_for_plot(plot, user=request.user) for plot in plots]
 
 
 #TODO: All of this logic should probably be
@@ -732,92 +429,6 @@ def geocode_address(request, address):
         return {"error": "The geocoder failed to generate a list of results."}
 
 
-def flatten_plot_dict_with_tree_and_geometry(plot_dict):
-    if 'tree' in plot_dict and plot_dict['tree'] is not None:
-        tree_dict = plot_dict['tree']
-        for field_name in tree_dict.keys():
-            plot_dict[field_name] = tree_dict[field_name]
-        del plot_dict['tree']
-    if 'geometry' in plot_dict:
-        geometry_dict = plot_dict['geometry']
-        for field_name in geometry_dict.keys():
-            plot_dict[field_name] = geometry_dict[field_name]
-        del plot_dict['geometry']
-
-
-def rename_plot_request_dict_fields(request_dict):
-    '''
-    The new plot/tree form requires specific field names that do not
-    directly match up with the model objects (e.g. the form expects
-    a 'species_id' field) so this helper function renames keys in
-    the dictionary to match what the form expects
-    '''
-    field_map = {'species': 'species_id',
-                 'width': 'plot_width',
-                 'length': 'plot_length'}
-    for map_key in field_map.keys():
-        if map_key in request_dict:
-            request_dict[field_map[map_key]] = request_dict[map_key]
-            del request_dict[map_key]
-    return request_dict
-
-
-@require_http_methods(["POST"])
-@instance_request
-@api_call()
-@login_required
-def create_plot_optional_tree(request, instance):
-    response = HttpResponse()
-
-    # Unit tests fail to access request.body
-    request_dict = json_from_request(request)
-
-    # The Django form used to validate and save plot and tree
-    # information expects a flat dictionary. Allowing the tree
-    # and geometry details to be in nested dictionaries in API
-    # calls clarifies, to API clients, the distinction between
-    # Plot and Tree and groups the coordinates along with their
-    # spatial reference
-    flatten_plot_dict_with_tree_and_geometry(request_dict)
-
-    # The new plot/tree form requires specific field names that
-    # do not directly match up with the model objects (e.g. the
-    # form expects a 'species_id' field) so this helper function
-    # renames keys in the dictionary to match what the form expects
-    rename_plot_request_dict_fields(request_dict)
-
-    plot = create_plot(request.user, instance, **request_dict)
-
-    if type(plot) is list:
-        response.status_code = 400
-        response.content = json.dumps({'error': plot})
-    else:
-        response.status_code = 201
-        new_plot = plot_to_dict(plot, longform=True, user=request.user)
-        response.content = json.dumps(new_plot)
-
-    return response
-
-
-@require_http_methods(["GET"])
-@api_call()
-@login_optional
-def get_plot(request, plot_id):
-    return plot_to_dict(Plot.objects.get(pk=plot_id),
-                        longform=True, user=request.user)
-
-
-def compare_fields(v1, v2):
-    if v1 is None:
-        return v1 == v2
-    try:
-        v1f = float(v1)
-        v2f = float(v2)
-        return v1f == v2f
-    except ValueError:
-        return v1 == v2
-
-
 def _parse_application_version_header_as_dict(request):
     if request is None:
         return None
@@ -843,185 +454,6 @@ def _parse_application_version_header_as_dict(request):
     return app_version
 
 
-def _attribute_requires_conversion(request, attr):
-    if attr is None:
-        return False
-
-    if not hasattr(settings, 'CHOICE_CONVERSIONS'):
-        # If CHOICE_CONVERSIONS is not defined in settings then
-        # no conversion is required
-        return False
-
-    if attr in settings.CHOICE_CONVERSIONS:
-        conversion = settings.CHOICE_CONVERSIONS[attr]
-        app_version = _parse_application_version_header_as_dict(request)
-        if (('version-threshold' in conversion
-             and app_version['platform'] in conversion['version-threshold'])):
-            threshold_string = conversion.get('version-threshold')\
-                                         .get(app_version['platform'])
-
-            # If the threshold is not parsable as a version number,
-            # we want this method to crash hard.
-            # The CHOICE_CONVERSIONS are misconfigured.
-            threshold = StrictVersion(threshold_string)
-
-            try:
-                version = StrictVersion(app_version['version'])
-            except ValueError:
-                # If the version number reported from the app is
-                # not parsable as a version number then we assume
-                # the app is an old version and that we do
-                # need to convert the values.
-                return True
-
-            return version < threshold
-        else:
-            # If a version threshold is not defined for the platform
-            # specified in the ApplicationVersion header or the
-            # ApplicationVersion header is missing or does not match
-            # anything
-            return True
-    else:
-        # If the settings.CHOICE_CONVERSIONS hash does not contain
-        # the attribute name then no conversion is required
-        return False
-
-
-@require_http_methods(["PUT"])
-@api_call()
-@instance_request
-@login_required
-def update_plot_and_tree(request, instance, plot_id):
-
-    def set_attr_with_choice_correction(request, model, attr, value):
-        if _attribute_requires_conversion(request, attr):
-            conversions = settings.CHOICE_CONVERSIONS[attr]['forward']
-            for (old, new) in conversions:
-                if str(value) == str(old):
-                    value = new
-                    break
-        setattr(model, attr, value)
-
-    def get_attr_with_choice_correction(request, model, attr):
-        value = getattr(model, attr)
-        if _attribute_requires_conversion(request, attr):
-            conversions = settings.CHOICE_CONVERSIONS[attr]['reverse']
-            for (new, old) in conversions:
-                if str(value) == str(new):
-                    value = old
-                    break
-        return value
-
-    response = HttpResponse()
-    try:
-        plot = Plot.objects.get(pk=plot_id)
-    except Plot.DoesNotExist:
-        response.status_code = 400
-        response.content = json.dumps({
-            "error": "No plot with id %s" % plot_id})
-        return response
-
-    request_dict = json_from_request(request)
-
-    flatten_plot_dict_with_tree_and_geometry(request_dict)
-
-    plot_field_whitelist = ['plot_width', 'plot_length', 'type',
-                            'geocoded_address', 'edit_address_street',
-                            'address_city', 'address_street', 'address_zip',
-                            'power_lines', 'sidewalk_damage']
-
-    # The Django form that creates new plots expects a 'plot_width'
-    # parameter but the Plot model has a 'width' parameter so this
-    # dict acts as a translator between request keys and model field names
-    plot_field_property_name_dict = {
-        'plot_width': 'width',
-        'plot_length': 'length',
-        'power_lines': 'powerline_conflict_potential'}
-
-    plot_was_edited = False
-    for plot_field_name in request_dict.keys():
-        if plot_field_name in plot_field_whitelist:
-            if plot_field_name in plot_field_property_name_dict:
-                new_name = plot_field_property_name_dict[plot_field_name]
-            else:
-                new_name = plot_field_name
-            new_value = request_dict[plot_field_name]
-            if not compare_fields(get_attr_with_choice_correction(
-                    request, plot, new_name), new_value):
-                set_attr_with_choice_correction(
-                    request, plot, new_name, new_value)
-                plot_was_edited = True
-
-    # TODO: Standardize on lon or lng
-    if 'lat' in request_dict or 'lon' in request_dict or 'lng' in request_dict:
-        new_geometry = Point(x=plot.geom.x, y=plot.geom.y)
-        if 'lat' in request_dict:
-            new_geometry.y = request_dict['lat']
-        if 'lng' in request_dict:
-            new_geometry.x = request_dict['lng']
-        if 'lon' in request_dict:
-            new_geometry.x = request_dict['lon']
-
-        if plot.geom.x != new_geometry.x or plot.geom.y != new_geometry.y:
-            plot.geom = new_geometry
-            plot_was_edited = True
-
-    if plot_was_edited:
-        plot.save_with_user(request.user)
-
-    tree_was_edited = False
-    tree_was_added = False
-    tree = plot.current_tree()
-    tree_field_whitelist = ['species', 'diameter', 'height', 'canopy_height',
-                            'canopy_condition', 'condition', 'pests']
-
-    for tree_field in Tree._meta.fields:
-        if ((tree_field.name in request_dict and
-             tree_field.name in tree_field_whitelist)):
-            if tree is None:
-                tree = Tree(plot=plot, instance=instance)
-
-                tree.plot = plot
-                tree.last_updated_by = request.user
-                tree.save_with_user(request.user)
-                tree_was_added = True
-            if tree_field.name == 'species':
-                try:
-                    if (((tree.species and
-                          tree.species.pk != request_dict[tree_field.name])
-                         or
-                         (not tree.species
-                          and request_dict[tree_field.name]))):
-                        tree.species = Species.objects.get(
-                            pk=request_dict[tree_field.name])
-                        tree_was_edited = True
-                except Exception:
-                    response.status_code = 400
-                    response.content = json.dumps(
-                        {"error": "No species with id %s" %
-                         request_dict[tree_field.name]})
-                    return response
-            else:  # tree_field.name != 'species'
-                if not compare_fields(
-                        get_attr_with_choice_correction(
-                            request, tree, tree_field.name),
-                        request_dict[tree_field.name]):
-                    set_attr_with_choice_correction(
-                        request, tree, tree_field.name,
-                        request_dict[tree_field.name])
-
-                    tree_was_edited = True
-
-    if tree_was_added or tree_was_edited:
-        tree.save_with_user(request.user)
-
-    full_plot = Plot.objects.get(pk=plot.id)
-    return_dict = plot_to_dict(full_plot, longform=True, user=request.user)
-    response.status_code = 200
-    response.content = json.dumps(return_dict)
-    return response
-
-
 def _approve_or_reject_pending_edit(
         request, instance, user, pending_edit_id, approve):
     audit = Audit.objects.get(pk=pending_edit_id, instance=instance)
@@ -1037,7 +469,7 @@ def _approve_or_reject_pending_edit(
                                          .filter(field=audit.field):
             approve_or_reject_audit_and_apply(pending_audit, user, False)
 
-    return plot_to_dict(updated_plot, longform=True)
+    return context_dict_for_plot(updated_plot, user=request.user)
 
 
 @require_http_methods(["POST"])
@@ -1087,8 +519,8 @@ def remove_current_tree_from_plot(request, instance, plot_id):
         try:
             tree.delete_with_user(request.user)
             updated_plot = Plot.objects.get(pk=plot_id)
-            return plot_to_dict(
-                updated_plot, longform=True, user=request.user)
+            return context_dict_for_plot(
+                updated_plot, user=request.user)
         except:
             raise PermissionDenied(
                 '%s does not have permission to the '
@@ -1099,15 +531,37 @@ def remove_current_tree_from_plot(request, instance, plot_id):
             "Plot %s does not have a current tree" % plot_id)
 
 
-@require_http_methods(["GET"])
-@instance_request
-@api_call()
-def get_current_tree_from_plot(request, instance, plot_id):
-    plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
-    if plot.current_tree():
-        plot_dict = plot_to_dict(plot, longform=True)
+plots_closest_to_point_endpoint = login_optional(
+    instance_request(
+        csrf_exempt(json_api_call(
+            plots_closest_to_point))))
 
-        return plot_dict['tree']
-    else:
-        raise HttpResponseBadRequest(
-            "Plot %s does not have a current tree" % plot_id)
+instance_info_endpoint = login_optional(
+    instance_request(
+        csrf_exempt(json_api_call(
+            instance_info))))
+
+login_endpoint = csrf_exempt(
+    json_api_call(login_required(user_info)))
+
+plots_endpoint = json_api_call(
+    route(
+        POST=login_required(
+            instance_request(
+                update_or_create_plot)),
+        GET=login_optional(
+            instance_request(
+                get_plot_list))))
+
+plot_endpoint = json_api_call(
+    route(
+        GET=login_optional(
+            instance_request(get_plot)),
+        PUT=login_required(
+            instance_request(update_or_create_plot)),
+        DELETE=login_required(
+            instance_request(remove_plot))))
+
+species_list_endpoint = instance_request(
+    json_api_call(
+        route(GET=species_list)))

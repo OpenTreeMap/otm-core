@@ -302,6 +302,10 @@ class User(Auditable, AbstractUniqueEmailUser):
 
         return User._system_user
 
+    def dict(self):
+        return {'id': self.pk,
+                'username': self.username}
+
     def get_instance_user(self, instance):
         qs = InstanceUser.objects.filter(user=self, instance=instance)
         if qs.count() == 1:
@@ -405,6 +409,12 @@ class Species(UDFModel, Authorizable, Auditable):
         if self.cultivar:
             name += " '%s'" % self.cultivar
         return name
+
+    def dict(self):
+        props = self.as_dict()
+        props['scientific_name'] = self.scientific_name
+
+        return props
 
     def __unicode__(self):
         return self.display_name
@@ -597,6 +607,12 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
         species_chunk = ("Species: %s - " % self.species
                          if self.species else "")
         return "%s%s" % (diameter_chunk, species_chunk)
+
+    def dict(self):
+        props = self.as_dict()
+        props['species'] = self.species
+
+        return props
 
     def photos(self):
         return self.treephoto_set.order_by('-created_at')

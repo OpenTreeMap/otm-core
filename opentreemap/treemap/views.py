@@ -208,6 +208,15 @@ def create_plot(user, instance, *args, **kwargs):
 def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
     plot = _get_plot_or_404(plot_id, instance)
 
+    context = context_dict_for_plot(plot, tree_id, user=request.user)
+    context['editmode'] = edit
+
+    return context
+
+
+def context_dict_for_plot(plot, tree_id=None, user=None):
+    instance = plot.instance
+
     if tree_id:
         tree = get_object_or_404(Tree,
                                  instance=instance,
@@ -227,7 +236,7 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
 
     should_calculate_eco = (has_tree_diameter and
                             has_tree_species_with_code and
-                            request.instance_supports_ecobenefits)
+                            instance.has_itree_region())
 
     if should_calculate_eco:
         try:
@@ -270,13 +279,12 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
                     kwargs={'instance_url_name': instance.url_name,
                             'plot_id': plot.pk})
 
-    context['editmode'] = edit
     context['plot'] = plot
     context['has_tree'] = tree is not None
     # Give an empty tree when there is none in order to show tree fields easily
     context['tree'] = tree or Tree(plot=plot, instance=instance)
 
-    audits = _plot_audits(request.user, instance, plot)
+    audits = _plot_audits(user, instance, plot)
 
     def _audits_are_in_different_groups(prev_audit, audit):
         if prev_audit is None:
@@ -323,9 +331,9 @@ def update_plot_detail(request, instance, plot_id):
 
 def update_plot_and_tree_request(request, plot):
     try:
-        plot, tree = update_plot_and_tree(request, plot)
-        # Refresh plot.instance in case geo_rev_hash was updated
-        plot.instance = Instance.objects.get(id=plot.instance.id)
+        request_dict = json.loads(request.body)
+        plot, tree = update_plot_and_tree(request_dict, request.user, plot)
+
         return {
             'ok': True,
             'geoRevHash': plot.instance.geo_rev_hash,
@@ -357,8 +365,7 @@ def delete_plot(request, instance, plot_id):
 
 
 @transaction.commit_on_success
-@login_required
-def update_plot_and_tree(request, plot):
+def update_plot_and_tree(request_dict, user, plot):
     """
     Update a plot. Expects JSON in the request body to be:
     {'model.field', ...}
@@ -381,10 +388,13 @@ def update_plot_and_tree(request, plot):
 
     def set_attr_on_model(model, attr, val):
         if attr == 'geom':
-            val = Point(val['x'], val['y'])
+            srid = val.get('srid', 3857)
+            val = Point(val['x'], val['y'], srid=srid)
+            val.transform(3857)
 
-        if attr in model.fields() and attr != 'id':
-            model.apply_change(attr, val)
+        if attr == 'id':
+            if val != model.pk:
+                raise Exception("Can't update id attribute")
         elif attr.startswith('udf:'):
             udf_name = attr[4:]
 
@@ -394,6 +404,8 @@ def update_plot_and_tree(request, plot):
                 model.udfs[udf_name] = val
             else:
                 raise KeyError('Invalid UDF %s' % attr)
+        elif attr in model.fields():
+            model.apply_change(attr, val)
         else:
             raise Exception('Maformed request - invalid field %s' % attr)
 
@@ -409,8 +421,6 @@ def update_plot_and_tree(request, plot):
 
     tree = None
 
-    request_dict = json.loads(request.body)
-
     for (model_and_field, value) in request_dict.iteritems():
         model_name, field = split_model_or_raise(model_and_field)
 
@@ -421,7 +431,8 @@ def update_plot_and_tree(request, plot):
             tree = tree or get_tree()
             model = tree
             if field == 'species' and value:
-                value = Species.objects.get(pk=value)
+                value = get_object_or_404(Species,
+                                          instance=plot.instance, pk=value)
             elif field == 'plot' and value == unicode(plot.pk):
                 value = plot
         else:
@@ -432,13 +443,16 @@ def update_plot_and_tree(request, plot):
     errors = {}
 
     if plot.fields_were_updated():
-        errors.update(save_and_return_errors(plot, request.user))
+        errors.update(save_and_return_errors(plot, user))
     if tree and tree.fields_were_updated():
         tree.plot = plot
-        errors.update(save_and_return_errors(tree, request.user))
+        errors.update(save_and_return_errors(tree, user))
 
     if errors:
         raise ValidationError(errors)
+
+    # Refresh plot.instance in case geo_rev_hash was updated
+    plot.instance = Instance.objects.get(id=plot.instance.id)
 
     return plot, tree
 

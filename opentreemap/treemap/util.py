@@ -22,6 +22,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as trans
 from django.core.files.uploadedfile import SimpleUploadedFile, File
+from django.db.models.fields.files import ImageFieldFile
+from django.contrib.gis.geos import Point
 
 from treemap.instance import Instance
 
@@ -120,7 +122,22 @@ class LazyEncoder(DjangoJSONEncoder):
     def default(self, obj):
         if isinstance(obj, Promise):
             return force_text(obj)
-        return super(LazyEncoder, self).default(obj)
+        elif hasattr(obj, 'dict'):
+            return obj.dict()
+        elif hasattr(obj, 'as_dict'):
+            return obj.as_dict()
+        elif isinstance(obj, Point):
+            srid = 4326
+            obj.transform(srid)
+            return {'x': obj.x, 'y': obj.y, 'srid': srid}
+        # TODO: Handle S3
+        elif isinstance(obj, ImageFieldFile):
+            if obj:
+                return obj.url
+            else:
+                return None
+        else:
+            return super(LazyEncoder, self).default(obj)
 
 
 def save_image_from_request(request, name_prefix, thumb_size=None):
