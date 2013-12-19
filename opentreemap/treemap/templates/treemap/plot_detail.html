@@ -52,7 +52,7 @@
       <button id="delete-plot-or-tree"
               data-class="display"
               disabled="disabled"
-              data-always-enable="{{ last_effective_instance_user|plot_is_deletable }}"
+              data-always-enable="{{ last_effective_instance_user|is_deletable:plot }}"
               data-href="{{ request.get_full_path }}"
               data-disabled-title="{% trans "Deleting of trees is not available to all users" %}"
               class="btn btn-small btn-primary">{% trans "Delete" %}</button>

@@ -46,9 +46,8 @@ def plot_perm_manager(instanceuser, predicate, field=None):
 
 
 @register.filter
-def plot_is_deletable(instanceuser):
-    return plot_perm_manager(instanceuser, predicate=all, field=None)
-
+def is_deletable(instanceuser, obj):
+    return obj.user_can_delete(instanceuser.user)
 
 @register.filter
 def plot_is_writable(instanceuser, field=None):
