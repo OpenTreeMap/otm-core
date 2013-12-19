@@ -11,8 +11,8 @@ from treemap.models import Plot, Tree, Species, ITreeRegion, ITreeCodeOverride
 from treemap.tests import (UrlTestCase, make_instance, make_commander_user)
 
 from treemap.ecobenefits import (tree_benefits, within_itree_regions,
-                                 species_codes_for_regions,
                                  itree_code_for_species_in_region)
+from treemap.species import species_codes_for_regions
 
 
 class EcoTest(UrlTestCase):
