@@ -1,5 +1,27 @@
 # flake8: noqa
 
+def _all_region_codes():
+    return _CODES.keys()
+
+def all_species_codes():
+    return species_codes_for_regions(_all_region_codes())
+
+def species_codes_for_regions(region_codes):
+    if region_codes is None:
+        return None
+    species_codes = []
+    for region_code in region_codes:
+        species_codes.extend(_CODES[region_code])
+    # Converting to a set removes duplicates
+    return list(set(species_codes))
+
+def get_itree_code(region_code, otm_code):
+    if otm_code:
+        if region_code in _CODES:
+            if otm_code in _CODES[region_code]:
+                return _CODES[region_code][otm_code]
+    return None
+
 # The ``CODES`` dictionary has the following format
 #
 #   {
@@ -17,8 +39,7 @@
 # to a species changes depending on where that species
 # is located geographically.
 
-
-CODES = {
+_CODES = {
 ##################################################
     'CaNCCoJBK': {
         'AB': 'CEL OTHER',

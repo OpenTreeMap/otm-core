@@ -12,26 +12,8 @@ from eco.core import Benefits, sum_factor_and_conversion
 
 from treemap.models import Tree, ITreeCodeOverride
 from treemap.decorators import json_api_call
-from treemap.species import CODES
+from treemap.species import get_itree_code
 from treemap.models import ITreeRegion
-
-
-def _all_region_codes():
-    return CODES.keys()
-
-
-def all_species_codes():
-    return species_codes_for_regions(_all_region_codes())
-
-
-def species_codes_for_regions(region_codes):
-    if region_codes is None:
-        return None
-    species_codes = []
-    for region_code in region_codes:
-        species_codes.extend(CODES[region_code])
-    # Converting to a set removes duplicates
-    return list(set(species_codes))
 
 
 _benefit_labels = {
@@ -92,9 +74,7 @@ def _itree_code_for_species_in_region(species_pk, region, otm_code,
                 return qs[0].itree_code
 
         # No override, so look up default code
-        if otm_code and region.code in CODES:
-            if otm_code in CODES[region.code]:
-                return CODES[region.code][otm_code]
+        return get_itree_code(region.code, otm_code)
 
     return None
 
