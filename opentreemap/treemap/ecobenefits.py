@@ -38,7 +38,7 @@ def _get_trees_for_eco(trees):
     input appropriate for benefits_for_trees.
     """
     if isinstance(trees, QuerySet):
-        return trees.exclude(species__otm_code__isnull=True)\
+        return trees.exclude(species__isnull=True)\
                     .exclude(diameter__isnull=True)\
                     .values('diameter', 'species__pk', 'species__otm_code',
                             'plot__geom')
