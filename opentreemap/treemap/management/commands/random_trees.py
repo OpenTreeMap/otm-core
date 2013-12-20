@@ -42,7 +42,14 @@ class Command(InstanceDataCommand):
                     dest='pspecies',
                     default=50,
                     help=('Probability that a given tree will '
-                          'have a species (0-100)')))
+                          'have a species (0-100)')),
+        make_option('-D', '--prob-of-diameter',
+                    action='store',
+                    type='int',
+                    dest='pdiameter',
+                    default=10,
+                    help=('Probability that a given tree will '
+                          'have a diameter (0-100)')))
 
     def handle(self, *args, **options):
         """ Create some seed data """
@@ -56,6 +63,7 @@ class Command(InstanceDataCommand):
         get_prob = lambda option: float(min(100, max(0, option))) / 100.0
         tree_prob = get_prob(options['ptree'])
         species_prob = get_prob(options['pspecies'])
+        diameter_prob = get_prob(options['pdiameter'])
         max_radius = options['radius']
 
         center_x = instance.center.x
@@ -88,8 +96,10 @@ class Command(InstanceDataCommand):
                 else:
                     species = None
 
-                diameter = random.random() * 20
-                if diameter < 2:
+                add_diameter = random.random() < diameter_prob
+                if add_diameter:
+                    diameter = 2 + random.random() * 18
+                else:
                     diameter = None
 
                 tree = Tree(plot=plot,
