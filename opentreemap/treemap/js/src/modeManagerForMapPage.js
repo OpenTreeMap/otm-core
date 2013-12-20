@@ -5,13 +5,16 @@
 // module to handle UI events. This module initializes the mode modules and
 // orchestrates switching between modes.
 
-var U                   = require('treemap/utility'),
+var _                   = require('underscore'),
+    U                   = require('treemap/utility'),
     browseTreesMode     = require('treemap/browseTreesMode'),
     addTreeMode         = require('treemap/addTreeMode'),
     editTreeDetailsMode = require('treemap/editTreeDetailsMode'),
     inlineEditForm      = require('treemap/inlineEditForm'),
     mapState            = require('treemap/mapState'),
     plotMarker          = require('treemap/plotMarker'),
+    statePrompter       = require('treemap/statePrompter'),
+    prompter,
     currentMode;
 
 var $sidebarBrowseTrees         = U.$find('#sidebar-browse-trees'),
@@ -22,8 +25,17 @@ var $sidebarBrowseTrees         = U.$find('#sidebar-browse-trees'),
     $exploreTreesHeaderLink     = U.$find('.navbar li.explore-trees'),
     $addTreeHeaderLink          = U.$find('.navbar li[data-feature=add_plot]');
 
-function activateMode(mode, $sidebar) {
-    if (mode !== currentMode) {
+function activateMode(mode, $sidebar, safeTransition) {
+
+    // each mode activator takes an argument that determines
+    // whether or not to lock the prompter, or in other words,
+    // whether or not activateMode should prompt the user before
+    // changing modes.
+    if (safeTransition === true) {
+        prompter.unlock();
+    }
+    if (mode !== currentMode &&
+        prompter.canProceed()) {
         if (currentMode && currentMode.deactivate) {
             currentMode.deactivate();
         }
@@ -32,14 +44,29 @@ function activateMode(mode, $sidebar) {
         if (mode.activate) {
             mode.activate();
         }
+
+        // lockOnActivate will specify whether to leave the
+        // prompter in a locked state, which causes a
+        // prompt on mode changes and page navigation.
+        if (mode.lockOnActivate === true) {
+            prompter.lock();
+        } else {
+            prompter.unlock();
+        }
         mapState.setModeName(mode.name);
         currentMode = mode;
     }
 }
 
-function activateBrowseTreesMode()     { activateMode(browseTreesMode,     $sidebarBrowseTrees); }
-function activateAddTreeMode()         { activateMode(addTreeMode,         $sidebarAddTree); }
-function activateEditTreeDetailsMode() { activateMode(editTreeDetailsMode, $sidebarBrowseTrees); }
+function activateBrowseTreesMode(safeTranstion) {
+    activateMode(browseTreesMode, $sidebarBrowseTrees, safeTranstion);
+}
+function activateAddTreeMode(safeTranstion) { 
+    activateMode(addTreeMode, $sidebarAddTree, safeTranstion);
+}
+function activateEditTreeDetailsMode(safeTranstion) {
+    activateMode(editTreeDetailsMode, $sidebarBrowseTrees, safeTranstion);
+}
 
 function inBrowseTreesMode() { return currentMode === browseTreesMode; }
 function inAddTreeMode()     { return currentMode === addTreeMode; }
@@ -60,12 +87,18 @@ function init(config, mapManager, triggerSearchBus) {
         validationFields: '#sidebar-browse-trees [data-class="error"]',
         onSaveBefore: editTreeDetailsMode.onSaveBefore
     });
+
+    prompter = statePrompter.init({
+        warning: config.exitWarning,
+        question: config.exitQuestion
+    });
+
     form.inEditModeProperty.onValue(function (inEditMode) {
         // Form is changing to edit mode or display mode
         if (inEditMode) {
-            activateEditTreeDetailsMode();
+            activateEditTreeDetailsMode(true);
         } else {
-            activateBrowseTreesMode();
+            activateBrowseTreesMode(true);
         }
     });
 
@@ -90,7 +123,7 @@ function init(config, mapManager, triggerSearchBus) {
         plotMarker: plotMarker,
         inMyMode: inAddTreeMode,
         $sidebar: $sidebarAddTree,
-        onClose: activateBrowseTreesMode,
+        onClose: _.partial(activateBrowseTreesMode, true),
         typeaheads: [getSpeciesTypeaheadOptions(config, "add-tree-species")],
         triggerSearchBus: triggerSearchBus
     });

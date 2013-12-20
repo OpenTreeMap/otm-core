@@ -6,7 +6,6 @@ from __future__ import division
 from time import sleep
 
 from treemap.tests.ui import TreemapUITestCase, ui_test_urls
-
 from treemap.models import Tree, Plot
 
 
@@ -181,6 +180,8 @@ class MapTest(TreemapUITestCase):
 
         plot = Plot.objects.order_by('-id')[0]
 
+        self.driver.switch_to_alert().accept()
+
         # Expect to be on edit page for the plot
         self.assertTrue(
             self.driver.current_url.endswith(
@@ -248,3 +249,61 @@ class MapTest(TreemapUITestCase):
         tree = Tree.objects.get(pk=tree.pk)
 
         self.assertEqual(tree.diameter, 32.0)
+
+
+class ModeChangeTest(TreemapUITestCase):
+    urls = 'treemap.tests.ui.ui_test_urls'
+
+    def test_leave_page(self):
+        self._login_and_go_to_map_page()
+        self._browse_to_url('/autotest-instance/edits/')
+        self.assertTrue(self.driver.current_url.endswith('edits/'),
+                        "When no locks are present, browsing should succeed")
+
+    def test_locked_leave_page_add_tree(self):
+        self._login_workflow()
+        self._browse_to_url("/autotest-instance/map/")
+        self._start_add_tree()
+        self._browse_to_url('/autotest-instance/edits/')
+
+        self.driver.switch_to_alert().dismiss()
+
+        self.assertFalse(self.driver.current_url.endswith('edits/'),
+                         "Should not have left page after dismissing alert.")
+
+    def test_locked_add_tree_in_edit_mode(self):
+
+        self._login_and_go_to_map_page()
+        self._start_add_tree_and_click_point(20, 20)
+        self._end_add_tree_by_clicking_add_tree()
+
+        # Need to wait for change in database
+        sleep(DATABASE_COMMIT_DELAY)
+        plot = self.instance_plots().order_by('-id')[0]
+        ui_test_urls.testing_id = plot.pk
+
+        # Reload the page
+        self._go_to_map_page()
+
+        # Click on the tree we added
+        self._click_point_on_map(20, 20)
+
+        # enter edit mode, which should lock
+        self.driver.find_element_by_id('quick-edit-button').click()
+
+        expected_alert_text = ("You have begun entering data. "
+                               "Any unsaved changes will be lost. "
+                               "Are you sure you want to continue?")
+
+        self._start_add_tree()
+        alert = self.driver.switch_to_alert()
+        self.assertEqual(alert.text, expected_alert_text)
+        alert.dismiss()
+        self.assertFalse(self.driver.current_url.endswith('addTree'))
+
+        self._start_add_tree()
+        alert = self.driver.switch_to_alert()
+        self.assertEqual(alert.text, expected_alert_text)
+
+        alert.accept()
+        self.assertTrue(self.driver.current_url.endswith('addTree'))

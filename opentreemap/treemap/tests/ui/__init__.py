@@ -116,7 +116,7 @@ class TreemapUITestCase(UITestCase):
         actions.click()
         actions.perform()
 
-    def _start_add_tree_and_click_point(self, x, y):
+    def _start_add_tree(self):
         # Enter add tree mode
 
         add_tree = self.driver.find_elements_by_css_selector(
@@ -124,6 +124,8 @@ class TreemapUITestCase(UITestCase):
 
         add_tree.click()
 
+    def _start_add_tree_and_click_point(self, x, y):
+        self._start_add_tree()
         self._click_point_on_map(x, y)
 
     def instance_trees(self):
