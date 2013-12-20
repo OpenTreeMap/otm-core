@@ -12,6 +12,7 @@ var $ = require('jquery'),
     plotMover = require('treemap/plotMover'),
     plotDelete = require('treemap/plotDelete'),
     plotMarker = require('treemap/plotMarker'),
+    statePrompter = require('treemap/statePrompter'),
     csrf = require('treemap/csrf'),
     imageUploadPanel = require('treemap/imageUploadPanel'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
@@ -32,6 +33,11 @@ exports.init = function(options) {
     $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
     otmTypeahead.bulkCreate(options.typeaheads);
+
+    var prompter = statePrompter.init({
+        warning: options.config.exitWarning,
+        question: options.config.exitQuestion
+    });
 
     // Add threaded comments "reply" links
     var commentFormTempl = $("#template-comment").html();
@@ -114,10 +120,16 @@ exports.init = function(options) {
     form.inEditModeProperty.onValue(function(inEditMode) {
         var hrefHasEdit = U.getLastUrlSegment() === 'edit';
 
-        if (inEditMode && !hrefHasEdit) {
-            History.replaceState(null, '', U.appendSegmentToUrl('edit'));
-        } else if (!inEditMode && hrefHasEdit) {
-            History.replaceState(null, '', U.removeLastUrlSegment());
+        if (inEditMode) {
+            prompter.lock();
+            if (!hrefHasEdit) {
+                History.replaceState(null, '', U.appendSegmentToUrl('edit'));
+            }
+        } else {
+            prompter.unlock();
+            if (hrefHasEdit) {
+                History.replaceState(null, '', U.removeLastUrlSegment());
+            }
         }
     });
 

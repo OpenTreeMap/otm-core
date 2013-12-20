@@ -343,5 +343,6 @@ module.exports = {
     name: 'addTree',
     init: init,
     activate: activate,
-    deactivate: deactivate
+    deactivate: deactivate,
+    lockOnActivate: true
 };

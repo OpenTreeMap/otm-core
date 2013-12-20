@@ -64,5 +64,6 @@ module.exports = {
     init: init,
     activate: activate,
     deactivate: deactivate,
-    onSaveBefore: onSaveBefore
+    onSaveBefore: onSaveBefore,
+    lockOnActivate: true
 };
