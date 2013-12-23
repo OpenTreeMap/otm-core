@@ -94,11 +94,11 @@ class PlotEditTest(PlotDetailTest):
         self.assertFalse(Tree.objects.filter(plot=plot).exists())
 
 
-class DeleteTest(PlotDetailTest):
+class PlotDeleteTest(PlotDetailTest):
 
     def tearDown(self, *args, **kwargs):
         sleep(10)
-        super(DeleteTest, self).tearDown(*args, **kwargs)
+        super(PlotDeleteTest, self).tearDown(*args, **kwargs)
 
     def select_buttons(self):
         self.delete_begin = self.driver.find_element_by_id(
