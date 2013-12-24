@@ -665,8 +665,13 @@ class Authorizable(UserTrackable):
         A user is able to delete an object if they have all
         field permissions on a model.
         """
-        #TODO: This isn't checking for UDFs... should it?
-        return self._get_perms_set(user) >= set(self.tracked_fields)
+
+        is_admin = user.get_role(self.instance).name == 'administrator'
+        if is_admin:
+            return True
+        else:
+            #TODO: This isn't checking for UDFs... should it?
+            return self._get_perms_set(user) >= set(self.tracked_fields)
 
     def user_can_create(self, user, direct_only=False):
         """
