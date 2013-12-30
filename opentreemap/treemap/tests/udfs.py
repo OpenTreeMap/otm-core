@@ -518,6 +518,11 @@ class ScalarUDFDefTest(TestCase):
             {'type': 'choice',
              'choices': ['a choice', 'another']})
 
+    def test_can_create_choices_with_zero_for_value(self):
+        self._create_and_save_with_datatype(
+            {'type': 'choice',
+             'choices': [0, 1, 3, 4, 5]})
+
     def test_can_create_subfields(self):
         self._create_and_save_with_datatype(
             [{'type': 'choice',
