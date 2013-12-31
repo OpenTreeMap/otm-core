@@ -153,6 +153,14 @@
             {% endfor %}
           </tbody>
         </table>
+
+        {# Render collection UDF fields for the Plot  #}
+        {% for udf in plot.get_user_defined_fields %}
+          {% if udf.iscollection %}
+            {% include "treemap/partials/collectionudf.html" with udf=udf %}
+          {% endif %}
+        {% endfor %}
+
       </form>
       <hr>
 
