@@ -1,9 +1,11 @@
 {% load i18n %}
+{% load l10n %}
+{% load util %}
 
 <div>
-  <h2>{{ udf.name }}</h2>
-  <table data-udf-id="{{ udf.pk }}" data-udf-name="{{ udf.model_type.lower }}.{{ udf.canonical_name }}">
-    <tr class="headerrow" style="{{ udf.userdefinedcollectionvalue_set.all|default:"display:none" }}">
+  <h4>{{ udf.model_type|display_name }} {{ udf.name }}</h4>
+  <table class="table table-hover" data-udf-id="{{ udf.pk|unlocalize }}" data-udf-name="{{ udf.model_type.lower }}.{{ udf.canonical_name }}">
+    <tr class="headerrow" style="{{ values|default:"display:none" }}">
       {% for field in udf.datatype_dict %}
       <td>{{ field.name }}</td>
       {% endfor %}
@@ -12,9 +14,9 @@
       {% for field in udf.datatype_dict %}
       <td>
         {% include 'treemap/partials/udf_edit_field.html' with field=field %}
+        {% if forloop.last %}<a data-udf-id="{{ udf.pk|unlocalize }}" class="btn">+</a>{% endif %}
       </td>
       {% endfor %}
-      <td><a data-udf-id="{{ udf.pk }}" class="btn">+</a></td>
     </tr>
     {% for value in udf.userdefinedcollectionvalue_set.all %}
     {% include 'treemap/partials/collection_udf_row.html' with field=field value=value %}

@@ -6,7 +6,8 @@
   {% endfor %}
 </select>
 {% elif field.type == 'date' %}
-<input data-field-name="{{ field.name }}" data-date-format="yyyy-mm-dd" data-moment-date-format="YYYY-MM-DD" value="{% trans "Today" %}">
+<input type="text" data-field-name="{{ field.name }}" data-date-format="yyyy-mm-dd"
+       data-moment-date-format="YYYY-MM-DD" value="{% trans "Today" %}" />
 {% else %}
-<input data-field-name="{{ field.name }}">
+<input type="text" data-field-name="{{ field.name }}" />
 {% endif %}
