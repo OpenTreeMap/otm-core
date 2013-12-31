@@ -80,7 +80,7 @@
         <!-- Tree Information -->
         <h4>{% trans "Tree Information" %}</h4>
         <div id="add-tree-section" {{ has_tree|yesno:"style=display:none;," }}>
-          <span id="no-tree-message">{% trans "There is no tree for this plot." %}</span>
+          <div class="well well-sm" id="no-tree-message">{% trans "There is no tree for this planting site." %}</div>
           {% usercancreate tree %}
           <a href="javascript:;" id="add-tree" class="btn" style="display: none;">{% trans "Add Tree" %}</a>
           <a href="javascript:;" id="cancel-add-tree" class="btn"
