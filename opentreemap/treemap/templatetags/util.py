@@ -65,3 +65,16 @@ def audit_detail_link(audit):
             return None
     else:
         return None
+
+
+@register.filter
+def display_name(model_or_name):
+    if isinstance(model_or_name, basestring):
+        name = model_or_name
+    else:
+        name = model_or_name.__class__.__name__
+
+    if name.lower() == 'plot':
+        return 'Planting Site'
+    else:
+        return name
