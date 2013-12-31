@@ -1,3 +1,4 @@
+{% load i18n %}
 {% if field.type == 'choice' %}
 <select data-field-name="{{ field.name }}">
   {% for choice in field.choices %}
@@ -5,7 +6,7 @@
   {% endfor %}
 </select>
 {% elif field.type == 'date' %}
-<input data-field-name="{{ field.name }}" value="2013-09-12 10:10:10">
+<input data-field-name="{{ field.name }}" data-date-format="yyyy-mm-dd" data-moment-date-format="YYYY-MM-DD" value="{% trans "Today" %}">
 {% else %}
 <input data-field-name="{{ field.name }}">
 {% endif %}

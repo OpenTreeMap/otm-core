@@ -19,7 +19,11 @@ var $ = require('jquery'),
         require('treemap/reverseGeocodeStreamAndUpdateAddressesOnForm'),
     streetView = require('treemap/streetView'),
     diameterCalculator = require('treemap/diameterCalculator'),
-    History = require('history');
+    History = require('history'),
+    moment = require('moment');
+
+// Placed onto the jquery object
+require('bootstrap-datepicker');
 
 exports.init = function(options) {
     var $addTree = $(options.addTree),
@@ -74,12 +78,20 @@ exports.init = function(options) {
         var id = $(this).data('udf-id');
         var fields = $('table[data-udf-id="' + id + '"] * [data-field-name]').toArray();
 
-        var data = _.map(fields, function(field) { return $(field).val(); });
+        var data = _.map(fields, function(field) {
+            if ($(field).attr('data-moment-date-format')) {
+                return moment($(field).datepicker("getDate")).format($(field).attr('data-moment-date-format'));
+            } else {
+                return $(field).val();
+            }
+        });
 
         $(this).closest('table').append(udfRowTemplate({
             fields: data
         }));
     });
+
+    $('[data-date-format]').datepicker();
 
     var imageFinishedStream = imageUploadPanel.init(options.imageUploadPanel);
 
