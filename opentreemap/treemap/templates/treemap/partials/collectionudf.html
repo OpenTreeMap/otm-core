@@ -7,7 +7,7 @@
   <table class="table table-hover" data-udf-id="{{ udf.pk|unlocalize }}" data-udf-name="{{ udf.model_type.lower }}.{{ udf.canonical_name }}">
     <tr class="headerrow" style="{{ values|default:"display:none" }}">
       {% for field in udf.datatype_dict %}
-      <td>{{ field.name }}</td>
+      <th>{{ field.name }}</th>
       {% endfor %}
     </tr>
     <tr class="editrow" style="display: none">
@@ -18,10 +18,10 @@
       </td>
       {% endfor %}
     </tr>
-    {% for value in udf.userdefinedcollectionvalue_set.all %}
-    {% include 'treemap/partials/collection_udf_row.html' with field=field value=value %}
-    {% empty %}
-    <tr class="placeholder"><td>{% trans "No entries yet!" %}</td>
+    {% for value in values %}
+      {% include 'treemap/partials/collection_udf_row.html' with field=field value=value %}
     {% endfor %}
+    <tr class="placeholder" style="{{ values|yesno:"display: none;," }}"><td>{% trans "No entries yet!" %}</td>
   </table>
 </div>
+
