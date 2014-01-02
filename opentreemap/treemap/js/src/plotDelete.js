@@ -2,7 +2,6 @@
 
 var $ = require('jquery'),
     _ = require('underscore'),
-    BU = require('treemap/baconUtils');
 
 exports.init = function(options) {
     var config = options.config,
