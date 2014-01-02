@@ -917,6 +917,20 @@ class UserRoleFieldPermissionTest(TestCase):
         self.assertRaises(AuthorizeException,
                           tree.save_with_user, self.outlaw)
 
+    def test_make_administrator_can_delete(self):
+        with self.assertRaises(AuthorizeException):
+            self.tree.delete_with_user(self.outlaw)
+
+        iuser = self.outlaw.get_instance_user(self.instance)
+        role = Role.objects.create(instance=self.instance,
+                                   name='administrator',
+                                   rep_thresh=0)
+        iuser.role = role
+        iuser.save_with_user(self.commander)
+
+        self.tree.delete_with_user(self.outlaw)
+        self.assertEqual(Tree.objects.count(), 0)
+
     def test_delete_object(self):
         with self.assertRaises(AuthorizeException):
             self.tree.delete_with_user(self.outlaw)

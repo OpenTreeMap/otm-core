@@ -25,6 +25,10 @@ class PlotDetailTest(TreemapUITestCase):
     def _go_to_plot_detail(self, plot_id):
         self._browse_to_url("/autotest-instance/plots/%s/" % plot_id)
 
+    def _go_to_tree_detail(self, plot_id, tree_id):
+        self._browse_to_url("/autotest-instance/plots/%s/trees/%s/"
+                            % (plot_id, tree_id))
+
 
 class PlotEditTest(PlotDetailTest):
 
@@ -94,11 +98,11 @@ class PlotEditTest(PlotDetailTest):
         self.assertFalse(Tree.objects.filter(plot=plot).exists())
 
 
-class DeleteTest(PlotDetailTest):
+class PlotDeleteTest(PlotDetailTest):
 
     def tearDown(self, *args, **kwargs):
         sleep(10)
-        super(DeleteTest, self).tearDown(*args, **kwargs)
+        super(PlotDeleteTest, self).tearDown(*args, **kwargs)
 
     def select_buttons(self):
         self.delete_begin = self.driver.find_element_by_id(
@@ -188,3 +192,69 @@ class DeleteTest(PlotDetailTest):
         self.delete_confirm.click()
         sleep(DATABASE_COMMIT_DELAY)
         self.assertEqual(Tree.objects.count(), 0)
+
+    def test_delete_tree_from_both_urls(self):
+        """
+        tests that plots/%s/trees/%s/ and plots/%s/
+        have the same delete tree UI behavior
+
+        this test was created after discovering this bug
+        on staging.
+        """
+
+        # make a plot and tree
+        plot = Plot(instance=self.instance,
+                    geom=Point(0, 0))
+        plot.save_with_user(self.user)
+        tree1 = Tree(instance=self.instance,
+                     plot=plot)
+        tree1.save_with_user(self.user)
+
+        # login and delete the tree from plot detail page
+        self._login_workflow()
+        self._go_to_plot_detail(plot.pk)
+        self.select_buttons()
+        self.delete_begin.click()
+        self.delete_confirm.click()
+        sleep(DATABASE_COMMIT_DELAY)
+
+        # Expect tree to be deleted and redirect
+        # to detail page for the plot
+        self.assertEqual(Plot.objects.count(), 1)
+        self.assertEqual(Tree.objects.count(), 0)
+        self.assertTrue(
+            self.driver.current_url.endswith(
+                '/autotest-instance/plots/%s/' % plot.pk))
+
+        # make another tree to reestablish test case
+        tree2 = Tree(instance=self.instance,
+                     plot=plot)
+        tree2.save_with_user(self.user)
+        self.assertEqual(Plot.objects.count(), 1)
+        self.assertEqual(Tree.objects.count(), 1)
+
+        # delete the tree from the tree detail page
+        self._go_to_tree_detail(plot.pk, tree2.pk)
+        self.select_buttons()
+        self.delete_begin.click()
+        self.delete_confirm.click()
+        sleep(DATABASE_COMMIT_DELAY)
+
+        # Expect tree to be deleted and redirect
+        # to detail page for the plot (again)
+        self.assertEqual(Plot.objects.count(), 1)
+        self.assertEqual(Tree.objects.count(), 0)
+        self.assertTrue(
+            self.driver.current_url.endswith(
+                '/autotest-instance/plots/%s/' % plot.pk))
+
+        # finally, delete the plot and expect to be
+        # on the map page
+        self.select_buttons()
+        self.delete_begin.click()
+        self.delete_confirm.click()
+        sleep(DATABASE_COMMIT_DELAY)
+        self.assertEqual(Plot.objects.count(), 0)
+        self.assertEqual(Tree.objects.count(), 0)
+        self.assertTrue(
+            self.driver.current_url.endswith('/autotest-instance/map/'))

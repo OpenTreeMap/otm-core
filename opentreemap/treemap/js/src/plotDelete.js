@@ -2,7 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('underscore'),
-    BU = require('treemap/baconUtils');
+    U = require('treemap/utility');
 
 exports.init = function(options) {
     var config = options.config,
@@ -41,10 +41,25 @@ exports.init = function(options) {
         // plot deletions redirect to the map page.
         executeServerDelete = function () {
             var treeId = getTreeId(),
-                deleteUrlBase = '',
-                deleteUrl = treeId === '' ? deleteUrlBase :
-                    deleteUrlBase + 'trees/' + treeId + '/',
-                afterDeleteUrl = treeId === '' ? config.instance.mapUrl : '';
+                getPlotUrlFromTreeUrl = _.compose(U.removeLastUrlSegment,
+                                                  U.removeLastUrlSegment),
+                currentlyOnTreeUrl = (_.contains(
+                    U.getUrlSegments(document.URL), "trees")),
+                deleteUrl,
+                afterDeleteUrl;
+
+            if (currentlyOnTreeUrl &&
+                treeId !== '') {
+                // use this same url to delete the tree
+                deleteUrl = document.URL;
+                afterDeleteUrl = getPlotUrlFromTreeUrl(document.URL);
+            } else if (treeId === '') {
+                deleteUrl = document.URL;
+                afterDeleteUrl = config.instance.mapUrl;
+            } else {
+                deleteUrl = 'trees/' + treeId + '/';
+                afterDeleteUrl = document.URL;
+            }
 
             $.ajax({
                 url: deleteUrl,
