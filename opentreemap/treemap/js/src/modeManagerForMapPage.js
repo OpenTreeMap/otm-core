@@ -61,7 +61,7 @@ function activateMode(mode, $sidebar, safeTransition) {
 function activateBrowseTreesMode(safeTranstion) {
     activateMode(browseTreesMode, $sidebarBrowseTrees, safeTranstion);
 }
-function activateAddTreeMode(safeTranstion) { 
+function activateAddTreeMode(safeTranstion) {
     activateMode(addTreeMode, $sidebarAddTree, safeTranstion);
 }
 function activateEditTreeDetailsMode(safeTranstion) {
@@ -125,7 +125,8 @@ function init(config, mapManager, triggerSearchBus) {
         $sidebar: $sidebarAddTree,
         onClose: _.partial(activateBrowseTreesMode, true),
         typeaheads: [getSpeciesTypeaheadOptions(config, "add-tree-species")],
-        triggerSearchBus: triggerSearchBus
+        triggerSearchBus: triggerSearchBus,
+        prompter: prompter
     });
 
     editTreeDetailsMode.init({
