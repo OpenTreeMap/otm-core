@@ -33,7 +33,7 @@ FIELD_MAPPINGS = {
     'FloatField': 'float',
     'TextField': 'string',
     'CharField': 'string',
-    'DateTimeField': 'date',
+    'DateTimeField': 'datetime',
     'DateField': 'date',
     'BooleanField': 'bool',
     'NullBooleanField': 'bool',

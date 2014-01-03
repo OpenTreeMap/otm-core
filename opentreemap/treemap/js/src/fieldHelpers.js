@@ -7,6 +7,7 @@ var $ = require('jquery'),
     moment = require('moment');
 
 var DATETIME_FORMAT = exports.DATETIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
+var DATE_FORMAT = exports.DATE_FORMAT = "YYYY-MM-DD";
 
 var getField = exports.getField = function ($fields, name) {
     return $fields.filter('[data-field="' + name + '"]');
@@ -21,8 +22,13 @@ var excludeButtons = exports.excludeButtons = function (selector) {
     return $(selector).filter(":not(.btn)");
 };
 
+var getDateFieldFormat = exports.getDateFieldFormat = function ($elem) {
+    return $elem.closest('[data-type]').is('[data-type="date"]') ? DATE_FORMAT : DATETIME_FORMAT;
+};
+
 exports.applyDateToDatepicker = function($elem, value) {
-    var date = moment(value, DATETIME_FORMAT);
+    var format = getDateFieldFormat($elem);
+    var date = moment(value, format);
     if (date && date.isValid()) {
         $elem.datepicker('update', date.toDate());
     } else {
@@ -31,7 +37,8 @@ exports.applyDateToDatepicker = function($elem, value) {
 };
 
 var getTimestampFromDatepicker = exports.getTimestampFromDatepicker = function($elem) {
-    return moment($elem.datepicker("getDate")).format(DATETIME_FORMAT);
+    var format = getDateFieldFormat($elem);
+    return moment($elem.datepicker("getDate")).format(format);
 };
 
 exports.formToDictionary = function ($form, $editFields, $displayFields) {
@@ -68,10 +75,11 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
         if (type === 'bool') {
             // Handled below so we catch unchecked checkboxes which
             // serializeArray ignores
-        } else if (item.value === '' && (type === 'int' || type === 'float' || type === 'date')) {
+        } else if (item.value === '' && (type === 'int' || type === 'float' ||
+                                         type === 'date' || type === 'datetime')) {
             // convert empty numeric fields to null
             result[item.name] = null;
-        } else if (type === 'date') {
+        } else if (type === 'date' || type === 'datetime') {
             result[item.name] = getTimestampFromDatepicker($field);
         } else if (item.value === '' && isTypeaheadHiddenField(item.name)) {
             // convert empty foreign key id strings to null
