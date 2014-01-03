@@ -31,7 +31,8 @@ var config,
     deactivateBus,
     gcoder,
     $addTreeHeaderLink,
-    $exploreTreesHeaderLink;
+    $exploreTreesHeaderLink,
+    prompter;
 
 function init(options) {
     config = options.config;
@@ -40,6 +41,7 @@ function init(options) {
     onClose = options.onClose || $.noop;
     $sidebar = options.$sidebar;
     gcoder = geocoder(config);
+    prompter = options.prompter;
 
     $addTreeHeaderLink = options.$addTreeHeaderLink;
     $exploreTreesHeaderLink = options.$exploreTreesHeaderLink;
@@ -303,6 +305,7 @@ function onAddTreeSuccess(result) {
         break;
     case 'edit':
         var url = config.instance.url + 'plots/' + result.plotId + '/edit';
+        prompter.unlock();
         window.location.hash = '';
         window.location.href = url;
         break;
