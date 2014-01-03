@@ -160,7 +160,7 @@ class MapTest(TreemapUITestCase):
 
         self.assertEqual([99.0, 33.0], tree_diams)
 
-    @skip("This test is failing on the release build preventing a much needed deploy")
+    @skip("This test is failing on the release build preventing a deploy")
     def test_add_trees_and_continue_to_edit(self):
         initial_tree_count = self.ntrees()
         initial_plot_count = self.nplots()
