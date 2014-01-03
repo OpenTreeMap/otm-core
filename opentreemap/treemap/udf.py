@@ -48,6 +48,7 @@ def safe_get_udf_model_class(model_string):
     return model_class
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+DATE_FORMAT = '%Y-%m-%d'
 
 
 class UserDefinedCollectionValue(UserTrackable, models.Model):
@@ -389,7 +390,11 @@ class UserDefinedFieldDefinition(models.Model):
                                       {'fieldname': self.name})
 
         elif datatype == 'date':
-            return datetime.strptime(value.strip(), DATETIME_FORMAT)
+            try:
+                return datetime.strptime(value.strip(), DATETIME_FORMAT)
+            except ValueError:
+                # If the time is not included, try again with date only
+                return datetime.strptime(value.strip(), DATE_FORMAT)
         elif datatype == 'choice':
             if value in datatype_dict['choices']:
                 return value

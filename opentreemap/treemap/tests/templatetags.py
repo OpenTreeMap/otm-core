@@ -17,9 +17,10 @@ from treemap.audit import FieldPermission, Role
 from treemap.json_field import set_attr_on_json_field
 from treemap.templatetags.partial import PartialNode
 from treemap.udf import UserDefinedFieldDefinition
-from treemap.models import Plot, InstanceUser
+from treemap.models import Plot, Tree, InstanceUser
 from treemap.tests import (make_instance, make_observer_user,
                            make_commander_user, make_user)
+from treemap.templatetags.util import display_name
 
 
 class UserCanReadTagTest(TestCase):
@@ -628,3 +629,17 @@ class PartialTagTest(TestCase):
 
     def test_template_cannot_reference_dict_value(self):
         self._assert_renders_as("{{ yours }}", 'mine', '')
+
+
+class DisplayValueTagTest(TestCase):
+    def test_display_value_converts_string_plot(self):
+        self.assertEqual('Planting Site', display_name('plot'))
+
+    def test_display_value_passes_string_through(self):
+        self.assertEqual('FooBAR', display_name('FooBAR'))
+
+    def test_display_value_converts_plot_model(self):
+        self.assertEqual('Planting Site', display_name(Plot()))
+
+    def test_display_value_converts_model_name(self):
+        self.assertEqual('Tree', display_name(Tree()))

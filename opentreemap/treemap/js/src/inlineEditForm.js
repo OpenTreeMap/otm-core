@@ -173,7 +173,7 @@ exports.init = function(options) {
                 var $table = $(this);
                 var name = $table.data('udf-name');
 
-                var headers = $table.find('tr.headerrow td')
+                var headers = $table.find('tr.headerrow th')
                         .map(function() {
                             return $(this).html();
                         });
