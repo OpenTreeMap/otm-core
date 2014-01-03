@@ -115,6 +115,10 @@
               {% field height from "tree.height" for request.user withtemplate "treemap/field/tr.html" %}
               {% trans "Canopy Height" as canopy %}
               {% field canopy from "tree.canopy_height" for request.user withtemplate "treemap/field/tr.html" %}
+              {% trans "Date Planted" as planted %}
+              {% field planted from "tree.date_planted" for request.user withtemplate "treemap/field/tr.html" %}
+              {% trans "Date Removed" as removed %}
+              {% field removed from "tree.date_removed" for request.user withtemplate "treemap/field/tr.html" %}
               {% for label, udf in tree.scalar_udf_names_and_fields %}
                 {% field label from udf withtemplate "treemap/field/tr.html" %}
               {% endfor %}
