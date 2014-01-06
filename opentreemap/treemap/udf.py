@@ -298,6 +298,8 @@ class UserDefinedFieldDefinition(models.Model):
                 raise ValidationError(trans('missing choices key for key'))
 
             for choice in choices:
+                if not isinstance(choice, basestring):
+                    raise ValidationError(trans('Choice must be a string'))
                 if choice is None or choice == '':
                     raise ValidationError(trans('empty choice not allowed'))
 
