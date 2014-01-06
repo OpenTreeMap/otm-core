@@ -40,12 +40,22 @@ def plots_closest_to_point(request, instance, lat, lng):
                         .filter(geom__distance_lte=(point, D(m=distance)))\
                         .order_by('distance')[0:max_plots]
 
-    return [context_dict_for_plot(plot, user=request.user) for plot in plots]
+    def ctxt_for_plot(plot):
+        return context_dict_for_plot(
+            request.instance,
+            plot,
+            user=request.user,
+            supports_eco=request.instance_supports_ecobenefits)
+
+    return [ctxt_for_plot(plot) for plot in plots]
 
 
 def get_plot(request, instance, plot_id):
-    return context_dict_for_plot(Plot.objects.get(pk=plot_id),
-                                 user=request.user)
+    return context_dict_for_plot(
+        request.instance,
+        Plot.objects.get(pk=plot_id),
+        user=request.user,
+        supports_eco=request.instance_supports_ecobenefits)
 
 
 def update_or_create_plot(request, instance, plot_id=None):
@@ -86,4 +96,8 @@ def update_or_create_plot(request, instance, plot_id=None):
 
     plot, _ = update_plot_and_tree(data, request.user, plot)
 
-    return context_dict_for_plot(plot, user=request.user)
+    return context_dict_for_plot(
+        request.instance,
+        plot,
+        user=request.user,
+        supports_eco=request.instance_supports_ecobenefits)

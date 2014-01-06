@@ -950,7 +950,7 @@ class Auditable(UserTrackable):
         # manifest itself in the audit log, essentially keeping
         # a revision id of this instance. Since each primary
         # key will be unique, we can just use that for the hash
-        audits = self.instance.scope_model(Audit)\
+        audits = Audit.objects.filter(instance__pk=self.instance_id)\
                               .filter(model=self._model_name)\
                               .filter(model_id=self.pk)\
                               .order_by('-updated')

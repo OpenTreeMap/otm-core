@@ -244,7 +244,11 @@ def edits(request, instance, user_id):
         d["plot_id"] = plot.pk
 
         if plot.pk:
-            d["plot"] = context_dict_for_plot(plot, user=user)
+            d["plot"] = context_dict_for_plot(
+                request.instance,
+                plot,
+                user=user,
+                supports_eco=request.instance_supports_ecobenefits)
 
         d["id"] = audit.pk
         d["name"] = audit.display_action
@@ -373,7 +377,14 @@ def get_plot_list(request, instance):
     plots = Plot.objects.filter(instance=instance)\
                         .order_by('id')[start:end]
 
-    return [context_dict_for_plot(plot, user=request.user) for plot in plots]
+    def ctxt_for_plot(plot):
+        return context_dict_for_plot(
+            request.instance,
+            plot,
+            user=request.user,
+            supports_eco=request.instance_supports_ecobenefits)
+
+    return [ctxt_for_plot(plot) for plot in plots]
 
 
 #TODO: All of this logic should probably be
@@ -469,7 +480,11 @@ def _approve_or_reject_pending_edit(
                                          .filter(field=audit.field):
             approve_or_reject_audit_and_apply(pending_audit, user, False)
 
-    return context_dict_for_plot(updated_plot, user=request.user)
+    return context_dict_for_plot(
+        request.instance,
+        updated_plot,
+        user=request.user,
+        supports_eco=request.instance_supports_ecobenefits)
 
 
 @require_http_methods(["POST"])
@@ -520,7 +535,10 @@ def remove_current_tree_from_plot(request, instance, plot_id):
             tree.delete_with_user(request.user)
             updated_plot = Plot.objects.get(pk=plot_id)
             return context_dict_for_plot(
-                updated_plot, user=request.user)
+                request.instance,
+                updated_plot,
+                user=request.user,
+                supports_eco=request.instance_supports_ecobenefits)
         except:
             raise PermissionDenied(
                 '%s does not have permission to the '

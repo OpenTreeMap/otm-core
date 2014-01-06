@@ -648,6 +648,7 @@ class UDFDCache(object):
 
 udf_cache = UDFDCache()
 
+
 @receiver(post_save, sender=UserDefinedFieldDefinition)
 def clear_udf_cache(*args, **kwargs):
     udf_cache.reset()
