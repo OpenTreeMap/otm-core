@@ -1004,7 +1004,7 @@ class Audit(models.Model):
 
     field = models.CharField(max_length=255, null=True)
     previous_value = models.CharField(max_length=255, null=True)
-    current_value = models.CharField(max_length=255, null=True)
+    current_value = models.CharField(max_length=255, null=True, db_index=True)
 
     user = models.ForeignKey('treemap.User')
     action = models.IntegerField()
