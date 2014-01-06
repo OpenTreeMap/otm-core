@@ -607,11 +607,16 @@ def _plot_audits(user, instance, plot):
                            action=Audit.Type.Delete,
                            model_id__in=tree_history)
 
-    audits = Audit.objects.filter(instance=instance)\
-                          .filter(tree_filter |
-                                  tree_delete_filter |
-                                  plot_filter)\
-                          .order_by('-updated')[:5]
+    # Seems to be much faster to do three smaller
+    # queries here instead of ORing them together
+    # (about a 50% inprovement!)
+    iaudit = Audit.objects.filter(instance=instance)
+
+    audits = []
+    for afilter in [tree_filter, tree_delete_filter, plot_filter]:
+        audits += list(iaudit.filter(afilter).order_by('-updated')[:5])
+
+    audits = sorted(audits, key=lambda audit: audit.updated, reverse=True)[:5]
 
     return audits
 
