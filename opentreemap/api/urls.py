@@ -7,15 +7,14 @@ from django.conf.urls import patterns
 
 from opentreemap.util import route
 
-from api.views import (get_plot_list, create_plot_optional_tree, status,
-                       version, get_plot, remove_plot,
-                       update_plot_and_tree, get_current_tree_from_plot,
+from api.views import (status, version,
                        remove_current_tree_from_plot, add_tree_photo,
-                       get_tree_image, plots_closest_to_point,
-                       approve_pending_edit, reject_pending_edit, species_list,
-                       geocode_address, reset_password, verify_auth,
+                       get_tree_image, plots_endpoint, species_list_endpoint,
+                       approve_pending_edit, reject_pending_edit,
+                       geocode_address, reset_password, login_endpoint,
                        register, add_profile_photo, update_password,
-                       edits)
+                       plot_endpoint, edits, plots_closest_to_point_endpoint,
+                       instance_info_endpoint)
 
 from treemap.instance import URL_NAME_PATTERN
 
@@ -26,21 +25,12 @@ urlpatterns = patterns(
     '',
     (r'^$', status),
     (r'^version$', version),
-    (instance_pattern + r'/plots$',
-     route(GET=get_plot_list, POST=create_plot_optional_tree)),
-
-    (instance_pattern + r'/plots/(?P<plot_id>\d+)$',
-     route(GET=get_plot, PUT=update_plot_and_tree, DELETE=remove_plot)),
 
     (instance_pattern + r'/plots/(?P<plot_id>\d+)/tree$',
-     route(GET=get_current_tree_from_plot,
-           DELETE=remove_current_tree_from_plot)),
+     route(DELETE=remove_current_tree_from_plot)),
 
     (r'^plots/(?P<plot_id>\d+)/tree/photo$', route(POST=add_tree_photo)),
     (r'^plots/(?P<plot_id>\d+)/tree/photo/(?P<photo_id>\d+)', get_tree_image),
-    (r'^locations/'
-     '(?P<lat>-{0,1}\d+(\.\d+){0,1}),(?P<lon>-{0,1}\d+(\.\d+){0,1})'
-     '/plots', plots_closest_to_point),
 
     (instance_pattern + r'/pending-edits/(?P<pending_edit_id>\d+)/approve',
      route(POST=approve_pending_edit)),
@@ -48,14 +38,24 @@ urlpatterns = patterns(
     (instance_pattern + r'/pending-edits/(?P<pending_edit_id>\d+)/reject',
      route(POST=reject_pending_edit)),
 
-    (r'^species', species_list),
     (r'^addresses/(?P<address>.+)', geocode_address),
 
     (r'^login/reset_password$', reset_password),
-    (r'^login$', verify_auth),
+    (r'^login$', login_endpoint),
 
     (r'^user/$', route(POST=register)),
     (r'^user/(?P<user_id>\d+)/photo/(?P<title>.+)$', add_profile_photo),
     (r'^user/(?P<user_id>\d+)/password$', update_password),
     (r'^user/(?P<user_id>\d+)/edits$', edits),
+
+
+    # OTM2/instance endpoints
+    (instance_pattern + '$', instance_info_endpoint),
+    (instance_pattern + '/species$', species_list_endpoint),
+    (instance_pattern + r'/plots$', plots_endpoint),
+    (instance_pattern + r'/plots/(?P<plot_id>\d+)$',
+     plot_endpoint),
+    (instance_pattern + r'/locations/'
+     '(?P<lat>-{0,1}\d+(\.\d+){0,1}),(?P<lng>-{0,1}\d+(\.\d+){0,1})'
+     '/plots', plots_closest_to_point_endpoint),
 )

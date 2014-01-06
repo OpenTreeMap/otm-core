@@ -720,6 +720,7 @@ class Authorizable(UserTrackable):
         return fields_to_audit
 
     def clobber_unauthorized(self, user):
+        # TODO: clobber udfs
         perms = user.get_instance_permissions(self.instance, self._model_name)
         readable_fields = {perm.field_name for perm
                            in perms
