@@ -13,6 +13,8 @@ from django.contrib.gis.db import models
 from django.db.models import Q
 from django.db.models.base import ModelBase
 from django.db.models.sql.constants import ORDER_PATTERN
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from django.contrib.gis.db.models.sql.where import GeoWhereNode
 from django.contrib.gis.db.models.sql.query import GeoQuery
@@ -607,6 +609,50 @@ class UDFModelBase(ModelBase):
         return new
 
 
+class UDFDCache(object):
+    """
+    Cache user defined field defintions
+    """
+    def __init__(self, max_size=10000):
+        self.reset()
+        self.max_size = max_size
+
+    def reset(self):
+        self.cache = {}
+
+    def put(self, k, v):
+        if len(self.cache) == self.max_size:
+            self.reset()
+
+        self.cache[k] = v
+        return v
+
+    def _cache_key(self, model_name, instance_id):
+        return (model_name, instance_id)
+
+    def get_defs_for_model(self, model_name, instance_id=None):
+        key = self._cache_key(model_name, instance_id)
+
+        if key not in self.cache:
+            udfs = UserDefinedFieldDefinition.objects.filter(
+                model_type=model_name)
+
+            if instance_id:
+                udfs = udfs.filter(instance__pk=instance_id)
+
+            # Iterating over a queryset isn't theadsafe
+            # so we need to force it here
+            return self.put(key, list(udfs))
+        else:
+            return self.cache[key]
+
+udf_cache = UDFDCache()
+
+@receiver(post_save, sender=UserDefinedFieldDefinition)
+def clear_udf_cache(*args, **kwargs):
+    udf_cache.reset()
+
+
 class UDFModel(UserTrackable, models.Model):
     """
     Classes that extend this model gain support for scalar UDF
@@ -635,13 +681,8 @@ class UDFModel(UserTrackable, models.Model):
         return normal_fields or self.dirty_collection_udfs
 
     def get_user_defined_fields(self):
-        udfs = UserDefinedFieldDefinition.objects.filter(
-            model_type=self._model_name)
-
-        if hasattr(self, 'instance'):
-            udfs = udfs.filter(instance=self.instance)
-
-        return udfs
+        return udf_cache.get_defs_for_model(
+            self._model_name, self.instance_id)
 
     def audits(self):
         regular_audits = Q(model=self._model_name,
