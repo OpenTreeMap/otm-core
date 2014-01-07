@@ -638,7 +638,7 @@ class Authorizable(UserTrackable):
     def __init__(self, *args, **kwargs):
         super(Authorizable, self).__init__(*args, **kwargs)
 
-        self._has_been_clobbered = False
+        self._has_been_masked = False
 
     def _get_perms_set(self, user, direct_only=False):
 
@@ -693,15 +693,15 @@ class Authorizable(UserTrackable):
 
         return can_create
 
-    def _assert_not_clobbered(self):
+    def _assert_not_masked(self):
         """
-        Raises an exception if the object has been clobbered.
+        Raises an exception if the object has been masked.
         This assertion should be called by any method that
-        shouldn't operate on clobbered models.
+        shouldn't operate on masked models.
         """
-        if self._has_been_clobbered:
+        if self._has_been_masked:
             raise AuthorizeException(
-                "Operation cannot be performed on a clobbered object.")
+                "Operation cannot be performed on a masked object.")
 
     def get_pending_fields(self, user):
         """
@@ -719,8 +719,8 @@ class Authorizable(UserTrackable):
 
         return fields_to_audit
 
-    def clobber_unauthorized(self, user):
-        # TODO: clobber udfs
+    def mask_unauthorized_fields(self, user):
+        # TODO: mask udfs
         perms = user.get_instance_permissions(self.instance, self._model_name)
         readable_fields = {perm.field_name for perm
                            in perms
@@ -732,7 +732,7 @@ class Authorizable(UserTrackable):
         for field_name in unreadable_fields:
             self.apply_change(field_name, None)
 
-        self._has_been_clobbered = True
+        self._has_been_masked = True
 
     def _perms_for_user(self, user):
         if user is None or user.is_anonymous():
@@ -758,13 +758,13 @@ class Authorizable(UserTrackable):
         return field in self.editable_fields(user)
 
     @staticmethod
-    def clobber_queryset(qs, user):
+    def mask_queryset(qs, user):
         for model in qs:
-            model.clobber_unauthorized(user)
+            model.mask_unauthorized_fields(user)
         return qs
 
     def save_with_user(self, user, *args, **kwargs):
-        self._assert_not_clobbered()
+        self._assert_not_masked()
 
         if self.pk is not None:
             writable_perms = self._get_perms_set(user)
@@ -781,7 +781,7 @@ class Authorizable(UserTrackable):
         super(Authorizable, self).save_with_user(user, *args, **kwargs)
 
     def delete_with_user(self, user, *args, **kwargs):
-        self._assert_not_clobbered()
+        self._assert_not_masked()
 
         if self.user_can_delete(user):
             super(Authorizable, self).delete_with_user(user, *args, **kwargs)
