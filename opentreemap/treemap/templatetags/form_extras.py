@@ -15,9 +15,8 @@ from django.conf import settings
 from treemap.util import safe_get_model_class
 from treemap.json_field import (is_json_field_reference,
                                 get_attr_from_json_field)
-from treemap.units import (get_digits, get_units, is_formattable,
-                           is_convertible_or_formattable, is_convertible,
-                           get_display_value)
+from treemap.units import (get_digits_if_formattable, get_units_if_convertible,
+                           is_convertible_or_formattable, get_display_value)
 
 register = template.Library()
 
@@ -26,6 +25,23 @@ register = template.Library()
 # until looked up in the context
 _identifier_regex = re.compile(
     r"^[a-zA-Z_.\-]+(?:udf\:[\w '\._-]+|[a-zA-Z0-9_\-]+)$")
+
+FIELD_MAPPINGS = {
+    'IntegerField': 'int',
+    'ForeignKey': 'int',
+    'AutoField': 'int',
+    'FloatField': 'float',
+    'TextField': 'string',
+    'CharField': 'string',
+    'DateTimeField': 'date',
+    'DateField': 'date',
+    'BooleanField': 'bool',
+    'NullBooleanField': 'bool',
+    'FileField': 'string',
+    'PointField': 'point'
+}
+
+VALID_FIELD_KEYS = ','.join([k for k, v in FIELD_MAPPINGS.iteritems()])
 
 
 class Variable(Grammar):
@@ -202,20 +218,52 @@ def _resolve_variable(variable, context):
         return variable
 
 
-class AbstractNode(template.Node):
-    _field_mappings = {
-        'IntegerField': 'int',
-        'ForeignKey': 'int',
-        'AutoField': 'int',
-        'FloatField': 'float',
-        'TextField': 'string',
-        'CharField': 'string',
-        'DateTimeField': 'date',
-        'DateField': 'date',
-        'BooleanField': 'bool'
-    }
-    _valid_field_keys = ','.join([k for k, v in _field_mappings.iteritems()])
+def _is_udf(model, udf_field_name):
+            return (hasattr(model, 'udf_field_names') and
+                    udf_field_name in model.udf_field_names)
 
+
+def _udf_dict(model, field_name):
+            matches = [field.datatype_dict
+                       for field
+                       in model.get_user_defined_fields()
+                       if field.name == field_name.replace('udf:', '')]
+            if matches:
+                return matches[0]
+            else:
+                raise Exception("Datatype for field %s not found" % field_name)
+
+
+def field_type_label_choices(model, field_name, label):
+    choices = None
+    udf_field_name = field_name.replace('udf:', '')
+    if not _is_udf(model, udf_field_name):
+        field = model._meta.get_field(field_name)
+        field_type = field.get_internal_type()
+        try:
+            field_type = FIELD_MAPPINGS[field_type]
+        except KeyError:
+            raise Exception('This template tag only supports %s not %s'
+                            % (VALID_FIELD_KEYS,
+                               field_type))
+        label = label if label else field.help_text
+        choices = [{'value': choice[0], 'display_value': choice[1]}
+                   for choice in field.choices]
+        if choices and field.null:
+            choices = [{'value': '', 'display_value': ''}] + choices
+    else:
+        udf_dict = _udf_dict(model, field_name)
+        field_type = udf_dict['type']
+        label = label if label else udf_field_name
+        if 'choices' in udf_dict:
+            values = [''] + udf_dict['choices']
+            choices = [{'value': value, 'display_value': value}
+                       for value in values]
+
+    return field_type, label, choices
+
+
+class AbstractNode(template.Node):
     def __init__(self, label, identifier, user, field_template, instance):
         self.label = label
         self.identifier = identifier
@@ -250,43 +298,6 @@ class AbstractNode(template.Node):
         model_name, field_name = identifier.split('.', 1)
         model = self.get_model(context, model_name, instance)
 
-        def _is_udf(model, udf_field_name):
-            return (hasattr(model, 'udf_field_names') and
-                    udf_field_name in model.udf_field_names)
-
-        def _udf_dict(model, field_name):
-            return model.get_user_defined_fields()\
-                .filter(name=field_name.replace('udf:', ''))[0]\
-                .datatype_dict
-
-        def _field_type_label_choices(model, field_name, label):
-            choices = None
-            udf_field_name = field_name.replace('udf:', '')
-            if not _is_udf(model, udf_field_name):
-                field = model._meta.get_field(field_name)
-                field_type = field.get_internal_type()
-                try:
-                    field_type = FieldNode._field_mappings[field_type]
-                except KeyError:
-                    raise Exception('This template tag only supports %s not %s'
-                                    % (FieldNode._valid_field_keys,
-                                       field_type))
-                label = label if label else field.help_text
-                choices = [{'value': choice[0], 'display_value': choice[1]}
-                           for choice in field.choices]
-                if choices and field.null:
-                    choices = [{'value': '', 'display_value': ''}] + choices
-            else:
-                udf_dict = _udf_dict(model, field_name)
-                field_type = udf_dict['type']
-                label = label if label else udf_field_name
-                if 'choices' in udf_dict:
-                    values = [''] + udf_dict['choices']
-                    choices = [{'value': value, 'display_value': value}
-                               for value in values]
-
-            return field_type, label, choices
-
         def _field_value(model, field_name):
             udf_field_name = field_name.replace('udf:', '')
             if field_name in model._meta.get_all_field_names():
@@ -308,7 +319,7 @@ class AbstractNode(template.Node):
             data_type = "string"
         else:
             field_value = _field_value(model, field_name)
-            data_type, label, choices = _field_type_label_choices(
+            data_type, label, choices = field_type_label_choices(
                 model, field_name, label)
 
             if user is not None and hasattr(model, 'field_is_visible'):
@@ -322,12 +333,14 @@ class AbstractNode(template.Node):
                 is_visible = True
                 is_editable = True
 
-        digits = (get_digits(model.instance, model_name, field_name)
-                  if is_formattable(model_name, field_name) else '')
+        digits = units = ''
 
-        units = ''
-        if is_convertible(model_name, field_name):
-            units = get_units(model.instance, model_name, field_name)
+        if hasattr(model, 'instance'):
+            digits = get_digits_if_formattable(
+                model.instance, model_name, field_name)
+
+            units = get_units_if_convertible(
+                model.instance, model_name, field_name)
 
         if field_value is None:
             display_val = None

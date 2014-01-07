@@ -522,7 +522,7 @@ class ScalarUDFDefTest(TestCase):
         with self.assertRaises(ValidationError):
             self._create_and_save_with_datatype(
                 {'type': 'choice',
-                'choices': [0, 1, 3, 4, 5]})
+                 'choices': [0, 1, 3, 4, 5]})
 
     def test_can_create_subfields(self):
         self._create_and_save_with_datatype(
