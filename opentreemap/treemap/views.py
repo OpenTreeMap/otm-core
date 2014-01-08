@@ -279,6 +279,9 @@ def context_dict_for_plot(plot, tree_id=None, user=None):
                     kwargs={'instance_url_name': instance.url_name,
                             'plot_id': plot.pk})
 
+
+    if user and user.is_authenticated():
+        plot.mask_unauthorized_fields(user)
     context['plot'] = plot
     context['has_tree'] = tree is not None
     # Give an empty tree when there is none in order to show tree fields easily

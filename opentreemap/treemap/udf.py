@@ -26,6 +26,8 @@ from treemap.audit import (UserTrackable, Audit, UserTrackingException,
                            AuthorizeException)
 from treemap.util import safe_get_model_class
 
+DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+DATE_FORMAT = '%Y-%m-%d'
 
 def safe_get_udf_model_class(model_string):
     """
@@ -46,9 +48,6 @@ def safe_get_udf_model_class(model_string):
                                     'UDFModel'))
 
     return model_class
-
-DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-DATE_FORMAT = '%Y-%m-%d'
 
 
 class UserDefinedCollectionValue(UserTrackable, models.Model):

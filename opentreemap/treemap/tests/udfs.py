@@ -16,6 +16,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.gis.geos import Point, Polygon
 
 from treemap.tests import (make_instance, make_commander_user,
+                           make_officer_user,
                            add_field_permissions)
 
 from treemap.udf import UserDefinedFieldDefinition
@@ -294,6 +295,28 @@ class UDFAuditTest(TestCase):
         self.plot.save_with_user(self.commander_user)
 
         psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
+    def test_mask_unauthorized_with_udfs(self):
+        officer_user = make_officer_user(self.instance)
+
+        self.plot.udfs['Test choice'] = 'b'
+        self.plot.save_with_user(self.commander_user)
+        self.plot.udfs['Test unauth'] = 'foo'
+        self.plot.save_base()
+
+        newplot = Plot.objects.get(pk=self.plot.pk)
+        self.assertEqual(newplot.udfs['Test choice'], 'b')
+        self.assertEqual(newplot.udfs['Test unauth'], 'foo')
+
+        newplot = Plot.objects.get(pk=self.plot.pk)
+        newplot.mask_unauthorized_fields(self.commander_user)
+        self.assertEqual(newplot.udfs['Test choice'], 'b')
+        self.assertEqual(newplot.udfs['Test unauth'], None)
+
+        newplot = Plot.objects.get(pk=self.plot.pk)
+        newplot.mask_unauthorized_fields(officer_user)
+        self.assertEqual(newplot.udfs['Test choice'], None)
+        self.assertEqual(newplot.udfs['Test unauth'], None)
 
     def test_update_field_creates_audit(self):
         self.plot.udfs['Test choice'] = 'b'
