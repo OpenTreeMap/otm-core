@@ -1,3 +1,70 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
+from django.conf import settings
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D
+
+from treemap.exceptions import HttpBadRequestException
+from treemap.models import Instance, InstanceUser
+
+
+def instances_closest_to_point(request, lat, lng):
+    """
+    Get all the info we need about instances near a given point
+    Includes only public instances the user does not belong to.
+    If a user has been specified instances that user belongs to will
+    also be included in a separate list.
+
+    Unlike instance_info, this does not return the field permissions for the
+    instance
+    """
+    user = request.user
+    user_instance_ids = []
+    if user and not user.is_anonymous():
+        user_instance_ids = InstanceUser.objects.filter(user=user)\
+                                        .values_list('instance_id', flat=True)\
+                                        .distinct()
+
+    point = Point(float(lng), float(lat), srid=4326)
+
+    try:
+        max_instances = int(request.GET.get('max', '10'))
+
+        if max_instances not in xrange(1, 501):
+            raise ValueError()
+    except ValueError:
+        raise HttpBadRequestException(
+            'The max parameter must be a number between 1 and 500')
+
+    try:
+        distance = float(request.GET.get(
+            'distance', settings.NEARBY_INSTANCE_RADIUS))
+    except ValueError:
+        raise HttpBadRequestException(
+            'The distance parameter must be a number')
+
+    instances = Instance.objects.distance(point)\
+        .filter(is_public=True)\
+        .exclude(pk__in=user_instance_ids)\
+        .filter(bounds__distance_lte=(point, D(m=distance)))\
+        .order_by('distance')[0:max_instances]
+
+    my_instances = Instance.objects.distance(point)\
+        .filter(pk__in=user_instance_ids)\
+        .filter(bounds__distance_lte=(point, D(m=distance)))\
+        .order_by('distance')
+
+    return {
+        'nearby': [_instance_info_dict(instance)
+                   for instance in instances],
+        'personal': [_instance_info_dict(instance)
+                     for instance in my_instances]
+    }
+
+
 def instance_info(request, instance):
     """
     Get all the info we need about a given instance
@@ -7,8 +74,6 @@ def instance_info(request, instance):
     will be tailored to that user
     """
     user = request.user
-    center = instance.center
-    center.transform(4326)
 
     role = instance.default_role
     if user and not user.is_anonymous():
@@ -30,10 +95,22 @@ def instance_info(request, instance):
                 'field_name': fp.field_name
             })
 
-    return {'geoRev': instance.geo_rev_hash,
+    info = _instance_info_dict(instance)
+    info['fields'] = perms
+
+    return info
+
+
+def _instance_info_dict(instance):
+    center = instance.center
+    center.transform(4326)
+
+    info = {'geoRev': instance.geo_rev_hash,
             'id': instance.pk,
             'url': instance.url_name,
             'name': instance.name,
             'center': {'lat': center.y,
                        'lng': center.x},
-            'fields': perms}
+            }
+    if hasattr(instance, 'distance'):
+        info['distance'] = instance.distance.km

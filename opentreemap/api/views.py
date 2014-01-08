@@ -536,6 +536,11 @@ plots_closest_to_point_endpoint = login_optional(
         csrf_exempt(json_api_call(
             plots_closest_to_point))))
 
+instances_closest_to_point_endpoint = login_optional(
+    instance_request(
+        csrf_exempt(json_api_call(
+            instances_closest_to_point))))
+
 instance_info_endpoint = login_optional(
     instance_request(
         csrf_exempt(json_api_call(

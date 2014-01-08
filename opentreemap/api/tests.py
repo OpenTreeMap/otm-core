@@ -13,18 +13,21 @@ import base64
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 from django.test import TestCase
+from django.test.utils import override_settings
 from django.test.client import Client
 from django.utils.unittest.case import skip
 from django.conf import settings
 
 from treemap.models import Species, Plot, Tree, User
 from treemap.audit import ReputationMetric, Audit
-from treemap.tests import create_mock_system_user, make_user
+from treemap.tests import (create_mock_system_user, make_user,
+                           make_commander_user, make_request, make_instance)
 
 from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from api.models import APIKey, APILog
 from api.views import (InvalidAPIKeyException,
                        _parse_application_version_header_as_dict)
+from api.instance import instances_closest_to_point
 
 
 API_PFX = "/api/v2"
@@ -1286,6 +1289,50 @@ class VersionHeaderParsing(TestCase):
         }, version_dict)
 
 
+@override_settings(NEARBY_INSTANCE_RADIUS=2)
+class InstancesClosestToPoint(TestCase):
+    def setUp(self):
+        self.i1 = make_instance(is_public=True, point=Point(0, 0))
+        self.i2 = make_instance(is_public=False, point=Point(0, 0))
+        self.i3 = make_instance(is_public=True, point=Point(0, 9))
+        self.i4 = make_instance(is_public=False, point=Point(10, 0))
+        self.user = make_commander_user(instance=self.i2)
+
+    def test_nearby_list_default(self):
+        request = make_request()
+        instance_infos = instances_closest_to_point(request, 0, 0)
+        self.assertEqual(1, len(instance_infos['nearby']))
+        self.assertEqual(self.i1.pk, instance_infos['nearby'][0]['id'])
+
+        self.assertEqual(0, len(instance_infos['personal']))
+
+    def test_nearby_list_distance(self):
+        request = make_request({'distance': 100000})
+        instance_infos = instances_closest_to_point(request, 0, 0)
+        self.assertEqual(2, len(instance_infos))
+        self.assertEqual(self.i1.pk, instance_infos['nearby'][0]['id'])
+        self.assertEqual(self.i3.pk, instance_infos['nearby'][1]['id'])
+
+        self.assertEqual(0, len(instance_infos['personal']))
+
+    def test_user_list_default(self):
+        request = make_request(user=self.user)
+        instance_infos = instances_closest_to_point(request, 0, 0)
+        self.assertEqual(1, len(instance_infos['nearby']))
+        self.assertEqual(self.i1.pk, instance_infos['nearby'][0]['id'])
+
+        self.assertEqual(1, len(instance_infos['personal']))
+        self.assertEqual(self.i2.pk, instance_infos['personal'][0]['id'])
+
+    def test_user_list_max(self):
+        request = make_request({'max': 3, 'distance': 100000}, user=self.user)
+        instance_infos = instances_closest_to_point(request, 0, 0)
+        self.assertEqual(2, len(instance_infos['nearby']))
+        self.assertEqual(self.i1.pk, instance_infos['nearby'][0]['id'])
+        self.assertEqual(self.i3.pk, instance_infos['nearby'][1]['id'])
+
+        self.assertEqual(1, len(instance_infos['personal']))
+        self.assertEqual(self.i2.pk, instance_infos['personal'][0]['id'])
 
 
 # TODO: Add this back in when we really support
