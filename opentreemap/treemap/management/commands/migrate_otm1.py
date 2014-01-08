@@ -199,7 +199,7 @@ def more_permissions(user, instance, role):
 
 
 def try_save_user_hash_to_model(model_name, model_hash,
-                                instance, system_user, god_role,
+                                instance, system_user, commander_role,
                                 user_field_to_try):
     """
     Tries to save an object with the app user that should own
@@ -214,7 +214,7 @@ def try_save_user_hash_to_model(model_name, model_hash,
     else:
         user = system_user
 
-    with more_permissions(user, instance, god_role) as elevated_user:
+    with more_permissions(user, instance, commander_role) as elevated_user:
         model.save_with_user(elevated_user)
 
     return model
@@ -222,7 +222,7 @@ def try_save_user_hash_to_model(model_name, model_hash,
 
 def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                             instance, system_user,
-                            god_role=None, save_with_user=False,
+                            commander_role=None, save_with_user=False,
                             save_with_system_user=False):
 
     for model_hash in model_hashes:
@@ -238,7 +238,7 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
             user_field = MODELS[model_name]['dependencies']['user']
             fn = try_save_user_hash_to_model
             model = fn(model_name, model_hash, instance, system_user,
-                       god_role, user_field)
+                       commander_role, user_field)
         else:
             model = hash_to_model(model_name, model_hash,
                                   instance, system_user)
@@ -252,11 +252,11 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
             model_key_map[model_hash['pk']] = model.pk
 
 
-def create_instance_users(instance):
+def create_instance_users(instance, system_user):
     for user in User.objects.all():
         iuser = InstanceUser(instance=instance, user=user,
                              role=instance.default_role)
-        iuser.save()
+        iuser.save_with_user(system_user)
 
 
 class Command(InstanceDataCommand):
@@ -339,14 +339,14 @@ class Command(InstanceDataCommand):
                                     dependency_id_maps,
                                     instance, system_user,
                                     save_with_system_user=True)
-            create_instance_users(instance)
+            create_instance_users(instance, system_user)
 
         if json_hashes['species']:
             hashes_to_saved_objects('species', json_hashes['species'],
                                     dependency_id_maps, instance, system_user)
 
-        from treemap.tests import make_god_role
-        god_role = make_god_role(instance)
+        from treemap.tests import make_commander_role
+        commander_role = make_commander_role(instance)
 
         if json_hashes['plot']:
             hashes_to_saved_objects('plot', json_hashes['plot'],
