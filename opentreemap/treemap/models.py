@@ -354,11 +354,12 @@ class User(Auditable, AbstractUniqueEmailUser):
         if re.search('\\s', self.username):
             raise ValidationError(trans('Cannot have spaces in a username'))
 
-    def save(self, *args, **kwargs):
+    def save_with_user(self, user, *args, **kwargs):
         self.full_clean()
-
         self.email = self.email.lower()
+        super(User, self).save_with_user(user, *args, **kwargs)
 
+    def save(self, *args, **kwargs):
         system_user = User.system_user()
         self.save_with_user(system_user, *args, **kwargs)
 
