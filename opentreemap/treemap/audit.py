@@ -720,7 +720,6 @@ class Authorizable(UserTrackable):
         return fields_to_audit
 
     def mask_unauthorized_fields(self, user):
-        # TODO: mask udfs
         perms = user.get_instance_permissions(self.instance, self._model_name)
         readable_fields = {perm.field_name for perm
                            in perms

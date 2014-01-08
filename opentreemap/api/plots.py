@@ -35,7 +35,6 @@ def plots_closest_to_point(request, instance, lat, lng):
                         .filter(geom__distance_lte=(point, D(m=distance)))\
                         .order_by('distance')[0:max_plots]
 
-    #TODO Clobber udfs!
     return [context_dict_for_plot(plot, user=request.user) for plot in plots]
 
 
