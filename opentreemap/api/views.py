@@ -35,9 +35,9 @@ from treemap.audit import Audit, approve_or_reject_audit_and_apply
 from api.models import APIKey, APILog
 from api.auth import login_required, create_401unauthorized, login_optional
 
-from instance import instance_info
-from plots import plots_closest_to_point, get_plot, update_or_create_plot
-from user import user_info
+from api.instance import instance_info, instances_closest_to_point
+from api.plots import plots_closest_to_point, get_plot, update_or_create_plot
+from api.user import user_info
 
 
 class HttpConflictException(Exception):
@@ -535,6 +535,11 @@ plots_closest_to_point_endpoint = login_optional(
     instance_request(
         csrf_exempt(json_api_call(
             plots_closest_to_point))))
+
+instances_closest_to_point_endpoint = login_optional(
+    instance_request(
+        csrf_exempt(json_api_call(
+            instances_closest_to_point))))
 
 instance_info_endpoint = login_optional(
     instance_request(

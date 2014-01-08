@@ -33,6 +33,8 @@ MAXIMUM_IMAGE_SIZE = 10485760  # 10mb
 
 # API distance check, in meters
 MAP_CLICK_RADIUS = 100
+# API instance distance default, in meters
+NEARBY_INSTANCE_RADIUS = 100000
 
 # Default nearby tree distance in meters
 NEARBY_TREE_DISTANCE = 6.096  # 20ft
