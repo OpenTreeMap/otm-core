@@ -676,7 +676,7 @@ class Authorizable(UserTrackable):
     def user_can_create(self, user, direct_only=False):
         """
         A user is able to create an object if they have permission on
-        any of the fields in that model.
+        all required fields of its model.
 
         If direct_only is False this method will return true
         if the user has either permission to create directly or

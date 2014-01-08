@@ -474,6 +474,61 @@ class ImportEvent(models.Model):
         return "%s - %s" % (self.imported_by, self.imported_on)
 
 
+class MapFeature(UDFModel):
+    "Superclass for map feature subclasses like Plot, RainBarrel, etc."
+    instance = models.ForeignKey(Instance)
+    geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
+
+    address_street = models.CharField(max_length=255, blank=True, null=True)
+    address_city = models.CharField(max_length=255, blank=True, null=True)
+    address_zip = models.CharField(max_length=30, blank=True, null=True)
+
+    readonly = models.BooleanField(default=False)
+
+    objects = AuthorizableGeoHStoreUDFManager()
+
+    # When querying MapFeatures (as opposed to querying a subclass like Plot),
+    # we get a heterogenous collection (some Plots, some RainBarrels, etc.).
+    # The feature_type attribute tells us the type of each object.
+
+    feature_type = models.CharField(max_length=255)
+
+    def __init__(self, *args, **kwargs):
+        super(MapFeature, self).__init__(*args, **kwargs)
+        if self.feature_type == '':
+            self.feature_type = self.map_feature_type
+        self._do_not_track.add('feature_type')
+        self._do_not_track.add('mapfeature_ptr')
+        self.populate_previous_state()
+
+    @property
+    def _is_generic(self):
+        return self.__class__.__name__ == 'MapFeature'
+
+    def save_with_user(self, user, *args, **kwargs):
+        if self._is_generic:
+            raise Exception(
+                'Never save a MapFeature -- only save a MapFeature subclass')
+        super(MapFeature, self).save_with_user(user, *args, **kwargs)
+
+    @property
+    def map_feature_type(self):
+        # Map feature type defaults to subclass name (e.g. 'Plot').
+        # Subclasses can override it if they want something different.
+        # (But note that the value gets stored in the database, so should not
+        # be changed for a subclass once objects have been saved.)
+        return self.__class__.__name__
+
+    def __unicode__(self):
+        x_chunk = "X: %s" % self.geom.x if self.geom else "?"
+        y_chunk = "Y: %s" % self.geom.y if self.geom else "?"
+        address_chunk = self.address_street or "No Address Provided"
+        text = "%s, %s - %s" % (x_chunk, y_chunk, address_chunk)
+        if self._is_generic:
+            text = "(%s) " % self.feature_type + text
+        return text
+
+
 #TODO:
 # Exclusion Zones
 # Proximity validation
@@ -497,6 +552,9 @@ class Plot(Convertible, UDFModel, Authorizable, Auditable):
     readonly = models.BooleanField(default=False)
 
     objects = AuthorizableGeoHStoreUDFManager()
+
+    mapfeature_ptr = models.ForeignKey(MapFeature, null=True)
+
 
     def nearby_plots(self, distance_in_meters=None):
         if distance_in_meters is None:
@@ -594,7 +652,8 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
     """
     instance = models.ForeignKey(Instance)
 
-    plot = models.ForeignKey(Plot)
+    plot = models.ForeignKey(Plot, related_name='rick')
+    map_feature = models.ForeignKey(MapFeature, null=True)
     species = models.ForeignKey(Species, null=True, blank=True)
     import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
 
