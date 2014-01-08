@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import json
 from south.db import db
-from south.v2 import SchemaMigration
+from south.v2 import DataMigration
+from django.db import models
 
-
-class Migration(SchemaMigration):
+class Migration(DataMigration):
 
     def forwards(self, orm):
         # Change all existing choice UDFs to only have text values
@@ -149,6 +149,19 @@ class Migration(SchemaMigration):
             'role': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Role']"}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.User']"})
         },
+        u'treemap.itreecodeoverride': {
+            'Meta': {'unique_together': "((u'instance_species', u'region'),)", 'object_name': 'ITreeCodeOverride'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'instance_species': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Species']"}),
+            'itree_code': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'region': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.ITreeRegion']"})
+        },
+        u'treemap.itreeregion': {
+            'Meta': {'object_name': 'ITreeRegion'},
+            'code': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '40'}),
+            'geometry': ('django.contrib.gis.db.models.fields.MultiPolygonField', [], {'srid': '3857'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
+        },
         u'treemap.plot': {
             'Meta': {'object_name': 'Plot'},
             'address_city': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
@@ -204,6 +217,14 @@ class Migration(SchemaMigration):
             'species': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'udfs': ('treemap.udf.UDFField', [], {'db_index': 'True', 'blank': 'True'}),
             'wildlife_value': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'})
+        },
+        u'treemap.staticpage': {
+            'Meta': {'object_name': 'StaticPage'},
+            'content': ('django.db.models.fields.TextField', [], {}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'instance': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Instance']"}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
         u'treemap.tree': {
             'Meta': {'object_name': 'Tree'},
@@ -266,3 +287,4 @@ class Migration(SchemaMigration):
     }
 
     complete_apps = ['treemap']
+    symmetrical = True
