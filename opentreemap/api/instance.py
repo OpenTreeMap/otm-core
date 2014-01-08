@@ -9,6 +9,10 @@ from django.contrib.gis.measure import D
 
 from treemap.exceptions import HttpBadRequestException
 from treemap.models import Instance, InstanceUser
+from treemap.units import get_units_if_convertible, get_digits_if_formattable
+from treemap.util import safe_get_model_class
+from treemap.templatetags.form_extras import field_type_label_choices
+from treemap.json_field import is_json_field_reference
 
 
 def instances_closest_to_point(request, lat, lng):
@@ -89,7 +93,27 @@ def instance_info(request, instance):
             if model not in perms:
                 perms[model] = []
 
+            if is_json_field_reference(fp.field_name):
+                choices = None
+                data_type = "string"
+            else:
+                model_inst = safe_get_model_class(fp.model_name)(
+                    instance=instance)
+
+                data_type, _, choices = field_type_label_choices(
+                    model_inst, fp.field_name, fp.display_field_name)
+
+            digits = get_digits_if_formattable(
+                instance, model, fp.field_name)
+
+            units = get_units_if_convertible(
+                instance, model, fp.field_name)
+
             perms[model].append({
+                'data_type': data_type,
+                'choices': choices,
+                'units': units,
+                'digits': digits,
                 'can_write': fp.allows_writes,
                 'display_name': fp.display_field_name,
                 'field_name': fp.field_name
