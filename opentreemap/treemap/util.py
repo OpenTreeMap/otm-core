@@ -19,7 +19,7 @@ from django.utils.functional import Promise
 from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.utils.translation import ugettext_lazy as trans
 from django.core.files.uploadedfile import SimpleUploadedFile, File
 from django.db.models.fields.files import ImageFieldFile
@@ -62,9 +62,14 @@ def add_visited_instance(request, instance):
 def get_last_visited_instance(request):
     if hasattr(request, 'session') and 'visited_instances' in request.session:
         instance_id = next(reversed(request.session['visited_instances']))
-        return Instance.objects.get(pk=instance_id)
+        try:
+            instance = Instance.objects.get(pk=instance_id)
+        except (Instance.DoesNotExist, MultipleObjectsReturned):
+            instance = None
     else:
-        return None
+        instance = None
+
+    return instance
 
 
 def login_redirect(request):
