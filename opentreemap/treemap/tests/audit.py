@@ -226,7 +226,8 @@ class AuditTest(TestCase):
 
     def test_get_id_sequence_name(self):
         self.assertEqual(get_id_sequence_name(Tree), 'treemap_tree_id_seq')
-        self.assertEqual(get_id_sequence_name(Plot), 'treemap_plot_id_seq')
+        self.assertEqual(get_id_sequence_name(Plot),
+                         'treemap_mapfeature_id_seq')
 
 
 class ReviewTest(TestCase):

@@ -534,27 +534,16 @@ class MapFeature(UDFModel):
 # Proximity validation
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
-class Plot(Convertible, UDFModel, Authorizable, Auditable):
-    instance = models.ForeignKey(Instance)
-    geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
-
+class Plot(MapFeature, Convertible, Authorizable, Auditable):
     width = models.FloatField(null=True, blank=True,
                               help_text=trans("Plot Width"))
     length = models.FloatField(null=True, blank=True,
                                help_text=trans("Plot Length"))
 
-    address_street = models.CharField(max_length=255, blank=True, null=True)
-    address_city = models.CharField(max_length=255, blank=True, null=True)
-    address_zip = models.CharField(max_length=30, blank=True, null=True)
-
     import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
     owner_orig_id = models.CharField(max_length=255, null=True, blank=True)
-    readonly = models.BooleanField(default=False)
 
     objects = AuthorizableGeoHStoreUDFManager()
-
-    mapfeature_ptr = models.ForeignKey(MapFeature, null=True)
-
 
     def nearby_plots(self, distance_in_meters=None):
         if distance_in_meters is None:
@@ -596,12 +585,6 @@ class Plot(Convertible, UDFModel, Authorizable, Auditable):
             return trees[0]
         else:
             return None
-
-    def __unicode__(self):
-        x_chunk = "X: %s" % self.geom.x if self.geom else "?"
-        y_chunk = "Y: %s" % self.geom.y if self.geom else "?"
-        address_chunk = self.address_street or "No Address Provided"
-        return "%s, %s - %s" % (x_chunk, y_chunk, address_chunk)
 
     @property
     def hash(self):
@@ -652,8 +635,7 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
     """
     instance = models.ForeignKey(Instance)
 
-    plot = models.ForeignKey(Plot, related_name='rick')
-    map_feature = models.ForeignKey(MapFeature, null=True)
+    plot = models.ForeignKey(Plot)
     species = models.ForeignKey(Species, null=True, blank=True)
     import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
 

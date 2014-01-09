@@ -11,6 +11,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as trans
 from django.dispatch import receiver
+from django.db.models import OneToOneField
 from django.db.models.signals import post_save
 from django.db.models.fields import FieldDoesNotExist
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -38,8 +39,12 @@ def get_id_sequence_name(model_class):
     Takes a django model class and returns the name of the autonumber
     sequence for the id field.
     Tree => 'treemap_tree_id_seq'
-    Plot => 'treemap_plot_id_seq'
+    Plot => 'treemap_mapfeature_id_seq'
     """
+    if isinstance(model_class._meta.pk, OneToOneField):
+        # Model uses multi-table inheritance (probably a MapFeature subclass)
+        model_class = model_class._meta.pk.related.parent_model
+
     table_name = model_class._meta.db_table
     pk_field = model_class._meta.pk
     # django fields only have a truthy db_column when it is
@@ -866,7 +871,7 @@ class Auditable(UserTrackable):
             is_fk = isinstance(field, models.ForeignKey)
             is_required = (field.null is False or field.blank is False)
 
-            if is_fk:
+            if is_fk and field != self._meta.pk:
                 try:
                     related_model = getattr(self, field.name)
                     if related_model is not None:
@@ -919,6 +924,7 @@ class Auditable(UserTrackable):
         else:
             model_id = _reserve_model_id(_lookup_model(self._model_name))
             self.pk = model_id
+            self.id = model_id  # for e.g. Plot, where pk != id
             self.is_pending_insert = True
 
         if is_insert:
