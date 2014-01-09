@@ -137,5 +137,8 @@ def _instance_info_dict(instance):
             'center': {'lat': center.y,
                        'lng': center.x},
             }
+
     if hasattr(instance, 'distance'):
         info['distance'] = instance.distance.km
+
+    return info
