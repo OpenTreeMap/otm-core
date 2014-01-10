@@ -448,9 +448,13 @@ class InstanceUser(Auditable, models.Model):
         enabled = feature_enabled(self.instance, 'tree_image_upload')
         return enabled and fieldperms == fields
 
-    def save_with_user(self, user):
+    def save_with_user(self, user, *args, **kwargs):
         self.full_clean()
-        super(InstanceUser, self).save_with_user(user)
+        super(InstanceUser, self).save_with_user(user, *args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        system_user = User.system_user()
+        self.save_with_user(system_user, *args, **kwargs)
 
     def __unicode__(self):
         return '%s/%s' % (self.user.get_username(), self.instance.name)
