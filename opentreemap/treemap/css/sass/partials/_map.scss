@@ -4,7 +4,7 @@
     width: 200px;
     height: 200px;
     position: absolute;
-    left:20px;
+    left: 20px;
     bottom: 80px;
     background: gray;
     z-index: 10000;
@@ -68,7 +68,7 @@
         .leaflet-control-layers-base {
 
             label {
-                font-size: 1em;
+                font-size: 1.6rem;
                 padding: 0 5px;
 
                 .leaflet-control-layers-selector {
@@ -85,14 +85,14 @@
 }
 
 @keyframes pulse {
-    0% {opacity: 1;}
-    30% {opacity: 0.5;}
-    60% {opacity: 1;}
+    0%  { opacity: 1; }
+    30% { opacity: 0.5; }
+    60% { opacity: 1; }
 }
 @-webkit-keyframes pulse {
-    0% {opacity: 1;}
-    30% {opacity: 0.5;}
-    60% {opacity: 1;}
+    0%  { opacity: 1; }
+    30% { opacity: 0.5; }
+    60% { opacity: 1; }
 }
 
 .leaflet-marker-icon {
@@ -130,7 +130,7 @@ span.tt-dropdown-menu {
     margin-top: 10px;
     padding: 0;
     width: 221px;
-    font-size: 0.75em;
+    font-size: 1.2rem;
     position: relative;
     border: 1px solid $well-color;
     background: white;
@@ -166,9 +166,9 @@ span.tt-dropdown-menu {
             }
 
             p {
-                line-height: 1.5em;
+                line-height: 1.6rem;
                 margin: 0;
-                font-size: 1em;
+                font-size: 1.2rem;
             }
         }
     }

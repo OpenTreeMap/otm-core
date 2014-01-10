@@ -30,13 +30,13 @@
         cursor: default;
     }
 
-    @include button-size(14px);
-    &.btn-large		{ @include button-size(18px); }
-    &.btn-small		{ @include button-size(12px); }
-    &.btn-mini		{ @include button-size(10px); }
+    @include button-size(1.4rem);
+    &.btn-large		{ @include button-size(1.8rem); }
+    &.btn-small		{ @include button-size(1.2rem); }
+    &.btn-mini		{ @include button-size(1.0rem); }
 }
 
-@mixin button-size($text-size: 12px) {
+@mixin button-size($text-size: 1.2rem) {
 	font-family: $base-font-family;
 	font-size: $text-size;
 	font-weight: 400;

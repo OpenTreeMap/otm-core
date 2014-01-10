@@ -17,9 +17,9 @@
     	text-align: center;
     }
     p {
-    	font-size: 18px;
+    	font-size: 1.8rem;
 		font-weight: 300;
-		line-height: 27px;
+		line-height: 2.7rem;
 		color: $subtext-color;
     }
     a {
@@ -33,7 +33,7 @@
 	overflow: hidden;
 	color: white;
 	margin: 0 auto 15px;
-	font-size: 72px;
+	font-size: 7.2rem;
 	@include select-none;
 
 	&.error-icon-sad {

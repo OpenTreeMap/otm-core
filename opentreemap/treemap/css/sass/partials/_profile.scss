@@ -5,20 +5,20 @@
     margin-bottom: 15px;
 
     h1 {
-        line-height: 1em;
+        line-height: 1.6rem;
         margin: 15px 0 10px;
         float: left;
-        font-size: 1.5em;
+        font-size: 2.4rem;
         width: auto;
         text-overflow: ellipsis;
         max-width: 250px;
         overflow: hidden;
 
         small {
-            font-size: 0.5em;
+            font-size: 0.8rem;
             color: #c2c2c2;
             display: block;
-            line-height: 21px;
+            line-height: 2.1rem;
         }
     }
     .user-photo-container {
@@ -30,9 +30,6 @@
         float: left;
         margin-right: 10px;
 
-        > img {
-
-        }
         > button {
             position: absolute;
             bottom: 0;
@@ -66,7 +63,7 @@
 }
 
 #recent-user-edits {
-    font-size: 0.75em;
+    font-size: 1.2rem;
 }
 
 .profile {

@@ -67,7 +67,7 @@
 	small {
 		clear: both;
 		display: block;
-		font-size: 0.75em;
+		font-size: 1.2rem;
 		color: $subtext-color;
 	}
 }
@@ -86,7 +86,7 @@
 
 		dt {
 			font-weight: 700;
-			font-size: 0.75em;
+			font-size: 1.2rem;
 			margin-bottom: 2px;
 		}
 		dd {
@@ -163,7 +163,7 @@
 				text-transform: none;
 				width: 75%;
 				margin: 6px auto 0px;
-				line-height: 16px;
+				line-height: 1.6rem;
 			}
 			img {
 				width: 114px;
@@ -178,9 +178,9 @@
 			text-align: center;
 
 			.per-month {
-				font-size: 12px;
+				font-size: 1.2rem;
 				vertical-align: text-top;
-				line-height: 33px;
+				line-height: 3.2rem;
 				color: $subtext-color;
 			}
 
@@ -225,7 +225,7 @@
 		margin: 0 auto;
 		width: 250px;
 		padding: 22px 25px 25px;
-		font-size: 1.75em;
+		font-size: 2.8rem;
 		display: block;
 	}
 }
