@@ -308,12 +308,11 @@ class User(Auditable, AbstractUniqueEmailUser):
                 'username': self.username}
 
     def get_instance_user(self, instance):
-        qs = InstanceUser.objects.filter(user=self, instance=instance)
-        if qs.count() == 1:
-            return qs[0]
-        elif qs.count() == 0:
+        try:
+            return InstanceUser.objects.get(user=self, instance=instance)
+        except InstanceUser.DoesNotExist:
             return None
-        else:
+        except MultipleObjectsReturned:
             msg = ("User '%s' found more than once in instance '%s'"
                    % (self, instance))
             raise IntegrityError(msg)
