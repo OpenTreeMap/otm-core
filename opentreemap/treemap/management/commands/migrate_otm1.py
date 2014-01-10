@@ -86,7 +86,6 @@ MODELS = {
     },
     'species': {
         'model_class': Species,
-        'dependencies': {},
         'common_fields': {'bloom_period', 'common_name',
                           'fact_sheet', 'fall_conspicuous',
                           'flower_conspicuous', 'fruit_period', 'gender',
@@ -98,7 +97,6 @@ MODELS = {
                            'cultivar_name': 'cultivar',
                            'other_part_of_name': 'other',
                            'symbol': 'otm_code'},
-        'undecided_fields': set(),
         'missing_fields': {'instance', },
         'removed_fields': {'alternate_symbol', 'v_multiple_trunks',
                            'tree_count', 'resource', 'itree_code',
@@ -110,15 +108,11 @@ MODELS = {
     },
     'user': {
         'model_class': User,
-        'dependencies': {},
         'common_fields': {'username', 'password', 'email', 'date_joined',
                           'first_name', 'last_name', 'is_active',
                           'is_superuser', 'is_staff', 'last_login'},
-        'renamed_fields': {},
-        'undecided_fields': set(),
         'removed_fields': {'groups', 'user_permissions'},
         'missing_fields': {'roles', 'reputation'},
-        'value_transformers': {},
     },
 }
 
@@ -128,10 +122,10 @@ def validate_model(model_name, data_hash):
     Makes sure the fields specified in the MODELS global
     account for all of the provided data
     """
-    common_fields = MODELS[model_name]['common_fields']
-    renamed_fields = MODELS[model_name]['renamed_fields']
-    removed_fields = MODELS[model_name]['removed_fields']
-    undecided_fields = MODELS[model_name]['undecided_fields']
+    common_fields = MODELS[model_name].get('common_fields', set())
+    renamed_fields = MODELS[model_name].get('renamed_fields', {})
+    removed_fields = MODELS[model_name].get('removed_fields', set())
+    undecided_fields = MODELS[model_name].get('undecided_fields', set())
     expected_fields = (common_fields |
                        set(renamed_fields.keys()) |
                        removed_fields |
@@ -158,16 +152,16 @@ def hash_to_model(model_name, data_hash, instance, user):
 
     validate_model(model_name, data_hash)
 
-    common_fields = MODELS[model_name]['common_fields']
-    renamed_fields = MODELS[model_name]['renamed_fields']
+    common_fields = MODELS[model_name].get('common_fields', set())
+    renamed_fields = MODELS[model_name].get('renamed_fields', {})
 
     model = MODELS[model_name]['model_class']()
 
     identity = (lambda x: x)
 
     for field in common_fields.union(renamed_fields):
-        transform_value_fn = MODELS[model_name]['value_transformers']\
-            .get(field, identity)
+        transformers = MODELS[model_name].get('value_transformers', {})
+        transform_value_fn = transformers.get(field, identity)
         try:
             transformed_value = transform_value_fn(data_hash['fields'][field])
             field = renamed_fields.get(field, field)
@@ -199,7 +193,7 @@ def more_permissions(user, instance, role):
 
 
 def try_save_user_hash_to_model(model_name, model_hash,
-                                instance, system_user, god_role,
+                                instance, system_user, commander_role,
                                 user_field_to_try):
     """
     Tries to save an object with the app user that should own
@@ -214,7 +208,7 @@ def try_save_user_hash_to_model(model_name, model_hash,
     else:
         user = system_user
 
-    with more_permissions(user, instance, god_role) as elevated_user:
+    with more_permissions(user, instance, commander_role) as elevated_user:
         model.save_with_user(elevated_user)
 
     return model
@@ -222,23 +216,24 @@ def try_save_user_hash_to_model(model_name, model_hash,
 
 def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                             instance, system_user,
-                            god_role=None, save_with_user=False,
+                            commander_role=None, save_with_user=False,
                             save_with_system_user=False):
 
     for model_hash in model_hashes:
-        for dependency_name, dependency_field in \
-            MODELS[model_name]['dependencies'].iteritems():  # NOQA
-            dependency_map = dependency_id_maps[dependency_name]
-            dependency_id = model_hash['fields'][dependency_field]
-            if dependency_id:
-                new_id = dependency_map[model_hash['fields'][dependency_field]]
-                model_hash['fields'][dependency_field] = new_id
+        if 'dependencies' in MODELS[model_name]:
+            for dependency_name, dependency_field in \
+                MODELS[model_name]['dependencies'].iteritems():  # NOQA
+                dependency_map = dependency_id_maps[dependency_name]
+                dependency_id = model_hash['fields'][dependency_field]
+                if dependency_id:
+                    new_id = dependency_map[model_hash['fields'][dependency_field]]
+                    model_hash['fields'][dependency_field] = new_id
 
-        if save_with_user:
+        if save_with_user and 'dependencies' in MODELS[model_name]:
             user_field = MODELS[model_name]['dependencies']['user']
             fn = try_save_user_hash_to_model
             model = fn(model_name, model_hash, instance, system_user,
-                       god_role, user_field)
+                       commander_role, user_field)
         else:
             model = hash_to_model(model_name, model_hash,
                                   instance, system_user)
@@ -252,11 +247,11 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
             model_key_map[model_hash['pk']] = model.pk
 
 
-def create_instance_users(instance):
+def create_instance_users(instance, system_user):
     for user in User.objects.all():
         iuser = InstanceUser(instance=instance, user=user,
                              role=instance.default_role)
-        iuser.save()
+        iuser.save_with_user(system_user)
 
 
 class Command(InstanceDataCommand):
@@ -339,14 +334,14 @@ class Command(InstanceDataCommand):
                                     dependency_id_maps,
                                     instance, system_user,
                                     save_with_system_user=True)
-            create_instance_users(instance)
+            create_instance_users(instance, system_user)
 
         if json_hashes['species']:
             hashes_to_saved_objects('species', json_hashes['species'],
                                     dependency_id_maps, instance, system_user)
 
-        from treemap.tests import make_god_role
-        god_role = make_god_role(instance)
+        from treemap.tests import make_commander_role
+        commander_role = make_commander_role(instance)
 
         if json_hashes['plot']:
             hashes_to_saved_objects('plot', json_hashes['plot'],

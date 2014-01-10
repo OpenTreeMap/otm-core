@@ -11,7 +11,7 @@ from treemap.util import get_last_visited_instance
 
 def global_settings(request):
     last_instance = get_last_visited_instance(request)
-    if request.user.is_authenticated():
+    if hasattr(request, 'user') and request.user.is_authenticated():
         last_effective_instance_user =\
             request.user.get_effective_instance_user(last_instance)
     else:
