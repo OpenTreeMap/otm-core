@@ -281,6 +281,7 @@ def context_dict_for_plot(plot, tree_id=None, user=None):
 
     if user and user.is_authenticated():
         plot.mask_unauthorized_fields(user)
+
     context['plot'] = plot
     context['has_tree'] = tree is not None
     # Give an empty tree when there is none in order to show tree fields easily
@@ -663,29 +664,48 @@ def boundary_autocomplete(request, instance):
 def species_list(request, instance):
     max_items = request.GET.get('max_items', None)
 
-    species_set = instance.scope_model(Species).order_by('common_name')
-    species_set = species_set[:max_items]
+    species_qs = instance.scope_model(Species)\
+                         .order_by('common_name')\
+                         .values('common_name', 'genus',
+                                 'species', 'cultivar', 'id')
+
+    if max_items:
+        species_qs = species_qs[:max_items]
 
     # Split names by space so that "el" will match common_name="Delaware Elm"
     def tokenize(species):
-        names = (species.common_name, species.genus,
-                 species.species, species.cultivar)
+        names = (species['common_name'],
+                 species['genus'],
+                 species['species'],
+                 species['cultivar'])
 
-        tokens = []
+        tokens = set()
 
         for name in names:
             if name:
-                tokens.extend(name.split())
+                tokens = tokens.union(name.split())
 
         # Names are sometimes in quotes, which should be stripped
-        return [token.strip(string.punctuation) for token in tokens]
+        return {token.strip(string.punctuation) for token in tokens}
 
-    return [{'common_name': species.common_name,
-             'id': species.pk,
-             'scientific_name': species.scientific_name,
-             'value': species.display_name,
-             'tokens': tokenize(species)}
-            for species in species_set]
+    def annotate_species_dict(sdict):
+        sci_name = Species.get_scientific_name(sdict['genus'],
+                                               sdict['species'],
+                                               sdict['cultivar'])
+
+        display_name = "%s [%s]" % (sdict['common_name'],
+                                    sci_name)
+
+        tokens = tokenize(species)
+
+        sdict.update({
+            'scientific_name': sci_name,
+            'value': display_name,
+            'tokens': tokens})
+
+        return sdict
+
+    return [annotate_species_dict(species) for species in species_qs]
 
 
 def _execute_filter(instance, filter_str):

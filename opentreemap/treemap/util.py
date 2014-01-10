@@ -129,6 +129,8 @@ class LazyEncoder(DjangoJSONEncoder):
             return force_text(obj)
         elif hasattr(obj, 'dict'):
             return obj.dict()
+        elif isinstance(obj, set):
+            return list(obj)
         elif hasattr(obj, 'as_dict'):
             return obj.as_dict()
         elif isinstance(obj, Point):
