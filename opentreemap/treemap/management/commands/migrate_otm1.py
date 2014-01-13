@@ -14,7 +14,7 @@ from django.conf import settings
 
 from treemap.models import (User, Plot, Tree, Species, InstanceUser)
 from treemap.audit import model_hasattr
-from ._private import InstanceDataCommand
+from treemap.management import InstanceDataCommand
 
 logger = logging.getLogger('')
 
