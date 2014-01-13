@@ -29,6 +29,7 @@ from treemap.util import safe_get_model_class
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 DATE_FORMAT = '%Y-%m-%d'
 
+
 def safe_get_udf_model_class(model_string):
     """
     In a couple of cases we want to be able to convert a string
