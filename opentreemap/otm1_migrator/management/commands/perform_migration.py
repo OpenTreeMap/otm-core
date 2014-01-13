@@ -13,7 +13,7 @@ from django.contrib.gis.geos import fromstr
 from django.conf import settings
 from django.db.transaction import commit_on_success
 
-from treemap.models import (User, Plot, Tree, Species, InstanceUser)
+from treemap.models import (User, Plot, Tree, Species, InstanceUser, Audit)
 from treemap.audit import model_hasattr
 from treemap.management import InstanceDataCommand
 
@@ -67,6 +67,21 @@ MODELS = {
             'plot': (lambda x: Plot.objects.get(pk=x)),
             'species': (lambda x: Species.objects.get(pk=x)),
             }
+    },
+    'audit': {
+        'model_class': Audit,
+        'dependencies': {'user': 'user' },
+        # since audits are produced using a sanitized
+        # fixture exporter, fewer fields are modified
+        # on this end.
+        'common_fields': {'model', 'model_id', 'field',
+                          'previous_value', 'current_value',
+                          'user', # keep this?
+                          'action', 'requires_auth',
+                          'ref', 'created', 'updated'},
+        'value_transformers': {
+            'user': (lambda x: User.objects.get(pk=x))
+        }
     },
     'plot': {
         'model_class': Plot,
@@ -341,6 +356,11 @@ class Command(InstanceDataCommand):
                     type='string',
                     dest='tree_fixture',
                     help='path to json dump containing tree data'),
+        make_option('-a', '--audit-fixture',
+                    action='store',
+                    type='string',
+                    dest='audit_fixture',
+                    help='path to json dump containing audit data'),
     )
 
     def handle(self, *args, **options):
@@ -363,7 +383,8 @@ class Command(InstanceDataCommand):
             'species': [],
             'user': [],
             'plot': [],
-            'tree': []
+            'tree': [],
+            'audit': []
         }
 
         for model_name in json_hashes:
@@ -391,6 +412,8 @@ class Command(InstanceDataCommand):
             'plot': {},
             'species': {},
             'user': {},
+            'tree': {},
+            'audit': {},
         }
 
         for relic in OTM1UserRelic.objects.filter(instance=instance):
@@ -400,10 +423,11 @@ class Command(InstanceDataCommand):
             map = dependency_id_maps[relic.otm2_model_name]
             map[relic.otm1_model_id] = relic.otm2_model_id
 
-        if json_hashes['user']:
-            hashes_to_saved_objects('user', json_hashes['user'],
-                                    dependency_id_maps,
-                                    instance, system_user)
+        for model in ('user', 'audit'):
+            if json_hashes[model]:
+                hashes_to_saved_objects(model, json_hashes[model],
+                                        dependency_id_maps,
+                                        instance, system_user)
 
         from treemap.tests import make_commander_role
         commander_role = make_commander_role(instance)
