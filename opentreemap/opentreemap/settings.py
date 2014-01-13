@@ -198,6 +198,7 @@ MANAGED_APPS = (
     'api',
     'management',
     'exporter',
+    'otm1_migrator',
 )
 
 UNMANAGED_APPS = (
