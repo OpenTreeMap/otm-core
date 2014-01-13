@@ -348,11 +348,11 @@ class Command(InstanceDataCommand):
         if json_hashes['plot']:
             hashes_to_saved_objects('plot', json_hashes['plot'],
                                     dependency_id_maps,
-                                    instance, system_user, god_role,
+                                    instance, system_user, commander_role,
                                     save_with_user=True)
 
         if json_hashes['tree']:
             hashes_to_saved_objects('tree', json_hashes['tree'],
                                     dependency_id_maps,
-                                    instance, system_user, god_role,
+                                    instance, system_user, commander_role,
                                     save_with_user=True)
