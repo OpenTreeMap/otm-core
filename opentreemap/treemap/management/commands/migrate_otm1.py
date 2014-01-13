@@ -221,6 +221,8 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
 
     for model_hash in model_hashes:
         if 'dependencies' in MODELS[model_name]:
+            # rewrite the fixture so that otm1 pks are replaced by
+            # their corresponding otm2 pks
             for dependency_name, dependency_field in \
                 MODELS[model_name]['dependencies'].iteritems():  # NOQA
                 dependency_map = dependency_id_maps[dependency_name]
@@ -289,7 +291,7 @@ class Command(InstanceDataCommand):
         if options['instance']:
             instance, system_user = self.setup_env(*args, **options)
         else:
-            print('Invalid instance provided.')
+            self.stdout.write('Invalid instance provided.')
             return 1
 
         # look for fixtures of the form '<model>_fixture' that
