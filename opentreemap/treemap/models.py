@@ -297,8 +297,9 @@ class User(Auditable, AbstractUniqueEmailUser):
                     pk=settings.SYSTEM_USER_ID)
 
             except User.DoesNotExist:
-                raise Exception('System user does not exist. You may '
-                                'want to run `manage.py create_system_user`')
+                raise User.DoesNotExist('System user does not exist. You may '
+                                        'want to run '
+                                        '`manage.py create_system_user`')
 
         return User._system_user
 
@@ -307,12 +308,11 @@ class User(Auditable, AbstractUniqueEmailUser):
                 'username': self.username}
 
     def get_instance_user(self, instance):
-        qs = InstanceUser.objects.filter(user=self, instance=instance)
-        if qs.count() == 1:
-            return qs[0]
-        elif qs.count() == 0:
+        try:
+            return InstanceUser.objects.get(user=self, instance=instance)
+        except InstanceUser.DoesNotExist:
             return None
-        else:
+        except MultipleObjectsReturned:
             msg = ("User '%s' found more than once in instance '%s'"
                    % (self, instance))
             raise IntegrityError(msg)
@@ -448,9 +448,13 @@ class InstanceUser(Auditable, models.Model):
         enabled = feature_enabled(self.instance, 'tree_image_upload')
         return enabled and fieldperms == fields
 
-    def save_with_user(self, user):
+    def save_with_user(self, user, *args, **kwargs):
         self.full_clean()
-        super(InstanceUser, self).save_with_user(user)
+        super(InstanceUser, self).save_with_user(user, *args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        system_user = User.system_user()
+        self.save_with_user(system_user, *args, **kwargs)
 
     def __unicode__(self):
         return '%s/%s' % (self.user.get_username(), self.instance.name)

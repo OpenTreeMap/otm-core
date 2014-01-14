@@ -279,7 +279,6 @@ def context_dict_for_plot(plot, tree_id=None, user=None):
                     kwargs={'instance_url_name': instance.url_name,
                             'plot_id': plot.pk})
 
-
     if user and user.is_authenticated():
         plot.mask_unauthorized_fields(user)
     context['plot'] = plot

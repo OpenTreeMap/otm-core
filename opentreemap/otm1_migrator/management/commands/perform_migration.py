@@ -11,10 +11,13 @@ import logging
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.gis.geos import fromstr
 from django.conf import settings
+from django.db.transaction import commit_on_success
 
 from treemap.models import (User, Plot, Tree, Species, InstanceUser)
 from treemap.audit import model_hasattr
-from ._private import InstanceDataCommand
+from treemap.management import InstanceDataCommand
+
+from otm1_migrator.models import OTM1UserRelic, OTM1ModelRelic
 
 logger = logging.getLogger('')
 
@@ -185,10 +188,11 @@ def more_permissions(user, instance, role):
     and migrations.
     """
     iuser = user.get_instance_user(instance)
-    iuser.roles = role
+    previous_role = iuser.role
+    iuser.role = role
     iuser.save()
     yield user
-    iuser.role = instance.default_role
+    iuser.role = previous_role or instance.default_role
     iuser.save()
 
 
@@ -216,42 +220,102 @@ def try_save_user_hash_to_model(model_name, model_hash,
 
 def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                             instance, system_user,
-                            commander_role=None, save_with_user=False,
-                            save_with_system_user=False):
+                            commander_role=None, save_with_user=False):
+
+    model_key_map = dependency_id_maps.get(model_name, None)
 
     for model_hash in model_hashes:
+
+        if model_hash['pk'] in model_key_map:
+            # the model_key_map will be filled from the
+            # database each time. combined with this statement,
+            # the command becomes idempotent
+            continue
+
         if 'dependencies' in MODELS[model_name]:
+            # rewrite the fixture so that otm1 pks are replaced by
+            # their corresponding otm2 pks
             for dependency_name, dependency_field in \
                 MODELS[model_name]['dependencies'].iteritems():  # NOQA
                 dependency_map = dependency_id_maps[dependency_name]
                 dependency_id = model_hash['fields'][dependency_field]
                 if dependency_id:
-                    new_id = dependency_map[model_hash['fields'][dependency_field]]
+                    dependency_key = model_hash['fields'][dependency_field]
+                    new_id = dependency_map[dependency_key]
                     model_hash['fields'][dependency_field] = new_id
 
         if save_with_user and 'dependencies' in MODELS[model_name]:
-            user_field = MODELS[model_name]['dependencies']['user']
-            fn = try_save_user_hash_to_model
-            model = fn(model_name, model_hash, instance, system_user,
-                       commander_role, user_field)
+            @commit_on_success
+            def _save_with_user_portion():
+                user_field = MODELS[model_name]['dependencies']['user']
+                model = try_save_user_hash_to_model(
+                    model_name, model_hash,
+                    instance, system_user,
+                    commander_role, user_field)
+
+                OTM1ModelRelic.objects.create(instance=instance,
+                                              otm1_model_id=model_hash['pk'],
+                                              otm2_model_name=model_name,
+                                              otm2_model_id=model.pk)
+                return model
+            model = _save_with_user_portion()
+
         else:
+
             model = hash_to_model(model_name, model_hash,
                                   instance, system_user)
-            if save_with_system_user:
-                model.save_with_user(system_user)
-            else:
-                model.save()
 
-        model_key_map = dependency_id_maps.get(model_name, None)
+            if model_name == 'user':
+                @commit_on_success
+                def _user_save_portion(model):
+                    try:
+                        model = User.objects.get(email__iexact=model.email)
+                    except User.DoesNotExist:
+                        model.username = _uniquify_username(model.username)
+                        model.set_unusable_password()
+                        model.save()
+
+                    try:
+                        InstanceUser.objects.get(instance=instance,
+                                                 user=model)
+                    except InstanceUser.DoesNotExist:
+                        InstanceUser.objects.create(
+                            instance=instance,
+                            user=model,
+                            role=instance.default_role)
+
+                    (OTM1UserRelic
+                     .objects
+                     .create(instance=instance,
+                             otm1_username=model_hash['fields']['username'],
+                             otm2_user=model,
+                             otm1_id=model_hash['pk'],
+                             email=model_hash['fields']['email']))
+                _user_save_portion(model)
+
+            else:
+                @commit_on_success
+                def _other_save_portion(model):
+                    model.save()
+                    OTM1ModelRelic.objects.create(
+                        instance=instance,
+                        otm1_model_id=model_hash['pk'],
+                        otm2_model_name=model_name,
+                        otm2_model_id=model.pk)
+                _other_save_portion(model)
+
         if model_key_map is not None:
             model_key_map[model_hash['pk']] = model.pk
 
 
-def create_instance_users(instance, system_user):
-    for user in User.objects.all():
-        iuser = InstanceUser(instance=instance, user=user,
-                             role=instance.default_role)
-        iuser.save_with_user(system_user)
+def _uniquify_username(username):
+    username_template = '%s_%%d' % username
+    i = 0
+    while User.objects.filter(username=username).exists():
+        username = username_template % i
+        i += 1
+
+    return username
 
 
 class Command(InstanceDataCommand):
@@ -289,7 +353,7 @@ class Command(InstanceDataCommand):
         if options['instance']:
             instance, system_user = self.setup_env(*args, **options)
         else:
-            print('Invalid instance provided.')
+            self.stdout.write('Invalid instance provided.')
             return 1
 
         # look for fixtures of the form '<model>_fixture' that
@@ -329,28 +393,35 @@ class Command(InstanceDataCommand):
             'user': {},
         }
 
+        for relic in OTM1UserRelic.objects.filter(instance=instance):
+            dependency_id_maps['user'][relic.otm1_id] = relic.otm2_user_id
+
+        for relic in OTM1ModelRelic.objects.filter(instance=instance):
+            map = dependency_id_maps[relic.otm2_model_name]
+            map[relic.otm1_model_id] = relic.otm2_model_id
+
         if json_hashes['user']:
             hashes_to_saved_objects('user', json_hashes['user'],
                                     dependency_id_maps,
-                                    instance, system_user,
-                                    save_with_system_user=True)
-            create_instance_users(instance, system_user)
-
-        if json_hashes['species']:
-            hashes_to_saved_objects('species', json_hashes['species'],
-                                    dependency_id_maps, instance, system_user)
+                                    instance, system_user)
 
         from treemap.tests import make_commander_role
         commander_role = make_commander_role(instance)
 
+        if json_hashes['species']:
+            hashes_to_saved_objects('species', json_hashes['species'],
+                                    dependency_id_maps,
+                                    instance, system_user, commander_role,
+                                    save_with_user=True)
+
         if json_hashes['plot']:
             hashes_to_saved_objects('plot', json_hashes['plot'],
                                     dependency_id_maps,
-                                    instance, system_user, god_role,
+                                    instance, system_user, commander_role,
                                     save_with_user=True)
 
         if json_hashes['tree']:
             hashes_to_saved_objects('tree', json_hashes['tree'],
                                     dependency_id_maps,
-                                    instance, system_user, god_role,
+                                    instance, system_user, commander_role,
                                     save_with_user=True)
