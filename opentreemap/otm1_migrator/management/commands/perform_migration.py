@@ -11,6 +11,7 @@ import logging
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.gis.geos import fromstr
 from django.conf import settings
+from django.db.transaction import commit_on_success
 
 from treemap.models import (User, Plot, Tree, Species, InstanceUser)
 from treemap.audit import model_hasattr
@@ -244,15 +245,20 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                     model_hash['fields'][dependency_field] = new_id
 
         if save_with_user and 'dependencies' in MODELS[model_name]:
-            user_field = MODELS[model_name]['dependencies']['user']
-            model = try_save_user_hash_to_model(model_name, model_hash,
-                                                instance, system_user,
-                                                commander_role, user_field)
+            @commit_on_success
+            def _save_with_user_portion():
+                user_field = MODELS[model_name]['dependencies']['user']
+                model = try_save_user_hash_to_model(
+                    model_name, model_hash,
+                    instance, system_user,
+                    commander_role, user_field)
 
-            OTM1ModelRelic.objects.create(instance=instance,
-                                          otm1_model_id=model_hash['pk'],
-                                          otm2_model_name=model_name,
-                                          otm2_model_id=model.pk)
+                OTM1ModelRelic.objects.create(instance=instance,
+                                              otm1_model_id=model_hash['pk'],
+                                              otm2_model_name=model_name,
+                                              otm2_model_id=model.pk)
+                return model
+            model = _save_with_user_portion()
 
         else:
 
@@ -260,32 +266,43 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                                   instance, system_user)
 
             if model_name == 'user':
-                try:
-                    model = User.objects.get(email__iexact=model.email)
-                except User.DoesNotExist:
+                @commit_on_success
+                def _user_save_portion(model):
+                    try:
+                        model = User.objects.get(email__iexact=model.email)
+                    except User.DoesNotExist:
+                        model.username = _uniquify_username(model.username)
+                        model.set_unusable_password()
+                        model.save()
 
-                    model.username = _uniquify_username(model.username)
-                    model.set_unusable_password()
-                    model.save()
+                    try:
+                        InstanceUser.objects.get(instance=instance,
+                                                 user=model)
+                    except InstanceUser.DoesNotExist:
+                        InstanceUser.objects.create(
+                            instance=instance,
+                            user=model,
+                            role=instance.default_role)
 
-                try:
-                    InstanceUser.objects.get(instance=instance,
-                                             user=model)
-                except InstanceUser.DoesNotExist:
-                    InstanceUser.objects.create(instance=instance,
-                                                user=model,
-                                                role=instance.default_role)
-
-                (OTM1UserRelic
-                 .objects
-                 .create(instance=instance,
-                         otm1_username=model_hash['fields']['username'],
-                         otm2_user=model,
-                         otm1_id=model_hash['pk'],
-                         email=model_hash['fields']['email']))
+                    (OTM1UserRelic
+                     .objects
+                     .create(instance=instance,
+                             otm1_username=model_hash['fields']['username'],
+                             otm2_user=model,
+                             otm1_id=model_hash['pk'],
+                             email=model_hash['fields']['email']))
+                _user_save_portion(model)
 
             else:
-                model.save()
+                @commit_on_success
+                def _other_save_portion(model):
+                    model.save()
+                    OTM1ModelRelic.objects.create(
+                        instance=instance,
+                        otm1_model_id=model_hash['pk'],
+                        otm2_model_name=model_name,
+                        otm2_model_id=model.pk)
+                _other_save_portion(model)
 
         if model_key_map is not None:
             model_key_map[model_hash['pk']] = model.pk
