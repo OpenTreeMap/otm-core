@@ -297,8 +297,9 @@ class User(Auditable, AbstractUniqueEmailUser):
                     pk=settings.SYSTEM_USER_ID)
 
             except User.DoesNotExist:
-                raise Exception('System user does not exist. You may '
-                                'want to run `manage.py create_system_user`')
+                raise User.DoesNotExist('System user does not exist. You may '
+                                        'want to run '
+                                        '`manage.py create_system_user`')
 
         return User._system_user
 

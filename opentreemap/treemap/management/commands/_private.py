@@ -31,10 +31,11 @@ class InstanceDataCommand(BaseCommand):
 
         try:
             user = User.system_user()
-            instance_user = user.get_instance_user(instance)
-        except Exception:
+        except User.DoesNotExist:
             self.stdout.write('Error: Could not find a superuser to use')
             return 1
+
+        instance_user = user.get_instance_user(instance)
 
         if instance_user is None:
             r = Role(name='global', rep_thresh=0, instance=instance)
