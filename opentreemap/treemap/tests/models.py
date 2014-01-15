@@ -3,15 +3,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import datetime
-
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.contrib.gis.geos import Point, MultiPolygon
 from django.core.exceptions import ValidationError
 
 from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
-                            ImportEvent, ITreeRegion, MapFeature)
+                            ITreeRegion, MapFeature)
 from treemap.audit import Audit, ReputationMetric
 from treemap.tests import (make_instance, make_commander_user,
                            make_user_with_default_role, make_user,
@@ -157,9 +155,6 @@ class ModelUnicodeTests(TestCase):
 
         self.user = make_user(username='commander', password='pw')
 
-        self.import_event = ImportEvent(imported_by=self.user)
-        self.import_event.save_base()
-
         self.plot = Plot(geom=Point(0, 0), instance=self.instance,
                          address_street="123 Main Street")
 
@@ -207,11 +202,6 @@ class ModelUnicodeTests(TestCase):
 
     def test_user_model(self):
         self.assertEqual(unicode(self.user), 'commander')
-
-    def test_import_event_model(self):
-        today = datetime.datetime.today().strftime('%Y-%m-%d')
-        self.assertEqual(unicode(self.import_event),
-                         'commander - %s' % today)
 
     def test_plot_model(self):
         self.assertEqual(unicode(self.plot),

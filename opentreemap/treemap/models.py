@@ -466,14 +466,6 @@ class InstanceUser(Auditable, models.Model):
         return '%s/%s' % (self.user.get_username(), self.instance.name)
 
 
-class ImportEvent(models.Model):
-    imported_by = models.ForeignKey(User)
-    imported_on = models.DateField(auto_now_add=True)
-
-    def __unicode__(self):
-        return "%s - %s" % (self.imported_by, self.imported_on)
-
-
 class MapFeature(UDFModel):
     "Superclass for map feature subclasses like Plot, RainBarrel, etc."
     instance = models.ForeignKey(Instance)
@@ -540,7 +532,6 @@ class Plot(MapFeature, Convertible, Authorizable, Auditable):
     length = models.FloatField(null=True, blank=True,
                                help_text=trans("Plot Length"))
 
-    import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
     owner_orig_id = models.CharField(max_length=255, null=True, blank=True)
 
     objects = AuthorizableGeoHStoreUDFManager()
@@ -637,7 +628,6 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
 
     plot = models.ForeignKey(Plot)
     species = models.ForeignKey(Species, null=True, blank=True)
-    import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
 
     readonly = models.BooleanField(default=False)
     diameter = models.FloatField(null=True, blank=True,

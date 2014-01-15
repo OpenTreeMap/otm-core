@@ -124,7 +124,6 @@ class AuditTest(TestCase):
             ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'species', FieldPermission.WRITE_DIRECTLY),
-            ('Tree', 'import_event', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'readonly', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'height', FieldPermission.WRITE_DIRECTLY),
