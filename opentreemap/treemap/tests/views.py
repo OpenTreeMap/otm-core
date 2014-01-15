@@ -1368,11 +1368,11 @@ class SpeciesViewTests(ViewTestCase):
              'species': 'oakenitus'}
         ]
         self.species_json = [
-            {'tokens': ['apple', 'Red', 'Devil', 'applesauce']},
-            {'tokens': ['asian', 'cherry', 'cherrificus']},
-            {'tokens': ['cherrytree', 'cherritius', 'asian']},
-            {'tokens': ['elm', 'elmitius']},
-            {'tokens': ['oak', 'acorn', 'oakenitus']}
+            {'tokens': {'apple', 'Red', 'Devil', 'applesauce'}},
+            {'tokens': {'asian', 'cherry', 'cherrificus'}},
+            {'tokens': {'cherrytree', 'cherritius', 'asian'}},
+            {'tokens': {'elm', 'elmitius'}},
+            {'tokens': {'oak', 'acorn', 'oakenitus'}}
         ]
         for i, item in enumerate(self.species_dict):
             species = Species(common_name=item.get('common_name'),
@@ -1388,6 +1388,9 @@ class SpeciesViewTests(ViewTestCase):
             js_species['common_name'] = species.common_name
             js_species['scientific_name'] = species.scientific_name
             js_species['value'] = species.display_name
+            js_species['genus'] = species.genus
+            js_species['species'] = species.species
+            js_species['cultivar'] = species.cultivar
 
     def test_get_species_list(self):
         self.assertEquals(species_list(make_request(), self.instance),

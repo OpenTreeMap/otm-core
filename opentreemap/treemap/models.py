@@ -402,14 +402,20 @@ class Species(UDFModel, Authorizable, Auditable):
     def display_name(self):
         return "%s [%s]" % (self.common_name, self.scientific_name)
 
+    @classmethod
+    def get_scientific_name(clazz, genus, species, cultivar):
+        name = genus
+        if species:
+            name += " " + species
+        if cultivar:
+            name += " '%s'" % cultivar
+        return name
+
     @property
     def scientific_name(self):
-        name = self.genus
-        if self.species:
-            name += " " + self.species
-        if self.cultivar:
-            name += " '%s'" % self.cultivar
-        return name
+        return Species.get_scientific_name(self.genus,
+                                           self.species,
+                                           self.cultivar)
 
     def dict(self):
         props = self.as_dict()
