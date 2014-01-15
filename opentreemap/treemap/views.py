@@ -208,14 +208,29 @@ def create_plot(user, instance, *args, **kwargs):
 def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
     plot = _get_plot_or_404(plot_id, instance)
 
-    context = context_dict_for_plot(plot, tree_id, user=request.user)
+    if hasattr(request, 'instance_supports_ecobenefits'):
+        supports_eco = request.instance_supports_ecobenefits
+    else:
+        supports_eco = instance.has_itree_region()
+
+    context = context_dict_for_plot(
+        instance,
+        plot,
+        tree_id,
+        user=request.user,
+        supports_eco=supports_eco)
+
     context['editmode'] = edit
 
     return context
 
 
-def context_dict_for_plot(plot, tree_id=None, user=None):
-    instance = plot.instance
+def context_dict_for_plot(instance, plot,
+                          tree_id=None, user=None, supports_eco=False):
+    if instance.pk != plot.instance_id:
+        raise Exception("Invaild instance does not match plot")
+
+    plot.instance = instance
 
     if tree_id:
         tree = get_object_or_404(Tree,
@@ -231,12 +246,13 @@ def context_dict_for_plot(plot, tree_id=None, user=None):
     has_photo = tree is not None and tree.treephoto_set.all().count() > 0
 
     context = {}
+
     # If the the benefits calculation can't be done or fails, still display the
     # plot details
 
     should_calculate_eco = (has_tree_diameter and
                             has_tree_species_with_code and
-                            instance.has_itree_region())
+                            supports_eco)
 
     if should_calculate_eco:
         try:
@@ -291,7 +307,7 @@ def context_dict_for_plot(plot, tree_id=None, user=None):
     def _audits_are_in_different_groups(prev_audit, audit):
         if prev_audit is None:
             return True
-        elif prev_audit.user.pk != audit.user.pk:
+        elif prev_audit.user_id != audit.user_id:
             return True
         else:
             time_difference = last_audit.updated - audit.updated
@@ -607,11 +623,16 @@ def _plot_audits(user, instance, plot):
                            action=Audit.Type.Delete,
                            model_id__in=tree_history)
 
-    audits = Audit.objects.filter(instance=instance)\
-                          .filter(tree_filter |
-                                  tree_delete_filter |
-                                  plot_filter)\
-                          .order_by('-updated')[:5]
+    # Seems to be much faster to do three smaller
+    # queries here instead of ORing them together
+    # (about a 50% inprovement!)
+    iaudit = Audit.objects.filter(instance=instance)
+
+    audits = []
+    for afilter in [tree_filter, tree_delete_filter, plot_filter]:
+        audits += list(iaudit.filter(afilter).order_by('-updated')[:5])
+
+    audits = sorted(audits, key=lambda audit: audit.updated, reverse=True)[:5]
 
     return audits
 
