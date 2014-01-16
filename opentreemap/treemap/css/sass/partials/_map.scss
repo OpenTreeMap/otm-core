@@ -34,6 +34,15 @@
             }
         }
     }
+
+    // Overrides Leaflet button in bottom-right
+    .leaflet-bottom.leaflet-right {
+        margin: 0 !important;
+
+        .leaflet-control {
+            margin-right: 0;
+        }
+    }
 }
 
 .leaflet-control-layers-toggle {
