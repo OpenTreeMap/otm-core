@@ -1,8 +1,13 @@
 // Partial: Tree Detail Pages
 
 .tree-details {
-    h1 {
-        margin-bottom: 10px;
+    .common-name {
+        margin-bottom: 5px;
+    }
+    .scientific-name {
+        color: $subtext-color;
+        font-style: italic;
+        margin-bottom: 15px;
     }
 }
 
