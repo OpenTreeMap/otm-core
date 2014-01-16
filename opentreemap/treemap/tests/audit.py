@@ -124,7 +124,6 @@ class AuditTest(TestCase):
             ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'species', FieldPermission.WRITE_DIRECTLY),
-            ('Tree', 'import_event', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'readonly', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'height', FieldPermission.WRITE_DIRECTLY),
@@ -226,7 +225,8 @@ class AuditTest(TestCase):
 
     def test_get_id_sequence_name(self):
         self.assertEqual(get_id_sequence_name(Tree), 'treemap_tree_id_seq')
-        self.assertEqual(get_id_sequence_name(Plot), 'treemap_plot_id_seq')
+        self.assertEqual(get_id_sequence_name(Plot),
+                         'treemap_mapfeature_id_seq')
 
 
 class ReviewTest(TestCase):

@@ -183,7 +183,7 @@ class ScalarUDFFilterTest(TestCase):
     def test_date_ordering_normal(self):
         dates = self._setup_dates()
         plots = Plot.objects.filter(**{'udf:Test date__isnull': False})\
-                            .order_by('Plot.udf:Test date')
+                            .order_by('MapFeature.udf:Test date')
 
         dates.sort()
 
@@ -194,7 +194,7 @@ class ScalarUDFFilterTest(TestCase):
     def test_date_ordering_reverse(self):
         dates = self._setup_dates()
         plots = Plot.objects.filter(**{'udf:Test date__isnull': False})\
-                            .order_by('-Plot.udf:Test date')
+                            .order_by('-MapFeature.udf:Test date')
 
         dates.sort()
         dates.reverse()

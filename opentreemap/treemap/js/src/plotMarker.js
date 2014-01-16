@@ -26,8 +26,15 @@ exports = module.exports = {
         config = theConfig;
     },
 
-    bindPopup: function(pop) { marker.bindPopup(pop); },
-    unbindPopup: function() { marker.unbindPopup(); },
+    bindPopup: function(pop) {
+        if (marker)
+            marker.bindPopup(pop);
+    },
+
+    unbindPopup: function() {
+        if (marker)
+            marker.unbindPopup();
+    },
 
     // Allows clients to be notified when a newly-placed marker is moved for the first time
     firstMoveStream: firstMoveBus,
