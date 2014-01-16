@@ -1,76 +1,37 @@
-// Partial: Content Pages
+// Partial: Static Content Pages
 
-.faq-content {
-    position: absolute;
-    left: 490px;
-    padding-right: 25px;
-    
-    h1 {
-        padding-top: 0;
-        margin-top: 0;
-        font-weight: 700;
-        font-size: 3.2rem;
-    }
-    h2 {
-        font-size: 2.4rem;
-        font-weight: 400;
-    }
-}
+.static-page {
+  font-size: 1.4rem;
+  line-height: 1.8rem;
 
-.faq-nav {
-    width: 390px;
-    float: left;
-    margin-left: 10px;
-    padding: 15px;
-    border: 1px solid #eee;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    border-radius: 3px;
+  ul.static-menu {
+    float: right;
+    margin-left: 30px;
+    width: 25%;
+    padding: 20px;
+    background: $light-gray-color;
+    border: 1px solid ($light-gray-color, 10%);
 
-    h5 {
-        font-weight: 700;
-        text-transform: uppercase;
-        padding: 0 0 10px;
-        margin: 0;
-        font-size: 1.8rem;
-    }
+    li {
+      margin-left: 20px;
+      line-height: 2.1rem;
+      font-size: 1.3rem;
 
-    ul {
-        margin: 0;
-        padding: 0 0 15px;
+      &:hover {
+        text-decoration: underline;
+      }
+      &.title {
         list-style: none;
-
-        li {
-            display: block;
-            padding: 3px 10px;
-            margin-left: -10px;
-            width: 100%;
-
-            &:hover {
-                background-color: #eee;
-                -moz-border-radius: 3px;
-                -webkit-border-radius: 3px;
-                border-radius: 3px;
-            }
+        
+        a {
+          font-weight: 700;
         }
-    }
-    a {
-        font-size: 1.6rem;
-        color: #777;
+      }
 
-        &:hover {
-            text-decoration: none;
-            color: #000;
-        }
+      a {
+        font-weight: 400;
+        font-size: 1.3rem;
+      }
     }
-}
-
-@media (max-width: 767px) {
-	.faq-nav {
-		width: 300px;
-		position: fixed;
-	}
-	.faq-content {
-		left: 375px;
-	}
+  }
 }
