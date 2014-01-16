@@ -13,9 +13,12 @@ from django.contrib.gis.geos import fromstr
 from django.conf import settings
 from django.db.transaction import commit_on_success
 
-from treemap.models import (User, Plot, Tree, Species, InstanceUser)
+from treemap.models import (User, Plot, Tree, Species, InstanceUser, Audit)
 from treemap.audit import model_hasattr
 from treemap.management import InstanceDataCommand
+
+# TODO: should not require a utility from the tests
+from treemap.tests import make_commander_role
 
 from otm1_migrator.models import OTM1UserRelic, OTM1ModelRelic
 
@@ -26,9 +29,9 @@ logger = logging.getLogger('')
 # model_class:        the django class object used to instantiate objects
 #
 # dependencies:       a mapping where keys are the names of models that
-#                     must also be in the MODELS dict and values are the
-#                     names of fields for the currently model that have
-#                     foreign key relationships to the dependency model
+#                     must also be in the MIGRATION_RULES dict and values are
+#                     the names of fields for the current OTM2 model that have
+#                     foreign key relationships to their dependency OTM2 models
 #
 # common_fields:      fields that must be in the provided data and the otm2
 #                     django model.
@@ -46,7 +49,7 @@ logger = logging.getLogger('')
 #                     _provided_ data and and values are unary functions
 #                     that take a value and transform it to some other value.
 
-MODELS = {
+MIGRATION_RULES = {
     'tree': {
         'model_class': Tree,
         'dependencies': {'species': 'species',
@@ -67,6 +70,21 @@ MODELS = {
             'plot': (lambda x: Plot.objects.get(pk=x)),
             'species': (lambda x: Species.objects.get(pk=x)),
             }
+    },
+    'audit': {
+        'model_class': Audit,
+        'dependencies': {'user': 'user'},
+        # since audits are produced using a sanitized
+        # fixture exporter, fewer fields are modified
+        # on this end.
+        'common_fields': {'model', 'model_id', 'field',
+                          'previous_value', 'current_value',
+                          'user',
+                          'action', 'requires_auth',
+                          'ref', 'created', 'updated'},
+        'value_transformers': {
+            'user': (lambda x: User.objects.get(pk=x))
+        }
     },
     'plot': {
         'model_class': Plot,
@@ -122,13 +140,14 @@ MODELS = {
 
 def validate_model(model_name, data_hash):
     """
-    Makes sure the fields specified in the MODELS global
+    Makes sure the fields specified in the MIGRATION_RULES global
     account for all of the provided data
     """
-    common_fields = MODELS[model_name].get('common_fields', set())
-    renamed_fields = MODELS[model_name].get('renamed_fields', {})
-    removed_fields = MODELS[model_name].get('removed_fields', set())
-    undecided_fields = MODELS[model_name].get('undecided_fields', set())
+    common_fields = MIGRATION_RULES[model_name].get('common_fields', set())
+    renamed_fields = MIGRATION_RULES[model_name].get('renamed_fields', {})
+    removed_fields = MIGRATION_RULES[model_name].get('removed_fields', set())
+    undecided_fields = (MIGRATION_RULES[model_name]
+                        .get('undecided_fields', set()))
     expected_fields = (common_fields |
                        set(renamed_fields.keys()) |
                        removed_fields |
@@ -148,22 +167,23 @@ def validate_model(model_name, data_hash):
 
 def hash_to_model(model_name, data_hash, instance, user):
     """
-    Takes a model specified in the MODELS global and a
+    Takes a model specified in the MIGRATION_RULES global and a
     hash of json data and attempts to populate a django
     model. Does not save.
     """
 
     validate_model(model_name, data_hash)
 
-    common_fields = MODELS[model_name].get('common_fields', set())
-    renamed_fields = MODELS[model_name].get('renamed_fields', {})
+    common_fields = MIGRATION_RULES[model_name].get('common_fields', set())
+    renamed_fields = MIGRATION_RULES[model_name].get('renamed_fields', {})
 
-    model = MODELS[model_name]['model_class']()
+    model = MIGRATION_RULES[model_name]['model_class']()
 
     identity = (lambda x: x)
 
     for field in common_fields.union(renamed_fields):
-        transformers = MODELS[model_name].get('value_transformers', {})
+        transformers = (MIGRATION_RULES[model_name]
+                        .get('value_transformers', {}))
         transform_value_fn = transformers.get(field, identity)
         try:
             transformed_value = transform_value_fn(data_hash['fields'][field])
@@ -196,9 +216,8 @@ def more_permissions(user, instance, role):
     iuser.save()
 
 
-def try_save_user_hash_to_model(model_name, model_hash,
-                                instance, system_user, commander_role,
-                                user_field_to_try):
+def save_user_hash_to_model(model_name, model_hash,
+                            instance, system_user, commander_role):
     """
     Tries to save an object with the app user that should own
     the object. If not possible, falls back to the system_user.
@@ -206,7 +225,12 @@ def try_save_user_hash_to_model(model_name, model_hash,
     model = hash_to_model(model_name, model_hash,
                           instance, system_user)
 
-    potential_user_id = model_hash['fields'][user_field_to_try]
+    user_field_to_try = (MIGRATION_RULES[model_name]
+                         .get('dependencies', {})
+                         .get('user', None))
+
+    potential_user_id = model_hash['fields'].get(user_field_to_try, None)
+
     if potential_user_id:
         user = User.objects.get(pk=potential_user_id)
     else:
@@ -223,35 +247,36 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                             commander_role=None, save_with_user=False):
 
     model_key_map = dependency_id_maps.get(model_name, None)
+    dependencies = (MIGRATION_RULES
+                    .get(model_name, {})
+                    .get('dependencies', {})
+                    .items())
 
-    for model_hash in model_hashes:
+    # the model_key_map will be filled from the
+    # database each time. combined with this statement,
+    # the command becomes idempotent
+    hashes_to_save = (hash for hash in model_hashes
+                      if hash['pk'] not in model_key_map)
 
-        if model_hash['pk'] in model_key_map:
-            # the model_key_map will be filled from the
-            # database each time. combined with this statement,
-            # the command becomes idempotent
-            continue
+    for model_hash in hashes_to_save:
 
-        if 'dependencies' in MODELS[model_name]:
-            # rewrite the fixture so that otm1 pks are replaced by
-            # their corresponding otm2 pks
-            for dependency_name, dependency_field in \
-                MODELS[model_name]['dependencies'].iteritems():  # NOQA
-                dependency_map = dependency_id_maps[dependency_name]
-                dependency_id = model_hash['fields'][dependency_field]
-                if dependency_id:
-                    dependency_key = model_hash['fields'][dependency_field]
-                    new_id = dependency_map[dependency_key]
-                    model_hash['fields'][dependency_field] = new_id
+        # rewrite the fixture so that otm1 pks are replaced by
+        # their corresponding otm2 pks
+        if dependencies:
+            for name, field in dependencies:
+                old_id = model_hash['fields'][field]
+                if old_id:
+                    old_id_to_new_id = dependency_id_maps[name]
+                    new_id = old_id_to_new_id[old_id]
+                    model_hash['fields'][field] = new_id
 
-        if save_with_user and 'dependencies' in MODELS[model_name]:
+        if save_with_user:
             @commit_on_success
             def _save_with_user_portion():
-                user_field = MODELS[model_name]['dependencies']['user']
-                model = try_save_user_hash_to_model(
+                model = save_user_hash_to_model(
                     model_name, model_hash,
                     instance, system_user,
-                    commander_role, user_field)
+                    commander_role)
 
                 OTM1ModelRelic.objects.create(instance=instance,
                                               otm1_model_id=model_hash['pk'],
@@ -341,6 +366,11 @@ class Command(InstanceDataCommand):
                     type='string',
                     dest='tree_fixture',
                     help='path to json dump containing tree data'),
+        make_option('-a', '--audit-fixture',
+                    action='store',
+                    type='string',
+                    dest='audit_fixture',
+                    help='path to json dump containing audit data'),
     )
 
     def handle(self, *args, **options):
@@ -363,7 +393,8 @@ class Command(InstanceDataCommand):
             'species': [],
             'user': [],
             'plot': [],
-            'tree': []
+            'tree': [],
+            'audit': []
         }
 
         for model_name in json_hashes:
@@ -387,10 +418,15 @@ class Command(InstanceDataCommand):
         # # for models that must be saved with a user, they are either
         # # saved immediately with a system_user, or an app user is tried
         # # first, depending on the model.
+
+        # TODO: don't call this dependency anymore.
+        # It's an idempotency checker too.
         dependency_id_maps = {
             'plot': {},
             'species': {},
             'user': {},
+            'tree': {},
+            'audit': {},
         }
 
         for relic in OTM1UserRelic.objects.filter(instance=instance):
@@ -400,28 +436,17 @@ class Command(InstanceDataCommand):
             map = dependency_id_maps[relic.otm2_model_name]
             map[relic.otm1_model_id] = relic.otm2_model_id
 
-        if json_hashes['user']:
-            hashes_to_saved_objects('user', json_hashes['user'],
-                                    dependency_id_maps,
-                                    instance, system_user)
+        for model in ('user', 'audit'):
+            if json_hashes[model]:
+                hashes_to_saved_objects(model, json_hashes[model],
+                                        dependency_id_maps,
+                                        instance, system_user)
 
-        from treemap.tests import make_commander_role
         commander_role = make_commander_role(instance)
 
-        if json_hashes['species']:
-            hashes_to_saved_objects('species', json_hashes['species'],
-                                    dependency_id_maps,
-                                    instance, system_user, commander_role,
-                                    save_with_user=True)
-
-        if json_hashes['plot']:
-            hashes_to_saved_objects('plot', json_hashes['plot'],
-                                    dependency_id_maps,
-                                    instance, system_user, commander_role,
-                                    save_with_user=True)
-
-        if json_hashes['tree']:
-            hashes_to_saved_objects('tree', json_hashes['tree'],
-                                    dependency_id_maps,
-                                    instance, system_user, commander_role,
-                                    save_with_user=True)
+        for model in ('species', 'plot', 'tree'):
+            if json_hashes[model]:
+                hashes_to_saved_objects(model, json_hashes[model],
+                                        dependency_id_maps,
+                                        instance, system_user, commander_role,
+                                        save_with_user=True)
