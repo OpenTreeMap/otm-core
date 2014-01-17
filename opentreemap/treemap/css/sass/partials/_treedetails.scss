@@ -1,8 +1,13 @@
 // Partial: Tree Detail Pages
 
 .tree-details {
-    h1 {
-        margin-bottom: 10px;
+    .common-name {
+        margin-bottom: 5px;
+    }
+    .scientific-name {
+        color: $subtext-color;
+        font-style: italic;
+        margin-bottom: 15px;
     }
 }
 
@@ -108,7 +113,7 @@
         width: 50px;
         height: 50px;
         margin-top: -25px;
-        font-size: 40px;
+        font-size: 4.0rem;
         line-height: normal;
         text-align: center;
         background: transparent;

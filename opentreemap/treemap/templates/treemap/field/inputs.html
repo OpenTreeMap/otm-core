@@ -23,7 +23,7 @@
 {% elif field.data_type == 'date' or field.data_type == 'datetime' %}
     <input name="{{ field.identifier }}"
            type="text"
-           class="span4 {{ class|default_if_none:"" }}"
+           class="{{ class|default_if_none:"" }}"
            {% if request.instance %}
            value="{{ field.value|date:request.instance.short_date_format }}"
            data-date-format="{{ request.instance.short_date_format|datepicker_format }}"

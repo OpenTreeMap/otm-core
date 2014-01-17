@@ -41,7 +41,8 @@
       </div>
     </div>
     <div class="span6">
-      <h1>{{ tree.species.common_name }} <small>{{ tree.species.scientific_name }}</small></h1>
+      <h1 class="common-name">{{ tree.species.common_name }}</h1>
+      <h4 class="scientific-name">{{ tree.species.scientific_name }}</h4>
       <h5>{{ plot.address_full }}</h5>
       <button id="edit-plot"
               data-class="display"

@@ -32,7 +32,7 @@
             box-shadow: 0 3px 6px rgba(0,0,0,.2) inset;
             background: darken($secondary-color, 5%);
             padding: 15px;
-            font-size: 1em;
+            font-size: 1.6rem;
             font-weight: 700;
 
             &.collapsed {
@@ -108,9 +108,9 @@
             margin-bottom: 10px;
         }
         small {
-            font-size: 0.7em;
+            font-size: 1.2rem;
             color: $subtext-color;
-            line-height: 1.25em;
+            line-height: 2.0rem;
             margin-bottom: 10px;
             display: block;
         }
@@ -125,7 +125,7 @@
 
     .cancelBtn.small {
         position: relative;
-        font-size: 1.5em;
+        font-size: 2.4rem;
     }
 
     .form-search {
@@ -135,7 +135,7 @@
             padding: 8px 12px;
         }
         .geolocate {
-            font-size: em(12px);
+            font-size: 1.2rem;
             color: $secondary-color;
             display: block;
             margin: 3px 0 3px -3px;
@@ -163,7 +163,7 @@
 
 #add-tree-address {
     width: 195px;
-    font-size: em(14px);
+    font-size: 1.4rem;
 }
 
 #benefit-values {
@@ -191,10 +191,10 @@
         }
         .benefit-label {
             font-weight: 400;
-            font-size: 18px;
+            font-size: 1.8rem;
             float: left;
             margin: 0;
-            line-height: 32px;
+            line-height: 3.2rem;
             color: $primary-color;
         }
         .benefit-content {
@@ -213,7 +213,7 @@
             }
             dd {
                 text-align: right;
-                font-size: em(14px);
+                font-size: 1.4rem;
                 color: $subtext-color;
                 margin-left: 5px;
                 width: auto;
@@ -224,7 +224,7 @@
     }
     .benefit-tree-count {
         padding: 10px 15px;
-        font-size: 14px;
+        font-size: 1.4rem;
         font-style: italic;
         color: $subtext-color;
     }
