@@ -32,18 +32,26 @@ class Migration(DataMigration):
         plots = orm.Plot.objects.all()
         for plot in plots:
             if plot.udfs:
+                save = False
                 for name, value in plot.udfs.iteritems():
-                    if name in plot_udf_choices_by_instance[plot.instance_id]:
+                    if (name in plot_udf_choices_by_instance[plot.instance_id]
+                       and not isinstance(value, basestring)):
                         plot.udfs[name] = str(value)
-                plot.save()
+                        save = True
+                if save:
+                    plot.save()
 
         trees = orm.Tree.objects.all()
         for tree in trees:
             if tree.udfs:
+                save = False
                 for name, value in tree.udfs.iteritems():
-                    if name in tree_udf_choices_by_instance[tree.instance_id]:
+                    if (name in tree_udf_choices_by_instance[tree.instance_id]
+                       and not isinstance(value, basestring)):
                         tree.udfs[name] = str(value)
-                tree.save()
+                        save = True
+                if save:
+                    tree.save()
 
     def backwards(self, orm):
         pass
