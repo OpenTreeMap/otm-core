@@ -11,10 +11,16 @@ import logging
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.gis.geos import fromstr
 from django.conf import settings
+from django.db.transaction import commit_on_success
 
-from treemap.models import (User, Plot, Tree, Species, InstanceUser)
+from treemap.models import (User, Plot, Tree, Species, InstanceUser, Audit)
 from treemap.audit import model_hasattr
-from ._private import InstanceDataCommand
+from treemap.management import InstanceDataCommand
+
+# TODO: should not require a utility from the tests
+from treemap.tests import make_commander_role
+
+from otm1_migrator.models import OTM1UserRelic, OTM1ModelRelic
 
 logger = logging.getLogger('')
 
@@ -23,9 +29,9 @@ logger = logging.getLogger('')
 # model_class:        the django class object used to instantiate objects
 #
 # dependencies:       a mapping where keys are the names of models that
-#                     must also be in the MODELS dict and values are the
-#                     names of fields for the currently model that have
-#                     foreign key relationships to the dependency model
+#                     must also be in the MIGRATION_RULES dict and values are
+#                     the names of fields for the current OTM2 model that have
+#                     foreign key relationships to their dependency OTM2 models
 #
 # common_fields:      fields that must be in the provided data and the otm2
 #                     django model.
@@ -43,7 +49,7 @@ logger = logging.getLogger('')
 #                     _provided_ data and and values are unary functions
 #                     that take a value and transform it to some other value.
 
-MODELS = {
+MIGRATION_RULES = {
     'tree': {
         'model_class': Tree,
         'dependencies': {'species': 'species',
@@ -52,7 +58,7 @@ MODELS = {
         'common_fields': {'plot', 'species', 'readonly', 'canopy_height',
                           'date_planted', 'date_removed', 'height'},
         'renamed_fields': {'dbh': 'diameter'},
-        'undecided_fields': {'import_event'},
+        'undecided_fields': set(),
         'removed_fields': {'tree_owner', 'steward_name', 'sponsor',
                            'species_other1', 'species_other2',
                            'orig_species', 'present', 'last_updated',
@@ -65,13 +71,28 @@ MODELS = {
             'species': (lambda x: Species.objects.get(pk=x)),
             }
     },
+    'audit': {
+        'model_class': Audit,
+        'dependencies': {'user': 'user'},
+        # since audits are produced using a sanitized
+        # fixture exporter, fewer fields are modified
+        # on this end.
+        'common_fields': {'model', 'model_id', 'field',
+                          'previous_value', 'current_value',
+                          'user',
+                          'action', 'requires_auth',
+                          'ref', 'created', 'updated'},
+        'value_transformers': {
+            'user': (lambda x: User.objects.get(pk=x))
+        }
+    },
     'plot': {
         'model_class': Plot,
         'dependencies': {'user': 'data_owner'},
         'common_fields': {'width', 'length', 'address_street', 'address_zip',
                           'address_city', 'owner_orig_id', 'readonly'},
         'renamed_fields': {'geometry': 'geom'},
-        'undecided_fields': {'import_event'},
+        'undecided_fields': set(),
         'removed_fields': {'type', 'powerline_conflict_potential',
                            'sidewalk_damage', 'neighborhood',
                            'neighborhoods', 'zipcode', 'geocoded_accuracy',
@@ -86,7 +107,6 @@ MODELS = {
     },
     'species': {
         'model_class': Species,
-        'dependencies': {},
         'common_fields': {'bloom_period', 'common_name',
                           'fact_sheet', 'fall_conspicuous',
                           'flower_conspicuous', 'fruit_period', 'gender',
@@ -98,7 +118,6 @@ MODELS = {
                            'cultivar_name': 'cultivar',
                            'other_part_of_name': 'other',
                            'symbol': 'otm_code'},
-        'undecided_fields': set(),
         'missing_fields': {'instance', },
         'removed_fields': {'alternate_symbol', 'v_multiple_trunks',
                            'tree_count', 'resource', 'itree_code',
@@ -110,28 +129,25 @@ MODELS = {
     },
     'user': {
         'model_class': User,
-        'dependencies': {},
         'common_fields': {'username', 'password', 'email', 'date_joined',
                           'first_name', 'last_name', 'is_active',
                           'is_superuser', 'is_staff', 'last_login'},
-        'renamed_fields': {},
-        'undecided_fields': set(),
         'removed_fields': {'groups', 'user_permissions'},
         'missing_fields': {'roles', 'reputation'},
-        'value_transformers': {},
     },
 }
 
 
 def validate_model(model_name, data_hash):
     """
-    Makes sure the fields specified in the MODELS global
+    Makes sure the fields specified in the MIGRATION_RULES global
     account for all of the provided data
     """
-    common_fields = MODELS[model_name]['common_fields']
-    renamed_fields = MODELS[model_name]['renamed_fields']
-    removed_fields = MODELS[model_name]['removed_fields']
-    undecided_fields = MODELS[model_name]['undecided_fields']
+    common_fields = MIGRATION_RULES[model_name].get('common_fields', set())
+    renamed_fields = MIGRATION_RULES[model_name].get('renamed_fields', {})
+    removed_fields = MIGRATION_RULES[model_name].get('removed_fields', set())
+    undecided_fields = (MIGRATION_RULES[model_name]
+                        .get('undecided_fields', set()))
     expected_fields = (common_fields |
                        set(renamed_fields.keys()) |
                        removed_fields |
@@ -151,23 +167,24 @@ def validate_model(model_name, data_hash):
 
 def hash_to_model(model_name, data_hash, instance, user):
     """
-    Takes a model specified in the MODELS global and a
+    Takes a model specified in the MIGRATION_RULES global and a
     hash of json data and attempts to populate a django
     model. Does not save.
     """
 
     validate_model(model_name, data_hash)
 
-    common_fields = MODELS[model_name]['common_fields']
-    renamed_fields = MODELS[model_name]['renamed_fields']
+    common_fields = MIGRATION_RULES[model_name].get('common_fields', set())
+    renamed_fields = MIGRATION_RULES[model_name].get('renamed_fields', {})
 
-    model = MODELS[model_name]['model_class']()
+    model = MIGRATION_RULES[model_name]['model_class']()
 
     identity = (lambda x: x)
 
     for field in common_fields.union(renamed_fields):
-        transform_value_fn = MODELS[model_name]['value_transformers']\
-            .get(field, identity)
+        transformers = (MIGRATION_RULES[model_name]
+                        .get('value_transformers', {}))
+        transform_value_fn = transformers.get(field, identity)
         try:
             transformed_value = transform_value_fn(data_hash['fields'][field])
             field = renamed_fields.get(field, field)
@@ -191,16 +208,16 @@ def more_permissions(user, instance, role):
     and migrations.
     """
     iuser = user.get_instance_user(instance)
-    iuser.roles = role
+    previous_role = iuser.role
+    iuser.role = role
     iuser.save()
     yield user
-    iuser.role = instance.default_role
+    iuser.role = previous_role or instance.default_role
     iuser.save()
 
 
-def try_save_user_hash_to_model(model_name, model_hash,
-                                instance, system_user, god_role,
-                                user_field_to_try):
+def save_user_hash_to_model(model_name, model_hash,
+                            instance, system_user, commander_role):
     """
     Tries to save an object with the app user that should own
     the object. If not possible, falls back to the system_user.
@@ -208,13 +225,18 @@ def try_save_user_hash_to_model(model_name, model_hash,
     model = hash_to_model(model_name, model_hash,
                           instance, system_user)
 
-    potential_user_id = model_hash['fields'][user_field_to_try]
+    user_field_to_try = (MIGRATION_RULES[model_name]
+                         .get('dependencies', {})
+                         .get('user', None))
+
+    potential_user_id = model_hash['fields'].get(user_field_to_try, None)
+
     if potential_user_id:
         user = User.objects.get(pk=potential_user_id)
     else:
         user = system_user
 
-    with more_permissions(user, instance, god_role) as elevated_user:
+    with more_permissions(user, instance, commander_role) as elevated_user:
         model.save_with_user(elevated_user)
 
     return model
@@ -222,41 +244,103 @@ def try_save_user_hash_to_model(model_name, model_hash,
 
 def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                             instance, system_user,
-                            god_role=None, save_with_user=False,
-                            save_with_system_user=False):
+                            commander_role=None, save_with_user=False):
 
-    for model_hash in model_hashes:
-        for dependency_name, dependency_field in \
-            MODELS[model_name]['dependencies'].iteritems():  # NOQA
-            dependency_map = dependency_id_maps[dependency_name]
-            dependency_id = model_hash['fields'][dependency_field]
-            if dependency_id:
-                new_id = dependency_map[model_hash['fields'][dependency_field]]
-                model_hash['fields'][dependency_field] = new_id
+    model_key_map = dependency_id_maps.get(model_name, None)
+    dependencies = (MIGRATION_RULES
+                    .get(model_name, {})
+                    .get('dependencies', {})
+                    .items())
+
+    # the model_key_map will be filled from the
+    # database each time. combined with this statement,
+    # the command becomes idempotent
+    hashes_to_save = (hash for hash in model_hashes
+                      if hash['pk'] not in model_key_map)
+
+    for model_hash in hashes_to_save:
+
+        # rewrite the fixture so that otm1 pks are replaced by
+        # their corresponding otm2 pks
+        if dependencies:
+            for name, field in dependencies:
+                old_id = model_hash['fields'][field]
+                if old_id:
+                    old_id_to_new_id = dependency_id_maps[name]
+                    new_id = old_id_to_new_id[old_id]
+                    model_hash['fields'][field] = new_id
 
         if save_with_user:
-            user_field = MODELS[model_name]['dependencies']['user']
-            fn = try_save_user_hash_to_model
-            model = fn(model_name, model_hash, instance, system_user,
-                       god_role, user_field)
+            @commit_on_success
+            def _save_with_user_portion():
+                model = save_user_hash_to_model(
+                    model_name, model_hash,
+                    instance, system_user,
+                    commander_role)
+
+                OTM1ModelRelic.objects.create(instance=instance,
+                                              otm1_model_id=model_hash['pk'],
+                                              otm2_model_name=model_name,
+                                              otm2_model_id=model.pk)
+                return model
+            model = _save_with_user_portion()
+
         else:
+
             model = hash_to_model(model_name, model_hash,
                                   instance, system_user)
-            if save_with_system_user:
-                model.save_with_user(system_user)
-            else:
-                model.save()
 
-        model_key_map = dependency_id_maps.get(model_name, None)
+            if model_name == 'user':
+                @commit_on_success
+                def _user_save_portion(model):
+                    try:
+                        model = User.objects.get(email__iexact=model.email)
+                    except User.DoesNotExist:
+                        model.username = _uniquify_username(model.username)
+                        model.set_unusable_password()
+                        model.save()
+
+                    try:
+                        InstanceUser.objects.get(instance=instance,
+                                                 user=model)
+                    except InstanceUser.DoesNotExist:
+                        InstanceUser.objects.create(
+                            instance=instance,
+                            user=model,
+                            role=instance.default_role)
+
+                    (OTM1UserRelic
+                     .objects
+                     .create(instance=instance,
+                             otm1_username=model_hash['fields']['username'],
+                             otm2_user=model,
+                             otm1_id=model_hash['pk'],
+                             email=model_hash['fields']['email']))
+                _user_save_portion(model)
+
+            else:
+                @commit_on_success
+                def _other_save_portion(model):
+                    model.save()
+                    OTM1ModelRelic.objects.create(
+                        instance=instance,
+                        otm1_model_id=model_hash['pk'],
+                        otm2_model_name=model_name,
+                        otm2_model_id=model.pk)
+                _other_save_portion(model)
+
         if model_key_map is not None:
             model_key_map[model_hash['pk']] = model.pk
 
 
-def create_instance_users(instance):
-    for user in User.objects.all():
-        iuser = InstanceUser(instance=instance, user=user,
-                             role=instance.default_role)
-        iuser.save()
+def _uniquify_username(username):
+    username_template = '%s_%%d' % username
+    i = 0
+    while User.objects.filter(username=username).exists():
+        username = username_template % i
+        i += 1
+
+    return username
 
 
 class Command(InstanceDataCommand):
@@ -282,6 +366,11 @@ class Command(InstanceDataCommand):
                     type='string',
                     dest='tree_fixture',
                     help='path to json dump containing tree data'),
+        make_option('-a', '--audit-fixture',
+                    action='store',
+                    type='string',
+                    dest='audit_fixture',
+                    help='path to json dump containing audit data'),
     )
 
     def handle(self, *args, **options):
@@ -294,7 +383,7 @@ class Command(InstanceDataCommand):
         if options['instance']:
             instance, system_user = self.setup_env(*args, **options)
         else:
-            print('Invalid instance provided.')
+            self.stdout.write('Invalid instance provided.')
             return 1
 
         # look for fixtures of the form '<model>_fixture' that
@@ -304,7 +393,8 @@ class Command(InstanceDataCommand):
             'species': [],
             'user': [],
             'plot': [],
-            'tree': []
+            'tree': [],
+            'audit': []
         }
 
         for model_name in json_hashes:
@@ -328,34 +418,35 @@ class Command(InstanceDataCommand):
         # # for models that must be saved with a user, they are either
         # # saved immediately with a system_user, or an app user is tried
         # # first, depending on the model.
+
+        # TODO: don't call this dependency anymore.
+        # It's an idempotency checker too.
         dependency_id_maps = {
             'plot': {},
             'species': {},
             'user': {},
+            'tree': {},
+            'audit': {},
         }
 
-        if json_hashes['user']:
-            hashes_to_saved_objects('user', json_hashes['user'],
-                                    dependency_id_maps,
-                                    instance, system_user,
-                                    save_with_system_user=True)
-            create_instance_users(instance)
+        for relic in OTM1UserRelic.objects.filter(instance=instance):
+            dependency_id_maps['user'][relic.otm1_id] = relic.otm2_user_id
 
-        if json_hashes['species']:
-            hashes_to_saved_objects('species', json_hashes['species'],
-                                    dependency_id_maps, instance, system_user)
+        for relic in OTM1ModelRelic.objects.filter(instance=instance):
+            map = dependency_id_maps[relic.otm2_model_name]
+            map[relic.otm1_model_id] = relic.otm2_model_id
 
-        from treemap.tests import make_god_role
-        god_role = make_god_role(instance)
+        for model in ('user', 'audit'):
+            if json_hashes[model]:
+                hashes_to_saved_objects(model, json_hashes[model],
+                                        dependency_id_maps,
+                                        instance, system_user)
 
-        if json_hashes['plot']:
-            hashes_to_saved_objects('plot', json_hashes['plot'],
-                                    dependency_id_maps,
-                                    instance, system_user, god_role,
-                                    save_with_user=True)
+        commander_role = make_commander_role(instance)
 
-        if json_hashes['tree']:
-            hashes_to_saved_objects('tree', json_hashes['tree'],
-                                    dependency_id_maps,
-                                    instance, system_user, god_role,
-                                    save_with_user=True)
+        for model in ('species', 'plot', 'tree'):
+            if json_hashes[model]:
+                hashes_to_saved_objects(model, json_hashes[model],
+                                        dependency_id_maps,
+                                        instance, system_user, commander_role,
+                                        save_with_user=True)

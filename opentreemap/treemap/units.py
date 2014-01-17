@@ -75,6 +75,20 @@ def get_value_display_attr(instance, category_name, value_name, key):
     return identifier, value
 
 
+def get_units_if_convertible(instance, category_name, value_name):
+    if is_convertible(category_name, value_name):
+        return get_units(instance, category_name, value_name)
+    else:
+        return ''
+
+
+def get_digits_if_formattable(instance, category_name, value_name):
+    if is_formattable(category_name, value_name):
+        return get_digits(instance, category_name, value_name)
+    else:
+        return ''
+
+
 def get_units(instance, category_name, value_name):
     _, units = get_value_display_attr(
         instance, category_name, value_name, 'units')

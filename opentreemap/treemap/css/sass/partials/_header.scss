@@ -48,10 +48,10 @@
         margin-left: 10px;
 
         h3 {
-            font-size: em(14px);
+            font-size: 1.4rem;
             font-weight: 400;
-            line-height: 1em;
-            margin: 0 00 6px;
+            line-height: 1.6rem;
+            margin: 0 0 6px;
             color: $navbar-color;
         }
 
@@ -59,7 +59,7 @@
             position: relative;
         
             input[type="text"] {
-                font-size: 0.75em;
+                font-size: 1.2rem;
                 margin: 0;
                 padding-left: 32px;
                 width: 200px;
@@ -74,8 +74,8 @@
                 border: none;
                 cursor: pointer;
                 color: $well-color;
-                font-size: 18px;
-                line-height: 16px;
+                font-size: 1.8rem;
+                line-height: 1.6rem;
 
                 &.active, 
                 &:hover {
@@ -157,7 +157,7 @@
     padding: 10px 15px;
     border-left: 8px solid $primary-color;
     border-top: 1px solid lighten($primary-color, 35%);
-    font-size: em(16px);
+    font-size: 1.6rem;
     background: lighten($primary-color, 50%);
     height: 24px;
     position: relative;

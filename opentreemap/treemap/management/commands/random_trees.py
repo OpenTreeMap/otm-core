@@ -9,9 +9,9 @@ import math
 
 from django.contrib.gis.geos import Point
 
-from treemap.models import ImportEvent, Plot, Tree, Species
+from treemap.models import Plot, Tree, Species
 
-from ._private import InstanceDataCommand
+from treemap.management import InstanceDataCommand
 
 
 class Command(InstanceDataCommand):
@@ -69,9 +69,6 @@ class Command(InstanceDataCommand):
         center_x = instance.center.x
         center_y = instance.center.y
 
-        import_event = ImportEvent(imported_by=user)
-        import_event.save()
-
         ct = 0
         cp = 0
         for i in xrange(0, n):
@@ -83,8 +80,7 @@ class Command(InstanceDataCommand):
             y = math.sin(theta) * radius + center_y
 
             plot = Plot(instance=instance,
-                        geom=Point(x, y),
-                        import_event=import_event)
+                        geom=Point(x, y))
 
             plot.save_with_user(user)
             cp += 1
@@ -103,7 +99,6 @@ class Command(InstanceDataCommand):
                     diameter = None
 
                 tree = Tree(plot=plot,
-                            import_event=import_event,
                             species=species,
                             diameter=diameter,
                             instance=instance)

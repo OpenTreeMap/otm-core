@@ -11,6 +11,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as trans
 from django.dispatch import receiver
+from django.db.models import OneToOneField
 from django.db.models.signals import post_save
 from django.db.models.fields import FieldDoesNotExist
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -38,8 +39,12 @@ def get_id_sequence_name(model_class):
     Takes a django model class and returns the name of the autonumber
     sequence for the id field.
     Tree => 'treemap_tree_id_seq'
-    Plot => 'treemap_plot_id_seq'
+    Plot => 'treemap_mapfeature_id_seq'
     """
+    if isinstance(model_class._meta.pk, OneToOneField):
+        # Model uses multi-table inheritance (probably a MapFeature subclass)
+        model_class = model_class._meta.pk.related.parent_model
+
     table_name = model_class._meta.db_table
     pk_field = model_class._meta.pk
     # django fields only have a truthy db_column when it is
@@ -638,7 +643,7 @@ class Authorizable(UserTrackable):
     def __init__(self, *args, **kwargs):
         super(Authorizable, self).__init__(*args, **kwargs)
 
-        self._has_been_clobbered = False
+        self._has_been_masked = False
 
     def _get_perms_set(self, user, direct_only=False):
 
@@ -676,7 +681,7 @@ class Authorizable(UserTrackable):
     def user_can_create(self, user, direct_only=False):
         """
         A user is able to create an object if they have permission on
-        any of the fields in that model.
+        all required fields of its model.
 
         If direct_only is False this method will return true
         if the user has either permission to create directly or
@@ -693,15 +698,15 @@ class Authorizable(UserTrackable):
 
         return can_create
 
-    def _assert_not_clobbered(self):
+    def _assert_not_masked(self):
         """
-        Raises an exception if the object has been clobbered.
+        Raises an exception if the object has been masked.
         This assertion should be called by any method that
-        shouldn't operate on clobbered models.
+        shouldn't operate on masked models.
         """
-        if self._has_been_clobbered:
+        if self._has_been_masked:
             raise AuthorizeException(
-                "Operation cannot be performed on a clobbered object.")
+                "Operation cannot be performed on a masked object.")
 
     def get_pending_fields(self, user):
         """
@@ -719,7 +724,7 @@ class Authorizable(UserTrackable):
 
         return fields_to_audit
 
-    def clobber_unauthorized(self, user):
+    def mask_unauthorized_fields(self, user):
         perms = user.get_instance_permissions(self.instance, self._model_name)
         readable_fields = {perm.field_name for perm
                            in perms
@@ -731,7 +736,7 @@ class Authorizable(UserTrackable):
         for field_name in unreadable_fields:
             self.apply_change(field_name, None)
 
-        self._has_been_clobbered = True
+        self._has_been_masked = True
 
     def _perms_for_user(self, user):
         if user is None or user.is_anonymous():
@@ -757,13 +762,13 @@ class Authorizable(UserTrackable):
         return field in self.editable_fields(user)
 
     @staticmethod
-    def clobber_queryset(qs, user):
+    def mask_queryset(qs, user):
         for model in qs:
-            model.clobber_unauthorized(user)
+            model.mask_unauthorized_fields(user)
         return qs
 
     def save_with_user(self, user, *args, **kwargs):
-        self._assert_not_clobbered()
+        self._assert_not_masked()
 
         if self.pk is not None:
             writable_perms = self._get_perms_set(user)
@@ -780,7 +785,7 @@ class Authorizable(UserTrackable):
         super(Authorizable, self).save_with_user(user, *args, **kwargs)
 
     def delete_with_user(self, user, *args, **kwargs):
-        self._assert_not_clobbered()
+        self._assert_not_masked()
 
         if self.user_can_delete(user):
             super(Authorizable, self).delete_with_user(user, *args, **kwargs)
@@ -866,7 +871,7 @@ class Auditable(UserTrackable):
             is_fk = isinstance(field, models.ForeignKey)
             is_required = (field.null is False or field.blank is False)
 
-            if is_fk:
+            if is_fk and field != self._meta.pk:
                 try:
                     related_model = getattr(self, field.name)
                     if related_model is not None:
@@ -919,6 +924,7 @@ class Auditable(UserTrackable):
         else:
             model_id = _reserve_model_id(_lookup_model(self._model_name))
             self.pk = model_id
+            self.id = model_id  # for e.g. Plot, where pk != id
             self.is_pending_insert = True
 
         if is_insert:
@@ -950,7 +956,7 @@ class Auditable(UserTrackable):
         # manifest itself in the audit log, essentially keeping
         # a revision id of this instance. Since each primary
         # key will be unique, we can just use that for the hash
-        audits = self.instance.scope_model(Audit)\
+        audits = Audit.objects.filter(instance__pk=self.instance_id)\
                               .filter(model=self._model_name)\
                               .filter(model_id=self.pk)\
                               .order_by('-updated')
@@ -1004,7 +1010,7 @@ class Audit(models.Model):
 
     field = models.CharField(max_length=255, null=True)
     previous_value = models.CharField(max_length=255, null=True)
-    current_value = models.CharField(max_length=255, null=True)
+    current_value = models.CharField(max_length=255, null=True, db_index=True)
 
     user = models.ForeignKey('treemap.User')
     action = models.IntegerField()

@@ -16,6 +16,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.gis.geos import Point, Polygon
 
 from treemap.tests import (make_instance, make_commander_user,
+                           make_officer_user,
                            add_field_permissions)
 
 from treemap.udf import UserDefinedFieldDefinition
@@ -182,7 +183,7 @@ class ScalarUDFFilterTest(TestCase):
     def test_date_ordering_normal(self):
         dates = self._setup_dates()
         plots = Plot.objects.filter(**{'udf:Test date__isnull': False})\
-                            .order_by('Plot.udf:Test date')
+                            .order_by('MapFeature.udf:Test date')
 
         dates.sort()
 
@@ -193,7 +194,7 @@ class ScalarUDFFilterTest(TestCase):
     def test_date_ordering_reverse(self):
         dates = self._setup_dates()
         plots = Plot.objects.filter(**{'udf:Test date__isnull': False})\
-                            .order_by('-Plot.udf:Test date')
+                            .order_by('-MapFeature.udf:Test date')
 
         dates.sort()
         dates.reverse()
@@ -294,6 +295,28 @@ class UDFAuditTest(TestCase):
         self.plot.save_with_user(self.commander_user)
 
         psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
+    def test_mask_unauthorized_with_udfs(self):
+        officer_user = make_officer_user(self.instance)
+
+        self.plot.udfs['Test choice'] = 'b'
+        self.plot.save_with_user(self.commander_user)
+        self.plot.udfs['Test unauth'] = 'foo'
+        self.plot.save_base()
+
+        newplot = Plot.objects.get(pk=self.plot.pk)
+        self.assertEqual(newplot.udfs['Test choice'], 'b')
+        self.assertEqual(newplot.udfs['Test unauth'], 'foo')
+
+        newplot = Plot.objects.get(pk=self.plot.pk)
+        newplot.mask_unauthorized_fields(self.commander_user)
+        self.assertEqual(newplot.udfs['Test choice'], 'b')
+        self.assertEqual(newplot.udfs['Test unauth'], None)
+
+        newplot = Plot.objects.get(pk=self.plot.pk)
+        newplot.mask_unauthorized_fields(officer_user)
+        self.assertEqual(newplot.udfs['Test choice'], None)
+        self.assertEqual(newplot.udfs['Test unauth'], None)
 
     def test_update_field_creates_audit(self):
         self.plot.udfs['Test choice'] = 'b'
@@ -518,10 +541,11 @@ class ScalarUDFDefTest(TestCase):
             {'type': 'choice',
              'choices': ['a choice', 'another']})
 
-    def test_can_create_choices_with_zero_for_value(self):
-        self._create_and_save_with_datatype(
-            {'type': 'choice',
-             'choices': [0, 1, 3, 4, 5]})
+    def test_cannot_create_choices_with_numeric_values(self):
+        with self.assertRaises(ValidationError):
+            self._create_and_save_with_datatype(
+                {'type': 'choice',
+                 'choices': [0, 1, 3, 4, 5]})
 
     def test_can_create_subfields(self):
         self._create_and_save_with_datatype(

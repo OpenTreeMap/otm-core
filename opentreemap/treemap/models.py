@@ -297,18 +297,22 @@ class User(Auditable, AbstractUniqueEmailUser):
                     pk=settings.SYSTEM_USER_ID)
 
             except User.DoesNotExist:
-                raise Exception('System user does not exist. You may '
-                                'want to run `manage.py create_system_user`')
+                raise User.DoesNotExist('System user does not exist. You may '
+                                        'want to run '
+                                        '`manage.py create_system_user`')
 
         return User._system_user
 
+    def dict(self):
+        return {'id': self.pk,
+                'username': self.username}
+
     def get_instance_user(self, instance):
-        qs = InstanceUser.objects.filter(user=self, instance=instance)
-        if qs.count() == 1:
-            return qs[0]
-        elif qs.count() == 0:
+        try:
+            return InstanceUser.objects.get(user=self, instance=instance)
+        except InstanceUser.DoesNotExist:
             return None
-        else:
+        except MultipleObjectsReturned:
             msg = ("User '%s' found more than once in instance '%s'"
                    % (self, instance))
             raise IntegrityError(msg)
@@ -350,11 +354,12 @@ class User(Auditable, AbstractUniqueEmailUser):
         if re.search('\\s', self.username):
             raise ValidationError(trans('Cannot have spaces in a username'))
 
-    def save(self, *args, **kwargs):
+    def save_with_user(self, user, *args, **kwargs):
         self.full_clean()
-
         self.email = self.email.lower()
+        super(User, self).save_with_user(user, *args, **kwargs)
 
+    def save(self, *args, **kwargs):
         system_user = User.system_user()
         self.save_with_user(system_user, *args, **kwargs)
 
@@ -397,14 +402,26 @@ class Species(UDFModel, Authorizable, Auditable):
     def display_name(self):
         return "%s [%s]" % (self.common_name, self.scientific_name)
 
+    @classmethod
+    def get_scientific_name(clazz, genus, species, cultivar):
+        name = genus
+        if species:
+            name += " " + species
+        if cultivar:
+            name += " '%s'" % cultivar
+        return name
+
     @property
     def scientific_name(self):
-        name = self.genus
-        if self.species:
-            name += " " + self.species
-        if self.cultivar:
-            name += " '%s'" % self.cultivar
-        return name
+        return Species.get_scientific_name(self.genus,
+                                           self.species,
+                                           self.cultivar)
+
+    def dict(self):
+        props = self.as_dict()
+        props['scientific_name'] = self.scientific_name
+
+        return props
 
     def __unicode__(self):
         return self.display_name
@@ -437,20 +454,71 @@ class InstanceUser(Auditable, models.Model):
         enabled = feature_enabled(self.instance, 'tree_image_upload')
         return enabled and fieldperms == fields
 
-    def save_with_user(self, user):
+    def save_with_user(self, user, *args, **kwargs):
         self.full_clean()
-        super(InstanceUser, self).save_with_user(user)
+        super(InstanceUser, self).save_with_user(user, *args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        system_user = User.system_user()
+        self.save_with_user(system_user, *args, **kwargs)
 
     def __unicode__(self):
         return '%s/%s' % (self.user.get_username(), self.instance.name)
 
 
-class ImportEvent(models.Model):
-    imported_by = models.ForeignKey(User)
-    imported_on = models.DateField(auto_now_add=True)
+class MapFeature(UDFModel):
+    "Superclass for map feature subclasses like Plot, RainBarrel, etc."
+    instance = models.ForeignKey(Instance)
+    geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
+
+    address_street = models.CharField(max_length=255, blank=True, null=True)
+    address_city = models.CharField(max_length=255, blank=True, null=True)
+    address_zip = models.CharField(max_length=30, blank=True, null=True)
+
+    readonly = models.BooleanField(default=False)
+
+    objects = AuthorizableGeoHStoreUDFManager()
+
+    # When querying MapFeatures (as opposed to querying a subclass like Plot),
+    # we get a heterogenous collection (some Plots, some RainBarrels, etc.).
+    # The feature_type attribute tells us the type of each object.
+
+    feature_type = models.CharField(max_length=255)
+
+    def __init__(self, *args, **kwargs):
+        super(MapFeature, self).__init__(*args, **kwargs)
+        if self.feature_type == '':
+            self.feature_type = self.map_feature_type
+        self._do_not_track.add('feature_type')
+        self._do_not_track.add('mapfeature_ptr')
+        self.populate_previous_state()
+
+    @property
+    def _is_generic(self):
+        return self.__class__.__name__ == 'MapFeature'
+
+    def save_with_user(self, user, *args, **kwargs):
+        if self._is_generic:
+            raise Exception(
+                'Never save a MapFeature -- only save a MapFeature subclass')
+        super(MapFeature, self).save_with_user(user, *args, **kwargs)
+
+    @property
+    def map_feature_type(self):
+        # Map feature type defaults to subclass name (e.g. 'Plot').
+        # Subclasses can override it if they want something different.
+        # (But note that the value gets stored in the database, so should not
+        # be changed for a subclass once objects have been saved.)
+        return self.__class__.__name__
 
     def __unicode__(self):
-        return "%s - %s" % (self.imported_by, self.imported_on)
+        x_chunk = "X: %s" % self.geom.x if self.geom else "?"
+        y_chunk = "Y: %s" % self.geom.y if self.geom else "?"
+        address_chunk = self.address_street or "No Address Provided"
+        text = "%s, %s - %s" % (x_chunk, y_chunk, address_chunk)
+        if self._is_generic:
+            text = "(%s) " % self.feature_type + text
+        return text
 
 
 #TODO:
@@ -458,22 +526,13 @@ class ImportEvent(models.Model):
 # Proximity validation
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
-class Plot(Convertible, UDFModel, Authorizable, Auditable):
-    instance = models.ForeignKey(Instance)
-    geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
-
+class Plot(MapFeature, Convertible, Authorizable, Auditable):
     width = models.FloatField(null=True, blank=True,
                               help_text=trans("Plot Width"))
     length = models.FloatField(null=True, blank=True,
                                help_text=trans("Plot Length"))
 
-    address_street = models.CharField(max_length=255, blank=True, null=True)
-    address_city = models.CharField(max_length=255, blank=True, null=True)
-    address_zip = models.CharField(max_length=30, blank=True, null=True)
-
-    import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
     owner_orig_id = models.CharField(max_length=255, null=True, blank=True)
-    readonly = models.BooleanField(default=False)
 
     objects = AuthorizableGeoHStoreUDFManager()
 
@@ -517,12 +576,6 @@ class Plot(Convertible, UDFModel, Authorizable, Auditable):
             return trees[0]
         else:
             return None
-
-    def __unicode__(self):
-        x_chunk = "X: %s" % self.geom.x if self.geom else "?"
-        y_chunk = "Y: %s" % self.geom.y if self.geom else "?"
-        address_chunk = self.address_street or "No Address Provided"
-        return "%s, %s - %s" % (x_chunk, y_chunk, address_chunk)
 
     @property
     def hash(self):
@@ -575,7 +628,6 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
 
     plot = models.ForeignKey(Plot)
     species = models.ForeignKey(Species, null=True, blank=True)
-    import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
 
     readonly = models.BooleanField(default=False)
     diameter = models.FloatField(null=True, blank=True,
@@ -597,6 +649,12 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
         species_chunk = ("Species: %s - " % self.species
                          if self.species else "")
         return "%s%s" % (diameter_chunk, species_chunk)
+
+    def dict(self):
+        props = self.as_dict()
+        props['species'] = self.species
+
+        return props
 
     def photos(self):
         return self.treephoto_set.order_by('-created_at')

@@ -124,7 +124,6 @@ class AuditTest(TestCase):
             ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'species', FieldPermission.WRITE_DIRECTLY),
-            ('Tree', 'import_event', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'readonly', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'height', FieldPermission.WRITE_DIRECTLY),
@@ -226,7 +225,8 @@ class AuditTest(TestCase):
 
     def test_get_id_sequence_name(self):
         self.assertEqual(get_id_sequence_name(Tree), 'treemap_tree_id_seq')
-        self.assertEqual(get_id_sequence_name(Plot), 'treemap_plot_id_seq')
+        self.assertEqual(get_id_sequence_name(Plot),
+                         'treemap_mapfeature_id_seq')
 
 
 class ReviewTest(TestCase):
@@ -947,35 +947,35 @@ class UserRoleFieldPermissionTest(TestCase):
         self.tree.delete_with_user(self.commander)
         self.plot.delete_with_user(self.commander, cascade=True)
 
-    def test_clobbering_authorized(self):
-        "When clobbering with a superuser, nothing should happen"
+    def test_masking_authorized(self):
+        "When masking with a superuser, nothing should happen"
         self.plot.width = 5
         self.plot.save_with_user(self.commander)
 
         plot = Plot.objects.get(pk=self.plot.pk)
-        plot.clobber_unauthorized(self.commander)
+        plot.mask_unauthorized_fields(self.commander)
         self.assertEqual(self.plot.width, plot.width)
 
-    def test_clobbering_unauthorized(self):
-        "Clobbering changes an unauthorized field to None"
+    def test_masking_unauthorized(self):
+        "Masking changes an unauthorized field to None"
         self.plot.width = 5
         self.plot.save_base()
 
         plot = Plot.objects.get(pk=self.plot.pk)
-        plot.clobber_unauthorized(self.observer)
+        plot.mask_unauthorized_fields(self.observer)
         self.assertEqual(None, plot.width)
 
         plot = Plot.objects.get(pk=self.plot.pk)
-        plot.clobber_unauthorized(self.outlaw)
+        plot.mask_unauthorized_fields(self.outlaw)
         self.assertEqual(None, plot.width)
 
-    def test_clobbering_whole_queryset(self):
-        "Clobbering also works on entire querysets"
+    def test_masking_whole_queryset(self):
+        "Masking also works on entire querysets"
         self.plot.width = 5
         self.plot.save_base()
 
         plots = Plot.objects.filter(pk=self.plot.pk)
-        plot = Plot.clobber_queryset(plots, self.observer)[0]
+        plot = Plot.mask_queryset(plots, self.observer)[0]
         self.assertEqual(None, plot.width)
 
     def test_write_fails_if_any_fields_cant_be_written(self):

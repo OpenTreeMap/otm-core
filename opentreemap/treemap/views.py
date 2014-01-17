@@ -208,6 +208,30 @@ def create_plot(user, instance, *args, **kwargs):
 def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
     plot = _get_plot_or_404(plot_id, instance)
 
+    if hasattr(request, 'instance_supports_ecobenefits'):
+        supports_eco = request.instance_supports_ecobenefits
+    else:
+        supports_eco = instance.has_itree_region()
+
+    context = context_dict_for_plot(
+        instance,
+        plot,
+        tree_id,
+        user=request.user,
+        supports_eco=supports_eco)
+
+    context['editmode'] = edit
+
+    return context
+
+
+def context_dict_for_plot(instance, plot,
+                          tree_id=None, user=None, supports_eco=False):
+    if instance.pk != plot.instance_id:
+        raise Exception("Invaild instance does not match plot")
+
+    plot.instance = instance
+
     if tree_id:
         tree = get_object_or_404(Tree,
                                  instance=instance,
@@ -222,12 +246,13 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
     has_photo = tree is not None and tree.treephoto_set.all().count() > 0
 
     context = {}
+
     # If the the benefits calculation can't be done or fails, still display the
     # plot details
 
     should_calculate_eco = (has_tree_diameter and
                             has_tree_species_with_code and
-                            request.instance_supports_ecobenefits)
+                            supports_eco)
 
     if should_calculate_eco:
         try:
@@ -270,18 +295,20 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
                     kwargs={'instance_url_name': instance.url_name,
                             'plot_id': plot.pk})
 
-    context['editmode'] = edit
+    if user and user.is_authenticated():
+        plot.mask_unauthorized_fields(user)
+
     context['plot'] = plot
     context['has_tree'] = tree is not None
     # Give an empty tree when there is none in order to show tree fields easily
     context['tree'] = tree or Tree(plot=plot, instance=instance)
 
-    audits = _plot_audits(request.user, instance, plot)
+    audits = _plot_audits(user, instance, plot)
 
     def _audits_are_in_different_groups(prev_audit, audit):
         if prev_audit is None:
             return True
-        elif prev_audit.user.pk != audit.user.pk:
+        elif prev_audit.user_id != audit.user_id:
             return True
         else:
             time_difference = last_audit.updated - audit.updated
@@ -323,9 +350,9 @@ def update_plot_detail(request, instance, plot_id):
 
 def update_plot_and_tree_request(request, plot):
     try:
-        plot, tree = update_plot_and_tree(request, plot)
-        # Refresh plot.instance in case geo_rev_hash was updated
-        plot.instance = Instance.objects.get(id=plot.instance.id)
+        request_dict = json.loads(request.body)
+        plot, tree = update_plot_and_tree(request_dict, request.user, plot)
+
         return {
             'ok': True,
             'geoRevHash': plot.instance.geo_rev_hash,
@@ -357,8 +384,7 @@ def delete_plot(request, instance, plot_id):
 
 
 @transaction.commit_on_success
-@login_required
-def update_plot_and_tree(request, plot):
+def update_plot_and_tree(request_dict, user, plot):
     """
     Update a plot. Expects JSON in the request body to be:
     {'model.field', ...}
@@ -381,10 +407,13 @@ def update_plot_and_tree(request, plot):
 
     def set_attr_on_model(model, attr, val):
         if attr == 'geom':
-            val = Point(val['x'], val['y'])
+            srid = val.get('srid', 3857)
+            val = Point(val['x'], val['y'], srid=srid)
+            val.transform(3857)
 
-        if attr in model.fields() and attr != 'id':
-            model.apply_change(attr, val)
+        if attr == 'id':
+            if val != model.pk:
+                raise Exception("Can't update id attribute")
         elif attr.startswith('udf:'):
             udf_name = attr[4:]
 
@@ -394,6 +423,8 @@ def update_plot_and_tree(request, plot):
                 model.udfs[udf_name] = val
             else:
                 raise KeyError('Invalid UDF %s' % attr)
+        elif attr in model.fields():
+            model.apply_change(attr, val)
         else:
             raise Exception('Maformed request - invalid field %s' % attr)
 
@@ -409,8 +440,6 @@ def update_plot_and_tree(request, plot):
 
     tree = None
 
-    request_dict = json.loads(request.body)
-
     for (model_and_field, value) in request_dict.iteritems():
         model_name, field = split_model_or_raise(model_and_field)
 
@@ -421,7 +450,8 @@ def update_plot_and_tree(request, plot):
             tree = tree or get_tree()
             model = tree
             if field == 'species' and value:
-                value = Species.objects.get(pk=value)
+                value = get_object_or_404(Species,
+                                          instance=plot.instance, pk=value)
             elif field == 'plot' and value == unicode(plot.pk):
                 value = plot
         else:
@@ -432,13 +462,16 @@ def update_plot_and_tree(request, plot):
     errors = {}
 
     if plot.fields_were_updated():
-        errors.update(save_and_return_errors(plot, request.user))
+        errors.update(save_and_return_errors(plot, user))
     if tree and tree.fields_were_updated():
         tree.plot = plot
-        errors.update(save_and_return_errors(tree, request.user))
+        errors.update(save_and_return_errors(tree, user))
 
     if errors:
         raise ValidationError(errors)
+
+    # Refresh plot.instance in case geo_rev_hash was updated
+    plot.instance = Instance.objects.get(id=plot.instance.id)
 
     return plot, tree
 
@@ -591,11 +624,16 @@ def _plot_audits(user, instance, plot):
                            action=Audit.Type.Delete,
                            model_id__in=tree_history)
 
-    audits = Audit.objects.filter(instance=instance)\
-                          .filter(tree_filter |
-                                  tree_delete_filter |
-                                  plot_filter)\
-                          .order_by('-updated')[:5]
+    # Seems to be much faster to do three smaller
+    # queries here instead of ORing them together
+    # (about a 50% inprovement!)
+    iaudit = Audit.objects.filter(instance=instance)
+
+    audits = []
+    for afilter in [tree_filter, tree_delete_filter, plot_filter]:
+        audits += list(iaudit.filter(afilter).order_by('-updated')[:5])
+
+    audits = sorted(audits, key=lambda audit: audit.updated, reverse=True)[:5]
 
     return audits
 
@@ -647,29 +685,48 @@ def boundary_autocomplete(request, instance):
 def species_list(request, instance):
     max_items = request.GET.get('max_items', None)
 
-    species_set = instance.scope_model(Species).order_by('common_name')
-    species_set = species_set[:max_items]
+    species_qs = instance.scope_model(Species)\
+                         .order_by('common_name')\
+                         .values('common_name', 'genus',
+                                 'species', 'cultivar', 'id')
+
+    if max_items:
+        species_qs = species_qs[:max_items]
 
     # Split names by space so that "el" will match common_name="Delaware Elm"
     def tokenize(species):
-        names = (species.common_name, species.genus,
-                 species.species, species.cultivar)
+        names = (species['common_name'],
+                 species['genus'],
+                 species['species'],
+                 species['cultivar'])
 
-        tokens = []
+        tokens = set()
 
         for name in names:
             if name:
-                tokens.extend(name.split())
+                tokens = tokens.union(name.split())
 
         # Names are sometimes in quotes, which should be stripped
-        return [token.strip(string.punctuation) for token in tokens]
+        return {token.strip(string.punctuation) for token in tokens}
 
-    return [{'common_name': species.common_name,
-             'id': species.pk,
-             'scientific_name': species.scientific_name,
-             'value': species.display_name,
-             'tokens': tokenize(species)}
-            for species in species_set]
+    def annotate_species_dict(sdict):
+        sci_name = Species.get_scientific_name(sdict['genus'],
+                                               sdict['species'],
+                                               sdict['cultivar'])
+
+        display_name = "%s [%s]" % (sdict['common_name'],
+                                    sci_name)
+
+        tokens = tokenize(species)
+
+        sdict.update({
+            'scientific_name': sci_name,
+            'value': display_name,
+            'tokens': tokens})
+
+        return sdict
+
+    return [annotate_species_dict(species) for species in species_qs]
 
 
 def _execute_filter(instance, filter_str):

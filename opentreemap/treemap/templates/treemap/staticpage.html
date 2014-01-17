@@ -2,10 +2,17 @@
 
 {% block page_title %} | {{ title }}{% endblock %}
 
+{% block subhead %}
+{% comment %} Hide subhead when the map is not available {% endcomment %}
+{% endblock subhead %}
+
+{% block activeexplore %}
+{% endblock %}
+
 {% block content %}
 <div class="image-background"></div>
-<div class="container contained profile">
-    <div class="row">
+<div class="container contained static-page">
+    <div class="row-fluid">
         <div class="span12">
           {{ content|safe }}
         </div>

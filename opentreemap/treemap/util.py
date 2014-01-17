@@ -19,9 +19,11 @@ from django.utils.functional import Promise
 from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.utils.translation import ugettext_lazy as trans
 from django.core.files.uploadedfile import SimpleUploadedFile, File
+from django.db.models.fields.files import ImageFieldFile
+from django.contrib.gis.geos import Point
 
 from treemap.instance import Instance
 
@@ -60,9 +62,14 @@ def add_visited_instance(request, instance):
 def get_last_visited_instance(request):
     if hasattr(request, 'session') and 'visited_instances' in request.session:
         instance_id = next(reversed(request.session['visited_instances']))
-        return Instance.objects.get(pk=instance_id)
+        try:
+            instance = Instance.objects.get(pk=instance_id)
+        except (Instance.DoesNotExist, MultipleObjectsReturned):
+            instance = None
     else:
-        return None
+        instance = None
+
+    return instance
 
 
 def login_redirect(request):
@@ -120,7 +127,24 @@ class LazyEncoder(DjangoJSONEncoder):
     def default(self, obj):
         if isinstance(obj, Promise):
             return force_text(obj)
-        return super(LazyEncoder, self).default(obj)
+        elif hasattr(obj, 'dict'):
+            return obj.dict()
+        elif isinstance(obj, set):
+            return list(obj)
+        elif hasattr(obj, 'as_dict'):
+            return obj.as_dict()
+        elif isinstance(obj, Point):
+            srid = 4326
+            obj.transform(srid)
+            return {'x': obj.x, 'y': obj.y, 'srid': srid}
+        # TODO: Handle S3
+        elif isinstance(obj, ImageFieldFile):
+            if obj:
+                return obj.url
+            else:
+                return None
+        else:
+            return super(LazyEncoder, self).default(obj)
 
 
 def save_image_from_request(request, name_prefix, thumb_size=None):
