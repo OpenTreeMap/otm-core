@@ -8,8 +8,6 @@ from time import sleep
 from treemap.tests.ui import TreemapUITestCase, ui_test_urls
 from treemap.models import Tree, Plot
 
-from django.utils.unittest.case import skip
-
 
 DATABASE_COMMIT_DELAY = 2
 
@@ -160,7 +158,6 @@ class MapTest(TreemapUITestCase):
 
         self.assertEqual([99.0, 33.0], tree_diams)
 
-    @skip("This test is failing on the release build preventing a deploy")
     def test_add_trees_and_continue_to_edit(self):
         initial_tree_count = self.ntrees()
         initial_plot_count = self.nplots()
