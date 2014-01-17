@@ -180,8 +180,6 @@ class MapTest(TreemapUITestCase):
 
         plot = Plot.objects.order_by('-id')[0]
 
-        self.driver.switch_to_alert().accept()
-
         # Expect to be on edit page for the plot
         self.assertTrue(
             self.driver.current_url.endswith(
