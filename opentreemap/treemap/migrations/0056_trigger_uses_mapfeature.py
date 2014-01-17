@@ -1,36 +1,66 @@
 # -*- coding: utf-8 -*-
 import datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
 
-class Migration(DataMigration):
+
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        for plot in orm.Plot.objects.all():
-            feature = orm.MapFeature.objects.create(
-                udfs=plot.udfs,
-                feature_type='Plot',
-                instance=plot.instance,
-                geom=plot.geom,
-                address_street=plot.address_street,
-                address_city=plot.address_city,
-                address_zip=plot.address_zip,
-                readonly=plot.readonly)
+        # Note that if you change the instance on a tree
+        # the trigger wont fire
+        # but, is there any reason you would change an instance?
 
-            plot.mapfeature_ptr_id = feature.id;
-            plot.save()
+        db.execute("""
+DROP TRIGGER IF EXISTS RevInsertTrigger ON treemap_plot;
+DROP TRIGGER IF EXISTS RevUpdateTrigger ON treemap_plot;
+DROP TRIGGER IF EXISTS RevDeleteTrigger ON treemap_plot;
+DROP FUNCTION RevUpdate();
+""");
 
-            #trees = plot.tree_set.all()
-            trees = orm.Tree.objects.filter(plot_id=plot.id)
-            if trees:
-                tree = trees[0]
-                tree.map_feature_id = feature.id;
-                tree.save()
+        db.execute("""
+CREATE OR REPLACE FUNCTION RevUpdate()
+ RETURNS trigger AS
+ $$
+ DECLARE
+   iid integer;
+ BEGIN
+ IF (TG_OP='INSERT') THEN
+   iid = NEW.instance_id;
+ ELSIF (TG_OP='UPDATE') THEN
+   iid = NEW.instance_id;
+ ELSIF (TG_OP='DELETE') THEN
+   iid = OLD.instance_id;
+ END IF;
+ UPDATE treemap_instance SET geo_rev=geo_rev+1 WHERE id=iid ;
+ Return NEW;
+ END;
+ $$
+ LANGUAGE 'plpgsql' VOLATILE;
 
+CREATE TRIGGER RevInsertTrigger
+AFTER INSERT
+ON treemap_mapfeature
+FOR EACH ROW
+WHEN (NEW.the_geom_webmercator IS NOT NULL)
+EXECUTE PROCEDURE RevUpdate ();
+
+CREATE TRIGGER RevUpdateTrigger
+AFTER UPDATE OF the_geom_webmercator
+ON treemap_mapfeature
+FOR EACH ROW
+EXECUTE PROCEDURE RevUpdate ();
+
+CREATE TRIGGER RevDeleteTrigger
+AFTER DELETE
+ON treemap_mapfeature
+FOR EACH ROW
+EXECUTE PROCEDURE RevUpdate ();
+""")
 
     def backwards(self, orm):
-        "Write your backwards methods here."
+        raise Exception("There is no backwards migration.")
 
     models = {
         u'auth.group': {
@@ -57,7 +87,7 @@ class Migration(DataMigration):
             'Meta': {'object_name': 'Audit'},
             'action': ('django.db.models.fields.IntegerField', [], {}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'current_value': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
+            'current_value': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'db_index': 'True'}),
             'field': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'instance': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Instance']", 'null': 'True', 'blank': 'True'}),
@@ -99,12 +129,6 @@ class Migration(DataMigration):
             'model_name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'permission_level': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'role': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Role']"})
-        },
-        u'treemap.importevent': {
-            'Meta': {'object_name': 'ImportEvent'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'imported_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.User']"}),
-            'imported_on': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'blank': 'True'})
         },
         u'treemap.instance': {
             'Meta': {'object_name': 'Instance'},
@@ -159,19 +183,10 @@ class Migration(DataMigration):
             'udfs': ('treemap.udf.UDFField', [], {'db_index': 'True', 'blank': 'True'})
         },
         u'treemap.plot': {
-            'Meta': {'object_name': 'Plot'},
-            'address_city': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'address_street': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'address_zip': ('django.db.models.fields.CharField', [], {'max_length': '30', 'null': 'True', 'blank': 'True'}),
-            'geom': ('django.contrib.gis.db.models.fields.PointField', [], {'srid': '3857', 'db_column': "u'the_geom_webmercator'"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'import_event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.ImportEvent']", 'null': 'True', 'blank': 'True'}),
-            'instance': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Instance']"}),
+            'Meta': {'object_name': 'Plot', '_ormbases': [u'treemap.MapFeature']},
             'length': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
-            'mapfeature_ptr': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.MapFeature']", 'null': 'True'}),
+            u'mapfeature_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['treemap.MapFeature']", 'unique': 'True', 'primary_key': 'True'}),
             'owner_orig_id': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'readonly': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'udfs': ('treemap.udf.UDFField', [], {'db_index': 'True', 'blank': 'True'}),
             'width': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'})
         },
         u'treemap.reputationmetric': {
@@ -231,10 +246,8 @@ class Migration(DataMigration):
             'diameter': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'height': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'import_event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.ImportEvent']", 'null': 'True', 'blank': 'True'}),
             'instance': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Instance']"}),
-            'map_feature': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.MapFeature']", 'null': 'True'}),
-            'plot': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'rick'", 'to': u"orm['treemap.Plot']"}),
+            'plot': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Plot']"}),
             'readonly': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'species': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Species']", 'null': 'True', 'blank': 'True'}),
             'udfs': ('treemap.udf.UDFField', [], {'db_index': 'True', 'blank': 'True'})
@@ -285,4 +298,3 @@ class Migration(DataMigration):
     }
 
     complete_apps = ['treemap']
-    symmetrical = True
