@@ -8,14 +8,69 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Deleting model 'ImportEvent'
+        db.delete_table(u'treemap_importevent')
 
-        # Changing field 'Tree.plot'
-        db.alter_column(u'treemap_tree', 'plot_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.Plot']))
+        # Adding model 'MapFeature'
+        db.create_table(u'treemap_mapfeature', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('udfs', self.gf('treemap.udf.UDFField')(db_index=True, blank=True)),
+            ('instance', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.Instance'])),
+            ('geom', self.gf('django.contrib.gis.db.models.fields.PointField')(srid=3857, db_column=u'the_geom_webmercator')),
+            ('address_street', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('address_city', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('address_zip', self.gf('django.db.models.fields.CharField')(max_length=30, null=True, blank=True)),
+            ('readonly', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('feature_type', self.gf('django.db.models.fields.CharField')(max_length=255)),
+        ))
+        db.send_create_signal(u'treemap', ['MapFeature'])
+
+        # Manual insertion by RM to move data and set auto-increment value
+        db.execute("""
+INSERT INTO treemap_mapfeature
+     ( id, udfs, feature_type, instance_id, the_geom_webmercator, address_street, address_city, address_zip, readonly )
+SELECT id, udfs, 'Plot'      , instance_id, the_geom_webmercator, address_street, address_city, address_zip, readonly
+FROM treemap_plot;
+         """)
+
+        db.execute("select setval('treemap_mapfeature_id_seq', (select max(id) from treemap_plot));")
+
+        # Deleting field 'Tree.import_event'
+        db.delete_column(u'treemap_tree', 'import_event_id')
+
+        # Deleting field 'Plot.import_event'
+        db.delete_column(u'treemap_plot', 'import_event_id')
+
+        # Deleting field 'Plot.udfs'
+        db.delete_column(u'treemap_plot', 'udfs')
+
+        # Deleting field 'Plot.address_street'
+        db.delete_column(u'treemap_plot', 'address_street')
+
+        # Deleting field 'Plot.address_zip'
+        db.delete_column(u'treemap_plot', 'address_zip')
+
+        # Deleting field 'Plot.address_city'
+        db.delete_column(u'treemap_plot', 'address_city')
+
+        # Deleting field 'Plot.instance'
+        db.delete_column(u'treemap_plot', 'instance_id')
+
+        # Deleting field 'Plot.readonly'
+        db.delete_column(u'treemap_plot', 'readonly')
+
+        # Deleting field 'Plot.geom'
+        db.delete_column(u'treemap_plot', u'the_geom_webmercator')
+
+        # Renaming field 'Plot.id' to 'Plot.mapfeature_id
+        db.rename_column(u'treemap_plot', u'id', u'mapfeature_ptr_id')
+        db.alter_column(u'treemap_plot', u'mapfeature_ptr_id',
+                      self.gf('django.db.models.fields.related.OneToOneField')(default=0, to=orm['treemap.MapFeature'], unique=True, primary_key=True))
+
 
     def backwards(self, orm):
+        raise Exception("No backwards migration")
 
-        # Changing field 'Tree.plot'
-        db.alter_column(u'treemap_tree', 'plot_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.MapFeature']))
 
     models = {
         u'auth.group': {
@@ -85,12 +140,6 @@ class Migration(SchemaMigration):
             'permission_level': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'role': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Role']"})
         },
-        u'treemap.importevent': {
-            'Meta': {'object_name': 'ImportEvent'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'imported_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.User']"}),
-            'imported_on': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'blank': 'True'})
-        },
         u'treemap.instance': {
             'Meta': {'object_name': 'Instance'},
             'basemap_data': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
@@ -145,7 +194,6 @@ class Migration(SchemaMigration):
         },
         u'treemap.plot': {
             'Meta': {'object_name': 'Plot', '_ormbases': [u'treemap.MapFeature']},
-            'import_event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.ImportEvent']", 'null': 'True', 'blank': 'True'}),
             'length': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             u'mapfeature_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['treemap.MapFeature']", 'unique': 'True', 'primary_key': 'True'}),
             'owner_orig_id': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
@@ -208,7 +256,6 @@ class Migration(SchemaMigration):
             'diameter': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'height': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'import_event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.ImportEvent']", 'null': 'True', 'blank': 'True'}),
             'instance': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Instance']"}),
             'plot': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Plot']"}),
             'readonly': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
