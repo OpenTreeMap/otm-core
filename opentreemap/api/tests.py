@@ -33,9 +33,6 @@ from api.instance import instances_closest_to_point
 API_PFX = "/api/v2"
 
 
-create_mock_system_user()
-
-
 def create_signer_dict(user):
     key = APIKey(user=user, key="TESTING", enabled=True, comment="")
     key.save()
