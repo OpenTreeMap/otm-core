@@ -289,6 +289,12 @@ class User(Auditable, AbstractUniqueEmailUser):
     photo = models.ImageField(upload_to='users', null=True, blank=True)
     thumbnail = models.ImageField(upload_to='users', null=True, blank=True)
 
+    firstname = models.CharField(max_length=255, default='', blank=True)
+    lastname = models.CharField(max_length=255, default='', blank=True)
+    organization = models.CharField(max_length=255, default='', blank=True)
+
+    allow_email_contact = models.BooleanField(default=False)
+
     @classmethod
     def system_user(clazz):
         if not User._system_user:
