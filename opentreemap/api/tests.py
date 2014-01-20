@@ -20,8 +20,8 @@ from django.conf import settings
 
 from treemap.models import Species, Plot, Tree, User
 from treemap.audit import ReputationMetric, Audit
-from treemap.tests import (create_mock_system_user, make_user,
-                           make_commander_user, make_request, make_instance)
+from treemap.tests import (make_user, make_commander_user, make_request,
+                           make_instance)
 
 from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from api.models import APIKey, APILog
