@@ -11,7 +11,7 @@ from django.contrib.gis.geos import Point
 
 from treemap.models import Plot, Tree, Species
 
-from treemap.management import InstanceDataCommand
+from treemap.management.util import InstanceDataCommand
 
 
 class Command(InstanceDataCommand):

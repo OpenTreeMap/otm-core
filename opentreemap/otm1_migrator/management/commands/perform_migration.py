@@ -15,7 +15,7 @@ from django.db.transaction import commit_on_success
 
 from treemap.models import (User, Plot, Tree, Species, InstanceUser, Audit)
 from treemap.audit import model_hasattr
-from treemap.management import InstanceDataCommand
+from treemap.management.util import InstanceDataCommand
 
 # TODO: should not require a utility from the tests
 from treemap.tests import make_commander_role
