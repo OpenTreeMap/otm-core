@@ -309,6 +309,18 @@ class User(Auditable, AbstractUniqueEmailUser):
 
         return User._system_user
 
+    @property
+    def created(self):
+        try:
+            return Audit.objects.filter(instance=None,
+                                        model='User',
+                                        model_id=self.pk)\
+                                .order_by('created')[0]\
+                                .created
+        except IndexError:
+            # A user has no audit records?
+            return None
+
     def dict(self):
         return {'id': self.pk,
                 'username': self.username}
