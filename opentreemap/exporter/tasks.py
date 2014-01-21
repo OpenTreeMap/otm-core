@@ -14,38 +14,89 @@ from exporter.djqscsv import make_csv_file, generate_filename
 from exporter.models import ExportJob
 
 
-def csv_export(job_pk, model, query):
+def extra_select_and_values_for_model(
+        instance, user, table, model, prefix=None):
+    if prefix:
+        prefix += '__'
+    else:
+        prefix = ''
 
+    perms = user.get_instance_permissions(instance,
+                                          model)\
+                .values_list('field_name', flat=True)
+
+    extra_select = {}
+    prefixed_names = []
+
+    for perm in perms:
+        prefixed_name = prefix + perm
+
+        if perm.startswith('udf:'):
+            name = perm[4:]
+            extra_select[prefixed_name] = "%s.udfs->'%s'" % (table, name)
+
+        prefixed_names.append(prefixed_name)
+
+    return (extra_select, prefixed_names)
+
+
+def csv_export(job_pk, model, query):
     job = ExportJob.objects.get(pk=job_pk)
     instance = job.instance
 
-    if model == 'species':
-        initial_qs = (Species.objects.
-                      filter(instance=instance))
-    else:
-        # model == 'tree'
+    if job.user and job.user.is_authenticated():
+        if model == 'species':
+            initial_qs = (Species.objects.
+                          filter(instance=instance))
 
-        # TODO: if an anonymous job with the given query has been
-        # done since the last update to the audit records table,
-        # just return that job
-
-        # get the plots for the provided
-        # query and turn them into a tree queryset
-        plot_query = (create_filter(query)
-                      .filter(instance_id=instance.id))
-        initial_qs = Tree.objects.filter(plot__in=plot_query)
-
-    # limit_fields_by_user exists on authorizable models/querysets
-    # keep track of the before/after queryset to determine if empty
-    # querysets were caused by authorization failure.
-    if hasattr(initial_qs, 'limit_fields_by_user'):
-        if job.user and job.user.is_authenticated():
-            limited_qs = initial_qs.limit_fields_by_user(instance,
-                                                         job.user)
+            extra_select, values = extra_select_and_values_for_model(
+                instance, job.user, 'treemap_species', 'species')
+            limited_qs = initial_qs.extra(select=extra_select).values(*values)
         else:
-            limited_qs = initial_qs.none()
+            # model == 'tree'
+
+            # TODO: if an anonymous job with the given query has been
+            # done since the last update to the audit records table,
+            # just return that job
+
+            # get the plots for the provided
+            # query and turn them into a tree queryset
+            plot_query = (create_filter(query)
+                          .filter(instance_id=instance.id))
+            initial_qs = Tree.objects.filter(plot__in=plot_query)
+
+            extra_select_tree, values_tree = extra_select_and_values_for_model(
+                instance, job.user, 'treemap_tree', 'Tree')
+            extra_select_plot, values_plot = extra_select_and_values_for_model(
+                instance, job.user, 'treemap_mapfeature', 'Plot',
+                prefix='plot')
+            extra_select_sp, values_sp = extra_select_and_values_for_model(
+                instance, job.user, 'treemap_species', 'Species',
+                prefix='species')
+
+            if 'plot__geom' in values_plot:
+                values_plot = [f for f in values_plot if f != 'plot__geom']
+                values_plot += ['plot__geom__x', 'plot__geom__y']
+
+            extra_select = {'plot__geom__x':
+                            'ST_X(treemap_mapfeature.the_geom_webmercator)',
+                            'plot__geom__y':
+                            'ST_Y(treemap_mapfeature.the_geom_webmercator)'}
+
+            extra_select.update(extra_select_tree)
+            extra_select.update(extra_select_plot)
+            extra_select.update(extra_select_sp)
+
+            values = values_tree + values_plot + values_sp
+
+            if values:
+                limited_qs = initial_qs.extra(select=extra_select)\
+                                       .values(*values)
+            else:
+                limited_qs = initial_qs.none()
+
     else:
-        limited_qs = initial_qs
+        limited_qs = initial_qs.none()
 
     if not initial_qs.exists():
         job.status = ExportJob.EMPTY_QUERYSET_ERROR
