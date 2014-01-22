@@ -11,12 +11,9 @@ from django.utils.translation import ugettext as trans
 
 import hashlib
 import json
-
 from urllib import urlencode
-from treemap.features import feature_enabled
 
 from treemap.json_field import JSONField
-
 from treemap.species import ITREE_REGION_CHOICES
 
 URL_NAME_PATTERN = r'[a-zA-Z]+[a-zA-Z0-9\-]*'
@@ -203,6 +200,8 @@ class Instance(models.Model):
         return qs
 
     def feature_enabled(self, feature):
+        # Delayed import to prevent circular imports
+        from treemap.plugin import feature_enabled
         return feature_enabled(self, feature)
 
     def save(self, *args, **kwargs):

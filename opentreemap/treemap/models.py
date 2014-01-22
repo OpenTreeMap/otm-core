@@ -28,7 +28,6 @@ from treemap.util import save_uploaded_image
 from treemap.units import Convertible
 from treemap.udf import UDFModel, GeoHStoreUDFManager, GeoHStoreUDFQuerySet
 from treemap.instance import Instance
-from treemap.features import feature_enabled
 
 
 def _action_format_string_for_location(action):
@@ -469,7 +468,7 @@ class InstanceUser(Auditable, models.Model):
                       in perms
                       if perm.allows_writes}
 
-        enabled = feature_enabled(self.instance, 'tree_image_upload')
+        enabled = self.instance.feature_enabled('tree_image_upload')
         return enabled and fieldperms == fields
 
     def save_with_user(self, user, *args, **kwargs):
