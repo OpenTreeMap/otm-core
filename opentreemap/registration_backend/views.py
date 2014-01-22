@@ -1,50 +1,51 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
+from django import forms
+from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 from django.contrib.sites.models import Site
-from django.contrib.auth import get_user_model
-from django.db import transaction
 
 from registration import signals
 from registration.models import RegistrationProfile, SHA1_RE
+from registration.forms import RegistrationFormUniqueEmail\
+    as DefaultRegistrationForm
 from registration.backends.default.views\
     import RegistrationView as DefaultRegistrationView
 from registration.backends.default.views\
     import ActivationView as DefaultActivationView
 
+from treemap.models import InstanceUser
+from treemap.plugin import should_send_user_activation
+
+
+class RegistrationForm(DefaultRegistrationForm):
+    organization = forms.CharField(max_length=100, required=False)
+    firstname = forms.CharField(max_length=100, required=False)
+    lastname = forms.CharField(max_length=100, required=False)
+    allow_email_contact = forms.BooleanField(required=False)
+
 
 class RegistrationView(DefaultRegistrationView):
+    def get_form_class(self, *args, **kwargs):
+        return RegistrationForm
 
-    def create_inactive_user(self, request, username,
-                             email, password):
+    def get_success_url(self, request, new_user):
         """
-        Register a inactive user account with the specified
-        username, email, and password.
-
-        Creates a new user model object, and a new
-        ``registration.models.RegistrationProfile`` tied to the new user
-        and containing the activation key used for this account.
+        If a user already belongs to an instance (i.e. was invited)
+        redirect to that map page
         """
-        new_user = get_user_model()()
-        new_user.username = username
-        new_user.set_password(password)
-        new_user.email = email
-        new_user.is_active = False
-        new_user.save_base()
+        instanceusers = InstanceUser.objects.filter(user=new_user)
 
-        registration_profile =\
-            RegistrationProfile.objects.create_profile(new_user)
-
-        return registration_profile
-
-    create_inactive_user =\
-        transaction.commit_on_success(create_inactive_user)
-
-    def send_activation_email(self, profile, request):
-        if Site._meta.installed:
-            site = Site.objects.get_current()
-        else:
-            site = RequestSite(request)
-
-        profile.send_activation_email(site)
+        if instanceusers.exists():
+            instance = instanceusers[0].instance
+            url = reverse('map', kwargs={'instance_url_name':
+                                         instance.url_name})
+            return (url, [], {})
+        return super(RegistrationView, self).get_success_url(
+            request, new_user)
 
     def register(self, request, **cleaned_data):
         """
@@ -67,17 +68,33 @@ class RegistrationView(DefaultRegistrationView):
         the new ``User`` as the keyword argument ``user`` and the
         class of this backend as the sender.
         """
-        profile = self.create_inactive_user(request,  # NOQA
-            cleaned_data['username'],
-            cleaned_data['email'],
-            cleaned_data['password1'])
+        username = cleaned_data['username']
+        email = cleaned_data['email']
+        password = cleaned_data['password1']
 
-        self.send_activation_email(profile, request)
+        if Site._meta.installed:
+            site = Site.objects.get_current()
+        else:
+            site = RequestSite(request)
+
+        should_email = should_send_user_activation(
+            request, username, email, password)
+
+        user = RegistrationProfile.objects.create_inactive_user(
+            username, email, password, site, send_email=should_email)
+
+        user.firstname = cleaned_data.get('firstname', '')
+        user.lastname = cleaned_data.get('lastname', '')
+        user.organization = cleaned_data.get('organization', '')
+        user.allow_email_contact = cleaned_data.get(
+            'allow_email_contact', False)
+        user.save_with_user(user)
 
         signals.user_registered.send(sender=self.__class__,
-                                     user=profile.user,
-                                     request=request)
-        return profile.user
+                                     user=user,
+                                     request=request,
+                                     password=password)
+        return user
 
 
 class ActivationView(DefaultActivationView):

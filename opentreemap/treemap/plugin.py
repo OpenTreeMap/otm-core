@@ -69,3 +69,9 @@ def _resolve_plugin_function(fn_setting, default_fn):
 
 feature_enabled = get_plugin_function('FEATURE_BACKEND_FUNCTION',
                                       lambda instance, feature: True)
+
+
+# Should return True if an activation email should be sent on user creation
+should_send_user_activation = get_plugin_function(
+    'USER_ACTIVATION_FUNCTION',
+    lambda request, username, email, password: True)
