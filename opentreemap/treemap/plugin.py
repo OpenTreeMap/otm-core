@@ -36,16 +36,10 @@ def get_plugin_function(plugin_fn_setting, default_fn):
     _plugin_fn_dict[plugin_fn_setting] =\
         _resolve_plugin_function(plugin_fn_setting, default_fn)
 
-    # Needed to support use of @override_settings in unit tests
-    @receiver(setting_changed)
-    def reset(sender, setting, value, **kwargs):
-        if setting == plugin_fn_setting:
-            _plugin_fn_dict[plugin_fn_setting] = None
-
     def wrapper(*args, **kwargs):
         plugin_fn = _plugin_fn_dict.get(plugin_fn_setting)
         if plugin_fn is None:
-            plugin_fn = _resolve_plugin_function(plugin_fn_setting)
+            plugin_fn = _resolve_plugin_function(plugin_fn_setting, default_fn)
             _plugin_fn_dict[plugin_fn_setting] = plugin_fn
 
         return plugin_fn(*args, **kwargs)
@@ -65,6 +59,13 @@ def _resolve_plugin_function(fn_setting, default_fn):
     mod = __import__(modulepath, fromlist=[fcn])
 
     return getattr(mod, fcn)
+
+
+# Needed to support use of @override_settings in unit tests
+@receiver(setting_changed)
+def reset(sender, setting, value, **kwargs):
+    if setting in _plugin_fn_dict:
+        _plugin_fn_dict[setting] = None
 
 
 feature_enabled = get_plugin_function('FEATURE_BACKEND_FUNCTION',
