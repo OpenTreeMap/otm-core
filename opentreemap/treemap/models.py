@@ -484,7 +484,7 @@ class InstanceUser(Auditable, models.Model):
         return '%s/%s' % (self.user.get_username(), self.instance.name)
 
 
-class MapFeature(UDFModel):
+class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
     "Superclass for map feature subclasses like Plot, RainBarrel, etc."
     instance = models.ForeignKey(Instance)
     geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
@@ -516,6 +516,8 @@ class MapFeature(UDFModel):
         return self.__class__.__name__ == 'MapFeature'
 
     def save_with_user(self, user, *args, **kwargs):
+        self.full_clean_with_user(user)
+
         if self._is_generic:
             raise Exception(
                 'Never save a MapFeature -- only save a MapFeature subclass')
@@ -528,6 +530,29 @@ class MapFeature(UDFModel):
         # (But note that the value gets stored in the database, so should not
         # be changed for a subclass once objects have been saved.)
         return self.__class__.__name__
+
+    @property
+    def address_full(self):
+        components = []
+        if self.address_street:
+            components.append(self.address_street)
+        if self.address_city:
+            components.append(self.address_city)
+        if self.address_zip:
+            components.append(self.address_zip)
+        return ', '.join(components)
+
+    @classmethod
+    def action_format_string_for_audit(clz, audit):
+        if audit.field in set(['geom', 'readonly']):
+            if audit.field == 'geom':
+                return _action_format_string_for_location(audit.action)
+            else:  # field == 'readonly'
+                return _action_format_string_for_readonly(
+                    audit.action,
+                    audit.clean_current_value)
+        else:
+            return super(MapFeature, clz).action_format_string_for_audit(audit)
 
     def __unicode__(self):
         x_chunk = "X: %s" % self.geom.x if self.geom else "?"
@@ -544,7 +569,7 @@ class MapFeature(UDFModel):
 # Proximity validation
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
-class Plot(MapFeature, Convertible, Authorizable, Auditable):
+class Plot(MapFeature):
     width = models.FloatField(null=True, blank=True,
                               help_text=trans("Plot Width"))
     length = models.FloatField(null=True, blank=True,
@@ -578,11 +603,6 @@ class Plot(MapFeature, Convertible, Authorizable, Auditable):
                             .distinct('model_id')\
                             .values_list('model_id', flat=True)
 
-    def save_with_user(self, user, *args, **kwargs):
-        self.full_clean_with_user(user)
-
-        super(Plot, self).save_with_user(user, *args, **kwargs)
-
     def current_tree(self):
         """
         This is a compatibility method that is used by the API to
@@ -605,29 +625,6 @@ class Plot(MapFeature, Convertible, Authorizable, Auditable):
         string_to_hash += "," + ",".join(tree_hashes)
 
         return hashlib.md5(string_to_hash).hexdigest()
-
-    @property
-    def address_full(self):
-        components = []
-        if self.address_street:
-            components.append(self.address_street)
-        if self.address_city:
-            components.append(self.address_city)
-        if self.address_zip:
-            components.append(self.address_zip)
-        return ', '.join(components)
-
-    @classmethod
-    def action_format_string_for_audit(clz, audit):
-        if audit.field in set(['geom', 'readonly']):
-            if audit.field == 'geom':
-                return _action_format_string_for_location(audit.action)
-            else:  # field == 'readonly'
-                return _action_format_string_for_readonly(
-                    audit.action,
-                    audit.clean_current_value)
-        else:
-            return super(Plot, clz).action_format_string_for_audit(audit)
 
     def delete_with_user(self, user, cascade=False, *args, **kwargs):
         if self.current_tree() and cascade is False:
