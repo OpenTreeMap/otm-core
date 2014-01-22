@@ -9,9 +9,9 @@ from django.contrib.sites.models import RequestSite
 from django.contrib.sites.models import Site
 
 from registration import signals
-from registration.models import RegistrationProfile, SHA1_RE
 from registration.forms import RegistrationFormUniqueEmail\
     as DefaultRegistrationForm
+from registration.models import RegistrationProfile
 from registration.backends.default.views\
     import RegistrationView as DefaultRegistrationView
 from registration.backends.default.views\
@@ -19,6 +19,7 @@ from registration.backends.default.views\
 
 from treemap.models import InstanceUser
 from treemap.plugin import should_send_user_activation
+from treemap.util import get_instance_or_404
 
 
 class RegistrationForm(DefaultRegistrationForm):
@@ -32,20 +33,25 @@ class RegistrationView(DefaultRegistrationView):
     def get_form_class(self, *args, **kwargs):
         return RegistrationForm
 
+    def dispatch(self, request, instance_url_name=None, *args, **kwargs):
+        if instance_url_name:
+            request.instance = get_instance_or_404(url_name=instance_url_name)
+        return super(RegistrationView, self).dispatch(
+            request, *args, **kwargs)
+
     def get_success_url(self, request, new_user):
         """
         If a user already belongs to an instance (i.e. was invited)
-        redirect to that map page
+        and they have been activated, redirect to that map page
         """
         instanceusers = InstanceUser.objects.filter(user=new_user)
 
-        if instanceusers.exists():
+        if instanceusers.exists() and new_user.is_active:
             instance = instanceusers[0].instance
             url = reverse('map', kwargs={'instance_url_name':
                                          instance.url_name})
             return (url, [], {})
-        return super(RegistrationView, self).get_success_url(
-            request, new_user)
+        return super(RegistrationView, self).get_success_url(request, new_user)
 
     def register(self, request, **cleaned_data):
         """
@@ -90,6 +96,12 @@ class RegistrationView(DefaultRegistrationView):
             'allow_email_contact', False)
         user.save_with_user(user)
 
+        if hasattr(request, 'instance'):
+            InstanceUser.objects.get_or_create(
+                user=user,
+                instance=request.instance,
+                role=request.instance.default_role)
+
         signals.user_registered.send(sender=self.__class__,
                                      user=user,
                                      request=request,
@@ -98,55 +110,12 @@ class RegistrationView(DefaultRegistrationView):
 
 
 class ActivationView(DefaultActivationView):
-
-    def _activate_user(self, activation_key):
-        """
-        Given an an activation key, look up and activate the user
-        account corresponding to that key. If the key is not in a valid
-        format or does not have a corresponding RegistrationProfile, then
-        the function returns false. Otherwise, the function returns the
-        activated User
-        """
-        # Make sure the key we're trying conforms to the pattern of a
-        # SHA1 hash; if it doesn't, no point trying to look it up in
-        # the database.
-        if SHA1_RE.search(activation_key):
-            try:
-                profile = RegistrationProfile.objects.get(
-                    activation_key=activation_key)
-            except RegistrationProfile.objects.model.DoesNotExist:
-                return False
-            if not profile.activation_key_expired():
-                user = profile.user
-                user.is_active = True
-                user.save_base()
-                profile.activation_key =\
-                    RegistrationProfile.objects.model.ACTIVATED
-                profile.save()
-                return user
-        else:
-            return False
-
-    def activate(self, request, activation_key):
-        """
-        Given an an activation key, look up and activate the user
-        account corresponding to that key.
-
-        After successful activation, the signal
-        ``registration.signals.user_activated`` will be sent, with the
-        newly activated ``User`` as the keyword argument ``user`` and
-        the class of this backend as the sender.
-
-        If the key is not in a valid format or does not have a
-        corresponding RegistrationProfile, then the function returns false.
-        Otherwise, the function returns the activated User
-        """
-        activated_user = self._activate_user(activation_key)
-        if activated_user:
-            signals.user_activated.send(sender=self.__class__,
-                                        user=activated_user,
-                                        request=request)
-        return activated_user
-
     def get_success_url(self, request, user):
-        return ('registration_activation_complete', (), {})
+        instanceusers = InstanceUser.objects.filter(user=user)
+
+        if instanceusers.exists():
+            instance = instanceusers[0].instance
+            url = reverse('map', kwargs={'instance_url_name':
+                                         instance.url_name})
+            return (url, [], {})
+        return super(ActivationView, self).get_success_url(request, user)
