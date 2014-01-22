@@ -38,6 +38,12 @@
 {% endif %}
 {% endblock instancetopnav %}
 
+{% block signup %}
+<li>
+  <a href="{% url 'instance_registration_register' instance_url_name=request.instance.url_name %}">{% trans "Sign Up" %}</a>
+</li>
+{% endblock signup %}
+
 {% block subhead %}
 <div class="subhead">
   <div style="display: inline;" id="tree-and-planting-site-counts">

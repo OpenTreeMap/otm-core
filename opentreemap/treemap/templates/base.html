@@ -89,7 +89,9 @@
               </li>
             {% else %}
               <li><a id="login" href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
+              {% block signup %}
               <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
+              {% endblock signup %}
             {% endif %}
           </ul>
         </div>
