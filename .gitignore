@@ -12,6 +12,7 @@ opentreemap/.idea
 node_modules/
 opentreemap/beta
 opentreemap/cloud_management
+opentreemap/map_features
 opentreemap/super_admin
 opentreemap/treemap/static/js/
 opentreemap/treemap/static/css/
@@ -26,3 +27,4 @@ prototype/css/.sass-cache
 local/
 
 opentreemap/treemap/management/commands/extracollect.py
+

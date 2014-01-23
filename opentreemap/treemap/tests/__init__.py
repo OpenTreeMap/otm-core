@@ -21,6 +21,7 @@ from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.contrib.auth.models import AnonymousUser
 
 from treemap.models import User, InstanceUser
+from treemap.util import leaf_subclasses
 
 from djcelery.contrib.test_runner import CeleryTestSuiteRunner
 
@@ -121,44 +122,15 @@ def add_field_permissions(instance, user, model_type, field_names):
 
 
 def _make_permissions(field_permission):
-    permissions = (
-        ('Plot', 'geom', field_permission),
-        ('Plot', 'width', field_permission),
-        ('Plot', 'length', field_permission),
-        ('Plot', 'address_street', field_permission),
-        ('Plot', 'address_city', field_permission),
-        ('Plot', 'address_zip', field_permission),
-        ('Plot', 'owner_orig_id', field_permission),
-        ('Plot', 'readonly', field_permission),
-        ('Tree', 'plot', field_permission),
-        ('Tree', 'species', field_permission),
-        ('Tree', 'readonly', field_permission),
-        ('Tree', 'diameter', field_permission),
-        ('Tree', 'height', field_permission),
-        ('Tree', 'canopy_height', field_permission),
-        ('Tree', 'date_planted', field_permission),
-        ('Tree', 'date_removed', field_permission),
-        ('TreePhoto', 'thumbnail', field_permission),
-        ('TreePhoto', 'tree', field_permission),
-        ('TreePhoto', 'image', field_permission),
-        ('Species', 'otm_code', field_permission),
-        ('Species', 'common_name', field_permission),
-        ('Species', 'genus', field_permission),
-        ('Species', 'species', field_permission),
-        ('Species', 'cultivar', field_permission),
-        ('Species', 'other', field_permission),
-        ('Species', 'native_status', field_permission),
-        ('Species', 'gender', field_permission),
-        ('Species', 'bloom_period', field_permission),
-        ('Species', 'fruit_period', field_permission),
-        ('Species', 'fall_conspicuous', field_permission),
-        ('Species', 'flower_conspicuous', field_permission),
-        ('Species', 'palatable_human', field_permission),
-        ('Species', 'wildlife_value', field_permission),
-        ('Species', 'fact_sheet', field_permission),
-        ('Species', 'plant_guide', field_permission),
-        ('Species', 'max_dbh', field_permission),
-        ('Species', 'max_height', field_permission))
+    def make_model_perms(Model):
+        return tuple(
+            (Model._meta.object_name, field_name, field_permission)
+            for field_name in Model().tracked_fields)
+
+    models = leaf_subclasses(MapFeature) + [Tree, TreePhoto, Species]
+
+    model_permissions = [make_model_perms(Model) for Model in models]
+    permissions = sum(model_permissions, ())  # flatten
     return permissions
 
 
@@ -168,14 +140,6 @@ def make_commander_role(instance, extra_plot_fields=None):
     directly for all models under test.
     """
     permissions = _make_permissions(FieldPermission.WRITE_DIRECTLY)
-    commander_permissions = (
-        ('Plot', 'id', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
-        ('TreePhoto', 'id', FieldPermission.WRITE_DIRECTLY),
-        ('Species', 'id', FieldPermission.WRITE_DIRECTLY)
-    )
-
-    permissions = permissions + commander_permissions
     if extra_plot_fields:
         for field in extra_plot_fields:
             permissions += (('Plot', field, FieldPermission.WRITE_DIRECTLY),)
