@@ -199,3 +199,14 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None):
         return image_file, thumb_file
     except:
         raise ValidationError(trans('Image upload issue'))
+
+
+def leaf_subclasses(cls):
+    """Return all leaf subclasses of given class"""
+    def get(c):
+        subclasses = c.__subclasses__()
+        return subclasses + sum([get(s) for s in subclasses], [])
+
+    all = get(cls)
+    leaves = [s for s in all if not s.__subclasses__()]
+    return leaves

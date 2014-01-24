@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import hashlib
-import importlib
+from functools import partial
 
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
@@ -19,6 +19,7 @@ from django.db import IntegrityError, connection, transaction
 
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units)
+from treemap.util import leaf_subclasses
 
 
 def model_hasattr(obj, name):
@@ -173,7 +174,7 @@ def approve_or_reject_existing_edit(audit, user, approved):
     # 'user' is authorized to approve this edit
     _verify_user_can_apply_audit(audit, user)
 
-    TheModel = _lookup_model(audit.model)
+    TheModel = _get_auditable_class(audit.model)
 
     # If we want to 'review approve' this audit nothing
     # happens to the model, we're just saying "looks good!"
@@ -265,7 +266,7 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
                          current_value=audit.current_value,
                          user=user)
 
-    TheModel = _lookup_model(audit.model)
+    TheModel = _get_auditable_class(audit.model)
     if approved:
         review_audit.action = Audit.Type.PendingApprove
 
@@ -335,36 +336,6 @@ def get_related_audits(insert_audit, approved_only=False):
             ref__action=Audit.Type.PendingApprove)
 
     return related_audits
-
-
-def _lookup_model(modelname):
-    """
-    Convert a model name (as a string) into the model class
-
-    If the model has no prefix, it is assumed to be in the
-    'treemap.models' module.
-
-    ex:
-    'Tree' =(imports)=> treemap.models.Tree
-    'treemap.audit.Audit' =(imports)=> treemap.audit.Audit
-    """
-    # If the modelname begins with a 'udf:' prefix,
-    # this is going to be a UDF Collection value
-    if modelname.startswith('udf:'):
-        from udf import UserDefinedCollectionValue
-        return UserDefinedCollectionValue
-
-    if "." in modelname:
-        parts = modelname.split('.')
-        modulename = '.'.join(parts[:-1])
-        modelname = parts[-1]
-    else:
-        modulename = 'treemap.models'
-
-    m = importlib.import_module(modulename)
-    c = getattr(m, modelname)
-
-    return c
 
 
 def _verify_user_can_apply_audit(audit, user):
@@ -583,13 +554,12 @@ class FieldPermission(models.Model):
 
     def clean(self):
         try:
-            cls = _lookup_model(self.model_name)
+            cls = _get_authorizable_class(self.model_name)
             cls._meta.get_field_by_name(self.field_name)
             assert issubclass(cls, Authorizable)
-        except AttributeError as e:
-            raise ValidationError("%s: Model '%s' does not exist." %
-                                 (e.__class__.__name__,
-                                  self.model_name))
+        except KeyError:
+            raise ValidationError("Model '%s' does not exist." %
+                                  self.model_name)
         except FieldDoesNotExist as e:
             raise ValidationError("%s: Model '%s' does not have field '%s'"
                                   % (e.__class__.__name__,
@@ -922,7 +892,8 @@ class Auditable(UserTrackable):
             super(Auditable, self).save_with_user(user, *args, **kwargs)
             model_id = self.pk
         else:
-            model_id = _reserve_model_id(_lookup_model(self._model_name))
+            model_id = _reserve_model_id(
+                _get_authorizable_class(self._model_name))
             self.pk = model_id
             self.id = model_id  # for e.g. Plot, where pk != id
             self.is_pending_insert = True
@@ -1078,7 +1049,7 @@ class Audit(models.Model):
 
         # get the model/field class for each audit record and convert
         # the value to a python object
-        cls = _lookup_model(self.model)
+        cls = _get_auditable_class(self.model)
         field_query = cls._meta.get_field_by_name(self.field)
         field_cls, fk_model_cls, is_local, m2m = field_query
         field_modified_value = field_cls.to_python(value)
@@ -1242,3 +1213,27 @@ class ReputationMetric(models.Model):
 @receiver(post_save, sender=Audit)
 def audit_presave_actions(sender, instance, **kwargs):
     ReputationMetric.apply_adjustment(instance)
+
+
+def _get_model_class(class_dict, cls, model_name):
+    """
+    Convert a model name (as a string) into the model class
+    """
+    if model_name.startswith('udf:'):
+        from udf import UserDefinedCollectionValue
+        return UserDefinedCollectionValue
+
+    if not class_dict:
+        # One-time load of class dictionary
+        for c in leaf_subclasses(cls):
+            class_dict[c.__name__] = c
+
+    return class_dict[model_name]
+
+
+_auditable_classes = {}
+_authorizable_classes = {}
+
+_get_auditable_class = partial(_get_model_class, _auditable_classes, Auditable)
+_get_authorizable_class = partial(_get_model_class, _authorizable_classes,
+                                  Authorizable)
