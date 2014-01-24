@@ -3,25 +3,48 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.test.client import RequestFactory
-from django.contrib.gis.geos import Point
-from django.test import TestCase
+import json
 
-from treemap.models import Plot, Tree, Species, ITreeRegion, ITreeCodeOverride
-from treemap.tests import (UrlTestCase, make_instance, make_commander_user)
+from treemap.models import Plot, Tree, Species, ITreeRegion
+from treemap.tests import (UrlTestCase, make_instance, make_commander_user,
+                           make_request)
 
-from treemap.ecobenefits import (tree_benefits, within_itree_regions,
-                                 itree_code_for_species_in_region)
-from treemap.species import species_codes_for_regions
+from treemap import ecobackend
+from treemap.ecobenefits import tree_benefits
+
+from treemap.views import search_tree_benefits
 
 
 class EcoTest(UrlTestCase):
     def setUp(self):
+        # Example url for
+        # CEAT, 1630 dbh, NoEastXXX
+        # eco.json?otmcode=CEAT&diameter=1630&region=NoEastXXX
+        def mockbenefits(*args, **kwargs):
+            return {
+                "Benefits": {
+                    "aq_nox_avoided": 0.6792,
+                    "aq_nox_dep": 0.371,
+                    "aq_ozone_dep": 0.775,
+                    "aq_pm10_avoided": 0.0436,
+                    "aq_pm10_dep": 0.491,
+                    "aq_sox_avoided": 0.372,
+                    "aq_sox_dep": 0.21,
+                    "aq_voc_avoided": 0.0254,
+                    "bvoc": -0.077,
+                    "co2_avoided": 255.5,
+                    "co2_sequestered": 0,
+                    "co2_storage": 6575,
+                    "electricity": 187,
+                    "hydro_interception": 12.06,
+                    "natural_gas": 5834.1
+                }
+            }
+
         region = ITreeRegion.objects.get(code='NoEastXXX')
         p = region.geometry.point_on_surface
 
         self.instance = make_instance(is_public=True, point=p)
-
         self.user = make_commander_user(self.instance)
 
         self.species = Species(otm_code='CEAT',
@@ -30,6 +53,7 @@ class EcoTest(UrlTestCase):
                                max_dbh=2000,
                                max_height=100,
                                instance=self.instance)
+
         self.species.save_with_user(self.user)
 
         self.plot = Plot(geom=p, instance=self.instance)
@@ -44,110 +68,34 @@ class EcoTest(UrlTestCase):
 
         self.tree.save_with_user(self.user)
 
-    def test_group_eco(self):
-        pass  # TODO: Once filtering has been enabled
+        self.origBenefitFn = ecobackend.json_benefits_call
+        ecobackend.json_benefits_call = mockbenefits
+
+    def tearDown(self):
+        ecobackend.json_benefits_call = self.origBenefitFn
 
     def assert_benefit_value(self, bens, benefit, unit, value):
-            self.assertEqual(bens[benefit]['unit'], unit)
-            self.assertEqual(int(float(bens[benefit]['value'])), value)
+        self.assertEqual(bens[benefit]['unit'], unit)
+        self.assertEqual(int(float(bens[benefit]['value'])), value)
 
     def test_eco_benefit_sanity(self):
         rslt = tree_benefits(instance=self.instance,
-                             tree_id=self.tree.pk)
+                             tree_or_tree_id=self.tree)
 
-        bens = rslt['benefits'][0]
+        bens = rslt['benefits']
 
         self.assert_benefit_value(bens, 'energy', 'kwh', 1896)
         self.assert_benefit_value(bens, 'airquality', 'lbs/year', 6)
         self.assert_benefit_value(bens, 'stormwater', 'gal', 3185)
         self.assert_benefit_value(bens, 'co2', 'lbs/year', 563)
 
-    def test_species_for_none_region_lookup(self):
-        self.assertIsNone(species_codes_for_regions(None))
+    def testSearchBbenefits(self):
+        request = make_request(
+            {'q': json.dumps({'tree.readonly': {'IS': False}})})  # all trees
+        request.instance_supports_ecobenefits = self.instance\
+                                                    .has_itree_region()
+        result = search_tree_benefits(request, self.instance)
 
-    def test_species_for_region_lookup(self):
-        northeast = species_codes_for_regions(['NoEastXXX'])
-        self.assertEqual(258, len(northeast))
+        benefits = result['benefits']
 
-        south = species_codes_for_regions(['PiedmtCLT'])
-        self.assertEqual(244, len(south))
-
-        combined = species_codes_for_regions(['NoEastXXX', 'PiedmtCLT'])
-        self.assertEqual(338, len(combined))
-
-        combined_set = set(combined)
-        self.assertEqual(len(combined), len(combined_set),
-                         "Getting the species for more than one region "
-                         "should result in a unique set of otm_codes")
-
-    def test_default_region(self):
-        # move the point outside the eco region
-        self.plot.geom = Point(0, 0)
-        self.plot.save_with_user(self.user)
-
-        result = tree_benefits(instance=self.instance,
-                               tree_id=self.tree.pk)
-        bens_wo_default = result['benefits'][0]
-        self.assert_benefit_value(bens_wo_default, 'energy', 'kwh', 0)
-        self.assert_benefit_value(bens_wo_default, 'airquality', 'lbs/year', 0)
-        self.assert_benefit_value(bens_wo_default, 'stormwater', 'gal', 0)
-        self.assert_benefit_value(bens_wo_default, 'co2', 'lbs/year', 0)
-
-        self.instance.itree_region_default = 'NoEastXXX'
-        self.instance.save()
-        result = tree_benefits(instance=self.instance,
-                               tree_id=self.tree.pk)
-        bens_with_default = result['benefits'][0]
-        self.assert_benefit_value(bens_with_default,
-                                  'energy', 'kwh', 1896)
-        self.assert_benefit_value(bens_with_default,
-                                  'airquality', 'lbs/year', 6)
-        self.assert_benefit_value(bens_with_default,
-                                  'stormwater', 'gal', 3185)
-        self.assert_benefit_value(bens_with_default,
-                                  'co2', 'lbs/year', 563)
-
-
-class WithinITreeRegionsTest(TestCase):
-
-    def assertViewPerformsCorrectly(self, x, y, expected_value):
-        params = {'x': str(x), 'y': str(y)}
-        request = RequestFactory().get('', params)
-        self.assertEqual(within_itree_regions(request), expected_value)
-
-    def test_within_itree_regions_valid(self):
-        region = ITreeRegion.objects.get(code='NoEastXXX')
-        p = region.geometry.point_on_surface
-        self.assertViewPerformsCorrectly(p.x, p.y, True)
-
-    def test_within_itree_regions_no_overlap(self):
-        self.assertViewPerformsCorrectly(0, 0, False)
-
-
-class ITreeCodeForSpeciesInRegionTest(TestCase):
-
-    def setUp(self):
-        self.instance = make_instance()
-        self.commander = make_commander_user(self.instance)
-        self.region = ITreeRegion.objects.get(code='PiedmtCLT')
-
-    def make_species(self, otm_code):
-        species = Species(instance=self.instance, otm_code=otm_code)
-        species.save_with_user(self.commander)
-        return species
-
-    def assert_itree_code(self, species, expected_itree_code):
-        itree_code = itree_code_for_species_in_region(species, self.region)
-        self.assertEqual(itree_code, expected_itree_code)
-
-    def test_no_override(self):
-        species = self.make_species('CEAT')
-        self.assert_itree_code(species, 'CEM OTHER')
-
-    def test_override(self):
-        species = self.make_species('ACRU')
-        ITreeCodeOverride(
-            instance_species=species,
-            region=self.region,
-            itree_code='BDM OTHER').save_with_user(self.commander)
-        self.assert_itree_code(species, 'BDM OTHER')
+        self.assertTrue(len(benefits) > 0)
