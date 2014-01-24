@@ -1129,7 +1129,7 @@ class Audit(models.Model):
             obj._model_name, obj.instance, obj.pk)
 
     def short_descr(self):
-        cls = _lookup_model(self.model)
+        cls = _get_auditable_class(self.model)
         format_string = cls.action_format_string_for_audit(self)
 
         return format_string % {'field': self.field_display_name,
