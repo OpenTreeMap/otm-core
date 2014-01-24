@@ -25,7 +25,7 @@ from djorm_hstore.models import HStoreManager, HStoreQueryset
 from treemap.instance import Instance
 from treemap.audit import (UserTrackable, Audit, UserTrackingException,
                            _reserve_model_id, FieldPermission,
-                           AuthorizeException)
+                           AuthorizeException, Authorizable, Auditable)
 from treemap.util import safe_get_model_class
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -91,6 +91,10 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
         step
         """
         pass
+
+    @classmethod
+    def action_format_string_for_audit(cls, audit):
+        return Auditable.action_format_string_for_audit(audit)
 
     def as_dict(self, *args, **kwargs):
         base_model_dict = super(
@@ -689,14 +693,39 @@ class UDFModel(UserTrackable, models.Model):
         regular_audits = Q(model=self._model_name,
                            model_id=self.pk,
                            instance=self.instance)
-        udf_collection_audits = Q()
 
-        for udf in self.get_user_defined_fields():
-            if udf.iscollection:
-                udf_collection_audits |= Q(model='udf:%s' % udf.pk)
+        udf_collection_audits = Q(
+            model__in=self.collection_udfs_audit_names(),
+            model_id__in=self.collection_udfs_audit_ids())
 
         all_audits = udf_collection_audits | regular_audits
         return Audit.objects.filter(all_audits).order_by('created')
+
+    def collection_udfs_audit_ids(self):
+        return self.static_collection_udfs_audit_ids(
+            self.instance, [self.pk], self.collection_udfs_audit_names())
+
+    @staticmethod
+    def static_collection_udfs_audit_ids(instance, pks, audit_names):
+        """
+        We want to get the collection udfs of deleted objects.
+
+        We can get the instance and pk of an object from the Audit table,
+
+        Generally you will get the audit_names by instantiating a new model
+        instance like so and calling the appropriate method on it:
+            tree = Tree(instance=instance)
+            tree.collection_udfs_audit_names()
+        """
+        # Because current_value is a string, if we want to do an IN query,
+        # we need to cast all of the pks to strings
+        pks = [str(pk) for pk in pks]
+        return Audit.objects.filter(instance=instance)\
+                            .filter(model__in=audit_names)\
+                            .filter(field='model_id')\
+                            .filter(current_value__in=pks)\
+                            .distinct('model_id')\
+                            .values_list('model_id', flat=True)
 
     def apply_change(self, key, val):
         if key.startswith('udf:'):
@@ -728,14 +757,29 @@ class UDFModel(UserTrackable, models.Model):
     def collection_udf_names_and_fields(self):
         model_name = self.__class__.__name__.lower()
         return [(field.name, model_name + ".udf:" + field.name)
-                for field in self.get_user_defined_fields()
-                if field.iscollection]
+                for field in self.collection_udfs]
 
     @property
     def scalar_udf_field_names(self):
         return [field.name for field
                 in self.get_user_defined_fields()
                 if not field.iscollection]
+
+    @property
+    def collection_udfs(self):
+        return [field
+                for field in self.get_user_defined_fields()
+                if field.iscollection]
+
+    def collection_udfs_audit_names(self):
+        return ['udf:%s' % udf.pk for udf in self.collection_udfs]
+
+    def visible_collection_udfs_audit_names(self, user):
+        if isinstance(self, Authorizable):
+            visible_fields = self.visible_fields(user)
+            return ['udf:%s' % udf.pk for udf in self.collection_udfs
+                    if udf.canonical_name in visible_fields]
+        return self.collection_udfs_audit_names()
 
     @property
     def tracked_fields(self):
@@ -753,7 +797,7 @@ class UDFModel(UserTrackable, models.Model):
     def save_with_user(self, user, *args, **kwargs):
         """
         Saving a UDF model now involves saving all of collection-based
-        udf fields, we do there here. They are validated in
+        udf fields, we do this here. They are validated in
         "clean_collection_udfs"
         """
         # We may need to get a primary key here before we continue
