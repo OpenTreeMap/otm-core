@@ -747,10 +747,10 @@ class UDFModel(UserTrackable, models.Model):
 
     def collection_udfs_audit_ids(self):
         return self.static_collection_udfs_audit_ids(
-            self.instance, [self.pk], self.collection_udfs_audit_names())
+            (self.instance,), (self.pk,), self.collection_udfs_audit_names())
 
     @staticmethod
-    def static_collection_udfs_audit_ids(instance, pks, audit_names):
+    def static_collection_udfs_audit_ids(instances, pks, audit_names):
         """
         We want to get the collection udfs of deleted objects.
 
@@ -764,7 +764,7 @@ class UDFModel(UserTrackable, models.Model):
         # Because current_value is a string, if we want to do an IN query,
         # we need to cast all of the pks to strings
         pks = [str(pk) for pk in pks]
-        return Audit.objects.filter(instance=instance)\
+        return Audit.objects.filter(instance__in=instances)\
                             .filter(model__in=audit_names)\
                             .filter(field='model_id')\
                             .filter(current_value__in=pks)\
