@@ -16,7 +16,7 @@ opentreemap/map_features
 opentreemap/super_admin
 opentreemap/treemap/static/js/
 opentreemap/treemap/static/css/
-prototype/css/.sass-cache
+prototypes/static
 
 # .mo files are compiled, binary language files created
 # by ``django-admin.py compilemessages``
