@@ -24,7 +24,7 @@ from treemap.species import ITREE_REGIONS
 from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
                            Dictable, Audit, AuthorizableQuerySet,
                            AuthorizableManager)
-from treemap.util import save_uploaded_image
+from treemap.util import save_uploaded_image, leaf_subclasses
 from treemap.units import Convertible
 from treemap.udf import UDFModel, GeoHStoreUDFManager, GeoHStoreUDFQuerySet
 from treemap.instance import Instance
@@ -529,6 +529,10 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
         # (But note that the value gets stored in the database, so should not
         # be changed for a subclass once objects have been saved.)
         return self.__class__.__name__
+
+    @classmethod
+    def subclass_dict(self):
+        return {C().map_feature_type: C for C in leaf_subclasses(MapFeature)}
 
     @property
     def address_full(self):
