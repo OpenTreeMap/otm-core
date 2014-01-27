@@ -29,7 +29,7 @@ from treemap.udf import UserDefinedFieldDefinition
 from treemap.tests import (make_instance, make_user_with_default_role,
                            make_user_and_role, make_commander_user,
                            make_officer_user, make_observer_user,
-                           make_apprentice_user, add_field_permissions)
+                           make_apprentice_user, set_write_permissions)
 
 
 class ScopeModelTest(TestCase):
@@ -663,7 +663,7 @@ class PendingInsertTest(TestCase):
             iscollection=False,
             name='times_climbed')
 
-        add_field_permissions(self.instance, self.commander_user,
+        set_write_permissions(self.instance, self.commander_user,
                               'Plot', ['udf:times_climbed'])
 
         FieldPermission.objects.create(

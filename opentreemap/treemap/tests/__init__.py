@@ -22,6 +22,7 @@ from django.contrib.auth.models import AnonymousUser
 from treemap.audit import Authorizable
 
 from treemap.models import User, InstanceUser
+from treemap.audit import Authorizable, add_default_permissions
 from treemap.util import leaf_subclasses
 
 from djcelery.contrib.test_runner import CeleryTestSuiteRunner
@@ -95,31 +96,27 @@ def make_simple_polygon(n=1):
     return Polygon(((n, n), (n, n + 1), (n + 1, n + 1), (n, n)))
 
 
-def _add_permissions(instance, role, permissions):
-    if permissions:
-        for perm in permissions:
-            model_name, field_name, permission_level = perm
-            FieldPermission.objects.get_or_create(
-                model_name=model_name, field_name=field_name,
-                permission_level=permission_level, role=role,
-                instance=instance)
+def _set_permissions(instance, role, permissions):
+    for perm in permissions:
+        model_name, field_name, permission_level = perm
+        fp, created = FieldPermission.objects.get_or_create(
+            model_name=model_name, field_name=field_name, role=role,
+            instance=instance)
+        fp.permission_level = permission_level
+        fp.save()
 
 
-def make_loaded_role(instance, name, rep_thresh, permissions):
+def _make_loaded_role(instance, name, default_permission, permissions=(),
+                      rep_thresh=2):
     role, created = Role.objects.get_or_create(
-        name=name, instance=instance, rep_thresh=rep_thresh)
-
+        name=name, instance=instance, default_permission=default_permission,
+        rep_thresh=rep_thresh)
     role.save()
-    _add_permissions(instance, role, permissions)
+
+    add_default_permissions(instance, [role])
+    _set_permissions(instance, role, permissions)
+
     return role
-
-
-def add_field_permissions(instance, user, model_type, field_names):
-    permissions = ()
-    for field in field_names:
-        permissions += ((model_type, field, FieldPermission.WRITE_DIRECTLY),)
-    role = user.get_role(instance)
-    _add_permissions(instance, role, permissions)
 
 
 def _make_permissions(field_permission):
@@ -135,17 +132,13 @@ def _make_permissions(field_permission):
     return permissions
 
 
-def make_commander_role(instance, extra_plot_fields=None):
+def make_commander_role(instance):
     """
     The commander role has permission to modify all model fields
     directly for all models under test.
     """
-    permissions = _make_permissions(FieldPermission.WRITE_DIRECTLY)
-    if extra_plot_fields:
-        for field in extra_plot_fields:
-            permissions += (('Plot', field, FieldPermission.WRITE_DIRECTLY),)
-
-    return make_loaded_role(instance, 'commander', 3, permissions)
+    return _make_loaded_role(instance, 'commander',
+                             FieldPermission.WRITE_DIRECTLY)
 
 
 def make_officer_role(instance):
@@ -161,7 +154,8 @@ def make_officer_role(instance):
         ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'height', FieldPermission.WRITE_DIRECTLY))
-    return make_loaded_role(instance, 'officer', 3, permissions)
+    return _make_loaded_role(instance, 'officer', FieldPermission.NONE,
+                             permissions)
 
 
 def make_apprentice_role(instance):
@@ -169,8 +163,8 @@ def make_apprentice_role(instance):
     The apprentice role has permission to modify all model fields
     for all models under test, but its edits are subject to review.
     """
-    permissions = _make_permissions(FieldPermission.WRITE_WITH_AUDIT)
-    return make_loaded_role(instance, 'apprentice', 2, permissions)
+    return _make_loaded_role(instance, 'apprentice',
+                             FieldPermission.WRITE_WITH_AUDIT)
 
 
 def make_observer_role(instance):
@@ -182,7 +176,16 @@ def make_observer_role(instance):
         ('Plot', 'length', FieldPermission.READ_ONLY),
         ('Tree', 'diameter', FieldPermission.READ_ONLY),
         ('Tree', 'height', FieldPermission.READ_ONLY))
-    return make_loaded_role(instance, 'observer', 2, permissions)
+    return _make_loaded_role(instance, 'observer', FieldPermission.NONE,
+                             permissions)
+
+
+def set_write_permissions(instance, user, model_type, field_names):
+    permissions = ()
+    for field in field_names:
+        permissions += ((model_type, field, FieldPermission.WRITE_DIRECTLY),)
+    role = user.get_role(instance)
+    _set_permissions(instance, role, permissions)
 
 
 def make_plain_user(username, password='password'):
@@ -244,7 +247,8 @@ def make_user_with_default_role(instance, username):
 
 def make_user_and_role(instance, username, rolename, permissions):
     def make_role(instance):
-        return make_loaded_role(instance, rolename, 2, permissions)
+        return _make_loaded_role(instance, rolename, FieldPermission.NONE,
+                                 permissions)
 
     return make_user(instance, username, make_role)
 
