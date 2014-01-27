@@ -109,18 +109,26 @@ def approve_or_reject_audits_and_apply(audits, user, approved):
         approve_or_reject_audit_and_apply(audit, user, approved)
 
 
-def add_all_permissions_on_model_to_role(
-        Model, role, permission_level, instance=None):
-    """
-    Create a new role with all normal fields on a given model.
+def add_default_permissions(instance, roles=None, models=None):
+    if roles is None:
+        roles = Role.objects.filter(instance=instance)
+    if models is None:
+        models = leaf_subclasses(Authorizable)
 
-    Specifiy an instance to grab UDFs as well
+    for role in roles:
+        for Model in models:
+            _add_default_permissions(Model, role, instance)
+
+
+def _add_default_permissions(Model, role, instance):
+    """
+    Create FieldPermission entries for role using its default permission level.
+    Make an entry for every tracked field of given Model, as well as UDFs of
+    given instance.
     """
     from udf import UserDefinedFieldDefinition
 
-    mobj = Model()
-    if instance:
-        mobj.instance = instance
+    mobj = Model(instance=instance)
 
     model_name = mobj._model_name
     udfs = [udf.canonical_name for udf in
@@ -133,10 +141,9 @@ def add_all_permissions_on_model_to_role(
         FieldPermission.objects.get_or_create(
             model_name=model_name,
             field_name=field_name,
-            permission_level=permission_level, role=role,
+            role=role,
+            permission_level=role.default_permission,
             instance=role.instance)
-
-    return role
 
 
 def approve_or_reject_existing_edit(audit, user, approved):

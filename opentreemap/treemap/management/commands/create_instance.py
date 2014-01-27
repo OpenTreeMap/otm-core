@@ -11,9 +11,8 @@ from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import MultiPolygon, Polygon, GEOSGeometry
 
 from treemap.instance import Instance
-from treemap.models import Tree, Plot, Boundary, InstanceUser, User
-from treemap.audit import (Role, FieldPermission,
-                           add_all_permissions_on_model_to_role)
+from treemap.models import Boundary, InstanceUser, User
+from treemap.audit import (Role, FieldPermission, add_default_permissions)
 
 logger = logging.getLogger('')
 
@@ -112,9 +111,7 @@ class Command(BaseCommand):
             name='user', instance=instance, rep_thresh=0,
             default_permission=FieldPermission.WRITE_DIRECTLY)
 
-        for model in [Tree, Plot]:
-            add_all_permissions_on_model_to_role(
-                model, role, FieldPermission.WRITE_DIRECTLY)
+        add_default_permissions(instance, roles=[role])
 
         instance.default_role = role
         instance.save()
