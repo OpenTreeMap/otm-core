@@ -518,6 +518,9 @@ class FieldPermission(models.Model):
         (WRITE_DIRECTLY, "Write Directly"))
     permission_level = models.IntegerField(choices=choices, default=NONE)
 
+    class Meta:
+        unique_together = ('model_name', 'field_name', 'role', 'instance')
+
     def __unicode__(self):
         return "%s.%s - %s" % (self.model_name, self.field_name, self.role)
 
