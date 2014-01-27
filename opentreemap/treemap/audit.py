@@ -492,45 +492,24 @@ class UserTrackable(Dictable):
         return []
 
 
-class Role(models.Model):
-    name = models.CharField(max_length=255)
-    instance = models.ForeignKey('Instance', null=True, blank=True)
-    rep_thresh = models.IntegerField()
-
-    @property
-    def tree_permissions(self):
-        return self.model_permissions('Tree')
-
-    @property
-    def plot_permissions(self):
-        return self.model_permissions('Plot')
-
-    def model_permissions(self, model):
-        return self.fieldpermission_set.filter(model_name=model)
-
-    def __unicode__(self):
-        return '%s (%s)' % (self.name, self.pk)
-
-
 class FieldPermission(models.Model):
     model_name = models.CharField(max_length=255)
     field_name = models.CharField(max_length=255)
-    role = models.ForeignKey(Role)
+    role = models.ForeignKey('Role')
     instance = models.ForeignKey('Instance')
 
     NONE = 0
     READ_ONLY = 1
     WRITE_WITH_AUDIT = 2
     WRITE_DIRECTLY = 3
-    permission_level = models.IntegerField(
-        choices=(
-            # reserving zero in case we want
-            # to create a "null-permission" later
-            (NONE, "None"),
-            (READ_ONLY, "Read Only"),
-            (WRITE_WITH_AUDIT, "Write with Audit"),
-            (WRITE_DIRECTLY, "Write Directly")),
-        default=NONE)
+    choices = (
+        # reserving zero in case we want
+        # to create a "null-permission" later
+        (NONE, "None"),
+        (READ_ONLY, "Read Only"),
+        (WRITE_WITH_AUDIT, "Write with Audit"),
+        (WRITE_DIRECTLY, "Write Directly"))
+    permission_level = models.IntegerField(choices=choices, default=NONE)
 
     def __unicode__(self):
         return "%s.%s - %s" % (self.model_name, self.field_name, self.role)
@@ -575,6 +554,28 @@ class FieldPermission(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super(FieldPermission, self).save(*args, **kwargs)
+
+
+class Role(models.Model):
+    name = models.CharField(max_length=255)
+    instance = models.ForeignKey('Instance', null=True, blank=True)
+    default_permission = models.IntegerField(choices=FieldPermission.choices,
+                                             default=FieldPermission.NONE)
+    rep_thresh = models.IntegerField()
+
+    @property
+    def tree_permissions(self):
+        return self.model_permissions('Tree')
+
+    @property
+    def plot_permissions(self):
+        return self.model_permissions('Plot')
+
+    def model_permissions(self, model):
+        return self.fieldpermission_set.filter(model_name=model)
+
+    def __unicode__(self):
+        return '%s (%s)' % (self.name, self.pk)
 
 
 class AuthorizeException(Exception):

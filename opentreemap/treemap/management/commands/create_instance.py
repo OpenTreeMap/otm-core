@@ -109,7 +109,8 @@ class Command(BaseCommand):
             geom__intersects=bounds)
 
         role = Role.objects.create(
-            name='user', instance=instance, rep_thresh=0)
+            name='user', instance=instance, rep_thresh=0,
+            default_permission=FieldPermission.WRITE_DIRECTLY)
 
         for model in [Tree, Plot]:
             add_all_permissions_on_model_to_role(
