@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
 
 from treemap.models import Plot, Tree, TreePhoto
+from treemap.udf import UserDefinedCollectionValue
 
 register = template.Library()
 
@@ -71,6 +72,8 @@ def audit_detail_link(audit):
 def display_name(model_or_name):
     if isinstance(model_or_name, basestring):
         name = model_or_name
+        if name.startswith('udf:'):
+            name = UserDefinedCollectionValue.get_display_model_name(name)
     else:
         name = model_or_name.__class__.__name__
 

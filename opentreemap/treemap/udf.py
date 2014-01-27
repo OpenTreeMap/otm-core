@@ -92,6 +92,19 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
         """
         pass
 
+    @staticmethod
+    def get_display_model_name(audit_name):
+        if audit_name.startswith('udf:'):
+            try:
+                # UDF Collections store their model names in the audit table as
+                # udf:<pk of UserDefinedFieldDefinition>
+                pk = int(audit_name[4:])
+                udf_def = UserDefinedFieldDefinition.objects.get(pk=pk)
+                return udf_def.name
+            except (ValueError, UserDefinedFieldDefinition.DoesNotExist):
+                pass  # If something goes wrong, just use the defaults
+        return audit_name
+
     @classmethod
     def action_format_string_for_audit(cls, audit):
         if audit.field == 'id' or audit.field is None:
@@ -117,15 +130,8 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
 
         model_name = audit.model
         field = audit.field
-        if audit.field == 'id' and audit.model.startswith('udf:'):
-            try:
-                # UDF Collections store their model names in the audit table as
-                # udf:<pk of UserDefinedFieldDefinition>
-                pk = int(audit.model[4:])
-                udf_def = UserDefinedFieldDefinition.objects.get(pk=pk)
-                model_name = udf_def.name
-            except (ValueError, UserDefinedFieldDefinition.DoesNotExist):
-                pass  # If something goes wrong, just use the defaults
+        if audit.field == 'id':
+            model_name = cls.get_display_model_name(audit.model)
 
         if field.startswith('udf:'):
             field = field[4:]
