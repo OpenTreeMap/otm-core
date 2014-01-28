@@ -10,10 +10,10 @@ from django.core.exceptions import ValidationError
 
 from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
                             ITreeRegion, MapFeature)
-from treemap.audit import Audit, ReputationMetric
+from treemap.audit import Audit, ReputationMetric, Role
 from treemap.tests import (make_instance, make_commander_user,
                            make_user_with_default_role, make_user,
-                           make_simple_boundary, make_commander_role)
+                           make_simple_boundary)
 
 
 class HashModelTest(TestCase):
@@ -166,8 +166,8 @@ class ModelUnicodeTests(TestCase):
 
         self.boundary = make_simple_boundary("Test Boundary")
 
-        self.role = make_commander_role(self.instance)
-        self.role.name = "Test Role"
+        self.role = Role(instance=self.instance, name='Test Role',
+                         rep_thresh=2)
         self.role.save()
 
         self.field_permission = FieldPermission(

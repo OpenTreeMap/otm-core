@@ -1,26 +1,29 @@
 # -*- coding: utf-8 -*-
 import datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
 
-class Migration(DataMigration):
+
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        roles = {'administrator': 3, # FieldPermission.WRITE_DIRECTLY
-                 'editor': 3, # FieldPermission.WRITE_DIRECTLY
-                 'public': 1, # FieldPermission.READ_ONLY
-        }
-        for instance in orm.Instance.objects.all():
-            for role_name, permission in roles.iteritems():
-                qs = orm.Role.objects.filter(instance=instance, name=role_name)
-                if qs:
-                    role = qs[0]
-                    role.default_permission = permission
-                    role.save()
+        # Adding unique constraint on 'FieldPermission', fields ['role', 'field_name', 'model_name', 'instance']
+        db.create_unique(u'treemap_fieldpermission', ['role_id', 'field_name', 'model_name', 'instance_id'])
+
+        # Adding field 'Role.default_permission'
+        db.add_column(u'treemap_role', 'default_permission',
+                      self.gf('django.db.models.fields.IntegerField')(default=0),
+                      keep_default=False)
+
 
     def backwards(self, orm):
-        pass
+        # Removing unique constraint on 'FieldPermission', fields ['role', 'field_name', 'model_name', 'instance']
+        db.delete_unique(u'treemap_fieldpermission', ['role_id', 'field_name', 'model_name', 'instance_id'])
+
+        # Deleting field 'Role.default_permission'
+        db.delete_column(u'treemap_role', 'default_permission')
+
 
     models = {
         u'auth.group': {
@@ -263,4 +266,3 @@ class Migration(DataMigration):
     }
 
     complete_apps = ['treemap']
-    symmetrical = True

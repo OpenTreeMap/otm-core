@@ -41,7 +41,7 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
-                           add_field_permissions, MockSession,
+                           set_write_permissions, MockSession,
                            delete_all_app_users)
 
 
@@ -594,9 +594,9 @@ class PlotUpdateTest(unittest.TestCase):
 
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
-        add_field_permissions(self.instance, self.user,
+        set_write_permissions(self.instance, self.user,
                               'Plot', ['udf:Test choice', 'udf:Test col'])
-        add_field_permissions(self.instance, self.user,
+        set_write_permissions(self.instance, self.user,
                               'Tree', ['udf:Test col'])
 
         self.p = Point(-7615441.0, 5953519.0)

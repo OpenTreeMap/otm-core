@@ -17,7 +17,7 @@ from django.contrib.gis.geos import Point, MultiPolygon
 from django.contrib.gis.measure import Distance
 
 from treemap.tests import (make_instance, make_commander_user,
-                           make_simple_polygon, add_field_permissions)
+                           make_simple_polygon, set_write_permissions)
 from treemap.views import _execute_filter
 from treemap.models import (Tree, Plot, Boundary, Species)
 from treemap.udf import UserDefinedFieldDefinition
@@ -328,10 +328,10 @@ class SearchTests(TestCase):
         return plot, tree
 
     def _setup_udfs(self):
-        add_field_permissions(self.instance, self.commander,
+        set_write_permissions(self.instance, self.commander,
                               'Plot',
                               ['udf:Test string', 'udf:Test date'])
-        add_field_permissions(self.instance, self.commander,
+        set_write_permissions(self.instance, self.commander,
                               'Tree',
                               ['udf:Test float'])
 

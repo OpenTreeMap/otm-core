@@ -17,7 +17,7 @@ from django.contrib.gis.geos import Point, Polygon
 
 from treemap.tests import (make_instance, make_commander_user,
                            make_officer_user,
-                           add_field_permissions)
+                           set_write_permissions)
 
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.models import Plot
@@ -30,7 +30,7 @@ class ScalarUDFFilterTest(TestCase):
     def setUp(self):
         self.instance = make_instance()
         self.commander_user = make_commander_user(self.instance)
-        add_field_permissions(self.instance, self.commander_user,
+        set_write_permissions(self.instance, self.commander_user,
                               'Plot',
                               ['udf:Test choice', 'udf:Test string',
                                'udf:Test int', 'udf:Test date',
@@ -260,7 +260,7 @@ class UDFAuditTest(TestCase):
     def setUp(self):
         self.instance = make_instance()
         self.commander_user = make_commander_user(self.instance)
-        add_field_permissions(self.instance, self.commander_user,
+        set_write_permissions(self.instance, self.commander_user,
                               'Plot', ['udf:Test choice'])
 
         self.p = Point(-8515941.0, 4953519.0)
@@ -675,7 +675,7 @@ class ScalarUDFTest(TestCase):
         addl_fields.append('udf:Test choice')
 
         self.commander_user = make_commander_user(self.instance)
-        add_field_permissions(self.instance, self.commander_user,
+        set_write_permissions(self.instance, self.commander_user,
                               'Plot', addl_fields)
 
         for dtype in allowed_types:
@@ -779,7 +779,7 @@ class CollectionUDFTest(TestCase):
             name='Stewardship')
 
         self.commander_user = make_commander_user(self.instance)
-        add_field_permissions(self.instance, self.commander_user,
+        set_write_permissions(self.instance, self.commander_user,
                               'Plot', ['udf:Stewardship'])
 
         self.plot = Plot(geom=self.p, instance=self.instance)
