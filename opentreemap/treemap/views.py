@@ -610,8 +610,12 @@ def _plot_audits(user, instance, plot):
     plot_filter = Q(model='Plot', model_id=plot.pk,
                     field__in=readable_plot_fields)
 
-    tree_visible_fields = Tree(instance=instance)\
-        .visible_fields(user)
+    plot_collection_udfs_filter = Q(
+        model__in=plot.visible_collection_udfs_audit_names(user),
+        model_id__in=plot.collection_udfs_audit_ids())
+
+    fake_tree = Tree(instance=instance)
+    tree_visible_fields = fake_tree.visible_fields(user)
 
     # Get a history of trees that were on this plot
     tree_history = plot.get_tree_history()
@@ -624,14 +628,33 @@ def _plot_audits(user, instance, plot):
                            action=Audit.Type.Delete,
                            model_id__in=tree_history)
 
+    tree_collection_udfs_audit_names =\
+        fake_tree.visible_collection_udfs_audit_names(user)
+
+    tree_collection_udfs_filter = Q(
+        model__in=tree_collection_udfs_audit_names,
+        model_id__in=Tree.static_collection_udfs_audit_ids(
+            instance, tree_history, tree_collection_udfs_audit_names))
+
     # Seems to be much faster to do three smaller
     # queries here instead of ORing them together
     # (about a 50% inprovement!)
+    # TODO: Verify this is still the case now that we are also getting
+    # collection udf audits
     iaudit = Audit.objects.filter(instance=instance)
 
     audits = []
     for afilter in [tree_filter, tree_delete_filter, plot_filter]:
         audits += list(iaudit.filter(afilter).order_by('-updated')[:5])
+
+    # UDF collection audits have some fields which aren't very useful to show
+    udf_collection_exclude_filter = Q(
+        field__in=['model_id', 'field_definition'])
+
+    for afilter in [plot_collection_udfs_filter, tree_collection_udfs_filter]:
+        audits += list(iaudit.filter(afilter)
+                             .exclude(udf_collection_exclude_filter)
+                             .order_by('-updated')[:5])
 
     audits = sorted(audits, key=lambda audit: audit.updated, reverse=True)[:5]
 

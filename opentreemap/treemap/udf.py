@@ -94,7 +94,45 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
 
     @classmethod
     def action_format_string_for_audit(cls, audit):
+        if audit.field == 'id' or audit.field is None:
+            lang = {
+                Audit.Type.Insert: trans('created a %(model)s entry'),
+                Audit.Type.Update: trans('updated the %(model)s entry'),
+                Audit.Type.Delete: trans('deleted the %(model)s entry'),
+                Audit.Type.PendingApprove: trans('approved an edit '
+                                                 'to the %(model)s entry'),
+                Audit.Type.PendingReject: trans('rejected an '
+                                                'edit to the %(model)s entry')
+            }
+            return lang[audit.action]
         return Auditable.action_format_string_for_audit(audit)
+
+    @classmethod
+    def short_descr(cls, audit):
+        # model_id and field_definition aren't very useful changes to see
+        if audit.field in {'model_id', 'field_definition'}:
+            return None
+
+        format_string = cls.action_format_string_for_audit(audit)
+
+        model_name = audit.model
+        field = audit.field
+        if audit.field == 'id' and audit.model.startswith('udf:'):
+            try:
+                # UDF Collections store their model names in the audit table as
+                # udf:<pk of UserDefinedFieldDefinition>
+                pk = int(audit.model[4:])
+                udf_def = UserDefinedFieldDefinition.objects.get(pk=pk)
+                model_name = udf_def.name
+            except (ValueError, UserDefinedFieldDefinition.DoesNotExist):
+                pass  # If something goes wrong, just use the defaults
+
+        if field.startswith('udf:'):
+            field = field[4:]
+
+        return format_string % {'field': field,
+                                'model': model_name,
+                                'value': audit.current_display_value}
 
     def as_dict(self, *args, **kwargs):
         base_model_dict = super(

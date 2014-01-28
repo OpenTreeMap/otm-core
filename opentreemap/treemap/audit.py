@@ -1130,6 +1130,10 @@ class Audit(models.Model):
 
     def short_descr(self):
         cls = _get_auditable_class(self.model)
+        # If a model has a defined short_descr method, use that
+        if hasattr(cls, 'short_descr'):
+            return cls.short_descr(self)
+
         format_string = cls.action_format_string_for_audit(self)
 
         return format_string % {'field': self.field_display_name,
