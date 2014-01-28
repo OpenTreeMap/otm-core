@@ -995,7 +995,7 @@ def photo_review(request, instance):
     if next_page > total_pages:
         next_page = None
 
-    pages = xrange(1, total_pages+1)
+    pages = range(1, total_pages+1)
     if len(pages) > 10:
         pages = pages[0:8] + [pages[-1]]
 
