@@ -53,20 +53,28 @@ active
           <td>
             {% with link=audit|audit_detail_link %}
             {% if link %}
-            <a href="{{ link }}">Detail</a>
+            <a href="{{ link }}">{% trans "Detail" %}</a>
             {% endif %}
             {% endwith %}
           </td>
           <td>{{ audit.pk }}</td>
           <td>
+            {% if audit.model == 'Tree' or audit.model == 'Plot' %}
             <a href="?models={{ audit.model }}">
-            {{ audit.model }}
+              {{ audit.model|display_name }}
             </a>
+            {% else %}
+            {{ audit.model|display_name }}
+            {% endif %}
           </td>
           <td>
+            {% if audit.model == 'Tree' or audit.model == 'Plot' %}
             <a href="?models={{ audit.model }}&model_id={{ audit.model_id }}">
               {{ audit.model_id }}
             </a>
+            {% else %}
+            {{ audit.model_id }}
+            {% endif %}
           </td>
           {% endlocalize %}
           <td>{{ audit.field_display_name }}</td>
@@ -76,14 +84,14 @@ active
           <td>
             {% if audit.clean_previous_value %}
             <a href="{{ audit.clean_previous_value|image_to_url }}">
-              View Image
+              {% trans "View Image" %}
             </a>
             {% endif %}
           </td>
           <td>
             {% if audit.clean_current_value %}
             <a href="{{ audit.clean_current_value|image_to_url }}">
-              View Image
+              {% trans "View Image" %}
             </a>
             {% endif %}
           </td>

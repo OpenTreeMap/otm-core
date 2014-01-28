@@ -489,29 +489,52 @@ def _get_audits(logged_in_user, instance, query_vars, user, models,
     if 'Tree' in models:
         model_filter = model_filter | Q(model='TreePhoto', field='image')
 
-    audits = Audit.objects.filter(model_filter)\
-                          .order_by('-created', 'id')
-
     if instance:
         if instance.is_accessible_by(logged_in_user):
-            audits = audits.filter(instance=instance)
+            instance_filter = Q(pk=instance.pk)
         else:
             # Force no results
-            audits = Audit.objects.none()
+            return {'audits': [],
+                    'next_page': None,
+                    'prev_page': None}
     # If we didn't specify an instance we only want to
     # show audits where the user has permission
     else:
-        public = Q(instance__is_public=True)
+        public = Q(is_public=True)
 
         if logged_in_user is not None and not logged_in_user.is_anonymous():
-            private_with_access = Q(instance__instanceuser__user=
-                                    logged_in_user)
+            private_with_access = Q(instanceuser__user=logged_in_user)
 
-            audit_instance_filter = public | private_with_access
+            instance_filter = public | private_with_access
         else:
-            audit_instance_filter = public
+            instance_filter = public
 
-        audits = audits.filter(audit_instance_filter)
+    instances = Instance.objects.filter(instance_filter)
+
+    # We need a filter per-instance in order to only show UDF collection
+    # visible to the user
+    for inst in Instance.objects.filter(instance_filter):
+        # Only add UDF collections if their parent models are being shown
+        for model in models:
+            if model == 'Tree':
+                fake_model = Tree(instance=inst)
+            elif model == 'Plot':
+                fake_model = Plot(instance=inst)
+            else:
+                continue
+
+            model_collection_udfs_audit_names =\
+                fake_model.visible_collection_udfs_audit_names(user)
+
+            # Don't show the fields that every collection UDF has, because they
+            # are not very interesting
+            model_filter = model_filter |\
+                (Q(model__in=model_collection_udfs_audit_names) &
+                 ~Q(field__in=('id', 'model_id', 'field_definition')))
+
+    audits = Audit.objects.filter(model_filter)\
+                          .filter(instance__in=instances)\
+                          .order_by('-created', 'id')
 
     if user:
         audits = audits.filter(user=user)
@@ -610,8 +633,12 @@ def _plot_audits(user, instance, plot):
     plot_filter = Q(model='Plot', model_id=plot.pk,
                     field__in=readable_plot_fields)
 
-    tree_visible_fields = Tree(instance=instance)\
-        .visible_fields(user)
+    plot_collection_udfs_filter = Q(
+        model__in=plot.visible_collection_udfs_audit_names(user),
+        model_id__in=plot.collection_udfs_audit_ids())
+
+    fake_tree = Tree(instance=instance)
+    tree_visible_fields = fake_tree.visible_fields(user)
 
     # Get a history of trees that were on this plot
     tree_history = plot.get_tree_history()
@@ -624,14 +651,33 @@ def _plot_audits(user, instance, plot):
                            action=Audit.Type.Delete,
                            model_id__in=tree_history)
 
+    tree_collection_udfs_audit_names =\
+        fake_tree.visible_collection_udfs_audit_names(user)
+
+    tree_collection_udfs_filter = Q(
+        model__in=tree_collection_udfs_audit_names,
+        model_id__in=Tree.static_collection_udfs_audit_ids(
+            (instance,), tree_history, tree_collection_udfs_audit_names))
+
     # Seems to be much faster to do three smaller
     # queries here instead of ORing them together
     # (about a 50% inprovement!)
+    # TODO: Verify this is still the case now that we are also getting
+    # collection udf audits
     iaudit = Audit.objects.filter(instance=instance)
 
     audits = []
     for afilter in [tree_filter, tree_delete_filter, plot_filter]:
         audits += list(iaudit.filter(afilter).order_by('-updated')[:5])
+
+    # UDF collection audits have some fields which aren't very useful to show
+    udf_collection_exclude_filter = Q(
+        field__in=['model_id', 'field_definition'])
+
+    for afilter in [plot_collection_udfs_filter, tree_collection_udfs_filter]:
+        audits += list(iaudit.filter(afilter)
+                             .exclude(udf_collection_exclude_filter)
+                             .order_by('-updated')[:5])
 
     audits = sorted(audits, key=lambda audit: audit.updated, reverse=True)[:5]
 
