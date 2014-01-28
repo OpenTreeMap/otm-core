@@ -931,20 +931,25 @@ def _photo_audits(instance):
                           Audit.Type.Delete,
                           Audit.Type.Update}
 
-    photos = Audit.objects.filter(instance=instance,
+    # Only return audits for photos that haven't been deleted
+    photo_ids = TreePhoto.objects.filter(instance=instance)\
+                                 .values_list('id', flat=True)
+
+    audits = Audit.objects.filter(instance=instance,
                                   model='TreePhoto',
                                   field='image',
                                   ref__isnull=True,
-                                  action__in=unverified_actions)\
+                                  action__in=unverified_actions,
+                                  model_id__in=photo_ids)\
                           .order_by('-created')
 
-    return photos
+    return audits
 
 
 def next_photo(request, instance):
-    photos = _photo_audits(instance)
+    audits = _photo_audits(instance)
 
-    total = photos.count()
+    total = audits.count()
     page = int(request.REQUEST.get('n', '1'))
     total_pages = int(total / PHOTO_PAGE_SIZE + 0.5)
 
@@ -956,11 +961,11 @@ def next_photo(request, instance):
         photo = None
     else:
         try:
-            photo_id = photos[endidx].model_id
+            photo_id = audits[endidx].model_id
         except IndexError:
             # We may have finished an entire page
             # in that case, simply return the last image
-            photo_id = photos[total-1].model_id
+            photo_id = audits[total-1].model_id
 
         photo = TreePhoto.objects.get(pk=photo_id)
 
@@ -971,16 +976,16 @@ def next_photo(request, instance):
 
 
 def photo_review(request, instance):
-    photos = _photo_audits(instance)
+    audits = _photo_audits(instance)
 
-    total = photos.count()
+    total = audits.count()
     page = int(request.REQUEST.get('n', '1'))
     total_pages = int(total / PHOTO_PAGE_SIZE + 0.5)
 
     startidx = (page-1) * PHOTO_PAGE_SIZE
     endidx = startidx + PHOTO_PAGE_SIZE
 
-    photos = photos[startidx:endidx]
+    audits = audits[startidx:endidx]
 
     prev_page = page - 1
     if prev_page <= 0:
@@ -996,7 +1001,7 @@ def photo_review(request, instance):
 
     return {
         'photos': [TreePhoto.objects.get(pk=audit.model_id)
-                   for audit in photos],
+                   for audit in audits],
         'pages': pages,
         'total_pages': total_pages,
         'cur_page': page,
