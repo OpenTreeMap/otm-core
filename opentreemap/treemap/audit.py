@@ -109,18 +109,26 @@ def approve_or_reject_audits_and_apply(audits, user, approved):
         approve_or_reject_audit_and_apply(audit, user, approved)
 
 
-def add_all_permissions_on_model_to_role(
-        Model, role, permission_level, instance=None):
-    """
-    Create a new role with all normal fields on a given model.
+def add_default_permissions(instance, roles=None, models=None):
+    if roles is None:
+        roles = Role.objects.filter(instance=instance)
+    if models is None:
+        models = leaf_subclasses(Authorizable)
 
-    Specifiy an instance to grab UDFs as well
+    for role in roles:
+        for Model in models:
+            _add_default_permissions(Model, role, instance)
+
+
+def _add_default_permissions(Model, role, instance):
+    """
+    Create FieldPermission entries for role using its default permission level.
+    Make an entry for every tracked field of given Model, as well as UDFs of
+    given instance.
     """
     from udf import UserDefinedFieldDefinition
 
-    mobj = Model()
-    if instance:
-        mobj.instance = instance
+    mobj = Model(instance=instance)
 
     model_name = mobj._model_name
     udfs = [udf.canonical_name for udf in
@@ -133,10 +141,9 @@ def add_all_permissions_on_model_to_role(
         FieldPermission.objects.get_or_create(
             model_name=model_name,
             field_name=field_name,
-            permission_level=permission_level, role=role,
+            role=role,
+            permission_level=role.default_permission,
             instance=role.instance)
-
-    return role
 
 
 def approve_or_reject_existing_edit(audit, user, approved):
@@ -492,45 +499,24 @@ class UserTrackable(Dictable):
         return []
 
 
-class Role(models.Model):
-    name = models.CharField(max_length=255)
-    instance = models.ForeignKey('Instance', null=True, blank=True)
-    rep_thresh = models.IntegerField()
-
-    @property
-    def tree_permissions(self):
-        return self.model_permissions('Tree')
-
-    @property
-    def plot_permissions(self):
-        return self.model_permissions('Plot')
-
-    def model_permissions(self, model):
-        return self.fieldpermission_set.filter(model_name=model)
-
-    def __unicode__(self):
-        return '%s (%s)' % (self.name, self.pk)
-
-
 class FieldPermission(models.Model):
     model_name = models.CharField(max_length=255)
     field_name = models.CharField(max_length=255)
-    role = models.ForeignKey(Role)
+    role = models.ForeignKey('Role')
     instance = models.ForeignKey('Instance')
 
     NONE = 0
     READ_ONLY = 1
     WRITE_WITH_AUDIT = 2
     WRITE_DIRECTLY = 3
-    permission_level = models.IntegerField(
-        choices=(
-            # reserving zero in case we want
-            # to create a "null-permission" later
-            (NONE, "None"),
-            (READ_ONLY, "Read Only"),
-            (WRITE_WITH_AUDIT, "Write with Audit"),
-            (WRITE_DIRECTLY, "Write Directly")),
-        default=NONE)
+    choices = (
+        # reserving zero in case we want
+        # to create a "null-permission" later
+        (NONE, "None"),
+        (READ_ONLY, "Read Only"),
+        (WRITE_WITH_AUDIT, "Write with Audit"),
+        (WRITE_DIRECTLY, "Write Directly"))
+    permission_level = models.IntegerField(choices=choices, default=NONE)
 
     def __unicode__(self):
         return "%s.%s - %s" % (self.model_name, self.field_name, self.role)
@@ -575,6 +561,28 @@ class FieldPermission(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super(FieldPermission, self).save(*args, **kwargs)
+
+
+class Role(models.Model):
+    name = models.CharField(max_length=255)
+    instance = models.ForeignKey('Instance', null=True, blank=True)
+    default_permission = models.IntegerField(choices=FieldPermission.choices,
+                                             default=FieldPermission.NONE)
+    rep_thresh = models.IntegerField()
+
+    @property
+    def tree_permissions(self):
+        return self.model_permissions('Tree')
+
+    @property
+    def plot_permissions(self):
+        return self.model_permissions('Plot')
+
+    def model_permissions(self, model):
+        return self.fieldpermission_set.filter(model_name=model)
+
+    def __unicode__(self):
+        return '%s (%s)' % (self.name, self.pk)
 
 
 class AuthorizeException(Exception):

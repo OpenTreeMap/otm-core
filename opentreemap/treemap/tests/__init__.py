@@ -19,6 +19,7 @@ from django.conf.urls import patterns
 
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.contrib.auth.models import AnonymousUser
+from treemap.audit import Authorizable
 
 from treemap.models import User, InstanceUser
 from treemap.util import leaf_subclasses
@@ -127,7 +128,7 @@ def _make_permissions(field_permission):
             (Model._meta.object_name, field_name, field_permission)
             for field_name in Model().tracked_fields)
 
-    models = leaf_subclasses(MapFeature) + [Tree, TreePhoto, Species]
+    models = leaf_subclasses(Authorizable)
 
     model_permissions = [make_model_perms(Model) for Model in models]
     permissions = sum(model_permissions, ())  # flatten

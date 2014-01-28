@@ -133,6 +133,8 @@ class Instance(models.Model):
 
     scss_variables = _make_config_property('scss_variables')
 
+    map_feature_types = _make_config_property('map_feature_types', ['Plot'])
+
     @property
     def extent_as_json(self):
         boundary = self.bounds.boundary
