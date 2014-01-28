@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django import forms
+from django.utils.translation import ugettext_lazy as trans
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 from django.contrib.sites.models import Site
@@ -23,10 +24,26 @@ from treemap.util import get_instance_or_404
 
 
 class RegistrationForm(DefaultRegistrationForm):
-    organization = forms.CharField(max_length=100, required=False)
-    firstname = forms.CharField(max_length=100, required=False)
-    lastname = forms.CharField(max_length=100, required=False)
-    allow_email_contact = forms.BooleanField(required=False)
+    organization = forms.CharField(
+        max_length=100,
+        required=False,
+        label=trans('Organization'))
+
+    firstname = forms.CharField(
+        max_length=100,
+        required=False,
+        label=trans('First name'))
+
+    lastname = forms.CharField(
+        max_length=100,
+        required=False,
+        label=trans('Last name'))
+
+    allow_email_contact = forms.BooleanField(
+        required=False,
+        label=trans('I wish to receive occasional email '
+                    'updates from the tree maps to which '
+                    'I contribute.'))
 
 
 class RegistrationView(DefaultRegistrationView):
