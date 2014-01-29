@@ -13,6 +13,7 @@ from django.contrib.gis.geos import fromstr
 from django.conf import settings
 from django.db.transaction import commit_on_success
 
+from treemap import SPECIES
 from treemap.models import (User, Plot, Tree, Species, InstanceUser, Audit)
 from treemap.audit import model_hasattr
 from treemap.management.util import InstanceDataCommand
@@ -111,20 +112,19 @@ MIGRATION_RULES = {
                           'fact_sheet', 'fall_conspicuous',
                           'flower_conspicuous', 'fruit_period', 'gender',
                           'genus', 'native_status', 'palatable_human',
-                          'plant_guide', 'species',
+                          'plant_guide', 'species', 'otm_code',
                           'wildlife_value'},
         'renamed_fields': {'v_max_height': 'max_height',
                            'v_max_dbh': 'max_dbh',
                            'cultivar_name': 'cultivar',
-                           'other_part_of_name': 'other',
-                           'symbol': 'otm_code'},
+                           'other_part_of_name': 'other'},
         'missing_fields': {'instance', },
         'removed_fields': {'alternate_symbol', 'v_multiple_trunks',
                            'tree_count', 'resource', 'itree_code',
-                           'family', 'scientific_name'},
+                           'family', 'scientific_name', 'symbol'},
         'value_transformers': {
             'v_max_height': (lambda x: x or 10000),
-            'v_max_dbh': (lambda x: x or 10000),
+            'v_max_dbh': (lambda x: x or 10000)
         },
     },
     'user': {
@@ -246,7 +246,7 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                             instance, system_user,
                             commander_role=None, save_with_user=False):
 
-    model_key_map = dependency_id_maps.get(model_name, None)
+    model_key_map = dependency_id_maps.get(model_name, {})
     dependencies = (MIGRATION_RULES
                     .get(model_name, {})
                     .get('dependencies', {})
@@ -271,19 +271,53 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                     model_hash['fields'][field] = new_id
 
         if save_with_user:
-            @commit_on_success
-            def _save_with_user_portion():
-                model = save_user_hash_to_model(
-                    model_name, model_hash,
-                    instance, system_user,
-                    commander_role)
+            if model_name == 'species':
+                @commit_on_success
+                def _save_species():
+                    # Does this species already exist?
+                    genus, species, cultivar, other = [
+                        model_hash['fields'].get(thing, '')
+                        for thing
+                        in ['genus', 'species', 'cultivar',
+                            'other_part_of_name']]
 
-                OTM1ModelRelic.objects.create(instance=instance,
-                                              otm1_model_id=model_hash['pk'],
-                                              otm2_model_name=model_name,
-                                              otm2_model_id=model.pk)
-                return model
-            model = _save_with_user_portion()
+                    existingspecies = Species.objects.filter(
+                        genus=genus,
+                        species=species,
+                        cultivar=cultivar,
+                        other=other)
+
+                    if len(existingspecies) == 0:
+                        for sp in SPECIES:
+                            if ((sp['genus'] == genus and
+                                 sp['species'] == species and
+                                 sp['cultivar'] == cultivar and
+                                 sp['other'] == other)):
+                                fields = model_hash['fields']
+                                fields['otm_code'] = sp['otm_code']
+
+                                break
+
+                        return save_user_hash_to_model(
+                            model_name, model_hash,
+                            instance, system_user,
+                            commander_role)
+
+                model =_save_species()
+            else:
+                @commit_on_success
+                def _save_with_user_portion():
+                    model = save_user_hash_to_model(
+                        model_name, model_hash,
+                        instance, system_user,
+                        commander_role)
+
+                    OTM1ModelRelic.objects.create(instance=instance,
+                                                  otm1_model_id=model_hash['pk'],
+                                                  otm2_model_name=model_name,
+                                                  otm2_model_id=model.pk)
+                    return model
+                model = _save_with_user_portion()
 
         else:
 
