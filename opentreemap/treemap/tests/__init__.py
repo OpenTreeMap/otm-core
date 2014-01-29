@@ -19,7 +19,6 @@ from django.conf.urls import patterns
 
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.contrib.auth.models import AnonymousUser
-from treemap.audit import Authorizable
 
 from treemap.models import User, InstanceUser
 from treemap.audit import Authorizable, add_default_permissions

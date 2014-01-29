@@ -9,12 +9,13 @@ import json
 
 from django.conf import settings
 
+
 def json_benefits_call(endpoint, params):
     paramString = "&".join(["%s=%s" % (urllib.quote_plus(str(name)),
                                        urllib.quote_plus(str(val)))
                             for (name, val) in params])
 
     url = "%s/%s?%s" % (settings.ECO_SERVICE_URL,
-                               endpoint, paramString)
+                        endpoint, paramString)
 
     return json.loads(urllib2.urlopen(url).read())

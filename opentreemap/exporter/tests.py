@@ -12,7 +12,7 @@ from django.utils.unittest.case import skip
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.tests.views import LocalMediaTestCase, media_dir
 from treemap.tests import (make_instance, make_commander_user, make_request,
-                           add_field_permissions)
+                           set_write_permissions)
 from treemap.models import Species, Plot, Tree, User
 
 from exporter.models import ExportJob
@@ -75,9 +75,9 @@ class ExportTreeTaskTest(AsyncCSVTestCase):
     def setUp(self):
         super(ExportTreeTaskTest, self).setUp()
 
-        add_field_permissions(self.instance, self.user,
+        set_write_permissions(self.instance, self.user,
                               'Plot', ['udf:Test choice'])
-        add_field_permissions(self.instance, self.user,
+        set_write_permissions(self.instance, self.user,
                               'Tree', ['udf:Test int'])
 
         UserDefinedFieldDefinition.objects.create(
