@@ -116,34 +116,48 @@ def add_default_permissions(instance, roles=None, models=None):
         models = leaf_subclasses(Authorizable)
 
     for role in roles:
-        for Model in models:
-            _add_default_permissions(Model, role, instance)
+        _add_default_permissions(models, role, instance)
 
 
-def _add_default_permissions(Model, role, instance):
+#    Species.objects.bulk_create(instance_species_list)
+#            FieldPermission.objects.get_or_create(
+
+def _add_default_permissions(models, role, instance):
     """
     Create FieldPermission entries for role using its default permission level.
-    Make an entry for every tracked field of given Model, as well as UDFs of
+    Make an entry for every tracked field of given models, as well as UDFs of
     given instance.
     """
     from udf import UserDefinedFieldDefinition
 
-    mobj = Model(instance=instance)
+    perms = []
+    for Model in models:
+        mobj = Model(instance=instance)
 
-    model_name = mobj._model_name
-    udfs = [udf.canonical_name for udf in
-            UserDefinedFieldDefinition.objects.filter(
-                instance=instance, model_type=model_name)]
+        model_name = mobj._model_name
+        udfs = [udf.canonical_name for udf in
+                UserDefinedFieldDefinition.objects.filter(
+                    instance=instance, model_type=model_name)]
 
-    model_fields = set(mobj.tracked_fields + udfs)
+        model_fields = set(mobj.tracked_fields + udfs)
 
-    for field_name in model_fields:
-        FieldPermission.objects.get_or_create(
-            model_name=model_name,
-            field_name=field_name,
-            role=role,
-            permission_level=role.default_permission,
-            instance=role.instance)
+        for field_name in model_fields:
+            perms.append({
+                'model_name': model_name,
+                'field_name': field_name,
+                'role': role,
+                'permission_level': role.default_permission,
+                'instance': role.instance
+            })
+
+    existing = FieldPermission.objects.filter(role=role, instance=instance)
+    if existing:
+        for perm in perms:
+            FieldPermission.objects.get_or_create(**perm)
+    else:
+        perms = [FieldPermission(**perm) for perm in perms]
+        FieldPermission.objects.bulk_create(perms)
+
 
 
 def approve_or_reject_existing_edit(audit, user, approved):
