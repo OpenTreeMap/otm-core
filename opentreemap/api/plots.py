@@ -12,7 +12,7 @@ from django.contrib.gis.measure import D
 
 from treemap.exceptions import HttpBadRequestException
 
-from treemap.views import context_dict_for_plot, update_plot_and_tree
+from treemap.views import context_dict_for_plot, update_map_feature
 from treemap.models import Plot
 
 
@@ -94,7 +94,7 @@ def update_or_create_plot(request, instance, plot_id=None):
     else:
         plot = Plot(instance=instance)
 
-    plot, _ = update_plot_and_tree(data, request.user, plot)
+    plot, _ = update_map_feature(data, request.user, plot)
 
     return context_dict_for_plot(
         request.instance,
