@@ -4,12 +4,15 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import csv
+import json
 
 from django.contrib.gis.geos import Point
 from django.utils.unittest.case import skip
 
+from treemap.udf import UserDefinedFieldDefinition
 from treemap.tests.views import LocalMediaTestCase, media_dir
-from treemap.tests import make_instance, make_commander_user, make_request
+from treemap.tests import (make_instance, make_commander_user, make_request,
+                           add_field_permissions)
 from treemap.models import Species, Plot, Tree, User
 
 from exporter.models import ExportJob
@@ -28,17 +31,22 @@ class AsyncCSVTestCase(LocalMediaTestCase):
                                                           email='foo@bar.com',
                                                           password='bar')
 
-    def assertCSVRowValue(self, csv_file, row_index, header, value):
+    def assertCSVRowValue(self, csv_file, row_index, headers_and_values):
         csvreader = csv.reader(csv_file, delimiter=b",")
         rows = list(csvreader)
-        self.assertEqual(value,
-                         rows[row_index][rows[0].index(header)])
 
-    def assertTaskProducesCSV(self, model, assert_field,
-                              assert_value, user=None):
+        for (header, value) in headers_and_values.iteritems():
+            self.assertEqual(value,
+                             rows[row_index][rows[0].index(header)])
+
+    def assertTaskProducesCSV(self, user, model, assert_fields_and_values):
         job = ExportJob(instance=self.instance, user=user)
-        tasks.csv_export(job, model, '')
-        self.assertCSVRowValue(job.outfile, 1, assert_field, assert_value)
+        job.save()
+        tasks.csv_export(job.pk, model, '')
+
+        # Refresh model with outfile
+        job = ExportJob.objects.get(pk=job.pk)
+        self.assertCSVRowValue(job.outfile, 1, assert_fields_and_values)
 
     def assertPsuedoAsyncTaskWorks(self, model,
                                    user,
@@ -52,8 +60,8 @@ class AsyncCSVTestCase(LocalMediaTestCase):
 
         job_id = ctx['job_id']
         job = ExportJob.objects.get(pk=job_id)
-        self.assertCSVRowValue(job.outfile, 1, assertion_field,
-                               assertion_value)
+        self.assertCSVRowValue(job.outfile, 1,
+                               {assertion_field: assertion_value})
 
         ctx = check_export(request, self.instance, job_id)
         self.assertIn('.csv', ctx['url'])
@@ -67,18 +75,43 @@ class ExportTreeTaskTest(AsyncCSVTestCase):
     def setUp(self):
         super(ExportTreeTaskTest, self).setUp()
 
+        add_field_permissions(self.instance, self.user,
+                              'Plot', ['udf:Test choice'])
+        add_field_permissions(self.instance, self.user,
+                              'Tree', ['udf:Test int'])
+
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'choice',
+                                 'choices': ['a', 'b', 'c']}),
+            iscollection=False,
+            name='Test choice')
+
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Tree',
+            datatype=json.dumps({'type': 'int'}),
+            iscollection=False,
+            name='Test int')
+
         p = Plot(geom=Point(0, 0), instance=self.instance,
                  address_street="123 Main Street")
+        p.udfs['Test choice'] = 'a'
+
         p.save_with_user(self.user)
 
         t = Tree(plot=p, instance=self.instance, diameter=2)
+        t.udfs['Test int'] = 4
+
         t.save_with_user(self.user)
 
-    @skip('Need to figure how to remove transactions here')
     @media_dir
     def test_tree_task_unit(self):
-        self.assertTaskProducesCSV('tree', 'diameter', '2.0',
-                                   user=self.user)
+        self.assertTaskProducesCSV(
+            self.user, 'tree', {'diameter': '2.0',
+                                'udf:Test int': '4',
+                                'plot__udf:Test choice': 'a'})
 
     @media_dir
     def test_export_view_permission_failure(self):
@@ -106,8 +139,8 @@ class ExportSpeciesTaskTest(AsyncCSVTestCase):
     @skip('Need to figure how to remove transactions here')
     @media_dir
     def test_species_task_unit(self):
-        self.assertTaskProducesCSV('species', 'common_name', 'foo',
-                                   user=self.user)
+        self.assertTaskProducesCSV(
+            self.user, 'species', {'common_name': 'foo'})
 
     @media_dir
     def test_psuedo_async_species_export(self):
