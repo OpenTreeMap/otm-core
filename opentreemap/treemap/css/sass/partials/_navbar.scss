@@ -43,6 +43,56 @@
                     }
                 }
             }
+            &.dropdown {
+                &.open {
+                    a {
+                        background-color: transparent !important;
+                    }
+                }
+
+                ul.dropdown-menu {
+                    margin: -1px 0 0;
+                    border-radius: 0;
+                    padding: 0;
+
+                    &:before, &:after {
+                        content: none;
+                    }
+                    
+                    > li {
+                        a {
+                            padding: 8px 10px;
+                            font-weight: 400;
+                            color: $subtext-color;
+
+                            &:hover {
+                                background: none;
+                                color: $main-text-color;
+
+                                > i {
+                                    color: $primary-color;
+                                }
+                            }
+                            &:first-child {
+                                border-bottom: 1px solid #EEE;
+                            }
+
+                            > i {
+                                margin-right: 5px;
+                                top: 2px;
+                                position: relative;
+                                color: $subtext-color;
+                            }
+                        }
+                    }
+                }
+            }
+            &.add-menu {
+                > a {
+                    font-size: 2rem;
+                    width: 28px;
+                }
+            }
             &.user-img {
                 overflow: hidden;
                 height: 30px;
@@ -85,5 +135,59 @@
 @media (max-width: 767px) {
     .navbar {
         margin: 0;
+    }
+}
+
+.user-dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    background: lighten($navbar-color, 5%);
+    z-index: 99;
+    top: 44px;
+    padding: 20px 30px 25px;
+    display: none;
+
+    &.active {
+        display: block;
+    }
+
+    .span4 {
+        border-left: 1px solid darken($well-color, 15%);
+        padding-left: 30px;
+    }
+
+    .user-img {
+        border-radius: 9px;
+    }
+    h2 {
+        color: white;
+        margin: 0 0 2px;
+    }
+    h4 {
+        font-size: 1.6rem;
+        color: $well-color;
+    }
+    label {
+        color: $well-color;
+
+        a {
+            color: white;
+        }
+    }
+    ul {
+        li {
+            color: white;
+
+            a {
+                color: white;
+                
+                & + span {
+                    color: white;
+                    font-style: italic;
+                    margin-left: 5px;
+                }
+            }
+        }
     }
 }
