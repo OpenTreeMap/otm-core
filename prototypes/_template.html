@@ -1,97 +1,174 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
+<head>
     <title>OpenTreeMap</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="utf-8" />
 
     <link rel="icon" type="image/png" href="/favicon.png" />
+
+    <!-- 
+    
+        NOTES
+        *****
+        Just pulling in static CSS files, needs to have an alias of 
+        /opentreemap/treemap/static/ here for that to work.
+    
+    -->
     <link href="static/css/vendor.css" rel="stylesheet">
     <link href="static/css/main.css" rel="stylesheet">
-  </head>
-  <body>
-    <div class="wrapper">
-      <!-- Top Nav -->
-      <div class="navbar navbar-inverse navbar-fixed-top">
+</head>
+<body>
+<div class="wrapper">
+    <!-- Top Nav -->
+    <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="navbar-inner">
           <ul class="nav pull-left">
+              <li class="add-menu dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown"><i class="icon-plus-circled"></i></a>
+                  <ul class="dropdown-menu">
+                      <li><a>Add a Tree</a></li>
+                      <li><a>Add a Resource</a></li>
+                  </ul>
+              </li>
               <li><a>Explore Trees</a></li>
-              <li><a>Add a Tree</a></li>
-              <li><a>Manage Tree Map</a></li>
-              <li><a>Edits</a></li>
+              <li><a>View Edits</a></li>
           </ul>
           <ul class="nav pull-right">
+              <li class="dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown">My Tree Map</a>
+                  <ul class="dropdown-menu">
+                      <li><a><i class="icon-cog"></i> Customize Tree Map</a></li>
+                      <li><a><i class="icon-thumbs-up"></i> Moderate</a></li>
+                  </ul>
+              </li>
               <li><a>My Account</a></li>
-              <li><a>Logout</a></li>
               <li class="user-img">
                 <a><img src="static/img/profile.png"></a>
               </li>
           </ul>
         </div>
-      </div>
-      <!-- Logo and Search -->
-      <div class="header">
+    </div>
 
+    <!-- NEW! User Dock, showing quick information about "My Profile" -->
+    <div class="user-dock">
+        <div class="row-fluid">
+            <div class="span1">
+                <a><img src="static/img/profile.png" class="user-img"></a>
+            </div>
+            <div class="span3">
+                <h2>administrator</h2>
+                <h4>Administrative User</h4>
+                <a class="btn btn-primary">Edit Profile</a>
+                <a class="btn">Logout</a>
+            </div>
+            <div class="span4">
+                <label>My Tree Maps <a class="pull-right">View All Maps</a></label>
+                <ul>
+                    <li><a>testmap</a> <span>Owner</span></li>
+                    <li><a>testmap</a> <span>User</span></li>
+                    <li><a>testmap</a> <span>User</span></li>
+                </ul>
+            </div>
+            <div class="span4">
+                <label>My Recent Contributions <a class="pull-right">View All Edits</a></label>
+                <ul>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logo and Search -->
+    <div class="header">
         <div class="logo">
           <a href=""><img id="site-logo" src="static/img/logo-beta.png" alt="OpenTreeMap"></a>
         </div>
+        <div class="search-wrapper hidden">
+            <div class="search-block-wrapper">
 
-      </div>
-      <div class="search-wrapper hidden">
-        <div class="search-block-wrapper">
-            <!--Species Search-->
-            <div class="search-block visible-desktop">
-                <h3>Search by Species</h3>
-                <div class="search-field-group">
-                    <a class="typeahead-toggle" id="species-toggle"><i class="icon-menu"></i></a>
-                    <input type="text" data-class="search" id="species-typeahead" placeholder="Common or Scientific Name"/>
-                    <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
+                <!--Species Search-->
+                <div class="search-block visible-desktop">
+                    <h3>Search by Species</h3>
+                    <div class="search-field-group">
+                        <a class="typeahead-toggle" id="species-toggle"><i class="icon-menu"></i></a>
+                        <input type="text" data-class="search" id="species-typeahead" placeholder="Common or Scientific Name"/>
+                        <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
+                    </div>
+                </div>
+            
+                <!-- Location Search -->
+                <div class="search-block">
+                    <h3>Search by Location</h3>
+                    <div class="search-field-group">
+                        <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
+                        <input type="text" data-class="search" id="boundary-typeahead" placeholder="Address, City, State"/>
+                        <input name="plot.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />
+                    </div>
                 </div>
             </div>
-
-            <!-- Location Search -->
-            <div class="search-block">
-                <h3>Search by Location</h3>
-                <div class="search-field-group">
-                    <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
-                    <input type="text" data-class="search" id="boundary-typeahead" placeholder="Address, City, State"/>
-                    <input name="plot.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />
+            <div class="search-options">
+                <a id="perform-search" class="btn btn-primary btn-large btn-block">Search</a>
+                <div class="btn-group">
+                    <button id="search-advanced" class="btn">Advanced</button>
+                    <button id="search-reset" class="btn">Reset</button>
                 </div>
             </div>
+            
+            <!-- Advanced Search -->
+            <div id="advanced-search-pane" style="display: none;">
+                <div id="standard-search"></div>
+                <div id="missing-search"></div>
+            </div>
         </div>
-        <div class="search-options">
-          <a id="perform-search" class="btn btn-primary btn-large btn-block">Search</a>
-          <div class="btn-group">
-            <button id="search-advanced" class="btn">Advanced</button>
-            <button id="search-reset" class="btn">Reset</button>
-          </div>
-        </div>
-        <div id="advanced-search-pane" style="display: none;">
-          <div id="standard-search"></div>
-          <div id="missing-search"></div>
-        </div>
-      </div>
-      <div class="subhead hidden">
+    </div>
+
+    <!-- Subheader with Counts -->
+    <div class="subhead hidden">
         <div style="display: inline;" id="tree-and-planting-site-counts">
-          <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites
+            <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites
         </div>
         <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
         <a class="btn btn-primary addBtn"><i class="icon-plus"></i> Add a Tree</a>
-      </div>
-    </div>
+    </div>   
+ 
+    <!-- Background Image for Interior Pages -->
+    <div class="image-background hidden"></div>
 
-    <footer>
-        <div class="footer-inner">
-            <ul class="inline pull-left">
-                <li><a>Tree Key</a></li>
-                <li><a>Resources</a></li>
-                <li><a>FAQ</a></li>
-                <li><a>About</a></li>
-                <li><a>Contact</a></li>
-            </ul>
-            <a href="javascript:;" class="pull-right partners">Partners</a>
-        </div>
-    </footer>
-  </body>
+</div>
+
+<!-- Footer -->
+<footer>
+    <div class="footer-inner">
+        <ul class="inline pull-left">
+            <li><a>Tree Key</a></li>
+            <li><a>Resources</a></li>
+            <li><a>FAQ</a></li>
+            <li><a>About</a></li>
+            <li><a>Contact</a></li>
+        </ul>
+        <a href="javascript:;" class="pull-right partners">Partners</a>
+    </div>
+</footer>
+    
+<!-- 
+
+    NOTES
+    *****
+    This is just placeholder to show interactivity.
+    Hopefully it just helps give a sense of how things should work.
+
+-->
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script>
+    // Just adds dropdowns to navbar, user-dock
+    $('.dropdown-toggle').dropdown();
+    $('.user-img').on('click', function() {
+        $('.user-dock').toggleClass('active');
+    });
+</script>
+</body>
 </html>
