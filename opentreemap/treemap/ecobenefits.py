@@ -3,18 +3,188 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.db import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as trans
-from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from django.contrib.gis.geos.point import Point
 
-from eco.core import Benefits, sum_factor_and_conversion
-
-from treemap.models import Tree, ITreeCodeOverride
+from treemap import ecobackend
+from treemap.models import Tree
 from treemap.decorators import json_api_call
-from treemap.species import get_itree_code
 from treemap.models import ITreeRegion
 
+
+WATTS_PER_BTU = 0.29307107
+GAL_PER_CUBIC_M = 264.172052
+LBS_PER_KG = 2.20462
+
+
+def benefits_for_trees(trees, instance):
+    # This code may need to be reworked for django 1.6.x
+    # the eco benefit service expects a fully formed
+    # sql 'where' clause. We can compile that directly
+    # from the django query
+    query = trees.query
+    compiler = query.get_compiler(DEFAULT_DB_ALIAS)
+    query.where.as_sql(qn=compiler.quote_name_unless_alias,
+                       connection=compiler.connection)
+    where, where_params = query.where.as_sql(
+        qn=compiler.quote_name_unless_alias, connection=compiler.connection)
+
+    # Need to replace %s query params with postgres placeholders
+    # $1, $2, etc
+    idx = 1
+    i = 0
+    whereWithDollars = ''
+    while i < len(where) - 1:
+        char = where[i]
+
+        if char == '%' and where[i + 1] == 's':
+            whereWithDollars += '$%d' % idx
+            idx += 1
+            i += 1
+        else:
+            whereWithDollars += char
+
+        i += 1
+
+    whereWithDollars += where[-1]
+
+    params = (('where', whereWithDollars), ('instance_id', instance.pk))
+    params += tuple([("param", p) for p in where_params])
+
+    rawb = ecobackend.json_benefits_call('eco_summary.json', params)
+
+    benefits = rawb['Benefits']
+
+    return _compute_currency_and_transform_units(instance, benefits)
+
+
+def _compute_currency_and_transform_units(instance, benefits):
+    if 'n_trees' in benefits:
+        ntrees = int(benefits['n_trees'])
+    else:
+        ntrees = 1
+
+    hydrofactors = ['hydro_interception']
+
+    aqfactors = ['aq_ozone_dep', 'aq_nox_dep', 'aq_nox_avoided',
+                 'aq_pm10_dep', 'aq_sox_dep', 'aq_sox_avoided',
+                 'aq_voc_avoided', 'aq_pm10_avoided', 'bvoc']
+
+    # note that co2_storage is ignored
+    co2factors = ['co2_sequestered', 'co2_avoided']
+
+    energyfactor = ['natural_gas', 'electricity']
+
+    # TODO:
+    # eco.py converts from kg -> lbs to use the
+    # itree defaults currency conversions but it looks like
+    # we are pulling from the speadsheets are in kgs... we
+    # need to verify units
+    groups = {
+        'airquality': ('lbs/year', aqfactors),
+        'co2': ('lbs/year', co2factors),
+        'stormwater': ('gal', hydrofactors),
+        'energy': ('kwh', energyfactor)
+    }
+
+    # currency conversions are in lbs, so do this calc first
+    # same with hydro
+    for benefit in aqfactors + co2factors:
+        benefits[benefit] *= LBS_PER_KG
+
+    benefits['hydro_interception'] *= GAL_PER_CUBIC_M
+
+    factor_conversions = instance.factor_conversions
+
+    for benefit in benefits:
+        value = benefits[benefit]
+
+        if factor_conversions and value and benefit in factor_conversions:
+            currency = factor_conversions[benefit] * value
+        else:
+            currency = 0.0
+
+        benefits[benefit] = (value, currency)
+
+    # currency conversions are in kbtus, so do this after
+    # currency conversion
+    nat_gas_kbtu, nat_gas_cur = benefits['natural_gas']
+    nat_gas_kwh = nat_gas_kbtu * WATTS_PER_BTU
+    benefits['natural_gas'] = (nat_gas_kwh, nat_gas_cur)
+
+    rslt = {}
+
+    for group, (unit, keys) in groups.iteritems():
+        valuetotal = currencytotal = 0
+
+        for key in keys:
+            value, currency = benefits.get(key, (0, 0))
+
+            valuetotal += value
+            currencytotal += currency
+
+        if currencytotal == 0:
+            currencytotal = None
+
+        rslt[group] = {'value': valuetotal,
+                       'currency': currencytotal,
+                       'unit': unit}
+
+    return (rslt, ntrees)
+
+
+def tree_benefits(instance, tree_or_tree_id):
+    """Given a tree id, determine eco benefits via eco.py"""
+
+    if isinstance(tree_or_tree_id, int):
+        InstanceTree = instance.scope_model(Tree)
+        tree = get_object_or_404(InstanceTree, pk=tree_or_tree_id)
+    else:
+        tree = tree_or_tree_id
+
+    if not tree.diameter:
+        rslt = {'benefits': {}, 'error': 'MISSING_DBH'}
+    elif not tree.species.otm_code:
+        rslt = {'benefits': {}, 'error': 'MISSING_SPECIES'}
+    else:
+        if instance.itree_region_default:
+            region = instance.itree_region_default
+        else:
+            regions = ITreeRegion.objects\
+                                 .filter(geometry__contains=tree.plot.geom)
+
+            if len(regions) > 0:
+                region = regions[0]
+            else:
+                region = None
+
+        if region:
+            params = {'otmcode': tree.species.otm_code,
+                      'diameter': tree.diameter,
+                      'region': region}
+
+            rawb = ecobackend.json_benefits_call(
+                'eco.json', params.iteritems())
+
+            benefits, _ = _compute_currency_and_transform_units(
+                instance, rawb['Benefits'])
+
+            rslt = {'benefits': benefits}
+        else:
+            rslt = {'benefits': {}, 'error': 'MISSING_REGION'}
+
+    return rslt
+
+
+def within_itree_regions(request):
+    x = request.GET.get('x', None)
+    y = request.GET.get('y', None)
+    return (bool(x) and bool(y) and
+            ITreeRegion.objects
+            .filter(geometry__contains=Point(float(x),
+                                             float(y))).exists())
 
 _benefit_labels = {
     # Translators: 'Energy' is the name of an eco benefit
@@ -31,176 +201,5 @@ _benefit_labels = {
 def get_benefit_label(benefit_name):
     return _benefit_labels[benefit_name]
 
-
-def _get_trees_for_eco(trees):
-    """
-    Converts a QuerySet of trees, a single tree, or any iterable of trees into
-    input appropriate for benefits_for_trees.
-    """
-    if isinstance(trees, QuerySet):
-        return trees.exclude(species__isnull=True)\
-                    .exclude(diameter__isnull=True)\
-                    .values('diameter', 'species__pk', 'species__otm_code',
-                            'plot__geom')
-
-    if not hasattr(trees, '__iter__'):
-        trees = (trees,)
-
-    return [{'diameter': tree.diameter,
-             'species__pk': tree.species.pk,
-             'species__otm_code': tree.species.otm_code,
-             'plot__geom': tree.plot.geom}
-            for tree in trees
-            if tree.diameter is not None and tree.species is not None]
-
-
-def itree_code_for_species_in_region(species, region):
-    return _itree_code_for_species_in_region(species.pk, region.code,
-                                             species.otm_code)
-
-
-def _itree_code_for_species_in_region(species_pk, region_code, otm_code,
-                                      overrides=None):
-    if region_code:
-        if overrides is not None:
-            # Look for an override in dict (pre-loaded from database)
-            if region_code in overrides:
-                if species_pk in overrides[region_code]:
-                    return overrides[region_code][species_pk]
-        else:
-            # Look for an override in database
-            qs = ITreeCodeOverride.objects.filter(
-                instance_species__pk=species_pk, region__code=region_code)
-            if qs:
-                return qs[0].itree_code
-
-        # No override, so look up default code
-        return get_itree_code(region_code, otm_code)
-
-    return None
-
-
-def get_default_region(instance):
-    region_code = instance.itree_region_default
-    if region_code:
-        return ITreeRegion.objects.get(code=region_code)
-    else:
-        return None
-
-
-def _load_itree_code_overrides(instance):
-    dict = {}
-    qs = ITreeCodeOverride.objects \
-        .filter(instance_species__instance=instance) \
-        .values('region__code', 'instance_species__pk', 'itree_code')
-
-    for override in qs:
-        region_code = override['region__code']
-        if region_code not in dict:
-            dict[region_code] = {}
-        dict[region_code][override['instance_species__pk']] \
-            = override['itree_code']
-
-    return dict
-
-
-def benefits_for_trees(trees, instance):
-    # A species may be assigned to a tree for which there is
-    # no itree code defined for the region in which the tree is
-    # planted. This counter keeps track of the number of
-    # trees for which the itree code lookup was successful
-    num_trees_used_in_calculation = 0
-
-    factor_conversions = instance.factor_conversions
-
-    regions = ITreeRegion.objects.filter(geometry__intersects=instance.bounds)\
-                                 .distance(instance.center)\
-                                 .order_by('distance')
-
-    # Using prepared geometries provides a 40% perfomance boost
-    for region in regions:
-        region.prepared_geometry = region.geometry.prepared
-
-    itree_code_overrides = _load_itree_code_overrides(instance)
-
-    trees = _get_trees_for_eco(trees)
-
-    trees_by_region = {}
-    for tree in trees:
-        region_code = instance.itree_region_default
-
-        for region in regions:
-            if region.prepared_geometry.contains(tree['plot__geom']):
-                region_code = region.code
-                break
-
-        itree_code = _itree_code_for_species_in_region(
-            tree['species__pk'], region_code,
-            tree['species__otm_code'], overrides=itree_code_overrides)
-
-        if itree_code is not None:
-            if region_code not in trees_by_region:
-                trees_by_region[region_code] = []
-
-            trees_by_region[region_code].append((itree_code, tree['diameter']))
-            num_trees_used_in_calculation += 1
-
-    kwh, gal, co2, aq = [], [], [], []
-
-    for (region_code, trees) in trees_by_region.iteritems():
-        benefits = Benefits(factor_conversions)
-
-        kwh.append(benefits.get_energy_conserved(region_code, trees))
-        gal.append(benefits.get_stormwater_management(region_code, trees))
-        co2.append(benefits.get_co2_stats(region_code, trees)['reduced'])
-        aq.append(benefits.get_air_quality_stats(region_code,
-                                                 trees)['improvement'])
-
-    # sum_factor_and_conversion returns an empty list when given one
-    # so we need to provide a saner default
-    def sum_factors(factors_list):
-        return sum_factor_and_conversion(*factors_list) or (0.0, None)
-
-    kwh = sum_factors(kwh)
-    gal = sum_factors(gal)
-    co2 = sum_factors(co2)
-    aq = sum_factors(aq)
-
-    def fmt(factor_and_currency, lbl):
-        return {'value': factor_and_currency[0],
-                'currency': factor_and_currency[1],
-                'unit': lbl}
-
-    rslt = {'energy': fmt(kwh, 'kwh'),
-            'stormwater': fmt(gal, 'gal'),
-            'co2': fmt(co2, 'lbs/year'),
-            'airquality': fmt(aq, 'lbs/year')}
-
-    return (rslt, num_trees_used_in_calculation)
-
-
-def tree_benefits(instance, tree_id):
-    """Given a tree id, determine eco benefits via eco.py"""
-    InstanceTree = instance.scope_model(Tree)
-    tree = get_object_or_404(InstanceTree, pk=tree_id)
-
-    if not tree.diameter:
-        rslt = {'benefits': {}, 'error': 'MISSING_DBH'}
-    elif not tree.species:
-        rslt = {'benefits': {}, 'error': 'MISSING_SPECIES'}
-    else:
-        rslt = {'benefits':
-                benefits_for_trees(tree, instance)}
-
-    return rslt
-
-
-def within_itree_regions(request):
-    x = request.GET.get('x', None)
-    y = request.GET.get('y', None)
-    return (bool(x) and bool(y) and
-            ITreeRegion.objects
-            .filter(geometry__contains=Point(float(x),
-                                             float(y))).exists())
 
 within_itree_regions_view = json_api_call(within_itree_regions)

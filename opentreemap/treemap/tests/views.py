@@ -22,21 +22,20 @@ from django.db.models.query import QuerySet
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 
+from treemap import ecobackend
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.audit import (Role, Audit, approve_or_reject_audit_and_apply,
                            approve_or_reject_audits_and_apply,
                            FieldPermission)
 from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
-                            InstanceUser, BenefitCurrencyConversion,
-                            StaticPage, ITreeRegion)
+                            InstanceUser, StaticPage, ITreeRegion)
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, edits, user_audits,
-                           search_tree_benefits, user, instance_user_view,
                            update_plot_and_tree, update_user, add_tree_photo,
                            root_settings_js_view, instance_settings_js_view,
                            compile_scss, approve_or_reject_photo,
-                           upload_user_photo, static_page,
-                           delete_plot, delete_tree)
+                           upload_user_photo, static_page, instance_user_view,
+                           delete_plot, delete_tree, user)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
@@ -825,49 +824,35 @@ class PlotViewTestCase(ViewTestCase):
 
 class PlotViewTest(PlotViewTestCase):
 
-    def test_eco_benefits_change_based_on_zone(self):
+    def setUp(self):
+        super(PlotViewTest, self).setUp()
 
-        def get_benefits_from_request():
-            request = make_request(user=self.user)
-            request.instance_supports_ecobenefits = self.instance\
-                                                        .has_itree_region()
-            details = plot_detail(request, self.instance, plot1.pk)
+        def mockbenefits(*args, **kwargs):
+            return {
+                "Benefits": {
+                    "aq_nox_avoided": 0.6792,
+                    "aq_nox_dep": 0.371,
+                    "aq_ozone_dep": 0.775,
+                    "aq_pm10_avoided": 0.0436,
+                    "aq_pm10_dep": 0.491,
+                    "aq_sox_avoided": 0.372,
+                    "aq_sox_dep": 0.21,
+                    "aq_voc_avoided": 0.0254,
+                    "bvoc": -0.077,
+                    "co2_avoided": 255.5,
+                    "co2_sequestered": 0,
+                    "co2_storage": 6575,
+                    "electricity": 187,
+                    "hydro_interception": 12.06,
+                    "natural_gas": 5834.1
+                }
+            }
 
-            self.assertIn('benefits', details)
-            self.assertTrue(len(details['benefits']) > 2)
-            return details['benefits']
+        self.origBenefitFn = ecobackend.json_benefits_call
+        ecobackend.json_benefits_call = mockbenefits
 
-        s = Species(
-            otm_code='BDM OTHER',
-            common_name='other',
-            instance=self.instance)
-        s.save_with_user(self.user)
-
-        region1 = ITreeRegion.objects.get(code='NoEastXXX')
-        region2 = ITreeRegion.objects.get(code='PiedmtCLT')
-        p1 = region1.geometry.point_on_surface
-        p2 = region2.geometry.point_on_surface
-
-        self.instance.bounds = p1.buffer(10).union(p2.buffer(10))
-        self.instance.save()
-
-        plot1 = Plot(instance=self.instance, geom=p1)
-        plot1.save_with_user(self.user)
-        tree1 = Tree(plot=plot1,
-                     instance=plot1.instance,
-                     diameter=20.0,
-                     species=s)
-
-        tree1.save_with_user(self.user)
-
-        benefits1 = get_benefits_from_request()
-
-        plot1.geom = p2
-        plot1.save_with_user(self.user)
-
-        benefits2 = get_benefits_from_request()
-
-        self.assertNotEqual(benefits1, benefits2)
+    def tearDown(self):
+        ecobackend.json_benefits_call = self.origBenefitFn
 
     def test_simple_audit_history(self):
         plot = Plot(instance=self.instance, geom=self.p)
@@ -921,7 +906,7 @@ class PlotViewTest(PlotViewTestCase):
         self.assertEqual(insert_audit.action, Audit.Type.Insert)
 
     def test_plot_with_tree(self):
-        species = Species(instance=self.instance)
+        species = Species(instance=self.instance, otm_code='BDM OTHER')
         species.save_with_user(self.user)
 
         plot_w_tree = Plot(geom=self.p, instance=self.instance)
@@ -1400,105 +1385,6 @@ class SpeciesViewTests(ViewTestCase):
         self.assertEquals(
             species_list(make_request({'max_items': 3}), self.instance),
             self.species_json[:3])
-
-
-class SearchTreeBenefitsTests(ViewTestCase):
-
-    def setUp(self):
-        super(SearchTreeBenefitsTests, self).setUp()
-
-        region = ITreeRegion.objects.get(code='PiedmtCLT')
-        self.p1 = region.geometry.point_on_surface
-        self.instance = make_instance(point=self.p1)
-        self.commander = make_commander_user(self.instance)
-
-        # Assuming that CEAT has an itree_code of CEM OTHER in PiedmtCLT
-        self.species_good = Species(instance=self.instance, otm_code='CEAT')
-        self.species_good.save_with_user(self.commander)
-        self.species_bad = Species(instance=self.instance)
-        self.species_bad.save_with_user(self.commander)
-
-    def make_tree(self, diameter, species):
-        plot = Plot(geom=self.p1, instance=self.instance)
-        plot.save_with_user(self.commander)
-        tree = Tree(plot=plot, instance=self.instance,
-                    diameter=diameter, species=species)
-        tree.save_with_user(self.commander)
-
-    def search_benefits(self):
-        request = make_request(
-            {'q': json.dumps({'tree.readonly': {'IS': False}})})  # all trees
-        request.instance_supports_ecobenefits = self.instance\
-                                                    .has_itree_region()
-        result = search_tree_benefits(request, self.instance)
-        return result
-
-    def test_tree_with_species_and_diameter_included(self):
-        self.make_tree(10, self.species_good)
-        benefits = self.search_benefits()
-        self.assertEqual(benefits['basis']['n_trees_used'], 1)
-
-    def test_tree_without_diameter_ignored(self):
-        self.make_tree(None, self.species_good)
-        benefits = self.search_benefits()
-        self.assertEqual(benefits['basis']['n_trees_used'], 0)
-
-    def test_tree_without_species_ignored(self):
-        self.make_tree(10, None)
-        benefits = self.search_benefits()
-        self.assertEqual(benefits['basis']['n_trees_used'], 0)
-
-    def test_tree_without_itree_code_ignored(self):
-        self.make_tree(10, self.species_bad)
-        benefits = self.search_benefits()
-        self.assertEqual(benefits['basis']['n_trees_used'], 0)
-
-    def test_extrapolation_increases_benefits(self):
-        self.make_tree(10, self.species_good)
-        self.make_tree(20, self.species_good)
-        self.make_tree(30, self.species_good)
-        benefits = self.search_benefits()
-        value = float(benefits['benefits'][0]['value'])
-
-        self.make_tree(None, self.species_good)
-        self.make_tree(10, None)
-        benefits = self.search_benefits()
-        value_with_extrapolation = float(benefits['benefits'][0]['value'])
-
-        self.assertEqual(benefits['basis']['percent'], 0.6)
-        self.assertGreater(self, value_with_extrapolation, value)
-
-    def test_currency_is_empty_if_not_set(self):
-        self.make_tree(10, self.species_good)
-        benefits = self.search_benefits()
-
-        for benefit in benefits['benefits']:
-            self.assertNotIn('currency_saved', benefit)
-
-    def test_currency_is_not_empty(self):
-        benefit = BenefitCurrencyConversion(
-            electricity_kwh_to_currency=2.0,
-            natural_gas_kbtu_to_currency=2.0,
-            h20_gal_to_currency=2.0,
-            co2_lb_to_currency=2.0,
-            o3_lb_to_currency=2.0,
-            nox_lb_to_currency=2.0,
-            pm10_lb_to_currency=2.0,
-            sox_lb_to_currency=2.0,
-            voc_lb_to_currency=2.0,
-            currency_symbol='$')
-
-        benefit.save()
-        self.instance.eco_benefits_conversion = benefit
-        self.instance.save()
-
-        self.make_tree(10, self.species_good)
-        benefits = self.search_benefits()
-
-        for benefit in benefits['benefits']:
-            self.assertIsNotNone(benefit['currency_saved'])
-
-        self.assertEqual(benefits['currency_symbol'], '$')
 
 
 class UserViewTests(ViewTestCase):

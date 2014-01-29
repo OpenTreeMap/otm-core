@@ -15,6 +15,11 @@ UITEST_CREATE_INSTANCE_FUNCTION = 'treemap.tests.make_instance'
 SUPPORT_EMAIL_ADDRESS = 'support@yoursite.com'
 SYSTEM_USER_ID = -1
 
+#
+# URL to access eco benefit service
+#
+ECO_SERVICE_URL = 'http://localhost:13000'
+
 # This should be the google analytics id without
 # the 'GTM-' prefix
 GOOGLE_ANALYTICS_ID = None
