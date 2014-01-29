@@ -42,7 +42,7 @@
                       <li><a><i class="icon-thumbs-up"></i> Moderate</a></li>
                   </ul>
               </li>
-              <li><a>My Account</a></li>
+              <li class="active"><a>My Account</a></li>
               <li class="user-img">
                 <a><img src="static/img/profile.png"></a>
               </li>
@@ -86,7 +86,7 @@
         <div class="logo">
           <a href=""><img id="site-logo" src="static/img/logo-beta.png" alt="OpenTreeMap"></a>
         </div>
-        <div class="search-wrapper">
+        <div class="search-wrapper hidden">
             <div class="search-block-wrapper">
 
                 <!--Species Search-->
@@ -140,7 +140,7 @@
     <!-- Profile Page Content -->
     <div class="container contained profile">
         <div class="row-fluid">
-            <div class="span4">
+            <div class="span3">
                 <div class="account-info">
                     <div class="user-photo-container">
                         <img class="user-photo" id="user-photo" src="static/img/profile.png">
@@ -148,14 +148,36 @@
                     </div>
                     <h1>Username <small>User Profile</small></h1>
                 </div>
+                <button id="edit-user" data-class="display" class="btn btn-small btn-info">Edit Profile</button>
+                <button id="save-edit" data-class="edit" class="btn btn-small btn-primary hidden">Save</button>
+                <button id="cancel-edit" data-class="edit" class="btn btn-small hidden">Cancel</button>
+                <button id="reset-password" data-class="display" class="btn btn-small">Reset Password</button>
                 <form id="user-form"></form>
-                <button id="edit-user" data-class="display" class="btn btn-mini btn-info">Edit</button>
-                <button id="save-edit" data-class="edit" class="btn btn-mini btn-primary" style="display: none;">Save</button>
-                <button id="cancel-edit" data-class="edit" class="btn btn-mini" style="display: none;">Cancel</button>
             </div>
-            <div class="span8">
-                <h2>Recently Added and Edited Trees</h2>
-                <div id="recent-user-edits-container"></div>
+            <div class="span9">
+                <div class="profile-tabs">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a href="#edits" data-toggle="tab"><span class="number">430</span> Edits</a></li>
+                        <li><a href="#maps" data-toggle="tab"><span class="number">3</span> Tree Maps</a></li>
+                        <li><a href="#faves" data-toggle="tab"><span class="number">86</span> Favorites</a></li>
+                    </ul>
+                </div>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="edits">
+                        <h3>Recently Edited Trees</h3>
+                        <div id="recent-user-edits-container">
+                            <!-- INSERT RECENT EDITS TABLE HERE -->
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="maps">
+                        <h3>Tree Maps</h3>
+                        <!-- INSERT LIST OF OTHER TREE MAPS HERE -->
+                    </div>
+                    <div class="tab-pane" id="faves">
+                        <h3>Favorites</h3>
+                        <!-- INSERT FAVORITES TABLE HERE -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
