@@ -185,7 +185,7 @@ class MigrationCommandTests(TestCase):
         self.assertEqual(species.cultivar, '')
         self.assertEqual(species.gender, '')
         self.assertEqual(species.common_name, "Basket willow")
-        self.assertEqual(species.native_status, 'False')
+        self.assertEqual(species.native_status, False)
         self.assertEqual(species.bloom_period, None)
         self.assertEqual(species.fruit_period, None)
         self.assertEqual(species.fall_conspicuous, None)

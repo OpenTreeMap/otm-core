@@ -124,7 +124,8 @@ MIGRATION_RULES = {
                            'family', 'scientific_name', 'symbol'},
         'value_transformers': {
             'v_max_height': (lambda x: x or 10000),
-            'v_max_dbh': (lambda x: x or 10000)
+            'v_max_dbh': (lambda x: x or 10000),
+            'native_status': (lambda x: x and x.lower() == 'true')
         },
     },
     'user': {
