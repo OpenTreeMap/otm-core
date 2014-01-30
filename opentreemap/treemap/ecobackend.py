@@ -11,6 +11,7 @@ from django.conf import settings
 
 BAD_CODE_PAIR = 'bad code pair'
 
+
 def json_benefits_call(endpoint, params):
     paramString = "&".join(["%s=%s" % (urllib.quote_plus(str(name)),
                                        urllib.quote_plus(str(val)))

@@ -828,7 +828,7 @@ class PlotViewTest(PlotViewTestCase):
         super(PlotViewTest, self).setUp()
 
         def mockbenefits(*args, **kwargs):
-            return {
+            benefits = {
                 "Benefits": {
                     "aq_nox_avoided": 0.6792,
                     "aq_nox_dep": 0.371,
@@ -847,6 +847,7 @@ class PlotViewTest(PlotViewTestCase):
                     "natural_gas": 5834.1
                 }
             }
+            return (benefits, None)
 
         self.origBenefitFn = ecobackend.json_benefits_call
         ecobackend.json_benefits_call = mockbenefits
