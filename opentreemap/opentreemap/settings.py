@@ -297,6 +297,7 @@ DISPLAY_DEFAULTS = {
         'energy':     {'units': 'kwh', 'digits': 1},
         'stormwater': {'units': 'gal', 'digits': 1},
         'co2':        {'units': 'lbs/year', 'digits': 1},
+        'co2storage': {'units': 'lbs', 'digits': 1},
         'airquality': {'units': 'lbs/year', 'digits': 1}
     }
 }
