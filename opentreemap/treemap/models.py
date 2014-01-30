@@ -717,21 +717,6 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
         else:
             return super(Tree, clz).action_format_string_for_audit(audit)
 
-    @property
-    def has_itree_code(self):
-        # Import done here to prevent circular imports
-        from treemap.ecobenefits import (itree_code_for_species_in_region,
-                                         get_default_region)
-
-        if self.species is None:
-            return False
-
-        qs = ITreeRegion.objects.filter(geometry__contains=self.plot.geom)
-        region = qs[0] if qs else get_default_region(self.species.instance)
-
-        itree_code = itree_code_for_species_in_region(self.species, region)
-        return itree_code is not None
-
     def delete_with_user(self, user, *args, **kwargs):
         # All callers should decorate with @transaction.commit_on_success
         # TODO: upgrade to django 1.6 so that we can decorate this with

@@ -9,6 +9,7 @@ import json
 
 from django.conf import settings
 
+BAD_CODE_PAIR = 'bad code pair'
 
 def json_benefits_call(endpoint, params):
     paramString = "&".join(["%s=%s" % (urllib.quote_plus(str(name)),
@@ -18,4 +19,12 @@ def json_benefits_call(endpoint, params):
     url = "%s/%s?%s" % (settings.ECO_SERVICE_URL,
                         endpoint, paramString)
 
-    return json.loads(urllib2.urlopen(url).read())
+    try:
+        rslt = json.loads(urllib2.urlopen(url).read())
+    except urllib2.HTTPError as e:
+        if e.fp.read() == 'invalid otm code for region\n':
+            return (None, BAD_CODE_PAIR)
+        else:
+            raise
+
+    return (rslt, None)

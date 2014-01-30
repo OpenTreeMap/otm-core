@@ -53,7 +53,10 @@ def benefits_for_trees(trees, instance):
     params = (('where', whereWithDollars), ('instance_id', instance.pk))
     params += tuple([("param", p) for p in where_params])
 
-    rawb = ecobackend.json_benefits_call('eco_summary.json', params)
+    rawb, err = ecobackend.json_benefits_call('eco_summary.json', params)
+
+    if err:
+        raise Exception(err)
 
     benefits = rawb['Benefits']
 
@@ -166,13 +169,16 @@ def tree_benefits(instance, tree_or_tree_id):
                       'diameter': tree.diameter,
                       'region': region}
 
-            rawb = ecobackend.json_benefits_call(
+            rawb, err = ecobackend.json_benefits_call(
                 'eco.json', params.iteritems())
 
-            benefits, _ = _compute_currency_and_transform_units(
-                instance, rawb['Benefits'])
+            if err:
+                rslt = {'error': err}
+            else:
+                benefits, _ = _compute_currency_and_transform_units(
+                    instance, rawb['Benefits'])
 
-            rslt = {'benefits': benefits}
+                rslt = {'benefits': benefits}
         else:
             rslt = {'benefits': {}, 'error': 'MISSING_REGION'}
 
