@@ -175,7 +175,7 @@ function getLayerURL(config, layer, extension) {
 }
 
 function getPlotLayerURL(config, extension) {
-    return getLayerURL(config, 'treemap_plot', extension);
+    return getLayerURL(config, 'treemap_mapfeature', extension);
 }
 
 function getBoundsLayerURL(config, extension) {

@@ -34,7 +34,7 @@ function init(options) {
 
     var clickedIdStream = map.utfEvents
         .filter(inMyMode)
-        .map('.data.' + config.utfGrid.plotIdKey);
+        .map('.data.' + config.utfGrid.mapfeatureIdKey);
 
 
     var popupHtmlStream = BU.fetchFromIdStream(clickedIdStream,

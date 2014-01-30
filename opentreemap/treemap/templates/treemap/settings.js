@@ -9,7 +9,7 @@ var otm = otm || {};
 otm.settings = otm.settings || {};
 
 otm.settings.utfGrid = {
-    plotIdKey: 'the_plot_id'
+    mapfeatureIdKey: 'id'
 }
 
 otm.settings.urls = {
