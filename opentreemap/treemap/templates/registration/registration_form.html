@@ -25,7 +25,10 @@
         {% csrf_token %}
         <legend>{% trans "Create an Account" %}</legend>
         {{ form.as_p }}
+
+        {% block submit_button %}
         <button type="submit" class="btn btn-large input-block-level btn-primary" value="{% trans 'Submit' %}" >{% trans "Submit" %}</button>
+        {% endblock submit_button %}
       </fieldset>
     </form>
   </div>
