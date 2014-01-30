@@ -172,7 +172,7 @@
     {% endif %}
     {% endwith %}
   </ul>
-  <a href="javascript:;" class="pull-right partners">Partners</a>
+  <a href="{% url 'static_page' instance_url_name=request.instance.url_name page='Partners' %}" class="pull-right partners">{% trans "Partners" %}</a>
 </div>
 {% endblock footer %}
 
