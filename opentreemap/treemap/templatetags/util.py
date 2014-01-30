@@ -18,9 +18,9 @@ def _instance_reverse(name, thing, **kwargs):
 
 MODEL_DETAILS = {
     'plot': lambda plot: _instance_reverse(
-        'plot_detail', plot, plot_id=plot.pk),
+        'plot_detail', plot, feature_id=plot.pk),
     'tree': lambda tree: _instance_reverse(
-        'tree_detail', tree, plot_id=tree.plot.pk, tree_id=tree.pk),
+        'tree_detail', tree, feature_id=tree.plot.pk, tree_id=tree.pk),
     'treephoto': lambda tp: MODEL_DETAILS['tree'](tp.tree)
 }
 

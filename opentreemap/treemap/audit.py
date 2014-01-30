@@ -159,7 +159,6 @@ def _add_default_permissions(models, role, instance):
         FieldPermission.objects.bulk_create(perms)
 
 
-
 def approve_or_reject_existing_edit(audit, user, approved):
     """
     Approve or reject a given audit that has already been

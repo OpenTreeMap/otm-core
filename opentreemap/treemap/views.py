@@ -47,7 +47,7 @@ from treemap.ecobenefits import (benefits_for_trees, tree_benefits,
 from opentreemap.util import json_from_request, route
 
 
-def _plot_hash(request, instance, plot_id, edit=False, tree_id=None):
+def _plot_hash(request, instance, feature_id, edit=False, tree_id=None):
     """
     Compute a unique hash for a given plot or tree
 
@@ -58,7 +58,7 @@ def _plot_hash(request, instance, plot_id, edit=False, tree_id=None):
     """
 
     instance_plots = instance.scope_model(Plot)
-    base = get_object_or_404(instance_plots, pk=plot_id).hash
+    base = get_object_or_404(instance_plots, pk=feature_id).hash
 
     if request.user:
         pk = request.user.pk or ''
@@ -93,8 +93,8 @@ def _get_map_feature_or_404(feature_id, instance, type='Plot'):
     return get_object_or_404(InstanceMapFeature, pk=feature_id)
 
 
-def add_tree_photo(request, instance, plot_id, tree_id=None):
-    plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
+def add_tree_photo(request, instance, feature_id, tree_id=None):
+    plot = _get_map_feature_or_404(feature_id, instance)
     tree_ids = [t.pk for t in plot.tree_set.all()]
 
     if tree_id and int(tree_id) in tree_ids:
@@ -119,7 +119,8 @@ def add_tree_photo(request, instance, plot_id, tree_id=None):
 
     else:
         # Tree id is invalid or not in this plot
-        raise Http404('Tree id %s not found on plot %s' % (tree_id, plot_id))
+        raise Http404('Tree id %s not found on plot %s'
+                      % (tree_id, feature_id))
 
     #TODO: Validation Error
     #TODO: Auth Error
@@ -133,10 +134,10 @@ def add_tree_photo(request, instance, plot_id, tree_id=None):
     return treephoto, tree
 
 
-def add_tree_photo_view(request, instance, plot_id, tree_id=None):
+def add_tree_photo_view(request, instance, feature_id, tree_id=None):
     error = None
     try:
-        _, tree = add_tree_photo(request, instance, plot_id, tree_id)
+        _, tree = add_tree_photo(request, instance, feature_id, tree_id)
         photos = tree.photos()
     except ValidationError as e:
         trees = Tree.objects.filter(pk=tree_id)
@@ -182,8 +183,8 @@ def create_user(*args, **kwargs):
     return user
 
 
-def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
-    plot = _get_map_feature_or_404(plot_id, instance)
+def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
+    plot = _get_map_feature_or_404(feature_id, instance)
 
     if hasattr(request, 'instance_supports_ecobenefits'):
         supports_eco = request.instance_supports_ecobenefits
@@ -272,13 +273,13 @@ def context_dict_for_plot(instance, plot,
         context['upload_tree_photo_url'] = \
             reverse('add_photo_to_tree',
                     kwargs={'instance_url_name': instance.url_name,
-                            'plot_id': plot.pk,
+                            'feature_id': plot.pk,
                             'tree_id': tree.pk})
     else:
         context['upload_tree_photo_url'] = \
             reverse('add_photo_to_plot',
                     kwargs={'instance_url_name': instance.url_name,
-                            'plot_id': plot.pk})
+                            'feature_id': plot.pk})
 
     if user and user.is_authenticated():
         plot.mask_unauthorized_fields(user)
@@ -326,26 +327,25 @@ def context_dict_for_plot(instance, plot,
 
 def add_map_feature(request, instance, type='Plot'):
     feature = MapFeature.create(type, instance)
-    return _request_to_update_map_feature(request, feature)
+    return _request_to_update_map_feature(request, instance, feature)
 
 
-def update_map_feature_detail(request, instance, plot_id, type='Plot'):
-    feature_id = plot_id  # arg must be "plot_id" for keyword arg from url
+def update_map_feature_detail(request, instance, feature_id, type='Plot'):
     feature = _get_map_feature_or_404(feature_id, instance, type)
-    return _request_to_update_map_feature(request, feature)
+    return _request_to_update_map_feature(request, instance, feature)
 
 
-def _request_to_update_map_feature(request, feature):
+def _request_to_update_map_feature(request, instance, feature):
     try:
         request_dict = json.loads(request.body)
         feature, tree = update_map_feature(request_dict, request.user, feature)
 
         return {
             'ok': True,
-            'geoRevHash': feature.instance.geo_rev_hash,
-            'plotId': feature.id,
+            'geoRevHash': instance.geo_rev_hash,
+            'featureId': feature.id,
             'treeId': tree.id if tree else None,
-            'enabled': feature.instance.feature_enabled('add_plot')
+            'enabled': instance.feature_enabled('add_plot')
         }
     except ValidationError as ve:
         return bad_request_json_response(
@@ -353,16 +353,15 @@ def _request_to_update_map_feature(request, feature):
 
 
 @transaction.commit_on_success
-def delete_tree(request, instance, plot_id, tree_id):
+def delete_tree(request, instance, feature_id, tree_id):
     InstanceTree = instance.scope_model(Tree)
-    tree = get_object_or_404(InstanceTree, pk=tree_id, plot_id=plot_id)
+    tree = get_object_or_404(InstanceTree, pk=tree_id, plot_id=feature_id)
     tree.delete_with_user(request.user)
     return {'ok': True}
 
 
-def delete_map_feature(request, instance, plot_id):
-    feature_id = plot_id  # arg must be "plot_id" for keyword arg from url
-    feature = _get_map_feature_or_404(feature_id, instance)
+def delete_map_feature(request, instance, feature_id, type='Plot'):
+    feature = _get_map_feature_or_404(feature_id, instance, type)
     try:
         feature.delete_with_user(request.user)
         return {'ok': True}
@@ -1062,7 +1061,7 @@ def photo_review(request, instance):
 
 @transaction.commit_on_success
 def approve_or_reject_photo(
-        request, instance, plot_id, tree_id, photo_id, action):
+        request, instance, feature_id, tree_id, photo_id, action):
 
     approved = action == 'approve'
 
@@ -1074,7 +1073,7 @@ def approve_or_reject_photo(
     resp = HttpResponse(msg)
 
     tree = get_object_or_404(
-        Tree, plot_id=plot_id, instance=instance, pk=tree_id)
+        Tree, plot_id=feature_id, instance=instance, pk=tree_id)
 
     try:
         photo = TreePhoto.objects.get(pk=photo_id, tree=tree)
