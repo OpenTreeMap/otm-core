@@ -25,3 +25,4 @@ git+git://github.com/azavea/django-queryset-csv.git
 # 1.6 so we include them here
 django-contrib-comments==1.5
 django-threadedcomments==0.9.0
+django-apptemplates==0.0.1
