@@ -156,7 +156,7 @@ def tree_benefits(instance, tree_or_tree_id):
                                  .filter(geometry__contains=tree.plot.geom)
 
             if len(regions) > 0:
-                region = regions[0]
+                region = regions[0].code
             else:
                 region = None
 
