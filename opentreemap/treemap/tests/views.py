@@ -1349,7 +1349,6 @@ class RecentEditsViewTest(ViewTestCase):
             "/sdj/?page_size=2&exclude_pending=true",
             [{
                 "model": "udf:%s" % cudf.pk,
-                "model_id": 1,
                 "ref": None,
                 "action": Audit.Type.Insert,
                 "previous_value": None,
@@ -1360,7 +1359,6 @@ class RecentEditsViewTest(ViewTestCase):
                 "field": "udf:action"
             }, {
                 "model": "udf:%s" % cudf.pk,
-                "model_id": 1,
                 "ref": None,
                 "action": Audit.Type.Insert,
                 "previous_value": None,
