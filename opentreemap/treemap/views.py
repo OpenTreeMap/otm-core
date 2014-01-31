@@ -43,6 +43,7 @@ from treemap.units import get_units, get_display_value
 
 from treemap.ecobenefits import (benefits_for_trees, tree_benefits,
                                  get_benefit_label)
+from treemap.ecobackend import BAD_CODE_PAIR
 
 from opentreemap.util import json_from_request, route
 
@@ -255,8 +256,13 @@ def context_dict_for_plot(instance, plot,
                             supports_eco)
 
     if should_calculate_eco:
-        benefits = tree_benefits(instance, tree).get('benefits', None)
-        if benefits:
+        benefits_and_error = tree_benefits(instance, tree)
+        benefits = benefits_and_error.get('benefits', None)
+        berror = benefits_and_error.get('error', None)
+
+        if berror == BAD_CODE_PAIR:
+            context['invalid_eco_pair'] = True
+        elif benefits:
             context.update(_format_benefits(instance, benefits, 1))
 
     total_progress_items = 4
@@ -840,6 +846,7 @@ def _format_benefits(instance, benefits, num_calculated_trees,
         displayize_benefit('energy'),
         displayize_benefit('stormwater'),
         displayize_benefit('co2'),
+        displayize_benefit('co2storage'),
         displayize_benefit('airquality')
     ]
 

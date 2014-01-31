@@ -21,7 +21,7 @@ class EcoTest(UrlTestCase):
         # CEAT, 1630 dbh, NoEastXXX
         # eco.json?otmcode=CEAT&diameter=1630&region=NoEastXXX
         def mockbenefits(*args, **kwargs):
-            return {
+            benefits = {
                 "Benefits": {
                     "aq_nox_avoided": 0.6792,
                     "aq_nox_dep": 0.371,
@@ -40,6 +40,7 @@ class EcoTest(UrlTestCase):
                     "natural_gas": 5834.1
                 }
             }
+            return (benefits, None)
 
         region = ITreeRegion.objects.get(code='NoEastXXX')
         p = region.geometry.point_on_surface

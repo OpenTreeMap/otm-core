@@ -53,7 +53,10 @@ def benefits_for_trees(trees, instance):
     params = (('where', whereWithDollars), ('instance_id', instance.pk))
     params += tuple([("param", p) for p in where_params])
 
-    rawb = ecobackend.json_benefits_call('eco_summary.json', params)
+    rawb, err = ecobackend.json_benefits_call('eco_summary.json', params)
+
+    if err:
+        raise Exception(err)
 
     benefits = rawb['Benefits']
 
@@ -72,8 +75,8 @@ def _compute_currency_and_transform_units(instance, benefits):
                  'aq_pm10_dep', 'aq_sox_dep', 'aq_sox_avoided',
                  'aq_voc_avoided', 'aq_pm10_avoided', 'bvoc']
 
-    # note that co2_storage is ignored
     co2factors = ['co2_sequestered', 'co2_avoided']
+    co2storagefactors = ['co2_storage']
 
     energyfactor = ['natural_gas', 'electricity']
 
@@ -85,6 +88,7 @@ def _compute_currency_and_transform_units(instance, benefits):
     groups = {
         'airquality': ('lbs/year', aqfactors),
         'co2': ('lbs/year', co2factors),
+        'co2storage': ('lbs', co2storagefactors),
         'stormwater': ('gal', hydrofactors),
         'energy': ('kwh', energyfactor)
     }
@@ -165,13 +169,16 @@ def tree_benefits(instance, tree_or_tree_id):
                       'diameter': tree.diameter,
                       'region': region}
 
-            rawb = ecobackend.json_benefits_call(
+            rawb, err = ecobackend.json_benefits_call(
                 'eco.json', params.iteritems())
 
-            benefits, _ = _compute_currency_and_transform_units(
-                instance, rawb['Benefits'])
+            if err:
+                rslt = {'error': err}
+            else:
+                benefits, _ = _compute_currency_and_transform_units(
+                    instance, rawb['Benefits'])
 
-            rslt = {'benefits': benefits}
+                rslt = {'benefits': benefits}
         else:
             rslt = {'benefits': {}, 'error': 'MISSING_REGION'}
 
@@ -193,6 +200,8 @@ _benefit_labels = {
     'stormwater': trans('Stormwater'),
     # Translators: 'Carbon Dioxide' is the name of an eco benefit
     'co2':        trans('Carbon Dioxide'),
+    # Translators: 'Carbon Dioxide Stored' is the name of an eco benefit
+    'co2storage': trans('Carbon Dioxide Stored'),
     # Translators: 'Air Quality' is the name of an eco benefit
     'airquality': trans('Air Quality')
 }

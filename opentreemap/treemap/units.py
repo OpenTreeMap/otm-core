@@ -32,6 +32,8 @@ _unit_names = {
     "m":   trans("meters"),
     "lbs/year": trans("pounds per year"),
     "kg/year":  trans("kilograms per year"),
+    "lbs": trans("pounds"),
+    "kg":  trans("kilograms"),
     "kwh": trans("kilowatt-hours"),
     "gal": trans("gallons"),
     "L":   trans("liters")
@@ -41,6 +43,7 @@ _unit_conversions = {
     "in": {"in": 1, "ft": .083333333, "cm": 2.54, "m": .0254},
     "ft": {"in": 12, "ft": 1, "cm": 2.54, "m": 30.48},
     "lbs/year": {"lbs/year": 1, "kg/year": 0.453592},
+    "lbs": {"lbs": 1, "kg": 0.453592},
     "gal": {"gal": 1, "L": 3.785},
     "kwh": {"kwh": 1}
 }
