@@ -11,6 +11,11 @@
   	}
 
     [zoom < 16] {
-        line-width: 0;
+        ::case {
+    	    line-width: 0;    
+        }
+        ::fill {
+            line-width: 0;  
+        }
     }
 }
