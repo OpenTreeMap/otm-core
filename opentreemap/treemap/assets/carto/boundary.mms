@@ -9,4 +9,13 @@
     	line-color: #444;
     	line-dasharray: 10, 8;
   	}
+
+    [zoom < 16] {
+        ::case {
+    	    line-width: 0;    
+        }
+        ::fill {
+            line-width: 0;  
+        }
+    }
 }
