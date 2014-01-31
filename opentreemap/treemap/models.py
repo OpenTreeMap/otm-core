@@ -543,6 +543,9 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
 
     @classmethod
     def create(self, type, instance):
+        """
+        Create a map feature with the given type string (e.g. 'Plot')
+        """
         return self.get_subclass(type)(instance=instance)
 
     @property

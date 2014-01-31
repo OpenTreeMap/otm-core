@@ -87,14 +87,14 @@ def _search_hash(request, instance):
     return hashlib.md5(string_to_hash).hexdigest()
 
 
-def _get_map_feature_or_404(feature_id, instance, type='Plot'):
+def _get_map_feature_or_404(feature_id, instance, type):
     MapFeatureSubclass = MapFeature.get_subclass(type)
     InstanceMapFeature = instance.scope_model(MapFeatureSubclass)
     return get_object_or_404(InstanceMapFeature, pk=feature_id)
 
 
 def add_tree_photo(request, instance, feature_id, tree_id=None):
-    plot = _get_map_feature_or_404(feature_id, instance)
+    plot = _get_map_feature_or_404(feature_id, instance, 'Plot')
     tree_ids = [t.pk for t in plot.tree_set.all()]
 
     if tree_id and int(tree_id) in tree_ids:
@@ -184,7 +184,7 @@ def create_user(*args, **kwargs):
 
 
 def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
-    plot = _get_map_feature_or_404(feature_id, instance)
+    plot = _get_map_feature_or_404(feature_id, instance, 'Plot')
 
     if hasattr(request, 'instance_supports_ecobenefits'):
         supports_eco = request.instance_supports_ecobenefits
@@ -433,7 +433,10 @@ def update_map_feature(request_dict, user, feature):
             return package_validation_errors(thing._model_name, e)
 
     def get_tree():
-        return feature.current_tree() or Tree(instance=feature.instance)
+        if isinstance(feature, Plot):
+            return feature.current_tree() or Tree(instance=feature.instance)
+        else:
+            raise Exception("Can only set tree fields on plot map features")
 
     tree = None
 
@@ -442,9 +445,11 @@ def update_map_feature(request_dict, user, feature):
 
         if model_name in feature_types:
             model = feature
-        elif model_name == 'tree':
+        elif model_name == 'tree' and feature.feature_type == 'Plot':
             # Get the tree or spawn a new one if needed
-            tree = tree or get_tree()
+            tree = (tree or
+                    feature.current_tree() or
+                    Tree(instance=feature.instance))
             model = tree
             if field == 'species' and value:
                 value = get_object_or_404(Species,
