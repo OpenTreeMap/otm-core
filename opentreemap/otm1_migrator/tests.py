@@ -13,7 +13,8 @@ from unittest import skip
 
 from treemap.models import Plot, Tree, Species, User
 from treemap.tests import (make_instance, make_commander_user)
-from otm1_migrator.management.commands.perform_migration import hash_to_model
+from otm1_migrator.management.commands.perform_migration import (
+    hash_to_model, hashes_to_saved_objects)
 
 
 class MigrationCommandTests(TestCase):
@@ -114,7 +115,7 @@ class MigrationCommandTests(TestCase):
         "plant_guide": null,
         "fall_conspicuous": null,
         "species": "viminalis",
-        "other_part_of_name": null,
+        "other_part_of_name": "",
         "wildlife_value": null,
         "fact_sheet": "http://eol.org/search?q=Salix viminalis",
         "cultivar_name": "",
@@ -127,7 +128,7 @@ class MigrationCommandTests(TestCase):
         "v_multiple_trunks": null,
         "gender": "",
         "bloom_period": null,
-        "genus": "Salix"}}
+        "genus": "Eucalyptus"}}
         """
 
     def test_user_hash_to_model(self):
@@ -148,21 +149,43 @@ class MigrationCommandTests(TestCase):
         self.assertEqual(user.groups.count(), 0)
         self.assertEqual(user.user_permissions.count(), 0)
 
-    @skip("Skipping until species migrating is corrected")
+    def test_dont_add_duplicates(self):
+        species_dict = json.loads(self.species_blob)
+        species_dicts = [species_dict, species_dict, species_dict]
+
+        role = self.commander.instanceuser_set.get(
+            instance=self.instance).role
+
+        hashes_to_saved_objects("species", [species_dict], {},
+                                self.instance, self.commander,
+                                commander_role=role,
+                                save_with_user=True)
+
+        allspecies = Species.objects.filter(instance=self.instance)
+        self.assertEqual(len(allspecies), 1)
+
     def test_species_hash_to_model(self):
         species_dict = json.loads(self.species_blob)
-        species = hash_to_model('species', species_dict,
-                                self.instance, self.commander)
+        role = self.commander.instanceuser_set.get(
+            instance=self.instance).role
 
-        species.save_with_user(self.commander)
-        species = Species.objects.get(pk=species.pk)
-        self.assertEqual(species.otm_code, 'SAVI')
-        self.assertEqual(species.genus, 'Salix')
+        hashes_to_saved_objects("species", [species_dict], {},
+                                self.instance, self.commander,
+                                commander_role=role,
+                                save_with_user=True)
+
+        allspecies = Species.objects.filter(instance=self.instance)
+        self.assertEqual(len(allspecies), 1)
+
+        species = allspecies[0]
+
+        self.assertEqual(species.otm_code, 'EUVI')
+        self.assertEqual(species.genus, 'Eucalyptus')
         self.assertEqual(species.species, 'viminalis')
         self.assertEqual(species.cultivar, '')
         self.assertEqual(species.gender, '')
         self.assertEqual(species.common_name, "Basket willow")
-        self.assertEqual(species.native_status, 'False')
+        self.assertEqual(species.native_status, False)
         self.assertEqual(species.bloom_period, None)
         self.assertEqual(species.fruit_period, None)
         self.assertEqual(species.fall_conspicuous, None)
