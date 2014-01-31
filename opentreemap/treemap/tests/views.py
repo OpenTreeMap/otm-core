@@ -41,7 +41,8 @@ from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
                            set_write_permissions, MockSession,
-                           delete_all_app_users)
+                           delete_all_app_users, set_read_permissions)
+from treemap.tests.udfs import make_collection_udf
 
 
 class InstanceValidationTest(TestCase):
@@ -1109,9 +1110,9 @@ class RecentEditsViewTest(ViewTestCase):
             for k, v in expected.iteritems():
                 self.assertEqual(v, generated[k], "key [%s]" % k)
 
-    def check_audits(self, url, dicts):
+    def check_audits(self, url, dicts, user=None):
         req = self.factory.get(url)
-        req.user = AnonymousUser()
+        req.user = user if user else AnonymousUser()
         resulting_audits = [audit.dict()
                             for audit
                             in edits(req, self.instance)['audits']]
@@ -1335,6 +1336,54 @@ class RecentEditsViewTest(ViewTestCase):
             "/blah/?page_size=4&exclude_pending=true",
             [approve_delta, pending_plot_delta,
              self.next_plot_delta, self.plot_delta])
+
+    def test_udf_collection_audits_appear(self):
+        cudf = make_collection_udf(self.instance, 'Stew')
+        set_write_permissions(self.instance, self.commander, 'Plot',
+                              ['udf:Stew'])
+        set_read_permissions(self.instance, self.officer, 'Plot', ['udf:Stew'])
+
+        self.plot.udfs['Stew'] = [{'action': 'water', 'height': 343}]
+        self.plot.save_with_user(self.commander)
+
+        self.check_audits(
+            "/sdj/?page_size=2&exclude_pending=true",
+            [{
+                "model": "udf:%s" % cudf.pk,
+                "model_id": 1,
+                "ref": None,
+                "action": Audit.Type.Insert,
+                "previous_value": None,
+                "current_value": "water",
+                "requires_auth": False,
+                "user_id": self.commander.pk,
+                "instance_id": self.instance.pk,
+                "field": "udf:action"
+            }, {
+                "model": "udf:%s" % cudf.pk,
+                "model_id": 1,
+                "ref": None,
+                "action": Audit.Type.Insert,
+                "previous_value": None,
+                "current_value": "343",
+                "requires_auth": False,
+                "user_id": self.commander.pk,
+                "instance_id": self.instance.pk,
+                "field": "udf:height"
+            }],
+            user=self.officer)
+
+    def test_udf_collection_audits_not_shown_with_no_permissions(self):
+        make_collection_udf(self.instance, 'Stew')
+        set_write_permissions(self.instance, self.commander, 'Plot',
+                              ['udf:Stew'])
+
+        self.plot.udfs['Stew'] = [{'action': 'water', 'height': 343}]
+        self.plot.save_with_user(self.commander)
+
+        self.check_audits(
+            "/sdj/?page_size=2&exclude_pending=true",
+            [self.next_plot_delta, self.plot_delta], user=self.officer)
 
 
 class SpeciesViewTests(ViewTestCase):

@@ -529,7 +529,7 @@ def _get_audits(logged_in_user, instance, query_vars, user, models,
                 continue
 
             model_collection_udfs_audit_names =\
-                fake_model.visible_collection_udfs_audit_names(user)
+                fake_model.visible_collection_udfs_audit_names(logged_in_user)
 
             # Don't show the fields that every collection UDF has, because they
             # are not very interesting

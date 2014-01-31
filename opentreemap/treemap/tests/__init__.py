@@ -179,10 +179,20 @@ def make_observer_role(instance):
                              permissions)
 
 
+def set_read_permissions(instance, user, model_type, field_names):
+    set_permissions(instance, user, model_type, field_names,
+                    FieldPermission.READ_ONLY)
+
+
 def set_write_permissions(instance, user, model_type, field_names):
+    set_permissions(instance, user, model_type, field_names,
+                    FieldPermission.WRITE_DIRECTLY)
+
+
+def set_permissions(instance, user, model_type, field_names, perm):
     permissions = ()
     for field in field_names:
-        permissions += ((model_type, field, FieldPermission.WRITE_DIRECTLY),)
+        permissions += ((model_type, field, perm),)
     role = user.get_role(instance)
     _set_permissions(instance, role, permissions)
 
