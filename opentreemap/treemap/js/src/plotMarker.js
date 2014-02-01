@@ -4,7 +4,7 @@
 // different location.
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     Bacon = require('baconjs'),
     U = require('treemap/utility'),
     L = require('leaflet');

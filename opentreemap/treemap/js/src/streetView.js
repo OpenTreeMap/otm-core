@@ -2,7 +2,7 @@
 
 var google = require('googlemaps'),
     $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
 
     utility = require('treemap/utility');
 

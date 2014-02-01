@@ -2,7 +2,7 @@
 
 var $ = require('jquery'),
     U = require('treemap/utility'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     Bacon = require('baconjs');
 
 // ``coordToLatLng`` converts a 2d coordinate array or an object
@@ -60,7 +60,7 @@ exports = module.exports = function (config) {
         }
 
         // Extract geom (x,y), score, name, and type
-        var candidates = _.chain(geocoderResponse.locations)
+        var candidates = _(geocoderResponse.locations)
             .map(function(candidate) {
                 var xy = U.lonLatToWebMercator(
                     candidate.feature.geometry.x,
@@ -105,7 +105,7 @@ exports = module.exports = function (config) {
                 .value();
 
         // Construct candidate list based on supportedType's order
-        var filteredCandidates = _.chain(supportedTypes)
+        var filteredCandidates = _(supportedTypes)
                 .map(function(type) { return types[type] || []; })
                 .flatten()
                 .value();

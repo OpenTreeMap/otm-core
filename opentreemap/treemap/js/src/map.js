@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     Bootstrap = require('bootstrap'),  // for $(...).collapse()
     Bacon = require('baconjs'),
     L = require('leaflet'),

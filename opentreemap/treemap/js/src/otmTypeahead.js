@@ -1,6 +1,4 @@
 "use strict";
-
-var _ = require("underscore");
 // A wrapper around twitter's typeahead library with some sane defaults
 
 // Bootstrap must always be imported before typeahead
@@ -8,7 +6,7 @@ require('bootstrap');
 require('typeahead');
 
 var $ = require("jquery"),
-    _ = require("underscore"),
+    _ = require("lodash"),
     mustache = require("mustache"),
     Bacon = require("baconjs"),
     BU = require("treemap/baconUtils");

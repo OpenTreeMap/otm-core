@@ -2,7 +2,7 @@
 
 var $ = require('jquery'),
     BU = require('treemap/baconUtils'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     L = require('leaflet');
 
 var boundaryUrlTemplate = _.template('<%= instanceUrl %>boundaries/<%= boundaryId %>/geojson/');

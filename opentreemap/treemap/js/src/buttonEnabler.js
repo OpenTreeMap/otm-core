@@ -14,7 +14,7 @@
 // When an anchor tag gets enabled, its href is set to its data-href.
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
 
     enablePermAttr = 'data-always-enable',
     disabledTitleAttr = 'data-disabled-title',

@@ -1,6 +1,6 @@
 "use strict";
 
-var _ = require('underscore'),
+var _ = require('lodash'),
     Bacon = require('baconjs'),
     url = require('url'),
     L = require('leaflet'),

@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     otmTypeahead = require('treemap/otmTypeahead'),
     inlineEditForm = require('treemap/inlineEditForm'),
     mapManager = require('treemap/mapManager'),

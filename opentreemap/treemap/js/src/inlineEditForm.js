@@ -3,7 +3,7 @@
 var $ = require('jquery'),
     Bacon = require('baconjs'),
     BU = require('treemap/baconUtils'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     moment = require('moment'),
     FH = require('treemap/fieldHelpers'),
     getDatum = require('treemap/otmTypeahead').getDatum,

@@ -4,7 +4,7 @@ var $ = require('jquery'),
     BU = require('treemap/baconUtils'),
     url = require('url'),
     U = require('treemap/utility'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     Bacon = require('baconjs');
 
 

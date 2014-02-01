@@ -2,7 +2,7 @@
 
 var $ = require('jquery'),
     Bacon = require('baconjs'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     moment = require("moment"),
     isTypeaheadHiddenField = require('treemap/fieldHelpers'),
     FH = require('treemap/fieldHelpers');

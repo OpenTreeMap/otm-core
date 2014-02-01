@@ -2,7 +2,7 @@
 
 var Bacon = require('baconjs'),
     $ = require('jquery'),
-    _ = require('underscore');
+    _ = require('lodash');
 
 // Bacon.js is an npm module, but only extends jQuery if it's a global object
 // So we need to add extend jQuery with Bacon methods manually
