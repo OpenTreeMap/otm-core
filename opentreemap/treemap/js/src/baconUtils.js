@@ -23,6 +23,10 @@ exports.keyCodeIs = keyCodeIs;
 var isEnterKey = exports.isEnterKey = keyCodeIs([13]);
 exports.isEscKey = keyCodeIs([27]);
 
+exports.not = function(staticValue, streamValue) {
+    return staticValue !== streamValue;
+};
+
 var isDefined = exports.isDefined = function (value) {
     return value !== undefined;
 };
