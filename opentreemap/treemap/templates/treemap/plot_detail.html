@@ -274,7 +274,7 @@
       var updateEcoUrl = U.appendSegmentToUrl('eco', updateUrl);
       var updateSidebarUrl = U.appendSegmentToUrl('sidebar', updateUrl);
 
-      var currentPlotUrl = "{% url 'plot_detail' instance_url_name=request.instance.url_name plot_id=plot.pk %}";
+      var currentPlotUrl = "{% url 'plot_detail' instance_url_name=request.instance.url_name feature_id=plot.pk %}";
       var plotDetailUrl = U.removeLastUrlSegment(currentPlotUrl);
 
       plot.init({
