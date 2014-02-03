@@ -9,8 +9,6 @@ from copy import copy
 from django.test import TestCase
 from django.contrib.gis.geos import Point
 
-from unittest import skip
-
 from treemap.models import Plot, Tree, Species, User
 from treemap.tests import (make_instance, make_commander_user)
 from otm1_migrator.management.commands.perform_migration import (
@@ -156,7 +154,7 @@ class MigrationCommandTests(TestCase):
         role = self.commander.instanceuser_set.get(
             instance=self.instance).role
 
-        hashes_to_saved_objects("species", [species_dict], {},
+        hashes_to_saved_objects("species", species_dicts, {},
                                 self.instance, self.commander,
                                 commander_role=role,
                                 save_with_user=True)
