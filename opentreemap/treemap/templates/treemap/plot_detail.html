@@ -103,7 +103,7 @@
                 <td id="tree-id-column"
                     data-tree-id="{% if has_tree %}{{ value|unlocalize }}{% endif %}">
                 {% if has_tree %}
-                  <a href="{% url 'tree_detail' instance_url_name=request.instance.url_name plot_id=plot.pk tree_id=tree.pk %}">{{ value|unlocalize }}</a>
+                  <a href="{% url 'tree_detail' instance_url_name=request.instance.url_name feature_id=plot.pk tree_id=tree.pk %}">{{ value|unlocalize }}</a>
                 {% endif %}
                 </td>
               </tr>

@@ -14,12 +14,12 @@
     </address>
 </div>
 <div>
-    <a href="{% url 'plot_detail' instance_url_name=request.instance.url_name plot_id=plot.pk %}" 
+    <a href="{% url 'plot_detail' instance_url_name=request.instance.url_name feature_id=plot.pk %}"
        class="btn btn-small btn-secondary">{% trans "View All Details" %}</a>
 
     <a disabled="disabled"
        data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
        data-disabled-title="{% trans "Editing a tree's details is not available to all users" %}"
-       data-href="{% url 'plot_detail_edit' instance_url_name=request.instance.url_name plot_id=plot.pk edit='edit' %}"
+       data-href="{% url 'plot_detail_edit' instance_url_name=request.instance.url_name feature_id=plot.pk edit='edit' %}"
        class="btn btn-small btn-info">{% trans "Edit Details" %}</a>
 </div>

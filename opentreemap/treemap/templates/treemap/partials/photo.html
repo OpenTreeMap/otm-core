@@ -6,9 +6,9 @@
     <a href="{{ photo.image.url }}">
       <img data-id="{{ photo.pk }}" src="{{ photo.thumbnail.url }}">
     </a>
-    <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name plot_id=photo.tree.plot.pk tree_id=photo.tree.pk photo_id=photo.pk action="approve" %}">{% trans "Approve" %}</a>
-    <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name plot_id=photo.tree.plot.pk tree_id=photo.tree.pk photo_id=photo.pk action="reject" %}">{% trans "Reject" %}</a>
-    <div><a href="{% url "tree_detail" instance_url_name=request.instance.url_name plot_id=photo.tree.plot.pk tree_id=photo.tree.pk %}">{% trans "View Tree" %}</a></div>
+    <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.tree.plot.pk tree_id=photo.tree.pk photo_id=photo.pk action="approve" %}">{% trans "Approve" %}</a>
+    <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.tree.plot.pk tree_id=photo.tree.pk photo_id=photo.pk action="reject" %}">{% trans "Reject" %}</a>
+    <div><a href="{% url "tree_detail" instance_url_name=request.instance.url_name feature_id=photo.tree.plot.pk tree_id=photo.tree.pk %}">{% trans "View Tree" %}</a></div>
   </div>
 </li>
 {% endif %}

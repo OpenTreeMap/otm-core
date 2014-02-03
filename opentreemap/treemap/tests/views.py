@@ -31,11 +31,11 @@ from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, StaticPage, ITreeRegion)
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, edits, user_audits,
-                           update_plot_and_tree, update_user, add_tree_photo,
+                           update_map_feature, update_user, add_tree_photo,
                            root_settings_js_view, instance_settings_js_view,
                            compile_scss, approve_or_reject_photo,
                            upload_user_photo, static_page, instance_user_view,
-                           delete_plot, delete_tree, user)
+                           delete_map_feature, delete_tree, user)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
@@ -647,7 +647,7 @@ class PlotUpdateTest(unittest.TestCase):
         update = {'plot.geom': {'x': 4, 'y': 9},
                   'plot.readonly': False}
 
-        created_plot, _ = update_plot_and_tree(update, self.user, plot)
+        created_plot, _ = update_map_feature(update, self.user, plot)
 
         created_plot_update = Plot.objects.get(pk=created_plot.pk)
         self.assertIsNotNone(created_plot_update, created_plot_update.pk)
@@ -664,7 +664,7 @@ class PlotUpdateTest(unittest.TestCase):
                   'plot.readonly': False,
                   'tree.readonly': False}
 
-        created_plot, _ = update_plot_and_tree(update, self.user, plot)
+        created_plot, _ = update_map_feature(update, self.user, plot)
 
         created_plot_update = Plot.objects.get(pk=created_plot.pk)
         self.assertIsNotNone(created_plot_update, created_plot_update.pk)
@@ -679,7 +679,7 @@ class PlotUpdateTest(unittest.TestCase):
         update = {'plot.udf:INVaLiD UTF': 'z'}
 
         self.assertRaises(KeyError,
-                          update_plot_and_tree,
+                          update_map_feature,
                           update, self.user, self.plot)
 
     def test_collection_udf_works(self):
@@ -691,7 +691,7 @@ class PlotUpdateTest(unittest.TestCase):
         update = {'plot.udf:Test col': plot_data,
                   'tree.udf:Test col': tree_data}
 
-        update_plot_and_tree(update, self.user, self.plot)
+        update_map_feature(update, self.user, self.plot)
 
         updated_plot = Plot.objects.get(pk=self.plot.pk)
 
@@ -711,14 +711,14 @@ class PlotUpdateTest(unittest.TestCase):
                   plot_data}
 
         self.assertRaises(ValidationError,
-                          update_plot_and_tree,
+                          update_map_feature,
                           update, self.user, self.plot)
 
     def test_malformed_udf_fails(self):
         update = {'plot.udf:Test choice': 'z'}
 
         try:
-            update_plot_and_tree(update, self.user, self.plot)
+            update_map_feature(update, self.user, self.plot)
             raise AssertionError('expected update to raise validation error')
         except ValidationError as e:
 
@@ -729,7 +729,7 @@ class PlotUpdateTest(unittest.TestCase):
                   'plot.length': 'bad'}
 
         try:
-            update_plot_and_tree(update, self.user, self.plot)
+            update_map_feature(update, self.user, self.plot)
             raise AssertionError('expected update to raise validation error')
         except ValidationError as e:
             self.assertIn('plot.udf:Test choice', e.message_dict)
@@ -743,7 +743,7 @@ class PlotUpdateTest(unittest.TestCase):
                   'plot.width': 25,
                   'plot.udf:Test choice': 'b'}
 
-        rslt, _ = update_plot_and_tree(update, self.user, self.plot)
+        rslt, _ = update_map_feature(update, self.user, self.plot)
 
         self.assertEqual(rslt.pk, self.plot.pk)
 
@@ -757,7 +757,7 @@ class PlotUpdateTest(unittest.TestCase):
         update = {'plot.length': 'length'}
 
         try:
-            update_plot_and_tree(update, self.user, self.plot)
+            update_map_feature(update, self.user, self.plot)
             raise AssertionError('expected update to raise validation error')
         except ValidationError as e:
             self.assertIn('plot.length', e.message_dict)
@@ -766,7 +766,7 @@ class PlotUpdateTest(unittest.TestCase):
         self.assertIsNone(self.plot.current_tree())
 
         update = {'tree.height': 9}
-        update_plot_and_tree(update, self.user, self.plot)
+        update_map_feature(update, self.user, self.plot)
 
         self.assertIsNotNone(
             Plot.objects.get(pk=self.plot.pk).current_tree())
@@ -780,7 +780,7 @@ class PlotUpdateTest(unittest.TestCase):
                   'tree.height': 42}
 
         try:
-            update_plot_and_tree(update, self.user, self.plot)
+            update_map_feature(update, self.user, self.plot)
             raise AssertionError('expected update to raise validation error')
         except ValidationError as e:
             self.assertIn('plot.length', e.message_dict)
@@ -801,7 +801,7 @@ class PlotUpdateTest(unittest.TestCase):
                   'tree.height': 'height'}
 
         try:
-            update_plot_and_tree(update, self.user, self.plot)
+            update_map_feature(update, self.user, self.plot)
             raise AssertionError('expected update to raise validation error')
         except ValidationError as e:
             self.assertIn('tree.height', e.message_dict)
@@ -1666,7 +1666,7 @@ class DeleteViewTests(ViewTestCase):
         Tree(plot=plot, instance=self.instance,
              diameter=10).save_with_user(self.user)
 
-        raw_response = delete_plot(self.request, self.instance, plot.pk)
+        raw_response = delete_map_feature(self.request, self.instance, plot.pk)
 
         self.assertEqual(raw_response,
                          "Cannot delete plot with existing trees.")
@@ -1677,7 +1677,7 @@ class DeleteViewTests(ViewTestCase):
         plot.save_with_user(self.user)
         self.assertEqual(Plot.objects.count(), 1)
 
-        raw_response = delete_plot(self.request, self.instance, plot.pk)
+        raw_response = delete_map_feature(self.request, self.instance, plot.pk)
 
         self.assertEqual(raw_response, {'ok': True})
         self.assertEqual(Plot.objects.count(), 0)

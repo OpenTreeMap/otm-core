@@ -19,7 +19,7 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views.decorators.http import etag
 from django.conf import settings
-from django.contrib.gis.geos.point import Point
+from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from django.contrib.auth.decorators import login_required
 from django.utils.translation import ugettext as trans
 from django.utils.formats import number_format
@@ -38,7 +38,7 @@ from treemap.search import create_filter
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
 from treemap.models import (Plot, Tree, User, Species, Instance,
-                            TreePhoto, StaticPage)
+                            TreePhoto, StaticPage, MapFeature)
 from treemap.units import get_units, get_display_value
 
 from treemap.ecobenefits import (benefits_for_trees, tree_benefits,
@@ -48,7 +48,7 @@ from treemap.ecobackend import BAD_CODE_PAIR
 from opentreemap.util import json_from_request, route
 
 
-def _plot_hash(request, instance, plot_id, edit=False, tree_id=None):
+def _plot_hash(request, instance, feature_id, edit=False, tree_id=None):
     """
     Compute a unique hash for a given plot or tree
 
@@ -59,7 +59,7 @@ def _plot_hash(request, instance, plot_id, edit=False, tree_id=None):
     """
 
     instance_plots = instance.scope_model(Plot)
-    base = get_object_or_404(instance_plots, pk=plot_id).hash
+    base = get_object_or_404(instance_plots, pk=feature_id).hash
 
     if request.user:
         pk = request.user.pk or ''
@@ -88,13 +88,14 @@ def _search_hash(request, instance):
     return hashlib.md5(string_to_hash).hexdigest()
 
 
-def _get_plot_or_404(plot_id, instance):
-    InstancePlot = instance.scope_model(Plot)
-    return get_object_or_404(InstancePlot, pk=plot_id)
+def _get_map_feature_or_404(feature_id, instance, type):
+    MapFeatureSubclass = MapFeature.get_subclass(type)
+    InstanceMapFeature = instance.scope_model(MapFeatureSubclass)
+    return get_object_or_404(InstanceMapFeature, pk=feature_id)
 
 
-def add_tree_photo(request, instance, plot_id, tree_id=None):
-    plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
+def add_tree_photo(request, instance, feature_id, tree_id=None):
+    plot = _get_map_feature_or_404(feature_id, instance, 'Plot')
     tree_ids = [t.pk for t in plot.tree_set.all()]
 
     if tree_id and int(tree_id) in tree_ids:
@@ -119,7 +120,8 @@ def add_tree_photo(request, instance, plot_id, tree_id=None):
 
     else:
         # Tree id is invalid or not in this plot
-        raise Http404('Tree id %s not found on plot %s' % (tree_id, plot_id))
+        raise Http404('Tree id %s not found on plot %s'
+                      % (tree_id, feature_id))
 
     #TODO: Validation Error
     #TODO: Auth Error
@@ -133,10 +135,10 @@ def add_tree_photo(request, instance, plot_id, tree_id=None):
     return treephoto, tree
 
 
-def add_tree_photo_view(request, instance, plot_id, tree_id=None):
+def add_tree_photo_view(request, instance, feature_id, tree_id=None):
     error = None
     try:
-        _, tree = add_tree_photo(request, instance, plot_id, tree_id)
+        _, tree = add_tree_photo(request, instance, feature_id, tree_id)
         photos = tree.photos()
     except ValidationError as e:
         trees = Tree.objects.filter(pk=tree_id)
@@ -182,33 +184,8 @@ def create_user(*args, **kwargs):
     return user
 
 
-def create_plot(user, instance, *args, **kwargs):
-    if 'height' in kwargs and kwargs['height'] > 1000:
-        return ["Height is too large."]
-
-    if 'x' in kwargs and 'y' in kwargs:
-        geom = Point(
-            kwargs['x'],
-            kwargs['y'])
-    elif 'lon' in kwargs and 'lat' in kwargs:
-        geom = Point(
-            kwargs['lon'],
-            kwargs['lat'])
-    else:
-        geom = Point(50, 50)
-
-    p = Plot(geom=geom, instance=instance)
-    p.save_with_user(user)
-
-    if 'height' in kwargs:
-        t = Tree(plot=p, instance=instance)
-        t.height = kwargs['height']
-        t.save_with_user(user)
-    return p
-
-
-def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
-    plot = _get_plot_or_404(plot_id, instance)
+def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
+    plot = _get_map_feature_or_404(feature_id, instance, 'Plot')
 
     if hasattr(request, 'instance_supports_ecobenefits'):
         supports_eco = request.instance_supports_ecobenefits
@@ -227,12 +204,24 @@ def plot_detail(request, instance, plot_id, edit=False, tree_id=None):
     return context
 
 
+def _context_dict_for_map_feature(instance, feature):
+    if instance.pk != feature.instance_id:
+        raise Exception("Invalid instance does not match plot")
+
+    feature.instance = instance  # save a DB lookup
+    context = {}
+    return context
+
+
+def context_dict_for_non_plot_feature(instance, feature):
+    context = _context_dict_for_map_feature(instance, feature)
+    context['feature'] = feature
+    return context
+
+
 def context_dict_for_plot(instance, plot,
                           tree_id=None, user=None, supports_eco=False):
-    if instance.pk != plot.instance_id:
-        raise Exception("Invaild instance does not match plot")
-
-    plot.instance = instance
+    context = _context_dict_for_map_feature(instance, plot)
 
     if tree_id:
         tree = get_object_or_404(Tree,
@@ -246,8 +235,6 @@ def context_dict_for_plot(instance, plot,
     has_tree_species_with_code = tree is not None \
         and tree.species is not None and tree.species.otm_code is not None
     has_photo = tree is not None and tree.treephoto_set.all().count() > 0
-
-    context = {}
 
     # If the the benefits calculation can't be done or fails, still display the
     # plot details
@@ -292,13 +279,13 @@ def context_dict_for_plot(instance, plot,
         context['upload_tree_photo_url'] = \
             reverse('add_photo_to_tree',
                     kwargs={'instance_url_name': instance.url_name,
-                            'plot_id': plot.pk,
+                            'feature_id': plot.pk,
                             'tree_id': tree.pk})
     else:
         context['upload_tree_photo_url'] = \
             reverse('add_photo_to_plot',
                     kwargs={'instance_url_name': instance.url_name,
-                            'plot_id': plot.pk})
+                            'feature_id': plot.pk})
 
     if user and user.is_authenticated():
         plot.mask_unauthorized_fields(user)
@@ -344,26 +331,27 @@ def context_dict_for_plot(instance, plot,
     return context
 
 
-def add_plot(request, instance):
-    return update_plot_and_tree_request(request, Plot(instance=instance))
+def add_map_feature(request, instance, type='Plot'):
+    feature = MapFeature.create(type, instance)
+    return _request_to_update_map_feature(request, instance, feature)
 
 
-def update_plot_detail(request, instance, plot_id):
-    plot = _get_plot_or_404(plot_id, instance)
-    return update_plot_and_tree_request(request, plot)
+def update_map_feature_detail(request, instance, feature_id, type='Plot'):
+    feature = _get_map_feature_or_404(feature_id, instance, type)
+    return _request_to_update_map_feature(request, instance, feature)
 
 
-def update_plot_and_tree_request(request, plot):
+def _request_to_update_map_feature(request, instance, feature):
     try:
         request_dict = json.loads(request.body)
-        plot, tree = update_plot_and_tree(request_dict, request.user, plot)
+        feature, tree = update_map_feature(request_dict, request.user, feature)
 
         return {
             'ok': True,
-            'geoRevHash': plot.instance.geo_rev_hash,
-            'plotId': plot.id,
+            'geoRevHash': instance.geo_rev_hash,
+            'featureId': feature.id,
             'treeId': tree.id if tree else None,
-            'enabled': plot.instance.feature_enabled('add_plot')
+            'enabled': instance.feature_enabled('add_plot')
         }
     except ValidationError as ve:
         return bad_request_json_response(
@@ -371,49 +359,59 @@ def update_plot_and_tree_request(request, plot):
 
 
 @transaction.commit_on_success
-def delete_tree(request, instance, plot_id, tree_id):
+def delete_tree(request, instance, feature_id, tree_id):
     InstanceTree = instance.scope_model(Tree)
-    tree = get_object_or_404(InstanceTree, pk=tree_id, plot_id=plot_id)
+    tree = get_object_or_404(InstanceTree, pk=tree_id, plot_id=feature_id)
     tree.delete_with_user(request.user)
     return {'ok': True}
 
 
-def delete_plot(request, instance, plot_id):
-
-    plot = _get_plot_or_404(plot_id, instance)
+def delete_map_feature(request, instance, feature_id, type='Plot'):
+    feature = _get_map_feature_or_404(feature_id, instance, type)
     try:
-        plot.delete_with_user(request.user)
+        feature.delete_with_user(request.user)
         return {'ok': True}
     except ValidationError as ve:
         return "; ".join(ve.messages)
 
 
 @transaction.commit_on_success
-def update_plot_and_tree(request_dict, user, plot):
+def update_map_feature(request_dict, user, feature):
     """
-    Update a plot. Expects JSON in the request body to be:
+    Update a map feature. Expects JSON in the request body to be:
     {'model.field', ...}
 
-    Where model is either 'tree' or 'plot' and field is any field
-    on the model. UDF fields should be prefixed with 'udf:'.
+    Where model is either 'tree', 'plot', or another map feature type
+    and field is any field on the model.
+    UDF fields should be prefixed with 'udf:'.
 
-    This method can be used to create a new plot by passing in
-    an empty plot object (i.e. Plot(instance=instance))
+    This method can be used to create a new map feature by passing in
+    an empty MapFeature object (i.e. Plot(instance=instance))
     """
+    feature_types = list(feature.instance.map_feature_types)
+    feature_types[feature_types.index('Plot')] = 'plot'
+
     def split_model_or_raise(model_and_field):
         model_and_field = model_and_field.split('.', 1)
 
         if ((len(model_and_field) != 2 or
-             model_and_field[0] not in ['plot', 'tree'])):
+                model_and_field[0] not in feature_types + ['tree'])):
             raise Exception(
                 'Malformed request - invalid field %s' % model_and_field)
         else:
             return model_and_field
 
     def set_attr_on_model(model, attr, val):
-        if attr == 'geom':
+        field_classname = \
+            model._meta.get_field_by_name(attr)[0].__class__.__name__
+
+        if field_classname.endswith('PointField'):
             srid = val.get('srid', 3857)
             val = Point(val['x'], val['y'], srid=srid)
+            val.transform(3857)
+        elif field_classname.endswith('MultiPolygonField'):
+            srid = val.get('srid', 3857)
+            val = MultiPolygon(Polygon(val['polygon'], srid=srid), srid=srid)
             val.transform(3857)
 
         if attr == 'id':
@@ -441,44 +439,50 @@ def update_plot_and_tree(request_dict, user, plot):
             return package_validation_errors(thing._model_name, e)
 
     def get_tree():
-        return plot.current_tree() or Tree(instance=plot.instance)
+        if isinstance(feature, Plot):
+            return feature.current_tree() or Tree(instance=feature.instance)
+        else:
+            raise Exception("Can only set tree fields on plot map features")
 
     tree = None
 
     for (model_and_field, value) in request_dict.iteritems():
         model_name, field = split_model_or_raise(model_and_field)
 
-        if model_name == 'plot':
-            model = plot
-        elif model_name == 'tree':
+        if model_name in feature_types:
+            model = feature
+        elif model_name == 'tree' and feature.feature_type == 'Plot':
             # Get the tree or spawn a new one if needed
-            tree = tree or get_tree()
+            tree = (tree or
+                    feature.current_tree() or
+                    Tree(instance=feature.instance))
             model = tree
             if field == 'species' and value:
                 value = get_object_or_404(Species,
-                                          instance=plot.instance, pk=value)
-            elif field == 'plot' and value == unicode(plot.pk):
-                value = plot
+                                          instance=feature.instance, pk=value)
+            elif field == 'plot' and value == unicode(feature.pk):
+                value = feature
         else:
-            raise Exception('Malformed request - invalid model %s' % model)
+            raise Exception(
+                'Malformed request - invalid model %s' % model_name)
 
         set_attr_on_model(model, field, value)
 
     errors = {}
 
-    if plot.fields_were_updated():
-        errors.update(save_and_return_errors(plot, user))
+    if feature.fields_were_updated():
+        errors.update(save_and_return_errors(feature, user))
     if tree and tree.fields_were_updated():
-        tree.plot = plot
+        tree.plot = feature
         errors.update(save_and_return_errors(tree, user))
 
     if errors:
         raise ValidationError(errors)
 
-    # Refresh plot.instance in case geo_rev_hash was updated
-    plot.instance = Instance.objects.get(id=plot.instance.id)
+    # Refresh feature.instance in case geo_rev_hash was updated
+    feature.instance = Instance.objects.get(id=feature.instance.id)
 
-    return plot, tree
+    return feature, tree
 
 
 def _get_audits(logged_in_user, instance, query_vars, user, models,
@@ -1069,7 +1073,7 @@ def photo_review(request, instance):
 
 @transaction.commit_on_success
 def approve_or_reject_photo(
-        request, instance, plot_id, tree_id, photo_id, action):
+        request, instance, feature_id, tree_id, photo_id, action):
 
     approved = action == 'approve'
 
@@ -1081,7 +1085,7 @@ def approve_or_reject_photo(
     resp = HttpResponse(msg)
 
     tree = get_object_or_404(
-        Tree, plot_id=plot_id, instance=instance, pk=tree_id)
+        Tree, plot_id=feature_id, instance=instance, pk=tree_id)
 
     try:
         photo = TreePhoto.objects.get(pk=photo_id, tree=tree)
@@ -1167,20 +1171,20 @@ edit_plot_detail_view = login_required(
         creates_instance_user(
             render_template('treemap/plot_detail.html', plot_detail))))
 
-update_plot_detail_view = login_or_401(
+update_map_feature_detail_view = login_or_401(
     json_api_call(
         instance_request(
-            creates_instance_user(update_plot_detail))))
+            creates_instance_user(update_map_feature_detail))))
 
 delete_tree_view = login_or_401(
     json_api_call(
         instance_request(
             creates_instance_user(delete_tree))))
 
-delete_plot_view = login_or_401(
+delete_map_feature_view = login_or_401(
     json_api_call(
         instance_request(
-            creates_instance_user(delete_plot))))
+            creates_instance_user(delete_map_feature))))
 
 get_plot_eco_view = instance_request(etag(_plot_hash)(
     render_template('treemap/partials/plot_eco.html', plot_detail)))
@@ -1194,11 +1198,11 @@ plot_popup_view = instance_request(etag(_plot_hash)(
 plot_accordion_view = instance_request(
     render_template('treemap/plot_accordion.html', plot_detail))
 
-add_plot_view = require_http_method("POST")(
+add_map_feature_view = require_http_method("POST")(
     login_or_401(
         json_api_call(
             instance_request(
-                creates_instance_user(add_plot)))))
+                creates_instance_user(add_map_feature)))))
 
 root_settings_js_view = render_template('treemap/settings.js',
                                         {'BING_API_KEY':
