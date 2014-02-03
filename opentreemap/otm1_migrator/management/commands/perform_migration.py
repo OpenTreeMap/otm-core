@@ -304,7 +304,7 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                             instance, system_user,
                             commander_role)
 
-                model =_save_species()
+                model = _save_species()
             else:
                 @commit_on_success
                 def _save_with_user_portion():
@@ -313,10 +313,11 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                         instance, system_user,
                         commander_role)
 
-                    OTM1ModelRelic.objects.create(instance=instance,
-                                                  otm1_model_id=model_hash['pk'],
-                                                  otm2_model_name=model_name,
-                                                  otm2_model_id=model.pk)
+                    OTM1ModelRelic.objects.create(
+                        instance=instance,
+                        otm1_model_id=model_hash['pk'],
+                        otm2_model_name=model_name,
+                        otm2_model_id=model.pk)
                     return model
                 model = _save_with_user_portion()
 
