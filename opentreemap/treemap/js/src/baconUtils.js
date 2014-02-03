@@ -2,7 +2,7 @@
 
 var Bacon = require('baconjs'),
     $ = require('jquery'),
-    _ = require('underscore');
+    _ = require('lodash');
 
 // Bacon.js is an npm module, but only extends jQuery if it's a global object
 // So we need to add extend jQuery with Bacon methods manually
@@ -22,6 +22,10 @@ exports.keyCodeIs = keyCodeIs;
 
 var isEnterKey = exports.isEnterKey = keyCodeIs([13]);
 exports.isEscKey = keyCodeIs([27]);
+
+exports.not = function(staticValue, streamValue) {
+    return staticValue !== streamValue;
+};
 
 var isDefined = exports.isDefined = function (value) {
     return value !== undefined;

@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     FH = require('treemap/fieldHelpers'),
     U = require('treemap/utility'),
     Bacon = require('baconjs'),

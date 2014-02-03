@@ -1,7 +1,7 @@
 "use strict";
 
 var geocoder = require('treemap/geocoder'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     $ = require('jquery');
 
 module.exports = function(config, triggerStream, formSelector) {

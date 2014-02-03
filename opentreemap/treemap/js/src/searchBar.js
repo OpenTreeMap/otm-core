@@ -5,7 +5,7 @@
 // the input boxes or clicking the "search" button.
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     Bacon = require('baconjs'),
     otmTypeahead = require('treemap/otmTypeahead'),
     U = require('treemap/utility'),

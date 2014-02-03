@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     google = require('googlemaps'),
     L = require('leaflet'),
     U = require('treemap/utility'),

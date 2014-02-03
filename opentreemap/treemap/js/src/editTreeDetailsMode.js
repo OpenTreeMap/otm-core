@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     otmTypeahead = require('treemap/otmTypeahead'),
     plotMover = require('treemap/plotMover'),
     diameterCalculator = require('treemap/diameterCalculator'),

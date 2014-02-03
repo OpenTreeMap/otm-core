@@ -5,7 +5,7 @@
 // module to handle UI events. This module initializes the mode modules and
 // orchestrates switching between modes.
 
-var _                   = require('underscore'),
+var _                   = require('lodash'),
     U                   = require('treemap/utility'),
     browseTreesMode     = require('treemap/browseTreesMode'),
     addTreeMode         = require('treemap/addTreeMode'),

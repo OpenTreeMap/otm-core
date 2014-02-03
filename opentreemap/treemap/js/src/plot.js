@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     otmTypeahead = require('treemap/otmTypeahead'),
     inlineEditForm = require('treemap/inlineEditForm'),
     mapManager = require('treemap/mapManager'),
@@ -176,6 +176,14 @@ exports.init = function(options) {
         location: options.plotLocation.location
     });
 
+    var clickedIdStream = mapManager.map.utfEvents
+        .map('.data.' + options.config.utfGrid.mapfeatureIdKey);
+
+    clickedIdStream
+        .filter(BU.not, options.plotId)
+        .map(_.partialRight(U.appendSegmentToUrl, options.plotDetailUrl, false))
+        .onValue(_.bind(window.location.assign, window.location));
+
     diameterCalculator({ formSelector: '#plot-form',
                          cancelStream: form.cancelStream,
                          saveOkStream: form.saveOkStream });
@@ -197,13 +205,12 @@ exports.init = function(options) {
     $(options.inlineEditForm.edit).click(showAddTree);
     $(options.inlineEditForm.cancel).click(hideAddTree);
     $addTree.click(function() {
-        var $editFields = $(options.inlineEditForm.editFields),
-            plotId = FH.getSerializableField($editFields, 'plot.id').val();
+        var $editFields = $(options.inlineEditForm.editFields);
         $addTree.hide();
         $noTreeMessage.hide();
         $cancelAddTree.show();
         $treeSection.show();
-        FH.getSerializableField($editFields, 'tree.plot').val(plotId);
+        FH.getSerializableField($editFields, 'tree.plot').val(options.plotId);
     });
     $cancelAddTree.click(function() {
         var $editFields = $(options.inlineEditForm.editFields);

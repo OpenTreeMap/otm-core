@@ -3,7 +3,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     moment = require('moment');
 
 var DATETIME_FORMAT = exports.DATETIME_FORMAT = "YYYY-MM-DD HH:mm:ss";

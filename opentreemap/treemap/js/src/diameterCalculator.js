@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
 
     _circumferenceSelector = '[data-class="circumference-input"]',
     _diameterSelector = '[data-class="diameter-input"]',
