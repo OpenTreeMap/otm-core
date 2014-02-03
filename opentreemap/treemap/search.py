@@ -23,7 +23,8 @@ class ParseException (Exception):
 
 MODEL_MAPPING = {'plot': '',
                  'tree': 'tree__',
-                 'species': 'tree__species__'}
+                 'species': 'tree__species__',
+                 'mapfeature': ''}
 
 
 def create_filter(filterstr):
