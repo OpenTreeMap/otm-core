@@ -19,10 +19,9 @@ django-celery-with-redis==3.0
 # libsass==0.2.4
 # We need libsass version 3.0, which fixes libsass issue #54
 git+https://github.com/dahlia/libsass-python.git@4aa8fd3c2cef8c1
-# it is planned to add this to pyPi when it is more stable
-git+git://github.com/azavea/django-queryset-csv.git
 # Django comments are no longer bundled with django in
 # 1.6 so we include them here
 django-contrib-comments==1.5
 django-threadedcomments==0.9.0
 django-apptemplates==0.0.1
+django-queryset-csv>=0.2.2

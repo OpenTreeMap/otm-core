@@ -4,13 +4,14 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from celery import task
+from tempfile import TemporaryFile
 
 from django.core.files import File
 
 from treemap.search import create_filter
 from treemap.models import Species, Tree
 
-from exporter.djqscsv import make_csv_file, generate_filename
+from djqscsv import write_csv, generate_filename
 from exporter.models import ExportJob
 
 
@@ -107,7 +108,9 @@ def csv_export(job_pk, model, query):
     elif not limited_qs.exists():
         job.status = ExportJob.MODEL_PERMISSION_ERROR
     else:
-        csv_file = make_csv_file(limited_qs)
+        csv_file = TemporaryFile()
+        write_csv(limited_qs, csv_file)
+
         csv_name = generate_filename(limited_qs)
         job.outfile.save(csv_name, File(csv_file))
         job.status = ExportJob.COMPLETE
