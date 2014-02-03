@@ -88,6 +88,9 @@ body {
 		font-weight: 300;
 		line-height: 2.4rem;
 	}
+    p {
+        clear: both;
+    }
 }
 
 @media (max-width: 767px) {

@@ -20,6 +20,16 @@
         color: $main-text-color;
         margin: 0 -20px 20px -20px;
     }
+    form {
+        p.required {
+            > label {
+                &:after {
+                    content: '*';
+                    margin-left: 5px;
+                }
+            }
+        }
+    }
 }
 
 .have-account {
