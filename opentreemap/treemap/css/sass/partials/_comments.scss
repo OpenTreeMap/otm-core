@@ -1,0 +1,34 @@
+// Partial: Commenting System
+
+#comments-container {
+    ul {
+        list-style: none;
+        margin: 0;
+
+        > li {
+            padding: 15px;
+            border: 1px solid #EEE;
+            border-radius: 9px;
+            margin-bottom: 10px;
+
+            .comment_info {
+                font-size: 1.2rem;
+
+                .comment_user {
+                    float: left;
+                }
+                .comment_data {
+                    float: right;
+
+                    .comment_reply_link {
+
+                    }
+                }
+            }
+            .comment_text {
+                clear: both;
+                padding-top: 5px;
+            }
+        }
+    }
+}
