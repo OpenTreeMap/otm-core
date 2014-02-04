@@ -144,5 +144,5 @@ class ExportSpeciesTaskTest(AsyncCSVTestCase):
 
     @media_dir
     def test_psuedo_async_species_export(self):
-        self.assertPsuedoAsyncTaskWorks('species', self.user, 'common_name',
+        self.assertPsuedoAsyncTaskWorks('species', self.user, 'common name',
                                         'foo', '.*species_export(_\d+)?\.csv')
