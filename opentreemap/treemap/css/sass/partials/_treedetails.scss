@@ -42,7 +42,7 @@
 #plot-form {
     margin-top: 0;
 
-    table.table-striped {
+    table {
         > tbody {
             > tr {
                 > td:first-child {
@@ -53,6 +53,19 @@
                 &.diameter-row {
                     td:first-child {
                         vertical-align: top;
+                    }
+                }
+            }
+        }
+    }
+
+    #resource-details {
+        table {
+            > tbody {
+                > tr {
+                    > td:first-child {
+                        width: 65%;
+                        vertical-align: middle;
                     }
                 }
             }
