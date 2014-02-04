@@ -100,6 +100,10 @@
                 border-radius: 4px;
                 top: 6px;
                 position: relative;
+                
+                @media (max-width: 979px) {
+                    display: none;
+                }
 
                 a {
                     padding: 0;
@@ -144,12 +148,18 @@
     right: 0;
     background: lighten($navbar-color, 5%);
     z-index: 999;
-    top: 44px;
+    top: -106px;
+    height: 105px;
     padding: 20px 30px 25px;
-    display: none;
+    display: block;
+    transition: top 0.5s;
 
     &.active {
-        display: block;
+        top: 44px;
+    }
+
+    @media (max-width: 979px) {
+        display: none;
     }
 
     .span4 {

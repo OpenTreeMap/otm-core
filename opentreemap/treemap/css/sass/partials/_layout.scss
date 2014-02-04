@@ -82,6 +82,12 @@ body {
     }
 }
 
+.alert {
+    .btn {
+        margin-bottom: 5px;
+    }
+}
+
 .well {
 	border: 1px solid lighten($well-color, 10%);
 	background: $light-gray-color;

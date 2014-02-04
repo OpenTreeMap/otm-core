@@ -1,18 +1,24 @@
 // Partial: Tree Detail Pages
 
-.tree-details {
+.detail-header {
+    height: 75px;
+    margin-bottom: 30px;
+    
     .common-name {
         margin-bottom: 5px;
+        line-height: 3.2rem;
     }
-    .scientific-name {
+    .address {
         color: $subtext-color;
-        font-style: italic;
-        margin-bottom: 15px;
+        font-size: 1.4rem;
+    }
+    .share {
+        float: right;
     }
 }
 
 #plot-form {
-    margin-top: 10px;
+    margin-top: 0;
 
     table.table-striped {
         > tbody {
@@ -47,8 +53,16 @@
     max-width: none;
 }
 
+#sidebar {
+    margin-top: 20px;
+}
+
 #tree-photo-thumbnails {
     height: 50px;
+
+    &:empty {
+        height: 0;
+    }
 
     > div {
         overflow: hidden;
@@ -96,9 +110,11 @@
 #tree-photo-carousel {
     .carousel-inner {
         margin-bottom: 10px;
-        height: 250px;
+        height: 225px;
         overflow: hidden;
         border: none;
+        background: darken($light-gray-color, 5%);
+        border-radius: 9px;
 
         .item {
             img {
@@ -132,10 +148,10 @@
             color: #42424a;
         }
         &.disabled {
-            opacity: 0.15;
+            opacity: 0.05;
 
             &:hover {
-                opacity: 0.15;
+                opacity: 0.05;
                 color: #42424a;
             }
         }
@@ -147,15 +163,19 @@
 
     + button {
         position: absolute;
-        margin-top: -104px;
-        opacity: 0.25;
+        top: 195px;
+        opacity: 0.85;
+        background: black;
+        opacity: 0.5;
         width: auto;
         background: black;
         color: white;
         border: none;
         transition: opacity 0.3s;
-        padding: 2px 8px;
-        border-radius: 0;
+        z-index: 999;
+        padding: 5px 12px;
+        font-size: 1.2rem !important;
+        border-radius: 0 9px 0 9px;
 
         &:hover {
             opacity: 0.85;

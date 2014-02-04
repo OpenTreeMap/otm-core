@@ -141,9 +141,33 @@
     <div class="container contained tree-details">
         <div class="row-fluid">
             <div class="span3">
-                <div id="tree-photo-carousel" class="carousel slide">
+                <div class="photo-container">
+                    <div id="tree-photo-carousel" class="carousel slide" data-interval="">
+                        <div class="carousel-inner">
+                            <div class="item active">
+                                <a href=""><img src="/static/img/tree.png" alt=""></a>
+                            </div>
+                            <div class="item">
+                                <a href=""><img src="/static/img/tree.png" alt=""></a>
+                            </div>
+                        </div>
+                        <div id="tree-photo-thumbnails">
+                            <div>
+                                <ol class="carousel-indicators">
+                                    <li data-target="#tree-photo-carousel" data-slide-to="0" class="active">
+                                        <img src="/static/img/tree.png" alt="">
+                                    </li>
+                                    <li data-target="#tree-photo-carousel" data-slide-to="1" class="">
+                                        <img src="/static/img/tree.png" alt="">
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                        <a class="carousel-control left disabled" href="" data-slide="prev"><i class="icon-left-circled"></i></a>
+                        <a class="carousel-control right" href="#tree-photo-carousel" data-slide="next"><i class="icon-right-circled"></i></a>
+                    </div>
+                    <button id="toggle-add-photo-modal" class="btn btn-mini add-photos">Add Photo</button>
                 </div>
-                <button id="toggle-add-photo-modal" class="btn btn-mini add-photos">Add Photo</button>
                 <button id="edit-plot" class="btn btn-small btn-info">Edit</button>
                 <button id="save-edit-plot" data-class="edit" class="btn btn-small btn-primary" style="display: none;">Save</button>
                 <button id="cancel-edit-plot" data-class="edit" class="btn btn-small" style="display: none;">Cancel</button>
@@ -170,9 +194,9 @@
             </div>
             <div class="span9">
                 <div class="detail-header">
+                    <button class="btn share">Share</button>
                     <h2 class="common-name">American elm</h2>
                     <h4 class="address">340 N 12th Street, Philadelphia PA 19107</h4>
-                    <button class="btn share">Share</button>
                 </div>
                 <div class="row-fluid">
                     <div class="span8">
