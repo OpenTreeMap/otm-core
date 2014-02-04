@@ -8,8 +8,6 @@ gunicorn==0.17.2
 psycopg2==2.4.6
 djorm-ext-hstore==0.5
 wsgiref==0.1.2
-numpy==1.7.1
-git+https://github.com/azavea/eco.py.git@409121bbc6
 pep8==1.4.6
 flake8==2.0
 python-omgeo==1.5
