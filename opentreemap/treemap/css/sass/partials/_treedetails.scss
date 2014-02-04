@@ -1,19 +1,41 @@
 // Partial: Tree Detail Pages
 
-.detail-header {
-    height: 75px;
-    margin-bottom: 30px;
+.tree-details {
+    h3 {
+        color: #56abb2;
+        font-size: 2.4rem;
+        font-weight: 300;
+        line-height: 3rem;
+        margin-bottom: 8px;
+    }
+
+    .detail-header {
+        height: 85px;
+        margin-bottom: 30px;
     
-    .common-name {
-        margin-bottom: 5px;
-        line-height: 3.2rem;
-    }
-    .address {
-        color: $subtext-color;
-        font-size: 1.4rem;
-    }
-    .share {
-        float: right;
+        @include select-none;
+        
+        .common-name {
+            margin-bottom: 5px;
+            line-height: 3.2rem;
+    
+            > #favorite-star {
+                font-size: 2.1rem;
+                line-height: 3.6rem;
+                cursor: pointer;
+    
+                &.favorited {
+                    color: #e0c122;
+                }
+            }
+        }
+        .address {
+            color: $subtext-color;
+            font-size: 1.4rem;
+        }
+        .share {
+            float: right;
+        }
     }
 }
 
@@ -44,7 +66,8 @@
     width: auto;
     height: 220px;
     min-width: 100%;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    border-radius: 9px;
 }
 
 // Needed because bootstrap breaks street view on firefox
@@ -77,9 +100,9 @@
 
             li {
                 text-indent: 0;
-                border: none;
-                width: 50px;
-                height: 50px;
+                border: 1px solid $light-gray-color;
+                width: 48px;
+                height: 48px;
                 border-radius: 4px;
                 margin-left: 0;
                 margin-right: 5px;
@@ -97,10 +120,11 @@
                 }
 
                 img {
-                    width: auto;
-                    height: 100%;
+                    height: 50px;
                     margin: 0 auto;
                     display: block;
+                    max-width: none;
+                    min-width: 50px;
                 }
             }
         }

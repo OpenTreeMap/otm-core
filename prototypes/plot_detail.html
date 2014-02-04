@@ -175,7 +175,7 @@
                 
                 <div id="sidebar">
                     <div class="well">
-                        <h3>Latest Update</h3>
+                        <h4>Latest Update</h4>
                         <p>CityofEdmonton set species to American elm (Ulmus americana) on Dec. 20, 2013</p>
                         <div class="progress">
                             <div class="bar" style="width: 75%;"></div>
@@ -183,11 +183,11 @@
                         <h5>75% Complete</h5>
                     </div>
                     <div class="well">
-                        <h3>Recent Edits</h3>
+                        <h4>Recent Edits</h4>
                         <p class="muted"><em>There are no recent edits</em></p>
                     </div>
                     <div class="well">
-                        <h3>Nearby Trees</h3>
+                        <h4>Nearby Trees</h4>
                         <p class="muted"><em>There are no trees nearby</em></p>
                     </div>
                 </div>
@@ -195,7 +195,7 @@
             <div class="span9">
                 <div class="detail-header">
                     <button class="btn share">Share</button>
-                    <h2 class="common-name">American elm</h2>
+                    <h2 class="common-name">American elm <i id="favorite-star" class="icon-star-empty"></i></h2>
                     <h4 class="address">340 N 12th Street, Philadelphia PA 19107</h4>
                 </div>
                 <div class="row-fluid">
@@ -240,7 +240,9 @@
                         <!-- Ecosystem Benefits -->
                         <div id="ecobenefits">
                             <h3>Yearly Ecosystem Services</h3>
-                            <p>Ecosystem benefits are not available for tree maps in locations outside the United States. More info is available on the <a href="https://opentreemap.org/faq/#03">OpenTreeMap FAQ page.</a></p>
+                            <div class="alert alert-info">
+                                <p>Ecosystem benefits are not available for tree maps in locations outside the United States. More info is available in the <a href="https://opentreemap.org/faq/#03">OpenTreeMap FAQ</a>.</p>
+                            </div>
                         </div>
 
                         <!-- Commenting -->
@@ -278,7 +280,6 @@
                         <div id="comment_disclaimer"><p class="muted"><em>The comment system does not serve as a way to report problems with a tree.</em></p></div>
                     </div>
                     <div class="span4">
-                        <button id="edit-plot-location" class="btn">Move Tree</button>
                         <div id="map" class="map-small"></div>
                         <div id="street-view" class="street-view-small"></div>
                     </div>
@@ -316,6 +317,10 @@
     $('.dropdown-toggle').dropdown();
     $('.user-img').on('click', function() {
         $('.user-dock').toggleClass('active');
+    });
+
+    $('#favorite-star').on('click', function() {
+        $(this).toggleClass('favorited icon-star-empty icon-star');
     });
 </script>
 </body>
