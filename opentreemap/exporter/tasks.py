@@ -88,11 +88,13 @@ def csv_export(job_pk, model, query):
             extra_select.update(extra_select_plot)
             extra_select.update(extra_select_sp)
 
-            values = values_tree + values_plot + values_sp
+            ordered_fields = (values_tree + extra_select_tree.keys() +
+                              sorted(values_plot + extra_select_plot.keys()) +
+                              sorted(values_sp + extra_select_sp.keys()))
 
-            if values:
+            if ordered_fields:
                 limited_qs = initial_qs.extra(select=extra_select)\
-                                       .values(*values)
+                                       .values(*ordered_fields)
             else:
                 limited_qs = initial_qs.none()
 
@@ -109,7 +111,8 @@ def csv_export(job_pk, model, query):
         job.status = ExportJob.MODEL_PERMISSION_ERROR
     else:
         csv_file = TemporaryFile()
-        write_csv(limited_qs, csv_file)
+
+        write_csv(limited_qs, csv_file, field_order=ordered_fields)
 
         csv_name = generate_filename(limited_qs)
         job.outfile.save(csv_name, File(csv_file))
