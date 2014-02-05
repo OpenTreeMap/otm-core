@@ -36,16 +36,11 @@ function setTypeaheadAfterDataLoaded($typeahead, key, query) {
 
 function eventToTargetValue(e) { return $(e.target).val(); }
 
-function inputProperty($input) {
+function inputStream($input) {
     return $input.asEventStream('input')
-                 .map(eventToTargetValue)
-                 .toProperty();
+                 .map(eventToTargetValue);
 }
 
-
-function firstIfSecondIsEmptyElseEmpty (first, second) {
-    return second === "" ? first : "";
-}
 
 exports.getDatum = function($typeahead) {
     return $typeahead.data('datum');
@@ -96,9 +91,8 @@ var create = exports.create = function(options) {
     // Set data-unmatched to the input value if the value was not
     // matched to a typeahead datum. Allows for external code to take
     // alternate action if there is no typeahead match.
-    inputProperty($input)
-        .combine(idStream.toProperty("").skipDuplicates(),
-                 firstIfSecondIsEmptyElseEmpty)
+    inputStream($input)
+        .merge(idStream.map(""))
         .onValue($input, 'attr', 'data-unmatched');
 
     if (options.hidden) {
