@@ -53,7 +53,8 @@ def benefits_for_trees(trees, instance):
     params = (('where', whereWithDollars), ('instance_id', instance.pk))
     params += tuple([("param", p) for p in where_params])
 
-    rawb, err = ecobackend.json_benefits_call('eco_summary.json', params)
+    rawb, err = ecobackend.json_benefits_call(
+        'eco_summary.json', params, post=True)
 
     if err:
         raise Exception(err)
