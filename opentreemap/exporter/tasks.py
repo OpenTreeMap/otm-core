@@ -52,7 +52,8 @@ def csv_export(job_pk, model, query):
 
             extra_select, values = extra_select_and_values_for_model(
                 instance, job.user, 'treemap_species', 'species')
-            limited_qs = initial_qs.extra(select=extra_select).values(*values)
+            ordered_fields = values + extra_select.keys()
+            limited_qs = initial_qs.extra(select=extra_select).values(*ordered_fields)
         else:
             # model == 'tree'
 
@@ -99,6 +100,7 @@ def csv_export(job_pk, model, query):
                 limited_qs = initial_qs.none()
 
     else:
+        ordered_fields = None
         limited_qs = initial_qs.none()
 
     if not initial_qs.exists():
