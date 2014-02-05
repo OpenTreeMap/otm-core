@@ -90,9 +90,9 @@ def csv_export(job_pk, model, query):
             extra_select.update(extra_select_plot)
             extra_select.update(extra_select_sp)
 
-            ordered_fields = (values_tree + extra_select_tree.keys() +
-                              sorted(values_plot + extra_select_plot.keys()) +
-                              sorted(values_sp + extra_select_sp.keys()))
+            ordered_fields = (sorted(values_tree) +
+                              sorted(values_plot) +
+                              sorted(values_sp))
 
             if ordered_fields:
                 limited_qs = initial_qs.extra(select=extra_select)\
