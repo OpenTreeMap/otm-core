@@ -151,7 +151,7 @@ def tree_benefits(instance, tree_or_tree_id):
 
     if not tree.diameter:
         rslt = {'benefits': {}, 'error': 'MISSING_DBH'}
-    elif not tree.species.otm_code:
+    elif not tree.species:
         rslt = {'benefits': {}, 'error': 'MISSING_SPECIES'}
     else:
         if instance.itree_region_default:
@@ -168,7 +168,9 @@ def tree_benefits(instance, tree_or_tree_id):
         if region:
             params = {'otmcode': tree.species.otm_code,
                       'diameter': tree.diameter,
-                      'region': region}
+                      'region': region,
+                      'instanceid': instance.pk,
+                      'speciesid': tree.species.pk}
 
             rawb, err = ecobackend.json_benefits_call(
                 'eco.json', params.iteritems())
