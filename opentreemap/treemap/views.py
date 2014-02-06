@@ -9,6 +9,7 @@ import urllib
 import json
 import hashlib
 import datetime
+import collections
 
 from PIL import Image
 import sass
@@ -46,6 +47,21 @@ from treemap.ecobenefits import (benefits_for_trees, tree_benefits,
 from treemap.ecobackend import BAD_CODE_PAIR
 
 from opentreemap.util import json_from_request, route
+
+USER_EDIT_FIELDS = collections.OrderedDict([
+    ('first_name',
+     {'label': trans('First Name'),
+      'identifier': 'user.first_name',
+      'visibility': 'public'}),
+    ('last_name',
+     {'label': trans('Last Name'),
+      'identifier': 'user.last_name',
+      'visibility': 'public'}),
+    ('email',
+     {'label': trans('Email'),
+      'identifier': 'user.email',
+      'visibility': 'private'}),
+])
 
 
 def _plot_hash(request, instance, feature_id, edit=False, tree_id=None):
@@ -878,14 +894,16 @@ def user(request, username):
 
     reputation = user.get_reputation(instance) if instance else None
 
-    public_fields = [
-        (trans('First Name'), 'user.first_name'),
-        (trans('Last Name'), 'user.last_name')
-    ]
+    public_fields = []
+    private_fields = []
 
-    private_fields = [
-        (trans('Email'), 'user.email')
-    ]
+    for field in USER_EDIT_FIELDS.values():
+        field_tuple = (field['label'], field['identifier'],
+                       field.get('template', "treemap/field/div.html"))
+        if field['visibility'] == 'public':
+            public_fields.append(field_tuple)
+        else:
+            private_fields.append(field_tuple)
 
     return {'user': user,
             'reputation': reputation,
@@ -904,7 +922,7 @@ def update_user(request, user):
             if model != 'user':
                 return bad_request_json_response(
                     'All fields should be prefixed with "user."')
-            if field not in ['first_name', 'last_name', 'email']:
+            if field not in USER_EDIT_FIELDS:
                 return bad_request_json_response(
                     field + ' is not an updatable field')
         except ValueError:

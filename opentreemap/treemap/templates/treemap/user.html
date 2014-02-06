@@ -52,12 +52,12 @@ active
       <div id="upload-photo-error" class="text-error" style="display: none"></div>
       {% endusercontent %}
       <form id="user-form">
-        {% for label, identifier in public_fields %}
-          {% field label from identifier withtemplate "treemap/field/div.html" %}
+        {% for label, identifier, template in public_fields %}
+          {% field label from identifier withtemplate template %}
         {% endfor %}
         {% usercontent for user %}
-        {% for label, identifier in private_fields %}
-          {% field label from identifier withtemplate "treemap/field/div.html" %}
+        {% for label, identifier, template in private_fields %}
+          {% field label from identifier withtemplate template %}
         {% endfor %}
         <label>{% trans "Email Updates" %}</label>
         <div class="field-view">{% trans "Not Subscribed" %}</div>
