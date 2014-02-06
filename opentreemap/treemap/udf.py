@@ -694,6 +694,13 @@ class UDFDCache(object):
         else:
             return self.cache[key]
 
+    def remove_def_from_cache(self, udf_def):
+        key = self._cache_key(udf_def.model_type, udf_def.instance_id)
+
+        if key in self.cache:
+            del self.cache[key]
+
+
 udf_cache = UDFDCache()
 
 
