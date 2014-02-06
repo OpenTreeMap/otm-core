@@ -15,6 +15,32 @@ var $ = require('jquery'),
 // Placed onto the jquery object
 require('bootstrap-datepicker');
 
+// Boolean fields values are provided as "True" and "False"
+// from the server-side template tags as well as in this module.
+// In order to provide custom values for these fields, this function
+// can be run after writing a value to the boolean field, it will
+// comb through the provided data attributes to see if custom text
+// is provided.
+//
+// To make a field/element function with customizable boolean labels:
+// * specify the data-true-text attribute on the element
+// * specify the data-false-text attribute on the element
+// * ensure that the django templates only write values of 'True' and 'False'
+//   to it's (inner) HTML
+// * ensure that the inlineEditForm only writes values of 'True' and 'False'
+//   to it's (inner) HTML
+function getBooleanFieldText (boolField, boolValue) {
+    var $boolField = $(boolField);
+
+    if (boolValue === 'True') {
+        return $boolField.data('bool-true-text');
+    } else if (boolValue == 'False') {
+        return $boolField.data('bool-false-text');
+    } else {
+        throw "Field classified as boolean contained value other than 'True'/'False'";
+    }
+}
+
 exports.init = function(options) {
     var updateUrl = options.updateUrl,
         form = options.form,
@@ -145,6 +171,8 @@ exports.init = function(options) {
                         if ($input.is('select')) {
                             // Use dropdown text (not value) as display value
                             value = $input.find('option:selected').text();
+                        } else if ($input.is('[type="checkbox"]')) {
+                            value = getBooleanFieldText(display, value);
                         } else if (value && $input.is('[data-date-format]')) {
                             value = $input.val();
                         } else if (value) {
