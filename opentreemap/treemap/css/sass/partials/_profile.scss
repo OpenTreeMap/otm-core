@@ -60,6 +60,12 @@
     .field-view {
         margin-bottom: 10px;
     }
+
+    [data-field="user.allow_email_contact"][data-class="edit"] {
+        float: left;
+        padding-right: 10px;
+        margin-top: -5px;
+    }
 }
 
 #recent-user-edits {

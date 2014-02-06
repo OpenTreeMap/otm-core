@@ -61,6 +61,11 @@ USER_EDIT_FIELDS = collections.OrderedDict([
      {'label': trans('Email'),
       'identifier': 'user.email',
       'visibility': 'private'}),
+    ('allow_email_contact',
+     {'label': trans('Email Updates'),
+      'identifier': 'user.allow_email_contact',
+      'visibility': 'private',
+      'template': "treemap/field/email_subscription_div.html"})
 ])
 
 

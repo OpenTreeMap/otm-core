@@ -59,8 +59,6 @@ active
         {% for label, identifier, template in private_fields %}
           {% field label from identifier withtemplate template %}
         {% endfor %}
-        <label>{% trans "Email Updates" %}</label>
-        <div class="field-view">{% trans "Not Subscribed" %}</div>
         {% endusercontent %}
         {% if reputation %}
           <label>{% trans "Reputation" %}</label>
