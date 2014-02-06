@@ -23,22 +23,17 @@ require('bootstrap-datepicker');
 // is provided.
 //
 // To make a field/element function with customizable boolean labels:
-// * specify the data-true-text attribute on the element
-// * specify the data-false-text attribute on the element
-// * ensure that the django templates only write values of 'True' and 'False'
-//   to it's (inner) HTML
-// * ensure that the inlineEditForm only writes values of 'True' and 'False'
-//   to it's (inner) HTML
-function getBooleanFieldText (boolField, boolValue) {
-    var $boolField = $(boolField);
+// * specify the data-bool-true-text attribute on the element
+// * specify the data-bool-false-text attribute on the element
+function getBooleanFieldText (boolField, boolText) {
+    var $boolField = $(boolField),
+        attributes = {True: 'data-bool-true-text',
+                      False: 'data-bool-false-text'},
+        attribute = attributes[boolText];
 
-    if (boolValue === 'True') {
-        return $boolField.data('bool-true-text');
-    } else if (boolValue == 'False') {
-        return $boolField.data('bool-false-text');
-    } else {
-        throw "Field classified as boolean contained value other than 'True'/'False'";
-    }
+    // .is() is the recommended way of doing 'hasattr'
+    return $boolField.is("[" + attribute + "]") ?
+        $boolField.attr(attribute) : boolText;
 }
 
 exports.init = function(options) {
@@ -150,7 +145,8 @@ exports.init = function(options) {
         formFieldsToDisplayValues = function() {
             $(editFields).each(function(index, el){
                 var field = $(el).attr('data-field'),
-                    $input, value, display, digits, units;
+                    $input, value, display, digits, units,
+                    displayValue;
 
                 // if the edit field has a data-field property,
                 // look for a corresponding display value and if
@@ -167,25 +163,28 @@ exports.init = function(options) {
                         } else {
                             value = $input.val();
                         }
+
                         $(display).attr('data-value', value);
+                        displayValue = value;
+
                         if ($input.is('select')) {
                             // Use dropdown text (not value) as display value
-                            value = $input.find('option:selected').text();
+                            displayValue = $input.find('option:selected').text();
                         } else if ($input.is('[type="checkbox"]')) {
-                            value = getBooleanFieldText(display, value);
+                            displayValue = getBooleanFieldText(display, value);
                         } else if (value && $input.is('[data-date-format]')) {
-                            value = $input.val();
+                            displayValue = $input.val();
                         } else if (value) {
                             digits = $(display).data('digits');
                             if (digits) {
-                                value = parseFloat(value).toFixed(digits);
+                                displayValue = parseFloat(value).toFixed(digits);
                             }
                             units = $(display).data('units');
                             if (units) {
-                                value = value + ' ' + units;
+                                displayValue = value + ' ' + units;
                             }
                         }
-                        $(display).html(value);
+                        $(display).html(displayValue);
                     }
                 }
             });
