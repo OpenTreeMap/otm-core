@@ -514,6 +514,10 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
     def _is_generic(self):
         return self.__class__.__name__ == 'MapFeature'
 
+    @property
+    def is_plot(self):
+        return isinstance(self, Plot)
+
     def save_with_user(self, user, *args, **kwargs):
         self.full_clean_with_user(user)
 
@@ -529,6 +533,11 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
         # (But note that the value gets stored in the database, so should not
         # be changed for a subclass once objects have been saved.)
         return self.__class__.__name__
+
+    @property
+    def display_name(self):
+        # Subclasses should override with something useful
+        return self.map_feature_type
 
     @classmethod
     def subclass_dict(self):
@@ -570,6 +579,17 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
                     audit.clean_current_value)
         else:
             return super(MapFeature, clz).action_format_string_for_audit(audit)
+
+    @property
+    def hash(self):
+        string_to_hash = super(MapFeature, self).hash
+
+        if self.is_plot:
+            # The hash for a plot includes the hash for its trees
+            tree_hashes = [t.hash for t in self.tree_set.all()]
+            string_to_hash += "," + ",".join(tree_hashes)
+
+        return hashlib.md5(string_to_hash).hexdigest()
 
     def __unicode__(self):
         x_chunk = "X: %s" % self.geom.x if self.geom else "?"
@@ -631,17 +651,6 @@ class Plot(MapFeature):
             return trees[0]
         else:
             return None
-
-    @property
-    def hash(self):
-        string_to_hash = super(Plot, self).hash
-
-        # The hash state for a given plot also includes the hash
-        # state for all of the trees on it as well
-        tree_hashes = [t.hash for t in self.tree_set.all()]
-        string_to_hash += "," + ",".join(tree_hashes)
-
-        return hashlib.md5(string_to_hash).hexdigest()
 
     def delete_with_user(self, user, cascade=False, *args, **kwargs):
         if self.current_tree() and cascade is False:
