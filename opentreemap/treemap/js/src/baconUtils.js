@@ -101,6 +101,9 @@ exports.getJsonFromUrl = function(url) {
     return Bacon.fromPromise(req);
 };
 
+// binds a number of form controls together with
+// a button to provide a consistent form submission
+// experience
 exports.enterOrClickEventStream = function(options) {
     var inputs = $(options.inputs),
         button = $(options.button),
