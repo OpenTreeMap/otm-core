@@ -15,6 +15,27 @@ var $ = require('jquery'),
 // Placed onto the jquery object
 require('bootstrap-datepicker');
 
+// Boolean fields values are provided as "True" and "False"
+// from the server-side template tags as well as in this module.
+// In order to provide custom values for these fields, this function
+// can be run after writing a value to the boolean field, it will
+// comb through the provided data attributes to see if custom text
+// is provided.
+//
+// To make a field/element function with customizable boolean labels:
+// * specify the data-bool-true-text attribute on the element
+// * specify the data-bool-false-text attribute on the element
+function getBooleanFieldText (boolField, boolText) {
+    var $boolField = $(boolField),
+        attributes = {True: 'data-bool-true-text',
+                      False: 'data-bool-false-text'},
+        attribute = attributes[boolText];
+
+    // .is() is the recommended way of doing 'hasattr'
+    return $boolField.is("[" + attribute + "]") ?
+        $boolField.attr(attribute) : boolText;
+}
+
 exports.init = function(options) {
     var updateUrl = options.updateUrl,
         form = options.form,
@@ -124,7 +145,8 @@ exports.init = function(options) {
         formFieldsToDisplayValues = function() {
             $(editFields).each(function(index, el){
                 var field = $(el).attr('data-field'),
-                    $input, value, display, digits, units;
+                    $input, value, display, digits, units,
+                    displayValue;
 
                 // if the edit field has a data-field property,
                 // look for a corresponding display value and if
@@ -141,23 +163,28 @@ exports.init = function(options) {
                         } else {
                             value = $input.val();
                         }
+
                         $(display).attr('data-value', value);
+                        displayValue = value;
+
                         if ($input.is('select')) {
                             // Use dropdown text (not value) as display value
-                            value = $input.find('option:selected').text();
+                            displayValue = $input.find('option:selected').text();
+                        } else if ($input.is('[type="checkbox"]')) {
+                            displayValue = getBooleanFieldText(display, value);
                         } else if (value && $input.is('[data-date-format]')) {
-                            value = $input.val();
+                            displayValue = $input.val();
                         } else if (value) {
                             digits = $(display).data('digits');
                             if (digits) {
-                                value = parseFloat(value).toFixed(digits);
+                                displayValue = parseFloat(value).toFixed(digits);
                             }
                             units = $(display).data('units');
                             if (units) {
-                                value = value + ' ' + units;
+                                displayValue = value + ' ' + units;
                             }
                         }
-                        $(display).html(value);
+                        $(display).html(displayValue);
                     }
                 }
             });
