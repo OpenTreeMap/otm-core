@@ -229,7 +229,7 @@ function onLocationChosen(location) {
     // User has chosen an initial tree location via geocode or geolocate.
     // Show the marker (zoomed and centered), and let them drag it.
     // Show a message so they know the marker must be moved to continue.
-    mapManager.setCenterAndZoomIn(location, mapManager.ZOOM_PLOT);
+    mapManager.setCenterWM(location);
     plotMarker.place(location);
     requireMarkerDrag();
 }

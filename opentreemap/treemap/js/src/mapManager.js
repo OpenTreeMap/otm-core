@@ -58,15 +58,25 @@ exports.init = function(options) {
         }
     };
 
-    var setCenterAndZoomIn = exports.setCenterAndZoomIn = function(location, zoom, reset) {
-        if (zoom > map.getMaxZoom()) {
-            zoom = map.getMaxZoom();
-        }
+    var setCenterAndZoomLL = exports.setCenterAndZoomLL = function(zoom, location, reset) {
 
-        map.setView(U.webMercatorToLeafletLatLng(location.x, location.y),
-                    Math.max(map.getZoom(), zoom),
-                    {reset: !!reset});
+        // never zoom out, or try to zoom
+        // farther than allowed.
+        var zoomToApply = Math.max(
+            map.getZoom(),
+            Math.min(zoom, map.getMaxZoom()));
+
+        map.setView(location, zoomToApply, {reset: !!reset});
     };
+
+    var setCenterAndZoomWM = exports.setCenterAndZoomWM = function(zoom, location, reset) {
+        setCenterAndZoomLL(zoom,
+                         U.webMercatorToLeafletLatLng(location.x, location.y),
+                         reset);
+    };
+
+    var setCenterWM = exports.setCenterWM = _.partial(setCenterAndZoomWM, exports.ZOOM_PLOT);
+    var setCenterLL = exports.setCenterLL = _.partial(setCenterAndZoomLL, exports.ZOOM_PLOT);
 
     map.addLayer(boundsLayer);
     map.addLayer(utfLayer);
@@ -74,7 +84,7 @@ exports.init = function(options) {
 
     var center = options.center || config.instance.center,
         zoom = options.zoom || exports.ZOOM_DEFAULT;
-    setCenterAndZoomIn(center, zoom);
+    setCenterAndZoomWM(zoom, center);
 };
 
 var createMap = exports.createMap = function(elmt, config, options) {
