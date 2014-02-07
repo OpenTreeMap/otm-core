@@ -39,6 +39,10 @@ var isUndefined = exports.isUndefined = function (value) {
     return value === undefined;
 };
 
+var isUndefinedOrEmpty = exports.isUndefinedOrEmpty = function (value) {
+    return value === undefined || value === "";
+};
+
 exports.isPropertyDefined = function(key, object) {
     return isDefined(object) && isDefined(object[key]);
 };

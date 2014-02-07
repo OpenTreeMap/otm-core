@@ -86,27 +86,7 @@
 {% endblock export %}
 
 {% block search %}
-<div class="search-block-wrapper">
-  <!--Species Search-->
-  <div class="search-block visible-desktop">
-    <h3>{% trans "Search by Species" %}</h3>
-    <div class="search-field-group">
-      <a class="typeahead-toggle" id="species-toggle"><i class="icon-menu"></i></a>
-      <input type="text" data-class="search" id="species-typeahead" placeholder="Common or Scientific Name"/>
-      <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
-    </div>
-  </div>
-
-  <!-- Location Search -->
-  <div class="search-block">
-    <h3>{% trans "Search by Location" %}</h3>
-    <div class="search-field-group">
-      <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
-      <input type="text" data-class="search" id="boundary-typeahead" placeholder="Address, City, State"/>
-      <input name="mapfeature.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />
-    </div>
-  </div>
-</div> <!-- end search block wrapper -->
+{% include "treemap/partials/search_bar.html" %}
 {% endblock search %}
 
 {% block searchoptions %}
@@ -154,7 +134,7 @@
 {% block searchscripts %}
 <script type="text/javascript">
     (function(require) {
-        require("treemap/searchBar").init(otm.settings);
+        require("treemap/searchBar").initDefaults(otm.settings);
     })(require);
 </script>
 {% endblock searchscripts %}
