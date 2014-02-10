@@ -6,20 +6,34 @@ from __future__ import division
 import json
 from copy import copy
 
-from django.test import TestCase
 from django.contrib.gis.geos import Point
 
-from treemap.models import Plot, Tree, Species, User
-from treemap.tests import (make_instance, make_commander_user)
+from treemap.models import Plot, Tree, Species, User, TreePhoto
+from treemap.tests import (make_instance, make_commander_user,
+                           LocalMediaTestCase, media_dir)
+
 from otm1_migrator.management.commands.perform_migration import (
     hash_to_model, hashes_to_saved_objects)
 
 
-class MigrationCommandTests(TestCase):
+class MigrationCommandTests(LocalMediaTestCase):
     def setUp(self):
+        super(MigrationCommandTests, self).setUp()
 
         self.instance = make_instance()
         self.commander = make_commander_user(self.instance)
+
+        self.photo_blob = """
+        {"pk": 54,
+        "model": "treemap.treephoto",
+        "fields": {
+        "comment": "",
+        "title": "",
+        "reported_by": 1,
+        "photo": "%s",
+        "tree": 1,
+        "reported": "2012-06-17 13:44:30"}}
+        """
 
         self.tree_blob = """
         {"pk": 95,
@@ -193,6 +207,36 @@ class MigrationCommandTests(TestCase):
         self.assertEqual(species.fact_sheet,
                          'http://eol.org/search?q=Salix viminalis')
         self.assertEqual(species.plant_guide, None)
+
+    @media_dir
+    def test_treephoto_hash_to_model(self):
+        plot = Plot(geom=Point(0, 0), instance=self.instance)
+        plot.save_with_user(self.commander)
+        tree = Tree(plot=plot, instance=self.instance)
+        tree.save_with_user(self.commander)
+
+        ipath = self.resource_path('tree1.gif')
+
+        tp_dict = json.loads(self.photo_blob % ipath)
+
+        role = self.commander.instanceuser_set.get(
+            instance=self.instance).role
+
+        self.assertEqual(TreePhoto.objects.count(), 0)
+
+        hashes_to_saved_objects("treephoto", [tp_dict],
+                                {'tree': {1: tree.pk},
+                                 'user': {1: self.commander.pk}},
+                                self.instance, self.commander,
+                                commander_role=role,
+                                save_with_user=True,
+                                treephoto_path='')
+
+        self.assertEqual(TreePhoto.objects.count(), 1)
+        photo = TreePhoto.objects.all()[0]
+
+        self.assertIsNotNone(photo.image)
+        self.assertIsNotNone(photo.thumbnail)
 
     def test_plot_hash_to_model(self):
         plot_dict = json.loads(self.plot_blob)

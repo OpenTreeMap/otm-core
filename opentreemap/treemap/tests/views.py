@@ -193,10 +193,14 @@ class LocalMediaTestCase(TestCase):
                              MEDIA_ROOT=self.photoDir,
                              MEDIA_URL=self.mediaUrl)
 
-    def load_resource(self, name):
+    def resource_path(self, name):
         module_dir = os.path.dirname(__file__)
         path = os.path.join(module_dir, 'resources', name)
-        return file(path)
+
+        return path
+
+    def load_resource(self, name):
+        return file(self.resource_path(name))
 
     def tearDown(self):
         shutil.rmtree(self.photoDir)

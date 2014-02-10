@@ -5,6 +5,8 @@ from __future__ import division
 
 from contextlib import contextmanager
 from optparse import make_option
+
+import os
 import json
 import logging
 
@@ -14,7 +16,8 @@ from django.conf import settings
 from django.db.transaction import commit_on_success
 
 from treemap import SPECIES
-from treemap.models import (User, Plot, Tree, Species, InstanceUser, Audit)
+from treemap.models import (User, Plot, Tree, Species, InstanceUser, Audit,
+                            TreePhoto)
 from treemap.audit import model_hasattr
 from treemap.management.util import InstanceDataCommand
 
@@ -51,6 +54,15 @@ logger = logging.getLogger('')
 #                     that take a value and transform it to some other value.
 
 MIGRATION_RULES = {
+    'treephoto': {
+        'model_class': TreePhoto,
+        'dependencies': {'tree': 'tree',
+                         'user': 'reported_by'},
+        'common_fields': {'photo'},
+        'renamed_fields': {'tree': 'tree_id'},
+        'removed_fields': {'title', 'reported', 'reported_by', 'comment'},
+        'missing_fields': set()
+    },
     'tree': {
         'model_class': Tree,
         'dependencies': {'species': 'species',
@@ -218,7 +230,8 @@ def more_permissions(user, instance, role):
 
 
 def save_user_hash_to_model(model_name, model_hash,
-                            instance, system_user, commander_role):
+                            instance, system_user, commander_role,
+                            treephoto_path=None):
     """
     Tries to save an object with the app user that should own
     the object. If not possible, falls back to the system_user.
@@ -237,6 +250,13 @@ def save_user_hash_to_model(model_name, model_hash,
     else:
         user = system_user
 
+    if model_name == 'treephoto':
+        image = open(os.path.join(treephoto_path,
+                                  model_hash['fields']['photo']))
+        model.set_image(image)
+
+        del model_hash['fields']['photo']
+
     with more_permissions(user, instance, commander_role) as elevated_user:
         model.save_with_user(elevated_user)
 
@@ -245,7 +265,8 @@ def save_user_hash_to_model(model_name, model_hash,
 
 def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                             instance, system_user,
-                            commander_role=None, save_with_user=False):
+                            commander_role=None, save_with_user=False,
+                            treephoto_path=None):
 
     model_key_map = dependency_id_maps.get(model_name, {})
     dependencies = (MIGRATION_RULES
@@ -261,15 +282,19 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
 
     for model_hash in hashes_to_save:
 
-        # rewrite the fixture so that otm1 pks are replaced by
-        # their corresponding otm2 pks
-        if dependencies:
-            for name, field in dependencies:
-                old_id = model_hash['fields'][field]
-                if old_id:
-                    old_id_to_new_id = dependency_id_maps[name]
-                    new_id = old_id_to_new_id[old_id]
-                    model_hash['fields'][field] = new_id
+        try:
+            # rewrite the fixture so that otm1 pks are replaced by
+            # their corresponding otm2 pks
+            if dependencies:
+                for name, field in dependencies:
+                    old_id = model_hash['fields'][field]
+                    if old_id:
+                        old_id_to_new_id = dependency_id_maps[name]
+                        new_id = old_id_to_new_id[old_id]
+                        model_hash['fields'][field] = new_id
+        except Exception as e:
+            logger.error("Error: %s" % e)
+            continue
 
         if save_with_user:
             if model_name == 'species':
@@ -326,7 +351,6 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
 
                     return model
 
-
                 model = _save_species()
             else:
                 @commit_on_success
@@ -334,7 +358,8 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                     model = save_user_hash_to_model(
                         model_name, model_hash,
                         instance, system_user,
-                        commander_role)
+                        commander_role,
+                        treephoto_path=treephoto_path)
 
                     OTM1ModelRelic.objects.create(
                         instance=instance,
@@ -434,6 +459,16 @@ class Command(InstanceDataCommand):
                     type='string',
                     dest='audit_fixture',
                     help='path to json dump containing audit data'),
+        make_option('-f', '--photo-fixture',
+                    action='store',
+                    type='string',
+                    dest='treephoto_fixture',
+                    help='path to json dump containing tree photo data'),
+        make_option('-x', '--photo-path',
+                    action='store',
+                    type='string',
+                    dest='treephoto_path',
+                    help='path to photos that will be imported'),
     )
 
     def handle(self, *args, **options):
@@ -457,8 +492,11 @@ class Command(InstanceDataCommand):
             'user': [],
             'plot': [],
             'tree': [],
-            'audit': []
+            'audit': [],
+            'treephoto': []
         }
+
+        treephoto_path = options.get('treephoto_path', None)
 
         for model_name in json_hashes:
             option_name = model_name + '_fixture'
@@ -490,7 +528,13 @@ class Command(InstanceDataCommand):
             'user': {},
             'tree': {},
             'audit': {},
+            'treephoto': {}
         }
+
+        if 'treephoto' in model_hashes and treephoto_path is None:
+            raise Exception('Must specify the tree photo path to '
+                            'import photo')
+
 
         for relic in OTM1UserRelic.objects.filter(instance=instance):
             dependency_id_maps['user'][relic.otm1_id] = relic.otm2_user_id
@@ -507,9 +551,10 @@ class Command(InstanceDataCommand):
 
         commander_role = make_commander_role(instance)
 
-        for model in ('species', 'plot', 'tree'):
+        for model in ('species', 'plot', 'tree', 'treephoto'):
             if json_hashes[model]:
                 hashes_to_saved_objects(model, json_hashes[model],
                                         dependency_id_maps,
                                         instance, system_user, commander_role,
-                                        save_with_user=True)
+                                        save_with_user=True,
+                                        treephoto_path=treephoto_path)
