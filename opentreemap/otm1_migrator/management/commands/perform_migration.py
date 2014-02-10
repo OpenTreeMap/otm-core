@@ -288,6 +288,19 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                         cultivar=cultivar,
                         other=other)
 
+                    relicinfo = {
+                        'instance': instance,
+                        'otm1_model_id': model_hash['pk'],
+                        'otm2_model_name': model_name
+                    }
+
+                    relics = OTM1ModelRelic.objects.filter(**relicinfo)
+
+                    if len(relics) == 0:
+                        relic = OTM1ModelRelic(**relicinfo)
+                    else:
+                        relic = relics[0]
+
                     if len(existingspecies) == 0:
                         for sp in SPECIES:
                             if ((sp['genus'] == genus and
@@ -299,10 +312,20 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
 
                                 break
 
-                        return save_user_hash_to_model(
+                        model = save_user_hash_to_model(
                             model_name, model_hash,
                             instance, system_user,
                             commander_role)
+
+                        relic.otm2_model_id = model.pk
+                    else:
+                        model = None
+                        relic.otm2_model_id = existingspecies[0].pk
+
+                    relic.save()
+
+                    return model
+
 
                 model = _save_species()
             else:
