@@ -342,8 +342,12 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                         otm2_model_name=model_name,
                         otm2_model_id=model.pk)
                     return model
-                model = _save_with_user_portion()
 
+                try:
+                    model = _save_with_user_portion()
+                except Exception as e:
+                    logger.error("Error: %s" % e)
+                    model = None
         else:
 
             model = hash_to_model(model_name, model_hash,
@@ -388,7 +392,7 @@ def hashes_to_saved_objects(model_name, model_hashes, dependency_id_maps,
                         otm2_model_id=model.pk)
                 _other_save_portion(model)
 
-        if model_key_map is not None:
+        if model_key_map is not None and model and model.pk:
             model_key_map[model_hash['pk']] = model.pk
 
 
