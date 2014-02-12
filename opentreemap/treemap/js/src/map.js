@@ -11,34 +11,13 @@ var $ = require('jquery'),
     addTreeModeName = require('treemap/addTreeMode').name,
     mapState = require('treemap/mapState'),
     Search = require('treemap/search'),
-    searchBar = require('treemap/searchBar'),
+    SearchBar = require('treemap/searchBar'),
     modes = require('treemap/modeManagerForMapPage'),
-    geocoder = require('treemap/geocoder'),
-    geocoderUi = require('treemap/geocoderUi'),
     boundarySelect = require('treemap/boundarySelect'),
     BU = require('treemap/baconUtils'),
     buttonEnabler = require('treemap/buttonEnabler');
 
 // Map-page specific search code here
-var unmatchedBoundarySearchValue = function() {
-    return $('#boundary-typeahead').attr('data-unmatched');
-};
-
-var showGeocodeError = function (e) {
-    // Bacon just returns an error string
-    if (_.isString(e)) {
-        // TODO: Toast
-        window.alert(e);
-    // If there was an error from the server the error
-    // object contains standard http info
-    } else if (e.status && e.status === 404) {
-        // TODO: Toast
-        window.alert('There were no results matching your search.');
-    } else {
-        // TODO: Toast
-        window.alert('There was a problem running your search.');
-    }
-};
 
 // ``searchToBoundaryId`` takes a JSON search object and
 // extracts the numeric region ID included in the search.
@@ -52,73 +31,56 @@ var searchToBoundaryId = function(search) {
     }
 };
 
+function changeMode (modeName) {
+    if (modeName === addTreeModeName) {
+        modes.activateAddTreeMode();
+    } else {
+        modes.activateBrowseTreesMode();
+    }
+}
+
+function deserializeZoomLatLngAndSetOnMap (state) {
+    var zll = state.zoomLatLng,
+        center = new L.LatLng(zll.lat, zll.lng);
+    mapManager.setCenterAndZoomLL(zll.zoom, center);
+}
+
+function serializeZoomLatLngFromMap () {
+    var zoom = mapManager.map.getZoom(),
+        center = mapManager.map.getCenter();
+    mapState.setZoomLatLng(zoom, center);
+}
+
 module.exports = {
     initMapPage: function (config) {
-        var searchEventStream = searchBar.searchEventStream(),
-            resetStream = searchBar.resetEventStream(),
-            elems = searchBar.getElems();
 
-        // If a search is submitted with a boundary value that does
-        // not match any autocomplete value, run it through the geocoder
-        var geocodeResponseStream =
-            geocoder(config).geocodeStream(
-                searchEventStream.map(unmatchedBoundarySearchValue)
-                                 .filter(BU.isDefinedNonEmpty)
-            );
+        var triggerSearchFromSidebar = new Bacon.Bus();
 
-        var geocodedLocationStream = geocoderUi(
-            {
-                geocodeResponseStream: geocodeResponseStream,
-                cancelGeocodeSuggestionStream: searchBar.resetEventStream(),
-                resultTemplate: '#geocode-results-template',
-                addressInput: '#boundary-typeahead',
-                displayedResults: '.search-block [data-class="geocode-result"]'
-            });
+        // init mapManager before searchBar so that .setCenterWM is set
+        mapManager.init({ config: config, selector: '#map' });
+
 
         // When there is a single geocode result (either by an exact match
         // or the user selects a candidate) move the map to it and zoom
         // if the map is not already zoomed in.
-        geocodedLocationStream.onValue(function (location) {
-            mapManager.setCenterAndZoomIn(location, mapManager.ZOOM_PLOT);
-        });
+        var bar = SearchBar.init(config);
 
-        // Let the user know if there was a problem geocoding
-        geocodeResponseStream.onError(showGeocodeError);
+        bar.geocodedLocationStream.onValue(mapManager.setCenterWM);
 
-        var triggerSearchFromSidebar = new Bacon.Bus();
+        var zoomLatLngStream = mapState.stateChangeStream.filter('.zoomLatLng');
 
-        mapState.stateChangeStream
-            .filter('.zoomLatLng')
-            .onValue(function (state) {
-                var zll = state.zoomLatLng,
-                    center = new L.LatLng(zll.lat, zll.lng);
-                mapManager.map.setView(center, zll.zoom);
-            });
-
-        mapState.stateChangeStream
-            .map('.modeName')
-            .filter(BU.isDefined)
-            .onValue(function (modeName) {
-                if (modeName === addTreeModeName) {
-                    modes.activateAddTreeMode();
-                } else {
-                    modes.activateBrowseTreesMode();
-                }
-            });
+        zoomLatLngStream.onValue(deserializeZoomLatLngAndSetOnMap);
 
         var triggeredQueryStream =
             Bacon.mergeAll(
                 mapState.stateChangeStream // URL changed
                     .filter('.search')     // search changed
                     .map('.search'),       // get search string
-                resetStream.map({})
+                bar.resetStream.map({})
             );
 
         var builtSearchEvents =
-            Bacon.mergeAll(
-                triggeredQueryStream,
-                searchEventStream.map(Search.buildSearch, elems)
-            );
+            Bacon.mergeAll(triggeredQueryStream, bar.filterNonGeocodeObjectStream);
 
         var ecoBenefitsSearchEvents =
             Bacon.mergeAll(
@@ -126,9 +88,15 @@ module.exports = {
                 triggerSearchFromSidebar.map(mapState.getSearch)
             );
 
-        triggeredQueryStream.onValue(Search.applySearchToDom, elems);
+        triggeredQueryStream.onValue(Search.applySearchToDom, bar.elems);
 
         builtSearchEvents.onValue(mapState.setSearch);
+
+        var modeChangeStream = mapState.stateChangeStream
+                .map('.modeName')
+                .filter(BU.isDefined);
+
+        modeChangeStream.onValue(changeMode);
 
         $('[data-action="addtree"]').click(function(e) {
             e.preventDefault();
@@ -137,20 +105,11 @@ module.exports = {
 
         $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
-        mapManager.init({
-            config: config,
-            selector: '#map'
-        });
 
-        mapManager.map.on("moveend", function () {
-            var zoom = mapManager.map.getZoom(),
-                center = mapManager.map.getCenter();
-            mapState.setZoomLatLng(zoom, center);
-        });
+        mapManager.map.on("moveend", serializeZoomLatLngFromMap);
 
         Search.init(ecoBenefitsSearchEvents, config, mapManager.setFilter);
 
-        searchBar.initSearchUi(config);
 
         boundarySelect.init({
             config: config,
@@ -166,7 +125,8 @@ module.exports = {
 
         modes.init(config, mapManager, triggerSearchFromSidebar);
 
-        // Reads state from current URL, possibly triggering updates via mapState.stateChangeStream
+        // Reads state from current URL, possibly triggering
+        // updates via mapState.stateChangeStream
         mapState.init();
     }
 };

@@ -39,6 +39,10 @@ var isUndefined = exports.isUndefined = function (value) {
     return value === undefined;
 };
 
+var isUndefinedOrEmpty = exports.isUndefinedOrEmpty = function (value) {
+    return value === undefined || value === "";
+};
+
 exports.isPropertyDefined = function(key, object) {
     return isDefined(object) && isDefined(object[key]);
 };
@@ -101,6 +105,9 @@ exports.getJsonFromUrl = function(url) {
     return Bacon.fromPromise(req);
 };
 
+// binds a number of form controls together with
+// a button to provide a consistent form submission
+// experience
 exports.enterOrClickEventStream = function(options) {
     var inputs = $(options.inputs),
         button = $(options.button),

@@ -32,13 +32,11 @@ module.exports = function (options) {
     // set up a live-style selector.
     var resultChosenStream = $("body").asEventStream('click', displayedResultsSelector,
         function (e, args) {
-            var $result = $(e.target);
-            return {
-                x: $result.data('x'),
-                y: $result.data('y'),
-                coordinates: [$result.data('x'), $result.data('y')],
-                address: $result.data('address')
-            };
+            var $result = $(e.target),
+                x = $result.data('x'),
+                y = $result.data('y'),
+                address = $result.data('address');
+            return { x: x, y: y, coordinates: [x, y], address: address };
         });
 
     // Destroy the suggestion popover if...
