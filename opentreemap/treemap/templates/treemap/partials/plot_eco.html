@@ -3,12 +3,12 @@
 {% if invalid_eco_pair %}
 <div>
   {% blocktrans %}
-  <p>Ecosystem benefits cannot be calculated for this species of tree in this location.
-  <p>The tree's location falls within a climate region that does not support benefit calculations for this species.
+  <p>Ecosystem benefits cannot be calculated for this species of tree in this location.</p>
+  <p>The tree's location falls within a climate region that does not support benefit calculations for this species.</p>
   {% endblocktrans %}
 </div>
 {% elif benefits %}
-<table class="table">
+<table class="table table-hover">
   <tbody>
     {% for benefit in benefits %}
     <tr>
@@ -21,6 +21,6 @@
 </table>
 {% else %}
 <div>
-  {% trans "Add the diameter of the tree and select a species to calculate the yearly ecosystem services." %}
+  <p>{% trans "Add the diameter of the tree and select a species to calculate the yearly ecosystem services." %}</p>
 </div>
 {% endif %}

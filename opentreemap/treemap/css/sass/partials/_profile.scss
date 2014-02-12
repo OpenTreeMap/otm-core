@@ -49,8 +49,16 @@
 }
 
 #user-form {
+    margin: 20px 0 0;
+
+    label {
+        color: $well-color;
+        font-weight: 700;
+        margin-bottom: 2px;
+    }
     .field-view {
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        font-weight: 300;
     }
 
     [data-field="user.allow_email_contact"][data-class="edit"] {
@@ -62,6 +70,9 @@
 
 #recent-user-edits {
     font-size: 1.2rem;
+}
+#id_comment {
+    width: 90%;
 }
 
 .profile {
