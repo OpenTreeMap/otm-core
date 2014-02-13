@@ -65,6 +65,12 @@ def plot_field_is_writable(instanceuser, field):
 
 
 @register.filter
+def geom_is_writable(instanceuser, model_name):
+    return _feature_allows_writes(instanceuser, model_name, predicate=any,
+                                  field='geom')
+
+
+@register.filter
 def instance_config(instance, field):
     if instance:
         return get_attr_from_json_field(instance, "config." + field)

@@ -1,0 +1,60 @@
+{% extends "treemap/map_feature_detail.html" %}
+{% load i18n %}
+{% load l10n %}
+{% load auth_extras %}
+{% load form_extras %}
+{% load udf %}
+
+{% block page_title %} | {% trans "Rain Garden" %} {{ feature.pk }}{% endblock %}
+
+{% block subclass_details %}
+
+<h3>{% trans "Resource Information" %}</h3>
+
+<table class="table table-hover">
+  <tbody>
+    <tr>
+      <td>{% trans "Resource number" %}</td>
+      <td>{{ feature.pk }}</td>
+    </tr>
+
+    {% block resource_details %}
+    {% endblock resource_details %}
+
+    {% for label, udf in feature.scalar_udf_names_and_fields %}
+      {% field label from udf for request.user withtemplate "treemap/field/tr.html" %}
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Ecosystem Benefits -->
+<div id="ecobenefits">
+<h3>{% trans "Resource Ecosystem Services" %}</h3>
+</div>
+
+{% endblock subclass_details %}
+
+{% block scripts %}
+
+{{ block.super }}
+
+<script>
+{% localize off %}
+(function(require, config, mapFeatureOptions) {
+      var mapFeatureModule = require('treemap/mapFeature'),
+          resource = require('treemap/resource');
+
+      // mapFeatureOptions is defined in a script block of the super-template
+      var mapFeature = mapFeatureModule.init(mapFeatureOptions);
+
+      resource.init({
+          ecoBenefits: '#ecobenefits',
+          featureId: {{ feature.id }},
+          inlineEditForm: mapFeatureOptions.inlineEditForm,
+          form: mapFeature.inlineEditForm
+      });
+})(require, otm.settings, mapFeatureOptions);
+{% endlocalize %}
+</script>
+
+{% endblock scripts %}
