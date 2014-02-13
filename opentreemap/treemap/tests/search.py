@@ -49,29 +49,46 @@ class FilterParserTests(TestCase):
 
     def test_key_parser_plots(self):
         # Plots go directly to a field
-        match = search._parse_predicate_key('plot.width')
+        match = search._parse_predicate_key('plot.width',
+                                            mapping=search.PLOT_MAPPING)
         self.assertEqual(match, 'width')
 
+    def test_key_parser_plots_with_tree_map(self):
+        # Plots go directly to a field
+        match = search._parse_predicate_key('plot.width',
+                                            mapping=search.TREE_MAPPING)
+        self.assertEqual(match, 'plot__width')
+
     def test_udf_fields_look_good(self):
-        match = search._parse_predicate_key('plot.udf:The 1st Planter')
+        match = search._parse_predicate_key('plot.udf:The 1st Planter',
+                                            mapping=search.PLOT_MAPPING)
         self.assertEqual(match, 'udf:The 1st Planter')
 
     def test_key_parser_trees(self):
         # Trees require a prefix and the field
-        match = search._parse_predicate_key('tree.dbh')
+        match = search._parse_predicate_key('tree.dbh',
+                                            mapping=search.PLOT_MAPPING)
         self.assertEqual(match, 'tree__dbh')
+
+    def test_key_parser_trees_with_tree_map(self):
+        # Trees require a prefix and the field
+        match = search._parse_predicate_key('tree.dbh',
+                                            mapping=search.TREE_MAPPING)
+        self.assertEqual(match, 'dbh')
 
     def test_key_parser_invalid_model(self):
         # Invalid models should raise an exception
         self.assertRaises(search.ParseException,
                           search._parse_predicate_key,
-                          "user.id")
+                          "user.id",
+                          mapping=search.PLOT_MAPPING)
 
     def test_key_parser_too_many_dots(self):
         # Dotted fields are also not allowed
         self.assertRaises(search.ParseException,
                           search._parse_predicate_key,
-                          "plot.width.other")
+                          "plot.width.other",
+                          mapping=search.PLOT_MAPPING)
 
     def test_combinator_and(self):
         qa = Q(a=1)
@@ -196,7 +213,8 @@ class FilterParserTests(TestCase):
     def test_parse_species_predicate(self):
         pred = search._parse_predicate(
             {'species.id': 113,
-             'species.flowering': True})
+             'species.flowering': True},
+            mapping=search.PLOT_MAPPING)
 
         target = ('AND', {('tree__species__id', 113),
                           ('tree__species__flowering', True)})
@@ -205,7 +223,8 @@ class FilterParserTests(TestCase):
 
     def test_like_predicate(self):
         pred = search._parse_predicate(
-            {'tree.steward': {'LIKE': 'thisisatest'}})
+            {'tree.steward': {'LIKE': 'thisisatest'}},
+            mapping=search.PLOT_MAPPING)
 
         target = ('AND', {('tree__steward__icontains', 'thisisatest')})
 
@@ -218,7 +237,8 @@ class FilterParserTests(TestCase):
               'MAX': {'VALUE': 9,
                       'EXCLUSIVE': False}},
              'tree.height':
-             9})
+             9},
+            mapping=search.PLOT_MAPPING)
 
         p1 = ('AND', {('width__lte', 9),
                       ('width__gte', 5),
@@ -229,7 +249,8 @@ class FilterParserTests(TestCase):
 
         pred = search._parse_predicate(
             {'tree.leaf_type': {'IS': 9},
-             'tree.last_updated_by': 4})
+             'tree.last_updated_by': 4},
+            mapping=search.PLOT_MAPPING)
 
         p2 = ('AND', {('tree__leaf_type', 9),
                       ('tree__last_updated_by', 4)})
@@ -237,13 +258,31 @@ class FilterParserTests(TestCase):
         self.assertEqual(self.destructure_query_set(pred),
                          p2)
 
+    def test_parse_predicate_with_tree_map(self):
+        pred = search._parse_predicate(
+            {'plot.width':
+             {'MIN': 5,
+              'MAX': {'VALUE': 9,
+                      'EXCLUSIVE': False}},
+             'tree.height':
+             9},
+            mapping=search.TREE_MAPPING)
+
+        p1 = ('AND', {('plot__width__lte', 9),
+                      ('plot__width__gte', 5),
+                      ('height', 9)})
+
+        self.assertEqual(self.destructure_query_set(pred),
+                         p1)
+
     def test_parse_filter_no_wrapper(self):
         pred = search._parse_filter(
             {'plot.width':
              {'MIN': 5,
               'MAX': {'VALUE': 9,
                       'EXCLUSIVE': False}},
-             'tree.height': 9})
+             'tree.height': 9},
+            mapping=search.PLOT_MAPPING)
 
         p = ('AND',
              {('width__lte', 9),
@@ -261,7 +300,8 @@ class FilterParserTests(TestCase):
                        'EXCLUSIVE': False}},
               'tree.height': 9},
              {'tree.leaf_type': {'IS': 9},
-              'tree.last_updated_by': 4}])
+              'tree.last_updated_by': 4}],
+            mapping=search.PLOT_MAPPING)
 
         p = ('AND',
              {('width__lte', 9),
@@ -281,7 +321,8 @@ class FilterParserTests(TestCase):
                        'EXCLUSIVE': False}},
               'tree.height': 9},
              {'tree.leaf_type': {'IS': 9},
-              'tree.last_updated_by': 4}])
+              'tree.last_updated_by': 4}],
+            mapping=search.PLOT_MAPPING)
 
         p1 = ('AND', frozenset({('width__lte', 9),
                                 ('width__gte', 5),

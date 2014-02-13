@@ -11,7 +11,7 @@ from django.db.models import Q
 from django.contrib.gis.measure import Distance
 from django.contrib.gis.geos import Point
 
-from treemap.models import Plot, Boundary
+from treemap.models import Plot, Boundary, Tree
 from treemap.udf import DATETIME_FORMAT
 
 
@@ -21,13 +21,18 @@ class ParseException (Exception):
         self.message = message
 
 
-MODEL_MAPPING = {'plot': '',
-                 'tree': 'tree__',
-                 'species': 'tree__species__',
-                 'mapfeature': ''}
+PLOT_MAPPING = {'plot': '',
+                'tree': 'tree__',
+                'species': 'tree__species__',
+                'mapfeature': ''}
+
+TREE_MAPPING = {'plot': 'plot__',
+                'tree': '',
+                'species': 'species__',
+                'mapfeature': 'plot__'}
 
 
-def create_filter(filterstr):
+def create_filter(filterstr, base_is_plot=True):
     """
     A filter is a string that must be valid json and conform to
     the following grammar:
@@ -49,28 +54,36 @@ def create_filter(filterstr):
 
     Returns a lazy query set of plot objects
     """
+    if base_is_plot:
+        base = Plot
+        mapping = PLOT_MAPPING
+    else:
+        base = Tree
+        mapping = TREE_MAPPING
+
     if filterstr is not None and filterstr != '':
         query = loads(filterstr)
-        q = _parse_filter(query)
-        return Plot.objects.filter(q)
+        q = _parse_filter(query, mapping)
+        return base.objects.filter(q)
     else:
-        return Plot.objects.all()
+        return base.objects.all()
 
 
-def _parse_filter(query):
+def _parse_filter(query, mapping):
     if type(query) is dict:
-        return _parse_predicate(query)
+        return _parse_predicate(query, mapping)
     elif type(query) is list:
-        predicates = [_parse_filter(p) for p in query[1:]]
+        predicates = [_parse_filter(p, mapping) for p in query[1:]]
         return _apply_combinator(query[0], predicates)
 
 
-def _parse_predicate(query):
-    qs = [_parse_predicate_pair(*kv) for kv in query.iteritems()]
+def _parse_predicate(query, mapping):
+    qs = [_parse_predicate_pair(*kv, mapping=mapping)
+          for kv in query.iteritems()]
     return _apply_combinator('AND', qs)
 
 
-def _parse_predicate_key(key, mapping=MODEL_MAPPING):
+def _parse_predicate_key(key, mapping):
     parts = key.split('.')
 
     if len(parts) != 2:
@@ -223,8 +236,8 @@ def _parse_dict_value(valuesdict):
     return params
 
 
-def _parse_predicate_pair(key, value):
-    search_key = _parse_predicate_key(key)
+def _parse_predicate_pair(key, value, mapping):
+    search_key = _parse_predicate_key(key, mapping)
     if type(value) is dict:
         return Q(**{search_key + k: v
                     for (k, v)

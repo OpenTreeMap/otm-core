@@ -805,8 +805,9 @@ def species_list(request, instance):
     return [annotate_species_dict(species) for species in species_qs]
 
 
-def _execute_filter(instance, filter_str):
-    return create_filter(filter_str).filter(instance=instance)
+def _execute_filter(instance, filter_str, base_is_plot=True):
+    return create_filter(filter_str, base_is_plot=base_is_plot)\
+        .filter(instance=instance)
 
 
 def search_tree_benefits(request, instance):
@@ -816,7 +817,9 @@ def search_tree_benefits(request, instance):
         filter_str = ''
 
     plots = _execute_filter(instance, filter_str)
-    trees = Tree.objects.filter(plot_id__in=plots)
+
+    # Tree.objects.filter(plot_id__in=plots)
+    trees = _execute_filter(instance, filter_str, base_is_plot=False)
 
     total_plots = plots.count()
     total_trees = trees.count()

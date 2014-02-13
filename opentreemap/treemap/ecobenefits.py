@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.db import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as trans
 from django.shortcuts import get_object_or_404
 from django.contrib.gis.geos.point import Point
@@ -20,41 +19,62 @@ LBS_PER_KG = 2.20462
 
 
 def benefits_for_trees(trees, instance):
-    # This code may need to be reworked for django 1.6.x
-    # the eco benefit service expects a fully formed
-    # sql 'where' clause. We can compile that directly
-    # from the django query
-    query = trees.query
-    compiler = query.get_compiler(DEFAULT_DB_ALIAS)
-    query.where.as_sql(qn=compiler.quote_name_unless_alias,
-                       connection=compiler.connection)
-    where, where_params = query.where.as_sql(
-        qn=compiler.quote_name_unless_alias, connection=compiler.connection)
+    # When calculating benefits we can skip region information
+    # if there is only one intersecting region or if the
+    # instance forces a region on us
+    region = None
 
-    # Need to replace %s query params with postgres placeholders
-    # $1, $2, etc
-    idx = 1
-    i = 0
-    whereWithDollars = ''
-    while i < len(where) - 1:
-        char = where[i]
+    if instance.itree_region_default:
+        region = instance.itree_region_default
+    else:
+        regions = ITreeRegion.objects.filter(
+            geometry__intersects=instance.bounds)
 
-        if char == '%' and where[i + 1] == 's':
-            whereWithDollars += '$%d' % idx
-            idx += 1
-            i += 1
-        else:
-            whereWithDollars += char
+        if regions.length() == 1:
+            region = regions[0].code
 
-        i += 1
+    # We want to do a values query that returns the info that
+    # we need for an eco calculation:
+    # diameter, species id and species code
+    #
+    # The species id is used to find potential overrides
+    values = ('diameter',
+              'species__pk',
+              'species__otm_code',)
 
-    whereWithDollars += where[-1]
+    # If there isn't a single region we need to
+    # include geometry information
+    if not region:
+        values += ('plot__geom',)
 
-    params = (('where', whereWithDollars), ('instance_id', instance.pk))
-    params += tuple([("param", p) for p in where_params])
+    # We use two extra instance filter to help out
+    # the database a bit when doing the joins
+    treeValues = trees.filter(species__isnull=False)\
+                      .filter(diameter__isnull=False)\
+                      .filter(plot__instance=instance)\
+                      .filter(species__instance=instance)\
+                      .values_list(*values)
+
+    query = str(treeValues.query)
+
+    # We want to extract x and y coordinates but django
+    # doesn't make this easy since we need to force a join
+    # on plot/mapfeature. To make sure the djago machinery
+    # does that we use "plot__geom" above and then
+    # do this rather dubious string manipulation below
+    if not region:
+        targetGeomField = '"treemap_mapfeature"."the_geom_webmercator"'
+        xyGeomFields = 'ST_X(%s), ST_Y(%s)' % \
+                       (targetGeomField, targetGeomField)
+
+        query = query.replace(targetGeomField, xyGeomFields, 1)
+
+    params = {'query': query,
+              'instance_id': instance.pk,
+              'region': region or ""}
 
     rawb, err = ecobackend.json_benefits_call(
-        'eco_summary.json', params, post=True)
+        'eco_summary.json', params.iteritems(), post=True)
 
     if err:
         raise Exception(err)
