@@ -304,7 +304,7 @@ function onAddTreeSuccess(result) {
         requireMarkerDrag();
         break;
     case 'edit':
-        var url = config.instance.url + 'plots/' + result.featureId + '/edit';
+        var url = config.instance.url + 'features/' + result.featureId + '/edit';
         prompter.unlock();
         window.location.hash = '';
         window.location.href = url;

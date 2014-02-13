@@ -1095,7 +1095,7 @@ class AuditDetailTagTest(TestCase):
         audit = self.plot.audits()[0]
         link = audit_detail_link(audit)
 
-        target = reverse('plot_detail',
+        target = reverse('map_feature_detail',
                          kwargs={'instance_url_name': self.instance.url_name,
                                  'feature_id': self.plot.pk})
 

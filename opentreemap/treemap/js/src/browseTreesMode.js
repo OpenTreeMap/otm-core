@@ -88,7 +88,7 @@ function init(options) {
 
 function getPlotPopupContent(id) {
     var search = $.ajax({
-        url: config.instance.url + 'plots/' + id + '/popup',
+        url: config.instance.url + 'features/' + id + '/popup',
         type: 'GET',
         dataType: 'html'
     });
