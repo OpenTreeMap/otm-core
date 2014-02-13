@@ -205,10 +205,7 @@ class ModelUnicodeTests(TestCase):
 
     def test_plot_model(self):
         self.assertEqual(unicode(self.plot),
-                         'X: 0.0, Y: 0.0 - 123 Main Street')
-        map_feature = MapFeature.objects.filter(pk=self.plot.pk)[0]
-        self.assertEqual(unicode(map_feature),
-                         '(Plot) X: 0.0, Y: 0.0 - 123 Main Street')
+                         'Plot (0.0, 0.0) 123 Main Street')
 
     def test_tree_model(self):
         self.assertEqual(unicode(self.tree), '')
