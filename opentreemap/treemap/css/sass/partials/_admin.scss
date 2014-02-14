@@ -4,7 +4,7 @@
     min-height: 650px;
 
     .nav.nav-list {
-        margin-top: 60px;
+        margin-top: 115px;
 
         li {
             padding: 0;
@@ -24,10 +24,13 @@
     }
 
     .page-header {
-        margin: 0 0 20px;
+        margin: 0 0 30px;
+        height: 75px;
+        border: none;
+        padding: 0;
 
         h1 {
-            margin-bottom: 0.25em;
+            margin: 10px 0 0;
 
             small {
                 top: -6px;

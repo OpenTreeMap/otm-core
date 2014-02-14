@@ -62,6 +62,38 @@ body {
 		width: auto;
 		margin: 50px 10px 90px;
 	}
+
+    &:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        border-radius: 6px 6px 0 0;
+        height: 110px;
+        background: $light-gray-color;
+        left: 0;
+        right: 0;
+        display: block;
+        z-index: 0;
+    }
+
+    > div {
+        z-index: 99;
+        position: relative;
+    }
+}
+
+.alert {
+    .btn {
+        margin-bottom: 5px;
+    }
+}
+
+.progress {
+    margin-bottom: 8px;
+
+    .bar {
+        background: $secondary-color;
+    }
 }
 
 .well {
@@ -73,7 +105,7 @@ body {
 		margin-bottom: 0;
 	}
 
-	h3 {
+	h4 {
 		color: $secondary-color;
 		font-size: 1.6rem;
 		font-weight: 400;
@@ -82,11 +114,14 @@ body {
 	}
 	h5 {
 		margin-bottom: 6px;
+        color: $secondary-color;
+		font-size: 1.4rem;
+		font-weight: 700;
 	}
 	p, li {
 		font-size: 1.4rem;
 		font-weight: 300;
-		line-height: 2.4rem;
+		line-height: 2.1rem;
 	}
     p {
         clear: both;

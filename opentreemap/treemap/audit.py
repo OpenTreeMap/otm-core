@@ -119,9 +119,6 @@ def add_default_permissions(instance, roles=None, models=None):
         _add_default_permissions(models, role, instance)
 
 
-#    Species.objects.bulk_create(instance_species_list)
-#            FieldPermission.objects.get_or_create(
-
 def _add_default_permissions(models, role, instance):
     """
     Create FieldPermission entries for role using its default permission level.

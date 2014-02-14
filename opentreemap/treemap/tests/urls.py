@@ -189,31 +189,32 @@ class TreemapUrlTests(UrlTestCase):
 
     def test_plot_detail(self):
         plot = self.make_plot()
-        self.assert_template(
-            self.prefix + 'plots/%s/' % plot.id, 'treemap/plot_detail.html')
+        url = self.prefix + 'features/%s/' % plot.id
+        self.assert_template(url, 'treemap/plot_detail.html')
+        self.assert_template(url, 'treemap/map_feature_detail.html')
 
     def test_plot_detail_invalid(self):
-        self.assert_404(self.prefix + 'plots/999/')
+        self.assert_404(self.prefix + 'features/999/')
 
     def test_plot_detail_update(self):
         plot = self.make_plot()
         self.client.login(username='commander', password='password')
         self.assert_200(
-            self.prefix + 'plots/%s/' % plot.id, 'PUT',
+            self.prefix + 'features/%s/' % plot.id, 'PUT',
             json.dumps({"plot.length": "1"}))
 
     def test_plot_detail_update_invalid(self):
-        self.assert_401(self.prefix + 'plots/999/', 'PUT',
+        self.assert_401(self.prefix + 'features/999/', 'PUT',
                         json.dumps({"plot.length": "1"}))
 
     def test_plot_popup(self):
         plot = self.make_plot()
         self.assert_template(
-            self.prefix + 'plots/%s/popup' % plot.id,
-            'treemap/partials/plot_popup.html')
+            self.prefix + 'features/%s/popup' % plot.id,
+            'treemap/partials/map_feature_popup.html')
 
     def test_plot_popup_invalid(self):
-        self.assert_404(self.prefix + 'plots/999/popup')
+        self.assert_404(self.prefix + 'features/999/popup')
 
     def test_plot_accordion(self):
         plot = self.make_plot()

@@ -16,7 +16,7 @@ import sass
 
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views.decorators.http import etag
 from django.conf import settings
@@ -26,6 +26,7 @@ from django.utils.translation import ugettext as trans
 from django.utils.formats import number_format
 from django.db import transaction
 from django.db.models import Q
+from django.template import RequestContext
 
 from treemap.decorators import (json_api_call, render_template, login_or_401,
                                 require_http_method, string_as_file_call,
@@ -69,7 +70,7 @@ USER_EDIT_FIELDS = collections.OrderedDict([
 ])
 
 
-def _plot_hash(request, instance, feature_id, edit=False, tree_id=None):
+def _map_feature_hash(request, instance, feature_id, edit=False, tree_id=None):
     """
     Compute a unique hash for a given plot or tree
 
@@ -79,8 +80,8 @@ def _plot_hash(request, instance, feature_id, edit=False, tree_id=None):
     tree_id as an argument
     """
 
-    instance_plots = instance.scope_model(Plot)
-    base = get_object_or_404(instance_plots, pk=feature_id).hash
+    InstanceMapFeature = instance.scope_model(MapFeature)
+    base = get_object_or_404(InstanceMapFeature, pk=feature_id).hash
 
     if request.user:
         pk = request.user.pk or ''
@@ -109,10 +110,19 @@ def _search_hash(request, instance):
     return hashlib.md5(string_to_hash).hexdigest()
 
 
-def _get_map_feature_or_404(feature_id, instance, type):
-    MapFeatureSubclass = MapFeature.get_subclass(type)
-    InstanceMapFeature = instance.scope_model(MapFeatureSubclass)
-    return get_object_or_404(InstanceMapFeature, pk=feature_id)
+def _get_map_feature_or_404(feature_id, instance, type=None):
+    if type:
+        MapFeatureSubclass = MapFeature.get_subclass(type)
+        InstanceMapFeature = instance.scope_model(MapFeatureSubclass)
+        return get_object_or_404(InstanceMapFeature, pk=feature_id)
+
+    else:
+        InstanceMapFeature = instance.scope_model(MapFeature)
+        feature = get_object_or_404(InstanceMapFeature, pk=feature_id)
+
+        # Use feature_type to get the appropriate object, e.g. feature.plot
+        feature = getattr(feature, feature.feature_type.lower())
+        return feature
 
 
 def add_tree_photo(request, instance, feature_id, tree_id=None):
@@ -205,38 +215,72 @@ def create_user(*args, **kwargs):
     return user
 
 
-def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
-    plot = _get_map_feature_or_404(feature_id, instance, 'Plot')
+def map_feature_popup(request, instance, feature_id):
+    feature = _get_map_feature_or_404(feature_id, instance)
+    context = _context_dict_for_map_feature(instance, feature)
+    return context
 
-    if hasattr(request, 'instance_supports_ecobenefits'):
-        supports_eco = request.instance_supports_ecobenefits
+
+def render_map_feature_detail(request, instance, feature_id):
+    feature = _get_map_feature_or_404(feature_id, instance)
+    if feature.is_plot:
+        template = 'treemap/plot_detail.html'
     else:
-        supports_eco = instance.has_itree_region()
+        template = 'map_features/%s_detail.html' % feature.feature_type
+    context = _map_feature_detail(request, instance, feature)
+    return render_to_response(template, context, RequestContext(request))
 
-    context = context_dict_for_plot(
-        instance,
-        plot,
-        tree_id,
-        user=request.user,
-        supports_eco=supports_eco)
 
-    context['editmode'] = edit
+def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
+    feature = _get_map_feature_or_404(feature_id, instance, 'Plot')
+    return _map_feature_detail(request, instance, feature, edit, tree_id)
+
+
+def _map_feature_detail(request, instance, feature, edit=False, tree_id=None):
+    if feature.is_plot:
+        if hasattr(request, 'instance_supports_ecobenefits'):
+            supports_eco = request.instance_supports_ecobenefits
+        else:
+            supports_eco = instance.has_itree_region()
+
+        context = context_dict_for_plot(
+            instance,
+            feature,
+            tree_id,
+            user=request.user,
+            supports_eco=supports_eco)
+
+        context['editmode'] = edit
+
+    else:
+        context = _context_dict_for_map_feature(instance, feature)
 
     return context
 
 
 def _context_dict_for_map_feature(instance, feature):
     if instance.pk != feature.instance_id:
-        raise Exception("Invalid instance does not match plot")
+        raise Exception("Invalid instance, does not match map feature")
 
     feature.instance = instance  # save a DB lookup
-    context = {}
-    return context
 
+    if feature.is_plot:
+        tree = feature.current_tree()
+        if tree:
+            if tree.species:
+                title = tree.species.common_name
+            else:
+                title = trans("Missing Species")
+        else:
+            title = trans("Empty Planting Site")
+    else:
+        title = feature.display_name
 
-def context_dict_for_non_plot_feature(instance, feature):
-    context = _context_dict_for_map_feature(instance, feature)
-    context['feature'] = feature
+    context = {
+        'feature': feature,
+        'feature_type': feature.feature_type,
+        'title': title,
+    }
     return context
 
 
@@ -507,7 +551,8 @@ def update_map_feature(request_dict, user, feature):
 
 
 def _get_audits(logged_in_user, instance, query_vars, user, models,
-                model_id, page=0, page_size=20, exclude_pending=True):
+                model_id, page=0, page_size=20, exclude_pending=True,
+                should_count=False):
     start_pos = page * page_size
     end_pos = start_pos + page_size
 
@@ -573,6 +618,7 @@ def _get_audits(logged_in_user, instance, query_vars, user, models,
     if exclude_pending:
         audits = audits.exclude(requires_auth=True, ref__isnull=True)
 
+    total_count = audits.count() if should_count else 0
     audits = audits[start_pos:end_pos]
 
     query_vars = {k: v for (k, v) in query_vars.iteritems() if k != 'page'}
@@ -586,6 +632,7 @@ def _get_audits(logged_in_user, instance, query_vars, user, models,
         prev_page = "?" + urllib.urlencode(query_vars)
 
     return {'audits': audits,
+            'total_count': total_count,
             'next_page': next_page,
             'prev_page': prev_page}
 
@@ -898,7 +945,7 @@ def user(request, username):
     query_vars = {'instance_id': instance_id} if instance_id else {}
 
     audit_dict = _get_audits(request.user, instance, query_vars,
-                             user, ['Plot', 'Tree'], 0)
+                             user, ['Plot', 'Tree'], 0, should_count=True)
 
     reputation = user.get_reputation(instance) if instance else None
 
@@ -916,6 +963,7 @@ def user(request, username):
     return {'user': user,
             'reputation': reputation,
             'instance_id': instance_id,
+            'total_count': audit_dict['total_count'],
             'audits': audit_dict['audits'],
             'next_page': audit_dict['next_page'],
             'public_fields': public_fields,
@@ -1180,6 +1228,14 @@ def index(request, instance):
         'instance_url_name': instance.url_name}))
 
 
+def tree_detail(request, instance, feature_id, tree_id):
+    return HttpResponseRedirect(reverse('map_feature_detail', kwargs={
+        'instance_url_name': instance.url_name,
+        'feature_id': feature_id}))
+
+
+tree_detail_view = instance_request(tree_detail)
+
 edits_view = instance_request(
     requires_feature('recent_edits_report')(
         render_template('treemap/edits.html', edits)))
@@ -1189,8 +1245,7 @@ index_view = instance_request(index)
 map_view = instance_request(
     render_template('treemap/map.html', _get_map_view_context))
 
-get_plot_detail_view = instance_request(
-    render_template('treemap/plot_detail.html', plot_detail))
+get_map_feature_detail_view = instance_request(render_map_feature_detail)
 
 edit_plot_detail_view = login_required(
     instance_request(
@@ -1212,14 +1267,15 @@ delete_map_feature_view = login_or_401(
         instance_request(
             creates_instance_user(delete_map_feature))))
 
-get_plot_eco_view = instance_request(etag(_plot_hash)(
+get_plot_eco_view = instance_request(etag(_map_feature_hash)(
     render_template('treemap/partials/plot_eco.html', plot_detail)))
 
-get_plot_sidebar_view = instance_request(etag(_plot_hash)(
+get_map_feature_sidebar_view = instance_request(etag(_map_feature_hash)(
     render_template('treemap/partials/sidebar.html', plot_detail)))
 
-plot_popup_view = instance_request(etag(_plot_hash)(
-    render_template('treemap/partials/plot_popup.html', plot_detail)))
+map_feature_popup_view = instance_request(etag(_map_feature_hash)(
+    render_template('treemap/partials/map_feature_popup.html',
+                    map_feature_popup)))
 
 plot_accordion_view = instance_request(
     render_template('treemap/plot_accordion.html', plot_detail))

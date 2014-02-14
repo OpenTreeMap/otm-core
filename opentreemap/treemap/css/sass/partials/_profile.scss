@@ -1,64 +1,64 @@
 // Partial: User Profile Page
 
 .account-info {
-    min-height: 85px;
-    margin-bottom: 15px;
-
     h1 {
         line-height: 1.6rem;
-        margin: 15px 0 10px;
-        float: left;
+        margin: 0 0 5px;
         font-size: 2.4rem;
-        width: auto;
-        text-overflow: ellipsis;
-        max-width: 250px;
-        overflow: hidden;
 
         small {
-            font-size: 0.8rem;
+            font-size: 1.4rem;
             color: #c2c2c2;
             display: block;
-            line-height: 2.1rem;
+            line-height: 3.6rem;
+            font-weight: 300;
         }
     }
     .user-photo-container {
-        width: 85px;
-        border-radius: 6px;
+        max-width: 80%;
+        border-radius: 9px;
         overflow: hidden;
-        height: 85px;
+        max-height: 175px;
         position: relative;
-        float: left;
-        margin-right: 10px;
+        margin-bottom: 20px;
 
-        > button {
+        > img {
+            width: 100%;
+        }
+        > button.add-photos {
             position: absolute;
             bottom: 0;
-            opacity: 0;
-            width: 100%;
+            opacity: 0.5;
+            width: auto;
             background: black;
             color: white;
             border: none;
             transition: opacity 0.3s;
+            z-index: 999;
+            padding: 5px 12px;
+            font-size: 1.2rem !important;
+            border-radius: 0 9px 0 9px;
         }
-        &:hover > button {
-            opacity: 0.85;
-            background: black;
+        &:hover {
+            > button.add-photos {
+                opacity: 0.85;
+                background: black;
+            }
         }
     }
 }
 
 #user-form {
-    margin: 10px 0;
-    clear: both;
-    padding: 20px;
-    border-radius: 6px;
-    border: 1px solid #EEE;
+    margin: 20px 0 0;
 
-    input[type="text"] {
-        width: 90%;
+    label {
+        color: $well-color;
+        font-weight: 700;
+        margin-bottom: 2px;
     }
     .field-view {
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        font-weight: 300;
     }
 
     [data-field="user.allow_email_contact"][data-class="edit"] {
@@ -71,15 +71,65 @@
 #recent-user-edits {
     font-size: 1.2rem;
 }
+#id_comment {
+    width: 90%;
+}
 
 .profile {
-    .chunk {
-        list-style: none;
-        padding: 5px 0 15px;
-        margin: 0;
+    .profile-tabs {
+        height: 85px;
+        margin-bottom: 20px;
 
-        .extra {
-            padding-top: 10px;
+        .nav.nav-tabs {
+            border: none;
+            float: right;
+
+            li {
+                border-left: 1px solid lighten($subtext-color, 15%);
+                padding-left: 10px;
+                margin-left: 20px;
+                position: relative;
+
+                &.active {
+                    &:before {
+                        content: '';
+                        position: absolute;
+                        width: 0;
+                        height: 0;
+                        border-left: 15px solid transparent;
+                        border-right: 15px solid transparent;
+                        border-bottom: 15px solid white;
+                        bottom: -25px;
+                        left: 20px;
+                    }
+
+                    a {
+                        color: $main-text-color;
+                    }
+                    .number {
+                        font-weight: 700;
+                        color: $secondary-color;
+                    }
+                }
+
+                a {
+                    border: none;
+                    background: none;
+                    font-weight: 400;
+                    font-size: 1.4rem;
+                    color: lighten($subtext-color, 15%);
+                }
+                .number {
+                    display: block;
+                    font-weight: 400;
+                    font-size: 2.4rem;
+                    margin: 3px 0;
+                    min-height: 20px;
+                }
+            }
         }
+    }
+    .tab-content {
+        overflow: visible;
     }
 }

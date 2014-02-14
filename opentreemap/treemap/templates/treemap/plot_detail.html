@@ -1,312 +1,157 @@
-{% extends "instance_base.html" %}
-{% load threadedcomments_tags %}
-{% load instance_config %}
+{% extends "treemap/map_feature_detail.html" %}
 {% load i18n %}
 {% load l10n %}
-{% load humanize %}
 {% load auth_extras %}
 {% load form_extras %}
 {% load udf %}
 
 {% block page_title %} | {% trans "Planting Site" %} {{plot.pk}}{% endblock %}
 
-{% block head_extra %}
-{% endblock head_extra %}
+{% block subclass_details %}
 
-{% block subhead_exports %}
-{# Exporting is not available from the plot detail page #}
-{% endblock subhead_exports %}
+<h3>{% trans "Tree Information" %}</h3>
 
-{% block content %}
-{% include "treemap/partials/upload_image.html" with panel_id="add-photo-modal" title="Add a Photo" endpoint=upload_tree_photo_url %}
+<!-- Add a Tree Section -->
+<div id="add-tree-section" {{ has_tree|yesno:"style=display:none;," }}>
+  <div class="alert alert-warning" id="no-tree-message">
+    <p>{% trans "There is no tree for this planting site." %}</p>
+    {% usercancreate tree %}
+    <a href="javascript:;" id="add-tree" class="btn btn-warning" style="display: none;">{% trans "Add Tree" %}</a>
+    <a href="javascript:;" id="cancel-add-tree" class="btn" style="display: none;">{% trans "Cancel Adding Tree" %}</a>
 
-<div class="image-background"></div>
-<div class="container contained tree-details">
-  <div class="row-fluid">
-    <div class="span3">
-      <div id="tree-photo-carousel" class="carousel slide" data-interval="">
-        {% include "treemap/partials/tree_carousel.html" with photos=tree.photos %}
-      </div>
-      <button id="toggle-add-photo-modal"
-        data-toggle="modal"
-        data-target="#add-photo-modal"
-        data-always-enable="{{ last_effective_instance_user.can_add_photos_to_tree }}"
-        data-href="{{ request.get_full_path }}"
-        disabled="disabled"
-        data-disabled-title="{% trans "Adding tree photos is not available to all users" %}"
-        class="btn btn-mini add-photos">{% trans "Add Photo" %}</button>
-      <hr>
-      <div id="sidebar">
-        {% include "treemap/partials/sidebar.html" %}
-      </div>
-    </div>
-    <div class="span6">
-      <h1 class="common-name">{{ tree.species.common_name }}</h1>
-      <h4 class="scientific-name">{{ tree.species.scientific_name }}</h4>
-      <h5>{{ plot.address_full }}</h5>
-      <button id="edit-plot"
-              data-class="display"
-              disabled="disabled"
-              data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
-              data-href="{{ request.get_full_path }}"
-              data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
-              class="btn btn-small btn-info">{% trans "Edit" %}</button>
-      <button id="delete-plot-or-tree"
-              data-class="display"
-              disabled="disabled"
-              {% if has_tree %}
-              {# TODO: this will not work quite right when a user adds a tree without refreshing #}
-              data-always-enable="{{ last_effective_instance_user|is_deletable:tree }}"
-              {% else %}
-              data-always-enable="{{ last_effective_instance_user|is_deletable:plot }}"
-              {% endif %}
-              data-href="{{ request.get_full_path }}"
-              data-disabled-title="{% trans "Deleting of trees is not available to all users" %}"
-              class="btn btn-small btn-primary">{% trans "Delete" %}</button>
-      <button id="save-edit-plot" data-class="edit" class="btn btn-small btn-primary" style="display: none;">{% trans "Save" %}</button>
-      <button id="cancel-edit-plot" data-class="edit" class="btn btn-small" style="display: none;">{% trans "Cancel" %}</button>
-      <div id="delete-confirmation-box" data-class="delete" class="alert alert-error" style="display: none;">
-        <b>{% trans "Warning!" %}</b>
-        <div id="delete-tree-warning" style="display: none;">
-          {% trans "You are about to delete this tree. Do you want to continue?" %}
-        </div>
-        <div id="delete-plot-warning" style="display: none;">
-          {% trans "You are about to delete this planting site. Once deleted, it will not be possible to view the details of this planting site or the trees it has contained in the past. Are you sure you want to continue?" %}
-        </div>
-        <button id="delete-confirm" class="btn btm-small btn-primary">{% trans "Confirm Deletion" %}</button>
-        <button id="delete-cancel" class="btn btm-small btn-primary">{% trans "Cancel Deletion" %}</button>
-      </div>
-      <hr/>
-      <form id="plot-form">
-        <!-- Tree Information -->
-        <h4>{% trans "Tree Information" %}</h4>
-        <div id="add-tree-section" {{ has_tree|yesno:"style=display:none;," }}>
-          <div class="well well-sm" id="no-tree-message">{% trans "There is no tree for this planting site." %}</div>
-          {% usercancreate tree %}
-          <a href="javascript:;" id="add-tree" class="btn" style="display: none;">{% trans "Add Tree" %}</a>
-          <a href="javascript:;" id="cancel-add-tree" class="btn"
-            style="display: none;">{% trans "Cancel Adding Tree" %}</a>
-
-          {# Hidden id fields for use in creating a new tree #}
-          {% create from "tree.plot" for request.user in request.instance withtemplate "treemap/field/hidden.html" %}
-          {% localize off %}
-          {% field from "plot.id" for request.user withtemplate "treemap/field/hidden.html" %}
-          {% endlocalize %}
-          {% endusercancreate %}
-        </div>
-        <div id="tree-details" {{ has_tree|yesno:",style=display:none;" }}>
-          <table class="table table-striped table-hover">
-            <tbody>
-              {% usercanread tree "id" as value %}
-              <tr>
-                <td>{% trans "Tree Number" %}</td>
-                <td id="tree-id-column"
-                    data-tree-id="{% if has_tree %}{{ value|unlocalize }}{% endif %}">
-                {% if has_tree %}
-                  <a href="{% url 'tree_detail' instance_url_name=request.instance.url_name feature_id=plot.pk tree_id=tree.pk %}">{{ value|unlocalize }}</a>
-                {% endif %}
-                </td>
-              </tr>
-              {% endusercanread %}
-              {# The "plot-species" label is used as an id prefix in "field/species_tr.html" #}
-              {% field "plot-species" from "tree.species" for request.user withtemplate "treemap/field/species_tr.html" %}
-              {% trans "Trunk Diameter" as diameter %}
-              {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field/diameter_tr.html" %}
-              {% trans "Tree Height" as height %}
-              {% field height from "tree.height" for request.user withtemplate "treemap/field/tr.html" %}
-              {% trans "Canopy Height" as canopy %}
-              {% field canopy from "tree.canopy_height" for request.user withtemplate "treemap/field/tr.html" %}
-              {% trans "Date Planted" as planted %}
-              {% field planted from "tree.date_planted" for request.user withtemplate "treemap/field/tr.html" %}
-              {% trans "Date Removed" as removed %}
-              {% field removed from "tree.date_removed" for request.user withtemplate "treemap/field/tr.html" %}
-              {% for label, udf in tree.scalar_udf_names_and_fields %}
-                {% field label from udf for request.user withtemplate "treemap/field/tr.html" %}
-              {% endfor %}
-            </tbody>
-          </table>
-
-          {# Render collection UDF fields for the Tree #}
-          {% if tree %}
-            {% for udf in tree.get_user_defined_fields %}
-              {% if udf.iscollection %}
-                {% with values=udf|collection_values_for_model_id:tree.pk %}
-                  {% include "treemap/partials/collectionudf.html" with udf=udf model=tree values=values %}
-                {% endwith %}
-              {% endif %}
-            {% endfor %}
-          {% endif %}
-
-        </div>
-
-        <table class="table table-striped table-hover">
-          <h4>{% trans "Planting Site Information" %}</h4>
-          <tbody>
-            {% trans "Width" as width %}
-            {% field width from "plot.width" for request.user withtemplate "treemap/field/tr.html" %}
-            {% trans "Length" as len %}
-            {% field len from "plot.length" for request.user withtemplate "treemap/field/tr.html" %}
-            {% trans "Address" as street %}
-            {% field street from "plot.address_street" for request.user withtemplate "treemap/field/tr.html" %}
-            {% trans "City" as city %}
-            {% field city from "plot.address_city" for request.user withtemplate "treemap/field/tr.html" %}
-            {% trans "Postal Code" as zip %}
-            {% field zip from "plot.address_zip" for request.user withtemplate "treemap/field/tr.html" %}
-            {% trans "Original Owner Id" as oid %}
-            {% field oid from "plot.owner_orig_id" for request.user withtemplate "treemap/field/tr.html" %}
-            <!-- Hiding readonly field temporarily -->
-            <!-- See github #379 and #772 for more details -->
-            <!-- {% trans "Read Only" as readonly %} -->
-            <!-- {% field readonly from "plot.readonly" for request.user withtemplate "treemap/field/tr.html" with extra='style="display:none" %} -->
-            {% for label, udf in plot.scalar_udf_names_and_fields %}
-              {% field label from udf for request.user withtemplate "treemap/field/tr.html" %}
-            {% endfor %}
-          </tbody>
-        </table>
-
-        {# Render collection UDF fields for the Plot  #}
-        {% for udf in plot.get_user_defined_fields %}
-          {% if udf.iscollection %}
-            {% with values=udf|collection_values_for_model_id:plot.pk %}
-              {% include "treemap/partials/collectionudf.html" with udf=udf model=plot values=values %}
-            {% endwith %}
-          {% endif %}
-        {% endfor %}
-
-      </form>
-      <hr>
-
-      <div id="ecobenefits">
-      <h5>{% trans "Yearly Ecosystem Services" %}</h5>
-      {% if request.instance_supports_ecobenefits %}
-        {% include "treemap/partials/plot_eco.html" %}
-      {% else %}
-        {% blocktrans %}
-        Ecosystem benefits are not available for tree maps in locations outside the
-        United States. More info is available on the <a href="https://opentreemap.org/faq/#03">OpenTreeMap FAQ page.</a>
-        {% endblocktrans %}
-      {% endif %}
-      </div>
-    </div>
-
-    <div class="span3">
-      <button
-         disabled="disabled"
-         data-always-enable="{{ last_effective_instance_user|plot_field_is_writable:"geom" }}"
-         data-disabled-title="{% trans "Editing a plot's location is not available to all users" %}"
-         data-href="{{ request.get_full_path }}"
-         style="display:none"
-         id="edit-plot-location"
-         class="btn">{% trans "Move Tree" %}</button>
-        <button class="btn" style="display:none" id="cancel-edit-plot-location">{% trans "Cancel Tree Move" %}</button>
-        <div id="map" class="map-small"></div>
-        <div id="street-view" class="street-view-small" style="display: none;"></div>
-
-      <h3>{% trans "Comments" %}</h3>
-      <div id="comments-container">
-      {% get_comment_list for plot as comments %}
-      {% for comment in comments|fill_tree|annotate_tree %}
-         {% ifchanged comment.parent_id %}{% else %}</li>{% endifchanged %}
-         {% if not comment.open and not comment.close %}</li>{% endif %}
-         {% if comment.open %}<ul>{% endif %}
-
-         <li class="comment_li" id="c{{ comment.id }}">
-           <div class="comment">
-             <div class="comment_info">
-               <div class="comment_user">{{ comment.user_name }}</div>
-               <div class="comment_data">
-                 {{ comment.submit_date|date:"d M Y, H:i" }}
-                 {% if request.user.is_authenticated %}
-                 | <a data-comment-id="{{ comment.id }}" class="comment_reply_link">Reply</a>
-                 {% endif %}
-               </div>
-             </div>
-             <div class="comment_text">
-               {{ comment.comment }}
-             </div>
-           </div>
-         {% for close in comment.close %}</li></ul>{% endfor %}
-       {% endfor %}
-      {% if not request.user.is_authenticated %}
-      <p><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a>
-         {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "log in" %}</a>
-         {% trans "to add comments" %}</p>
-      {% endif %}
-    </div>
-    <div id="comment_disclaimer">The comment system does not serve as a way to report problems with a tree.</div>
+    {# Hidden id fields for use in creating a new tree #}
+    {% create from "tree.plot" for request.user in request.instance withtemplate "treemap/field/hidden.html" %}
+    {% localize off %}
+    {% field from "plot.id" for request.user withtemplate "treemap/field/hidden.html" %}
+    {% endlocalize %}
+    {% endusercancreate %}
   </div>
 </div>
-{% endblock content %}
-{% block scripts %}
-<script id="template-comment" type="template/underscore">
-  {% get_comment_form for plot as form %}
-  <form action="{% url 'comments-post-comment' %}" class="<%= classname %>" method="post">
-    {% csrf_token %}
-    {{ form.comment }}
-    <input style="display: none" id="id_honeypot" name="honeypot" type="text">
-    {{ form.content_type }}
-    {{ form.object_pk }}
-    {{ form.timestamp }}
-    {{ form.security_hash }}
-    <input type="hidden" name="parent" value="<%= parent %>">
 
-    <input type="hidden" name="next" value="{{request.get_full_path}}" />
-    <input type="hidden" name="markup" value="5"></input>
-    <div class="submit">
-      <input type="submit" name="post" class="submit-post buttonSmall" value="Post" />
-    </div>
-  </form>
-</script>
-<script src="//maps.google.com/maps/api/js?v=3&sensor=false"></script>
+<!-- Tree Information -->
+<div id="tree-details" {{ has_tree|yesno:",style=display:none;" }}>
+  <table class="table table-hover">
+    <tbody>
+      {% usercanread tree "id" as value %}
+      <tr>
+        <td>{% trans "Tree Number" %}</td>
+        <td id="tree-id-column"
+            data-tree-id="{% if has_tree %}{{ value|unlocalize }}{% endif %}">
+        {% if has_tree %}
+          <a href="{% url 'tree_detail' instance_url_name=request.instance.url_name feature_id=plot.pk tree_id=tree.pk %}">{{ value|unlocalize }}</a>
+        {% endif %}
+        </td>
+      </tr>
+      {% endusercanread %}
+      {# The "plot-species" label is used as an id prefix in "field/species_tr.html" #}
+      {% field "plot-species" from "tree.species" for request.user withtemplate "treemap/field/species_tr.html" %}
+      {% trans "Trunk Diameter" as diameter %}
+      {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field/diameter_tr.html" %}
+      {% trans "Tree Height" as height %}
+      {% field height from "tree.height" for request.user withtemplate "treemap/field/tr.html" %}
+      {% trans "Canopy Height" as canopy %}
+      {% field canopy from "tree.canopy_height" for request.user withtemplate "treemap/field/tr.html" %}
+      {% trans "Date Planted" as planted %}
+      {% field planted from "tree.date_planted" for request.user withtemplate "treemap/field/tr.html" %}
+      {% trans "Date Removed" as removed %}
+      {% field removed from "tree.date_removed" for request.user withtemplate "treemap/field/tr.html" %}
+      {% for label, udf in tree.scalar_udf_names_and_fields %}
+        {% field label from udf for request.user withtemplate "treemap/field/tr.html" %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {# Render collection UDF fields for the Tree #}
+  {% if tree %}
+    {% for udf in tree.get_user_defined_fields %}
+      {% if udf.iscollection %}
+        {% with values=udf|collection_values_for_model_id:tree.pk %}
+          {% include "treemap/partials/collectionudf.html" with udf=udf model=tree values=values %}
+        {% endwith %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+</div>
+
+<table class="table table-hover">
+  <h3>{% trans "Planting Site Information" %}</h3>
+  <tbody>
+    {% trans "Width" as width %}
+    {% field width from "plot.width" for request.user withtemplate "treemap/field/tr.html" %}
+    {% trans "Length" as len %}
+    {% field len from "plot.length" for request.user withtemplate "treemap/field/tr.html" %}
+    {% trans "Address" as street %}
+    {% field street from "plot.address_street" for request.user withtemplate "treemap/field/tr.html" %}
+    {% trans "City" as city %}
+    {% field city from "plot.address_city" for request.user withtemplate "treemap/field/tr.html" %}
+    {% trans "Postal Code" as zip %}
+    {% field zip from "plot.address_zip" for request.user withtemplate "treemap/field/tr.html" %}
+    {% trans "Original Owner Id" as oid %}
+    {% field oid from "plot.owner_orig_id" for request.user withtemplate "treemap/field/tr.html" %}
+    <!-- Hiding readonly field temporarily -->
+    <!-- See github #379 and #772 for more details -->
+    <!-- {% trans "Read Only" as readonly %} -->
+    <!-- {% field readonly from "plot.readonly" for request.user withtemplate "treemap/field/tr.html" with extra='style="display:none"' %} -->
+    {% for label, udf in plot.scalar_udf_names_and_fields %}
+      {% field label from udf for request.user withtemplate "treemap/field/tr.html" %}
+    {% endfor %}
+  </tbody>
+</table>
+
+{# Render collection UDF fields for the Plot  #}
+{% for udf in plot.get_user_defined_fields %}
+  {% if udf.iscollection %}
+    {% with values=udf|collection_values_for_model_id:plot.pk %}
+      {% include "treemap/partials/collectionudf.html" with udf=udf model=plot values=values %}
+    {% endwith %}
+  {% endif %}
+{% endfor %}
+
+<!-- Ecosystem Benefits -->
+<div id="ecobenefits">
+<h3>{% trans "Yearly Ecosystem Services" %}</h3>
+{% if request.instance_supports_ecobenefits %}
+  {% include "treemap/partials/plot_eco.html" %}
+{% else %}
+  <div class="alert alert-info">
+    <p>
+      {% blocktrans %}
+      Ecosystem benefits are not available for tree maps in locations outside the
+      United States. More info is available on the <a href="https://opentreemap.org/faq/#03">OpenTreeMap FAQ page.</a>
+      {% endblocktrans %}
+    </p>
+  </div>
+{% endif %}
+</div>
+
+{% endblock subclass_details %}
+
+{% block scripts %}
+
+{{ block.super }}
+
 <script>
 {% localize off %}
-(function(require, config) {
-      var plot = require('treemap/plot'),
-          alerts = require('treemap/alerts');
+(function(require, config, mapFeatureOptions) {
+      var mapFeatureModule = require('treemap/mapFeature'),
+          plot = require('treemap/plot');
 
-      var updateUrl = window.location.href;
-      var U = require('treemap/utility');
-
-      if (U.getLastUrlSegment(updateUrl) == 'edit') {
-            updateUrl = U.removeLastUrlSegment(updateUrl);
-      }
-
-      var updateEcoUrl = U.appendSegmentToUrl('eco', updateUrl);
-      var updateSidebarUrl = U.appendSegmentToUrl('sidebar', updateUrl);
-
-      var currentPlotUrl = "{% url 'plot_detail' instance_url_name=request.instance.url_name feature_id=plot.pk %}";
-      var plotDetailUrl = U.removeLastUrlSegment(currentPlotUrl);
+      // mapFeatureOptions is defined in a script block of the super-template
+      mapFeatureOptions.treeIdColumn = '#tree-id-column';
+      var mapFeature = mapFeatureModule.init(mapFeatureOptions);
 
       plot.init({
-          config: config,
           startInEditMode: {% if editmode %}true{% else %}false{% endif %},
-          updateEcoUrl: updateEcoUrl,
           treeIdColumn: '#tree-id-column',
-          delete: '#delete-plot-or-tree',
-          deleteConfirm: '#delete-confirm',
-          deleteCancel: '#delete-cancel',
-          deleteConfirmationBox: '#delete-confirmation-box',
           ecoBenefits: '#ecobenefits',
-          updateSidebarUrl: updateSidebarUrl,
-          plotDetailUrl: plotDetailUrl,
           plotId: {{ plot.id }},
-          sidebar: '#sidebar',
-          inlineEditForm: {
-              updateUrl: updateUrl,
-              form: '#plot-form',
-              edit: '#edit-plot',
-              save: '#save-edit-plot',
-              cancel: '#cancel-edit-plot',
-              displayFields: '[data-class="display"]',
-              editFields: '[data-class="edit"]',
-              validationFields: '[data-class="error"]',
-              errorCallback: alerts.makeErrorCallback(config)
-          },
           addTree: '#add-tree',
           noTreeMessage: '#no-tree-message',
           cancelAddTree: '#cancel-add-tree',
           addTreeSection: '#add-tree-section',
           treeSection: '#tree-details',
+          inlineEditForm: mapFeatureOptions.inlineEditForm,
+          form: mapFeature.inlineEditForm,
           typeaheads: [{
               name: "species-edit",
               url: config.instance.url + "species/",
@@ -315,23 +160,10 @@
               hidden: "#plot-species-hidden",
               reverse: "id",
               forceMatch: true
-          }],
-          imageUploadPanel: {
-              panelId: '#add-photo-modal',
-              dataType: 'html',
-              imageContainer: '#tree-photo-carousel'
-          },
-          plotLocation: {
-              edit: '#edit-plot-location',
-              cancel: '#cancel-edit-plot-location',
-              location: {
-                  x: {{ plot.geom.x }},
-                  y: {{ plot.geom.y }}
-              }
-          },
-          streetView: '#street-view'
+          }]
       });
-})(require, otm.settings);
+})(require, otm.settings, mapFeatureOptions);
 {% endlocalize %}
 </script>
+
 {% endblock scripts %}

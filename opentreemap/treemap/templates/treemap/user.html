@@ -29,55 +29,76 @@ active
 {% url 'user_photo' user.username as photo_url %}
 {% include "treemap/partials/upload_image.html" with panel_id="set-photo-modal" title="Set a Photo" endpoint=photo_url %}
 <div class="image-background"></div>
+
 <div class="container contained profile">
-  <div class="row-fluid">
-    <div class="span4">
-      <div class="account-info">
-        <div class="user-photo-container">
-          {% if user.thumbnail %}
-            <img class="user-photo" id="user-photo" src="{{ user.thumbnail.url }}">
-          {% else %}
-            <img class="user-photo" id="user-photo" src="{{STATIC_URL}}img/profile.png">
-          {% endif %}
-          <button id="toggle-set-photo-modal"
-            data-toggle="modal"
-            data-target="#set-photo-modal"
-            class="btn btn-mini add-photos">{% trans "Add Photo" %}</button>
+    <div class="row-fluid">
+        <div class="span3">
+            <div class="account-info">
+                <div class="user-photo-container">
+                    {% if user.thumbnail %}
+                      <img class="user-photo" id="user-photo" src="{{ user.thumbnail.url }}">
+                    {% else %}
+                      <img class="user-photo" id="user-photo" src="{{STATIC_URL}}img/profile.png">
+                    {% endif %}
+                    <button id="toggle-set-photo-modal"
+                      data-toggle="modal"
+                      data-target="#set-photo-modal"
+                      class="btn btn-mini add-photos">{% trans "Add Photo" %}</button>
+                </div>
+                <h1>{{ user.username }}
+                    <small>{% trans "User Profile" %}</small>
+                </h1>
+            </div>
+            {% usercontent for user %}
+            <div id="upload-photo-error" class="text-error" style="display: none"></div>
+            {% endusercontent %}
+            <button id="edit-user" data-class="display" class="btn btn-small btn-info">{% trans "Edit Profile" %}</button>
+            <button id="save-edit" data-class="edit" class="btn btn-small btn-primary" style="display: none;">{% trans "Save" %}</button>
+            <button id="cancel-edit" data-class="edit" class="btn btn-small" style="display: none;">{% trans "Cancel" %}</button>
+            <a class="btn btn-small" href="{% url 'django.contrib.auth.views.password_reset' %}">{% trans "Reset Password" %}</a>
+            <form id="user-form">
+                {% for label, identifier, template in public_fields %}
+                  {% field label from identifier withtemplate template %}
+                {% endfor %}
+                {% usercontent for user %}
+                {% for label, identifier, template in private_fields %}
+                  {% field label from identifier withtemplate template %}
+                {% endfor %}
+                {% endusercontent %}
+                {% if reputation %}
+                    <label>{% trans "Reputation" %}</label>
+                    <div class="field-view">{{ reputation }}</div>
+                {% endif %}
+            </form>
         </div>
-        <h1>{{ user.username }}
-          <small>{% trans "User Profile" %}</small>
-        </h1>
-      </div>
-      {% usercontent for user %}
-      <div id="upload-photo-error" class="text-error" style="display: none"></div>
-      {% endusercontent %}
-      <form id="user-form">
-        {% for label, identifier, template in public_fields %}
-          {% field label from identifier withtemplate template %}
-        {% endfor %}
-        {% usercontent for user %}
-        {% for label, identifier, template in private_fields %}
-          {% field label from identifier withtemplate template %}
-        {% endfor %}
-        {% endusercontent %}
-        {% if reputation %}
-          <label>{% trans "Reputation" %}</label>
-          <div class="field-view">{{ reputation }}</div>
-        {% endif %}
-        <a class="btn" href="{% url 'django.contrib.auth.views.password_reset' %}">{% trans "Reset Password" %}</a>
-      </form>
-      <button id="edit-user" data-class="display" class="btn btn-mini btn-info">Edit</button>
-      <button id="save-edit" data-class="edit" class="btn btn-mini btn-primary" style="display: none;">Save</button>
-      <button id="cancel-edit" data-class="edit" class="btn btn-mini" style="display: none;">Cancel</button>
+        <div class="span9">
+            <div class="profile-tabs">
+                <ul class="nav nav-tabs">
+                    <li class="hidden"><a href="#edits" data-toggle="tab"><span class="number">{{ total_count }}</span> Edits</a></li>
+                    <li class="hidden"><a href="#maps" data-toggle="tab"><span class="number">3</span> Tree Maps</a></li>
+                    <li class="hidden"><a href="#faves" data-toggle="tab"><span class="number">86</span> Favorites</a></li>
+                </ul>
+            </div>
+            <div class="tab-content">
+                <div class="tab-pane active" id="edits">
+                    <h3>{% trans "Recent Edits" %}</h3>
+                    <div id="recent-user-edits-container">
+                        {% include 'treemap/recent_user_edits.html' %}
+                    </div>
+                </div>
+                <div class="tab-pane" id="maps">
+                    <h3>Tree Maps</h3>
+                    <!-- INSERT LIST OF OTHER TREE MAPS HERE -->
+                </div>
+                <div class="tab-pane" id="faves">
+                    <h3>Favorites</h3>
+                    <!-- INSERT FAVORITES TABLE HERE -->
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="span8">
-      <h2>{% trans "Recently Added and Edited Trees" %}</h2>
-      <div id="recent-user-edits-container">
-        {% include 'treemap/recent_user_edits.html' %}
-      </div>
-    </div>
-  </div>
 </div>
+
 {% endblock content %}
 
 {% block scripts %}

@@ -7,8 +7,9 @@ from optparse import make_option
 
 from django.core.management.base import BaseCommand
 
-from treemap.models import (Instance, User, Plot, Tree,
-                            FieldPermission, Role, InstanceUser)
+from treemap.models import (Instance, User, Plot, Tree, Role, InstanceUser,
+                            MapFeature)
+from treemap.audit import add_default_permissions
 
 
 class InstanceDataCommand(BaseCommand):
@@ -23,7 +24,12 @@ class InstanceDataCommand(BaseCommand):
                     action='store_true',
                     dest='delete',
                     default=False,
-                    help='Delete previous trees/plots in the instance first'),)
+                    help='Delete previous trees/plots in the instance first'),
+        make_option('-k', '--kill_resources',
+                    action='store_true',
+                    dest='delete_resources',
+                    default=False,
+                    help='Delete previous resources in the instance first'),)
 
     def setup_env(self, *args, **options):
         """ Create some seed data """
@@ -38,35 +44,17 @@ class InstanceDataCommand(BaseCommand):
         instance_user = user.get_instance_user(instance)
 
         if instance_user is None:
-            r = Role(name='global', rep_thresh=0, instance=instance)
-            r.save()
+            r = Role.objects.get_or_create(name='administrator', rep_thresh=0,
+                                           instance=instance,
+                                           default_permission=3)
             instance_user = InstanceUser(instance=instance,
                                          user=user,
-                                         role=r)
+                                         role=r[0])
             instance_user.save_with_user(user)
-            self.stdout.write('Added system user to instance with global role')
+            self.stdout.write(
+                'Added system user to instance with "administrator" role')
 
-        for field in Plot._meta.get_all_field_names():
-            _, c = FieldPermission.objects.get_or_create(
-                model_name='Plot',
-                field_name=field,
-                role=instance_user.role,
-                instance=instance,
-                permission_level=FieldPermission.WRITE_DIRECTLY)
-            if c:
-                self.stdout.write('Created plot permission for field "%s"'
-                                  % field)
-
-        for field in Tree._meta.get_all_field_names():
-            _, c = FieldPermission.objects.get_or_create(
-                model_name='Tree',
-                field_name=field,
-                role=instance_user.role,
-                instance=instance,
-                permission_level=FieldPermission.WRITE_DIRECTLY)
-            if c:
-                self.stdout.write('Created tree permission for field "%s"'
-                                  % field)
+        add_default_permissions(instance)
 
         dt = 0
         dp = 0
@@ -79,5 +67,14 @@ class InstanceDataCommand(BaseCommand):
                 dp += 1
 
             self.stdout.write("Deleted %s trees and %s plots" % (dt, dp))
+
+        dr = 0
+        if options.get('delete_resources', False):
+            for f in MapFeature.objects.all():
+                if f.feature_type != 'Plot':
+                    f.delete_with_user(user)
+                    dr += 1
+
+            self.stdout.write("Deleted %s resources" % dr)
 
         return instance, user

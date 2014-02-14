@@ -33,7 +33,7 @@
 {% endif %}
 {% if request.instance|feature_enabled:'recent_edits_report' %}
 <li class="{% block activerecentedits %}{% endblock %}">
-  <a href="{% url 'edits' instance_url_name=request.instance.url_name %}">{% trans "Edits" %}</a>
+  <a href="{% url 'edits' instance_url_name=request.instance.url_name %}">{% trans "View Edits" %}</a>
 </li>
 {% endif %}
 {% endblock instancetopnav %}
