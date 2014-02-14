@@ -531,10 +531,9 @@ class Command(InstanceDataCommand):
             'treephoto': {}
         }
 
-        if 'treephoto' in model_hashes and treephoto_path is None:
+        if 'treephoto' in json_hashes and treephoto_path is None:
             raise Exception('Must specify the tree photo path to '
                             'import photo')
-
 
         for relic in OTM1UserRelic.objects.filter(instance=instance):
             dependency_id_maps['user'][relic.otm1_id] = relic.otm2_user_id

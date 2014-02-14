@@ -9,8 +9,8 @@ from opentreemap.util import route
 
 from treemap.views import (boundary_to_geojson_view, index_view, map_view,
                            delete_tree_view, update_map_feature_detail_view,
-                           delete_map_feature_view, get_map_feature_detail_view,
-                           instance_settings_js_view, edits_view,
+                           delete_map_feature_view, instance_settings_js_view,
+                           get_map_feature_detail_view, edits_view,
                            search_tree_benefits_view, species_list_view,
                            boundary_autocomplete_view, instance_user_view,
                            map_feature_popup_view, instance_user_audits,

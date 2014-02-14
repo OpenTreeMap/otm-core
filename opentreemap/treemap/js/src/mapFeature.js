@@ -172,5 +172,5 @@ exports.init = function(options) {
 
     return {
         inlineEditForm: form
-    }
+    };
 };
