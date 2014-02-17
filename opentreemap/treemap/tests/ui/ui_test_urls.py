@@ -25,7 +25,7 @@ def full_utf8_grid(request):
     full_space_utf8_grid = ('{"grid":[' +
                             (quoted_space_line_with_comma * 63) +
                             quoted_space_line +
-                            '],"keys":["1"],"data":{"1":{"the_plot_id":%s}}}'
+                            '],"keys":["1"],"data":{"1":{"id":%s}}}'
                             % testing_id)
 
     response = HttpResponse(full_space_utf8_grid)
