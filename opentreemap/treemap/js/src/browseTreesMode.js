@@ -15,7 +15,7 @@ var config,  // Module-level config set in `init` and read by helper functions
 
 function idToPlotDetailUrl(id) {
     if (id) {
-        return config.instance.url + 'plots/' + id + '/';
+        return config.instance.url + 'features/' + id + '/';
     } else {
         return '';
     }
