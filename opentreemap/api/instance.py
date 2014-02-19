@@ -121,7 +121,7 @@ def instance_info(request, instance):
 
     info = _instance_info_dict(instance)
     info['fields'] = perms
-    info['search'] = instance.advanced_search_fields
+    info['search'] = instance.mobile_search_fields
 
     return info
 

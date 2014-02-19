@@ -125,6 +125,10 @@ class Instance(models.Model):
                                                    {'standard': [],
                                                     'missing': []})
 
+    mobile_search_fields = _make_config_property('mobile_search_fields',
+                                                 {'standard': [],
+                                                  'missing': []})
+
     date_format = _make_config_property('date_format',
                                         settings.DATE_FORMAT)
 
