@@ -129,6 +129,9 @@ class Instance(models.Model):
                                                  {'standard': [],
                                                   'missing': []})
 
+    mobile_api_fields = _make_config_property('mobile_api_fields',
+                                              {})
+
     date_format = _make_config_property('date_format',
                                         settings.DATE_FORMAT)
 

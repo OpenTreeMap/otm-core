@@ -88,8 +88,15 @@ def instance_info(request, instance):
 
     perms = {}
 
+    fields_to_allow = instance.mobile_api_fields
+
     for fp in role.fieldpermission_set.all():
         model = fp.model_name.lower()
+
+        if fields_to_allow and \
+           fp.field_name not in fields_to_allow.get(model, []):
+            continue
+
         if fp.allows_reads:
             if model not in perms:
                 perms[model] = []
