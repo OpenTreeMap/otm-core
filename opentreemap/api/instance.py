@@ -9,7 +9,8 @@ from django.contrib.gis.measure import D
 
 from treemap.exceptions import HttpBadRequestException
 from treemap.models import Instance, InstanceUser
-from treemap.units import get_units_if_convertible, get_digits_if_formattable
+from treemap.units import (get_units_if_convertible, get_digits_if_formattable,
+                           get_conversion_factor)
 from treemap.util import safe_get_model_class
 from treemap.templatetags.form_extras import field_type_label_choices
 from treemap.json_field import is_json_field_reference
@@ -109,14 +110,24 @@ def instance_info(request, instance):
             units = get_units_if_convertible(
                 instance, model, fp.field_name)
 
+            factor = 1.0
+
+            try:
+                factor = get_conversion_factor(
+                    instance, model, fp.field_name)
+            except KeyError:
+                pass
+
             perms[model].append({
                 'data_type': data_type,
                 'choices': choices,
                 'units': units,
                 'digits': digits,
+                'canonical_units_factor': 1.0 / factor,
                 'can_write': fp.allows_writes,
                 'display_name': fp.display_field_name,
-                'field_name': fp.field_name
+                'field_name': fp.field_name,
+                'field_key': '%s.%s' % (model, fp.field_name)
             })
 
     info = _instance_info_dict(instance)

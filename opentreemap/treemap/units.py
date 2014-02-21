@@ -14,15 +14,39 @@ from treemap.json_field import get_attr_from_json_field
 
 
 class Convertible(object):
-    def clean(self):
-        super(Convertible, self).clean()
+
+    def __init__(self, *args, **kwargs):
+        self.unit_status = 'db'
+        super(Convertible, self).__init__(*args, **kwargs)
+
+    def _mutate_convertable_fields(self, f):
         model = self._meta.object_name.lower()
         for field in self._meta.get_all_field_names():
             if self.instance and is_convertible(model, field):
                 value = getattr(self, field)
-                converted_value = get_storage_value(self.instance, model,
-                                                    field, value)
+
+                try:
+                    value = float(value)
+                except Exception:
+                    # These will be caught later in the cleaning process
+                    pass
+
+                converted_value = f(self.instance, model, field, value)
+
                 setattr(self, field, converted_value)
+
+    def convert_to_display_units(self):
+        if self.unit_status != 'display':
+            self.unit_status = 'display'
+
+            self._mutate_convertable_fields(get_converted_value)
+
+    def convert_to_database_units(self):
+        self.clean()
+
+        if self.unit_status != 'db':
+            self.unit_status = 'db'
+            self._mutate_convertable_fields(get_storage_value)
 
 
 _unit_names = {
@@ -119,7 +143,7 @@ is_convertible = partial(_is_configured_for, {'units'})
 is_formattable = partial(_is_configured_for, {'digits'})
 
 
-def _get_conversion_factor(instance, category_name, value_name):
+def get_conversion_factor(instance, category_name, value_name):
     storage_unit = _get_display_default(category_name, value_name, 'units')
     instance_unit = get_units(instance, category_name, value_name)
     conversion_dict = _unit_conversions.get(storage_unit)
@@ -131,15 +155,23 @@ def _get_conversion_factor(instance, category_name, value_name):
     return conversion_dict[instance_unit]
 
 
+def get_converted_value(instance, category_name, value_name, value):
+    if isinstance(value, Number) and \
+       is_convertible(category_name, value_name):
+        conversion_factor = get_conversion_factor(
+            instance, category_name, value_name)
+
+        return value * conversion_factor
+    else:
+        return value
+
+
 def get_display_value(instance, category_name, value_name, value):
     if not isinstance(value, Number):
         return value, value
-    if is_convertible(category_name, value_name):
-        conversion_factor = _get_conversion_factor(instance, category_name,
-                                                   value_name)
-        converted_value = value * conversion_factor
-    else:
-        converted_value = value
+
+    converted_value = get_converted_value(
+        instance, category_name, value_name, value)
 
     if is_formattable(category_name, value_name):
         digits = int(get_digits(instance, category_name, value_name))
@@ -151,8 +183,19 @@ def get_display_value(instance, category_name, value_name, value):
     return converted_value, number_format(rounded_value, decimal_pos=digits)
 
 
+def format_value(instance, category_name, value_name, value):
+    if is_formattable(category_name, value_name):
+        digits = int(get_digits(instance, category_name, value_name))
+    else:
+        digits = 1
+
+    rounded_value = round(value, digits)
+
+    return number_format(rounded_value, decimal_pos=digits)
+
+
 def get_storage_value(instance, category_name, value_name, value):
     if not isinstance(value, Number):
         return value
-    return value / _get_conversion_factor(instance, category_name,
-                                          value_name)
+    return value / get_conversion_factor(instance, category_name,
+                                         value_name)
