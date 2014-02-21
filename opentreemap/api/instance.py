@@ -136,9 +136,26 @@ def _instance_info_dict(instance):
             'name': instance.name,
             'center': {'lat': center.y,
                        'lng': center.x},
+            'eco': _instance_eco_dict(instance)
             }
 
     if hasattr(instance, 'distance'):
         info['distance'] = instance.distance.km
 
     return info
+
+
+def _instance_eco_dict(instance):
+    return {
+        "supportsEcoBenefits": instance.has_itree_region(),
+        #  All instances have the same ecobenefits and
+        #  the mobile apps do not need any details to render
+        #  fields for displaying per-feature eco values.
+        "benefits": [
+            {"label": "Energy"},
+            {"label": "Stormwater"},
+            {"label": "Carbon Dioxide"},
+            {"label": "Carbon Dioxide Stored"},
+            {"label": "Air Quality"}
+        ]
+    }

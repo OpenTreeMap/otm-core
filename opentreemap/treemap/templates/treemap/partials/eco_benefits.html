@@ -19,7 +19,7 @@
         <dt>{{ benefit.value }}</dt>
         <dd>{{ benefit.unit }}</dd>
         {% if benefit.currency_saved %}
-          <dt>{{ currency_symbol }}{{ benefit.currency_saved }}</dt>
+          <dt>{{ benefit.currency_saved }}</dt>
           <dd>
             {% comment %}Translators: Money saved{% endcomment %}
             {% trans "saved" %}
