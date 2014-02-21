@@ -143,16 +143,18 @@ def _add_default_permissions(models, role, instance):
                 'model_name': model_name,
                 'field_name': field_name,
                 'role': role,
-                'permission_level': role.default_permission,
                 'instance': role.instance
             })
 
     existing = FieldPermission.objects.filter(role=role, instance=instance)
-    if existing:
+    if existing.exists():
         for perm in perms:
+            perm['defaults'] = {'permission_level': role.default_permission}
             FieldPermission.objects.get_or_create(**perm)
     else:
         perms = [FieldPermission(**perm) for perm in perms]
+        for perm in perms:
+            perm.permission_level = role.default_permission
         FieldPermission.objects.bulk_create(perms)
 
 
