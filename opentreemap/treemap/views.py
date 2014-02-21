@@ -892,11 +892,15 @@ def _tree_benefits_helper(trees, total_plots, total_trees, instance):
 def _format_benefits(instance, benefits, num_calculated_trees,
                      total_trees=1, total_plots=1):
 
-    def displayize_benefit(key):
+    def displayize_benefit(key, currency_symbol=None):
         benefit = benefits[key]
 
         if benefit['currency'] is not None:
-            benefit['currency_saved'] = number_format(
+            if not currency_symbol:
+                #  Ensure that None is converted into an empty string
+                currency_symbol = ""
+            # TODO: Use i18n/l10n to format currency
+            benefit['currency_saved'] = currency_symbol + number_format(
                 benefit['currency'], decimal_pos=0)
 
         _, value = get_display_value(instance, 'eco', key, benefit['value'])
@@ -917,13 +921,9 @@ def _format_benefits(instance, benefits, num_calculated_trees,
     if instance.eco_benefits_conversion:
         currency = instance.eco_benefits_conversion.currency_symbol
 
-    benefits_for_display = [
-        displayize_benefit('energy'),
-        displayize_benefit('stormwater'),
-        displayize_benefit('co2'),
-        displayize_benefit('co2storage'),
-        displayize_benefit('airquality')
-    ]
+    benefit_keys = ['energy', 'stormwater', 'co2', 'co2storage', 'airquality']
+    benefits_for_display = [displayize_benefit(key, currency)
+                            for key in benefit_keys]
 
     rslt = {'benefits': benefits_for_display,
             'currency_symbol': currency,
