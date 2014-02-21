@@ -59,7 +59,7 @@ active
           </td>
           <td>{{ audit.pk }}</td>
           <td>
-            {% if audit.model == 'Tree' or audit.model == 'Plot' %}
+            {% if audit.model|is_filterable_audit_model %}
             <a href="?models={{ audit.model }}">
               {{ audit.model|display_name }}
             </a>
@@ -68,7 +68,7 @@ active
             {% endif %}
           </td>
           <td>
-            {% if audit.model == 'Tree' or audit.model == 'Plot' %}
+            {% if audit.model|is_filterable_audit_model %}
             <a href="?models={{ audit.model }}&model_id={{ audit.model_id }}">
               {{ audit.model_id }}
             </a>
