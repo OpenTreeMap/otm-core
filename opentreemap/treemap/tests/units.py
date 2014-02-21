@@ -102,7 +102,9 @@ class ConvertibleTest(TestCase):
     def test_save_converts_width_when_units_differ(self):
         set_attr_on_json_field(
             self.instance, 'config.value_display.plot.width.units', 'in')
+        self.plot.convert_to_display_units()
         self.plot.width = 12
+        self.plot.convert_to_database_units()
         self.plot.save_with_user(self.user)
 
         updated_plot = Plot.objects.get(pk=self.plot.pk)
@@ -111,7 +113,9 @@ class ConvertibleTest(TestCase):
     def test_save_converts_diameter_when_units_differ(self):
         set_attr_on_json_field(
             self.instance, 'config.value_display.tree.diameter.units', 'ft')
+        self.tree.convert_to_display_units()
         self.tree.diameter = 1
+        self.tree.convert_to_database_units()
         self.tree.save_with_user(self.user)
 
         updated_tree = Tree.objects.get(pk=self.tree.pk)

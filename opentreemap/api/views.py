@@ -549,6 +549,10 @@ def remove_current_tree_from_plot(request, instance, plot_id):
             "Plot %s does not have a current tree" % plot_id)
 
 
+# Note that API requests going to private instances require
+# authentication "login_optional" before they can access they
+# instance data
+
 plots_closest_to_point_endpoint = login_optional(
     instance_request(
         csrf_exempt(json_api_call(
@@ -585,6 +589,7 @@ plot_endpoint = json_api_call(
         DELETE=login_required(
             instance_request(remove_plot))))
 
-species_list_endpoint = instance_request(
+species_list_endpoint = login_optional(
     json_api_call(
-        route(GET=species_list)))
+        instance_request(
+            route(GET=species_list))))

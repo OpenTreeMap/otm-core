@@ -392,6 +392,8 @@ class InlineFieldTagTests(TestCase):
             template_fn = (self._form_template_with_request_user_for
                            if user else self._form_template_for)
         plot = Plot(length=12.3, instance=self.instance)
+        plot.convert_to_display_units()
+
         template = template_fn('plot.length')
         self._write_field_template("{{" + name + "}}")
         with self.settings(TEMPLATE_DIRS=(self.template_dir,)):

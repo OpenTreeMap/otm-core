@@ -41,7 +41,7 @@ from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
 from treemap.models import (Plot, Tree, User, Species, Instance,
                             TreePhoto, StaticPage, MapFeature)
-from treemap.units import get_units, get_display_value
+from treemap.units import get_units, get_display_value, Convertible
 
 from treemap.ecobenefits import (benefits_for_trees, tree_benefits,
                                  get_benefit_label)
@@ -296,6 +296,10 @@ def context_dict_for_plot(instance, plot,
     else:
         tree = plot.current_tree()
 
+    plot.convert_to_display_units()
+    if tree:
+        tree.convert_to_display_units()
+
     has_tree_diameter = tree is not None and tree.diameter is not None
     has_tree_species_with_code = tree is not None \
         and tree.species is not None and tree.species.otm_code is not None
@@ -456,6 +460,10 @@ def update_map_feature(request_dict, user, feature):
     feature_types = list(feature.instance.map_feature_types)
     feature_types[feature_types.index('Plot')] = 'plot'
 
+    if isinstance(feature, Convertible):
+        # We're going to always work in display units here
+        feature.convert_to_display_units()
+
     def split_model_or_raise(model_and_field):
         model_and_field = model_and_field.split('.', 1)
 
@@ -479,7 +487,11 @@ def update_map_feature(request_dict, user, feature):
             val = MultiPolygon(Polygon(val['polygon'], srid=srid), srid=srid)
             val.transform(3857)
 
-        if attr == 'id':
+        if attr == 'mapfeature_ptr':
+            if model.mapfeature_ptr_id != value:
+                raise Exception(
+                    'You may not change the mapfeature_ptr_id')
+        elif attr == 'id':
             if val != model.pk:
                 raise Exception("Can't update id attribute")
         elif attr.startswith('udf:'):
@@ -498,16 +510,13 @@ def update_map_feature(request_dict, user, feature):
 
     def save_and_return_errors(thing, user):
         try:
+            if isinstance(thing, Convertible):
+                thing.convert_to_database_units()
+
             thing.save_with_user(user)
             return {}
         except ValidationError as e:
             return package_validation_errors(thing._model_name, e)
-
-    def get_tree():
-        if isinstance(feature, Plot):
-            return feature.current_tree() or Tree(instance=feature.instance)
-        else:
-            raise Exception("Can only set tree fields on plot map features")
 
     tree = None
 
@@ -521,6 +530,10 @@ def update_map_feature(request_dict, user, feature):
             tree = (tree or
                     feature.current_tree() or
                     Tree(instance=feature.instance))
+
+            # We always edit in display units
+            tree.convert_to_display_units()
+
             model = tree
             if field == 'species' and value:
                 value = get_object_or_404(Species,
