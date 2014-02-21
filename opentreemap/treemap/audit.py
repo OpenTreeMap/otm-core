@@ -18,7 +18,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, connection, transaction
 
 from treemap.units import (is_convertible, is_convertible_or_formattable,
-                           get_display_value, get_units)
+                           get_display_value, get_units, get_unit_name)
 from treemap.util import leaf_subclasses
 
 
@@ -1098,9 +1098,10 @@ class Audit(models.Model):
         if is_convertible_or_formattable(model_name, self.field):
             _, value = get_display_value(
                 self.instance, model_name, self.field, value)
-        if value and is_convertible(model_name, self.field):
-            units = get_units(self.instance, model_name, self.field)
-            value += (' %s' % units)
+            if value and is_convertible(model_name, self.field):
+                units = get_unit_name(get_units(self.instance,
+                                                model_name, self.field))
+                value += (' %s' % units)
 
         return value
 
