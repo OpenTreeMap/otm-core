@@ -1078,7 +1078,7 @@ class Audit(models.Model):
         field_modified_value = field_cls.to_python(value)
 
         # handle edge cases
-        if isinstance(field_cls, models.PointField):
+        if isinstance(field_cls, models.GeometryField):
             field_modified_value = GEOSGeometry(field_modified_value)
         elif isinstance(field_cls, models.ForeignKey):
             field_modified_value = field_cls.rel.to.objects.get(
@@ -1088,6 +1088,12 @@ class Audit(models.Model):
 
     def _unit_format(self, value):
         model_name = self.model.lower()
+
+        if isinstance(value, GEOSGeometry):
+            if value.geom_type == 'Point':
+                return '%d,%d' % (value.x, value.y)
+            if value.geom_type in {'MultiPolygon', 'Polygon'}:
+                value = value.area
 
         if is_convertible_or_formattable(model_name, self.field):
             _, value = get_display_value(
