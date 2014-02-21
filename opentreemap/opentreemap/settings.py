@@ -251,38 +251,13 @@ RESERVED_INSTANCE_URL_NAMES = (
 ACCOUNT_ACTIVATION_DAYS = 7
 
 #
-# Mount extra urls from local settings. These should be a
-# tuple of (url path, url module). Something like:
-#
-# EXTRA_URLS = (('/extra_api/', 'apiv2.urls),
-#               ('/local/', 'local.urls))
-#
-EXTRA_URLS = ()
-
-EXTRA_MANAGED_APPS = ()
-EXTRA_UNMANAGED_APPS = ()
-EXTRA_MIDDLEWARE_CLASSES = ()
-EXTRA_RESERVED_INSTANCE_URL_NAMES = ()
-EXTRA_UI_TESTS = ()
-
-from opentreemap.local_settings import *  # NOQA
-
-MANAGED_APPS = EXTRA_MANAGED_APPS + MANAGED_APPS
-UNMANAGED_APPS = EXTRA_UNMANAGED_APPS + UNMANAGED_APPS
-INSTALLED_APPS = MANAGED_APPS + UNMANAGED_APPS
-MIDDLEWARE_CLASSES += EXTRA_MIDDLEWARE_CLASSES
-RESERVED_INSTANCE_URL_NAMES += EXTRA_RESERVED_INSTANCE_URL_NAMES
-
-# CELERY
-# NOTE: BROKER_URL and CELERY_RESULT_BACKEND must be set
-#       to a valid redis URL in local_settings.py
-import djcelery
-djcelery.setup_loader()
-
-#
 # Units and decimal digits for fields and eco values
 #
-
+# DISPLAY_DEFAULTS has the default unit to show in the UI
+# STORAGE_UNITS is the unit the value will be stored/computed as,
+# if diffferent from DISPLAY_DEFAULTS
+#
+STORAGE_UNITS = {}
 DISPLAY_DEFAULTS = {
     'plot': {
         'width':  {'units': 'in', 'digits': 1},
@@ -301,6 +276,41 @@ DISPLAY_DEFAULTS = {
         'airquality': {'units': 'lbs/year', 'digits': 1}
     }
 }
+
+#
+# Mount extra urls from local settings. These should be a
+# tuple of (url path, url module). Something like:
+#
+# EXTRA_URLS = (('/extra_api/', 'apiv2.urls),
+#               ('/local/', 'local.urls))
+#
+EXTRA_URLS = ()
+
+EXTRA_MANAGED_APPS = ()
+EXTRA_UNMANAGED_APPS = ()
+EXTRA_MIDDLEWARE_CLASSES = ()
+EXTRA_RESERVED_INSTANCE_URL_NAMES = ()
+EXTRA_UI_TESTS = ()
+
+EXTRA_DISPLAY_DEFAULTS = {}
+EXTRA_STORAGE_UNITS = {}
+
+from opentreemap.local_settings import *  # NOQA
+
+MANAGED_APPS = EXTRA_MANAGED_APPS + MANAGED_APPS
+UNMANAGED_APPS = EXTRA_UNMANAGED_APPS + UNMANAGED_APPS
+INSTALLED_APPS = MANAGED_APPS + UNMANAGED_APPS
+MIDDLEWARE_CLASSES += EXTRA_MIDDLEWARE_CLASSES
+RESERVED_INSTANCE_URL_NAMES += EXTRA_RESERVED_INSTANCE_URL_NAMES
+
+DISPLAY_DEFAULTS.update(EXTRA_DISPLAY_DEFAULTS)
+STORAGE_UNITS.update(EXTRA_STORAGE_UNITS)
+
+# CELERY
+# NOTE: BROKER_URL and CELERY_RESULT_BACKEND must be set
+#       to a valid redis URL in local_settings.py
+import djcelery
+djcelery.setup_loader()
 
 # Time in ms for two clicks to be considered a double-click in some scenarios
 DOUBLE_CLICK_INTERVAL = 300
