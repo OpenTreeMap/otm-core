@@ -17,6 +17,7 @@ from django.test.utils import override_settings
 from django.test.client import Client
 from django.utils.unittest.case import skip
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 from treemap.models import Species, Plot, Tree, User
 from treemap.audit import ReputationMetric, Audit
@@ -28,6 +29,7 @@ from api.models import APIKey, APILog
 from api.views import (InvalidAPIKeyException,
                        _parse_application_version_header_as_dict)
 from api.instance import instances_closest_to_point
+from api.user import create_user
 
 
 API_PFX = "/api/v2"
@@ -186,7 +188,7 @@ class Authentication(TestCase):
         self.sign = create_signer_dict(self.jim)
 
     def test_401(self):
-        ret = self.client.get("%s/login" % API_PFX, **self.sign)
+        ret = self.client.get("%s/user" % API_PFX, **self.sign)
         self.assertEqual(ret.status_code, 401)
 
     def test_ok(self):
@@ -194,21 +196,21 @@ class Authentication(TestCase):
         withauth = dict(self.sign.items() +
                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
-        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        ret = self.client.get("%s/user" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 200)
 
     def test_malformed_auth(self):
         withauth = dict(self.sign.items() +
                         [("HTTP_AUTHORIZATION", "FUUBAR")])
 
-        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        ret = self.client.get("%s/user" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 401)
 
         auth = base64.b64encode("foobar")
         withauth = dict(self.sign.items() +
                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
-        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        ret = self.client.get("%s/user" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 401)
 
     def test_bad_cred(self):
@@ -216,7 +218,7 @@ class Authentication(TestCase):
         withauth = dict(self.sign.items() +
                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
-        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        ret = self.client.get("%s/user" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 401)
 
     @skip("We can't return reputation until login takes an instance")
@@ -229,7 +231,7 @@ class Authentication(TestCase):
         withauth = dict(self.sign.items() +
                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
-        ret = self.client.get("%s/login" % API_PFX, **withauth)
+        ret = self.client.get("%s/user" % API_PFX, **withauth)
 
         self.assertEqual(ret.status_code, 200)
 
@@ -1147,74 +1149,6 @@ class UpdatePlotAndTree(TestCase):
         self.assertTrue(len(plot) == 1, 'Expected plot to be here')
         self.assertTrue(len(tree) == 0, 'Expected tree to be gone')
 
-    def test_register_with_space_fails(self):
-        self.assertTrue(
-            User.objects.filter(username='foo bar').count() == 0,
-            "The test expects the foo bar user to not exists.")
-        data = {
-            'username': 'foo bar',
-            'firstname': 'foo',
-            'lastname': 'bar',
-            'email': 'foo@bar.com',
-            'password': 'drowssap',
-            'zipcode': 19107
-        }
-
-        response = post_json("%s/user/" % API_PFX,
-                             data, self.client, self.sign)
-
-        self.assertEqual(400, response.status_code)
-        self.assertTrue(User.objects.filter(username='foo bar').count() == 0)
-
-    def test_registration(self):
-        self.assertTrue(
-            User.objects.filter(username='foobar').count() == 0,
-            "The test expects the foobar user to not exists.")
-        data = {
-            'username': 'foobar',
-            'firstname': 'foo',
-            'lastname': 'bar',
-            'email': 'foo@bar.com',
-            'password': 'drowssap',
-            'zipcode': 19107
-        }
-        response = post_json("%s/user/" % API_PFX,
-                             data, self.client, self.sign)
-        self.assertEqual(200, response.status_code,
-                         "Expected 200 status code after creating user")
-        response_dict = loads(response.content)
-        self.assertTrue('status' in response_dict,
-                        'Expected "status" to be a top level '
-                        'key in the response object')
-        self.assertEqual('success', response_dict['status'],
-                         'Expected "status" to be "success"')
-        self.assertTrue(User.objects.filter(username='foobar').count() == 1,
-                        'Expected the "foobar" user to be created.')
-
-    def test_duplicate_registration(self):
-        self.assertTrue(User.objects.filter(username='jim').count() == 1,
-                        "The test expects the jim user to exist.")
-        data = {
-            'username': 'jim',
-            'firstname': 'Jim',
-            'lastname': 'User',
-            'email': 'jim@user.com',
-            'password': 'drowssap',
-            'zipcode': 19107
-        }
-        response = post_json("%s/user/" % API_PFX,
-                             data, self.client, self.sign)
-
-        self.assertEqual(400, response.status_code,
-                         "Expected 400 status code after attempting"
-                         " to create duplicate username")
-        response_dict = loads(response.content)
-        self.assertTrue('status' in response_dict,
-                        'Expected "status" to be a top level key'
-                        'in the response object')
-        self.assertEqual('failure', response_dict['status'],
-                         'Expected "status" to be "failure"')
-
 
 def _create_mock_request_without_version():
     return _create_mock_request_with_version_string(None)
@@ -1389,3 +1323,76 @@ class InstancesClosestToPoint(TestCase):
 #         self.assertIsNotNone(tree)
 #         photo = tree.treephoto_set.all()[0]
 #         self.assertEqual('plot_%d.png' % plot_id, photo.title)
+
+class UserTest(TestCase):
+    def setUp(self):
+        self.defaultUserDict = {'organization': 'azavea',
+                                'lastname': 'smith',
+                                'firstname': 'john',
+                                'email': 'j@smith.co',
+                                'username': 'jsmith',
+                                'password': 'password',
+                                'allow_email_contact': True}
+
+    def make_post_request(self, datadict):
+        return make_request(method='POST',
+                            body=dumps(datadict))
+
+    def testCreateUser(self):
+        rslt = create_user(self.make_post_request(self.defaultUserDict))
+        pk = rslt['id']
+
+        user = User.objects.get(pk=pk)
+
+        for field, target_value in self.defaultUserDict.iteritems():
+            if field != 'password':
+                self.assertEqual(getattr(user, field), target_value)
+
+        valid_password = user.check_password(self.defaultUserDict['password'])
+        self.assertEqual(valid_password, True)
+
+    def testCreateDuplicateUsername(self):
+        create_user(self.make_post_request(self.defaultUserDict))
+
+        self.defaultUserDict['email'] = 'mail@me.me'
+        resp = create_user(self.make_post_request(self.defaultUserDict))
+        self.assertEqual(resp.status_code, 409)
+
+        self.defaultUserDict['username'] = 'jsmith2'
+        resp = create_user(self.make_post_request(self.defaultUserDict))
+
+        self.assertEqual(User.objects.filter(pk=resp['id']).exists(), True)
+
+    def testCreateDuplicateEmail(self):
+        create_user(self.make_post_request(self.defaultUserDict))
+
+        self.defaultUserDict['username'] = 'jsmith2'
+        resp = create_user(self.make_post_request(self.defaultUserDict))
+        self.assertEqual(resp.status_code, 409)
+
+        self.defaultUserDict['email'] = 'mail@me.me'
+        resp = create_user(self.make_post_request(self.defaultUserDict))
+
+        self.assertEqual(User.objects.filter(pk=resp['id']).exists(), True)
+
+    def testMissingFields(self):
+        del self.defaultUserDict['email']
+        self.assertRaises(ValidationError,
+                          create_user,
+                          self.make_post_request(self.defaultUserDict))
+
+        self.defaultUserDict['email'] = 'mail@me.me'
+        resp = create_user(self.make_post_request(self.defaultUserDict))
+
+        self.assertIsNotNone(resp['id'])
+
+    def testInvalidField(self):
+        self.defaultUserDict['hardy'] = 'heron'
+        self.assertRaises(ValidationError,
+                          create_user,
+                          self.make_post_request(self.defaultUserDict))
+
+        del self.defaultUserDict['hardy']
+        resp = create_user(self.make_post_request(self.defaultUserDict))
+
+        self.assertIsNotNone(resp['id'])
