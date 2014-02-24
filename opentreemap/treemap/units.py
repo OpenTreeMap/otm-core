@@ -62,19 +62,20 @@ _unit_names = {
     "kwh": trans("kilowatt-hours"),
     "gal": trans("gallons"),
     "L": trans("liters"),
-    "sq_ft": trans("ft²"),
-    "sq_m": trans("m²")
+    "sq_ft": trans("feet²"),
+    "sq_m": trans("meters²")
 }
 
 _unit_conversions = {
-    "in": {"in": 1, "ft": .083333333, "cm": 2.54, "m": .0254},
-    "ft": {"in": 12, "ft": 1, "cm": 2.54, "m": 30.48},
+    "in": {"in": 1, "ft": 1 / 12, "cm": 2.54, "m": .0254},
     "lbs/year": {"lbs/year": 1, "kg/year": 0.453592},
     "lbs": {"lbs": 1, "kg": 0.453592},
     "gal": {"gal": 1, "L": 3.785},
     "kwh": {"kwh": 1},
     "sq_m": {"sq_m": 1, "sq_ft": 10.7639}
 }
+_unit_conversions["ft"] = {u: v * 12 for (u, v)
+                           in _unit_conversions["in"].iteritems()}
 
 
 def get_unit_name(abbrev):
