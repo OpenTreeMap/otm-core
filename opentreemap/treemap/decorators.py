@@ -20,7 +20,7 @@ from treemap.exceptions import (FeatureNotEnabledException,
                                 HttpBadRequestException)
 
 
-def instance_request(view_fn):
+def instance_request(view_fn, redirect=True):
     @wraps(view_fn)
     def wrapper(request, instance_url_name, *args, **kwargs):
         instance = get_instance_or_404(url_name=instance_url_name)
@@ -40,12 +40,20 @@ def instance_request(view_fn):
             add_visited_instance(request, instance)
             return view_fn(request, instance, *args, **kwargs)
         else:
-            if request.user.is_authenticated():
-                return HttpResponseRedirect(reverse('instance_not_available'))
+            if redirect:
+                if request.user.is_authenticated():
+                    return HttpResponseRedirect(
+                        reverse('instance_not_available'))
+                else:
+                    return login_redirect(request)
             else:
-                return login_redirect(request)
+                return HttpResponse('Unauthorized', status=401)
 
     return wrapper
+
+
+def api_instance_request(view_fn):
+    return instance_request(view_fn, redirect=False)
 
 
 def strip_request(view_fn):

@@ -28,8 +28,8 @@ from treemap.models import Plot, Tree
 from treemap.views import (get_tree_photos, species_list,
                            upload_user_photo, context_dict_for_plot)
 
-from treemap.decorators import (instance_request, json_api_call,
-                                return_400_if_validation_errors)
+from treemap.decorators import json_api_call, return_400_if_validation_errors
+from treemap.decorators import api_instance_request as instance_request
 from treemap.exceptions import HttpBadRequestException
 from treemap.audit import Audit, approve_or_reject_audit_and_apply
 
