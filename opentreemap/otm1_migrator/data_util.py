@@ -5,7 +5,11 @@ import logging
 logger = logging.getLogger('')
 
 
-def validate_model(config, model_name, data_hash):
+class MigrationException(Exception):
+    pass
+
+
+def validate_model_dict(config, model_name, data_hash):
     """
     Makes sure the fields specified in the config global
     account for all of the provided data
@@ -25,7 +29,7 @@ def validate_model(config, model_name, data_hash):
     if expected_fields != provided_fields:
         raise Exception('model validation failure. \n\n'
                         'Expected: %s \n\n'
-                        'Got %s\n\n'
+                        'Got: %s\n\n'
                         'Symmetric Difference: %s'
                         % (expected_fields, provided_fields,
                            expected_fields.
@@ -38,8 +42,6 @@ def hash_to_model(config, model_name, data_hash, instance):
     hash of json data and attempts to populate a django
     model. Does not save.
     """
-
-    validate_model(config, model_name, data_hash)
 
     common_fields = config[model_name].get('common_fields', set())
     renamed_fields = config[model_name].get('renamed_fields', {})
@@ -63,4 +65,3 @@ def hash_to_model(config, model_name, data_hash, instance):
         model.instance = instance
 
     return model
-

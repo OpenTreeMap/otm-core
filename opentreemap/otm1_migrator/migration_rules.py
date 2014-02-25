@@ -39,6 +39,7 @@ MIGRATION_RULES = {
         'missing_fields': set()
     },
     'tree': {
+        'command_line_flag': '-t',
         'model_class': Tree,
         'dependencies': {'species': 'species',
                          'user': 'steward_user',
@@ -52,7 +53,8 @@ MIGRATION_RULES = {
                            'orig_species', 'present', 'last_updated',
                            'last_updated_by', 's_order', 'photo_count',
                            'projects', 'condition', 'canopy_condition',
-                           'url', 'pests', 'steward_user'},
+                           'url', 'pests', 'steward_user',
+                           'import_event'},
         'missing_fields': {'instance', },
         'value_transformers': {
             'plot': (lambda x: Plot.objects.get(pk=x)),
@@ -60,6 +62,7 @@ MIGRATION_RULES = {
             }
     },
     'audit': {
+        'command_line_flag': '-a',
         'model_class': Audit,
         'dependencies': {'user': 'user'},
         # since audits are produced using a sanitized
@@ -75,6 +78,7 @@ MIGRATION_RULES = {
         }
     },
     'plot': {
+        'command_line_flag': '-p',
         'model_class': Plot,
         'dependencies': {'user': 'data_owner'},
         'common_fields': {'width', 'length', 'address_street', 'address_zip',
@@ -87,25 +91,27 @@ MIGRATION_RULES = {
                            'geocoded_address', 'geocoded_lat', 'geocoded_lon',
                            'present', 'last_updated', 'last_updated_by',
                            'data_owner', 'owner_additional_id',
-                           'owner_additional_properties'},
+                           'owner_additional_properties',
+                           'import_event'},
         'missing_fields': {'instance', },
         'value_transformers': {
             'geometry': (lambda x: fromstr(x, srid=4326)),
         },
     },
     'species': {
+        'command_line_flag': '-s',
         'model_class': Species,
         'common_fields': {'bloom_period', 'common_name',
                           'fact_sheet', 'fall_conspicuous',
                           'flower_conspicuous', 'fruit_period', 'gender',
                           'genus', 'native_status', 'palatable_human',
-                          'plant_guide', 'species', 'otm_code',
+                          'plant_guide', 'species',
                           'wildlife_value'},
         'renamed_fields': {'v_max_height': 'max_height',
                            'v_max_dbh': 'max_dbh',
                            'cultivar_name': 'cultivar',
                            'other_part_of_name': 'other'},
-        'missing_fields': {'instance', },
+        'missing_fields': {'instance', 'otm_code'},
         'removed_fields': {'alternate_symbol', 'v_multiple_trunks',
                            'tree_count', 'resource', 'itree_code',
                            'family', 'scientific_name', 'symbol'},
@@ -116,6 +122,7 @@ MIGRATION_RULES = {
         },
     },
     'user': {
+        'command_line_flag': '-u',
         'model_class': User,
         'common_fields': {'username', 'password', 'email', 'date_joined',
                           'first_name', 'last_name', 'is_active',
