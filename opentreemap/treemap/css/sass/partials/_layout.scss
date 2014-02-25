@@ -17,7 +17,7 @@ body {
 }
 
 .image-background {
-	background-image: url(../img/default-background.jpg);
+	background-image: url('/static/img/default-background.jpg');
 	height: 500px;
 	position: absolute;
 	z-index: 0;
