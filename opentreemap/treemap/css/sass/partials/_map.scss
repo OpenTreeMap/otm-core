@@ -166,7 +166,7 @@ span.tt-dropdown-menu {
             padding: 8px 10px;
             border-bottom: 1px solid $light-gray-color;
 
-            &.tt-is-under-cursor,
+            &.tt-cursor,
             &:hover {
                 background-color: $light-gray-color;
             }

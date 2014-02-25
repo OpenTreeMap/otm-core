@@ -124,9 +124,14 @@ module.exports = function(grunt) {
                             exports: null,
                             depends: { leaflet: 'L' }
                         },
+                        bloodhound: {
+                            path: './treemap/js/shim/bloodhound.js',
+                            exports: 'Bloodhound',
+                            depends: { jquery: 'jQuery' }
+                        },
                         // BEGIN modules which add themselves to the jQuery object
                         typeahead: {
-                            path: './treemap/js/shim/typeahead.js',
+                            path: './treemap/js/shim/typeahead.jquery.js',
                             exports: null,
                             depends: { jquery: 'jQuery' }
                         },

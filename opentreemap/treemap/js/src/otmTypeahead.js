@@ -9,30 +9,8 @@ var $ = require("jquery"),
     _ = require("lodash"),
     mustache = require("mustache"),
     Bacon = require("baconjs"),
+    Bloodhound = require("bloodhound"),
     BU = require("treemap/baconUtils");
-
-
-function setTypeahead($typeahead, val) {
-    $typeahead.typeahead('setQuery', val);
-}
-
-function setTypeaheadAfterDataLoaded($typeahead, key, query) {
-    if (!key) {
-        setTypeahead($typeahead, query);
-    } else if (query && query.length !== 0) {
-        var data = _.filter(
-            $typeahead.data('ttView').datasets[0].itemHash,
-            function(data) {
-                return data.datum[key] == query;
-            });
-
-        if (data.length > 0) {
-            setTypeahead($typeahead, data[0].value);
-        }
-    } else {
-        setTypeahead($typeahead, '');
-    }
-}
 
 function eventToTargetValue(e) { return $(e.target).val(); }
 
@@ -40,7 +18,6 @@ function inputStream($input) {
     return $input.asEventStream('input')
                  .map(eventToTargetValue);
 }
-
 
 exports.getDatum = function($typeahead) {
     return $typeahead.data('datum');
@@ -52,17 +29,54 @@ var create = exports.create = function(options) {
         $input = $(options.input),
         $hidden_input = $(options.hidden),
         $openButton = $(options.button),
-        reverse = options.reverse;
+        reverse = options.reverse,
+
+        engine = new Bloodhound({
+            name: options.name, // Used for caching
+            prefetch: {
+                url: options.url,
+                ttl: 0 // TODO: Use high TTL and set thumbprint
+            },
+            limit: 1000,
+            datumTokenizer: function(datum) {
+                return datum.tokens;
+            },
+            queryTokenizer: Bloodhound.tokenizers.nonword
+        }),
+
+        enginePromise = engine.initialize(),
+
+        setTypeaheadAfterDataLoaded = function($typeahead, key, query) {
+            if (!key) {
+                setTypeahead($typeahead, query);
+            } else if (query && query.length !== 0) {
+                engine.get('', function(datums) {
+                    var data = _.filter(datums, function(datum) {
+                            return datum[key] == query;
+                        });
+
+                    if (data.length > 0) {
+                        setTypeahead($typeahead, data[0].value);
+                    }
+                });
+            } else {
+                setTypeahead($typeahead, '');
+            }
+        },
+
+        setTypeahead = function($typeahead, val) {
+            $typeahead.typeahead('val', val);
+            $typeahead.typeahead('close');
+        };
+
 
     $input.typeahead({
-        name: options.name, // Used for caching
-        prefetch: {
-            url: options.url,
-            ttl: 0 // TODO: Use high TTL and invalidate cache on change
-        },
-        limit: 1000,
-        template: template,
         minLength: options.minLength || 0
+    }, {
+        source: engine.ttAdapter(),
+        templates: {
+            suggestion: template
+        },
     });
 
     var selectStream = $input.asEventStream('typeahead:selected typeahead:autocompleted',
@@ -74,14 +88,14 @@ var create = exports.create = function(options) {
         editStream = selectStream.merge(backspaceOrDeleteStream.map(undefined)).skipDuplicates(),
 
         idStream = selectStream.map(".id")
-                                .merge(backspaceOrDeleteStream.map(""));
+                               .merge(backspaceOrDeleteStream.map(""));
 
     editStream.filter(BU.isDefined).onValue($input, "data", "datum");
     editStream.filter(BU.isUndefined).onValue($input, "removeData", "datum");
 
     if (options.forceMatch) {
         $input.on('blur', function() {
-            if ($input.typeahead('isOpen')) return;
+            if ($input.find('.tt-dropdown-menu').is(':visible')) return;
 
             if ($input.data('datum') === undefined) {
                 setTypeahead($input, '');
@@ -98,22 +112,20 @@ var create = exports.create = function(options) {
     if (options.hidden) {
         idStream.onValue($hidden_input, "val");
 
-
-        // Specify a 'reverse' key to lookup data in reverse,
-        // otherwise restore verbatim
-        $input.asEventStream('typeahead:initialized')
-            .onValue(function () {
-                var value = $hidden_input.val();
-                if (value) {
-                    setTypeaheadAfterDataLoaded($input, reverse, value);
-                }
-            });
-
-
+        enginePromise.done(function() {
+            // Specify a 'reverse' key to lookup data in reverse,
+            // otherwise restore verbatim
+            var value = $hidden_input.val();
+            if (value) {
+                setTypeaheadAfterDataLoaded($input, reverse, value);
+            }
+        });
 
         $hidden_input.on('restore', function(event, value) {
-            // If we're already loaded, this applies right away
-            setTypeaheadAfterDataLoaded($input, reverse, value);
+            enginePromise.done(function() {
+                // If we're already loaded, this applies right away
+                setTypeaheadAfterDataLoaded($input, reverse, value);
+            });
 
             // If we're not, this will get used when loaded later
             $hidden_input.val(value || '');
@@ -122,9 +134,17 @@ var create = exports.create = function(options) {
     }
 
     if (options.button) {
+        var isOpen = false;
+        $input.on('typeahead:opened', function() {
+            isOpen = true;
+        });
+        $input.on('typeahead:closed', function() {
+            isOpen = false;
+            $openButton.removeClass('active');
+        });
         $openButton.on('click', function(e) {
             e.preventDefault();
-            if ($input.typeahead('isOpen')) {
+            if (isOpen) {
                 $input.typeahead('close');
             } else {
                 setTypeahead($input, '');
@@ -133,13 +153,10 @@ var create = exports.create = function(options) {
                 // The open may fail if there is no data to show
                 // If so don't add the active class, because then it can never
                 // be removed
-                if ($input.typeahead('isOpen')) {
+                if (isOpen) {
                     $openButton.addClass('active');
                 }
             }
-        });
-        $input.on('typeahead:closed', function() {
-            $openButton.removeClass('active');
         });
     }
 };
