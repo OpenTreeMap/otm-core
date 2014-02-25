@@ -2,9 +2,14 @@
 
 footer {
     border-top: 1px solid $well-color;
-    position: relative;
+    position: fixed;
     background: #FFF;
     width: 100%;
+    bottom: 0;
+
+    &:empty {
+        display: none;
+    }
 
     .footer-inner {
         padding: 9px 15px 10px;
