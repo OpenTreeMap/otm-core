@@ -28,6 +28,8 @@ from django.db import transaction
 from django.db.models import Q
 from django.template import RequestContext
 
+from opentreemap.util import json_from_request, route
+
 from treemap.decorators import (json_api_call, render_template, login_or_401,
                                 require_http_method, string_as_file_call,
                                 requires_feature, get_instance_or_404,
@@ -42,12 +44,10 @@ from treemap.audit import (Audit, approve_or_reject_existing_edit,
 from treemap.models import (Plot, Tree, User, Species, Instance,
                             TreePhoto, StaticPage, MapFeature)
 from treemap.units import get_units, get_display_value, Convertible
-
 from treemap.ecobenefits import (benefits_for_trees, tree_benefits,
                                  get_benefit_label)
 from treemap.ecobackend import BAD_CODE_PAIR
-
-from opentreemap.util import json_from_request, route
+from treemap.util import leaf_subclasses
 
 USER_EDIT_FIELDS = collections.OrderedDict([
     ('first_name',
@@ -650,6 +650,13 @@ def _get_audits(logged_in_user, instance, query_vars, user, models,
             'prev_page': prev_page}
 
 
+def get_filterable_audit_models():
+    map_features = [c.__name__ for c in leaf_subclasses(MapFeature)]
+    models = map_features + ['Tree']
+
+    return {model.lower(): model for model in models}
+
+
 def _get_audits_params(request):
     PAGE_MAX = 100
     PAGE_DEFAULT = 20
@@ -661,16 +668,17 @@ def _get_audits_params(request):
 
     models = []
 
-    allowed_models = {
-        'tree': 'Tree',
-        'plot': 'Plot'
-    }
+    allowed_models = get_filterable_audit_models()
+    models_param = r.get('models', None)
 
-    for model in r.get('models', "tree,plot").split(','):
-        if model.lower() in allowed_models:
-            models.append(allowed_models[model.lower()])
-        else:
-            raise Exception("Invalid model: %s" % model)
+    if models_param:
+        for model in models_param.split(','):
+            if model.lower() in allowed_models:
+                models.append(allowed_models[model.lower()])
+            else:
+                raise Exception("Invalid model: %s" % model)
+    else:
+        models = allowed_models.values()
 
     model_id = r.get('model_id', None)
 

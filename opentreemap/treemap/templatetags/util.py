@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from treemap.models import Plot, Tree, TreePhoto
 from treemap.udf import UserDefinedCollectionValue
+from treemap.views import get_filterable_audit_models
 
 register = template.Library()
 
@@ -81,3 +82,10 @@ def display_name(model_or_name):
         return 'Planting Site'
     else:
         return name
+
+
+@register.filter
+def is_filterable_audit_model(model_name):
+    allowed_models = get_filterable_audit_models()
+
+    return model_name in allowed_models.values()

@@ -17,30 +17,42 @@ UNIT_TEST_DISPLAY_DEFAULTS = {
     'test': {
         'unit_only': {'units': 'ft'},
         'digit_only': {'digits': 2},
-        'both': {'units': 'ft', 'digits': 3}
+        'both': {'units': 'ft', 'digits': 3},
+        'separate_units': {'units': 'ft'}
+    }
+}
+UNIT_TEST_STORAGE_UNITS = {
+    'test': {
+        'separate_units': 'in'
     }
 }
 
 
-@override_settings(DISPLAY_DEFAULTS=UNIT_TEST_DISPLAY_DEFAULTS)
+@override_settings(DISPLAY_DEFAULTS=UNIT_TEST_DISPLAY_DEFAULTS,
+                   STORAGE_UNITS=UNIT_TEST_STORAGE_UNITS)
 class UnitConverterTest(TestCase):
     def setUp(self):
         self.instance = make_instance()
 
-    def test_is_convertible_or_formatbile(self):
+    def test_is_convertible_or_formatable(self):
         self.assertTrue(is_convertible_or_formattable('test', 'unit_only'))
         self.assertTrue(is_convertible_or_formattable('test', 'digit_only'))
         self.assertTrue(is_convertible_or_formattable('test', 'both'))
+        self.assertTrue(
+            is_convertible_or_formattable('test', 'separate_units'))
+        self.assertFalse(is_convertible_or_formattable('test', 'random_field'))
 
     def test_is_convertible(self):
         self.assertTrue(is_convertible('test', 'unit_only'))
         self.assertFalse(is_convertible('test', 'digit_only'))
         self.assertTrue(is_convertible('test', 'both'))
+        self.assertTrue(is_convertible('test', 'separate_units'))
 
-    def test_is_formatbile(self):
+    def test_is_formatable(self):
         self.assertFalse(is_formattable('test', 'unit_only'))
         self.assertTrue(is_formattable('test', 'digit_only'))
         self.assertTrue(is_formattable('test', 'both'))
+        self.assertFalse(is_formattable('test', 'separate_units'))
 
     def test_get_display_value_unit_conversion(self):
         set_attr_on_json_field(
@@ -77,6 +89,12 @@ class UnitConverterTest(TestCase):
             self.instance, 'config.value_display.test.unit_only.units', 'in')
         self.assertAlmostEqual(1, get_storage_value(self.instance, 'test',
                                                     'unit_only', 12))
+
+    def test_separate_storage_and_display_defaults(self):
+        val, display_val = get_display_value(
+            self.instance, 'test', 'separate_units', 12)
+        self.assertEqual(val, 1)
+        self.assertEqual(display_val, '1.0')
 
 
 INTEGRATION_TEST_DISPLAY_DEFAULTS = {
