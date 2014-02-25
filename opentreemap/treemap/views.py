@@ -814,7 +814,8 @@ def boundary_autocomplete(request, instance):
              'category': boundary.category,
              'id': boundary.pk,
              'value': boundary.name,
-             'tokens': boundary.name.split()}
+             'tokens': boundary.name.split(),
+             'sortOrder': boundary.sort_order}
             for boundary in boundaries]
 
 

@@ -23,6 +23,40 @@ exports.getDatum = function($typeahead) {
     return $typeahead.data('datum');
 };
 
+// Creates a comparator function from a list of keys
+// If the keys of two objects are equal it uses the next key in sortKeys
+// If a key starts with '-' the sort order for that key is reversed
+var getSortFunction = function(sortKeys) {
+    sortKeys = _.map(sortKeys, function(sortKey) {
+        var sign = 1;
+        if (sortKey.charAt(0) === '-') {
+            sign = -1;
+            sortKey = sortKey.slice(1);
+        }
+        return {key: sortKey, sign: sign};
+    });
+
+    return function(a, b) {
+        function compareKeys(key) {
+            if (a[key] < b[key]) {
+                return -1;
+            } else if (a[key] > b[key]) {
+                return 1;
+            }
+            return 0;
+        }
+        var compareVal, sortKey;
+        for (var i = 0; i < sortKeys.length; i++) {
+            sortKey = sortKeys[i];
+            compareVal = sortKey.sign * compareKeys(sortKey.key);
+            if (compareVal !== 0) {
+                break;
+            }
+        }
+        return compareVal;
+    };
+};
+
 var create = exports.create = function(options) {
     var config = options.config,
         template = mustache.compile($(options.template).html()),
@@ -30,6 +64,7 @@ var create = exports.create = function(options) {
         $hidden_input = $(options.hidden),
         $openButton = $(options.button),
         reverse = options.reverse,
+        sorter = _.isArray(options.sortKeys) ? getSortFunction(options.sortKeys) : undefined,
 
         engine = new Bloodhound({
             name: options.name, // Used for caching
@@ -37,11 +72,12 @@ var create = exports.create = function(options) {
                 url: options.url,
                 ttl: 0 // TODO: Use high TTL and set thumbprint
             },
-            limit: 1000,
+            limit: 3000,
             datumTokenizer: function(datum) {
                 return datum.tokens;
             },
-            queryTokenizer: Bloodhound.tokenizers.nonword
+            queryTokenizer: Bloodhound.tokenizers.nonword,
+            sorter: sorter
         }),
 
         enginePromise = engine.initialize(),
