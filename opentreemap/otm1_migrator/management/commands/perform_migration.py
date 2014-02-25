@@ -11,13 +11,11 @@ import json
 import logging
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.gis.geos import fromstr
 from django.conf import settings
 from django.db.transaction import commit_on_success
 
 from treemap import SPECIES
-from treemap.models import (User, Plot, Tree, Species, InstanceUser, Audit,
-                            TreePhoto)
+from treemap.models import User, Species, InstanceUser
 from treemap.audit import model_hasattr
 from treemap.management.util import InstanceDataCommand
 
@@ -26,130 +24,9 @@ from treemap.tests import make_commander_role
 
 from otm1_migrator.models import OTM1UserRelic, OTM1ModelRelic
 from otm1_migrator.data_util import validate_model, hash_to_model
+from otm1_migrator.migration_rules import MIGRATION_RULES
 
 logger = logging.getLogger('')
-
-# model specification:
-#
-# model_class:        the django class object used to instantiate objects
-#
-# dependencies:       a mapping where keys are the names of models that
-#                     must also be in the MIGRATION_RULES dict and values are
-#                     the names of fields for the current OTM2 model that have
-#                     foreign key relationships to their dependency OTM2 models
-#
-# common_fields:      fields that must be in the provided data and the otm2
-#                     django model.
-# renamed_fields:     a mapping where keys are fields in the provided data
-#                     and values are their names in the otm2 model.
-#
-# undecided_fields:   fields that we're not sure what to do with. These should
-#                     be resolved into other categories before this is used
-#                     for a production migration.
-# removed_fields:     fields in the provided data that will be discarded.
-#
-# missing_fields:     fields in the otm2 django model that are not provided.
-#
-# value_transformers: a mapping where keys are the name of fields in the
-#                     _provided_ data and and values are unary functions
-#                     that take a value and transform it to some other value.
-
-MIGRATION_RULES = {
-    'treephoto': {
-        'model_class': TreePhoto,
-        'dependencies': {'tree': 'tree',
-                         'user': 'reported_by'},
-        'common_fields': {'photo'},
-        'renamed_fields': {'tree': 'tree_id'},
-        'removed_fields': {'title', 'reported', 'reported_by', 'comment'},
-        'missing_fields': set()
-    },
-    'tree': {
-        'model_class': Tree,
-        'dependencies': {'species': 'species',
-                         'user': 'steward_user',
-                         'plot': 'plot'},
-        'common_fields': {'plot', 'species', 'readonly', 'canopy_height',
-                          'date_planted', 'date_removed', 'height'},
-        'renamed_fields': {'dbh': 'diameter'},
-        'undecided_fields': set(),
-        'removed_fields': {'tree_owner', 'steward_name', 'sponsor',
-                           'species_other1', 'species_other2',
-                           'orig_species', 'present', 'last_updated',
-                           'last_updated_by', 's_order', 'photo_count',
-                           'projects', 'condition', 'canopy_condition',
-                           'url', 'pests', 'steward_user'},
-        'missing_fields': {'instance', },
-        'value_transformers': {
-            'plot': (lambda x: Plot.objects.get(pk=x)),
-            'species': (lambda x: Species.objects.get(pk=x)),
-            }
-    },
-    'audit': {
-        'model_class': Audit,
-        'dependencies': {'user': 'user'},
-        # since audits are produced using a sanitized
-        # fixture exporter, fewer fields are modified
-        # on this end.
-        'common_fields': {'model', 'model_id', 'field',
-                          'previous_value', 'current_value',
-                          'user',
-                          'action', 'requires_auth',
-                          'ref', 'created', 'updated'},
-        'value_transformers': {
-            'user': (lambda x: User.objects.get(pk=x))
-        }
-    },
-    'plot': {
-        'model_class': Plot,
-        'dependencies': {'user': 'data_owner'},
-        'common_fields': {'width', 'length', 'address_street', 'address_zip',
-                          'address_city', 'owner_orig_id', 'readonly'},
-        'renamed_fields': {'geometry': 'geom'},
-        'undecided_fields': set(),
-        'removed_fields': {'type', 'powerline_conflict_potential',
-                           'sidewalk_damage', 'neighborhood',
-                           'neighborhoods', 'zipcode', 'geocoded_accuracy',
-                           'geocoded_address', 'geocoded_lat', 'geocoded_lon',
-                           'present', 'last_updated', 'last_updated_by',
-                           'data_owner', 'owner_additional_id',
-                           'owner_additional_properties'},
-        'missing_fields': {'instance', },
-        'value_transformers': {
-            'geometry': (lambda x: fromstr(x, srid=4326)),
-        },
-    },
-    'species': {
-        'model_class': Species,
-        'common_fields': {'bloom_period', 'common_name',
-                          'fact_sheet', 'fall_conspicuous',
-                          'flower_conspicuous', 'fruit_period', 'gender',
-                          'genus', 'native_status', 'palatable_human',
-                          'plant_guide', 'species', 'otm_code',
-                          'wildlife_value'},
-        'renamed_fields': {'v_max_height': 'max_height',
-                           'v_max_dbh': 'max_dbh',
-                           'cultivar_name': 'cultivar',
-                           'other_part_of_name': 'other'},
-        'missing_fields': {'instance', },
-        'removed_fields': {'alternate_symbol', 'v_multiple_trunks',
-                           'tree_count', 'resource', 'itree_code',
-                           'family', 'scientific_name', 'symbol'},
-        'value_transformers': {
-            'v_max_height': (lambda x: x or 10000),
-            'v_max_dbh': (lambda x: x or 10000),
-            'native_status': (lambda x: x and x.lower() == 'true')
-        },
-    },
-    'user': {
-        'model_class': User,
-        'common_fields': {'username', 'password', 'email', 'date_joined',
-                          'first_name', 'last_name', 'is_active',
-                          'is_superuser', 'is_staff', 'last_login'},
-        'removed_fields': {'groups', 'user_permissions'},
-        'missing_fields': {'roles', 'reputation'},
-    },
-}
 
 
 @contextmanager
