@@ -6,6 +6,7 @@ footer {
     background: #FFF;
     width: 100%;
     bottom: 0;
+    z-index: 99;
 
     &:empty {
         display: none;
