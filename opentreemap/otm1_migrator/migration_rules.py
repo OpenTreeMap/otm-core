@@ -29,6 +29,7 @@ from django.contrib.gis.geos import fromstr
 
 MIGRATION_RULES = {
     'treephoto': {
+        'command_line_flag': '-f',
         'model_class': TreePhoto,
         'dependencies': {'tree': 'tree',
                          'user': 'reported_by'},

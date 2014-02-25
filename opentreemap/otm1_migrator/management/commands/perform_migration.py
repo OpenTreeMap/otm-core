@@ -249,45 +249,30 @@ def _uniquify_username(username):
 
     return username
 
+def make_model_option(model):
+    shortflag = MIGRATION_RULES[model]['command_line_flag']
+    return make_option(shortflag,
+                       '--%s-fixture' % model,
+                       action='store',
+                       type='string',
+                       dest='%s_fixture' % model,
+                       help='path to json dump containing %s data' % model)
 
 class Command(InstanceDataCommand):
 
-    option_list = InstanceDataCommand.option_list + (
-        make_option('-s', '--species-fixture',
-                    action='store',
-                    type='string',
-                    dest='species_fixture',
-                    help='path to json dump containing species data'),
-        make_option('-u', '--user-fixture',
-                    action='store',
-                    type='string',
-                    dest='user_fixture',
-                    help='path to json dump containing user data'),
-        make_option('-p', '--plot-fixture',
-                    action='store',
-                    type='string',
-                    dest='plot_fixture',
-                    help='path to json dump containing plot data'),
-        make_option('-t', '--tree-fixture',
-                    action='store',
-                    type='string',
-                    dest='tree_fixture',
-                    help='path to json dump containing tree data'),
-        make_option('-a', '--audit-fixture',
-                    action='store',
-                    type='string',
-                    dest='audit_fixture',
-                    help='path to json dump containing audit data'),
-        make_option('-f', '--photo-fixture',
-                    action='store',
-                    type='string',
-                    dest='treephoto_fixture',
-                    help='path to json dump containing tree photo data'),
-        make_option('-x', '--photo-path',
-                    action='store',
-                    type='string',
-                    dest='treephoto_path',
-                    help='path to photos that will be imported'),
+
+    option_list = (
+        InstanceDataCommand.option_list +
+
+        # add options for model fixtures
+        tuple(make_model_option(model) for model in MIGRATION_RULES) +
+
+        # add other kinds of options
+        (make_option('-x', '--photo-path',
+                     action='store',
+                     type='string',
+                     dest='treephoto_path',
+                     help='path to photos that will be imported'),)
     )
 
     def handle(self, *args, **options):
@@ -306,18 +291,8 @@ class Command(InstanceDataCommand):
         # look for fixtures of the form '<model>_fixture' that
         # were passed in as command line args and load them as
         # python objects
-        json_hashes = {
-            'species': [],
-            'user': [],
-            'plot': [],
-            'tree': [],
-            'audit': [],
-            'treephoto': []
-        }
-
-        treephoto_path = options.get('treephoto_path', None)
-
-        for model_name in json_hashes:
+        json_hashes = {}
+        for model_name in MIGRATION_RULES:
             option_name = model_name + '_fixture'
             try:
                 model_file = open(options[option_name], 'r')
@@ -325,6 +300,15 @@ class Command(InstanceDataCommand):
             except:
                 print('No valid %s fixture provided ... SKIPPING'
                       % model_name)
+
+        treephoto_path = options.get('treephoto_path', None)
+        treephoto_fixture_with_no_path = ('treephoto' in json_hashes and
+                                          json_hashes['treephoto'] and
+                                          treephoto_path is None)
+        if treephoto_fixture_with_no_path:
+            raise Exception('Must specify the tree photo path to '
+                            'import photo')
+
 
         # iterate over the fixture hashes and save them as database
         # records.
@@ -341,18 +325,7 @@ class Command(InstanceDataCommand):
 
         # TODO: don't call this dependency anymore.
         # It's an idempotency checker too.
-        dependency_id_maps = {
-            'plot': {},
-            'species': {},
-            'user': {},
-            'tree': {},
-            'audit': {},
-            'treephoto': {}
-        }
-
-        if 'treephoto' in json_hashes and treephoto_path is None:
-            raise Exception('Must specify the tree photo path to '
-                            'import photo')
+        dependency_id_maps = {model: {} for model in MIGRATION_RULES}
 
         for relic in OTM1UserRelic.objects.filter(instance=instance):
             dependency_id_maps['user'][relic.otm1_id] = relic.otm2_user_id
