@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
-from PIL import Image
 from functools import wraps
 
 from omgeo import Geocoder
@@ -25,8 +24,8 @@ from django.contrib.auth.tokens import default_token_generator
 from opentreemap.util import route
 
 from treemap.models import Plot, Tree
-from treemap.views import (get_tree_photos, species_list,
-                           upload_user_photo, context_dict_for_plot)
+from treemap.views import (species_list, upload_user_photo,
+                           context_dict_for_plot, add_tree_photo)
 
 from treemap.decorators import json_api_call, return_400_if_validation_errors
 from treemap.decorators import api_instance_request as instance_request
@@ -156,29 +155,6 @@ def status(request):
 @require_http_methods(["POST"])
 @api_call()
 @login_required
-def add_tree_photo(request, plot_id):
-    content_type = request.META.get('CONTENT_TYPE')
-    if not content_type:
-        # Older versions of the iOS client sent PNGs exclusively
-        content_type = "image/png"
-
-    plot = get_object_or_404(Plot, pk=plot_id)
-    tree = plot.current_tree()
-
-    if tree:
-        tree_pk = tree.pk
-    else:
-        tree_pk = None
-
-    treephoto, _ = add_tree_photo(
-        request, plot.instance, plot.pk, tree_pk)
-
-    return {"status": "success", "title": '', "id": treephoto['id']}
-
-
-@require_http_methods(["POST"])
-@api_call()
-@login_required
 def add_profile_photo(request, user_id, _):
     """
     Uploads a user profile photo.
@@ -297,28 +273,6 @@ def version(request):
     """
     return {"otm_version": settings.OTM_VERSION,
             "api_version": settings.API_VERSION}
-
-
-@require_http_methods(["GET"])
-@api_call_raw("image/png")
-def get_tree_image(request, plot_id, photo_id):
-    """ API Request
-
-    Verb: GET
-    Params:
-
-    Output:
-      image/jpeg raw data
-    """
-    img = get_tree_photos(plot_id, photo_id)
-
-    if img:
-        resized = img.resize((144, 132), Image.ANTIALIAS)
-        response = HttpResponse(mimetype="image/png")
-        resized.save(response, "PNG")
-        return response
-    else:
-        raise HttpBadRequestException('invalid url (missing objects)')
 
 
 @require_http_methods(["GET"])
@@ -531,6 +485,12 @@ def remove_current_tree_from_plot(request, instance, plot_id):
             "Plot %s does not have a current tree" % plot_id)
 
 
+def add_photo(request, instance, plot_id):
+    treephoto, _ = add_tree_photo(request, instance, plot_id)
+
+    return treephoto
+
+
 # Note that API requests going to private instances require
 # authentication "login_optional" before they can access they
 # instance data
@@ -579,3 +539,9 @@ user_endpoint = json_api_call(
             user_info),
         POST=return_400_if_validation_errors(
             create_user)))
+
+add_photo_endpoint = json_api_call(
+    route(
+        POST=login_required(
+            instance_request(
+                return_400_if_validation_errors(add_photo)))))

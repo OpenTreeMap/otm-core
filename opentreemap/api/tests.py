@@ -22,7 +22,7 @@ from django.core.exceptions import ValidationError
 from treemap.models import Species, Plot, Tree, User
 from treemap.audit import ReputationMetric, Audit
 from treemap.tests import (make_user, make_commander_user, make_request,
-                           make_instance)
+                           make_instance, LocalMediaTestCase, media_dir)
 
 from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from api.models import APIKey, APILog
@@ -74,20 +74,6 @@ def send_json_body(url, body_object, client, method, sign_dict=None):
     return _send_with_client_params(url, client, client_params, sign_dict)
 
 
-def send_binary_body(url, body_stream, size, content_type,
-                     client, method, sign_dict=None):
-    parsed_url = urlparse(url)
-    client_params = {
-        'CONTENT_LENGTH': size,
-        'CONTENT_TYPE': content_type,
-        'PATH_INFO': _get_path(parsed_url),
-        'QUERY_STRING': parsed_url[4],
-        'REQUEST_METHOD': method,
-        'wsgi.input': body_stream,
-    }
-    return _send_with_client_params(url, client, client_params, sign_dict)
-
-
 def _send_with_client_params(url, client, client_params, sign_dict=None):
     if sign_dict is not None:
         client_params.update(sign_dict)
@@ -103,26 +89,6 @@ def post_json(url, body_object, client, sign_dict=None):
     to override that default functionality.
     """
     return send_json_body(url, body_object, client, 'POST', sign_dict)
-
-
-def post_jpeg_file(url, file_path, client, sign_dict):
-    return _post_binary_file(url, file_path, 'image/jpeg', client, sign_dict)
-
-
-def post_png_file(url, file_path, client, sign_dict):
-    return _post_binary_file(url, file_path, 'image/png', client, sign_dict)
-
-
-def _post_binary_file(url, file_path, content_type, client, sign_dict=None):
-    stat = os.stat(file_path)
-    response = None
-    f = open(file_path, 'rb')
-    try:
-        response = send_binary_body(
-            url, f, stat.st_size, content_type, client, 'POST', sign_dict)
-    finally:
-        f.close()
-    return response
 
 
 def put_json(url, body_object, client, sign_dict=None):
@@ -1266,63 +1232,66 @@ class InstancesClosestToPoint(TestCase):
         self.assertEqual(self.i2.pk, instance_infos['personal'][0]['id'])
 
 
-# TODO: Add this back in when we really support
-#       tree photos
-# class TreePhoto(TestCase):
+class TreePhotoTest(LocalMediaTestCase):
+    def setUp(self):
+        super(TreePhotoTest, self).setUp()
 
-#     def setUp(self):
-#         setupTreemapEnv()
-#         self.user = User.objects.get(username="jim")
-#         self.sign = create_signer_dict(self.user)
-#         auth = base64.b64encode("jim:password")
-#         self.sign = dict(self.sign.items() + [("HTTP_AUTHORIZATION",
-#         "Basic %s" % auth)])
+        self.instance = setupTreemapEnv()
+        self.user = User.objects.get(username="commander")
 
-#         self.test_jpeg_path = os.path.join(os.path.dirname(__file__),
-#          'test_resources', '2by2.jpeg')
-#         self.test_png_path = os.path.join(os.path.dirname(__file__),
-#       'test_resources', '2by2.png')
+        auth = base64.b64encode("%s:%s" % (self.user.username, 'password'))
+        self.sign = dict(create_signer_dict(self.user).items() +
+                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
-#         def assertSuccessfulResponse(response):
-#             self.assertIsNotNone(response)
-#             self.assertIsNotNone(response.content)
-#             response_dict = loads(response.content)
-#             self.assertTrue('status' in response_dict)
-#             self.assertEqual('success', response_dict['status'])
-#         self.assertSuccessfulResponse = assertSuccessfulResponse
+        self.client = Client()
 
-#     def tearDown(self):
-#         teardownTreemapEnv()
+        self.test_jpeg_path = os.path.join(
+            os.path.dirname(__file__),
+            'test_resources', '2by2.jpeg')
 
-#     def test_jpeg_tree_photo_file_name(self):
-#         plot = mkPlot(self.instance, self.user)
-#         plot_id = plot.pk
-#         response = post_jpeg_file("%s/plots/%d/tree/photo" %
-#         (API_PFX, plot_id), self.test_jpeg_path,
-#             self.client, self.sign)
+        self.test_png_path = os.path.join(
+            os.path.dirname(__file__),
+            'test_resources', '2by2.png')
 
-#         self.assertSuccessfulResponse(response)
+    def tearDown(self):
+        teardownTreemapEnv()
 
-#         plot = Plot.objects.get(pk=plot_id)
-#         tree = plot.current_tree()
-#         self.assertIsNotNone(tree)
-#         photo = tree.treephoto_set.all()[0]
-#         self.assertEqual('plot_%d.jpeg' % plot_id, photo.title)
+    def assertSuccessfulResponse(self, response):
+        self.assertIsNotNone(response)
+        self.assertIsNotNone(response.content)
+        response_dict = loads(response.content)
+        self.assertTrue('id' in response_dict)
+        self.assertTrue('thumbnail' in response_dict)
+        self.assertTrue('image' in response_dict)
 
-#     def test_png_tree_photo_file_name(self):
-#         plot = mkPlot(self.instance, self.user)
-#         plot_id = plot.pk
-#         response = post_png_file("%s/plots/%d/tree/photo" %
-#         (API_PFX, plot_id), self.test_png_path,
-#             self.client, self.sign)
+    def _test_post_photo(self, path):
+        plot = mkPlot(self.instance, self.user)
+        plot_id = plot.pk
 
-#         self.assertSuccessfulResponse(response)
+        self.assertIsNone(plot.current_tree())
 
-#         plot = Plot.objects.get(pk=plot_id)
-#         tree = plot.current_tree()
-#         self.assertIsNotNone(tree)
-#         photo = tree.treephoto_set.all()[0]
-#         self.assertEqual('plot_%d.png' % plot_id, photo.title)
+        url = "%s/%s/plots/%d/tree/photo" % (API_PFX,
+                                             self.instance.url_name,
+                                             plot_id)
+
+        with open(path) as img:
+            response = self.client.post(
+                url, {'name': 'afile', 'file': img}, **self.sign)
+
+        plot = Plot.objects.get(pk=plot.pk)
+
+        self.assertSuccessfulResponse(response)
+        self.assertIsNotNone(plot.current_tree())
+        self.assertEqual(plot.current_tree().treephoto_set.count(), 1)
+
+    @media_dir
+    def test_jpeg_tree_photo_file_name(self):
+        self._test_post_photo(self.test_jpeg_path)
+
+    @media_dir
+    def test_png_tree_photo_file_name(self):
+        self._test_post_photo(self.test_png_path)
+
 
 class UserTest(TestCase):
     def setUp(self):
