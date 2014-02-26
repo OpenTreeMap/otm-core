@@ -116,11 +116,11 @@
                     <button id="search-reset" class="btn">Reset</button>
                 </div>
             </div>
-            
-            <!-- Advanced Search -->
-            <div id="advanced-search-pane" style="display: none;">
-                <div id="standard-search"></div>
-                <div id="missing-search"></div>
+        </div>
+        <!-- Advanced Search - Note: Had to be moved up a level to be styled appropriately -->
+        <div id="advanced-search-pane">
+            <div class="advanced-search-inner">
+                this is some sample content.
             </div>
         </div>
     </div>
@@ -147,7 +147,7 @@
                             <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#map-info" href="#tree-detail">Quick Details <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
                         </div>
                         <div id="tree-detail" class="accordion-body collapse">
-                            <div class="accordion-body-buttons" id="map-plot-details-button" style="display: none;">
+                            <div class="accordion-body-buttons" id="map-plot-details-button">
                                 <a class="btn" data-class="display" id="full-details-button">Full Details</a>
                                 <button class="btn"
                                         data-class="display"
@@ -275,6 +275,9 @@
 <script src="js/bootstrap.min.js"></script>
 <script>
     // Just adds dropdowns to navbar, user-dock
+    $('#search-advanced').on('click', function() {
+        $('#advanced-search-pane').toggleClass('active');
+    });
     $('.dropdown-toggle').dropdown();
     $('.user-img').on('click', function() {
         $('.user-dock').toggleClass('active');

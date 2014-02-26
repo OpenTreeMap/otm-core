@@ -1,0 +1,49 @@
+// Partial: Advanced Search
+
+#advanced-search-pane {
+    position: absolute;
+    z-index: 9999;
+    background: #FFF;
+    border: 1px solid $well-color !important;
+    padding: 0;
+    right: 0;
+    left: 0;
+    margin-top: 10px;
+    height: 0;
+
+    &.active {
+        height: auto;
+    }
+
+    &:before {
+        content: '';
+        width: 0;
+        height: 0;
+        position: absolute;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 10px solid $well-color;
+        top: -10px;
+        right: 110px;
+    }
+    &:empty {
+        display: none;
+    }
+
+    > .advanced-search-inner {
+        padding: 20px;
+
+        form {
+            margin: 0 0 10px;
+        }
+    
+        .input-append {
+            input[type="text"] {
+                width: 137px;
+            }
+        }
+        input[type="text"] {
+            width: 170px;
+        }
+    }
+}
