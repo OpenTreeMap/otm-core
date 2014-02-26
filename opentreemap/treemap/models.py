@@ -827,8 +827,8 @@ class Boundary(models.Model):
      +- Pennsylvania (State, 1)
       +- Philadelphia (County, 2)
        +- Philadelphia (City, 3)
-        +- 19107 (Zip Code, 4)
         +- Callowhill (Neighborhood, 4)
+         +- 19107 (Zip Code, 5)
     """
     geom = models.MultiPolygonField(srid=3857,
                                     db_column='the_geom_webmercator')
