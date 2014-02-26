@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.core.urlresolvers import reverse
+
 from registration.models import RegistrationProfile
 
 from treemap.tests.ui import UITestCase
@@ -23,18 +25,8 @@ class LoginLogoutTest(UITestCase):
         self.user = make_user(username='username', password='password')
         self.profile = RegistrationProfile.objects.create_profile(self.user)
 
-    def _process_login_form(self, username, password):
-        username_elmt = self.driver.find_element_by_name('username')
-        password_elmt = self.driver.find_element_by_name('password')
-
-        username_elmt.send_keys(username)
-        password_elmt.send_keys(password)
-
-        submit = self.driver.find_element_by_css_selector('form * button')
-        submit.click()
-
     def test_invalid_login(self):
-        self.driver.get("%s/accounts/login/" % self.live_server_url)
+        self._browse_to_url(reverse('auth_login'))
 
         login_url = self.driver.current_url
 
@@ -50,7 +42,7 @@ class LoginLogoutTest(UITestCase):
         self.assertEqual(len(errors), 1)
 
     def test_valid_login(self):
-        self.driver.get(self.live_server_url + "/accounts/login/")
+        self._browse_to_url(reverse('auth_login'))
 
         login_url = self.driver.current_url
 

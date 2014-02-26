@@ -1,12 +1,11 @@
 import importlib
 
 from django.test import LiveServerTestCase
+from django.conf import settings
 
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.webdriver import WebDriver
-
-from django.conf import settings
 
 from treemap.tests import create_mock_system_user, make_commander_user
 
@@ -42,6 +41,19 @@ class UITestCase(LiveServerTestCase):
 
         super(UITestCase, self).tearDown()
 
+    def _process_login_form(self, username, password):
+        username_elmt = self.driver.find_element_by_name('username')
+        password_elmt = self.driver.find_element_by_name('password')
+
+        username_elmt.send_keys(username)
+        password_elmt.send_keys(password)
+
+        submit = self.driver.find_element_by_css_selector('form * button')
+        submit.click()
+
+    def _browse_to_url(self, url):
+        self.driver.get(self.live_server_url + url)
+
 
 class TreemapUITestCase(UITestCase):
     def setUp(self):
@@ -71,19 +83,6 @@ class TreemapUITestCase(UITestCase):
         self.instance.delete()
         self.user.delete_with_user(User.system_user())
         super(TreemapUITestCase, self).tearDown()
-
-    def _browse_to_url(self, url):
-        self.driver.get(self.live_server_url + url)
-
-    def _process_login_form(self, username, password):
-        username_elmt = self.driver.find_element_by_name('username')
-        password_elmt = self.driver.find_element_by_name('password')
-
-        username_elmt.send_keys(username)
-        password_elmt.send_keys(password)
-
-        submit = self.driver.find_element_by_css_selector('form * button')
-        submit.click()
 
     def _login_workflow(self):
         self._browse_to_url('/accounts/logout/')
@@ -172,8 +171,9 @@ def _get_create_instance():
     return parse_function_string(
         settings.UITEST_CREATE_INSTANCE_FUNCTION)
 
+
 create_instance = _get_create_instance()
 
-from basic import *  # NOQA
+from registration_views import *  # NOQA
 from map import *  # NOQA
 from plot_detail import *  # NOQA

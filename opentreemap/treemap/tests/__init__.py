@@ -421,6 +421,4 @@ from json_field import *      # NOQA
 from units import *           # NOQA
 from management import *      # NOQA
 from ecobenefits import *   # NOQA
-from ui.basic import *        # NOQA
-from ui.map import *          # NOQA
-from ui.plot_detail import *  # NOQA
+from ui import *        # NOQA
