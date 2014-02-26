@@ -9,8 +9,10 @@
     {% if field.is_editable %}
       <td style="display: none;"
           {% include "treemap/field/attrs.html" with class="edit" %}>
-          {% include "treemap/field/inputs.html" with extra='style="display:none"' unit_extra='style="display:none"' %}
-      {% include "treemap/partials/diameter_calculator.html" %}
+        <div style="display: none;">
+          {% include "treemap/field/inputs.html" %}
+        </div>
+        {% include "treemap/partials/diameter_calculator.html" %}
       </td>
     <td style="display:none;"
         {% include "treemap/field/attrs.html" with class="error" %}></td>

@@ -2,6 +2,8 @@
 {% load i18n %}
 
 {% block inputs %}
-  {% include "treemap/field/inputs.html" with extra='style="display:none"' unit_extra='style="display:none"' %}
+  <div style="display: none;">
+    {% include "treemap/field/inputs.html" %}
+  </div>
   {% include "treemap/partials/diameter_calculator.html" %}
 {% endblock inputs %}
