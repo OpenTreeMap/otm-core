@@ -184,7 +184,7 @@ exports.init = function(options) {
                                 displayValue = value + ' ' + units;
                             }
                         }
-                        $(display).html(displayValue);
+                        $(display).text(displayValue);
                     }
                 }
             });

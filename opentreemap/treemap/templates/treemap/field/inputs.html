@@ -32,6 +32,11 @@
            data-date-format="{{ settings.SHORT_DATE_FORMAT|datepicker_format }}"
            {% endif %}
            {{ extra|default:"" }} />
+{% elif field.data_type == 'long_string' %}
+    <textarea name="{{ field.identifier }}"
+           class="{{ class|default_if_none:"" }}"
+           value="{{ field.value|default_if_none:""|unlocalize }}"
+           {{ extra|default:"" }} ></textarea>
 {% else %}
   {% if field.units %}
   <div class="input-append">
