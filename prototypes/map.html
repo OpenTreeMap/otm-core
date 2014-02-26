@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenTreeMap</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="utf-8" />
+
+    <link rel="icon" type="image/png" href="/favicon.png" />
+
+    <!-- 
+    
+        NOTES
+        *****
+        Just pulling in static CSS files, needs to have an alias of 
+        /opentreemap/treemap/static/ here for that to work.
+    
+    -->
+    <link href="static/css/vendor.css" rel="stylesheet">
+    <link href="static/css/main.css" rel="stylesheet">
+</head>
+<body>
+<div class="wrapper">
+    <!-- Top Nav -->
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar-inner">
+          <ul class="nav pull-left">
+              <li class="add-menu dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown"><i class="icon-plus-circled"></i></a>
+                  <ul class="dropdown-menu">
+                      <li><a>Add a Tree</a></li>
+                      <li><a>Add a Resource</a></li>
+                  </ul>
+              </li>
+              <li><a>Explore Trees</a></li>
+              <li><a>View Edits</a></li>
+          </ul>
+          <ul class="nav pull-right">
+              <li class="dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown">My Tree Map</a>
+                  <ul class="dropdown-menu">
+                      <li><a><i class="icon-cog"></i> Customize Tree Map</a></li>
+                      <li><a><i class="icon-thumbs-up"></i> Moderate</a></li>
+                  </ul>
+              </li>
+              <li><a>My Account</a></li>
+              <li class="user-img">
+                <a><img src="static/img/profile.png"></a>
+              </li>
+          </ul>
+        </div>
+    </div>
+
+    <!-- NEW! User Dock, showing quick information about "My Profile" -->
+    <div class="user-dock">
+        <div class="row-fluid">
+            <div class="span1">
+                <a><img src="static/img/profile.png" class="user-img"></a>
+            </div>
+            <div class="span3">
+                <h2>administrator</h2>
+                <h4>Administrative User</h4>
+                <a class="btn btn-primary">Edit Profile</a>
+                <a class="btn">Logout</a>
+            </div>
+            <div class="span4">
+                <label>My Tree Maps <a class="pull-right">View All Maps</a></label>
+                <ul>
+                    <li><a>testmap</a> <span>Owner</span></li>
+                    <li><a>testmap</a> <span>User</span></li>
+                    <li><a>testmap</a> <span>User</span></li>
+                </ul>
+            </div>
+            <div class="span4">
+                <label>My Recent Contributions <a class="pull-right">View All Edits</a></label>
+                <ul>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logo and Search -->
+    <div class="header">
+        <div class="logo">
+          <a href=""><img id="site-logo" src="static/img/logo-beta.png" alt="OpenTreeMap"></a>
+        </div>
+        <div class="search-wrapper">
+            <div class="search-block-wrapper">
+
+                <!--Species Search-->
+                <div class="search-block visible-desktop">
+                    <h3>Search by Species</h3>
+                    <div class="search-field-group">
+                        <a class="typeahead-toggle" id="species-toggle"><i class="icon-menu"></i></a>
+                        <input type="text" data-class="search" id="species-typeahead" placeholder="Common or Scientific Name"/>
+                        <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
+                    </div>
+                </div>
+            
+                <!-- Location Search -->
+                <div class="search-block">
+                    <h3>Search by Location</h3>
+                    <div class="search-field-group">
+                        <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
+                        <input type="text" data-class="search" id="boundary-typeahead" placeholder="Address, City, State"/>
+                        <input name="plot.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />
+                    </div>
+                </div>
+            </div>
+            <div class="search-options">
+                <a id="perform-search" class="btn btn-primary btn-large btn-block">Search</a>
+                <div class="btn-group">
+                    <button id="search-advanced" class="btn">Advanced</button>
+                    <button id="search-reset" class="btn">Reset</button>
+                </div>
+            </div>
+            
+            <!-- Advanced Search -->
+            <div id="advanced-search-pane" style="display: none;">
+                <div id="standard-search"></div>
+                <div id="missing-search"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subheader with Counts -->
+    <div class="subhead">
+        <div style="display: inline;" id="tree-and-planting-site-counts">
+            <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites
+        </div>
+        <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
+        <a class="btn btn-primary addBtn"><i class="icon-plus"></i> Add a Tree</a>
+    </div>   
+ 
+    <!-- Background Image for Interior Pages -->
+    <div class="image-background hidden"></div>
+    <div class="content map">
+        <div id="streetview" style="display: none"></div>
+        <div id="map" class="map"></div>
+        <div class="sidebar">
+            <div id="sidebar-browse-trees">
+                <div class="accordion" id="map-info">
+                    <div class="accordion-group">
+                        <div class="accordion-heading">
+                            <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#map-info" href="#tree-detail">Quick Details <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
+                        </div>
+                        <div id="tree-detail" class="accordion-body collapse">
+                            <div class="accordion-body-buttons" id="map-plot-details-button" style="display: none;">
+                                <a class="btn" data-class="display" id="full-details-button">Full Details</a>
+                                <button class="btn"
+                                        data-class="display"
+                                        id="quick-edit-button"
+                                        data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+                                        data-href="{{ request.get_full_path }}"
+                                        data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
+                                        disabled="disabled">Quick Edit</button>
+                                        <button class="btn btn-success" data-class="edit" id="save-details-button" style="display:none">Save</button>
+                                        <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</button>
+                            </div>
+                            <div class="accordion-inner" id="plot-accordion"></div>
+                            <div id="move-plot-buttons">
+                                <button class="btn btn-block"
+                                        data-always-enable="{{ last_effective_instance_user|plot_field_is_writable:"geom" }}"
+                                        data-href="{{ request.get_full_path }}"
+                                        data-disabled-title="{% trans "Editing a plot's location is not available to all users" %}"
+                                        style="display:none"
+                                        id="edit-plot-location"
+                                        disabled="disabled">Move Tree</button>
+                                <button class="btn btn-success btn-block"
+                                        data-always-enable="{{ last_effective_instance_user|plot_field_is_writable:"geom" }}"
+                                        data-href="{{ request.get_full_path }}"
+                                        data-disabled-title="{% trans "Editing a plot's location is not available to all users" %}"
+                                        style="display:none"
+                                        id="cancel-edit-plot-location"
+                                        disabled="disabled">Cancel Tree Move</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-group">
+                        <div class="accordion-heading">
+                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#yearlyEco">Yearly Eco Benefits <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
+                        </div>
+                        <div id="yearlyEco" class="accordion-body collapse in">
+                            <div class="accordion-inner" id="benefit-values">
+                                <div class="benefit-value-row">
+                                    <div class="benefit-icon"><i class="icon-flash-1"></i></div>
+                                    <h3 class="benefit-label">Energy Benefits</h3>
+                                    <dl class="dl-horizontal benefit-content">
+                                        <dt>29,898.5</dt>
+                                        <dd>kwh</dd>
+                                        <dt>$678</dt>
+                                        <dd>saved</dd>
+                                    </dl>
+                                </div>
+                                <div class="benefit-value-row">
+                                    <div class="benefit-icon"><i class="icon-tint"></i></div>
+                                    <h3 class="benefit-label">Stormwater Benefits</h3>
+                                    <dl class="dl-horizontal benefit-content">
+                                        <dt>434,373.5</dt>
+                                        <dd>gal</dd>
+                                        <dt>$511</dt>
+                                        <dd>saved</dd>
+                                    </dl>
+                                </div>
+                                <div class="benefit-value-row">
+                                    <div class="benefit-icon"><i class="icon-sun-filled"></i></div>
+                                    <h3 class="benefit-label">Carbon Dioxide Benefits</h3>
+                                    <dl class="dl-horizontal benefit-content">
+                                        <dt>40,135.6</dt>
+                                        <dd>lbs/year</dd>
+                                        <dt>$49</dt>
+                                        <dd>saved</dd>
+                                    </dl>
+                                </div>
+                                <div class="benefit-value-row">
+                                    <div class="benefit-icon"><i class="icon-sun-filled"></i></div>
+                                    <h3 class="benefit-label">Carbon Dioxide Stored Benefits</h3>
+                                    <dl class="dl-horizontal benefit-content">
+                                        <dt>351,094.4</dt>
+                                        <dd>lbs</dd>
+                                        <dt>$433</dt>
+                                        <dd>saved</dd>
+                                    </dl>
+                                </div>
+                                <div class="benefit-value-row">
+                                    <div class="benefit-icon"><i class="icon-cloud"></i></div>
+                                    <h3 class="benefit-label">Air Quality Benefits</h3>
+                                    <dl class="dl-horizontal benefit-content">
+                                        <dt>-182.8</dt>
+                                        <dd>lbs/year</dd>
+                                        <dt>$197</dt>
+                                        <dd>saved</dd>
+                                    </dl>
+                                </div>
+                                <div class="benefit-tree-count">
+                                    Based on 24 out of 204 total trees
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="sidebar-add-tree" class="hidden">
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer>
+    <div class="footer-inner">
+        <ul class="inline pull-left">
+            <li><a>Tree Key</a></li>
+            <li><a>Resources</a></li>
+            <li><a>FAQ</a></li>
+            <li><a>About</a></li>
+            <li><a>Contact</a></li>
+        </ul>
+        <a href="javascript:;" class="pull-right partners">Partners</a>
+    </div>
+</footer>
+    
+<!-- 
+
+    NOTES
+    *****
+    This is just placeholder to show interactivity.
+    Hopefully it just helps give a sense of how things should work.
+
+-->
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script>
+    // Just adds dropdowns to navbar, user-dock
+    $('.dropdown-toggle').dropdown();
+    $('.user-img').on('click', function() {
+        $('.user-dock').toggleClass('active');
+    });
+</script>
+</body>
+</html>
