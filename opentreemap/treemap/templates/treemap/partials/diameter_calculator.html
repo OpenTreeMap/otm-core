@@ -4,13 +4,8 @@
 <table id="diameter-calculator" class="table table-hover table-bordered">
   <thead>
     <tr>
-      <th>Diameter</th>
-      <th>Circumference</th>
-      <th>
-        <a id="add-trunk-row"
-           title="{% trans "Additional Trunk" %}"
-           class="btn btn-mini" href="javascript:;"><i class="icon-plus"></i></a>
-      </th>
+      <th>{% trans "Diameter" %}</th>
+      <th>{% trans "Circumference" %}</th>
     </tr>
   </thead>
   <tbody id="diameter-worksheet">
@@ -35,9 +30,17 @@
           <span class="add-on" {{ unit_extra|default:"" }}>{{ field.units }}</span>
         </div>
       </td>
-      <td></td>
     </tr>
   </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="2">
+        <a id="add-trunk-row" href="javascript:;">{% trans "Add another trunk?" %}</a>
+      </td>
+    </tr>
+  </tfoot>
 </table>
-<p id="diameter-calculator-total-row" style="display: none">Combined Diameter: <span id="diameter-calculator-total-reference"></span>{% if field.units %} {{ field.units }}{% endif %}</p>
-<a id="diameter-video" href="http://player.vimeo.com/video/11119129" target="_blank"><i class="icon-videocam"></i> Measuring multiple trunks?</a>
+<p id="diameter-calculator-total-row" style="display: none">
+  {% trans "Combined Diameter:" %} <span id="diameter-calculator-total-reference"></span>{% if field.units %} {{ field.units }}{% endif %}
+</p>
+<a id="diameter-video" href="http://player.vimeo.com/video/11119129" target="_blank"><i class="icon-videocam"></i> {% trans "Need help measuring the tree?" %}</a>
