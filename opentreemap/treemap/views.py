@@ -201,10 +201,6 @@ def _rotate_image_based_on_exif(img_path):
     return img
 
 
-def get_tree_photos(plot_id, photo_id):
-    return None
-
-
 def map_feature_popup(request, instance, feature_id):
     feature = _get_map_feature_or_404(feature_id, instance)
     context = _context_dict_for_map_feature(instance, feature)
@@ -290,10 +286,21 @@ def context_dict_for_plot(instance, plot,
     if tree:
         tree.convert_to_display_units()
 
+    photos = []
+    if tree is not None:
+        for photo in list(tree.treephoto_set.all()):
+            photo_dict = photo.as_dict()
+            photo_dict['image'] = photo.image.url
+            photo_dict['thumbnail'] = photo.thumbnail.url
+
+            photos.append(photo_dict)
+
+    context['photos'] = photos
+
     has_tree_diameter = tree is not None and tree.diameter is not None
     has_tree_species_with_code = tree is not None \
         and tree.species is not None and tree.species.otm_code is not None
-    has_photo = tree is not None and tree.treephoto_set.all().count() > 0
+    has_photo = tree is not None and len(photos) > 0
 
     # If the the benefits calculation can't be done or fails, still display the
     # plot details
