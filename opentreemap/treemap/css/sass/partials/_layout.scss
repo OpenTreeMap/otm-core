@@ -17,7 +17,7 @@ body {
 }
 
 .image-background {
-	background-image: url(../img/default-background.jpg);
+	background-image: url('/static/img/default-background.jpg');
 	height: 500px;
 	position: absolute;
 	z-index: 0;
@@ -34,11 +34,10 @@ body {
 	&.map {
 		position: absolute;
 		overflow: hidden;
-		padding-bottom: 40px;
-		margin-bottom: 0;
+		margin: 0;
 		top: 203px;
 		width: 100%;
-		bottom: 0;
+		bottom: 40px;
 	}
 }
 
@@ -63,7 +62,7 @@ body {
 		margin: 50px 10px 90px;
 	}
 
-    &:before {
+    &.topper:before {
         content: '';
         position: absolute;
         top: 0;

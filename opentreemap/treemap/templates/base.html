@@ -133,10 +133,7 @@
 
     </div>
 
-    <footer>
-    {% block footer %}
-    {% endblock footer %}
-    </footer>
+    <footer>{% block footer %}{% endblock footer %}</footer>
 
     {% block config_scripts %}
       {% if request.instance %}
