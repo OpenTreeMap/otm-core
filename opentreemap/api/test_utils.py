@@ -8,8 +8,6 @@ from django.contrib.gis.geos.point import Point
 from django.contrib.gis.geos.polygon import Polygon
 import django.shortcuts
 
-from api.models import APILog, APIKey
-
 from treemap.models import Species, Boundary, Tree, Plot, User
 from treemap.tests import (make_instance, make_commander_user,
                            make_apprentice_user, make_user_with_default_role)
@@ -100,12 +98,6 @@ def setupTreemapEnv():
 
 def teardownTreemapEnv():
     commander = User.objects.get(username="commander")
-
-    for r in APILog.objects.all():
-        r.delete()
-
-    for r in APIKey.objects.all():
-        r.delete()
 
     for r in Tree.objects.all():
         r.delete_with_user(commander)

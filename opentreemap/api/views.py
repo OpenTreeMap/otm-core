@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
-from functools import wraps
 
 from omgeo import Geocoder
 from omgeo.places import PlaceQuery, Viewbox
@@ -12,9 +11,7 @@ from omgeo.places import PlaceQuery, Viewbox
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
-from django.http import (HttpResponse, HttpResponseBadRequest,
-                         HttpResponseForbidden)
+from django.http import HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.contrib.auth.forms import PasswordResetForm
@@ -32,8 +29,8 @@ from treemap.decorators import api_instance_request as instance_request
 from treemap.exceptions import HttpBadRequestException
 from treemap.audit import Audit, approve_or_reject_audit_and_apply
 
-from api.models import APIKey, APILog
-from api.auth import login_required, create_401unauthorized, login_optional
+from api.auth import (create_401unauthorized, check_signature,
+                      check_signature_and_require_login, login_required)
 
 from api.instance import instance_info, instances_closest_to_point
 from api.plots import plots_closest_to_point, get_plot, update_or_create_plot
@@ -44,99 +41,6 @@ class HttpConflictException(Exception):
     pass
 
 
-class InvalidAPIKeyException(Exception):
-    pass
-
-
-def validate_and_log_api_req(request):
-    # Prefer "apikey" in REQUEST, but take either that or the
-    # header value
-    key = request.META.get("HTTP_X_API_KEY", None)
-    key = request.REQUEST.get("apikey", key)
-
-    if key is None:
-        raise InvalidAPIKeyException(
-            "key not found as 'apikey' param or 'X-API-Key' header")
-
-    apikeys = APIKey.objects.filter(key=key)
-
-    if len(apikeys) > 0:
-        apikey = apikeys[0]
-    else:
-        raise InvalidAPIKeyException("key not found")
-
-    if not apikey.enabled:
-        raise InvalidAPIKeyException("key is not enabled")
-
-    # Log the request
-    reqstr = ",".join(["%s=%s" % (k, request.REQUEST[k])
-                       for k in request.REQUEST])
-    APILog(url=request.get_full_path(),
-           remoteip=request.META["REMOTE_ADDR"],
-           requestvars=reqstr,
-           method=request.method,
-           apikey=apikey,
-           useragent=request.META.get("HTTP_USER_AGENT", ''),
-           appver=request.META.get("HTTP_APPLICATIONVERSION", '')).save()
-
-    return apikey
-
-
-def api_call_raw(content_type="image/jpeg"):
-    """ Wrap an API call that writes raw binary data """
-    def decorate(req_function):
-        @wraps(req_function)
-        def newreq(request, *args, **kwargs):
-            try:
-                validate_and_log_api_req(request)
-                outp = req_function(request, *args, **kwargs)
-                if issubclass(outp.__class__, HttpResponse):
-                    response = outp
-                else:
-                    response = HttpResponse(outp)
-
-                response['Content-length'] = str(len(response.content))
-                response['Content-Type'] = content_type
-            except HttpBadRequestException, bad_request:
-                response = HttpResponseBadRequest(bad_request.message)
-
-            return response
-        return newreq
-    return decorate
-
-
-def api_call(content_type="application/json"):
-    """ Wrap an API call that returns an object that
-        is convertable from json
-    """
-    def decorate(req_function):
-        @wraps(req_function)
-        @csrf_exempt
-        def newreq(request, *args, **kwargs):
-            try:
-                validate_and_log_api_req(request)
-                outp = req_function(request, *args, **kwargs)
-                if issubclass(outp.__class__, HttpResponse):
-                    response = outp
-                else:
-                    response = HttpResponse()
-                    response.write('%s' % json.dumps(outp))
-                    response['Content-length'] = str(len(response.content))
-                    response['Content-Type'] = content_type
-
-            except HttpBadRequestException, bad_request:
-                response = HttpResponseBadRequest(str(bad_request))
-
-            except HttpConflictException, conflict:
-                response = HttpResponse(conflict.message)
-                response.status_code = 409
-
-            return response
-
-        return newreq
-    return decorate
-
-
 def datetime_to_iso_string(d):
     if d:
         return d.strftime('%Y-%m-%d %H:%M:%S')
@@ -145,7 +49,7 @@ def datetime_to_iso_string(d):
 
 
 @require_http_methods(["GET"])
-@api_call()
+@json_api_call
 def status(request):
     return [{'api_version': 'v2',
              'status': 'online',
@@ -153,7 +57,7 @@ def status(request):
 
 
 @require_http_methods(["POST"])
-@api_call()
+@json_api_call
 @login_required
 def add_profile_photo(request, user_id, _):
     """
@@ -176,7 +80,7 @@ def extract_plot_from_audit(audit):
 
 
 @require_http_methods(["GET"])
-@api_call()
+@json_api_call
 @instance_request
 @login_required
 def edits(request, instance, user_id):
@@ -219,7 +123,7 @@ def edits(request, instance, user_id):
 
 
 @require_http_methods(["PUT"])
-@api_call()
+@json_api_call
 @login_required
 def update_password(request, user_id):
     data = json.loads(request.body)
@@ -235,7 +139,7 @@ def update_password(request, user_id):
 
 
 @require_http_methods(["POST"])
-@api_call()
+@json_api_call
 def reset_password(request):
     resetform = PasswordResetForm({"email": request.REQUEST["email"]})
 
@@ -254,7 +158,7 @@ def reset_password(request):
 
 
 @require_http_methods(["GET"])
-@api_call()
+@json_api_call
 def version(request):
     """ API Request
 
@@ -277,7 +181,7 @@ def version(request):
 
 @require_http_methods(["GET"])
 @instance_request
-@api_call()
+@json_api_call
 def get_plot_list(request, instance):
     """ API Request
 
@@ -327,7 +231,7 @@ def get_plot_list(request, instance):
 # moved to the geocoder app
 # not sure what we should do about BBOX settings
 @require_http_methods(["GET"])
-@api_call()
+@json_api_call
 def geocode_address(request, address):
     def result_in_bounding_box(result):
         x = float(result.x)
@@ -376,31 +280,6 @@ def geocode_address(request, address):
         return {"error": "The geocoder failed to generate a list of results."}
 
 
-def _parse_application_version_header_as_dict(request):
-    if request is None:
-        return None
-
-    app_version = {
-        'platform': 'UNKNOWN',
-        'version': 'UNKNOWN',
-        'build': 'UNKNOWN'
-    }
-
-    version_string = request.META.get("HTTP_APPLICATIONVERSION", '')
-    if version_string == '':
-        return app_version
-
-    segments = version_string.rsplit('-')
-    if len(segments) >= 1:
-        app_version['platform'] = segments[0]
-    if len(segments) >= 2:
-        app_version['version'] = segments[1]
-    if len(segments) >= 3:
-        app_version['build'] = segments[2]
-
-    return app_version
-
-
 def _approve_or_reject_pending_edit(
         request, instance, user, pending_edit_id, approve):
     audit = Audit.objects.get(pk=pending_edit_id, instance=instance)
@@ -425,7 +304,7 @@ def _approve_or_reject_pending_edit(
 
 @require_http_methods(["POST"])
 @instance_request
-@api_call()
+@json_api_call
 @login_required
 def approve_pending_edit(request, instance, pending_edit_id):
     return _approve_or_reject_pending_edit(
@@ -434,7 +313,7 @@ def approve_pending_edit(request, instance, pending_edit_id):
 
 @require_http_methods(["POST"])
 @instance_request
-@api_call()
+@json_api_call
 @login_required
 def reject_pending_edit(request, instance, pending_edit_id):
     return _approve_or_reject_pending_edit(
@@ -442,7 +321,7 @@ def reject_pending_edit(request, instance, pending_edit_id):
 
 
 @require_http_methods(["DELETE"])
-@api_call()
+@json_api_call
 @instance_request
 @login_required
 @transaction.commit_on_success
@@ -458,7 +337,7 @@ def remove_plot(request, instance, plot_id):
 
 
 @require_http_methods(["DELETE"])
-@api_call()
+@json_api_call
 @instance_request
 @login_required
 @transaction.commit_on_success
@@ -495,53 +374,51 @@ def add_photo(request, instance, plot_id):
 # authentication "login_optional" before they can access they
 # instance data
 
-plots_closest_to_point_endpoint = login_optional(
+plots_closest_to_point_endpoint = check_signature(
     instance_request(
-        csrf_exempt(json_api_call(
-            plots_closest_to_point))))
+        json_api_call(
+            plots_closest_to_point)))
 
-instances_closest_to_point_endpoint = login_optional(
+instances_closest_to_point_endpoint = check_signature(
     instance_request(
-        csrf_exempt(json_api_call(
-            instances_closest_to_point))))
+        json_api_call(
+            instances_closest_to_point)))
 
-instance_info_endpoint = login_optional(
+instance_info_endpoint = check_signature(
     instance_request(
-        csrf_exempt(json_api_call(
-            instance_info))))
+        json_api_call(
+            instance_info)))
 
-plots_endpoint = json_api_call(
-    route(
-        POST=login_required(
-            instance_request(
-                update_or_create_plot)),
-        GET=login_optional(
-            instance_request(
-                get_plot_list))))
+plots_endpoint = check_signature(
+    instance_request(
+        json_api_call(
+            route(
+                POST=login_required(
+                    update_or_create_plot),
+                GET=get_plot_list))))
 
-plot_endpoint = json_api_call(
-    route(
-        GET=login_optional(
-            instance_request(get_plot)),
-        PUT=login_required(
-            instance_request(update_or_create_plot)),
-        DELETE=login_required(
-            instance_request(remove_plot))))
+plot_endpoint = check_signature(
+    instance_request(
+        json_api_call(
+            route(
+                GET=get_plot,
+                PUT=login_required(update_or_create_plot),
+                DELETE=login_required(remove_plot)))))
 
-species_list_endpoint = login_optional(
+species_list_endpoint = check_signature(
     json_api_call(
-        instance_request(
-            route(GET=species_list))))
+        route(GET=species_list)))
 
-user_endpoint = json_api_call(
-    route(
-        GET=login_required(
-            user_info),
-        POST=return_400_if_validation_errors(
-            create_user)))
+user_endpoint = check_signature(
+    json_api_call(
+        route(
+            GET=login_required(
+                user_info),
+            POST=return_400_if_validation_errors(
+                create_user))))
 
-add_photo_endpoint = json_api_call(
-    route(
-        POST=login_required(
-            instance_request(
+add_photo_endpoint = check_signature_and_require_login(
+    json_api_call(
+        route(
+            POST=instance_request(
                 return_400_if_validation_errors(add_photo)))))

@@ -3,29 +3,34 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import uuid
+import base64
+import os
+
 from django.contrib.gis.db import models
 
 from treemap.models import User
 
 
-API_KEY_IOS = 1
-API_KEY_ANDROID = 2
+class APIAccessCredential(models.Model):
+    access_key = models.CharField(max_length=100, null=False, blank=False)
+    secret_key = models.CharField(max_length=256, null=False, blank=False)
 
-
-class APIKey(models.Model):
+    # If a user is specified then this credential
+    # is always authorized as the given user
+    #
+    # If user is None this credential can access
+    # any user's data if that user's username
+    # and password are also provided
     user = models.ForeignKey(User, null=True)
-    special = models.IntegerField(null=True)
-    key = models.CharField(max_length=50)
+
     enabled = models.BooleanField(default=True)
-    comment = models.TextField()
 
+    @classmethod
+    def create(clz, user=None):
+        secret_key = base64.urlsafe_b64encode(os.urandom(64))
+        access_key = base64.urlsafe_b64encode(uuid.uuid4().bytes)\
+                           .replace('=', '')
 
-class APILog(models.Model):
-    url = models.TextField()
-    method = models.CharField(max_length=20)
-    requestvars = models.TextField()
-    apikey = models.ForeignKey(APIKey)
-    remoteip = models.CharField(max_length=20)
-    useragent = models.CharField(max_length=255)
-    appver = models.CharField(max_length=255)
-    date = models.DateTimeField(auto_now=True)
+        return APIAccessCredential.objects.create(
+            user=user, access_key=access_key, secret_key=secret_key)

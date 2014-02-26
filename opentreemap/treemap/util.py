@@ -49,6 +49,9 @@ def safe_get_model_class(model_string):
 
 
 def add_visited_instance(request, instance):
+    if not (hasattr(request, 'session') and request.session):
+        return
+
     visited_instances = request.session.get('visited_instances', OrderedDict())
 
     if instance.pk in visited_instances:
