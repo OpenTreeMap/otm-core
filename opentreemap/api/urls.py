@@ -11,8 +11,8 @@ from api.views import (status, version,
                        remove_current_tree_from_plot, add_tree_photo,
                        get_tree_image, plots_endpoint, species_list_endpoint,
                        approve_pending_edit, reject_pending_edit,
-                       geocode_address, reset_password, login_endpoint,
-                       register, add_profile_photo, update_password,
+                       geocode_address, reset_password, user_endpoint,
+                       add_profile_photo, update_password,
                        plot_endpoint, edits, plots_closest_to_point_endpoint,
                        instance_info_endpoint)
 
@@ -26,28 +26,25 @@ urlpatterns = patterns(
     (r'^$', status),
     (r'^version$', version),
 
-    (instance_pattern + r'/plots/(?P<plot_id>\d+)/tree$',
-     route(DELETE=remove_current_tree_from_plot)),
-
     (r'^plots/(?P<plot_id>\d+)/tree/photo$', route(POST=add_tree_photo)),
     (r'^plots/(?P<plot_id>\d+)/tree/photo/(?P<photo_id>\d+)', get_tree_image),
+
+    (r'^addresses/(?P<address>.+)', geocode_address),
+
+    (r'^user$', user_endpoint),
+    (r'^user/(?P<user_id>\d+)/photo/(?P<title>.+)$', add_profile_photo),
+    (r'^user/(?P<user_id>\d+)/password$', update_password),
+    (r'^user/(?P<user_id>\d+)/reset_password$', reset_password),
+    (r'^user/(?P<user_id>\d+)/edits$', edits),
+
+    (instance_pattern + r'/plots/(?P<plot_id>\d+)/tree$',
+     route(DELETE=remove_current_tree_from_plot)),
 
     (instance_pattern + r'/pending-edits/(?P<pending_edit_id>\d+)/approve',
      route(POST=approve_pending_edit)),
 
     (instance_pattern + r'/pending-edits/(?P<pending_edit_id>\d+)/reject',
      route(POST=reject_pending_edit)),
-
-    (r'^addresses/(?P<address>.+)', geocode_address),
-
-    (r'^login/reset_password$', reset_password),
-    (r'^login$', login_endpoint),
-
-    (r'^user/$', route(POST=register)),
-    (r'^user/(?P<user_id>\d+)/photo/(?P<title>.+)$', add_profile_photo),
-    (r'^user/(?P<user_id>\d+)/password$', update_password),
-    (r'^user/(?P<user_id>\d+)/edits$', edits),
-
 
     # OTM2/instance endpoints
     (instance_pattern + '$', instance_info_endpoint),

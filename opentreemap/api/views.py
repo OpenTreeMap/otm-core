@@ -10,7 +10,7 @@ from functools import wraps
 from omgeo import Geocoder
 from omgeo.places import PlaceQuery, Viewbox
 
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -25,10 +25,11 @@ from django.contrib.auth.tokens import default_token_generator
 from opentreemap.util import route
 
 from treemap.models import Plot, Tree
-from treemap.views import (create_user, get_tree_photos, species_list,
+from treemap.views import (get_tree_photos, species_list,
                            upload_user_photo, context_dict_for_plot)
 
-from treemap.decorators import instance_request, json_api_call
+from treemap.decorators import json_api_call, return_400_if_validation_errors
+from treemap.decorators import api_instance_request as instance_request
 from treemap.exceptions import HttpBadRequestException
 from treemap.audit import Audit, approve_or_reject_audit_and_apply
 
@@ -37,7 +38,7 @@ from api.auth import login_required, create_401unauthorized, login_optional
 
 from api.instance import instance_info, instances_closest_to_point
 from api.plots import plots_closest_to_point, get_plot, update_or_create_plot
-from api.user import user_info
+from api.user import user_info, create_user
 
 
 class HttpConflictException(Exception):
@@ -150,25 +151,6 @@ def status(request):
     return [{'api_version': 'v2',
              'status': 'online',
              'message': ''}]
-
-
-@require_http_methods(["POST"])
-@api_call()
-@transaction.commit_on_success
-def register(request):
-    data = json.loads(request.body)
-
-    try:
-        user = create_user(**data)
-    except ValidationError as e:
-        response = HttpResponse()
-        response.status_code = 400
-        response.content = json.dumps({'status': 'failure',
-                                       'detail': e.message_dict})
-
-        return response
-
-    return {"status": "success", "id": user.pk}
 
 
 @require_http_methods(["POST"])
@@ -568,9 +550,6 @@ instance_info_endpoint = login_optional(
         csrf_exempt(json_api_call(
             instance_info))))
 
-login_endpoint = csrf_exempt(
-    json_api_call(login_required(user_info)))
-
 plots_endpoint = json_api_call(
     route(
         POST=login_required(
@@ -593,3 +572,10 @@ species_list_endpoint = login_optional(
     json_api_call(
         instance_request(
             route(GET=species_list))))
+
+user_endpoint = json_api_call(
+    route(
+        GET=login_required(
+            user_info),
+        POST=return_400_if_validation_errors(
+            create_user)))

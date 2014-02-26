@@ -205,16 +205,6 @@ def get_tree_photos(plot_id, photo_id):
     return None
 
 
-def create_user(*args, **kwargs):
-    # Clearly this is just getting the api working
-    # it shouldn't stay here when real user stuff happens
-    user = User(username=kwargs['username'], email=kwargs['email'])
-    user.set_password(kwargs['password'])
-    user.save()
-
-    return user
-
-
 def map_feature_popup(request, instance, feature_id):
     feature = _get_map_feature_or_404(feature_id, instance)
     context = _context_dict_for_map_feature(instance, feature)
