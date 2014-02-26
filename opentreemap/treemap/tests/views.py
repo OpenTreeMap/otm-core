@@ -139,6 +139,7 @@ class BoundaryViewTest(ViewTestCase):
             js_boundary['name'] = boundary.name
             js_boundary['category'] = boundary.category
             js_boundary['value'] = boundary.name
+            js_boundary['sortOrder'] = boundary.sort_order
 
     def test_boundary_to_geojson_view(self):
         boundary = make_simple_boundary("Hello, World", 1)
