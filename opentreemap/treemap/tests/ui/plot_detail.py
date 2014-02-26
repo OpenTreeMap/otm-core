@@ -101,6 +101,8 @@ class PlotEditTest(PlotDetailTest):
 class PlotDeleteTest(PlotDetailTest):
 
     def tearDown(self, *args, **kwargs):
+        # This sleep is critical, removing it causes the tests to break
+        sleep(10)
         super(PlotDeleteTest, self).tearDown(*args, **kwargs)
 
     def select_buttons(self):
