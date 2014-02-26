@@ -74,7 +74,8 @@ function initSearchUi(config) {
         template: "#boundary-element-template",
         hidden: "#boundary",
         button: "#boundary-toggle",
-        reverse: "id"
+        reverse: "id",
+        sortKeys: ['sortOrder', 'value']
     });
     $advancedToggle.on("click", function() {
         $advancedPane.toggle(0); // Show/hide with 0 animation time
