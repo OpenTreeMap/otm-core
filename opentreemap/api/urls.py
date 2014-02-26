@@ -8,13 +8,13 @@ from django.conf.urls import patterns
 from opentreemap.util import route
 
 from api.views import (status, version,
-                       remove_current_tree_from_plot, add_tree_photo,
-                       get_tree_image, plots_endpoint, species_list_endpoint,
-                       approve_pending_edit, reject_pending_edit,
-                       geocode_address, reset_password, user_endpoint,
+                       remove_current_tree_from_plot, plots_endpoint,
+                       species_list_endpoint, approve_pending_edit,
+                       reject_pending_edit, geocode_address,
+                       reset_password, user_endpoint,
                        add_profile_photo, update_password,
                        plot_endpoint, edits, plots_closest_to_point_endpoint,
-                       instance_info_endpoint)
+                       instance_info_endpoint, add_photo_endpoint)
 
 from treemap.instance import URL_NAME_PATTERN
 
@@ -26,9 +26,6 @@ urlpatterns = patterns(
     (r'^$', status),
     (r'^version$', version),
 
-    (r'^plots/(?P<plot_id>\d+)/tree/photo$', route(POST=add_tree_photo)),
-    (r'^plots/(?P<plot_id>\d+)/tree/photo/(?P<photo_id>\d+)', get_tree_image),
-
     (r'^addresses/(?P<address>.+)', geocode_address),
 
     (r'^user$', user_endpoint),
@@ -36,6 +33,9 @@ urlpatterns = patterns(
     (r'^user/(?P<user_id>\d+)/password$', update_password),
     (r'^user/(?P<user_id>\d+)/reset_password$', reset_password),
     (r'^user/(?P<user_id>\d+)/edits$', edits),
+
+    (instance_pattern + r'/plots/(?P<plot_id>\d+)/tree/photo$',
+     add_photo_endpoint),
 
     (instance_pattern + r'/plots/(?P<plot_id>\d+)/tree$',
      route(DELETE=remove_current_tree_from_plot)),
