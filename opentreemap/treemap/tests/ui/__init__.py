@@ -54,6 +54,9 @@ class UITestCase(LiveServerTestCase):
     def _browse_to_url(self, url):
         self.driver.get(self.live_server_url + url)
 
+    def find_anchor_by_url(self, url):
+        return self.driver.find_element_by_css_selector("[href='%s']" % url)
+
 
 class TreemapUITestCase(UITestCase):
     def setUp(self):

@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.core.urlresolvers import reverse
+from django.core import mail
 
 from registration.models import RegistrationProfile
 
@@ -73,3 +74,40 @@ class LoginLogoutTest(UITestCase):
 
         if not founddisplay:
             self.fail('No display list element was found')
+
+
+class ForgotUsernameTest(UITestCase):
+    def setUp(self):
+
+        create_mock_system_user()
+
+        super(ForgotUsernameTest, self).setUp()
+        self.user = make_user(username='username', password='password')
+
+    def tearDown(self):
+        mail.outbox = []
+
+    def test_can_get_to_page(self):
+        self._browse_to_url(reverse('auth_login'))
+
+        forgot_username_url = reverse('forgot_username')
+
+        link = self.find_anchor_by_url(forgot_username_url)
+
+        link.click()
+
+        self.assertEqual(self.live_server_url + forgot_username_url,
+                         self.driver.current_url)
+
+    def test_can_retrieve_username(self):
+        self._browse_to_url(reverse('forgot_username'))
+
+        email_elem = self.driver.find_element_by_name('email')
+
+        email_elem.send_keys(self.user.email)
+
+        submit = self.driver.find_element_by_css_selector(
+            'form input[type="submit"]')
+        submit.click()
+
+        self.assertEqual(len(mail.outbox), 1)

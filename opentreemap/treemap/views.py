@@ -27,6 +27,7 @@ from django.utils.formats import number_format
 from django.db import transaction
 from django.db.models import Q
 from django.template import RequestContext
+from django.template.loader import render_to_string
 
 from opentreemap.util import json_from_request, route
 
@@ -1253,6 +1254,27 @@ def tree_detail(request, instance, feature_id, tree_id):
         'feature_id': feature_id}))
 
 
+def forgot_username(request):
+    user_email = request.REQUEST['email']
+    users = User.objects.filter(email=user_email)
+
+    # Don't reveal if we don't have that email, to prevent email harvesting
+    if len(users) == 1:
+        user = users[0]
+
+        password_reset_url = request.build_absolute_uri(
+            reverse('auth_password_reset'))
+
+        subject = trans('Account Recovery')
+        body = render_to_string('treemap/partials/forgot_username_email.txt',
+                                {'user': user,
+                                 'password_url': password_reset_url})
+
+        user.email_user(subject, body, settings.DEFAULT_FROM_EMAIL)
+
+    return {'email': user_email}
+
+
 tree_detail_view = instance_request(tree_detail)
 
 edits_view = instance_request(
@@ -1377,6 +1399,10 @@ approve_or_reject_photo_view = login_required(
 
 static_page_view = instance_request(
     render_template("treemap/staticpage.html", static_page))
+
+forgot_username_view = route(
+    GET=render_template('treemap/forgot_username.html'),
+    POST=render_template('treemap/forgot_username_done.html', forgot_username))
 
 error_404_view = render_template('404.html', statuscode=404)
 error_500_view = render_template('500.html', statuscode=500)
