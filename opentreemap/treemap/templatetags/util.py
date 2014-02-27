@@ -2,7 +2,7 @@ from django import template
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
 
-from treemap.models import Plot, Tree, TreePhoto
+from treemap.models import MapFeature, Tree, TreePhoto
 from treemap.udf import UserDefinedCollectionValue
 from treemap.views import get_filterable_audit_models
 
@@ -18,8 +18,8 @@ def _instance_reverse(name, thing, **kwargs):
 
 
 MODEL_DETAILS = {
-    'plot': lambda plot: _instance_reverse(
-        'map_feature_detail', plot, feature_id=plot.pk),
+    'mapfeature': lambda feature: _instance_reverse(
+        'map_feature_detail', feature, feature_id=feature.pk),
     'tree': lambda tree: _instance_reverse(
         'tree_detail', tree, feature_id=tree.plot.pk, tree_id=tree.pk),
     'treephoto': lambda tp: MODEL_DETAILS['tree'](tp.tree)
@@ -42,7 +42,7 @@ def detail_link(thing):
         return None
 
 AUDIT_MODEL_LOOKUP_FNS = {
-    'plot': lambda id: Plot.objects.get(pk=id),
+    'mapfeature': lambda id: MapFeature.objects.get(pk=id),
     'tree': lambda id: Tree.objects.get(pk=id),
     'treephoto': lambda id: TreePhoto.objects.get(pk=id),
 }
@@ -56,7 +56,12 @@ def audit_detail_link(audit):
     For example, an audit on 'treephoto' provides a link to
     the given tree.
     """
-    model = audit.model.lower()
+    model = audit.model
+
+    if model in MapFeature.subclass_dict().keys():
+        model = 'mapfeature'
+
+    model = model.lower()
 
     if model in AUDIT_MODEL_LOOKUP_FNS:
         try:
