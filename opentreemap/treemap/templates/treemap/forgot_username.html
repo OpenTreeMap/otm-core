@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="content login-signup">
+  <div class="well login-signup-panel">
+    <h2>{% trans "Retrieve your Username" %}</h2>
+    <p>{% trans "Forgot the username for your tree map account? Enter your email address and click \"Send\" to receive an email with your username." %}</p>
+    <form method="post" action=".">
+      {% csrf_token %}
+      <label>
+        {% trans "Email Address" %}
+        <input type="email" name="email" />
+      </label>
+      <input type="submit" class="btn btn-primary" value="{% trans 'Send' %}" />
+    </form>
+  </div>
+</div>
+{% endblock content %}

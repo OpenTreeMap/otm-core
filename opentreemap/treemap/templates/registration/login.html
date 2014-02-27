@@ -17,7 +17,9 @@
     </form>
   </div>
   <div class="well login-signup-panel signup-option">
-    <p>{% trans "Forgot password" %}? <a href="{% url 'auth_password_reset' %}" class="btn">{% trans "Reset it" %}</a></p>
+    <p>{% trans "Forgot password?" %} <a href="{% url 'auth_password_reset' %}" class="btn">{% trans "Reset it" %}</a></p>
+    <br />
+    <p>{% trans "Forgot username?" %} <a href="{% url 'forgot_username' %}" class="btn">{% trans "Recover it" %}</a></p>
   </div>
 </div>
 {% endblock content %}

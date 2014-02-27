@@ -14,7 +14,7 @@ from treemap.views import (user_view, root_settings_js_view,
                            profile_to_user_view, user_audits_view,
                            instance_not_available_view, update_user_view,
                            unsupported_view, landing_view, scss_view,
-                           upload_user_photo_view)
+                           upload_user_photo_view, forgot_username_view)
 from treemap.instance import URL_NAME_PATTERN
 from treemap.urls import USERNAME_PATTERN
 from treemap.ecobenefits import within_itree_regions_view
@@ -56,6 +56,8 @@ urlpatterns = patterns(
     url(r'^accounts/profile/$', profile_to_user_view, name='profile'),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout',
         {'next_page': '/'}),
+    url(r'^accounts/forgot-username/$', forgot_username_view,
+        name='forgot_username'),
     url(r'^accounts/', include('registration_backend.urls')),
     # Create a redirect view for setting the session language preference
     # https://docs.djangoproject.com/en/1.0/topics/i18n/#the-set-language-redirect-view  # NOQA

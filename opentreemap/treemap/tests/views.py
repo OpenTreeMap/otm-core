@@ -18,6 +18,7 @@ from django.http import Http404, HttpResponse
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.db.models.query import QuerySet
+from django.core import mail
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
@@ -35,13 +36,15 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            root_settings_js_view, instance_settings_js_view,
                            compile_scss, approve_or_reject_photo,
                            upload_user_photo, static_page, instance_user_view,
-                           delete_map_feature, delete_tree, user)
+                           delete_map_feature, delete_tree, user,
+                           forgot_username)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
                            set_write_permissions, MockSession,
-                           delete_all_app_users, set_read_permissions)
+                           delete_all_app_users, set_read_permissions,
+                           make_plain_user)
 from treemap.tests.udfs import make_collection_udf
 
 
@@ -1705,3 +1708,24 @@ class DeleteViewTests(ViewTestCase):
 
         self.assertEqual(raw_response, {'ok': True})
         self.assertEqual(Tree.objects.count(), 0)
+
+
+class ForgotUsernameTests(ViewTestCase):
+    def setUp(self):
+        super(ForgotUsernameTests, self).setUp()
+        self.user = make_plain_user('joe')
+
+    def test_sends_email_for_existing_user(self):
+        resp = forgot_username(make_request({'email': self.user.email}))
+
+        self.assertEquals(resp, {'email': self.user.email})
+
+        self.assertEquals(len(mail.outbox), 1)
+        self.assertIn(self.user.username, mail.outbox[0].body)
+
+    def test_no_email_if_doesnt_exist(self):
+        resp = forgot_username(make_request({'email': 'doesnt@exist.co.uk'}))
+
+        self.assertEquals(resp, {'email': 'doesnt@exist.co.uk'})
+
+        self.assertEquals(len(mail.outbox), 0)
