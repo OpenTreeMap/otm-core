@@ -69,8 +69,8 @@ class StaticPageViewTest(ViewTestCase):
         super(StaticPageViewTest, self).setUp()
 
         self.staticPage = StaticPage(content="content",
-                                     name="blah",
-                                     title="yo",
+                                     name="faq",
+                                     title="FAQ",
                                      instance=self.instance)
         self.staticPage.save()
 
@@ -83,7 +83,7 @@ class StaticPageViewTest(ViewTestCase):
 
     def test_can_get_page(self):
         # Note- case insensitive match
-        rslt = static_page(None, self.instance, "bLaH")
+        rslt = static_page(None, self.instance, "FaQ")
 
         self.assertEqual(rslt['content'], self.staticPage.content)
         self.assertEqual(rslt['title'], self.staticPage.title)
