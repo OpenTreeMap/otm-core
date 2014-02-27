@@ -179,6 +179,23 @@ class Instance(models.Model):
                      if self.scss_variables else {})
         return urlencode(scss_vars)
 
+    @property
+    def static_pages(self):
+        from treemap.models import StaticPage  # prevent circular import
+
+        default_order = ('Resources', 'FAQ', 'About', 'Partners',)
+
+        all_pages = StaticPage.objects.filter(instance=self)
+
+        page_name = {page.name for page in all_pages}
+
+        missing = []
+        for page in default_order:
+            if page not in page_name:
+                missing.append(StaticPage(name=page))
+
+        return missing + list(all_pages)
+
     def has_itree_region(self):
         from treemap.models import ITreeRegion  # prevent circular import
         intersecting_regions = (ITreeRegion
