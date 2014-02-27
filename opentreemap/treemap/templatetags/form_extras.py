@@ -31,7 +31,7 @@ FIELD_MAPPINGS = {
     'ForeignKey': 'int',
     'AutoField': 'int',
     'FloatField': 'float',
-    'TextField': 'string',
+    'TextField': 'long_string',
     'CharField': 'string',
     'DateTimeField': 'datetime',
     'DateField': 'date',

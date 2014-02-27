@@ -1223,23 +1223,10 @@ def static_page(request, instance, page):
     #
     #       In the future we will want to add a full
     #       UI and perhaps auto-create these pages
-    try:
-        staticpage = StaticPage.objects.get(name__iexact=page,
-                                            instance=instance)
+    static_page = StaticPage.get_or_new_or_404(instance, page)
 
-        content = staticpage.content
-        title = staticpage.title
-    except StaticPage.DoesNotExist:
-        allowed_pages = ['resources', 'faq', 'about']
-
-        if page.lower() not in allowed_pages:
-            raise Http404()
-
-        content = trans('There is no content for this page yet')
-        title = page
-
-    return {'content': content,
-            'title': title}
+    return {'content': static_page.content,
+            'title': static_page.title}
 
 
 def index(request, instance):
