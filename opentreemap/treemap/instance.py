@@ -180,21 +180,19 @@ class Instance(models.Model):
         return urlencode(scss_vars)
 
     @property
-    def static_pages(self):
+    def static_page_names(self):
         from treemap.models import StaticPage  # prevent circular import
 
-        default_order = ('Resources', 'FAQ', 'About', 'Partners',)
+        built_in_names = StaticPage.built_in_names()
 
-        all_pages = StaticPage.objects.filter(instance=self)
+        custom_names = [page.name for page in
+                        StaticPage.objects
+                            .filter(instance=self)
+                            .exclude(name__in=built_in_names)]
 
-        page_name = {page.name for page in all_pages}
+        names = built_in_names + custom_names
 
-        missing = []
-        for page in default_order:
-            if page not in page_name:
-                missing.append(StaticPage(name=page))
-
-        return missing + list(all_pages)
+        return names
 
     def has_itree_region(self):
         from treemap.models import ITreeRegion  # prevent circular import

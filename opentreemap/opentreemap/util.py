@@ -6,7 +6,7 @@ from __future__ import division
 import json
 
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import Http404
 
 
 def route(**kwargs):
