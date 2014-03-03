@@ -777,6 +777,14 @@ class Authorizable(UserTrackable):
 
         super(Authorizable, self).save_with_user(user, *args, **kwargs)
 
+    def save_with_user_without_verifying_authorization(self, user,
+                                                       *args, **kwargs):
+
+        if isinstance(self, Auditable):
+            kwargs.update({'unsafe': True})
+
+        super(Authorizable, self).save_with_user(user, *args, **kwargs)
+
     def delete_with_user(self, user, *args, **kwargs):
         self._assert_not_masked()
 
@@ -880,6 +888,24 @@ class Auditable(UserTrackable):
                                          (self, field.name))
 
     def save_with_user(self, user, *args, **kwargs):
+
+        # A concession. This is a direct message from the Authorizable class
+        # to the Auditable class, even though ideally they shouldn't need to
+        # know about each other. Even though this method is inside Auditable
+        # some Auth tasks are performed in this method, coupling the two
+        # classes. Since that is happening, the Auth class needs to be able to
+        # communicate in order to bypass the normal flow of authorization.
+        # This conditional block receives the 'unsafe' directive from the
+        # Authorizable class and then removes it from the kwargs, preserving
+        # the normal save_with_user API.
+        # TODO: decouple Authorizable from Auditable.
+        if kwargs.get('unsafe', None):
+            auth_bypass = True
+            kwargs = {k: v for k, v in kwargs.items()
+                      if k != 'unsafe'}
+        else:
+            auth_bypass = False
+
         if self.is_pending_insert:
             raise Exception("You have already saved this object.")
 
@@ -911,7 +937,8 @@ class Auditable(UserTrackable):
 
         if ((not isinstance(self, Authorizable) or
              self.user_can_create(user, direct_only=True) or
-             self.pk is not None)):
+             self.pk is not None or
+             auth_bypass)):
             super(Auditable, self).save_with_user(user, *args, **kwargs)
             model_id = self.pk
         else:
