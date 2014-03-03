@@ -3,12 +3,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import json
-
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
-from django.http import HttpResponseBadRequest, HttpResponseForbidden
+from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.contrib.auth.forms import PasswordResetForm
@@ -18,8 +16,7 @@ from django.contrib.auth.tokens import default_token_generator
 from opentreemap.util import route
 
 from treemap.models import Plot, Tree
-from treemap.views import (species_list, upload_user_photo,
-                           context_dict_for_plot, add_tree_photo)
+from treemap.views import species_list, context_dict_for_plot, add_tree_photo
 
 from treemap.decorators import json_api_call, return_400_if_validation_errors
 from treemap.decorators import api_instance_request as instance_request
@@ -34,11 +31,7 @@ from api.auth import (create_401unauthorized, check_signature,
 from api.instance import instance_info, instances_closest_to_point
 from api.plots import plots_closest_to_point, get_plot, update_or_create_plot
 from api.user import (user_info, create_user, users_json, users_csv,
-                      update_user)
-
-
-class HttpConflictException(Exception):
-    pass
+                      update_user, update_profile_photo)
 
 
 def datetime_to_iso_string(d):
@@ -52,22 +45,6 @@ def status(request):
     return [{'api_version': 'v2',
              'status': 'online',
              'message': ''}]
-
-
-@require_http_methods(["POST"])
-@json_api_call
-@login_required
-def add_profile_photo(request, user_id, _):
-    """
-    Uploads a user profile photo.
-    The third parameter to this function exists for backwards compatibility
-    reasons, but is ignored and unused.
-    """
-    user = get_object_or_404(User, id=user_id)
-    if user != request.user:
-        return HttpResponseForbidden()
-
-    return upload_user_photo(request, user_id)
 
 
 def extract_plot_from_audit(audit):
@@ -374,3 +351,7 @@ export_users_json_endpoint = check_signature_and_require_login(
     admin_instance_request(
         route(
             GET=users_json)))
+
+update_profile_photo_endpoint = check_signature_and_require_login(
+    json_api_call(
+        route(POST=update_profile_photo)))

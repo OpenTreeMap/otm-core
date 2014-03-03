@@ -35,7 +35,7 @@ from treemap.tests import (make_user, make_commander_user, make_request,
 
 from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from api.models import APIAccessCredential
-from api.views import add_photo_endpoint
+from api.views import add_photo_endpoint, update_profile_photo_endpoint
 from api.instance import instances_closest_to_point
 from api.user import create_user, users_json, users_csv
 from api.auth import (get_signature_for_request, check_signature,
@@ -1138,8 +1138,11 @@ class TreePhotoTest(LocalMediaTestCase):
         self._test_post_photo(TreePhotoTest.test_png_path)
 
 
-class UserTest(TestCase):
+class UserTest(LocalMediaTestCase):
     def setUp(self):
+        super(UserTest, self).setUp()
+
+        self.factory = RequestFactory()
         self.defaultUserDict = {'organization': 'azavea',
                                 'lastname': 'smith',
                                 'firstname': 'john',
@@ -1153,6 +1156,48 @@ class UserTest(TestCase):
                                       body=dumps(datadict)))
 
         return r
+
+    @media_dir
+    def testUploadPhoto(self):
+        peon = make_user(username='peon', password='pw')
+        peon.save()
+
+        url = reverse('update_user_photo', kwargs={'user_id': peon.pk})
+
+        with open(TreePhotoTest.test_jpeg_path) as img:
+            req = self.factory.post(
+                url, {'name': 'afile', 'file': img})
+
+            req = sign_request_as_user(req, peon)
+
+            response = update_profile_photo_endpoint(req, str(peon.pk))
+
+        self.assertEquals(response.status_code, 200)
+
+        peon = User.objects.get(pk=peon.pk)
+        self.assertIsNotNone(peon.photo)
+        self.assertIsNotNone(peon.thumbnail)
+
+    @media_dir
+    def testCanOnlyUploadAsSelf(self):
+        # Must do this as yourself
+        peon = make_user(username='peon', password='pw')
+        peon.save()
+
+        url = reverse('update_user_photo', kwargs={'user_id': peon.pk})
+
+        grunt = make_user(username='grunt', password='pw')
+        grunt.save()
+
+        with open(TreePhotoTest.test_jpeg_path) as img:
+            req = self.factory.post(
+                url, {'name': 'afile', 'file': img})
+
+            req = sign_request_as_user(req, peon)
+
+            response = update_profile_photo_endpoint(req, str(grunt.pk))
+
+        self.assertEquals(response.status_code, 403)
 
     def testCreateUser(self):
         rslt = create_user(self.make_post_request(self.defaultUserDict))

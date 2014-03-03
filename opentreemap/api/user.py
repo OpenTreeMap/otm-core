@@ -17,12 +17,22 @@ from django.utils.translation import ugettext as trans
 
 from registration.models import RegistrationProfile
 
+from treemap.views import upload_user_photo
 from treemap.udf import DATETIME_FORMAT
 from treemap.models import User, Audit
 
 
 REQ_FIELDS = {'email', 'username', 'password', 'allow_email_contact'}
 ALL_FIELDS = REQ_FIELDS | {'organization', 'lastname', 'firstname'}
+
+
+def update_profile_photo(request, user_id):
+    user = get_object_or_404(User, pk=user_id)
+
+    if user.pk != request.user.pk:
+        return HttpResponseForbidden()
+
+    return upload_user_photo(request, user)
 
 
 def user_info(request):
