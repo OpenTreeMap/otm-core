@@ -7,11 +7,14 @@ from StringIO import StringIO
 from json import loads, dumps
 from urlparse import urlparse
 
+import csv
 import urllib
 import os
+import json
 import base64
 import datetime
 
+from django.utils.timezone import now
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 from django.test import TestCase
@@ -21,17 +24,20 @@ from django.http import HttpRequest
 from django.utils.unittest.case import skip
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse
 
-from treemap.models import Species, Plot, Tree, User
+from treemap.udf import DATETIME_FORMAT
+from treemap.models import Species, Plot, Tree, User, InstanceUser
 from treemap.audit import ReputationMetric, Audit
 from treemap.tests import (make_user, make_commander_user, make_request,
-                           make_instance, LocalMediaTestCase, media_dir)
+                           make_instance, LocalMediaTestCase, media_dir,
+                           make_commander_role)
 
 from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from api.models import APIAccessCredential
 from api.views import add_photo_endpoint
 from api.instance import instances_closest_to_point
-from api.user import create_user
+from api.user import create_user, users_json, users_csv
 from api.auth import (get_signature_for_request, check_signature,
                       SIG_TIMESTAMP_FORMAT)
 
@@ -52,9 +58,9 @@ def sign_request(request, cred=None):
     if cred is None:
         cred = APIAccessCredential.create()
 
-    now = datetime.datetime.now().strftime(SIG_TIMESTAMP_FORMAT)
+    nowstr = datetime.datetime.now().strftime(SIG_TIMESTAMP_FORMAT)
     reqdict = dict(request.REQUEST.iteritems())
-    reqdict['timestamp'] = now
+    reqdict['timestamp'] = nowstr
     reqdict['access_key'] = cred.access_key
 
     request.REQUEST.dicts = [reqdict]
@@ -173,10 +179,10 @@ class Version(TestCase):
         ret = get_signed(self.client, "%s/version" % API_PFX)
 
         self.assertEqual(ret.status_code, 200)
-        json = loads(ret.content)
+        content = loads(ret.content)
 
-        self.assertEqual(json["otm_version"], settings.OTM_VERSION)
-        self.assertEqual(json["api_version"], settings.API_VERSION)
+        self.assertEqual(content["otm_version"], settings.OTM_VERSION)
+        self.assertEqual(content["api_version"], settings.API_VERSION)
 
     def tearDown(self):
         teardownTreemapEnv()
@@ -253,10 +259,10 @@ class PlotListing(TestCase):
 
         self.assertEqual(info.status_code, 200)
 
-        json = loads(info.content)
+        content = loads(info.content)
 
-        self.assertEqual(len(json), 1)
-        record = json[0]
+        self.assertEqual(len(content), 1)
+        record = content[0]
 
         self.assertEqual(record["id"], p.pk)
         self.assertEqual(record["plot_width"], 22)
@@ -282,10 +288,10 @@ class PlotListing(TestCase):
 
         self.assertEqual(info.status_code, 200)
 
-        json = loads(info.content)
+        content = loads(info.content)
 
-        self.assertEqual(len(json), 1)
-        record = json[0]
+        self.assertEqual(content(json), 1)
+        record = content[0]
 
         self.assertEqual(record["tree"]["id"], t.pk)
 
@@ -297,10 +303,10 @@ class PlotListing(TestCase):
 
         self.assertEqual(info.status_code, 200)
 
-        json = loads(info.content)
+        content = loads(info.content)
 
-        self.assertEqual(len(json), 1)
-        record = json[0]
+        self.assertEqual(len(content), 1)
+        record = content[0]
 
         self.assertEqual(record["tree"]["species"], t.species.pk)
         self.assertEqual(record["tree"]["dbh"], t.dbh)
@@ -1273,15 +1279,15 @@ class SigningTest(TestCase):
                'timestamp=%%s&'
                'k1=4&k2=a&access_key=%s' % acred.access_key)
 
-        now = datetime.datetime.now()
-        invalid = now - datetime.timedelta(minutes=100)
+        curtime = datetime.datetime.now()
+        invalid = curtime - datetime.timedelta(minutes=100)
 
         req = self.sign_and_send(url % invalid.strftime(SIG_TIMESTAMP_FORMAT),
                                  acred.secret_key)
 
         self.assertEqual(req.status_code, 400)
 
-        timestamp = now.strftime(SIG_TIMESTAMP_FORMAT)
+        timestamp = curtime.strftime(SIG_TIMESTAMP_FORMAT)
         req = self.sign_and_send(url % timestamp, acred.secret_key)
 
         self.assertRequestWasSuccess(req)
@@ -1430,11 +1436,209 @@ class Authentication(TestCase):
 
         self.assertEqual(ret.status_code, 200)
 
-        json = loads(ret.content)
+        content = loads(ret.content)
 
-        self.assertEqual(json['username'], self.jim.username)
-        self.assertEqual(json['status'], 'success')
-        self.assertEqual(json['reputation'], 1001)
+        self.assertEqual(content['username'], self.jim.username)
+        self.assertEqual(content['status'], 'success')
+        self.assertEqual(content['reputation'], 1001)
 
     def tearDown(self):
         teardownTreemapEnv()
+
+
+class UserExportsTest(TestCase):
+    def setUp(self):
+        self.instance = make_instance()
+        self.commander = make_commander_user(self.instance, "comm")
+
+        # Note unicode '⅀' is on purpose
+        self.user1 = User(username='estraven', password='estraven',
+                          email='estraven@example.com',
+                          organization='org111',
+                          firstname='therem', lastname='⅀straven')
+
+        self.user1.save_with_user(self.commander)
+
+        self.user2 = User(username='genly', password='genly',
+                          email='genly@example.com',
+                          firstname='genly', lastname='ai')
+        self.user2.save_with_user(self.commander)
+
+        self.user3 = User(username='argaven_xv', password='argaven_xv',
+                          email='argaven_xv@example.com')
+        self.user3.save_with_user(self.commander)
+
+        role = make_commander_role(self.instance)
+        iuser1 = InstanceUser(instance=self.instance, user=self.user1,
+                              role=role)
+        iuser1.save_with_user(self.user1)
+        iuser2 = InstanceUser(instance=self.instance, user=self.user2,
+                              role=role)
+        iuser2.save_with_user(self.user2)
+
+        pt = Point(0, 0)
+
+        self.plot = Plot(geom=pt, readonly=False, instance=self.instance,
+                         width=4)
+        self.plot.save_with_user(self.user1)
+
+        self.tree = Tree(instance=self.instance, plot=self.plot, diameter=3)
+        self.tree.save_with_user(self.user2)
+
+    def _test_requires_admin_access(self, endpoint_name):
+        url = reverse('user_csv',
+                      kwargs={'instance_url_name': self.instance.url_name})
+
+        iuser = self.user1.get_instance_user(self.instance)
+        iuser.admin = False
+        iuser.save_with_user(iuser)
+
+        resp = get_signed(self.client, url, user=self.user1)
+        self.assertEquals(resp.status_code, 403)
+
+        iuser.admin = True
+        iuser.save_with_user(self.user1)
+
+        resp = get_signed(self.client, url, user=self.user1)
+        self.assertEquals(resp.status_code, 200)
+
+        iuser.delete_with_user(self.user1)
+
+        resp = get_signed(self.client, url, user=self.user1)
+        self.assertEquals(resp.status_code, 401)
+
+    def test_csv_requires_admin(self):
+        self._test_requires_admin_access('users_csv')
+
+    def test_json_requires_admin(self):
+        self._test_requires_admin_access('users_json')
+
+    def test_export_users_csv(self):
+        resp = users_csv(make_request(), self.instance)
+        reader = csv.reader(resp)
+
+        # Skip BOM and entry line
+        reader.next()
+        reader.next()
+
+        header = reader.next()
+
+        data = [dict(zip(header, [x.decode('utf8') for x in row]))
+                for row in reader]
+
+        commander, user1data, user2data = data
+
+        self.assertEquals(commander['username'], self.commander.username)
+
+        self.assertEquals(user1data['username'], self.user1.username)
+        self.assertEquals(user1data['email'], self.user1.email)
+        self.assertEquals(user1data['first name'], self.user1.firstname)
+        self.assertEquals(user1data['last name'], self.user1.lastname)
+        self.assertEquals(user1data['organization'], self.user1.organization)
+        self.assertEquals(user1data['allow email contact'], 'False')
+        self.assertEquals(user1data['role'], 'commander')
+        self.assertEquals(user1data['created'], str(self.user1.created))
+
+        self.assertEquals(user1data['last_edit_model'], 'Plot')
+        self.assertEquals(user1data['last_edit_model_id'], str(self.plot.pk))
+        self.assertEquals(user1data['last_edit_instance_id'],
+                          str(self.instance.pk))
+
+        self.assertEquals(user1data['last_edit_user_id'], str(self.user1.pk))
+
+        self.assertEquals(user2data['last_edit_model'], 'Tree')
+        self.assertEquals(user2data['last_edit_model_id'], str(self.tree.pk))
+        self.assertEquals(user2data['last_edit_instance_id'],
+                          str(self.instance.pk))
+
+        self.assertEquals(user2data['last_edit_user_id'], str(self.user2.pk))
+
+    def test_export_users_json(self):
+        resp = users_json(make_request(), self.instance)
+
+        data = json.loads(resp.content)
+
+        commander, user1data, user2data = data
+
+        self.assertEquals(commander['username'], self.commander.username)
+
+        self.assertEquals(user1data['username'], self.user1.username)
+        self.assertEquals(user1data['email'], self.user1.email)
+        self.assertEquals(user1data['first name'], self.user1.firstname)
+        self.assertEquals(user1data['last name'], self.user1.lastname)
+        self.assertEquals(user1data['organization'], self.user1.organization)
+        self.assertEquals(user1data['allow email contact'], 'False')
+        self.assertEquals(user1data['role'], 'commander')
+        self.assertEquals(user1data['created'], str(self.user1.created))
+
+        self.assertEquals(user1data['last_edit_model'], 'Plot')
+        self.assertEquals(user1data['last_edit_model_id'], str(self.plot.pk))
+        self.assertEquals(user1data['last_edit_instance_id'],
+                          str(self.instance.pk))
+
+        self.assertEquals(user1data['last_edit_user_id'], str(self.user1.pk))
+
+        self.assertEquals(user2data['last_edit_model'], 'Tree')
+        self.assertEquals(user2data['last_edit_model_id'], str(self.tree.pk))
+        self.assertEquals(user2data['last_edit_instance_id'],
+                          str(self.instance.pk))
+
+        self.assertEquals(user2data['last_edit_user_id'], str(self.user2.pk))
+
+    def test_min_edit_date(self):
+        last_week = now() - datetime.timedelta(days=7)
+        two_days_ago = now() - datetime.timedelta(days=2)
+        yesterday = now() - datetime.timedelta(days=1)
+        tda_ts = two_days_ago.strftime(DATETIME_FORMAT)
+
+        Audit.objects.filter(user=self.user1)\
+            .update(created=last_week, updated=last_week)
+
+        Audit.objects.filter(user=self.commander)\
+            .update(created=last_week, updated=last_week)
+
+        Audit.objects.filter(user=self.user2)\
+            .update(created=yesterday, updated=yesterday)
+
+        resp = users_json(make_request({'minEditDate': tda_ts}), self.instance)
+
+        data = json.loads(resp.content)
+
+        self.assertEquals(len(data), 1)
+
+        self.assertEquals(data[0]['username'], self.user2.username)
+
+    def test_min_join_date(self):
+        last_week = now() - datetime.timedelta(days=7)
+        two_days_ago = now() - datetime.timedelta(days=2)
+        yesterday = now() - datetime.timedelta(days=1)
+        tda_ts = two_days_ago.strftime(DATETIME_FORMAT)
+
+        Audit.objects.filter(model='InstanceUser')\
+            .filter(model_id=self.user1.get_instance_user(self.instance).pk)\
+            .update(created=last_week)
+
+        Audit.objects.filter(model='InstanceUser')\
+            .filter(model_id=
+                    self.commander.get_instance_user(self.instance).pk)\
+            .update(created=last_week)
+
+        Audit.objects.filter(model='InstanceUser')\
+            .filter(model_id=self.user2.get_instance_user(self.instance).pk)\
+            .update(created=yesterday)
+
+        resp = users_json(make_request({'minJoinDate': tda_ts}), self.instance)
+
+        data = json.loads(resp.content)
+
+        self.assertEquals(len(data), 1)
+
+        self.assertEquals(data[0]['username'], self.user2.username)
+
+    def test_min_join_date_validation(self):
+        with self.assertRaises(ValidationError):
+            users_json(make_request({"minJoinDate": "fsdafsa"}), self.instance)
+
+    def test_min_edit_date_validation(self):
+        with self.assertRaises(ValidationError):
+            users_json(make_request({"minEditDate": "fsdafsa"}), self.instance)
