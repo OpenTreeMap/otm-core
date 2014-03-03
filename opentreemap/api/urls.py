@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns
+from django.conf.urls import patterns, url
 
 from opentreemap.util import route
 
@@ -14,7 +14,8 @@ from api.views import (status_view, version_view,
                        reset_password, user_endpoint,
                        add_profile_photo, update_password,
                        plot_endpoint, edits, plots_closest_to_point_endpoint,
-                       instance_info_endpoint, add_photo_endpoint)
+                       instance_info_endpoint, add_photo_endpoint,
+                       export_users_csv_endpoint, export_users_json_endpoint)
 
 from treemap.instance import URL_NAME_PATTERN
 
@@ -53,4 +54,9 @@ urlpatterns = patterns(
     (instance_pattern + r'/locations/'
      '(?P<lat>-{0,1}\d+(\.\d+){0,1}),(?P<lng>-{0,1}\d+(\.\d+){0,1})'
      '/plots', plots_closest_to_point_endpoint),
+
+    url(instance_pattern + r'/users.csv',
+        export_users_csv_endpoint, name='user_csv'),
+    url(instance_pattern + r'/users.json',
+        export_users_json_endpoint, name='user_json'),
 )

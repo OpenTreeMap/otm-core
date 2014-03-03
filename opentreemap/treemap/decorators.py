@@ -6,6 +6,7 @@ from __future__ import division
 import json
 from functools import wraps
 
+from django.core.exceptions import PermissionDenied
 from django.template import RequestContext
 from django.shortcuts import get_object_or_404, render_to_response
 from django.http import (HttpResponse, HttpResponseBadRequest,
@@ -13,6 +14,7 @@ from django.http import (HttpResponse, HttpResponseBadRequest,
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
 
 from treemap.util import (LazyEncoder, add_visited_instance,
                           get_instance_or_404, login_redirect)
@@ -50,6 +52,31 @@ def instance_request(view_fn, redirect=True):
                 return HttpResponse('Unauthorized', status=401)
 
     return wrapper
+
+
+def user_must_be_admin(view_fn):
+    @wraps(view_fn)
+    def f(request, instance, *args, **kwargs):
+        user = request.user
+
+        if user.is_authenticated():
+            user_instance = user.get_instance_user(instance)
+
+            if user_instance and user_instance.admin:
+                return view_fn(request, instance, *args, **kwargs)
+
+        raise PermissionDenied
+
+    return f
+
+
+def admin_instance_request(view_fn, redirect=True):
+    return login_required(instance_request(
+        user_must_be_admin(view_fn), redirect))
+
+
+def api_admin_instance_request(view_fn):
+    return admin_instance_request(view_fn, redirect=False)
 
 
 def api_instance_request(view_fn):

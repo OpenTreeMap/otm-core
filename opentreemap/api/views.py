@@ -23,6 +23,8 @@ from treemap.views import (species_list, upload_user_photo,
 
 from treemap.decorators import json_api_call, return_400_if_validation_errors
 from treemap.decorators import api_instance_request as instance_request
+from treemap.decorators import api_admin_instance_request as \
+    admin_instance_request
 from treemap.exceptions import HttpBadRequestException
 from treemap.audit import Audit, approve_or_reject_audit_and_apply
 
@@ -31,7 +33,7 @@ from api.auth import (create_401unauthorized, check_signature,
 
 from api.instance import instance_info, instances_closest_to_point
 from api.plots import plots_closest_to_point, get_plot, update_or_create_plot
-from api.user import user_info, create_user
+from api.user import user_info, create_user, users_json, users_csv
 
 
 class HttpConflictException(Exception):
@@ -372,3 +374,13 @@ version_view = check_signature(
     json_api_call(
         route(
             GET=version)))
+
+export_users_csv_endpoint = check_signature_and_require_login(
+    admin_instance_request(
+        route(
+            GET=users_csv)))
+
+export_users_json_endpoint = check_signature_and_require_login(
+    admin_instance_request(
+        route(
+            GET=users_json)))
