@@ -339,6 +339,10 @@ class User(Auditable, AbstractUniqueEmailUser):
             # A user has no audit records?
             return None
 
+    @property
+    def email_hash(self):
+        return hashlib.sha512(self.email).hexdigest()
+
     def dict(self):
         return {'id': self.pk,
                 'username': self.username}

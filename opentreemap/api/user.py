@@ -88,8 +88,8 @@ def users_csv(request, instance):
     # http://en.wikipedia.org/wiki/Byte_order_mark
     response.write(u'\ufeff'.encode('utf8'))
 
-    field_names = ['username', 'email', 'first name', 'last name',
-                   'allow email contact', 'role', 'created', 'organization',
+    field_names = ['username', 'email', 'firstname', 'lastname', 'email_hash',
+                   'allow_email_contact', 'role', 'created', 'organization',
                    'last_edit_model', 'last_edit_model_id',
                    'last_edit_instance_id', 'last_edit_field',
                    'last_edit_previous_value', 'last_edit_current_value',
@@ -164,12 +164,19 @@ def _user_as_dict(user, instance):
     if iuser:
         role_name = iuser.role.name
 
+    email_hash = user.email_hash
+    email = ''
+
+    if user.allow_email_contact:
+        email = user.email
+
     modeldata = {'username': user.username,
-                 'email': user.email,
+                 'email': email,
+                 'email_hash': email_hash,
                  'organization': user.organization,
-                 'first name': user.firstname,
-                 'last name': user.lastname,
-                 'allow email contact': str(user.allow_email_contact),
+                 'firstname': user.firstname,
+                 'lastname': user.lastname,
+                 'allow_email_contact': str(user.allow_email_contact),
                  'created': str(user.created),
                  'role': role_name}
 

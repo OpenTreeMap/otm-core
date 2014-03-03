@@ -1461,7 +1461,8 @@ class UserExportsTest(TestCase):
 
         self.user2 = User(username='genly', password='genly',
                           email='genly@example.com',
-                          firstname='genly', lastname='ai')
+                          firstname='genly', lastname='ai',
+                          allow_email_contact=True)
         self.user2.save_with_user(self.commander)
 
         self.user3 = User(username='argaven_xv', password='argaven_xv',
@@ -1531,11 +1532,12 @@ class UserExportsTest(TestCase):
         self.assertEquals(commander['username'], self.commander.username)
 
         self.assertEquals(user1data['username'], self.user1.username)
-        self.assertEquals(user1data['email'], self.user1.email)
-        self.assertEquals(user1data['first name'], self.user1.firstname)
-        self.assertEquals(user1data['last name'], self.user1.lastname)
+        self.assertEquals(user1data['email'], '')
+        self.assertEquals(user1data['email_hash'], self.user1.email_hash)
+        self.assertEquals(user1data['firstname'], self.user1.firstname)
+        self.assertEquals(user1data['lastname'], self.user1.lastname)
         self.assertEquals(user1data['organization'], self.user1.organization)
-        self.assertEquals(user1data['allow email contact'], 'False')
+        self.assertEquals(user1data['allow_email_contact'], 'False')
         self.assertEquals(user1data['role'], 'commander')
         self.assertEquals(user1data['created'], str(self.user1.created))
 
@@ -1546,6 +1548,8 @@ class UserExportsTest(TestCase):
 
         self.assertEquals(user1data['last_edit_user_id'], str(self.user1.pk))
 
+        self.assertEquals(user2data['email'], 'genly@example.com')
+        self.assertEquals(user2data['email_hash'], self.user2.email_hash)
         self.assertEquals(user2data['last_edit_model'], 'Tree')
         self.assertEquals(user2data['last_edit_model_id'], str(self.tree.pk))
         self.assertEquals(user2data['last_edit_instance_id'],
@@ -1563,11 +1567,12 @@ class UserExportsTest(TestCase):
         self.assertEquals(commander['username'], self.commander.username)
 
         self.assertEquals(user1data['username'], self.user1.username)
-        self.assertEquals(user1data['email'], self.user1.email)
-        self.assertEquals(user1data['first name'], self.user1.firstname)
-        self.assertEquals(user1data['last name'], self.user1.lastname)
+        self.assertEquals(user1data.get('email'), None)
+        self.assertEquals(user1data['email_hash'], self.user1.email_hash)
+        self.assertEquals(user1data['firstname'], self.user1.firstname)
+        self.assertEquals(user1data['lastname'], self.user1.lastname)
         self.assertEquals(user1data['organization'], self.user1.organization)
-        self.assertEquals(user1data['allow email contact'], 'False')
+        self.assertEquals(user1data['allow_email_contact'], 'False')
         self.assertEquals(user1data['role'], 'commander')
         self.assertEquals(user1data['created'], str(self.user1.created))
 
@@ -1578,6 +1583,8 @@ class UserExportsTest(TestCase):
 
         self.assertEquals(user1data['last_edit_user_id'], str(self.user1.pk))
 
+        self.assertEquals(user2data['email'], 'genly@example.com')
+        self.assertEquals(user2data['email_hash'], self.user2.email_hash)
         self.assertEquals(user2data['last_edit_model'], 'Tree')
         self.assertEquals(user2data['last_edit_model_id'], str(self.tree.pk))
         self.assertEquals(user2data['last_edit_instance_id'],
