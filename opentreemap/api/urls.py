@@ -10,7 +10,7 @@ from opentreemap.util import route
 from api.views import (status_view, version_view,
                        remove_current_tree_from_plot, plots_endpoint,
                        species_list_endpoint, approve_pending_edit,
-                       reject_pending_edit, geocode_address,
+                       reject_pending_edit,
                        reset_password, user_endpoint,
                        add_profile_photo, update_password,
                        plot_endpoint, edits, plots_closest_to_point_endpoint,
@@ -25,8 +25,6 @@ urlpatterns = patterns(
     '',
     (r'^$', status_view),
     (r'^version$', version_view),
-
-    (r'^addresses/(?P<address>.+)', geocode_address),
 
     (r'^user$', user_endpoint),
     (r'^user/(?P<user_id>\d+)/photo/(?P<title>.+)$', add_profile_photo),

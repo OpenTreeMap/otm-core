@@ -5,9 +5,6 @@ from __future__ import division
 
 import json
 
-from omgeo import Geocoder
-from omgeo.places import PlaceQuery, Viewbox
-
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
@@ -221,59 +218,6 @@ def get_plot_list(request, instance):
             supports_eco=request.instance_supports_ecobenefits)
 
     return [ctxt_for_plot(plot) for plot in plots]
-
-
-#TODO: All of this logic should probably be
-# moved to the geocoder app
-# not sure what we should do about BBOX settings
-@require_http_methods(["GET"])
-@json_api_call
-def geocode_address(request, address):
-    def result_in_bounding_box(result):
-        x = float(result.x)
-        y = float(result.y)
-        left = float(settings.BOUNDING_BOX['left'])
-        top = float(settings.BOUNDING_BOX['top'])
-        right = float(settings.BOUNDING_BOX['right'])
-        bottom = float(settings.BOUNDING_BOX['bottom'])
-        return x > left and x < right and y > bottom and y < top
-
-    if address is None or len(address) == 0:
-        raise HttpBadRequestException("No address specfified")
-
-    query = PlaceQuery(address, viewbox=Viewbox(
-        settings.BOUNDING_BOX['left'],
-        settings.BOUNDING_BOX['top'],
-        settings.BOUNDING_BOX['right'],
-        settings.BOUNDING_BOX['bottom'])
-    )
-
-    if (('OMGEO_GEOCODER_SOURCES' in dir(settings)
-         and settings.OMGEO_GEOCODER_SOURCES is not None)):
-        geocoder = Geocoder(settings.OMGEO_GEOCODER_SOURCES)
-    else:
-        geocoder = Geocoder()
-
-    results = geocoder.geocode(query)
-    if results is not False:
-        response = []
-        for result in results:
-            # some geocoders do not support passing a bounding box filter
-            if result_in_bounding_box(result):
-                response.append({
-                    "match_addr": result.match_addr,
-                    "x": result.x,
-                    "y": result.y,
-                    "score": result.score,
-                    "locator": result.locator,
-                    "geoservice": result.geoservice,
-                    "wkid": result.wkid,
-                })
-        return response
-    else:
-        # This is not a very helpful error message, but omgeo as of
-        # v1.2 does not report failure details.
-        return {"error": "The geocoder failed to generate a list of results."}
 
 
 def _approve_or_reject_pending_edit(

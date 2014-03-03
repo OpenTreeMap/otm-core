@@ -1017,19 +1017,6 @@ class UpdatePlotAndTree(TestCase):
         self.assertTrue(len(tree) == 0, 'Expected tree to be gone')
 
 
-def _create_mock_request_without_version():
-    return _create_mock_request_with_version_string(None)
-
-
-def _create_mock_request_with_version_string(version_string):
-    class MockRequest(object):
-        def __init__(self):
-            self.META = {}
-            if version_string:
-                self.META['HTTP_APPLICATIONVERSION'] = version_string
-    return MockRequest()
-
-
 @override_settings(NEARBY_INSTANCE_RADIUS=2)
 class InstancesClosestToPoint(TestCase):
     def setUp(self):
