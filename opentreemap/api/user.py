@@ -10,7 +10,8 @@ from datetime import datetime
 
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
+from django.shortcuts import get_object_or_404
 from django.templatetags.l10n import localize
 from django.utils.translation import ugettext as trans
 
@@ -18,6 +19,10 @@ from registration.models import RegistrationProfile
 
 from treemap.udf import DATETIME_FORMAT
 from treemap.models import User, Audit
+
+
+REQ_FIELDS = {'email', 'username', 'password', 'allow_email_contact'}
+ALL_FIELDS = REQ_FIELDS | {'organization', 'lastname', 'firstname'}
 
 
 def user_info(request):
@@ -38,22 +43,46 @@ def _conflict_response(s):
     return response
 
 
+def update_user(request, user_id):
+    user = get_object_or_404(User, pk=user_id)
+
+    if user.pk != request.user.pk:
+        return HttpResponseForbidden()
+
+    data = json.loads(request.body)
+
+    errors = {}
+    for field in ALL_FIELDS:
+        if field in data:
+            if field in REQ_FIELDS and not field:
+                errors[field] = [trans('This field cannot be empty')]
+            else:
+                if field == 'password':
+                    user.set_password(data[field])
+                else:
+                    setattr(user, field, data[field])
+
+    if errors:
+        raise ValidationError(errors)
+    else:
+        user.save()
+
+    return user
+
+
 def create_user(request):
     data = json.loads(request.body)
 
     if 'allow_email_contact' not in data:
         data['allow_email_contact'] = False
 
-    req_fields = {'email', 'username', 'password', 'allow_email_contact'}
-    all_fields = req_fields | {'organization', 'lastname', 'firstname'}
-
     errors = {}
-    for field in req_fields:
+    for field in REQ_FIELDS:
         if field not in data:
             errors[field] = [trans('This field is required')]
 
     for inputfield in data:
-        if inputfield not in all_fields:
+        if inputfield not in ALL_FIELDS:
             errors[inputfield] = [trans('Unrecognized field')]
 
     if errors:

@@ -1213,6 +1213,57 @@ class UserTest(TestCase):
 
         self.assertIsNotNone(resp['id'])
 
+    def testUpdateUserRequiredField(self):
+        peon = make_user(username='peon', password='pw')
+        peon.save()
+
+        url = reverse('update_user', kwargs={'user_id': peon.pk})
+
+        def updatePeonRequest(d):
+            return put_json(url, d, self.client, user=peon)
+
+        updatePeonRequest({'lastname': 'l1'})
+
+        peon = User.objects.get(pk=peon.pk)
+        self.assertEquals(peon.lastname, 'l1')
+
+        updatePeonRequest({'lastname': 'l2'})
+
+        peon = User.objects.get(pk=peon.pk)
+        self.assertEquals(peon.lastname, 'l2')
+
+        updatePeonRequest({'password': 'whateva'})
+
+        peon = User.objects.get(pk=peon.pk)
+        valid_password = peon.check_password('whateva')
+
+        self.assertTrue(valid_password)
+
+    def testCantRemoveRequiredFields(self):
+        peon = make_user(username='peon', password='pw')
+        peon.save()
+
+        url = reverse('update_user', kwargs={'user_id': peon.pk})
+
+        resp = put_json(url, {'username': ''},
+                        self.client, user=peon)
+
+        self.assertEquals(resp.status_code, 400)
+
+    def testCanOnlyUpdateLoggedInUser(self):
+        peon = make_user(username='peon', password='pw')
+        peon.save()
+
+        grunt = make_user(username='grunt', password='pw')
+        grunt.save()
+
+        url = reverse('update_user', kwargs={'user_id': peon.pk})
+
+        resp = put_json(url, {'password': 'whateva'},
+                        self.client, user=grunt)
+
+        self.assertEquals(resp.status_code, 403)
+
 
 class SigningTest(TestCase):
     def setUp(self):
