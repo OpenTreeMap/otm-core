@@ -120,22 +120,6 @@ def edits(request, instance, user_id):
     return keys
 
 
-@require_http_methods(["PUT"])
-@json_api_call
-@login_required
-def update_password(request, user_id):
-    data = json.loads(request.body)
-
-    pw = data["password"]
-
-    user = User.objects.get(pk=user_id)
-
-    user.set_password(pw)
-    user.save()
-
-    return {"status": "success"}
-
-
 @require_http_methods(["POST"])
 @json_api_call
 def reset_password(request):
