@@ -170,7 +170,7 @@ class Version(TestCase):
         settings.OTM_VERSION = "1.2.3"
         settings.API_VERSION = "2"
 
-        ret = self.client.get("%s/version" % API_PFX)
+        ret = get_signed(self.client, "%s/version" % API_PFX)
 
         self.assertEqual(ret.status_code, 200)
         json = loads(ret.content)

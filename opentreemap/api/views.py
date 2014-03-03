@@ -48,8 +48,6 @@ def datetime_to_iso_string(d):
         return None
 
 
-@require_http_methods(["GET"])
-@json_api_call
 def status(request):
     return [{'api_version': 'v2',
              'status': 'online',
@@ -157,8 +155,6 @@ def reset_password(request):
         raise HttpBadRequestException()
 
 
-@require_http_methods(["GET"])
-@json_api_call
 def version(request):
     """ API Request
 
@@ -422,3 +418,13 @@ add_photo_endpoint = check_signature_and_require_login(
         route(
             POST=instance_request(
                 return_400_if_validation_errors(add_photo)))))
+
+status_view = check_signature(
+    json_api_call(
+        route(
+            GET=status)))
+
+version_view = check_signature(
+    json_api_call(
+        route(
+            GET=version)))

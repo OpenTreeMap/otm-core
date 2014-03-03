@@ -118,12 +118,15 @@ def _check_signature(view_f, require_login):
         # parameters
         sig = request.REQUEST.get('signature')
 
+        if not sig:
+            sig = request.META.get('HTTP_X_SIGNATURE')
+
+        if not sig:
+            return _missing_request
+
         # Signature may have had "+" changed to spaces so change them
         # back
         sig = sig.replace(' ', '+')
-
-        if not sig:
-            sig = request.META.get('HTTP_X_SIGNATURE')
 
         timestamp = request.REQUEST.get('timestamp')
         if not timestamp:
