@@ -7,10 +7,10 @@ from django.conf.urls import patterns
 
 from opentreemap.util import route
 
-from api.views import (status, version,
+from api.views import (status_view, version_view,
                        remove_current_tree_from_plot, plots_endpoint,
                        species_list_endpoint, approve_pending_edit,
-                       reject_pending_edit, geocode_address,
+                       reject_pending_edit,
                        reset_password, user_endpoint,
                        add_profile_photo, update_password,
                        plot_endpoint, edits, plots_closest_to_point_endpoint,
@@ -23,10 +23,8 @@ instance_pattern = r'^(?P<instance_url_name>' + URL_NAME_PATTERN + r')'
 
 urlpatterns = patterns(
     '',
-    (r'^$', status),
-    (r'^version$', version),
-
-    (r'^addresses/(?P<address>.+)', geocode_address),
+    (r'^$', status_view),
+    (r'^version$', version_view),
 
     (r'^user$', user_endpoint),
     (r'^user/(?P<user_id>\d+)/photo/(?P<title>.+)$', add_profile_photo),

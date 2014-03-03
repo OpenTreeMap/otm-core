@@ -6,15 +6,18 @@ from __future__ import division
 from StringIO import StringIO
 from json import loads, dumps
 from urlparse import urlparse
+
 import urllib
 import os
 import base64
+import datetime
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 from django.test import TestCase
 from django.test.utils import override_settings
-from django.test.client import Client
+from django.test.client import Client, RequestFactory, ClientHandler
+from django.http import HttpRequest
 from django.utils.unittest.case import skip
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -25,21 +28,41 @@ from treemap.tests import (make_user, make_commander_user, make_request,
                            make_instance, LocalMediaTestCase, media_dir)
 
 from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
-from api.models import APIKey, APILog
-from api.views import (InvalidAPIKeyException,
-                       _parse_application_version_header_as_dict)
+from api.models import APIAccessCredential
+from api.views import add_photo_endpoint
 from api.instance import instances_closest_to_point
 from api.user import create_user
+from api.auth import (get_signature_for_request, check_signature,
+                      SIG_TIMESTAMP_FORMAT)
 
 
 API_PFX = "/api/v2"
 
 
-def create_signer_dict(user):
-    key = APIKey(user=user, key="TESTING", enabled=True, comment="")
-    key.save()
+def sign_request_as_user(request, user):
+    try:
+        cred = APIAccessCredential.objects.get(user=user)
+    except APIAccessCredential.DoesNotExist:
+        cred = APIAccessCredential.create(user=user)
 
-    return {"HTTP_X_API_KEY": key.key}
+    return sign_request(request, cred)
+
+
+def sign_request(request, cred=None):
+    if cred is None:
+        cred = APIAccessCredential.create()
+
+    now = datetime.datetime.now().strftime(SIG_TIMESTAMP_FORMAT)
+    reqdict = dict(request.REQUEST.iteritems())
+    reqdict['timestamp'] = now
+    reqdict['access_key'] = cred.access_key
+
+    request.REQUEST.dicts = [reqdict]
+
+    sig = get_signature_for_request(request, cred.secret_key)
+    request.REQUEST.dicts[0]['signature'] = sig
+
+    return request
 
 
 def _get_path(parsed_url):
@@ -53,7 +76,7 @@ def _get_path(parsed_url):
         return urllib.unquote(parsed_url[2])
 
 
-def send_json_body(url, body_object, client, method, sign_dict=None):
+def send_json_body(url, body_object, client, method, user=None):
     """
     Serialize a list or dictionary to JSON then send it to an endpoint.
     The "post" method exposed by the Django test client assumes that you
@@ -71,28 +94,57 @@ def send_json_body(url, body_object, client, method, sign_dict=None):
         'REQUEST_METHOD': method,
         'wsgi.input': body_stream,
     }
-    return _send_with_client_params(url, client, client_params, sign_dict)
+    return _send_with_client_params(url, client, client_params, user)
 
 
-def _send_with_client_params(url, client, client_params, sign_dict=None):
-    if sign_dict is not None:
-        client_params.update(sign_dict)
+class SignedClientHandler(ClientHandler):
+    def __init__(self, sign, sign_as, *args, **kwargs):
+        self.sign = sign
+        self.sign_as = sign_as
 
-    return client.post(url, **client_params)
+        super(SignedClientHandler, self).__init__(*args, **kwargs)
+
+    def get_response(self, req):
+        if self.sign:
+            req = sign_request_as_user(req, self.sign_as)
+
+        return super(SignedClientHandler, self).get_response(req)
 
 
-def post_json(url, body_object, client, sign_dict=None):
+def get_signed(client, *args, **kwargs):
+    handler = client.handler
+    client.handler = SignedClientHandler(True, kwargs.get('user', None))
+
+    resp = client.get(*args, **kwargs)
+
+    client.handler = handler
+
+    return resp
+
+
+def _send_with_client_params(url, client, client_params, user=None):
+    handler = client.handler
+    client.handler = SignedClientHandler(True, user)
+
+    resp = client.post(url, **client_params)
+
+    client.handler = handler
+
+    return resp
+
+
+def post_json(url, body_object, client, user=None):
     """
     Serialize a list or dictionary to JSON then POST it to an endpoint.
     The "post" method exposed by the Django test client assumes that you
     are posting form data, so you need to manually setup the parameters
     to override that default functionality.
     """
-    return send_json_body(url, body_object, client, 'POST', sign_dict)
+    return send_json_body(url, body_object, client, 'POST', user)
 
 
-def put_json(url, body_object, client, sign_dict=None):
-    return send_json_body(url, body_object, client, 'PUT', sign_dict)
+def put_json(url, body_object, client, user=None):
+    return send_json_body(url, body_object, client, 'PUT', user)
 
 
 def assert_reputation(test_case, expected_reputation):
@@ -108,152 +160,17 @@ def assert_reputation(test_case, expected_reputation):
                           % (reputation, expected_reputation))
 
 
-class Signing(TestCase):
-    def setUp(self):
-        settings.OTM_VERSION = "1.2.3"
-        settings.API_VERSION = "2"
-
-        setupTreemapEnv()
-
-        self.u = User.objects.get(username="jim")
-
-    def test_unsigned_will_fail(self):
-        self.assertRaises(InvalidAPIKeyException,
-                          self.client.get, "%s/version" % API_PFX)
-
-    def test_signed_header(self):
-        key = APIKey(user=self.u, key="TESTING", enabled=True, comment="")
-        key.save()
-
-        ret = self.client.get("%s/version" % API_PFX,
-                              **{"HTTP_X_API_KEY": key.key})
-        self.assertEqual(ret.status_code, 200)
-
-    def test_url_param(self):
-        key = APIKey(user=self.u, key="TESTING", enabled=True, comment="")
-        key.save()
-
-        ret = self.client.get("%s/version?apikey=%s" % (API_PFX, key.key))
-        self.assertEqual(ret.status_code, 200)
-
-    def test_disabled_keys_dont_work(self):
-        key = APIKey(user=self.u, key="TESTING", enabled=False, comment="")
-        key.save()
-
-        self.assertRaises(InvalidAPIKeyException, self.client.get,
-                          "%s/version" % API_PFX, **{"X-API-Key": key.key})
-
-    def tearDown(self):
-        teardownTreemapEnv()
-
-
-class Authentication(TestCase):
-    def setUp(self):
-        self.instance = setupTreemapEnv()
-        self.jim = User.objects.get(username="jim")
-        self.sign = create_signer_dict(self.jim)
-
-    def test_401(self):
-        ret = self.client.get("%s/user" % API_PFX, **self.sign)
-        self.assertEqual(ret.status_code, 401)
-
-    def test_ok(self):
-        auth = base64.b64encode("jim:password")
-        withauth = dict(self.sign.items() +
-                        [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
-
-        ret = self.client.get("%s/user" % API_PFX, **withauth)
-        self.assertEqual(ret.status_code, 200)
-
-    def test_malformed_auth(self):
-        withauth = dict(self.sign.items() +
-                        [("HTTP_AUTHORIZATION", "FUUBAR")])
-
-        ret = self.client.get("%s/user" % API_PFX, **withauth)
-        self.assertEqual(ret.status_code, 401)
-
-        auth = base64.b64encode("foobar")
-        withauth = dict(self.sign.items() +
-                        [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
-
-        ret = self.client.get("%s/user" % API_PFX, **withauth)
-        self.assertEqual(ret.status_code, 401)
-
-    def test_bad_cred(self):
-        auth = base64.b64encode("jim:passwordz")
-        withauth = dict(self.sign.items() +
-                        [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
-
-        ret = self.client.get("%s/user" % API_PFX, **withauth)
-        self.assertEqual(ret.status_code, 401)
-
-    @skip("We can't return reputation until login takes an instance")
-    def test_user_has_rep(self):
-        ijim = self.jim.get_instance_user(self.instance)
-        ijim.reputation = 1001
-        ijim.save()
-
-        auth = base64.b64encode("jim:password")
-        withauth = dict(self.sign.items() +
-                        [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
-
-        ret = self.client.get("%s/user" % API_PFX, **withauth)
-
-        self.assertEqual(ret.status_code, 200)
-
-        json = loads(ret.content)
-
-        self.assertEqual(json['username'], self.jim.username)
-        self.assertEqual(json['status'], 'success')
-        self.assertEqual(json['reputation'], 1001)
-
-    def tearDown(self):
-        teardownTreemapEnv()
-
-
-class Logging(TestCase):
-    def setUp(self):
-        setupTreemapEnv()
-
-        self.u = User.objects.get(username="jim")
-        self.sign = create_signer_dict(self.u)
-
-    def test_log_request(self):
-        settings.SITE_ROOT = ''
-
-        ret = self.client.get(
-            "%s/version?rvar=4,rvar2=5" % API_PFX, **self.sign)
-        self.assertEqual(ret.status_code, 200)
-
-        logs = APILog.objects.all()
-
-        self.assertTrue(logs is not None and len(logs) == 1)
-
-        key = APIKey.objects.get(user=self.u)
-        log = logs[0]
-
-        self.assertEqual(log.apikey, key)
-        self.assertTrue(
-            log.url.endswith("%s/version?rvar=4,rvar2=5" % API_PFX))
-        self.assertEqual(log.method, "GET")
-        self.assertEqual(log.requestvars, "rvar=4,rvar2=5")
-
-    def tearDown(self):
-        teardownTreemapEnv()
-
-
 class Version(TestCase):
     def setUp(self):
         setupTreemapEnv()
 
         self.u = User.objects.get(username="jim")
-        self.sign = create_signer_dict(self.u)
 
     def test_version(self):
         settings.OTM_VERSION = "1.2.3"
         settings.API_VERSION = "2"
 
-        ret = self.client.get("%s/version" % API_PFX, **self.sign)
+        ret = get_signed(self.client, "%s/version" % API_PFX)
 
         self.assertEqual(ret.status_code, 200)
         json = loads(ret.content)
@@ -269,7 +186,6 @@ class PlotListing(TestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
         self.u = User.objects.get(username="commander")
-        self.sign = create_signer_dict(self.u)
         self.client = Client()
 
     def tearDown(self):
@@ -281,12 +197,8 @@ class PlotListing(TestCase):
         return None
         user = self.u
 
-        auth = base64.b64encode("%s:%s" % (user.username, user.username))
-        withauth = dict(create_signer_dict(user).items() +
-                        [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
-
-        self.client.get("%s/user/%s/edits" %
-                        (API_PFX, user.pk), **withauth)
+        get_signed(self.cliend, "%s/user/%s/edits" %
+                   (API_PFX, user.pk))
 
     def setup_edit_flags_test(self):
         ghost = AnonymousUser()
@@ -337,8 +249,7 @@ class PlotListing(TestCase):
         p.save_with_user(self.u)
 
         info = self.client.get("%s/%s/plots" %
-                               (API_PFX, self.instance.url_name),
-                               **self.sign)
+                               (API_PFX, self.instance.url_name))
 
         self.assertEqual(info.status_code, 200)
 
@@ -367,7 +278,7 @@ class PlotListing(TestCase):
         t.present = True
         t.save()
 
-        info = self.client.get("%s/plots" % API_PFX, **self.sign)
+        info = self.client.get("%s/plots" % API_PFX)
 
         self.assertEqual(info.status_code, 200)
 
@@ -382,7 +293,7 @@ class PlotListing(TestCase):
         t.dbh = 11.2
         t.save()
 
-        info = self.client.get("%s/plots" % API_PFX, **self.sign)
+        info = self.client.get("%s/plots" % API_PFX)
 
         self.assertEqual(info.status_code, 200)
 
@@ -405,27 +316,27 @@ class PlotListing(TestCase):
         p2 = mkPlot(self.u)
         p3 = mkPlot(self.u)
 
-        r = self.client.get("%s/plots?offset=0&size=2" % API_PFX, **self.sign)
+        r = self.client.get("%s/plots?offset=0&size=2" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p1.pk, p2.pk]))
 
-        r = self.client.get("%s/plots?offset=1&size=2" % API_PFX, **self.sign)
+        r = self.client.get("%s/plots?offset=1&size=2" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p2.pk, p3.pk]))
 
-        r = self.client.get("%s/plots?offset=2&size=2" % API_PFX, **self.sign)
+        r = self.client.get("%s/plots?offset=2&size=2" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p3.pk]))
 
-        r = self.client.get("%s/plots?offset=3&size=2" % API_PFX, **self.sign)
+        r = self.client.get("%s/plots?offset=3&size=2" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set())
 
-        r = self.client.get("%s/plots?offset=0&size=5" % API_PFX, **self.sign)
+        r = self.client.get("%s/plots?offset=0&size=5" % API_PFX)
 
         rids = set([p["id"] for p in loads(r.content)])
         self.assertEqual(rids, set([p1.pk, p2.pk, p3.pk]))
@@ -435,84 +346,89 @@ class Locations(TestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
         self.user = User.objects.get(username="commander")
-        self.sign = create_signer_dict(self.user)
 
     def test_locations_plots_endpoint_with_auth(self):
-        auth = base64.b64encode("%s:%s" %
-                                (self.user.username, self.user.username))
-        withauth = dict(create_signer_dict(self.user).items() +
-                        [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
-
-        response = self.client.get(
+        response = get_signed(
+            self.client,
             "%s/%s/locations/0,0/plots" % (API_PFX, self.instance.url_name),
-            **withauth)
+            user=self.user)
         self.assertEqual(response.status_code, 200)
 
     def test_locations_plots_endpoint(self):
-        response = self.client.get(
-            "%s/%s/locations/0,0/plots" % (API_PFX, self.instance.url_name),
-            **self.sign)
+        response = get_signed(
+            self.client,
+            "%s/%s/locations/0,0/plots" % (API_PFX, self.instance.url_name))
         self.assertEqual(response.status_code, 200)
 
     def test_locations_plots_endpoint_max_plots_param_must_be_a_number(self):
-        response = self.client.get(
+        response = get_signed(
+            self.client,
             "%s/%s/locations/0,0/plots?max_plots=foo" % (
-                API_PFX, self.instance.url_name),
-            **self.sign)
+                API_PFX, self.instance.url_name))
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
                          'The max_plots parameter must be '
                          'a number between 1 and 500')
 
     def test_locations_plots_max_plots_param_cannot_be_greater_than_500(self):
-        response = self.client.get(
+        response = get_signed(
+            self.client,
             "%s/%s/locations/0,0/plots?max_plots=501" % (
-                API_PFX, self.instance.url_name),
-            **self.sign)
+                API_PFX, self.instance.url_name))
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
                          'The max_plots parameter must be '
                          'a number between 1 and 500')
-        response = self.client.get("%s/%s/locations/0,0/plots?max_plots=500" %
-                                   (API_PFX, self.instance.url_name),
-                                   **self.sign)
+        response = get_signed(
+            self.client,
+            "%s/%s/locations/0,0/plots?max_plots=500" %
+            (API_PFX, self.instance.url_name))
         self.assertEqual(response.status_code, 200)
 
     def test_locations_plots_endpoint_max_plots_param_cannot_be_less_than_1(
             self):
-        response = self.client.get("%s/%s/locations/0,0/plots?max_plots=0" %
-                                   (API_PFX, self.instance.url_name),
-                                   **self.sign)
+        response = get_signed(
+            self.client,
+            "%s/%s/locations/0,0/plots?max_plots=0" %
+            (API_PFX, self.instance.url_name))
+
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
                          'The max_plots parameter must be a '
                          'number between 1 and 500')
-        response = self.client.get("%s/%s/locations/0,0/plots?max_plots=1" %
-                                   (API_PFX, self.instance.url_name),
-                                   **self.sign)
+        response = get_signed(
+            self.client,
+            "%s/%s/locations/0,0/plots?max_plots=1" %
+            (API_PFX, self.instance.url_name))
+
         self.assertEqual(response.status_code, 200)
 
     def test_locations_plots_endpoint_distance_param_must_be_a_number(self):
-        response = self.client.get("%s/%s/locations/0,0/plots?distance=foo" %
-                                   (API_PFX, self.instance.url_name),
-                                   **self.sign)
+        response = get_signed(
+            self.client,
+            "%s/%s/locations/0,0/plots?distance=foo" %
+            (API_PFX, self.instance.url_name))
+
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
                          'The distance parameter must be a number')
 
-        response = self.client.get("%s/%s/locations/0,0/plots?distance=42" %
-                                   (API_PFX, self.instance.url_name),
-                                   **self.sign)
+        response = get_signed(
+            self.client,
+            "%s/%s/locations/0,0/plots?distance=42" %
+            (API_PFX, self.instance.url_name))
+
         self.assertEqual(response.status_code, 200)
 
     def test_plots(self):
         plot = mkPlot(self.instance, self.user)
         plot.save_with_user(self.user)
 
-        response = self.client.get("%s/%s/locations/%s,%s/plots" %
-                                   (API_PFX, self.instance.url_name,
-                                    plot.geom.x, plot.geom.y),
-                                   **self.sign)
+        response = get_signed(
+            self.client,
+            "%s/%s/locations/%s,%s/plots" %
+            (API_PFX, self.instance.url_name,
+             plot.geom.x, plot.geom.y))
 
         self.assertEqual(response.status_code, 200)
 
@@ -523,10 +439,6 @@ class CreatePlotAndTree(TestCase):
         self.instance = setupTreemapEnv()
 
         self.user = User.objects.get(username="commander")
-        self.sign = create_signer_dict(self.user)
-        auth = base64.b64encode("commander:password")
-        self.sign = dict(self.sign.items() +
-                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
         rm = ReputationMetric(instance=self.instance, model_name='Plot',
                               action=Audit.Type.Insert, direct_write_score=2,
@@ -549,7 +461,7 @@ class CreatePlotAndTree(TestCase):
         reputation_count = self.user.get_reputation(self.instance)
 
         response = post_json("%s/%s/plots" % (API_PFX, self.instance.url_name),
-                             data, self.client, self.sign)
+                             data, self.client, self.user)
 
         self.assertEqual(200, response.status_code,
                          "Create failed:" + response.content)
@@ -584,7 +496,7 @@ class CreatePlotAndTree(TestCase):
         reputation_count = self.user.get_reputation(self.instance)
 
         response = post_json("%s/%s/plots" % (API_PFX, self.instance.url_name),
-                             data, self.client, self.sign)
+                             data, self.client, self.user)
 
         self.assertEqual(400,
                          response.status_code,
@@ -623,7 +535,7 @@ class CreatePlotAndTree(TestCase):
         reputation_count = self.user.get_reputation(self.instance)
 
         response = post_json("%s/%s/plots" % (API_PFX, self.instance.url_name),
-                             data, self.client, self.sign)
+                             data, self.client, self.user)
 
         self.assertEqual(200, response.status_code,
                          "Create failed:" + response.content)
@@ -649,18 +561,7 @@ class UpdatePlotAndTree(TestCase):
         self.instance = setupTreemapEnv()
 
         self.user = User.objects.get(username="commander")
-        self.sign = create_signer_dict(self.user)
-        auth = base64.b64encode("commander:password")
-        self.sign = dict(self.sign.items() +
-                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
-
         self.public_user = User.objects.get(username="apprentice")
-
-        self.public_user_sign = create_signer_dict(self.public_user)
-        public_user_auth = base64.b64encode("apprentice:password")
-        self.public_user_sign = dict(
-            self.public_user_sign.items() +
-            [("HTTP_AUTHORIZATION", "Basic %s" % public_user_auth)])
 
         rm = ReputationMetric(instance=self.instance, model_name='Plot',
                               action=Audit.Type.Update, direct_write_score=2,
@@ -670,7 +571,7 @@ class UpdatePlotAndTree(TestCase):
     def test_invalid_plot_id_returns_404_and_a_json_error(self):
         response = put_json("%s/%s/plots/0" %
                             (API_PFX, self.instance.url_name),
-                            {}, self.client, self.sign)
+                            {}, self.client, self.user)
 
         self.assertEqual(404, response.status_code)
 
@@ -695,7 +596,7 @@ class UpdatePlotAndTree(TestCase):
 
         response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
-                            updated_values, self.client, self.sign)
+                            updated_values, self.client, self.user)
 
         self.assertEqual(200, response.status_code)
 
@@ -731,7 +632,7 @@ class UpdatePlotAndTree(TestCase):
         # Send the edit request as a public user
         response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
-                            updated_values, self.client, self.public_user_sign)
+                            updated_values, self.client, self.public_user)
 
         self.assertEqual(200, response.status_code)
 
@@ -759,7 +660,7 @@ class UpdatePlotAndTree(TestCase):
 
         response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
-                            updated_values, self.client, self.sign)
+                            updated_values, self.client, self.user)
 
         self.assertEqual(200, response.status_code)
         response_json = loads(response.content)
@@ -777,7 +678,7 @@ class UpdatePlotAndTree(TestCase):
 
         response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
-                            updated_values, self.client, self.sign)
+                            updated_values, self.client, self.user)
 
         self.assertEqual(200, response.status_code)
         tree = Plot.objects.get(pk=test_plot_id).current_tree()
@@ -798,7 +699,7 @@ class UpdatePlotAndTree(TestCase):
 
     #     response = put_json("%s/%s/plots/%d" %
     #                      (API_PFX, self.instance.url_name, test_plot.pk),
-    #                      updated_values, self.client, self.public_user_sign)
+    #                      updated_values, self.client, self.public_user)
 
     #     self.assertEqual(200, response.status_code)
     #     self.assertEqual(0, len(Pending.objects.all()),
@@ -819,7 +720,7 @@ class UpdatePlotAndTree(TestCase):
         updated_values = {'tree': {'diameter': 3.9}}
         response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.id),
-                            updated_values, self.client, self.sign)
+                            updated_values, self.client, self.user)
 
         self.assertEqual(200, response.status_code)
 
@@ -842,7 +743,7 @@ class UpdatePlotAndTree(TestCase):
 
         response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
-                            updated_values, self.client, self.public_user_sign)
+                            updated_values, self.client, self.public_user)
 
         self.assertEqual(200, response.status_code)
         tree = Tree.objects.get(pk=test_tree_id)
@@ -869,7 +770,7 @@ class UpdatePlotAndTree(TestCase):
 
         response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
-                            updated_values, self.client, self.sign)
+                            updated_values, self.client, self.user)
 
         self.assertEqual(200, response.status_code)
         tree = Tree.objects.get(pk=test_tree_id)
@@ -888,7 +789,7 @@ class UpdatePlotAndTree(TestCase):
 
         response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
-                            updated_values, self.client, self.sign)
+                            updated_values, self.client, self.user)
 
         self.assertEqual(404, response.status_code)
 
@@ -898,7 +799,7 @@ class UpdatePlotAndTree(TestCase):
         url = "%s/%s/pending-edits/%d/approve/" % (API_PFX,
                                                    self.instance.url_name,
                                                    invalid_pend_id)
-        response = post_json(url, None, self.client, self.sign)
+        response = post_json(url, None, self.client, self.user)
         self.assertEqual(404, response.status_code,
                          "Expected approving and invalid "
                          "pend id to return 404")
@@ -909,7 +810,7 @@ class UpdatePlotAndTree(TestCase):
         url = "%s/%s/pending-edits/%d/reject/" % (API_PFX,
                                                   self.instance.url_name,
                                                   invalid_pend_id)
-        response = post_json(url, None, self.client, self.sign)
+        response = post_json(url, None, self.client, self.user)
 
         self.assertEqual(404, response.status_code,
                          "Expected approving and invalid pend "
@@ -938,7 +839,7 @@ class UpdatePlotAndTree(TestCase):
         response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.id),
                             updated_values, self.client,
-                            self.public_user_sign)
+                            self.public_user)
 
         self.assertEqual(200, response.status_code)
 
@@ -964,7 +865,7 @@ class UpdatePlotAndTree(TestCase):
         response = post_json("%s/%s/pending-edits/%d/%s/" %
                              (API_PFX, self.instance.url_name,
                               pending_edit.id, action_str),
-                             None, self.client, self.sign)
+                             None, self.client, self.user)
 
         self.assertEqual(200, response.status_code)
 
@@ -1023,7 +924,7 @@ class UpdatePlotAndTree(TestCase):
 
         response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.id),
-                            updated_values, self.client, self.public_user_sign)
+                            updated_values, self.client, self.public_user)
         self.assertEqual(response.status_code, 200,
                          "Non 200 response when updating plot")
 
@@ -1034,7 +935,7 @@ class UpdatePlotAndTree(TestCase):
         response = put_json("%s/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.id),
                             updated_values,
-                            self.client, self.public_user_sign)
+                            self.client, self.public_user)
 
         self.assertEqual(response.status_code, 200,
                          "Non 200 response when updating plot")
@@ -1050,7 +951,7 @@ class UpdatePlotAndTree(TestCase):
         url = "%s/%s/pending-edits/%d/approve/" % (API_PFX,
                                                    self.instance.url_name,
                                                    approved_pend_id)
-        response = post_json(url, None, self.client, self.sign)
+        response = post_json(url, None, self.client, self.user)
 
         self.assertEqual(response.status_code, 200,
                          "Non 200 response when approving the pend")
@@ -1067,12 +968,12 @@ class UpdatePlotAndTree(TestCase):
         tree_id = tree.pk
         url = "%s/%s/plots/%d" % (API_PFX, self.instance.url_name, plot_id)
 
-        response = self.client.delete(url, **self.sign)
+        response = self.client.delete(url, **self.user)
         self.assertEqual(403, response.status_code,
                          "Expected 403 when there's still a tree")
 
         tree.delete_with_user(self.user)
-        response = self.client.delete(url, **self.sign)
+        response = self.client.delete(url, **self.user)
         self.assertEqual(200, response.status_code,
                          "Expected 200 status code after delete")
 
@@ -1100,7 +1001,7 @@ class UpdatePlotAndTree(TestCase):
         url = "%s/%s/plots/%d/tree" % (API_PFX,
                                        self.instance.url_name,
                                        plot_id)
-        response = self.client.delete(url, **self.sign)
+        response = self.client.delete(url, **self.user)
 
         self.assertEqual(200, response.status_code,
                          "Expected 200 status code after delete")
@@ -1116,76 +1017,6 @@ class UpdatePlotAndTree(TestCase):
         self.assertTrue(len(tree) == 0, 'Expected tree to be gone')
 
 
-def _create_mock_request_without_version():
-    return _create_mock_request_with_version_string(None)
-
-
-def _create_mock_request_with_version_string(version_string):
-    class MockRequest(object):
-        def __init__(self):
-            self.META = {}
-            if version_string:
-                self.META['HTTP_APPLICATIONVERSION'] = version_string
-    return MockRequest()
-
-
-class VersionHeaderParsing(TestCase):
-    def test_missing_version_header(self):
-        request = _create_mock_request_without_version()
-        version_dict = _parse_application_version_header_as_dict(request)
-        self.assertEqual({
-            'platform': 'UNKNOWN',
-            'version': 'UNKNOWN',
-            'build': 'UNKNOWN'
-        }, version_dict)
-
-    def test_platform_only(self):
-        request = _create_mock_request_with_version_string('ios')
-        version_dict = _parse_application_version_header_as_dict(request)
-        self.assertEqual({
-            'platform': 'ios',
-            'version': 'UNKNOWN',
-            'build': 'UNKNOWN'
-        }, version_dict)
-
-    def test_platform_and_version_missing_build(self):
-        request = _create_mock_request_with_version_string('ios-1.2')
-        version_dict = _parse_application_version_header_as_dict(request)
-        self.assertEqual({
-            'platform': 'ios',
-            'version': '1.2',
-            'build': 'UNKNOWN'
-        }, version_dict)
-
-    def test_all(self):
-        request = _create_mock_request_with_version_string('ios-1.2-b32')
-        version_dict = _parse_application_version_header_as_dict(request)
-        self.assertEqual({
-            'platform': 'ios',
-            'version': '1.2',
-            'build': 'b32'
-        }, version_dict)
-
-    def test_extra_segments_dropped(self):
-        request = _create_mock_request_with_version_string(
-            'ios-1.2-b32-some-other junk')
-        version_dict = _parse_application_version_header_as_dict(request)
-        self.assertEqual({
-            'platform': 'ios',
-            'version': '1.2',
-            'build': 'b32'
-        }, version_dict)
-
-    def test_non_numeric_version(self):
-        request = _create_mock_request_with_version_string('ios-null-bnull')
-        version_dict = _parse_application_version_header_as_dict(request)
-        self.assertEqual({
-            'platform': 'ios',
-            'version': 'null',
-            'build': 'bnull'
-        }, version_dict)
-
-
 @override_settings(NEARBY_INSTANCE_RADIUS=2)
 class InstancesClosestToPoint(TestCase):
     def setUp(self):
@@ -1196,7 +1027,8 @@ class InstancesClosestToPoint(TestCase):
         self.user = make_commander_user(instance=self.i2)
 
     def test_nearby_list_default(self):
-        request = make_request()
+        request = sign_request_as_user(make_request(), self.user)
+
         instance_infos = instances_closest_to_point(request, 0, 0)
         self.assertEqual(1, len(instance_infos['nearby']))
         self.assertEqual(self.i1.pk, instance_infos['nearby'][0]['id'])
@@ -1204,7 +1036,9 @@ class InstancesClosestToPoint(TestCase):
         self.assertEqual(0, len(instance_infos['personal']))
 
     def test_nearby_list_distance(self):
-        request = make_request({'distance': 100000})
+        request = sign_request_as_user(
+            make_request({'distance': 100000}), self.user)
+
         instance_infos = instances_closest_to_point(request, 0, 0)
         self.assertEqual(2, len(instance_infos))
         self.assertEqual(self.i1.pk, instance_infos['nearby'][0]['id'])
@@ -1213,7 +1047,9 @@ class InstancesClosestToPoint(TestCase):
         self.assertEqual(0, len(instance_infos['personal']))
 
     def test_user_list_default(self):
-        request = make_request(user=self.user)
+        request = sign_request_as_user(
+            make_request(user=self.user), self.user)
+
         instance_infos = instances_closest_to_point(request, 0, 0)
         self.assertEqual(1, len(instance_infos['nearby']))
         self.assertEqual(self.i1.pk, instance_infos['nearby'][0]['id'])
@@ -1222,7 +1058,10 @@ class InstancesClosestToPoint(TestCase):
         self.assertEqual(self.i2.pk, instance_infos['personal'][0]['id'])
 
     def test_user_list_max(self):
-        request = make_request({'max': 3, 'distance': 100000}, user=self.user)
+        request = sign_request_as_user(
+            make_request({'max': 3, 'distance': 100000}, user=self.user),
+            self.user)
+
         instance_infos = instances_closest_to_point(request, 0, 0)
         self.assertEqual(2, len(instance_infos['nearby']))
         self.assertEqual(self.i1.pk, instance_infos['nearby'][0]['id'])
@@ -1233,25 +1072,21 @@ class InstancesClosestToPoint(TestCase):
 
 
 class TreePhotoTest(LocalMediaTestCase):
+    test_jpeg_path = os.path.join(
+        os.path.dirname(__file__),
+        'test_resources', '2by2.jpeg')
+
+    test_png_path = os.path.join(
+        os.path.dirname(__file__),
+        'test_resources', '2by2.png')
+
     def setUp(self):
         super(TreePhotoTest, self).setUp()
 
         self.instance = setupTreemapEnv()
         self.user = User.objects.get(username="commander")
 
-        auth = base64.b64encode("%s:%s" % (self.user.username, 'password'))
-        self.sign = dict(create_signer_dict(self.user).items() +
-                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
-
-        self.client = Client()
-
-        self.test_jpeg_path = os.path.join(
-            os.path.dirname(__file__),
-            'test_resources', '2by2.jpeg')
-
-        self.test_png_path = os.path.join(
-            os.path.dirname(__file__),
-            'test_resources', '2by2.png')
+        self.factory = RequestFactory()
 
     def tearDown(self):
         teardownTreemapEnv()
@@ -1275,8 +1110,12 @@ class TreePhotoTest(LocalMediaTestCase):
                                              plot_id)
 
         with open(path) as img:
-            response = self.client.post(
-                url, {'name': 'afile', 'file': img}, **self.sign)
+            req = self.factory.post(
+                url, {'name': 'afile', 'file': img})
+
+            req = sign_request_as_user(req, self.user)
+
+            response = add_photo_endpoint(req, self.instance.url_name, plot_id)
 
         plot = Plot.objects.get(pk=plot.pk)
 
@@ -1286,11 +1125,11 @@ class TreePhotoTest(LocalMediaTestCase):
 
     @media_dir
     def test_jpeg_tree_photo_file_name(self):
-        self._test_post_photo(self.test_jpeg_path)
+        self._test_post_photo(TreePhotoTest.test_jpeg_path)
 
     @media_dir
     def test_png_tree_photo_file_name(self):
-        self._test_post_photo(self.test_png_path)
+        self._test_post_photo(TreePhotoTest.test_png_path)
 
 
 class UserTest(TestCase):
@@ -1304,8 +1143,10 @@ class UserTest(TestCase):
                                 'allow_email_contact': True}
 
     def make_post_request(self, datadict):
-        return make_request(method='POST',
-                            body=dumps(datadict))
+        r = sign_request(make_request(method='POST',
+                                      body=dumps(datadict)))
+
+        return r
 
     def testCreateUser(self):
         rslt = create_user(self.make_post_request(self.defaultUserDict))
@@ -1365,3 +1206,235 @@ class UserTest(TestCase):
         resp = create_user(self.make_post_request(self.defaultUserDict))
 
         self.assertIsNotNone(resp['id'])
+
+
+class SigningTest(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def process_request_through_url(self, req):
+        return check_signature(
+            lambda req, *args, **kwargs: req)(req)
+
+    def sign_and_send(self, path, secret):
+        """
+        Sign and "send" a request for a given path
+
+        If there is an issue this method returns an
+        HttpResponse object that was generated
+
+        If signing is a success this method returns
+        the authenticated request
+
+        `self.assertRequestWasSuccess` will check
+        the result of this function to make sure that
+        signing worked
+        """
+        req = self.factory.get(path)
+
+        req.META['HTTP_HOST'] = 'testserver.com'
+
+        sig = get_signature_for_request(req, secret)
+
+        req = self.factory.get('%s&signature=%s' % (path, sig))
+
+        req.META['HTTP_HOST'] = 'testserver.com'
+
+        resp = self.process_request_through_url(req)
+
+        return resp
+
+    def assertRequestWasSuccess(self, thing):
+        # If we got an http request, we're golden
+        self.assertIsInstance(thing, HttpRequest)
+
+    def testAwsExample(self):
+        # http://docs.aws.amazon.com/general/latest/gr/signature-version-2.html
+        req = self.factory.get('https://elasticmapreduce.amazonaws.com?'
+                               'AWSAccessKeyId=AKIAIOSFODNN7EXAMPLE&Action='
+                               'DescribeJobFlows&SignatureMethod=HmacSHA256&'
+                               'SignatureVersion=2&Timestamp='
+                               '2011-10-03T15%3A19%3A30&Version=2009-03-31&'
+                               'Signature='
+                               'i91nKc4PWAt0JJIdXwz9HxZCJDdiy6cf%2FMj6vPxy'
+                               'YIs%3')
+
+        req.META['HTTP_HOST'] = 'elasticmapreduce.amazonaws.com'
+
+        sig = get_signature_for_request(
+            req, b'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY')
+
+        self.assertEquals(
+            sig, 'i91nKc4PWAt0JJIdXwz9HxZCJDdiy6cf/Mj6vPxyYIs=')
+
+    def testTimestampVoidsSignature(self):
+        acred = APIAccessCredential.create()
+        url = ('http://testserver.com/test/blah?'
+               'timestamp=%%s&'
+               'k1=4&k2=a&access_key=%s' % acred.access_key)
+
+        now = datetime.datetime.now()
+        invalid = now - datetime.timedelta(minutes=100)
+
+        req = self.sign_and_send(url % invalid.strftime(SIG_TIMESTAMP_FORMAT),
+                                 acred.secret_key)
+
+        self.assertEqual(req.status_code, 400)
+
+        timestamp = now.strftime(SIG_TIMESTAMP_FORMAT)
+        req = self.sign_and_send(url % timestamp, acred.secret_key)
+
+        self.assertRequestWasSuccess(req)
+
+    def testPOSTBodyChangesSig(self):
+        url = "%s/i/plots/1/tree/photo" % API_PFX
+
+        def get_sig(path):
+            with open(path) as img:
+                req = self.factory.post(
+                    url, {'name': 'afile', 'file': img})
+
+                req = sign_request(req)
+
+                return req.REQUEST['signature']
+
+        sig1 = get_sig(TreePhotoTest.test_png_path)
+        sig2 = get_sig(TreePhotoTest.test_jpeg_path)
+
+        self.assertNotEqual(sig1, sig2)
+
+    def testChangingUrlChangesSig(self):
+        path = 'http://testserver.com/test/blah?access_key=abc'
+
+        req = self.factory.get(path)
+        req.META['HTTP_HOST'] = 'testserver.com'
+
+        sig1 = get_signature_for_request(req, b'secret')
+
+        path = 'http://testserver.com/test/blah?access_key=abd'
+
+        req = self.factory.get(path)
+        req.META['HTTP_HOST'] = 'testserver.com'
+
+        sig2 = get_signature_for_request(req, b'secret')
+
+        self.assertNotEqual(sig1, sig2)
+
+    def testChangingSecretChangesKey(self):
+        path = 'http://testserver.com/test/blah?access_key=abc'
+        req = self.factory.get(path)
+
+        req.META['HTTP_HOST'] = 'testserver.com'
+
+        sig1 = get_signature_for_request(req, b'secret1')
+        sig2 = get_signature_for_request(req, b'secret2')
+
+        self.assertNotEqual(sig1, sig2)
+
+    def testMalformedTimestamp(self):
+        acred = APIAccessCredential.create()
+        timestamp = datetime.datetime.now().strftime(SIG_TIMESTAMP_FORMAT)
+
+        url = ('http://testserver.com/test/blah?'
+               'timestamp=%%s&'
+               'k1=4&k2=a&access_key=%s' % acred.access_key)
+
+        req = self.sign_and_send(url % ('%sFAIL' % timestamp),
+                                 acred.secret_key)
+
+        self.assertEqual(req.status_code, 400)
+
+        req = self.sign_and_send(url % timestamp, acred.secret_key)
+
+        self.assertRequestWasSuccess(req)
+
+    def testMissingAccessKey(self):
+        acred = APIAccessCredential.create()
+        timestamp = datetime.datetime.now().strftime(SIG_TIMESTAMP_FORMAT)
+
+        url = ('http://testserver.com/test/blah?'
+               'timestamp=%s&'
+               'k1=4&k2=a' % timestamp)
+
+        req = self.sign_and_send(url, acred.secret_key)
+
+        self.assertEqual(req.status_code, 400)
+
+        req = self.sign_and_send('%s&access_key=%s' % (url, acred.access_key),
+                                 acred.secret_key)
+
+        self.assertRequestWasSuccess(req)
+
+    def testAuthenticatesAsUser(self):
+        peon = make_user(username='peon', password='pw')
+        peon.save()
+
+        acred = APIAccessCredential.create(user=peon)
+
+        timestamp = datetime.datetime.now().strftime(SIG_TIMESTAMP_FORMAT)
+        req = self.sign_and_send('http://testserver.com/test/blah?'
+                                 'timestamp=%s&'
+                                 'k1=4&k2=a&access_key=%s' %
+                                 (timestamp, acred.access_key),
+                                 acred.secret_key)
+
+        self.assertEqual(req.user.pk, peon.pk)
+
+
+class Authentication(TestCase):
+    def setUp(self):
+        self.instance = setupTreemapEnv()
+        self.jim = User.objects.get(username="jim")
+
+    def test_401(self):
+        ret = get_signed(self.client, "%s/user" % API_PFX)
+        self.assertEqual(ret.status_code, 401)
+
+    def test_ok(self):
+        auth = base64.b64encode("jim:password")
+        withauth = {"HTTP_AUTHORIZATION": "Basic %s" % auth}
+
+        ret = get_signed(self.client, "%s/user" % API_PFX, **withauth)
+        self.assertEqual(ret.status_code, 200)
+
+    def test_malformed_auth(self):
+        withauth = {"HTTP_AUTHORIZATION": "FUUBAR"}
+
+        ret = get_signed(self.client, "%s/user" % API_PFX, **withauth)
+        self.assertEqual(ret.status_code, 401)
+
+        auth = base64.b64encode("foobar")
+        withauth = {"HTTP_AUTHORIZATION": "Basic %s" % auth}
+
+        ret = get_signed(self.client, "%s/user" % API_PFX, **withauth)
+        self.assertEqual(ret.status_code, 401)
+
+    def test_bad_cred(self):
+        auth = base64.b64encode("jim:passwordz")
+        withauth = {"HTTP_AUTHORIZATION": "Basic %s" % auth}
+
+        ret = get_signed(self.client, "%s/user" % API_PFX, **withauth)
+        self.assertEqual(ret.status_code, 401)
+
+    @skip("We can't return reputation until login takes an instance")
+    def test_user_has_rep(self):
+        ijim = self.jim.get_instance_user(self.instance)
+        ijim.reputation = 1001
+        ijim.save()
+
+        auth = base64.b64encode("jim:password")
+        withauth = dict(self.sign.items() +
+                        [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
+
+        ret = self.client.get("%s/user" % API_PFX, **withauth)
+
+        self.assertEqual(ret.status_code, 200)
+
+        json = loads(ret.content)
+
+        self.assertEqual(json['username'], self.jim.username)
+        self.assertEqual(json['status'], 'success')
+        self.assertEqual(json['reputation'], 1001)
+
+    def tearDown(self):
+        teardownTreemapEnv()
