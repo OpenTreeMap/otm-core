@@ -413,6 +413,10 @@ def _request_to_update_map_feature(request, instance, feature):
         request_dict = json.loads(request.body)
         feature, tree = update_map_feature(request_dict, request.user, feature)
 
+        # We need to reload the instance here since a new georev
+        # may have been set
+        instance = Instance.objects.get(pk=instance.pk)
+
         return {
             'ok': True,
             'geoRevHash': instance.geo_rev_hash,
