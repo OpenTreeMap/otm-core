@@ -10,9 +10,8 @@ from opentreemap.util import route
 from api.views import (status_view, version_view,
                        remove_current_tree_from_plot, plots_endpoint,
                        species_list_endpoint, approve_pending_edit,
-                       reject_pending_edit,
-                       reset_password, user_endpoint,
-                       add_profile_photo, update_password,
+                       reject_pending_edit, update_user_endpoint,
+                       reset_password, user_endpoint, add_profile_photo,
                        plot_endpoint, edits, plots_closest_to_point_endpoint,
                        instance_info_endpoint, add_photo_endpoint,
                        export_users_csv_endpoint, export_users_json_endpoint)
@@ -28,8 +27,9 @@ urlpatterns = patterns(
     (r'^version$', version_view),
 
     (r'^user$', user_endpoint),
+    url(r'^user/(?P<user_id>\d+)', update_user_endpoint,
+        name='update_user'),
     (r'^user/(?P<user_id>\d+)/photo/(?P<title>.+)$', add_profile_photo),
-    (r'^user/(?P<user_id>\d+)/password$', update_password),
     (r'^user/(?P<user_id>\d+)/reset_password$', reset_password),
     (r'^user/(?P<user_id>\d+)/edits$', edits),
 

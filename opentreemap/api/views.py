@@ -33,7 +33,8 @@ from api.auth import (create_401unauthorized, check_signature,
 
 from api.instance import instance_info, instances_closest_to_point
 from api.plots import plots_closest_to_point, get_plot, update_or_create_plot
-from api.user import user_info, create_user, users_json, users_csv
+from api.user import (user_info, create_user, users_json, users_csv,
+                      update_user)
 
 
 class HttpConflictException(Exception):
@@ -358,6 +359,11 @@ user_endpoint = check_signature(
                 user_info),
             POST=return_400_if_validation_errors(
                 create_user))))
+
+update_user_endpoint = check_signature_and_require_login(
+    json_api_call(
+        return_400_if_validation_errors(
+            route(PUT=update_user))))
 
 add_photo_endpoint = check_signature_and_require_login(
     json_api_call(
