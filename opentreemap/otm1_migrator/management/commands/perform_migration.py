@@ -96,20 +96,20 @@ def save_species(model_hash, instance):
         relic = relics[0]
 
     if len(existingspecies) == 0:
-        for sp in SPECIES:
-            if ((sp['genus'] == genus and
-                 sp['species'] == species and
-                 sp['cultivar'] == cultivar and
-                 sp['other'] == other)):
-                fields = model_hash['fields']
-                fields['otm_code'] = sp['otm_code']
-
-                break
 
         model = hash_to_model(MIGRATION_RULES,
                               'species', model_hash,
                               instance)
 
+        for sp in SPECIES:
+            if ((sp['genus'] == genus and
+                 sp['species'] == species and
+                 sp['cultivar'] == cultivar and
+                 sp['other'] == other)):
+                model.otm_code = sp['otm_code']
+                break
+
+        # this field can be null in otm1, but not otm2
         if not model.common_name:
             model.common_name = ''
 
