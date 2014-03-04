@@ -151,15 +151,15 @@ MIGRATION_RULES = {
 }
 
 
-def validate_model(model_name, data_hash):
+def validate_model(config, model_name, data_hash):
     """
-    Makes sure the fields specified in the MIGRATION_RULES global
+    Makes sure the fields specified in the config global
     account for all of the provided data
     """
-    common_fields = MIGRATION_RULES[model_name].get('common_fields', set())
-    renamed_fields = MIGRATION_RULES[model_name].get('renamed_fields', {})
-    removed_fields = MIGRATION_RULES[model_name].get('removed_fields', set())
-    undecided_fields = (MIGRATION_RULES[model_name]
+    common_fields = config[model_name].get('common_fields', set())
+    renamed_fields = config[model_name].get('renamed_fields', {})
+    removed_fields = config[model_name].get('removed_fields', set())
+    undecided_fields = (config[model_name]
                         .get('undecided_fields', set()))
     expected_fields = (common_fields |
                        set(renamed_fields.keys()) |
@@ -178,24 +178,24 @@ def validate_model(model_name, data_hash):
                            symmetric_difference(provided_fields)))
 
 
-def hash_to_model(model_name, data_hash, instance, user):
+def hash_to_model(config, model_name, data_hash, instance):
     """
-    Takes a model specified in the MIGRATION_RULES global and a
+    Takes a model specified in the config global and a
     hash of json data and attempts to populate a django
     model. Does not save.
     """
 
-    validate_model(model_name, data_hash)
+    validate_model(config, model_name, data_hash)
 
-    common_fields = MIGRATION_RULES[model_name].get('common_fields', set())
-    renamed_fields = MIGRATION_RULES[model_name].get('renamed_fields', {})
+    common_fields = config[model_name].get('common_fields', set())
+    renamed_fields = config[model_name].get('renamed_fields', {})
 
-    model = MIGRATION_RULES[model_name]['model_class']()
+    model = config[model_name]['model_class']()
 
     identity = (lambda x: x)
 
     for field in common_fields.union(renamed_fields):
-        transformers = (MIGRATION_RULES[model_name]
+        transformers = (config[model_name]
                         .get('value_transformers', {}))
         transform_value_fn = transformers.get(field, identity)
         try:
@@ -236,7 +236,8 @@ def save_user_hash_to_model(model_name, model_hash,
     Tries to save an object with the app user that should own
     the object. If not possible, falls back to the system_user.
     """
-    model = hash_to_model(model_name, model_hash,
+    model = hash_to_model(MIGRATION_RULES,
+                          model_name, model_hash,
                           instance, system_user)
 
     user_field_to_try = (MIGRATION_RULES[model_name]
