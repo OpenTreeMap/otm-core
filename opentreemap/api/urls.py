@@ -11,10 +11,11 @@ from api.views import (status_view, version_view,
                        remove_current_tree_from_plot, plots_endpoint,
                        species_list_endpoint, approve_pending_edit,
                        reject_pending_edit, update_user_endpoint,
-                       reset_password, user_endpoint, add_profile_photo,
+                       reset_password, user_endpoint,
                        plot_endpoint, edits, plots_closest_to_point_endpoint,
                        instance_info_endpoint, add_photo_endpoint,
-                       export_users_csv_endpoint, export_users_json_endpoint)
+                       export_users_csv_endpoint, export_users_json_endpoint,
+                       update_profile_photo_endpoint)
 
 from treemap.instance import URL_NAME_PATTERN
 
@@ -27,9 +28,10 @@ urlpatterns = patterns(
     (r'^version$', version_view),
 
     (r'^user$', user_endpoint),
-    url(r'^user/(?P<user_id>\d+)', update_user_endpoint,
+    url(r'^user/(?P<user_id>\d+)$', update_user_endpoint,
         name='update_user'),
-    (r'^user/(?P<user_id>\d+)/photo/(?P<title>.+)$', add_profile_photo),
+    url(r'^user/(?P<user_id>\d+)/photo$', update_profile_photo_endpoint,
+        name='update_user_photo'),
     (r'^user/(?P<user_id>\d+)/reset_password$', reset_password),
     (r'^user/(?P<user_id>\d+)/edits$', edits),
 
