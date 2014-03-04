@@ -21,7 +21,7 @@
     .subhead-inner {
         -webkit-transform: translateY(-100%);
         transition: all 400ms cubic-bezier(0, 0, 0.1, 1);
-        top: 44px;
+        top: 45px;
         position: relative;
         pointer-events: auto;
         box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
@@ -34,7 +34,60 @@
             form {
                 margin: 0 0 10px;
             }
-        
+            
+            .slider-row {
+                margin-bottom: 8px;
+
+                span {
+                    font-size: 1.0rem;
+                    font-weight: 500;
+                    opacity: 0.5;
+                    min-width: 20px;
+                    display: inline-block;
+                    
+                    &.slider-label {
+                        width: 120px;
+                        font-weight: 600;
+                        font-size: 1.4rem;
+                        opacity: 1;
+                        margin: 0;
+                        display: inline-block;
+
+                        & + span {
+                            text-align: right;
+                            margin-right: 16px;
+                        }
+                    }
+                }
+                .slider {
+                        
+                    & + span {
+                        margin-left: 16px;
+                    }
+                    .slider-selection {
+                        background: lighten($secondary-color, 15%);
+                    }
+                    .slider-handle {
+                        background: $secondary-color;
+                        margin-left: -6px;
+                        margin-top: -3px;
+                        width: 16px;
+                        height: 16px;
+                        opacity: 1;
+
+                        &:hover {
+                            background: darken($secondary-color, 10%);
+                        }
+                    }
+                    .tooltip {
+                        display: none;
+
+                        &.in {
+                            display: block;
+                        }
+                    }
+                }
+            }
             .input-append {
                 input[type="text"] {
                     width: 137px;
@@ -43,6 +96,8 @@
             input[type="text"] {
                 width: 170px;
             }
+
+            @include checkboxes;
         }
         > .stewardship-search {
             height: 50px;
@@ -80,7 +135,7 @@
             }
         }
         > .stats-bar {
-            padding: 10px 15px;
+            padding: 11px 15px 10px;
             border-left: 8px solid $primary-color;
             font-size: 1.6rem;
             font-weight: 300;

@@ -16,6 +16,7 @@
     
     -->
     <link href="static/css/vendor.css" rel="stylesheet">
+    <link href="css/slider.css" rel="stylesheet">
     <link href="static/css/main.css" rel="stylesheet">
 </head>
 <body>
@@ -120,20 +121,53 @@
     </div> 
 
     <!-- Advanced Search and Subheader - Note: Had to be moved and restructured -->
-    <div class="subhead">
+    <div class="subhead expanded">
         <div class="subhead-mask">
             <div class="subhead-inner">
                 <div class="advanced-search">
-                    <div class="row-fluid">
-                        <div class="span6">
-                            <h4>Tree Detail Filters</h4>
-                            
-                        </div>
-                        <div class="span3">
-                            <h4>Display Filters</h4>
-                        </div>
-                        <div class="span3">
-                            <h4>Missing Data</h4>
+                    <div class="container">
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <h4>Tree Detail Filters</h4>
+                                <div class="slider-row">
+                                    <span class="slider-label">Diameter</span>
+                                    <span>1in</span><input type="text" value="" data-slider-min="1" data-slider-max="60" data-slider-step="1" data-slider-value="[1,60]" id="diameter-slider" class="slider"><span>60in</span>
+                                </div>
+                                <div class="slider-row">
+                                    <span class="slider-label">Plot Size</span>
+                                    <span>1ft</span><input type="text" value="" data-slider-min="1" data-slider-max="15" data-slider-step=".5" data-slider-value="[1,15]" id="plotsize-slider" class="slider"><span>15ft</span>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <h4>Display Filters</h4>
+                                <span>
+                                    <input type="checkbox" name="show-trees" id="show-trees" /><label for="show-trees">Show trees</label>
+                                </span>
+                                <span>
+                                    <input type="checkbox" name="show-empty" id="show-empty" /><label for="show-empty">Show empty planting sites</label>
+                                </span>
+                                <span>
+                                    <input type="checkbox" name="show-rain-barrels" id="show-rain-barrels" /><label for="show-rain-barrels">Show rain barrels</label>
+                                </span>
+                                <span>
+                                    <input type="checkbox" name="show-rain-gardens" id="show-rain-gardens" /><label for="show-rain-gardens">Show rain gardens</label>
+                                </span>
+                                <span>
+                                    <input type="checkbox" name="show-turf-gardens" id="show-turf-gardens" /><label for="show-turf-gardens">Show turf/concrete gardens</label>
+                                </span>
+                            </div>
+                            <div class="span3">
+                                <h4>Missing Data</h4>
+                                <span>
+                                    <input type="checkbox" name="missing-diameter" id="missing-diameter" /><label for="missing-diameter">Show missing trunk diameter</label>
+                                </span>
+                                <span>
+                                    <input type="checkbox" name="missing-species" id="missing-species" /><label for="missing-species">Show missing species</label>
+                                </span>
+                                <span>
+                                    <input type="checkbox" name="missing-photos" id="missing-photos" /><label for="missing-photos">Show missing photos</label>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -298,6 +332,7 @@
 -->
 <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
+<script src="js/bootstrap-slider.js"></script>
 <script>
     // Just adds dropdowns to navbar, user-dock
     $('#search-advanced').on('click', function() {
@@ -308,6 +343,7 @@
     $('.user-img').on('click', function() {
         $('.user-dock').toggleClass('active');
     });
+    $('.slider').slider();
 </script>
 </body>
 </html>
