@@ -63,8 +63,15 @@
         }
         .tree-details-species {
             h3 {
-                margin: 0 0 5px;
-                line-height: 27px;
+                margin: 0;
+                font-size: 2.1rem;
+                line-height: 2.7rem;
+            }
+            h5 {
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: $subtext-color;
+                margin-bottom: 15px;
             }
         }
         .field-view {
@@ -149,8 +156,18 @@
 }
 
 #details-form {
-    padding: 10px 15px;
+    padding: 15px 15px 10px;
     margin-bottom: 0;
+
+    .benefit-values {
+        margin: 0 -15px;
+
+        .benefit-value-row {
+            &:last-child {
+                border: none;
+            }
+        }
+    }
 }
 
 #move-plot-buttons {
@@ -166,67 +183,69 @@
     font-size: 1.4rem;
 }
 
-#benefit-values {
+.benefit-values {
+    .benefit-value-title {
+        background: $light-gray-color;
+        color: darken($light-gray-color, 30%);
+        font-size: 1.2rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 5px 15px;
+    }
     .benefit-value-row {
         border-bottom: 1px solid $light-gray-color;
         padding: 15px;
 
         &:hover {
-            background: $light-gray-color;
+            background: lighten($light-gray-color, 5%);
+        }
+        &.resource-benefit {
+            .benefit-icon {
+                background: $secondary-color;
+            }
+            .benefit-label {
+                color: $secondary-color;
+            }
         }
 
         .benefit-icon {
-            padding: 7px 8px 7px 6px;
+            padding: 5px;
             background: $primary-color;
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             border-radius: 999px;
             color: white;
             float: left;
             margin-right: 10px;
+            margin-bottom: 10px;
 
             > i {
-                margin-top: 2px;
+                margin-top: 1px;
+                font-size: 1.2rem;            
             }
         }
         .benefit-label {
             font-weight: 400;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             float: left;
-            margin: 0 0 10px;
-            line-height: 2.4rem;
-            width: 255px;
+            margin: 2px 0 0;
+            line-height: 2.1rem;
+            width: 265px;
             color: $primary-color;
         }
         .benefit-content {
             clear: both;
-            margin: 0 0 0 46px;
-
-            dt {
-                text-align: left;
-                font-weight: 700;
-                color: $main-text-color;
-                width: auto;
-
-                @media (max-width: 767px) {
-                    float: left;
-                }
-            }
-            dd {
-                text-align: right;
-                font-size: 1.4rem;
-                color: $subtext-color;
-                margin-left: 5px;
-                width: auto;
-                display: inline-block;
-                float: left;
-            }
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: $subtext-color;
         }
     }
     .benefit-tree-count {
-        padding: 10px 15px;
-        font-size: 1.4rem;
+        padding: 15px;
+        font-size: 1.2rem;
         font-style: italic;
+        line-height: 1.6rem;
         color: $subtext-color;
     }
 }

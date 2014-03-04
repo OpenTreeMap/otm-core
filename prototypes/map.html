@@ -218,22 +218,26 @@
                                         <button class="btn btn-success" data-class="edit" id="save-details-button" style="display:none">Save</button>
                                         <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</button>
                             </div>
-                            <div class="accordion-inner" id="plot-accordion"></div>
-                            <div id="move-plot-buttons">
-                                <button class="btn btn-block"
-                                        data-always-enable="{{ last_effective_instance_user|plot_field_is_writable:"geom" }}"
-                                        data-href="{{ request.get_full_path }}"
-                                        data-disabled-title="{% trans "Editing a plot's location is not available to all users" %}"
-                                        style="display:none"
-                                        id="edit-plot-location"
-                                        disabled="disabled">Move Tree</button>
-                                <button class="btn btn-success btn-block"
-                                        data-always-enable="{{ last_effective_instance_user|plot_field_is_writable:"geom" }}"
-                                        data-href="{{ request.get_full_path }}"
-                                        data-disabled-title="{% trans "Editing a plot's location is not available to all users" %}"
-                                        style="display:none"
-                                        id="cancel-edit-plot-location"
-                                        disabled="disabled">Cancel Tree Move</button>
+                            <div class="accordion-inner" id="plot-accordion">
+                                <form id="details-form" data-location-x="-13,161,736.6877" data-location-y="4,034,336.2011">
+                                    <div class="tree-details-species" data-class="display" data-field="tree.species">
+                                        <h3 data-typeahead="tree.species" data-datum="common_name">Rain Garden</h3>
+                                        <h5 data-typeahead="tree.species" data-datum="scientific_name">Resource</h5>
+                                    </div>
+                                    <div class="accordion-inner benefit-values">
+                                        <div class="benefit-value-title">Resource Benefits</div>
+                                        <div class="benefit-value-row resource-benefit">
+                                            <div class="benefit-icon"><i class="icon-umbrella"></i></div>
+                                            <h3 class="benefit-label">Stormwater Conserved</h3>
+                                            <span class="benefit-content">420 gal saved $1230</span>
+                                        </div>
+                                        <div class="benefit-value-row resource-benefit">
+                                            <div class="benefit-icon"><i class="icon-cloud"></i></div>
+                                            <h3 class="benefit-label">Irrigation Reduced</h3>
+                                            <span class="benefit-content">420 gal saved $2263</span>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -242,59 +246,46 @@
                             <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#yearlyEco">Yearly Eco Benefits <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
                         </div>
                         <div id="yearlyEco" class="accordion-body collapse in">
-                            <div class="accordion-inner" id="benefit-values">
+                            <div class="accordion-inner benefit-values">
+                                <div class="benefit-value-title">General Eco Benefits</div>
                                 <div class="benefit-value-row">
                                     <div class="benefit-icon"><i class="icon-flash-1"></i></div>
                                     <h3 class="benefit-label">Energy Benefits</h3>
-                                    <dl class="dl-horizontal benefit-content">
-                                        <dt>29,898.5</dt>
-                                        <dd>kwh</dd>
-                                        <dt>$678</dt>
-                                        <dd>saved</dd>
-                                    </dl>
+                                    <span class="benefit-content">29,898.5 kwh saved $678</span>
                                 </div>
                                 <div class="benefit-value-row">
                                     <div class="benefit-icon"><i class="icon-tint"></i></div>
                                     <h3 class="benefit-label">Stormwater Benefits</h3>
-                                    <dl class="dl-horizontal benefit-content">
-                                        <dt>434,373.5</dt>
-                                        <dd>gal</dd>
-                                        <dt>$511</dt>
-                                        <dd>saved</dd>
-                                    </dl>
+                                    <span class="benefit-content">434,373.5 gal saved $511</span>
                                 </div>
                                 <div class="benefit-value-row">
                                     <div class="benefit-icon"><i class="icon-sun-filled"></i></div>
                                     <h3 class="benefit-label">Carbon Dioxide Benefits</h3>
-                                    <dl class="dl-horizontal benefit-content">
-                                        <dt>40,135.6</dt>
-                                        <dd>lbs/year</dd>
-                                        <dt>$49</dt>
-                                        <dd>saved</dd>
-                                    </dl>
+                                    <span class="benefit-content">40,135.6 lbs/year saved $49</span>
                                 </div>
                                 <div class="benefit-value-row">
-                                    <div class="benefit-icon"><i class="icon-sun-filled"></i></div>
+                                    <div class="benefit-icon"><i class="icon-sun-1"></i></div>
                                     <h3 class="benefit-label">Carbon Dioxide Stored Benefits</h3>
-                                    <dl class="dl-horizontal benefit-content">
-                                        <dt>351,094.4</dt>
-                                        <dd>lbs</dd>
-                                        <dt>$433</dt>
-                                        <dd>saved</dd>
-                                    </dl>
+                                    <span class="benefit-content">351,094.4 lbs saved $433</span>
                                 </div>
                                 <div class="benefit-value-row">
-                                    <div class="benefit-icon"><i class="icon-cloud"></i></div>
+                                    <div class="benefit-icon"><i class="icon-cloud-1"></i></div>
                                     <h3 class="benefit-label">Air Quality Benefits</h3>
-                                    <dl class="dl-horizontal benefit-content">
-                                        <dt>-182.8</dt>
-                                        <dd>lbs/year</dd>
-                                        <dt>$197</dt>
-                                        <dd>saved</dd>
-                                    </dl>
+                                    <span class="benefit-content">182.8 lbs/year saved $197</span>
+                                </div>
+                                <div class="benefit-value-title">Resource Benefits</div>
+                                <div class="benefit-value-row resource-benefit">
+                                    <div class="benefit-icon"><i class="icon-umbrella"></i></div>
+                                    <h3 class="benefit-label">Stormwater Conserved</h3>
+                                    <span class="benefit-content">420 gal saved $1230</span>
+                                </div>
+                                <div class="benefit-value-row resource-benefit">
+                                    <div class="benefit-icon"><i class="icon-cloud"></i></div>
+                                    <h3 class="benefit-label">Irrigation Reduced</h3>
+                                    <span class="benefit-content">420 gal saved $2263</span>
                                 </div>
                                 <div class="benefit-tree-count">
-                                    Based on 24 out of 204 total trees
+                                    Based on 24 out of 204 total trees and 125 of 352 resources.
                                 </div>
                             </div>
                         </div>
