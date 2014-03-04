@@ -2,6 +2,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
+from django.http import Http404
 
 import hashlib
 import re
@@ -13,7 +14,6 @@ from django.core import validators
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.db import IntegrityError
-from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as trans
 
@@ -81,26 +81,45 @@ class AuthorizableGeoHStoreUDFManager(AuthorizableManager,
 class StaticPage(models.Model):
     instance = models.ForeignKey(Instance)
     name = models.CharField(max_length=100)
-    title = models.CharField(max_length=100)
     content = models.TextField()
 
     @staticmethod
-    def page_names():
-        return ['Resources', 'FAQ', 'About']
+    def built_in_names():
+        return ['Resources', 'FAQ', 'About', 'Partners']
 
     @staticmethod
-    def get_or_new_or_404(instance, page_name):
-        allowed_pages = [name.lower() for name in StaticPage.page_names()]
-        if page_name.lower() not in allowed_pages:
-            raise Http404()
+    def get_or_new(instance, page_name, only_create_built_ins=True):
+        '''
+        If static page exists, return it;
+        otherwise construct one (without saving).
+        Make sure the returned object's name is cased correctly
+        if it matches an existing object name or built-in name.
+        '''
         try:
             static_page = StaticPage.objects.get(name__iexact=page_name,
                                                  instance=instance)
         except StaticPage.DoesNotExist:
+            built_in_name = StaticPage._get_built_in_name(page_name)
+            if built_in_name:
+                page_name = built_in_name
+            elif only_create_built_ins:
+                raise Http404('Static page does not exist')
+
             static_page = StaticPage(
-                instance=instance, name=page_name.lower(), title=page_name,
+                instance=instance, name=page_name,
                 content=trans('There is no content for this page yet.'))
         return static_page
+
+    @staticmethod
+    def _get_built_in_name(page_name):
+        page_name_lower = page_name.lower()
+        for name in StaticPage.built_in_names():
+            if page_name_lower == name.lower():
+                return name
+        return None
+
+    def __unicode__(self):
+        return self.name
 
 
 class BenefitCurrencyConversion(Dictable, models.Model):

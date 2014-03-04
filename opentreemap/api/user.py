@@ -159,7 +159,7 @@ def users_json(request, instance):
 
 
 def _users_export(request, instance):
-    users = User.objects.filter(instance=instance)
+    users = User.objects.filter(instance=instance).order_by('username')
 
     min_join_ts = request.REQUEST.get("minJoinDate")
     if min_join_ts:
