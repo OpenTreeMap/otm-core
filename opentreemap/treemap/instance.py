@@ -125,6 +125,13 @@ class Instance(models.Model):
                                                    {'standard': [],
                                                     'missing': []})
 
+    mobile_search_fields = _make_config_property('mobile_search_fields',
+                                                 {'standard': [],
+                                                  'missing': []})
+
+    mobile_api_fields = _make_config_property('mobile_api_fields',
+                                              {})
+
     date_format = _make_config_property('date_format',
                                         settings.DATE_FORMAT)
 
@@ -171,6 +178,23 @@ class Instance(models.Model):
         scss_vars = ({k: val for k, val in self.scss_variables.items() if val}
                      if self.scss_variables else {})
         return urlencode(scss_vars)
+
+    @property
+    def static_pages(self):
+        from treemap.models import StaticPage  # prevent circular import
+
+        default_order = ('Resources', 'FAQ', 'About', 'Partners',)
+
+        all_pages = StaticPage.objects.filter(instance=self)
+
+        page_name = {page.name for page in all_pages}
+
+        missing = []
+        for page in default_order:
+            if page not in page_name:
+                missing.append(StaticPage(name=page))
+
+        return missing + list(all_pages)
 
     def has_itree_region(self):
         from treemap.models import ITreeRegion  # prevent circular import

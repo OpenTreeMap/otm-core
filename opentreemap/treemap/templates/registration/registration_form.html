@@ -24,6 +24,7 @@
         -->
         {% csrf_token %}
         <legend>{% trans "Create an Account" %}</legend>
+        <h5>The fields marked with an asterix (*) are mandatory fields.</h5>
         {{ form.as_p }}
 
         {% block submit_button %}

@@ -13,6 +13,7 @@ from django.core import validators
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.db import IntegrityError
+from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as trans
 
@@ -82,6 +83,24 @@ class StaticPage(models.Model):
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=100)
     content = models.TextField()
+
+    @staticmethod
+    def page_names():
+        return ['Resources', 'FAQ', 'About']
+
+    @staticmethod
+    def get_or_new_or_404(instance, page_name):
+        allowed_pages = [name.lower() for name in StaticPage.page_names()]
+        if page_name.lower() not in allowed_pages:
+            raise Http404()
+        try:
+            static_page = StaticPage.objects.get(name__iexact=page_name,
+                                                 instance=instance)
+        except StaticPage.DoesNotExist:
+            static_page = StaticPage(
+                instance=instance, name=page_name.lower(), title=page_name,
+                content=trans('There is no content for this page yet.'))
+        return static_page
 
 
 class BenefitCurrencyConversion(Dictable, models.Model):
@@ -319,6 +338,10 @@ class User(Auditable, AbstractUniqueEmailUser):
         except IndexError:
             # A user has no audit records?
             return None
+
+    @property
+    def email_hash(self):
+        return hashlib.sha512(self.email).hexdigest()
 
     def dict(self):
         return {'id': self.pk,
@@ -827,8 +850,8 @@ class Boundary(models.Model):
      +- Pennsylvania (State, 1)
       +- Philadelphia (County, 2)
        +- Philadelphia (City, 3)
-        +- 19107 (Zip Code, 4)
         +- Callowhill (Neighborhood, 4)
+         +- 19107 (Zip Code, 5)
     """
     geom = models.MultiPolygonField(srid=3857,
                                     db_column='the_geom_webmercator')

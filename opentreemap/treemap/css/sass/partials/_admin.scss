@@ -76,6 +76,11 @@
         width: 80%;
     }
 
+    textarea {
+        width: 80%;
+        height: 20em;
+    }
+
     .messages,
     .text-error {
         &:empty {

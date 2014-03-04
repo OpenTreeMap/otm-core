@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="content login-signup">
+  <div class="well login-signup-panel">
+    <h2>{% trans "Email Sent" %}</h2>
+    {% blocktrans %}
+    <p>An email has been sent to {{ email }}.</p>
+    <p>Please check your email to retrieve your username.  If you don't see it within 15 minutes, please check your spam folder.</p>
+    {% endblocktrans %}
+  </div>
+</div>
+{% endblock content %}

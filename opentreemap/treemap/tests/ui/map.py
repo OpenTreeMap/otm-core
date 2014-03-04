@@ -183,7 +183,7 @@ class MapTest(TreemapUITestCase):
         # Expect to be on edit page for the plot
         self.assertTrue(
             self.driver.current_url.endswith(
-                '/autotest-instance/plots/%s/edit' % plot.pk))
+                '/autotest-instance/features/%s/edit' % plot.pk))
 
         self.assertEqual(initial_tree_count, self.ntrees())
         self.assertEqual(initial_plot_count + 1, self.nplots())

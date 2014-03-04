@@ -11,42 +11,71 @@ from django.utils.translation import ugettext as trans
 from django.utils.formats import number_format
 
 from treemap.json_field import get_attr_from_json_field
+from treemap.DotDict import DotDict
 
 
 class Convertible(object):
-    def clean(self):
-        super(Convertible, self).clean()
+
+    def __init__(self, *args, **kwargs):
+        self.unit_status = 'db'
+        super(Convertible, self).__init__(*args, **kwargs)
+
+    def _mutate_convertable_fields(self, f):
         model = self._meta.object_name.lower()
         for field in self._meta.get_all_field_names():
             if self.instance and is_convertible(model, field):
                 value = getattr(self, field)
-                converted_value = get_storage_value(self.instance, model,
-                                                    field, value)
+
+                try:
+                    value = float(value)
+                except Exception:
+                    # These will be caught later in the cleaning process
+                    pass
+
+                converted_value = f(self.instance, model, field, value)
+
                 setattr(self, field, converted_value)
+
+    def convert_to_display_units(self):
+        if self.unit_status != 'display':
+            self.unit_status = 'display'
+
+            self._mutate_convertable_fields(get_converted_value)
+
+    def convert_to_database_units(self):
+        self.clean()
+
+        if self.unit_status != 'db':
+            self.unit_status = 'db'
+            self._mutate_convertable_fields(get_storage_value)
 
 
 _unit_names = {
-    "in":  trans("inches"),
-    "ft":  trans("feet"),
-    "cm":  trans("centimeters"),
-    "m":   trans("meters"),
+    "in": trans("inches"),
+    "ft": trans("feet"),
+    "cm": trans("centimeters"),
+    "m": trans("meters"),
     "lbs/year": trans("pounds per year"),
-    "kg/year":  trans("kilograms per year"),
+    "kg/year": trans("kilograms per year"),
     "lbs": trans("pounds"),
-    "kg":  trans("kilograms"),
+    "kg": trans("kilograms"),
     "kwh": trans("kilowatt-hours"),
     "gal": trans("gallons"),
-    "L":   trans("liters")
+    "L": trans("liters"),
+    "sq_ft": trans("feet²"),
+    "sq_m": trans("meters²")
 }
 
 _unit_conversions = {
-    "in": {"in": 1, "ft": .083333333, "cm": 2.54, "m": .0254},
-    "ft": {"in": 12, "ft": 1, "cm": 2.54, "m": 30.48},
+    "in": {"in": 1, "ft": 1 / 12, "cm": 2.54, "m": .0254},
     "lbs/year": {"lbs/year": 1, "kg/year": 0.453592},
     "lbs": {"lbs": 1, "kg": 0.453592},
     "gal": {"gal": 1, "L": 3.785},
-    "kwh": {"kwh": 1}
+    "kwh": {"kwh": 1},
+    "sq_m": {"sq_m": 1, "sq_ft": 10.7639}
 }
+_unit_conversions["ft"] = {u: v * 12 for (u, v)
+                           in _unit_conversions["in"].iteritems()}
 
 
 def get_unit_name(abbrev):
@@ -61,6 +90,16 @@ def get_convertible_units(category_name, value_name):
 def _get_display_default(category_name, value_name, key):
     defaults = settings.DISPLAY_DEFAULTS
     return defaults[category_name][value_name][key]
+
+
+def _get_storage_units(category_name, value_name):
+    # We may specify a storage unit separately from display units
+    # We do this for area, since GEOS returns m² but we want to display ft²
+    # If there are no storage units specified, use the display units
+    storage_defaults = DotDict(settings.STORAGE_UNITS)
+    return storage_defaults.get(
+        category_name + '.' + value_name,
+        default=_get_display_default(category_name, value_name, 'units'))
 
 
 def get_value_display_attr(instance, category_name, value_name, key):
@@ -119,8 +158,8 @@ is_convertible = partial(_is_configured_for, {'units'})
 is_formattable = partial(_is_configured_for, {'digits'})
 
 
-def _get_conversion_factor(instance, category_name, value_name):
-    storage_unit = _get_display_default(category_name, value_name, 'units')
+def get_conversion_factor(instance, category_name, value_name):
+    storage_unit = _get_storage_units(category_name, value_name)
     instance_unit = get_units(instance, category_name, value_name)
     conversion_dict = _unit_conversions.get(storage_unit)
 
@@ -131,15 +170,23 @@ def _get_conversion_factor(instance, category_name, value_name):
     return conversion_dict[instance_unit]
 
 
+def get_converted_value(instance, category_name, value_name, value):
+    if isinstance(value, Number) and \
+       is_convertible(category_name, value_name):
+        conversion_factor = get_conversion_factor(
+            instance, category_name, value_name)
+
+        return value * conversion_factor
+    else:
+        return value
+
+
 def get_display_value(instance, category_name, value_name, value):
     if not isinstance(value, Number):
         return value, value
-    if is_convertible(category_name, value_name):
-        conversion_factor = _get_conversion_factor(instance, category_name,
-                                                   value_name)
-        converted_value = value * conversion_factor
-    else:
-        converted_value = value
+
+    converted_value = get_converted_value(
+        instance, category_name, value_name, value)
 
     if is_formattable(category_name, value_name):
         digits = int(get_digits(instance, category_name, value_name))
@@ -151,8 +198,19 @@ def get_display_value(instance, category_name, value_name, value):
     return converted_value, number_format(rounded_value, decimal_pos=digits)
 
 
+def format_value(instance, category_name, value_name, value):
+    if is_formattable(category_name, value_name):
+        digits = int(get_digits(instance, category_name, value_name))
+    else:
+        digits = 1
+
+    rounded_value = round(value, digits)
+
+    return number_format(rounded_value, decimal_pos=digits)
+
+
 def get_storage_value(instance, category_name, value_name, value):
     if not isinstance(value, Number):
         return value
-    return value / _get_conversion_factor(instance, category_name,
-                                          value_name)
+    return value / get_conversion_factor(instance, category_name,
+                                         value_name)

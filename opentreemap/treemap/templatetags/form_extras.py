@@ -16,7 +16,7 @@ from treemap.util import safe_get_model_class
 from treemap.json_field import (is_json_field_reference,
                                 get_attr_from_json_field)
 from treemap.units import (get_digits_if_formattable, get_units_if_convertible,
-                           is_convertible_or_formattable, get_display_value)
+                           is_convertible_or_formattable, format_value)
 
 register = template.Library()
 
@@ -31,7 +31,7 @@ FIELD_MAPPINGS = {
     'ForeignKey': 'int',
     'AutoField': 'int',
     'FloatField': 'float',
-    'TextField': 'string',
+    'TextField': 'long_string',
     'CharField': 'string',
     'DateTimeField': 'datetime',
     'DateField': 'date',
@@ -351,7 +351,7 @@ class AbstractNode(template.Node):
             display_val = dateformat.format(field_value,
                                             settings.SHORT_DATE_FORMAT)
         elif is_convertible_or_formattable(model_name, field_name):
-            field_value, display_val = get_display_value(
+            display_val = format_value(
                 model.instance, model_name, field_name, field_value)
             if units is not '':
                 display_val += (' %s' % units)

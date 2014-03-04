@@ -9,7 +9,8 @@ from django.contrib.gis.measure import D
 
 from treemap.exceptions import HttpBadRequestException
 from treemap.models import Instance, InstanceUser
-from treemap.units import get_units_if_convertible, get_digits_if_formattable
+from treemap.units import (get_units_if_convertible, get_digits_if_formattable,
+                           get_conversion_factor)
 from treemap.util import safe_get_model_class
 from treemap.templatetags.form_extras import field_type_label_choices
 from treemap.json_field import is_json_field_reference
@@ -87,8 +88,15 @@ def instance_info(request, instance):
 
     perms = {}
 
+    fields_to_allow = instance.mobile_api_fields
+
     for fp in role.fieldpermission_set.all():
         model = fp.model_name.lower()
+
+        if fields_to_allow and \
+           fp.field_name not in fields_to_allow.get(model, []):
+            continue
+
         if fp.allows_reads:
             if model not in perms:
                 perms[model] = []
@@ -109,19 +117,29 @@ def instance_info(request, instance):
             units = get_units_if_convertible(
                 instance, model, fp.field_name)
 
+            factor = 1.0
+
+            try:
+                factor = get_conversion_factor(
+                    instance, model, fp.field_name)
+            except KeyError:
+                pass
+
             perms[model].append({
                 'data_type': data_type,
                 'choices': choices,
                 'units': units,
                 'digits': digits,
+                'canonical_units_factor': 1.0 / factor,
                 'can_write': fp.allows_writes,
                 'display_name': fp.display_field_name,
-                'field_name': fp.field_name
+                'field_name': fp.field_name,
+                'field_key': '%s.%s' % (model, fp.field_name)
             })
 
     info = _instance_info_dict(instance)
     info['fields'] = perms
-    info['search'] = instance.advanced_search_fields
+    info['search'] = instance.mobile_search_fields
 
     return info
 
@@ -136,9 +154,26 @@ def _instance_info_dict(instance):
             'name': instance.name,
             'center': {'lat': center.y,
                        'lng': center.x},
+            'eco': _instance_eco_dict(instance)
             }
 
     if hasattr(instance, 'distance'):
         info['distance'] = instance.distance.km
 
     return info
+
+
+def _instance_eco_dict(instance):
+    return {
+        "supportsEcoBenefits": instance.has_itree_region(),
+        #  All instances have the same ecobenefits and
+        #  the mobile apps do not need any details to render
+        #  fields for displaying per-feature eco values.
+        "benefits": [
+            {"label": "Energy"},
+            {"label": "Stormwater"},
+            {"label": "Carbon Dioxide"},
+            {"label": "Carbon Dioxide Stored"},
+            {"label": "Air Quality"}
+        ]
+    }

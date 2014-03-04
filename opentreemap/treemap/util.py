@@ -49,6 +49,9 @@ def safe_get_model_class(model_string):
 
 
 def add_visited_instance(request, instance):
+    if not (hasattr(request, 'session') and request.session):
+        return
+
     visited_instances = request.session.get('visited_instances', OrderedDict())
 
     if instance.pk in visited_instances:
@@ -157,6 +160,11 @@ def save_image_from_request(request, name_prefix, thumb_size=None):
 
 
 def save_uploaded_image(image_data, name_prefix, thumb_size=None):
+    # We support passing data directly in here but we
+    # have to treat it as a file-like object
+    if type(image_data) is str:
+        image_data = StringIO(image_data)
+
     image_data.seek(0, os.SEEK_END)
     file_size = image_data.tell()
 

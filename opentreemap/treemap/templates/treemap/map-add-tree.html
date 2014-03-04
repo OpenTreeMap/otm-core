@@ -6,7 +6,7 @@
     <h3>{% trans "Add a Tree" %}</h3>
     <div class="add-step">
         <h4>1. {% trans "Set the tree’s location" %}</h4>
-        <div class="alert alert-info place-marker-message">{% trans "Choose a point on the map, search by address, or select use current location." %}</div>
+        <div class="alert alert-info place-marker-message">{% trans 'Choose a point on the map, enter an address, or select "Use Current Location."' %}</div>
         {# Making onsubmit return false prevents the form from being submitted. We want to run JS code instead #}
         <form class="form-search" onsubmit="return false;">
             <input type="text" class="search-query" id="add-tree-address" placeholder="{% trans 'Address, City, State' %}">

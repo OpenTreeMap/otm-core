@@ -841,7 +841,16 @@ class UDFModel(UserTrackable, models.Model):
         base_model_dict = super(UDFModel, self).as_dict(*args, **kwargs)
 
         for field in self.scalar_udf_field_names:
-            base_model_dict['udf:' + field] = self.udfs[field]
+            value = self.udfs[field]
+
+            # Format dates. Always use datetime for dict serialzation
+            if hasattr(value, 'strftime'):
+                value = value.strftime(DATETIME_FORMAT)
+
+            base_model_dict['udf:' + field] = value
+
+        # Torch the "udfs" dictionary
+        del base_model_dict['udfs']
 
         return base_model_dict
 

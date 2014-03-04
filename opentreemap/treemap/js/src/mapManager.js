@@ -75,16 +75,19 @@ exports.init = function(options) {
                          reset);
     };
 
-    var setCenterWM = exports.setCenterWM = _.partial(setCenterAndZoomWM, exports.ZOOM_PLOT);
-    var setCenterLL = exports.setCenterLL = _.partial(setCenterAndZoomLL, exports.ZOOM_PLOT);
-
-    map.addLayer(boundsLayer);
-    map.addLayer(utfLayer);
-    map.addLayer(plotLayer);
+    exports.setCenterWM = _.partial(setCenterAndZoomWM, exports.ZOOM_PLOT);
+    exports.setCenterLL = _.partial(setCenterAndZoomLL, exports.ZOOM_PLOT);
 
     var center = options.center || config.instance.center,
         zoom = options.zoom || exports.ZOOM_DEFAULT;
     setCenterAndZoomWM(zoom, center);
+
+    map.addLayer(boundsLayer);
+    map.addLayer(plotLayer);
+
+    // Delay loading of UTF grid; otherwise UTF tiler requests precede
+    // visible tile requests, making the map appear to load more slowly.
+    _.defer(function () { map.addLayer(utfLayer); });
 };
 
 var createMap = exports.createMap = function(elmt, config, options) {

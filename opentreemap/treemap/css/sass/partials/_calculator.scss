@@ -17,24 +17,27 @@
 
     th {
         font-size: 1em;
+        font-weight: 300;
     }
     tr {
         td {
-            &:first-child,
-            &:nth-child(2n){
-                width: 45%;
-            }
-            &:last-child {
-                width: 10%;
-            }
-
-            input {
-                width: 56%;
-            }
+            width: 50%;
         }
     }
     input {
         margin: 0;
+    }
+}
+
+#sidebar-add-tree {
+    #diameter-calculator {
+        tr {
+            td {
+                input {
+                    max-width: 78px;
+                }
+            }
+        }
     }
 }
 

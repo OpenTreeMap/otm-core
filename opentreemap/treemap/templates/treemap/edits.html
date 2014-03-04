@@ -34,11 +34,14 @@ active
         {% trans "Edits" %}
         <a class="btn pull-right" href="{% url 'edits' instance_url_name=request.instance.url_name %}">{% trans "Reset" %}</a>
       </h1>
+      <div class="alert alert-info">
+          <p style="margin:0;">All edits made in the tree map are listed below, beginning with the most recent. Click a link in the Type, Object ID, or Edited By columns to sort all the edits by that entry. To go to the detail page for a tree or planting site, click the Detail button located in the far left column. Click the Reset button to view all edits.</p>
+      </div>
 
       <table class="table table-striped">
         <tr>
           <th>{% trans "Details" %}</th>
-          <th>{% trans "Edit ID" %}</th>
+          <th>{% trans "Edit #" %}</th>
           <th>{% trans "Type" %}</th>
           <th>{% trans "Object ID" %}</th>
           <th>{% trans "Field" %}</th>
@@ -59,7 +62,7 @@ active
           </td>
           <td>{{ audit.pk }}</td>
           <td>
-            {% if audit.model == 'Tree' or audit.model == 'Plot' %}
+            {% if audit.model|is_filterable_audit_model %}
             <a href="?models={{ audit.model }}">
               {{ audit.model|display_name }}
             </a>
@@ -68,7 +71,7 @@ active
             {% endif %}
           </td>
           <td>
-            {% if audit.model == 'Tree' or audit.model == 'Plot' %}
+            {% if audit.model|is_filterable_audit_model %}
             <a href="?models={{ audit.model }}&model_id={{ audit.model_id }}">
               {{ audit.model_id }}
             </a>
@@ -134,19 +137,6 @@ active
             {{ audit.clean_current_value.scientific_name|default_if_none:"" }}
           </td>
 
-          {% elif audit.field == 'geom' %}
-          <td>
-            {% if audit.clean_previous_value %}
-            {{ audit.clean_previous_value.x|floatformat:0 }},
-            {{ audit.clean_previous_value.y|floatformat:0 }}
-            {% endif %}
-          </td>
-          <td>
-            {% if audit.clean_current_value %}
-            {{ audit.clean_current_value.x|floatformat:0 }},
-            {{ audit.clean_current_value.y|floatformat:0 }}
-            {% endif %}
-          </td>
           {% elif audit.field == 'id' %}
           <td>{{ audit.previous_display_value|default_if_none:""|unlocalize }}</td>
           <td>{{ audit.current_display_value|default_if_none:""|unlocalize }}</td>

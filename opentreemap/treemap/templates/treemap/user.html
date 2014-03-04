@@ -30,7 +30,7 @@ active
 {% include "treemap/partials/upload_image.html" with panel_id="set-photo-modal" title="Set a Photo" endpoint=photo_url %}
 <div class="image-background"></div>
 
-<div class="container contained profile">
+<div class="container contained topper profile">
     <div class="row-fluid">
         <div class="span3">
             <div class="account-info">
@@ -51,11 +51,11 @@ active
             </div>
             {% usercontent for user %}
             <div id="upload-photo-error" class="text-error" style="display: none"></div>
-            {% endusercontent %}
             <button id="edit-user" data-class="display" class="btn btn-small btn-info">{% trans "Edit Profile" %}</button>
             <button id="save-edit" data-class="edit" class="btn btn-small btn-primary" style="display: none;">{% trans "Save" %}</button>
             <button id="cancel-edit" data-class="edit" class="btn btn-small" style="display: none;">{% trans "Cancel" %}</button>
             <a class="btn btn-small" href="{% url 'django.contrib.auth.views.password_reset' %}">{% trans "Reset Password" %}</a>
+            {% endusercontent %}
             <form id="user-form">
                 {% for label, identifier, template in public_fields %}
                   {% field label from identifier withtemplate template %}

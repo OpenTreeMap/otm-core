@@ -27,6 +27,9 @@ from django.utils.formats import number_format
 from django.db import transaction
 from django.db.models import Q
 from django.template import RequestContext
+from django.template.loader import render_to_string
+
+from opentreemap.util import json_from_request, route
 
 from treemap.decorators import (json_api_call, render_template, login_or_401,
                                 require_http_method, string_as_file_call,
@@ -41,22 +44,24 @@ from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
 from treemap.models import (Plot, Tree, User, Species, Instance,
                             TreePhoto, StaticPage, MapFeature)
-from treemap.units import get_units, get_display_value
-
+from treemap.units import get_units, get_display_value, Convertible
 from treemap.ecobenefits import (benefits_for_trees, tree_benefits,
                                  get_benefit_label)
 from treemap.ecobackend import BAD_CODE_PAIR
-
-from opentreemap.util import json_from_request, route
+from treemap.util import leaf_subclasses
 
 USER_EDIT_FIELDS = collections.OrderedDict([
-    ('first_name',
+    ('firstname',
      {'label': trans('First Name'),
-      'identifier': 'user.first_name',
+      'identifier': 'user.firstname',
       'visibility': 'public'}),
-    ('last_name',
+    ('lastname',
      {'label': trans('Last Name'),
-      'identifier': 'user.last_name',
+      'identifier': 'user.lastname',
+      'visibility': 'public'}),
+    ('organization',
+     {'label': trans('Organization'),
+      'identifier': 'user.lastname',
       'visibility': 'public'}),
     ('email',
      {'label': trans('Email'),
@@ -201,20 +206,6 @@ def _rotate_image_based_on_exif(img_path):
     return img
 
 
-def get_tree_photos(plot_id, photo_id):
-    return None
-
-
-def create_user(*args, **kwargs):
-    # Clearly this is just getting the api working
-    # it shouldn't stay here when real user stuff happens
-    user = User(username=kwargs['username'], email=kwargs['email'])
-    user.set_password(kwargs['password'])
-    user.save()
-
-    return user
-
-
 def map_feature_popup(request, instance, feature_id):
     feature = _get_map_feature_or_404(feature_id, instance)
     context = _context_dict_for_map_feature(instance, feature)
@@ -296,10 +287,25 @@ def context_dict_for_plot(instance, plot,
     else:
         tree = plot.current_tree()
 
+    plot.convert_to_display_units()
+    if tree:
+        tree.convert_to_display_units()
+
+    photos = []
+    if tree is not None:
+        for photo in list(tree.treephoto_set.all()):
+            photo_dict = photo.as_dict()
+            photo_dict['image'] = photo.image.url
+            photo_dict['thumbnail'] = photo.thumbnail.url
+
+            photos.append(photo_dict)
+
+    context['photos'] = photos
+
     has_tree_diameter = tree is not None and tree.diameter is not None
     has_tree_species_with_code = tree is not None \
         and tree.species is not None and tree.species.otm_code is not None
-    has_photo = tree is not None and tree.treephoto_set.all().count() > 0
+    has_photo = tree is not None and len(photos) > 0
 
     # If the the benefits calculation can't be done or fails, still display the
     # plot details
@@ -411,6 +417,10 @@ def _request_to_update_map_feature(request, instance, feature):
         request_dict = json.loads(request.body)
         feature, tree = update_map_feature(request_dict, request.user, feature)
 
+        # We need to reload the instance here since a new georev
+        # may have been set
+        instance = Instance.objects.get(pk=instance.pk)
+
         return {
             'ok': True,
             'geoRevHash': instance.geo_rev_hash,
@@ -456,6 +466,10 @@ def update_map_feature(request_dict, user, feature):
     feature_types = list(feature.instance.map_feature_types)
     feature_types[feature_types.index('Plot')] = 'plot'
 
+    if isinstance(feature, Convertible):
+        # We're going to always work in display units here
+        feature.convert_to_display_units()
+
     def split_model_or_raise(model_and_field):
         model_and_field = model_and_field.split('.', 1)
 
@@ -479,7 +493,11 @@ def update_map_feature(request_dict, user, feature):
             val = MultiPolygon(Polygon(val['polygon'], srid=srid), srid=srid)
             val.transform(3857)
 
-        if attr == 'id':
+        if attr == 'mapfeature_ptr':
+            if model.mapfeature_ptr_id != value:
+                raise Exception(
+                    'You may not change the mapfeature_ptr_id')
+        elif attr == 'id':
             if val != model.pk:
                 raise Exception("Can't update id attribute")
         elif attr.startswith('udf:'):
@@ -498,16 +516,13 @@ def update_map_feature(request_dict, user, feature):
 
     def save_and_return_errors(thing, user):
         try:
+            if isinstance(thing, Convertible):
+                thing.convert_to_database_units()
+
             thing.save_with_user(user)
             return {}
         except ValidationError as e:
             return package_validation_errors(thing._model_name, e)
-
-    def get_tree():
-        if isinstance(feature, Plot):
-            return feature.current_tree() or Tree(instance=feature.instance)
-        else:
-            raise Exception("Can only set tree fields on plot map features")
 
     tree = None
 
@@ -521,6 +536,10 @@ def update_map_feature(request_dict, user, feature):
             tree = (tree or
                     feature.current_tree() or
                     Tree(instance=feature.instance))
+
+            # We always edit in display units
+            tree.convert_to_display_units()
+
             model = tree
             if field == 'species' and value:
                 value = get_object_or_404(Species,
@@ -637,6 +656,13 @@ def _get_audits(logged_in_user, instance, query_vars, user, models,
             'prev_page': prev_page}
 
 
+def get_filterable_audit_models():
+    map_features = [c.__name__ for c in leaf_subclasses(MapFeature)]
+    models = map_features + ['Tree']
+
+    return {model.lower(): model for model in models}
+
+
 def _get_audits_params(request):
     PAGE_MAX = 100
     PAGE_DEFAULT = 20
@@ -648,16 +674,17 @@ def _get_audits_params(request):
 
     models = []
 
-    allowed_models = {
-        'tree': 'Tree',
-        'plot': 'Plot'
-    }
+    allowed_models = get_filterable_audit_models()
+    models_param = r.get('models', None)
 
-    for model in r.get('models', "tree,plot").split(','):
-        if model.lower() in allowed_models:
-            models.append(allowed_models[model.lower()])
-        else:
-            raise Exception("Invalid model: %s" % model)
+    if models_param:
+        for model in models_param.split(','):
+            if model.lower() in allowed_models:
+                models.append(allowed_models[model.lower()])
+            else:
+                raise Exception("Invalid model: %s" % model)
+    else:
+        models = allowed_models.values()
 
     model_id = r.get('model_id', None)
 
@@ -801,7 +828,8 @@ def boundary_autocomplete(request, instance):
              'category': boundary.category,
              'id': boundary.pk,
              'value': boundary.name,
-             'tokens': boundary.name.split()}
+             'tokens': boundary.name.split(),
+             'sortOrder': boundary.sort_order}
             for boundary in boundaries]
 
 
@@ -892,11 +920,15 @@ def _tree_benefits_helper(trees, total_plots, total_trees, instance):
 def _format_benefits(instance, benefits, num_calculated_trees,
                      total_trees=1, total_plots=1):
 
-    def displayize_benefit(key):
+    def displayize_benefit(key, currency_symbol=None):
         benefit = benefits[key]
 
         if benefit['currency'] is not None:
-            benefit['currency_saved'] = number_format(
+            if not currency_symbol:
+                #  Ensure that None is converted into an empty string
+                currency_symbol = ""
+            # TODO: Use i18n/l10n to format currency
+            benefit['currency_saved'] = currency_symbol + number_format(
                 benefit['currency'], decimal_pos=0)
 
         _, value = get_display_value(instance, 'eco', key, benefit['value'])
@@ -917,13 +949,9 @@ def _format_benefits(instance, benefits, num_calculated_trees,
     if instance.eco_benefits_conversion:
         currency = instance.eco_benefits_conversion.currency_symbol
 
-    benefits_for_display = [
-        displayize_benefit('energy'),
-        displayize_benefit('stormwater'),
-        displayize_benefit('co2'),
-        displayize_benefit('co2storage'),
-        displayize_benefit('airquality')
-    ]
+    benefit_keys = ['energy', 'stormwater', 'co2', 'co2storage', 'airquality']
+    benefits_for_display = [displayize_benefit(key, currency)
+                            for key in benefit_keys]
 
     rslt = {'benefits': benefits_for_display,
             'currency_symbol': currency,
@@ -1204,23 +1232,10 @@ def static_page(request, instance, page):
     #
     #       In the future we will want to add a full
     #       UI and perhaps auto-create these pages
-    try:
-        staticpage = StaticPage.objects.get(name__iexact=page,
-                                            instance=instance)
+    static_page = StaticPage.get_or_new_or_404(instance, page)
 
-        content = staticpage.content
-        title = staticpage.title
-    except StaticPage.DoesNotExist:
-        allowed_pages = ['resources', 'faq', 'about']
-
-        if page.lower() not in allowed_pages:
-            raise Http404()
-
-        content = trans('There is no content for this page yet')
-        title = page
-
-    return {'content': content,
-            'title': title}
+    return {'content': static_page.content,
+            'title': static_page.title}
 
 
 def index(request, instance):
@@ -1232,6 +1247,27 @@ def tree_detail(request, instance, feature_id, tree_id):
     return HttpResponseRedirect(reverse('map_feature_detail', kwargs={
         'instance_url_name': instance.url_name,
         'feature_id': feature_id}))
+
+
+def forgot_username(request):
+    user_email = request.REQUEST['email']
+    users = User.objects.filter(email=user_email)
+
+    # Don't reveal if we don't have that email, to prevent email harvesting
+    if len(users) == 1:
+        user = users[0]
+
+        password_reset_url = request.build_absolute_uri(
+            reverse('auth_password_reset'))
+
+        subject = trans('Account Recovery')
+        body = render_to_string('treemap/partials/forgot_username_email.txt',
+                                {'user': user,
+                                 'password_url': password_reset_url})
+
+        user.email_user(subject, body, settings.DEFAULT_FROM_EMAIL)
+
+    return {'email': user_email}
 
 
 tree_detail_view = instance_request(tree_detail)
@@ -1358,6 +1394,10 @@ approve_or_reject_photo_view = login_required(
 
 static_page_view = instance_request(
     render_template("treemap/staticpage.html", static_page))
+
+forgot_username_view = route(
+    GET=render_template('treemap/forgot_username.html'),
+    POST=render_template('treemap/forgot_username_done.html', forgot_username))
 
 error_404_view = render_template('404.html', statuscode=404)
 error_500_view = render_template('500.html', statuscode=500)

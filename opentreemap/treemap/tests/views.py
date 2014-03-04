@@ -18,6 +18,7 @@ from django.http import Http404, HttpResponse
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.db.models.query import QuerySet
+from django.core import mail
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
@@ -35,13 +36,15 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            root_settings_js_view, instance_settings_js_view,
                            compile_scss, approve_or_reject_photo,
                            upload_user_photo, static_page, instance_user_view,
-                           delete_map_feature, delete_tree, user)
+                           delete_map_feature, delete_tree, user,
+                           forgot_username)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
                            set_write_permissions, MockSession,
-                           delete_all_app_users, set_read_permissions)
+                           delete_all_app_users, set_read_permissions,
+                           make_plain_user)
 from treemap.tests.udfs import make_collection_udf
 
 
@@ -69,8 +72,8 @@ class StaticPageViewTest(ViewTestCase):
         super(StaticPageViewTest, self).setUp()
 
         self.staticPage = StaticPage(content="content",
-                                     name="blah",
-                                     title="yo",
+                                     name="faq",
+                                     title="FAQ",
                                      instance=self.instance)
         self.staticPage.save()
 
@@ -83,7 +86,7 @@ class StaticPageViewTest(ViewTestCase):
 
     def test_can_get_page(self):
         # Note- case insensitive match
-        rslt = static_page(None, self.instance, "bLaH")
+        rslt = static_page(None, self.instance, "FaQ")
 
         self.assertEqual(rslt['content'], self.staticPage.content)
         self.assertEqual(rslt['title'], self.staticPage.title)
@@ -139,6 +142,7 @@ class BoundaryViewTest(ViewTestCase):
             js_boundary['name'] = boundary.name
             js_boundary['category'] = boundary.category
             js_boundary['value'] = boundary.name
+            js_boundary['sortOrder'] = boundary.sort_order
 
     def test_boundary_to_geojson_view(self):
         boundary = make_simple_boundary("Hello, World", 1)
@@ -1518,12 +1522,12 @@ class UserUpdateViewTests(ViewTestCase):
     def test_change_first_name(self):
         self.joe.first_name = 'Joe'
         self.joe.save()
-        update = b'{"user.first_name": "Joseph"}'
+        update = b'{"user.firstname": "Joseph"}'
         self.assertOk(update_user(
             make_request(user=self.joe, body=update), self.joe))
         self.assertEquals('Joseph',
-                          User.objects.get(username='joe').first_name,
-                          'The first_name was not updated')
+                          User.objects.get(username='joe').firstname,
+                          'The firstname was not updated')
 
     def test_expects_keys_prefixed_with_user(self):
         self.joe.name = 'Joe'
@@ -1704,3 +1708,24 @@ class DeleteViewTests(ViewTestCase):
 
         self.assertEqual(raw_response, {'ok': True})
         self.assertEqual(Tree.objects.count(), 0)
+
+
+class ForgotUsernameTests(ViewTestCase):
+    def setUp(self):
+        super(ForgotUsernameTests, self).setUp()
+        self.user = make_plain_user('joe')
+
+    def test_sends_email_for_existing_user(self):
+        resp = forgot_username(make_request({'email': self.user.email}))
+
+        self.assertEquals(resp, {'email': self.user.email})
+
+        self.assertEquals(len(mail.outbox), 1)
+        self.assertIn(self.user.username, mail.outbox[0].body)
+
+    def test_no_email_if_doesnt_exist(self):
+        resp = forgot_username(make_request({'email': 'doesnt@exist.co.uk'}))
+
+        self.assertEquals(resp, {'email': 'doesnt@exist.co.uk'})
+
+        self.assertEquals(len(mail.outbox), 0)
