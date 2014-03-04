@@ -114,41 +114,6 @@
     }
 }
 
-.subhead {
-    padding: 10px 15px;
-    border-left: 8px solid $primary-color;
-    border-top: 1px solid lighten($primary-color, 35%);
-    font-size: 1.6rem;
-    font-weight: 300;
-    background: lighten($primary-color, 45%);
-    height: 24px;
-    position: relative;
-    z-index: 9;
-    color: darken($primary-color, 25%);
-    box-shadow: 0 6px 0 rgba(0,0,0,.15);
-
-    span {
-        font-weight: bold;
-    }
-
-    .exportBtn {
-        margin-left: 10px;
-        margin-top: -2px;
-    }
-
-    .addBtn {
-        float: right;
-        margin-top: -3px;
-        font-weight: 700;
-
-        i {
-            position: relative;
-            left: -4px;
-            top: 2px;
-        }
-    }
-}
-
 .additional-searches {
     padding: 8px;
     border-bottom: 1px solid #eee;

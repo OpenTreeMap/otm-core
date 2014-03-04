@@ -1,0 +1,114 @@
+// Partial: Advanced Search
+
+.subhead {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid lighten($primary-color, 35%);
+    pointer-events: none;
+
+    &.expanded {
+        .subhead-inner {
+            -webkit-transform: translateY(0);
+            top: 0;
+        }
+    }
+
+    .subhead-mask {
+        overflow: hidden;
+        padding-bottom: 6px;
+    }
+
+    .subhead-inner {
+        -webkit-transform: translateY(-100%);
+        transition: all 400ms cubic-bezier(0, 0, 0.1, 1);
+        top: 44px;
+        position: relative;
+        pointer-events: auto;
+        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+        
+        > .advanced-search {
+            padding: 20px;
+            border-bottom: 1px solid lighten($primary-color, 35%);
+            background: lighten($primary-color, 45%);
+    
+            form {
+                margin: 0 0 10px;
+            }
+        
+            .input-append {
+                input[type="text"] {
+                    width: 137px;
+                }
+            }
+            input[type="text"] {
+                width: 170px;
+            }
+        }
+        > .stewardship-search {
+            height: 50px;
+            padding: 0 8px;
+            background: lighten($primary-color, 15%);
+
+            span {
+                padding: 14px 15px;
+                color: white;
+                font-weight: 300;
+            }
+            .stewardship-selector {
+                background: $primary-color;
+                display: inline-block;
+                margin: 0 1px;
+                padding: 15px 38px 15px 20px;
+                font-weight: 700;
+                color: white;
+
+                &:hover {
+                    background: darken($primary-color, 15%);
+                    cursor: pointer;
+
+                    &:after {
+                        opacity: 1;
+                    }
+                }
+                &:after {
+                    content: '\25BC';
+                    font-size: 1.0rem;
+                    margin-left: 12px;
+                    position: absolute;
+                    opacity: 0.5;
+                }
+            }
+        }
+        > .stats-bar {
+            padding: 10px 15px;
+            border-left: 8px solid $primary-color;
+            font-size: 1.6rem;
+            font-weight: 300;
+            background: lighten($primary-color, 45%);
+            height: 24px;
+            position: relative;
+            z-index: 9;
+            color: darken($primary-color, 25%);
+        
+            span {
+                font-weight: bold;
+            }
+        
+            .exportBtn {
+                margin-left: 10px;
+                margin-top: -2px;
+            }
+        
+            .addBtn {
+                float: right;
+                margin-top: -3px;
+        
+                i {
+                    position: relative;
+                    left: -4px;
+                    top: 2px;
+                }
+            }
+        }
+    }
+}

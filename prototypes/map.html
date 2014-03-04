@@ -117,22 +117,47 @@
                 </div>
             </div>
         </div>
-        <!-- Advanced Search - Note: Had to be moved up a level to be styled appropriately -->
-        <div id="advanced-search-pane">
-            <div class="advanced-search-inner">
-                this is some sample content.
+    </div> 
+
+    <!-- Advanced Search and Subheader - Note: Had to be moved and restructured -->
+    <div class="subhead">
+        <div class="subhead-mask">
+            <div class="subhead-inner">
+                <div class="advanced-search">
+                    <div class="row-fluid">
+                        <div class="span6">
+                            <h4>Tree Detail Filters</h4>
+                            
+                        </div>
+                        <div class="span3">
+                            <h4>Display Filters</h4>
+                        </div>
+                        <div class="span3">
+                            <h4>Missing Data</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="stewardship-search disabled">
+                    <span>I am looking for</span>
+                    <div class="stewardship-selector">...</div>
+                    <span>that</span>
+                    <div class="stewardship-selector">...</div>
+                    <div class="stewardship-selector">...</div>
+                    <span>between</span>
+                    <div class="stewardship-selector">...</div>
+                    <span>and</span>
+                    <div class="stewardship-selector">...</div>
+                </div>
+                <div class="stats-bar">
+                    <div style="display: inline;" id="tree-and-planting-site-counts">
+                        <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites
+                    </div>
+                    <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
+                    <a class="btn btn-primary addBtn"><i class="icon-plus"></i> Add a Tree</a>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Subheader with Counts -->
-    <div class="subhead">
-        <div style="display: inline;" id="tree-and-planting-site-counts">
-            <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites
-        </div>
-        <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
-        <a class="btn btn-primary addBtn"><i class="icon-plus"></i> Add a Tree</a>
-    </div>   
  
     <!-- Background Image for Interior Pages -->
     <div class="image-background hidden"></div>
@@ -276,7 +301,8 @@
 <script>
     // Just adds dropdowns to navbar, user-dock
     $('#search-advanced').on('click', function() {
-        $('#advanced-search-pane').toggleClass('active');
+        $(this).toggleClass('active');
+        $('.subhead').toggleClass('expanded');
     });
     $('.dropdown-toggle').dropdown();
     $('.user-img').on('click', function() {
