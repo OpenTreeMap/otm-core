@@ -20,7 +20,8 @@ from api.views import (status_view, version_view,
 from treemap.instance import URL_NAME_PATTERN
 
 
-instance_pattern = r'^(?P<instance_url_name>' + URL_NAME_PATTERN + r')'
+instance_pattern = (r'^instance/(?P<instance_url_name>' +
+                    URL_NAME_PATTERN + r')')
 
 urlpatterns = patterns(
     '',

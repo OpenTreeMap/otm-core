@@ -254,7 +254,7 @@ class PlotListing(TestCase):
         p.readonly = False
         p.save_with_user(self.u)
 
-        info = self.client.get("%s/%s/plots" %
+        info = self.client.get("%s/instance/%s/plots" %
                                (API_PFX, self.instance.url_name))
 
         self.assertEqual(info.status_code, 200)
@@ -356,20 +356,22 @@ class Locations(TestCase):
     def test_locations_plots_endpoint_with_auth(self):
         response = get_signed(
             self.client,
-            "%s/%s/locations/0,0/plots" % (API_PFX, self.instance.url_name),
+            "%s/instance/%s/locations/0,0/plots" % (API_PFX,
+                                                    self.instance.url_name),
             user=self.user)
         self.assertEqual(response.status_code, 200)
 
     def test_locations_plots_endpoint(self):
         response = get_signed(
             self.client,
-            "%s/%s/locations/0,0/plots" % (API_PFX, self.instance.url_name))
+            "%s/instance/%s/locations/0,0/plots" % (API_PFX,
+                                                    self.instance.url_name))
         self.assertEqual(response.status_code, 200)
 
     def test_locations_plots_endpoint_max_plots_param_must_be_a_number(self):
         response = get_signed(
             self.client,
-            "%s/%s/locations/0,0/plots?max_plots=foo" % (
+            "%s/instance/%s/locations/0,0/plots?max_plots=foo" % (
                 API_PFX, self.instance.url_name))
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
@@ -379,7 +381,7 @@ class Locations(TestCase):
     def test_locations_plots_max_plots_param_cannot_be_greater_than_500(self):
         response = get_signed(
             self.client,
-            "%s/%s/locations/0,0/plots?max_plots=501" % (
+            "%s/instance/%s/locations/0,0/plots?max_plots=501" % (
                 API_PFX, self.instance.url_name))
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
@@ -387,7 +389,7 @@ class Locations(TestCase):
                          'a number between 1 and 500')
         response = get_signed(
             self.client,
-            "%s/%s/locations/0,0/plots?max_plots=500" %
+            "%s/instance/%s/locations/0,0/plots?max_plots=500" %
             (API_PFX, self.instance.url_name))
         self.assertEqual(response.status_code, 200)
 
@@ -395,7 +397,7 @@ class Locations(TestCase):
             self):
         response = get_signed(
             self.client,
-            "%s/%s/locations/0,0/plots?max_plots=0" %
+            "%s/instance/%s/locations/0,0/plots?max_plots=0" %
             (API_PFX, self.instance.url_name))
 
         self.assertEqual(response.status_code, 400)
@@ -404,7 +406,7 @@ class Locations(TestCase):
                          'number between 1 and 500')
         response = get_signed(
             self.client,
-            "%s/%s/locations/0,0/plots?max_plots=1" %
+            "%s/instance/%s/locations/0,0/plots?max_plots=1" %
             (API_PFX, self.instance.url_name))
 
         self.assertEqual(response.status_code, 200)
@@ -412,7 +414,7 @@ class Locations(TestCase):
     def test_locations_plots_endpoint_distance_param_must_be_a_number(self):
         response = get_signed(
             self.client,
-            "%s/%s/locations/0,0/plots?distance=foo" %
+            "%s/instance/%s/locations/0,0/plots?distance=foo" %
             (API_PFX, self.instance.url_name))
 
         self.assertEqual(response.status_code, 400)
@@ -421,7 +423,7 @@ class Locations(TestCase):
 
         response = get_signed(
             self.client,
-            "%s/%s/locations/0,0/plots?distance=42" %
+            "%s/instance/%s/locations/0,0/plots?distance=42" %
             (API_PFX, self.instance.url_name))
 
         self.assertEqual(response.status_code, 200)
@@ -432,7 +434,7 @@ class Locations(TestCase):
 
         response = get_signed(
             self.client,
-            "%s/%s/locations/%s,%s/plots" %
+            "%s/instance/%s/locations/%s,%s/plots" %
             (API_PFX, self.instance.url_name,
              plot.geom.x, plot.geom.y))
 
@@ -466,7 +468,8 @@ class CreatePlotAndTree(TestCase):
         plot_count = Plot.objects.count()
         reputation_count = self.user.get_reputation(self.instance)
 
-        response = post_json("%s/%s/plots" % (API_PFX, self.instance.url_name),
+        response = post_json("%s/instance/%s/plots" % (API_PFX,
+                                                       self.instance.url_name),
                              data, self.client, self.user)
 
         self.assertEqual(200, response.status_code,
@@ -501,7 +504,8 @@ class CreatePlotAndTree(TestCase):
         tree_count = Tree.objects.count()
         reputation_count = self.user.get_reputation(self.instance)
 
-        response = post_json("%s/%s/plots" % (API_PFX, self.instance.url_name),
+        response = post_json("%s/instance/%s/plots" % (API_PFX,
+                                                       self.instance.url_name),
                              data, self.client, self.user)
 
         self.assertEqual(400,
@@ -540,7 +544,8 @@ class CreatePlotAndTree(TestCase):
         plot_count = Plot.objects.count()
         reputation_count = self.user.get_reputation(self.instance)
 
-        response = post_json("%s/%s/plots" % (API_PFX, self.instance.url_name),
+        response = post_json("%s/instance/%s/plots" % (API_PFX,
+                                                       self.instance.url_name),
                              data, self.client, self.user)
 
         self.assertEqual(200, response.status_code,
@@ -575,7 +580,7 @@ class UpdatePlotAndTree(TestCase):
         rm.save()
 
     def test_invalid_plot_id_returns_404_and_a_json_error(self):
-        response = put_json("%s/%s/plots/0" %
+        response = put_json("%s/instance/%s/plots/0" %
                             (API_PFX, self.instance.url_name),
                             {}, self.client, self.user)
 
@@ -600,7 +605,7 @@ class UpdatePlotAndTree(TestCase):
                            'width': 11,
                            'length': 22}}
 
-        response = put_json("%s/%s/plots/%d" %
+        response = put_json("%s/instance/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
                             updated_values, self.client, self.user)
 
@@ -636,7 +641,7 @@ class UpdatePlotAndTree(TestCase):
                           'plot_length': 22}
 
         # Send the edit request as a public user
-        response = put_json("%s/%s/plots/%d" %
+        response = put_json("%s/instance/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
                             updated_values, self.client, self.public_user)
 
@@ -664,7 +669,7 @@ class UpdatePlotAndTree(TestCase):
         test_plot = mkPlot(self.instance, self.user)
         updated_values = {'foo': 'bar'}
 
-        response = put_json("%s/%s/plots/%d" %
+        response = put_json("%s/instance/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
                             updated_values, self.client, self.user)
 
@@ -682,7 +687,7 @@ class UpdatePlotAndTree(TestCase):
         self.assertIsNone(test_plot.current_tree())
         updated_values = {'tree': {'diameter': 1.2}}
 
-        response = put_json("%s/%s/plots/%d" %
+        response = put_json("%s/instance/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
                             updated_values, self.client, self.user)
 
@@ -703,7 +708,7 @@ class UpdatePlotAndTree(TestCase):
 
     #     updated_values = {'tree': {'diameter': 1.2}}
 
-    #     response = put_json("%s/%s/plots/%d" %
+    #     response = put_json("%s/instance/%s/plots/%d" %
     #                      (API_PFX, self.instance.url_name, test_plot.pk),
     #                      updated_values, self.client, self.public_user)
 
@@ -724,7 +729,7 @@ class UpdatePlotAndTree(TestCase):
         test_tree.save_with_user(self.user)
 
         updated_values = {'tree': {'diameter': 3.9}}
-        response = put_json("%s/%s/plots/%d" %
+        response = put_json("%s/instance/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.id),
                             updated_values, self.client, self.user)
 
@@ -747,7 +752,7 @@ class UpdatePlotAndTree(TestCase):
 
         updated_values = {'tree': {'diameter': 3.9}}
 
-        response = put_json("%s/%s/plots/%d" %
+        response = put_json("%s/instance/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
                             updated_values, self.client, self.public_user)
 
@@ -774,7 +779,7 @@ class UpdatePlotAndTree(TestCase):
         first_species = Species.objects.all()[0]
         updated_values = {'tree': {'species': {'id': first_species.id}}}
 
-        response = put_json("%s/%s/plots/%d" %
+        response = put_json("%s/instance/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
                             updated_values, self.client, self.user)
 
@@ -793,7 +798,7 @@ class UpdatePlotAndTree(TestCase):
 
         updated_values = {'tree': {'species': {'id': invalid_species_id}}}
 
-        response = put_json("%s/%s/plots/%d" %
+        response = put_json("%s/instance/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
                             updated_values, self.client, self.user)
 
@@ -802,9 +807,8 @@ class UpdatePlotAndTree(TestCase):
     def test_approve_pending_edit_returns_404_for_invalid_pend_id(self):
         invalid_pend_id = -1
         self.assertRaises(Exception, Audit.objects.get, pk=invalid_pend_id)
-        url = "%s/%s/pending-edits/%d/approve/" % (API_PFX,
-                                                   self.instance.url_name,
-                                                   invalid_pend_id)
+        url = "%s/instance/%s/pending-edits/%d/approve/" % (
+            API_PFX, self.instance.url_name, invalid_pend_id)
         response = post_json(url, None, self.client, self.user)
         self.assertEqual(404, response.status_code,
                          "Expected approving and invalid "
@@ -813,9 +817,8 @@ class UpdatePlotAndTree(TestCase):
     def test_reject_pending_edit_returns_404_for_invalid_pend_id(self):
         invalid_pend_id = -1
         self.assertRaises(Exception, Audit.objects.get, pk=invalid_pend_id)
-        url = "%s/%s/pending-edits/%d/reject/" % (API_PFX,
-                                                  self.instance.url_name,
-                                                  invalid_pend_id)
+        url = "%s/instance/%s/pending-edits/%d/reject/" % (
+            API_PFX, self.instance.url_name, invalid_pend_id)
         response = post_json(url, None, self.client, self.user)
 
         self.assertEqual(404, response.status_code,
@@ -842,7 +845,7 @@ class UpdatePlotAndTree(TestCase):
                          "Expected the test to start with no pending records")
 
         updated_values = {'tree': {'diameter': edited_dbh}}
-        response = put_json("%s/%s/plots/%d" %
+        response = put_json("%s/instance/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.id),
                             updated_values, self.client,
                             self.public_user)
@@ -868,7 +871,7 @@ class UpdatePlotAndTree(TestCase):
         else:
             action_str = 'reject'
 
-        response = post_json("%s/%s/pending-edits/%d/%s/" %
+        response = post_json("%s/instance/%s/pending-edits/%d/%s/" %
                              (API_PFX, self.instance.url_name,
                               pending_edit.id, action_str),
                              None, self.client, self.user)
@@ -928,7 +931,7 @@ class UpdatePlotAndTree(TestCase):
             }
         }
 
-        response = put_json("%s/%s/plots/%d" %
+        response = put_json("%s/instance/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.id),
                             updated_values, self.client, self.public_user)
         self.assertEqual(response.status_code, 200,
@@ -938,7 +941,7 @@ class UpdatePlotAndTree(TestCase):
             "plot_width": 175,
         }
 
-        response = put_json("%s/%s/plots/%d" %
+        response = put_json("%s/instance/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.id),
                             updated_values,
                             self.client, self.public_user)
@@ -954,9 +957,8 @@ class UpdatePlotAndTree(TestCase):
 
         pend = test_plot.get_active_pending_audits()[0]
         approved_pend_id = pend.id
-        url = "%s/%s/pending-edits/%d/approve/" % (API_PFX,
-                                                   self.instance.url_name,
-                                                   approved_pend_id)
+        url = "%s/instance/%s/pending-edits/%d/approve/" % (
+            API_PFX, self.instance.url_name, approved_pend_id)
         response = post_json(url, None, self.client, self.user)
 
         self.assertEqual(response.status_code, 200,
@@ -972,7 +974,9 @@ class UpdatePlotAndTree(TestCase):
 
         tree = mkTree(self.instance, self.user, plot=plot)
         tree_id = tree.pk
-        url = "%s/%s/plots/%d" % (API_PFX, self.instance.url_name, plot_id)
+        url = "%s/instance/%s/plots/%d" % (API_PFX,
+                                           self.instance.url_name,
+                                           plot_id)
 
         response = self.client.delete(url, **self.user)
         self.assertEqual(403, response.status_code,
@@ -1004,9 +1008,9 @@ class UpdatePlotAndTree(TestCase):
 
         tree = mkTree(self.instance, self.user, plot=plot)
         tree_id = tree.pk
-        url = "%s/%s/plots/%d/tree" % (API_PFX,
-                                       self.instance.url_name,
-                                       plot_id)
+        url = "%s/instance/%s/plots/%d/tree" % (API_PFX,
+                                                self.instance.url_name,
+                                                plot_id)
         response = self.client.delete(url, **self.user)
 
         self.assertEqual(200, response.status_code,
@@ -1111,9 +1115,9 @@ class TreePhotoTest(LocalMediaTestCase):
 
         self.assertIsNone(plot.current_tree())
 
-        url = "%s/%s/plots/%d/tree/photo" % (API_PFX,
-                                             self.instance.url_name,
-                                             plot_id)
+        url = "%s/instance/%s/plots/%d/tree/photo" % (API_PFX,
+                                                      self.instance.url_name,
+                                                      plot_id)
 
         with open(path) as img:
             req = self.factory.post(
