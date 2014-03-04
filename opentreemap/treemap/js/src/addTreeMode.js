@@ -24,7 +24,6 @@ var config,
     $address,
     $form,
     $editFields,
-    $editControls,
     $validationFields,
     $placeMarkerMessage,
     $moveMarkerMessage,
@@ -54,7 +53,6 @@ function init(options) {
 
     $form = U.$find(formSelector, $sidebar);
     $editFields = U.$find('[data-class="edit"]', $form);
-    $editControls = $editFields.find('input,select');
     $validationFields = U.$find('[data-class="error"]', $form);
     $addButton = U.$find('.addBtn', $sidebar);
     $address = U.$find(addressInput, $sidebar);
@@ -102,7 +100,7 @@ function init(options) {
         // Hide/deactivate/clear everything
         plotMarker.hide();
         $address.val("");
-        $editControls.val("");
+        getEditControls().val("");
     });
 
     diameterCalculator({ formSelector: formSelector,
@@ -178,6 +176,11 @@ function init(options) {
     }
 }
 
+function getEditControls() {
+    return $editFields.find('input,select');
+}
+
+
 // Adding a tree uses a state machine with these states and transitions:
 //
 // Inactive:
@@ -245,7 +248,7 @@ function onMarkerMoved() {
     // User moved tree for the first time (or clicked the map). Let them edit fields.
     enableFormFields(true);
     _.defer(function () {
-        $editControls.not('[type="hidden"]').first().focus().select();
+        getEditControls().not('[type="hidden"]').first().focus().select();
     });
     $placeMarkerMessage.hide();
     $moveMarkerMessage.hide();
@@ -253,7 +256,7 @@ function onMarkerMoved() {
 
 function enableFormFields(shouldEnable) {
     $addButton.prop('disabled', !shouldEnable);
-    $editControls.prop('disabled', !shouldEnable);
+    getEditControls().prop('disabled', !shouldEnable);
 }
 
 function addTree(success) {
@@ -300,7 +303,7 @@ function onAddTreeSuccess(result) {
         requireMarkerDrag();
         break;
     case 'new':
-        $editControls.val("");
+        getEditControls().val("");
         requireMarkerDrag();
         break;
     case 'edit':
