@@ -38,6 +38,10 @@
             .slider-row {
                 margin-bottom: 8px;
 
+                &.disabled {
+                    opacity: 0.4;
+                }
+
                 span {
                     font-size: 1.0rem;
                     font-weight: 500;
@@ -48,7 +52,7 @@
                     &.slider-label {
                         width: 120px;
                         font-weight: 600;
-                        font-size: 1.4rem;
+                        font-size: 1.3rem;
                         opacity: 1;
                         margin: 0;
                         display: inline-block;
@@ -88,14 +92,6 @@
                     }
                 }
             }
-            .input-append {
-                input[type="text"] {
-                    width: 137px;
-                }
-            }
-            input[type="text"] {
-                width: 170px;
-            }
 
             @include checkboxes;
         }
@@ -103,6 +99,25 @@
             height: 50px;
             padding: 0 8px;
             background: lighten($primary-color, 15%);
+
+            &.disabled {
+                span {
+                    opacity: 0.4;
+                }
+                .stewardship-selector {
+                    opacity: 0.4;
+                    cursor: default;
+                    background: $primary-color;
+
+                    &:hover {
+                        background: $primary-color;
+
+                        &:after {
+                            opacity: 0.5;
+                        }
+                    }
+                }
+            }
 
             span {
                 padding: 14px 15px;

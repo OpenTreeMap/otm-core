@@ -9,10 +9,15 @@
             margin: 0;
             clear: none;
             padding: 5px 0 4px 28px;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
+            font-weight: 600;
             color: $main-text-color;
             cursor: pointer;
             background: url(/static/img/off.png) left center no-repeat;
+        }
+        &.disabled + label {
+            opacity: 0.4;
+            cursor: default;
         }
 
         @include select-none;
