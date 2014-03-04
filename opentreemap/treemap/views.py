@@ -51,13 +51,17 @@ from treemap.ecobackend import BAD_CODE_PAIR
 from treemap.util import leaf_subclasses
 
 USER_EDIT_FIELDS = collections.OrderedDict([
-    ('first_name',
+    ('firstname',
      {'label': trans('First Name'),
-      'identifier': 'user.first_name',
+      'identifier': 'user.firstname',
       'visibility': 'public'}),
-    ('last_name',
+    ('lastname',
      {'label': trans('Last Name'),
-      'identifier': 'user.last_name',
+      'identifier': 'user.lastname',
+      'visibility': 'public'}),
+    ('organization',
+     {'label': trans('Organization'),
+      'identifier': 'user.lastname',
       'visibility': 'public'}),
     ('email',
      {'label': trans('Email'),
