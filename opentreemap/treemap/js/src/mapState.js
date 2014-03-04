@@ -29,14 +29,14 @@ module.exports = {
         var zoomLatLng = makeZoomLatLng(zoom, center.lat, center.lng);
         if (!_.isEqual(zoomLatLng, state.zoomLatLng)) {
             state.zoomLatLng = zoomLatLng;
-            History.replaceState(state, '', getUrlFromCurrentState());
+            History.replaceState(state, document.title, getUrlFromCurrentState());
         }
     },
 
     setSearch: function (otmSearch) {
         if (!_.isEqual(otmSearch, state.search)) {
             state.search = otmSearch;
-            History.pushState(state, '', getUrlFromCurrentState());
+            History.pushState(state, document.title, getUrlFromCurrentState());
         }
     },
 
@@ -45,7 +45,7 @@ module.exports = {
         modeName = (modeName === addTreeModeName ? modeName : '');
         if (modeName !== state.modeName) {
             state.modeName = modeName;
-            History.replaceState(state, '', getUrlFromCurrentState());
+            History.replaceState(state, document.title, getUrlFromCurrentState());
         }
     },
 

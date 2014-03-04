@@ -57,7 +57,7 @@ exports.init = function() {
         pageStream
             .map(function(n) { return '?n=' + n; })
             .onValue(function (url) {
-                History.pushState(null, '', url);
+                History.pushState(null, document.title, url);
             });
 
         var pageUpdateStream = pageStream

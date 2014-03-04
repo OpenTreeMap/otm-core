@@ -102,12 +102,12 @@ exports.init = function(options) {
         if (inEditMode) {
             prompter.lock();
             if (!hrefHasEdit) {
-                History.replaceState(null, '', U.appendSegmentToUrl('edit'));
+                History.replaceState(null, document.title, U.appendSegmentToUrl('edit'));
             }
         } else {
             prompter.unlock();
             if (hrefHasEdit) {
-                History.replaceState(null, '', U.removeLastUrlSegment());
+                History.replaceState(null, document.title, U.removeLastUrlSegment());
             }
         }
     });
