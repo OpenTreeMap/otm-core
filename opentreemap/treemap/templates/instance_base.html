@@ -144,8 +144,8 @@
   <ul class="inline pull-left">
     {% with linkData=request.instance|instance_config:"linkData" %}
     <li><a target="_blank" href="{% if 'treekey' in linkData.keys and linkData.treekey %}{{ linkData.treekey }}{% else %}http://www.arborday.org/trees/whatTree/{% endif %}">{% trans "Tree Key" %}</a></li>
-    {% for staticpage in request.instance.static_pages %}
-    <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page=staticpage.name %}">{{ staticpage.name }}</a></li>
+    {% for name in request.instance.static_page_names %}
+    <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page=name %}">{{ name }}</a></li>
     {% endfor %}
     {% if 'contact' in linkData.keys and linkData.contact %}
     {% endif %}

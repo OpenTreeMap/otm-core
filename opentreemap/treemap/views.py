@@ -1226,16 +1226,10 @@ def approve_or_reject_photo(
 
 
 def static_page(request, instance, page):
-    # TODO: Right now there is no UI for static pages
-    #       and we only allow access to a few specific
-    #       pages or those that were manually created
-    #
-    #       In the future we will want to add a full
-    #       UI and perhaps auto-create these pages
-    static_page = StaticPage.get_or_new_or_404(instance, page)
+    static_page = StaticPage.get_or_new(instance, page)
 
     return {'content': static_page.content,
-            'title': static_page.title}
+            'title': static_page.name}
 
 
 def index(request, instance):

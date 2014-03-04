@@ -73,7 +73,6 @@ class StaticPageViewTest(ViewTestCase):
 
         self.staticPage = StaticPage(content="content",
                                      name="faq",
-                                     title="FAQ",
                                      instance=self.instance)
         self.staticPage.save()
 
@@ -89,7 +88,7 @@ class StaticPageViewTest(ViewTestCase):
         rslt = static_page(None, self.instance, "FaQ")
 
         self.assertEqual(rslt['content'], self.staticPage.content)
-        self.assertEqual(rslt['title'], self.staticPage.title)
+        self.assertEqual(rslt['title'], self.staticPage.name)
 
     def test_instance_mismatch(self):
         self.assertRaises(Http404,
