@@ -199,7 +199,7 @@
         <div id="streetview" style="display: none"></div>
         <div id="map" class="map"></div>
         <div class="sidebar">
-            <div id="sidebar-browse-trees">
+            <div id="sidebar-browse-trees" class="hidden">
                 <div class="accordion" id="map-info">
                     <div class="accordion-group">
                         <div class="accordion-heading">
@@ -293,7 +293,185 @@
                 </div>
             </div>
             <div id="sidebar-add-tree" class="hidden">
-                
+                <div class="sidebar-inner">
+                    <a href="javascript:;" class="close cancelBtn small">×</a>
+                    <h3 >Add a Tree</h3>
+                    <div class="add-step-container">
+                        <div class="add-step active">
+                            <div class="add-step-header">1. Set the tree’s location</div>
+                            <div class="add-step-content">
+                                <div class="alert alert-info place-marker-message">Choose a point on the map, search by address, or select use current location.</div>
+                                <form class="form-search" onsubmit="return false;">
+                                    <input type="text" class="search-query" id="add-tree-address" placeholder="Address, City, State">
+                                    <button class="btn btn-primary geocode">Search</button>
+                                </form>
+                                <a class="geolocate"><i class="icon-direction"></i> Use Current Location</a>
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 1</strong> of 3</span>
+                                <ul class="pager">
+                                    <li class="previous hidden"><a href="#">&laquo; Back</a></li>
+                                    <li class="next"><a href="#">Next &raquo;</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="add-step next">
+                            <div class="add-step-header">2. Set species and additional info</div>
+                            <div class="add-step-content">
+                                [INSERT SPECIES, DIAMETER, HEIGHT STUFF]
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 2</strong> of 3</span>
+                                <ul class="pager">
+                                    <li class="previous"><a href="#">&laquo; Back</a></li>
+                                    <li class="next"><a href="#">Next &raquo;</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="add-step">
+                            <div class="add-step-header">3. Finalize this tree</div>
+                            <div class="add-step-content">
+                                <h3>Common Name</h3>
+                                <h6>Scientific Name</h6>
+                                <h4>340 N 12th Street<br/>
+                                    Philadelphia PA 19107</h4>
+                                <h6>Nearby Address</h6>
+                                <hr/>
+                                <span>
+                                    <input type="radio" name="addtree" id="addtree-addmore" /><label for="addtree-addmore">I want to add another tree</label>
+                                </span>
+                                <span>
+                                    <input type="radio" name="addtree" id="addtree-viewdetails" /><label for="addtree-viewdetails">I want to view the detail page</label>
+                                </span>
+                                <span>
+                                    <input type="radio" name="addtree" id="addtree-done" /><label for="addtree-done">I'm done</label>
+                                </span>
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 3</strong> of 3</span>
+                                <ul class="pager">
+                                    <li class="previous"><a href="#">&laquo; Back</a></li>
+                                    <li class="next disabled"><a href="#">Done</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="sidebar-add-resource">
+                <div class="sidebar-inner">
+                    <a href="javascript:;" class="close cancelBtn small">×</a>
+                    <h3 >Add a Resource</h3>
+                    <div class="add-step-container">
+                        <div class="add-step active">
+                            <div class="add-step-header">1. Select Resource Type</div>
+                            <div class="add-step-content">
+                                <label>Select Resource</label>
+                                <select>
+                                    <option>Rain garden</option>
+                                    <option>Rain barrel</option>
+                                    <option>Turf/concrete garden</option>
+                                </select>
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 1</strong> of 4</span>
+                                <ul class="pager">
+                                    <li class="previous hidden"><a href="#">&laquo; Back</a></li>
+                                    <li class="next"><a href="#">Next &raquo;</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="add-step next">
+                            <div class="add-step-header">2. Add Resource to Map</div>
+                            <div class="add-step-content">
+                                <label>Set resource's location</label>
+                                <form class="form-search" onsubmit="return false;">
+                                    <input type="text" class="search-query" id="add-tree-address" placeholder="Address, City, State">
+                                    <button class="btn btn-primary geocode">Search</button>
+                                </form>
+                                <a class="geolocate"><i class="icon-direction"></i> Use Current Location</a>
+                                <div class="alert alert-info place-marker-message">Choose a point on the map, search by address, or use your current location to place the resource.</div>
+                                <hr/>
+                                <label>Indicate nearby roof area</label>
+                                <div class="alert alert-info place-marker-message">Drag and outline the nearby roof area that would drain into your resource.</div>
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 2</strong> of 4</span>
+                                <ul class="pager">
+                                    <li class="previous"><a href="#">&laquo; Back</a></li>
+                                    <li class="next"><a href="#">Next &raquo;</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="add-step">
+                            <div class="add-step-header">3. About this Resource</div>
+                            <div class="add-step-content">
+                                <div class="resource-question">
+                                    <label>Was the site of this rain garden previously turf?</label>
+                                    <span>
+                                        <input type="radio" name="resource-question-01" id="resource-question-01a" /><label for="resource-question-01a">Yes</label>
+                                    </span>
+                                    <span>
+                                        <input type="radio" name="resource-question-01" id="resource-question-01b" /><label for="resource-question-01b">No</label>
+                                    </span>
+
+                                    <div class="resource-subquestion">
+                                        <label>If so, was the turf replaced with plants or materials that require less water?</label>
+                                        <span>
+                                            <input type="radio" name="resource-question-02" id="resource-question-02a" /><label for="resource-question-02a">Yes</label>
+                                        </span>
+                                        <span>
+                                            <input type="radio" name="resource-question-02" id="resource-question-02b" /><label for="resource-question-02b">No</label>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="resource-question">
+                                    <label>Are there trees planted in the rain garden?</label>
+                                    <span>
+                                        <input type="radio" name="resource-question-03" id="resource-question-03a" /><label for="resource-question-03a">Yes</label>
+                                    </span>
+                                    <span>
+                                        <input type="radio" name="resource-question-03" id="resource-question-03b" /><label for="resource-question-03b">No</label>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 3</strong> of 4</span>
+                                <ul class="pager">
+                                    <li class="previous"><a href="#">&laquo; Back</a></li>
+                                    <li class="next"><a href="#">Next &raquo;</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="add-step">
+                            <div class="add-step-header">4. Finalize this resource</div>
+                            <div class="add-step-content">
+                                <h3>Rain Garden</h3>
+                                <h6>Resource</h6>
+                                <h4>340 N 12th Street<br/>
+                                    Philadelphia PA 19107</h4>
+                                <h6>Nearby Address</h6>
+                                <hr/>
+                                <span>
+                                    <input type="radio" name="addresource" id="addresource-addmore" /><label for="addresource-addmore">I want to add another resource</label>
+                                </span>
+                                <span>
+                                    <input type="radio" name="addresource" id="addresource-viewdetails" /><label for="addresource-viewdetails">I want to view the detail page</label>
+                                </span>
+                                <span>
+                                    <input type="radio" name="addresource" id="addresource-done" /><label for="addresource-done">I'm done</label>
+                                </span>
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 4</strong> of 4</span>
+                                <ul class="pager">
+                                    <li class="previous"><a href="#">&laquo; Back</a></li>
+                                    <li class="next disabled"><a href="#">Done</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -335,6 +513,17 @@
         $('.user-dock').toggleClass('active');
     });
     $('.slider').slider();
+    $('.add-step-container .add-step .pager > li:not(.disabled)').on('click', function(){
+        if ($(this).hasClass('next')) {
+            $(this).closest('.add-step').toggleClass('active prev');
+            $(this).closest('.add-step').next().toggleClass('active next').next().toggleClass('next');
+            $(this).closest('.add-step').prev().toggleClass('prev');
+        } else if ($(this).hasClass('previous')) {
+            $(this).closest('.add-step').toggleClass('active next');
+            $(this).closest('.add-step').prev().toggleClass('active prev').prev().toggleClass('prev');
+            $(this).closest('.add-step').next().toggleClass('next');
+        }
+    });
 </script>
 </body>
 </html>
