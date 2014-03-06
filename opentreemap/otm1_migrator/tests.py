@@ -8,12 +8,17 @@ from copy import copy
 
 from django.contrib.gis.geos import Point
 
+from functools import partial
+
 from treemap.models import Plot, Tree, Species, User, TreePhoto
 from treemap.tests import (make_instance, make_commander_user,
                            LocalMediaTestCase, media_dir)
 
 from otm1_migrator.management.commands.perform_migration import (
-    hash_to_model, hashes_to_saved_objects)
+    hash_to_model, hashes_to_saved_objects, save_treephoto,
+    save_species)
+
+from otm1_migrator.migration_rules import MIGRATION_RULES
 
 
 class MigrationCommandTests(LocalMediaTestCase):
@@ -62,6 +67,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         "canopy_height": null,
         "last_updated_by": 1,
         "canopy_condition": null,
+        "import_event": null,
         "present": true,
         "url": null}}"""
 
@@ -92,6 +98,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         "length": 1.3,
         "powerline_conflict_potential": null,
         "geocoded_accuracy": null,
+        "import_event": null,
         "geocoded_lon": null}}
         """
 
@@ -145,8 +152,8 @@ class MigrationCommandTests(LocalMediaTestCase):
 
     def test_user_hash_to_model(self):
         user_dict = json.loads(self.user_blob)
-        user = hash_to_model('user', user_dict, self.instance,
-                             self.commander)
+        user = hash_to_model(MIGRATION_RULES,
+                             'user', user_dict, self.instance)
 
         user.save_with_user(self.commander)
 
@@ -165,26 +172,18 @@ class MigrationCommandTests(LocalMediaTestCase):
         species_dict = json.loads(self.species_blob)
         species_dicts = [species_dict, species_dict, species_dict]
 
-        role = self.commander.instanceuser_set.get(
-            instance=self.instance).role
-
         hashes_to_saved_objects("species", species_dicts, {},
-                                self.instance, self.commander,
-                                commander_role=role,
-                                save_with_user=True)
+                                save_species, self.instance)
 
         allspecies = Species.objects.filter(instance=self.instance)
         self.assertEqual(len(allspecies), 1)
 
     def test_species_hash_to_model(self):
         species_dict = json.loads(self.species_blob)
-        role = self.commander.instanceuser_set.get(
-            instance=self.instance).role
 
         hashes_to_saved_objects("species", [species_dict], {},
-                                self.instance, self.commander,
-                                commander_role=role,
-                                save_with_user=True)
+                                save_species,
+                                self.instance)
 
         allspecies = Species.objects.filter(instance=self.instance)
         self.assertEqual(len(allspecies), 1)
@@ -219,18 +218,15 @@ class MigrationCommandTests(LocalMediaTestCase):
 
         tp_dict = json.loads(self.photo_blob % ipath)
 
-        role = self.commander.instanceuser_set.get(
-            instance=self.instance).role
-
         self.assertEqual(TreePhoto.objects.count(), 0)
+
+        save_treephoto_blank = partial(save_treephoto, '')
 
         hashes_to_saved_objects("treephoto", [tp_dict],
                                 {'tree': {1: tree.pk},
                                  'user': {1: self.commander.pk}},
-                                self.instance, self.commander,
-                                commander_role=role,
-                                save_with_user=True,
-                                treephoto_path='')
+                                save_treephoto_blank,
+                                self.instance)
 
         self.assertEqual(TreePhoto.objects.count(), 1)
         photo = TreePhoto.objects.all()[0]
@@ -240,8 +236,8 @@ class MigrationCommandTests(LocalMediaTestCase):
 
     def test_plot_hash_to_model(self):
         plot_dict = json.loads(self.plot_blob)
-        plot = hash_to_model('plot', plot_dict, self.instance,
-                             self.commander)
+        plot = hash_to_model(MIGRATION_RULES,
+                             'plot', plot_dict, self.instance)
         # test that the plot geom is transformed as follows
         test_geom = copy(plot.geom)
         test_geom.transform(3857)
@@ -263,8 +259,8 @@ class MigrationCommandTests(LocalMediaTestCase):
         test_plot.save_with_user(self.commander)
 
         tree_dict = json.loads(self.tree_blob)
-        tree = hash_to_model('tree', tree_dict, self.instance,
-                             self.commander)
+        tree = hash_to_model(MIGRATION_RULES,
+                             'tree', tree_dict, self.instance)
         tree.save_with_user(self.commander)
         tree = Tree.objects.get(pk=tree.pk)
         self.assertEqual(tree.plot, test_plot)

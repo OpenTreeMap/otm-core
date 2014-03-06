@@ -229,7 +229,7 @@ class AuditTest(TestCase):
                          'treemap_mapfeature_id_seq')
 
 
-class ReviewTest(TestCase):
+class MultiUserTestCase(TestCase):
     def setUp(self):
         self.instance = make_instance()
         self.commander_user = make_commander_user(self.instance)
@@ -240,6 +240,9 @@ class ReviewTest(TestCase):
         self.p1 = Point(-7615441.0, 5953519.0)
         self.plot = Plot(geom=self.p1, instance=self.instance)
         self.plot.save_with_user(self.commander_user)
+
+
+class ReviewTest(MultiUserTestCase):
 
     def test_simple_approve(self):
         self.plot.width = 444
@@ -1112,3 +1115,14 @@ class AuditDetailTagTest(TestCase):
         audit.model_id = -1000
 
         self.assertIsNone(audit_detail_link(audit))
+
+
+class SaveWithoutVerifyingTest(MultiUserTestCase):
+
+    def tests_works_when_normal_save_fails(self):
+        self.plot = self.plot
+        self.plot.width = 444
+        with self.assertRaises(AuthorizeException):
+            self.plot.save_with_user(self.observer_user)
+        (self.plot
+         .save_with_user_without_verifying_authorization(self.observer_user))
