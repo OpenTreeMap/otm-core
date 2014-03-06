@@ -1,0 +1,20 @@
+{% load i18n %}
+
+<div class="add-step-footer">
+    <span class="counter">
+        <strong>{% trans "Step" %} {{ step }}</strong>
+        {% trans "of" %} {{ nsteps }}
+    </span>
+    <ul class="pager">
+        {% if step > 1 %}
+        <li class="previous">
+            <a href="#">&laquo; Back</a>
+        </li>
+        {% endif %}
+        <li class="next">
+            <a href="#">
+                {% if step < nsteps %} Next &raquo; {% else %} Done {% endif %}
+            </a>
+        </li>
+    </ul>
+</div>

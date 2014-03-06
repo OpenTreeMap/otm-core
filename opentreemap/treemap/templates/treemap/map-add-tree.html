@@ -1,32 +1,13 @@
 {% load form_extras %}
 {% load i18n %}
+
+{% with nsteps=3 %}
 <div class="sidebar-inner">
     <a href="javascript:;" class="close cancelBtn small">×</a>
-    <h3 >Add a Tree</h3>
+    <h3>Add a Tree</h3>
     <div class="add-step-container">
-        <div class="add-step active">
-            <div class="add-step-header">1. {% trans "Set the tree’s location" %}</div>
-            <div class="add-step-content">
-                <div class="alert alert-info place-marker-message">{% trans 'Choose a point on the map, search by address, or select "Use Current Location."' %}</div>
-                {# Making onsubmit return false prevents the form from being submitted. We want to run JS code instead #}
-                <form class="form-search" onsubmit="return false;">
-                    <input type="text" class="search-query" id="add-tree-address" placeholder="{% trans 'Address, City, State' %}">
-                    <button class="btn btn-primary geocode">{% trans "Search" %}</button>
-                </form>
-                <a class="geolocate"><i class="icon-direction"></i> {% trans "Use Current Location" %}</a>
-                <div class="alert alert-error text-error geocode-error" style="display: none;">{% trans "Unable to locate this address" %}</div>
-                <div class="alert alert-error text-error geolocate-error" style="display: none;">{% trans "Unable to determine current location" %}</div>
-                <div class="alert alert-info move-marker-message" style="display: none;">{% trans "Please move marker to exact location of tree." %}</div>
-            </div>
-            <div class="add-step-footer">
-                <span class="counter"><strong>Step 1</strong> of 3</span>
-                <ul class="pager">
-                    <li class="previous hidden"><a href="#">&laquo; Back</a></li>
-                    <li class="next"><a href="#">Next &raquo;</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="add-step next">
+        {% include "treemap/partials/step_set_location.html" with step=1 feature_name="tree" %}
+        <div class="add-step">
             <div class="add-step-header">2. {% trans "Set species and additional info" %}</div>
             <div class="add-step-content">
                 <form id="add-tree-form" onsubmit="return false;">
@@ -42,71 +23,41 @@
                     <input type="hidden" name="plot.address_street">
                     <input type="hidden" name="plot.address_city">
                     <input type="hidden" name="plot.address_zip">
-
                 </form>
             </div>
-            <div class="add-step-footer">
-                <span class="counter"><strong>Step 2</strong> of 3</span>
-                <ul class="pager">
-                    <li class="previous"><a href="#">&laquo; Back</a></li>
-                    <li class="next"><a href="#">Next &raquo;</a></li>
-                </ul>
-            </div>
+            {% include 'treemap/partials/step_controls.html' with step=2 %}
         </div>
         <div class="add-step">
             <div class="add-step-header">3. {% trans "Finalize this tree" %}</div>
             <div class="add-step-content">
-                <h3>Common Name</h3>
-                <h6>Scientific Name</h6>
-                <h4>340 N 12th Street<br/>
-                    Philadelphia PA 19107</h4>
+                <h3 class="summaryHead"></h3>
+                <h6 class="summarySubhead"></h6>
+                <h4 class="summaryAddress"></h4>
                 <h6>Nearby Address</h6>
                 <hr/>
-                <h6>{% trans "After I add this tree:" %}</h6>
                 <span>
-                    <input type="radio" name="addTreeOptions" value="copy" id="addtree-addmore" /><label for="addtree-addmore">
+                    <input type="radio" name="addFeatureOptions" value="copy" id="addtree-addsame" /><label for="addtree-addsame">
                         {% trans "Add another tree with these details" %}
                     </label>
                 </span>
                 <span>
-                    <input type="radio" name="addTreeOptions" value="copy" id="addtree-addmore" /><label for="addtree-addmore">
+                    <input type="radio" name="addFeatureOptions" value="new" id="addtree-addnew" /><label for="addtree-addnew">
                         {% trans "Add another tree with new details" %}
                     </label>
                 </span>
                 <span>
-                    <input type="radio" name="addTreeOptions" value="new" id="addtree-viewdetails" /><label for="addtree-viewdetails">
+                    <input type="radio" name="addFeatureOptions" value="edit" id="addtree-viewdetails" /><label for="addtree-viewdetails">
                         {% trans "Continue editing this tree" %}
                     </label>
                 </span>
                 <span>
-                    <input type="radio" name="addTreeOptions" value="edit" id="addtree-done" checked /><label for="addtree-done">
+                    <input type="radio" name="addFeatureOptions" value="close" id="addtree-done" checked /><label for="addtree-done">
                         {% trans "I'm done" %}
                     </label>
                 </span>
             </div>
-            <div class="add-step-footer">
-                <span class="counter"><strong>Step 3</strong> of 3</span>
-                <ul class="pager">
-                    <li class="previous"><a href="#">&laquo; Back</a></li>
-                    <li class="next disabled"><a href="#">Done</a></li>
-                </ul>
-            </div>
+            {% include 'treemap/partials/step_controls.html' with step=3 %}
         </div>
     </div>
 </div>
-<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/bootstrap-slider.js"></script>
-<script>
-    $('.add-step-container .add-step .pager > li:not(.disabled)').on('click', function(){
-        if ($(this).hasClass('next')) {
-            $(this).closest('.add-step').toggleClass('active prev');
-            $(this).closest('.add-step').next().toggleClass('active next').next().toggleClass('next');
-            $(this).closest('.add-step').prev().toggleClass('prev');
-        } else if ($(this).hasClass('previous')) {
-            $(this).closest('.add-step').toggleClass('active next');
-            $(this).closest('.add-step').prev().toggleClass('active prev').prev().toggleClass('prev');
-            $(this).closest('.add-step').next().toggleClass('next');
-        }
-    });
-</script>
+{% endwith %}
