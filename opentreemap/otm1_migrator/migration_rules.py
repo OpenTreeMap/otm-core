@@ -1,5 +1,6 @@
 from treemap.models import User, Plot, Tree, Species, Audit, TreePhoto
 
+
 from django.contrib.gis.geos import fromstr
 
 # model specification:
@@ -129,5 +130,8 @@ MIGRATION_RULES = {
                           'is_superuser', 'is_staff', 'last_login'},
         'removed_fields': {'groups', 'user_permissions'},
         'missing_fields': {'roles', 'reputation'},
+    },
+    'contenttype': {
+        'command_line_flag': '-c',
     },
 }

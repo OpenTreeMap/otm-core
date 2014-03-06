@@ -11,6 +11,7 @@ from functools import partial
 
 from django.conf import settings
 from django.db.transaction import commit_on_success
+from django.contrib.contenttypes.models import ContentType
 
 from treemap import SPECIES
 from treemap.models import User, Species, InstanceUser
@@ -176,6 +177,38 @@ def save_treephoto(treephoto_path, model_hash, instance):
     return model
 
 
+
+def make_contenttype_relics(model_hash, instance):
+    """
+    There must be a relic for ContentType because comments use them
+    as foreign keys. However, unlike other migrations, there's no
+    need to save the them, because they exist already.
+    """
+    fields = model_hash['fields']
+
+    # user is a special case - it's auth.user in otm1
+    # and treemap.user in otm2
+    app_label = ('treemap' if fields['model'] == 'user'
+                 else fields['app_label'])
+
+    try:
+        content_type_id = ContentType.objects.get(model=fields['model'],
+                                                  app_label=app_label).pk
+
+    except ContentType.DoesNotExist:
+        print('SKIPPING ContentType: %s.%s'
+              % (fields['app_label'], fields['model']))
+
+        # set the content_type_id to a special number so a model's
+        # conten_type can be validated before trying to import it.
+        content_type_id = -1
+
+    OTM1ModelRelic.objects.get_or_create(instance=instance,
+                                         otm1_model_id=model_hash['pk'],
+                                         otm2_model_name='contenttype',
+                                         otm2_model_id=content_type_id)
+
+
 def _uniquify_username(username):
     username_template = '%s_%%d' % username
     i = 0
@@ -306,6 +339,7 @@ class Command(InstanceDataCommand):
             'plot': partial(save_other_with_user, 'plot'),
             'tree': partial(save_other_with_user, 'tree'),
             'treephoto': partial(save_treephoto, treephoto_path),
+            'contenttype': make_contenttype_relics,
         }
 
         for relic in OTM1UserRelic.objects.filter(instance=instance):
