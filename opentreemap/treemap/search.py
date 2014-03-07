@@ -46,11 +46,12 @@ def create_filter(filterstr, base_is_plot=True):
                    | 'WITHIN_RADIUS'
                    | 'IN_BOUNDARY'
                    | 'LIKE'
+                   | 'ISNULL'
     combinator     = 'AND' | 'OR'
     predicate      = { model.field: literal }
                    | { model.field: { (value-property: literal)* }}
     filter         = predicate
-                   | [combinator, filter*]
+                   | [combinator, filter*, literal?]
 
     Returns a lazy query set of plot objects
     """
@@ -191,6 +192,10 @@ PREDICATE_TYPES = {
     'LIKE': {
         'combines_with': set(),
         'predicate_builder': (lambda value: {'__icontains': value})
+    },
+    'ISNULL': {
+        'combines_with': set(),
+        'predicate_builder': (lambda value: {'__isnull': value})
     },
     'WITHIN_RADIUS': {
         'combines_with': set(),

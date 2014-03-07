@@ -148,6 +148,10 @@ class FilterParserTests(TestCase):
         self.assertEqual(inparams,
                          {'__in': [1, 2, 3]})
 
+    def test_constraints_isnull(self):
+        inparams = search._parse_dict_value({'ISNULL': True})
+        self.assertEqual(inparams, {'__isnull': True})
+
     def test_constraints_is(self):
         # "IS" is a special case in that we don't need to appl
         # a suffix at all
