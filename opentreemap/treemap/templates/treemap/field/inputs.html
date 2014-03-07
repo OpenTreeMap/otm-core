@@ -1,8 +1,8 @@
-{# vim: set filetype=htmldjango : #}
 {% load l10n %}
 {% load dateformat %}
 {% if field.choices %}
     <select name="{{ field.identifier }}" {{ extra|default_if_none:"" }}
+            {% if field.id %}id="{{ field.id }}"{% endif %}
             class="{{ class|default_if_none:"" }}" />
         {% for option in field.choices %}
             <option value="{{ option.value }}"
@@ -13,15 +13,17 @@
     </select>
 {% elif field.data_type == 'bool' %}
     <input name="{{ field.identifier }}"
+          {% if field.id %}id="{{ field.id }}"{% endif %}
           {% if field.value %}
            checked="checked"
           {% endif %}
            type="checkbox"
-           class={{ class|default_if_none:"" }}
+           class="{{ class|default_if_none:"" }}"
            value="{{ field.value }}"
            {{ extra|default:"" }} />
 {% elif field.data_type == 'date' or field.data_type == 'datetime' %}
     <input name="{{ field.identifier }}"
+           {% if field.id %}id="{{ field.id }}"{% endif %}
            type="text"
            class="{{ class|default_if_none:"" }}"
            {% if request.instance %}
@@ -34,6 +36,7 @@
            {{ extra|default:"" }} />
 {% elif field.data_type == 'long_string' %}
     <textarea name="{{ field.identifier }}"
+           {% if field.id %}id="{{ field.id }}"{% endif %}
            class="{{ class|default_if_none:"" }}"
            value="{{ field.value|default_if_none:""|unlocalize }}"
            {{ extra|default:"" }} ></textarea>
@@ -41,6 +44,7 @@
   {% if field.units %}
   <div class="input-append">
     <input name="{{ field.identifier }}"
+           {% if field.id %}id="{{ field.id }}"{% endif %}
            type="text"
            class="{{ class|default_if_none:"" }}"
            value="{{ field.value|default_if_none:""|unlocalize }}"
@@ -49,6 +53,7 @@
   </div>
   {% else %}
     <input name="{{ field.identifier }}"
+           {% if field.id %}id="{{ field.id }}"{% endif %}
            type="text"
            class="{{ class|default_if_none:"" }}"
            value="{{ field.value|default_if_none:""|unlocalize }}"

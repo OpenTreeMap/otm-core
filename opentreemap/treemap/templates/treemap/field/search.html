@@ -1,27 +1,25 @@
-{# vim: set filetype=htmldjango : #}
+{% load l10n %}
 {% load i18n %}
 {% if field.is_visible %}
-  <form class="form-inline" role="form">
-    <div class="form-group">
-      <label>{{ field.label }}</label>
-    </div>
-    <div class="form-group">
-    {% if field.search_type == 'RANGE' %}
+  {% if field.search_type == 'RANGE' %}
       {% with 'data-class=search data-search-type=MIN' as extra %}
-          {% include "treemap/field/inputs.html" %}
+        {% include "treemap/field/inputs.html" %}
       {% endwith %}
-        <div class="text-separator">
-          {# Translators: text in-between min and max search filter boxes #}
-          {% trans " to " %}
-        </div>
+      <span>
+        {# Translators: This is in-between two date boxes for a range search #}
+        {% trans "through" %}
+      </span>
       {% with 'data-class=search data-search-type=MAX' as extra %}
-          {% include "treemap/field/inputs.html" %}
+        {% include "treemap/field/inputs.html" %}
       {% endwith %}
-    {% else %}
-      {% with 'data-class=search data-search-type='|add:field.search_type as extras %}
-          {% include "treemap/field/inputs.html" with extra=extras %}
-      {% endwith %}
-    {% endif %}
-    </div>
-  </form>
+  {% else %}
+    <span>
+    {% with 'data-class=search data-search-type='|add:field.search_type as extra %}
+      {% include "treemap/field/inputs.html" %}
+    {% endwith %}
+      <label for="{{ field.id }}">
+        {{ field.label }}
+      </label>
+    </span>
+  {% endif %}
 {% endif %}
