@@ -67,7 +67,7 @@
             <div class="span3">
               <h4>{% trans "Missing Data" %}</h4>
               {% for json in request.instance.advanced_search_fields.missing %}
-                {% search from json for request.user in request.instance withtemplate "treemap/field/search_missing.html" %}
+                {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
               {% endfor %}
             </div>
           </div>

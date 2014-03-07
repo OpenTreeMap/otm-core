@@ -11,7 +11,7 @@
             </option>
         {% endfor %}
     </select>
-{% elif field.data_type == 'bool' %}
+{% elif field.data_type == 'bool' or field.search_type == 'ISNULL' %}
     <input name="{{ field.identifier }}"
           {% if field.id %}id="{{ field.id }}"{% endif %}
           {% if field.value %}
