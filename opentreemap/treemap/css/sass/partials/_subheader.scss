@@ -25,12 +25,12 @@
         position: relative;
         pointer-events: auto;
         box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
-        
+
         > .advanced-search {
             padding: 20px;
             border-bottom: 1px solid lighten($primary-color, 35%);
             background: lighten($primary-color, 45%);
-    
+
             form {
                 margin: 0 0 10px;
             }
@@ -48,7 +48,7 @@
                     opacity: 0.5;
                     min-width: 20px;
                     display: inline-block;
-                    
+
                     &.slider-label {
                         width: 120px;
                         font-weight: 600;
@@ -64,7 +64,7 @@
                     }
                 }
                 .slider {
-                        
+
                     & + span {
                         margin-left: 16px;
                     }
@@ -159,20 +159,20 @@
             position: relative;
             z-index: 9;
             color: darken($primary-color, 25%);
-        
+
             span {
                 font-weight: bold;
             }
-        
+
             .exportBtn {
                 margin-left: 10px;
                 margin-top: -2px;
             }
-        
+
             .addBtn {
                 float: right;
                 margin-top: -3px;
-        
+
                 i {
                     position: relative;
                     left: -4px;
