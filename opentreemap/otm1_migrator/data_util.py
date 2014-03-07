@@ -42,6 +42,7 @@ def hash_to_model(config, model_name, data_hash, instance):
     hash of json data and attempts to populate a django
     model. Does not save.
     """
+    validate_model_dict(config, model_name, data_hash)
 
     common_fields = config[model_name].get('common_fields', set())
     renamed_fields = config[model_name].get('renamed_fields', {})
