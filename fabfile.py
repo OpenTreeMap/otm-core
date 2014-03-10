@@ -193,7 +193,7 @@ def uitest(test_filter="", coverage=False):
     require('site_path')
     require('venv_path')
 
-    _manage('test --live-server-tests '
+    _manage('test --live-server-tests --liveserver=localhost:9000-9200 '
             '--settings=opentreemap.test_settings %s' % test_filter,
             coverage=coverage)
 
