@@ -135,7 +135,7 @@ def save_other_with_user(model_name, model_hash, instance):
 
     model = save_model_with_user(model, instance)
 
-    OTM1ModelRelic.objects.create(
+    OTM1ModelRelic.objects.get_or_create(
         instance=instance,
         otm1_model_id=model_hash['pk'],
         otm2_model_name=model_name,
@@ -148,7 +148,7 @@ def save_other(model_name, model_hash, instance):
     model = hash_to_model(model_name, model_hash, instance)
 
     model.save()
-    OTM1ModelRelic.objects.create(
+    OTM1ModelRelic.objects.get_or_create(
         instance=instance,
         otm1_model_id=model_hash['pk'],
         otm2_model_name=model_name,
@@ -169,7 +169,7 @@ def save_treephoto(treephoto_path, model_hash, instance):
 
     model = save_model_with_user(model, instance)
 
-    OTM1ModelRelic.objects.create(
+    OTM1ModelRelic.objects.get_or_create(
         instance=instance,
         otm1_model_id=model_hash['pk'],
         otm2_model_name='treephoto',
@@ -240,11 +240,11 @@ def save_user(model_hash, instance):
 
     (OTM1UserRelic
      .objects
-     .create(instance=instance,
-             otm1_username=model_hash['fields']['username'],
-             otm2_user=model,
-             otm1_id=model_hash['pk'],
-             email=model_hash['fields']['email']))
+     .get_or_create(instance=instance,
+                    otm1_username=model_hash['fields']['username'],
+                    otm2_user=model,
+                    otm1_id=model_hash['pk'],
+                    email=model_hash['fields']['email']))
 
 
 def hashes_to_saved_objects(model_name, model_hashes, dependency_ids,
