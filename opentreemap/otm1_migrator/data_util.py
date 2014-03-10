@@ -1,8 +1,4 @@
 from treemap.audit import model_hasattr
-from django.core.exceptions import ObjectDoesNotExist
-
-import logging
-logger = logging.getLogger('')
 
 
 class MigrationException(Exception):
