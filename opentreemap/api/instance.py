@@ -141,6 +141,15 @@ def instance_info(request, instance):
     info['fields'] = perms
     info['search'] = instance.mobile_search_fields
 
+    public_config_keys = ['scss_variables']
+
+    info['config'] = {x: instance.config[x]
+                      for x in instance.config
+                      if x in public_config_keys}
+
+    if instance.logo:
+        info['logoUrl'] = instance.logo.url
+
     return info
 
 

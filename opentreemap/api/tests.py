@@ -25,6 +25,7 @@ from django.utils.unittest.case import skip
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
+from django.core.files import File
 
 from treemap.udf import DATETIME_FORMAT
 from treemap.models import Species, Plot, Tree, User, InstanceUser
@@ -36,7 +37,7 @@ from treemap.tests import (make_user, make_commander_user, make_request,
 from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from api.models import APIAccessCredential
 from api.views import add_photo_endpoint, update_profile_photo_endpoint
-from api.instance import instances_closest_to_point
+from api.instance import instances_closest_to_point, instance_info
 from api.user import create_user, users_json, users_csv
 from api.auth import (get_signature_for_request, check_signature,
                       SIG_TIMESTAMP_FORMAT)
@@ -1021,6 +1022,49 @@ class UpdatePlotAndTree(TestCase):
 
         self.assertTrue(len(plot) == 1, 'Expected plot to be here')
         self.assertTrue(len(tree) == 0, 'Expected tree to be gone')
+
+
+class Instance(LocalMediaTestCase):
+    test_png_name = '2by2.png'
+    test_png_path = os.path.join(
+        os.path.dirname(__file__),
+        'test_resources', test_png_name)
+
+    def setUp(self):
+        super(Instance, self).setUp()
+
+        self.instance = make_instance(is_public=True, point=Point(0, 0))
+        self.user = make_commander_user(instance=self.instance)
+        self.expected_scss_variables = {
+            'primary-color': '123456',
+            'secondary-color': '987654'
+        }
+        self.instance.config['scss_variables'] = self.expected_scss_variables
+        self.instance.logo.save(Instance.test_png_name,
+                                File(open(Instance.test_png_path, 'r')))
+
+    def test_returns_config_colors(self):
+        request = sign_request_as_user(make_request(), self.user)
+        info = instance_info(request, self.instance)
+        self.assertEqual(self.expected_scss_variables,
+                         info['config']['scss_variables'])
+
+    def test_returns_only_scss_variables(self):
+        request = sign_request_as_user(make_request(), self.user)
+        info = instance_info(request, self.instance)
+        self.assertTrue('scss_variables' in info['config'],
+                        '"scss_variables" should exist in instance.config')
+        self.assertEqual(1, len(info['config']),
+                         'The config dict should only contain a single, '
+                         'white listed item')
+
+    @media_dir
+    def test_returns_logo(self):
+        request = sign_request_as_user(make_request(), self.user)
+        info = instance_info(request, self.instance)
+        # The actual file name can be changed by the django machinery
+        # so I test for a fragment that remains the same
+        self.assertTrue('logos/2by2' in info['logoUrl'])
 
 
 @override_settings(NEARBY_INSTANCE_RADIUS=2)
