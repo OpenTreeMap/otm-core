@@ -549,14 +549,19 @@ class InlineFieldTagTests(TestCase):
             self._form_template_labelless_with_request_user_for)
 
     def test_create_uses_new_model(self):
-        self.assert_plot_length_context_value(
-            self.observer, 'field.value', unicode(Plot().length),
-            self._form_template_create)
+        template = self._form_template_create('Plot.length')
+        self._write_field_template("{{ field.value }}")
+
+        with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+            content = template.render(Context({
+                'request': {'user': self.observer, 'instance': self.instance}
+            })).strip()
+            self.assertEqual(content, unicode(Plot().length))
 
     def test_search_uses_new_model(self):
         self.instance.config['advanced_search_fields'] = {
             'standard': [
-                {'identifier': 'plot.length'}
+                {'identifier': 'Plot.length'}
             ]
         }
         self.assert_plot_length_context_value(
@@ -566,7 +571,7 @@ class InlineFieldTagTests(TestCase):
     def test_search_adds_field_config(self):
         self.instance.config['advanced_search_fields'] = {
             'standard': [
-                {'identifier': 'plot.length',
+                {'identifier': 'Plot.length',
                  'label': 'testing',
                  'search_type': 'range',
                  'default': [0, 100]}
@@ -591,7 +596,7 @@ class InlineFieldTagTests(TestCase):
     def test_search_gets_default_label_when_none_given(self):
         self.instance.config['advanced_search_fields'] = {
             'standard': [
-                {'identifier': 'plot.length',
+                {'identifier': 'Plot.length',
                  'label': None}
             ]
         }
@@ -603,7 +608,7 @@ class InlineFieldTagTests(TestCase):
     def test_search_fields_get_added_only_for_valid_json_matches(self):
         self.instance.config['advanced_search_fields'] = {
             'standard': [
-                {'identifiers': 'plot.width'}
+                {'identifiers': 'Plot.width'}
             ]
         }
         with self.assertRaises(TemplateSyntaxError):

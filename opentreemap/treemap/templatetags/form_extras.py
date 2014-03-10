@@ -112,8 +112,10 @@ def inline_edit_tag(tag, Node):
     If used by the alternate field name of "create" the tag will not look in
     the current template context for field values, and instead just give the
     default for that field.
+    Note that the model name part of the identifier must match the class name
+    and is case-sensitive
 
-    {% create "Width" from "plot.width" for user withtemplate "field.html" %}
+    {% create "Width" from "Plot.width" for user withtemplate "field.html" %}
 
     If used by the alternate field name of "search" the tag will behave
     similarly to "edit", but will get it's label and identifier from a
@@ -298,6 +300,10 @@ class AbstractNode(template.Node):
         model_name, field_name = identifier.split('.', 1)
         model = self.get_model(context, model_name, instance)
 
+        # Lowercase model names, to make client-side logic more consistent
+        model_name = model_name.lower()
+        identifier = "%s.%s" % (model_name.lower(), field_name)
+
         def _field_value(model, field_name):
             udf_field_name = field_name.replace('udf:', '')
             if field_name in model._meta.get_all_field_names():
@@ -382,7 +388,7 @@ class FieldNode(AbstractNode):
 
 class CreateNode(AbstractNode):
     def get_model(self, _, model_name, instance=None):
-        Model = safe_get_model_class(model_name.capitalize())
+        Model = safe_get_model_class(model_name)
 
         if instance and hasattr(Model, 'instance'):
             return Model(instance=instance)
@@ -403,8 +409,10 @@ class SearchNode(CreateNode):
         return label, identifier
 
     def get_additional_context(self, field):
+        # Identifier is lower-cased above to match the calling convention of
+        # update endpoints, so we shouldn't overwrite it :(
         field.update({k: v for k, v in self.search_json.items()
-                      if v is not None})
+                      if v is not None and k != 'identifier'})
         return field
 
 register.tag('field', inline_edit_tag('field', FieldNode))
