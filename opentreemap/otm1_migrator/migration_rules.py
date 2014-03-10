@@ -1,5 +1,6 @@
 from treemap.models import User, Plot, Tree, Species, Audit, TreePhoto
 
+from threadedcomments.models import ThreadedComment
 
 from django.contrib.gis.geos import fromstr
 
@@ -126,4 +127,22 @@ MIGRATION_RULES = {
     'contenttype': {
         'command_line_flag': '-c',
     },
+    'threadedcomment': {
+        'command_line_flag': '-r',
+        'model_class': ThreadedComment,
+        'dependencies': {'user': 'user',
+                         'contenttype': 'content_type'},
+        'common_fields': {'comment', 'is_public', 'is_approved',
+                          'ip_address', 'date_submitted',
+                          'date_modified', 'date_approved'},
+        'removed_fields': {'markup',  # this is no longer in the schema
+                           # object_id and parent are not actually removed
+                           # but they have to be processed manually so they
+                           # are ignored the tools that use this config.
+                           'object_id',
+                           'parent'},
+        'missing_fields': {'title',
+                           'tree_path',
+                           'last_child'}
+    }
 }

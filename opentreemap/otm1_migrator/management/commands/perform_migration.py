@@ -7,7 +7,9 @@ from optparse import make_option
 
 import os
 import json
+import operator
 from functools import partial
+from itertools import chain
 
 from django.conf import settings
 from django.db.transaction import commit_on_success
@@ -17,7 +19,8 @@ from treemap import SPECIES
 from treemap.models import User, Species, InstanceUser
 from treemap.management.util import InstanceDataCommand
 
-from otm1_migrator.models import OTM1UserRelic, OTM1ModelRelic
+from otm1_migrator.models import (OTM1UserRelic, OTM1ModelRelic,
+                                  OTM1CommentRelic)
 from otm1_migrator.migration_rules import MIGRATION_RULES
 from otm1_migrator.data_util import hash_to_model, MigrationException
 
@@ -176,6 +179,53 @@ def save_treephoto(treephoto_path, model_hash, instance):
         otm2_model_id=model.pk)
     return model
 
+
+@commit_on_success
+def save_threadedcomment(dependency_ids, model_hash, instance):
+    model = hash_to_model(MIGRATION_RULES,
+                          'threadedcomment', model_hash,
+                          instance)
+
+    model.site_id = 1
+
+    if model.content_type_id == -1:
+        print("Can't import threadedcomment %s because "
+              "it is assigned to a ContentType (model) "
+              "that does not exist in OTM2 .. SKIPPING"
+              % model.comment)
+        return None
+    model.save()
+
+    old_object_id = model_hash['fields']['object_id']
+    new_object_id = dependency_ids[model.content_type.model][old_object_id]
+    # object_id is called object_pk in later versions
+    model.object_pk = new_object_id
+
+    # find relic/dependency id for the parent and set that.
+    if model_hash['fields']['parent']:
+        parent_relic = (OTM1CommentRelic.objects
+                        .get(otm1_model_id=model_hash['fields']['parent']))
+        model.parent_id = parent_relic.otm2_model_id
+
+    else:
+        parent_relic = None
+
+    model.save()
+
+    if ((parent_relic and
+         parent_relic.otm1_last_child_id is not None and
+         parent_relic.otm1_last_child_id == model_hash['pk'])):
+        parent = parent_relic.summon()
+        parent.last_child = model.pk
+        parent.save()
+
+    OTM1CommentRelic.objects.create(
+        instance=instance,
+        otm1_model_id=model_hash['pk'],
+        otm2_model_id=model.pk,
+        otm1_last_child_id=model_hash['fields'].get('last_child', None))
+
+    return model
 
 
 def make_contenttype_relics(model_hash, instance):
@@ -342,18 +392,26 @@ class Command(InstanceDataCommand):
             'tree': partial(save_other_with_user, 'tree'),
             'treephoto': partial(save_treephoto, treephoto_path),
             'contenttype': make_contenttype_relics,
+            'threadedcomment': partial(save_threadedcomment, dependency_ids),
         }
 
         for relic in OTM1UserRelic.objects.filter(instance=instance):
             dependency_ids['user'][relic.otm1_id] = relic.otm2_user_id
 
-        for relic in OTM1ModelRelic.objects.filter(instance=instance):
+        model_relics = OTM1ModelRelic.objects.filter(instance=instance)
+        comment_relics = OTM1CommentRelic.objects.filter(instance=instance)
+
+        for relic in chain(model_relics, comment_relics):
             model_ids = dependency_ids[relic.otm2_model_name]
             model_ids[relic.otm1_model_id] = relic.otm2_model_id
 
         for model in MIGRATION_RULES:
             if json_hashes[model]:
-                hashes_to_saved_objects(model, json_hashes[model],
+                # hashes must be sorted by pk for the case of models
+                # that have foreign keys to themselves
+                sorted_hashes = sorted(json_hashes[model],
+                                       key=operator.itemgetter('pk'))
+                hashes_to_saved_objects(model, sorted_hashes,
                                         dependency_ids,
                                         save_fns[model],
                                         instance)
