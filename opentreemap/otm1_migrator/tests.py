@@ -258,13 +258,18 @@ class MigrationCommandTests(LocalMediaTestCase):
         test_plot.id = 95
         test_plot.save_with_user(self.commander)
 
+        test_species = Species(instance=self.instance, otm_code="1",
+                               common_name="asdfa", genus="sdfs")
+        test_species.id = 85
+        test_species.save_with_user(self.commander)
+
         tree_dict = json.loads(self.tree_blob)
         tree = hash_to_model(MIGRATION_RULES,
                              'tree', tree_dict, self.instance)
         tree.save_with_user(self.commander)
         tree = Tree.objects.get(pk=tree.pk)
         self.assertEqual(tree.plot, test_plot)
-        self.assertEqual(tree.species, None)
+        self.assertEqual(tree.species, test_species)
         self.assertEqual(tree.readonly, True)
         self.assertEqual(tree.diameter, 0.2900001566)
         self.assertEqual(tree.canopy_height, None)

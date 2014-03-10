@@ -45,7 +45,7 @@ MIGRATION_RULES = {
         'dependencies': {'species': 'species',
                          'user': 'steward_user',
                          'plot': 'plot'},
-        'common_fields': {'plot', 'species', 'readonly', 'canopy_height',
+        'common_fields': {'readonly', 'canopy_height',
                           'date_planted', 'date_removed', 'height'},
         'renamed_fields': {'dbh': 'diameter'},
         'undecided_fields': set(),
@@ -57,10 +57,6 @@ MIGRATION_RULES = {
                            'url', 'pests', 'steward_user',
                            'import_event'},
         'missing_fields': {'instance', },
-        'value_transformers': {
-            'plot': (lambda x: Plot.objects.get(pk=x)),
-            'species': (lambda x: Species.objects.get(pk=x)),
-            }
     },
     'audit': {
         'command_line_flag': '-a',
@@ -71,12 +67,8 @@ MIGRATION_RULES = {
         # on this end.
         'common_fields': {'model', 'model_id', 'field',
                           'previous_value', 'current_value',
-                          'user',
                           'action', 'requires_auth',
                           'ref', 'created', 'updated'},
-        'value_transformers': {
-            'user': (lambda x: User.objects.get(pk=x))
-        }
     },
     'plot': {
         'command_line_flag': '-p',

@@ -15,14 +15,17 @@ def validate_model_dict(config, model_name, data_hash):
     account for all of the provided data
     """
     common_fields = config[model_name].get('common_fields', set())
-    renamed_fields = config[model_name].get('renamed_fields', {})
+    renamed_fields = set(config[model_name].get('renamed_fields', {}).keys())
     removed_fields = config[model_name].get('removed_fields', set())
+    dependency_fields = set(config[model_name]
+                            .get('dependencies', {}).values())
     undecided_fields = (config[model_name]
                         .get('undecided_fields', set()))
     expected_fields = (common_fields |
-                       set(renamed_fields.keys()) |
+                       renamed_fields |
                        removed_fields |
-                       undecided_fields)
+                       undecided_fields |
+                       dependency_fields)
 
     provided_fields = set(data_hash['fields'].keys())
 
@@ -46,21 +49,25 @@ def hash_to_model(config, model_name, data_hash, instance):
 
     common_fields = config[model_name].get('common_fields', set())
     renamed_fields = config[model_name].get('renamed_fields', {})
+    dependency_fields = config[model_name].get('dependencies', {})
 
     model = config[model_name]['model_class']()
 
     identity = (lambda x: x)
 
-    for field in common_fields.union(renamed_fields):
-        transformers = (config[model_name]
-                        .get('value_transformers', {}))
-        transform_value_fn = transformers.get(field, identity)
-        try:
-            transformed_value = transform_value_fn(data_hash['fields'][field])
-            field = renamed_fields.get(field, field)
-            setattr(model, field, transformed_value)
-        except ObjectDoesNotExist as d:
-            logger.warning("Warning: %s ... SKIPPING" % d)
+    for field in (common_fields
+                  .union(renamed_fields)
+                  .union(dependency_fields.values())):
+        transform_fn = (config[model_name]
+                        .get('value_transformers', {})
+                        .get(field, identity))
+
+        transformed_value = transform_fn(data_hash['fields'][field])
+        field = renamed_fields.get(field, field)
+        if field in dependency_fields.values():
+            field += '_id'
+
+        setattr(model, field, transformed_value)
 
     if model_hasattr(model, 'instance'):
         model.instance = instance
