@@ -294,8 +294,10 @@ class Command(InstanceDataCommand):
     def handle(self, *args, **options):
 
         if settings.DEBUG:
-            print('In order to run this command you must manually'
-                  'set DEBUG=False in your settings file.')
+            self.stdout.write('In order to run this command you must manually'
+                              'set DEBUG=False in your settings file. '
+                              'Unfortunately, django runs out of memory when '
+                              'this command is run in DEBUG mode.')
             return 1
 
         if options['instance']:
@@ -316,8 +318,8 @@ class Command(InstanceDataCommand):
                 json_hashes[model_name] = json.load(model_file)
             except:
                 json_hashes[model_name] = []
-                print('No valid %s fixture provided ... SKIPPING'
-                      % model_name)
+                self.stdout.write('No valid %s fixture provided ... SKIPPING'
+                                  % model_name)
 
         treephoto_path = options.get('treephoto_path', None)
         treephoto_fixture_with_no_path = ('treephoto' in json_hashes and
