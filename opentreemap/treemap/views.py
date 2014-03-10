@@ -61,7 +61,7 @@ USER_EDIT_FIELDS = collections.OrderedDict([
       'visibility': 'public'}),
     ('organization',
      {'label': trans('Organization'),
-      'identifier': 'user.lastname',
+      'identifier': 'user.organization',
       'visibility': 'public'}),
     ('email',
      {'label': trans('Email'),
