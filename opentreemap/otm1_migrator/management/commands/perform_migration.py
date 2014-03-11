@@ -148,7 +148,7 @@ def save_other_with_user(model_name, model_hash, instance):
 
 @commit_on_success
 def save_other(model_name, model_hash, instance):
-    model = hash_to_model(model_name, model_hash, instance)
+    model = hash_to_model(MIGRATION_RULES, model_name, model_hash, instance)
 
     model.save()
     OTM1ModelRelic.objects.get_or_create(
