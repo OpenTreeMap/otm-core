@@ -121,10 +121,6 @@ class Instance(models.Model):
 
         return property(get_config, set_config)
 
-    advanced_search_fields = _make_config_property('advanced_search_fields',
-                                                   {'standard': [],
-                                                    'missing': []})
-
     mobile_search_fields = _make_config_property('mobile_search_fields',
                                                  {'standard': [],
                                                   'missing': []})
@@ -141,6 +137,21 @@ class Instance(models.Model):
     scss_variables = _make_config_property('scss_variables')
 
     map_feature_types = _make_config_property('map_feature_types', ['Plot'])
+
+    @property
+    def advanced_search_fields(self):
+        detail_filters = self.config.get('advanced_search_fields.standard', [])
+        missing_filters = self.config.get('advanced_search_fields.missing', [])
+
+        # It makes styling easier if every field has an identifier
+        num = 0
+        for filters in (detail_filters, missing_filters):
+            for field in filters:
+                field['id'] = "%s_%s" % (field.get('identifier', ''), num)
+                num += 1
+
+        return {'standard': detail_filters,
+                'missing': missing_filters}
 
     @property
     def extent_as_json(self):
