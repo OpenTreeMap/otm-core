@@ -1,5 +1,7 @@
 from treemap.models import User, Plot, Tree, Species, Audit, TreePhoto
 
+from threadedcomments.models import ThreadedComment
+
 from django.contrib.gis.geos import fromstr
 
 # model specification:
@@ -44,7 +46,7 @@ MIGRATION_RULES = {
         'dependencies': {'species': 'species',
                          'user': 'steward_user',
                          'plot': 'plot'},
-        'common_fields': {'plot', 'species', 'readonly', 'canopy_height',
+        'common_fields': {'readonly', 'canopy_height',
                           'date_planted', 'date_removed', 'height'},
         'renamed_fields': {'dbh': 'diameter'},
         'undecided_fields': set(),
@@ -56,10 +58,6 @@ MIGRATION_RULES = {
                            'url', 'pests', 'steward_user',
                            'import_event'},
         'missing_fields': {'instance', },
-        'value_transformers': {
-            'plot': (lambda x: Plot.objects.get(pk=x)),
-            'species': (lambda x: Species.objects.get(pk=x)),
-            }
     },
     'audit': {
         'command_line_flag': '-a',
@@ -70,12 +68,8 @@ MIGRATION_RULES = {
         # on this end.
         'common_fields': {'model', 'model_id', 'field',
                           'previous_value', 'current_value',
-                          'user',
                           'action', 'requires_auth',
                           'ref', 'created', 'updated'},
-        'value_transformers': {
-            'user': (lambda x: User.objects.get(pk=x))
-        }
     },
     'plot': {
         'command_line_flag': '-p',
@@ -130,4 +124,25 @@ MIGRATION_RULES = {
         'removed_fields': {'groups', 'user_permissions'},
         'missing_fields': {'roles', 'reputation'},
     },
+    'contenttype': {
+        'command_line_flag': '-c',
+    },
+    'threadedcomment': {
+        'command_line_flag': '-r',
+        'model_class': ThreadedComment,
+        'dependencies': {'user': 'user',
+                         'contenttype': 'content_type'},
+        'common_fields': {'comment', 'is_public', 'is_approved',
+                          'ip_address', 'date_submitted',
+                          'date_modified', 'date_approved'},
+        'removed_fields': {'markup',  # this is no longer in the schema
+                           # object_id and parent are not actually removed
+                           # but they have to be processed manually so they
+                           # are ignored the tools that use this config.
+                           'object_id',
+                           'parent'},
+        'missing_fields': {'title',
+                           'tree_path',
+                           'last_child'}
+    }
 }
