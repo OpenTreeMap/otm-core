@@ -2,7 +2,7 @@
 {% load l10n %}
 
 {% if request.instance_supports_ecobenefits %}
-<div id="benefit-values">
+<div id="benefit-values" class="benefit-values accordion-inner">
     {% for benefit in benefits %}
     <div class="benefit-value-row">
       {% if benefit.label == 'Energy' %}
