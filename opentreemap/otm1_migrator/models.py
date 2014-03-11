@@ -40,6 +40,7 @@ class AbstractRelic(models.Model):
 
     class Meta:
         abstract = True
+        unique_together = ('otm2_model_name', 'otm1_model_id', 'instance')
 
 
 class OTM1ModelRelic(AbstractRelic):
