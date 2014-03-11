@@ -140,18 +140,35 @@ class Instance(models.Model):
 
     @property
     def advanced_search_fields(self):
-        detail_filters = self.config.get('advanced_search_fields.standard', [])
-        missing_filters = self.config.get('advanced_search_fields.missing', [])
+        # TODO pull from the config once users have a way to set search fields
+        if self.feature_enabled('advanced_search_filters'):
+            advanced_search_fields = {
+                'standard': [
+                    {'identifier': 'Tree.diameter', 'search_type': 'RANGE'},
+                    {'identifier': 'Tree.date_planted', 'search_type': 'RANGE'}
+                ],
+                'missing': [
+                    {'identifier': 'Species.id',
+                     'label': 'Show missing species',
+                     'search_type': 'ISNULL',
+                     'value': 'true'},
+                    {'identifier': 'Tree.diameter',
+                     'label': 'Show missing trunk diameter',
+                     'search_type': 'ISNULL',
+                     'value': 'true'}
+                ]
+            }
+        else:
+            return {'standard': [], 'missing': []}
 
         # It makes styling easier if every field has an identifier
         num = 0
-        for filters in (detail_filters, missing_filters):
+        for filters in advanced_search_fields.itervalues():
             for field in filters:
                 field['id'] = "%s_%s" % (field.get('identifier', ''), num)
                 num += 1
 
-        return {'standard': detail_filters,
-                'missing': missing_filters}
+        return advanced_search_fields
 
     @property
     def extent_as_json(self):
