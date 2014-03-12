@@ -1,0 +1,31 @@
+@mixin checkboxes {
+	input[type='radio'],
+    input[type='checkbox'] {
+        opacity: 0;
+        float: left;
+        width: 20px;
+
+        & + label {
+            margin: 0;
+            clear: none;
+            padding: 5px 0 4px 28px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: $main-text-color;
+            cursor: pointer;
+            background: url(/static/img/off.png) left center no-repeat;
+        }
+        &.disabled + label {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        @include select-none;
+	}
+    input[type='radio']:checked + label {
+        background-image: url(/static/img/radio.png);
+    }
+    input[type='checkbox']:checked + label {
+        background-image: url(/static/img/check.png);
+    }
+}

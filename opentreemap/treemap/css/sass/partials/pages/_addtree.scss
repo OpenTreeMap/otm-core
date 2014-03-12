@@ -1,0 +1,143 @@
+#sidebar-add-tree,
+#sidebar-add-resource {
+    background: white;
+
+    > .sidebar-inner {
+
+        > h3 {
+            margin: 20px 20px 15px;
+        }
+
+        .add-step-container {
+            position: absolute;
+            overflow: hidden;
+            overflow-y: auto;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 75px;
+        }
+        .add-step {
+            margin: 0;
+            display: none;
+            position: relative;
+            -webkit-transition: .6s ease-in-out left;
+            transition: .6s ease-in-out left;
+
+            &.active,
+            &.next,
+            &.prev {
+                display: block
+            }
+            &.next,
+            &.prev {
+                position: absolute;
+                top: 0;
+                width: 100%
+            }
+            &.active {
+                left: 0;
+            }
+            &.next {
+                left: 100%;
+            }
+            &.prev {
+                left: -100%;
+            }
+
+            .add-step-header {
+                background: $light-gray-color;
+                color: darken($light-gray-color, 30%);
+                font-size: 1.2rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                padding: 5px 20px;
+                margin: 0 ;
+            }
+            .add-step-content {
+                padding: 20px;
+
+                h3 {
+                    margin: 0;
+                    line-height: 30px;
+                }
+                h4 {
+                    margin: 0 0 5px;
+                }
+                h6 {
+                    margin: 0 0 15px;
+                    color: $subtext-color;
+                }
+                small {
+                    font-size: 1.2rem;
+                    color: $subtext-color;
+                    line-height: 2.0rem;
+                    margin-bottom: 10px;
+                    display: block;
+                }
+                form {
+                    margin: 0;
+                }
+
+                .form-search {
+                    margin: 0;
+                }
+            
+                .geocode {
+                    padding: 8px 12px;
+                }
+                .geolocate {
+                    font-size: 1.2rem;
+                    color: $secondary-color;
+                    display: block;
+                    margin: 3px 0 3px -3px;
+                    cursor: pointer;
+                }
+                .resource-question {
+                    margin-bottom: 20px;
+                    border-bottom: solid 1px $subtext-color;
+                    padding-bottom: 20px;
+
+                    &:last-child {
+                        border: none;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    
+                    .resource-subquestion {
+                        padding-left: 15px;
+                        border-left: 8px solid #f1f2f2;
+                        margin-top: 15px;
+                    }
+                }
+
+                @include checkboxes;
+            }
+            .add-step-footer {
+                margin: 0;
+                padding: 0 20px;
+                border-top: 1px solid $light-gray-color;
+                position: relative;
+
+                .counter {
+                    position: absolute;
+                    top: 25px;
+                    font-size: 1.4rem;
+                    left: 0;
+                    right: 0;
+                    text-align: center;
+                }
+                .pager {
+                    position: relative;
+                }
+            }
+        }
+    }
+
+    .cancelBtn.small {
+        position: relative;
+        font-size: 2.4rem;
+        top: 10px;
+        right: 10px;
+    }
+}
