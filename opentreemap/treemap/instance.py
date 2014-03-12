@@ -143,6 +143,15 @@ class Instance(models.Model):
     map_feature_types = _make_config_property('map_feature_types', ['Plot'])
 
     @property
+    def stores_plot_only(self):
+        """
+        Determine whether this instance has multiple map feature
+        types (plots + "resource") or not.
+        """
+        feature_types = self.config.get('map_feature_types')
+        return feature_types == ['Plot'] or feature_types is None
+
+    @property
     def extent_as_json(self):
         boundary = self.bounds.boundary
         xmin, ymin, xmax, ymax = boundary.extent

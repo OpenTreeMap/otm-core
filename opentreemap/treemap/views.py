@@ -953,12 +953,14 @@ def _format_benefits(instance, benefits, num_calculated_trees,
     benefits_for_display = [displayize_benefit(key, currency)
                             for key in benefit_keys]
 
-    rslt = {'benefits': benefits_for_display,
+    rslt = {'tree_benefits': benefits_for_display,
             'currency_symbol': currency,
-            'basis': {'n_trees_used': num_calculated_trees,
-                      'n_trees_total': total_trees,
-                      'n_plots': total_plots,
-                      'percent': percent}}
+            'tree_basis': {'n_trees_used': num_calculated_trees,
+                           'n_trees_total': total_trees,
+                           'n_plots': total_plots,
+                           'percent': percent},
+            'resource_benefits': None,
+            'resource_basis': None}
 
     return rslt
 

@@ -3,30 +3,64 @@
 
 {% if request.instance_supports_ecobenefits %}
 <div id="benefit-values" class="benefit-values accordion-inner">
-    {% for benefit in benefits %}
+    {% if not request.instance.stores_plot_only %}
+    {% comment %}
+    unhide me when the backend is implemented
+    {% endcomment %}
+    <div class="benefit-value-title hidden">{% trans "General Eco Benefits"%}</div>
+    {% endif %}
+
+    {% for benefit in tree_benefits %}
+    {% include "treemap/partials/benefit_value_row.html" %}
+    {% endfor %}
+
+    {% if not request.instance.stores_plot_only %}
+    {% comment %}
+    unhide me when the backend is implemented
+    {% endcomment %}
+    <div class="benefit-value-title hidden">{% trans "Resource Benefits"%}</div>
+    {% endif %}
+
+    {% for benefit in resource_benefits %}
     {% include "treemap/partials/benefit_value_row.html" %}
     {% endfor %}
     <div class="benefit-tree-count">
-      {% blocktrans with used=basis.n_trees_used total=basis.n_trees_total %}
+      {% blocktrans with used=tree_basis.n_trees_used total=tree_basis.n_trees_total %}
         Based on {{ used }} out of {{ total }} total trees
       {% endblocktrans %}
+      {% if not request.instance.stores_plot_only %}
+      {% blocktrans with used=resource_basis.n_resources_used total=resource_basis.n_resources_total %}
+        Based on {{ used }} out of {{ total }} total trees
+      {% endblocktrans %}
+      {% endif %}
     </div>
 </div>
 {% endif %}
 <div id="tree-and-planting-site-counts">
   {% localize on %}
   <span id="tree-count">
-  {% blocktrans count basis.n_trees_total as tree_count %}
+  {% blocktrans count tree_basis.n_trees_total as tree_count %}
     {{ tree_count }}</span> tree,
   {% plural %}
     {{ tree_count }}</span> trees,
   {% endblocktrans %}
 
   <span id="planting-site-count">
-  {% blocktrans count basis.n_plots as plot_count %}
+  {% blocktrans count tree_basis.n_plots as plot_count %}
     {{ plot_count }}</span> planting site
   {% plural %}
     {{ plot_count }}</span> planting sites
+  {% endblocktrans %}
+  {% endlocalize %}
+
+  {% comment %}
+  unhide me when the backend is implemented
+  {% endcomment %}
+  <span id="resource-count hidden">
+  {% blocktrans count resource_basis.n_resources as resource_count %}
+    {{ resource_count }}</span> resources
+  {% plural %}
+    {{ resrouce_count }}</span> resources
   {% endblocktrans %}
   {% endlocalize %}
 </div>
