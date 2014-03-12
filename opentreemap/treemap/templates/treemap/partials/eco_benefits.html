@@ -3,7 +3,7 @@
 
 {% if request.instance_supports_ecobenefits %}
 <div id="benefit-values" class="benefit-values accordion-inner">
-    {% if not request.instance.stores_plot_only %}
+    {% if not hide_summary not request.instance.stores_plot_only %}
     {% comment %}
     unhide me when the backend is implemented
     {% endcomment %}
@@ -14,7 +14,7 @@
     {% include "treemap/partials/benefit_value_row.html" %}
     {% endfor %}
 
-    {% if not request.instance.stores_plot_only %}
+    {% if not hide_summary not request.instance.stores_plot_only %}
     {% comment %}
     unhide me when the backend is implemented
     {% endcomment %}
@@ -24,6 +24,8 @@
     {% for benefit in resource_benefits %}
     {% include "treemap/partials/benefit_value_row.html" %}
     {% endfor %}
+
+    {% if not hide_summary %}
     <div class="benefit-tree-count">
       {% blocktrans with used=tree_basis.n_trees_used total=tree_basis.n_trees_total %}
         Based on {{ used }} out of {{ total }} total trees
@@ -34,6 +36,7 @@
       {% endblocktrans %}
       {% endif %}
     </div>
+    {% endif %}
 </div>
 {% endif %}
 <div id="tree-and-planting-site-counts">
