@@ -20,7 +20,7 @@
     <a href="javascript:;" id="cancel-add-tree" class="btn" style="display: none;">{% trans "Cancel Adding Tree" %}</a>
 
     {# Hidden id fields for use in creating a new tree #}
-    {% create from "tree.plot" for request.user in request.instance withtemplate "treemap/field/hidden.html" %}
+    {% create from "Tree.plot" for request.user in request.instance withtemplate "treemap/field/hidden.html" %}
     {% localize off %}
     {% field from "plot.id" for request.user withtemplate "treemap/field/hidden.html" %}
     {% endlocalize %}

@@ -1040,7 +1040,7 @@ def upload_user_photo(request, user):
 
 def _get_map_view_context(request, instance_id):
     fields_for_add_tree = [
-        (trans('Tree Height'), 'tree.height')
+        (trans('Tree Height'), 'Tree.height')
     ]
     return {'fields_for_add_tree': fields_for_add_tree}
 

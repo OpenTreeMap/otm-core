@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenTreeMap</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="utf-8" />
+
+    <link rel="icon" type="image/png" href="/favicon.png" />
+
+    <!-- 
+    
+        NOTES
+        *****
+        Just pulling in static CSS files, needs to have an alias of 
+        /opentreemap/treemap/static/ here for that to work.
+    
+    -->
+    <link href="static/css/vendor.css" rel="stylesheet">
+    <link href="css/slider.css" rel="stylesheet">
+    <link href="static/css/main.css" rel="stylesheet">
+</head>
+<body>
+<div class="wrapper">
+    <!-- Top Nav -->
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar-inner">
+          <ul class="nav pull-left">
+              <li class="add-menu dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown"><i class="icon-plus-circled"></i></a>
+                  <ul class="dropdown-menu">
+                      <li><a>Add a Tree</a></li>
+                      <li><a>Add a Resource</a></li>
+                  </ul>
+              </li>
+              <li><a>Explore Trees</a></li>
+              <li><a>View Edits</a></li>
+          </ul>
+          <ul class="nav pull-right">
+              <li class="dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown">My Tree Map</a>
+                  <ul class="dropdown-menu">
+                      <li><a><i class="icon-cog"></i> Customize Tree Map</a></li>
+                      <li><a><i class="icon-thumbs-up"></i> Moderate</a></li>
+                  </ul>
+              </li>
+              <li><a>My Account</a></li>
+              <li class="user-img">
+                <a><img src="static/img/profile.png"></a>
+              </li>
+          </ul>
+        </div>
+    </div>
+
+    <!-- NEW! User Dock, showing quick information about "My Profile" -->
+    <div class="user-dock">
+        <div class="row-fluid">
+            <div class="span1">
+                <a><img src="static/img/profile.png" class="user-img"></a>
+            </div>
+            <div class="span3">
+                <h2>administrator</h2>
+                <h4>Administrative User</h4>
+                <a class="btn btn-primary">Edit Profile</a>
+                <a class="btn">Logout</a>
+            </div>
+            <div class="span4">
+                <label>My Tree Maps <a class="pull-right">View All Maps</a></label>
+                <ul>
+                    <li><a>testmap</a> <span>Owner</span></li>
+                    <li><a>testmap</a> <span>User</span></li>
+                    <li><a>testmap</a> <span>User</span></li>
+                </ul>
+            </div>
+            <div class="span4">
+                <label>My Recent Contributions <a class="pull-right">View All Edits</a></label>
+                <ul>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logo and Search -->
+    <div class="header">
+        <div class="logo">
+          <a href=""><img id="site-logo" src="static/img/logo.png" alt="OpenTreeMap"></a>
+        </div>
+        <div class="search-wrapper">
+            <div class="search-block-wrapper">
+
+                <!--Species Search-->
+                <div class="search-block visible-desktop">
+                    <h3>Search by Species</h3>
+                    <div class="search-field-group">
+                        <a class="typeahead-toggle" id="species-toggle"><i class="icon-menu"></i></a>
+                        <input type="text" data-class="search" id="species-typeahead" placeholder="Common or Scientific Name"/>
+                        <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
+                    </div>
+                </div>
+            
+                <!-- Location Search -->
+                <div class="search-block">
+                    <h3>Search by Location</h3>
+                    <div class="search-field-group">
+                        <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
+                        <input type="text" data-class="search" id="boundary-typeahead" placeholder="Address, City, State"/>
+                        <input name="plot.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />
+                    </div>
+                </div>
+            </div>
+            <div class="search-options">
+                <a id="perform-search" class="btn btn-primary btn-large btn-block">Search</a>
+                <div class="btn-group">
+                    <button id="search-advanced" class="btn">Advanced</button>
+                    <button id="search-reset" class="btn">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div> 
+
+    <!-- Advanced Search and Subheader - Note: Had to be moved and restructured -->
+    <div class="subhead">
+        <div class="subhead-mask">
+            <div class="subhead-inner">
+                <div class="advanced-search">
+                    <div class="container">
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <h4>Tree Detail Filters</h4>
+                                <div class="slider-row">
+                                    <span class="slider-label">Diameter</span>
+                                    <span>1in</span><input type="text" value="" data-slider-min="1" data-slider-max="60" data-slider-step="1" data-slider-value="[1,60]" id="diameter-slider" class="slider"><span>60in</span>
+                                </div>
+                                <div class="slider-row disabled">
+                                    <span class="slider-label">Plot Size</span>
+                                    <span>1ft</span><input type="text" value="" data-slider-min="1" data-slider-max="15" data-slider-step=".5" data-slider-value="[1,15]" id="plotsize-slider" class="slider"><span>15ft</span>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <h4>Display Filters</h4>
+                                <span>
+                                    <input type="checkbox" name="show-trees" id="show-trees" /><label for="show-trees">Show trees</label>
+                                </span>
+                                <span>
+                                    <input type="checkbox" name="show-empty" id="show-empty" /><label for="show-empty">Show empty planting sites</label>
+                                </span>
+                                <span>
+                                    <input type="checkbox" name="show-rain-barrels" id="show-rain-barrels" /><label for="show-rain-barrels">Show rain barrels</label>
+                                </span>
+                                <span>
+                                    <input type="checkbox" name="show-rain-gardens" id="show-rain-gardens" /><label for="show-rain-gardens">Show rain gardens</label>
+                                </span>
+                                <span>
+                                    <input type="checkbox" name="show-turf-gardens" id="show-turf-gardens" class="disabled" /><label for="show-turf-gardens">Show turf/concrete gardens</label>
+                                </span>
+                            </div>
+                            <div class="span3">
+                                <h4>Missing Data</h4>
+                                <span>
+                                    <input type="checkbox" name="missing-diameter" id="missing-diameter" /><label for="missing-diameter">Show missing trunk diameter</label>
+                                </span>
+                                <span>
+                                    <input type="checkbox" name="missing-species" id="missing-species" /><label for="missing-species">Show missing species</label>
+                                </span>
+                                <span>
+                                    <input type="checkbox" name="missing-photos" id="missing-photos" class="disabled" /><label for="missing-photos">Show missing photos</label>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stewardship-search disabled">
+                    <span>I am looking for</span>
+                    <div class="stewardship-selector">...</div>
+                    <span>that</span>
+                    <div class="stewardship-selector">...</div>
+                    <div class="stewardship-selector">...</div>
+                    <span>between</span>
+                    <div class="stewardship-selector">...</div>
+                    <span>and</span>
+                    <div class="stewardship-selector">...</div>
+                </div>
+                <div class="stats-bar">
+                    <div style="display: inline;" id="tree-and-planting-site-counts">
+                        <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites
+                    </div>
+                    <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
+                    <a class="btn btn-primary addBtn"><i class="icon-plus"></i> Add a Tree</a>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- Background Image for Interior Pages -->
+    <div class="image-background hidden"></div>
+    <div class="content map">
+        <div id="streetview" style="display: none"></div>
+        <div id="map" class="map"></div>
+        <div class="sidebar">
+            <div id="sidebar-browse-trees" class="hidden">
+                <div class="accordion" id="map-info">
+                    <div class="accordion-group">
+                        <div class="accordion-heading">
+                            <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#map-info" href="#tree-detail">Quick Details <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
+                        </div>
+                        <div id="tree-detail" class="accordion-body collapse">
+                            <div class="accordion-body-buttons" id="map-plot-details-button">
+                                <a class="btn" data-class="display" id="full-details-button">Full Details</a>
+                                <button class="btn"
+                                        data-class="display"
+                                        id="quick-edit-button"
+                                        data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+                                        data-href="{{ request.get_full_path }}"
+                                        data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
+                                        disabled="disabled">Quick Edit</button>
+                                        <button class="btn btn-success" data-class="edit" id="save-details-button" style="display:none">Save</button>
+                                        <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</button>
+                            </div>
+                            <div class="accordion-inner" id="plot-accordion">
+                                <form id="details-form" data-location-x="-13,161,736.6877" data-location-y="4,034,336.2011">
+                                    <div class="tree-details-species" data-class="display" data-field="tree.species">
+                                        <h3 data-typeahead="tree.species" data-datum="common_name">Rain Garden</h3>
+                                        <h5 data-typeahead="tree.species" data-datum="scientific_name">Resource</h5>
+                                    </div>
+                                    <div class="accordion-inner benefit-values">
+                                        <div class="benefit-value-title">Resource Benefits</div>
+                                        <div class="benefit-value-row resource-benefit">
+                                            <div class="benefit-icon"><i class="icon-umbrella"></i></div>
+                                            <h3 class="benefit-label">Stormwater Conserved</h3>
+                                            <span class="benefit-content">420 gal saved $1230</span>
+                                        </div>
+                                        <div class="benefit-value-row resource-benefit">
+                                            <div class="benefit-icon"><i class="icon-cloud"></i></div>
+                                            <h3 class="benefit-label">Irrigation Reduced</h3>
+                                            <span class="benefit-content">420 gal saved $2263</span>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-group">
+                        <div class="accordion-heading">
+                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#yearlyEco">Yearly Eco Benefits <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
+                        </div>
+                        <div id="yearlyEco" class="accordion-body collapse in">
+                            <div class="accordion-inner benefit-values">
+                                <div class="benefit-value-title">General Eco Benefits</div>
+                                <div class="benefit-value-row">
+                                    <div class="benefit-icon"><i class="icon-flash-1"></i></div>
+                                    <h3 class="benefit-label">Energy Benefits</h3>
+                                    <span class="benefit-content">29,898.5 kwh saved $678</span>
+                                </div>
+                                <div class="benefit-value-row">
+                                    <div class="benefit-icon"><i class="icon-tint"></i></div>
+                                    <h3 class="benefit-label">Stormwater Benefits</h3>
+                                    <span class="benefit-content">434,373.5 gal saved $511</span>
+                                </div>
+                                <div class="benefit-value-row">
+                                    <div class="benefit-icon"><i class="icon-sun-filled"></i></div>
+                                    <h3 class="benefit-label">Carbon Dioxide Benefits</h3>
+                                    <span class="benefit-content">40,135.6 lbs/year saved $49</span>
+                                </div>
+                                <div class="benefit-value-row">
+                                    <div class="benefit-icon"><i class="icon-sun-1"></i></div>
+                                    <h3 class="benefit-label">Carbon Dioxide Stored Benefits</h3>
+                                    <span class="benefit-content">351,094.4 lbs saved $433</span>
+                                </div>
+                                <div class="benefit-value-row">
+                                    <div class="benefit-icon"><i class="icon-cloud-1"></i></div>
+                                    <h3 class="benefit-label">Air Quality Benefits</h3>
+                                    <span class="benefit-content">182.8 lbs/year saved $197</span>
+                                </div>
+                                <div class="benefit-value-title">Resource Benefits</div>
+                                <div class="benefit-value-row resource-benefit">
+                                    <div class="benefit-icon"><i class="icon-umbrella"></i></div>
+                                    <h3 class="benefit-label">Stormwater Conserved</h3>
+                                    <span class="benefit-content">420 gal saved $1230</span>
+                                </div>
+                                <div class="benefit-value-row resource-benefit">
+                                    <div class="benefit-icon"><i class="icon-cloud"></i></div>
+                                    <h3 class="benefit-label">Irrigation Reduced</h3>
+                                    <span class="benefit-content">420 gal saved $2263</span>
+                                </div>
+                                <div class="benefit-tree-count">
+                                    Based on 24 out of 204 total trees and 125 of 352 resources.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="sidebar-add-tree" class="hidden">
+                <div class="sidebar-inner">
+                    <a href="javascript:;" class="close cancelBtn small">×</a>
+                    <h3 >Add a Tree</h3>
+                    <div class="add-step-container">
+                        <div class="add-step active">
+                            <div class="add-step-header">1. Set the tree’s location</div>
+                            <div class="add-step-content">
+                                <div class="alert alert-info place-marker-message">Choose a point on the map, search by address, or select use current location.</div>
+                                <form class="form-search" onsubmit="return false;">
+                                    <input type="text" class="search-query" id="add-tree-address" placeholder="Address, City, State">
+                                    <button class="btn btn-primary geocode">Search</button>
+                                </form>
+                                <a class="geolocate"><i class="icon-direction"></i> Use Current Location</a>
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 1</strong> of 3</span>
+                                <ul class="pager">
+                                    <li class="previous hidden"><a href="#">&laquo; Back</a></li>
+                                    <li class="next"><a href="#">Next &raquo;</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="add-step next">
+                            <div class="add-step-header">2. Set species and additional info</div>
+                            <div class="add-step-content">
+                                [INSERT SPECIES, DIAMETER, HEIGHT STUFF]
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 2</strong> of 3</span>
+                                <ul class="pager">
+                                    <li class="previous"><a href="#">&laquo; Back</a></li>
+                                    <li class="next"><a href="#">Next &raquo;</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="add-step">
+                            <div class="add-step-header">3. Finalize this tree</div>
+                            <div class="add-step-content">
+                                <h3>Common Name</h3>
+                                <h6>Scientific Name</h6>
+                                <h4>340 N 12th Street<br/>
+                                    Philadelphia PA 19107</h4>
+                                <h6>Nearby Address</h6>
+                                <hr/>
+                                <span>
+                                    <input type="radio" name="addtree" id="addtree-addmore" /><label for="addtree-addmore">I want to add another tree</label>
+                                </span>
+                                <span>
+                                    <input type="radio" name="addtree" id="addtree-viewdetails" /><label for="addtree-viewdetails">I want to view the detail page</label>
+                                </span>
+                                <span>
+                                    <input type="radio" name="addtree" id="addtree-done" /><label for="addtree-done">I'm done</label>
+                                </span>
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 3</strong> of 3</span>
+                                <ul class="pager">
+                                    <li class="previous"><a href="#">&laquo; Back</a></li>
+                                    <li class="next disabled"><a href="#">Done</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="sidebar-add-resource">
+                <div class="sidebar-inner">
+                    <a href="javascript:;" class="close cancelBtn small">×</a>
+                    <h3 >Add a Resource</h3>
+                    <div class="add-step-container">
+                        <div class="add-step active">
+                            <div class="add-step-header">1. Select Resource Type</div>
+                            <div class="add-step-content">
+                                <label>Select Resource</label>
+                                <select>
+                                    <option>Rain garden</option>
+                                    <option>Rain barrel</option>
+                                    <option>Turf/concrete garden</option>
+                                </select>
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 1</strong> of 4</span>
+                                <ul class="pager">
+                                    <li class="previous hidden"><a href="#">&laquo; Back</a></li>
+                                    <li class="next"><a href="#">Next &raquo;</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="add-step next">
+                            <div class="add-step-header">2. Add Resource to Map</div>
+                            <div class="add-step-content">
+                                <label>Set resource's location</label>
+                                <form class="form-search" onsubmit="return false;">
+                                    <input type="text" class="search-query" id="add-tree-address" placeholder="Address, City, State">
+                                    <button class="btn btn-primary geocode">Search</button>
+                                </form>
+                                <a class="geolocate"><i class="icon-direction"></i> Use Current Location</a>
+                                <div class="alert alert-info place-marker-message">Choose a point on the map, search by address, or use your current location to place the resource.</div>
+                                <hr/>
+                                <label>Indicate nearby roof area</label>
+                                <div class="alert alert-info place-marker-message">Drag and outline the nearby roof area that would drain into your resource.</div>
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 2</strong> of 4</span>
+                                <ul class="pager">
+                                    <li class="previous"><a href="#">&laquo; Back</a></li>
+                                    <li class="next"><a href="#">Next &raquo;</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="add-step">
+                            <div class="add-step-header">3. About this Resource</div>
+                            <div class="add-step-content">
+                                <div class="resource-question">
+                                    <label>Was the site of this rain garden previously turf?</label>
+                                    <span>
+                                        <input type="radio" name="resource-question-01" id="resource-question-01a" /><label for="resource-question-01a">Yes</label>
+                                    </span>
+                                    <span>
+                                        <input type="radio" name="resource-question-01" id="resource-question-01b" /><label for="resource-question-01b">No</label>
+                                    </span>
+
+                                    <div class="resource-subquestion">
+                                        <label>If so, was the turf replaced with plants or materials that require less water?</label>
+                                        <span>
+                                            <input type="radio" name="resource-question-02" id="resource-question-02a" /><label for="resource-question-02a">Yes</label>
+                                        </span>
+                                        <span>
+                                            <input type="radio" name="resource-question-02" id="resource-question-02b" /><label for="resource-question-02b">No</label>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="resource-question">
+                                    <label>Are there trees planted in the rain garden?</label>
+                                    <span>
+                                        <input type="radio" name="resource-question-03" id="resource-question-03a" /><label for="resource-question-03a">Yes</label>
+                                    </span>
+                                    <span>
+                                        <input type="radio" name="resource-question-03" id="resource-question-03b" /><label for="resource-question-03b">No</label>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 3</strong> of 4</span>
+                                <ul class="pager">
+                                    <li class="previous"><a href="#">&laquo; Back</a></li>
+                                    <li class="next"><a href="#">Next &raquo;</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="add-step">
+                            <div class="add-step-header">4. Finalize this resource</div>
+                            <div class="add-step-content">
+                                <h3>Rain Garden</h3>
+                                <h6>Resource</h6>
+                                <h4>340 N 12th Street<br/>
+                                    Philadelphia PA 19107</h4>
+                                <h6>Nearby Address</h6>
+                                <hr/>
+                                <span>
+                                    <input type="radio" name="addresource" id="addresource-addmore" /><label for="addresource-addmore">I want to add another resource</label>
+                                </span>
+                                <span>
+                                    <input type="radio" name="addresource" id="addresource-viewdetails" /><label for="addresource-viewdetails">I want to view the detail page</label>
+                                </span>
+                                <span>
+                                    <input type="radio" name="addresource" id="addresource-done" /><label for="addresource-done">I'm done</label>
+                                </span>
+                            </div>
+                            <div class="add-step-footer">
+                                <span class="counter"><strong>Step 4</strong> of 4</span>
+                                <ul class="pager">
+                                    <li class="previous"><a href="#">&laquo; Back</a></li>
+                                    <li class="next disabled"><a href="#">Done</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer>
+    <div class="footer-inner">
+        <ul class="inline pull-left">
+            <li><a>Tree Key</a></li>
+            <li><a>Resources</a></li>
+            <li><a>FAQ</a></li>
+            <li><a>About</a></li>
+            <li><a>Contact</a></li>
+        </ul>
+        <a href="javascript:;" class="pull-right partners">Partners</a>
+    </div>
+</footer>
+    
+<!-- 
+
+    NOTES
+    *****
+    This is just placeholder to show interactivity.
+    Hopefully it just helps give a sense of how things should work.
+
+-->
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/bootstrap-slider.js"></script>
+<script>
+    // Just adds dropdowns to navbar, user-dock
+    $('#search-advanced').on('click', function() {
+        $(this).toggleClass('active');
+        $('.subhead').toggleClass('expanded');
+    });
+    $('.dropdown-toggle').dropdown();
+    $('.user-img').on('click', function() {
+        $('.user-dock').toggleClass('active');
+    });
+    $('.slider').slider();
+    $('.add-step-container .add-step .pager > li:not(.disabled)').on('click', function(){
+        if ($(this).hasClass('next')) {
+            $(this).closest('.add-step').toggleClass('active prev');
+            $(this).closest('.add-step').next().toggleClass('active next').next().toggleClass('next');
+            $(this).closest('.add-step').prev().toggleClass('prev');
+        } else if ($(this).hasClass('previous')) {
+            $(this).closest('.add-step').toggleClass('active next');
+            $(this).closest('.add-step').prev().toggleClass('active prev').prev().toggleClass('prev');
+            $(this).closest('.add-step').next().toggleClass('next');
+        }
+    });
+</script>
+</body>
+</html>

@@ -374,10 +374,9 @@ class InlineFieldTagTests(TestCase):
             """ withtemplate "field_template.html" %}"""
         return Template(template_text)
 
-    def _form_template_search(self, identifier):
+    def _form_template_search(self):
         template_text = """{% load form_extras %}""" +\
-            """{% search from""" +\
-            """ request.instance.advanced_search_fields.standard.0""" +\
+            """{% search from search_json""" +\
             """ for request.user in request.instance """ +\
             """ withtemplate "field_template.html" %}"""
         return Template(template_text)
@@ -400,6 +399,15 @@ class InlineFieldTagTests(TestCase):
             content = template.render(Context({
                 'request': {'user': user, 'instance': self.instance},
                 'plot': plot})).strip()
+            self.assertEqual(content, value)
+
+    def assert_search_context_value(self, user, name, value, search_json):
+        template = self._form_template_search()
+        self._write_field_template("{{" + name + "}}")
+        with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+            content = template.render(Context({
+                'request': {'user': user, 'instance': self.instance},
+                'search_json': search_json})).strip()
             self.assertEqual(content, value)
 
     def assert_plot_udf_context_value(self, user, name, value):
@@ -549,69 +557,51 @@ class InlineFieldTagTests(TestCase):
             self._form_template_labelless_with_request_user_for)
 
     def test_create_uses_new_model(self):
-        self.assert_plot_length_context_value(
-            self.observer, 'field.value', unicode(Plot().length),
-            self._form_template_create)
+        template = self._form_template_create('Plot.length')
+        self._write_field_template("{{ field.value }}")
+
+        with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+            content = template.render(Context({
+                'request': {'user': self.observer, 'instance': self.instance}
+            })).strip()
+            self.assertEqual(content, unicode(Plot().length))
 
     def test_search_uses_new_model(self):
-        self.instance.config['advanced_search_fields'] = {
-            'standard': [
-                {'identifier': 'plot.length'}
-            ]
-        }
-        self.assert_plot_length_context_value(
+        self.assert_search_context_value(
             self.observer, 'field.value', unicode(Plot().length),
-            self._form_template_search)
+            {'identifier': 'Plot.length'})
 
     def test_search_adds_field_config(self):
-        self.instance.config['advanced_search_fields'] = {
-            'standard': [
-                {'identifier': 'plot.length',
-                 'label': 'testing',
-                 'search_type': 'range',
-                 'default': [0, 100]}
-            ]
-        }
-        self.assert_plot_length_context_value(
-            self.observer, 'field.identifier', 'plot.length',
-            self._form_template_search)
+        search = {'identifier': 'Plot.length',
+                  'label': 'testing',
+                  'search_type': 'range',
+                  'default': [0, 100]}
+        self.assert_search_context_value(
+            self.observer, 'field.identifier', 'plot.length', search)
 
-        self.assert_plot_length_context_value(
-            self.observer, 'field.label', 'testing',
-            self._form_template_search)
+        self.assert_search_context_value(
+            self.observer, 'field.label', 'testing', search)
 
-        self.assert_plot_length_context_value(
-            self.observer, 'field.search_type', 'range',
-            self._form_template_search)
+        self.assert_search_context_value(
+            self.observer, 'field.search_type', 'range', search)
 
-        self.assert_plot_length_context_value(
-            self.observer, 'field.default', '[0, 100]',
-            self._form_template_search)
+        self.assert_search_context_value(
+            self.observer, 'field.default', '[0, 100]', search)
 
     def test_search_gets_default_label_when_none_given(self):
-        self.instance.config['advanced_search_fields'] = {
-            'standard': [
-                {'identifier': 'plot.length',
-                 'label': None}
-            ]
-        }
-        self.assert_plot_length_context_value(
+        self.assert_search_context_value(
             self.observer, 'field.label',
             unicode(Plot._meta.get_field('length').help_text),
-            self._form_template_search)
+            {'identifier': 'Plot.length', 'label': None})
 
     def test_search_fields_get_added_only_for_valid_json_matches(self):
-        self.instance.config['advanced_search_fields'] = {
-            'standard': [
-                {'identifiers': 'plot.width'}
-            ]
-        }
         with self.assertRaises(TemplateSyntaxError):
             with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
                 self._write_field_template("{{ field.identifier }}")
-                self._form_template_search(None).render(Context({
+                self._form_template_search().render(Context({
                     'request': {'user': self.observer,
-                                'instance': self.instance}}
+                                'instance': self.instance},
+                    'search_json': {'identifiers': 'Plot.width'}}
                 )).strip()
 
 

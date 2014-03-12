@@ -56,7 +56,7 @@ function redirectToSearchPage(config, filterObj, wmCoords) {
 
 function initSearchUi(config) {
     var $advancedToggle = $("#search-advanced"),
-        $advancedPane = $("#advanced-search-pane");
+        $subheader = $(".subhead");
     otmTypeahead.create({
         name: "species",
         url: config.instance.url + "species/",
@@ -78,9 +78,10 @@ function initSearchUi(config) {
         sortKeys: ['sortOrder', 'value']
     });
     $advancedToggle.on("click", function() {
-        $advancedPane.toggle(0); // Show/hide with 0 animation time
+        $advancedToggle.toggleClass('active').blur();
+        $subheader.toggleClass('expanded');
     });
-    $advancedPane.find("input[data-date-format]").datepicker();
+    $subheader.find("input[data-date-format]").datepicker();
 }
 
 module.exports = exports = {
