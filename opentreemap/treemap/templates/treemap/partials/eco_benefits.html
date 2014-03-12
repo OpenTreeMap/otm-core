@@ -4,29 +4,7 @@
 {% if request.instance_supports_ecobenefits %}
 <div id="benefit-values" class="benefit-values accordion-inner">
     {% for benefit in benefits %}
-    <div class="benefit-value-row">
-      {% if benefit.label == 'Energy' %}
-        <div class="benefit-icon"><i class="icon-flash-1"></i></div>
-      {% elif benefit.label == 'Stormwater' %}
-        <div class="benefit-icon"><i class="icon-tint"></i></div>
-      {% elif benefit.label == 'Air Quality' %}
-        <div class="benefit-icon"><i class="icon-cloud"></i></div>
-      {% else %}
-        <div class="benefit-icon"><i class="icon-sun-filled"></i></div>
-      {% endif %}
-      <h3 class="benefit-label">{{ benefit.label }} {% trans "Benefits" %}</h3>
-      <dl class="dl-horizontal benefit-content">
-        <dt>{{ benefit.value }}</dt>
-        <dd>{{ benefit.unit }}</dd>
-        {% if benefit.currency_saved %}
-          <dt>{{ benefit.currency_saved }}</dt>
-          <dd>
-            {% comment %}Translators: Money saved{% endcomment %}
-            {% trans "saved" %}
-          </dd>
-        {% endif %}
-      </dl>
-    </div>
+    {% include "treemap/partials/benefit_value_row.html" %}
     {% endfor %}
     <div class="benefit-tree-count">
       {% blocktrans with used=basis.n_trees_used total=basis.n_trees_total %}
