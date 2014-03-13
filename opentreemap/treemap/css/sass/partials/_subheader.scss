@@ -1,8 +1,9 @@
 // Partial: Advanced Search
 
 .subhead {
-    position: relative;
-    z-index: 10;
+    position: absolute;
+    z-index: 99;
+    width: 100%;
     border-top: 1px solid lighten($primary-color, 35%);
     pointer-events: none;
 
