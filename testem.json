@@ -1,6 +1,6 @@
 {
     "test_page": "opentreemap/treemap/js/test/test.html",
-    "before_tests": "fab vagrant bundle:dev_mode=True,skip_npm=True",
+    "before_tests": "grunt --dev",
     "src_files": [
         "opentreemap/**/js/**/*.js"
     ],
