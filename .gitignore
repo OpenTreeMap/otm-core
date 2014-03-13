@@ -12,9 +12,9 @@ opentreemap/.idea
 node_modules/
 opentreemap/beta
 opentreemap/cloud_management
+opentreemap/la
 opentreemap/map_features
 opentreemap/super_admin
-opentreemap/la
 opentreemap/treemap/static/js/
 opentreemap/treemap/static/css/
 prototypes/static

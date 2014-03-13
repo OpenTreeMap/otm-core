@@ -1,0 +1,17 @@
+{% load i18n %}
+<div class="add-step">
+    <div class="add-step-header">{{ step }}. {% trans "Set location of" %} {{ feature_name }}</div>
+    <div class="add-step-content">
+        {# Making onsubmit return false prevents the form from being submitted. We want to run JS code instead #}
+        <form class="form-search" onsubmit="return false;">
+            <input type="text" class="search-query" placeholder="{% trans 'Address, City, State' %}">
+            <button class="btn btn-primary geocode">{% trans "Search" %}</button>
+        </form>
+        <a class="geolocate"><i class="icon-direction"></i> {% trans "Use Current Location" %}</a>
+        <div class="alert alert-info place-marker-message">{% trans 'Choose a point on the map, search by address, or select "Use Current Location."' %}</div>
+        <div class="alert alert-error text-error geocode-error" style="display: none;">{% trans "Unable to locate this address" %}</div>
+        <div class="alert alert-error text-error geolocate-error" style="display: none;">{% trans "Unable to determine current location" %}</div>
+        <div class="alert alert-info move-marker-message" style="display: none;">{% trans "Please move marker to exact location of" %} {{ feature_name }}</div>
+    </div>
+    {% include 'treemap/partials/step_controls.html' %}
+</div>
