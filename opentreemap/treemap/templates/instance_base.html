@@ -57,13 +57,13 @@
                 {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
               {% endfor %}
             </div>
-{# TODO: Not yet implemented #}
-{#             <div class="span3"> #}
-{#               <h4>{% trans "Display Filters" %}</h4> #}
-{#               {% for json in request.instance.advanced_search_fields.display %} #}
-{#                 {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %} #}
-{#               {% endfor %} #}
-{#             </div> #}
+            <div class="span3" id="display-filters" data-search-type="IN"
+                data-search-identifier="mapfeature.feature_type">
+              <h4>{% trans "Display Filters" %}</h4>
+              {% for field in request.instance.advanced_search_fields.display %}
+                {% include "treemap/partials/search_in.html" %}
+              {% endfor %}
+            </div>
             <div class="span3">
               <h4>{% trans "Missing Data" %}</h4>
               {% for json in request.instance.advanced_search_fields.missing %}
