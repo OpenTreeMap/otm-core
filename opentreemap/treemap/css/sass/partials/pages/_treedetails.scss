@@ -94,15 +94,10 @@
 }
 
 #tree-photo-thumbnails {
-    height: 50px;
-
-    &:empty {
-        height: 0;
-    }
+    max-height: 50px;
 
     > div {
         overflow: hidden;
-        height: 50px;
 
         .carousel-indicators {
             display: inline-block;
@@ -110,6 +105,10 @@
             margin: 0 ;
             white-space: nowrap;
             height: 50px;
+
+            &:empty {
+                display: none;
+            }
 
             li {
                 text-indent: 0;
