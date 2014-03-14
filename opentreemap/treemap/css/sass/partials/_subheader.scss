@@ -39,10 +39,24 @@
             .input-append {
                 input[type="text"] {
                     width: 137px;
+
+                    & + span {
+                        margin: 0;
+                    }
+                }
+
+                & + span {
+                    margin: 0 10px;
+                    font-size: 1.4rem;
                 }
             }
             input[type="text"] {
-                width: 170px;
+                width: 174px;
+
+                & + span {
+                    margin: 0 10px;
+                    font-size: 1.4rem;
+                }
             }
 
             .slider-row {

@@ -135,6 +135,10 @@ body {
     }
 }
 
+.datepicker {
+    z-index: 1000 !important;
+}
+
 @media (max-width: 767px) {
 	body {
 		padding: 0;
