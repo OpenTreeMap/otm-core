@@ -1,0 +1,12 @@
+<span>
+  <input {% if field.identifier %}name="{{ field.identifier }}"{% endif %}
+         id="{{ field.id }}"
+         checked="checked"
+         type="checkbox"
+         data-search-in="{{ field.in_value }}"
+         {% if field.search_type %}data-search-secondary-type="{{ field.search_type }}"{% endif %}
+         value="{{ field.value }}" />
+  <label for="{{ field.id }}">
+    {{ field.label }}
+  </label>
+</span>
