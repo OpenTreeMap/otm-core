@@ -315,7 +315,7 @@ def context_dict_for_plot(instance, plot,
 
     if should_calculate_eco:
         benefits_and_error = tree_benefits(instance, tree)
-        benefits = benefits_and_error.get('benefits', None)
+        benefits = benefits_and_error.get('tree_benefits', None)
         berror = benefits_and_error.get('error', None)
 
         if berror == BAD_CODE_PAIR:
@@ -908,12 +908,14 @@ def search_tree_benefits(request, instance):
 
     if not request.instance_supports_ecobenefits:
 
-        return {'benefits': None,
+        return {'tree_benefits': None,
                 'currency_symbol': None,
                 'basis': {'n_trees_used': None,
                           'n_trees_total': total_trees,
                           'n_plots': total_plots,
-                          'percent': None}}
+                          'percent': None},
+                'resource_benefits': None,
+                'resource_basis': None}
     else:
         benefits, ntrees = benefits_for_trees(trees, instance)
         return _format_benefits(instance, benefits, ntrees,

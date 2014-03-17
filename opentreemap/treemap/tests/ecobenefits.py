@@ -83,20 +83,20 @@ class EcoTest(UrlTestCase):
         rslt = tree_benefits(instance=self.instance,
                              tree_or_tree_id=self.tree)
 
-        bens = rslt['benefits']
+        bens = rslt['tree_benefits']
 
         self.assert_benefit_value(bens, 'energy', 'kwh', 1896)
         self.assert_benefit_value(bens, 'airquality', 'lbs/year', 6)
         self.assert_benefit_value(bens, 'stormwater', 'gal', 3185)
         self.assert_benefit_value(bens, 'co2', 'lbs/year', 563)
 
-    def testSearchBbenefits(self):
+    def testSearchBenefits(self):
         request = make_request(
             {'q': json.dumps({'tree.readonly': {'IS': False}})})  # all trees
         request.instance_supports_ecobenefits = self.instance\
                                                     .has_itree_region()
         result = search_tree_benefits(request, self.instance)
 
-        benefits = result['benefits']
+        benefits = result['tree_benefits']
 
         self.assertTrue(len(benefits) > 0)

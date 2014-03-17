@@ -170,9 +170,9 @@ def tree_benefits(instance, tree_or_tree_id):
         tree = tree_or_tree_id
 
     if not tree.diameter:
-        rslt = {'benefits': {}, 'error': 'MISSING_DBH'}
+        rslt = {'tree_benefits': {}, 'error': 'MISSING_DBH'}
     elif not tree.species:
-        rslt = {'benefits': {}, 'error': 'MISSING_SPECIES'}
+        rslt = {'tree_benefits': {}, 'error': 'MISSING_SPECIES'}
     else:
         if instance.itree_region_default:
             region = instance.itree_region_default
@@ -201,9 +201,9 @@ def tree_benefits(instance, tree_or_tree_id):
                 benefits, _ = _compute_currency_and_transform_units(
                     instance, rawb['Benefits'])
 
-                rslt = {'benefits': benefits}
+                rslt = {'tree_benefits': benefits}
         else:
-            rslt = {'benefits': {}, 'error': 'MISSING_REGION'}
+            rslt = {'tree_benefits': {}, 'error': 'MISSING_REGION'}
 
     return rslt
 

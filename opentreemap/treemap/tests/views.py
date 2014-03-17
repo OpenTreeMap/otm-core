@@ -931,7 +931,7 @@ class PlotViewTest(PlotViewTestCase):
         context = plot_detail(request, self.instance, plot_w_tree.pk)
 
         self.assertEquals(plot_w_tree, context['plot'])
-        self.assertIn('benefits', context)
+        self.assertIn('tree_benefits', context)
 
     def test_plot_without_tree(self):
         plot_wo_tree = Plot(geom=self.p, instance=self.instance)
@@ -941,7 +941,7 @@ class PlotViewTest(PlotViewTestCase):
                               self.instance, plot_wo_tree.pk)
 
         self.assertEquals(plot_wo_tree, context['plot'])
-        self.assertNotIn('benefits', context)
+        self.assertNotIn('tree_benefits', context)
 
 
 class PlotViewProgressTest(PlotViewTestCase):
