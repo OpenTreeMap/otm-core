@@ -29,6 +29,7 @@ def model_hasattr(obj, name):
     # and AttributeError
     try:
         getattr(obj, name)
+        return True
     except ObjectDoesNotExist:
         return True
     except AttributeError:
