@@ -24,11 +24,13 @@ class ParseException (Exception):
 PLOT_MAPPING = {'plot': '',
                 'tree': 'tree__',
                 'species': 'tree__species__',
+                'treephoto': 'tree__treephoto__',
                 'mapfeature': ''}
 
 TREE_MAPPING = {'plot': 'plot__',
                 'tree': '',
                 'species': 'species__',
+                'treephoto': 'treephoto__',
                 'mapfeature': 'plot__'}
 
 
