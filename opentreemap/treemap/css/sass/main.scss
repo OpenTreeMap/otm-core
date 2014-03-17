@@ -7,18 +7,20 @@
 @import "partials/layout";
 @import "partials/navbar";
 @import "partials/header";
+@import "partials/subheader";
 @import "partials/footer";
 @import "partials/error";
 
 // -- Page Specific
-@import "partials/map";
-@import "partials/sidebar";
-@import "partials/comments";
-@import "partials/calculator";
-@import "partials/treedetails";
-@import "partials/registration";
-@import "partials/createmap";
-@import "partials/profile";
-@import "partials/admin";
-@import "partials/content";
-@import "partials/photos";
+@import "partials/pages/map";
+@import "partials/pages/sidebar";
+@import "partials/pages/addtree";
+@import "partials/pages/comments";
+@import "partials/pages/calculator";
+@import "partials/pages/treedetails";
+@import "partials/pages/registration";
+@import "partials/pages/createmap";
+@import "partials/pages/profile";
+@import "partials/pages/admin";
+@import "partials/pages/content";
+@import "partials/pages/photos";

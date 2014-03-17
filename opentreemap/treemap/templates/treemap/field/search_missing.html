@@ -1,9 +1,0 @@
-{# vim: set filetype=htmldjango : #}
-{% load i18n %}
-{% if field.is_visible %}
-  <label class="checkbox">
-    <input type="checkbox" name="{{ field.identifier}}"
-           data-search-type="MISSING" value="true" />
-    {{ field.label }}
-  </label>
-{% endif %}

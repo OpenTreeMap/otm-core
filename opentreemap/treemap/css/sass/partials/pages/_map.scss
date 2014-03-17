@@ -27,7 +27,7 @@
 .leaflet-control-container {
     @each $direction in right, left, top, bottom {
         .leaflet-#{$direction} {
-            z-index: 99;
+            z-index: 9;
 
             .leaflet-control {
                 margin-#{$direction}: 16px;

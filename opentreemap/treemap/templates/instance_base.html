@@ -46,25 +46,68 @@
 
 {% block subhead %}
 <div class="subhead">
-  <div style="display: inline;" id="tree-and-planting-site-counts">
-    <!-- This is what the counts will look like -->
-    <!-- <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites -->
+  <div class="subhead-mask">
+    <div class="subhead-inner">
+      <div class="advanced-search">
+        <div class="container">
+          <div class="row-fluid">
+            <div class="span6">
+              <h4>{% trans "Detail Filters" %}</h4>
+              {% for json in request.instance.advanced_search_fields.standard %}
+                {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
+              {% endfor %}
+            </div>
+{# TODO: Not yet implemented #}
+{#             <div class="span3"> #}
+{#               <h4>{% trans "Display Filters" %}</h4> #}
+{#               {% for json in request.instance.advanced_search_fields.display %} #}
+{#                 {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %} #}
+{#               {% endfor %} #}
+{#             </div> #}
+            <div class="span3">
+              <h4>{% trans "Missing Data" %}</h4>
+              {% for json in request.instance.advanced_search_fields.missing %}
+                {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+{# TODO: search backend not implemeneted, Temporarily hidden #}
+{#       <div class="stewardship-search disabled"> #}
+{#         <span>{% trans "I am looking for" %}</span> #}
+{#         <div class="stewardship-selector">...</div> #}
+{#         <span>{% trans "that" %}</span> #}
+{#         <div class="stewardship-selector">...</div> #}
+{#         <div class="stewardship-selector">...</div> #}
+{#         <span>{% trans "between" %}</span> #}
+{#         <div class="stewardship-selector">...</div> #}
+{#         <span>{% trans "and" %}</span> #}
+{#         <div class="stewardship-selector">...</div> #}
+{#       </div> #}
+      <div class="stats-bar">
+        <div style="display: inline;" id="tree-and-planting-site-counts">
+        </div>
+        {% block subhead_exports %}
+          {% if request.instance|feature_enabled:'exports' %}
+          <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton">
+            <i class="icon-export"></i> {% trans "Export Search Results" %}
+          </a>
+          {% endif %}
+        {% endblock subhead_exports %}
+        {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
+        <a class="btn btn-primary addBtn"
+           data-class="add-tree"
+           data-action='addtree'
+           data-feature="add_plot"
+           data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+           data-disabled-title="{% trans "Adding trees is not available to all users" %}"
+           data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
+           disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>
+        {% endif %}
+      </div>
+    </div>
   </div>
-  {% block subhead_exports %}
-    {% if request.instance|feature_enabled:'exports' %}
-    <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
-    {% endif %}
-  {% endblock subhead_exports %}
-  {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
-  <a class="btn btn-primary addBtn"
-     data-class="add-tree"
-     data-action='addtree'
-     data-feature="add_plot"
-     data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
-     data-disabled-title="{% trans "Adding trees is not available to all users" %}"
-     data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
-     disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>
-   {% endif %}
 </div>
 {% endblock subhead %}
 
@@ -102,20 +145,6 @@
   </div>
 </div>
 {% endblock searchoptions %}
-{% block advancedsearch %}
-<div id="advanced-search-pane" style="display: none;">
-  <div id="standard-search">
-  {% for json in request.instance.advanced_search_fields.standard %}
-    {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
-  {% endfor %}
-  </div>
-  <div id="missing-search">
-  {% for json in request.instance.advanced_search_fields.missing %}
-    {% search from json for request.user in request.instance withtemplate "treemap/field/search_missing.html" %}
-  {% endfor %}
-  </div>
-</div>
-{% endblock advancedsearch %}
 
 {% block exportscript %}
 <script type="text/javascript">

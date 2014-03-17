@@ -2,53 +2,67 @@
 {% load l10n %}
 
 {% if request.instance_supports_ecobenefits %}
-<div id="benefit-values">
-    {% for benefit in benefits %}
-    <div class="benefit-value-row">
-      {% if benefit.label == 'Energy' %}
-        <div class="benefit-icon"><i class="icon-flash-1"></i></div>
-      {% elif benefit.label == 'Stormwater' %}
-        <div class="benefit-icon"><i class="icon-tint"></i></div>
-      {% elif benefit.label == 'Air Quality' %}
-        <div class="benefit-icon"><i class="icon-cloud"></i></div>
-      {% else %}
-        <div class="benefit-icon"><i class="icon-sun-filled"></i></div>
-      {% endif %}
-      <h3 class="benefit-label">{{ benefit.label }} {% trans "Benefits" %}</h3>
-      <dl class="dl-horizontal benefit-content">
-        <dt>{{ benefit.value }}</dt>
-        <dd>{{ benefit.unit }}</dd>
-        {% if benefit.currency_saved %}
-          <dt>{{ benefit.currency_saved }}</dt>
-          <dd>
-            {% comment %}Translators: Money saved{% endcomment %}
-            {% trans "saved" %}
-          </dd>
-        {% endif %}
-      </dl>
-    </div>
+<div id="benefit-values" class="benefit-values accordion-inner">
+    {% if not hide_summary and not request.instance.stores_plot_only %}
+    {% comment %}
+    unhide me when the backend is implemented
+    {% endcomment %}
+    <div class="benefit-value-title hidden">{% trans "General Eco Benefits"%}</div>
+    {% endif %}
+
+    {% for benefit in tree_benefits %}
+    {% include "treemap/partials/benefit_value_row.html" %}
     {% endfor %}
+
+    {% if not hide_summary and not request.instance.stores_plot_only %}
+    {% comment %}
+    unhide me when the backend is implemented
+    {% endcomment %}
+    <div class="benefit-value-title hidden">{% trans "Resource Benefits"%}</div>
+    {% endif %}
+
+    {% for benefit in resource_benefits %}
+    {% include "treemap/partials/benefit_value_row.html" %}
+    {% endfor %}
+
+    {% if not hide_summary %}
     <div class="benefit-tree-count">
-      {% blocktrans with used=basis.n_trees_used total=basis.n_trees_total %}
+      {% blocktrans with used=tree_basis.n_trees_used total=tree_basis.n_trees_total %}
         Based on {{ used }} out of {{ total }} total trees
       {% endblocktrans %}
+      {% if not request.instance.stores_plot_only %}
+      {% blocktrans with used=resource_basis.n_resources_used total=resource_basis.n_resources_total %}
+        Based on {{ used }} out of {{ total }} total trees
+      {% endblocktrans %}
+      {% endif %}
     </div>
+    {% endif %}
 </div>
 {% endif %}
 <div id="tree-and-planting-site-counts">
   {% localize on %}
   <span id="tree-count">
-  {% blocktrans count basis.n_trees_total as tree_count %}
+  {% blocktrans count tree_basis.n_trees_total as tree_count %}
     {{ tree_count }}</span> tree,
   {% plural %}
     {{ tree_count }}</span> trees,
   {% endblocktrans %}
 
   <span id="planting-site-count">
-  {% blocktrans count basis.n_plots as plot_count %}
+  {% blocktrans count tree_basis.n_plots as plot_count %}
     {{ plot_count }}</span> planting site
   {% plural %}
     {{ plot_count }}</span> planting sites
+  {% endblocktrans %}
+
+  {% comment %}
+  unhide me when the backend is implemented
+  {% endcomment %}
+  <span id="resource-count hidden">
+  {% blocktrans count resource_basis.n_resources as resource_count %}
+    {{ resource_count }}</span> resources
+  {% plural %}
+    {{ resrouce_count }}</span> resources
   {% endblocktrans %}
   {% endlocalize %}
 </div>

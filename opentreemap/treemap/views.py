@@ -891,6 +891,13 @@ def search_tree_benefits(request, instance):
     except KeyError:
         filter_str = ''
 
+    try:
+        hide_summary_text = request.REQUEST['hide_summary']
+        if hide_summary_text.lower() == 'true':
+            hide_summary = True
+    except KeyError:
+        hide_summary = False
+
     plots = _execute_filter(instance, filter_str)
 
     # Tree.objects.filter(plot_id__in=plots)
@@ -908,17 +915,13 @@ def search_tree_benefits(request, instance):
                           'n_plots': total_plots,
                           'percent': None}}
     else:
-        return _tree_benefits_helper(trees, total_plots, total_trees, instance)
-
-
-def _tree_benefits_helper(trees, total_plots, total_trees, instance):
-    benefits, ntrees = benefits_for_trees(trees, instance)
-    return _format_benefits(instance, benefits, ntrees,
-                            total_trees, total_plots)
+        benefits, ntrees = benefits_for_trees(trees, instance)
+        return _format_benefits(instance, benefits, ntrees,
+                                total_trees, total_plots, hide_summary)
 
 
 def _format_benefits(instance, benefits, num_calculated_trees,
-                     total_trees=1, total_plots=1):
+                     total_trees=1, total_plots=1, hide_summary=False):
 
     def displayize_benefit(key, currency_symbol=None):
         benefit = benefits[key]
@@ -953,12 +956,15 @@ def _format_benefits(instance, benefits, num_calculated_trees,
     benefits_for_display = [displayize_benefit(key, currency)
                             for key in benefit_keys]
 
-    rslt = {'benefits': benefits_for_display,
+    rslt = {'tree_benefits': benefits_for_display,
+            'hide_summary': hide_summary,
             'currency_symbol': currency,
-            'basis': {'n_trees_used': num_calculated_trees,
-                      'n_trees_total': total_trees,
-                      'n_plots': total_plots,
-                      'percent': percent}}
+            'tree_basis': {'n_trees_used': num_calculated_trees,
+                           'n_trees_total': total_trees,
+                           'n_plots': total_plots,
+                           'percent': percent},
+            'resource_benefits': None,
+            'resource_basis': None}
 
     return rslt
 
@@ -1040,7 +1046,7 @@ def upload_user_photo(request, user):
 
 def _get_map_view_context(request, instance_id):
     fields_for_add_tree = [
-        (trans('Tree Height'), 'tree.height')
+        (trans('Tree Height'), 'Tree.height')
     ]
     return {'fields_for_add_tree': fields_for_add_tree}
 

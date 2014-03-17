@@ -9,12 +9,8 @@ var $ = require('jquery'),
 
 var DATETIME_FORMAT = FH.DATETIME_FORMAT;
 
-var isOr = function(pred) {
-    return _.isArray(pred) && pred[0] === "OR";
-};
-
-var isNullPredicate = function(pred) {
-    return _.isObject(pred) && "IS" in pred && pred.IS === null;
+var isCombinator = function(pred) {
+    return _.isArray(pred) && (pred[0] === "OR" || pred[0] === "AND");
 };
 
 exports.buildElems = function (inputSelector) {
@@ -23,6 +19,11 @@ exports.buildElems = function (inputSelector) {
             name = $el.attr('name'),
             type = $el.attr('data-search-type'),
             selector = inputSelector + '[name="' + name + '"][data-search-type="' + type + '"]';
+        if ($el.is(':checkbox')) {
+            // Checkboxes have a set value attribute, which is part of their
+            // selector
+            selector += '[value="' + $el.val() + '"]';
+        }
         return[selector, {
             'key': name,
             'pred': type
@@ -58,14 +59,8 @@ function applySearchToDom(elems, search) {
         var pred = search[restoreTarget];
         var value = pred ? pred[v.pred] : null;
 
-        if (isOr(pred)) {
-            if (v.pred === "MISSING") {
-                value = true;
-            } else {
-                value = pred ? pred[1][v.pred] : null;
-            }
-        } else if (isNullPredicate(pred) && v.pred === "MISSING") {
-            value = true;
+        if (isCombinator(pred)) {
+            value = pred ? pred[1][v.pred] : null;
         } else {
             value = pred ? pred[v.pred] : null;
         }
@@ -75,7 +70,7 @@ function applySearchToDom(elems, search) {
         } else if ($domElem.is('[data-date-format]')) {
             FH.applyDateToDatepicker($domElem, value);
         } else if($domElem.is(':checkbox')) {
-            $domElem.prop('checked', value);
+            $domElem.prop('checked', value === $domElem.val());
         } else if ($domElem.is('input')) {
             $domElem.val(value || '');
         }
@@ -107,9 +102,9 @@ exports.buildSearch = function (elems) {
                 val = date.format(DATETIME_FORMAT);
             }
 
-            if (key_and_pred.pred === "MISSING") {
+            if ($elem.is(":checkbox")) {
                 if ($elem.is(":checked")) {
-                    pred = {"IS": null};
+                    pred[key_and_pred.pred] = val;
                 }
             } else {
                 pred[key_and_pred.pred] = val;
@@ -118,18 +113,8 @@ exports.buildSearch = function (elems) {
             // We do a deep extend so that if a predicate field
             // (such as tree.diameter) is already specified,
             // we merge the resulting dicts
-            if (isOr(preds[key])) {
-                // If this is an or, we've probably already found an is null
-                // predicate
-                $.extend(true, preds[key][1], pred);
-            } else if (isNullPredicate(preds[key])) {
-                preds[key] = ["OR", pred, preds[key]];
-            } else if (preds[key] && isNullPredicate(pred)) {
-                preds[key] = ["OR", preds[key], pred];
-            } else {
-                query[key] = pred;
-                $.extend(true, preds, query);
-            }
+            query[key] = pred;
+            $.extend(true, preds, query);
         }
 
         return preds;

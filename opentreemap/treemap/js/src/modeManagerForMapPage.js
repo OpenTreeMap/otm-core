@@ -5,7 +5,8 @@
 // module to handle UI events. This module initializes the mode modules and
 // orchestrates switching between modes.
 
-var _                   = require('lodash'),
+var $                   = require('jquery'),
+    _                   = require('lodash'),
     U                   = require('treemap/utility'),
     browseTreesMode     = require('treemap/browseTreesMode'),
     addTreeMode         = require('treemap/addTreeMode'),
@@ -17,15 +18,15 @@ var _                   = require('lodash'),
     prompter,
     currentMode;
 
-var $sidebarBrowseTrees         = U.$find('#sidebar-browse-trees'),
+var sidebarBrowseTrees          = '#sidebar-browse-trees',
+    sidebarAddTree              = '#sidebar-add-tree',
     $treeDetailAccordionSection = U.$find('#tree-detail'),
-    $sidebarAddTree             = U.$find('#sidebar-add-tree'),
     $fullDetailsButton          = U.$find('#full-details-button'),
     $treeDetailButtonGroup      = U.$find('#map-plot-details-button'),
     $exploreTreesHeaderLink     = U.$find('.navbar li.explore-trees'),
     $addTreeHeaderLink          = U.$find('.navbar li[data-feature=add_plot]');
 
-function activateMode(mode, $sidebar, safeTransition) {
+function activateMode(mode, sidebar, safeTransition) {
 
     // each mode activator takes an argument that determines
     // whether or not to lock the prompter, or in other words,
@@ -39,8 +40,8 @@ function activateMode(mode, $sidebar, safeTransition) {
         if (currentMode && currentMode.deactivate) {
             currentMode.deactivate();
         }
-        $sidebar.siblings().hide();
-        $sidebar.show();
+        $(sidebar).siblings().hide();
+        $(sidebar).show();
         if (mode.activate) {
             mode.activate();
         }
@@ -59,13 +60,13 @@ function activateMode(mode, $sidebar, safeTransition) {
 }
 
 function activateBrowseTreesMode(safeTranstion) {
-    activateMode(browseTreesMode, $sidebarBrowseTrees, safeTranstion);
+    activateMode(browseTreesMode, sidebarBrowseTrees, safeTranstion);
 }
 function activateAddTreeMode(safeTranstion) {
-    activateMode(addTreeMode, $sidebarAddTree, safeTranstion);
+    activateMode(addTreeMode, sidebarAddTree, safeTranstion);
 }
 function activateEditTreeDetailsMode(safeTranstion) {
-    activateMode(editTreeDetailsMode, $sidebarBrowseTrees, safeTranstion);
+    activateMode(editTreeDetailsMode, sidebarBrowseTrees, safeTranstion);
 }
 
 function inBrowseTreesMode() { return currentMode === browseTreesMode; }
@@ -82,9 +83,9 @@ function init(config, mapManager, triggerSearchBus) {
         edit: '#quick-edit-button',
         save: '#save-details-button',
         cancel: '#cancel-edit-details-button',
-        displayFields: '#sidebar-browse-trees [data-class="display"]',
-        editFields: '#sidebar-browse-trees [data-class="edit"]',
-        validationFields: '#sidebar-browse-trees [data-class="error"]',
+        displayFields: sidebarBrowseTrees + ' [data-class="display"]',
+        editFields: sidebarBrowseTrees + ' [data-class="edit"]',
+        validationFields: sidebarBrowseTrees + ' [data-class="error"]',
         onSaveBefore: editTreeDetailsMode.onSaveBefore
     });
 
@@ -122,8 +123,9 @@ function init(config, mapManager, triggerSearchBus) {
         mapManager: mapManager,
         plotMarker: plotMarker,
         inMyMode: inAddTreeMode,
-        $sidebar: $sidebarAddTree,
+        sidebar: sidebarAddTree,
         onClose: _.partial(activateBrowseTreesMode, true),
+        formSelector: '#add-tree-form',
         typeaheads: [getSpeciesTypeaheadOptions(config, "add-tree-species")],
         triggerSearchBus: triggerSearchBus,
         prompter: prompter
