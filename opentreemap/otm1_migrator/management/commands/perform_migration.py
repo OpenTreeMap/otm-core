@@ -147,18 +147,6 @@ def save_other_with_user(model_name, model_hash, instance):
 
 
 @commit_on_success
-def save_other(model_name, model_hash, instance):
-    model = hash_to_model(MIGRATION_RULES, model_name, model_hash, instance)
-
-    model.save()
-    OTM1ModelRelic.objects.get_or_create(
-        instance=instance,
-        otm1_model_id=model_hash['pk'],
-        otm2_model_name=model_name,
-        otm2_model_id=model.pk)
-
-
-@commit_on_success
 def save_treephoto(treephoto_path, model_hash, instance):
     model = hash_to_model(MIGRATION_RULES,
                           'treephoto', model_hash,
@@ -178,6 +166,30 @@ def save_treephoto(treephoto_path, model_hash, instance):
         otm2_model_name='treephoto',
         otm2_model_id=model.pk)
     return model
+
+
+@commit_on_success
+def save_audit(dependency_ids, model_hash, instance):
+    model = hash_to_model(MIGRATION_RULES, 'audit', model_hash, instance)
+    fields = model_hash['fields']
+
+    # update the object_id
+    audit_object_relic = OTM1ModelRelic.objects.get(
+        instance=instance,
+        otm2_model_name__iexact=model_hash['fields']['model'],
+        otm1_model_id=model_hash['fields']['model_id'])
+    model.model_id = audit_object_relic.otm2_model_id
+
+    if ((fields['field'] == 'id' and
+         fields['current_value'] == fields['model_id'])):
+        model.current_value = audit_object_relic.otm2_model_id
+
+    model.save()
+    OTM1ModelRelic.objects.create(
+        instance=instance,
+        otm1_model_id=model_hash['pk'],
+        otm2_model_name='audit',
+        otm2_model_id=model.pk)
 
 
 @commit_on_success
@@ -386,7 +398,7 @@ class Command(InstanceDataCommand):
         # TODO: should this be merged into MIGRATION_RULES?
         save_fns = {
             'user': save_user,
-            'audit': partial(save_other, 'audit'),
+            'audit': partial(save_audit, dependency_ids),
             'species': save_species,
             'plot': partial(save_other_with_user, 'plot'),
             'tree': partial(save_other_with_user, 'tree'),
