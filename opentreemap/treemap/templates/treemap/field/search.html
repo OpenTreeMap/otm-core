@@ -2,19 +2,19 @@
 {% load i18n %}
 {% if field.is_visible %}
   {% if field.search_type == 'RANGE' %}
-    {% with 'data-class=search data-search-type=MIN' as extra %}
+    {% with 'data-class=search data-search-type=MIN id=min'|add:field.id as extra %}
       {% include "treemap/field/inputs.html" %}
     {% endwith %}
     <span>
       {# Translators: This is in-between two date boxes for a range search #}
       {% trans "through" %}
     </span>
-    {% with 'data-class=search data-search-type=MAX' as extra %}
+    {% with 'data-class=search data-search-type=MAX id=max'|add:field.id as extra %}
       {% include "treemap/field/inputs.html" %}
     {% endwith %}
   {% else %}
     <span>
-    {% with 'data-class=search data-search-type='|add:field.search_type as extra %}
+    {% with 'data-class=search data-search-type='|add:field.search_type|add:' id='|add:field.id as extra %}
       {% include "treemap/field/inputs.html" %}
     {% endwith %}
       <label for="{{ field.id }}">
