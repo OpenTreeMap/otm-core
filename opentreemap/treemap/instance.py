@@ -140,12 +140,22 @@ class Instance(models.Model):
 
     @property
     def advanced_search_fields(self):
+        from treemap.models import MapFeature  # prevent circular import
+
         # TODO pull from the config once users have a way to set search fields
         if self.feature_enabled('advanced_search_filters'):
-            advanced_search_fields = {
+            fields = {
                 'standard': [
                     {'identifier': 'Tree.diameter', 'search_type': 'RANGE'},
                     {'identifier': 'Tree.date_planted', 'search_type': 'RANGE'}
+                ],
+                'display': [
+                    {'identifier': 'tree.id', 'search_type': 'ISNULL',
+                     'value': 'false', 'in_value': 'Plot',
+                     'label': 'Show trees'},
+                    {'identifier': 'tree.id', 'search_type': 'ISNULL',
+                     'value': 'true', 'in_value': 'Plot',
+                     'label': 'Show empty planting sites'}
                 ],
                 'missing': [
                     {'identifier': 'Species.id',
@@ -159,16 +169,27 @@ class Instance(models.Model):
                 ]
             }
         else:
-            return {'standard': [], 'missing': []}
+            return {'standard': [], 'missing': [], 'display': []}
+
+        def make_display_filter(feature_name):
+            feature = MapFeature.get_subclass(feature_name)()
+            return {
+                'label': 'Show %ss' % feature.display_name,
+                'in_value': feature_name
+            }
+
+        fields['display'] += [make_display_filter(feature_name)
+                              for feature_name in self.map_feature_types
+                              if feature_name != 'Plot']
 
         # It makes styling easier if every field has an identifier
         num = 0
-        for filters in advanced_search_fields.itervalues():
+        for filters in fields.itervalues():
             for field in filters:
                 field['id'] = "%s_%s" % (field.get('identifier', ''), num)
                 num += 1
 
-        return advanced_search_fields
+        return fields
 
     @property
     def stores_plot_only(self):

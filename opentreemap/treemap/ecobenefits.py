@@ -18,6 +18,14 @@ GAL_PER_CUBIC_M = 264.172052
 LBS_PER_KG = 2.20462
 
 
+def _make_sql_from_query(query):
+    sql, params = query.sql_with_params()
+    quote = lambda s: "'%s'" % s if isinstance(s, basestring) else s
+    params = [quote(param) for param in params]
+
+    return sql % tuple(params)
+
+
 def benefits_for_trees(trees, instance):
     # When calculating benefits we can skip region information
     # if there is only one intersecting region or if the
@@ -55,7 +63,7 @@ def benefits_for_trees(trees, instance):
                       .filter(species__instance=instance)\
                       .values_list(*values)
 
-    query = str(treeValues.query)
+    query = _make_sql_from_query(treeValues.query)
 
     # We want to extract x and y coordinates but django
     # doesn't make this easy since we need to force a join
