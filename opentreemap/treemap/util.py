@@ -112,9 +112,9 @@ def package_validation_errors(model_name, validation_error):
     """
     validation_error contains a dictionary of error messages of the form
     {fieldname1: [messages], fieldname2: [messages]}.
-    Return a version keyed by "modelname.fieldname" instead of "fieldname".
+    Return a version keyed by "objectname.fieldname" instead of "fieldname".
     """
-    dict = {'%s.%s' % (model_name[0].lower() + model_name[1:], field): msgs
+    dict = {'%s.%s' % (to_object_name(model_name), field): msgs
             for (field, msgs) in validation_error.message_dict.iteritems()}
 
     return dict
@@ -154,3 +154,13 @@ def leaf_subclasses(cls):
     all = get(cls)
     leaves = [s for s in all if not s.__subclasses__()]
     return leaves
+
+
+def to_object_name(model_name):
+    """BenefitCurrencyConversion -> benefitCurrencyConversion"""
+    return model_name[0].lower() + model_name[1:]
+
+
+def to_model_name(object_name):
+    """benefitCurrencyConversion -> BenefitCurrencyConversion"""
+    return object_name[0].upper() + object_name[1:]

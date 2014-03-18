@@ -35,7 +35,8 @@ from treemap.decorators import (json_api_call, render_template, login_or_401,
                                 requires_feature, get_instance_or_404,
                                 creates_instance_user, instance_request,
                                 username_matches_request_user)
-from treemap.util import package_validation_errors, bad_request_json_response
+from treemap.util import (package_validation_errors,
+                          bad_request_json_response, to_object_name)
 from treemap.images import save_image_from_request
 from treemap.search import create_filter
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
@@ -441,22 +442,22 @@ def update_map_feature(request_dict, user, feature):
     This method can be used to create a new map feature by passing in
     an empty MapFeature object (i.e. Plot(instance=instance))
     """
-    feature_types = list(feature.instance.map_feature_types)
-    feature_types[feature_types.index('Plot')] = 'plot'
+    feature_object_names = [to_object_name(ft)
+                            for ft in feature.instance.map_feature_types]
 
     if isinstance(feature, Convertible):
         # We're going to always work in display units here
         feature.convert_to_display_units()
 
-    def split_model_or_raise(model_and_field):
-        model_and_field = model_and_field.split('.', 1)
+    def split_model_or_raise(identifier):
+        parts = identifier.split('.', 1)
 
-        if ((len(model_and_field) != 2 or
-                model_and_field[0] not in feature_types + ['tree'])):
+        if (len(parts) != 2 or
+                parts[0] not in feature_object_names + ['tree']):
             raise Exception(
-                'Malformed request - invalid field %s' % model_and_field)
+                'Malformed request - invalid field %s' % identifier)
         else:
-            return model_and_field
+            return parts
 
     def set_attr_on_model(model, attr, val):
         field_classname = \
@@ -490,7 +491,7 @@ def update_map_feature(request_dict, user, feature):
         elif attr in model.fields():
             model.apply_change(attr, val)
         else:
-            raise Exception('Maformed request - invalid field %s' % attr)
+            raise Exception('Malformed request - invalid field %s' % attr)
 
     def save_and_return_errors(thing, user):
         try:
@@ -504,12 +505,12 @@ def update_map_feature(request_dict, user, feature):
 
     tree = None
 
-    for (model_and_field, value) in request_dict.iteritems():
-        model_name, field = split_model_or_raise(model_and_field)
+    for (identifier, value) in request_dict.iteritems():
+        object_name, field = split_model_or_raise(identifier)
 
-        if model_name in feature_types:
+        if object_name in feature_object_names:
             model = feature
-        elif model_name == 'tree' and feature.feature_type == 'Plot':
+        elif object_name == 'tree' and feature.feature_type == 'Plot':
             # Get the tree or spawn a new one if needed
             tree = (tree or
                     feature.current_tree() or
@@ -526,7 +527,7 @@ def update_map_feature(request_dict, user, feature):
                 value = feature
         else:
             raise Exception(
-                'Malformed request - invalid model %s' % model_name)
+                'Malformed request - invalid model %s' % object_name)
 
         set_attr_on_model(model, field, value)
 

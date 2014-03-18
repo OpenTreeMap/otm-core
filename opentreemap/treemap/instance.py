@@ -146,8 +146,8 @@ class Instance(models.Model):
         if self.feature_enabled('advanced_search_filters'):
             fields = {
                 'standard': [
-                    {'identifier': 'Tree.diameter', 'search_type': 'RANGE'},
-                    {'identifier': 'Tree.date_planted', 'search_type': 'RANGE'}
+                    {'identifier': 'tree.diameter', 'search_type': 'RANGE'},
+                    {'identifier': 'tree.date_planted', 'search_type': 'RANGE'}
                 ],
                 'display': [
                     {'identifier': 'tree.id', 'search_type': 'ISNULL',
@@ -158,15 +158,15 @@ class Instance(models.Model):
                      'label': 'Show empty planting sites'}
                 ],
                 'missing': [
-                    {'identifier': 'Species.id',
+                    {'identifier': 'species.id',
                      'label': 'Show missing species',
                      'search_type': 'ISNULL',
                      'value': 'true'},
-                    {'identifier': 'Tree.diameter',
+                    {'identifier': 'tree.diameter',
                      'label': 'Show missing trunk diameter',
                      'search_type': 'ISNULL',
                      'value': 'true'},
-                    {'identifier': 'TreePhoto.id',
+                    {'identifier': 'treePhoto.id',
                      'label': 'Show missing photos',
                      'search_type': 'ISNULL',
                      'value': 'true'}

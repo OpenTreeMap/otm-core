@@ -24,8 +24,8 @@ var $ = require('jquery'),
 // If a region is not specified in the search object
 // ``searchToBoundaryId`` returns undefined.
 var searchToBoundaryId = function(search) {
-    if (search !== undefined && search['mapfeature.geom']) {
-        return parseFloat(search['mapfeature.geom'].IN_BOUNDARY, 10);
+    if (search !== undefined && search['mapFeature.geom']) {
+        return parseFloat(search['mapFeature.geom'].IN_BOUNDARY, 10);
     } else {
         return undefined;
     }

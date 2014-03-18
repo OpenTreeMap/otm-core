@@ -58,7 +58,7 @@
               {% endfor %}
             </div>
             <div class="span3" id="display-filters" data-search-type="IN"
-                data-search-identifier="mapfeature.feature_type">
+                data-search-identifier="mapFeature.feature_type">
               <h4>{% trans "Display Filters" %}</h4>
               {% for field in request.instance.advanced_search_fields.display %}
                 {% include "treemap/partials/search_in.html" %}
