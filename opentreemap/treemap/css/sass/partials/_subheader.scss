@@ -1,14 +1,20 @@
 // Partial: Advanced Search
 
 .subhead {
-    position: relative;
-    z-index: 10;
+    position: absolute;
+    z-index: 99;
+    width: 100%;
     border-top: 1px solid lighten($primary-color, 35%);
     pointer-events: none;
 
+    
+
     &.expanded {
         .subhead-inner {
+            -ms-transform: translateY(0);
+            -moz-transform: translateY(0);
             -webkit-transform: translateY(0);
+            transform: translateY(0);
             top: 0;
         }
     }
@@ -19,7 +25,10 @@
     }
 
     .subhead-inner {
+        -ms-transform: translateY(-100%);
+        -moz-transform: translateY(-100%);
         -webkit-transform: translateY(-100%);
+        transform: translateY(-100%);
         transition: all 400ms cubic-bezier(0, 0, 0.1, 1);
         top: 45px;
         position: relative;
@@ -38,10 +47,24 @@
             .input-append {
                 input[type="text"] {
                     width: 137px;
+
+                    & + span {
+                        margin: 0 0 0 -1px;       
+                    }
+                }
+
+                & + span {
+                    margin: 0 10px;
+                    font-size: 1.4rem;
                 }
             }
             input[type="text"] {
-                width: 170px;
+                width: 174px;
+
+                & + span {
+                    margin: 0 10px;
+                    font-size: 1.4rem;
+                }
             }
 
             .slider-row {
