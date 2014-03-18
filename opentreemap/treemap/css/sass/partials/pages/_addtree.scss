@@ -20,23 +20,28 @@
         .add-step {
             margin: 0;
             display: none;
-            position: relative;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            background: white;
             -webkit-transition: .6s ease-in-out left;
             transition: .6s ease-in-out left;
 
             &.active,
             &.next,
             &.prev {
-                display: block
+                display: block;
             }
             &.next,
             &.prev {
                 position: absolute;
                 top: 0;
-                width: 100%
+                width: 100%;
+                z-index: 9;
             }
             &.active {
                 left: 0;
+                z-index: 10;
             }
             &.next {
                 left: 100%;
@@ -52,10 +57,16 @@
                 font-weight: 700;
                 text-transform: uppercase;
                 padding: 5px 20px;
-                margin: 0 ;
+                margin: 0;
             }
             .add-step-content {
                 padding: 20px;
+                position: absolute;
+                bottom: 60px;
+                top: 30px;
+                overflow-y: auto;
+                left: 0;
+                right: 0;
 
                 h3 {
                     margin: 0;
@@ -117,11 +128,14 @@
                 margin: 0;
                 padding: 0 20px;
                 border-top: 1px solid $light-gray-color;
-                position: relative;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
 
                 .counter {
                     position: absolute;
-                    top: 25px;
+                    top: 18px;
                     font-size: 1.4rem;
                     left: 0;
                     right: 0;
@@ -129,6 +143,7 @@
                 }
                 .pager {
                     position: relative;
+                    margin: 13px 0;
                 }
             }
         }

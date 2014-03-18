@@ -14,14 +14,12 @@
 </div>
 <div id="tree-photo-thumbnails">
   <div>
-    <ol class="carousel-indicators">
-    {% for photo in photos %}
+    <ol class="carousel-indicators">{% for photo in photos %}
       <li data-target="#tree-photo-carousel" data-slide-to="{{ forloop.counter0 }}"
             class="{{ forloop.first|yesno:"active," }}">
         <img src="{{ photo.thumbnail.url }}" alt="">
       </li>
-    {% endfor %}
-    </ol>
+    {% endfor %}</ol>
   </div>
 </div>
 {% if photos|length > 1 %}
