@@ -144,7 +144,8 @@ exports.init = function(options) {
 
     var detailUrlPrefix = U.removeLastUrlSegment(detailUrl),
         clickedIdStream = mapManager.map.utfEvents
-        .map('.data.' + options.config.utfGrid.mapfeatureIdKey);
+            .map('.data.' + options.config.utfGrid.mapfeatureIdKey)
+            .filter(BU.isDefinedNonEmpty);
 
     clickedIdStream
         .filter(BU.not, options.featureId)
