@@ -915,7 +915,10 @@ def search_tree_benefits(request, instance):
                           'n_plots': total_plots,
                           'percent': None},
                 'resource_benefits': None,
-                'resource_basis': None}
+                'resource_basis': {'n_resources_used': 0,
+                                   'n_resources_total': 0,
+                                   'n_resources': 0,
+                                   'percent': 0}}
     else:
         benefits, ntrees = benefits_for_trees(trees, instance)
         return _format_benefits(instance, benefits, ntrees,
@@ -966,7 +969,10 @@ def _format_benefits(instance, benefits, num_calculated_trees,
                            'n_plots': total_plots,
                            'percent': percent},
             'resource_benefits': None,
-            'resource_basis': None}
+            'resource_basis': {'n_resources_used': 0,
+                               'n_resources_total': 0,
+                               'n_resources': 0,
+                               'percent': 0}}
 
     return rslt
 
