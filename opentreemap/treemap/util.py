@@ -5,7 +5,7 @@ from __future__ import division
 
 import json
 import datetime
-import Image
+from PIL import Image
 import hashlib
 import os
 from collections import OrderedDict
