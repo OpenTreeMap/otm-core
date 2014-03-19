@@ -44,12 +44,23 @@
                 margin: 0 0 10px;
             }
 
+            .search-range {
+                margin-bottom: 5px;
+                clear: both;
+
+                > label {
+                    display: inline-block;
+                    width: 120px;
+                    font-size: 1.4rem;
+                    font-weight: 700;
+                }
+            }
             .input-append {
                 input[type="text"] {
-                    width: 137px;
+                    width: 82px;
 
                     & + span {
-                        margin: 0 0 0 -1px;       
+                        margin: 0 0 0 -1px;
                     }
                 }
 
@@ -59,7 +70,7 @@
                 }
             }
             input[type="text"] {
-                width: 174px;
+                width: 119px;
 
                 & + span {
                     margin: 0 10px;
