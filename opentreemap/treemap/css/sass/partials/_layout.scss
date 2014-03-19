@@ -50,6 +50,7 @@ body {
 	margin: 90px auto;
 	position: relative;
 	width: 920px;
+    z-index: 98;
 
 	@media (min-width: 1200px) {
 		width: 1100px;

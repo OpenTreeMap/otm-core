@@ -17,6 +17,14 @@ $main-text-color                : #231f20; // Black text color
 $subtext-color                  : #799397; // Midtone gray text color
 $light-gray-color               : #f1f2f2; // Light gray color
 
+// Media Queries
+$screen-xs			 : "(max-width: 767px)";
+$screen-gtxs         : "(min-width: 768px)";
+$screen-sm			 : "(min-width: 768px) and (max-width: 991px)";
+$screen-md			 : "(min-width: 992px) and (max-width: 1199px)";
+$screen-ltlg         : "(max-width: 1199px)";
+$screen-lg			 : "(min-width: 1200px)";
+
 // Modules
 @import "modules/animations";
 @import "modules/links";
