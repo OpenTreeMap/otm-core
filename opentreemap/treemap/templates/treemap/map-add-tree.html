@@ -8,7 +8,7 @@
     <div class="add-step-container">
         {% include "treemap/partials/step_set_location.html" with step=1 feature_name="tree" %}
         <div class="add-step">
-            <div class="add-step-header">2. {% trans "Set species and additional info" %}</div>
+            <div class="add-step-header">2. {% trans "Add species and additional info" %}</div>
             <div class="add-step-content">
                 <form id="add-tree-form" onsubmit="return false;">
                     {# The "add-tree-species" label is used as an id prefix in "species_ul.html" #}
@@ -35,6 +35,7 @@
                 <h4 class="summaryAddress"></h4>
                 <h6>Nearby Address</h6>
                 <hr/>
+                <label>{% trans "After I add this tree..." %}</label>
                 <span>
                     <input type="radio" name="addFeatureOptions" value="copy" id="addtree-addsame" /><label for="addtree-addsame">
                         {% trans "Add another tree with these details" %}
@@ -52,7 +53,7 @@
                 </span>
                 <span>
                     <input type="radio" name="addFeatureOptions" value="close" id="addtree-done" checked /><label for="addtree-done">
-                        {% trans "I'm done" %}
+                        {% trans "I'm done!" %}
                     </label>
                 </span>
             </div>
