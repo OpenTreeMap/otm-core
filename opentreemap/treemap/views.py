@@ -885,6 +885,25 @@ def _execute_filter(instance, filter_str, base_is_plot=True):
         .filter(instance=instance)
 
 
+def _build_benefit_summary(**kwargs):
+    default_template = {
+        'tree_benefits': None,
+        'resource_benefits': None,
+        'hide_summary': False,
+        'currency_symbol': None,
+        'tree_basis': {'n_trees_used': 0,
+                       'n_trees_total': 0,
+                       'n_plots': 0,
+                       'percent': 0},
+        'resource_basis': {'n_resources_used': 0,
+                           'n_resources_total': 0,
+                           'n_resources': 0,
+                           'percent': 0},
+    }
+    return {key: kwargs.get(key, default_template[key])
+            for key in default_template}
+
+
 def search_tree_benefits(request, instance):
     try:
         filter_str = request.REQUEST['q']
@@ -908,14 +927,11 @@ def search_tree_benefits(request, instance):
 
     if not request.instance_supports_ecobenefits:
 
-        return {'tree_benefits': None,
-                'currency_symbol': None,
-                'basis': {'n_trees_used': None,
-                          'n_trees_total': total_trees,
-                          'n_plots': total_plots,
-                          'percent': None},
-                'resource_benefits': None,
-                'resource_basis': None}
+        return _build_benefit_summary(
+            tree_basis={'n_trees_used': None,
+                        'n_trees_total': total_trees,
+                        'n_plots': total_plots,
+                        'percent': None})
     else:
         benefits, ntrees = benefits_for_trees(trees, instance)
         return _format_benefits(instance, benefits, ntrees,
@@ -958,15 +974,14 @@ def _format_benefits(instance, benefits, num_calculated_trees,
     benefits_for_display = [displayize_benefit(key, currency)
                             for key in benefit_keys]
 
-    rslt = {'tree_benefits': benefits_for_display,
-            'hide_summary': hide_summary,
-            'currency_symbol': currency,
-            'tree_basis': {'n_trees_used': num_calculated_trees,
-                           'n_trees_total': total_trees,
-                           'n_plots': total_plots,
-                           'percent': percent},
-            'resource_benefits': None,
-            'resource_basis': None}
+    rslt = _build_benefit_summary(tree_benefits=benefits_for_display,
+                                  hide_summary=hide_summary,
+                                  currency_symbol=currency,
+                                  tree_basis={
+                                      'n_trees_used': num_calculated_trees,
+                                      'n_trees_total': total_trees,
+                                      'n_plots': total_plots,
+                                      'percent': percent})
 
     return rslt
 
