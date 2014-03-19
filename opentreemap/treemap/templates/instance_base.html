@@ -170,17 +170,23 @@
 
 {% block footer %}
 <div class="footer-inner">
+  {% with linkData=request.instance|instance_config:"linkData" %}
   <ul class="inline pull-left">
-    {% with linkData=request.instance|instance_config:"linkData" %}
-    <li><a target="_blank" href="{% if 'treekey' in linkData.keys and linkData.treekey %}{{ linkData.treekey }}{% else %}http://www.arborday.org/trees/whatTree/{% endif %}">{% trans "Tree Key" %}</a></li>
+    <li><a target="_blank"
+           {% if 'treekey' in linkData.keys and linkData.treekey %}
+           href="{{ linkData.treekey }}"
+           {% else %}
+           href="http://www.arborday.org/trees/whatTree/"
+           {% endif %}
+           >{% trans "Tree Key" %}</a></li>
     {% for name in request.instance.static_page_names %}
     <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page=name %}">{{ name }}</a></li>
     {% endfor %}
-    {% if 'contact' in linkData.keys and linkData.contact %}
-    {% endif %}
-    {% endwith %}
   </ul>
+  {% if 'contact' in linkData.keys and linkData.contact %}
   <a href="mailto:{{ linkData.contact }}" class="pull-right partners">{% trans "Contact" %}</a>
+  {% endif %}
+{% endwith %}
 </div>
 {% endblock footer %}
 
