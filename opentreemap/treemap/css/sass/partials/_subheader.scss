@@ -54,6 +54,28 @@
                     font-size: 1.4rem;
                     font-weight: 700;
                 }
+                
+                @media #{$screen-ltlg} {
+                    label {
+                        width: auto;
+                        display: block;
+                    }
+                }
+                @media #{$screen-sm} {
+                    .input-append {
+                        input[type="text"] {
+                            width: 55px;
+                        }
+                    }
+                    input[type="text"] {
+                        width: 92px;
+        
+                        & + span {
+                            margin: 0 10px;
+                            font-size: 1.4rem;
+                        }
+                    }
+                }
             }
             .input-append {
                 input[type="text"] {
