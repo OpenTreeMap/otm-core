@@ -5,11 +5,7 @@ from __future__ import division
 
 import json
 import datetime
-import Image
-import hashlib
-import os
 from collections import OrderedDict
-from cStringIO import StringIO
 
 from urlparse import urlparse
 from django.shortcuts import get_object_or_404, resolve_url
@@ -21,7 +17,6 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.conf import settings
 from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.utils.translation import ugettext_lazy as trans
-from django.core.files.uploadedfile import SimpleUploadedFile, File
 from django.db.models.fields.files import ImageFieldFile
 from django.contrib.gis.geos import Point
 
@@ -148,65 +143,6 @@ class LazyEncoder(DjangoJSONEncoder):
                 return None
         else:
             return super(LazyEncoder, self).default(obj)
-
-
-def save_image_from_request(request, name_prefix, thumb_size=None):
-    if 'file' in request.FILES:
-        image_data = request.FILES['file'].file
-    else:
-        image_data = request.body
-
-    return save_uploaded_image(image_data, name_prefix, thumb_size)
-
-
-def save_uploaded_image(image_data, name_prefix, thumb_size=None):
-    # We support passing data directly in here but we
-    # have to treat it as a file-like object
-    if type(image_data) is str:
-        image_data = StringIO(image_data)
-
-    image_data.seek(0, os.SEEK_END)
-    file_size = image_data.tell()
-
-    if file_size > settings.MAXIMUM_IMAGE_SIZE:
-        raise ValidationError(trans('The uploaded image is too large'))
-
-    image_data.seek(0)
-
-    try:
-        image = Image.open(image_data)
-        image.verify()
-    except IOError:
-        raise ValidationError(trans('Invalid image'))
-
-    try:
-        hash = hashlib.md5(image_data.read()).hexdigest()
-        name = "%s-%s.%s" % (name_prefix, hash, image.format.lower())
-
-        image_file = File(image_data)
-        image_file.name = name
-        thumb_file = None
-
-        if thumb_size is not None:
-            # http://effbot.org/imagingbook/image.htm
-            # ...if you need to load the image after using this method,
-            # you must reopen the image file.
-            image_data.seek(0)
-            image = Image.open(image_data)
-            image.thumbnail(thumb_size, Image.ANTIALIAS)
-            temp = StringIO()
-            image.save(temp, format=image.format)
-            temp.seek(0)
-            thumb_file = SimpleUploadedFile(
-                'thumb-' + name, temp.read(),
-                'image/%s' % image.format.lower())
-
-        # Reset image position
-        image_data.seek(0)
-
-        return image_file, thumb_file
-    except:
-        raise ValidationError(trans('Image upload issue'))
 
 
 def leaf_subclasses(cls):

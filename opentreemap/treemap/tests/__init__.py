@@ -7,6 +7,8 @@ import logging
 from cStringIO import StringIO
 from optparse import make_option
 from unittest import TestSuite
+import shutil
+import tempfile
 
 from django.test import TestCase, LiveServerTestCase
 from django.test.client import RequestFactory
@@ -333,6 +335,44 @@ def make_request(params={}, user=None, method='GET', body=None, file=None):
     setattr(req, 'user', user)
 
     return req
+
+
+def media_dir(f):
+    "Helper method for MediaTest classes to force a specific media dir"
+    def m(self):
+        with self._media_dir():
+            f(self)
+    return m
+
+
+class LocalMediaTestCase(TestCase):
+    def setUp(self):
+        self.photoDir = tempfile.mkdtemp()
+        self.mediaUrl = '/testingmedia/'
+
+    def _media_dir(self):
+        return self.settings(DEFAULT_FILE_STORAGE=
+                             'django.core.files.storage.FileSystemStorage',
+                             MEDIA_ROOT=self.photoDir,
+                             MEDIA_URL=self.mediaUrl)
+
+    def resource_path(self, name):
+        module_dir = os.path.dirname(__file__)
+        path = os.path.join(module_dir, 'resources', name)
+
+        return path
+
+    def load_resource(self, name):
+        return file(self.resource_path(name))
+
+    def tearDown(self):
+        shutil.rmtree(self.photoDir)
+
+    def assertPathExists(self, path):
+        self.assertTrue(os.path.exists(path), '%s does not exist' % path)
+
+    def assertPathDoesNotExist(self, path):
+        self.assertFalse(os.path.exists(path), '%s exists' % path)
 
 
 class ViewTestCase(TestCase):

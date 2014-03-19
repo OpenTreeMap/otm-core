@@ -11,7 +11,6 @@ import hashlib
 import datetime
 import collections
 
-from PIL import Image
 import sass
 
 from django.core.exceptions import ValidationError
@@ -36,9 +35,8 @@ from treemap.decorators import (json_api_call, render_template, login_or_401,
                                 requires_feature, get_instance_or_404,
                                 creates_instance_user, instance_request,
                                 username_matches_request_user)
-from treemap.util import (package_validation_errors,
-                          bad_request_json_response,
-                          save_image_from_request)
+from treemap.util import package_validation_errors, bad_request_json_response
+from treemap.images import save_image_from_request
 from treemap.search import create_filter
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
@@ -184,26 +182,6 @@ def add_tree_photo_view(request, instance, feature_id, tree_id=None):
             photos = []
         error = '; '.join(e.messages)
     return {'photos': photos, 'error': error}
-
-#
-# These are calls made by the API that aren't currently implemented
-# as we make these features, please use these functions to share the
-# love with mobile
-#
-
-
-def _rotate_image_based_on_exif(img_path):
-    img = Image.open(img_path)
-    try:
-        orientation = img._getexif()[0x0112]
-        if orientation == 6:  # Right turn
-            img = img.rotate(-90)
-        elif orientation == 5:  # Left turn
-            img = img.rotate(90)
-    except:
-        pass
-
-    return img
 
 
 def map_feature_popup(request, instance, feature_id):

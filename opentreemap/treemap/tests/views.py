@@ -4,8 +4,6 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import os.path
-import shutil
-import tempfile
 import json
 import unittest
 from StringIO import StringIO
@@ -44,7 +42,7 @@ from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_simple_boundary, make_request, make_user,
                            set_write_permissions, MockSession,
                            delete_all_app_users, set_read_permissions,
-                           make_plain_user)
+                           make_plain_user, LocalMediaTestCase, media_dir)
 from treemap.tests.udfs import make_collection_udf
 
 
@@ -177,46 +175,7 @@ class BoundaryViewTest(ViewTestCase):
         self.assertEqual(response, self.test_boundary_hashes[0:2])
 
 
-def media_dir(f):
-    "Helper method for MediaTest classes to force a specific media dir"
-    def m(self):
-        with self._media_dir():
-            f(self)
-    return m
-
-
-class LocalMediaTestCase(TestCase):
-    def setUp(self):
-        self.photoDir = tempfile.mkdtemp()
-        self.mediaUrl = '/testingmedia/'
-
-    def _media_dir(self):
-        return self.settings(DEFAULT_FILE_STORAGE=
-                             'django.core.files.storage.FileSystemStorage',
-                             MEDIA_ROOT=self.photoDir,
-                             MEDIA_URL=self.mediaUrl)
-
-    def resource_path(self, name):
-        module_dir = os.path.dirname(__file__)
-        path = os.path.join(module_dir, 'resources', name)
-
-        return path
-
-    def load_resource(self, name):
-        return file(self.resource_path(name))
-
-    def tearDown(self):
-        shutil.rmtree(self.photoDir)
-
-    def assertPathExists(self, path):
-        self.assertTrue(os.path.exists(path), '%s does not exist' % path)
-
-    def assertPathDoesNotExist(self, path):
-        self.assertFalse(os.path.exists(path), '%s exists' % path)
-
-
 class TreePhotoTestCase(LocalMediaTestCase):
-
     def setUp(self):
         super(TreePhotoTestCase, self).setUp()
 

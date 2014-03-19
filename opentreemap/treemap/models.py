@@ -25,7 +25,8 @@ from treemap.species import ITREE_REGIONS
 from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
                            Dictable, Audit, AuthorizableQuerySet,
                            AuthorizableManager)
-from treemap.util import save_uploaded_image, leaf_subclasses
+from treemap.util import leaf_subclasses
+from treemap.images import save_uploaded_image
 from treemap.units import Convertible
 from treemap.udf import UDFModel, GeoHStoreUDFManager, GeoHStoreUDFQuerySet
 from treemap.instance import Instance
