@@ -27,14 +27,17 @@
 
     {% if not hide_summary %}
     <div class="benefit-tree-count">
+      {% with plot_only=request.instance.stores_plot_only %}
       {% blocktrans with used=tree_basis.n_trees_used total=tree_basis.n_trees_total %}
         Based on {{ used }} out of {{ total }} total trees
       {% endblocktrans %}
-      {% if not request.instance.stores_plot_only %}
+      {% if plot_only %}.{% endif %}
+      {% if not plot_only %}
       {% blocktrans with used=resource_basis.n_resources_used total=resource_basis.n_resources_total %}
-        Based on {{ used }} out of {{ total }} total trees
+        and {{ used }} out of {{ total }} total resources.
       {% endblocktrans %}
       {% endif %}
+      {% endwith %}
     </div>
     {% endif %}
 </div>

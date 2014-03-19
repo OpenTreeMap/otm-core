@@ -12,15 +12,11 @@
   <div class="benefit-icon"><i class="icon-sun-filled"></i></div>
   {% endif %}
   <h3 class="benefit-label">{{ benefit.label }} {% trans "Benefits" %}</h3>
-  <dl class="dl-horizontal benefit-content">
-    <dt>{{ benefit.value }}</dt>
-    <dd>{{ benefit.unit }}</dd>
+  <span class="benefit-content">
+    {{ benefit.value }} {{ benefit.unit }}
     {% if benefit.currency_saved %}
-    <dt>{{ benefit.currency_saved }}</dt>
-    <dd>
       {% comment %}Translators: Money saved{% endcomment %}
-      {% trans "saved" %}
-    </dd>
+      {% trans "saved" %} {{ benefit.currency_saved }}
     {% endif %}
-  </dl>
+  </span>
 </div>
