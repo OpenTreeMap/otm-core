@@ -58,7 +58,7 @@ input[type="tel"],
 input[type="color"], 
 textarea, 
 .uneditable-input {
-	font-size: 1.3rem;
+	font-size: 1.4rem;
     font-weight: 300;
     letter-spacing: 0.25px;
 	padding: 8px 8px;
@@ -66,7 +66,6 @@ textarea,
 	border-radius: 6px;
 	box-shadow: 0 2px 0 #DDD inset;
 	box-shadow: 0 2px 0 rgba(0,0,0,.1) inset;
-	height: auto;
 
 	&:focus {
 		color: $main-text-color;
@@ -79,7 +78,7 @@ textarea,
 .input-append {
 	input {
 		border-radius: 6px 0 0 6px;
-		font-size: 1.3rem;
+		font-size: 1.4rem;
 	}
 	span.add-on {
 		padding: 8px;

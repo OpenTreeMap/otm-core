@@ -53,8 +53,14 @@
                     width: 120px;
                     font-size: 1.4rem;
                     font-weight: 700;
+                    position: relative;
                 }
                 
+                @media #{$screen-lg} {
+                    label {
+                        top: -3px;
+                    }
+                }
                 @media #{$screen-ltlg} {
                     label {
                         width: auto;
