@@ -10,7 +10,10 @@ from treemap.tests import (UrlTestCase, make_instance, make_commander_user,
                            make_request)
 
 from treemap import ecobackend
-from treemap.ecobenefits import tree_benefits
+from treemap.ecobenefits import (TreeBenefitsCalculator,
+                                 _combine_benefit_basis,
+                                 _annotate_basis_with_extra_stats,
+                                 _combine_grouped_benefits)
 
 from treemap.views import search_tree_benefits
 
@@ -80,10 +83,10 @@ class EcoTest(UrlTestCase):
         self.assertEqual(int(float(bens[benefit]['value'])), value)
 
     def test_eco_benefit_sanity(self):
-        rslt = tree_benefits(instance=self.instance,
-                             tree_or_tree_id=self.tree)
+        rslt, basis, error = TreeBenefitsCalculator()\
+            .benefits_for_object(self.instance, self.tree.plot)
 
-        bens = rslt['tree_benefits']
+        bens = rslt['plot']
 
         self.assert_benefit_value(bens, 'energy', 'kwh', 1896)
         self.assert_benefit_value(bens, 'airquality', 'lbs/year', 6)
@@ -97,6 +100,224 @@ class EcoTest(UrlTestCase):
                                                     .has_itree_region()
         result = search_tree_benefits(request, self.instance)
 
-        benefits = result['tree_benefits']
+        benefits = result['benefits']
 
         self.assertTrue(len(benefits) > 0)
+
+    def test_group_basis_empty(self):
+        basis = {}
+        example = {
+            'group1': {
+                'n_objects_used': 5,
+                'n_objects_discarded': 8
+            },
+            'group2': {
+                'n_objects_used': 10,
+                'n_objects_discarded': 12
+            }
+        }
+
+        _combine_benefit_basis(basis, example)
+        self.assertEqual(basis, example)
+
+    def test_group_basis_combine_new_group(self):
+        # New groups are added
+        basis = {
+            'group1': {
+                'n_objects_used': 5,
+                'n_objects_discarded': 8
+            }
+        }
+        new_group = {
+            'group2': {
+                'n_objects_used': 13,
+                'n_objects_discarded': 4
+            }
+        }
+        target = {
+            'group1': {
+                'n_objects_used': 5,
+                'n_objects_discarded': 8
+            },
+            'group2': {
+                'n_objects_used': 13,
+                'n_objects_discarded': 4
+            }
+        }
+        _combine_benefit_basis(basis, new_group)
+        self.assertEqual(basis, target)
+
+    def test_group_basis_combine_existing_groups(self):
+        basis = {
+            'group1': {
+                'n_objects_used': 5,
+                'n_objects_discarded': 8
+            }
+        }
+        update_group = {
+            'group1': {
+                'n_objects_used': 13,
+                'n_objects_discarded': 4
+            }
+        }
+        target = {
+            'group1': {
+                'n_objects_used': 18,
+                'n_objects_discarded': 12
+            }
+        }
+        _combine_benefit_basis(basis, update_group)
+        self.assertEqual(basis, target)
+
+    def test_combine_benefit_groups_empty(self):
+        # with and without currency
+        base_group = {'group1':
+                      {'benefit1':
+                       {'value': 3,
+                        'currency': 9,
+                        'unit': 'gal',
+                        'label': 'stormwater',
+                        'unit-name': 'eco'},
+                       'benefit2':
+                       {'value': 3,
+                        'currency': 9,
+                        'unit': 'gal',
+                        'label': 'stormwater',
+                        'unit-name': 'eco'}}}
+        groups = {}
+        _combine_grouped_benefits(groups, base_group)
+
+        self.assertEqual(groups, base_group)
+
+    def test_combine_benefit_groups_no_overlap(self):
+        base_group = {'group1':
+                      {'benefit1':
+                       {'value': 3,
+                        'currency': 9,
+                        'unit': 'gal',
+                        'label': 'stormwater',
+                        'unit-name': 'eco'},
+                       'benefit2':
+                       {'value': 4,
+                        'currency': 10,
+                        'unit': 'gal',
+                        'label': 'stormwater',
+                        'unit-name': 'eco'}}}
+        new_group = {'group2':
+                     {'benefit1':
+                      {'value': 5,
+                       'currency': 11,
+                       'unit': 'gal',
+                       'label': 'stormwater',
+                       'unit-name': 'eco'},
+                      'benefit2':
+                      {'value': 6,
+                       'currency': 19,
+                       'unit': 'gal',
+                       'label': 'stormwater',
+                       'unit-name': 'eco'}}}
+        groups = {}
+        _combine_grouped_benefits(groups, base_group)
+        _combine_grouped_benefits(groups, new_group)
+
+        target = {'group1': base_group['group1'],
+                  'group2': new_group['group2']}
+
+        self.assertEqual(groups, target)
+
+    def test_combine_benefit_groups_sums_benefits(self):
+        base_group = {'group1':
+                      {'benefit1':
+                       {'value': 3,
+                        'unit': 'gal',
+                        'label': 'stormwater',
+                        'unit-name': 'eco'},
+                       'benefit2':
+                       {'value': 4,
+                        'currency': 10,
+                        'unit': 'gal',
+                        'label': 'stormwater',
+                        'unit-name': 'eco'},
+                       'benefit3':
+                       {'value': 32,
+                        'currency': 919,
+                        'unit': 'gal',
+                        'label': 'stormwater',
+                        'unit-name': 'eco'}}}
+        new_group = {'group1':
+                     {'benefit1':
+                      {'value': 5,
+                       'currency': 11,
+                       'unit': 'gal',
+                       'label': 'stormwater',
+                       'unit-name': 'eco'},
+                      'benefit2':
+                      {'value': 7,
+                       'unit': 'gal',
+                       'currency': 19,
+                       'label': 'stormwater',
+                       'unit-name': 'eco'},
+                      'benefit4':
+                      {'value': 7,
+                       'unit': 'gal',
+                       'label': 'stormwater',
+                       'unit-name': 'eco'}}}
+        groups = {}
+        _combine_grouped_benefits(groups, base_group)
+        _combine_grouped_benefits(groups, new_group)
+
+        target = {'group1':
+                  {'benefit1':
+                   {'value': 8,
+                    'currency': 11,
+                    'unit': 'gal',
+                    'label': 'stormwater',
+                    'unit-name': 'eco'},
+                   'benefit2':
+                   {'value': 11,
+                    'currency': 29,
+                    'unit': 'gal',
+                    'label': 'stormwater',
+                    'unit-name': 'eco'},
+                   'benefit3':
+                   {'value': 32,
+                    'currency': 919,
+                    'unit': 'gal',
+                    'label': 'stormwater',
+                    'unit-name': 'eco'},
+                   'benefit4':
+                   {'value': 7,
+                    'unit': 'gal',
+                    'label': 'stormwater',
+                    'unit-name': 'eco'}}}
+
+        self.assertEqual(groups, target)
+
+    def test_annotates_basis(self):
+        basis = {
+            'group1': {
+                'n_objects_used': 5,
+                'n_objects_discarded': 15
+            },
+            'group2': {
+                'n_objects_used': 2,
+                'n_objects_discarded': 18
+            }
+        }
+        target = {
+            'group1': {
+                'n_objects_used': 5,
+                'n_objects_discarded': 15,
+                'n_total': 20,
+                'n_pct_calculated': 0.25
+            },
+            'group2': {
+                'n_objects_used': 2,
+                'n_objects_discarded': 18,
+                'n_total': 20,
+                'n_pct_calculated': 0.1
+            }
+        }
+        _annotate_basis_with_extra_stats(basis)
+
+        self.assertEqual(basis, target)
