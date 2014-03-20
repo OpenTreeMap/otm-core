@@ -11,7 +11,7 @@ from django.db.models import Q
 from django.contrib.gis.measure import Distance
 from django.contrib.gis.geos import Point
 
-from treemap.models import Plot, Boundary, Tree
+from treemap.models import Boundary, Tree
 from treemap.udf import DATETIME_FORMAT
 
 
@@ -21,11 +21,11 @@ class ParseException (Exception):
         self.message = message
 
 
-PLOT_MAPPING = {'plot': '',
-                'tree': 'tree__',
-                'species': 'tree__species__',
-                'treePhoto': 'tree__treephoto__',
-                'mapFeature': ''}
+DEFAULT_MAPPING = {'plot': '',
+                   'tree': 'tree__',
+                   'species': 'tree__species__',
+                   'treephoto': 'tree__treephoto__',
+                   'mapfeature': ''}
 
 TREE_MAPPING = {'plot': 'plot__',
                 'tree': '',
@@ -46,12 +46,59 @@ class Filter(object):
             mapping = DEFAULT_MAPPING
 
         q = create_filter(self.instance, self.filterstr, mapping)
+
+        models = q.basekeys
+
+        # If we used more than one model that wasn't a map feature
+        # the query is invalid
+        models_without_mf = [m for m in models if m != 'mapfeature']
+        if len(models_without_mf) > 1:
+            raise Exception('Only one type of map feature '
+                            'can be queried at a time. You '
+                            'specified: %s' % models)
+
+        # Filter out invalid models
+        model_name = ModelClass.__name__.lower()
+
+        # This is a special case when we're doing 'tree-centric'
+        # searches for eco benefits. Trees essentially count
+        # as plots for the purposes of pruning
+        if model_name == 'tree':
+            model_name = 'plot'
+
+        if len(models_without_mf) == 1 and \
+           models_without_mf[0] != model_name:
+            queryset = ModelClass.objects.none()
+        else:
             queryset = ModelClass.objects.filter(q)
 
         return queryset
 
     def get_object_count(self, ModelClass):
         return self.get_objects(ModelClass).count()
+
+
+class FilterContext(Q):
+    def __init__(self, *args, **kwargs):
+        if 'basekey' in kwargs:
+            basekey = kwargs['basekey']
+            if basekey in {'tree', 'plot', 'species'}:
+                basekey = 'plot'
+
+            self.basekeys = {basekey}
+
+            del kwargs['basekey']
+        else:
+            self.basekeys = set()
+
+        super(FilterContext, self).__init__(*args, **kwargs)
+
+    def add(self, thing, conn):
+        if thing.basekeys:
+            self.basekeys = self.basekeys | thing.basekeys
+
+        return super(FilterContext, self).add(thing, conn)
+
 
 def create_filter(instance, filterstr, mapping):
     """
@@ -83,7 +130,10 @@ def create_filter(instance, filterstr, mapping):
         query = loads(filterstr)
         q = _parse_filter(query, mapping)
     else:
-        return base.objects.all()
+        q = FilterContext()
+
+    if instance:
+        q = q & FilterContext(instance=instance)
 
     return q
 
@@ -117,7 +167,7 @@ def _parse_predicate_key(key, mapping):
             'Valid models are: %s, not "%s"' %
             (mapping.keys(), model))
 
-    return mapping[model] + field
+    return model, mapping[model] + field
 
 
 def _parse_value(value):
@@ -260,13 +310,15 @@ def _parse_dict_value(valuesdict):
 
 
 def _parse_predicate_pair(key, value, mapping):
-    search_key = _parse_predicate_key(key, mapping)
+    model, search_key = _parse_predicate_key(key, mapping)
     if type(value) is dict:
-        return Q(**{search_key + k: v
-                    for (k, v)
-                    in _parse_dict_value(value).iteritems()})
+        return FilterContext(basekey=model,
+                             **{search_key + k: v
+                                for (k, v)
+                                in _parse_dict_value(value).iteritems()})
     else:
-        return Q(**{search_key: value})
+        return FilterContext(basekey=model,
+                             **{search_key: value})
 
 
 def _apply_combinator(combinator, predicates):
