@@ -18,7 +18,6 @@ from django.contrib.gis.measure import Distance
 
 from treemap.tests import (make_instance, make_commander_user,
                            make_simple_polygon, set_write_permissions)
-from treemap.views import _execute_filter
 from treemap.models import (Tree, Plot, Boundary, Species)
 from treemap.udf import UserDefinedFieldDefinition
 from treemap import search
@@ -421,10 +420,10 @@ class SearchTests(TestCase):
         return (p.pk for p in [p1, p2, p3])
 
     def _execute_and_process_filter(self, filter):
+        f = search.Filter(json.dumps(filter), self.instance)
         return {p.pk
                 for p
-                in _execute_filter(
-                    self.instance, json.dumps(filter))}
+                in f.get_objects(Plot)}
 
     def test_udf_numeric_search(self):
         p1, p2, p3 = self._setup_udfs()
@@ -492,18 +491,24 @@ class SearchTests(TestCase):
         species2_filter = json.dumps({'species.id': species2.pk})
         species3_filter = json.dumps({'species.id': -1})
 
+        plots = search.Filter(species1_filter, self.instance).get_objects(Plot)
+
         self.assertEqual(
             {p1.pk},
             {p.pk
-             for p in _execute_filter(self.instance, species1_filter)})
+             for p in plots})
+
+        plots = search.Filter(species2_filter, self.instance).get_objects(Plot)
 
         self.assertEqual(
             {p2.pk},
             {p.pk
-             for p in _execute_filter(self.instance, species2_filter)})
+             for p in plots})
+
+        plots = search.Filter(species3_filter, self.instance).get_objects(Plot)
 
         self.assertEqual(
-            0, len(_execute_filter(self.instance, species3_filter)))
+            0, len(plots))
 
     def test_boundary_search(self):
         # Unit Square
@@ -537,24 +542,33 @@ class SearchTests(TestCase):
         boundary1_filter = json.dumps({'plot.geom':
                                        {'IN_BOUNDARY': b1.pk}})
 
+        plots = search.Filter(boundary1_filter, self.instance)\
+                      .get_objects(Plot)
+
         self.assertEqual(
             {plot1.pk},
             {p.pk
-             for p in _execute_filter(self.instance, boundary1_filter)})
+             for p in plots})
 
         boundary2_filter = json.dumps({'plot.geom':
                                        {'IN_BOUNDARY': b2.pk}})
 
+        plots = search.Filter(boundary2_filter, self.instance)\
+                      .get_objects(Plot)
+
         self.assertEqual(
             {plot1.pk, plot2.pk},
             {p.pk
-             for p in _execute_filter(self.instance, boundary2_filter)})
+             for p in plots})
 
         boundary3_filter = json.dumps({'plot.geom':
                                        {'IN_BOUNDARY': b3.pk}})
 
+        plots = search.Filter(boundary3_filter, self.instance)\
+                      .get_objects(Plot)
+
         self.assertEqual(
-            0, len(_execute_filter(self.instance, boundary3_filter)))
+            0, len(plots))
 
     def setup_diameter_test(self):
         p1, t1 = self.create_tree_and_plot()
@@ -580,10 +594,11 @@ class SearchTests(TestCase):
         diameter_range_filter = json.dumps({'tree.diameter':
                                             {'MIN': 3.0}})
 
+        plots = search.Filter(diameter_range_filter, self.instance)\
+                      .get_objects(Plot)
+
         ids = {p.pk
-               for p
-               in _execute_filter(
-                   self.instance, diameter_range_filter)}
+               for p in plots}
 
         self.assertEqual(ids, {p2.pk, p3.pk, p4.pk})
 
@@ -593,10 +608,11 @@ class SearchTests(TestCase):
         diameter_range_filter = json.dumps({'tree.diameter':
                                             {'MAX': 3.0}})
 
+        plots = search.Filter(diameter_range_filter, self.instance)\
+                      .get_objects(Plot)
+
         ids = {p.pk
-               for p
-               in _execute_filter(
-                   self.instance, diameter_range_filter)}
+               for p in plots}
 
         self.assertEqual(ids, {p1.pk})
 
@@ -626,10 +642,10 @@ class SearchTests(TestCase):
                  }
              }})
 
-        ids = {p.pk
-               for p
-               in _execute_filter(
-                   self.instance, radius_filter)}
+        plots = search.Filter(radius_filter, self.instance)\
+                      .get_objects(Plot)
+
+        ids = {p.pk for p in plots}
 
         self.assertEqual(ids, {near_plot.pk})
 
@@ -640,10 +656,10 @@ class SearchTests(TestCase):
                                             {'MAX': 7.0,
                                              'MIN': 3.0}})
 
-        ids = {p.pk
-               for p
-               in _execute_filter(
-                   self.instance, diameter_range_filter)}
+        plots = search.Filter(diameter_range_filter, self.instance)\
+                      .get_objects(Plot)
+
+        ids = {p.pk for p in plots}
 
         self.assertEqual(ids, {p2.pk, p3.pk})
 
@@ -664,16 +680,17 @@ class SearchTests(TestCase):
             'species.common_name':
             {'LIKE': 's a tes'}})
 
-        result = [o.pk for o in
-                  _execute_filter(
-                      self.instance, species_like_filter)]
+        plots = search.Filter(species_like_filter, self.instance)\
+                      .get_objects(Plot)
+
+        result = [o.pk for o in plots]
 
         self.assertEqual(result, [p.pk])
 
         species.common_name = 'no match'
         species.save_with_user(self.commander)
 
-        result = _execute_filter(
-            self.instance, species_like_filter)
+        plots = search.Filter(species_like_filter, self.instance)\
+                      .get_objects(Plot)
 
-        self.assertEqual(len(result), 0)
+        self.assertEqual(len(plots), 0)

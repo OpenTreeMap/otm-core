@@ -34,7 +34,26 @@ TREE_MAPPING = {'plot': 'plot__',
                 'mapFeature': 'plot__'}
 
 
-def create_filter(filterstr, base_is_plot=True):
+class Filter(object):
+    def __init__(self, filterstr, instance):
+        self.filterstr = filterstr
+        self.instance = instance
+
+    def get_objects(self, ModelClass):
+        if ModelClass == Tree:
+            mapping = TREE_MAPPING
+        else:
+            mapping = DEFAULT_MAPPING
+
+        q = create_filter(self.instance, self.filterstr, mapping)
+            queryset = ModelClass.objects.filter(q)
+
+        return queryset
+
+    def get_object_count(self, ModelClass):
+        return self.get_objects(ModelClass).count()
+
+def create_filter(instance, filterstr, mapping):
     """
     A filter is a string that must be valid json and conform to
     the following grammar:
@@ -55,21 +74,18 @@ def create_filter(filterstr, base_is_plot=True):
     filter         = predicate
                    | [combinator, filter*, literal?]
 
-    Returns a lazy query set of plot objects
-    """
-    if base_is_plot:
-        base = Plot
-        mapping = PLOT_MAPPING
-    else:
-        base = Tree
-        mapping = TREE_MAPPING
+    mapping allows for the developer to search focussed on a
+    particular object group
 
+    Returns a Q object that can be applied to a model of your choice
+    """
     if filterstr is not None and filterstr != '':
         query = loads(filterstr)
         q = _parse_filter(query, mapping)
-        return base.objects.filter(q)
     else:
         return base.objects.all()
+
+    return q
 
 
 def _parse_filter(query, mapping):

@@ -8,7 +8,7 @@ from tempfile import TemporaryFile
 
 from django.core.files import File
 
-from treemap.search import create_filter
+from treemap.search import Filter
 from treemap.models import Species, Tree
 
 from djqscsv import write_csv, generate_filename
@@ -64,9 +64,7 @@ def csv_export(job_pk, model, query):
 
             # get the plots for the provided
             # query and turn them into a tree queryset
-            plot_query = (create_filter(query)
-                          .filter(instance_id=instance.id))
-            initial_qs = Tree.objects.filter(plot__in=plot_query)
+            initial_qs = Filter(query, instance).get_objects(Tree)
 
             extra_select_tree, values_tree = extra_select_and_values_for_model(
                 instance, job.user, 'treemap_tree', 'Tree')
