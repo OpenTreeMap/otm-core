@@ -196,13 +196,13 @@ class Instance(models.Model):
         return fields
 
     @property
-    def stores_plot_only(self):
+    def supports_resources(self):
         """
         Determine whether this instance has multiple map feature
-        types (plots + "resource") or not.
+        types (plots + "resources") or not.
         """
-        feature_types = self.config.get('map_feature_types')
-        return feature_types == ['Plot']
+        n = len(self.map_feature_types)
+        return n > 1
 
     @property
     def extent_as_json(self):

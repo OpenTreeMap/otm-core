@@ -3,7 +3,7 @@
 
 {% if request.instance_supports_ecobenefits %}
 <div id="benefit-values" class="benefit-values accordion-inner">
-    {% if not hide_summary and not request.instance.stores_plot_only %}
+    {% if not hide_summary and request.instance.supports_resources %}
     {% comment %}
     unhide me when the backend is implemented
     {% endcomment %}
@@ -14,7 +14,7 @@
     {% include "treemap/partials/benefit_value_row.html" %}
     {% endfor %}
 
-    {% if not hide_summary and not request.instance.stores_plot_only %}
+    {% if not hide_summary and request.instance.supports_resources %}
     {% comment %}
     unhide me when the backend is implemented
     {% endcomment %}
@@ -27,12 +27,12 @@
 
     {% if not hide_summary %}
     <div class="benefit-tree-count">
-      {% with plot_only=request.instance.stores_plot_only %}
+      {% with has_resources=request.instance.supports_resources %}
       {% blocktrans with used=tree_basis.n_trees_used total=tree_basis.n_trees_total %}
         Based on {{ used }} out of {{ total }} total trees
       {% endblocktrans %}
-      {% if plot_only %}.{% endif %}
-      {% if not plot_only %}
+      {% if not has_resources %}.{% endif %}
+      {% if has_resources %}
       {% blocktrans with used=resource_basis.n_resources_used total=resource_basis.n_resources_total %}
         and {{ used }} out of {{ total }} total resources.
       {% endblocktrans %}
@@ -61,11 +61,14 @@
   {% comment %}
   unhide me when the backend is implemented
   {% endcomment %}
-  <span id="resource-count hidden">
+  <span class="hidden">
+  <span id="resource-count">
   {% blocktrans count resource_basis.n_resources as resource_count %}
     {{ resource_count }}</span> resources
   {% plural %}
     {{ resrouce_count }}</span> resources
   {% endblocktrans %}
+  </span>
+
   {% endlocalize %}
 </div>
