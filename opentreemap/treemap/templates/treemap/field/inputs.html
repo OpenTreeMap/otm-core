@@ -2,7 +2,7 @@
 {% load dateformat %}
 {% if field.choices %}
     <select name="{{ field.identifier }}" {{ extra|default_if_none:"" }}
-            class="{{ class|default_if_none:"" }}" />
+            class="{{ class|default_if_none:"" }}">
         {% for option in field.choices %}
             <option value="{{ option.value }}"
               {% ifequal option.value field.value %}selected="selected"{% endifequal %}>
