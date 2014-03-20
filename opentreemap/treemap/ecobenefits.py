@@ -359,9 +359,11 @@ def _annotate_basis_with_extra_stats(basis):
 
 
 def get_benefits_for_filter(filter):
+    allowed_types = filter.instance.map_feature_types
     benefits, basis = {}, {}
+
     for C in MapFeature.subclass_dict().values():
-        if not hasattr(C, 'benefits'):
+        if not hasattr(C, 'benefits') or C.__name__ not in allowed_types:
             continue
 
         ft_benefit_groups, ft_basis = _benefits_for_class(C, filter)
