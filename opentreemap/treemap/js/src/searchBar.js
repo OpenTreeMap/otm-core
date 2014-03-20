@@ -99,6 +99,10 @@ module.exports = exports = {
         });
 
         streams.resetStream.onValue(Search.reset, streams.elems);
+
+        // Apply an empty search to the page to get all the UI elements into
+        // the correct state
+        Search.applySearchToDom(streams.elems, {});
     },
 
     init: function (config) {
