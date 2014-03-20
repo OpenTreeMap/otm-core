@@ -256,6 +256,17 @@ class Instance(models.Model):
 
         return names
 
+    def itree_regions(self):
+        from treemap.models import ITreeRegion
+
+        if self.itree_region_default:
+            regions = [self.itree_region_default]
+        else:
+            regions = ITreeRegion.objects.filter(
+                geometry__intersects=self.bounds)
+
+        return regions
+
     def has_itree_region(self):
         from treemap.models import ITreeRegion  # prevent circular import
         intersecting_regions = (ITreeRegion

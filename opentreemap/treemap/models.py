@@ -745,6 +745,21 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
     def photos(self):
         return self.treephoto_set.order_by('-created_at')
 
+    @property
+    def itree_region(self):
+        if self.instance.itree_region_default:
+            region = self.instance.itree_region_default
+        else:
+            regions = ITreeRegion.objects\
+                                 .filter(geometry__contains=self.plot.geom)
+
+            if len(regions) > 0:
+                region = regions[0].code
+            else:
+                region = None
+
+        return region
+
     ##########################
     # tree validation
     ##########################
