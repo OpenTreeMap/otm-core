@@ -7,10 +7,10 @@
   <p>The tree's location falls within a climate region that does not support benefit calculations for this species.</p>
   {% endblocktrans %}
 </div>
-{% elif tree_benefits %}
+{% elif benefits.plot %}
 <table class="table table-hover">
   <tbody>
-    {% for benefit in tree_benefits %}
+    {% for benefit in benefits.plot %}
     <tr>
       <td>{{ benefit.label }}</td>
       <td>{{ benefit.value }} {{ benefit.unit}}</td>
