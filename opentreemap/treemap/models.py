@@ -526,6 +526,11 @@ class InstanceUser(Auditable, models.Model):
         return '%s/%s' % (self.user.get_username(), self.instance.name)
 
 
+class classproperty(property):
+    def __get__(self, cls, owner):
+        return classmethod(self.fget).__get__(None, owner)()
+
+
 class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
     "Superclass for map feature subclasses like Plot, RainBarrel, etc."
     instance = models.ForeignKey(Instance)
@@ -660,6 +665,11 @@ class Plot(MapFeature):
     owner_orig_id = models.CharField(max_length=255, null=True, blank=True)
 
     objects = AuthorizableGeoHStoreUDFManager()
+
+    @classproperty
+    def benefits(cls):
+        from treemap.ecobenefits import TreeBenefitsCalculator
+        return TreeBenefitsCalculator()
 
     def nearby_plots(self, distance_in_meters=None):
         if distance_in_meters is None:
