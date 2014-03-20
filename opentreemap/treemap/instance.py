@@ -165,6 +165,10 @@ class Instance(models.Model):
                     {'identifier': 'Tree.diameter',
                      'label': 'Show missing trunk diameter',
                      'search_type': 'ISNULL',
+                     'value': 'true'},
+                    {'identifier': 'TreePhoto.id',
+                     'label': 'Show missing photos',
+                     'search_type': 'ISNULL',
                      'value': 'true'}
                 ]
             }
