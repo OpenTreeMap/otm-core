@@ -33,14 +33,18 @@ def safe_get_model_class(model_string):
     This function returns the class represented by the given model
     if it exists in 'treemap.models'
     """
+    from treemap.models import MapFeature
+
     # All of our models live in 'treemap.models', so
     # we can start with that namespace
     models_module = __import__('treemap.models')
 
-    if not hasattr(models_module.models, model_string):
+    if hasattr(models_module.models, model_string):
+        return getattr(models_module.models, model_string)
+    elif MapFeature.has_subclass(model_string):
+        return MapFeature.get_subclass(model_string)
+    else:
         raise ValidationError(trans('invalid model type'))
-
-    return getattr(models_module.models, model_string)
 
 
 def add_visited_instance(request, instance):

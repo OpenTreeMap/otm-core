@@ -14,7 +14,6 @@ var manager,
 
 function init(options) {
     var $sidebar = $(options.sidebar),
-        $addressInput = U.$find('.form-search input', $sidebar),
         $speciesTypeahead = U.$find('#add-tree-species-typeahead', $sidebar),
         $speciesInput = U.$find('[data-typeahead-input="tree.species"]', $sidebar),
         $summaryHead = U.$find('.summaryHead', $sidebar),
@@ -28,17 +27,15 @@ function init(options) {
                          cancelStream: manager.deactivateStream,
                          saveOkStream: manager.addFeatureStream });
 
-    manager.stepChangeCompleteStream.onValue(function (stepNumber) {
-        if (stepNumber === STEP_LOCATE) {
-            focusOnAddressInput();
-        } else if (stepNumber === STEP_DETAILS) {
+    manager.stepControls.stepChangeCompleteStream.onValue(function (stepNumber) {
+        if (stepNumber === STEP_DETAILS) {
             if ($speciesInput.val().length === 0) {
                 $speciesInput.focus();
             }
         }
     });
 
-    manager.stepChangeStartStream.onValue(function (stepNumber) {
+    manager.stepControls.stepChangeStartStream.onValue(function (stepNumber) {
         if (stepNumber === STEP_FINAL) {
             var species = $speciesTypeahead.data('datum'),
                 common_name = species ? species.common_name :
@@ -56,14 +53,8 @@ function init(options) {
         });
     }
 
-    function focusOnAddressInput() {
-        if ($addressInput.val().length === 0) {
-            $addressInput.focus();
-        }
-    }
-
     _.defer(function () {
-        focusOnAddressInput();
+        manager.focusOnAddressInput();
     });
 }
 

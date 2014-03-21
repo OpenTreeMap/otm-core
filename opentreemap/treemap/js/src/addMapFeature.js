@@ -20,11 +20,12 @@ function init(options) {
         sidebar = options.sidebar,
         $sidebar = $(sidebar),
         formSelector = options.formSelector,
+        indexOfSetLocationStep = options.indexOfSetLocationStep,
+        addFeatureUrl = config.instance.url + 'plots/',
         gcoder = geocoder(config),
-        prompter = options.prompter,
 
-        $addTreeHeaderLink = options.$addTreeHeaderLink,
-        $exploreTreesHeaderLink = options.$exploreTreesHeaderLink,
+        $addFeatureHeaderLink = options.$addFeatureHeaderLink,
+        $exploreMapHeaderLink = options.$exploreMapHeaderLink,
 
         stepControls = require('treemap/stepControls').init($sidebar),
         addressInput = sidebar + ' .form-search input',
@@ -36,14 +37,13 @@ function init(options) {
         triggerSearchBus = options.triggerSearchBus,
 
         $form = U.$find(formSelector, $sidebar),
-        $editFields = U.$find('[data-class="edit"]', $form),
-        $editControls = $editFields.find('input,select'),
-        $validationFields = U.$find('[data-class="error"]', $form),
+        editFields = formSelector + ' [data-class="edit"]',
+        validationFields = formSelector + ' [data-class="error"]',
         $placeMarkerMessage = U.$find('.place-marker-message', $sidebar),
         $moveMarkerMessage = U.$find('.move-marker-message', $sidebar);
 
-    $editFields.show();
-    U.$find('[data-class="display"]', $form).hide();  // Hide display fields
+    $(editFields).show();
+    $form.find('[data-class="display"]').hide();  // Hide display fields
 
     // Handle setting initial position via geolocate button
     var geolocateStream;
@@ -81,7 +81,14 @@ function init(options) {
         // Hide/deactivate/clear everything
         plotMarker.hide();
         $addressInput.val("");
-        $editControls.val("");
+        clearEditControls();
+    });
+
+    // Handle moving to "set location" step
+    stepControls.stepChangeCompleteStream.onValue(function (stepNumber) {
+        if (stepNumber === indexOfSetLocationStep) {
+            focusOnAddressInput();
+        }
     });
 
     // Handle setting initial position via address search
@@ -175,15 +182,25 @@ function init(options) {
     //     deactivate() -> Inactive
 
     function activate() {
-        $addTreeHeaderLink.addClass("active");
-        $exploreTreesHeaderLink.removeClass("active");
+        $addFeatureHeaderLink.addClass("active");
+        $exploreMapHeaderLink.removeClass("active");
 
         // Let user start creating a feature (by clicking the map)
         plotMarker.hide();
         plotMarker.enablePlacing();
         stepControls.showStep(0);
-        stepControls.enableNext(0, false);
+        stepControls.enableNext(indexOfSetLocationStep, false);
         $placeMarkerMessage.show();
+    }
+
+    function setAddFeatureUrl(url) {
+        addFeatureUrl = url;
+    }
+
+    function focusOnAddressInput() {
+        if ($addressInput.val().length === 0) {
+            $addressInput.focus();
+        }
     }
 
     function geolocate() {
@@ -212,8 +229,7 @@ function init(options) {
     }
 
     function requireMarkerDrag() {
-        stepControls.showStep(0);
-        stepControls.enableNext(0, false);
+        stepControls.enableNext(indexOfSetLocationStep, false);
         plotMarker.enableMoving();
         $placeMarkerMessage.hide();
         $moveMarkerMessage.show();
@@ -221,14 +237,14 @@ function init(options) {
 
     function onMarkerMoved() {
         // User moved marker for the first time (or clicked the map). Let them edit fields.
-        stepControls.enableNext(0, true);
+        stepControls.enableNext(indexOfSetLocationStep, true);
         $placeMarkerMessage.hide();
         $moveMarkerMessage.hide();
     }
 
     function addFeature() {
         // User hit "Done".
-        $validationFields.hide();
+        $(validationFields).hide();
         var data = getFormData();
         data['plot.geom'] = plotMarker.getLocation();
         // Exclude null fields to allow defaults to be set by the server
@@ -240,7 +256,7 @@ function init(options) {
         });
 
         $.ajax({
-            url: config.instance.url + 'plots/',
+            url: addFeatureUrl,
             type: 'POST',
             contentType: "application/json",
             data: JSON.stringify(data),
@@ -250,7 +266,7 @@ function init(options) {
     }
 
     function getFormData() {
-        return FH.formToDictionary($form, $editFields);
+        return FH.formToDictionary($form, $(editFields));
     }
 
     function close() {
@@ -272,10 +288,12 @@ function init(options) {
         switch (option) {
         case 'copy':
             requireMarkerDrag();
+            stepControls.showStep(0);
             break;
         case 'new':
-            $editControls.val("");
+            clearEditControls();
             requireMarkerDrag();
+            stepControls.showStep(0);
             break;
         case 'edit':
             close();
@@ -289,12 +307,24 @@ function init(options) {
         }
     }
 
+    function clearEditControls() {
+        $(editFields).find('input,select').each(function () {
+            var $control = $(this),
+                type = $control.prop('type');
+            if (type === 'checkbox' || type === 'radio') {
+                $control.prop('checked', false);
+            } else {
+                $control.val("");
+            }
+        });
+    }
+
     function onAddFeatureError(jqXHR, textStatus, errorThrown) {
         // Feature wasn't saved. Show validation errors.
         if (jqXHR.responseJSON) {
             var errorDict = jqXHR.responseJSON.validationErrors;
             _.each(errorDict, function (errorList, fieldName) {
-                FH.getField($validationFields, fieldName)
+                FH.getField($(validationFields), fieldName)
                     .html(errorList.join(','))
                     .show();
             });
@@ -303,8 +333,8 @@ function init(options) {
     }
 
     function deactivate() {
-        $addTreeHeaderLink.removeClass("active");
-        $exploreTreesHeaderLink.addClass("active");
+        $addFeatureHeaderLink.removeClass("active");
+        $exploreMapHeaderLink.addClass("active");
 
         // We're being deactivated by an external event
         deactivateBus.push();
@@ -313,9 +343,10 @@ function init(options) {
     return {
         activate: activate,
         deactivate: deactivate,
+        setAddFeatureUrl: setAddFeatureUrl,
+        focusOnAddressInput: focusOnAddressInput,
         getFormData: getFormData,
-        stepChangeStartStream: stepControls.stepChangeStartStream,
-        stepChangeCompleteStream: stepControls.stepChangeCompleteStream,
+        stepControls: stepControls,
         addFeatureStream: addFeatureStream,
         deactivateStream: deactivateBus.map(_.identity)
     };

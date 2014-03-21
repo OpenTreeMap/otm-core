@@ -9,6 +9,7 @@ var $ = require('jquery'),
 
     mapManager = require('treemap/mapManager'),
     addTreeModeName = require('treemap/addTreeMode').name,
+    addResourceModeName = require('treemap/addResourceMode').name,
     mapState = require('treemap/mapState'),
     Search = require('treemap/search'),
     SearchBar = require('treemap/searchBar'),
@@ -34,6 +35,8 @@ var searchToBoundaryId = function(search) {
 function changeMode (modeName) {
     if (modeName === addTreeModeName) {
         modes.activateAddTreeMode();
+    } else if (modeName === addResourceModeName) {
+        modes.activateAddResourceMode();
     } else {
         modes.activateBrowseTreesMode();
     }
@@ -101,6 +104,11 @@ module.exports = {
         $('[data-action="addtree"]').click(function(e) {
             e.preventDefault();
             modes.activateAddTreeMode();
+        });
+
+        $('[data-action="addresource"]').click(function(e) {
+            e.preventDefault();
+            modes.activateAddResourceMode();
         });
 
         $.ajaxSetup(csrf.jqueryAjaxSetupOptions);

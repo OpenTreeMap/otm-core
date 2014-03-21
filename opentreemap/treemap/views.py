@@ -201,6 +201,14 @@ def render_map_feature_detail(request, instance, feature_id):
     return render_to_response(template, context, RequestContext(request))
 
 
+def render_map_feature_add(request, instance, type):
+    if type in instance.map_feature_types[1:]:
+        template = 'map_features/%s_add.html' % type
+        return render_to_response(template, None, RequestContext(request))
+    else:
+        raise Http404('Instance does not support feature type ' + type)
+
+
 def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
     feature = _get_map_feature_or_404(feature_id, instance, 'Plot')
     return _map_feature_detail(request, instance, feature, edit, tree_id)
@@ -1031,11 +1039,16 @@ def upload_user_photo(request, user):
     return {'url': user.thumbnail.url}
 
 
-def _get_map_view_context(request, instance_id):
-    fields_for_add_tree = [
-        (trans('Tree Height'), 'Tree.height')
-    ]
-    return {'fields_for_add_tree': fields_for_add_tree}
+def _get_map_view_context(request, instance):
+    resource_types = [{'name': type,
+                       'display': MapFeature.get_subclass(type).display_name}
+                      for type in instance.map_feature_types]
+    return {
+        'fields_for_add_tree': [
+            (trans('Tree Height'), 'Tree.height')
+        ],
+        'resource_types': resource_types[1:]
+    }
 
 
 def instance_user_view(request, instance_url_name, username):
@@ -1269,6 +1282,8 @@ map_view = instance_request(
     render_template('treemap/map.html', _get_map_view_context))
 
 get_map_feature_detail_view = instance_request(render_map_feature_detail)
+
+get_map_feature_add_view = instance_request(render_map_feature_add)
 
 edit_plot_detail_view = login_required(
     instance_request(
