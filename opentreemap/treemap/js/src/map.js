@@ -9,6 +9,7 @@ var $ = require('jquery'),
 
     mapManager = require('treemap/mapManager'),
     addTreeModeName = require('treemap/addTreeMode').name,
+    addResourceModeName = require('treemap/addResourceMode').name,
     mapState = require('treemap/mapState'),
     Search = require('treemap/search'),
     SearchBar = require('treemap/searchBar'),
@@ -24,8 +25,8 @@ var $ = require('jquery'),
 // If a region is not specified in the search object
 // ``searchToBoundaryId`` returns undefined.
 var searchToBoundaryId = function(search) {
-    if (search !== undefined && search['mapfeature.geom']) {
-        return parseFloat(search['mapfeature.geom'].IN_BOUNDARY, 10);
+    if (search !== undefined && search['mapFeature.geom']) {
+        return parseFloat(search['mapFeature.geom'].IN_BOUNDARY, 10);
     } else {
         return undefined;
     }
@@ -34,6 +35,8 @@ var searchToBoundaryId = function(search) {
 function changeMode (modeName) {
     if (modeName === addTreeModeName) {
         modes.activateAddTreeMode();
+    } else if (modeName === addResourceModeName) {
+        modes.activateAddResourceMode();
     } else {
         modes.activateBrowseTreesMode();
     }
@@ -101,6 +104,11 @@ module.exports = {
         $('[data-action="addtree"]').click(function(e) {
             e.preventDefault();
             modes.activateAddTreeMode();
+        });
+
+        $('[data-action="addresource"]').click(function(e) {
+            e.preventDefault();
+            modes.activateAddResourceMode();
         });
 
         $.ajaxSetup(csrf.jqueryAjaxSetupOptions);

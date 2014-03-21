@@ -39,12 +39,12 @@ var buildElemsCases = {
     "IN containers have no children if nothing is [data-search-secondary-type]": {
         obj: {
             "1": {
-                "key": "mapfeature.feature_type",
+                "key": "mapFeature.feature_type",
                 "pred": "IN",
                 "children": {}
             }
         },
-        markup: '<div id="1" data-search-type="IN" data-search-identifier="mapfeature.feature_type">' +
+        markup: '<div id="1" data-search-type="IN" data-search-identifier="mapFeature.feature_type">' +
                 '  <input id="2" type="checkbox" name="tree.id" value="false" />' +
                 '  <input id="3" type="checkbox" name="tree.id" value="true" />' +
                 '</div>'
@@ -52,7 +52,7 @@ var buildElemsCases = {
     "IN containers have children if they have [data-search-secondary-type]": {
         obj: {
             "1": {
-                "key": "mapfeature.feature_type",
+                "key": "mapFeature.feature_type",
                 "pred": "IN",
                 "children": {
                     "2": {
@@ -68,7 +68,7 @@ var buildElemsCases = {
                 }
             }
         },
-        markup: '<div id="1" data-search-type="IN" data-search-identifier="mapfeature.feature_type">' +
+        markup: '<div id="1" data-search-type="IN" data-search-identifier="mapFeature.feature_type">' +
                 '  <input id="2" data-search-secondary-type="IS" type="checkbox" name="tree.id" value="false" />' +
                 '  <input id="3" data-search-secondary-type="IS" type="checkbox" name="tree.id" value="true" />' +
                 '</div>'
@@ -85,7 +85,7 @@ var applySearchToInCases = {
         }
     },
     "If the filter is [null], everything should be unchecked": {
-        search: {"mapfeature.feature_type":{"IN": [null]}},
+        search: {"mapFeature.feature_type":{"IN": [null]}},
         checked: {
             "2": false,
             "3": false,
@@ -93,7 +93,7 @@ var applySearchToInCases = {
         }
     },
     "If the filter is ['Plot'], only 'Plot' elements should be checked": {
-        search: {"mapfeature.feature_type":{"IN": ["Plot"]}},
+        search: {"mapFeature.feature_type":{"IN": ["Plot"]}},
         checked: {
             "2": true,
             "3": true,
@@ -101,7 +101,7 @@ var applySearchToInCases = {
         }
     },
     "If the filter is ['Plot'], and a filter matches a secondary search type, only that 'Plot' element should be checked": {
-        search: {"mapfeature.feature_type":{"IN": ["Plot"]}, "tree.id": {"IS": true}},
+        search: {"mapFeature.feature_type":{"IN": ["Plot"]}, "tree.id": {"IS": true}},
         checked: {
             "2": false,
             "3": true,
@@ -114,31 +114,31 @@ var applySearchToInCases = {
 var buildSearchCases = {
     "If all [data-search-in]s are checked, no filter should be generated": {
         search: {},
-        markup: '<div id="1" data-search-type="IN" data-search-identifier="mapfeature.feature_type">' +
+        markup: '<div id="1" data-search-type="IN" data-search-identifier="mapFeature.feature_type">' +
                 '  <input id="2" checked data-search-in="Plot" data-search-secondary-type="IS" type="checkbox" name="tree.id" value="false" />' +
                 '  <input id="3" checked data-search-in="Plot" data-search-secondary-type="IS" type="checkbox" name="tree.id" value="true" />' +
                 '  <input id="4" checked data-search-in="Scheme" type="checkbox" />' +
                 '</div>'
     },
     "If no [data-search-in]s are checked, the IN value should be [null]": {
-        search: {"mapfeature.feature_type": {"IN": [null]}},
-        markup: '<div id="1" data-search-type="IN" data-search-identifier="mapfeature.feature_type">' +
+        search: {"mapFeature.feature_type": {"IN": [null]}},
+        markup: '<div id="1" data-search-type="IN" data-search-identifier="mapFeature.feature_type">' +
                 '  <input id="2" data-search-in="Plot" data-search-secondary-type="IS" type="checkbox" name="tree.id" value="false" />' +
                 '  <input id="3" data-search-in="Plot" data-search-secondary-type="IS" type="checkbox" name="tree.id" value="true" />' +
                 '  <input id="4" data-search-in="Scheme" type="checkbox" />' +
                 '</div>'
     },
     "If all Plot [data-search-in]s are checked, the IN value should be ['Plot'] and there should be no secondary search": {
-        search: {"mapfeature.feature_type": {"IN": ["Plot"]}},
-        markup: '<div id="1" data-search-type="IN" data-search-identifier="mapfeature.feature_type">' +
+        search: {"mapFeature.feature_type": {"IN": ["Plot"]}},
+        markup: '<div id="1" data-search-type="IN" data-search-identifier="mapFeature.feature_type">' +
                 '  <input id="2" checked data-search-in="Plot" data-search-secondary-type="IS" type="checkbox" name="tree.id" value="false" />' +
                 '  <input id="3" checked data-search-in="Plot" data-search-secondary-type="IS" type="checkbox" name="tree.id" value="true" />' +
                 '  <input id="4" data-search-in="Scheme" type="checkbox" />' +
                 '</div>'
     },
     "If some Plot [data-search-in]s are checked, the IN value should be ['Plot'] and there should be a secondary search": {
-        search: {"mapfeature.feature_type": {"IN": ["Plot", "Scheme"]}, "tree.id": {"IS": true}},
-        markup: '<div id="1" data-search-type="IN" data-search-identifier="mapfeature.feature_type">' +
+        search: {"mapFeature.feature_type": {"IN": ["Plot", "Scheme"]}, "tree.id": {"IS": true}},
+        markup: '<div id="1" data-search-type="IN" data-search-identifier="mapFeature.feature_type">' +
                 '  <input id="2" data-search-in="Plot" data-search-secondary-type="IS" type="checkbox" name="tree.id" value="false" />' +
                 '  <input id="3" checked data-search-in="Plot" data-search-secondary-type="IS" type="checkbox" name="tree.id" value="true" />' +
                 '  <input id="4" checked data-search-in="Scheme" type="checkbox" />' +
@@ -171,7 +171,7 @@ module.exports = {
     "applySearchToInContainer": {
         'before': function() {
             this.keyAndPred = {
-                "key": "mapfeature.feature_type",
+                "key": "mapFeature.feature_type",
                 "pred": "IN",
                 "children": {
                     "2": {
@@ -186,7 +186,7 @@ module.exports = {
                     }
                 }
             };
-            this.markup = '<div id="1" data-search-type="IN" data-search-identifier="mapfeature.feature_type">' +
+            this.markup = '<div id="1" data-search-type="IN" data-search-identifier="mapFeature.feature_type">' +
                 '  <input id="2" data-search-in="Plot" data-search-secondary-type="IS" type="checkbox" name="tree.id" value="false" />' +
                 '  <input id="3" data-search-in="Plot" data-search-secondary-type="IS" type="checkbox" name="tree.id" value="true" />' +
                 '  <input id="4" data-search-in="Scheme" type="checkbox" />' +
@@ -197,7 +197,7 @@ module.exports = {
         'before': function() {
             this.elems = {
                 "1": {
-                    "key": "mapfeature.feature_type",
+                    "key": "mapFeature.feature_type",
                     "pred": "IN",
                     "children": {
                         "2": {

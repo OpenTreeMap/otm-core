@@ -1,0 +1,60 @@
+{% load form_extras %}
+{% load i18n %}
+
+{% with nsteps=4 %}
+<div class="sidebar-inner">
+    <a href="javascript:;" class="close cancelBtn small">×</a>
+    <h3>{% trans "Add a Resource" %}</h3>
+    <div class="add-step-container">
+        <div class="add-step active">
+            <div class="add-step-header">1. Select Resource Type</div>
+            <div class="add-step-content">
+                <label>{% trans "Resource Type" %}</label>
+                {% for type in resource_types %}
+                    <input type="radio" name="addResourceType" value="{{ type.name }}" id="resourceType{{ type.name }}"
+                    /><label for="resourceType{{ type.name }}">
+                        {{ type.display }}
+                    </label>
+                {% endfor %}
+            </div>
+            {% include 'treemap/partials/step_controls.html' with step=1 %}
+        </div>
+        {% include "treemap/partials/step_set_resource_location.html" with step=2 feature_name="resource" %}
+        <div class="add-step">
+            <div class="add-step-header">3. {% trans "About this Resource" %}</div>
+            <div class="add-step-content">
+                <form id="add-resource-form" onsubmit="return false;">
+                  {# Added dynamically when resource type is chosen #}
+                </form>
+            </div>
+            {% include 'treemap/partials/step_controls.html' with step=3 %}
+        </div>
+        <div class="add-step">
+            <div class="add-step-header">4. {% trans "Finalize this resource" %}</div>
+            <div class="add-step-content">
+                <h3 class="summaryHead"></h3>
+                <h6 class="summarySubhead"></h6>
+                <h4 class="summaryAddress"></h4>
+                <h6>Nearby Address</h6>
+                <hr/>
+                <span>
+                    <input type="radio" name="addFeatureOptions" value="new" id="addresource-addnew" /><label for="addresource-addnew">
+                        {% trans "Add another resource" %}
+                    </label>
+                </span>
+                <span>
+                    <input type="radio" name="addFeatureOptions" value="edit" id="addresource-viewdetails" disabled class="disabled"/><label for="addresource-viewdetails">
+                        {% trans "Continue editing this resource" %}
+                    </label>
+                </span>
+                <span>
+                    <input type="radio" name="addFeatureOptions" value="close" id="addresource-done" checked /><label for="addresource-done">
+                        {% trans "I'm done" %}
+                    </label>
+                </span>
+            </div>
+            {% include 'treemap/partials/step_controls.html' with step=4 %}
+        </div>
+    </div>
+</div>
+{% endwith %}

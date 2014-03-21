@@ -4,11 +4,14 @@ var _ = require('lodash'),
     Bacon = require('baconjs'),
     url = require('url'),
     L = require('leaflet'),
-    History = require('history'),
-    addTreeModeName = require('treemap/addTreeMode').name;
+    History = require('history');
 
 var state,
-    stateChangeBus = new Bacon.Bus();
+    stateChangeBus = new Bacon.Bus(),
+    modeNamesForUrl = [
+        require('treemap/addTreeMode').name,
+        require('treemap/addResourceMode').name
+    ];
 
 module.exports = {
     init: function () {
@@ -42,7 +45,7 @@ module.exports = {
 
     setModeName: function (modeName) {
         // We only want "Add Tree" mode in the url
-        modeName = (modeName === addTreeModeName ? modeName : '');
+        modeName = (_.contains(modeNamesForUrl, modeName) ? modeName : '');
         if (modeName !== state.modeName) {
             state.modeName = modeName;
             History.replaceState(state, document.title, getUrlFromCurrentState());

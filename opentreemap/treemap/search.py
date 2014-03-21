@@ -24,14 +24,14 @@ class ParseException (Exception):
 PLOT_MAPPING = {'plot': '',
                 'tree': 'tree__',
                 'species': 'tree__species__',
-                'treephoto': 'tree__treephoto__',
-                'mapfeature': ''}
+                'treePhoto': 'tree__treephoto__',
+                'mapFeature': ''}
 
 TREE_MAPPING = {'plot': 'plot__',
                 'tree': '',
                 'species': 'species__',
-                'treephoto': 'treephoto__',
-                'mapfeature': 'plot__'}
+                'treePhoto': 'treephoto__',
+                'mapFeature': 'plot__'}
 
 
 def create_filter(filterstr, base_is_plot=True):

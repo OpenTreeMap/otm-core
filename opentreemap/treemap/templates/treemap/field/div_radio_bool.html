@@ -1,0 +1,39 @@
+{% extends "treemap/field/div.html" %}
+{% load i18n %}
+{% load l10n %}
+{% load form_extras %}
+
+{% block inputs %}
+<span>
+  <input name="{{ field.identifier }}"
+         id="{{ field.identifier }}_True"
+         {% if field.value %}checked="checked"{% endif %}
+         type="radio"
+         class="{{ class|default_if_none:"" }}"
+         value="True"
+         {{ extra|default:"" }} />
+  <label for="{{ field.identifier }}_True">
+    {% if field.choices %}
+      {{ field.choices.0.display_value }}
+    {% else %}
+      Yes
+    {% endif %}
+  </label>
+</span>
+<span>
+  <input name="{{ field.identifier }}"
+         id="{{ field.identifier }}_False"
+         {% if field.value == False %}checked="checked"{% endif %}
+         type="radio"
+         class="{{ class|default_if_none:"" }}"
+         value="False"
+         {{ extra|default:"" }} />
+  <label for="{{ field.identifier }}_False">
+    {% if field.choices %}
+      {{ field.choices.1.display_value }}
+    {% else %}
+      No
+    {% endif %}
+  </label>
+</span>
+{% endblock inputs %}

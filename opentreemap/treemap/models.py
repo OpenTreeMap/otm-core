@@ -583,22 +583,26 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
         return self.map_feature_type
 
     @classmethod
-    def subclass_dict(self):
+    def subclass_dict(cls):
         return {C().map_feature_type: C for C in leaf_subclasses(MapFeature)}
 
     @classmethod
-    def get_subclass(self, type):
+    def has_subclass(cls, type):
+        return type in cls.subclass_dict()
+
+    @classmethod
+    def get_subclass(cls, type):
         try:
-            return self.subclass_dict()[type]
+            return cls.subclass_dict()[type]
         except KeyError as e:
             raise ValidationError('Map feature type %s not found' % e)
 
     @classmethod
-    def create(self, type, instance):
+    def create(cls, type, instance):
         """
         Create a map feature with the given type string (e.g. 'Plot')
         """
-        return self.get_subclass(type)(instance=instance)
+        return cls.get_subclass(type)(instance=instance)
 
     @property
     def address_full(self):

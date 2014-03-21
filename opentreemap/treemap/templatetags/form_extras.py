@@ -12,7 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils import dateformat
 from django.conf import settings
 
-from treemap.util import safe_get_model_class
+from treemap.util import safe_get_model_class, to_object_name, to_model_name
 from treemap.json_field import (is_json_field_reference,
                                 get_attr_from_json_field)
 from treemap.units import (get_digits_if_formattable, get_units_if_convertible,
@@ -118,7 +118,7 @@ def inline_edit_tag(tag, Node):
     {% create "Width" from "Plot.width" for user withtemplate "field.html" %}
 
     If used by the alternate field name of "search" the tag will behave
-    similarly to "edit", but will get it's label and identifier from a
+    similarly to "edit", but will get its label and identifier from a
     dictionary, and pass along any other values in the dictionary to the
     template as part of the field object.
 
@@ -294,15 +294,14 @@ class AbstractNode(template.Node):
         if not isinstance(identifier, basestring)\
            or not _identifier_regex.match(identifier):
             raise template.TemplateSyntaxError(
-                'expected a string with the format "model.property" '
+                'expected a string with the format "object_name.property" '
                 'to follow "from" %s' % identifier)
 
-        model_name, field_name = identifier.split('.', 1)
-        model = self.get_model(context, model_name, instance)
+        model_name_or_object_name, field_name = identifier.split('.', 1)
+        model = self.get_model(context, model_name_or_object_name, instance)
 
-        # Lowercase model names, to make client-side logic more consistent
-        model_name = model_name.lower()
-        identifier = "%s.%s" % (model_name.lower(), field_name)
+        object_name = to_object_name(model_name_or_object_name)
+        identifier = "%s.%s" % (object_name, field_name)
 
         def _field_value(model, field_name):
             udf_field_name = field_name.replace('udf:', '')
@@ -343,10 +342,10 @@ class AbstractNode(template.Node):
 
         if hasattr(model, 'instance'):
             digits = get_digits_if_formattable(
-                model.instance, model_name, field_name)
+                model.instance, object_name, field_name)
 
             units = get_units_if_convertible(
-                model.instance, model_name, field_name)
+                model.instance, object_name, field_name)
 
         if field_value is None:
             display_val = None
@@ -356,9 +355,9 @@ class AbstractNode(template.Node):
         elif data_type == 'date':
             display_val = dateformat.format(field_value,
                                             settings.SHORT_DATE_FORMAT)
-        elif is_convertible_or_formattable(model_name, field_name):
+        elif is_convertible_or_formattable(object_name, field_name):
             display_val = format_value(
-                model.instance, model_name, field_name, field_value)
+                model.instance, object_name, field_name, field_value)
             if units is not '':
                 display_val += (' %s' % units)
         else:
@@ -382,13 +381,13 @@ class AbstractNode(template.Node):
 
 
 class FieldNode(AbstractNode):
-    def get_model(self, context, model_name, instance=None):
-        return context[model_name]
+    def get_model(self, context, object_name, instance=None):
+        return context[object_name]
 
 
 class CreateNode(AbstractNode):
-    def get_model(self, _, model_name, instance=None):
-        Model = safe_get_model_class(model_name)
+    def get_model(self, _, object_name, instance=None):
+        Model = safe_get_model_class(to_model_name(object_name))
 
         if instance and hasattr(Model, 'instance'):
             return Model(instance=instance)

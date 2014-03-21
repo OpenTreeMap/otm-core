@@ -73,8 +73,11 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
         }
 
         if (type === 'bool') {
-            // Handled below so we catch unchecked checkboxes which
-            // serializeArray ignores
+            if ($field.prop('type') === 'radio') {
+                result[item.name] = (item.value === 'True');
+            }
+            // Note that checkboxes are handled below so we catch unchecked
+            // ones which serializeArray ignores
         } else if (item.value === '' && (type === 'int' || type === 'float' ||
                                          type === 'date' || type === 'datetime')) {
             // convert empty numeric fields to null

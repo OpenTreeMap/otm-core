@@ -20,9 +20,7 @@
                     {% create label from identifier in request.instance withtemplate "treemap/field/div.html" %}
                     {% endfor %}
 
-                    <input type="hidden" name="plot.address_street">
-                    <input type="hidden" name="plot.address_city">
-                    <input type="hidden" name="plot.address_zip">
+                    {% include 'treemap/partials/hidden_address.html' with object_name='plot' %}
                 </form>
             </div>
             {% include 'treemap/partials/step_controls.html' with step=2 %}
