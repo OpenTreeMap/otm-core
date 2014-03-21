@@ -71,7 +71,7 @@ class UITestCase(LiveServerTestCase):
 
         super(UITestCase, self).tearDown()
 
-    def _process_login_form(self, username, password):
+    def process_login_form(self, username, password):
         username_elmt = self.driver.find_element_by_name('username')
         password_elmt = self.driver.find_element_by_name('password')
 
@@ -81,7 +81,7 @@ class UITestCase(LiveServerTestCase):
         submit = self.driver.find_element_by_css_selector('form * button')
         submit.click()
 
-    def _browse_to_url(self, url):
+    def browse_to_url(self, url):
         self.driver.get(self.live_server_url + url)
 
     def find_anchor_by_url(self, url):
@@ -117,16 +117,16 @@ class TreemapUITestCase(UITestCase):
         self.user.delete_with_user(User.system_user())
         super(TreemapUITestCase, self).tearDown()
 
-    def _login_workflow(self):
-        self._browse_to_url('/accounts/logout/')
-        self._browse_to_url('/accounts/login/')
+    def login_workflow(self):
+        self.browse_to_url('/accounts/logout/')
+        self.browse_to_url('/accounts/login/')
 
         login = self.driver.find_element_by_id("login")
         login.click()
 
-        self._process_login_form(self.user.username, 'password')
+        self.process_login_form(self.user.username, 'password')
 
-    def _drag_marker_on_map(self, endx, endy):
+    def drag_marker_on_map(self, endx, endy):
         actions = ActionChains(self.driver)
         marker = self.driver.find_elements_by_css_selector(
             '.leaflet-marker-pane img')[0]
@@ -134,7 +134,7 @@ class TreemapUITestCase(UITestCase):
         actions.drag_and_drop_by_offset(marker, endx, endy)
         actions.perform()
 
-    def _click_point_on_map(self, x, y):
+    def click_point_on_map(self, x, y):
         # We're in add tree mode, now we need to click somewhere on the map
         map_div = self.driver.find_element_by_id('map')
 
@@ -148,7 +148,7 @@ class TreemapUITestCase(UITestCase):
         actions.click()
         actions.perform()
 
-    def _start_add_tree(self):
+    def start_add_tree(self):
         # Enter add tree mode
 
         add_tree = self.driver.find_elements_by_css_selector(
@@ -156,9 +156,9 @@ class TreemapUITestCase(UITestCase):
 
         add_tree.click()
 
-    def _start_add_tree_and_click_point(self, x, y):
-        self._start_add_tree()
-        self._click_point_on_map(x, y)
+    def start_add_tree_and_click_point(self, x, y):
+        self.start_add_tree()
+        self.click_point_on_map(x, y)
 
     def instance_trees(self):
         return Tree.objects.filter(instance=self.instance)
@@ -172,18 +172,18 @@ class TreemapUITestCase(UITestCase):
     def nplots(self):
         return self.instance_plots().count()
 
-    def _go_to_map_page(self):
-        self._browse_to_url("/autotest-instance/map/")
+    def go_to_map_page(self):
+        self.browse_to_url("/autotest-instance/map/")
 
-    def _end_add_tree_by_clicking_add_tree(self):
+    def end_add_tree_by_clicking_add_tree(self):
         add_this_tree = self.driver.find_elements_by_css_selector(
             ".add-step-final .addBtn")[0]
 
         add_this_tree.click()
 
-    def _login_and_go_to_map_page(self):
-        self._login_workflow()
-        self._go_to_map_page()
+    def login_and_go_to_map_page(self):
+        self.login_workflow()
+        self.go_to_map_page()
 
 
 def parse_function_string(module_and_function_string):

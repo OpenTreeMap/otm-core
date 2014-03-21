@@ -27,11 +27,11 @@ class LoginLogoutTest(UITestCase):
         self.profile = RegistrationProfile.objects.create_profile(self.user)
 
     def test_invalid_login(self):
-        self._browse_to_url(reverse('auth_login'))
+        self.browse_to_url(reverse('auth_login'))
 
         login_url = self.driver.current_url
 
-        self._process_login_form(
+        self.process_login_form(
             self.user.username, 'passwordinvalid')
 
         # We should be on the same page
@@ -43,7 +43,7 @@ class LoginLogoutTest(UITestCase):
         self.assertEqual(len(errors), 1)
 
     def test_valid_login(self):
-        self._browse_to_url(reverse('auth_login'))
+        self.browse_to_url(reverse('auth_login'))
 
         login_url = self.driver.current_url
 
@@ -51,7 +51,7 @@ class LoginLogoutTest(UITestCase):
         login = self.driver.find_element_by_id("login")
         login.click()
 
-        self._process_login_form(self.user.username, 'password')
+        self.process_login_form(self.user.username, 'password')
 
         # We should not be on the same page
         self.assertNotEqual(login_url, self.driver.current_url)
@@ -89,7 +89,7 @@ class ForgotUsernameTest(UITestCase):
         super(ForgotUsernameTest, self).tearDown()
 
     def test_can_get_to_page(self):
-        self._browse_to_url(reverse('auth_login'))
+        self.browse_to_url(reverse('auth_login'))
 
         forgot_username_url = reverse('forgot_username')
 
@@ -101,7 +101,7 @@ class ForgotUsernameTest(UITestCase):
                          self.driver.current_url)
 
     def test_can_retrieve_username(self):
-        self._browse_to_url(reverse('forgot_username'))
+        self.browse_to_url(reverse('forgot_username'))
 
         email_elem = self.driver.find_element_by_name('email')
 

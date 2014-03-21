@@ -19,13 +19,13 @@ class MapTest(TreemapUITestCase):
         initial_tree_count = self.ntrees()
         initial_plot_count = self.nplots()
 
-        self._login_and_go_to_map_page()
-        self._start_add_tree_and_click_point(0, 10)
+        self.login_and_go_to_map_page()
+        self.start_add_tree_and_click_point(0, 10)
 
         # We don't have to put in any info to create a plot
         # So just add the plot!
 
-        self._end_add_tree_by_clicking_add_tree()
+        self.end_add_tree_by_clicking_add_tree()
 
         # Need to wait for change in database
         sleep(DATABASE_COMMIT_DELAY)
@@ -40,15 +40,15 @@ class MapTest(TreemapUITestCase):
         initial_tree_count = self.ntrees()
         initial_plot_count = self.nplots()
 
-        self._login_and_go_to_map_page()
-        self._start_add_tree_and_click_point(0, 10)
+        self.login_and_go_to_map_page()
+        self.start_add_tree_and_click_point(0, 10)
 
         diameter = self.driver.find_element_by_css_selector(
             'input[data-class="diameter-input"]')
 
         diameter.send_keys('44.0')
 
-        self._end_add_tree_by_clicking_add_tree()
+        self.end_add_tree_by_clicking_add_tree()
 
         # Need to wait for change in database
         sleep(DATABASE_COMMIT_DELAY)
@@ -66,8 +66,8 @@ class MapTest(TreemapUITestCase):
         initial_tree_count = self.ntrees()
         initial_plot_count = self.nplots()
 
-        self._login_and_go_to_map_page()
-        self._start_add_tree_and_click_point(0, 15)
+        self.login_and_go_to_map_page()
+        self.start_add_tree_and_click_point(0, 15)
 
         diameter = self.driver.find_element_by_css_selector(
             'input[data-class="diameter-input"]')
@@ -88,13 +88,13 @@ class MapTest(TreemapUITestCase):
         sleep(DATABASE_COMMIT_DELAY)
 
         # Add the next tree
-        self._drag_marker_on_map(15, 15)
+        self.drag_marker_on_map(15, 15)
         add_this_tree.click()
         # Wait for change in database
         sleep(DATABASE_COMMIT_DELAY)
 
         # One more
-        self._drag_marker_on_map(-15, 15)
+        self.drag_marker_on_map(-15, 15)
         add_this_tree.click()
         # Wait for change in database
         sleep(DATABASE_COMMIT_DELAY)
@@ -112,8 +112,8 @@ class MapTest(TreemapUITestCase):
         initial_tree_count = self.ntrees()
         initial_plot_count = self.nplots()
 
-        self._login_and_go_to_map_page()
-        self._start_add_tree_and_click_point(0, 15)
+        self.login_and_go_to_map_page()
+        self.start_add_tree_and_click_point(0, 15)
 
         diameter = self.driver.find_element_by_css_selector(
             'input[data-class="diameter-input"]')
@@ -137,13 +137,13 @@ class MapTest(TreemapUITestCase):
         # All fields should reset
         # since we don't set anything, this will generate a new
         # plot but no tree
-        self._drag_marker_on_map(15, 15)
+        self.drag_marker_on_map(15, 15)
         add_this_tree.click()
         # Wait for change in database
         sleep(DATABASE_COMMIT_DELAY)
 
         # One more, setting the diameter again
-        self._drag_marker_on_map(-15, 15)
+        self.drag_marker_on_map(-15, 15)
         diameter.send_keys('99.0')
         add_this_tree.click()
         # Wait for change in database
@@ -162,8 +162,8 @@ class MapTest(TreemapUITestCase):
         initial_tree_count = self.ntrees()
         initial_plot_count = self.nplots()
 
-        self._login_and_go_to_map_page()
-        self._start_add_tree_and_click_point(0, 15)
+        self.login_and_go_to_map_page()
+        self.start_add_tree_and_click_point(0, 15)
 
         add_this_tree = self.driver.find_elements_by_css_selector(
             ".add-step-final .addBtn")[0]
@@ -195,15 +195,15 @@ class MapTest(TreemapUITestCase):
         initial_tree_count = self.ntrees()
         initial_plot_count = self.nplots()
 
-        self._login_and_go_to_map_page()
-        self._start_add_tree_and_click_point(20, 20)
+        self.login_and_go_to_map_page()
+        self.start_add_tree_and_click_point(20, 20)
 
         diameter = self.driver.find_element_by_css_selector(
             'input[data-class="diameter-input"]')
 
         diameter.send_keys('124.0')
 
-        self._end_add_tree_by_clicking_add_tree()
+        self.end_add_tree_by_clicking_add_tree()
 
         # Need to wait for change in database
         sleep(DATABASE_COMMIT_DELAY)
@@ -218,10 +218,10 @@ class MapTest(TreemapUITestCase):
         ui_test_urls.testing_id = tree.plot.pk
 
         # Reload the page
-        self._go_to_map_page()
+        self.go_to_map_page()
 
         # Click on the tree we added
-        self._click_point_on_map(20, 20)
+        self.click_point_on_map(20, 20)
 
         # Click on "quick edit"
         quick_edit_button = self.driver.find_element_by_id(
@@ -253,16 +253,16 @@ class ModeChangeTest(TreemapUITestCase):
     urls = 'treemap.tests.ui.ui_test_urls'
 
     def test_leave_page(self):
-        self._login_and_go_to_map_page()
-        self._browse_to_url('/autotest-instance/edits/')
+        self.login_and_go_to_map_page()
+        self.browse_to_url('/autotest-instance/edits/')
         self.assertTrue(self.driver.current_url.endswith('edits/'),
                         "When no locks are present, browsing should succeed")
 
     def test_locked_leave_page_add_tree(self):
-        self._login_workflow()
-        self._browse_to_url("/autotest-instance/map/")
-        self._start_add_tree()
-        self._browse_to_url('/autotest-instance/edits/')
+        self.login_workflow()
+        self.browse_to_url("/autotest-instance/map/")
+        self.start_add_tree()
+        self.browse_to_url('/autotest-instance/edits/')
 
         self.driver.switch_to_alert().dismiss()
 
@@ -271,9 +271,9 @@ class ModeChangeTest(TreemapUITestCase):
 
     def test_locked_add_tree_in_edit_mode(self):
 
-        self._login_and_go_to_map_page()
-        self._start_add_tree_and_click_point(20, 20)
-        self._end_add_tree_by_clicking_add_tree()
+        self.login_and_go_to_map_page()
+        self.start_add_tree_and_click_point(20, 20)
+        self.end_add_tree_by_clicking_add_tree()
 
         # Need to wait for change in database
         sleep(DATABASE_COMMIT_DELAY)
@@ -281,10 +281,10 @@ class ModeChangeTest(TreemapUITestCase):
         ui_test_urls.testing_id = plot.pk
 
         # Reload the page
-        self._go_to_map_page()
+        self.go_to_map_page()
 
         # Click on the tree we added
-        self._click_point_on_map(20, 20)
+        self.click_point_on_map(20, 20)
 
         # enter edit mode, which should lock
         self.driver.find_element_by_id('quick-edit-button').click()
@@ -293,13 +293,13 @@ class ModeChangeTest(TreemapUITestCase):
                                "Any unsaved changes will be lost. "
                                "Are you sure you want to continue?")
 
-        self._start_add_tree()
+        self.start_add_tree()
         alert = self.driver.switch_to_alert()
         self.assertEqual(alert.text, expected_alert_text)
         alert.dismiss()
         self.assertFalse(self.driver.current_url.endswith('addTree'))
 
-        self._start_add_tree()
+        self.start_add_tree()
         alert = self.driver.switch_to_alert()
         self.assertEqual(alert.text, expected_alert_text)
 
