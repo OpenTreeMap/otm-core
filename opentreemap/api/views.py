@@ -30,8 +30,9 @@ from api.auth import (create_401unauthorized, check_signature,
 
 from api.instance import instance_info, instances_closest_to_point
 from api.plots import plots_closest_to_point, get_plot, update_or_create_plot
-from api.user import (user_info, create_user, users_json, users_csv,
-                      update_user, update_profile_photo)
+from api.user import (user_info, create_user, update_user,
+                      update_profile_photo)
+from exporter.user import users_json, users_csv
 
 
 def datetime_to_iso_string(d):
