@@ -21,6 +21,7 @@ function init(options) {
         $sidebar = $(sidebar),
         formSelector = options.formSelector,
         indexOfSetLocationStep = options.indexOfSetLocationStep,
+        addFeatureRadioOptions = options.addFeatureRadioOptions,
         addFeatureUrl = config.instance.url + 'plots/',
         gcoder = geocoder(config),
 
@@ -277,7 +278,7 @@ function init(options) {
     function onAddFeatureSuccess(result) {
         // Feature was saved. Update map if appropriate.
         mapManager.updateGeoRevHash(result.geoRevHash);
-        var option = U.$find('input[name="addFeatureOptions"]:checked', $sidebar).val();
+        var option = U.$find('input[name="' + addFeatureRadioOptions + '"]:checked', $sidebar).val();
 
         if (!result.enabled) {
             close();

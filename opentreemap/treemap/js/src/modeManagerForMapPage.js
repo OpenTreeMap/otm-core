@@ -134,6 +134,7 @@ function init(config, mapManager, triggerSearchBus) {
         formSelector: '#add-tree-form',
         indexOfSetLocationStep: 0,
         typeaheads: [getSpeciesTypeaheadOptions(config, "add-tree-species")],
+        addFeatureRadioOptions: 'addTreeOptions',
         triggerSearchBus: triggerSearchBus
     });
 
@@ -157,6 +158,7 @@ function init(config, mapManager, triggerSearchBus) {
         onClose: _.partial(activateBrowseTreesMode, true),
         formSelector: '#add-resource-form',
         indexOfSetLocationStep: 1,
+        addFeatureRadioOptions: 'addResourceOptions',
         triggerSearchBus: triggerSearchBus
     });
 }
