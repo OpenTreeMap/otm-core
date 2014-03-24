@@ -310,8 +310,9 @@ plot_endpoint = check_signature(
                 DELETE=login_required(remove_plot)))))
 
 species_list_endpoint = check_signature(
-    json_api_call(
-        route(GET=species_list)))
+    instance_request(
+        json_api_call(
+            route(GET=species_list))))
 
 user_endpoint = check_signature(
     json_api_call(
