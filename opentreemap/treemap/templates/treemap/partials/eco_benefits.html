@@ -3,37 +3,35 @@
 
 {% if request.instance_supports_ecobenefits %}
 <div id="benefit-values" class="benefit-values accordion-inner">
-    {% if not hide_summary and request.instance.supports_resources %}
-    {% comment %}
-    unhide me when the backend is implemented
-    {% endcomment %}
+    {% if not hide_summary and not request.instance.stores_plot_only %}
     <div class="benefit-value-title hidden">{% trans "General Eco Benefits"%}</div>
     {% endif %}
 
-    {% for benefit in tree_benefits %}
+    {% with plot_benefits=benefits.plot %}
+    {% for benefit in plot_benefits %}
     {% include "treemap/partials/benefit_value_row.html" %}
     {% endfor %}
+    {% endwith %}
 
-    {% if not hide_summary and request.instance.supports_resources %}
-    {% comment %}
-    unhide me when the backend is implemented
-    {% endcomment %}
+    {% if not hide_summary and not request.instance.stores_plot_only %}
     <div class="benefit-value-title hidden">{% trans "Resource Benefits"%}</div>
     {% endif %}
 
+    {% with resource_benefits=benefits.resource %}
     {% for benefit in resource_benefits %}
     {% include "treemap/partials/benefit_value_row.html" %}
     {% endfor %}
+    {% endwith %}
 
     {% if not hide_summary %}
     <div class="benefit-tree-count">
-      {% with has_resources=request.instance.supports_resources %}
-      {% blocktrans with used=tree_basis.n_trees_used total=tree_basis.n_trees_total %}
-        Based on {{ used }} out of {{ total }} total trees
+      {% with plot_only=request.instance.stores_plot_only plot_basis=basis.plot resource_basis=basis.resource %}
+      {% blocktrans with used=plot_basis.n_objects_used total=plot_basis.n_total %}
+      Based on {{ used }} out of {{ total }} total trees
       {% endblocktrans %}
-      {% if not has_resources %}.{% endif %}
-      {% if has_resources %}
-      {% blocktrans with used=resource_basis.n_resources_used total=resource_basis.n_resources_total %}
+      {% if plot_only %}.{% endif %}
+      {% if not plot_only %}
+      {% blocktrans with used=resource_basis.n_objects_used total=resource_basis.n_total %}
         and {{ used }} out of {{ total }} total resources.
       {% endblocktrans %}
       {% endif %}
@@ -45,14 +43,14 @@
 <div id="tree-and-planting-site-counts">
   {% localize on %}
   <span id="tree-count">
-  {% blocktrans count tree_basis.n_trees_total as tree_count %}
+  {% blocktrans count basis.plot.n_total as tree_count %}
     {{ tree_count }}</span> tree,
   {% plural %}
     {{ tree_count }}</span> trees,
   {% endblocktrans %}
 
   <span id="planting-site-count">
-  {% blocktrans count tree_basis.n_plots as plot_count %}
+  {% blocktrans count basis.plot.n_plots as plot_count %}
     {{ plot_count }}</span> planting site
   {% plural %}
     {{ plot_count }}</span> planting sites

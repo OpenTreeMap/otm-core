@@ -38,16 +38,16 @@ from treemap.decorators import (json_api_call, render_template, login_or_401,
 from treemap.util import (package_validation_errors,
                           bad_request_json_response, to_object_name)
 from treemap.images import save_image_from_request
-from treemap.search import create_filter
+from treemap.search import Filter
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
 from treemap.models import (Plot, Tree, User, Species, Instance,
                             TreePhoto, StaticPage, MapFeature)
 from treemap.units import get_units, get_display_value, Convertible
-from treemap.ecobenefits import (benefits_for_trees, tree_benefits,
-                                 get_benefit_label)
 from treemap.ecobackend import BAD_CODE_PAIR
 from treemap.util import leaf_subclasses
+from treemap.ecobenefits import get_benefits_for_filter
+
 
 USER_EDIT_FIELDS = collections.OrderedDict([
     ('firstname',
@@ -236,6 +236,21 @@ def _map_feature_detail(request, instance, feature, edit=False, tree_id=None):
     return context
 
 
+def _add_eco_benefits_to_context_dict(instance, feature, context):
+    FeatureClass = feature.__class__
+
+    if not hasattr(FeatureClass, 'benefits'):
+        return
+
+    benefits, basis, error = FeatureClass.benefits\
+                                         .benefits_for_object(
+                                             instance, feature)
+    if error == BAD_CODE_PAIR:
+        context['invalid_eco_pair'] = True
+    elif benefits:
+        context.update(_format_benefits(instance, benefits, basis))
+
+
 def _context_dict_for_map_feature(instance, feature):
     if instance.pk != feature.instance_id:
         raise Exception("Invalid instance, does not match map feature")
@@ -259,6 +274,9 @@ def _context_dict_for_map_feature(instance, feature):
         'feature_type': feature.feature_type,
         'title': title,
     }
+
+    _add_eco_benefits_to_context_dict(instance, feature, context)
+
     return context
 
 
@@ -293,22 +311,6 @@ def context_dict_for_plot(instance, plot,
     has_tree_species_with_code = tree is not None \
         and tree.species is not None and tree.species.otm_code is not None
     has_photo = tree is not None and len(photos) > 0
-
-    # If the the benefits calculation can't be done or fails, still display the
-    # plot details
-    should_calculate_eco = (has_tree_diameter and
-                            has_tree_species_with_code and
-                            supports_eco)
-
-    if should_calculate_eco:
-        benefits_and_error = tree_benefits(instance, tree)
-        benefits = benefits_and_error.get('tree_benefits', None)
-        berror = benefits_and_error.get('error', None)
-
-        if berror == BAD_CODE_PAIR:
-            context['invalid_eco_pair'] = True
-        elif benefits:
-            context.update(_format_benefits(instance, benefits, 1))
 
     total_progress_items = 4
     completed_progress_items = 1  # there is always a plot
@@ -867,99 +869,51 @@ def species_list(request, instance):
     return [annotate_species_dict(species) for species in species_qs]
 
 
-def _execute_filter(instance, filter_str, base_is_plot=True):
-    return create_filter(filter_str, base_is_plot=base_is_plot)\
-        .filter(instance=instance)
-
-
 def search_tree_benefits(request, instance):
-    try:
-        filter_str = request.REQUEST['q']
-    except KeyError:
-        filter_str = ''
+    filter_str = request.REQUEST.get('q', '')
 
-    try:
-        hide_summary_text = request.REQUEST['hide_summary']
-        if hide_summary_text.lower() == 'true':
-            hide_summary = True
-    except KeyError:
-        hide_summary = False
+    hide_summary_text = request.REQUEST.get('hide_summary', 'false')
+    hide_summary = hide_summary_text.lower() == 'true'
 
-    plots = _execute_filter(instance, filter_str)
+    filter = Filter(filter_str, instance)
+    total_plots = filter.get_object_count(Plot)
 
-    # Tree.objects.filter(plot_id__in=plots)
-    trees = _execute_filter(instance, filter_str, base_is_plot=False)
+    benefits, basis = get_benefits_for_filter(filter)
+    # Inject the plot count as a basis for tree benefit calcs
+    basis.get('plot', {})['n_plots'] = total_plots
 
-    total_plots = plots.count()
-    total_trees = trees.count()
+    formatted = _format_benefits(instance, benefits, basis)
+    formatted['hide_summary'] = hide_summary
 
-    if not request.instance_supports_ecobenefits:
-
-        return {'tree_benefits': None,
-                'currency_symbol': None,
-                'basis': {'n_trees_used': None,
-                          'n_trees_total': total_trees,
-                          'n_plots': total_plots,
-                          'percent': None},
-                'resource_benefits': None,
-                'resource_basis': {'n_resources_used': 0,
-                                   'n_resources_total': 0,
-                                   'n_resources': 0,
-                                   'percent': 0}}
-    else:
-        benefits, ntrees = benefits_for_trees(trees, instance)
-        return _format_benefits(instance, benefits, ntrees,
-                                total_trees, total_plots, hide_summary)
+    return formatted
 
 
-def _format_benefits(instance, benefits, num_calculated_trees,
-                     total_trees=1, total_plots=1, hide_summary=False):
-
-    def displayize_benefit(key, currency_symbol=None):
-        benefit = benefits[key]
-
-        if benefit['currency'] is not None:
-            if not currency_symbol:
-                #  Ensure that None is converted into an empty string
-                currency_symbol = ""
-            # TODO: Use i18n/l10n to format currency
-            benefit['currency_saved'] = currency_symbol + number_format(
-                benefit['currency'], decimal_pos=0)
-
-        _, value = get_display_value(instance, 'eco', key, benefit['value'])
-        benefit['value'] = value
-        benefit['label'] = get_benefit_label(key)
-        benefit['unit'] = get_units(instance, 'eco', key)
-
-        return benefit
-
-    percent = 0
-    if num_calculated_trees > 0 and total_trees > 0:
-        # Extrapolate an average over the rest of the urban forest
-        percent = float(num_calculated_trees) / total_trees
-        for key in benefits:
-            benefits[key]['value'] /= percent
-
-    currency = None
+def _format_benefits(instance, benefits, basis):
+    currency_symbol = ''
     if instance.eco_benefits_conversion:
-        currency = instance.eco_benefits_conversion.currency_symbol
+        currency_symbol = instance.eco_benefits_conversion.currency_symbol
 
-    benefit_keys = ['energy', 'stormwater', 'co2', 'co2storage', 'airquality']
-    benefits_for_display = [displayize_benefit(key, currency)
-                            for key in benefit_keys]
+    # FYI: this mutates the underlying benefit dictionaries
+    for benefit_group in benefits.values():
+        for key, benefit in benefit_group.iteritems():
+            if benefit['currency'] is not None:
+                # TODO: Use i18n/l10n to format currency
+                benefit['currency_saved'] = currency_symbol + number_format(
+                    benefit['currency'], decimal_pos=0)
 
-    rslt = {'tree_benefits': benefits_for_display,
-            'hide_summary': hide_summary,
-            'currency_symbol': currency,
-            'tree_basis': {'n_trees_used': num_calculated_trees,
-                           'n_trees_total': total_trees,
-                           'n_plots': total_plots,
-                           'percent': percent},
-            'resource_benefits': None,
-            'resource_basis': {'n_resources_used': 0,
-                               'n_resources_total': 0,
-                               'n_resources': 0,
-                               'percent': 0}}
+            unit_key = benefit.get('unit-name')
+
+            if unit_key:
+                _, value = get_display_value(
+                    instance, unit_key, key, benefit['value'])
+
+                benefit['value'] = value
+                benefit['unit'] = get_units(instance, unit_key, key)
+
+    # Add total and percent to basis
+    rslt = {'benefits': {k: v.values() for (k, v) in benefits.iteritems()},
+            'currency_symbol': currency_symbol,
+            'basis': basis}
 
     return rslt
 
