@@ -17,7 +17,7 @@
     <div class="benefit-value-title hidden">{% trans "Resource Benefits"%}</div>
     {% endif %}
 
-    {% with resource_benefits=benefits.stormwater %}
+    {% with resource_benefits=benefits.resource %}
     {% for benefit in resource_benefits %}
     {% include "treemap/partials/benefit_value_row.html" %}
     {% endfor %}
@@ -25,7 +25,7 @@
 
     {% if not hide_summary %}
     <div class="benefit-tree-count">
-      {% with plot_only=request.instance.stores_plot_only plot_basis=basis.plot resource_basis=basis.stormwater %}
+      {% with plot_only=request.instance.stores_plot_only plot_basis=basis.plot resource_basis=basis.resource %}
       {% blocktrans with used=plot_basis.n_objects_used total=plot_basis.n_total %}
       Based on {{ used }} out of {{ total }} total trees
       {% endblocktrans %}
