@@ -6,6 +6,7 @@ from django.conf import settings
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.webdriver import WebDriver
+from selenium.webdriver.support.wait import WebDriverWait
 
 from treemap.tests import create_mock_system_user, make_commander_user
 
@@ -98,6 +99,15 @@ class UITestCase(LiveServerTestCase):
     def find_anchor_by_url(self, url):
         return self.find("[href='%s']" % url)
 
+    def wait_until_enabled(self, element, timeout=10):
+        def isPresentAndEnabled(driver):
+            return element.get_attribute("disabled") == None
+        WebDriverWait(self.driver, timeout).until(isPresentAndEnabled)
+
+    def wait_until_visible(self, element, timeout=10):
+        def isPresentAndEnabled(driver):
+            return element.is_displayed()
+        WebDriverWait(self.driver, timeout).until(isPresentAndEnabled)
 
 
 class TreemapUITestCase(UITestCase):
@@ -145,6 +155,8 @@ class TreemapUITestCase(UITestCase):
         actions.drag_and_drop_by_offset(marker, endx, endy)
         actions.perform()
 
+        self._click_add_tree_next_step(0)
+
     def click_point_on_map(self, x, y):
         # We're in add tree mode, now we need to click somewhere on the map
         map_div = self.find_id('map')
@@ -159,17 +171,20 @@ class TreemapUITestCase(UITestCase):
         actions.click()
         actions.perform()
 
-    def start_add_tree(self):
+    def click_add_tree(self):
         # Enter add tree mode
+        self.click(".subhead .addBtn")
 
-        add_tree = self.driver.find_elements_by_css_selector(
-            ".subhead .addBtn")[0]
+    def _click_add_tree_next_step(self, n):
+        button = self.driver.find_elements_by_css_selector(
+            '#sidebar-add-tree .add-step-footer li.next a')[n]
+        self.wait_until_enabled(button)
+        button.click()
 
-        add_tree.click()
-
-    def start_add_tree_and_click_point(self, x, y):
-        self.start_add_tree()
+    def start_add_tree(self, x, y):
+        self.click_add_tree()
         self.click_point_on_map(x, y)
+        self._click_add_tree_next_step(0)
 
     def instance_trees(self):
         return Tree.objects.filter(instance=self.instance)
@@ -186,11 +201,32 @@ class TreemapUITestCase(UITestCase):
     def go_to_map_page(self):
         self.browse_to_url("/autotest-instance/map/")
 
-    def end_add_tree_by_clicking_add_tree(self):
-        add_this_tree = self.driver.find_elements_by_css_selector(
-            ".add-step-final .addBtn")[0]
+    def add_tree_done(self, whenDone='close'):
+        # Move to "Finalize" step
+        self._click_add_tree_next_step(1)
 
-        add_this_tree.click()
+        if whenDone == 'copy':
+            self.click('#addtree-addsame')
+        elif whenDone == 'new':
+            self.click('#addtree-addnew')
+        elif whenDone == 'edit':
+            self.click('#addtree-viewdetails')
+        elif whenDone == 'close':
+            self.click('#addtree-done')
+
+        # Click "Done"
+        self._click_add_tree_next_step(2)
+
+        if whenDone == 'close':
+            # Wait for "browse trees" mode
+            self.wait_until_visible(self.find('#sidebar-browse-trees'))
+        elif whenDone == 'edit':
+            # Wait for "save" button on "plot detail" page
+            self.wait_until_visible(self.find('#save-edit-plot'))
+        else:
+            # Wait for "Add Tree" step 1
+            self.wait_until_visible(
+                self.find('#sidebar-add-tree .form-search'))
 
     def login_and_go_to_map_page(self):
         self.login_workflow()

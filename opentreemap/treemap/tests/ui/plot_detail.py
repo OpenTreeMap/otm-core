@@ -35,9 +35,9 @@ class PlotEditTest(PlotDetailTest):
     def test_empty_plot_edit_url(self):
 
         self.login_and_go_to_map_page()
-        self.start_add_tree_and_click_point(20, 20)
+        self.start_add_tree(20, 20)
 
-        self.end_add_tree_by_clicking_add_tree()
+        self.add_tree_done()
 
         # Need to wait for change in database
         sleep(DATABASE_COMMIT_DELAY)
