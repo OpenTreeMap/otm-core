@@ -86,6 +86,7 @@ class ForgotUsernameTest(UITestCase):
 
     def tearDown(self):
         mail.outbox = []
+        super(ForgotUsernameTest, self).tearDown()
 
     def test_can_get_to_page(self):
         self._browse_to_url(reverse('auth_login'))
