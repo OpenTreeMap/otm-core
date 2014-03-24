@@ -71,21 +71,33 @@ class UITestCase(LiveServerTestCase):
 
         super(UITestCase, self).tearDown()
 
+    def click(self, selector):
+        self.find(selector).click()
+
+    def find(self, selector):
+        return self.driver.find_element_by_css_selector(selector)
+
+    def find_name(self, name):
+        return self.driver.find_element_by_name(name)
+
+    def find_id(self, id):
+        return self.driver.find_element_by_id(id)
+
     def process_login_form(self, username, password):
-        username_elmt = self.driver.find_element_by_name('username')
-        password_elmt = self.driver.find_element_by_name('password')
+        username_elmt = self.find_name('username')
+        password_elmt = self.find_name('password')
 
         username_elmt.send_keys(username)
         password_elmt.send_keys(password)
 
-        submit = self.driver.find_element_by_css_selector('form * button')
-        submit.click()
+        self.click('form * button')
 
     def browse_to_url(self, url):
         self.driver.get(self.live_server_url + url)
 
     def find_anchor_by_url(self, url):
-        return self.driver.find_element_by_css_selector("[href='%s']" % url)
+        return self.find("[href='%s']" % url)
+
 
 
 class TreemapUITestCase(UITestCase):
@@ -121,22 +133,21 @@ class TreemapUITestCase(UITestCase):
         self.browse_to_url('/accounts/logout/')
         self.browse_to_url('/accounts/login/')
 
-        login = self.driver.find_element_by_id("login")
+        login = self.find_id("login")
         login.click()
 
         self.process_login_form(self.user.username, 'password')
 
     def drag_marker_on_map(self, endx, endy):
         actions = ActionChains(self.driver)
-        marker = self.driver.find_elements_by_css_selector(
-            '.leaflet-marker-pane img')[0]
+        marker = self.find('.leaflet-marker-pane img')
 
         actions.drag_and_drop_by_offset(marker, endx, endy)
         actions.perform()
 
     def click_point_on_map(self, x, y):
         # We're in add tree mode, now we need to click somewhere on the map
-        map_div = self.driver.find_element_by_id('map')
+        map_div = self.find_id('map')
 
         actions = ActionChains(self.driver)
         # move to the center of the map

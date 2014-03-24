@@ -223,11 +223,7 @@ class MapTest(TreemapUITestCase):
         # Click on the tree we added
         self.click_point_on_map(20, 20)
 
-        # Click on "quick edit"
-        quick_edit_button = self.driver.find_element_by_id(
-            'quick-edit-button')
-
-        quick_edit_button.click()
+        self.click('#quick-edit-button')
 
         diameter = self.driver.find_element_by_css_selector(
             'input[data-class="diameter-input"]')
@@ -235,10 +231,7 @@ class MapTest(TreemapUITestCase):
         diameter.clear()
         diameter.send_keys('32.0')
 
-        save_details_button = self.driver.find_element_by_id(
-            'save-details-button')
-
-        save_details_button.click()
+        self.click('#save-details-button')
 
         # Need to wait for change in database
         sleep(DATABASE_COMMIT_DELAY)

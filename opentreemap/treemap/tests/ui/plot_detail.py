@@ -50,16 +50,12 @@ class PlotEditTest(PlotDetailTest):
 
         self._go_to_plot_detail_edit(plot.pk)
 
-        plot_width_field = self.driver.find_element_by_css_selector(
-            'input[name="plot.width"]')
+        plot_width_field = self.find('input[name="plot.width"]')
 
         plot_width_field.clear()
         plot_width_field.send_keys('5')
 
-        save_button = self.driver.find_element_by_id(
-            'save-edit-plot')
-
-        save_button.click()
+        self.click('#save-edit-plot')
 
         # Need to wait for change in database
         sleep(DATABASE_COMMIT_DELAY)
@@ -81,19 +77,11 @@ class PlotEditTest(PlotDetailTest):
         self.login_workflow()
         self._go_to_plot_detail_edit(plot.pk)
 
-        add_tree_button = self.driver.find_element_by_id(
-            'add-tree')
-        add_tree_button.click()
-
-        cancel_edit_button = self.driver.find_element_by_id(
-            'cancel-edit-plot')
-        cancel_edit_button.click()
-
-        tree_details_div = self.driver.find_element_by_id(
-            'tree-details')
+        self.click('#add-tree')
+        self.click('#cancel-edit-plot')
 
         with self.assertRaises(ElementNotVisibleException):
-            tree_details_div.click()
+            self.click('#tree-details')
 
         self.assertFalse(Tree.objects.filter(plot=plot).exists())
 
@@ -106,14 +94,12 @@ class PlotDeleteTest(PlotDetailTest):
         super(PlotDeleteTest, self).tearDown(*args, **kwargs)
 
     def select_buttons(self):
-        self.delete_begin = self.driver.find_element_by_id(
-            'delete-plot-or-tree')
-        self.delete_confirm = self.driver.find_element_by_id('delete-confirm')
-        self.delete_cancel = self.driver.find_element_by_id('delete-cancel')
-        self.add_tree = self.driver.find_element_by_id('add-tree')
-        self.diameter_input = self.driver.find_element_by_css_selector(
-            'input[data-class="diameter-input"]')
-        self.save_edit = self.driver.find_element_by_id('save-edit-plot')
+        self.delete_begin = self.find_id('delete-plot-or-tree')
+        self.delete_confirm = self.find_id('delete-confirm')
+        self.delete_cancel = self.find_id('delete-cancel')
+        self.add_tree = self.find_id('add-tree')
+        self.diameter_input = self.find('input[data-class="diameter-input"]')
+        self.save_edit = self.find_id('save-edit-plot')
 
     def assertCantClickDeleteOrCancel(self):
         with self.assertRaises(ElementNotVisibleException):

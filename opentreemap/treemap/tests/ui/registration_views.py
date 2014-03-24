@@ -47,10 +47,7 @@ class LoginLogoutTest(UITestCase):
 
         login_url = self.driver.current_url
 
-        # find the element that's name attribute is q (the google search box)
-        login = self.driver.find_element_by_id("login")
-        login.click()
-
+        self.click('#login')
         self.process_login_form(self.user.username, 'password')
 
         # We should not be on the same page
@@ -107,8 +104,6 @@ class ForgotUsernameTest(UITestCase):
 
         email_elem.send_keys(self.user.email)
 
-        submit = self.driver.find_element_by_css_selector(
-            'form input[type="submit"]')
-        submit.click()
+        self.click('form input[type="submit"]')
 
         self.assertEqual(len(mail.outbox), 1)
