@@ -57,8 +57,7 @@ class PlotEditTest(PlotDetailTest):
 
         self.click('#save-edit-plot')
 
-        # Need to wait for change in database
-        sleep(DATABASE_COMMIT_DELAY)
+        self.wait_until_visible(self.find('#edit-plot'))
 
         # Reload tree
         plot = Plot.objects.get(pk=plot.pk)
@@ -100,6 +99,7 @@ class PlotDeleteTest(PlotDetailTest):
         self.add_tree = self.find_id('add-tree')
         self.diameter_input = self.find('input[data-class="diameter-input"]')
         self.save_edit = self.find_id('save-edit-plot')
+        self.edit_plot = self.find_id('edit-plot')
 
     def assertCantClickDeleteOrCancel(self):
         with self.assertRaises(ElementNotVisibleException):
@@ -171,8 +171,8 @@ class PlotDeleteTest(PlotDetailTest):
         self.diameter_input.clear()
         self.diameter_input.send_keys('11')
         self.save_edit.click()
+        self.wait_until_visible(self.edit_plot)
 
-        sleep(DATABASE_COMMIT_DELAY)
         self.assertEqual(Tree.objects.count(), 1)
 
         self.delete_begin.click()
