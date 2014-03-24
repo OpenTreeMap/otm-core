@@ -7,14 +7,12 @@ from StringIO import StringIO
 from json import loads, dumps
 from urlparse import urlparse
 
-import csv
 import urllib
 import os
 import json
 import base64
 import datetime
 
-from django.utils.timezone import now
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 from django.test import TestCase
@@ -27,18 +25,19 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.core.files import File
 
-from treemap.udf import DATETIME_FORMAT
-from treemap.models import Species, Plot, Tree, User, InstanceUser
+from treemap.models import Species, Plot, Tree, User
 from treemap.audit import ReputationMetric, Audit
-from treemap.tests import (make_user, make_commander_user, make_request,
+from treemap.tests import (make_user, make_request,
                            make_instance, LocalMediaTestCase, media_dir,
-                           make_commander_role)
+                           make_commander_user)
+
+from exporter.tests import UserExportsTestCase
 
 from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from api.models import APIAccessCredential
 from api.views import add_photo_endpoint, update_profile_photo_endpoint
 from api.instance import instances_closest_to_point, instance_info
-from api.user import create_user, users_json, users_csv
+from api.user import create_user
 from api.auth import (get_signature_for_request, check_signature,
                       SIG_TIMESTAMP_FORMAT)
 
@@ -1590,45 +1589,7 @@ class Authentication(TestCase):
         teardownTreemapEnv()
 
 
-class UserExportsTest(TestCase):
-    def setUp(self):
-        self.instance = make_instance()
-        self.commander = make_commander_user(self.instance, "comm")
-
-        # Note unicode '⅀' is on purpose
-        self.user1 = User(username='estraven', password='estraven',
-                          email='estraven@example.com',
-                          organization='org111',
-                          firstname='therem', lastname='⅀straven')
-
-        self.user1.save_with_user(self.commander)
-
-        self.user2 = User(username='genly', password='genly',
-                          email='genly@example.com',
-                          firstname='genly', lastname='ai',
-                          allow_email_contact=True)
-        self.user2.save_with_user(self.commander)
-
-        self.user3 = User(username='argaven_xv', password='argaven_xv',
-                          email='argaven_xv@example.com')
-        self.user3.save_with_user(self.commander)
-
-        role = make_commander_role(self.instance)
-        iuser1 = InstanceUser(instance=self.instance, user=self.user1,
-                              role=role)
-        iuser1.save_with_user(self.user1)
-        iuser2 = InstanceUser(instance=self.instance, user=self.user2,
-                              role=role)
-        iuser2.save_with_user(self.user2)
-
-        pt = Point(0, 0)
-
-        self.plot = Plot(geom=pt, readonly=False, instance=self.instance,
-                         width=4)
-        self.plot.save_with_user(self.user1)
-
-        self.tree = Tree(instance=self.instance, plot=self.plot, diameter=3)
-        self.tree.save_with_user(self.user2)
+class UserApiExportsTest(UserExportsTestCase):
 
     def _test_requires_admin_access(self, endpoint_name):
         url = reverse('user_csv',
@@ -1657,139 +1618,3 @@ class UserExportsTest(TestCase):
 
     def test_json_requires_admin(self):
         self._test_requires_admin_access('users_json')
-
-    def test_export_users_csv(self):
-        resp = users_csv(make_request(), self.instance)
-        reader = csv.reader(resp)
-
-        # Skip BOM and entry line
-        reader.next()
-        reader.next()
-
-        header = reader.next()
-
-        data = [dict(zip(header, [x.decode('utf8') for x in row]))
-                for row in reader]
-
-        commander, user1data, user2data = data
-
-        self.assertEquals(commander['username'], self.commander.username)
-
-        self.assertEquals(user1data['username'], self.user1.username)
-        self.assertEquals(user1data['email'], '')
-        self.assertEquals(user1data['email_hash'], self.user1.email_hash)
-        self.assertEquals(user1data['firstname'], self.user1.firstname)
-        self.assertEquals(user1data['lastname'], self.user1.lastname)
-        self.assertEquals(user1data['organization'], self.user1.organization)
-        self.assertEquals(user1data['allow_email_contact'], 'False')
-        self.assertEquals(user1data['role'], 'commander')
-        self.assertEquals(user1data['created'], str(self.user1.created))
-
-        self.assertEquals(user1data['last_edit_model'], 'Plot')
-        self.assertEquals(user1data['last_edit_model_id'], str(self.plot.pk))
-        self.assertEquals(user1data['last_edit_instance_id'],
-                          str(self.instance.pk))
-
-        self.assertEquals(user1data['last_edit_user_id'], str(self.user1.pk))
-
-        self.assertEquals(user2data['email'], 'genly@example.com')
-        self.assertEquals(user2data['email_hash'], self.user2.email_hash)
-        self.assertEquals(user2data['last_edit_model'], 'Tree')
-        self.assertEquals(user2data['last_edit_model_id'], str(self.tree.pk))
-        self.assertEquals(user2data['last_edit_instance_id'],
-                          str(self.instance.pk))
-
-        self.assertEquals(user2data['last_edit_user_id'], str(self.user2.pk))
-
-    def test_export_users_json(self):
-        resp = users_json(make_request(), self.instance)
-
-        data = json.loads(resp.content)
-
-        commander, user1data, user2data = data
-
-        self.assertEquals(commander['username'], self.commander.username)
-
-        self.assertEquals(user1data['username'], self.user1.username)
-        self.assertEquals(user1data.get('email'), None)
-        self.assertEquals(user1data['email_hash'], self.user1.email_hash)
-        self.assertEquals(user1data['firstname'], self.user1.firstname)
-        self.assertEquals(user1data['lastname'], self.user1.lastname)
-        self.assertEquals(user1data['organization'], self.user1.organization)
-        self.assertEquals(user1data['allow_email_contact'], 'False')
-        self.assertEquals(user1data['role'], 'commander')
-        self.assertEquals(user1data['created'], str(self.user1.created))
-
-        self.assertEquals(user1data['last_edit_model'], 'Plot')
-        self.assertEquals(user1data['last_edit_model_id'], str(self.plot.pk))
-        self.assertEquals(user1data['last_edit_instance_id'],
-                          str(self.instance.pk))
-
-        self.assertEquals(user1data['last_edit_user_id'], str(self.user1.pk))
-
-        self.assertEquals(user2data['email'], 'genly@example.com')
-        self.assertEquals(user2data['email_hash'], self.user2.email_hash)
-        self.assertEquals(user2data['last_edit_model'], 'Tree')
-        self.assertEquals(user2data['last_edit_model_id'], str(self.tree.pk))
-        self.assertEquals(user2data['last_edit_instance_id'],
-                          str(self.instance.pk))
-
-        self.assertEquals(user2data['last_edit_user_id'], str(self.user2.pk))
-
-    def test_min_edit_date(self):
-        last_week = now() - datetime.timedelta(days=7)
-        two_days_ago = now() - datetime.timedelta(days=2)
-        yesterday = now() - datetime.timedelta(days=1)
-        tda_ts = two_days_ago.strftime(DATETIME_FORMAT)
-
-        Audit.objects.filter(user=self.user1)\
-            .update(created=last_week, updated=last_week)
-
-        Audit.objects.filter(user=self.commander)\
-            .update(created=last_week, updated=last_week)
-
-        Audit.objects.filter(user=self.user2)\
-            .update(created=yesterday, updated=yesterday)
-
-        resp = users_json(make_request({'minEditDate': tda_ts}), self.instance)
-
-        data = json.loads(resp.content)
-
-        self.assertEquals(len(data), 1)
-
-        self.assertEquals(data[0]['username'], self.user2.username)
-
-    def test_min_join_date(self):
-        last_week = now() - datetime.timedelta(days=7)
-        two_days_ago = now() - datetime.timedelta(days=2)
-        yesterday = now() - datetime.timedelta(days=1)
-        tda_ts = two_days_ago.strftime(DATETIME_FORMAT)
-
-        Audit.objects.filter(model='InstanceUser')\
-            .filter(model_id=self.user1.get_instance_user(self.instance).pk)\
-            .update(created=last_week)
-
-        Audit.objects.filter(model='InstanceUser')\
-            .filter(model_id=
-                    self.commander.get_instance_user(self.instance).pk)\
-            .update(created=last_week)
-
-        Audit.objects.filter(model='InstanceUser')\
-            .filter(model_id=self.user2.get_instance_user(self.instance).pk)\
-            .update(created=yesterday)
-
-        resp = users_json(make_request({'minJoinDate': tda_ts}), self.instance)
-
-        data = json.loads(resp.content)
-
-        self.assertEquals(len(data), 1)
-
-        self.assertEquals(data[0]['username'], self.user2.username)
-
-    def test_min_join_date_validation(self):
-        with self.assertRaises(ValidationError):
-            users_json(make_request({"minJoinDate": "fsdafsa"}), self.instance)
-
-    def test_min_edit_date_validation(self):
-        with self.assertRaises(ValidationError):
-            users_json(make_request({"minEditDate": "fsdafsa"}), self.instance)
