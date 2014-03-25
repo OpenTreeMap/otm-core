@@ -41,7 +41,7 @@ def extra_select_and_values_for_model(
     return (extra_select, prefixed_names)
 
 
-def csv_export(job_pk, model, query):
+def csv_export(job_pk, model, query, display_filters):
     job = ExportJob.objects.get(pk=job_pk)
     instance = job.instance
 
@@ -64,7 +64,8 @@ def csv_export(job_pk, model, query):
 
             # get the plots for the provided
             # query and turn them into a tree queryset
-            initial_qs = Filter(query, instance).get_objects(Tree)
+            initial_qs = Filter(query, display_filters, instance)\
+                .get_objects(Tree)
 
             extra_select_tree, values_tree = extra_select_and_values_for_model(
                 instance, job.user, 'treemap_tree', 'Tree')
