@@ -42,14 +42,17 @@ var unmatchedBoundarySearchValue = function() {
     return $('#boundary-typeahead').attr('data-unmatched');
 };
 
-function redirectToSearchPage(config, filterObj, wmCoords) {
+function redirectToSearchPage(config, filters, wmCoords) {
     var getZPortion = function (wmCoords) {
             var ll = U.webMercatorToLatLng(wmCoords.x, wmCoords.y);
             return '&z='+ mapManager.ZOOM_PLOT + '/' + ll.lat + '/' + ll.lng;
         },
-        qPortion = U.getUpdatedQueryString('q', JSON.stringify(filterObj)),
+        filterObj = filters.filter,
+        displayList = filters.display,
+        filterPortion = U.getUpdatedQueryString(config.urls.filterQueryArgumentName, JSON.stringify(filterObj)),
+        displayPortion = U.getUpdatedQueryString(config.urls.displayQueryArgumentName, JSON.stringify(displayList)),
         zPortion = wmCoords ? getZPortion(wmCoords) : '',
-        url = config.instance.url + 'map/?' + qPortion + zPortion;
+        url = config.instance.url + 'map/?' + filterPortion + displayPortion + zPortion;
 
     window.location.href = url;
 }
@@ -94,8 +97,8 @@ module.exports = exports = {
         streams.filterNonGeocodeObjectStream.onValue(redirectWithoutLocation);
         streams.geocodedLocationStream.onValue(function (wmCoords) {
             // get the current state of the search dom
-            var filterObj = Search.buildSearch(streams.elems);
-            redirect(filterObj, wmCoords);
+            var filters = Search.buildSearch(streams.elems);
+            redirect(filters, wmCoords);
         });
 
         streams.resetStream.onValue(Search.reset, streams.elems);
@@ -112,7 +115,7 @@ module.exports = exports = {
                 button: '#perform-search'
             }),
             resetStream = $("#search-reset").asEventStream("click"),
-            filterObjectStream = searchStream
+            filtersStream = searchStream
                 .map(unmatchedBoundarySearchValue)
                 .filter(BU.isUndefinedOrEmpty)
                 .map(Search.buildSearch, elems),
@@ -143,9 +146,9 @@ module.exports = exports = {
             // modify the state of their UI or pass to other consumers.
             geocodedLocationStream: geocodedLocationStream,
 
-            // Stream of search events, carries the filter object with it
-            // should be used by consumer to execute searches.
-            filterNonGeocodeObjectStream: filterObjectStream
+            // Stream of search events, carries the filter object and display
+            // list with it. should be used by consumer to execute searches.
+            filterNonGeocodeObjectStream: filtersStream
         };
     }
 };

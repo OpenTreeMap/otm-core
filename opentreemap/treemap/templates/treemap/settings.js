@@ -13,7 +13,8 @@ otm.settings.utfGrid = {
 }
 
 otm.settings.urls = {
-    'filterQueryArgumentName': 'q'
+    'filterQueryArgumentName': 'q',
+    'displayQueryArgumentName': 'show'
 }
 
 {% if not settings.TILE_HOST = None %}

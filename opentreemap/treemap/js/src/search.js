@@ -8,6 +8,7 @@ var $ = require('jquery'),
     FH = require('treemap/fieldHelpers');
 
 var DATETIME_FORMAT = FH.DATETIME_FORMAT;
+var TREE_MODELS = ['Tree', 'EmptyPlot'];
 
 var isCombinator = function(pred) {
     return _.isArray(pred) && (pred[0] === "OR" || pred[0] === "AND");
@@ -22,10 +23,10 @@ var boolToText = function(bool) {
 };
 
 exports.buildElems = function (inputSelector) {
-    return _.object(_.map($(inputSelector), function (typeAttr, el) {
+    return _.object(_.map($(inputSelector), function (el) {
         var $el = $(el),
-            name = $el.attr('name'),
-            type = $el.attr(typeAttr),
+            name = $el.attr('name') || $el.attr('data-search-identifier'),
+            type = $el.attr('data-search-type'),
             id = $el.attr('id');
 
         return[id, {
@@ -35,12 +36,20 @@ exports.buildElems = function (inputSelector) {
     }));
 };
 
-function executeSearch(config, search_query) {
+function executeSearch(config, filters) {
+    var searchQuery = filters.filter,
+        displayQuery = filters.display;
+
+    // An empty filter object is serialized as an empty string
+    searchQuery = searchQuery && Object.keys(searchQuery).length > 0 ?
+            JSON.stringify(searchQuery) :
+            '';
+    displayQuery = displayQuery && displayQuery.length > 0 ?
+            JSON.stringify(displayQuery) :
+            '';
     var search = $.ajax({
         url: config.instance.url + 'benefit/search',
-        data: {'q': search_query && Object.keys(search_query).length > 0 ?
-                JSON.stringify(search_query) :
-                ''},
+        data: {'q': searchQuery, 'show': displayQuery},
         type: 'GET',
         dataType: 'html'
     });
@@ -56,7 +65,7 @@ function updateSearchResults(newMarkup) {
     $('#benefit-values').html(benefitsMarkup);
 }
 
-function applySearchToDom(elems, search) {
+function applyFilterObjectToDom(elems, search) {
     _.each(elems, function(keyAndPred, id) {
         var $domElem = $(document.getElementById(id));
         var pred = search[keyAndPred.key];
@@ -80,6 +89,22 @@ function applySearchToDom(elems, search) {
     });
 }
 
+function applyDisplayListToDom(displayList) {
+    if (displayList) {
+        $('[data-search-display]').prop('checked', false);
+        _.each(displayList, function(filter) {
+            $('[data-search-display="' + filter + '"]').prop('checked', true);
+        });
+    } else {
+        $('[data-search-display]').prop('checked', true);
+    }
+}
+
+function applySearchToDom(elems, search) {
+    applyFilterObjectToDom(elems, search.filter || {});
+    applyDisplayListToDom(search.display);
+}
+
 exports.applySearchToDom = applySearchToDom;
 
 exports.reset = function (elems) {
@@ -87,6 +112,13 @@ exports.reset = function (elems) {
 };
 
 exports.buildSearch = function (elems) {
+    return {
+        'filter': buildFilterObject(elems),
+        'display': buildDisplayList()
+    };
+};
+
+function buildFilterObject (elems) {
     return _.reduce(elems, function(preds, key_and_pred, id) {
         var $elem = $(document.getElementById(id)),
             val = $elem.val(),
@@ -107,7 +139,7 @@ exports.buildSearch = function (elems) {
 
             if ($elem.is(":checkbox")) {
                 if ($elem.is(":checked")) {
-                    pred[key_and_pred.pred] = val;
+                    pred[key_and_pred.pred] = textToBool(val);
                 }
             } else {
                 pred[key_and_pred.pred] = val;
@@ -122,7 +154,22 @@ exports.buildSearch = function (elems) {
 
         return preds;
     }, {});
-};
+}
+
+function buildDisplayList() {
+    var filters =  _($('[data-search-display]'))
+            .filter('checked')
+            .map(function(el) {
+                return $(el).attr('data-search-display');
+            })
+            .value(),
+        filtersWithoutTreeModels = _.difference(filters, TREE_MODELS);
+
+    if ((filters.length - filtersWithoutTreeModels.length) === TREE_MODELS.length) {
+        return filtersWithoutTreeModels.concat('Plot');
+    }
+    return filters;
+}
 
 // Arguments
 //
