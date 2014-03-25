@@ -176,9 +176,9 @@ class Instance(models.Model):
             return {'standard': [], 'missing': [], 'display': []}
 
         def make_display_filter(feature_name):
-            feature = MapFeature.get_subclass(feature_name)()
+            Feature = MapFeature.get_subclass(feature_name)
             return {
-                'label': 'Show %ss' % feature.display_name,
+                'label': 'Show %ss' % Feature.display_name,
                 'in_value': feature_name
             }
 

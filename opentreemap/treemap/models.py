@@ -26,6 +26,7 @@ from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
                            Dictable, Audit, AuthorizableQuerySet,
                            AuthorizableManager)
 from treemap.util import leaf_subclasses
+from treemap.decorators import classproperty
 from treemap.images import save_uploaded_image
 from treemap.units import Convertible
 from treemap.udf import UDFModel, GeoHStoreUDFManager, GeoHStoreUDFQuerySet
@@ -526,11 +527,6 @@ class InstanceUser(Auditable, models.Model):
         return '%s/%s' % (self.user.get_username(), self.instance.name)
 
 
-class classproperty(property):
-    def __get__(self, cls, owner):
-        return classmethod(self.fget).__get__(None, owner)()
-
-
 class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
     "Superclass for map feature subclasses like Plot, RainBarrel, etc."
     instance = models.ForeignKey(Instance)
@@ -574,22 +570,22 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
                 'Never save a MapFeature -- only save a MapFeature subclass')
         super(MapFeature, self).save_with_user(user, *args, **kwargs)
 
-    @property
-    def map_feature_type(self):
+    @classproperty
+    def map_feature_type(cls):
         # Map feature type defaults to subclass name (e.g. 'Plot').
         # Subclasses can override it if they want something different.
         # (But note that the value gets stored in the database, so should not
         # be changed for a subclass once objects have been saved.)
-        return self.__class__.__name__
+        return cls.__name__
 
-    @property
-    def display_name(self):
+    @classproperty
+    def display_name(cls):
         # Subclasses should override with something useful
-        return self.map_feature_type
+        return cls.map_feature_type
 
     @classmethod
     def subclass_dict(cls):
-        return {C().map_feature_type: C for C in leaf_subclasses(MapFeature)}
+        return {C.map_feature_type: C for C in leaf_subclasses(MapFeature)}
 
     @classmethod
     def has_subclass(cls, type):
