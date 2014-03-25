@@ -3,8 +3,8 @@
 
 {% if request.instance_supports_ecobenefits %}
 <div id="benefit-values" class="benefit-values accordion-inner">
-    {% if not hide_summary and not request.instance.stores_plot_only %}
-    <div class="benefit-value-title hidden">{% trans "General Eco Benefits"%}</div>
+    {% if not hide_summary %}
+    <div class="benefit-value-title">{% trans "General Eco Benefits"%}</div>
     {% endif %}
 
     {% with plot_benefits=benefits.plot %}
@@ -13,8 +13,8 @@
     {% endfor %}
     {% endwith %}
 
-    {% if not hide_summary and not request.instance.stores_plot_only %}
-    <div class="benefit-value-title hidden">{% trans "Resource Benefits"%}</div>
+    {% if not hide_summary and request.instance.supports_resources %}
+    <div class="benefit-value-title">{% trans "Resource Benefits"%}</div>
     {% endif %}
 
     {% with resource_benefits=benefits.resource %}
