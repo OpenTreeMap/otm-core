@@ -10,10 +10,14 @@
             <div class="add-step-header">{% trans "Select Resource Type" %}</div>
             <div class="add-step-content">
                 <label>{% trans "Resource Type" %}</label>
-                {% for type in resource_types %}
-                    <input type="radio" name="addResourceType" value="{{ type.name }}" id="resourceType{{ type.name }}"
-                    /><label for="resourceType{{ type.name }}">
-                        {{ type.display }}
+                {% for cls in resource_classes %}
+                    <input type="radio"
+                           name="addResourceType"
+                           value="{{ cls.feature_type }}"
+                           id="resourceType{{ cls.feature_type }}"
+                           data-area-field-name="{{ cls.area_field_name|default_if_none:"" }}"
+                    /><label for="resourceType{{ cls.feature_type }}">
+                        {{ cls.display_name }}
                     </label>
                 {% endfor %}
             </div>

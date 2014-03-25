@@ -45,6 +45,9 @@
             &.prev {
                 left: -100%;
             }
+            &.inactive {
+                display: none;
+            }
 
             .add-step-header:before {
                 content: counter(steps) ". ";

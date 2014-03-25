@@ -540,6 +540,8 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
 
     objects = AuthorizableGeoHStoreUDFManager()
 
+    area_field_name = None  # subclass responsibility
+
     # When querying MapFeatures (as opposed to querying a subclass like Plot),
     # we get a heterogenous collection (some Plots, some RainBarrels, etc.).
     # The feature_type attribute tells us the type of each object.

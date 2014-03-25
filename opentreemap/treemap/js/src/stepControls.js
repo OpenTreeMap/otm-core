@@ -14,14 +14,10 @@ module.exports = {
             stepChangeStartStream = Bacon.mergeAll(
                 $nextButtons.asEventStream('click')
                     .filter(isEnabled)
-                    .map(function (e) {
-                        return getStepNumber(e.target) + 1;
-                    }),
+                    .map(getNextStepNumber),
                 $prevButtons.asEventStream('click')
                     .filter(isEnabled)
-                    .map(function (e) {
-                        return getStepNumber(e.target) - 1;
-                    })
+                    .map(getPrevStepNumber)
             ),
             stepChangeCompleteStream = $steps.asEventStream('transitionend webkitTransitionEnd')
                 .filter(function (e) {
@@ -37,8 +33,20 @@ module.exports = {
             return !$(e.target).closest('li').hasClass('disabled');
         }
 
-        function getStepNumber(button) {
-            return $(button).closest('.add-step').index();
+        function getNextStepNumber(e) {
+            return getStepNumber(e.target, function (n) { return n + 1; });
+        }
+
+        function getPrevStepNumber(e) {
+            return getStepNumber(e.target, function (n) { return n - 1; });
+        }
+
+        function getStepNumber(button, getNextInSequence) {
+            var stepNumber = $(button).closest('.add-step').index();
+            do {
+                stepNumber = getNextInSequence(stepNumber);
+            } while ($steps.eq(stepNumber).hasClass('inactive'));
+            return stepNumber;
         }
 
         function showStep(stepNumber) {
@@ -51,6 +59,17 @@ module.exports = {
                 for (var i = maxStepNumber; i > stepNumber; i--) {
                     $steps.eq(i).addClass('next');
                 }
+            }
+        }
+
+        function activateStep(stepNumber, shouldActivate) {
+            // Assumes that the current step is earlier than stepNumber
+            var $step = $steps.eq(stepNumber);
+            $step.removeClass('inactive next');
+            if (shouldActivate) {
+                $step.addClass('next')
+            } else {
+                $step.addClass('inactive')
             }
         }
 
@@ -69,6 +88,7 @@ module.exports = {
             stepChangeCompleteStream: stepChangeCompleteStream,
             allDoneStream: $nextButtons.last().asEventStream('click'),
             showStep: showStep,
+            activateStep: activateStep,
             enableNext: enableNext
         };
     }
