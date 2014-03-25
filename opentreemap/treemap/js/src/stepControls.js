@@ -45,11 +45,11 @@ module.exports = {
             if (stepNumber <= maxStepNumber) {
                 $steps.removeClass('active next prev');
                 $steps.eq(stepNumber).addClass('active');
-                if (stepNumber < maxStepNumber) {
-                    $steps.eq(stepNumber + 1).addClass('next');
+                for (var i = 0; i < stepNumber; i++) {
+                    $steps.eq(i).addClass('prev');
                 }
-                if (stepNumber > 0) {
-                    $steps.eq(stepNumber - 1).addClass('prev');
+                for (var i = maxStepNumber; i > stepNumber; i--) {
+                    $steps.eq(i).addClass('next');
                 }
             }
         }

@@ -1,6 +1,6 @@
 {% load i18n %}
 <div class="add-step">
-    <div class="add-step-header">{{ step }}. {% trans "Set the" %} {{ feature_name }}'s {% trans "location" %}</div>
+    <div class="add-step-header">{% trans "Set the" %} {{ feature_name }}'s {% trans "location" %}</div>
     <div class="add-step-content">
         {# Making onsubmit return false prevents the form from being submitted. We want to run JS code instead #}
         <form class="form-search" onsubmit="return false;">
