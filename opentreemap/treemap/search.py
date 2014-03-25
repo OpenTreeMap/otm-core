@@ -35,17 +35,32 @@ TREE_MAPPING = {'plot': 'plot__',
 
 
 class Filter(object):
-    def __init__(self, filterstr, instance):
+    def __init__(self, filterstr, displaystr, instance):
         self.filterstr = filterstr
+        self.display_filter = loads(displaystr) if displaystr else None
         self.instance = instance
 
     def get_objects(self, ModelClass):
+        # Filter out invalid models
+        model_name = ModelClass.__name__
+
+        # This is a special case when we're doing 'tree-centric'
+        # searches for eco benefits. Trees essentially count
+        # as plots for the purposes of pruning
+        if model_name == 'Tree':
+            model_name = 'Plot'
+
+        if not _model_in_display_filters(model_name, self.display_filter):
+            return ModelClass.objects.none()
+
         if ModelClass == Tree:
             mapping = TREE_MAPPING
         else:
             mapping = DEFAULT_MAPPING
 
         q = create_filter(self.instance, self.filterstr, mapping)
+        if model_name == 'Plot':
+            q = _apply_tree_display_filter(q, self.display_filter, mapping)
 
         models = q.basekeys
 
@@ -57,17 +72,10 @@ class Filter(object):
                             'can be queried at a time. You '
                             'specified: %s' % models)
 
-        # Filter out invalid models
-        model_name = ModelClass.__name__.lower()
-
-        # This is a special case when we're doing 'tree-centric'
-        # searches for eco benefits. Trees essentially count
-        # as plots for the purposes of pruning
-        if model_name == 'tree':
-            model_name = 'plot'
+        object_name = model_name.lower()
 
         if len(models_without_mf) == 1 and \
-           models_without_mf[0] != model_name:
+           models_without_mf[0] != object_name:
             queryset = ModelClass.objects.none()
         else:
             queryset = ModelClass.objects.filter(q)
@@ -343,5 +351,29 @@ def _apply_combinator(combinator, predicates):
         raise ParseException(
             'Only AND and OR combinators supported, not "%s"' %
             combinator)
+
+    return q
+
+
+def _model_in_display_filters(model_name, display_filters):
+    if display_filters is not None:
+        if model_name == 'Plot':
+            plot_models = {'Plot', 'EmptyPlot', 'Tree'}
+            return bool(plot_models.intersection(display_filters))
+        else:
+            return model_name in display_filters
+
+    return True
+
+
+def _apply_tree_display_filter(q, display_filter, mapping):
+    if display_filter is not None:
+        if 'Plot' in display_filter:
+            return q
+
+        is_empty_plot = 'EmptyPlot' in display_filter
+        search_key = mapping['tree'] + 'pk__isnull'
+
+        q = q & FilterContext(basekey='plot', **{search_key: is_empty_plot})
 
     return q
