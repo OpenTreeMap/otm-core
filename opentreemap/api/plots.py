@@ -13,7 +13,7 @@ from django.contrib.gis.measure import D
 from treemap.exceptions import HttpBadRequestException
 
 from treemap.views import context_dict_for_plot, update_map_feature
-from treemap.models import Plot
+from treemap.models import Plot, Instance
 
 
 def plots_closest_to_point(request, instance, lat, lng):
@@ -96,8 +96,15 @@ def update_or_create_plot(request, instance, plot_id=None):
 
     plot, _ = update_map_feature(data, request.user, plot)
 
-    return context_dict_for_plot(
+    context_dict = context_dict_for_plot(
         request.instance,
         plot,
         user=request.user,
         supports_eco=request.instance_supports_ecobenefits)
+
+    # Fetch the latest instance version to get an updated geo rev hash
+    # so that clients will know if a tile refresh is required
+    instance = Instance.objects.get(pk=instance.pk)
+    context_dict["geoRevHash"] = instance.geo_rev_hash
+
+    return context_dict
