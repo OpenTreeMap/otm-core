@@ -40,7 +40,7 @@ def patch_broken_pipe_error():
     handlers.BaseHandler.log_exception = my_log_exception
 
 
-patch_broken_pipe_error() # Muzzle annoying output from UI tests
+patch_broken_pipe_error()  # Muzzle annoying output from UI tests
 
 
 class UITestCase(LiveServerTestCase):
@@ -101,7 +101,7 @@ class UITestCase(LiveServerTestCase):
 
     def wait_until_enabled(self, element, timeout=10):
         def isPresentAndEnabled(driver):
-            return element.get_attribute("disabled") == None
+            return element.get_attribute("disabled") is None
         WebDriverWait(self.driver, timeout).until(isPresentAndEnabled)
 
     def wait_until_visible(self, element, timeout=10):

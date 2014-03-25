@@ -27,7 +27,7 @@ class PlotDetailTest(TreemapUITestCase):
 
     def _go_to_tree_detail(self, plot_id, tree_id):
         self.browse_to_url("/autotest-instance/features/%s/trees/%s/"
-                            % (plot_id, tree_id))
+                           % (plot_id, tree_id))
 
 
 class PlotEditTest(PlotDetailTest):
