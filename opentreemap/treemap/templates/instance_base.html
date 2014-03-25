@@ -78,11 +78,10 @@
                 {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
               {% endfor %}
             </div>
-            <div class="span3" id="display-filters" data-search-type="IN"
-                data-search-identifier="mapFeature.feature_type">
+            <div class="span3">
               <h4>{% trans "Display Filters" %}</h4>
               {% for field in request.instance.advanced_search_fields.display %}
-                {% include "treemap/partials/search_in.html" %}
+                {% include "treemap/partial/display_filters.html" %}
               {% endfor %}
             </div>
             <div class="span3">
