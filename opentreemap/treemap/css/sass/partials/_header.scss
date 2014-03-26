@@ -4,6 +4,8 @@
     padding: 59px 15px 15px;
     height: 85px;
     background: #fff;
+    position: relative;
+    z-index: 100;
 
     &:before {
         content: '';
@@ -11,10 +13,6 @@
         height: 100%;
         vertical-align: middle;
         margin-right: -0.25em;
-    }
-
-    @media (max-width: 979px) {
-        padding: 15px;
     }
 }
 

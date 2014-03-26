@@ -8,12 +8,13 @@
         & + label {
             margin: 0;
             clear: none;
-            padding: 5px 0 4px 28px;
+            padding: 5px 0 8px 28px;
             font-size: 1.3rem;
             font-weight: 600;
+            line-height: 1.6rem;
             color: $main-text-color;
             cursor: pointer;
-            background: url(/static/img/off.png) left center no-repeat;
+            background: url(/static/img/off.png) left 3px no-repeat;
         }
         &.disabled + label {
             opacity: 0.4;

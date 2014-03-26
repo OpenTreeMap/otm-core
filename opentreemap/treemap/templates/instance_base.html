@@ -67,32 +67,31 @@
 
 {% block subhead %}
 <div class="subhead">
-  <div class="subhead-mask">
-    <div class="subhead-inner">
-      <div class="advanced-search">
-        <div class="container">
-          <div class="row-fluid">
-            <div class="span6">
-              <h4>{% trans "Detail Filters" %}</h4>
-              {% for json in request.instance.advanced_search_fields.standard %}
-                {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
-              {% endfor %}
-            </div>
-            <div class="span3">
-              <h4>{% trans "Display Filters" %}</h4>
-              {% for field in request.instance.advanced_search_fields.display %}
-                {% include "treemap/partials/display_filters.html" %}
-              {% endfor %}
-            </div>
-            <div class="span3">
-              <h4>{% trans "Missing Data" %}</h4>
-              {% for json in request.instance.advanced_search_fields.missing %}
-                {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
-              {% endfor %}
-            </div>
-          </div>
+  <div class="advanced-search">
+    <div class="container">
+      <div class="row-fluid">
+        <div class="span6">
+          <h4>{% trans "Detail Filters" %}</h4>
+          {% for json in request.instance.advanced_search_fields.standard %}
+            {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
+          {% endfor %}
+        </div>
+        <div class="span3" id="display-filters" data-search-type="IN"
+            data-search-identifier="mapFeature.feature_type">
+          <h4>{% trans "Display Filters" %}</h4>
+          {% for field in request.instance.advanced_search_fields.display %}
+            {% include "treemap/partials/search_in.html" %}
+          {% endfor %}
+        </div>
+        <div class="span3">
+          <h4>{% trans "Missing Data" %}</h4>
+          {% for json in request.instance.advanced_search_fields.missing %}
+            {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
+          {% endfor %}
         </div>
       </div>
+    </div>
+  </div>
 {# TODO: search backend not implemeneted, Temporarily hidden #}
 {#       <div class="stewardship-search disabled"> #}
 {#         <span>{% trans "I am looking for" %}</span> #}
@@ -105,36 +104,34 @@
 {#         <span>{% trans "and" %}</span> #}
 {#         <div class="stewardship-selector">...</div> #}
 {#       </div> #}
-      <div class="stats-bar">
-        <div style="display: inline;" id="tree-and-planting-site-counts">
-        </div>
-        {% block subhead_exports %}
-          {% if request.instance|feature_enabled:'exports' %}
-          <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton">
-            <i class="icon-export"></i> {% trans "Export Search Results" %}
-          </a>
-          {% endif %}
-        {% endblock subhead_exports %}
-        {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
-          {% if request.instance.supports_resources %}
-          <a class="btn btn-primary addBtn"
-             data-action='addresource'
-             data-feature="add_plot"
-             data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
-             data-disabled-title="{% trans "Adding resources is not available to all users" %}"
-             data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource"
-             disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Resource" %}</a>
-          {% endif %}
-        <a class="btn btn-primary addBtn"
-           data-action='addtree'
-           data-feature="add_plot"
-           data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
-           data-disabled-title="{% trans "Adding trees is not available to all users" %}"
-           data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
-           disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>
-        {% endif %}
-      </div>
+  <div class="stats-bar">
+    <div style="display: inline;" id="tree-and-planting-site-counts">
     </div>
+    {% block subhead_exports %}
+      {% if request.instance|feature_enabled:'exports' %}
+      <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton">
+        <i class="icon-export"></i> {% trans "Export Search Results" %}
+      </a>
+      {% endif %}
+    {% endblock subhead_exports %}
+    {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
+      {% if request.instance.supports_resources %}
+      <a class="btn btn-primary addBtn"
+         data-action='addresource'
+         data-feature="add_plot"
+         data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+         data-disabled-title="{% trans "Adding resources is not available to all users" %}"
+         data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource"
+         disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Resource" %}</a>
+      {% endif %}
+    <a class="btn btn-primary addBtn"
+       data-action='addtree'
+       data-feature="add_plot"
+       data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+       data-disabled-title="{% trans "Adding trees is not available to all users" %}"
+       data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
+       disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>
+    {% endif %}
   </div>
 </div>
 {% endblock subhead %}
