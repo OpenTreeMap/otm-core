@@ -1,6 +1,10 @@
 {% load util %}
 
-<tr data-value-id="{{ value.pk }}">
+<tr
+   {% if perm_level == "write" %}
+   data-value-id="{{ value.pk }}"
+   {% endif %}
+   >
   {% for field in udf.datatype_dict %}
   <td>{{ value.data|get:field.name }}</td>
   {% endfor %}
