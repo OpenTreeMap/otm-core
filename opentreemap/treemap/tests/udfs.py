@@ -33,7 +33,8 @@ def make_collection_udf(instance, name='Stewardship', model='Plot',
 
     if datatype is None:
         datatype = [
-            {'type': 'string',
+            {'type': 'choice',
+             'choices': ['water', 'prune'],
              'name': 'action'},
             {'type': 'int',
              'name': 'height'}]
@@ -701,7 +702,7 @@ class ScalarUDFTest(TestCase):
         for dtype in allowed_types:
             make_and_save_type(dtype)
 
-        UserDefinedFieldDefinition.objects.create(
+        self.choice_udfd = UserDefinedFieldDefinition.objects.create(
             instance=self.instance,
             model_type='Plot',
             datatype=json.dumps({'type': 'choice',
@@ -739,6 +740,78 @@ class ScalarUDFTest(TestCase):
     def test_float_validation(self):
         self.assertRaises(ValidationError,
                           self._test_datatype, 'Test float', 'blah')
+
+    def test_cant_update_choices_on_non_choice_model(self):
+        floatfield = UserDefinedFieldDefinition\
+            .objects\
+            .filter(name='Test float')
+
+        self.assertRaises(ValidationError,
+                          floatfield[0].update_choice,
+                          'a', 'b')
+
+    def test_update_invalid_choice(self):
+        self.assertRaises(ValidationError,
+                          self.choice_udfd.update_choice,
+                          'WHAT?????', 'm')
+
+    def test_delete_choice_value(self):
+        self.plot.udfs['Test choice'] = 'a'
+        self.plot.save_with_user(self.commander_user)
+
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+        audit = self.plot.audits().get(field='udf:Test choice')
+
+        self.assertEqual(
+            self.plot.udfs['Test choice'], 'a')
+        self.assertEqual(
+            audit.current_value, 'a')
+
+        self.choice_udfd.delete_choice('a')
+
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+        audit = self.plot.audits().filter(field='udf:Test choice')
+
+        self.assertEqual(
+            self.plot.udfs['Test choice'], None)
+        self.assertEqual(
+            audit.exists(), False)
+
+        choice = UserDefinedFieldDefinition.objects.get(
+            pk=self.choice_udfd.pk)
+
+        self.assertEqual(
+            set(choice.datatype_dict['choices']),
+            {'b', 'c'})
+
+    def test_update_choice_value(self):
+        self.plot.udfs['Test choice'] = 'a'
+        self.plot.save_with_user(self.commander_user)
+
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+        audit = self.plot.audits().get(field='udf:Test choice')
+
+        self.assertEqual(
+            self.plot.udfs['Test choice'], 'a')
+        self.assertEqual(
+            audit.current_value, 'a')
+
+        self.choice_udfd.update_choice('a', 'm')
+
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+        audit = self.plot.audits().get(field='udf:Test choice')
+
+        self.assertEqual(
+            self.plot.udfs['Test choice'], 'm')
+        self.assertEqual(
+            audit.current_value, 'm')
+
+        choice = UserDefinedFieldDefinition.objects.get(
+            pk=self.choice_udfd.pk)
+
+        self.assertEqual(
+            set(choice.datatype_dict['choices']),
+            {'m', 'b', 'c'})
 
     def test_choice_datatype(self):
         self._test_datatype('Test choice', 'a')
@@ -787,7 +860,7 @@ class CollectionUDFTest(TestCase):
         self.instance = make_instance()
         self.p = Point(-8515941.0, 4953519.0)
 
-        make_collection_udf(self.instance, 'Stewardship')
+        self.udf = make_collection_udf(self.instance, 'Stewardship')
 
         self.commander_user = make_commander_user(self.instance)
         set_write_permissions(self.instance, self.commander_user,
@@ -795,6 +868,56 @@ class CollectionUDFTest(TestCase):
 
         self.plot = Plot(geom=self.p, instance=self.instance)
         self.plot.save_with_user(self.commander_user)
+
+    def test_can_update_choice_option(self):
+        stews = [{'action': 'water',
+                  'height': 42},
+                 {'action': 'prune',
+                  'height': 12}]
+
+        self.plot.udfs['Stewardship'] = stews
+        self.plot.save_with_user(self.commander_user)
+
+        plot = Plot.objects.get(pk=self.plot.pk)
+        audits = [a.current_value for a in
+                  plot.audits().filter(field='udf:action')]
+
+        self.assertEqual(plot.udfs['Stewardship'][0]['action'], 'water')
+        self.assertEqual(audits, ['water', 'prune'])
+
+        self.udf.update_choice('water', 'h2o', name='action')
+
+        plot = Plot.objects.get(pk=self.plot.pk)
+        audits = [a.current_value for a in
+                  plot.audits().filter(field='udf:action')]
+
+        self.assertEqual(plot.udfs['Stewardship'][0]['action'], 'h2o')
+        self.assertEqual(audits, ['h2o', 'prune'])
+
+    def test_can_delete_choice_option(self):
+        stews = [{'action': 'water',
+                  'height': 42},
+                 {'action': 'prune',
+                  'height': 12}]
+
+        self.plot.udfs['Stewardship'] = stews
+        self.plot.save_with_user(self.commander_user)
+
+        plot = Plot.objects.get(pk=self.plot.pk)
+        audits = [a.current_value for a in
+                  plot.audits().filter(field='udf:action')]
+
+        self.assertEqual(plot.udfs['Stewardship'][0]['action'], 'water')
+        self.assertEqual(audits, ['water', 'prune'])
+
+        self.udf.delete_choice('water', name='action')
+
+        plot = Plot.objects.get(pk=self.plot.pk)
+        audits = [a.current_value for a in
+                  plot.audits().filter(field='udf:action')]
+
+        self.assertEqual(plot.udfs['Stewardship'][0]['action'], '')
+        self.assertEqual(audits, ['prune'])
 
     def test_can_get_and_set(self):
         stews = [{'action': 'water',
