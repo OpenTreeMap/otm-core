@@ -191,6 +191,7 @@ class TreeBenefitsCalculator(BenefitCalculator):
 
                 if err:
                     rslt = {'error': err}
+                    error = err
                 else:
                     benefits = self._compute_currency_and_transform_units(
                         instance, rawb['Benefits'])
