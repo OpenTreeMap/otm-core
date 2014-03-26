@@ -73,6 +73,9 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
 
     objects = HStoreManager()
 
+    def __unicode__(self):
+        return repr(self.data)
+
     def __init__(self, *args, **kwargs):
         super(UserDefinedCollectionValue, self).__init__(*args, **kwargs)
         self._do_not_track.add('data')
@@ -184,7 +187,9 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
                 break
 
         if field_perm is None:
-            raise AuthorizeException('')
+            raise AuthorizeException("Cannot save UDF field '%s.%s': "
+                                     "No sufficient permission found."
+                                     % (model, self.field_definition.name))
 
         if field_perm.permission_level == FieldPermission.WRITE_WITH_AUDIT:
             model_id = _reserve_model_id(UserDefinedCollectionValue)
@@ -267,6 +272,11 @@ class UserDefinedFieldDefinition(models.Model):
     Name of the UDFD
     """
     name = models.CharField(max_length=255)
+
+    def __unicode__(self):
+        return ('%s.%s%s' %
+                (self.model_type, self.name,
+                 ' (collection)' if self.iscollection else ''))
 
     def validate(self):
         model_type = self.model_type
@@ -857,8 +867,7 @@ class UDFModel(UserTrackable, models.Model):
     def save_with_user(self, user, *args, **kwargs):
         """
         Saving a UDF model now involves saving all of collection-based
-        udf fields, we do this here. They are validated in
-        "clean_collection_udfs"
+        udf fields, we do this here.
         """
         # We may need to get a primary key here before we continue
         super(UDFModel, self).save_with_user(user, *args, **kwargs)
