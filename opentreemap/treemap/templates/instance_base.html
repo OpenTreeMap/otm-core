@@ -81,7 +81,7 @@
             <div class="span3">
               <h4>{% trans "Display Filters" %}</h4>
               {% for field in request.instance.advanced_search_fields.display %}
-                {% include "treemap/partial/display_filters.html" %}
+                {% include "treemap/partials/display_filters.html" %}
               {% endfor %}
             </div>
             <div class="span3">
