@@ -44,9 +44,11 @@
                 }
             }
             &.dropdown {
+                &.active,
                 &.open {
-                    a {
+                    > a {
                         background-color: transparent !important;
+                        border-bottom: none;
                     }
                 }
 
