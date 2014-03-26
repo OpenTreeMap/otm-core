@@ -73,6 +73,9 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
 
     objects = HStoreManager()
 
+    def __unicode__(self):
+        return repr(self.data)
+
     def __init__(self, *args, **kwargs):
         super(UserDefinedCollectionValue, self).__init__(*args, **kwargs)
         self._do_not_track.add('data')
@@ -184,7 +187,9 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
                 break
 
         if field_perm is None:
-            raise AuthorizeException('')
+            raise AuthorizeException("Cannot save UDF field '%s.%s': "
+                                     "No sufficient permission found."
+                                     % (model, self.field_definition.name))
 
         if field_perm.permission_level == FieldPermission.WRITE_WITH_AUDIT:
             model_id = _reserve_model_id(UserDefinedCollectionValue)
@@ -267,6 +272,11 @@ class UserDefinedFieldDefinition(models.Model):
     Name of the UDFD
     """
     name = models.CharField(max_length=255)
+
+    def __unicode__(self):
+        return ('%s.%s%s' %
+                (self.model_type, self.name,
+                 ' (collection)' if self.iscollection else ''))
 
     def validate(self):
         model_type = self.model_type
@@ -510,6 +520,9 @@ class UDFDictionary(HStoreDictionary):
         """
         Lazy loading of collection fields
         """
+        return self._base_collection_fields(clean=True)
+
+    def _base_collection_fields(self, clean):
 
         if self._collection_fields is None:
             self._collection_fields = {}
@@ -536,13 +549,14 @@ class UDFDictionary(HStoreDictionary):
                 cleaned_data = {}
                 for subfield_name in value.data:
                     sub_value = value.data.get(subfield_name, None)
-                    try:
-                        sub_value = value.field_definition.clean_value(
-                            sub_value, datatypes[subfield_name])
-                    except ValidationError:
-                        # If there was an error coming from the database
-                        # just continue with whatever the value was.
-                        pass
+                    if clean:
+                        try:
+                            sub_value = value.field_definition.clean_value(
+                                sub_value, datatypes[subfield_name])
+                        except ValidationError:
+                            # If there was an error coming from the database
+                            # just continue with whatever the value was.
+                            pass
 
                     cleaned_data[subfield_name] = sub_value
 
@@ -857,13 +871,12 @@ class UDFModel(UserTrackable, models.Model):
     def save_with_user(self, user, *args, **kwargs):
         """
         Saving a UDF model now involves saving all of collection-based
-        udf fields, we do this here. They are validated in
-        "clean_collection_udfs"
+        udf fields, we do this here.
         """
         # We may need to get a primary key here before we continue
         super(UDFModel, self).save_with_user(user, *args, **kwargs)
 
-        collection_values = self.udfs.collection_fields
+        collection_values = self.udfs._base_collection_fields(clean=False)
 
         fields = {field.name: field
                   for field in self.get_user_defined_fields()}
@@ -886,8 +899,9 @@ class UDFModel(UserTrackable, models.Model):
                         field_definition=field,
                         model_id=self.pk)
 
-                udcv.data = value_dict
-                udcv.save_with_user(user)
+                if udcv.data != value_dict:
+                    udcv.data = value_dict
+                    udcv.save_with_user(user)
 
                 ids_specified.append(udcv.pk)
 

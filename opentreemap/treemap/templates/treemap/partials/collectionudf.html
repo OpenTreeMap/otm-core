@@ -1,15 +1,26 @@
 {% load i18n %}
 {% load l10n %}
 {% load util %}
+{% load instance_config %}
 
+{% with perm_level=last_effective_instance_user|udf_write_level:udf %}
+{% if perm_level == "read" or perm_level == "write" %}
 <div>
   <h4>{{ udf.model_type|display_name }} {{ udf.name }}</h4>
-  <table class="table table-hover" data-udf-id="{{ udf.pk|unlocalize }}" data-udf-name="{{ udf.model_type.lower }}.{{ udf.canonical_name }}">
-    <tr class="headerrow" style="{{ values|default:"display:none" }}">
+  <table class="table table-hover"
+         {% if perm_level == "write" %}
+         data-udf-id="{{ udf.pk|unlocalize }}"
+         data-udf-name="{{ udf.model_type.lower }}.{{ udf.canonical_name }}"
+         {% endif %}
+         >
+    <tr class="headerrow"
+        {% if not values %}style="display:none"{% endif %}
+        >
       {% for field in udf.datatype_dict %}
       <th>{{ field.name }}</th>
       {% endfor %}
     </tr>
+    {% if perm_level == "write" %}
     <tr class="editrow" style="display: none">
       {% for field in udf.datatype_dict %}
       <td>
@@ -18,10 +29,12 @@
       </td>
       {% endfor %}
     </tr>
+    {% endif %}
     {% for value in values %}
       {% include 'treemap/partials/collection_udf_row.html' with field=field value=value %}
     {% endfor %}
     <tr class="placeholder" style="{{ values|yesno:"display: none;," }}"><td>{% trans "No entries yet!" %}</td>
   </table>
 </div>
-
+{% endif %}
+{% endwith %}

@@ -33,7 +33,8 @@ def feature_enabled(instance, feature):
     return instance.feature_enabled(feature)
 
 
-def _feature_allows_writes(instanceuser, model_name, predicate, field=None):
+def _feature_allows_perm(instanceuser, model_name,
+                         predicate, perm_attr, field=None):
     if instanceuser is None or instanceuser == '':
         return False
     else:
@@ -42,7 +43,17 @@ def _feature_allows_writes(instanceuser, model_name, predicate, field=None):
         if field:
             perms = perms.filter(field_name=field)
 
-        return predicate(perm.allows_writes for perm in perms)
+        return predicate(getattr(perm, perm_attr) for perm in perms)
+
+
+def _feature_allows_writes(instanceuser, model_name, predicate, field=None):
+    return _feature_allows_perm(instanceuser, model_name,
+                                predicate, 'allows_writes', field=field)
+
+
+def _feature_allows_reads(instanceuser, model_name, predicate, field=None):
+    return _feature_allows_perm(instanceuser, model_name,
+                                predicate, 'allows_reads', field=field)
 
 
 @register.filter
@@ -57,6 +68,24 @@ def is_deletable(instanceuser, obj):
 def plot_is_writable(instanceuser, field=None):
     return _feature_allows_writes(instanceuser, 'Plot', predicate=any,
                                   field=field)
+
+
+@register.filter
+def udf_write_level(instanceuser, udf):
+    kwargs = {
+        'instanceuser': instanceuser,
+        'model_name': udf.model_type,
+        'predicate': any,
+        'field': 'udf:' + udf.name
+    }
+    if _feature_allows_writes(**kwargs):
+        level = "write"
+    elif _feature_allows_reads(**kwargs):
+        level = "read"
+    else:
+        level = None
+
+    return level
 
 
 @register.filter
