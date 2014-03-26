@@ -520,6 +520,9 @@ class UDFDictionary(HStoreDictionary):
         """
         Lazy loading of collection fields
         """
+        return self._base_collection_fields(clean=True)
+
+    def _base_collection_fields(self, clean):
 
         if self._collection_fields is None:
             self._collection_fields = {}
@@ -546,13 +549,14 @@ class UDFDictionary(HStoreDictionary):
                 cleaned_data = {}
                 for subfield_name in value.data:
                     sub_value = value.data.get(subfield_name, None)
-                    try:
-                        sub_value = value.field_definition.clean_value(
-                            sub_value, datatypes[subfield_name])
-                    except ValidationError:
-                        # If there was an error coming from the database
-                        # just continue with whatever the value was.
-                        pass
+                    if clean:
+                        try:
+                            sub_value = value.field_definition.clean_value(
+                                sub_value, datatypes[subfield_name])
+                        except ValidationError:
+                            # If there was an error coming from the database
+                            # just continue with whatever the value was.
+                            pass
 
                     cleaned_data[subfield_name] = sub_value
 
@@ -872,7 +876,7 @@ class UDFModel(UserTrackable, models.Model):
         # We may need to get a primary key here before we continue
         super(UDFModel, self).save_with_user(user, *args, **kwargs)
 
-        collection_values = self.udfs.collection_fields
+        collection_values = self.udfs._base_collection_fields(clean=False)
 
         fields = {field.name: field
                   for field in self.get_user_defined_fields()}
@@ -895,8 +899,9 @@ class UDFModel(UserTrackable, models.Model):
                         field_definition=field,
                         model_id=self.pk)
 
-                udcv.data = value_dict
-                udcv.save_with_user(user)
+                if udcv.data != value_dict:
+                    udcv.data = value_dict
+                    udcv.save_with_user(user)
 
                 ids_specified.append(udcv.pk)
 
