@@ -201,6 +201,16 @@ class TreemapUITestCase(UITestCase):
     def go_to_map_page(self):
         self.browse_to_url("/autotest-instance/map/")
 
+    def go_to_feature_detail(self, feauture_id, edit=False):
+        self.browse_to_url("/autotest-instance/features/%s/%s"
+                           % (feature_id,
+                              "edit" if edit else ""))
+
+    def go_to_tree_detail(self, plot_id, tree_id):
+        self.browse_to_url("/autotest-instance/features/%s/trees/%s/"
+                           % (plot_id, tree_id))
+
+
     def add_tree_done(self, whenDone='close'):
         # Move to "Finalize" step
         self._click_add_tree_next_step(1)
