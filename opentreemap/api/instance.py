@@ -157,7 +157,7 @@ def _instance_info_dict(instance):
     center = instance.center
     center.transform(4326)
 
-    info = {'geoRev': instance.geo_rev_hash,
+    info = {'geoRevHash': instance.geo_rev_hash,
             'id': instance.pk,
             'url': instance.url_name,
             'name': instance.name,
