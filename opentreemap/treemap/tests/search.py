@@ -419,8 +419,8 @@ class SearchTests(TestCase):
 
         return (p.pk for p in [p1, p2, p3])
 
-    def _execute_and_process_filter(self, filter):
-        f = search.Filter(json.dumps(filter), self.instance)
+    def _execute_and_process_filter(self, filter={}, display=''):
+        f = search.Filter(json.dumps(filter), display, self.instance)
         return {p.pk
                 for p
                 in f.get_objects(Plot)}
@@ -491,21 +491,24 @@ class SearchTests(TestCase):
         species2_filter = json.dumps({'species.id': species2.pk})
         species3_filter = json.dumps({'species.id': -1})
 
-        plots = search.Filter(species1_filter, self.instance).get_objects(Plot)
+        plots =\
+            search.Filter(species1_filter, '', self.instance).get_objects(Plot)
 
         self.assertEqual(
             {p1.pk},
             {p.pk
              for p in plots})
 
-        plots = search.Filter(species2_filter, self.instance).get_objects(Plot)
+        plots =\
+            search.Filter(species2_filter, '', self.instance).get_objects(Plot)
 
         self.assertEqual(
             {p2.pk},
             {p.pk
              for p in plots})
 
-        plots = search.Filter(species3_filter, self.instance).get_objects(Plot)
+        plots =\
+            search.Filter(species3_filter, '', self.instance).get_objects(Plot)
 
         self.assertEqual(
             0, len(plots))
@@ -542,7 +545,7 @@ class SearchTests(TestCase):
         boundary1_filter = json.dumps({'plot.geom':
                                        {'IN_BOUNDARY': b1.pk}})
 
-        plots = search.Filter(boundary1_filter, self.instance)\
+        plots = search.Filter(boundary1_filter, '', self.instance)\
                       .get_objects(Plot)
 
         self.assertEqual(
@@ -553,7 +556,7 @@ class SearchTests(TestCase):
         boundary2_filter = json.dumps({'plot.geom':
                                        {'IN_BOUNDARY': b2.pk}})
 
-        plots = search.Filter(boundary2_filter, self.instance)\
+        plots = search.Filter(boundary2_filter, '', self.instance)\
                       .get_objects(Plot)
 
         self.assertEqual(
@@ -564,7 +567,7 @@ class SearchTests(TestCase):
         boundary3_filter = json.dumps({'plot.geom':
                                        {'IN_BOUNDARY': b3.pk}})
 
-        plots = search.Filter(boundary3_filter, self.instance)\
+        plots = search.Filter(boundary3_filter, '', self.instance)\
                       .get_objects(Plot)
 
         self.assertEqual(
@@ -594,7 +597,7 @@ class SearchTests(TestCase):
         diameter_range_filter = json.dumps({'tree.diameter':
                                             {'MIN': 3.0}})
 
-        plots = search.Filter(diameter_range_filter, self.instance)\
+        plots = search.Filter(diameter_range_filter, '', self.instance)\
                       .get_objects(Plot)
 
         ids = {p.pk
@@ -608,7 +611,7 @@ class SearchTests(TestCase):
         diameter_range_filter = json.dumps({'tree.diameter':
                                             {'MAX': 3.0}})
 
-        plots = search.Filter(diameter_range_filter, self.instance)\
+        plots = search.Filter(diameter_range_filter, '', self.instance)\
                       .get_objects(Plot)
 
         ids = {p.pk
@@ -642,7 +645,7 @@ class SearchTests(TestCase):
                  }
              }})
 
-        plots = search.Filter(radius_filter, self.instance)\
+        plots = search.Filter(radius_filter, '', self.instance)\
                       .get_objects(Plot)
 
         ids = {p.pk for p in plots}
@@ -656,7 +659,7 @@ class SearchTests(TestCase):
                                             {'MAX': 7.0,
                                              'MIN': 3.0}})
 
-        plots = search.Filter(diameter_range_filter, self.instance)\
+        plots = search.Filter(diameter_range_filter, '', self.instance)\
                       .get_objects(Plot)
 
         ids = {p.pk for p in plots}
@@ -680,7 +683,7 @@ class SearchTests(TestCase):
             'species.common_name':
             {'LIKE': 's a tes'}})
 
-        plots = search.Filter(species_like_filter, self.instance)\
+        plots = search.Filter(species_like_filter, '', self.instance)\
                       .get_objects(Plot)
 
         result = [o.pk for o in plots]
@@ -690,7 +693,51 @@ class SearchTests(TestCase):
         species.common_name = 'no match'
         species.save_with_user(self.commander)
 
-        plots = search.Filter(species_like_filter, self.instance)\
+        plots = search.Filter(species_like_filter, '', self.instance)\
                       .get_objects(Plot)
 
         self.assertEqual(len(plots), 0)
+
+    def test_display_filter_filters_out_models(self):
+        plot, tree = self.create_tree_and_plot()
+
+        plots = search.Filter('', '["FireHydrant"]', self.instance)\
+                      .get_objects(Plot)
+
+        self.assertEqual(len(plots), 0)
+
+    def test_empty_plot_filter(self):
+        plot, tree = self.create_tree_and_plot()
+        empty_plot = Plot(geom=self.p1, instance=self.instance)
+        empty_plot.save_with_user(self.commander)
+
+        plots = search.Filter('', '["EmptyPlot"]', self.instance)\
+                      .get_objects(Plot)
+
+        ids = {p.pk for p in plots}
+
+        self.assertEqual(ids, {empty_plot.pk})
+
+    def test_tree_filter(self):
+        plot, tree = self.create_tree_and_plot()
+        empty_plot = Plot(geom=self.p1, instance=self.instance)
+        empty_plot.save_with_user(self.commander)
+
+        plots = search.Filter('', '["Tree"]', self.instance)\
+                      .get_objects(Plot)
+
+        ids = {p.pk for p in plots}
+
+        self.assertEqual(ids, {plot.pk})
+
+    def test_plot_filter(self):
+        plot, tree = self.create_tree_and_plot()
+        empty_plot = Plot(geom=self.p1, instance=self.instance)
+        empty_plot.save_with_user(self.commander)
+
+        plots = search.Filter('', '["Plot"]', self.instance)\
+                      .get_objects(Plot)
+
+        ids = {p.pk for p in plots}
+
+        self.assertEqual(ids, {plot.pk, empty_plot.pk})

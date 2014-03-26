@@ -73,7 +73,9 @@ function getStateFromCurrentUrl() {
             newState.zoomLatLng = makeZoomLatLng(zoom, lat, lng);
         }
     }
-    newState.search = JSON.parse(query.q || '{}');
+    newState.search = {};
+    newState.search.filter = JSON.parse(query.q || '{}');
+    newState.search.display = query.show ? JSON.parse(query.show) : undefined;
     newState.modeName = query.m || '';
     return newState;
 }
@@ -92,8 +94,11 @@ function getUrlFromCurrentState() {
             lng = state.zoomLatLng.lng.toFixed(precision);
         query.z = [zoom, lat, lng].join('/');
     }
-    if (state.search && !_.isEmpty(state.search)) {
-        query.q = JSON.stringify(state.search);
+    if (state.search && state.search.filter && !_.isEmpty(state.search.filter)) {
+        query.q = JSON.stringify(state.search.filter);
+    }
+    if (state.search && state.search.display) {
+        query.show = JSON.stringify(state.search.display);
     }
     if (state.modeName) {
         query.m = state.modeName;

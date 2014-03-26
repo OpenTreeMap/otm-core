@@ -14,6 +14,7 @@ from treemap.decorators import (json_api_call, instance_request,
 
 def begin_export(request, instance, model):
     query = request.GET.get('q', None)
+    display_filters = request.GET.get('show', None)
 
     job = ExportJob(instance=instance)
 
@@ -21,7 +22,7 @@ def begin_export(request, instance, model):
         job.user = request.user
     job.save()
 
-    async_csv_export.delay(job.pk, model, query)
+    async_csv_export.delay(job.pk, model, query, display_filters)
 
     return {'start_status': 'OK', 'job_id': job.pk}
 

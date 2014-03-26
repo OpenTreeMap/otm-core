@@ -142,7 +142,7 @@ function getBasemapLayers(config) {
 function createPlotTileLayer(config) {
     var url = getPlotLayerURL(config, 'png'),
         layer = L.tileLayer(url, { maxZoom: 20 });
-    makeLayerFilterable(layer, url, config.urls.filterQueryArgumentName);
+    makeLayerFilterable(layer, url, config.urls.filterQueryArgumentName, config.urls.displayQueryArgumentName);
     return layer;
 }
 

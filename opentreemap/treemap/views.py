@@ -871,11 +871,12 @@ def species_list(request, instance):
 
 def search_tree_benefits(request, instance):
     filter_str = request.REQUEST.get('q', '')
+    display_str = request.REQUEST.get('show', '')
 
     hide_summary_text = request.REQUEST.get('hide_summary', 'false')
     hide_summary = hide_summary_text.lower() == 'true'
 
-    filter = Filter(filter_str, instance)
+    filter = Filter(filter_str, display_str, instance)
     total_plots = filter.get_object_count(Plot)
 
     benefits, basis = get_benefits_for_filter(filter)

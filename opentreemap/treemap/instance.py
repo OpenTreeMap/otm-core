@@ -150,11 +150,8 @@ class Instance(models.Model):
                     {'identifier': 'tree.date_planted', 'search_type': 'RANGE'}
                 ],
                 'display': [
-                    {'identifier': 'tree.id', 'search_type': 'ISNULL',
-                     'value': 'false', 'in_value': 'Plot',
-                     'label': 'Show trees'},
-                    {'identifier': 'tree.id', 'search_type': 'ISNULL',
-                     'value': 'true', 'in_value': 'Plot',
+                    {'model': 'Tree', 'label': 'Show trees'},
+                    {'model': 'EmptyPlot',
                      'label': 'Show empty planting sites'}
                 ],
                 'missing': [
@@ -176,10 +173,10 @@ class Instance(models.Model):
             return {'standard': [], 'missing': [], 'display': []}
 
         def make_display_filter(feature_name):
-            feature = MapFeature.get_subclass(feature_name)()
+            Feature = MapFeature.get_subclass(feature_name)
             return {
-                'label': 'Show %ss' % feature.display_name,
-                'in_value': feature_name
+                'label': 'Show %ss' % Feature.display_name,
+                'model': feature_name
             }
 
         fields['display'] += [make_display_filter(feature_name)
