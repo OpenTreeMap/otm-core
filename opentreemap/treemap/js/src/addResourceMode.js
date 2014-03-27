@@ -44,7 +44,7 @@ function init(options) {
     };
 
     deactivateMode = function () {
-        disableAreaPolygon();
+        removeAreaPolygon();
         manager.deactivate();
     }
 
@@ -154,20 +154,25 @@ function init(options) {
             pointIcon: pointIcon,
             newPointIcon: newPointIcon
         });
+        areaPolygon.addTo(mapManager.map);
+    }
+
+    function removeAreaPolygon() {
+        if (areaPolygon) {
+            mapManager.map.removeLayer(areaPolygon);
+        }
     }
 
     function enableAreaPolygon() {
         if (!areaPolygon) {
             initAreaPolygon();
         }
-        areaPolygon.addTo(mapManager.map);
         mapManager.map.setEditablePolylinesEnabled(true);
     }
 
     function disableAreaPolygon() {
         if (areaPolygon) {
             mapManager.map.setEditablePolylinesEnabled(false);
-            mapManager.map.removeLayer(areaPolygon);
         }
     }
 
