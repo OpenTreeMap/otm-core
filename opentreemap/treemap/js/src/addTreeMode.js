@@ -27,7 +27,7 @@ function init(options) {
         // Let user start creating a feature (by clicking the map)
         plotMarker.useTreeIcon(true);
         plotMarker.enablePlacing();
-    }
+    };
 
     deactivateMode = manager.deactivate;
 

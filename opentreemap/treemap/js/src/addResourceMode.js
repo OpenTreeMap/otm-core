@@ -41,7 +41,7 @@ function init(options) {
         manager.stepControls.enableNext(STEP_CHOOSE_TYPE, false);
         plotMarker.useTreeIcon(false);
         areaPolygon = null;
-    }
+    };
 
     deactivateMode = manager.deactivate;
 

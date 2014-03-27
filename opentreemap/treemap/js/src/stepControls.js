@@ -53,10 +53,11 @@ module.exports = {
             if (stepNumber <= maxStepNumber) {
                 $steps.removeClass('active next prev');
                 $steps.eq(stepNumber).addClass('active');
-                for (var i = 0; i < stepNumber; i++) {
+                var i;
+                for (i = 0; i < stepNumber; i++) {
                     $steps.eq(i).addClass('prev');
                 }
-                for (var i = maxStepNumber; i > stepNumber; i--) {
+                for (i = maxStepNumber; i > stepNumber; i--) {
                     $steps.eq(i).addClass('next');
                 }
             }
@@ -67,9 +68,9 @@ module.exports = {
             var $step = $steps.eq(stepNumber);
             $step.removeClass('inactive next');
             if (shouldActivate) {
-                $step.addClass('next')
+                $step.addClass('next');
             } else {
-                $step.addClass('inactive')
+                $step.addClass('inactive');
             }
         }
 

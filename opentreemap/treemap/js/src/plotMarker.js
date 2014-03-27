@@ -182,7 +182,7 @@ function showMarker(inEditMode, className) {
 function getMarkerIcon(inEditMode, className) {
     var whichIcon = shouldUseTreeIcon ? '' : 'droplet_',
         url = config.staticUrl + 'img/mapmarker_' + whichIcon +
-            (inEditMode ? 'editmode.png' : 'viewmode.png')
+            (inEditMode ? 'editmode.png' : 'viewmode.png');
     return L.icon({
         iconUrl: url,
         // Use half actual size to look good on IOS retina display
