@@ -17,20 +17,7 @@ from treemap.models import Plot, Tree
 DATABASE_COMMIT_DELAY = 2
 
 
-class PlotDetailTest(TreemapUITestCase):
-
-    def _go_to_plot_detail_edit(self, plot_id):
-        self.browse_to_url("/autotest-instance/features/%s/edit" % plot_id)
-
-    def _go_to_plot_detail(self, plot_id):
-        self.browse_to_url("/autotest-instance/features/%s/" % plot_id)
-
-    def _go_to_tree_detail(self, plot_id, tree_id):
-        self.browse_to_url("/autotest-instance/features/%s/trees/%s/"
-                           % (plot_id, tree_id))
-
-
-class PlotEditTest(PlotDetailTest):
+class PlotEditTest(TreemapUITestCase):
 
     def test_empty_plot_edit_url(self):
 
@@ -48,7 +35,7 @@ class PlotEditTest(PlotDetailTest):
 
         self.assertEqual(plot.width, None)
 
-        self._go_to_plot_detail_edit(plot.pk)
+        self.go_to_feature_detail(plot.pk, edit=True)
 
         plot_width_field = self.find('input[name="plot.width"]')
 
@@ -74,7 +61,7 @@ class PlotEditTest(PlotDetailTest):
         plot.save_with_user(self.user)
 
         self.login_workflow()
-        self._go_to_plot_detail_edit(plot.pk)
+        self.go_to_feature_detail(plot.pk, edit=True)
 
         self.click('#add-tree')
         self.click('#cancel-edit-plot')
@@ -85,7 +72,7 @@ class PlotEditTest(PlotDetailTest):
         self.assertFalse(Tree.objects.filter(plot=plot).exists())
 
 
-class PlotDeleteTest(PlotDetailTest):
+class PlotDeleteTest(TreemapUITestCase):
 
     def tearDown(self, *args, **kwargs):
         # This sleep is critical, removing it causes the tests to break
@@ -118,7 +105,7 @@ class PlotDeleteTest(PlotDetailTest):
         self.assertEqual(Tree.objects.count(), 1)
 
         self.login_workflow()
-        self._go_to_plot_detail(plot.pk)
+        self.go_to_feature_detail(plot.pk)
         self.select_buttons()
         self.assertCantClickDeleteOrCancel()
         self.assertEqual(Plot.objects.count(), 1)
@@ -143,7 +130,7 @@ class PlotDeleteTest(PlotDetailTest):
         plot.save_with_user(self.user)
 
         self.login_workflow()
-        self._go_to_plot_detail(plot.pk)
+        self.go_to_feature_detail(plot.pk)
         self.select_buttons()
         self.assertCantClickDeleteOrCancel()
         self.assertEqual(Plot.objects.count(), 1)
@@ -164,7 +151,7 @@ class PlotDeleteTest(PlotDetailTest):
                     geom=Point(0, 0))
         plot.save_with_user(self.user)
         self.login_workflow()
-        self._go_to_plot_detail_edit(plot.pk)
+        self.go_to_feature_detail(plot.pk, edit=True)
 
         self.select_buttons()
         self.add_tree.click()
@@ -200,7 +187,7 @@ class PlotDeleteTest(PlotDetailTest):
 
         # login and delete the tree from plot detail page
         self.login_workflow()
-        self._go_to_plot_detail(plot.pk)
+        self.go_to_feature_detail(plot.pk)
         self.select_buttons()
         self.delete_begin.click()
         self.delete_confirm.click()
@@ -222,7 +209,7 @@ class PlotDeleteTest(PlotDetailTest):
         self.assertEqual(Tree.objects.count(), 1)
 
         # delete the tree from the tree detail page
-        self._go_to_tree_detail(plot.pk, tree2.pk)
+        self.go_to_tree_detail(plot.pk, tree2.pk)
         self.select_buttons()
         self.delete_begin.click()
         self.delete_confirm.click()
