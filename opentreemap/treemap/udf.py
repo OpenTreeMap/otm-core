@@ -10,6 +10,7 @@ from datetime import datetime
 from django.core.exceptions import ValidationError, FieldError
 from django.utils.translation import ugettext_lazy as trans
 from django.contrib.gis.db import models
+from django.db import transaction
 from django.db.models import Q
 from django.db.models.base import ModelBase
 from django.db.models.sql.constants import ORDER_PATTERN
@@ -238,7 +239,7 @@ class UserDefinedFieldDefinition(models.Model):
 
     """
     Datatype is a json string. It must be an array of dictionary
-    objects if 'ismulti' is true, or a single dictionary otherwise.
+    objects if 'iscollection' is true, or a single dictionary otherwise.
     Each dictionary object has the following required keys:
 
     'type' - Field type (float, int, string, user, choice, date)
@@ -278,6 +279,148 @@ class UserDefinedFieldDefinition(models.Model):
                 (self.model_type, self.name,
                  ' (collection)' if self.iscollection else ''))
 
+    def delete_choice(self, choice_value, name=None):
+        update_to = None
+
+        # Collection udfs use the empty string
+        if name is not None:
+            update_to = ""
+
+        self.update_choice(choice_value, update_to, name=name)
+
+    def _validate_and_update_choice(
+            self, datatype, old_choice_value, new_choice_value):
+        if datatype['type'] != 'choice':
+            raise ValidationError(
+                {'datatype': trans("can't change choices "
+                                   "on a non-choice field")})
+
+        if old_choice_value not in datatype['choices']:
+            raise ValidationError(
+                {'datatype': trans("choice '%(choice)s' not found") % {
+                    'choice': old_choice_value}})
+
+        choices = datatype['choices']
+        if new_choice_value:
+            choices = [c if c != old_choice_value else new_choice_value
+                       for c in choices]
+        else:
+            choices = [c for c in choices if c != old_choice_value]
+
+        datatype['choices'] = choices
+        return datatype
+
+    def _update_choice_scalar(self, old_choice_value, new_choice_value):
+        datatype = self._validate_and_update_choice(
+            self.datatype_dict, old_choice_value, new_choice_value)
+
+        self.datatype = json.dumps(datatype)
+        self.save()
+
+        Model = safe_get_udf_model_class(self.model_type)
+        for model in Model.objects\
+                          .filter(**{'udf:%s' % self.name:
+                                     old_choice_value}):
+            model.udfs[self.name] = new_choice_value
+            model.save_base()
+
+        audits = Audit.objects.filter(
+            model=self.model_type,
+            field='udf:%s' % self.name,
+            instance=self.instance)
+
+        self._update_choices_on_audits(
+            audits, old_choice_value, new_choice_value)
+
+    def _update_choices_on_audits(
+            self, audits, old_choice_value, new_choice_value):
+
+        cval_audits = audits.filter(current_value=old_choice_value)
+        pval_audits = audits.filter(previous_value=old_choice_value)
+
+        if new_choice_value is None:
+            cval_audits.delete()
+            pval_audits.delete()
+        else:
+            cval_audits.update(current_value=new_choice_value)
+            pval_audits.update(previous_value=new_choice_value)
+
+    def add_choice(self, new_choice_value, name=None):
+        if self.iscollection:
+            if name is None:
+                raise ValidationError({
+                    'name': trans('Name is required for collection fields')})
+
+            datatypes = {d['name']: d for d in self.datatype_dict}
+            datatypes[name]['choices'].append(new_choice_value)
+
+            self.datatype = json.dumps(datatypes.values())
+            self.save()
+        else:
+            if name is not None:
+                raise ValidationError({
+                    'name': trans(
+                        'Name is allowed only for collection fields')})
+
+            datatype = self.datatype_dict
+            datatype['choices'].append(new_choice_value)
+
+            self.datatype = json.dumps(datatype)
+            self.save()
+
+    @transaction.commit_on_success
+    def update_choice(
+            self, old_choice_value, new_choice_value, name=None):
+        datatype = self.datatype_dict
+
+        if self.iscollection:
+            if name is None:
+                raise ValidationError({
+                    'name': trans('Name is required for collection fields')})
+
+            datatypes = {info['name']: info for info in datatype}
+            datatype = self._validate_and_update_choice(
+                datatypes[name], old_choice_value, new_choice_value)
+
+            datatypes[name] = datatype
+            self.datatype = json.dumps(datatypes.values())
+            self.save()
+
+            vals = UserDefinedCollectionValue\
+                .objects\
+                .filter(field_definition=self)\
+                .extra(where=["data ? %s AND data->%s = %s"],
+                       params=[name, name, old_choice_value])
+
+            if new_choice_value is None:
+                vals.hremove('data', name)
+            else:
+                vals.hupdate('data', {name: new_choice_value})
+
+            audits = Audit.objects.filter(
+                model='udf:%s' % self.pk,
+                field='udf:%s' % name)
+
+            # If the string is empty we want to delete the audits
+            # _update_choices_on_audits only does nf new_choice_value
+            # is none
+            if new_choice_value == '':
+                new_choice_value = None
+
+            self._update_choices_on_audits(
+                audits, old_choice_value, new_choice_value)
+        else:
+            if name is not None:
+                raise ValidationError({
+                    'name': trans(
+                        'Name is allowed only for collection fields')})
+
+            self._update_choice_scalar(old_choice_value, new_choice_value)
+
+        # indicate success to transaction manager
+        return True
+>>>>>>> Support changing allowed udf choices
+
     def validate(self):
         model_type = self.model_type
 
@@ -293,10 +436,14 @@ class UserDefinedFieldDefinition(models.Model):
             raise ValidationError(
                 {'name': trans('name cannot be blank')})
 
-        existing_objects = UserDefinedFieldDefinition.objects.filter(
-            model_type=model_type,
-            instance=self.instance,
-            name=self.name)
+        existing_objects = UserDefinedFieldDefinition\
+            .objects\
+            .filter(
+                model_type=model_type,
+                instance=self.instance,
+                name=self.name)\
+            .exclude(
+                pk=self.pk)
 
         if existing_objects.count() != 0:
             raise ValidationError(trans('a field already exists on this model '
