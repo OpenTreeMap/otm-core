@@ -419,7 +419,6 @@ class UserDefinedFieldDefinition(models.Model):
 
         # indicate success to transaction manager
         return True
->>>>>>> Support changing allowed udf choices
 
     def validate(self):
         model_type = self.model_type
