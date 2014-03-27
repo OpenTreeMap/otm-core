@@ -478,7 +478,7 @@ def update_map_feature(request_dict, user, feature):
             val = Point(val['x'], val['y'], srid=srid)
             val.transform(3857)
         elif field_classname.endswith('MultiPolygonField'):
-            srid = val.get('srid', 3857)
+            srid = val.get('srid', 4326)
             val = MultiPolygon(Polygon(val['polygon'], srid=srid), srid=srid)
             val.transform(3857)
 
