@@ -43,7 +43,10 @@ function init(options) {
         areaPolygon = null;
     };
 
-    deactivateMode = manager.deactivate;
+    deactivateMode = function () {
+        disableAreaPolygon();
+        manager.deactivate();
+    }
 
     function onResourceTypeChosen() {
         var $option = $resourceType.filter(':checked'),
@@ -122,16 +125,9 @@ function init(options) {
         }
 
         if (stepNumber === STEP_OUTLINE_AREA) {
-            if (!areaPolygon) {
-                initAreaPolygon();
-            }
-            areaPolygon.addTo(mapManager.map);
-            mapManager.map.setEditablePolylinesEnabled(true);
+            enableAreaPolygon();
         } else {
-            if (areaPolygon) {
-                mapManager.map.setEditablePolylinesEnabled(false);
-                mapManager.map.removeLayer(areaPolygon);
-            }
+            disableAreaPolygon();
         }
     });
 
@@ -158,6 +154,21 @@ function init(options) {
             pointIcon: pointIcon,
             newPointIcon: newPointIcon
         });
+    }
+
+    function enableAreaPolygon() {
+        if (!areaPolygon) {
+            initAreaPolygon();
+        }
+        areaPolygon.addTo(mapManager.map);
+        mapManager.map.setEditablePolylinesEnabled(true);
+    }
+
+    function disableAreaPolygon() {
+        if (areaPolygon) {
+            mapManager.map.setEditablePolylinesEnabled(false);
+            mapManager.map.removeLayer(areaPolygon);
+        }
     }
 
     function onQuestionAnswered(e) {
