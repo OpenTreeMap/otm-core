@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.staticfiles import finders
 
 from treemap.util import get_last_visited_instance
+from treemap.models import InstanceUser
 
 
 def global_settings(request):
@@ -15,7 +16,15 @@ def global_settings(request):
         last_effective_instance_user =\
             request.user.get_effective_instance_user(last_instance)
     else:
-        last_effective_instance_user = None
+        if hasattr(request, 'instance'):
+            instance = request.instance
+            default_role = instance.default_role
+
+            last_effective_instance_user = InstanceUser(
+                role=default_role, instance=instance)
+        else:
+            last_effective_instance_user = None
+
     if hasattr(request, 'instance') and request.instance.logo:
         logo_url = request.instance.logo.url
     else:
