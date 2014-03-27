@@ -2,40 +2,75 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    L = require('leaflet'),
     U = require('treemap/utility'),
     addMapFeature = require('treemap/addMapFeature');
 
-var manager,
+require('leafletEditablePolyline');
+
+var activateMode = _.identity,
+    deactivateMode = _.identity,
     STEP_CHOOSE_TYPE = 0,
     STEP_LOCATE = 1,
-    STEP_DETAILS = 2,
-    STEP_FINAL = 3;
+    STEP_OUTLINE_AREA = 2,
+    STEP_DETAILS = 3,
+    STEP_FINAL = 4;
 
 function init(options) {
-    var config = options.config,
+    options.onSaveBefore = onSaveBefore;
+    var manager = addMapFeature.init(options),
+        config = options.config,
         $sidebar = $(options.sidebar),
+        $footerStepCounts = U.$find('.footer-total-steps', $sidebar),
         $resourceType = U.$find('input[name="addResourceType"]', $sidebar),
         $form = U.$find(options.formSelector, $sidebar),
         $summaryHead = U.$find('.summaryHead', $sidebar),
-        $summarySubhead = U.$find('.summarySubhead', $sidebar);
-
-    manager = addMapFeature.init(options);
+        $summarySubhead = U.$find('.summarySubhead', $sidebar),
+        mapManager = options.mapManager,
+        plotMarker = options.plotMarker,
+        areaFieldIdentifier,
+        areaPolygon;
 
     $resourceType.on('change', onResourceTypeChosen);
 
     manager.addFeatureStream.onValue(initSteps);
     manager.deactivateStream.onValue(initSteps);
 
+    activateMode = function() {
+        manager.activate();
+        manager.stepControls.enableNext(STEP_CHOOSE_TYPE, false);
+        plotMarker.useTreeIcon(false);
+        areaPolygon = null;
+    };
+
+    deactivateMode = function () {
+        disableAreaPolygon();
+        manager.deactivate();
+    }
+
     function onResourceTypeChosen() {
-        var type = $resourceType.filter(':checked').val(),
-            typeName = $resourceType.filter(':checked').next().text().trim(),
+        var $option = $resourceType.filter(':checked'),
+            type = $option.val(),
+            typeName = $option.next().text().trim(),
+            areaFieldName = $option.data('area-field-name'),
             addFeatureUrl = config.instance.url + 'features/' + type + '/';
         if (type) {
             manager.setAddFeatureUrl(addFeatureUrl);
             manager.stepControls.enableNext(STEP_CHOOSE_TYPE, true);
+            manager.stepControls.enableNext(STEP_OUTLINE_AREA, true);
             manager.stepControls.enableNext(STEP_DETAILS, false);
             $summaryHead.text(typeName);
             $summarySubhead.text("Resource");
+
+            var hasAreaStep = !!areaFieldName;
+            activateAreaStep(hasAreaStep);
+            if (hasAreaStep) {
+                var objectName = type.slice(0, 1).toLowerCase() + type.slice(1);
+                areaFieldIdentifier = objectName + '.' + areaFieldName;
+            } else {
+                areaFieldIdentifier = null;
+            }
+
             $.ajax({
                 url: config.instance.url + "features/" + type + '/',
                 type: 'GET',
@@ -43,6 +78,17 @@ function init(options) {
                 success: onResourceFormLoaded
             });
         }
+    }
+
+    function activateAreaStep(hasAreaStep) {
+        var stepCount = manager.stepControls.maxStepNumber + 1;
+        if (!hasAreaStep) {
+            stepCount--;
+        }
+        $footerStepCounts.each(function () {
+            $(this).text(stepCount);
+        });
+        manager.stepControls.activateStep(STEP_OUTLINE_AREA, hasAreaStep);
     }
 
     function onResourceFormLoaded(html) {
@@ -64,6 +110,65 @@ function init(options) {
 
     function hideSubquestions() {
         U.$find('.resource-subquestion', $form).hide();
+    }
+
+    manager.stepControls.stepChangeCompleteStream.onValue(function (stepNumber) {
+        if (stepNumber === STEP_LOCATE) {
+            if (plotMarker.wasMoved()) {
+                plotMarker.enableMoving({needsFirstMove: false});
+            } else {
+                // Let user start creating a feature (by clicking the map)
+                plotMarker.enablePlacing();
+            }
+        } else {
+            plotMarker.disableMoving();
+        }
+
+        if (stepNumber === STEP_OUTLINE_AREA) {
+            enableAreaPolygon();
+        } else {
+            disableAreaPolygon();
+        }
+    });
+
+    function initAreaPolygon() {
+        var p1 = plotMarker.getLatLng(),
+            p2 = U.offsetLatLngByMeters(p1, -20, -20),
+            points = [
+                [p1.lat, p1.lng],
+                [p2.lat, p1.lng],
+                [p2.lat, p2.lng],
+                [p1.lat, p2.lng]
+            ],
+            pointIcon = L.icon({
+                iconUrl: config.staticUrl + 'img/polygon-point.png',
+                iconSize: [11, 11],
+                iconAnchor: [6, 6]
+            }),
+            newPointIcon = L.icon({
+                iconUrl: config.staticUrl + 'img/polygon-point-new.png',
+                iconSize: [11, 11],
+                iconAnchor: [6, 6]
+            });
+        areaPolygon = L.Polyline.PolylineEditor(points, {
+            pointIcon: pointIcon,
+            newPointIcon: newPointIcon
+        });
+    }
+
+    function enableAreaPolygon() {
+        if (!areaPolygon) {
+            initAreaPolygon();
+        }
+        areaPolygon.addTo(mapManager.map);
+        mapManager.map.setEditablePolylinesEnabled(true);
+    }
+
+    function disableAreaPolygon() {
+        if (areaPolygon) {
+            mapManager.map.setEditablePolylinesEnabled(false);
+            mapManager.map.removeLayer(areaPolygon);
+        }
     }
 
     function onQuestionAnswered(e) {
@@ -90,19 +195,25 @@ function init(options) {
 
         manager.stepControls.enableNext(STEP_DETAILS, allAnswered);
     }
+
+    function onSaveBefore(formData) {
+        if (areaFieldIdentifier) {
+            var points = _.map(areaPolygon.getPoints(), function (point) {
+                var latLng = point.getLatLng();
+                return [latLng.lng, latLng.lat];
+            });
+            points.push(points[0]);
+            formData[areaFieldIdentifier] = {polygon: points};
+        }
+    }
 }
 
 function activate() {
-    if (manager) {
-        manager.activate();
-        manager.stepControls.enableNext(STEP_CHOOSE_TYPE, false);
-    }
+    activateMode();
 }
 
 function deactivate() {
-    if (manager) {
-        manager.deactivate();
-    }
+    deactivateMode();
 }
 
 module.exports = {

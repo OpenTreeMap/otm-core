@@ -995,14 +995,13 @@ def upload_user_photo(request, user):
 
 
 def _get_map_view_context(request, instance):
-    resource_types = [{'name': type,
-                       'display': MapFeature.get_subclass(type).display_name}
-                      for type in instance.map_feature_types]
+    resource_classes = [MapFeature.get_subclass(type)
+                        for type in instance.map_feature_types]
     return {
         'fields_for_add_tree': [
             (trans('Tree Height'), 'Tree.height')
         ],
-        'resource_types': resource_types[1:]
+        'resource_classes': resource_classes[1:]
     }
 
 

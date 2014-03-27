@@ -23,6 +23,7 @@ function init(options) {
         indexOfSetLocationStep = options.indexOfSetLocationStep,
         addFeatureRadioOptions = options.addFeatureRadioOptions,
         addFeatureUrl = config.instance.url + 'plots/',
+        onSaveBefore = options.onSaveBefore || _.identity,
         gcoder = geocoder(config),
 
         $addFeatureHeaderLink = options.$addFeatureHeaderLink,
@@ -185,10 +186,7 @@ function init(options) {
     function activate() {
         $addFeatureHeaderLink.addClass("active");
         $exploreMapHeaderLink.removeClass("active");
-
-        // Let user start creating a feature (by clicking the map)
         plotMarker.hide();
-        plotMarker.enablePlacing();
         stepControls.showStep(0);
         stepControls.enableNext(indexOfSetLocationStep, false);
         $placeMarkerMessage.show();
@@ -267,7 +265,9 @@ function init(options) {
     }
 
     function getFormData() {
-        return FH.formToDictionary($form, $(editFields));
+        var formData = FH.formToDictionary($form, $(editFields));
+        onSaveBefore(formData);
+        return formData;
     }
 
     function close() {

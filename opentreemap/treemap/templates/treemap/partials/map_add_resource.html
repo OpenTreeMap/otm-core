@@ -1,36 +1,47 @@
 {% load form_extras %}
 {% load i18n %}
 
-{% with nsteps=4 %}
+{% with nsteps=5 %}
 <div class="sidebar-inner">
     <a href="javascript:;" class="close cancelBtn small">×</a>
     <h3>{% trans "Add a Resource" %}</h3>
     <div class="add-step-container">
         <div class="add-step active">
-            <div class="add-step-header">1. Select Resource Type</div>
+            <div class="add-step-header">{% trans "Select Resource Type" %}</div>
             <div class="add-step-content">
                 <label>{% trans "Resource Type" %}</label>
-                {% for type in resource_types %}
-                    <input type="radio" name="addResourceType" value="{{ type.name }}" id="resourceType{{ type.name }}"
-                    /><label for="resourceType{{ type.name }}">
-                        {{ type.display }}
+                {% for cls in resource_classes %}
+                    <input type="radio"
+                           name="addResourceType"
+                           value="{{ cls.feature_type }}"
+                           id="resourceType{{ cls.feature_type }}"
+                           data-area-field-name="{{ cls.area_field_name|default_if_none:"" }}"
+                    /><label for="resourceType{{ cls.feature_type }}">
+                        {{ cls.display_name }}
                     </label>
                 {% endfor %}
             </div>
-            {% include 'treemap/partials/step_controls.html' with step=1 %}
+            {% include 'treemap/partials/step_controls.html' with first=True %}
         </div>
-        {% include "treemap/partials/step_set_resource_location.html" with step=2 feature_name="resource" %}
+        {% include "treemap/partials/step_set_location.html" with feature_name="resource" %}
         <div class="add-step">
-            <div class="add-step-header">3. {% trans "About this Resource" %}</div>
+            <div class="add-step-header">{% trans "Indicate Nearby Roof Area" %}</div>
+            <div class="add-step-content">
+                <div class="alert alert-info">Drag and outline the nearby roof area that would drain into your resource.</div>
+            </div>
+            {% include 'treemap/partials/step_controls.html' %}
+        </div>
+        <div class="add-step">
+            <div class="add-step-header">{% trans "About this Resource" %}</div>
             <div class="add-step-content">
                 <form id="add-resource-form" onsubmit="return false;">
                   {# Added dynamically when resource type is chosen #}
                 </form>
             </div>
-            {% include 'treemap/partials/step_controls.html' with step=3 %}
+            {% include 'treemap/partials/step_controls.html' %}
         </div>
         <div class="add-step">
-            <div class="add-step-header">4. {% trans "Finalize this resource" %}</div>
+            <div class="add-step-header">{% trans "Finalize this resource" %}</div>
             <div class="add-step-content">
                 <h3 class="summaryHead"></h3>
                 <h6 class="summarySubhead"></h6>
@@ -53,7 +64,7 @@
                     </label>
                 </span>
             </div>
-            {% include 'treemap/partials/step_controls.html' with step=4 %}
+            {% include 'treemap/partials/step_controls.html' with last=True %}
         </div>
     </div>
 </div>

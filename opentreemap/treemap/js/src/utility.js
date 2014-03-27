@@ -116,6 +116,18 @@ exports.lonLatToWebMercator = function(lon, lat) {
     };
 };
 
+exports.offsetLatLngByMeters = function(latLng, dx, dy) {
+    // Approximation formulas from http://stackoverflow.com/a/19356480/362702
+    var lat = latLng.lat,
+        lng = latLng.lng,
+        latRad = lat * Math.PI / 180,
+        m_per_deg_lat = 111132.954 - 559.822 * Math.cos(2 * latRad) + 1.175 * Math.cos(4 * latRad),
+        m_per_deg_lng = (Math.PI / 180) * 6367449 * Math.cos(latRad),
+        newLat = lat + dy / m_per_deg_lat,
+        newLng = lng + dx / m_per_deg_lng;
+    return { lat: newLat, lng: newLng };
+};
+
 var endsWith = exports.endsWith = function(str, ends) {
     if (ends === '') return true;
     if (str === null || ends === null) return false;

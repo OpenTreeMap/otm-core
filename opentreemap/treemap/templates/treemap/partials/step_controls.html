@@ -2,18 +2,22 @@
 
 <div class="add-step-footer">
     <span class="counter">
-        <strong>{% trans "Step" %} {{ step }}</strong>
-        {% trans "of" %} {{ nsteps }}
+        <strong>
+          {% trans "Step" %}
+          <span class='footer-step-number'></span>
+        </strong>
+        {% trans "of" %}
+        <span class='footer-total-steps'>{{ nsteps }}</span>
     </span>
     <ul class="pager">
-        {% if step > 1 %}
+        {% if not first %}
         <li class="previous">
             <a href="#">&laquo; Back</a>
         </li>
         {% endif %}
         <li class="next">
             <a href="#">
-                {% if step < nsteps %} Next &raquo; {% else %} Done {% endif %}
+                {% if last %} Done {% else %} Next &raquo; {% endif %}
             </a>
         </li>
     </ul>

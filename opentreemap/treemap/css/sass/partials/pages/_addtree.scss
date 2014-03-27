@@ -1,6 +1,7 @@
 #sidebar-add-tree,
 #sidebar-add-resource {
     background: white;
+    counter-reset: steps;
 
     > .sidebar-inner {
 
@@ -19,7 +20,7 @@
         }
         .add-step {
             margin: 0;
-            display: none;
+            display: block;
             height: 100%;
             width: 100%;
             position: absolute;
@@ -27,11 +28,6 @@
             -webkit-transition: .6s ease-in-out left;
             transition: .6s ease-in-out left;
 
-            &.active,
-            &.next,
-            &.prev {
-                display: block;
-            }
             &.next,
             &.prev {
                 position: absolute;
@@ -49,7 +45,14 @@
             &.prev {
                 left: -100%;
             }
+            &.inactive {
+                display: none;
+            }
 
+            .add-step-header:before {
+                content: counter(steps) ". ";
+                counter-increment: steps;
+            }
             .add-step-header {
                 background: $light-gray-color;
                 color: darken($subtext-color, 30%);
@@ -148,6 +151,9 @@
                     position: relative;
                     margin: 13px 0;
                 }
+              .footer-step-number:before {
+                  content: counter(steps);
+              }
             }
         }
     }
