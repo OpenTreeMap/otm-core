@@ -10,6 +10,7 @@ var $ = require('jquery'),
     L = require('leaflet');
 
 var marker,
+    shouldUseTreeIcon,
     markerDraggingContext,
     firstMoveBus = new Bacon.Bus(),
     moveBus = new Bacon.Bus(),
@@ -24,6 +25,10 @@ exports = module.exports = {
     init: function(theConfig, theMap) {
         map = theMap;
         config = theConfig;
+    },
+
+    useTreeIcon: function(shouldUse) {
+        shouldUseTreeIcon = shouldUse;
     },
 
     bindPopup: function(pop) {
@@ -46,15 +51,13 @@ exports = module.exports = {
         // Add a 'tracking marker' that follows the mouse, until
         // the object is placed
         if (!trackingMarker) {
-            trackingMarker = L.marker({lat:0, lng:0}, {
-                icon: getMarkerIcon(false)
-            });
+            trackingMarker = L.marker({lat:0, lng:0});
 
             map.on('mousemove', function(event) {
                 trackingMarker.setLatLng(event.latlng);
             });
         }
-
+        trackingMarker.setIcon(getMarkerIcon(false));
         trackingMarker.addTo(map);
 
         map.on('click', onMarkerPlacedByClick);
@@ -116,9 +119,12 @@ exports = module.exports = {
 
     // Return current marker location
     getLocation: function () {
-        var latlng = marker ? marker.getLatLng() : lastMarkerLocation;
-
+        var latlng = exports.getLatLng();
         return U.lonLatToWebMercator(latlng.lng, latlng.lat);
+    },
+
+    getLatLng: function () {
+        return marker ? marker.getLatLng() : lastMarkerLocation;
     },
 
     // Returns "True" if user dragged the marker; false otherwise
@@ -136,9 +142,13 @@ function onMarkerPlacedByClick(event) {
 }
 
 // Let user move the marker by dragging it with the mouse
-function enableMoving() {
-    showFirstEditMarker();
-    markerWasMoved = false;
+function enableMoving(options) {
+    if (!options || options.needsFirstMove) {
+        showMarker(true, 'animated');
+        markerWasMoved = false;
+    } else {
+        showMarker(true);
+    }
 
     // Normally we'd simply use:
     // marker.dragging.enable/disable
@@ -162,8 +172,7 @@ function disableMoving() {
     showViewMarker();
 }
 
-var showViewMarker = _.partial(showMarker, false, ''),
-    showFirstEditMarker = _.partial(showMarker, true, 'animated');
+var showViewMarker = _.partial(showMarker, false, '');
 
 function showMarker(inEditMode, className) {
     marker.setIcon(getMarkerIcon(inEditMode, className));
@@ -171,10 +180,11 @@ function showMarker(inEditMode, className) {
 }
 
 function getMarkerIcon(inEditMode, className) {
+    var whichIcon = shouldUseTreeIcon ? '' : 'droplet_',
+        url = config.staticUrl + 'img/mapmarker_' + whichIcon +
+            (inEditMode ? 'editmode.png' : 'viewmode.png')
     return L.icon({
-        iconUrl: config.staticUrl +
-            (inEditMode ? 'img/mapmarker_editmode.png' :
-                          'img/mapmarker_viewmode.png'),
+        iconUrl: url,
         // Use half actual size to look good on IOS retina display
         iconSize: [78, 75],
         iconAnchor: [36, 62],

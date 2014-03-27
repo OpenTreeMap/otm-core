@@ -7,19 +7,29 @@ var $ = require('jquery'),
     otmTypeahead = require('treemap/otmTypeahead'),
     diameterCalculator = require('treemap/diameterCalculator');
 
-var manager,
+var activateMode = _.identity,
+    deactivateMode = _.identity,
     STEP_LOCATE = 0,
     STEP_DETAILS = 1,
     STEP_FINAL = 2;
 
 function init(options) {
-    var $sidebar = $(options.sidebar),
+    var manager = addMapFeature.init(options),
+        plotMarker = options.plotMarker,
+        $sidebar = $(options.sidebar),
         $speciesTypeahead = U.$find('#add-tree-species-typeahead', $sidebar),
         $speciesInput = U.$find('[data-typeahead-input="tree.species"]', $sidebar),
         $summaryHead = U.$find('.summaryHead', $sidebar),
         $summarySubhead = U.$find('.summarySubhead', $sidebar);
 
-    manager = addMapFeature.init(options);
+    activateMode = function() {
+        manager.activate();
+        // Let user start creating a feature (by clicking the map)
+        plotMarker.useTreeIcon(true);
+        plotMarker.enablePlacing();
+    }
+
+    deactivateMode = manager.deactivate;
 
     otmTypeahead.bulkCreate(options.typeaheads);
 
@@ -59,15 +69,11 @@ function init(options) {
 }
 
 function activate() {
-    if (manager) {
-        manager.activate();
-    }
+    activateMode();
 }
 
 function deactivate() {
-    if (manager) {
-        manager.deactivate();
-    }
+    deactivateMode();
 }
 
 module.exports = {
