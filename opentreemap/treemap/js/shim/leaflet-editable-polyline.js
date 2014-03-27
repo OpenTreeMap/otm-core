@@ -1,4 +1,4 @@
-L.Polyline.polylineEditor = L.Polyline.extend({
+L.Polyline.polylineEditor = L.Polygon.extend({
     _prepareMapIfNeeded: function() {
         var that = this;
 
@@ -285,8 +285,8 @@ L.Polyline.polylineEditor = L.Polyline.extend({
             marker.newPointMarker = null;
             marker.on('dragstart', function(event) {
                 var pointNo = that._getPointNo(event.target);
-                var previousPoint = pointNo && pointNo > 0 ? that._markers[pointNo - 1].getLatLng() : null;
-                var nextPoint = pointNo < that._markers.length - 1 ? that._markers[pointNo + 1].getLatLng() : null;
+                var previousPoint = that._markers[that._getPrevPointNo(pointNo)].getLatLng();
+                var nextPoint = that._markers[that._getNextPointNo(pointNo)].getLatLng();
                 that._setupDragLines(marker, previousPoint, nextPoint);
                 that._setBusy(true);
                 that._hideAll(marker);
@@ -315,15 +315,15 @@ L.Polyline.polylineEditor = L.Polyline.extend({
                 }
             });
 
-            var previousPoint = points[pointNo == 0 ? pointNo : pointNo - 1];
+            var previousPoint = points[that._getPrevPointNo(pointNo)];
             var newPointMarker = L.marker([(latLng.lat + previousPoint.lat) / 2.,
                                            (latLng.lng + previousPoint.lng) / 2.],
                                           {draggable: true, icon: this._options.newPointIcon});
             marker.newPointMarker = newPointMarker;
             newPointMarker.on('dragstart', function(event) {
                 var pointNo = that._getPointNo(event.target);
-                var previousPoint = that._markers[pointNo - 1].getLatLng();
-                var nextPoint = that._markers[pointNo].getLatLng();
+                var previousPoint = that._markers[that._getPrevPointNo(pointNo)].getLatLng();
+                var nextPoint = that._markers[that._getNextPointNo(pointNo)].getLatLng();
                 that._setupDragLines(marker.newPointMarker, previousPoint, nextPoint);
 
                 that._setBusy(true);
@@ -419,9 +419,9 @@ L.Polyline.polylineEditor = L.Polyline.extend({
             if(pointNo < 0)
                 return;
 
-            var previousMarker = pointNo == 0 ? null : that._markers[pointNo - 1];
+            var previousMarker = that._markers[that._getPrevPointNo(pointNo)];
             var marker = that._markers[pointNo];
-            var nextMarker = pointNo < that._markers.length - 1 ? that._markers[pointNo + 1] : null;
+            var nextMarker = that._markers[that._getNextPointNo(pointNo)];
             if(marker && previousMarker) {
                 marker.newPointMarker.setLatLng([(previousMarker.getLatLng().lat + marker.getLatLng().lat) / 2.,
                                                  (previousMarker.getLatLng().lng + marker.getLatLng().lng) / 2.]);
@@ -442,6 +442,24 @@ L.Polyline.polylineEditor = L.Polyline.extend({
                 }
             }
             return -1;
+        };
+
+        /**
+         * Get number of previous point
+         */
+        this._getPrevPointNo = function(pointNo) {
+            var lastIndex = this.getLatLngs().length - 1,
+                prevPointNo = pointNo == 0 ? lastIndex : pointNo - 1;
+            return prevPointNo;
+        };
+
+        /**
+         * Get number of next point
+         */
+        this._getNextPointNo = function(pointNo) {
+            var lastIndex = this.getLatLngs().length - 1,
+                nextPointNo = pointNo < lastIndex ? pointNo + 1 : 0;
+            return nextPointNo;
         };
 
         /**
