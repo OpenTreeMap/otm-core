@@ -32,7 +32,7 @@
         </li>
         <li>
           <a data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource"
-             data-always-enable="True" data-action='addresource'>{% trans "Add a Resource" %}</a>
+             data-always-enable="True" data-action='addresource'>{% trans "Add a Watershed Solution" %}</a>
         </li>
       </ul>
     </li>
@@ -120,9 +120,9 @@
          data-action='addresource'
          data-feature="add_plot"
          data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
-         data-disabled-title="{% trans "Adding resources is not available to all users" %}"
+         data-disabled-title="{% trans "Adding watershed solutions is not available to all users" %}"
          data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource"
-         disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Resource" %}</a>
+         disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Watershed Solution" %}</a>
       {% endif %}
     <a class="btn btn-primary addBtn"
        data-action='addtree'

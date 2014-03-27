@@ -9,12 +9,12 @@
 
 {% block subclass_details %}
 
-<h3>{% trans "Resource Information" %}</h3>
+<h3>{% trans "Watershed Solution Information" %}</h3>
 
 <table class="table table-hover">
   <tbody>
     <tr>
-      <td>{% trans "Resource number" %}</td>
+      <td>{% trans "Watershed solution number" %}</td>
       <td>{{ feature.pk }}</td>
     </tr>
 
@@ -29,7 +29,7 @@
 
 <!-- Ecosystem Benefits -->
 <div id="ecobenefits">
-<h3>{% trans "Resource Ecosystem Services" %}</h3>
+<h3>{% trans "Watershed Solution Ecosystem Services" %}</h3>
 {% with stormbenefits=benefits.resource %}
 {% if stormbenefits %}
 <table class="table table-hover">
