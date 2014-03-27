@@ -5,251 +5,236 @@
     z-index: 99;
     width: 100%;
     border-top: 1px solid lighten($primary-color, 35%);
-    pointer-events: none;
-
-    
+    -ms-transform: translateY(-100%);
+    -moz-transform: translateY(-100%);
+    -webkit-transform: translateY(-100%);
+    transform: translateY(-100%);
+    transition: all 400ms cubic-bezier(0, 0, 0.1, 1);
+    margin-top: 46px;
+    box-shadow: 0 6px 0 rgba(0,0,0,.15);
 
     &.expanded {
-        .subhead-inner {
-            -ms-transform: translateY(0);
-            -moz-transform: translateY(0);
-            -webkit-transform: translateY(0);
-            transform: translateY(0);
-            top: 0;
+        -ms-transform: translateY(0);
+        -moz-transform: translateY(0);
+        -webkit-transform: translateY(0);
+        transform: translateY(0);
+        margin-top: 0;
+    }
+
+    > .advanced-search {
+        padding: 20px;
+        border-bottom: 1px solid lighten($primary-color, 35%);
+        background: lighten($primary-color, 45%);
+
+        form {
+            margin: 0 0 10px;
         }
-    }
 
-    .subhead-mask {
-        overflow: hidden;
-        padding-bottom: 6px;
-    }
+        .search-range {
+            margin-bottom: 5px;
+            clear: both;
 
-    .subhead-inner {
-        -ms-transform: translateY(-100%);
-        -moz-transform: translateY(-100%);
-        -webkit-transform: translateY(-100%);
-        transform: translateY(-100%);
-        transition: all 400ms cubic-bezier(0, 0, 0.1, 1);
-        top: 45px;
-        position: relative;
-        pointer-events: auto;
-        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
-
-        > .advanced-search {
-            padding: 20px;
-            border-bottom: 1px solid lighten($primary-color, 35%);
-            background: lighten($primary-color, 45%);
-
-            form {
-                margin: 0 0 10px;
+            > label {
+                display: inline-block;
+                width: 120px;
+                font-size: 1.4rem;
+                font-weight: 700;
+                position: relative;
             }
-
-            .search-range {
-                margin-bottom: 5px;
-                clear: both;
-
-                > label {
-                    display: inline-block;
-                    width: 120px;
-                    font-size: 1.4rem;
-                    font-weight: 700;
-                    position: relative;
+            
+            @media #{$screen-lg} {
+                label {
+                    top: -3px;
                 }
-                
-                @media #{$screen-lg} {
-                    label {
-                        top: -3px;
+            }
+            @media #{$screen-ltlg} {
+                label {
+                    width: auto;
+                    display: block;
+                }
+            }
+            @media #{$screen-sm} {
+                .input-append {
+                    input[type="text"] {
+                        width: 55px;
                     }
                 }
-                @media #{$screen-ltlg} {
-                    label {
-                        width: auto;
+                input[type="text"] {
+                    width: 92px;
+    
+                    & + span {
+                        margin: 0 10px;
+                        font-size: 1.4rem;
+                    }
+                }
+            }
+        }
+        .input-append {
+            input[type="text"] {
+                width: 82px;
+
+                & + span {
+                    margin: 0 0 0 -1px;
+                }
+            }
+
+            & + span {
+                margin: 0 10px;
+                font-size: 1.4rem;
+            }
+        }
+        input[type="text"] {
+            width: 119px;
+
+            & + span {
+                margin: 0 10px;
+                font-size: 1.4rem;
+            }
+        }
+
+        .slider-row {
+            margin-bottom: 8px;
+
+            &.disabled {
+                opacity: 0.4;
+            }
+
+            span {
+                font-size: 1.0rem;
+                font-weight: 500;
+                opacity: 0.5;
+                min-width: 20px;
+                display: inline-block;
+
+                &.slider-label {
+                    width: 120px;
+                    font-weight: 600;
+                    font-size: 1.3rem;
+                    opacity: 1;
+                    margin: 0;
+                    display: inline-block;
+
+                    & + span {
+                        text-align: right;
+                        margin-right: 16px;
+                    }
+                }
+            }
+            .slider {
+
+                & + span {
+                    margin-left: 16px;
+                }
+                .slider-selection {
+                    background: lighten($secondary-color, 15%);
+                }
+                .slider-handle {
+                    background: $secondary-color;
+                    margin-left: -6px;
+                    margin-top: -3px;
+                    width: 16px;
+                    height: 16px;
+                    opacity: 1;
+
+                    &:hover {
+                        background: darken($secondary-color, 10%);
+                    }
+                }
+                .tooltip {
+                    display: none;
+
+                    &.in {
                         display: block;
                     }
                 }
-                @media #{$screen-sm} {
-                    .input-append {
-                        input[type="text"] {
-                            width: 55px;
-                        }
-                    }
-                    input[type="text"] {
-                        width: 92px;
-        
-                        & + span {
-                            margin: 0 10px;
-                            font-size: 1.4rem;
-                        }
-                    }
-                }
             }
-            .input-append {
-                input[type="text"] {
-                    width: 82px;
-
-                    & + span {
-                        margin: 0 0 0 -1px;
-                    }
-                }
-
-                & + span {
-                    margin: 0 10px;
-                    font-size: 1.4rem;
-                }
-            }
-            input[type="text"] {
-                width: 119px;
-
-                & + span {
-                    margin: 0 10px;
-                    font-size: 1.4rem;
-                }
-            }
-
-            .slider-row {
-                margin-bottom: 8px;
-
-                &.disabled {
-                    opacity: 0.4;
-                }
-
-                span {
-                    font-size: 1.0rem;
-                    font-weight: 500;
-                    opacity: 0.5;
-                    min-width: 20px;
-                    display: inline-block;
-
-                    &.slider-label {
-                        width: 120px;
-                        font-weight: 600;
-                        font-size: 1.3rem;
-                        opacity: 1;
-                        margin: 0;
-                        display: inline-block;
-
-                        & + span {
-                            text-align: right;
-                            margin-right: 16px;
-                        }
-                    }
-                }
-                .slider {
-
-                    & + span {
-                        margin-left: 16px;
-                    }
-                    .slider-selection {
-                        background: lighten($secondary-color, 15%);
-                    }
-                    .slider-handle {
-                        background: $secondary-color;
-                        margin-left: -6px;
-                        margin-top: -3px;
-                        width: 16px;
-                        height: 16px;
-                        opacity: 1;
-
-                        &:hover {
-                            background: darken($secondary-color, 10%);
-                        }
-                    }
-                    .tooltip {
-                        display: none;
-
-                        &.in {
-                            display: block;
-                        }
-                    }
-                }
-            }
-
-            @include checkboxes;
         }
-        > .stewardship-search {
-            height: 50px;
-            padding: 0 8px;
-            background: lighten($primary-color, 15%);
 
-            &.disabled {
-                span {
-                    opacity: 0.4;
-                }
-                .stewardship-selector {
-                    opacity: 0.4;
-                    cursor: default;
-                    background: $primary-color;
+        @include checkboxes;
+    }
+    > .stewardship-search {
+        height: 50px;
+        padding: 0 8px;
+        background: lighten($primary-color, 15%);
 
-                    &:hover {
-                        background: $primary-color;
-
-                        &:after {
-                            opacity: 0.5;
-                        }
-                    }
-                }
-            }
-
+        &.disabled {
             span {
-                padding: 14px 15px;
-                color: white;
-                font-weight: 300;
+                opacity: 0.4;
             }
             .stewardship-selector {
+                opacity: 0.4;
+                cursor: default;
                 background: $primary-color;
-                display: inline-block;
-                margin: 0 1px;
-                padding: 15px 38px 15px 20px;
-                font-weight: 700;
-                color: white;
 
                 &:hover {
-                    background: darken($primary-color, 15%);
-                    cursor: pointer;
+                    background: $primary-color;
 
                     &:after {
-                        opacity: 1;
+                        opacity: 0.5;
                     }
-                }
-                &:after {
-                    content: '\25BC';
-                    font-size: 1.0rem;
-                    margin-left: 12px;
-                    position: absolute;
-                    opacity: 0.5;
                 }
             }
         }
-        > .stats-bar {
-            padding: 11px 15px 10px;
-            border-left: 8px solid $primary-color;
-            font-size: 1.6rem;
+
+        span {
+            padding: 14px 15px;
+            color: white;
             font-weight: 300;
-            background: lighten($primary-color, 45%);
-            height: 24px;
-            position: relative;
-            z-index: 9;
-            color: darken($primary-color, 25%);
+        }
+        .stewardship-selector {
+            background: $primary-color;
+            display: inline-block;
+            margin: 0 1px;
+            padding: 15px 38px 15px 20px;
+            font-weight: 700;
+            color: white;
 
-            span {
-                font-weight: bold;
-            }
+            &:hover {
+                background: darken($primary-color, 15%);
+                cursor: pointer;
 
-            .exportBtn {
-                margin-left: 10px;
-                margin-top: -2px;
-            }
-
-            .addBtn {
-                float: right;
-                margin-top: -3px;
-                margin-left: 7px;
-
-                i {
-                    position: relative;
-                    left: -4px;
-                    top: 2px;
+                &:after {
+                    opacity: 1;
                 }
+            }
+            &:after {
+                content: '\25BC';
+                font-size: 1.0rem;
+                margin-left: 12px;
+                position: absolute;
+                opacity: 0.5;
+            }
+        }
+    }
+    > .stats-bar {
+        padding: 11px 15px 10px;
+        border-left: 8px solid $primary-color;
+        font-size: 1.6rem;
+        font-weight: 300;
+        background: lighten($primary-color, 45%);
+        height: 24px;
+        position: relative;
+        z-index: 9;
+        color: darken($primary-color, 25%);
+
+        span {
+            font-weight: bold;
+        }
+
+        .exportBtn {
+            margin-left: 10px;
+            margin-top: -2px;
+        }
+
+        .addBtn {
+            float: right;
+            margin-top: -3px;
+            margin-left: 7px;
+
+            i {
+                position: relative;
+                left: -4px;
+                top: 2px;
             }
         }
     }

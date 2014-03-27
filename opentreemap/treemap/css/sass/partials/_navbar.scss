@@ -5,6 +5,7 @@
 
     @media (max-width: 979px) {
         margin-bottom: 0;
+        position: absolute;
     }
 
     .navbar-inner {
@@ -44,9 +45,11 @@
                 }
             }
             &.dropdown {
+                &.active,
                 &.open {
-                    a {
+                    > a {
                         background-color: transparent !important;
+                        border-bottom: none;
                     }
                 }
 
