@@ -49,13 +49,15 @@ L.Polyline.polylineEditor = L.Polygon.extend({
          * Enable/disable editing.
          */
         this._map.setEditablePolylinesEnabled = function(enabled) {
-            that._map._editablePolylinesEnabled = enabled;
-            for(var i = 0; i < that._map._editablePolylines.length; i++) {
-                var polyline = that._map._editablePolylines[i];
-                if(enabled) {
-                    polyline._showBoundMarkers();
-                } else {
-                    polyline._hideAll();
+            if (that._map) {
+                that._map._editablePolylinesEnabled = enabled;
+                for(var i = 0; i < that._map._editablePolylines.length; i++) {
+                    var polyline = that._map._editablePolylines[i];
+                    if(enabled) {
+                        polyline._showBoundMarkers();
+                    } else {
+                        polyline._hideAll();
+                    }
                 }
             }
         };
@@ -178,6 +180,10 @@ L.Polyline.polylineEditor = L.Polygon.extend({
          * bounds.
          */
         this._showBoundMarkers = function() {
+            if (!that._map) {
+                return;
+            }
+            
             if(that._map.isEditablePolylinesBusy()) {
                 console.log('Do not show because busy!');
                 return;
@@ -488,13 +494,16 @@ L.Polyline.polylineEditor = L.Polygon.extend({
             };
 
             var stopHandler = function(event) {
-                that._map.off('mousemove', moveHandler);
-                marker.off('dragend', stopHandler);
-                if(line1) that._map.removeLayer(line1);
-                if(line2) that._map.removeLayer(line2);
-                console.log('STOPPED');
-                if(event.target != that._map) {
-                    that._map.fire('click', event);
+                if (that._map) {
+                    that._map.off('mousemove', moveHandler);
+                    marker.off('dragend', stopHandler);
+                    if(line1) that._map.removeLayer(line1);
+                    if(line2) that._map.removeLayer(line2);
+                    console.log('STOPPED');
+                    // Causes a Leaflet exception on every drag -RM 20140326
+                    // if(event.target != that._map) {
+                    //     that._map.fire('click', event);
+                    // }
                 }
             };
 
