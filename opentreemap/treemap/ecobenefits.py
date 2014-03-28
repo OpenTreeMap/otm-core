@@ -81,7 +81,7 @@ class TreeBenefitsCalculator(BenefitCalculator):
         trees = item_filter.get_objects(Tree)
         n_total_trees = trees.count()
 
-        if not instance.has_itree_region():
+        if not instance.has_itree_region() or n_total_trees == 0:
             basis = {'plot':
                      {'n_objects_used': 0,
                       'n_objects_discarded': n_total_trees}}
