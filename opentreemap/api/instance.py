@@ -88,26 +88,17 @@ def instance_info(request, instance):
 
     perms = {}
 
-    fields_to_allow = instance.mobile_api_fields
-
     for fp in role.fieldpermission_set.all():
         model = fp.model_name.lower()
-
-        if fields_to_allow and \
-           fp.field_name not in fields_to_allow.get(model, []):
-            continue
-
+        field_key = '%s.%s' % (model, fp.field_name)
         if fp.allows_reads:
-            if model not in perms:
-                perms[model] = []
-
             if is_json_field_reference(fp.field_name):
                 choices = None
                 data_type = "string"
             else:
                 model_inst = safe_get_model_class(fp.model_name)(
                     instance=instance)
-
+                print(fp.field_name)
                 data_type, _, choices = field_type_label_choices(
                     model_inst, fp.field_name, fp.display_field_name)
 
@@ -125,7 +116,7 @@ def instance_info(request, instance):
             except KeyError:
                 pass
 
-            perms[model].append({
+            perms[field_key] = {
                 'data_type': data_type,
                 'choices': choices,
                 'units': units,
@@ -134,11 +125,12 @@ def instance_info(request, instance):
                 'can_write': fp.allows_writes,
                 'display_name': fp.display_field_name,
                 'field_name': fp.field_name,
-                'field_key': '%s.%s' % (model, fp.field_name)
-            })
+                'field_key': field_key
+            }
 
     info = _instance_info_dict(instance)
     info['fields'] = perms
+    info['field_key_groups'] = instance.mobile_api_fields
     info['search'] = instance.mobile_search_fields
 
     public_config_keys = ['scss_variables']
