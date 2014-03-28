@@ -134,7 +134,7 @@ function init(config, mapManager, triggerSearchBus) {
         formSelector: '#add-tree-form',
         indexOfSetLocationStep: 0,
         typeaheads: [getSpeciesTypeaheadOptions(config, "add-tree-species")],
-        addFeatureRadioOptions: 'addTreeOptions',
+        addFeatureRadioOptions: 'addFeatureOptions',
         triggerSearchBus: triggerSearchBus
     });
 
