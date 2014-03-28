@@ -58,7 +58,7 @@ def _feature_allows_reads(instanceuser, model_name, predicate, field=None):
 
 @register.filter
 def is_deletable(instanceuser, obj):
-    if instanceuser is None:
+    if instanceuser is None or instanceuser.user_id is None:
         return False
     else:
         return obj.user_can_delete(instanceuser.user)
