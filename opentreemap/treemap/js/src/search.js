@@ -90,11 +90,15 @@ function applyFilterObjectToDom(elems, search) {
 }
 
 function applyDisplayListToDom(displayList) {
+    var checkDisplayFilter = function(filter) {
+        $('[data-search-display="' + filter + '"]').prop('checked', true);
+    };
     if (displayList) {
         $('[data-search-display]').prop('checked', false);
-        _.each(displayList, function(filter) {
-            $('[data-search-display="' + filter + '"]').prop('checked', true);
-        });
+        _.each(displayList, checkDisplayFilter);
+        if (_.contains(displayList, 'Plot')) {
+            _.each(TREE_MODELS, checkDisplayFilter);
+        }
     } else {
         $('[data-search-display]').prop('checked', true);
     }
