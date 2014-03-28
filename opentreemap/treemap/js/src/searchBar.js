@@ -57,7 +57,7 @@ function redirectToSearchPage(config, filters, wmCoords) {
     window.location.href = url;
 }
 
-function initSearchUi(config) {
+function initSearchUi(config, searchStream) {
     var $advancedToggle = $("#search-advanced"),
         $subheader = $(".subhead");
     otmTypeahead.create({
@@ -80,6 +80,17 @@ function initSearchUi(config) {
         reverse: "id",
         sortKeys: ['sortOrder', 'value']
     });
+
+    // hide advanced search dropdown when search is executed
+    searchStream.onValue(function () {
+        if ($advancedToggle.hasClass('active')) {
+            $advancedToggle.removeClass('active').blur();
+        }
+        if ($subheader.hasClass('expanded')) {
+            $subheader.removeClass('expanded');
+        }
+    });
+
     $advancedToggle.on("click", function() {
         $advancedToggle.toggleClass('active').blur();
         $subheader.toggleClass('expanded');
@@ -133,7 +144,8 @@ module.exports = exports = {
                 });
 
         geocodeResponseStream.onError(showGeocodeError);
-        initSearchUi(config);
+        initSearchUi(config, searchStream);
+
 
         return {
             elems: elems,
