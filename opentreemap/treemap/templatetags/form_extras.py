@@ -38,7 +38,8 @@ FIELD_MAPPINGS = {
     'BooleanField': 'bool',
     'NullBooleanField': 'bool',
     'FileField': 'string',
-    'PointField': 'point'
+    'PointField': 'point',
+    'MultiPolygonField': 'multipolygon'
 }
 
 VALID_FIELD_KEYS = ','.join([k for k, v in FIELD_MAPPINGS.iteritems()])
