@@ -8,6 +8,10 @@
   <div class="benefit-icon"><i class="icon-tint"></i></div>
   {% elif benefit.label == 'Air Quality' %}
   <div class="benefit-icon"><i class="icon-cloud"></i></div>
+  {% elif benefit.label.lower == 'reduced stormwater runoff' %}
+  <div class="benefit-icon"><i class="icon-tint"></i></div>
+  {% elif benefit.label.lower == 'water conserved' %}
+  <div class="benefit-icon"><i class="icon-tint"></i></div>
   {% else %}
   <div class="benefit-icon"><i class="icon-sun-filled"></i></div>
   {% endif %}
