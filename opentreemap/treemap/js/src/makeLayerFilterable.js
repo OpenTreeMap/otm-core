@@ -1,32 +1,18 @@
 "use strict";
 
-var _ = require("lodash");
+var _ = require("lodash"),
+    Search = require("treemap/search");
 
 function filtersAreEmpty(o) {
-    var filterEmpty = o.filters ? _.keys(o).length === 0 : true;
-    var displayEmpty = _.isUndefined(o.display) || _.isNull(o.display);
-    return filterEmpty && displayEmpty;
+    return Search.filterObjectIsEmpty(o.filter) && Search.displayListIsEmpty(o.display);
 }
 
-function uriEncodeObject(o) {
-    return encodeURIComponent(JSON.stringify(o));
+function makeFilterUrl(config, originalUrl, filters) {
+    var query = Search.makeQueryStringFromFilters(config, filters);
+    return originalUrl + (query ? '&' + query : '');
 }
 
-var _urlTemplate = _.template('<%= originalUrl %>' +
-        '&<%= filterQueryArgumentName %>=<%= uriEncodedFilterObject %>' +
-        '&<%= displayQueryArgumentName %>=<%= uriEncodedDisplayList %>');
-
-function makeFilterUrl(originalUrl, filterQueryArgumentName, displayQueryArgumentName, filters) {
-    return _urlTemplate({
-        originalUrl: originalUrl,
-        filterQueryArgumentName: filterQueryArgumentName,
-        displayQueryArgumentName: displayQueryArgumentName,
-        uriEncodedDisplayList: uriEncodeObject(filters.display),
-        uriEncodedFilterObject: uriEncodeObject(filters.filter)
-    });
-}
-
-function makeLayerFilterable(layer, originalUrl, filterQueryArgumentName, displayQueryArgumentName) {
+function makeLayerFilterable(layer, originalUrl, config) {
     layer.clearFilter = function() {
         layer.setUrl(originalUrl);
     };
@@ -36,15 +22,11 @@ function makeLayerFilterable(layer, originalUrl, filterQueryArgumentName, displa
             layer.clearFilter();
         } else {
             if (_.isArray(originalUrl)) {
-                layer.setUrl(_.reduce(originalUrl,
-                    function (urls, url) {
-                        urls.push(makeFilterUrl(
-                            url, filterQueryArgumentName, displayQueryArgumentName, filters));
-                        return urls;
-                    }, []));
+                layer.setUrl(_.map(originalUrl, function(url) {
+                    makeFilterUrl(config, url, filters);
+                }));
             } else {
-                layer.setUrl(makeFilterUrl(originalUrl,
-                    filterQueryArgumentName, displayQueryArgumentName, filters));
+                layer.setUrl(makeFilterUrl(config, originalUrl, filters));
             }
         }
     };
