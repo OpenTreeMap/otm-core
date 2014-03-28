@@ -103,9 +103,15 @@ function makePopup(latLon, html, size) {
             maxHeight: size.height || 130
         };
 
-        return L.popup(popupOptions)
+        var isPlot = $(html).data('mapfeature-type') === 'Plot';
+
+        var popup = L.popup(popupOptions)
             .setLatLng(latLon)
             .setContent(html);
+
+        popup.isPlot = isPlot;
+
+        return popup;
 
         //TODO: Pan map if out of view
     } else {
@@ -119,6 +125,8 @@ function showPlotDetailPopup(newPopup) {
     }
 
     popup = newPopup;
+
+    plotMarker.useTreeIcon(popup.isPlot);
 
     if (popup) {
         // Add the popup

@@ -1,22 +1,24 @@
 {% load i18n %}
 {% load instance_config %}
 
-<div>
+<div data-mapfeature-type="{{ feature.feature_type }}">
+  <div>
     <h4>{{ title }}</h4>
     <address>
-        <strong>{% trans "Nearby Address:" %}</strong>
-        {{ feature.address_full }}
+      <strong>{% trans "Nearby Address:" %}</strong>
+      {{ feature.address_full }}
     </address>
-</div>
-<div>
+  </div>
+  <div>
     <a href="{% url 'map_feature_detail' instance_url_name=request.instance.url_name feature_id=feature.pk %}"
        class="btn btn-small btn-secondary">{% trans "View All Details" %}</a>
 
     {% if feature.is_plot %}
-        <a disabled="disabled"
-           data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
-           data-disabled-title="{% trans "Editing a tree's details is not available to all users" %}"
-           data-href="{% url 'map_feature_detail_edit' instance_url_name=request.instance.url_name feature_id=feature.pk edit='edit' %}"
-           class="btn btn-small btn-info">{% trans "Edit Details" %}</a>
+    <a disabled="disabled"
+       data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+       data-disabled-title="{% trans "Editing a tree's details is not available to all users" %}"
+       data-href="{% url 'map_feature_detail_edit' instance_url_name=request.instance.url_name feature_id=feature.pk edit='edit' %}"
+       class="btn btn-small btn-info">{% trans "Edit Details" %}</a>
     {% endif %}
+  </div>
 </div>
