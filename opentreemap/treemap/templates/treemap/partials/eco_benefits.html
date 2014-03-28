@@ -2,7 +2,7 @@
 {% load l10n %}
 
 {% if request.instance_supports_ecobenefits %}
-<div id="benefit-values" class="benefit-values accordion-inner">
+<div {% if not hidecounts %}id="benefit-values"{% endif %} class="benefit-values accordion-inner">
     {% with plot_benefits=benefits.plot %}
     {% if not hide_summary and plot_benefits %}
     <div class="benefit-value-title">{% trans "General Eco Benefits"%}</div>
