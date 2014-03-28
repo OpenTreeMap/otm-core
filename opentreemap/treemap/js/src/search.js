@@ -161,13 +161,18 @@ function buildFilterObject (elems) {
 }
 
 function buildDisplayList() {
-    var filters =  _($('[data-search-display]'))
-            .filter('checked')
-            .map(function(el) {
-                return $(el).attr('data-search-display');
-            })
-            .value(),
-        filtersWithoutTreeModels = _.difference(filters, TREE_MODELS);
+    var $elems = $('[data-search-display]'),
+        $checkedElems = _.filter($elems, 'checked'),
+        filters, filtersWithoutTreeModels;
+
+    if ($elems.length === $checkedElems.length) {
+        return null;
+    }
+
+    filters = _.map($checkedElems, function(el) {
+        return $(el).attr('data-search-display');
+    });
+    filtersWithoutTreeModels = _.difference(filters, TREE_MODELS);
 
     if ((filters.length - filtersWithoutTreeModels.length) === TREE_MODELS.length) {
         return filtersWithoutTreeModels.concat('Plot');
