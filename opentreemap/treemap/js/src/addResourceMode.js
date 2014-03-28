@@ -60,7 +60,7 @@ function init(options) {
             manager.stepControls.enableNext(STEP_OUTLINE_AREA, true);
             manager.stepControls.enableNext(STEP_DETAILS, false);
             $summaryHead.text(typeName);
-            $summarySubhead.text("Resource");
+            $summarySubhead.text("Watershed Solution");
 
             var hasAreaStep = !!areaFieldName;
             activateAreaStep(hasAreaStep);
