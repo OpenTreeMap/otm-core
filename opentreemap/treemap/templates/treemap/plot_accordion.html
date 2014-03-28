@@ -19,4 +19,6 @@
     <input type="hidden" name="plot.address_city" value="{{ plot.address_city}}">
     <input type="hidden" name="plot.address_zip" value="{{ plot.address_zip}}">
 
+    {% include "treemap/partials/eco_benefits.html" with hidecounts=True %}
+
 </form>

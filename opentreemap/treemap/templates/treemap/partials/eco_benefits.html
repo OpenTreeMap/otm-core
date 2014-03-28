@@ -3,27 +3,27 @@
 
 {% if request.instance_supports_ecobenefits %}
 <div id="benefit-values" class="benefit-values accordion-inner">
-    {% if not hide_summary %}
+    {% with plot_benefits=benefits.plot %}
+    {% if not hide_summary and plot_benefits %}
     <div class="benefit-value-title">{% trans "General Eco Benefits"%}</div>
     {% endif %}
 
-    {% with plot_benefits=benefits.plot %}
     {% for benefit in plot_benefits %}
     {% include "treemap/partials/benefit_value_row.html" %}
     {% endfor %}
     {% endwith %}
 
-    {% if not hide_summary and request.instance.supports_resources %}
+    {% with resource_benefits=benefits.resource %}
+    {% if not hide_summary and request.instance.supports_resources and resource_benefits %}
     <div class="benefit-value-title">{% trans "Watershed Solution Benefits"%}</div>
     {% endif %}
 
-    {% with resource_benefits=benefits.resource %}
     {% for benefit in resource_benefits %}
     {% include "treemap/partials/benefit_value_row.html" %}
     {% endfor %}
     {% endwith %}
 
-    {% if not hide_summary %}
+    {% if not hide_summary and not hidecounts %}
     <div class="benefit-tree-count">
       {% with plot_only=request.instance.stores_plot_only plot_basis=basis.plot resource_basis=basis.resource %}
       {% blocktrans with used=plot_basis.n_objects_used total=plot_basis.n_total %}
@@ -40,6 +40,7 @@
     {% endif %}
 </div>
 {% endif %}
+{% if not hidecounts %}
 <div id="tree-and-planting-site-counts">
   {% localize on %}
   <span id="tree-count">
@@ -70,3 +71,4 @@
 
   {% endlocalize %}
 </div>
+{% endif %}
