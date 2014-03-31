@@ -87,6 +87,14 @@ class TreeBenefitsCalculator(BenefitCalculator):
                       'n_objects_discarded': n_total_trees}}
             return ({}, basis)
 
+        if n_total_trees == 0:
+            basis = {'plot':
+                     {'n_objects_used': 0,
+                      'n_objects_discarded': n_total_trees}}
+            empty_rslt = self._compute_currency_and_transform_units(
+                instance, {})
+            return (empty_rslt, basis)
+
         # When calculating benefits we can skip region information
         # if there is only one intersecting region or if the
         # instance forces a region on us
@@ -236,14 +244,16 @@ class TreeBenefitsCalculator(BenefitCalculator):
         # currency conversions are in lbs, so do this calc first
         # same with hydro
         for benefit in aqfactors + co2factors:
-            benefits[benefit] *= LBS_PER_KG
+            if benefit in benefits:
+                benefits[benefit] *= LBS_PER_KG
 
-        benefits['hydro_interception'] *= GAL_PER_CUBIC_M
+        if 'hydro_interception' in benefits:
+            benefits['hydro_interception'] *= GAL_PER_CUBIC_M
 
         factor_conversions = instance.factor_conversions
 
         for benefit in benefits:
-            value = benefits[benefit]
+            value = benefits.get(benefit, 0)
 
             if factor_conversions and value and benefit in factor_conversions:
                 currency = factor_conversions[benefit] * value
@@ -252,11 +262,12 @@ class TreeBenefitsCalculator(BenefitCalculator):
 
             benefits[benefit] = (value, currency)
 
-        # currency conversions are in kbtus, so do this after
-        # currency conversion
-        nat_gas_kbtu, nat_gas_cur = benefits['natural_gas']
-        nat_gas_kwh = nat_gas_kbtu * WATTS_PER_BTU
-        benefits['natural_gas'] = (nat_gas_kwh, nat_gas_cur)
+        if 'natural_gas' in benefits:
+            # currency conversions are in kbtus, so do this after
+            # currency conversion
+            nat_gas_kbtu, nat_gas_cur = benefits['natural_gas']
+            nat_gas_kwh = nat_gas_kbtu * WATTS_PER_BTU
+            benefits['natural_gas'] = (nat_gas_kwh, nat_gas_cur)
 
         rslt = {}
 

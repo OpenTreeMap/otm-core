@@ -13,6 +13,7 @@ from django.contrib.gis.geos import Point
 
 from treemap.models import Boundary, Tree
 from treemap.udf import DATETIME_FORMAT
+from treemap.util import to_object_name
 
 
 class ParseException (Exception):
@@ -24,14 +25,16 @@ class ParseException (Exception):
 DEFAULT_MAPPING = {'plot': '',
                    'tree': 'tree__',
                    'species': 'tree__species__',
-                   'treephoto': 'tree__treephoto__',
-                   'mapfeature': ''}
+                   'treePhoto': 'tree__treephoto__',
+                   'mapFeature': ''}
 
 TREE_MAPPING = {'plot': 'plot__',
                 'tree': '',
                 'species': 'species__',
                 'treePhoto': 'treephoto__',
                 'mapFeature': 'plot__'}
+
+PLOT_RELATED_MODELS = {'plot', 'tree', 'species', 'treePhoto'}
 
 
 class Filter(object):
@@ -64,21 +67,11 @@ class Filter(object):
 
         models = q.basekeys
 
-        # If we used more than one model that wasn't a map feature
-        # the query is invalid
-        models_without_mf = [m for m in models if m != 'mapfeature']
-        if len(models_without_mf) > 1:
-            raise Exception('Only one type of map feature '
-                            'can be queried at a time. You '
-                            'specified: %s' % models)
-
-        object_name = model_name.lower()
-
-        if len(models_without_mf) == 1 and \
-           models_without_mf[0] != object_name:
-            queryset = ModelClass.objects.none()
-        else:
+        if _is_valid_models_list_for_model(models, model_name, ModelClass,
+                                           self.instance):
             queryset = ModelClass.objects.filter(q)
+        else:
+            queryset = ModelClass.objects.none()
 
         return queryset
 
@@ -86,14 +79,25 @@ class Filter(object):
         return self.get_objects(ModelClass).count()
 
 
+def _is_valid_models_list_for_model(models, model_name, ModelClass, instance):
+    """Validates everything in models are valid filters for model_name"""
+    # MapFeature is valid for all models
+    models = {m for m in models if m != 'mapFeature'}
+
+    object_name = to_object_name(model_name)
+    models = models - {object_name}
+
+    # TODO: Handle stewardship searching here when we implement it
+    if model_name == 'Plot':
+        models = models - PLOT_RELATED_MODELS
+
+    return len(models) == 0
+
+
 class FilterContext(Q):
     def __init__(self, *args, **kwargs):
         if 'basekey' in kwargs:
-            basekey = kwargs['basekey']
-            if basekey in {'tree', 'plot', 'species'}:
-                basekey = 'plot'
-
-            self.basekeys = {basekey}
+            self.basekeys = {kwargs['basekey']}
 
             del kwargs['basekey']
         else:
