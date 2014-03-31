@@ -47,14 +47,11 @@ function redirectToSearchPage(config, filters, wmCoords) {
             var ll = U.webMercatorToLatLng(wmCoords.x, wmCoords.y);
             return '&z='+ mapManager.ZOOM_PLOT + '/' + ll.lat + '/' + ll.lng;
         },
-        filterObj = filters.filter,
-        displayList = filters.display,
-        filterPortion = U.getUpdatedQueryString(config.urls.filterQueryArgumentName, JSON.stringify(filterObj)),
-        displayPortion = U.getUpdatedQueryString(config.urls.displayQueryArgumentName, JSON.stringify(displayList)),
-        zPortion = wmCoords ? getZPortion(wmCoords) : '',
-        url = config.instance.url + 'map/?' + filterPortion + displayPortion + zPortion;
+        query = Search.makeQueryStringFromFilters(config, filters);
 
-    window.location.href = url;
+    query += wmCoords ? getZPortion(wmCoords) : '';
+
+    window.location.href = config.instance.url + 'map/?' + query;
 }
 
 function initSearchUi(config, searchStream) {

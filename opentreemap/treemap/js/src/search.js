@@ -5,7 +5,8 @@ var $ = require('jquery'),
     _ = require('lodash'),
     moment = require("moment"),
     isTypeaheadHiddenField = require('treemap/fieldHelpers'),
-    FH = require('treemap/fieldHelpers');
+    FH = require('treemap/fieldHelpers'),
+    querystring = require('querystring');
 
 var DATETIME_FORMAT = FH.DATETIME_FORMAT;
 var TREE_MODELS = ['Tree', 'EmptyPlot'];
@@ -20,6 +21,25 @@ var textToBool = function(text) {
 
 var boolToText = function(bool) {
     return bool ? "true" : "false";
+};
+
+var filterObjectIsEmpty = exports.filterObjectIsEmpty = function(filterObj) {
+    return filterObj ? _.keys(filterObj).length === 0 : true;
+};
+
+var displayListIsEmpty = exports.displayListIsEmpty = function(displayList) {
+    return _.isUndefined(displayList) || _.isNull(displayList);
+};
+
+var makeQueryStringFromFilters = exports.makeQueryStringFromFilters = function(config, filters) {
+    var query = {};
+    if ( ! filterObjectIsEmpty(filters.filter)) {
+        query[config.urls.filterQueryArgumentName] = JSON.stringify(filters.filter);
+    }
+    if ( ! displayListIsEmpty(filters.display)) {
+        query[config.urls.displayQueryArgumentName] = JSON.stringify(filters.display);
+    }
+    return querystring.stringify(query);
 };
 
 exports.buildElems = function (inputSelector) {
@@ -37,19 +57,11 @@ exports.buildElems = function (inputSelector) {
 };
 
 function executeSearch(config, filters) {
-    var searchQuery = filters.filter,
-        displayQuery = filters.display;
+    var query = makeQueryStringFromFilters(config, filters);
 
-    // An empty filter object is serialized as an empty string
-    searchQuery = searchQuery && Object.keys(searchQuery).length > 0 ?
-            JSON.stringify(searchQuery) :
-            '';
-    displayQuery = displayQuery && displayQuery.length > 0 ?
-            JSON.stringify(displayQuery) :
-            '';
     var search = $.ajax({
         url: config.instance.url + 'benefit/search',
-        data: {'q': searchQuery, 'show': displayQuery},
+        data: query,
         type: 'GET',
         dataType: 'html'
     });
@@ -90,11 +102,15 @@ function applyFilterObjectToDom(elems, search) {
 }
 
 function applyDisplayListToDom(displayList) {
+    var checkDisplayFilter = function(filter) {
+        $('[data-search-display="' + filter + '"]').prop('checked', true);
+    };
     if (displayList) {
         $('[data-search-display]').prop('checked', false);
-        _.each(displayList, function(filter) {
-            $('[data-search-display="' + filter + '"]').prop('checked', true);
-        });
+        _.each(displayList, checkDisplayFilter);
+        if (_.contains(displayList, 'Plot')) {
+            _.each(TREE_MODELS, checkDisplayFilter);
+        }
     } else {
         $('[data-search-display]').prop('checked', true);
     }
@@ -157,13 +173,18 @@ function buildFilterObject (elems) {
 }
 
 function buildDisplayList() {
-    var filters =  _($('[data-search-display]'))
-            .filter('checked')
-            .map(function(el) {
-                return $(el).attr('data-search-display');
-            })
-            .value(),
-        filtersWithoutTreeModels = _.difference(filters, TREE_MODELS);
+    var $elems = $('[data-search-display]'),
+        $checkedElems = _.filter($elems, 'checked'),
+        filters, filtersWithoutTreeModels;
+
+    if ($elems.length === $checkedElems.length) {
+        return null;
+    }
+
+    filters = _.map($checkedElems, function(el) {
+        return $(el).attr('data-search-display');
+    });
+    filtersWithoutTreeModels = _.difference(filters, TREE_MODELS);
 
     if ((filters.length - filtersWithoutTreeModels.length) === TREE_MODELS.length) {
         return filtersWithoutTreeModels.concat('Plot');
