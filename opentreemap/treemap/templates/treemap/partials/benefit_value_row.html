@@ -17,10 +17,17 @@
   {% endif %}
   <h3 class="benefit-label">{{ benefit.label }} {% trans "Benefits" %}</h3>
   <span class="benefit-content">
-    {{ benefit.value }} {{ benefit.unit }}
-    {% if benefit.currency_saved %}
-      {% comment %}Translators: Money saved{% endcomment %}
-      {% trans "saved" %} {{ benefit.currency_saved }}
+    {% if benefit.value %}
+      {{ benefit.value }} {{ benefit.unit }}
+      {% if benefit.currency_saved %}
+        {% comment %}Translators: Money saved{% endcomment %}
+        {% trans "saved" %} {{ benefit.currency_saved }}
+      {% endif %}
+    {% else %}
+      {% if benefit.currency_saved %}
+        {% comment %}Translators: Money saved{% endcomment %}
+        {{ benefit.currency_saved }} {% trans "saved" %}
+      {% endif %}
     {% endif %}
   </span>
 </div>

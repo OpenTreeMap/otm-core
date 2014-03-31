@@ -880,8 +880,25 @@ def search_tree_benefits(request, instance):
     total_plots = filter.get_object_count(Plot)
 
     benefits, basis = get_benefits_for_filter(filter)
+
     # Inject the plot count as a basis for tree benefit calcs
     basis.get('plot', {})['n_plots'] = total_plots
+
+    # We also want to inject the total currency amount saved
+    # for plot-based items except CO2 stored
+    total_currency_saved = 0
+
+    for benefit_name, benefit in benefits.get('plot', {}).iteritems():
+        if benefit_name != 'co2storage':
+            total_currency_saved += benefit.get('currency', 0.0)
+
+    # save it as if it were a normal benefit so we get formatting
+    # and currency conversion
+    benefits.get('plot', {})['totals'] = {
+        'value': None,
+        'currency': total_currency_saved,
+        'label': trans('Total')
+    }
 
     formatted = _format_benefits(instance, benefits, basis)
     formatted['hide_summary'] = hide_summary
