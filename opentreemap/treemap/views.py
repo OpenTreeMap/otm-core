@@ -890,7 +890,9 @@ def search_tree_benefits(request, instance):
 
     for benefit_name, benefit in benefits.get('plot', {}).iteritems():
         if benefit_name != 'co2storage':
-            total_currency_saved += benefit.get('currency', 0.0)
+            currency = benefit.get('currency', 0.0)
+            if currency:
+                total_currency_saved += currency
 
     # save it as if it were a normal benefit so we get formatting
     # and currency conversion
