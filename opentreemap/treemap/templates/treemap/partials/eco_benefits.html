@@ -57,17 +57,16 @@
     {{ plot_count }}</span> planting sites
   {% endblocktrans %}
 
-  {% comment %}
-  unhide me when the backend is implemented
-  {% endcomment %}
-  <span class="hidden">
-  <span id="resource-count">
-  {% blocktrans count resource_basis.n_resources as resource_count %}
-    {{ resource_count }}</span> watershed solution
-  {% plural %}
-    {{ resrouce_count }}</span> watershed solutions
-  {% endblocktrans %}
-  </span>
+  {% with resource_benefits=benefits.resource %}
+    {% if request.instance.supports_resources and resource_benefits %}
+       <span id="resource-count">
+         {% blocktrans count basis.resource.n_total as resource_count %}
+         {{ resource_count }}</span> watershed solution
+         {% plural %}
+         {{ resource_count }}</span> watershed solutions
+         {% endblocktrans %}
+    {% endif %}
+  {% endwith %}
 
   {% endlocalize %}
 </div>
