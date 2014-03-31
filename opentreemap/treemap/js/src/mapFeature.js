@@ -129,6 +129,7 @@ exports.init = function(options) {
     });
 
     plotMarker.init(options.config, mapManager.map);
+    plotMarker.useTreeIcon(options.useTreeIcon);
 
     reverseGeocodeStreamAndUpdateAddressesOnForm(
         options.config, plotMarker.moveStream, options.form);
