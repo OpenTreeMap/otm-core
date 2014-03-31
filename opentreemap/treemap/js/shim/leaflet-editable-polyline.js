@@ -544,6 +544,16 @@ L.Polyline.polylineEditor.addInitHook(function () {
 
         return this;
     });
+
+    this.on('remove', function(event) {
+        var polyline = event.target;
+        var map = polyline._map;
+        var polylines = map.getEditablePolylines();
+        var index = polylines.indexOf(polyline);
+        if (index > -1) {
+            polylines.splice(index, 1);
+        }
+    });
 });
 
 /**
