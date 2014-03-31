@@ -8,8 +8,18 @@
     <div class="benefit-value-title">{% trans "General Eco Benefits"%}</div>
     {% endif %}
 
+    {# Show value-less benefits first, so money only ones #}
+    {# Float to the top #}
     {% for benefit in plot_benefits %}
+    {% if not benefit.value %}
     {% include "treemap/partials/benefit_value_row.html" %}
+    {% endif %}
+    {% endfor %}
+
+    {% for benefit in plot_benefits %}
+    {% if benefit.value %}
+    {% include "treemap/partials/benefit_value_row.html" %}
+    {% endif %}
     {% endfor %}
     {% endwith %}
 
