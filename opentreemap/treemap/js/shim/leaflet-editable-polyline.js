@@ -38,8 +38,9 @@ L.Polyline.polylineEditor = L.Polygon.extend({
          * Check if there is *any* busy editable polyline on this map.
          */
         this._map.isEditablePolylinesBusy = function() {
-            for(var i = 0; i < that._map._editablePolylines.length; i++)
-                if(that._map._editablePolylines[i]._isBusy())
+            var map = this;
+            for(var i = 0; i < map._editablePolylines.length; i++)
+                if(map._editablePolylines[i]._isBusy())
                     return true;
 
             return false;
@@ -49,15 +50,14 @@ L.Polyline.polylineEditor = L.Polygon.extend({
          * Enable/disable editing.
          */
         this._map.setEditablePolylinesEnabled = function(enabled) {
-            if (that._map) {
-                that._map._editablePolylinesEnabled = enabled;
-                for(var i = 0; i < that._map._editablePolylines.length; i++) {
-                    var polyline = that._map._editablePolylines[i];
-                    if(enabled) {
-                        polyline._showBoundMarkers();
-                    } else {
-                        polyline._hideAll();
-                    }
+            var map = this;
+            map._editablePolylinesEnabled = enabled;
+            for(var i = 0; i < map._editablePolylines.length; i++) {
+                var polyline = map._editablePolylines[i];
+                if(enabled) {
+                    polyline._showBoundMarkers();
+                } else {
+                    polyline._hideAll();
                 }
             }
         };
@@ -67,12 +67,14 @@ L.Polyline.polylineEditor = L.Polygon.extend({
          * polylines.
          */
         this._map.getEditablePolylines = function() {
-            return that._map._editablePolylines;
+            var map = this;
+            return map._editablePolylines;
         }
 
         this._map.fixAroundEditablePoint = function(marker) {
-            for(var i = 0; i < that._map._editablePolylines.length; i++) {
-                var polyline = that._map._editablePolylines[i];
+            var map = this;
+            for(var i = 0; i < map._editablePolylines.length; i++) {
+                var polyline = map._editablePolylines[i];
                 polyline._reloadPolyline(marker);
             }
         }
