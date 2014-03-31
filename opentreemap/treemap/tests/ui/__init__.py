@@ -210,7 +210,6 @@ class TreemapUITestCase(UITestCase):
         self.browse_to_url("/autotest-instance/features/%s/trees/%s/"
                            % (plot_id, tree_id))
 
-
     def add_tree_done(self, whenDone='close'):
         # Move to "Finalize" step
         self._click_add_tree_next_step(1)

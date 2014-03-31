@@ -46,7 +46,7 @@ function init(options) {
     deactivateMode = function () {
         removeAreaPolygon();
         manager.deactivate();
-    }
+    };
 
     function onResourceTypeChosen() {
         var $option = $resourceType.filter(':checked'),
