@@ -38,9 +38,8 @@ function init(options) {
 
     activateMode = function() {
         manager.activate();
-        manager.stepControls.enableNext(STEP_CHOOSE_TYPE, false);
         plotMarker.useTreeIcon(false);
-        areaPolygon = null;
+        initSteps();
     };
 
     deactivateMode = function () {
@@ -70,6 +69,7 @@ function init(options) {
             } else {
                 areaFieldIdentifier = null;
             }
+            removeAreaPolygon(); // in case user backed up and changed type
 
             $.ajax({
                 url: config.instance.url + "features/" + type + '/',
@@ -105,6 +105,7 @@ function init(options) {
     function initSteps() {
         $resourceType.prop('checked', false);
         manager.stepControls.enableNext(STEP_CHOOSE_TYPE, false);
+        removeAreaPolygon();
         hideSubquestions();
     }
 
@@ -159,7 +160,9 @@ function init(options) {
 
     function removeAreaPolygon() {
         if (areaPolygon) {
+            disableAreaPolygon();
             mapManager.map.removeLayer(areaPolygon);
+            areaPolygon = null;
         }
     }
 
