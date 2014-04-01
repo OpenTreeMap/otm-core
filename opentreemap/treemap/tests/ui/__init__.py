@@ -201,7 +201,7 @@ class TreemapUITestCase(UITestCase):
     def go_to_map_page(self):
         self.browse_to_url("/autotest-instance/map/")
 
-    def go_to_feature_detail(self, feauture_id, edit=False):
+    def go_to_feature_detail(self, feature_id, edit=False):
         self.browse_to_url("/autotest-instance/features/%s/%s"
                            % (feature_id,
                               "edit" if edit else ""))
