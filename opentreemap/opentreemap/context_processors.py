@@ -5,6 +5,7 @@ from __future__ import division
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
+from django.utils.translation import ugettext as trans
 
 from treemap.util import get_last_visited_instance
 from treemap.models import InstanceUser
@@ -42,6 +43,22 @@ def global_settings(request):
            'last_instance': last_instance,
            'last_effective_instance_user': last_effective_instance_user,
            'logo_url': logo_url,
-           'header_comment': header_comment}
+           'header_comment': header_comment,
+           'term': _get_terms(request)
+    }
 
     return ctx
+
+# Translators: items in this list are site-wide terms needing translation
+REPLACEABLE_TERMS = ['Resource', 'Resources']
+
+def _get_terms(request):
+    terms = {}
+    if hasattr(request, 'instance'):
+        config = request.instance.config
+        for term in REPLACEABLE_TERMS:
+            replacement = config.get('terms.' + term, trans(term))
+            terms[term] = replacement
+            terms[term.lower()] = replacement.lower()
+    return terms
+

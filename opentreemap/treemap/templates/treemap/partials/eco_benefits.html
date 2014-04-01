@@ -25,7 +25,7 @@
 
     {% with resource_benefits=benefits.resource %}
     {% if not hide_summary and request.instance.supports_resources and resource_benefits %}
-    <div class="benefit-value-title">{% trans "Watershed Solution Benefits"%}</div>
+    <div class="benefit-value-title">{{ term.Resource }}{% trans "Benefits"%}</div>
     {% endif %}
 
     {% for benefit in resource_benefits %}
@@ -42,7 +42,7 @@
       {% if plot_only %}.{% endif %}
       {% if not plot_only %}
       {% blocktrans with used=resource_basis.n_objects_used total=resource_basis.n_total %}
-        and {{ used }} out of {{ total }} total watershed solutions.
+        and {{ used }} out of {{ total }} total {{ term.resources }}.
       {% endblocktrans %}
       {% endif %}
       {% endwith %}
@@ -69,12 +69,12 @@
 
   {% with resource_benefits=benefits.resource %}
     {% if request.instance.supports_resources and resource_benefits %}
-       <span id="resource-count">
-         {% blocktrans count basis.resource.n_total as resource_count %}
-         {{ resource_count }}</span> watershed solution
-         {% plural %}
-         {{ resource_count }}</span> watershed solutions
-         {% endblocktrans %}
+      <span id="resource-count">{{ resource_count }}</span>
+      {% if resource_count == 1 %}
+        {{ term.resource }}
+      {% else %}
+        {{ term.resources }}
+      {% endif %}
     {% endif %}
   {% endwith %}
 

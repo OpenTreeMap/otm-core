@@ -4,12 +4,14 @@
 {% with nsteps=5 %}
 <div class="sidebar-inner">
     <a href="javascript:;" class="close cancelBtn small">×</a>
-    <h3>{% trans "Add a Watershed Solution" %}</h3>
+    <h3>{% trans "Add a" %} {{ term.Resource }}</h3>
     <div class="add-step-container">
         <div class="add-step active">
-            <div class="add-step-header">{% trans "Select Watershed Solution Type" %}</div>
+            <div class="add-step-header">
+              {% blocktrans with Resource=terms.Resource%} Select {{ Resource }} Type {% endblocktrans %}
+            </div>
             <div class="add-step-content">
-                <label>{% trans "Watershed Solution Type" %}</label>
+                <label>{{ term.Resource }} {% trans "Type" %}</label>
                 {% for cls in resource_classes %}
                     <input type="radio"
                            name="addResourceType"
@@ -23,16 +25,16 @@
             </div>
             {% include 'treemap/partials/step_controls.html' with first=True %}
         </div>
-        {% include "treemap/partials/step_set_location.html" with feature_name="watershed solution" %}
+        {% include "treemap/partials/step_set_location.html" with feature_name=term.resource %}
         <div class="add-step">
             <div class="add-step-header">{% trans "Indicate Nearby Roof Area" %}</div>
             <div class="add-step-content">
-                <div class="alert alert-info">Drag and outline the nearby roof area that would drain into your watershed solution.</div>
+                <div class="alert alert-info">Drag and outline the nearby roof area that would drain into your {{ term.resource }}.</div>
             </div>
             {% include 'treemap/partials/step_controls.html' %}
         </div>
         <div class="add-step">
-            <div class="add-step-header">{% trans "About this Watershed Solution" %}</div>
+            <div class="add-step-header">{% trans "About this" %} {{ term.Resource }}</div>
             <div class="add-step-content">
                 <form id="add-resource-form" onsubmit="return false;">
                   {# Added dynamically when resource type is chosen #}
@@ -41,21 +43,21 @@
             {% include 'treemap/partials/step_controls.html' %}
         </div>
         <div class="add-step">
-            <div class="add-step-header">{% trans "Finalize this Watershed Solution" %}</div>
+            <div class="add-step-header">{% trans "Finalize this" %} {{ term.Resource }}</div>
             <div class="add-step-content">
                 <h3 class="summaryHead"></h3>
-                <h6 class="summarySubhead"></h6>
+                <h6 class="summarySubhead">{{ term.Resource }}</h6>
                 <h4 class="summaryAddress"></h4>
                 <h6>Nearby Address</h6>
                 <hr/>
                 <span>
                     <input type="radio" name="addResourceOptions" value="new" id="addresource-addnew" /><label for="addresource-addnew">
-                        {% trans "Add another Watershed Solution" %}
+                        {% trans "Add another" %} {{ term.resource }}
                     </label>
                 </span>
                 <span>
                     <input type="radio" name="addResourceOptions" value="edit" id="addresource-viewdetails" disabled class="disabled"/><label for="addresource-viewdetails">
-                        {% trans "Continue editing this Watershed Solution" %}
+                        {% trans "Continue editing this" %} {{ term.resource }}
                     </label>
                 </span>
                 <span>
