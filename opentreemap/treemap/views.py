@@ -187,7 +187,7 @@ def add_tree_photo_view(request, instance, feature_id, tree_id=None):
 
 def map_feature_popup(request, instance, feature_id):
     feature = _get_map_feature_or_404(feature_id, instance)
-    context = _context_dict_for_map_feature(instance, feature)
+    context = _context_dict_for_map_feature(request, feature)
     return context
 
 
@@ -220,7 +220,7 @@ def _map_feature_detail(request, instance, feature, edit=False, tree_id=None):
         context['editmode'] = edit
 
     else:
-        context = _context_dict_for_map_feature(instance, feature)
+        context = _context_dict_for_resource(request, feature)
 
     return context
 
@@ -240,11 +240,18 @@ def _add_eco_benefits_to_context_dict(instance, feature, context):
         context.update(_format_benefits(instance, benefits, basis))
 
 
-def _context_dict_for_map_feature(instance, feature):
+def _context_dict_for_map_feature(request, feature):
+    instance = request.instance
     if instance.pk != feature.instance_id:
         raise Exception("Invalid instance, does not match map feature")
 
     feature.instance = instance  # save a DB lookup
+
+    user = request.user
+    if user and user.is_authenticated():
+        feature.mask_unauthorized_fields(user)
+
+    feature.convert_to_display_units()
 
     if feature.is_plot:
         tree = feature.current_tree()
@@ -270,9 +277,9 @@ def _context_dict_for_map_feature(instance, feature):
 
 
 def context_dict_for_plot(request, plot, tree_id=None):
+    context = _context_dict_for_map_feature(request, plot)
     instance = request.instance
     user = request.user
-    context = _context_dict_for_map_feature(instance, plot)
 
     if tree_id:
         tree = get_object_or_404(Tree,
@@ -282,7 +289,6 @@ def context_dict_for_plot(request, plot, tree_id=None):
     else:
         tree = plot.current_tree()
 
-    plot.convert_to_display_units()
     if tree:
         tree.convert_to_display_units()
 
@@ -337,9 +343,6 @@ def context_dict_for_plot(request, plot, tree_id=None):
                     kwargs={'instance_url_name': instance.url_name,
                             'feature_id': plot.pk})
 
-    if user and user.is_authenticated():
-        plot.mask_unauthorized_fields(user)
-
     context['plot'] = plot
     context['has_tree'] = tree is not None
     # Give an empty tree when there is none in order to show tree fields easily
@@ -377,6 +380,27 @@ def context_dict_for_plot(request, plot, tree_id=None):
         context['latest_update'] = audits[0]
     else:
         context['latest_update'] = None
+
+    return context
+
+
+def _context_dict_for_resource(request, resource):
+    context = _context_dict_for_map_feature(request, resource)
+
+    # Give them 2 for adding the resource and answering its questions
+    total_progress_items = 3
+    completed_progress_items = 2
+
+    has_photo = False;  # TODO: support resource photos
+    if has_photo:
+        completed_progress_items += 1
+
+    context['progress_percent'] = int(100 * (
+        completed_progress_items / total_progress_items) + .5)
+
+    context['progress_messages'] = []
+    if not has_photo:
+        context['progress_messages'].append(trans('Add a photo'))
 
     return context
 
