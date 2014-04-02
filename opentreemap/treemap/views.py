@@ -216,18 +216,7 @@ def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
 
 def _map_feature_detail(request, instance, feature, edit=False, tree_id=None):
     if feature.is_plot:
-        if hasattr(request, 'instance_supports_ecobenefits'):
-            supports_eco = request.instance_supports_ecobenefits
-        else:
-            supports_eco = instance.has_itree_region()
-
-        context = context_dict_for_plot(
-            instance,
-            feature,
-            tree_id,
-            user=request.user,
-            supports_eco=supports_eco)
-
+        context = context_dict_for_plot(request, feature, tree_id)
         context['editmode'] = edit
 
     else:
@@ -280,8 +269,9 @@ def _context_dict_for_map_feature(instance, feature):
     return context
 
 
-def context_dict_for_plot(instance, plot,
-                          tree_id=None, user=None, supports_eco=False):
+def context_dict_for_plot(request, plot, tree_id=None):
+    instance = request.instance
+    user = request.user
     context = _context_dict_for_map_feature(instance, plot)
 
     if tree_id:

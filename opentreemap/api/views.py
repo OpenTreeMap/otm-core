@@ -10,7 +10,6 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.contrib.auth.forms import PasswordResetForm
-from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 
 from opentreemap.util import route
@@ -63,7 +62,7 @@ def edits(request, instance, user_id):
     if (int(user_id) != request.user.pk):
         return create_401unauthorized()
 
-    user = User.objects.get(pk=user_id)
+    user = request.user
 
     result_offset = int(request.REQUEST.get("offset", 0))
     num_results = min(int(request.REQUEST.get("length", 15)), 15)
@@ -82,11 +81,7 @@ def edits(request, instance, user_id):
         d["plot_id"] = plot.pk
 
         if plot.pk:
-            d["plot"] = context_dict_for_plot(
-                request.instance,
-                plot,
-                user=user,
-                supports_eco=request.instance_supports_ecobenefits)
+            d["plot"] = context_dict_for_plot(request, plot)
 
         d["id"] = audit.pk
         d["name"] = audit.display_action
@@ -176,11 +171,7 @@ def get_plot_list(request, instance):
                         .order_by('id')[start:end]
 
     def ctxt_for_plot(plot):
-        return context_dict_for_plot(
-            request.instance,
-            plot,
-            user=request.user,
-            supports_eco=request.instance_supports_ecobenefits)
+        return context_dict_for_plot(request, plot)
 
     return [ctxt_for_plot(plot) for plot in plots]
 
@@ -200,11 +191,7 @@ def _approve_or_reject_pending_edit(
                                          .filter(field=audit.field):
             approve_or_reject_audit_and_apply(pending_audit, user, False)
 
-    return context_dict_for_plot(
-        request.instance,
-        updated_plot,
-        user=request.user,
-        supports_eco=request.instance_supports_ecobenefits)
+    return context_dict_for_plot(request, updated_plot)
 
 
 @require_http_methods(["POST"])
@@ -254,11 +241,7 @@ def remove_current_tree_from_plot(request, instance, plot_id):
         try:
             tree.delete_with_user(request.user)
             updated_plot = Plot.objects.get(pk=plot_id)
-            return context_dict_for_plot(
-                request.instance,
-                updated_plot,
-                user=request.user,
-                supports_eco=request.instance_supports_ecobenefits)
+            return context_dict_for_plot(request, updated_plot)
         except:
             raise PermissionDenied(
                 '%s does not have permission to the '
