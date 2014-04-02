@@ -23,13 +23,7 @@
     <input name="{{ field.identifier }}"
            type="text"
            class="{{ class|default_if_none:"" }}"
-           {% if request.instance %}
-           value="{{ field.value|date:request.instance.short_date_format }}"
-           data-date-format="{{ request.instance.short_date_format|datepicker_format }}"
-           {% else %}
-           value="{{ field.value|date:"SHORT_DATE_FORMAT" }}"
-           data-date-format="{{ settings.SHORT_DATE_FORMAT|datepicker_format }}"
-           {% endif %}
+           {% include "treemap/partials/date_picker_init.html" with date_picker_value=field.value %}
            {{ extra|default:"" }} />
 {% elif field.data_type == 'long_string' %}
     <textarea name="{{ field.identifier }}"
