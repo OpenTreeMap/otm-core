@@ -38,21 +38,24 @@ def global_settings(request):
     except:
         header_comment = "Version information not available\n"
 
-    ctx = {'SITE_ROOT': settings.SITE_ROOT,
-           'settings': settings,
-           'last_instance': last_instance,
-           'last_effective_instance_user': last_effective_instance_user,
-           'logo_url': logo_url,
-           'header_comment': header_comment,
-           'term': _get_terms(request)
+    ctx = {
+        'SITE_ROOT': settings.SITE_ROOT,
+        'settings': settings,
+        'last_instance': last_instance,
+        'last_effective_instance_user': last_effective_instance_user,
+        'logo_url': logo_url,
+        'header_comment': header_comment,
+        'term': _get_terms(request)
     }
 
     return ctx
+
 
 REPLACEABLE_TERMS = {
     'Resource': trans('Resource'),
     'Resources': trans('Resources'),
     }
+
 
 def _get_terms(request):
     terms = {}
@@ -63,4 +66,3 @@ def _get_terms(request):
             terms[term] = replacement
             terms[term.lower()] = replacement.lower()
     return terms
-
