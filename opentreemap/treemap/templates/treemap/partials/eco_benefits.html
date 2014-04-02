@@ -35,17 +35,16 @@
 
     {% if not hide_summary and not hidecounts %}
     <div class="benefit-tree-count">
-      {% with plot_only=request.instance.stores_plot_only plot_basis=basis.plot resource_basis=basis.resource %}
-      {% blocktrans with used=plot_basis.n_objects_used total=plot_basis.n_total %}
-      Based on {{ used }} out of {{ total }} total trees
-      {% endblocktrans %}
-      {% if plot_only %}.{% endif %}
-      {% if not plot_only %}
-      {% blocktrans with used=resource_basis.n_objects_used total=resource_basis.n_total resources=term.resources%}
-        and {{ used }} out of {{ total }} total {{ resources }}.
-      {% endblocktrans %}
-      {% endif %}
+      {% with has_resources=request.instance.supports_resources plot_basis=basis.plot resource_basis=basis.resource %}
+        {% blocktrans with used=plot_basis.n_objects_used total=plot_basis.n_total %}
+        Based on {{ used }} out of {{ total }} total trees{% endblocktrans %}{% if not has_resources %}.{% endif %}
+        {% if has_resources %}
+          {% blocktrans with used=resource_basis.n_objects_used total=resource_basis.n_total resources=term.resources%}
+            and {{ used }} out of {{ total }} total {{ resources }}.
+          {% endblocktrans %}
+        {% endif %}
       {% endwith %}
+
     </div>
     {% endif %}
 </div>
