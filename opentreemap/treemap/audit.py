@@ -1194,8 +1194,13 @@ class Audit(models.Model):
 
         format_string = cls.action_format_string_for_audit(self)
 
+        if hasattr(cls, 'display_name'):
+            model_display_name = cls.display_name
+        else:
+            model_display_name = trans(self.model)
+
         return format_string % {'field': self.field_display_name,
-                                'model': trans(self.model).lower(),
+                                'model': model_display_name.lower(),
                                 'value': self.current_display_value}
 
     def dict(self):

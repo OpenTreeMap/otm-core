@@ -350,6 +350,37 @@ def context_dict_for_plot(request, plot, tree_id=None):
 
     audits = _plot_audits(user, instance, plot)
 
+    _add_audits_to_context(audits, context)
+
+    return context
+
+
+def _context_dict_for_resource(request, resource):
+    context = _context_dict_for_map_feature(request, resource)
+
+    # Give them 2 for adding the resource and answering its questions
+    total_progress_items = 3
+    completed_progress_items = 2
+
+    has_photo = False  # TODO: support resource photos
+    if has_photo:
+        completed_progress_items += 1
+
+    context['progress_percent'] = int(100 * (
+        completed_progress_items / total_progress_items) + .5)
+
+    context['progress_messages'] = []
+    if not has_photo:
+        context['progress_messages'].append(trans('Add a photo'))
+
+    audits = _map_feature_audits(request.user, request.instance, resource)
+
+    _add_audits_to_context(audits, context)
+
+    return context
+
+
+def _add_audits_to_context(audits, context):
     def _audits_are_in_different_groups(prev_audit, audit):
         if prev_audit is None:
             return True
@@ -380,29 +411,6 @@ def context_dict_for_plot(request, plot, tree_id=None):
         context['latest_update'] = audits[0]
     else:
         context['latest_update'] = None
-
-    return context
-
-
-def _context_dict_for_resource(request, resource):
-    context = _context_dict_for_map_feature(request, resource)
-
-    # Give them 2 for adding the resource and answering its questions
-    total_progress_items = 3
-    completed_progress_items = 2
-
-    has_photo = False;  # TODO: support resource photos
-    if has_photo:
-        completed_progress_items += 1
-
-    context['progress_percent'] = int(100 * (
-        completed_progress_items / total_progress_items) + .5)
-
-    context['progress_messages'] = []
-    if not has_photo:
-        context['progress_messages'].append(trans('Add a photo'))
-
-    return context
 
 
 def add_map_feature(request, instance, type='Plot'):
@@ -735,15 +743,6 @@ def edits(request, instance):
 
 
 def _plot_audits(user, instance, plot):
-    readable_plot_fields = plot.visible_fields(user)
-
-    plot_filter = Q(model='Plot', model_id=plot.pk,
-                    field__in=readable_plot_fields)
-
-    plot_collection_udfs_filter = Q(
-        model__in=plot.visible_collection_udfs_audit_names(user),
-        model_id__in=plot.collection_udfs_audit_ids())
-
     fake_tree = Tree(instance=instance)
     tree_visible_fields = fake_tree.visible_fields(user)
 
@@ -766,6 +765,26 @@ def _plot_audits(user, instance, plot):
         model_id__in=Tree.static_collection_udfs_audit_ids(
             (instance,), tree_history, tree_collection_udfs_audit_names))
 
+    filters = [tree_filter, tree_delete_filter]
+    cudf_filters = [tree_collection_udfs_filter]
+
+    audits = _map_feature_audits(user, instance, plot, filters, cudf_filters)
+
+    return audits
+
+
+def _map_feature_audits(user, instance, feature, filters=[], cudf_filters=[]):
+    readable_plot_fields = feature.visible_fields(user)
+
+    feature_filter = Q(model=feature.feature_type, model_id=feature.pk,
+                       field__in=readable_plot_fields)
+    filters.append(feature_filter)
+
+    feature_collection_udfs_filter = Q(
+        model__in=feature.visible_collection_udfs_audit_names(user),
+        model_id__in=feature.collection_udfs_audit_ids())
+    cudf_filters.append(feature_collection_udfs_filter)
+
     # Seems to be much faster to do three smaller
     # queries here instead of ORing them together
     # (about a 50% inprovement!)
@@ -774,14 +793,14 @@ def _plot_audits(user, instance, plot):
     iaudit = Audit.objects.filter(instance=instance)
 
     audits = []
-    for afilter in [tree_filter, tree_delete_filter, plot_filter]:
+    for afilter in filters:
         audits += list(iaudit.filter(afilter).order_by('-updated')[:5])
 
     # UDF collection audits have some fields which aren't very useful to show
     udf_collection_exclude_filter = Q(
         field__in=['model_id', 'field_definition'])
 
-    for afilter in [plot_collection_udfs_filter, tree_collection_udfs_filter]:
+    for afilter in cudf_filters:
         audits += list(iaudit.filter(afilter)
                              .exclude(udf_collection_exclude_filter)
                              .order_by('-updated')[:5])
