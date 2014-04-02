@@ -88,11 +88,20 @@ def instance_info(request, instance):
 
     perms = {}
 
+    collection_udfs = instance.userdefinedfielddefinition_set\
+                              .filter(iscollection=True)
+    collection_udf_dict = {"%s.%s" % (udf.model_type.lower(),
+                                      udf.canonical_name):udf
+                           for udf in collection_udfs}
+
     for fp in role.fieldpermission_set.all():
         model = fp.model_name.lower()
         field_key = '%s.%s' % (model, fp.field_name)
         if fp.allows_reads:
-            if is_json_field_reference(fp.field_name):
+            if field_key in collection_udf_dict:
+                choices = []
+                data_type = collection_udf_dict[field_key].datatype
+            elif is_json_field_reference(fp.field_name):
                 choices = None
                 data_type = "string"
             else:
@@ -124,7 +133,8 @@ def instance_info(request, instance):
                 'can_write': fp.allows_writes,
                 'display_name': fp.display_field_name,
                 'field_name': fp.field_name,
-                'field_key': field_key
+                'field_key': field_key,
+                'is_collection': field_key in collection_udf_dict
             }
 
     info = _instance_info_dict(instance)
