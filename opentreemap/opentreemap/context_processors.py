@@ -49,15 +49,17 @@ def global_settings(request):
 
     return ctx
 
-# Translators: items in this list are site-wide terms needing translation
-REPLACEABLE_TERMS = ['Resource', 'Resources']
+REPLACEABLE_TERMS = {
+    'Resource': trans('Resource'),
+    'Resources': trans('Resources'),
+    }
 
 def _get_terms(request):
     terms = {}
     if hasattr(request, 'instance'):
         config = request.instance.config
-        for term in REPLACEABLE_TERMS:
-            replacement = config.get('terms.' + term, trans(term))
+        for term, translation in REPLACEABLE_TERMS.iteritems():
+            replacement = config.get('terms.' + term, translation)
             terms[term] = replacement
             terms[term.lower()] = replacement.lower()
     return terms
