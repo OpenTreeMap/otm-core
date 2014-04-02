@@ -31,6 +31,7 @@
   </ul>
   {% endfor %}
 </div>
+{% if feature.is_plot %}
 <div class="well">
   <h3>{% trans "Nearby Trees" %}</h3>
   {% with nearby=plot.nearby_plots %}
@@ -45,3 +46,4 @@
   {% endif %}
 </div>
 {% endwith %}
+{% endif %}
