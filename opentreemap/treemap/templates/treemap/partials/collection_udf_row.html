@@ -6,11 +6,6 @@
    {% endif %}
    >
   {% for field in udf.datatype_dict %}
-  <td>
-    {{ value.data|get:field.name }}
-    {% if forloop.last and udf.name == "Alerts" %}
-      <a>Resolve</a>
-    {% endif %}
-  </td>
+  <td>{{ value.data|get:field.name }}</td>
   {% endfor %}
 </tr>
