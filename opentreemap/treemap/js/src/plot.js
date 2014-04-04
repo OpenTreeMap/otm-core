@@ -62,8 +62,6 @@ exports.init = function(options) {
         $noTreeMessage.hide();
         $cancelAddTree.hide();
     }
-    $(options.inlineEditForm.edit).click(showAddTree);
-    $(options.inlineEditForm.cancel).click(hideAddTree);
     $addTree.click(function() {
         var $editFields = $(options.inlineEditForm.editFields);
         $addTree.hide();
@@ -80,7 +78,6 @@ exports.init = function(options) {
         $treeSection.hide();
         FH.getSerializableField($editFields, 'tree.plot').val('');
     });
-    form.saveOkStream.onValue(hideAddTree);
 
     var newTreeIdStream = form.saveOkStream
             .map('.responseData.treeId')
@@ -97,8 +94,12 @@ exports.init = function(options) {
         $section.html('<a href="trees/' + id + '/">' + id + '</a>');
     }
 
-    if (options.startInEditMode) {
-        showAddTree();
-    }
+    form.inEditModeProperty.onValue(function (inEditMode) {
+        if (inEditMode) {
+            showAddTree();
+        } else {
+            hideAddTree();
+        }
+    });
 
 };
