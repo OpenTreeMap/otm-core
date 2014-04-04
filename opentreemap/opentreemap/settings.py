@@ -295,6 +295,8 @@ EXTRA_UI_TESTS = ()
 EXTRA_DISPLAY_DEFAULTS = {}
 EXTRA_STORAGE_UNITS = {}
 
+BING_API_KEY = None
+
 from opentreemap.local_settings import *  # NOQA
 
 MANAGED_APPS = EXTRA_MANAGED_APPS + MANAGED_APPS
