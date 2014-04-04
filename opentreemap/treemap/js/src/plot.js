@@ -97,9 +97,24 @@ exports.init = function(options) {
     form.inEditModeProperty.onValue(function (inEditMode) {
         if (inEditMode) {
             showAddTree();
+            addResolveAlertButtons();
         } else {
             hideAddTree();
         }
     });
+
+    function addResolveAlertButtons() {
+        var $tables = $('table[data-udf-name$="Alerts"]'),
+            $buttons = $tables.find('.resolveBtn'),
+            $unresolved = $tables.find('tr[data-value-id] td:contains("Unresolved")');
+        $buttons.remove();
+        $unresolved.next().append(
+            '<a href="javascript:;" class="btn btn-mini resolveBtn" data-class="edit">Resolve</a>');
+        $tables.find('.resolveBtn').click(function () {
+            $(this).closest('tr')
+                .find('td:contains("Unresolved")')
+                .text('Resolved');
+        });
+    }
 
 };
