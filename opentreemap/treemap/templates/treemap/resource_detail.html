@@ -15,7 +15,7 @@
   <tbody>
     <tr>
       <td>{{ term.Resource }} {% trans "number" %}</td>
-      <td>{{ feature.pk }}</td>
+      <td>{{ feature.pk|unlocalize }}</td>
     </tr>
 
     {% block resource_details %}
