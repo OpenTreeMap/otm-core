@@ -7,9 +7,11 @@
     <a href="{{ photo.image.url }}"><img src="{{ photo.thumbnail.url }}" alt=""></a>
   </div>
 {% empty %}
+  {% if feature.is_plot %}
   <div class="item active">
     <img id="tree-photo-placeholder" src="{{ STATIC_URL }}img/tree.png">
   </div>
+  {% endif %}
 {% endfor %}
 </div>
 <div id="tree-photo-thumbnails">

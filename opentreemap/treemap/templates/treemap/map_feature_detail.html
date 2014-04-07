@@ -18,11 +18,11 @@
 <div class="container contained topper tree-details">
   <div class="row-fluid">
     <div class="span3">
-{% if feature.is_plot %}
       <div class="photo-container">
         <div id="tree-photo-carousel" class="carousel slide" data-interval="">
             {% include "treemap/partials/tree_carousel.html" with photos=tree.photos %}
         </div>
+{% if feature.is_plot %}
         <button id="toggle-add-photo-modal"
                 data-toggle="modal"
                 data-target="#add-photo-modal"
@@ -31,11 +31,11 @@
                 disabled="disabled"
                 data-disabled-title="{% trans "Adding tree photos is not available to all users" %}"
                 class="btn btn-mini add-photos">{% trans "Add Photo" %}</button>
+{% endif %}
       </div>
       <div id="sidebar">
         {% include "treemap/partials/sidebar.html" %}
       </div>
-{% endif %}
     </div>
 
     <div class="span9">
@@ -128,11 +128,13 @@
             {% endif %}
           </div>
 
+          {% if feature.is_plot %}
           <div id="comment_disclaimer">
             <p class="muted">
               <em>The comment system does not serve as a way to report problems with a tree.</em>
             </p>
           </div>
+          {% endif %}
 
         </div>
 

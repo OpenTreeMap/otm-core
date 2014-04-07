@@ -41,21 +41,13 @@ def plots_closest_to_point(request, instance, lat, lng):
                         .order_by('distance')[0:max_plots]
 
     def ctxt_for_plot(plot):
-        return context_dict_for_plot(
-            request.instance,
-            plot,
-            user=request.user,
-            supports_eco=request.instance_supports_ecobenefits)
+        return context_dict_for_plot(request, plot)
 
     return [ctxt_for_plot(plot) for plot in plots]
 
 
 def get_plot(request, instance, plot_id):
-    return context_dict_for_plot(
-        request.instance,
-        Plot.objects.get(pk=plot_id),
-        user=request.user,
-        supports_eco=request.instance_supports_ecobenefits)
+    return context_dict_for_plot(request, Plot.objects.get(pk=plot_id))
 
 
 def update_or_create_plot(request, instance, plot_id=None):
@@ -96,11 +88,7 @@ def update_or_create_plot(request, instance, plot_id=None):
 
     plot, _ = update_map_feature(data, request.user, plot)
 
-    context_dict = context_dict_for_plot(
-        request.instance,
-        plot,
-        user=request.user,
-        supports_eco=request.instance_supports_ecobenefits)
+    context_dict = context_dict_for_plot(request, plot)
 
     # Fetch the latest instance version to get an updated geo rev hash
     # so that clients will know if a tile refresh is required
