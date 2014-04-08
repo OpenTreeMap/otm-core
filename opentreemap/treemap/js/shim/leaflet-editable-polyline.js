@@ -213,7 +213,7 @@ L.Polyline.polylineEditor = L.Polygon.extend({
                     var marker = polyline._markers[markerNo];
                     if(found < that._options.maxMarkers) {
                         that._setMarkerVisible(marker, bounds.contains(marker.getLatLng()));
-                        that._setMarkerVisible(marker.newPointMarker, markerNo > 0 && bounds.contains(marker.getLatLng()));
+                        that._setMarkerVisible(marker.newPointMarker, bounds.contains(marker.getLatLng()));
                     } else {
                         that._setMarkerVisible(marker, false);
                         that._setMarkerVisible(marker.newPointMarker, false);
@@ -331,7 +331,7 @@ L.Polyline.polylineEditor = L.Polygon.extend({
             newPointMarker.on('dragstart', function(event) {
                 var pointNo = that._getPointNo(event.target);
                 var previousPoint = that._markers[that._getPrevPointNo(pointNo)].getLatLng();
-                var nextPoint = that._markers[that._getNextPointNo(pointNo)].getLatLng();
+                var nextPoint = that._markers[pointNo].getLatLng();
                 that._setupDragLines(marker.newPointMarker, previousPoint, nextPoint);
 
                 that._setBusy(true);
