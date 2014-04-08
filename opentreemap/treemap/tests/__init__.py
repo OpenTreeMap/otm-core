@@ -315,7 +315,8 @@ def create_mock_system_user():
     User._system_user = system_user
 
 
-def make_request(params={}, user=None, method='GET', body=None, file=None):
+def make_request(params={}, user=None, instance=None,
+                 method='GET', body=None, file=None):
     if user is None:
         user = AnonymousUser()
 
@@ -333,6 +334,9 @@ def make_request(params={}, user=None, method='GET', body=None, file=None):
         req.method = method
 
     setattr(req, 'user', user)
+
+    if instance:
+        setattr(req, 'instance', instance)
 
     return req
 
