@@ -788,6 +788,12 @@ class PlotViewTestCase(ViewTestCase):
         self.instance = make_instance(point=self.p)
         self.user = make_commander_user(self.instance)
 
+    def get_plot_context(self, plot):
+        context = plot_detail(make_request(user=self.user,
+                                           instance=self.instance),
+                              self.instance, plot.pk)
+        return context
+
 
 class PlotViewTest(PlotViewTestCase):
 
@@ -829,9 +835,7 @@ class PlotViewTest(PlotViewTestCase):
         plot.width = 9
         plot.save_with_user(self.user)
 
-        details = plot_detail(make_request(user=self.user),
-                              self.instance,
-                              plot.pk)
+        details = self.get_plot_context(plot)
 
         self.assertIn('recent_activity', details)
 
@@ -853,9 +857,7 @@ class PlotViewTest(PlotViewTestCase):
         tree.readonly = True
         tree.save_with_user(self.user)
 
-        details = plot_detail(make_request(user=self.user),
-                              self.instance,
-                              plot.pk)
+        details = self.get_plot_context(plot)
 
         self.assertIn('recent_activity', details)
 
@@ -884,7 +886,7 @@ class PlotViewTest(PlotViewTestCase):
                     diameter=10, species=species)
         tree.save_with_user(self.user)
 
-        request = make_request(user=self.user)
+        request = make_request(user=self.user, instance=self.instance)
         request.instance_supports_ecobenefits = self.instance\
                                                     .has_itree_region()
         context = plot_detail(request, self.instance, plot_w_tree.pk)
@@ -896,8 +898,7 @@ class PlotViewTest(PlotViewTestCase):
         plot_wo_tree = Plot(geom=self.p, instance=self.instance)
         plot_wo_tree.save_with_user(self.user)
 
-        context = plot_detail(make_request(user=self.user),
-                              self.instance, plot_wo_tree.pk)
+        context = self.get_plot_context(plot_wo_tree)
 
         self.assertEquals(plot_wo_tree, context['plot'])
         self.assertNotIn('benefits', context)
@@ -916,25 +917,21 @@ class PlotViewProgressTest(PlotViewTestCase):
         tree = Tree(plot=self.plot_w_tree, instance=self.instance)
         tree.save_with_user(self.user)
 
-        context = plot_detail(make_request(user=self.user),
-                              self.instance, self.plot_w_tree.pk)
+        context = self.get_plot_context(self.plot_w_tree)
 
         self.initial_progress = context['progress_percent']
         self.initial_message_count = len(context['progress_messages'])
 
     def test_progress_starts_at_25(self):
         # Having a plot location counts at 25%
-        context = plot_detail(make_request(user=self.user),
-                              self.instance, self.plot_wo_tree.pk)
+        context = self.get_plot_context(self.plot_wo_tree)
 
         self.assertEquals(25, context['progress_percent'])
         self.assertEquals(4, len(context['progress_messages']))
 
     def test_progress_messages_decrease_when_plot_has_tree(self):
-        wo_tree_context = plot_detail(make_request(user=self.user),
-                                      self.instance, self.plot_wo_tree.pk)
-        w_tree_context = plot_detail(make_request(user=self.user),
-                                     self.instance, self.plot_w_tree.pk)
+        wo_tree_context = self.get_plot_context(self.plot_wo_tree)
+        w_tree_context = self.get_plot_context(self.plot_w_tree)
 
         self.assertTrue(len(wo_tree_context['progress_messages'])
                         > len(w_tree_context['progress_messages']))
@@ -947,8 +944,7 @@ class PlotViewProgressTest(PlotViewTestCase):
         tree.diameter = 2
         tree.save_with_user(self.user)
 
-        context = plot_detail(make_request(user=self.user),
-                              self.instance, self.plot_w_tree.pk)
+        context = self.get_plot_context(self.plot_w_tree)
 
         self.assertTrue(context['progress_percent'] > self.initial_progress)
         self.assertTrue(len(context['progress_messages']) <
@@ -963,8 +959,7 @@ class PlotViewProgressTest(PlotViewTestCase):
         tree.species = species
         tree.save_with_user(self.user)
 
-        context = plot_detail(make_request(user=self.user),
-                              self.instance, self.plot_w_tree.pk)
+        context = self.get_plot_context(self.plot_w_tree)
 
         self.assertTrue(context['progress_percent'] > self.initial_progress)
         self.assertTrue(len(context['progress_messages']) <
@@ -975,7 +970,8 @@ class PlotViewPhotoProgressTest(TreePhotoTestCase):
 
     def setUp(self):
         super(PlotViewPhotoProgressTest, self).setUp()
-        context = plot_detail(make_request(user=self.user),
+        context = plot_detail(make_request(user=self.user,
+                                           instance=self.instance),
                               self.instance, self.plot.pk)
 
         self.initial_progress = context['progress_percent']
@@ -988,7 +984,8 @@ class PlotViewPhotoProgressTest(TreePhotoTestCase):
         photo.save_with_user(self.user)
         self.tree.save_with_user(self.user)
 
-        context = plot_detail(make_request(user=self.user),
+        context = plot_detail(make_request(user=self.user,
+                                           instance=self.instance),
                               self.instance, self.plot.pk)
 
         self.assertTrue(context['progress_percent'] >
