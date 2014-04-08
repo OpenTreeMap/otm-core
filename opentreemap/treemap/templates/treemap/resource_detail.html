@@ -34,7 +34,7 @@
 {% if stormbenefits %}
 <table class="table table-hover">
   <tbody>
-    {% for benefit in stormbenefits %}
+    {% for key, benefit in stormbenefits.items %}
     <tr>
       <td>{{ benefit.label }}</td>
       <td>{{ benefit.value }} {{ benefit.unit}}</td>

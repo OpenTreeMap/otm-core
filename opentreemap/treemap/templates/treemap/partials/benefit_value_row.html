@@ -1,21 +1,14 @@
 {% load i18n %}
 {% load l10n %}
 
+{% if benefit.value %}
 <div class="benefit-value-row">
-  {% if benefit.label == 'Energy' %}
-  <div class="benefit-icon"><i class="icon-flash-1"></i></div>
-  {% elif benefit.label == 'Stormwater' %}
-  <div class="benefit-icon"><i class="icon-tint"></i></div>
-  {% elif benefit.label == 'Air Quality' %}
-  <div class="benefit-icon"><i class="icon-cloud"></i></div>
-  {% elif benefit.label.lower == 'reduced stormwater runoff' %}
-  <div class="benefit-icon"><i class="icon-tint"></i></div>
-  {% elif benefit.label.lower == 'water conserved' %}
-  <div class="benefit-icon"><i class="icon-tint"></i></div>
+  {% if icon %}
+  <div class="benefit-icon"><i class="icon-{{ icon }}"></i></div>
   {% else %}
   <div class="benefit-icon"><i class="icon-sun-filled"></i></div>
   {% endif %}
-  <h3 class="benefit-label">{{ benefit.label }} {% trans "Benefits" %}</h3>
+  <h3 class="benefit-label">{{ benefit.label }}</h3>
   <span class="benefit-content">
     {% if benefit.value %}
       {{ benefit.value }} {{ benefit.unit }}
@@ -31,3 +24,4 @@
     {% endif %}
   </span>
 </div>
+{% endif %}
