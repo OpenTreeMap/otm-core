@@ -146,37 +146,37 @@ class Instance(models.Model):
 
     @property
     def advanced_search_fields(self):
-        from treemap.models import MapFeature  # prevent circular import
-
         # TODO pull from the config once users have a way to set search fields
-        if self.feature_enabled('advanced_search_filters'):
-            fields = {
-                'standard': [
-                    {'identifier': 'tree.diameter', 'search_type': 'RANGE'},
-                    {'identifier': 'tree.date_planted', 'search_type': 'RANGE'}
-                ],
-                'display': [
-                    {'model': 'Tree', 'label': 'Show trees'},
-                    {'model': 'EmptyPlot',
-                     'label': 'Show empty planting sites'}
-                ],
-                'missing': [
-                    {'identifier': 'species.id',
-                     'label': 'Show missing species',
-                     'search_type': 'ISNULL',
-                     'value': 'true'},
-                    {'identifier': 'tree.diameter',
-                     'label': 'Show missing trunk diameter',
-                     'search_type': 'ISNULL',
-                     'value': 'true'},
-                    {'identifier': 'treePhoto.id',
-                     'label': 'Show missing photos',
-                     'search_type': 'ISNULL',
-                     'value': 'true'}
-                ]
-            }
-        else:
+
+        if not self.feature_enabled('advanced_search_filters'):
             return {'standard': [], 'missing': [], 'display': []}
+
+        from treemap.models import MapFeature  # prevent circular import
+        fields = {
+            'standard': [
+                {'identifier': 'tree.diameter', 'search_type': 'RANGE'},
+                {'identifier': 'tree.date_planted', 'search_type': 'RANGE'}
+            ],
+            'display': [
+                {'model': 'Tree', 'label': 'Show trees'},
+                {'model': 'EmptyPlot',
+                 'label': 'Show empty planting sites'}
+            ],
+            'missing': [
+                {'identifier': 'species.id',
+                 'label': 'Show missing species',
+                 'search_type': 'ISNULL',
+                 'value': 'true'},
+                {'identifier': 'tree.diameter',
+                 'label': 'Show missing trunk diameter',
+                 'search_type': 'ISNULL',
+                 'value': 'true'},
+                {'identifier': 'treePhoto.id',
+                 'label': 'Show missing photos',
+                 'search_type': 'ISNULL',
+                 'value': 'true'}
+            ],
+        }
 
         def make_display_filter(feature_name):
             Feature = MapFeature.get_subclass(feature_name)
