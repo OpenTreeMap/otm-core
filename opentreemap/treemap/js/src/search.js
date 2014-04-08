@@ -51,7 +51,7 @@ exports.buildElems = function (inputSelector) {
 
         return[id, {
             'key': name,
-            'pred': type,
+            'pred': type
         }];
     }));
 };
