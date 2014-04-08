@@ -17,7 +17,7 @@
       {{ field.value|yesno:"Subscribed,Not Subscribed" }}
     </div>
     {% if field.is_editable %}
-        <div class="alert alert-error text-error"
+        <div class="alert alert-danger text-danger"
             style="display: none;"
             {% include "treemap/field/attrs.html" with class="error" %}></div>
     {% endif %}

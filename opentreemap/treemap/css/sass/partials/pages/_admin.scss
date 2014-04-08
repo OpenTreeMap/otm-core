@@ -82,7 +82,7 @@
     }
 
     .messages,
-    .text-error {
+    .text-danger {
         &:empty {
             display: none !important;
         }

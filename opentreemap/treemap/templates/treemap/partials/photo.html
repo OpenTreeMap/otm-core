@@ -2,7 +2,7 @@
 {% load util %}
 
 {% if photo %}
-<li class="span4" data-total-pages="{{ total_pages }}">
+<li class="col-md-4" data-total-pages="{{ total_pages }}">
   <div class="thumbnail">
     <a href="{{ photo.image.url }}">
       <img data-id="{{ photo.pk }}" src="{{ photo.thumbnail.url }}">

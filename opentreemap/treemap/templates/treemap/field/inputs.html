@@ -32,13 +32,13 @@
            {{ extra|default:"" }} ></textarea>
 {% else %}
   {% if field.units %}
-  <div class="input-append">
+  <div class="input-group">
     <input name="{{ field.identifier }}"
            type="text"
            class="{{ class|default_if_none:"" }}"
            value="{{ field.value|default_if_none:""|unlocalize }}"
            {{ extra|default:"" }} />
-    <span class="add-on" {{ unit_extra|default:"" }}>{{ field.units }}</span>
+    <span class="input-group-addon" {{ unit_extra|default:"" }}>{{ field.units }}</span>
   </div>
   {% else %}
     <input name="{{ field.identifier }}"

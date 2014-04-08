@@ -13,16 +13,16 @@
         height: 100%;
         overflow: auto;
     }
-    .accordion {
+    .panel {
         margin: 0;
     }
-    .accordion-group {
+    .panel-group {
         border-radius: 0;
         margin-bottom: 0;
         border: none;
         border-top: 1px solid darken($secondary-color, 25%);
     }
-    .accordion-heading {
+    .panel-heading {
         background: $secondary-color;
 
         a {
@@ -51,14 +51,14 @@
             }
         }
     }
-    .accordion-inner {
+    .panel-inner {
         padding: 0;
     }
 
-    .accordion-body {
+    .panel-body {
         background: white;
 
-        .accordion-body-buttons {
+        .panel-body-buttons {
             padding: 10px 15px;
         }
         .tree-details-species {

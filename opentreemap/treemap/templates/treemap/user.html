@@ -31,8 +31,8 @@ active
 <div class="image-background"></div>
 
 <div class="container contained topper profile">
-    <div class="row-fluid">
-        <div class="span3">
+    <div class="row">
+        <div class="col-md-3">
             <div class="account-info">
                 <div class="user-photo-container">
                     {% if user.thumbnail %}
@@ -43,18 +43,18 @@ active
                     <button id="toggle-set-photo-modal"
                       data-toggle="modal"
                       data-target="#set-photo-modal"
-                      class="btn btn-mini add-photos">{% trans "Add Photo" %}</button>
+                      class="btn btn-xs add-photos">{% trans "Add Photo" %}</button>
                 </div>
                 <h1>{{ user.username }}
                     <small>{% trans "User Profile" %}</small>
                 </h1>
             </div>
             {% usercontent for user %}
-            <div id="upload-photo-error" class="text-error" style="display: none"></div>
-            <button id="edit-user" data-class="display" class="btn btn-small btn-info">{% trans "Edit Profile" %}</button>
-            <button id="save-edit" data-class="edit" class="btn btn-small btn-primary" style="display: none;">{% trans "Save" %}</button>
-            <button id="cancel-edit" data-class="edit" class="btn btn-small" style="display: none;">{% trans "Cancel" %}</button>
-            <a class="btn btn-small" href="{% url 'django.contrib.auth.views.password_reset' %}">{% trans "Reset Password" %}</a>
+            <div id="upload-photo-error" class="text-danger" style="display: none"></div>
+            <button id="edit-user" data-class="display" class="btn btn-sm btn-info">{% trans "Edit Profile" %}</button>
+            <button id="save-edit" data-class="edit" class="btn btn-sm btn-primary" style="display: none;">{% trans "Save" %}</button>
+            <button id="cancel-edit" data-class="edit" class="btn btn-sm" style="display: none;">{% trans "Cancel" %}</button>
+            <a class="btn btn-sm" href="{% url 'django.contrib.auth.views.password_reset' %}">{% trans "Reset Password" %}</a>
             {% endusercontent %}
             <form id="user-form">
                 {% for label, identifier, template in public_fields %}
@@ -71,7 +71,7 @@ active
                 {% endif %}
             </form>
         </div>
-        <div class="span9">
+        <div class="col-md-9">
             <div class="profile-tabs">
                 <ul class="nav nav-tabs">
                     <li class="active">

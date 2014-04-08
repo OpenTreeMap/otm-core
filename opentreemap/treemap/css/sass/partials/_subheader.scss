@@ -53,7 +53,7 @@
                 }
             }
             @media #{$screen-sm} {
-                .input-append {
+                .input-group {
                     input[type="text"] {
                         width: 55px;
                     }
@@ -68,7 +68,7 @@
                 }
             }
         }
-        .input-append {
+        .input-group {
             input[type="text"] {
                 width: 82px;
 

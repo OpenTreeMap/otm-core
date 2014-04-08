@@ -72,21 +72,21 @@
   {% with advanced_search_fields=request.instance.advanced_search_fields %}
   <div class="advanced-search">
     <div class="container">
-      <div class="row-fluid">
-        <div class="span6">
+      <div class="row">
+        <div class="col-md-6">
           <h4>{% trans "Detail Filters" %}</h4>
           {% for json in request.instance.advanced_search_fields.standard %}
             {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
           {% endfor %}
         </div>
-        <div class="span3" id="display-filters" data-search-type="IN"
+        <div class="col-md-3" id="display-filters" data-search-type="IN"
             data-search-identifier="mapFeature.feature_type">
           <h4>{% trans "Display Filters" %}</h4>
           {% for field in request.instance.advanced_search_fields.display %}
             {% include "treemap/partials/display_filters.html" %}
           {% endfor %}
         </div>
-        <div class="span3">
+        <div class="col-md-3">
           <h4>{% trans "Missing Data" %}</h4>
           {% for json in request.instance.advanced_search_fields.missing %}
             {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
@@ -103,7 +103,7 @@
     </div>
     {% block subhead_exports %}
       {% if request.instance|feature_enabled:'exports' %}
-      <a href="javascript:;" class="btn btn-primary btn-mini exportBtn" id="exportbutton">
+      <a href="javascript:;" class="btn btn-primary btn-xs exportBtn" id="exportbutton">
         <i class="icon-export"></i> {% trans "Export Search Results" %}
       </a>
       {% endif %}
@@ -155,7 +155,7 @@
 
 {% block searchoptions %}
 <div class="search-options">
-  <a id="perform-search" class="btn btn-primary btn-large btn-block">{% trans "Search" %}</a>
+  <a id="perform-search" class="btn btn-primary btn-lg btn-block">{% trans "Search" %}</a>
   <div class="btn-group">
     {% if request.instance|feature_enabled:'advanced_search_filters' %}
     <button id="search-advanced" class="btn">{% trans "Advanced" %}</button>
@@ -192,7 +192,7 @@
 {% block footer %}
 <div class="footer-inner">
   {% with linkData=request.instance|instance_config:"linkData" %}
-  <ul class="inline pull-left">
+  <ul class="list-inline pull-left">
     <li><a target="_blank"
            {% if 'treekey' in linkData.keys and linkData.treekey %}
            href="{{ linkData.treekey }}"
@@ -223,7 +223,7 @@
 </script>
 
 <script id="geocode-results-template" type="text/x-mustache-template">
-<ul class="unstyled">
+<ul class="list-unstyled">
 {{#candidates}}
 <li><a href="javascript:;" data-class="geocode-result" data-x="{{x}}" data-y="{{y}}" data-srid="{{srid}}" data-address"{{address}}">{{address}}</a></li>
 {{/candidates}}

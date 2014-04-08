@@ -2,26 +2,24 @@
 
 .navbar {
     font-size: 1.6rem;
+    margin-bottom: 0;
+    background: $navbar-color;
+    border: none;
+    min-height: 44px;
+    box-shadow: none;
 
     @media (max-width: 979px) {
         margin-bottom: 0;
         position: absolute;
     }
 
-    .navbar-inner {
-        background: $navbar-color;
-        border: none;
-        height: 44px;
-        box-shadow: none;
-        padding: 0;
-    }
-
     .nav {
         margin: 0 -15px;
-        &.pull-left {
+
+        &.navbar-left {
             margin-left: 15px;
         }
-        &.pull-right {
+        &.navbar-right {
             margin-right: 15px;
         }
 
@@ -121,7 +119,7 @@
 
             > a {
                 padding: 10px 0;
-                height: 20px;
+                height: 44px;
                 font-size: 1.4rem;
                 font-weight: 400;
 
@@ -165,7 +163,7 @@
         display: none;
     }
 
-    .span4 {
+    .col-md-4 {
         border-left: 1px solid darken($well-color, 15%);
         padding-left: 30px;
     }

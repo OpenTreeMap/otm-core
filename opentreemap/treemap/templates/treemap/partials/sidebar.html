@@ -10,7 +10,7 @@
   </p>
 
   <div class="progress">
-    <div class="bar" style="width: {{ progress_percent }}%;"></div>
+    <div class="progress-bar" style="width: {{ progress_percent }}%;"></div>
   </div>
   <h5>{{ progress_percent }}% {% trans "Complete" %}</h5>
   <ul>
@@ -23,7 +23,7 @@
   <h3>{% trans "Recent Edits" %}</h3>
   {% for user, updated, audits in recent_activity %}
   <h5>{{ user.username }}</h5>
-  <p class="muted">{{ updated|date:request.instance.date_format }} ({{ updated|naturaltime }})</p>
+  <p class="text-muted">{{ updated|date:request.instance.date_format }} ({{ updated|naturaltime }})</p>
   <ul>
     {% for audit in audits %}
       <li>{{ audit.short_descr }}</li>
@@ -42,7 +42,7 @@
   {% endfor %}
   </ul>
   {% else %}
-  <p class="muted"><em>{% trans "There are no trees nearby" %}</em></p>
+  <p class="text-muted"><em>{% trans "There are no trees nearby" %}</em></p>
   {% endif %}
 </div>
 {% endwith %}

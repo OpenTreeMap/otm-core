@@ -16,8 +16,8 @@
 
 <div class="image-background"></div>
 <div class="container contained topper tree-details">
-  <div class="row-fluid">
-    <div class="span3">
+  <div class="row">
+    <div class="col-md-3">
       <div class="photo-container">
         <div id="photo-carousel" class="carousel slide" data-interval="">
             {% include "treemap/partials/photo_carousel.html" %}
@@ -34,21 +34,21 @@
                 data-disabled-title="{% trans "Adding resource photos is not available to all users" %}"
                 data-always-enable="{{ last_effective_instance_user.can_add_photos_to_map_feature }}"
                 {% endif %}
-                class="btn btn-mini add-photos">{% trans "Add Photo" %}</button>
+                class="btn btn-xs add-photos">{% trans "Add Photo" %}</button>
       </div>
       <div id="sidebar">
         {% include "treemap/partials/sidebar.html" %}
       </div>
     </div>
 
-    <div class="span9">
+    <div class="col-md-9">
       <div class="detail-header">
         <button class="btn share hidden">Share</button>
         <h2 class="common-name">{{ title }} <i id="favorite-star" class="icon-star-empty hidden"></i></h2>
         <h4 class="address">{{ feature.address_full }}</h4>
       </div>
-      <div class="row-fluid">
-        <div class="span8">
+      <div class="row">
+        <div class="col-md-8">
 {% if feature.is_plot %}
           <p>
             <button id="edit-plot"
@@ -57,7 +57,7 @@
                     data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
                     data-href="{{ request.get_full_path }}"
                     data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
-                    class="btn btn-small btn-info">{% trans "Edit" %}</button>
+                    class="btn btn-sm btn-info">{% trans "Edit" %}</button>
             <button id="delete-plot-or-tree"
                     data-class="display"
                     disabled="disabled"
@@ -69,13 +69,13 @@
                     {% endif %}
                     data-href="{{ request.get_full_path }}"
                     data-disabled-title="{% trans "Deleting of trees is not available to all users" %}"
-                    class="btn btn-small btn-danger">{% trans "Delete" %}</button>
-            <button id="save-edit-plot" data-class="edit" class="btn btn-small btn-primary" style="display: none;">{% trans "Save" %}</button>
-            <button id="cancel-edit-plot" data-class="edit" class="btn btn-small" style="display: none;">{% trans "Cancel" %}</button>
+                    class="btn btn-sm btn-danger">{% trans "Delete" %}</button>
+            <button id="save-edit-plot" data-class="edit" class="btn btn-sm btn-primary" style="display: none;">{% trans "Save" %}</button>
+            <button id="cancel-edit-plot" data-class="edit" class="btn btn-sm" style="display: none;">{% trans "Cancel" %}</button>
           </p>
 
           <!-- Alerts -->
-          <div id="delete-confirmation-box" data-class="delete" class="alert alert-error" style="display: none;">
+          <div id="delete-confirmation-box" data-class="delete" class="alert alert-danger" style="display: none;">
             <p id="delete-tree-warning" style="display: none;">
               <strong>{% trans "Warning!" %}</strong>
               {% trans "You are about to delete this tree. Do you want to continue?" %}
@@ -133,7 +133,7 @@
 
           {% if feature.is_plot %}
           <div id="comment_disclaimer">
-            <p class="muted">
+            <p class="text-muted">
               <em>The comment system does not serve as a way to report problems with a tree.</em>
             </p>
           </div>
@@ -142,7 +142,7 @@
         </div>
 
         <!-- Maps -->
-        <div class="span4">
+        <div class="col-md-4">
           <button
              disabled="disabled"
              data-always-enable="{{ last_effective_instance_user|geom_is_writable:feature.feature_type }}"
