@@ -174,8 +174,12 @@ class Instance(models.Model):
 
         def make_display_filter(feature_name):
             Feature = MapFeature.get_subclass(feature_name)
+            if hasattr(Feature, 'display_name_plural'):
+                plural = Feature.display_name_plural
+            else:
+                plural = Feature.display_name + 's'
             return {
-                'label': 'Show %ss' % Feature.display_name,
+                'label': 'Show %s' % plural.lower(),
                 'model': feature_name
             }
 
