@@ -10,6 +10,7 @@ from django import template
 from django.template.loader import get_template
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import dateformat
+from django.utils.translation import ugettext as trans
 from django.conf import settings
 
 from treemap.util import safe_get_model_class, to_object_name, to_model_name
@@ -361,6 +362,8 @@ class AbstractNode(template.Node):
                 model.instance, object_name, field_name, field_value)
             if units is not '':
                 display_val += (' %s' % units)
+        elif data_type == 'bool':
+            display_val = trans('Yes') if field_value else trans('No')
         else:
             display_val = unicode(field_value)
 
