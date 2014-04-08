@@ -62,8 +62,6 @@ exports.init = function(options) {
         $noTreeMessage.hide();
         $cancelAddTree.hide();
     }
-    $(options.inlineEditForm.edit).click(showAddTree);
-    $(options.inlineEditForm.cancel).click(hideAddTree);
     $addTree.click(function() {
         var $editFields = $(options.inlineEditForm.editFields);
         $addTree.hide();
@@ -80,7 +78,6 @@ exports.init = function(options) {
         $treeSection.hide();
         FH.getSerializableField($editFields, 'tree.plot').val('');
     });
-    form.saveOkStream.onValue(hideAddTree);
 
     var newTreeIdStream = form.saveOkStream
             .map('.responseData.treeId')
@@ -97,8 +94,27 @@ exports.init = function(options) {
         $section.html('<a href="trees/' + id + '/">' + id + '</a>');
     }
 
-    if (options.startInEditMode) {
-        showAddTree();
+    form.inEditModeProperty.onValue(function (inEditMode) {
+        if (inEditMode) {
+            showAddTree();
+            addResolveAlertButtons();
+        } else {
+            hideAddTree();
+        }
+    });
+
+    function addResolveAlertButtons() {
+        var $tables = $('table[data-udf-name$="Alerts"]'),
+            $buttons = $tables.find('.resolveBtn'),
+            $unresolved = $tables.find('tr[data-value-id] td:contains("Unresolved")');
+        $buttons.remove();
+        $unresolved.next().append(
+            '<a href="javascript:;" class="btn btn-mini resolveBtn" data-class="edit">Resolve</a>');
+        $tables.find('.resolveBtn').click(function () {
+            $(this).closest('tr')
+                .find('td:contains("Unresolved")')
+                .text('Resolved');
+        });
     }
 
 };

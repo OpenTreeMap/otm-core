@@ -204,6 +204,7 @@ exports.init = function(options) {
                         .map(function() {
                             return $(this).html();
                         });
+                headers = _.compact(headers);
 
                 data[name] =
                     _.map($table.find('tr[data-value-id]').toArray(), function(row) {

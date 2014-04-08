@@ -19,14 +19,19 @@
       {% for field in udf.datatype_dict %}
       <th>{{ field.name }}</th>
       {% endfor %}
+      <th></th>
     </tr>
     {% if perm_level == "write" %}
     <tr class="editrow" style="display: none">
       {% for field in udf.datatype_dict %}
       <td>
         {% include 'treemap/partials/udf_edit_field.html' with field=field %}
-        {% if forloop.last %}<a data-udf-id="{{ udf.pk|unlocalize }}" class="btn">+</a>{% endif %}
       </td>
+      {% if forloop.last %}
+      <td>
+        <a data-udf-id="{{ udf.pk|unlocalize }}" class="btn">+</a>
+      </td>
+      {% endif %}
       {% endfor %}
     </tr>
     {% endif %}
