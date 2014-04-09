@@ -932,7 +932,7 @@ def search_tree_benefits(request, instance):
     benefits.get('plot', {})['totals'] = {
         'value': None,
         'currency': total_currency_saved,
-        'label': trans('Total')
+        'label': trans('Total annual benefits')
     }
 
     formatted = _format_benefits(instance, benefits, basis)
@@ -967,11 +967,12 @@ def _format_benefits(instance, benefits, basis):
                 _, value = get_display_value(
                     instance, unit_key, key, benefit['value'])
 
+                benefit['name'] = key
                 benefit['value'] = value
                 benefit['unit'] = get_units(instance, unit_key, key)
 
     # Add total and percent to basis
-    rslt = {'benefits': {k: v.values() for (k, v) in benefits.iteritems()},
+    rslt = {'benefits': benefits,
             'currency_symbol': currency_symbol,
             'basis': basis}
 

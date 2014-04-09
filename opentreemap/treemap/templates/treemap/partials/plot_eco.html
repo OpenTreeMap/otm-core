@@ -10,7 +10,7 @@
 {% elif benefits.plot %}
 <table class="table table-hover">
   <tbody>
-    {% for benefit in benefits.plot %}
+    {% for key, benefit in benefits.plot.items %}
     <tr>
       <td>{{ benefit.label }}</td>
       <td>{{ benefit.value }} {{ benefit.unit}}</td>

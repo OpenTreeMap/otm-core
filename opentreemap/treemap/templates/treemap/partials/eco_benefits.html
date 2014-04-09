@@ -4,33 +4,23 @@
 {% if request.instance_supports_ecobenefits %}
 <div {% if not hidecounts %}id="benefit-values"{% endif %} class="benefit-values accordion-inner">
     {% with plot_benefits=benefits.plot %}
-    {% if not hide_summary and plot_benefits %}
-    <div class="benefit-value-title">{% trans "General Eco Benefits"%}</div>
-    {% endif %}
-
-    {# Show value-less benefits first, so money only ones #}
-    {# Float to the top #}
-    {% for benefit in plot_benefits %}
-    {% if not benefit.value %}
-    {% include "treemap/partials/benefit_value_row.html" %}
-    {% endif %}
-    {% endfor %}
-
-    {% for benefit in plot_benefits %}
-    {% if benefit.value %}
-    {% include "treemap/partials/benefit_value_row.html" %}
-    {% endif %}
-    {% endfor %}
+      {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.totals %}
+      {% if not hide_summary and plot_benefits %}
+        <div class="benefit-value-title">{% trans "Tree Benefits"%}</div>
+      {% endif %}
+      {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.energy icon='flash-1' %}
+      {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.stormwater icon='tint' %}
+      {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.airquality icon='cloud' %}
+      {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.co2 %}
+      {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.co2storage %}
     {% endwith %}
 
     {% with resource_benefits=benefits.resource %}
-    {% if not hide_summary and request.instance.supports_resources and resource_benefits %}
-    <div class="benefit-value-title">{{ term.Resource }} {% trans "Benefits" %}</div>
-    {% endif %}
-
-    {% for benefit in resource_benefits %}
-    {% include "treemap/partials/benefit_value_row.html" %}
-    {% endfor %}
+      {% if not hide_summary and request.instance.supports_resources and resource_benefits %}
+        <div class="benefit-value-title">{{ term.Resource }} {% trans "Benefits" %}</div>
+      {% endif %}
+      {% include "treemap/partials/benefit_value_row.html" with benefit=resource_benefits.runoff_reduced icon='tint' %}
+      {% include "treemap/partials/benefit_value_row.html" with benefit=resource_benefits.usage_reduced icon='tint' %}
     {% endwith %}
 
     {% if not hide_summary and not hidecounts %}

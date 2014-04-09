@@ -398,16 +398,16 @@ def within_itree_regions(request):
                                              float(y))).exists())
 
 benefit_labels = {
-    # Translators: 'Energy' is the name of an eco benefit
-    'energy':     trans('Energy'),
-    # Translators: 'Stormwater' is the name of an eco benefit
-    'stormwater': trans('Stormwater'),
-    # Translators: 'Carbon Dioxide' is the name of an eco benefit
-    'co2':        trans('Carbon Dioxide'),
-    # Translators: 'Carbon Dioxide Stored' is the name of an eco benefit
-    'co2storage': trans('Carbon Dioxide Stored'),
-    # Translators: 'Air Quality' is the name of an eco benefit
-    'airquality': trans('Air Quality')
+    # Translators: 'Energy conserved' is the name of an eco benefit
+    'energy':     trans('Energy conserved'),
+    # Translators: 'Stormwater filtered' is the name of an eco benefit
+    'stormwater': trans('Stormwater filtered'),
+    # Translators: 'Carbon dioxide removed' is the name of an eco benefit
+    'co2':        trans('Carbon dioxide removed'),
+    # Translators: 'Carbon dioxide stored' is the name of an eco benefit
+    'co2storage': trans('Carbon dioxide stored'),
+    # Translators: 'Air quality improved' is the name of an eco benefit
+    'airquality': trans('Air quality improved')
 }
 
 
