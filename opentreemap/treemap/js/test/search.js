@@ -49,7 +49,7 @@ module.exports = {
             var $markup = $(testCase.markup);
             $('#search').append($markup);
 
-            var elems = search.buildElems('[data-search-type]');
+            var elems = search._buildElems('[data-search-type]');
             assert.ok(elems);
 
             assert.deepEqual(elems, testCase.obj, 'The elems should match');
