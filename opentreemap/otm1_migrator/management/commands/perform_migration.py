@@ -192,6 +192,37 @@ def save_audit(migration_rules, dependency_ids, model_hash, instance):
 
 
 @commit_on_success
+def save_comment(migration_rules, dependency_ids, model_hash, instance):
+    model = hash_to_model(migration_rules,
+                          'comment', model_hash,
+                          instance)
+
+    model.site_id = 1
+
+    if model.content_type_id == -1:
+        print("Can't import comment %s because "
+              "it is assigned to a ContentType (model) "
+              "that does not exist in OTM2 .. SKIPPING"
+              % model.comment)
+        return None
+
+    old_object_id = int(model_hash['fields']['object_pk'])
+    new_object_id = dependency_ids[model.content_type.model][old_object_id]
+
+    # object_id is called object_pk in later versions
+    model.object_pk = new_object_id
+
+    model.save()
+
+    OTM1CommentRelic.objects.create(
+        instance=instance,
+        otm1_model_id=model_hash['pk'],
+        otm2_model_id=model.pk)
+
+    return model
+
+
+@commit_on_success
 def save_threadedcomment(
         migration_rules, dependency_ids, model_hash, instance):
 
@@ -345,7 +376,7 @@ def make_model_option(migration_rules, model):
 
 
 from otm1_migrator.migration_rules.standard_otm1 \
-    import MIGRATION_RULES as rules
+        import MIGRATION_RULES as rules
 
 class Command(InstanceDataCommand):
 
@@ -425,6 +456,8 @@ class Command(InstanceDataCommand):
             'contenttype': make_contenttype_relics,
             'threadedcomment': partial(
                 save_threadedcomment, migration_rules, dependency_ids),
+            'comment': partial(
+                save_comment, migration_rules, dependency_ids),
         }
 
         for relic in OTM1UserRelic.objects.filter(instance=instance):
