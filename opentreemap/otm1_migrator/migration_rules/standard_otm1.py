@@ -127,6 +127,17 @@ MIGRATION_RULES = {
     'contenttype': {
         'command_line_flag': '-c',
     },
+    'comment': {
+        'command_line_flag': '-n',
+        'model_class': ThreadedComment,
+        'dependencies': {'user': 'user',
+                         'contenttype': 'content_type'},
+        'common_fields': {'comment', 'is_public',
+                          'ip_address'},
+        'renamed_fields': {'submit_date': 'date_submitted'},
+        'removed_fields': {'is_removed', 'user_name', 'user_email',
+                           'user_url', 'site', 'object_pk'},
+    },
     'threadedcomment': {
         'command_line_flag': '-r',
         'model_class': ThreadedComment,

@@ -18,8 +18,7 @@ from otm1_migrator.management.commands.perform_migration import (
     hash_to_model, hashes_to_saved_objects, save_treephoto,
     save_species)
 
-from otm1_migrator.migration_rules import MIGRATION_RULES
-
+from otm1_migrator.migration_rules.standard_otm1 import MIGRATION_RULES
 
 class MigrationCommandTests(LocalMediaTestCase):
     def setUp(self):
@@ -172,8 +171,11 @@ class MigrationCommandTests(LocalMediaTestCase):
         species_dict = json.loads(self.species_blob)
         species_dicts = [species_dict, species_dict, species_dict]
 
-        hashes_to_saved_objects("species", species_dicts, {},
-                                save_species, self.instance)
+        hashes_to_saved_objects(
+            MIGRATION_RULES,
+            "species", species_dicts, {},
+            partial(save_species, MIGRATION_RULES),
+            self.instance)
 
         allspecies = Species.objects.filter(instance=self.instance)
         self.assertEqual(len(allspecies), 1)
@@ -181,9 +183,11 @@ class MigrationCommandTests(LocalMediaTestCase):
     def test_species_hash_to_model(self):
         species_dict = json.loads(self.species_blob)
 
-        hashes_to_saved_objects("species", [species_dict], {},
-                                save_species,
-                                self.instance)
+        hashes_to_saved_objects(
+            MIGRATION_RULES,
+            "species", [species_dict], {},
+            partial(save_species, MIGRATION_RULES),
+            self.instance)
 
         allspecies = Species.objects.filter(instance=self.instance)
         self.assertEqual(len(allspecies), 1)
@@ -220,13 +224,15 @@ class MigrationCommandTests(LocalMediaTestCase):
 
         self.assertEqual(TreePhoto.objects.count(), 0)
 
-        save_treephoto_blank = partial(save_treephoto, '')
+        save_treephoto_blank = partial(save_treephoto, MIGRATION_RULES, '')
 
-        hashes_to_saved_objects("treephoto", [tp_dict],
-                                {'tree': {1: tree.pk},
-                                 'user': {1: self.commander.pk}},
-                                save_treephoto_blank,
-                                self.instance)
+        hashes_to_saved_objects(
+            MIGRATION_RULES,
+            "treephoto", [tp_dict],
+            {'tree': {1: tree.pk},
+             'user': {1: self.commander.pk}},
+            save_treephoto_blank,
+            self.instance)
 
         self.assertEqual(TreePhoto.objects.count(), 1)
         photo = TreePhoto.objects.all()[0]
