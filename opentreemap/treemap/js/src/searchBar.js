@@ -16,6 +16,7 @@ var $ = require('jquery'),
     geocoder = require('treemap/geocoder'),
     geocoderUi = require('treemap/geocoderUi'),
     Search = require('treemap/search'),
+    stewardshipSearch = require('treemap/stewardshipSearch'),
     BU = require('treemap/baconUtils'),
     mapManager = require('treemap/mapManager');
 
@@ -126,6 +127,9 @@ module.exports = exports = {
                 .map(unmatchedBoundarySearchValue)
                 .filter(BU.isUndefinedOrEmpty)
                 .map(Search.buildSearch),
+            stewSearch = stewardshipSearch.init({
+                resetStream: resetStream
+            }),
 
             geocoderInstance = geocoder(config),
             geocodeCandidateStream = searchStream.map(unmatchedBoundarySearchValue).filter(BU.isDefinedNonEmpty),

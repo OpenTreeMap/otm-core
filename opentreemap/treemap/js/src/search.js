@@ -6,6 +6,7 @@ var $ = require('jquery'),
     moment = require("moment"),
     isTypeaheadHiddenField = require('treemap/fieldHelpers'),
     FH = require('treemap/fieldHelpers'),
+    stewardshipSearch = require('treemap/stewardshipSearch'),
     querystring = require('querystring');
 
 var DATETIME_FORMAT = FH.DATETIME_FORMAT;
@@ -62,7 +63,7 @@ function buildElems() {
             'pred': type
         }];
     }));
-};
+}
 
 // export as underscore method so it can
 // be conveniently used in unit tests
@@ -109,7 +110,7 @@ function applyFilterObjectToDom(search) {
             FH.applyDateToDatepicker($domElem, value);
         } else if($domElem.is(':checkbox')) {
             $domElem.prop('checked', boolToText(value) === $domElem.val());
-        } else if ($domElem.is('input')) {
+        } else if ($domElem.is('input') || $domElem.is('select')) {
             $domElem.val(value || '');
         }
     });
@@ -131,6 +132,7 @@ function applyDisplayListToDom(displayList) {
 }
 
 function applySearchToDom(search) {
+    stewardshipSearch.applyFilterObjectToDom(search);
     applyFilterObjectToDom(search.filter || {});
     applyDisplayListToDom(search.display);
 }

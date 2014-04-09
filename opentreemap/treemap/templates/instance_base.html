@@ -69,6 +69,7 @@
 
 {% block subhead %}
 <div class="subhead">
+  {% with advanced_search_fields=request.instance.advanced_search_fields %}
   <div class="advanced-search">
     <div class="container">
       <div class="row-fluid">
@@ -94,18 +95,58 @@
       </div>
     </div>
   </div>
-{# TODO: search backend not implemeneted, Temporarily hidden #}
-{#       <div class="stewardship-search disabled"> #}
-{#         <span>{% trans "I am looking for" %}</span> #}
-{#         <div class="stewardship-selector">...</div> #}
-{#         <span>{% trans "that" %}</span> #}
-{#         <div class="stewardship-selector">...</div> #}
-{#         <div class="stewardship-selector">...</div> #}
-{#         <span>{% trans "between" %}</span> #}
-{#         <div class="stewardship-selector">...</div> #}
-{#         <span>{% trans "and" %}</span> #}
-{#         <div class="stewardship-selector">...</div> #}
-{#       </div> #}
+  {% if advanced_search_fields.stewardship %}
+  {% with tree_perm_level=last_effective_instance_user|udf_write_level:advanced_search_fields.stewardship.tree.udfd %}
+  {% with plot_perm_level=last_effective_instance_user|udf_write_level:advanced_search_fields.stewardship.mapFeature.udfd %}
+  {% if tree_perm_level|is_read_or_write or plot_perm_level|is_read_or_write  %}
+  <div class="stewardship-search">
+    <span>{% trans "I am looking for" %}</span>
+    <select id="stewardship-search-model">
+      <option data-class="stewardship-placeholder" selected />
+      {% if tree_perm_level|is_read_or_write %}
+      <option data-model="tree"
+              data-udfd-id="{{ advanced_search_fields.stewardship.tree.udfd.pk }}"
+              >{% trans "trees" %}</option>
+      {% endif %}
+      {% if plot_perm_level|is_read_or_write %}
+      <option data-model="mapFeature"
+              data-udfd-id="{{ advanced_search_fields.stewardship.mapFeature.udfd.pk }}"
+              >{% trans "plots" %}</option>
+      {% endif %}
+    </select>
+
+    <span>{% trans "that received" %}</span>
+    <select id="stewardship-search-action"
+            data-search-type="IS"
+            data-udf-field-key="Date"
+            >
+      <option data-class="stewardship-placeholder" selected />
+      {% for event in advanced_search_fields.stewardship.tree.fields %}
+      <option data-model="tree" style="display: none;">{{ event }}</option>
+      {% endfor %}
+      {% for event in advanced_search_fields.stewardship.mapFeature.fields %}
+      <option data-model="mapFeature" style="display: none;">{{ event }}</option>
+      {% endfor %}
+    </select>
+
+    <span>{% trans "between" %}</span>
+    <input id="stewardship-search-date-from" data-search-type="MIN"
+           class="stewardship-selector"
+           data-udf-field-key="Date"
+           {% include "treemap/partials/date_picker_init.html" %}
+           />
+    <span>{% trans "and" %}</span>
+    <input id="stewardship-search-date-to" data-search-type="MAX"
+           class="stewardship-selector"
+           data-udf-field-key="Date"
+           {% include "treemap/partials/date_picker_init.html" %}
+           />
+
+  </div>
+  {% endif %}
+  {% endwith %}
+  {% endwith %}
+  {% endif %}
   <div class="stats-bar">
     <div style="display: inline;" id="tree-and-planting-site-counts">
     </div>
@@ -136,6 +177,7 @@
        disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>
     {% endif %}
   </div>
+  {% endwith %}
 </div>
 {% endblock subhead %}
 

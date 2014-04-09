@@ -401,3 +401,9 @@ class InstanceTest(TestCase):
         ITreeRegion.objects.create(geometry=MultiPolygon((p1.buffer(10))))
 
         self.assertEqual(instance.has_itree_region(), True)
+
+    def test_advanced_search_fields(self):
+        instance = make_instance()
+        self.assertEqual(instance.advanced_search_fields,
+                         {'standard': [], 'missing': [],
+                          'display': [], 'stewardship': []})

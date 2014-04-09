@@ -143,7 +143,8 @@ class Instance(models.Model):
         # TODO pull from the config once users have a way to set search fields
 
         if not self.feature_enabled('advanced_search_filters'):
-            return {'standard': [], 'missing': [], 'display': []}
+            return {'standard': [], 'missing': [], 'display': [],
+                    'stewardship': []}
 
         from treemap.models import MapFeature  # prevent circular import
         fields = {
@@ -193,6 +194,25 @@ class Instance(models.Model):
             for field in filters:
                 field['id'] = "%s_%s" % (field.get('identifier', ''), num)
                 num += 1
+
+        # prevent circular import
+        from treemap.udf import UserDefinedFieldDefinition
+
+        udfds = UserDefinedFieldDefinition.objects.filter(instance=self,
+                                                          name='Stewardship')
+        tree_stewardship = udfds.get(model_type='Tree')
+        plot_stewardship = udfds.get(model_type='Plot')
+        tree_udf_fields = tree_stewardship.datatype_dict[0]['choices']
+        plot_udf_fields = plot_stewardship.datatype_dict[0]['choices']
+
+        fields.update({
+            'stewardship': {
+                'tree': {'udfd': tree_stewardship,
+                         'fields': tree_udf_fields},
+                'mapFeature': {'udfd': plot_stewardship,
+                               'fields': plot_udf_fields}
+            }
+        })
 
         return fields
 
