@@ -392,7 +392,7 @@ class Command(InstanceDataCommand):
                      type='string',
                      dest='treephoto_path',
                      help='path to photos that will be imported'),
-         make_option('-r', '--rule-module',
+         make_option('-l', '--rule-module',
                      action='store',
                      type='string',
                      dest='rule_module',
@@ -415,8 +415,10 @@ class Command(InstanceDataCommand):
             self.stdout.write('Invalid instance provided.')
             return 1
 
-        rule_module = options['rule_module'] or 'otm1_migrator.migration_rules'
-        migration_rules = importlib.import_module(rule_module)
+        rule_module = options['rule_module'] or \
+                      'otm1_migrator.migration_rules.standard_otm1'
+        migration_mod = importlib.import_module(rule_module)
+        migration_rules = migration_mod.MIGRATION_RULES
 
         # look for fixtures of the form '<model>_fixture' that
         # were passed in as command line args and load them as
