@@ -20,7 +20,7 @@
   {% if request.instance.supports_resources %}
     <li class="add-menu dropdown" data-feature="add_plot">
       <a class="dropdown-toggle" data-toggle="dropdown"
-         data-always-enable='{{ last_effective_instance_user|plot_is_writable }}'
+         data-always-enable="true"
          data-disabled-title='{% trans "Adding trees is not available to all users" %}'
          disabled='disabled'>
         <i class="icon-plus-circled"></i>
@@ -28,11 +28,13 @@
       <ul class="dropdown-menu">
         <li>
           <a data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
-             data-always-enable="True" data-action='addtree'>{% trans "Add a Tree" %}</a>
+             data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+             data-action='addtree'>{% trans "Add a Tree" %}</a>
         </li>
         <li>
           <a data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource"
-             data-always-enable="True" data-action='addresource'>{% trans "Add a" %} {{ term.Resource }}</a>
+             data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+             data-action='addresource'>{% trans "Add a" %} {{ term.Resource }}</a>
         </li>
       </ul>
     </li>

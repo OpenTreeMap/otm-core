@@ -35,7 +35,8 @@ def feature_enabled(instance, feature):
 
 def _feature_allows_perm(instanceuser, model_name,
                          predicate, perm_attr, field=None):
-    if instanceuser is None or instanceuser == '':
+    if instanceuser is None or instanceuser == '' \
+       or instanceuser.user_id is None:
         return False
     else:
         perms = instanceuser.role.model_permissions(model_name).all()
