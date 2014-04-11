@@ -152,7 +152,8 @@ function init(options) {
             });
         areaPolygon = L.Polyline.PolylineEditor(points, {
             pointIcon: pointIcon,
-            newPointIcon: newPointIcon
+            newPointIcon: newPointIcon,
+            pointZIndexOffset: 1000
         });
         areaPolygon.addTo(mapManager.map);
     }

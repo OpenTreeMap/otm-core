@@ -282,7 +282,11 @@ L.Polyline.polylineEditor = L.Polygon.extend({
         this._addMarkers = function(pointNo, latLng, fixNeighbourPositions) {
             var that = this;
             var points = this.getLatLngs();
-            var marker = L.marker(latLng, {draggable: true, icon: this._options.pointIcon});
+            var marker = L.marker(latLng, {
+                draggable: true,
+                icon: this._options.pointIcon,
+                zIndexOffset: this._options.pointZIndexOffset
+            });
 
             marker.newPointMarker = null;
             marker.on('dragstart', function(event) {
@@ -323,9 +327,16 @@ L.Polyline.polylineEditor = L.Polygon.extend({
             });
 
             var previousPoint = points[pointNo == 0 ? points.length - 1 : pointNo - 1];
-            var newPointMarker = L.marker([(latLng.lat + previousPoint.lat) / 2.,
-                                           (latLng.lng + previousPoint.lng) / 2.],
-                                          {draggable: true, icon: this._options.newPointIcon});
+            var newPointMarker = L.marker(
+                [
+                    (latLng.lat + previousPoint.lat) / 2.,
+                    (latLng.lng + previousPoint.lng) / 2.
+                ],
+                {
+                    draggable: true,
+                    icon: this._options.newPointIcon,
+                    zIndexOffset: this._options.pointZIndexOffset
+                });
             marker.newPointMarker = newPointMarker;
             newPointMarker.on('dragstart', function(event) {
                 var pointNo = that._getPointNo(event.target);
