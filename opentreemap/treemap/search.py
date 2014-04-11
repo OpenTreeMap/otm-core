@@ -5,14 +5,15 @@ from __future__ import division
 
 from json import loads
 from datetime import datetime
+from functools import partial
 
 from django.db.models import Q
 
 from django.contrib.gis.measure import Distance
 from django.contrib.gis.geos import Point
 
-from treemap.models import Boundary, Tree
-from treemap.udf import DATETIME_FORMAT
+from treemap.models import Boundary, Tree, Plot, Species, TreePhoto
+from treemap.udf import DATETIME_FORMAT, UDFModel, UserDefinedCollectionValue
 from treemap.util import to_object_name
 
 
@@ -34,7 +35,7 @@ TREE_MAPPING = {'plot': 'plot__',
                 'treePhoto': 'treephoto__',
                 'mapFeature': 'plot__'}
 
-PLOT_RELATED_MODELS = {'plot', 'tree', 'species', 'treePhoto'}
+PLOT_RELATED_MODELS = {Plot, Tree, Species, TreePhoto}
 
 
 class Filter(object):
@@ -81,15 +82,29 @@ class Filter(object):
 
 def _is_valid_models_list_for_model(models, model_name, ModelClass, instance):
     """Validates everything in models are valid filters for model_name"""
+    def collection_udf_set_for_model(Model):
+        if not issubclass(ModelClass, UDFModel):
+            return {}
+        if hasattr(Model, 'instance'):
+            fake_model = Model(instance=instance)
+        else:
+            fake_model = Model()
+        return set(fake_model.collection_udfs_search_names())
     # MapFeature is valid for all models
     models = {m for m in models if m != 'mapFeature'}
 
     object_name = to_object_name(model_name)
     models = models - {object_name}
 
-    # TODO: Handle stewardship searching here when we implement it
     if model_name == 'Plot':
-        models = models - PLOT_RELATED_MODELS
+        related_models = PLOT_RELATED_MODELS
+    else:
+        related_models = {ModelClass}
+
+    for Model in related_models:
+        models = models - {to_object_name(Model.__name__)}
+        if issubclass(Model, UDFModel):
+            models = models - collection_udf_set_for_model(Model)
 
     return len(models) == 0
 
@@ -105,6 +120,7 @@ class FilterContext(Q):
 
         super(FilterContext, self).__init__(*args, **kwargs)
 
+    # TODO: Nothing uses add, is it necessary?
     def add(self, thing, conn):
         if thing.basekeys:
             self.basekeys = self.basekeys | thing.basekeys
@@ -174,12 +190,18 @@ def _parse_predicate_key(key, mapping):
 
     model, field = parts
 
-    if model not in mapping:
+    if _is_udf(model):
+        _, mapping_model, _ = model.split(':')
+        field = 'id'
+    else:
+        mapping_model = model
+
+    if mapping_model not in mapping:
         raise ParseException(
-            'Valid models are: %s, not "%s"' %
+            'Valid models are: %s or a collection UDF, not "%s"' %
             (mapping.keys(), model))
 
-    return model, mapping[model] + field
+    return model, mapping[mapping_model] + field
 
 
 def _parse_value(value):
@@ -205,7 +227,7 @@ def _parse_min_max_value_fn(operator):
     query operator.
     """
 
-    def fn(predicate_value):
+    def fn(predicate_value, field=None):
         # a min/max predicate can either take
         # a value or a dictionary that provides
         # a VALUE and EXCLUSIVE flag.
@@ -225,12 +247,14 @@ def _parse_min_max_value_fn(operator):
 
         value = _parse_value(raw_value)
 
+        if field:
+            return {key: {field: value}}
         return {key: value}
 
     return fn
 
 
-def _parse_within_radius_value(predicate_value):
+def _parse_within_radius_value(predicate_value, field=None):
     """
     buildup the geospatial value for the RHS of an
     on orm call and pair it with the LHS
@@ -243,10 +267,19 @@ def _parse_within_radius_value(predicate_value):
     return {'__dwithin': (point, Distance(m=radius))}
 
 
-def _parse_in_boundary(boundary_id):
+def _parse_in_boundary(boundary_id, field=None):
     boundary = Boundary.objects.get(pk=boundary_id)
     return {'__contained': boundary.geom}
 
+
+def _parse_isnull_hstore(value, field):
+    if value:
+        return {'__contains': {field: None}}
+    return {'__contains': [field]}
+
+
+def _simple_pred(key):
+    return (lambda value, _: {key: value})
 
 # a predicate_builder takes a value for the
 # corresponding predicate type and returns
@@ -263,19 +296,19 @@ PREDICATE_TYPES = {
     },
     'IN': {
         'combines_with': set(),
-        'predicate_builder': (lambda value: {'__in': value}),
+        'predicate_builder': _simple_pred('__in'),
     },
     'IS': {
         'combines_with': set(),
-        'predicate_builder': (lambda value: {'': value})
+        'predicate_builder': _simple_pred('')
     },
     'LIKE': {
         'combines_with': set(),
-        'predicate_builder': (lambda value: {'__icontains': value})
+        'predicate_builder': _simple_pred('__icontains')
     },
     'ISNULL': {
         'combines_with': set(),
-        'predicate_builder': (lambda value: {'__isnull': value})
+        'predicate_builder': _simple_pred('__isnull')
     },
     'WITHIN_RADIUS': {
         'combines_with': set(),
@@ -288,26 +321,49 @@ PREDICATE_TYPES = {
 }
 
 
-def _parse_dict_value(valuesdict):
+HSTORE_PREDICATE_TYPES = {
+    'MIN': {
+        'combines_with': {'MAX'},
+        'predicate_builder': _parse_min_max_value_fn('__gt'),
+    },
+    'MAX': {
+        'combines_with': {'MIN'},
+        'predicate_builder': _parse_min_max_value_fn('__lt'),
+    },
+    'IN': {
+        'combines_with': set(),
+        'predicate_builder': (lambda val, field: {'__contains': {field: val}}),
+    },
+    'IS': {
+        'combines_with': set(),
+        'predicate_builder': (lambda val, field: {'__contains': {field: val}})
+    },
+    'ISNULL': {
+        'combines_with': set(),
+        'predicate_builder': _parse_isnull_hstore
+    },
+}
+
+
+def _parse_dict_value_for_mapping(mapping, valuesdict, field=None):
     """
     Loops over the keys provided and returns predicate pairs
     if all the keys validate.
 
     Supported keys are:
-    'MIN', 'MAX', 'IN', 'IS', 'WITHIN_RADIUS'
+    'MIN', 'MAX', 'IN', 'IS', 'WITHIN_RADIUS', 'IN_BOUNDARY'
 
-    The following rules apply:
-    IN, IS, WITHIN_RADIUS, and MIN/MAX (together) are mutually exclusive
+    All predicates except MIN/MAX are mutually exclusive
     """
 
     params = {}
 
     for value_key in valuesdict:
-        if value_key not in PREDICATE_TYPES:
+        if value_key not in mapping:
             raise ParseException(
                 'Invalid key: %s in %s' % (value_key, valuesdict))
         else:
-            predicate_props = PREDICATE_TYPES[value_key]
+            predicate_props = mapping[value_key]
             valid_values = predicate_props['combines_with'].union({value_key})
             if not valid_values.issuperset(set(valuesdict.keys())):
                 raise ParseException(
@@ -315,22 +371,44 @@ def _parse_dict_value(valuesdict):
                     (valuesdict.keys(), valuesdict))
             else:
                 predicate_builder = predicate_props['predicate_builder']
-                param_pair = predicate_builder(valuesdict[value_key])
+                param_pair = predicate_builder(valuesdict[value_key], field)
                 params.update(param_pair)
 
     return params
 
 
+_parse_dict_value = partial(_parse_dict_value_for_mapping, PREDICATE_TYPES)
+_parse_udf_dict_value = partial(_parse_dict_value_for_mapping,
+                                HSTORE_PREDICATE_TYPES)
+
+
 def _parse_predicate_pair(key, value, mapping):
     model, search_key = _parse_predicate_key(key, mapping)
-    if type(value) is dict:
-        return FilterContext(basekey=model,
-                             **{search_key + k: v
-                                for (k, v)
-                                in _parse_dict_value(value).iteritems()})
+    _, _, field = key.partition('.')
+
+    if _is_udf(model) and type(value) == dict:
+        preds = _parse_udf_dict_value(value, field)
+        query = {'data' + k: v for (k, v) in preds.iteritems()}
+    elif _is_udf(model):
+        query = {'data__contains': {field: value}}
+    elif type(value) is dict:
+        query = {search_key + k: v for (k, v)
+                 in _parse_dict_value(value).iteritems()}
     else:
-        return FilterContext(basekey=model,
-                             **{search_key: value})
+        query = {search_key: value}
+
+    # If the model being searched is a collection UDF, we do an in clause on a
+    # subquery because we can't easily join to UserDefinedCollectionValue
+    if _is_udf(model):
+        _, _, udf_def_pk = model.split(':')
+        subquery = UserDefinedCollectionValue.objects\
+            .filter(**query)\
+            .filter(field_definition=udf_def_pk)\
+            .distinct('model_id')\
+            .values_list('model_id', flat=True)
+        query = {search_key + '__in': subquery}
+
+    return FilterContext(basekey=model, **query)
 
 
 def _apply_combinator(combinator, predicates):
@@ -381,3 +459,7 @@ def _apply_tree_display_filter(q, display_filter, mapping):
         q = q & FilterContext(basekey='plot', **{search_key: is_empty_plot})
 
     return q
+
+
+def _is_udf(model_name):
+    return model_name.startswith('udf:')

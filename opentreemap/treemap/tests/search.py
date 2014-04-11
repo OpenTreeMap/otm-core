@@ -10,6 +10,7 @@ from datetime import datetime
 
 from django.test import TestCase
 from django.db.models import Q
+from django.db.models.query import ValuesListQuerySet
 from django.db import connection
 from django.utils.tree import Node
 
@@ -18,12 +19,33 @@ from django.contrib.gis.measure import Distance
 
 from treemap.tests import (make_instance, make_commander_user,
                            make_simple_polygon, set_write_permissions)
+from treemap.tests.udfs import make_collection_udf
 from treemap.models import (Tree, Plot, Boundary, Species)
 from treemap.udf import UserDefinedFieldDefinition
 from treemap import search
 
 
 class FilterParserTests(TestCase):
+    def _setup_tree_and_collection_udf(self):
+        instance = make_instance()
+
+        self.plotstew = make_collection_udf(instance, model='Plot')
+        self.treestew = make_collection_udf(instance, model='Tree')
+
+        commander = make_commander_user(instance)
+        set_write_permissions(instance, commander, 'Plot', ['udf:Stewardship'])
+        set_write_permissions(instance, commander, 'Tree', ['udf:Stewardship'])
+
+        p1 = Point(-7615441.0, 5953519.0)
+
+        self.plot = Plot(instance=instance, geom=p1)
+        self.plot.udfs[self.plotstew.name] = [{'action': 'water', 'height': 2}]
+        self.plot.save_with_user(commander)
+
+        self.tree = Tree(instance=instance, plot=self.plot)
+        self.tree.udfs[self.treestew.name] = [{'action': 'prune', 'height': 3}]
+        self.tree.save_with_user(commander)
+
     def destructure_query_set(self, node):
         """
         Django query objects are not comparable by themselves, but they
@@ -43,17 +65,22 @@ class FilterParserTests(TestCase):
                 n = ('NOT', n)
 
             return n
+        elif isinstance(node, tuple):
+            # Lists are unhashable, so convert ValuesListQuerySets into tuples
+            # for easy comparison
+            return tuple(tuple(c) if isinstance(c, ValuesListQuerySet) else c
+                         for c in node)
         else:
             return node
 
     def test_key_parser_plots(self):
-        # Plots go directly to a field
+        # Plots searches on plot go directly to a field
         match = search._parse_predicate_key('plot.width',
                                             mapping=search.DEFAULT_MAPPING)
         self.assertEqual(match, ('plot', 'width'))
 
     def test_key_parser_plots_with_tree_map(self):
-        # Plots go directly to a field
+        # Plots searches on tree go require a prefix
         match = search._parse_predicate_key('plot.width',
                                             mapping=search.TREE_MAPPING)
         self.assertEqual(match, ('plot', 'plot__width'))
@@ -64,16 +91,28 @@ class FilterParserTests(TestCase):
         self.assertEqual(match, ('plot', 'udf:The 1st Planter'))
 
     def test_key_parser_trees(self):
-        # Trees require a prefix and the field
+        # Tree searches on plot require a prefix and the field
         match = search._parse_predicate_key('tree.dbh',
                                             mapping=search.DEFAULT_MAPPING)
         self.assertEqual(match, ('tree', 'tree__dbh'))
 
     def test_key_parser_trees_with_tree_map(self):
-        # Trees require a prefix and the field
+        # Tree searches on tree go directly to the field
         match = search._parse_predicate_key('tree.dbh',
                                             mapping=search.TREE_MAPPING)
         self.assertEqual(match, ('tree', 'dbh'))
+
+    def test_key_parser_tree_collection_udf(self):
+        # UDF searches go on the specified model's id
+        match = search._parse_predicate_key('udf:tree:52.action',
+                                            mapping=search.TREE_MAPPING)
+        self.assertEqual(match, ('udf:tree:52', 'id'))
+
+    def test_key_parser_plot_collection_udf(self):
+        # UDF searches go on the specified model's id
+        match = search._parse_predicate_key('udf:plot:52.action',
+                                            mapping=search.TREE_MAPPING)
+        self.assertEqual(match, ('udf:plot:52', 'plot__id'))
 
     def test_key_parser_invalid_model(self):
         # Invalid models should raise an exception
@@ -336,6 +375,26 @@ class FilterParserTests(TestCase):
 
         self.assertEqual(self.destructure_query_set(pred), ('OR', {p1, p2}))
 
+    def test_parse_collection_udf_simple_predicate(self):
+        self._setup_tree_and_collection_udf()
+        pred = search._parse_predicate(
+            {'udf:plot:%s.action' % self.plotstew.pk: 'water'},
+            mapping=search.DEFAULT_MAPPING)
+
+        target = ('AND', {('id__in', (self.plot.pk,))})
+
+        self.assertEqual(self.destructure_query_set(pred), target)
+
+    def test_parse_collection_udf_nested_predicate(self):
+        self._setup_tree_and_collection_udf()
+        pred = search._parse_predicate(
+            {'udf:tree:%s.height' % self.treestew.pk: {'MAX': 3}},
+            mapping=search.DEFAULT_MAPPING)
+
+        target = ('AND', {('tree__id__in', (self.tree.pk,))})
+
+        self.assertEqual(self.destructure_query_set(pred), target)
+
     def test_parse_normal_value(self):
         self.assertEqual(search._parse_value(1), 1)
 
@@ -416,6 +475,36 @@ class SearchTests(TestCase):
             plotudfs={'Test string': 'baz',
                       'Test date': datetime(2014, 1, 9)},
             treeudfs={'Test float': 2.2})
+
+        return (p.pk for p in [p1, p2, p3])
+
+    def _setup_collection_udfs(self):
+        self.plotstew = make_collection_udf(self.instance, model='Plot')
+        self.treestew = make_collection_udf(self.instance, model='Tree')
+
+        set_write_permissions(self.instance, self.commander, 'Plot',
+                              [self.plotstew.canonical_name])
+        set_write_permissions(self.instance, self.commander, 'Tree',
+                              [self.treestew.canonical_name])
+
+        p1, _ = self.create_tree_and_plot(
+            plotudfs={self.plotstew.name:
+                      [{'action': 'water', 'height': 1},
+                       {'action': 'prune', 'height': 22}]},
+            treeudfs={self.treestew.name:
+                      [{'action': 'water', 'height': 7},
+                       {'action': 'water', 'height': None}]})
+
+        p2, _ = self.create_tree_and_plot(
+            plotudfs={self.plotstew.name: [{'action': 'water', 'height': 2}]},
+            treeudfs={self.treestew.name: [{'action': 'prune', 'height': 7}]})
+
+        p3, _ = self.create_tree_and_plot(
+            plotudfs={self.plotstew.name: [{'action': 'water', 'height': 3},
+                                           {'action': 'prune', 'height': 0}]},
+            treeudfs={self.treestew.name:
+                      [{'action': 'prune', 'height': 9},
+                       {'action': 'water', 'height': None}]})
 
         return (p.pk for p in [p1, p2, p3])
 
@@ -741,3 +830,52 @@ class SearchTests(TestCase):
         ids = {p.pk for p in plots}
 
         self.assertEqual(ids, {plot.pk, empty_plot.pk})
+
+    def test_allows_cudf(self):
+        plot, tree = self.create_tree_and_plot()
+        empty_plot = Plot(geom=self.p1, instance=self.instance)
+        empty_plot.save_with_user(self.commander)
+
+        plots = search.Filter('', '["Plot"]', self.instance)\
+                      .get_objects(Plot)
+
+        ids = {p.pk for p in plots}
+
+        self.assertEqual(ids, {plot.pk, empty_plot.pk})
+
+    def test_cudf_range_search(self):
+        p1, p2, p3 = self._setup_collection_udfs()
+
+        self.assertEqual(
+            {p2},
+            self._execute_and_process_filter(
+                {'udf:plot:%s.height' % self.plotstew.pk:
+                 {'MIN': 2, 'MAX': 2}}))
+
+        self.assertEqual(
+            {p1, p2},
+            self._execute_and_process_filter(
+                {'udf:plot:%s.height' % self.plotstew.pk:
+                 {'MIN': 1, 'MAX': 2}}))
+
+        self.assertEqual(
+            {p3},
+            self._execute_and_process_filter(
+                {'udf:plot:%s.height' % self.plotstew.pk: {'MIN': 3}}))
+
+    def test_cudf_is_search(self):
+        p1, _, p3 = self._setup_collection_udfs()
+
+        self.assertEqual(
+            {p1, p3},
+            self._execute_and_process_filter(
+                {'udf:plot:%s.action' % self.plotstew.pk: {'IS': 'prune'}}))
+
+    def test_cudf_compound_search(self):
+        p1, _, p3 = self._setup_collection_udfs()
+
+        self.assertEqual(
+            {p1, p3},
+            self._execute_and_process_filter(
+                {'udf:plot:%s.action' % self.plotstew.pk: {'IS': 'prune'},
+                 'udf:plot:%s.height' % self.plotstew.pk: {'MAX': 2}}))

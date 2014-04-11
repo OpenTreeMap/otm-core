@@ -30,7 +30,7 @@ from treemap.instance import Instance
 from treemap.audit import (UserTrackable, Audit, UserTrackingException,
                            _reserve_model_id, FieldPermission,
                            AuthorizeException, Authorizable, Auditable)
-from treemap.util import safe_get_model_class
+from treemap.util import safe_get_model_class, to_object_name
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 DATE_FORMAT = '%Y-%m-%d'
@@ -1019,6 +1019,11 @@ class UDFModel(UserTrackable, models.Model):
 
     def collection_udfs_audit_names(self):
         return ['udf:%s' % udf.pk for udf in self.collection_udfs]
+
+    def collection_udfs_search_names(self):
+        object_name = to_object_name(self.__class__.__name__)
+        return ['udf:%s:%s' % (object_name, udf.pk)
+                for udf in self.collection_udfs]
 
     def visible_collection_udfs_audit_names(self, user):
         if isinstance(self, Authorizable):
