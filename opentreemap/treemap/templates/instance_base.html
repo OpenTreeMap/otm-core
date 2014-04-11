@@ -97,7 +97,7 @@
   </div>
   {% if advanced_search_fields.stewardship %}
   {% with tree_perm_level=last_effective_instance_user|udf_write_level:advanced_search_fields.stewardship.tree.udfd %}
-  {% with plot_perm_level=last_effective_instance_user|udf_write_level:advanced_search_fields.stewardship.mapFeature.udfd %}
+  {% with plot_perm_level=last_effective_instance_user|udf_write_level:advanced_search_fields.stewardship.plot.udfd %}
   {% if tree_perm_level|is_read_or_write or plot_perm_level|is_read_or_write  %}
   <div class="stewardship-search">
     <span>{% trans "I am looking for" %}</span>
@@ -109,8 +109,8 @@
               >{% trans "trees" %}</option>
       {% endif %}
       {% if plot_perm_level|is_read_or_write %}
-      <option data-model="mapFeature"
-              data-udfd-id="{{ advanced_search_fields.stewardship.mapFeature.udfd.pk }}"
+      <option data-model="plot"
+              data-udfd-id="{{ advanced_search_fields.stewardship.plot.udfd.pk }}"
               >{% trans "plots" %}</option>
       {% endif %}
     </select>
@@ -124,8 +124,8 @@
       {% for event in advanced_search_fields.stewardship.tree.fields %}
       <option data-model="tree" style="display: none;">{{ event }}</option>
       {% endfor %}
-      {% for event in advanced_search_fields.stewardship.mapFeature.fields %}
-      <option data-model="mapFeature" style="display: none;">{{ event }}</option>
+      {% for event in advanced_search_fields.stewardship.plot.fields %}
+      <option data-model="plot" style="display: none;">{{ event }}</option>
       {% endfor %}
     </select>
 

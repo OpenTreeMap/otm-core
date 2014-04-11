@@ -209,8 +209,8 @@ class Instance(models.Model):
             'stewardship': {
                 'tree': {'udfd': tree_stewardship,
                          'fields': tree_udf_fields},
-                'mapFeature': {'udfd': plot_stewardship,
-                               'fields': plot_udf_fields}
+                'plot': {'udfd': plot_stewardship,
+                         'fields': plot_udf_fields}
             }
         })
 

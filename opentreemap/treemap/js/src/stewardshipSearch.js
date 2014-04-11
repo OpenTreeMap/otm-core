@@ -8,9 +8,7 @@ var $ = require('jquery'),
     MODEL_SELECT_SELECTOR = '#stewardship-search-model',
     ACTION_SELECT_SELECTOR = '#stewardship-search-action',
     DATE_MIN_SELECTOR = '#stewardship-search-date-from',
-    DATE_MAX_SELECTOR = '#stewardship-search-date-to',
-
-    MODEL_TO_UI_VALUE = {'udf:tree': 'trees', 'udf:mapFeature': 'plots' };
+    DATE_MAX_SELECTOR = '#stewardship-search-date-to';
 
 // Placed onto the jquery object
 require('bootstrap-datepicker');
@@ -27,18 +25,28 @@ exports.applyFilterObjectToDom = function (search) {
             }
         })),
         modelName = _.uniq(_.pluck(parsed, 'modelName'))[0],
+        eligibleModelNames = _.map($(MODEL_SELECT_SELECTOR)
+                                   .find('option')
+                                   .not('[data-class="stewardship-placeholder"]'),
+                                   function (option) {
+                                       return option.value;
+                                   }),
+        cleanPluralModelName,
         action,
         date;
 
     // there's no data if there's no modelName
+    if (!_.isString(modelName)) { return; }
+
     // don't attempt to populate if invalid data provided
-    if (!_.isString(modelName) ||
-        !_.contains(_.keys(MODEL_TO_UI_VALUE), modelName)) {
+    cleanPluralModelName = modelName.substring(4) + 's';
+    if (!_.contains(eligibleModelNames, cleanPluralModelName)) {
+        console.log('Invalid modelName: ' + cleanPluralModelName);
         return;
     }
 
     // set the model name in the model selector and initialize fields
-    $(MODEL_SELECT_SELECTOR).val(MODEL_TO_UI_VALUE[modelName]);
+    $(MODEL_SELECT_SELECTOR).val(cleanPluralModelName);
     initializeUiBasedOnModelType();
 
     // set the action select box to the action in the filter object
