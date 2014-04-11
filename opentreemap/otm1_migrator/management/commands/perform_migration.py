@@ -360,9 +360,8 @@ def hashes_to_saved_objects(
 
             if model_key_map is not None and model and model.pk:
                 model_key_map[model_hash['pk']] = model.pk
-        except Exception as e:
+        except Exception:
             raise
-            #print(e)
 
 
 def make_model_option(migration_rules, model):
@@ -376,7 +375,8 @@ def make_model_option(migration_rules, model):
 
 
 from otm1_migrator.migration_rules.standard_otm1 \
-        import MIGRATION_RULES as rules
+    import MIGRATION_RULES as rules
+
 
 class Command(InstanceDataCommand):
 
@@ -415,8 +415,8 @@ class Command(InstanceDataCommand):
             self.stdout.write('Invalid instance provided.')
             return 1
 
-        rule_module = options['rule_module'] or \
-                      'otm1_migrator.migration_rules.standard_otm1'
+        rule_module = (options['rule_module'] or
+                       'otm1_migrator.migration_rules.standard_otm1')
         migration_mod = importlib.import_module(rule_module)
         migration_rules = migration_mod.MIGRATION_RULES
 
