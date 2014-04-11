@@ -59,9 +59,11 @@ _unit_names = {
     "kg/year": trans("kilograms per year"),
     "lbs": trans("pounds"),
     "kg": trans("kilograms"),
-    "kwh": trans("kilowatt-hours"),
+    "kwh/year": trans("kilowatt-hours per year"),
     "gal": trans("gallons"),
+    "gal/year": trans("gallons per year"),
     "L": trans("liters"),
+    "L/year": trans("liters per year"),
     "sq_ft": trans("feet²"),
     "sq_m": trans("meters²")
 }
@@ -71,7 +73,8 @@ _unit_conversions = {
     "lbs/year": {"lbs/year": 1, "kg/year": 0.453592},
     "lbs": {"lbs": 1, "kg": 0.453592},
     "gal": {"gal": 1, "L": 3.785},
-    "kwh": {"kwh": 1},
+    "gal/year": {"gal/year": 1, "L/year": 3.785},
+    "kwh/year": {"kwh/year": 1},
     "sq_m": {"sq_m": 1, "sq_ft": 10.7639}
 }
 _unit_conversions["ft"] = {u: v * 12 for (u, v)
