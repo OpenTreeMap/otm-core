@@ -81,6 +81,12 @@ class Instance(models.Model):
     """ Center of the map when loading the instance """
     bounds = models.MultiPolygonField(srid=3857)
 
+    """
+    Override the center location (which is, by default,
+    the centroid of "bounds"
+    """
+    center_override = models.PointField(srid=3857, null=True, blank=True)
+
     default_role = models.ForeignKey('Role', related_name='default_role')
 
     users = models.ManyToManyField('User', through='InstanceUser',
@@ -215,7 +221,7 @@ class Instance(models.Model):
 
     @property
     def center(self):
-        return self.bounds.centroid
+        return self.center_override or self.bounds.centroid
 
     @property
     def geo_rev_hash(self):

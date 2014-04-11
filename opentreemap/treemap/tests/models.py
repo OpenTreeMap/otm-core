@@ -317,6 +317,22 @@ class InstanceUserModelTest(TestCase):
 
 class InstanceTest(TestCase):
 
+    def test_can_set_center(self):
+        instance = make_instance(url_name="blah")
+
+        c1 = instance.center
+
+        p1 = Point(-113.0, -333.0)
+
+        instance.center_override = p1
+        instance.save()
+
+        c2 = Instance.objects.get(pk=instance.pk).center
+
+        self.assertEqual(p1.x, c2.x)
+        self.assertEqual(p1.y, c2.y)
+        self.assertNotEqual(c1, c2)
+
     def test_force_url_name_downcase(self):
         up_name = "BiGNaMe"
         instance = make_instance(url_name=up_name)
