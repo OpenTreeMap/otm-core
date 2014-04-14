@@ -405,7 +405,7 @@ benefit_labels = {
     # Translators: 'Carbon dioxide removed' is the name of an eco benefit
     'co2':        trans('Carbon dioxide removed'),
     # Translators: 'Carbon dioxide stored' is the name of an eco benefit
-    'co2storage': trans('Carbon dioxide stored'),
+    'co2storage': trans('Carbon dioxide stored to date'),
     # Translators: 'Air quality improved' is the name of an eco benefit
     'airquality': trans('Air quality improved')
 }
