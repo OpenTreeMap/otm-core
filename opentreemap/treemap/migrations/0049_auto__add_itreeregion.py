@@ -237,7 +237,7 @@ class Migration(SchemaMigration):
         },
         u'treemap.userdefinedcollectionvalue': {
             'Meta': {'object_name': 'UserDefinedCollectionValue'},
-            'data': ('djorm_hstore.fields.DictionaryField', [], {}),
+            'data': ('django_hstore.fields.DictionaryField', [], {}),
             'field_definition': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.UserDefinedFieldDefinition']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'model_id': ('django.db.models.fields.IntegerField', [], {})
