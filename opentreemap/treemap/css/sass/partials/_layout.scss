@@ -17,7 +17,8 @@ body {
 }
 
 .image-background {
-	background-image: url('/static/img/default-background.jpg');
+    //background-image: $background-image;
+	background-image: none;
 	height: 500px;
 	position: absolute;
 	z-index: 0;
@@ -69,7 +70,7 @@ body {
         top: 0;
         border-radius: 6px 6px 0 0;
         height: 110px;
-        background: $light-gray-color;
+        background: darken($light-gray-color, 10%);
         left: 0;
         right: 0;
         display: block;
