@@ -91,7 +91,7 @@ def instance_info(request, instance):
     collection_udfs = instance.userdefinedfielddefinition_set\
                               .filter(iscollection=True)
     collection_udf_dict = {"%s.%s" % (udf.model_type.lower(),
-                                      udf.canonical_name)
+                                      udf.canonical_name): udf
                            for udf in collection_udfs}
 
     for fp in role.fieldpermission_set.all():
