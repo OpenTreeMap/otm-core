@@ -104,6 +104,7 @@ function init(options) {
     function initSteps() {
         $resourceType.prop('checked', false);
         manager.stepControls.enableNext(STEP_CHOOSE_TYPE, false);
+        plotMarker.hide();
         removeAreaPolygon();
         hideSubquestions();
     }

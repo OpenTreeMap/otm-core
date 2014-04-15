@@ -103,7 +103,7 @@ exports = module.exports = {
     enableMoving: enableMoving,
     disableMoving: disableMoving,
 
-    // Hide/deactivate/clear everything (but keep feature so its location can still be retrieved)
+    // Hide/deactivate/clear everything
     hide: function () {
         if (marker) {
             lastMarkerLocation = marker.getLatLng();
@@ -169,7 +169,9 @@ function disableMoving() {
     if (markerDraggingContext) {
         markerDraggingContext.disable();
     }
-    showViewMarker();
+    if (map.hasLayer(marker)) {
+        showViewMarker();
+    }
 }
 
 var showViewMarker = _.partial(showMarker, false, '');

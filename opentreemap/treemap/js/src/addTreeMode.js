@@ -63,6 +63,9 @@ function init(options) {
         });
     }
 
+    // In case we're adding another tree, make user move the marker
+    manager.addFeatureStream.onValue(manager.requireMarkerDrag);
+
     _.defer(function () {
         manager.focusOnAddressInput();
     });
