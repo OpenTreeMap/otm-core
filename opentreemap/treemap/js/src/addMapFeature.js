@@ -190,6 +190,7 @@ function init(options) {
         stepControls.showStep(0);
         stepControls.enableNext(indexOfSetLocationStep, false);
         $placeMarkerMessage.show();
+        $moveMarkerMessage.hide();
     }
 
     function setAddFeatureUrl(url) {
@@ -288,12 +289,10 @@ function init(options) {
 
         switch (option) {
         case 'copy':
-            requireMarkerDrag();
             stepControls.showStep(0);
             break;
         case 'new':
             clearEditControls();
-            requireMarkerDrag();
             stepControls.showStep(0);
             break;
         case 'edit':
@@ -347,6 +346,7 @@ function init(options) {
         setAddFeatureUrl: setAddFeatureUrl,
         focusOnAddressInput: focusOnAddressInput,
         getFormData: getFormData,
+        requireMarkerDrag: requireMarkerDrag,
         stepControls: stepControls,
         addFeatureStream: addFeatureStream,
         deactivateStream: deactivateBus.map(_.identity)
