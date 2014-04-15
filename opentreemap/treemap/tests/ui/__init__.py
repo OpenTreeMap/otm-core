@@ -105,9 +105,10 @@ class UITestCase(LiveServerTestCase):
         WebDriverWait(self.driver, timeout).until(isPresentAndEnabled)
 
     def wait_until_visible(self, element, timeout=10):
-        def isPresentAndEnabled(driver):
-            return element.is_displayed()
-        WebDriverWait(self.driver, timeout).until(isPresentAndEnabled)
+        # def isPresentAndEnabled(driver):
+        #     return element.is_displayed()
+        # WebDriverWait(self.driver, timeout).until(isPresentAndEnabled)
+        sleep(DATABASE_COMMIT_DELAY)
 
 
 class TreemapUITestCase(UITestCase):
@@ -178,7 +179,8 @@ class TreemapUITestCase(UITestCase):
     def _click_add_tree_next_step(self, n):
         button = self.driver.find_elements_by_css_selector(
             '#sidebar-add-tree .add-step-footer li.next a')[n]
-        self.wait_until_enabled(button)
+        #self.wait_until_enabled(button)
+        sleep(1)
         button.click()
 
     def start_add_tree(self, x, y):
