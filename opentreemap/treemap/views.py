@@ -988,8 +988,9 @@ def user(request, username):
 
     query_vars = {'instance_id': instance_id} if instance_id else {}
 
+    models = get_filterable_audit_models().values()
     audit_dict = _get_audits(request.user, instance, query_vars,
-                             user, ['Plot', 'Tree'], 0, should_count=True)
+                             user, models, 0, should_count=True)
 
     reputation = user.get_reputation(instance) if instance else None
 
