@@ -69,6 +69,7 @@
 
 {% block subhead %}
 <div class="subhead">
+  {% with advanced_search_fields=request.instance.advanced_search_fields %}
   <div class="advanced-search">
     <div class="container">
       <div class="row-fluid">
@@ -94,18 +95,92 @@
       </div>
     </div>
   </div>
-{# TODO: search backend not implemeneted, Temporarily hidden #}
-{#       <div class="stewardship-search disabled"> #}
-{#         <span>{% trans "I am looking for" %}</span> #}
-{#         <div class="stewardship-selector">...</div> #}
-{#         <span>{% trans "that" %}</span> #}
-{#         <div class="stewardship-selector">...</div> #}
-{#         <div class="stewardship-selector">...</div> #}
-{#         <span>{% trans "between" %}</span> #}
-{#         <div class="stewardship-selector">...</div> #}
-{#         <span>{% trans "and" %}</span> #}
-{#         <div class="stewardship-selector">...</div> #}
-{#       </div> #}
+
+  {% with stewardship=advanced_search_fields.udfc.stewardship %}
+  {% with alerts=advanced_search_fields.udfc.alerts %}
+  {% if stewardship or alerts %}
+  {% with tree_stewardship_perm_level=last_effective_instance_user|udf_write_level:stewardship.tree.udfd %}
+  {% with plot_stewardship_perm_level=last_effective_instance_user|udf_write_level:stewardship.plot.udfd %}
+  {% if tree_stewardship_perm_level|is_read_or_write or plot_stewardship_perm_level|is_read_or_write or tree_alerts_perm_level|is_read_or_write or plot_alerts_perm_level|is_read_or_write %}
+  <div class="udfc-search">
+    <span>{% trans "I am looking for" %}</span>
+    <select id="udfc-search-model">
+      <option data-class="udfc-placeholder" selected />
+      {% if tree_stewardship_perm_level|is_read_or_write or tree_alerts_perm_level|is_read_or_write %}
+      {% if stewardship.tree.fields or alerts.tree.fields %}
+      <option data-model="tree">{% trans "trees" %}</option>
+      {% endif %}
+      {% endif %}
+      {% if plot_stewardship_perm_level|is_read_or_write or plot_alerts_perm_level|is_read_or_write %}
+      {% if stewardship.plot.fields or alerts.plot.fields %}
+      <option data-model="plot">{% trans "plots" %}</option>
+      {% endif %}
+      {% endif %}
+    </select>
+
+    <select id="udfc-search-type">
+      <option data-class="udfc-placeholder" selected />
+      {% if stewardship %}
+      <option data-type="stewardship"
+              data-plot-udfd-id="{{ stewardship.plot.udfd.pk }}"
+              data-tree-udfd-id="{{ stewardship.tree.udfd.pk }}"
+              data-date-field-key="Date"
+              data-action-field-key="Action"
+              >{% trans "that received" %}</option>
+      {% endif %}
+      {% if alerts %}
+      <option data-type="alerts"
+              data-plot-udfd-id="{{ alerts.plot.udfd.pk }}"
+              data-tree-udfd-id="{{ alerts.tree.udfd.pk }}"
+              data-date-field-key="Date Noticed"
+              data-action-field-key="Action Needed"
+              >{% trans "that need" %}</option>
+      {% endif %}
+    </select>
+
+    <div id="udfc-extra-clauses" style="display: none">
+      <input id="alerts-resolved"
+             data-type="alerts"
+             data-field="Status"
+             data-search-type="IS"
+             value="Unresolved"/>
+    </div>
+
+    <select id="udfc-search-action" data-search-type="IS">
+      <option data-class="udfc-placeholder" selected />
+      {% for action in stewardship.tree.fields %}
+      <option data-model="tree" data-type="stewardship" style="display: none;">{{ action }}</option>
+      {% endfor %}
+      {% for action in alerts.tree.fields %}
+      <option data-model="tree" data-type="alerts" style="display: none;">{{ action }}</option>
+      {% endfor %}
+      {% for action in stewardship.plot.fields %}
+      <option data-model="plot" data-type="stewardship" style="display: none;">{{ action }}</option>
+      {% endfor %}
+      {% for action in alerts.plot.fields %}
+      <option data-model="plot" data-type="alerts" style="display: none;">{{ action }}</option>
+      {% endfor %}
+    </select>
+
+    <span>{% trans "between" %}</span>
+    <input id="udfc-search-date-from" data-search-type="MIN"
+           class="stewardship-selector"
+           {% include "treemap/partials/date_picker_init.html" %}
+           />
+    <span>{% trans "and" %}</span>
+    <input id="udfc-search-date-to" data-search-type="MAX"
+           class="stewardship-selector"
+           {% include "treemap/partials/date_picker_init.html" %}
+           />
+
+  </div>
+  {% endif %}
+  {% endwith %}
+  {% endwith %}
+  {% endif %}
+  {% endwith %}
+  {% endwith %}
+
   <div class="stats-bar">
     <div style="display: inline;" id="tree-and-planting-site-counts">
     </div>
@@ -136,6 +211,7 @@
        disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>
     {% endif %}
   </div>
+  {% endwith %}
 </div>
 {% endblock subhead %}
 

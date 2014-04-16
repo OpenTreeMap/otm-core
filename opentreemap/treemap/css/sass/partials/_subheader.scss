@@ -152,7 +152,7 @@
 
         @include checkboxes;
     }
-    > .stewardship-search {
+    > .udfc-search {
         height: 50px;
         padding: 0 8px;
         background: lighten($primary-color, 15%);
@@ -161,7 +161,7 @@
             span {
                 opacity: 0.4;
             }
-            .stewardship-selector {
+            .udfc-selector {
                 opacity: 0.4;
                 cursor: default;
                 background: $primary-color;
@@ -181,7 +181,7 @@
             color: white;
             font-weight: 300;
         }
-        .stewardship-selector {
+        .udfc-selector {
             background: $primary-color;
             display: inline-block;
             margin: 0 1px;

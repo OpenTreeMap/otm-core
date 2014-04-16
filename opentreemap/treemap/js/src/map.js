@@ -91,7 +91,7 @@ module.exports = {
                 triggerSearchFromSidebar.map(mapState.getSearch)
             );
 
-        triggeredQueryStream.onValue(Search.applySearchToDom);
+        triggeredQueryStream.onValue(bar.applySearchToDom);
 
         builtSearchEvents.onValue(mapState.setSearch);
 

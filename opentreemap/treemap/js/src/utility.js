@@ -4,6 +4,7 @@ var url = require('url'),
     QS = require('querystring'),
     $ = require('jquery'),
     L = require('leaflet'),
+    _ = require('lodash'),
     console = require('console-browserify');
 
 exports.getUpdatedQueryString = function (k, v) {
@@ -135,3 +136,15 @@ var endsWith = exports.endsWith = function(str, ends) {
     return str.length >= ends.length &&
         str.slice(str.length - ends.length) === ends;
 };
+
+// Takes a set of functions and returns a fn that is the juxtaposition
+// of those fns. The returned fn takes a variable number of args, and
+// returns a vector containing the result of applying each fn to the
+// args (left-to-right).
+exports.juxt = function(fns) {
+    return function (val) {
+        return _.map(fns, function (fn) { return fn(val); });
+    };
+};
+
+

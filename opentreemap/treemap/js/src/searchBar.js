@@ -16,6 +16,7 @@ var $ = require('jquery'),
     geocoder = require('treemap/geocoder'),
     geocoderUi = require('treemap/geocoderUi'),
     Search = require('treemap/search'),
+    udfcSearch = require('treemap/udfcSearch'),
     BU = require('treemap/baconUtils'),
     mapManager = require('treemap/mapManager');
 
@@ -126,6 +127,7 @@ module.exports = exports = {
                 .map(unmatchedBoundarySearchValue)
                 .filter(BU.isUndefinedOrEmpty)
                 .map(Search.buildSearch),
+            uSearch = udfcSearch.init(resetStream),
 
             geocoderInstance = geocoder(config),
             geocodeCandidateStream = searchStream.map(unmatchedBoundarySearchValue).filter(BU.isDefinedNonEmpty),
@@ -154,7 +156,12 @@ module.exports = exports = {
 
             // Stream of search events, carries the filter object and display
             // list with it. should be used by consumer to execute searches.
-            filterNonGeocodeObjectStream: filtersStream
+            filterNonGeocodeObjectStream: filtersStream,
+
+            applySearchToDom: function (search) {
+                Search.applySearchToDom(search);
+                uSearch.applyFilterObjectToDom(search);
+            }
         };
     }
 };

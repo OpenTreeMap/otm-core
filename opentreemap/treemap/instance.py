@@ -149,7 +149,8 @@ class Instance(models.Model):
         # TODO pull from the config once users have a way to set search fields
 
         if not self.feature_enabled('advanced_search_filters'):
-            return {'standard': [], 'missing': [], 'display': []}
+            return {'standard': [], 'missing': [], 'display': [],
+                    'udfc': {}}
 
         from treemap.models import MapFeature  # prevent circular import
         fields = {
@@ -199,6 +200,32 @@ class Instance(models.Model):
             for field in filters:
                 field['id'] = "%s_%s" % (field.get('identifier', ''), num)
                 num += 1
+
+        # prevent circular import
+        from treemap.udf import UserDefinedFieldDefinition
+        from treemap.util import to_object_name
+
+        # if we come to support more udfc searches, we can add them here.
+        udfc_models = ['Tree', 'Plot']
+        udfc_names = ['Stewardship', 'Alerts']
+
+        udfds = UserDefinedFieldDefinition.objects.filter(
+            instance=self,
+            name__in=udfc_names,
+            model_type__in=udfc_models)
+
+        udfc = {udfc_name.lower(): {}
+                for udfc_name in udfc_names}
+
+        for udfd in udfds:
+            udfd_info = {
+                'udfd': udfd,
+                'fields': udfd.datatype_dict[0]['choices']
+            }
+            name_dict = udfc[to_object_name(udfd.name)]
+            name_dict[to_object_name(udfd.model_type)] = udfd_info
+
+        fields['udfc'] = udfc
 
         return fields
 
