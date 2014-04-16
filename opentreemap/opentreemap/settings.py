@@ -255,7 +255,7 @@ ACCOUNT_ACTIVATION_DAYS = 7
 #
 # DISPLAY_DEFAULTS has the default unit to show in the UI
 # STORAGE_UNITS is the unit the value will be stored/computed as,
-# if diffferent from DISPLAY_DEFAULTS
+# if different from DISPLAY_DEFAULTS
 #
 STORAGE_UNITS = {}
 DISPLAY_DEFAULTS = {
@@ -269,8 +269,8 @@ DISPLAY_DEFAULTS = {
         'canopy_height': {'units': 'ft', 'digits': 1}
     },
     'eco': {
-        'energy':     {'units': 'kwh', 'digits': 1},
-        'stormwater': {'units': 'gal', 'digits': 1},
+        'energy':     {'units': 'kwh/year', 'digits': 1},
+        'stormwater': {'units': 'gal/year', 'digits': 1},
         'co2':        {'units': 'lbs/year', 'digits': 1},
         'co2storage': {'units': 'lbs', 'digits': 1},
         'airquality': {'units': 'lbs/year', 'digits': 1}

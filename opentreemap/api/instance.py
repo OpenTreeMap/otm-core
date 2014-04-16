@@ -176,14 +176,25 @@ def _instance_info_dict(instance):
 def _instance_eco_dict(instance):
     return {
         "supportsEcoBenefits": instance.has_itree_region(),
-        #  All instances have the same ecobenefits and
-        #  the mobile apps do not need any details to render
-        #  fields for displaying per-feature eco values.
+
+        # This is a list of eco benefit field sections. Currently, the
+        # mobile apps only support tree benefits. The values defined
+        # in this structure are used to pull benefit details from a
+        # map feature dictionary. The benefit label, formatted
+        # currency amount, etc. are all included with the map feature,
+        # so the instance only needs to define the ordering of the keys.
         "benefits": [
-            {"label": "Energy"},
-            {"label": "Stormwater"},
-            {"label": "Carbon Dioxide"},
-            {"label": "Carbon Dioxide Stored"},
-            {"label": "Air Quality"}
+            {
+                "label": "Tree Benefits",
+                # The tree benefits _are_ listed under "plot"
+                "model": "plot",
+                "keys": [
+                    "energy",
+                    "stormwater",
+                    "airquality",
+                    "co2",
+                    "co2storage"
+                ]
+            }
         ]
     }
