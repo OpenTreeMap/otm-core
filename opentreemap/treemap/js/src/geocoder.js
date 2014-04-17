@@ -149,7 +149,7 @@ exports = module.exports = function (config) {
     };
 
     var reverseGeocodeClient = function(latLng, distance) {
-        var url = 'http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode';
+        var url = '//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode';
         var params = {
             'location': latLngToParam(latLng),
             'distance': distance,
