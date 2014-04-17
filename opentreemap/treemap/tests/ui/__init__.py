@@ -2,6 +2,7 @@ import importlib
 
 from django.test import LiveServerTestCase
 from django.conf import settings
+from django.db import connection
 
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -69,6 +70,15 @@ class UITestCase(LiveServerTestCase):
         self.driver.quit()
         if hasattr(self, 'display'):
             self.display.stop()
+
+        # The super.tearDown sometimes hangs when truncating tables
+        # because of lingering pending transactions with locks on those tables.
+        # Kill them to avoid deadlock!
+        dbname = settings.DATABASES['default']['NAME']
+        sql = "select pg_terminate_backend(procpid)" + \
+            " from pg_stat_activity where datname='%s'" % dbname + \
+            " and current_query='<IDLE> in transaction';"
+        connection.cursor().execute(sql)
 
         super(UITestCase, self).tearDown()
 
