@@ -220,6 +220,7 @@ UNMANAGED_APPS = (
     'django.contrib.admin',
     'django.contrib.gis',
     'django.contrib.humanize',
+    'django_hstore',
     'djcelery',
     'south',
 )

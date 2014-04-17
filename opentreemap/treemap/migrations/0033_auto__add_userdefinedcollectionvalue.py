@@ -13,7 +13,7 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('field_definition', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.UserDefinedFieldDefinition'])),
             ('model_id', self.gf('django.db.models.fields.IntegerField')()),
-            ('data', self.gf('djorm_hstore.fields.DictionaryField')()),
+            ('data', self.gf('django_hstore.fields.DictionaryField')()),
         ))
         db.send_create_signal(u'treemap', ['UserDefinedCollectionValue'])
 
@@ -210,7 +210,7 @@ class Migration(SchemaMigration):
         },
         u'treemap.userdefinedcollectionvalue': {
             'Meta': {'object_name': 'UserDefinedCollectionValue'},
-            'data': ('djorm_hstore.fields.DictionaryField', [], {}),
+            'data': ('django_hstore.fields.DictionaryField', [], {}),
             'field_definition': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.UserDefinedFieldDefinition']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'model_id': ('django.db.models.fields.IntegerField', [], {})

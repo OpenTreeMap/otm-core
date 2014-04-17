@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
+import copy
 import re
 from datetime import datetime
 
@@ -12,6 +13,7 @@ from django.utils.translation import ugettext_lazy as trans
 from django.contrib.gis.db import models
 from django.db import transaction
 from django.db.models import Q
+from django.db.models.fields.subclassing import Creator
 from django.db.models.base import ModelBase
 from django.db.models.sql.constants import ORDER_PATTERN
 from django.db.models.signals import post_save
@@ -20,14 +22,15 @@ from django.dispatch import receiver
 from django.contrib.gis.db.models.sql.where import GeoWhereNode
 from django.contrib.gis.db.models.sql.query import GeoQuery
 
-from djorm_hstore.fields import DictionaryField, HStoreDictionary
-from djorm_hstore.models import HStoreManager, HStoreQueryset
+from django_hstore.fields import DictionaryField, HStoreDict
+from django_hstore.managers import HStoreManager
+from django_hstore.query import HStoreQuerySet
 
 from treemap.instance import Instance
 from treemap.audit import (UserTrackable, Audit, UserTrackingException,
                            _reserve_model_id, FieldPermission,
                            AuthorizeException, Authorizable, Auditable)
-from treemap.util import safe_get_model_class
+from treemap.util import safe_get_model_class, to_object_name
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 DATE_FORMAT = '%Y-%m-%d'
@@ -647,11 +650,10 @@ class UserDefinedFieldDefinition(models.Model):
         return 'udf:%s' % self.name
 
 
-class UDFDictionary(HStoreDictionary):
+class UDFDictionary(HStoreDict):
 
-    def __init__(self, value, field, obj, *args, **kwargs):
+    def __init__(self, value, field, obj=None, *args, **kwargs):
         super(UDFDictionary, self).__init__(value, field, *args, **kwargs)
-        self.model = field.model
         self.instance = obj
 
         self._fields = None
@@ -764,21 +766,54 @@ class UDFDictionary(HStoreDictionary):
 
         if udf.iscollection:
             self.instance.dirty_collection_udfs = True
-            self.collection_fields[key] = val
+            # HStoreDict cleans values in-place, so we need to do a deep-copy
+            self.collection_fields[key] = copy.deepcopy(val)
         else:
             val = udf.reverse_clean(val)
 
             super(UDFDictionary, self).__setitem__(key, val)
 
 
+class UDFDescriptor(Creator):
+    def __get__(self, obj, type=None):
+        if obj is None:
+            return None
+        # UDFDictionary needs a reference to the model instance to lookup
+        # collection UDFs
+        udf_dict = obj.__dict__[self.field.name]
+        udf_dict.instance = obj
+
+        return udf_dict
+
+    def __set__(self, obj, value):
+        value = self.field.to_python(value)
+        if isinstance(value, dict):
+            value = UDFDictionary(
+                value=value, field=self.field, instance=obj
+            )
+        obj.__dict__[self.field.name] = value
+
+
 class UDFField(DictionaryField):
+    # Overridden to convert HStoreDict values to UDFDictionary values
+    def get_default(self):
+        hstore_dict = super(UDFField, self).get_default()
+        if isinstance(hstore_dict, HStoreDict):
+            return UDFDictionary(hstore_dict, self)
+        else:
+            return hstore_dict
 
-    _attribute_class = UDFDictionary
+    # Overridden to convert HStoreDict values to UDFDictionary values
+    def get_prep_value(self, value):
+        if isinstance(value, dict) and not isinstance(value, UDFDictionary):
+            return UDFDictionary(value, self)
+        else:
+            return value
 
-    # Overriden because we do our own string transformations
-    # directly via the UDFDictionary
-    def get_prep_value(self, data):
-        return data
+    # Overridden to convert HStoreDict values to UDFDictionary values
+    def contribute_to_class(self, cls, name):
+        super(UDFField, self).contribute_to_class(cls, name)
+        setattr(cls, self.name, UDFDescriptor(self))
 
 
 class _UDFProxy(UDFField):
@@ -984,6 +1019,11 @@ class UDFModel(UserTrackable, models.Model):
 
     def collection_udfs_audit_names(self):
         return ['udf:%s' % udf.pk for udf in self.collection_udfs]
+
+    def collection_udfs_search_names(self):
+        object_name = to_object_name(self.__class__.__name__)
+        return ['udf:%s:%s' % (object_name, udf.pk)
+                for udf in self.collection_udfs]
 
     def visible_collection_udfs_audit_names(self, user):
         if isinstance(self, Authorizable):
@@ -1319,7 +1359,7 @@ class UDFQuerySet(models.query.GeoQuerySet):
         self.query = query or UDFQuery(model)
 
 
-class GeoHStoreUDFQuerySet(HStoreQueryset, UDFQuerySet):
+class GeoHStoreUDFQuerySet(UDFQuerySet, HStoreQuerySet):
     """
     Merges hstore with the UDFQuerySet which includes the standard
     GeoQuerySet
