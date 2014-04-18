@@ -48,7 +48,7 @@ class LoginLogoutTest(UITestCase):
 
         login_url = self.driver.current_url
 
-        self.click('#login')
+        self.click_when_visible('#login')
         self.process_login_form(self.user.username, 'password')
 
         # We should not be on the same page
