@@ -5,6 +5,7 @@ from __future__ import division
 
 from django.utils.translation import ugettext_lazy as trans
 from django.contrib.gis.geos.point import Point
+from django.db import connection
 
 from treemap import ecobackend
 from treemap.models import MapFeature
@@ -70,10 +71,8 @@ class BenefitCalculator(object):
 class TreeBenefitsCalculator(BenefitCalculator):
     def _make_sql_from_query(self, query):
         sql, params = query.sql_with_params()
-        quote = lambda s: "'%s'" % s if isinstance(s, basestring) else s
-        params = [quote(param) for param in params]
-
-        return sql % tuple(params)
+        cursor = connection.cursor()
+        return cursor.mogrify(sql, params)
 
     def benefits_for_filter(self, instance, item_filter):
         from treemap.models import Tree
