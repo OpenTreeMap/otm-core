@@ -3,6 +3,7 @@ import importlib
 from django.test import LiveServerTestCase
 from django.conf import settings
 from django.db import connection
+from psycopg2._psycopg import InterfaceError
 
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -74,16 +75,25 @@ class UITestCase(LiveServerTestCase):
         # The super.tearDown sometimes hangs when truncating tables
         # because of lingering pending transactions with locks on those tables.
         # Kill them to avoid deadlock!
-        dbname = settings.DATABASES['default']['NAME']
-        sql = "select pg_terminate_backend(procpid)" + \
-            " from pg_stat_activity where datname='%s'" % dbname + \
-            " and current_query='<IDLE> in transaction';"
-        connection.cursor().execute(sql)
+        try:
+            dbname = settings.DATABASES['default']['NAME']
+            sql = "select pg_terminate_backend(procpid)" + \
+                " from pg_stat_activity where datname='%s'" % dbname + \
+                " and current_query='<IDLE> in transaction';"
+            connection.cursor().execute(sql)
+        except InterfaceError:
+            # Sometimes we get "connection already closed"
+            pass
 
         super(UITestCase, self).tearDown()
 
     def click(self, selector):
         self.find(selector).click()
+
+    def click_when_visible(self, selector):
+        element = self.find(selector)
+        self.wait_until_visible(element)
+        element.click()
 
     def find(self, selector):
         return self.driver.find_element_by_css_selector(selector)
