@@ -190,6 +190,7 @@ class TreemapUITestCase(UITestCase):
             '#sidebar-add-tree .add-step-footer li.next a')[n]
         self.wait_until_enabled(button)
         button.click()
+        sleep(1)  # wait for animation to show the next step
 
     def start_add_tree(self, x, y):
         self.click_add_tree()
@@ -241,7 +242,7 @@ class TreemapUITestCase(UITestCase):
             self.wait_until_visible(self.find('#sidebar-browse-trees'))
         elif whenDone == 'edit':
             # Wait for "save" button on "plot detail" page
-            self.wait_until_visible(self.find('#save-edit-plot'))
+            self.wait_until_visible(self.find('#save-edit-plot'), 30)
         else:
             # Wait for "Add Tree" step 1
             self.wait_until_visible(
