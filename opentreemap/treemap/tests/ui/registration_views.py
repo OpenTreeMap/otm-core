@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.core import mail
 
 from registration.models import RegistrationProfile
+from time import sleep
 
 from treemap.tests.ui import UITestCase
 from treemap.tests import make_user, create_mock_system_user
@@ -105,5 +106,6 @@ class ForgotUsernameTest(UITestCase):
         email_elem.send_keys(self.user.email)
 
         self.click('form input[type="submit"]')
+        sleep(1)
 
         self.assertEqual(len(mail.outbox), 1)

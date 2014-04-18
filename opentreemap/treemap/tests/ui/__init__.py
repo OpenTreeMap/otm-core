@@ -2,6 +2,7 @@ import importlib
 
 from django.test import LiveServerTestCase
 from django.conf import settings
+from django.db import connection
 
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -70,6 +71,15 @@ class UITestCase(LiveServerTestCase):
         if hasattr(self, 'display'):
             self.display.stop()
 
+        # The super.tearDown sometimes hangs when truncating tables
+        # because of lingering pending transactions with locks on those tables.
+        # Kill them to avoid deadlock!
+        dbname = settings.DATABASES['default']['NAME']
+        sql = "select pg_terminate_backend(procpid)" + \
+            " from pg_stat_activity where datname='%s'" % dbname + \
+            " and current_query='<IDLE> in transaction';"
+        connection.cursor().execute(sql)
+
         super(UITestCase, self).tearDown()
 
     def click(self, selector):
@@ -105,10 +115,9 @@ class UITestCase(LiveServerTestCase):
         WebDriverWait(self.driver, timeout).until(isPresentAndEnabled)
 
     def wait_until_visible(self, element, timeout=10):
-        # def isPresentAndEnabled(driver):
-        #     return element.is_displayed()
-        # WebDriverWait(self.driver, timeout).until(isPresentAndEnabled)
-        sleep(DATABASE_COMMIT_DELAY)
+        def isVisible(driver):
+            return element.is_displayed()
+        WebDriverWait(self.driver, timeout).until(isVisible)
 
 
 class TreemapUITestCase(UITestCase):
@@ -179,9 +188,9 @@ class TreemapUITestCase(UITestCase):
     def _click_add_tree_next_step(self, n):
         button = self.driver.find_elements_by_css_selector(
             '#sidebar-add-tree .add-step-footer li.next a')[n]
-        #self.wait_until_enabled(button)
-        sleep(1)
+        self.wait_until_enabled(button)
         button.click()
+        sleep(1)  # wait for animation to show the next step
 
     def start_add_tree(self, x, y):
         self.click_add_tree()
@@ -233,7 +242,7 @@ class TreemapUITestCase(UITestCase):
             self.wait_until_visible(self.find('#sidebar-browse-trees'))
         elif whenDone == 'edit':
             # Wait for "save" button on "plot detail" page
-            self.wait_until_visible(self.find('#save-edit-plot'))
+            self.wait_until_visible(self.find('#save-edit-plot'), 30)
         else:
             # Wait for "Add Tree" step 1
             self.wait_until_visible(
