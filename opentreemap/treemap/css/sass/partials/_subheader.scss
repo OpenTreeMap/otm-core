@@ -160,6 +160,7 @@
             span {
                 opacity: 0.4;
             }
+            .udfc-label,
             .udfc-selector {
                 opacity: 0.4;
                 cursor: default;
@@ -231,9 +232,13 @@
                 min-width: 100px;
                 width: auto;
                 max-width: 220px;
+                
+                option {
+                    color: black;
+                }
             }
         }
-        input.stewardship-selector {
+        input.udfc-selector {
             background: $primary-color;
             display: inline-block;
             margin: 0;
