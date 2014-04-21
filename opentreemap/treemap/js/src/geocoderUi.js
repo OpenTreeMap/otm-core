@@ -67,7 +67,13 @@ function showGeocodeCandidates(addressInput, template, res) {
             placement: 'bottom',
             trigger: 'manual',
             title: 'Results'
-        }).popover('show');
+        }).click(function(e) { //should close issue #321: add close button. Close is 'x' in corner of popover
+                $(this).popover('show');
+                $('.popover-title').append('<button type="button" class="close">&times;</button>');
+                clickedAway = false
+                isVisible = true
+                e.preventDefault()
+            });.popover('show');
     } else {
         window.alert('There was a problem running your search.');
     }
