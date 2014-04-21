@@ -23,3 +23,35 @@
        data-href="{% url 'plot_detail_edit' instance_url_name=request.instance.url_name feature_id=plot.pk edit='edit' %}"
        class="btn btn-small btn-info">{% trans "Edit Details" %}</a>
 </div>
+
+<!--Issue #945: Add sharing buttons to Tree Popup-->
+<script type="text/javascript" src="https://apis.google.com/js/platform.js"></script>
+<script>
+    (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id))
+                return;
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+        fjs.parentNode.insertBefore(js, fjs);
+    }
+    (document, 'script', 'facebook-jssdk'));
+
+    !function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (!d.getElementById(id)) {
+            js = d.createElement(s);
+            js.id = id;
+            js.src = "https://platform.twitter.com/widgets.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }
+    }
+    (document, "script", "twitter-wjs");
+</script>
+<div id="fb-root"></div>
+<div id="share">
+    <div class="fb-share-button" data-type="button"></div>
+    <div class="g-plus" data-action="share" data-annotation="none"></div>
+    <a class="twitter-share-button" data-lang="en" data-count="none">Tweet</a>
+</div>
