@@ -276,6 +276,13 @@ def _context_dict_for_map_feature(request, feature):
     return context
 
 
+def context_dict_for_treephoto(photo):
+    photo_dict = photo.as_dict()
+    photo_dict['image'] = photo.image.url
+    photo_dict['thumbnail'] = photo.thumbnail.url
+    return photo_dict
+
+
 def context_dict_for_plot(request, plot, tree_id=None):
     context = _context_dict_for_map_feature(request, plot)
     instance = request.instance
@@ -294,12 +301,8 @@ def context_dict_for_plot(request, plot, tree_id=None):
 
     photos = []
     if tree is not None:
-        for photo in list(tree.treephoto_set.all()):
-            photo_dict = photo.as_dict()
-            photo_dict['image'] = photo.image.url
-            photo_dict['thumbnail'] = photo.thumbnail.url
-
-            photos.append(photo_dict)
+        photos = [context_dict_for_treephoto(photo)
+                  for photo in tree.treephoto_set.all()]
 
     context['photos'] = photos
 
