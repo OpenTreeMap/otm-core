@@ -16,6 +16,7 @@ var $ = require('jquery'),
     geocoder = require('treemap/geocoder'),
     geocoderUi = require('treemap/geocoderUi'),
     Search = require('treemap/search'),
+    udfcSearch = require('treemap/udfcSearch'),
     BU = require('treemap/baconUtils'),
     mapManager = require('treemap/mapManager');
 
@@ -105,20 +106,19 @@ module.exports = exports = {
         streams.filterNonGeocodeObjectStream.onValue(redirectWithoutLocation);
         streams.geocodedLocationStream.onValue(function (wmCoords) {
             // get the current state of the search dom
-            var filters = Search.buildSearch(streams.elems);
+            var filters = Search.buildSearch();
             redirect(filters, wmCoords);
         });
 
-        streams.resetStream.onValue(Search.reset, streams.elems);
+        streams.resetStream.onValue(Search.reset);
 
         // Apply an empty search to the page to get all the UI elements into
         // the correct state
-        Search.applySearchToDom(streams.elems, {});
+        Search.reset();
     },
 
     init: function (config) {
-        var elems = Search.buildElems('[data-search-type]'),
-            searchStream = BU.enterOrClickEventStream({
+        var searchStream = BU.enterOrClickEventStream({
                 inputs: 'input[data-class="search"]',
                 button: '#perform-search'
             }),
@@ -126,7 +126,8 @@ module.exports = exports = {
             filtersStream = searchStream
                 .map(unmatchedBoundarySearchValue)
                 .filter(BU.isUndefinedOrEmpty)
-                .map(Search.buildSearch, elems),
+                .map(Search.buildSearch),
+            uSearch = udfcSearch.init(resetStream),
 
             geocoderInstance = geocoder(config),
             geocodeCandidateStream = searchStream.map(unmatchedBoundarySearchValue).filter(BU.isDefinedNonEmpty),
@@ -145,8 +146,6 @@ module.exports = exports = {
 
 
         return {
-            elems: elems,
-
             // a stream events corresponding to clicks on the reset button.
             resetStream: resetStream,
 
@@ -157,7 +156,12 @@ module.exports = exports = {
 
             // Stream of search events, carries the filter object and display
             // list with it. should be used by consumer to execute searches.
-            filterNonGeocodeObjectStream: filtersStream
+            filterNonGeocodeObjectStream: filtersStream,
+
+            applySearchToDom: function (search) {
+                Search.applySearchToDom(search);
+                uSearch.applyFilterObjectToDom(search);
+            }
         };
     }
 };

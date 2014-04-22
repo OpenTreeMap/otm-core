@@ -72,6 +72,11 @@ def plot_is_writable(instanceuser, field=None):
 
 
 @register.filter
+def is_read_or_write(perm_string):
+    return perm_string in ["read", "write"]
+
+
+@register.filter
 def udf_write_level(instanceuser, udf):
     kwargs = {
         'instanceuser': instanceuser,

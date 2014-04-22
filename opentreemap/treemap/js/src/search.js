@@ -10,6 +10,7 @@ var $ = require('jquery'),
 
 var DATETIME_FORMAT = FH.DATETIME_FORMAT;
 var TREE_MODELS = ['Tree', 'EmptyPlot'];
+var SEARCH_FIELD_SELECTOR = '[data-search-type]';
 
 var isCombinator = function(pred) {
     return _.isArray(pred) && (pred[0] === "OR" || pred[0] === "AND");
@@ -42,8 +43,15 @@ var makeQueryStringFromFilters = exports.makeQueryStringFromFilters = function(c
     return querystring.stringify(query);
 };
 
-exports.buildElems = function (inputSelector) {
-    return _.object(_.map($(inputSelector), function (el) {
+// ``buildElems`` produces a data structure to be used by a number of
+// functions in this module. The structure is an object, where the
+// keys are equal to dom element id attributes for search fields. The
+// values are objects that map to search/filter parameters. This
+// pairing preserves a two-way relationship between dom elements and
+// search parameters, so that they can be used to put a search on the
+// dom or a dom into the search.
+function buildElems() {
+    return _.object(_.map($(SEARCH_FIELD_SELECTOR), function (el) {
         var $el = $(el),
             name = $el.attr('name') || $el.attr('data-search-identifier'),
             type = $el.attr('data-search-type'),
@@ -51,10 +59,14 @@ exports.buildElems = function (inputSelector) {
 
         return[id, {
             'key': name,
-            'pred': type,
+            'pred': type
         }];
     }));
-};
+}
+
+// export as underscore method so it can
+// be conveniently used in unit tests
+exports._buildElems = buildElems;
 
 function executeSearch(config, filters) {
     var query = makeQueryStringFromFilters(config, filters);
@@ -77,7 +89,9 @@ function updateSearchResults(newMarkup) {
     $('#benefit-values').html(benefitsMarkup);
 }
 
-function applyFilterObjectToDom(elems, search) {
+function applyFilterObjectToDom(search) {
+    var elems = buildElems();
+
     _.each(elems, function(keyAndPred, id) {
         var $domElem = $(document.getElementById(id));
         var pred = search[keyAndPred.key];
@@ -116,25 +130,25 @@ function applyDisplayListToDom(displayList) {
     }
 }
 
-function applySearchToDom(elems, search) {
-    applyFilterObjectToDom(elems, search.filter || {});
+function applySearchToDom(search) {
+    applyFilterObjectToDom(search.filter || {});
     applyDisplayListToDom(search.display);
 }
 
 exports.applySearchToDom = applySearchToDom;
 
-exports.reset = function (elems) {
-    applySearchToDom(elems, {});
-};
+exports.reset = _.partialRight(applySearchToDom, {});
 
-exports.buildSearch = function (elems) {
+exports.buildSearch = function () {
     return {
-        'filter': buildFilterObject(elems),
+        'filter': buildFilterObject(),
         'display': buildDisplayList()
     };
 };
 
-function buildFilterObject (elems) {
+function buildFilterObject () {
+    var elems = buildElems();
+
     return _.reduce(elems, function(preds, key_and_pred, id) {
         var $elem = $(document.getElementById(id)),
             val = $elem.val(),

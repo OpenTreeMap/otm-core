@@ -1,0 +1,13 @@
+{% load dateformat %}
+
+{% if request.instance %}
+{% if date_picker_value %}
+value="{{ value|date:request.instance.short_date_format }}"
+{% endif %}
+data-date-format="{{ request.instance.short_date_format|datepicker_format }}"
+{% else %}
+{% if date_picker_value %}
+value="{{ value|date:"SHORT_DATE_FORMAT" }}"
+{% endif %}
+data-date-format="{{ settings.SHORT_DATE_FORMAT|datepicker_format }}"
+{% endif %}

@@ -10,7 +10,7 @@
     -webkit-transform: translateY(-100%);
     transform: translateY(-100%);
     transition: all 400ms cubic-bezier(0, 0, 0.1, 1);
-    margin-top: 46px;
+    margin-top: 45px;
     box-shadow: 0 6px 0 rgba(0,0,0,.15);
 
     &.expanded {
@@ -23,7 +23,6 @@
 
     > .advanced-search {
         padding: 20px;
-        border-bottom: 1px solid lighten($primary-color, 35%);
         background: lighten($primary-color, 45%);
 
         form {
@@ -152,8 +151,8 @@
 
         @include checkboxes;
     }
-    > .stewardship-search {
-        height: 50px;
+    > .udfc-search {
+        min-height: 50px;
         padding: 0 8px;
         background: lighten($primary-color, 15%);
 
@@ -161,7 +160,8 @@
             span {
                 opacity: 0.4;
             }
-            .stewardship-selector {
+            .udfc-label,
+            .udfc-selector {
                 opacity: 0.4;
                 cursor: default;
                 background: $primary-color;
@@ -180,17 +180,87 @@
             padding: 14px 15px;
             color: white;
             font-weight: 300;
+            display: inline-block;
         }
-        .stewardship-selector {
+        .udfc-label {
+            position: relative;
+            display: inline-block;
+            margin: 0;
+            font-size: 1.6rem;
+            line-height: 2rem;
+
+            &:after {
+                content: '\25BC';
+                font-size: 1rem;
+                margin-left: 12px;
+                position: absolute;
+                opacity: 0.5;
+                pointer-events: none;
+                color: white;
+                right: 10px;
+                top: 12px;
+            }
+            &:hover {
+                select {
+                    background: darken($primary-color, 5%);
+                    cursor: pointer;
+                }
+
+                &:after {
+                    opacity: 1;
+                }
+            }
+
+            select {
+                background: $primary-color;
+                display: inline-block;
+                margin: 0;
+                padding: 15px 33px 14px 15px;
+                font-weight: 500;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+                cursor: pointer;
+                border: none;
+                outline: none;
+                color: white;
+                height: auto;
+                line-height: 2.0rem;
+                font-size: 1.6rem;
+                border-radius: 0;
+                min-width: 100px;
+                width: auto;
+                max-width: 220px;
+                text-indent: 0.01px;
+                text-overflow: '';
+                
+                option {
+                    color: black;
+                    background: white;
+                }
+            }
+        }
+        input.udfc-selector {
             background: $primary-color;
             display: inline-block;
-            margin: 0 1px;
-            padding: 15px 38px 15px 20px;
-            font-weight: 700;
+            margin: 0;
+            padding: 15px 15px 14px 15px;
+            font-weight: 500;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            border: none;
+            outline: none;
             color: white;
+            height: auto;
+            line-height: 2.0rem;
+            font-size: 1.6rem;
+            border-radius: 0;
+            width: 110px;
 
             &:hover {
-                background: darken($primary-color, 15%);
+                background: darken($primary-color, 5%);
                 cursor: pointer;
 
                 &:after {
@@ -203,6 +273,10 @@
                 margin-left: 12px;
                 position: absolute;
                 opacity: 0.5;
+                pointer-events: none;
+                color: white;
+                right: 10px;
+                top: 12px;
             }
         }
     }

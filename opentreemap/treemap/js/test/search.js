@@ -32,6 +32,22 @@ var buildElemsCases = {
         markup: '<div>' +
                 '  <input type="checkbox" id="1" data-search-identifier="tree.id" data-search-type="ISNULL" value="false" />' +
                 '</div>'
+    },
+    "Handles udfc field syntax correctly": {
+        obj: {
+            "udfc-search-action": {
+                "key": "udf:plot:18.Action",
+                "pred": "IS"
+            }
+        },
+        markup:
+        '<select id="udfc-search-action" data-search-type="IS" name="udf:plot:18.Action">' +
+            '<option data-class="udfc-placeholder" selected="" style="display: inline;">' +
+            '<option data-model="plot" style="">Enlarging the Planting Area</option>' +
+            '<option data-model="plot" style="">Adding a Guard</option>' +
+            '<option data-model="plot" style="">Removing a Guard</option>' +
+            '<option data-model="plot" style="">Herbaceous Planting</option>' +
+            '</select>'
     }
 };
 
@@ -44,12 +60,12 @@ module.exports = {
     "afterEach": function() {
         $('#search').empty();
     },
-    "builldElems": _.mapValues(buildElemsCases, function(testCase) {
+    "buildElems": _.mapValues(buildElemsCases, function(testCase) {
         return function() {
             var $markup = $(testCase.markup);
             $('#search').append($markup);
 
-            var elems = search.buildElems('[data-search-type]');
+            var elems = search._buildElems();
             assert.ok(elems);
 
             assert.deepEqual(elems, testCase.obj, 'The elems should match');
