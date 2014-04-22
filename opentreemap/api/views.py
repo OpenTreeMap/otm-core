@@ -15,7 +15,8 @@ from django.contrib.auth.tokens import default_token_generator
 from opentreemap.util import route
 
 from treemap.models import Plot, Tree
-from treemap.views import species_list, context_dict_for_plot, add_tree_photo
+from treemap.views import (species_list, context_dict_for_plot, add_tree_photo,
+                           context_dict_for_treephoto)
 
 from treemap.decorators import json_api_call, return_400_if_validation_errors
 from treemap.decorators import api_instance_request as instance_request
@@ -255,7 +256,7 @@ def remove_current_tree_from_plot(request, instance, plot_id):
 def add_photo(request, instance, plot_id):
     treephoto, _ = add_tree_photo(request, instance, plot_id)
 
-    return treephoto
+    return context_dict_for_treephoto(treephoto)
 
 
 # Note that API requests going to private instances require
