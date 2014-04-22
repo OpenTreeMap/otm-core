@@ -228,13 +228,15 @@
                 line-height: 2.0rem;
                 font-size: 1.6rem;
                 border-radius: 0;
-                margin-top: -3px;
                 min-width: 100px;
                 width: auto;
                 max-width: 220px;
+                text-indent: 0.01px;
+                text-overflow: '';
                 
                 option {
                     color: black;
+                    background: white;
                 }
             }
         }
@@ -255,7 +257,6 @@
             line-height: 2.0rem;
             font-size: 1.6rem;
             border-radius: 0;
-            margin-top: -3px;
             width: 110px;
 
             &:hover {
