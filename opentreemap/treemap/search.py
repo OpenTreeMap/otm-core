@@ -281,6 +281,15 @@ def _parse_isnull_hstore(value, field):
 def _simple_pred(key):
     return (lambda value, _: {key: value})
 
+
+def _hstore_contains_predicate(val, field):
+    """
+    django_hstore builds different sql for the __contains predicate
+    depending on whether the input value is a list or a single item
+    so this works for both 'IN' and 'IS'
+    """
+    return {'__contains': {field: val}}
+
 # a predicate_builder takes a value for the
 # corresponding predicate type and returns
 # a singleton dictionary with a mapping of
@@ -332,11 +341,11 @@ HSTORE_PREDICATE_TYPES = {
     },
     'IN': {
         'combines_with': set(),
-        'predicate_builder': (lambda val, field: {'__contains': {field: val}}),
+        'predicate_builder': _hstore_contains_predicate,
     },
     'IS': {
         'combines_with': set(),
-        'predicate_builder': (lambda val, field: {'__contains': {field: val}})
+        'predicate_builder': _hstore_contains_predicate,
     },
     'ISNULL': {
         'combines_with': set(),
