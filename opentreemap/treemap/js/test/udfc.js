@@ -1,6 +1,7 @@
 "use strict";
 
 var assert = require('chai').assert,
+    format = require('util').format,
     $ = require('jquery'),
     Bacon = require('baconjs'),
     udfcSearch = require('treemap/udfcSearch'),
@@ -8,7 +9,7 @@ var assert = require('chai').assert,
 
 require('treemap/baconUtils');
 
-var domData = {
+var initialDomData = {
     body: '<div class="udfc-search">' +
         '  <span>I am looking for</span>' +
         '  <select id="udfc-search-model">' +
@@ -60,8 +61,88 @@ var domData = {
         '         data-date-format="mm/dd/yyyy"' +
         '         />' +
         '</div>',
-    treeOptionCount: 4,
-    plotOptionCount: 4
+    treeActions: {
+        count: 4,
+        visibleCount: 0
+    },
+    plotActions: {
+        count: 4,
+        visibleCount: 0
+    }
+};
+
+
+var assertEqualDescriptive = function (arg1, arg2, descriptor, entity) {
+    var formatString = "%s %ss on the dom, %s, to match " +
+            "expected %s %ss after state change, %s";
+    assert.equal(arg1, arg2,
+                 format(formatString, descriptor, entity, arg1,
+                        descriptor, entity, arg2));
+};
+
+var assertActionExpectations = function (expectations) {
+    var $action = $(udfcSearch._widgets.action.selector),
+        $options = $action.find('option'),
+        $treeOptions = $options.filter('[data-model="tree"]'),
+        $plotOptions = $options.filter('[data-model="plot"]');
+
+    assertEqualDescriptive(invisible($plotOptions).length,
+                           expectations.invisiblePlotOptions,
+                           'invisible', 'plot action');
+    assertEqualDescriptive(invisible($treeOptions).length,
+                 expectations.invisibleTreeOptions,
+                 'invisible', 'tree action');
+    assertEqualDescriptive(visible($plotOptions).length,
+                 expectations.visiblePlotOptions,
+                 'visible', 'plot action');
+    assertEqualDescriptive(visible($treeOptions).length,
+                 expectations.visibleTreeOptions,
+                 'visible', 'tree action');
+    assertEqualDescriptive($action.val(),
+                 expectations.actionVal,
+                 '', 'actionValue');
+    assertEqualDescriptive($action.attr('name'),
+                           expectations.actionName,
+                           '', 'actionName');
+};
+
+var emptyActionExpectations = {
+    invisiblePlotOptions: initialDomData.plotActions.count,
+    invisibleTreeOptions: initialDomData.treeActions.count,
+    visiblePlotOptions: initialDomData.plotActions.visibleCount,
+    visibleTreeOptions: initialDomData.treeActions.visibleCount,
+    actionVal: '',
+    actionName: ''
+};
+
+var pushStateDiffTestCases = {
+    "Empty model, no name attribute, no visible actions": {
+        stateDiff: {
+            modelName: null
+        },
+        domExpectations: emptyActionExpectations
+    },
+    "not enough data, no name attribute, no visible actions": {
+        stateDiff: {
+            modelName: 'trees'
+        },
+        domExpectations: emptyActionExpectations
+    },
+    "tree stewardship, visible actions": {
+        stateDiff: {
+            modelName: 'tree',
+            type: 'stewardship',
+            treeUdfFieldDefId: '18',
+            plotUdfFieldDefId: '19',
+            dateFieldKey: 'data',
+            actionFieldKey: 'action'
+        },
+        domExpectations: _.extend(
+            {}, emptyActionExpectations, {
+                invisibleTreeOptions: 0,
+                visibleTreeOptions: initialDomData.treeActions.count,
+                actionName: 'udf:tree:18.action' })
+    }
 };
 
 
@@ -96,73 +177,6 @@ var makeNameAttributeTestCases = {
     }
 };
 
-var getActionData = function () {
-    var $action = $(udfcSearch._widgets.action.selector),
-        $options = $action.find('option'),
-        $treeOptions = $options.filter('[data-model="tree"]'),
-        $plotOptions = $options.filter('[data-model="plot"]');
-
-    return {
-        $action: $action,
-        $treeOptions: $treeOptions,
-        $plotOptions: $plotOptions
-    };
-
-}
-
-var invisible = function ($el) { return $el.filter('[style="display: none;"]'); };
-var visible = function ($el) { return $el.not('[style="display: none;"]'); };
-
-var pushStateDiffTestCases = {
-    "Empty model, no name attribute, no visible actions": {
-        stateDiff: {
-            modelName: null
-        },
-        domAssertions: function () {
-            var data = getActionData();
-            assert.equal(invisible(data.$plotOptions).length, domData.plotOptionCount);
-            assert.equal(visible(data.$plotOptions).length, 0);
-            assert.equal(invisible(data.$treeOptions).length, domData.treeOptionCount);
-            assert.equal(visible(data.$treeOptions).length, 0);
-            assert.equal(data.$action.val(), '');
-            assert.equal(data.$action.attr('name'), '');
-        }
-    },
-    "not enough data, no name attribute, no visible actions": {
-        stateDiff: {
-            modelName: 'trees'
-        },
-        domAssertions: function () {
-            var data = getActionData();
-            assert.equal(invisible(data.$plotOptions).length, domData.plotOptionCount);
-            assert.equal(visible(data.$plotOptions).length, 0);
-            assert.equal(invisible(data.$treeOptions).length, domData.treeOptionCount);
-            assert.equal(visible(data.$treeOptions).length, 0);
-            assert.equal(data.$action.val(), '');
-            assert.equal(data.$action.attr('name'), '');
-        }
-    },
-    "tree stewardship, visible actions": {
-        stateDiff: {
-            modelName: 'tree',
-            type: 'stewardship',
-            treeUdfFieldDefId: '18',
-            plotUdfFieldDefId: '19',
-            dateFieldKey: 'data',
-            actionFieldKey: 'action'
-        },
-        domAssertions: function () {
-            var data = getActionData();
-            assert.equal(invisible(data.$plotOptions).length, domData.plotOptionCount);
-            assert.equal(visible(data.$plotOptions).length, 0);
-            assert.equal(invisible(data.$treeOptions).length, 0);
-            assert.equal(visible(data.$treeOptions).length, domData.treeOptionCount);
-            assert.equal(data.$action.val(), '');
-            assert.equal(data.$action.attr('name'), 'udf:tree:18.action');
-        }
-    }
-};
-
 module.exports = {
     'makeNameAttribute': _.mapValues(makeNameAttributeTestCases, function(testCase) {
         return function() {
@@ -174,11 +188,11 @@ module.exports = {
     'diff states': _.mapValues(pushStateDiffTestCases, function(testCase) {
         return function () {
             $('body').append('<div id="test-canvas" />');
-            $('#test-canvas').append(domData.body);
+            $('#test-canvas').append(initialDomData.body);
 
             var usearch = udfcSearch.init();
             usearch._externalChangeBus.push(testCase.stateDiff);
-            testCase.domAssertions();
+            assertActionExpectations(testCase.domExpectations);
 
             $('#test-canvas').empty();
 
