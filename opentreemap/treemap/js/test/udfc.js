@@ -71,6 +71,8 @@ var initialDomData = {
     }
 };
 
+var invisible = function ($el) { return $el.filter('[style^="display: none;"]'); };
+var visible = function ($el) { return $el.not('[style^="display: none;"]'); };
 
 var assertEqualDescriptive = function (arg1, arg2, descriptor, entity) {
     var formatString = "%s %ss on the dom, %s, to match " +
