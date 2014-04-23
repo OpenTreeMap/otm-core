@@ -247,9 +247,16 @@ def _parse_min_max_value_fn(operator):
 
         value = _parse_value(raw_value)
 
-        if field:
-            return {key: {field: value}}
-        return {key: value}
+        if field:  # implies hstore
+            if isinstance(value, datetime):
+                inner_value = {field: raw_value}
+            else:
+                raise ParseException("Cannot perform min/max comparisons on "
+                                     "non-date hstore fields at this time.")
+        else:
+            inner_value = value
+
+        return {key: inner_value}
 
     return fn
 

@@ -24,26 +24,37 @@ from treemap.models import (Tree, Plot, Boundary, Species)
 from treemap.udf import UserDefinedFieldDefinition
 from treemap import search
 
+COLLECTION_UDF_DATATYPE = [{'type': 'choice',
+                            'choices': ['water', 'prune'],
+                            'name': 'action'},
+                           {'type': 'date',
+                            'name': 'date'}]
+
 
 class FilterParserTests(TestCase):
     def _setup_tree_and_collection_udf(self):
         instance = make_instance()
 
-        self.plotstew = make_collection_udf(instance, model='Plot')
-        self.treestew = make_collection_udf(instance, model='Tree')
+        self.plotstew = make_collection_udf(instance, model='Plot',
+                                            datatype=COLLECTION_UDF_DATATYPE)
+        self.treestew = make_collection_udf(instance, model='Tree',
+                                            datatype=COLLECTION_UDF_DATATYPE)
 
         commander = make_commander_user(instance)
         set_write_permissions(instance, commander, 'Plot', ['udf:Stewardship'])
         set_write_permissions(instance, commander, 'Tree', ['udf:Stewardship'])
 
+        d1 = {'action': 'prune', 'date': "2014-05-3 00:00:00"}
+        d2 = {'action': 'water', 'date': "2014-04-29 00:00:00"}
+
         p1 = Point(-7615441.0, 5953519.0)
 
         self.plot = Plot(instance=instance, geom=p1)
-        self.plot.udfs[self.plotstew.name] = [{'action': 'water', 'height': 2}]
+        self.plot.udfs[self.plotstew.name] = [d1]
         self.plot.save_with_user(commander)
 
         self.tree = Tree(instance=instance, plot=self.plot)
-        self.tree.udfs[self.treestew.name] = [{'action': 'prune', 'height': 3}]
+        self.tree.udfs[self.treestew.name] = [d2]
         self.tree.save_with_user(commander)
 
     def destructure_query_set(self, node):
@@ -278,8 +289,7 @@ class FilterParserTests(TestCase):
              {'MIN': 5,
               'MAX': {'VALUE': 9,
                       'EXCLUSIVE': False}},
-             'tree.height':
-             9},
+             'tree.height': 9},
             mapping=search.DEFAULT_MAPPING)
 
         p1 = ('AND', {('width__lte', 9),
@@ -378,17 +388,27 @@ class FilterParserTests(TestCase):
     def test_parse_collection_udf_simple_predicate(self):
         self._setup_tree_and_collection_udf()
         pred = search._parse_predicate(
-            {'udf:plot:%s.action' % self.plotstew.pk: 'water'},
+            {'udf:plot:%s.action' % self.plotstew.pk: 'prune'},
             mapping=search.DEFAULT_MAPPING)
 
         target = ('AND', {('id__in', (self.plot.pk,))})
 
         self.assertEqual(self.destructure_query_set(pred), target)
 
-    def test_parse_collection_udf_nested_predicate(self):
+    def test_parse_collection_udf_fail_nondate_comparison(self):
         self._setup_tree_and_collection_udf()
+
+        with self.assertRaises(search.ParseException):
+            search._parse_predicate(
+                {'udf:tree:%s.date' % self.treestew.pk: {'MAX': 3}},
+                mapping=search.DEFAULT_MAPPING)
+
+    def test_parse_collection_udf_nested_pass_date_comparison(self):
+        self._setup_tree_and_collection_udf()
+
         pred = search._parse_predicate(
-            {'udf:tree:%s.height' % self.treestew.pk: {'MAX': 3}},
+            {'udf:tree:%s.date' % self.treestew.pk:
+             {'MAX': '2014-05-01 00:00:00'}},
             mapping=search.DEFAULT_MAPPING)
 
         target = ('AND', {('tree__id__in', (self.tree.pk,))})
@@ -479,8 +499,10 @@ class SearchTests(TestCase):
         return (p.pk for p in [p1, p2, p3])
 
     def _setup_collection_udfs(self):
-        self.plotstew = make_collection_udf(self.instance, model='Plot')
-        self.treestew = make_collection_udf(self.instance, model='Tree')
+        self.plotstew = make_collection_udf(self.instance, model='Plot',
+                                            datatype=COLLECTION_UDF_DATATYPE)
+        self.treestew = make_collection_udf(self.instance, model='Tree',
+                                            datatype=COLLECTION_UDF_DATATYPE)
 
         set_write_permissions(self.instance, self.commander, 'Plot',
                               [self.plotstew.canonical_name])
@@ -489,22 +511,25 @@ class SearchTests(TestCase):
 
         p1, _ = self.create_tree_and_plot(
             plotudfs={self.plotstew.name:
-                      [{'action': 'water', 'height': 1},
-                       {'action': 'prune', 'height': 22}]},
+                      [{'action': 'water', 'date': "2013-08-06 00:00:00"},
+                       {'action': 'prune', 'date': "2013-09-15 00:00:00"}]},
             treeudfs={self.treestew.name:
-                      [{'action': 'water', 'height': 7},
-                       {'action': 'water', 'height': None}]})
+                      [{'action': 'water', 'date': "2013-05-15 00:00:00"},
+                       {'action': 'water', 'date': None}]})
 
         p2, _ = self.create_tree_and_plot(
-            plotudfs={self.plotstew.name: [{'action': 'water', 'height': 2}]},
-            treeudfs={self.treestew.name: [{'action': 'prune', 'height': 7}]})
+            plotudfs={self.plotstew.name: [
+                {'action': 'water', 'date': "2014-11-26 00:00:00"}]},
+            treeudfs={self.treestew.name: [
+                {'action': 'prune', 'date': "2014-06-23 00:00:00"}]})
 
         p3, _ = self.create_tree_and_plot(
-            plotudfs={self.plotstew.name: [{'action': 'water', 'height': 3},
-                                           {'action': 'prune', 'height': 0}]},
+            plotudfs={self.plotstew.name: [
+                {'action': 'water', 'date': "2015-08-05 00:00:00"},
+                {'action': 'prune', 'date': "2015-04-13 00:00:00"}]},
             treeudfs={self.treestew.name:
-                      [{'action': 'prune', 'height': 9},
-                       {'action': 'water', 'height': None}]})
+                      [{'action': 'prune', 'date': "2013-06-19 00:00:00"},
+                       {'action': 'water', 'date': None}]})
 
         return (p.pk for p in [p1, p2, p3])
 
@@ -849,19 +874,22 @@ class SearchTests(TestCase):
         self.assertEqual(
             {p2},
             self._execute_and_process_filter(
-                {'udf:plot:%s.height' % self.plotstew.pk:
-                 {'MIN': 2, 'MAX': 2}}))
+                {'udf:plot:%s.date' % self.plotstew.pk:
+                 {'MIN': "2014-01-01 00:00:00",
+                  'MAX': "2014-12-31 00:00:00"}}))
 
         self.assertEqual(
             {p1, p2},
             self._execute_and_process_filter(
-                {'udf:plot:%s.height' % self.plotstew.pk:
-                 {'MIN': 1, 'MAX': 2}}))
+                {'udf:plot:%s.date' % self.plotstew.pk:
+                 {'MIN': "2013-01-01 00:00:00",
+                  'MAX': "2014-12-31 00:00:00"}}))
 
         self.assertEqual(
             {p3},
             self._execute_and_process_filter(
-                {'udf:plot:%s.height' % self.plotstew.pk: {'MIN': 3}}))
+                {'udf:plot:%s.date' % self.plotstew.pk:
+                 {'MIN': "2015-01-01 00:00:00"}}))
 
     def test_cudf_is_search(self):
         p1, _, p3 = self._setup_collection_udfs()
@@ -871,11 +899,20 @@ class SearchTests(TestCase):
             self._execute_and_process_filter(
                 {'udf:plot:%s.action' % self.plotstew.pk: {'IS': 'prune'}}))
 
-    def test_cudf_compound_search(self):
+    def test_cudf_compound_search_passes_date(self):
         p1, _, p3 = self._setup_collection_udfs()
 
         self.assertEqual(
-            {p1, p3},
+            {p1},
             self._execute_and_process_filter(
                 {'udf:plot:%s.action' % self.plotstew.pk: {'IS': 'prune'},
-                 'udf:plot:%s.height' % self.plotstew.pk: {'MAX': 2}}))
+                 'udf:plot:%s.date' % self.plotstew.pk:
+                 {'MAX': '2014-05-01 00:00:00'}}))
+
+    def test_cudf_compound_search_fails_nondate(self):
+        p1, _, p3 = self._setup_collection_udfs()
+
+        with self.assertRaises(search.ParseException):
+            self._execute_and_process_filter(
+                {'udf:plot:%s.action' % self.plotstew.pk: {'IS': 'prune'},
+                 'udf:plot:%s.date' % self.plotstew.pk: {'MAX': 2}})
