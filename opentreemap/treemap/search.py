@@ -247,9 +247,16 @@ def _parse_min_max_value_fn(operator):
 
         value = _parse_value(raw_value)
 
-        if field:
-            return {key: {field: value}}
-        return {key: value}
+        if field:  # implies hstore
+            if isinstance(value, datetime):
+                inner_value = {field: raw_value}
+            else:
+                raise ParseException("Cannot perform min/max comparisons on "
+                                     "non-date hstore fields at this time.")
+        else:
+            inner_value = value
+
+        return {key: inner_value}
 
     return fn
 
@@ -280,6 +287,15 @@ def _parse_isnull_hstore(value, field):
 
 def _simple_pred(key):
     return (lambda value, _: {key: value})
+
+
+def _hstore_contains_predicate(val, field):
+    """
+    django_hstore builds different sql for the __contains predicate
+    depending on whether the input value is a list or a single item
+    so this works for both 'IN' and 'IS'
+    """
+    return {'__contains': {field: val}}
 
 # a predicate_builder takes a value for the
 # corresponding predicate type and returns
@@ -332,11 +348,11 @@ HSTORE_PREDICATE_TYPES = {
     },
     'IN': {
         'combines_with': set(),
-        'predicate_builder': (lambda val, field: {'__contains': {field: val}}),
+        'predicate_builder': _hstore_contains_predicate,
     },
     'IS': {
         'combines_with': set(),
-        'predicate_builder': (lambda val, field: {'__contains': {field: val}})
+        'predicate_builder': _hstore_contains_predicate,
     },
     'ISNULL': {
         'combines_with': set(),
