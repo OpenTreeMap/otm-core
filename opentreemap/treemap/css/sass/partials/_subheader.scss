@@ -179,15 +179,14 @@
         span {
             padding: 14px 15px;
             color: white;
-            font-weight: 300;
+            font-weight: 500;
+            font-size: 1.4rem;
             display: inline-block;
         }
         .udfc-label {
             position: relative;
             display: inline-block;
             margin: 0;
-            font-size: 1.6rem;
-            line-height: 2rem;
 
             &:after {
                 content: '\25BC';
@@ -215,7 +214,7 @@
                 background: $primary-color;
                 display: inline-block;
                 margin: 0;
-                padding: 15px 33px 14px 15px;
+                padding: 13px 33px 15px 15px;
                 font-weight: 500;
                 -webkit-appearance: none;
                 -moz-appearance: none;
@@ -226,13 +225,14 @@
                 color: white;
                 height: auto;
                 line-height: 2.0rem;
-                font-size: 1.6rem;
+                font-size: 1.4rem;
                 border-radius: 0;
                 min-width: 100px;
                 width: auto;
                 max-width: 220px;
                 text-indent: 0.01px;
                 text-overflow: '';
+                font-family: $base-font-family;
                 
                 option {
                     color: black;
@@ -255,9 +255,10 @@
             color: white;
             height: auto;
             line-height: 2.0rem;
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             border-radius: 0;
             width: 110px;
+            font-family: $base-font-family;
 
             &:hover {
                 background: darken($primary-color, 5%);

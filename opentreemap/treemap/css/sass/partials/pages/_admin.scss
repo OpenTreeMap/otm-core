@@ -73,7 +73,7 @@
     }
 
     input {
-        width: 80%;
+        width: 50%;
     }
 
     textarea {
@@ -90,6 +90,34 @@
         > ul,
         > p {
             margin: 0;
+        }
+    }
+    .well {
+        .page-header {
+            margin: 0 0 20px;
+            height: auto;
+            padding-bottom: 9px;
+            border-bottom: 1px solid #DDD;
+        }
+        h4 {
+            color: #333;
+            font-size: 1.75rem;
+            font-weight: 500;
+            margin: 0 0 10px 0;
+
+            > .btn {
+                margin-left: 6px;
+            }
+        }
+        .choice-title {
+            label {
+                margin-top: 2px;
+            }
+        }
+        .choice-options {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #DDD;
         }
     }
 }
