@@ -74,21 +74,35 @@ active
         <div class="span9">
             <div class="profile-tabs">
                 <ul class="nav nav-tabs">
-                    <li class="hidden"><a href="#edits" data-toggle="tab"><span class="number">{{ total_count }}</span> Edits</a></li>
-                    <li class="hidden"><a href="#maps" data-toggle="tab"><span class="number">3</span> Tree Maps</a></li>
+                    <li class="active">
+                      <a href="#maps" data-toggle="tab">
+                        <span class="number">{{ instances|length }}</span>
+                        {% blocktrans count n=instances|length %}Tree Map{% plural %}Tree Maps{% endblocktrans %}
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#edits" data-toggle="tab">
+                        <span class="number">{{ total_edits }}</span>
+                        {% blocktrans count n=total_edits %}Edit{% plural %}Edits{% endblocktrans %}
+                      </a>
+                    </li>
                     <li class="hidden"><a href="#faves" data-toggle="tab"><span class="number">86</span> Favorites</a></li>
                 </ul>
             </div>
             <div class="tab-content">
-                <div class="tab-pane active" id="edits">
+                <div class="tab-pane active" id="maps">
+                    <h3>Tree Maps</h3>
+                    {% for instance in instances %}
+                      <div>
+                        <a href="{% url 'map' instance_url_name=instance.url_name %}">{{ instance.name }}</a>
+                      </div>
+                    {% endfor %}
+                </div>
+                <div class="tab-pane" id="edits">
                     <h3>{% trans "Recent Edits" %}</h3>
                     <div id="recent-user-edits-container">
                         {% include 'treemap/recent_user_edits.html' %}
                     </div>
-                </div>
-                <div class="tab-pane" id="maps">
-                    <h3>Tree Maps</h3>
-                    <!-- INSERT LIST OF OTHER TREE MAPS HERE -->
                 </div>
                 <div class="tab-pane" id="faves">
                     <h3>Favorites</h3>
