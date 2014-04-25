@@ -1,25 +1,28 @@
 @mixin buttons {
 	.btn {
-		@include button($light-gray-color, $main-text-color);
+		@include button($button-default, $main-text-color);
 		&.btn-primary 	{ @include button($primary-color, #FFF); }
 		&.btn-info 		{ @include button($secondary-color, #FFF); }
-		&.btn-success 	{ @include button($success-color, #FFF); }
-		&.btn-warning 	{ @include button($warning-color, #FFF); }
-		&.btn-danger 	{ @include button($alert-color, #FFF); }
-		&.btn-inverse 	{ @include button($main-text-color, #FFF); }
+		&.btn-success 	{ @include button($button-success, #FFF); }
+		&.btn-warning 	{ @include button($button-warning, #FFF); }
+		&.btn-danger 	{ @include button($button-danger, #FFF); }
+		&.btn-inverse 	{ @include button($button-inverse, #FFF); }
+
+        &.btn-otmprimary 	{ @include button($button-primary, #FFF); }
+        &.btn-otmsecondary  { @include button($button-info, #FFF); }
 	}
 }
 
-@mixin button($bg-color: $light-gray-color, $text-color: $main-text-color) {
+@mixin button($bg-color: $button-default, $text-color: $main-text-color) {
     background: $bg-color;
-    border: 1px solid darken($bg-color, 15%);
+    border: 1px solid darken($bg-color, 5%);
     color: $text-color;
     text-decoration: none;
 
     &:hover,
     &:focus {
-    	box-shadow: 0 3px 6px darken($bg-color, 15%);
-        box-shadow: 0 3px 6px rgba(0,0,0,.2) inset;
+    	box-shadow: 0 3px 5px darken($bg-color, 10%);
+        box-shadow: 0 3px 5px rgba(0,0,0,.1) inset;
         background: darken($bg-color, 5%);
     }
 
