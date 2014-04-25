@@ -42,7 +42,7 @@ from treemap.search import Filter
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
 from treemap.models import (Plot, Tree, User, Species, Instance,
-                            TreePhoto, StaticPage, MapFeature)
+                            TreePhoto, StaticPage, MapFeature, InstanceUser)
 from treemap.units import get_units, get_display_value, Convertible
 from treemap.ecobackend import BAD_CODE_PAIR
 from treemap.util import leaf_subclasses
@@ -583,6 +583,17 @@ def update_map_feature(request_dict, user, feature):
     return feature, tree
 
 
+def _user_accessible_instance_filter(logged_in_user):
+    public = Q(is_public=True)
+    if logged_in_user is not None and not logged_in_user.is_anonymous():
+        private_with_access = Q(instanceuser__user=logged_in_user)
+
+        instance_filter = public | private_with_access
+    else:
+        instance_filter = public
+    return instance_filter
+
+
 def _get_audits(logged_in_user, instance, query_vars, user, models,
                 model_id, page=0, page_size=20, exclude_pending=True,
                 should_count=False):
@@ -608,14 +619,7 @@ def _get_audits(logged_in_user, instance, query_vars, user, models,
     # If we didn't specify an instance we only want to
     # show audits where the user has permission
     else:
-        public = Q(is_public=True)
-
-        if logged_in_user is not None and not logged_in_user.is_anonymous():
-            private_with_access = Q(instanceuser__user=logged_in_user)
-
-            instance_filter = public | private_with_access
-        else:
-            instance_filter = public
+        instance_filter = _user_accessible_instance_filter(logged_in_user)
 
     instances = Instance.objects.filter(instance_filter)
 
@@ -982,6 +986,25 @@ def _format_benefits(instance, benefits, basis):
     return rslt
 
 
+def _user_instances(logged_in_user, user, current_instance=None):
+    # Which instances can the user being inspected see?
+    user_instances = {iu.instance
+                      for iu in InstanceUser.objects.filter(user=user)}
+
+    # Which instances can the logged-in user see?
+    accessible_filter = _user_accessible_instance_filter(logged_in_user)
+    accessible_instances = set(Instance.objects.filter(accessible_filter))
+
+    instances = user_instances.intersection(accessible_instances)
+
+    # The logged-in user should see the current instance in their own list
+    if current_instance and logged_in_user == user:
+        instances = instances + set(current_instance)
+
+    instances = sorted(instances, lambda i: i.name)
+    return instances
+
+
 def user(request, username):
     user = get_object_or_404(User, username=username)
     instance_id = request.GET.get('instance_id', None)
@@ -1011,7 +1034,8 @@ def user(request, username):
     return {'user': user,
             'reputation': reputation,
             'instance_id': instance_id,
-            'total_count': audit_dict['total_count'],
+            'instances': _user_instances(request.user, user, instance),
+            'total_edits': audit_dict['total_count'],
             'audits': audit_dict['audits'],
             'next_page': audit_dict['next_page'],
             'public_fields': public_fields,
