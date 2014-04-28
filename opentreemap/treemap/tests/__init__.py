@@ -207,6 +207,11 @@ def make_plain_user(username, password='password'):
     return user
 
 
+def make_instance_user(instance, user):
+    iu = InstanceUser(instance=instance, user=user, role=instance.default_role)
+    iu.save_with_user(User._system_user)
+
+
 def login(client, username):
     client.post('/accounts/login/', {'username': username,
                                      'password': 'password'})
