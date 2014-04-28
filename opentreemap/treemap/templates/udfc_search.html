@@ -34,7 +34,7 @@
               data-tree-udfd-id="{{ stewardship.tree.udfd.pk }}"
               data-date-field-key="Date"
               data-action-field-key="Action"
-              >{% trans "that received" %}</option>
+              >{% trans "that have been" %}</option>
       {% endif %}
       {% if alerts %}
       <option data-type="alerts"
@@ -42,7 +42,7 @@
               data-tree-udfd-id="{{ alerts.tree.udfd.pk }}"
               data-date-field-key="Date Noticed"
               data-action-field-key="Action Needed"
-              >{% trans "that need" %}</option>
+              >{% trans "with open alerts for" %}</option>
       {% endif %}
     </select>
   </label>
