@@ -157,6 +157,9 @@ def instance_info(request, instance):
 def _instance_info_dict(instance):
     center = instance.center
     center.transform(4326)
+    bounds = instance.bounds
+    bounds.transform(4326)
+    extent = bounds.extent
 
     info = {'geoRevHash': instance.geo_rev_hash,
             'id': instance.pk,
@@ -164,6 +167,10 @@ def _instance_info_dict(instance):
             'name': instance.name,
             'center': {'lat': center.y,
                        'lng': center.x},
+            'extent': {'min_lng': extent[0],
+                       'min_lat': extent[1],
+                       'max_lng': extent[2],
+                       'max_lat': extent[3]},
             'eco': _instance_eco_dict(instance)
             }
 
