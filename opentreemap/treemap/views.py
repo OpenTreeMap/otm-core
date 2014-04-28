@@ -1001,7 +1001,7 @@ def _user_instances(logged_in_user, user, current_instance=None):
     if current_instance and logged_in_user == user:
         instances = instances.union({current_instance})
 
-    instances = sorted(instances, cmp=lambda x,y: cmp(x.name, y.name))
+    instances = sorted(instances, cmp=lambda x, y: cmp(x.name, y.name))
     return instances
 
 
