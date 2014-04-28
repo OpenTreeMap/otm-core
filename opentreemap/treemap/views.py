@@ -999,9 +999,9 @@ def _user_instances(logged_in_user, user, current_instance=None):
 
     # The logged-in user should see the current instance in their own list
     if current_instance and logged_in_user == user:
-        instances = instances + set(current_instance)
+        instances = instances.union({current_instance})
 
-    instances = sorted(instances, lambda i: i.name)
+    instances = sorted(instances, cmp=lambda x,y: cmp(x.name, y.name))
     return instances
 
 
