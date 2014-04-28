@@ -33,22 +33,29 @@ def feature_enabled(instance, feature):
     return instance.feature_enabled(feature)
 
 
+def _role_allows_perm(role, model_name, predicate,
+                      perm_attr, field=None):
+    perms = role.model_permissions(model_name).all()
+
+    if field:
+        perms = perms.filter(field_name=field)
+
+    return predicate(getattr(perm, perm_attr) for perm in perms)
+
+
+def _invalid_instanceuser(instanceuser):
+    return (instanceuser is None or
+            instanceuser == '' or
+            instanceuser.user_id is None)
+
+
 def _feature_allows_perm(instanceuser, model_name,
                          predicate, perm_attr, field=None):
-    if instanceuser is None or instanceuser == '' \
-       or instanceuser.user_id is None:
+    if _invalid_instanceuser(instanceuser):
         return False
     else:
-        perms = instanceuser.role.model_permissions(model_name).all()
-
-        if field:
-            perms = perms.filter(field_name=field)
-
-        return predicate(getattr(perm, perm_attr) for perm in perms)
-
-
-
-
+        return _role_allows_perm(instanceuser.role, model_name,
+                                 predicate, perm_attr, field)
 
 
 @register.filter
@@ -85,15 +92,22 @@ def is_read_or_write(perm_string):
 
 @register.filter
 def udf_write_level(instanceuser, udf):
+
+    if _invalid_instanceuser(instanceuser):
+        role = udf.instance.role_set.get(name='public')
+    else:
+        role = instanceuser.role
+
     kwargs = {
-        'instanceuser': instanceuser,
+        'role': role,
         'model_name': udf.model_type,
         'predicate': any,
         'field': 'udf:' + udf.name
     }
-    if _feature_allows_writes(**kwargs):
+
+    if _role_allows_perm(perm_attr='allows_writes', **kwargs):
         level = "write"
-    elif _feature_allows_reads(**kwargs):
+    elif _role_allows_perm(perm_attr='allows_reads', **kwargs):
         level = "read"
     else:
         level = None
