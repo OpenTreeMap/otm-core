@@ -47,14 +47,8 @@ def _feature_allows_perm(instanceuser, model_name,
         return predicate(getattr(perm, perm_attr) for perm in perms)
 
 
-def _feature_allows_writes(instanceuser, model_name, predicate, field=None):
-    return _feature_allows_perm(instanceuser, model_name,
-                                predicate, 'allows_writes', field=field)
 
 
-def _feature_allows_reads(instanceuser, model_name, predicate, field=None):
-    return _feature_allows_perm(instanceuser, model_name,
-                                predicate, 'allows_reads', field=field)
 
 
 @register.filter
@@ -67,8 +61,21 @@ def is_deletable(instanceuser, obj):
 
 @register.filter
 def plot_is_writable(instanceuser, field=None):
-    return _feature_allows_writes(instanceuser, 'Plot', predicate=any,
-                                  field=field)
+    return _feature_allows_perm(instanceuser, 'Plot',
+                                perm_attr='allows_writes',
+                                predicate=any, field=field)
+
+
+@register.filter
+def plot_field_is_writable(instanceuser, field):
+    return plot_is_writable(instanceuser, field=field)
+
+
+@register.filter
+def geom_is_writable(instanceuser, model_name):
+    return _feature_allows_perm(instanceuser, model_name,
+                                perm_attr='allows_writes',
+                                predicate=any, field='geom')
 
 
 @register.filter
@@ -92,17 +99,6 @@ def udf_write_level(instanceuser, udf):
         level = None
 
     return level
-
-
-@register.filter
-def plot_field_is_writable(instanceuser, field):
-    return plot_is_writable(instanceuser, field=field)
-
-
-@register.filter
-def geom_is_writable(instanceuser, model_name):
-    return _feature_allows_writes(instanceuser, model_name, predicate=any,
-                                  field='geom')
 
 
 @register.filter
