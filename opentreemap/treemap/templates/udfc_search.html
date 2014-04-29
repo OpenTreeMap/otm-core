@@ -61,16 +61,16 @@
     <select id="udfc-search-action" data-search-type="IS">
       <option data-class="udfc-placeholder" selected />
       {% for action in stewardship.tree.fields %}
-      <option data-model="tree" data-type="stewardship" style="display: none;">{{ action }}</option>
+      <option data-model="tree" data-type="stewardship">{{ action }}</option>
       {% endfor %}
       {% for action in alerts.tree.fields %}
-      <option data-model="tree" data-type="alerts" style="display: none;">{{ action }}</option>
+      <option data-model="tree" data-type="alerts">{{ action }}</option>
       {% endfor %}
       {% for action in stewardship.plot.fields %}
-      <option data-model="plot" data-type="stewardship" style="display: none;">{{ action }}</option>
+      <option data-model="plot" data-type="stewardship">{{ action }}</option>
       {% endfor %}
       {% for action in alerts.plot.fields %}
-      <option data-model="plot" data-type="alerts" style="display: none;">{{ action }}</option>
+      <option data-model="plot" data-type="alerts">{{ action }}</option>
       {% endfor %}
     </select>
   </label>

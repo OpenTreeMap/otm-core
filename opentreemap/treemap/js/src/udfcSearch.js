@@ -3,6 +3,7 @@
 var $ = require('jquery'),
     Bacon = require('baconjs'),
     _ = require('lodash'),
+    format = require('util').format,
     M = require('treemap/BaconModels'),
     juxt = require('treemap/utility').juxt,
     moment = require('moment'),
@@ -103,23 +104,28 @@ function resetSelectWidget(widgetName, optionKey, state) {
 
 function resetAction(state) {
     var $el = $(widgets.action.selector),
-        $options = $el.find('option'),
+        $currentOptions = $el.find('option').not('[data-class="udfc-placeholder"]'),
+        $allOptions = $el.data('options'),
         modelSelector,
         typeSelector;
 
+    // You can't hide <option> tags, so we need to stash them and add/remove
+    // them as needed
+    if (_.isUndefined($allOptions)) {
+        $allOptions = $currentOptions.detach();
+        $el.data('options', $allOptions);
+    }
+
+    $currentOptions.remove();
     if (!_.isNull(state.modelName) && !_.isNull(state.type)) {
-        modelSelector = 
-            _.template('[data-model="<%= modelName %>"]')({modelName: state.modelName });
-        typeSelector = 
-            _.template('[data-type="<%= type %>"]')({type: state.type });
-        // set the updated udfFieldDefId on the action select
-        // hide all irrelevant options except placeholder
-        $options.filter('[data-model]').not(modelSelector).hide();
-        $options.filter('[data-type]').not(typeSelector).hide();
-        $options.filter(modelSelector).filter(typeSelector).show();
-    } else {
-        // hide all irrelevant options except placeholder
-        $options.filter('[data-model]').hide();
+        modelSelector = format('[data-model="%s"]', state.modelName);
+        typeSelector = format('[data-type="%s"]', state.type);
+
+        // Add the relevant options to the select
+        $allOptions
+            .filter(modelSelector)
+            .filter(typeSelector)
+            .appendTo($el);
     }
 
     $el = $(widgets.action.selector);
