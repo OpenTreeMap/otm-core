@@ -41,14 +41,14 @@ var initialDomData = {
         '  </div>' +
         '  <select id="udfc-search-action" data-search-type="IS">' +
         '    <option data-class="udfc-placeholder" selected />' +
-        '    <option data-model="tree" data-type="stewardship" style="display: none;">Watering</option>' +
-        '    <option data-model="tree" data-type="stewardship" style="display: none;">Pruning</option>' +
-        '    <option data-model="tree" data-type="stewardship" style="display: none;">Mulching, Adding Compost or Amending Soil</option>' +
-        '    <option data-model="tree" data-type="stewardship" style="display: none;">Removing Debris or Trash</option>' +
-        '    <option data-model="plot" data-type="stewardship" style="display: none;">Enlarging the Planting Area</option>' +
-        '    <option data-model="plot" data-type="stewardship" style="display: none;">Adding a Guard</option>' +
-        '    <option data-model="plot" data-type="stewardship" style="display: none;">Removing a Guard</option>' +
-        '    <option data-model="plot" data-type="stewardship" style="display: none;">Herbaceous Planting</option>' +
+        '    <option data-model="tree" data-type="stewardship">Watering</option>' +
+        '    <option data-model="tree" data-type="stewardship">Pruning</option>' +
+        '    <option data-model="tree" data-type="stewardship">Mulching, Adding Compost or Amending Soil</option>' +
+        '    <option data-model="tree" data-type="stewardship">Removing Debris or Trash</option>' +
+        '    <option data-model="plot" data-type="stewardship">Enlarging the Planting Area</option>' +
+        '    <option data-model="plot" data-type="stewardship">Adding a Guard</option>' +
+        '    <option data-model="plot" data-type="stewardship">Removing a Guard</option>' +
+        '    <option data-model="plot" data-type="stewardship">Herbaceous Planting</option>' +
         '  </select>' +
         '  <span>between</span>' +
         '  <input id="udfc-search-date-from" data-search-type="MIN"' +
@@ -71,9 +71,6 @@ var initialDomData = {
     }
 };
 
-var invisible = function ($el) { return $el.filter('[style^="display: none;"]'); };
-var visible = function ($el) { return $el.not('[style^="display: none;"]'); };
-
 var assertEqualDescriptive = function (arg1, arg2, descriptor, entity) {
     var formatString = "%s %ss on the dom, %s, to match " +
             "expected %s %ss after state change, %s";
@@ -86,18 +83,15 @@ var assertActionExpectations = function (expectations) {
     var $action = $(udfcSearch._widgets.action.selector),
         $options = $action.find('option'),
         $treeOptions = $options.filter('[data-model="tree"]'),
-        $plotOptions = $options.filter('[data-model="plot"]');
+        $plotOptions = $options.filter('[data-model="plot"]'),
+        $otherOptions = $options.not($plotOptions).not($treeOptions);
 
-    assertEqualDescriptive(invisible($plotOptions).length,
-                           expectations.invisiblePlotOptions,
-                           'invisible', 'plot action');
-    assertEqualDescriptive(invisible($treeOptions).length,
-                 expectations.invisibleTreeOptions,
-                 'invisible', 'tree action');
-    assertEqualDescriptive(visible($plotOptions).length,
+    assertEqualDescriptive($otherOptions.length, 1,
+                 'visible', 'placeholder option');
+    assertEqualDescriptive($plotOptions.length,
                  expectations.visiblePlotOptions,
                  'visible', 'plot action');
-    assertEqualDescriptive(visible($treeOptions).length,
+    assertEqualDescriptive($treeOptions.length,
                  expectations.visibleTreeOptions,
                  'visible', 'tree action');
     assertEqualDescriptive($action.val(),

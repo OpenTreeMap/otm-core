@@ -237,7 +237,15 @@
                 option {
                     color: black;
                     background: white;
+
+                    @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+                        color: white;
+                        background: transparent;
+                    }
                 }
+            }
+            select::-ms-expand {
+                display: none;
             }
         }
         input.udfc-selector {
