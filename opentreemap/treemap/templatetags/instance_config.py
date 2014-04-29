@@ -93,6 +93,11 @@ def is_read_or_write(perm_string):
 @register.filter
 def udf_write_level(instanceuser, udf):
 
+    # required in case non-existent udf
+    # is passed to this tag
+    if udf is None:
+        return None
+
     if _invalid_instanceuser(instanceuser):
         role = udf.instance.default_role
     else:

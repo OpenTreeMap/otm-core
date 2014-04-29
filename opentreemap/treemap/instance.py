@@ -13,6 +13,8 @@ import hashlib
 import json
 from urllib import urlencode
 
+from copy import deepcopy
+
 from treemap.json_field import JSONField
 from treemap.species import ITREE_REGION_CHOICES
 
@@ -148,9 +150,21 @@ class Instance(models.Model):
     def advanced_search_fields(self):
         # TODO pull from the config once users have a way to set search fields
 
+        from treemap.util import to_object_name
+
+        # if we come to support more udfc searches, we can add them here.
+        udfc_models = ['Tree', 'Plot']
+        udfc_names = ['Stewardship', 'Alerts']
+
+        # must inflate object so that template can look for keys
+        empty_udfc = {to_object_name(n_k):
+                      {to_object_name(m_k): {'fields': [], 'udfd': None}
+                       for m_k in udfc_models}
+                      for n_k in udfc_names}
+
         if not self.feature_enabled('advanced_search_filters'):
             return {'standard': [], 'missing': [], 'display': [],
-                    'udfc': {}}
+                    'udfc': empty_udfc}
 
         from treemap.models import MapFeature  # prevent circular import
         fields = {
@@ -203,19 +217,13 @@ class Instance(models.Model):
 
         # prevent circular import
         from treemap.udf import UserDefinedFieldDefinition
-        from treemap.util import to_object_name
-
-        # if we come to support more udfc searches, we can add them here.
-        udfc_models = ['Tree', 'Plot']
-        udfc_names = ['Stewardship', 'Alerts']
 
         udfds = UserDefinedFieldDefinition.objects.filter(
             instance=self,
             name__in=udfc_names,
             model_type__in=udfc_models)
 
-        udfc = {udfc_name.lower(): {}
-                for udfc_name in udfc_names}
+        udfc = deepcopy(empty_udfc)
 
         for udfd in udfds:
             udfd_info = {
