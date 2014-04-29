@@ -916,3 +916,12 @@ class SearchTests(TestCase):
             self._execute_and_process_filter(
                 {'udf:plot:%s.action' % self.plotstew.pk: {'IS': 'prune'},
                  'udf:plot:%s.date' % self.plotstew.pk: {'MAX': 2}})
+
+    def test_cudf_date_min_bound_succeeds(self):
+        p1, _, _ = self._setup_collection_udfs()
+        self.assertIn(p1,
+                      self._execute_and_process_filter(
+                          {'udf:plot:%s.action' % self.plotstew.pk:
+                           {'IS': 'prune'},
+                           'udf:plot:%s.date' % self.plotstew.pk:
+                           {'MIN': '2013-09-15 00:00:00'}}))
