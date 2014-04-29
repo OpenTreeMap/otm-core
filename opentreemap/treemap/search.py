@@ -249,7 +249,8 @@ def _parse_min_max_value_fn(operator):
 
         if field:  # implies hstore
             if isinstance(value, datetime):
-                inner_value = {field: raw_value}
+                date_value = value.date().isoformat()
+                inner_value = {field: date_value}
             else:
                 raise ParseException("Cannot perform min/max comparisons on "
                                      "non-date hstore fields at this time.")
