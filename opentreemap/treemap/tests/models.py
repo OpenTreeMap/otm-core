@@ -422,4 +422,16 @@ class InstanceTest(TestCase):
         instance = make_instance()
         self.assertEqual(instance.advanced_search_fields,
                          {'standard': [], 'missing': [],
-                          'display': [], 'udfc': {}})
+                          'display': [], 'udfc': {
+                              'alerts': {
+                                  'plot': {'fields': [],
+                                           'udfd': None},
+                                  'tree': {'fields': [],
+                                           'udfd': None}},
+                              'stewardship': {
+                                  'plot':
+                                  {'fields': [],
+                                   'udfd': None},
+                                  'tree':
+                                  {'fields': [],
+                                   'udfd': None}}}})
