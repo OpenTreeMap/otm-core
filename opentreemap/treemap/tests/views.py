@@ -35,14 +35,15 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            compile_scss, approve_or_reject_photo,
                            upload_user_photo, static_page, instance_user_view,
                            delete_map_feature, delete_tree, user,
-                           forgot_username)
+                           forgot_username, _user_instances)
 
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
                            set_write_permissions, MockSession,
                            delete_all_app_users, set_read_permissions,
-                           make_plain_user, LocalMediaTestCase, media_dir)
+                           make_plain_user, LocalMediaTestCase, media_dir,
+                           make_instance_user)
 from treemap.tests.udfs import make_collection_udf
 
 
@@ -1684,3 +1685,41 @@ class ForgotUsernameTests(ViewTestCase):
         self.assertEquals(resp, {'email': 'doesnt@exist.co.uk'})
 
         self.assertEquals(len(mail.outbox), 0)
+
+
+class UserInstancesViewTests(TestCase):
+    def setUp(self):
+        self.user_a = make_plain_user('a')
+        self.user_b = make_plain_user('b')
+
+        # User a belongs to instance a
+        self.a = make_instance('a')
+        make_instance_user(self.a, self.user_a)
+
+        # User b belongs to instances b and b_public
+        self.b = make_instance('b')
+        self.b_public = make_instance('b_public', is_public=True)
+        make_instance_user(self.b, self.user_b)
+        make_instance_user(self.b_public, self.user_b)
+
+        # Users a and b belong to instance ab
+        self.ab = make_instance('ab')
+        make_instance_user(self.ab, self.user_a)
+        make_instance_user(self.ab, self.user_b)
+
+        self.c = make_instance('c')
+
+    def test_a_views_a(self):
+        # User a views their own instances
+        instances = _user_instances(self.user_a, self.user_a, self.c)
+        self.assertEquals(instances, [self.a, self.ab, self.c])
+
+    def test_a_views_b(self):
+        # User a views b's instances
+        instances = _user_instances(self.user_a, self.user_b, self.c)
+        self.assertEquals(instances, [self.ab, self.b_public])
+
+    def test_anonymous_views_b(self):
+        # User anonymous views b's instances
+        instances = _user_instances(None, self.user_b, self.c)
+        self.assertEquals(instances, [self.b_public])
