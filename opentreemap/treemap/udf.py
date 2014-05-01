@@ -522,6 +522,43 @@ class UserDefinedFieldDefinition(models.Model):
         self.validate()
         super(UserDefinedFieldDefinition, self).save(*args, **kwargs)
 
+    @transaction.commit_on_success
+    def delete(self, *args, **kwargs):
+
+        if self.iscollection:
+            UserDefinedCollectionValue.objects.filter(field_definition=self)\
+                                              .delete()
+
+            Audit.objects.filter(instance=self.instance)\
+                         .filter(model='udf:%s' % self.pk)\
+                         .delete()
+        else:
+            Model = safe_get_udf_model_class(self.model_type)
+            objects_with_udf_data = (Model
+                                     .objects
+                                     .filter(instance=self.instance)
+                                     .exclude(**{self.canonical_name: ""}))
+
+            for obj in objects_with_udf_data:
+                del obj.udfs[self.name]
+                # save_base instead of save_with_user,
+                # we delete the audits anyways
+                obj.save_base()
+
+            Audit.objects.filter(instance=self.instance)\
+                         .filter(model=self.model_type)\
+                         .filter(field=self.canonical_name)\
+                         .delete()
+
+        # remove field permissions for this udf
+        FieldPermission.objects.filter(
+            model_name=self.model_type,
+            field_name=self.canonical_name,
+            instance=self.instance).delete()
+
+        super(UserDefinedFieldDefinition, self).delete(*args, **kwargs)
+        udf_cache.remove_def_from_cache(self)
+
     @property
     def datatype_dict(self):
         return json.loads(self.datatype)
