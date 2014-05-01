@@ -985,3 +985,55 @@ class CollectionUDFTest(TestCase):
             ValidationError,
             self.plot.save_with_user,
             self.commander_user)
+
+
+class UdfDeleteTest(TestCase):
+    def setUp(self):
+        self.instance = make_instance()
+        self.commander_user = make_commander_user(self.instance)
+
+    def test_delete_udf_deletes_perms_collection(self):
+        set_write_permissions(self.instance, self.commander_user,
+                              'Plot', ['udf:Test choice'])
+
+        udf_def = UserDefinedFieldDefinition(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps([{'name': 'pick',
+                                  'type': 'choice',
+                                  'choices': ['a', 'b', 'c']},
+                                 {'type': 'int',
+                                  'name': 'height'}]),
+            iscollection=True,
+            name='Test choice')
+
+        udf_def.save()
+
+        qs = FieldPermission.objects.filter(
+            field_name='udf:Test choice',
+            model_name='Plot')
+
+        self.assertTrue(qs.exists())
+        udf_def.delete()
+        self.assertFalse(qs.exists())
+
+    def test_delete_udf_deletes_perms_value(self):
+        set_write_permissions(self.instance, self.commander_user,
+                              'Plot', ['udf:Test string'])
+
+        udf_def = UserDefinedFieldDefinition(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'string'}),
+            iscollection=False,
+            name='Test string')
+
+        udf_def.save()
+
+        qs = FieldPermission.objects.filter(
+            field_name='udf:Test string',
+            model_name='Plot')
+
+        self.assertTrue(qs.exists())
+        udf_def.delete()
+        self.assertFalse(qs.exists())
