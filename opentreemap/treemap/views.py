@@ -129,6 +129,19 @@ def _get_map_feature_or_404(feature_id, instance, type=None):
         return feature
 
 
+def _get_image_from_request(request):
+    if 'file' in request.FILES:
+        return request.FILES['file'].file
+    else:
+        return request.body
+
+
+def add_map_feature_photo(request, instance, feature_id):
+    feature = _get_map_feature_or_404(feature_id, instance)
+    data = _get_image_from_request(request)
+    return feature.add_photo(data, request.user)
+
+
 def add_tree_photo(request, instance, feature_id, tree_id=None):
     plot = _get_map_feature_or_404(feature_id, instance, 'Plot')
     tree_ids = [t.pk for t in plot.tree_set.all()]
@@ -158,13 +171,8 @@ def add_tree_photo(request, instance, feature_id, tree_id=None):
         raise Http404('Tree id %s not found on plot %s'
                       % (tree_id, feature_id))
 
-    #TODO: Validation Error
     #TODO: Auth Error
-    if 'file' in request.FILES:
-        data = request.FILES['file'].file
-    else:
-        data = request.body
-
+    data = _get_image_from_request(request)
     treephoto = tree.add_photo(data, request.user)
 
     return treephoto, tree
@@ -181,7 +189,19 @@ def add_tree_photo_view(request, instance, feature_id, tree_id=None):
             photos = trees[0].photos()
         else:
             photos = []
+        # TODO: Better display error messages in the view
         error = '; '.join(e.messages)
+    return {'photos': photos, 'error': error}
+
+
+def add_map_feature_photo_view(request, instance, feature_id):
+    error = None
+    try:
+        add_map_feature_photo(request, instance, feature_id)
+    except ValidationError as e:
+        error = '; '.join(e.messages)
+    feature = _get_map_feature_or_404(feature_id, instance)
+    photos = feature.photos()
     return {'photos': photos, 'error': error}
 
 
@@ -1417,6 +1437,14 @@ add_tree_photo_endpoint = require_http_method("POST")(
             creates_instance_user(
                 render_template("treemap/partials/tree_carousel.html",
                                 add_tree_photo_view)))))
+
+# FIXME: the returned template is now probably misnamed
+add_map_feature_photo_endpoint = require_http_method("POST")(
+    login_or_401(
+        instance_request(
+            creates_instance_user(
+                render_template("treemap/partials/tree_carousel.html",
+                                add_map_feature_photo_view)))))
 
 scss_view = require_http_method("GET")(
     string_as_file_call("text/css", compile_scss))
