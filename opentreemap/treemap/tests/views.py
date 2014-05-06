@@ -1478,12 +1478,12 @@ class UserUpdateViewTests(ViewTestCase):
     def test_change_first_name(self):
         self.joe.first_name = 'Joe'
         self.joe.save()
-        update = b'{"user.firstname": "Joseph"}'
+        update = b'{"user.first_name": "Joseph"}'
         self.assertOk(update_user(
             make_request(user=self.joe, body=update), self.joe))
         self.assertEquals('Joseph',
-                          User.objects.get(username='joe').firstname,
-                          'The firstname was not updated')
+                          User.objects.get(username='joe').first_name,
+                          'The first_name was not updated')
 
     def test_expects_keys_prefixed_with_user(self):
         self.joe.name = 'Joe'

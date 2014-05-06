@@ -29,12 +29,12 @@ class RegistrationForm(DefaultRegistrationForm):
         required=False,
         label=trans('Organization'))
 
-    firstname = forms.CharField(
+    first_name = forms.CharField(
         max_length=100,
         required=False,
         label=trans('First name'))
 
-    lastname = forms.CharField(
+    last_name = forms.CharField(
         max_length=100,
         required=False,
         label=trans('Last name'))
@@ -106,8 +106,8 @@ class RegistrationView(DefaultRegistrationView):
         user = RegistrationProfile.objects.create_inactive_user(
             username, email, password, site, send_email=should_email)
 
-        user.firstname = cleaned_data.get('firstname', '')
-        user.lastname = cleaned_data.get('lastname', '')
+        user.first_name = cleaned_data.get('first_name', '')
+        user.last_name = cleaned_data.get('last_name', '')
         user.organization = cleaned_data.get('organization', '')
         user.allow_email_contact = cleaned_data.get(
             'allow_email_contact', False)

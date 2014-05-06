@@ -50,13 +50,13 @@ from treemap.ecobenefits import get_benefits_for_filter
 
 
 USER_EDIT_FIELDS = collections.OrderedDict([
-    ('firstname',
+    ('first_name',
      {'label': trans('First Name'),
-      'identifier': 'user.firstname',
+      'identifier': 'user.first_name',
       'visibility': 'public'}),
-    ('lastname',
+    ('last_name',
      {'label': trans('Last Name'),
-      'identifier': 'user.lastname',
+      'identifier': 'user.last_name',
       'visibility': 'public'}),
     ('organization',
      {'label': trans('Organization'),

@@ -278,10 +278,6 @@ class AbstractUniqueEmailUser(AbstractBaseUser, PermissionsMixin):
                 re.compile('^[\w.@+-]+$'),
                 trans('Enter a valid username.'), 'invalid')
         ])
-    first_name = models.CharField(
-        trans('first name'), max_length=30, blank=True)
-    last_name = models.CharField(
-        trans('last name'), max_length=30, blank=True)
     email = models.EmailField(trans('email address'), blank=True, unique=True)
     is_staff = models.BooleanField(
         trans('staff status'), default=False,
@@ -327,9 +323,10 @@ class User(Auditable, AbstractUniqueEmailUser):
 
     photo = models.ImageField(upload_to='users', null=True, blank=True)
     thumbnail = models.ImageField(upload_to='users', null=True, blank=True)
-
-    firstname = models.CharField(max_length=255, default='', blank=True)
-    lastname = models.CharField(max_length=255, default='', blank=True)
+    first_name = models.CharField(
+        trans('first name'), max_length=30, default='', blank=True)
+    last_name = models.CharField(
+        trans('last name'), max_length=30, default='', blank=True)
     organization = models.CharField(max_length=255, default='', blank=True)
 
     allow_email_contact = models.BooleanField(default=False)

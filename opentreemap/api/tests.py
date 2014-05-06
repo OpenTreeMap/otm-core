@@ -1191,8 +1191,8 @@ class UserTest(LocalMediaTestCase):
 
         self.factory = RequestFactory()
         self.defaultUserDict = {'organization': 'azavea',
-                                'lastname': 'smith',
-                                'firstname': 'john',
+                                'last_name': 'smith',
+                                'first_name': 'john',
                                 'email': 'j@smith.co',
                                 'username': 'jsmith',
                                 'password': 'password',
@@ -1314,15 +1314,15 @@ class UserTest(LocalMediaTestCase):
         def updatePeonRequest(d):
             return put_json(url, d, self.client, user=peon)
 
-        updatePeonRequest({'lastname': 'l1'})
+        updatePeonRequest({'last_name': 'l1'})
 
         peon = User.objects.get(pk=peon.pk)
-        self.assertEquals(peon.lastname, 'l1')
+        self.assertEquals(peon.last_name, 'l1')
 
-        updatePeonRequest({'lastname': 'l2'})
+        updatePeonRequest({'last_name': 'l2'})
 
         peon = User.objects.get(pk=peon.pk)
-        self.assertEquals(peon.lastname, 'l2')
+        self.assertEquals(peon.last_name, 'l2')
 
         updatePeonRequest({'password': 'whateva'})
 

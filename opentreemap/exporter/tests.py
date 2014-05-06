@@ -164,13 +164,13 @@ class UserExportsTestCase(TestCase):
         self.user1 = User(username='estraven', password='estraven',
                           email='estraven@example.com',
                           organization='org111',
-                          firstname='therem', lastname='⅀straven')
+                          first_name='therem', last_name='⅀straven')
 
         self.user1.save_with_user(self.commander)
 
         self.user2 = User(username='genly', password='genly',
                           email='genly@example.com',
-                          firstname='genly', lastname='ai',
+                          first_name='genly', last_name='ai',
                           allow_email_contact=True)
         self.user2.save_with_user(self.commander)
 
@@ -218,8 +218,8 @@ class UserExportsTest(UserExportsTestCase):
         self.assertEquals(user1data['username'], self.user1.username)
         self.assertEquals(user1data['email'], '')
         self.assertEquals(user1data['email_hash'], self.user1.email_hash)
-        self.assertEquals(user1data['firstname'], self.user1.firstname)
-        self.assertEquals(user1data['lastname'], self.user1.lastname)
+        self.assertEquals(user1data['first_name'], self.user1.first_name)
+        self.assertEquals(user1data['last_name'], self.user1.last_name)
         self.assertEquals(user1data['organization'], self.user1.organization)
         self.assertEquals(user1data['allow_email_contact'], 'False')
         self.assertEquals(user1data['role'], 'commander')
@@ -253,8 +253,8 @@ class UserExportsTest(UserExportsTestCase):
         self.assertEquals(user1data['username'], self.user1.username)
         self.assertEquals(user1data.get('email'), None)
         self.assertEquals(user1data['email_hash'], self.user1.email_hash)
-        self.assertEquals(user1data['firstname'], self.user1.firstname)
-        self.assertEquals(user1data['lastname'], self.user1.lastname)
+        self.assertEquals(user1data['first_name'], self.user1.first_name)
+        self.assertEquals(user1data['last_name'], self.user1.last_name)
         self.assertEquals(user1data['organization'], self.user1.organization)
         self.assertEquals(user1data['allow_email_contact'], 'False')
         self.assertEquals(user1data['role'], 'commander')
