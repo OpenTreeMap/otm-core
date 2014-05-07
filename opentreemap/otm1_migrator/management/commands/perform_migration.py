@@ -17,7 +17,7 @@ from django.db.transaction import commit_on_success
 from django.contrib.contenttypes.models import ContentType
 
 from treemap import SPECIES
-from treemap.models import User, Species, InstanceUser
+from treemap.models import User, Species, InstanceUser, Tree
 from treemap.management.util import InstanceDataCommand
 
 from otm1_migrator.models import (OTM1UserRelic, OTM1ModelRelic,
@@ -154,6 +154,8 @@ def save_treephoto(migration_rules, treephoto_path, model_hash, instance):
     image = open(os.path.join(treephoto_path,
                               model_hash['fields']['photo']))
     model.set_image(image)
+    model.map_feature_id = Tree.objects.values_list('plot__id', flat=True)\
+                                       .get(pk=model.tree_id)
 
     del model_hash['fields']['photo']
 

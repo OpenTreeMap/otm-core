@@ -605,6 +605,8 @@ def _get_audits(logged_in_user, instance, query_vars, user, models,
     # We only want to show the TreePhoto's image, not other fields
     # and we want to do it automatically if 'Tree' was specified as
     # a model
+    # FIXME: This should also show MapFeaturePhoto if any map feature
+    #        models are in the filter
     if 'Tree' in models:
         model_filter = model_filter | Q(model='TreePhoto', field='image')
 
@@ -1137,6 +1139,7 @@ def compile_scss(request):
 PHOTO_PAGE_SIZE = 12
 
 
+# FIXME: This should instead show MapFeaturePhotos
 def _photo_audits(instance):
     unverified_actions = {Audit.Type.Insert,
                           Audit.Type.Delete,
@@ -1221,6 +1224,7 @@ def photo_review(request, instance):
     }
 
 
+#FIXME: This should work for MapFeaturePhotos instead
 @transaction.commit_on_success
 def approve_or_reject_photo(
         request, instance, feature_id, tree_id, photo_id, action):
