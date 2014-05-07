@@ -17,7 +17,7 @@ from treemap.models import User
 
 
 REQ_FIELDS = {'email', 'username', 'password', 'allow_email_contact'}
-ALL_FIELDS = REQ_FIELDS | {'organization', 'lastname', 'firstname'}
+ALL_FIELDS = REQ_FIELDS | {'organization', 'last_name', 'first_name'}
 
 
 def update_profile_photo(request, user_id):
