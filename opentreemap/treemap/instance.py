@@ -186,7 +186,7 @@ class Instance(models.Model):
                  'label': 'Show missing trunk diameter',
                  'search_type': 'ISNULL',
                  'value': 'true'},
-                {'identifier': 'treePhoto.id',
+                {'identifier': 'mapFeaturePhoto.id',
                  'label': 'Show missing photos',
                  'search_type': 'ISNULL',
                  'value': 'true'}

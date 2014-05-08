@@ -2,7 +2,7 @@ from django import template
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
 
-from treemap.models import MapFeature, Tree, TreePhoto
+from treemap.models import MapFeature, Tree, TreePhoto, MapFeaturePhoto
 from treemap.udf import UserDefinedCollectionValue
 from treemap.views import get_filterable_audit_models
 
@@ -45,6 +45,7 @@ AUDIT_MODEL_LOOKUP_FNS = {
     'mapfeature': lambda id: MapFeature.objects.get(pk=id),
     'tree': lambda id: Tree.objects.get(pk=id),
     'treephoto': lambda id: TreePhoto.objects.get(pk=id),
+    'mapfeaturephoto': lambda id: MapFeaturePhoto.objects.get(pk=id),
 }
 
 

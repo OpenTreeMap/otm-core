@@ -37,6 +37,8 @@ TREE_MAPPING = {'plot': 'plot__',
 
 PLOT_RELATED_MODELS = {Plot, Tree, Species, TreePhoto}
 
+MAP_FEATURE_RELATED_NAMES = {'mapFeature', 'mapFeaturePhoto'}
+
 
 class Filter(object):
     def __init__(self, filterstr, displaystr, instance):
@@ -90,8 +92,9 @@ def _is_valid_models_list_for_model(models, model_name, ModelClass, instance):
         else:
             fake_model = Model()
         return set(fake_model.collection_udfs_search_names())
+
     # MapFeature is valid for all models
-    models = {m for m in models if m != 'mapFeature'}
+    models = models - MAP_FEATURE_RELATED_NAMES
 
     object_name = to_object_name(model_name)
     models = models - {object_name}

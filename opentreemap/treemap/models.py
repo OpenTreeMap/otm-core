@@ -9,7 +9,8 @@ import re
 
 from django.conf import settings
 from django.core.mail import send_mail
-from django.core.exceptions import ValidationError, MultipleObjectsReturned
+from django.core.exceptions import (ValidationError, MultipleObjectsReturned,
+                                    ObjectDoesNotExist)
 from django.core import validators
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
@@ -495,11 +496,12 @@ class InstanceUser(Auditable, models.Model):
     reputation = models.IntegerField(default=0)
     admin = models.BooleanField(default=False)
 
+    # FIXME: need equivalent function for MapFeaturePhoto
     def can_add_photos_to_tree(self):
         # Users can add photos only if they have all
         # WRITE_DIRECTLY or WRITE_WITH_AUDIT permissions
         # on tree photo
-        fields = {'tree', 'image', 'thumbnail', 'id'}
+        fields = {'tree', 'image', 'thumbnail', 'id', 'map_feature'}
 
         perms = self.user.get_instance_permissions(
             self.instance, 'TreePhoto')
@@ -568,6 +570,15 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
             raise Exception(
                 'Never save a MapFeature -- only save a MapFeature subclass')
         super(MapFeature, self).save_with_user(user, *args, **kwargs)
+
+    def photos(self):
+        return self.mapfeaturephoto_set.order_by('-created_at')
+
+    def add_photo(self, image, user):
+        photo = MapFeaturePhoto(map_feature=self, instance=self.instance)
+        photo.set_image(image)
+        photo.save_with_user(user)
+        return photo
 
     @classproperty
     def map_feature_type(cls):
@@ -817,8 +828,8 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
         super(Tree, self).delete_with_user(user, *args, **kwargs)
 
 
-class TreePhoto(models.Model, Authorizable, Auditable):
-    tree = models.ForeignKey(Tree)
+class MapFeaturePhoto(models.Model, Authorizable, Auditable):
+    map_feature = models.ForeignKey(MapFeature)
 
     image = models.ImageField(
         upload_to='trees/%Y/%m/%d', editable=False)
@@ -829,8 +840,9 @@ class TreePhoto(models.Model, Authorizable, Auditable):
     instance = models.ForeignKey(Instance)
 
     def __init__(self, *args, **kwargs):
-        super(TreePhoto, self).__init__(*args, **kwargs)
+        super(MapFeaturePhoto, self).__init__(*args, **kwargs)
         self._do_not_track.add('created_at')
+        self._do_not_track.add('mapfeaturephoto_ptr')
         self.populate_previous_state()
 
     def _get_db_prep_for_image(self, field):
@@ -844,13 +856,13 @@ class TreePhoto(models.Model, Authorizable, Auditable):
         if thing is None:
             return None
 
-        field, _, _, _ = TreePhoto._meta.get_field_by_name(field)
+        field, _, _, _ = MapFeaturePhoto._meta.get_field_by_name(field)
 
         saved_rep = field.pre_save(self, thing)
         return str(saved_rep)
 
     def as_dict(self):
-        data = super(TreePhoto, self).as_dict()
+        data = super(MapFeaturePhoto, self).as_dict()
 
         data['image'] = self._get_db_prep_for_image('image')
         data['thumbnail'] = self._get_db_prep_for_image('thumbnail')
@@ -872,16 +884,50 @@ class TreePhoto(models.Model, Authorizable, Auditable):
         if self.pk is None:
             self.created_at = timezone.now()
 
-        super(TreePhoto, self).save_with_user(*args, **kwargs)
+        super(MapFeaturePhoto, self).save_with_user(*args, **kwargs)
 
     def delete_with_user(self, *args, **kwargs):
         thumb = self.thumbnail
         image = self.image
 
-        super(TreePhoto, self).delete_with_user(*args, **kwargs)
+        super(MapFeaturePhoto, self).delete_with_user(*args, **kwargs)
 
         thumb.delete(False)
         image.delete(False)
+
+
+class TreePhoto(MapFeaturePhoto):
+    tree = models.ForeignKey(Tree)
+
+    def save_with_user(self, *args, **kwargs):
+        def is_attr_set(attr):
+            try:
+                return bool(getattr(self, attr))
+            except ObjectDoesNotExist:
+                return False
+
+        if is_attr_set('tree') and self.tree.instance != self.instance:
+            raise ValidationError('Cannot save to a tree in another instance')
+
+        if is_attr_set('map_feature'):
+            if not self.map_feature.is_plot:
+                raise ValidationError('Cannot save to a tree without a plot')
+
+            elif self.map_feature.current_tree() != self.tree:
+                raise ValidationError(
+                    'Cannot save to a tree with the wrong plot')
+        elif is_attr_set('tree'):
+            self.map_feature = self.tree.plot
+
+        super(TreePhoto, self).save_with_user(*args, **kwargs)
+
+    def as_dict(self):
+        data = super(TreePhoto, self).as_dict()
+
+        if hasattr(self, 'tree'):
+            data['tree'] = self.tree.pk
+
+        return data
 
 
 class Boundary(models.Model):

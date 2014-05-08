@@ -20,7 +20,8 @@ from treemap.views import (boundary_to_geojson_view, index_view, map_view,
                            photo_review_partial_endpoint, get_plot_eco_view,
                            edit_plot_detail_view, static_page_view,
                            get_map_feature_sidebar_view, tree_detail_view,
-                           get_map_feature_add_view)
+                           get_map_feature_add_view,
+                           add_map_feature_photo_endpoint)
 
 # Testing notes:
 # We want to test that every URL succeeds (200) or fails with bad data (404).
@@ -60,6 +61,8 @@ urlpatterns = patterns(
         route(DELETE=delete_tree_view)),
     url(r'^features/(?P<feature_id>\d+)/sidebar$',
         get_map_feature_sidebar_view, name='map_feature_sidebar'),
+    url(r'^features/(?P<feature_id>\d+)/photo$',
+        add_map_feature_photo_endpoint, name='add_photo_to_map_feature'),
 
     url(r'^plots/$', route(POST=add_map_feature_view), name='add_plot'),
     url(r'^plots/(?P<feature_id>\d+)/detail$',
