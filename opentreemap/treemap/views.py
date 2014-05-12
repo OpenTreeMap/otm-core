@@ -802,7 +802,12 @@ def _plot_audits(user, instance, plot):
     return audits
 
 
-def _map_feature_audits(user, instance, feature, filters=[], cudf_filters=[]):
+def _map_feature_audits(user, instance, feature, filters=None, cudf_filters=None):
+    if filters is None:
+        filters = []
+    if cudf_filters is None:
+        cudf_filters = []
+
     readable_plot_fields = feature.visible_fields(user)
 
     feature_filter = Q(model=feature.feature_type, model_id=feature.pk,
