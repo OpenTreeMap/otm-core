@@ -120,4 +120,12 @@
             border-bottom: 1px solid #DDD;
         }
     }
+
+    #photo-review-container {
+        .thumbnails {
+            .span4:nth-child(3n-2) {
+                margin-left: 0;
+            }
+        }
+    }
 }
