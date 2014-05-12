@@ -1,2 +1,4 @@
 django-extensions==1.2.5
 six==1.4.1
+django-debug-toolbar==1.2
+git+git://github.com/streeter/johnny-panel.git
