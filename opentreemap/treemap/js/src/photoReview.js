@@ -13,6 +13,7 @@ exports.init = function(options) {
     var updatePageFromUrl = new Bacon.Bus(),
         url = options.url,
         nextPhotoUrl = options.nextPhotoUrl,
+        container = options.container,
         initialPageStream = updatePageFromUrl
             .map(U.parseQueryString)
             .map('.n')
@@ -68,7 +69,7 @@ exports.init = function(options) {
                 .flatMap(BU.jsonRequest('GET', url));
 
         pageUpdateStream
-            .onValue($('.content'), 'html');
+            .onValue($(container), 'html');
 
         pageUpdateStream
             .onValue(createPageUpdateStream, initialPageStream);
