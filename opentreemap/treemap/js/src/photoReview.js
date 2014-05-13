@@ -34,11 +34,12 @@ exports.init = function(options) {
     $('body').on('click', '.action', function(e) {
         e.preventDefault();
         var $li = $(this).closest('li');
-        $li.hide();
 
         var stream = BU.jsonRequest('POST', $(this).attr('href'))();
 
-        stream.onError($li, 'show');
+        stream.onValue(function() {
+            $li.remove();
+        });
         stream.onError(showErrorMessage);
 
         stream
