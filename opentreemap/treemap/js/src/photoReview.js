@@ -9,16 +9,12 @@ var $ = require('jquery'),
 var csrf = require('treemap/csrf');
 $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
-
-function getReviewMarkupForNextPhoto() {
-    var n = U.parseQueryString.n || 1;
-    var nextPhotoAddress = 'next';
-    return BU.jsonRequest('GET', nextPhotoAddress)({n: n});
-}
-
-exports.init = function() {
-    var updatePageFromUrl = new Bacon.Bus();
-    var initialPageStream = updatePageFromUrl
+exports.init = function(options) {
+    var updatePageFromUrl = new Bacon.Bus(),
+        url = options.url,
+        nextPhotoUrl = options.nextPhotoUrl,
+        container = options.container,
+        initialPageStream = updatePageFromUrl
             .map(U.parseQueryString)
             .map('.n')
             .filter(BU.id);
@@ -31,14 +27,20 @@ exports.init = function() {
         $('.errors').html(msg);
     }
 
+    function getReviewMarkupForNextPhoto() {
+        var n = U.parseQueryString.n || 1;
+        return BU.jsonRequest('GET', nextPhotoUrl)({n: n});
+    }
+
     $('body').on('click', '.action', function(e) {
         e.preventDefault();
         var $li = $(this).closest('li');
-        $li.hide();
 
         var stream = BU.jsonRequest('POST', $(this).attr('href'))();
 
-        stream.onError($li, 'show');
+        stream.onValue(function() {
+            $li.remove();
+        });
         stream.onError(showErrorMessage);
 
         stream
@@ -52,10 +54,11 @@ exports.init = function() {
                 .asEventStream('click')
                 .map('.target')
                 .map($)
-                .map('.data', 'page');
+                .map('.data', 'page')
+                .filter(BU.isDefinedNonEmpty);
 
         pageStream
-            .map(function(n) { return '?n=' + n; })
+            .map(function(n) { return '?n=' + n + window.location.hash; })
             .onValue(function (url) {
                 History.pushState(null, document.title, url);
             });
@@ -63,10 +66,10 @@ exports.init = function() {
         var pageUpdateStream = pageStream
                 .merge(initialPageStream)
                 .map(function(n) { return {'n': n}; })
-                .flatMap(BU.jsonRequest('GET', 'partial'));
+                .flatMap(BU.jsonRequest('GET', url));
 
         pageUpdateStream
-            .onValue($('.content'), 'html');
+            .onValue($(container), 'html');
 
         pageUpdateStream
             .onValue(createPageUpdateStream, initialPageStream);
