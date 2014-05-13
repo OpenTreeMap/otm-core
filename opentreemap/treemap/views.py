@@ -34,7 +34,8 @@ from treemap.decorators import (json_api_call, render_template, login_or_401,
                                 require_http_method, string_as_file_call,
                                 requires_feature, get_instance_or_404,
                                 creates_instance_user, instance_request,
-                                username_matches_request_user)
+                                username_matches_request_user,
+                                admin_instance_request)
 from treemap.util import (package_validation_errors,
                           bad_request_json_response, to_object_name)
 from treemap.images import save_image_from_request
@@ -1454,24 +1455,23 @@ add_map_feature_photo_endpoint = require_http_method("POST")(
 scss_view = require_http_method("GET")(
     string_as_file_call("text/css", compile_scss))
 
-photo_review_endpoint = instance_request(
+photo_review_endpoint = admin_instance_request(
     route(
         GET=render_template("treemap/photo_review.html",
                             photo_review)))
 
-photo_review_partial_endpoint = instance_request(
+photo_review_partial_endpoint = admin_instance_request(
     route(
         GET=render_template("treemap/partials/photo_review.html",
                             photo_review)))
 
-next_photo_endpoint = instance_request(
+next_photo_endpoint = admin_instance_request(
     route(
         GET=render_template("treemap/partials/photo.html",
                             next_photo)))
 
-approve_or_reject_photo_view = login_required(
-    instance_request(
-        creates_instance_user(approve_or_reject_photo)))
+approve_or_reject_photo_view = admin_instance_request(
+    route(POST=approve_or_reject_photo))
 
 static_page_view = instance_request(
     render_template("treemap/staticpage.html", static_page))
