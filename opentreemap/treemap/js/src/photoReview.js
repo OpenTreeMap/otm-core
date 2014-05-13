@@ -58,7 +58,7 @@ exports.init = function(options) {
                 .filter(BU.isDefinedNonEmpty);
 
         pageStream
-            .map(function(n) { return '?n=' + n; })
+            .map(function(n) { return '?n=' + n + window.location.hash; })
             .onValue(function (url) {
                 History.pushState(null, document.title, url);
             });
