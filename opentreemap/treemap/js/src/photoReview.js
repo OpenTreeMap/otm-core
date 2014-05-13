@@ -53,7 +53,8 @@ exports.init = function(options) {
                 .asEventStream('click')
                 .map('.target')
                 .map($)
-                .map('.data', 'page');
+                .map('.data', 'page')
+                .filter(BU.isDefinedNonEmpty);
 
         pageStream
             .map(function(n) { return '?n=' + n; })
