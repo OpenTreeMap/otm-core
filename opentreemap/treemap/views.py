@@ -10,6 +10,7 @@ import json
 import hashlib
 import datetime
 import collections
+import math
 
 import sass
 
@@ -1220,7 +1221,9 @@ def photo_review(request, instance):
 
     total = audits.count()
     page = int(request.REQUEST.get('n', '1'))
-    total_pages = int(total / PHOTO_PAGE_SIZE + 0.5)
+    # For some reason, despite importing division from the future
+    # total / PHOTO_PAGE_SIZE does integer division
+    total_pages = int(math.ceil(float(total) / PHOTO_PAGE_SIZE))
 
     startidx = (page-1) * PHOTO_PAGE_SIZE
     endidx = startidx + PHOTO_PAGE_SIZE
