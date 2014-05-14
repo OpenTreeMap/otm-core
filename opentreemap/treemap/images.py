@@ -93,3 +93,10 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None):
         return image_file, thumb_file
     except:
         raise ValidationError(trans('Image upload issue'))
+
+
+def get_image_from_request(request):
+    if 'file' in request.FILES:
+        return request.FILES['file'].file
+    else:
+        return request.body

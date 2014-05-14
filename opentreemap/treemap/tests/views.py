@@ -30,13 +30,14 @@ from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, StaticPage, ITreeRegion)
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            boundary_autocomplete, edits, user_audits,
-                           update_map_feature, update_user, add_tree_photo,
                            root_settings_js_view, instance_settings_js_view,
                            compile_scss, approve_or_reject_photo,
                            upload_user_photo, static_page, instance_user_view,
                            delete_map_feature, delete_tree, user,
-                           forgot_username, _user_instances)
-
+                           forgot_username, update_user)
+from treemap.lib.tree import add_tree_photo_helper
+from treemap.views.user import _user_instances
+from treemap.views.map_feature import update_map_feature
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
@@ -441,9 +442,9 @@ class PlotImageUpdateTest(LocalMediaTestCase):
         self.assertPathExists(tp.thumbnail.path)
 
     def _make_tree_photo_request(self, file, plot_id, tree_id=None):
-        return add_tree_photo(make_request(user=self.user,
-                                           file=file),
-                              self.instance, plot_id, tree_id)
+        return add_tree_photo_helper(make_request(user=self.user,
+                                                  file=file),
+                                     self.instance, plot_id, tree_id)
 
     @media_dir
     def test_add_photo_to_tree(self):
