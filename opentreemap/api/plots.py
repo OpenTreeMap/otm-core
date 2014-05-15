@@ -12,7 +12,9 @@ from django.contrib.gis.measure import D
 
 from treemap.exceptions import HttpBadRequestException
 
-from treemap.views import context_dict_for_plot, update_map_feature
+from treemap.lib.map_feature import context_dict_for_plot
+from treemap.views.map_feature import update_map_feature
+
 from treemap.models import Plot, Instance
 
 

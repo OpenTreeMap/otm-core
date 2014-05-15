@@ -168,3 +168,11 @@ def to_object_name(model_name):
 def to_model_name(object_name):
     """benefitCurrencyConversion -> BenefitCurrencyConversion"""
     return object_name[0].upper() + object_name[1:]
+
+
+def get_filterable_audit_models():
+    from treemap.models import MapFeature
+    map_features = [c.__name__ for c in leaf_subclasses(MapFeature)]
+    models = map_features + ['Tree']
+
+    return {model.lower(): model for model in models}
