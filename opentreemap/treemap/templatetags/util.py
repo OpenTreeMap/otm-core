@@ -17,12 +17,20 @@ def _instance_reverse(name, thing, **kwargs):
     return reverse(name, kwargs=kwargs)
 
 
+def _map_feature_photo_detail_link(photo):
+    if hasattr(photo, 'treephoto'):
+        return MODEL_DETAILS['tree'](photo.treephoto.tree)
+    else:
+        return MODEL_DETAILS['mapfeature'](photo.map_feature)
+
+
 MODEL_DETAILS = {
     'mapfeature': lambda feature: _instance_reverse(
         'map_feature_detail', feature, feature_id=feature.pk),
     'tree': lambda tree: _instance_reverse(
         'tree_detail', tree, feature_id=tree.plot.pk, tree_id=tree.pk),
-    'treephoto': lambda tp: MODEL_DETAILS['tree'](tp.tree)
+    'treephoto': lambda tp: MODEL_DETAILS['tree'](tp.tree),
+    'mapfeaturephoto': _map_feature_photo_detail_link
 }
 
 

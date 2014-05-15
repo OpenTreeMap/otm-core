@@ -17,12 +17,10 @@ from django.contrib.gis.measure import D
 from django.db import IntegrityError
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as trans
-
 from django.contrib.auth.models import (UserManager, AbstractBaseUser,
                                         PermissionsMixin)
 
 from treemap.species import ITREE_REGIONS
-
 from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
                            Dictable, Audit, AuthorizableQuerySet,
                            AuthorizableManager)

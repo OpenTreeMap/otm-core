@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load util %}
 
 {% if photo %}
 <li class="span4" data-total-pages="{{ total_pages }}">
@@ -8,7 +9,7 @@
     </a>
     <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.tree.plot.pk tree_id=photo.tree.pk photo_id=photo.pk action="approve" %}">{% trans "Approve" %}</a>
     <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.tree.plot.pk tree_id=photo.tree.pk photo_id=photo.pk action="reject" %}">{% trans "Reject" %}</a>
-    <div><a href="{% url "tree_detail" instance_url_name=request.instance.url_name feature_id=photo.tree.plot.pk tree_id=photo.tree.pk %}">{% trans "View Tree" %}</a></div>
+    <div><a href="{{ photo|detail_link }}">{% trans "View Detail" %}</a></div>
   </div>
 </li>
 {% endif %}
