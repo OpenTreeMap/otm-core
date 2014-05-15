@@ -43,6 +43,9 @@ urlpatterns = patterns(
     url(r'^photo_review/$', photo_review_partial_endpoint,
         name='photo_review'),
     url(r'^photo_review/next$', next_photo_endpoint, name='photo_review_next'),
+    url('^features/(?P<feature_id>\d+)/photo/(?P<photo_id>\d+)/'
+        '(?P<action>(approve)|(reject))$',
+        approve_or_reject_photo_view, name='approve_or_reject_photo'),
     url(r'^species/$', species_list_view),
     url(r'^map/$', map_view, name='map'),
 
@@ -79,10 +82,6 @@ urlpatterns = patterns(
         add_tree_photo_endpoint, name='add_photo_to_plot'),
     url(r'^plots/(?P<feature_id>\d+)/tree/(?P<tree_id>\d+)/photo$',
         add_tree_photo_endpoint, name='add_photo_to_tree'),
-    url('^plots/(?P<feature_id>\d+)/tree/'
-        '(?P<tree_id>\d+)/photo/(?P<photo_id>\d+)/'
-        '(?P<action>(approve)|(reject))$',
-        approve_or_reject_photo_view, name='approve_or_reject_photo'),
 
     url(r'^config/settings.js$',
         instance_settings_js_view, name='settings'),
