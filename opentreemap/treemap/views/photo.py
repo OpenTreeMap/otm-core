@@ -57,7 +57,7 @@ def next_photo(request, instance):
     page, total_pages, startidx, endidx = _process_page_number(request, total)
 
     # We're done!
-    if total == 0:
+    if total == 0 or total < _PHOTO_PAGE_SIZE:
         photo = None
     else:
         try:
