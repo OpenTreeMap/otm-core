@@ -13,7 +13,7 @@ exports.init = function(options) {
     var updatePageFromUrl = new Bacon.Bus(),
         url = options.url,
         nextPhotoUrl = options.nextPhotoUrl,
-        container = options.container,
+        $container = $(options.container),
         initialPageStream = updatePageFromUrl
             .map(U.parseQueryString)
             .map('.n')
@@ -24,7 +24,7 @@ exports.init = function(options) {
     }, false);
 
     function showErrorMessage(msg) {
-        $('.errors').html(msg);
+        $container.find('.errors').html(msg);
     }
 
     function getReviewMarkupForNextPhoto() {
@@ -32,7 +32,11 @@ exports.init = function(options) {
         return BU.jsonRequest('GET', nextPhotoUrl)({n: n});
     }
 
-    $('body').on('click', '.action', function(e) {
+    function nextPageExists() {
+        return !!$container.find('.pagination ul li:last-child [data-page]').attr('data-page');
+    }
+
+    $container.on('click', '.action', function(e) {
         e.preventDefault();
         var $li = $(this).closest('li');
 
@@ -43,17 +47,16 @@ exports.init = function(options) {
         });
         stream.onError(showErrorMessage);
 
-        // Only try and load a photo from the next page if there is a next page
-        if ($('.pagination ul li:last-child [data-page]').attr('data-page')) {
+        if (nextPageExists()) {
             stream
                 .flatMap(getReviewMarkupForNextPhoto)
                 .map($)
-                .onValue($('ul.thumbnails'), 'append');
+                .onValue($container.find('ul.thumbnails'), 'append');
         }
     });
 
     function createPageUpdateStream(initialPageStream) {
-        var pageStream = $('.pagination ul li')
+        var pageStream = $container.find('.pagination ul li')
                 .asEventStream('click')
                 .map('.target')
                 .map($)
@@ -72,7 +75,7 @@ exports.init = function(options) {
                 .flatMap(BU.jsonRequest('GET', url));
 
         pageUpdateStream
-            .onValue($(container), 'html');
+            .onValue($container, 'html');
 
         pageUpdateStream
             .onValue(createPageUpdateStream, initialPageStream);
