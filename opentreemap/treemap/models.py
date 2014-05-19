@@ -17,12 +17,10 @@ from django.contrib.gis.measure import D
 from django.db import IntegrityError
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as trans
-
 from django.contrib.auth.models import (UserManager, AbstractBaseUser,
                                         PermissionsMixin)
 
 from treemap.species import ITREE_REGIONS
-
 from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
                            Dictable, Audit, AuthorizableQuerySet,
                            AuthorizableManager)
@@ -869,16 +867,21 @@ class MapFeaturePhoto(models.Model, Authorizable, Auditable):
 
         return data
 
+    @property
+    def image_prefix(self):
+        return str(self.map_feature.pk)
+
     def set_image(self, image_data):
-        name_prefix = "%s-%s" % (self.tree.plot.pk, self.tree.pk)
         self.image, self.thumbnail = save_uploaded_image(
-            image_data, name_prefix, thumb_size=(256, 256))
+            image_data, self.image_prefix, thumb_size=(256, 256))
 
     def save_with_user(self, *args, **kwargs):
         if not self.thumbnail.name:
             raise Exception('You need to call set_image instead')
-        if self.tree and self.tree.instance != self.instance:
-            raise ValidationError('Cannot save to a tree in another instance')
+        if (hasattr(self, 'map_feature') and
+           self.map_feature.instance != self.instance):
+            raise ValidationError(
+                'Cannot save to a map feature in another instance')
 
         # The auto_now_add is acting up... set it here if we're new
         if self.pk is None:
@@ -920,6 +923,10 @@ class TreePhoto(MapFeaturePhoto):
             self.map_feature = self.tree.plot
 
         super(TreePhoto, self).save_with_user(*args, **kwargs)
+
+    @property
+    def image_prefix(self):
+        return "%s-%s" % (self.tree.plot.pk, self.tree.pk)
 
     def as_dict(self):
         data = super(TreePhoto, self).as_dict()

@@ -149,14 +149,16 @@ class LazyEncoder(DjangoJSONEncoder):
             return super(LazyEncoder, self).default(obj)
 
 
+def all_subclasses(cls):
+    """Return all subclasses of given class"""
+    subclasses = set(cls.__subclasses__())
+    return subclasses | {clz for s in subclasses for clz in all_subclasses(s)}
+
+
 def leaf_subclasses(cls):
     """Return all leaf subclasses of given class"""
-    def get(c):
-        subclasses = c.__subclasses__()
-        return subclasses + sum([get(s) for s in subclasses], [])
-
-    all = get(cls)
-    leaves = [s for s in all if not s.__subclasses__()]
+    all = all_subclasses(cls)
+    leaves = {s for s in all if not s.__subclasses__()}
     return leaves
 
 

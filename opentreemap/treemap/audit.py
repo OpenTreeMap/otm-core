@@ -19,7 +19,7 @@ from django.db import IntegrityError, connection, transaction
 
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name)
-from treemap.util import leaf_subclasses
+from treemap.util import all_subclasses
 
 
 def model_hasattr(obj, name):
@@ -111,10 +111,14 @@ def approve_or_reject_audits_and_apply(audits, user, approved):
 
 
 def add_default_permissions(instance, roles=None, models=None):
+    # Audit is imported into models, so models can't be imported up top
+    from treemap.models import MapFeature
     if roles is None:
         roles = Role.objects.filter(instance=instance)
     if models is None:
-        models = leaf_subclasses(Authorizable)
+        # MapFeature is "Authorizable", but it is effectively abstract
+        # Only it's subclasses should have permissions added
+        models = all_subclasses(Authorizable) - {MapFeature}
 
     for role in roles:
         _add_default_permissions(models, role, instance)
@@ -560,8 +564,9 @@ class FieldPermission(models.Model):
             cls._meta.get_field_by_name(self.field_name)
             assert issubclass(cls, Authorizable)
         except KeyError:
-            raise ValidationError("Model '%s' does not exist." %
-                                  self.model_name)
+            raise ValidationError(
+                "Model '%s' does not exist or is not Authorizable." %
+                self.model_name)
         except FieldDoesNotExist as e:
             raise ValidationError("%s: Model '%s' does not have field '%s'"
                                   % (e.__class__.__name__,
@@ -1292,7 +1297,7 @@ def _get_model_class(class_dict, cls, model_name):
 
     if not class_dict:
         # One-time load of class dictionary
-        for c in leaf_subclasses(cls):
+        for c in all_subclasses(cls):
             class_dict[c.__name__] = c
 
     return class_dict[model_name]

@@ -206,7 +206,7 @@ class ApproveOrRejectPhotoTest(TreePhotoTestCase):
 
         approve_or_reject_photo(
             make_request(user=self.user),
-            self.instance, self.plot.pk, self.tree.pk, tp.pk, 'approve')
+            self.instance, self.plot.pk, tp.pk, 'approve')
 
         for audit in all_audits:
             audit = Audit.objects.get(pk=audit.pk)
@@ -225,7 +225,7 @@ class ApproveOrRejectPhotoTest(TreePhotoTestCase):
 
         approve_or_reject_photo(
             make_request(user=self.user),
-            self.instance, self.plot.pk, self.tree.pk, tp.pk, 'reject')
+            self.instance, self.plot.pk, tp.pk, 'reject')
 
         for audit in audit_list:
             audit = Audit.objects.get(pk=audit.pk)
@@ -255,7 +255,7 @@ class ApproveOrRejectPhotoTest(TreePhotoTestCase):
 
         approve_or_reject_photo(
             make_request(user=self.user),
-            self.instance, self.plot.pk, self.tree.pk, tp_pk, 'approve')
+            self.instance, self.plot.pk, tp_pk, 'approve')
 
         tp = TreePhoto.objects.get(pk=tp_pk)
         for audit in tp.audits():
@@ -288,7 +288,7 @@ class ApproveOrRejectPhotoTest(TreePhotoTestCase):
 
         approve_or_reject_photo(
             make_request(user=self.user),
-            self.instance, self.plot.pk, self.tree.pk, tp_pk, 'reject')
+            self.instance, self.plot.pk, tp_pk, 'reject')
 
         audit_list = Audit.objects.filter(
             model='TreePhoto', field='id', model_id=tp_pk)

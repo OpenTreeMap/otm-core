@@ -5,31 +5,29 @@ from __future__ import division
 
 import math
 
-from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, Http404
 from django.utils.translation import ugettext as trans
 from django.db import transaction
 
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
-from treemap.models import Tree, TreePhoto
+from treemap.models import MapFeaturePhoto
 
 
 _PHOTO_PAGE_SIZE = 12
 
 
-# FIXME: This should instead show MapFeaturePhotos
 def _photo_audits(instance):
     unverified_actions = {Audit.Type.Insert,
                           Audit.Type.Delete,
                           Audit.Type.Update}
 
     # Only return audits for photos that haven't been deleted
-    photo_ids = TreePhoto.objects.filter(instance=instance)\
-                                 .values_list('id', flat=True)
+    photo_ids = MapFeaturePhoto.objects.filter(instance=instance)\
+                                       .values_list('id', flat=True)
 
     audits = Audit.objects.filter(instance=instance,
-                                  model='TreePhoto',
+                                  model__in=['TreePhoto', 'MapFeaturePhoto'],
                                   field='image',
                                   ref__isnull=True,
                                   action__in=unverified_actions,
@@ -39,15 +37,24 @@ def _photo_audits(instance):
     return audits
 
 
+def _process_page_number(request, total):
+    page = int(request.REQUEST.get('n', '1'))
+
+    # For some reason, despite importing division from the future
+    # total / PHOTO_PAGE_SIZE does integer division
+    total_pages = int(math.ceil(float(total) / _PHOTO_PAGE_SIZE))
+
+    startidx = (page-1) * _PHOTO_PAGE_SIZE
+    endidx = startidx + _PHOTO_PAGE_SIZE
+
+    return (page, total_pages, startidx, endidx)
+
+
 def next_photo(request, instance):
     audits = _photo_audits(instance)
 
     total = audits.count()
-    page = int(request.REQUEST.get('n', '1'))
-    total_pages = int(total / _PHOTO_PAGE_SIZE + 0.5)
-
-    startidx = (page-1) * _PHOTO_PAGE_SIZE
-    endidx = startidx + _PHOTO_PAGE_SIZE
+    page, total_pages, startidx, endidx = _process_page_number(request, total)
 
     # We're done!
     if total == 0:
@@ -60,7 +67,9 @@ def next_photo(request, instance):
             # in that case, simply return the last image
             photo_id = audits[total-1].model_id
 
-        photo = TreePhoto.objects.get(pk=photo_id)
+        photo = (MapFeaturePhoto.objects
+                 .select_related('treephoto')
+                 .get(pk=photo_id))
 
     return {
         'photo': photo,
@@ -72,13 +81,7 @@ def photo_review(request, instance):
     audits = _photo_audits(instance)
 
     total = audits.count()
-    page = int(request.REQUEST.get('n', '1'))
-    # For some reason, despite importing division from the future
-    # total / _PHOTO_PAGE_SIZE does integer division
-    total_pages = int(math.ceil(float(total) / _PHOTO_PAGE_SIZE))
-
-    startidx = (page-1) * _PHOTO_PAGE_SIZE
-    endidx = startidx + _PHOTO_PAGE_SIZE
+    page, total_pages, startidx, endidx = _process_page_number(request, total)
 
     audits = audits[startidx:endidx]
 
@@ -95,7 +98,9 @@ def photo_review(request, instance):
         pages = pages[0:8] + [pages[-1]]
 
     return {
-        'photos': [TreePhoto.objects.get(pk=audit.model_id)
+        'photos': [(MapFeaturePhoto.objects
+                    .select_related('treephoto')
+                    .get(pk=audit.model_id))
                    for audit in audits],
         'pages': pages,
         'total_pages': total_pages,
@@ -105,10 +110,9 @@ def photo_review(request, instance):
     }
 
 
-#FIXME: This should work for MapFeaturePhotos instead
 @transaction.commit_on_success
 def approve_or_reject_photo(
-        request, instance, feature_id, tree_id, photo_id, action):
+        request, instance, feature_id, photo_id, action):
 
     approved = action == 'approve'
 
@@ -119,19 +123,22 @@ def approve_or_reject_photo(
 
     resp = HttpResponse(msg)
 
-    tree = get_object_or_404(
-        Tree, plot_id=feature_id, instance=instance, pk=tree_id)
-
     try:
-        photo = TreePhoto.objects.get(pk=photo_id, tree=tree)
-    except TreePhoto.DoesNotExist:
+        photo = (MapFeaturePhoto.objects
+                 .select_related('treephoto')
+                 .get(pk=photo_id))
+        try:
+            photo = photo.treephoto
+        except MapFeaturePhoto.DoesNotExist:
+            pass  # There is no tree photo, so use the superclass
+    except MapFeaturePhoto.DoesNotExist:
         # This may be a pending tree. Let's see if there
         # are pending audits
         pending_audits = Audit.objects\
-                              .filter(instance=instance)\
-                              .filter(model='TreePhoto')\
-                              .filter(model_id=photo_id)\
-                              .filter(requires_auth=True)
+            .filter(instance=instance)\
+            .filter(model__in=['TreePhoto', 'MapFeaturePhoto'])\
+            .filter(model_id=photo_id)\
+            .filter(requires_auth=True)
 
         if len(pending_audits) > 0:
             # Process as pending and quit
@@ -141,7 +148,7 @@ def approve_or_reject_photo(
             return resp
         else:
             # Error - no pending or regular
-            raise Http404('Tree Photo Not Found')
+            raise Http404('Photo Not Found')
 
     # Handle the id audit first
     all_audits = []
