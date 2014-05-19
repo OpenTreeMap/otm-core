@@ -35,6 +35,7 @@ from treemap.views.misc import (edits, get_map_view_context, static_page,
 from treemap.views.map_feature import (render_map_feature_detail,
                                        render_map_feature_add,
                                        update_map_feature_detail,
+                                       map_feature_detail,
                                        plot_detail,
                                        delete_map_feature,
                                        map_feature_popup,
@@ -96,40 +97,53 @@ scss_view = do(
 # mapfeature
 #####################################
 
-get_map_feature_detail_view = instance_request(render_map_feature_detail)
+map_feature_add_view = do(
+    instance_request,
+    route(
+        GET=render_map_feature_add,
+        POST=do(
+            login_or_401,
+            json_api_call,
+            creates_instance_user,
+            add_map_feature)))
 
-get_map_feature_add_view = instance_request(render_map_feature_add)
+map_feature_detail_view = do(
+    instance_request,
+    route(
+        GET=render_map_feature_detail,
+        ELSE=do(
+            login_or_401,
+            json_api_call,
+            creates_instance_user,
+            route(
+                PUT=update_map_feature_detail,
+                DELETE=delete_map_feature))))
 
-update_map_feature_detail_view = login_or_401(
-    json_api_call(
-        instance_request(
-            creates_instance_user(update_map_feature_detail))))
+map_feature_accordion_view = do(
+    instance_request,
+    render_template('treemap/partials/map_feature_accordion.html'),
+    map_feature_detail)
 
-delete_map_feature_view = login_or_401(
-    json_api_call(
-        instance_request(
-            creates_instance_user(delete_map_feature))))
+get_map_feature_sidebar_view = do(
+    instance_request,
+    etag(map_feature_hash),
+    render_template('treemap/partials/sidebar.html'),
+    map_feature_detail)
 
-get_map_feature_sidebar_view = instance_request(etag(map_feature_hash)(
-    render_template('treemap/partials/sidebar.html', plot_detail)))
-
-map_feature_popup_view = instance_request(etag(map_feature_hash)(
-    render_template('treemap/partials/map_feature_popup.html',
-                    map_feature_popup)))
-
-add_map_feature_view = require_http_method("POST")(
-    login_or_401(
-        json_api_call(
-            instance_request(
-                creates_instance_user(add_map_feature)))))
+map_feature_popup_view = do(
+    instance_request,
+    etag(map_feature_hash),
+    render_template('treemap/partials/map_feature_popup.html'),
+    map_feature_popup)
 
 # FIXME: the returned template is now probably misnamed
-add_map_feature_photo_endpoint = require_http_method("POST")(
-    login_or_401(
-        instance_request(
-            creates_instance_user(
-                render_template("treemap/partials/tree_carousel.html",
-                                add_map_feature_photo)))))
+add_map_feature_photo_endpoint = do(
+    require_http_method("POST"),
+    login_or_401,
+    instance_request,
+    creates_instance_user,
+    render_template('treemap/partials/tree_carousel.html'),
+    add_map_feature_photo)
 
 
 #####################################
@@ -142,9 +156,6 @@ edit_plot_detail_view = login_required(
             render_template('treemap/plot_detail.html')(plot_detail))))
 
 get_plot_eco_view = instance_request(etag(map_feature_hash)(
-
-plot_accordion_view = instance_request(
-    render_template('treemap/plot_accordion.html', plot_detail))
     render_template('treemap/partials/plot_eco.html')(plot_detail)))
 
 
