@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from functools import partial
+
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
@@ -264,47 +266,31 @@ def add_photo(request, instance, plot_id):
 # authentication "login_optional" before they can access they
 # instance data
 
-plots_closest_to_point_endpoint = do(
-    check_signature,
-    instance_request,
-    json_api_call,
-    plots_closest_to_point)
+instance_api_do = partial(do, check_signature,
+                          instance_request, json_api_call)
 
-instances_closest_to_point_endpoint = do(
-    check_signature,
-    instance_request,
-    json_api_call,
+plots_closest_to_point_endpoint = instance_api_do(plots_closest_to_point)
+
+instances_closest_to_point_endpoint = instance_api_do(
     instances_closest_to_point)
 
-instance_info_endpoint = do(
-    check_signature,
-    instance_request,
-    json_api_call,
-    instance_info)
+instance_info_endpoint = instance_api_do(instance_info)
 
-plots_endpoint = do(
-    check_signature,
-    instance_request,
-    json_api_call,
-    route(
-        POST=do(
-            login_required,
-            update_or_create_plot),
-        GET=get_plot_list))
+plots_endpoint = instance_api_do(
+    route(GET=get_plot_list,
+          POST=do(
+              login_required,
+              update_or_create_plot)))
 
-plot_endpoint = do(
-    check_signature,
-    instance_request,
-    json_api_call,
-    route(
-        GET=get_plot,
-        PUT=do(login_required, update_or_create_plot),
-        DELETE=do(login_required, remove_plot)))
 
-species_list_endpoint = do(
-    check_signature,
-    instance_request,
-    json_api_call,
+plot_endpoint = instance_api_do(
+    route(GET=get_plot,
+          ELSE=do(login_required,
+                  route(
+                      PUT=update_or_create_plot,
+                      DELETE=remove_plot))))
+
+species_list_endpoint = instance_api_do(
     route(GET=species_list))
 
 user_endpoint = do(

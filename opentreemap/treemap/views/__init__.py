@@ -210,9 +210,7 @@ add_tree_photo_endpoint = do(
 # user
 #####################################
 
-user_view = do(
-    render_template('treemap/user.html'),
-    user)
+user_view = render_template('treemap/user.html')(user)
 
 instance_user_view = instance_user
 
@@ -247,23 +245,24 @@ forgot_username_view = route(
 #####################################
 
 photo_review_endpoint = do(
+    require_http_method("GET"),
     admin_instance_request,
-    route(
-        GET=do(
-            render_template('treemap/photo_review.html'),
-            photo_review)))
+    render_template('treemap/photo_review.html'),
+    photo_review)
 
 photo_review_partial_endpoint = do(
+    require_http_method("GET"),
     admin_instance_request,
-    route(GET=do(
-        render_template('treemap/partials/photo_review.html'),
-        photo_review)))
+    render_template('treemap/partials/photo_review.html'),
+    photo_review)
 
 next_photo_endpoint = do(
+    require_http_method("GET"),
     admin_instance_request,
-    route(GET=do(
-        render_template('treemap/partials/photo.html'),
-        next_photo)))
+    render_template('treemap/partials/photo.html'),
+    next_photo)
 
-approve_or_reject_photo_view = admin_instance_request(
-    route(POST=approve_or_reject_photo))
+approve_or_reject_photo_view = do(
+    require_http_method("POST"),
+    admin_instance_request,
+    approve_or_reject_photo)
