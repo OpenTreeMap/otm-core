@@ -43,10 +43,13 @@ exports.init = function(options) {
         });
         stream.onError(showErrorMessage);
 
-        stream
-            .flatMap(getReviewMarkupForNextPhoto)
-            .map($)
-            .onValue($('ul.thumbnails'), 'append');
+        // Only try and load a photo from the next page if there is a next page
+        if ($('.pagination ul li:last-child [data-page]').attr('data-page')) {
+            stream
+                .flatMap(getReviewMarkupForNextPhoto)
+                .map($)
+                .onValue($('ul.thumbnails'), 'append');
+        }
     });
 
     function createPageUpdateStream(initialPageStream) {
