@@ -6,6 +6,8 @@ from __future__ import division
 from exporter.models import ExportJob
 from tasks import async_csv_export
 
+from opentreemap.util import decorate as do
+
 from django.shortcuts import get_object_or_404
 
 from treemap.decorators import (json_api_call, instance_request,
@@ -45,11 +47,14 @@ def check_export(request, instance, job_id):
                 'url': job.get_url_if_ready()}
 
 
-begin_export_endpoint = json_api_call(
-    instance_request(
-        requires_feature('exports')(
-            begin_export)))
-check_export_endpoint = json_api_call(
-    instance_request(
-        requires_feature('exports')(
-            check_export)))
+begin_export_endpoint = do(
+    json_api_call,
+    instance_request,
+    requires_feature('exports'),
+    begin_export)
+
+check_export_endpoint = do(
+    json_api_call,
+    instance_request,
+    requires_feature('exports'),
+    check_export)

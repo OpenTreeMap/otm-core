@@ -12,7 +12,7 @@ from django.db import transaction
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
 
-from opentreemap.util import route
+from opentreemap.util import route, decorate as do
 
 from treemap.models import Plot, Tree
 from treemap.views import species_list
@@ -264,81 +264,94 @@ def add_photo(request, instance, plot_id):
 # authentication "login_optional" before they can access they
 # instance data
 
-plots_closest_to_point_endpoint = check_signature(
-    instance_request(
-        json_api_call(
-            plots_closest_to_point)))
+plots_closest_to_point_endpoint = do(
+    check_signature,
+    instance_request,
+    json_api_call,
+    plots_closest_to_point)
 
-instances_closest_to_point_endpoint = check_signature(
-    instance_request(
-        json_api_call(
-            instances_closest_to_point)))
+instances_closest_to_point_endpoint = do(
+    check_signature,
+    instance_request,
+    json_api_call,
+    instances_closest_to_point)
 
-instance_info_endpoint = check_signature(
-    instance_request(
-        json_api_call(
-            instance_info)))
+instance_info_endpoint = do(
+    check_signature,
+    instance_request,
+    json_api_call,
+    instance_info)
 
-plots_endpoint = check_signature(
-    instance_request(
-        json_api_call(
-            route(
-                POST=login_required(
-                    update_or_create_plot),
-                GET=get_plot_list))))
+plots_endpoint = do(
+    check_signature,
+    instance_request,
+    json_api_call,
+    route(
+        POST=do(
+            login_required,
+            update_or_create_plot),
+        GET=get_plot_list))
 
-plot_endpoint = check_signature(
-    instance_request(
-        json_api_call(
-            route(
-                GET=get_plot,
-                PUT=login_required(update_or_create_plot),
-                DELETE=login_required(remove_plot)))))
+plot_endpoint = do(
+    check_signature,
+    instance_request,
+    json_api_call,
+    route(
+        GET=get_plot,
+        PUT=do(login_required, update_or_create_plot),
+        DELETE=do(login_required, remove_plot)))
 
-species_list_endpoint = check_signature(
-    instance_request(
-        json_api_call(
-            route(GET=species_list))))
+species_list_endpoint = do(
+    check_signature,
+    instance_request,
+    json_api_call,
+    route(GET=species_list))
 
-user_endpoint = check_signature(
-    json_api_call(
-        route(
-            GET=login_required(
-                user_info),
-            POST=return_400_if_validation_errors(
-                create_user))))
+user_endpoint = do(
+    check_signature,
+    json_api_call,
+    route(
+        GET=do(login_required, user_info),
+        POST=do(
+            return_400_if_validation_errors,
+            create_user)))
 
-update_user_endpoint = check_signature_and_require_login(
-    json_api_call(
-        return_400_if_validation_errors(
-            route(PUT=update_user))))
+update_user_endpoint = do(
+    check_signature_and_require_login,
+    json_api_call,
+    return_400_if_validation_errors,
+    route(PUT=update_user))
 
-add_photo_endpoint = check_signature_and_require_login(
-    json_api_call(
-        route(
-            POST=instance_request(
-                return_400_if_validation_errors(add_photo)))))
+add_photo_endpoint = do(
+    check_signature_and_require_login,
+    json_api_call,
+    route(
+        POST=do(
+            instance_request,
+            return_400_if_validation_errors,
+            add_photo)))
 
-status_view = check_signature(
-    json_api_call(
-        route(
-            GET=status)))
+status_view = do(
+    check_signature,
+    json_api_call,
+    route(GET=status))
 
-version_view = check_signature(
-    json_api_call(
-        route(
-            GET=version)))
+version_view = do(
+    check_signature,
+    json_api_call,
+    route(GET=version))
 
-export_users_csv_endpoint = check_signature_and_require_login(
-    admin_instance_request(
-        route(
-            GET=users_csv)))
+export_users_csv_endpoint = do(
+    check_signature_and_require_login,
+    admin_instance_request,
+    route(GET=users_csv))
 
-export_users_json_endpoint = check_signature_and_require_login(
-    admin_instance_request(
-        route(
-            GET=users_json)))
+export_users_json_endpoint = do(
+    check_signature_and_require_login,
+    admin_instance_request,
+    route(GET=users_json))
 
-update_profile_photo_endpoint = check_signature_and_require_login(
-    json_api_call(
-        route(POST=update_profile_photo)))
+update_profile_photo_endpoint = do(
+    check_signature_and_require_login,
+    json_api_call,
+    route(POST=update_profile_photo))
