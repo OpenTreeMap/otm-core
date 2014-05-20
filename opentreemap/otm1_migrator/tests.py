@@ -16,7 +16,7 @@ from treemap.tests import (make_instance, make_commander_user,
 
 from otm1_migrator.management.commands.perform_migration import (
     hash_to_model, hashes_to_saved_objects, save_treephoto,
-    save_species)
+    save_species, process_userprofile)
 
 from otm1_migrator.migration_rules.standard_otm1 import MIGRATION_RULES
 
@@ -28,7 +28,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         self.instance = make_instance()
         self.commander = make_commander_user(self.instance)
 
-        self.photo_blob = """
+        self.treephoto_blob = """
         {"pk": 54,
         "model": "treemap.treephoto",
         "fields": {
@@ -38,6 +38,17 @@ class MigrationCommandTests(LocalMediaTestCase):
         "photo": "%s",
         "tree": 1,
         "reported": "2012-06-17 13:44:30"}}
+        """
+
+        # an actual userprofile has more fields, but we
+        # don't actually import userprofiles, we just
+        # strip photos off them.
+        self.userprofile_blob = """
+        {"pk": 54,
+        "model": "profiles.userprofile",
+        "fields": {
+        "user": %d,
+        "photo": "%s"}}
         """
 
         self.tree_blob = """
@@ -213,6 +224,37 @@ class MigrationCommandTests(LocalMediaTestCase):
         self.assertEqual(species.plant_guide, None)
 
     @media_dir
+    def test_userphoto_hash_to_model(self):
+
+        # just use a tree photo - it doesn't matter
+        photo_path = self.resource_path('tree1.gif')
+
+        qs = User.objects.exclude(photo="")
+
+        self.assertEqual(qs.count(), 0)
+
+        process_userprofile_blank = partial(process_userprofile, '')
+
+        otm1_user_id = 755
+        userprofile_fixture = json.loads(self.userprofile_blob %
+                                         (otm1_user_id, photo_path))
+
+        hashes_to_saved_objects(
+            MIGRATION_RULES,
+            "userprofile",
+            [userprofile_fixture],
+            {'user': {otm1_user_id: self.commander.pk}},
+            process_userprofile_blank,
+            self.instance)
+
+        self.assertEqual(qs.count(), 1)
+
+        user = qs.get()
+
+        self.assertIsNotNone(user.photo)
+        self.assertIsNotNone(user.thumbnail)
+
+    @media_dir
     def test_treephoto_hash_to_model(self):
         plot = Plot(geom=Point(0, 0), instance=self.instance)
         plot.save_with_user(self.commander)
@@ -221,7 +263,7 @@ class MigrationCommandTests(LocalMediaTestCase):
 
         ipath = self.resource_path('tree1.gif')
 
-        tp_dict = json.loads(self.photo_blob % ipath)
+        tp_dict = json.loads(self.treephoto_blob % ipath)
 
         self.assertEqual(TreePhoto.objects.count(), 0)
 

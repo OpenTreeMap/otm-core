@@ -127,6 +127,10 @@ MIGRATION_RULES = {
     'contenttype': {
         'command_line_flag': '-c',
     },
+    'userprofile': {
+        'command_line_flag': '-z',
+        'dependencies': {'user': 'user'}
+    },
     'comment': {
         'command_line_flag': '-n',
         'model_class': ThreadedComment,
