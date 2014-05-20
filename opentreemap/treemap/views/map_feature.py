@@ -22,8 +22,9 @@ from treemap.util import (package_validation_errors,
 from treemap.images import get_image_from_request
 from treemap.lib.photo import context_dict_for_photo
 from treemap.lib.map_feature import (get_map_feature_or_404,
-                                     context_dict_for_map_feature,
-                                     map_feature_detail_helper)
+                                     context_dict_for_plot,
+                                     context_dict_for_resource,
+                                     context_dict_for_map_feature)
 
 
 def _request_to_update_map_feature(request, instance, feature):
@@ -55,7 +56,10 @@ def _add_map_feature_photo_helper(request, instance, feature_id):
 
 def map_feature_detail(request, instance, feature_id, render=False):
     feature = get_map_feature_or_404(feature_id, instance)
-    context = map_feature_detail_helper(request, instance, feature)
+
+    ctx_fn = (context_dict_for_plot if feature.is_plot
+              else context_dict_for_resource)
+    context = ctx_fn(request, feature)
 
     if render:
         if feature.is_plot:
@@ -73,7 +77,7 @@ def render_map_feature_detail(*args, **kwargs):
 
 def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
     feature = get_map_feature_or_404(feature_id, instance, 'Plot')
-    return map_feature_detail_helper(request, instance, feature, edit, tree_id)
+    return context_dict_for_plot(request, feature, edit, tree_id)
 
 
 def render_map_feature_add(request, instance, type):
