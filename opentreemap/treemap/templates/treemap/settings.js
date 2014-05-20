@@ -41,6 +41,8 @@ otm.settings.geocoder = {
 
 otm.settings.trans = {
     noStreetViewText: '{% trans "Could not load street view for this location" %}',
+    treeDetails: '{% trans "Tree Details" %}',
+    resourceDetails: '{{ term.Resource }}{% trans " Details" %}',
     {# this has to be broken into two sections because window.onbeforeunload has a default but confirm() does not #}
     exitWarning: '{% trans "You have begun entering data. Any unsaved changes will be lost." %}',
     exitQuestion: '{% trans "Are you sure you want to continue?" %}'

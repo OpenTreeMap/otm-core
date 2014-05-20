@@ -2,8 +2,10 @@
 {% load auth_extras %}
 {% load form_extras %}
 
-<form id="details-form" data-location-x="{{ plot.geom.x }}" data-location-y="{{ plot.geom.y }}">
+<form id="details-form" data-location-x="{{ plot.geom.x }}" data-location-y="{{ plot.geom.y }}"
+      data-map-feature-type="{% if feature.is_plot %}plot{% else %}resource{% endif %}">
 
+    {% if feature.is_plot %}
     {% if tree %}
     {# The "edit-tree-species" label is used as an id prefix in "species_div.html" #}
     {% field "edit-tree-species" from "tree.species" for request.user withtemplate "treemap/field/species_div.html" %}
@@ -19,6 +21,10 @@
     <input type="hidden" name="plot.address_city" value="{{ plot.address_city}}">
     <input type="hidden" name="plot.address_zip" value="{{ plot.address_zip}}">
 
-    {% include "treemap/partials/eco_benefits.html" with hidecounts=True %}
+    {% else %}
+    <label>{{ term.Resource }}</label>
+    <div class="field-view">{{ title }}</div>
+    {% endif %}
 
+    {% include "treemap/partials/eco_benefits.html" with hidecounts=True %}
 </form>
