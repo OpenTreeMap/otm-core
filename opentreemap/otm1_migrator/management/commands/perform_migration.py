@@ -168,9 +168,13 @@ def process_userprofile(photo_basepath, model_hash, instance):
 
     user = User.objects.get(pk=model_hash['fields']['user'])
 
-    photo_data = open(os.path.join(photo_basepath,
-                                   photo_path))
-
+    photo_full_path = os.path.join(photo_basepath, photo_path)
+    try:
+        photo_data = open(photo_full_path)
+    except IOError:
+        print("Failed to read photo %s ... SKIPPING USER %s %s" %
+              (photo_full_path, user.id, user.username))
+        return None
     user.photo, user.thumbnail = save_uploaded_image(
         photo_data, "user-%s" % user.pk, thumb_size=(85, 85))
     user.save()
