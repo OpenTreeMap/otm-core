@@ -19,10 +19,13 @@ from django.contrib.contenttypes.models import ContentType
 from treemap import SPECIES
 from treemap.models import User, Species, InstanceUser, Tree
 from treemap.management.util import InstanceDataCommand
+from treemap.images import save_uploaded_image
 
 from otm1_migrator.models import (OTM1UserRelic, OTM1ModelRelic,
                                   OTM1CommentRelic)
 from otm1_migrator.data_util import hash_to_model, MigrationException
+
+USERPHOTO_ARGS = ('-y', '--userphoto-path')
 
 
 def find_user_to_save_with(migration_rules, model):
@@ -143,6 +146,38 @@ def save_other_with_user(migration_rules, model_name, model_hash, instance):
         otm2_model_name=model_name,
         otm2_model_id=model.pk)
     return model
+
+
+@commit_on_success
+def process_userprofile(photo_basepath, model_hash, instance):
+    """
+    Read the otm1 user photo off userprofile fixture, load the file,
+    create storage-backed image and thumbnail, attach to user.
+
+    the workflow for user photos is:
+    * get photo data from otm1 as tarball that matches relative path
+    * get userprofile fixture from otm1 as usual
+    * dump photo data locally
+    * modify photo_path to match local path for imports
+    * "migrate" userprofile using this migrator
+      with photo_path matching local.
+    """
+    photo_path = model_hash['fields']['photo']
+    if not photo_path:
+        return None
+
+    user = User.objects.get(pk=model_hash['fields']['user'])
+
+    photo_data = open(os.path.join(photo_basepath,
+                                   photo_path))
+
+    user.photo, user.thumbnail = save_uploaded_image(
+        photo_data, "user-%s" % user.pk, thumb_size=(85, 85))
+    user.save()
+
+    # cannot save a relic because unlike other models, we're not going
+    # to ever put a UserProfile in the otm2 database, so there'll be
+    # no otm2_model_id(required) to bind it to.
 
 
 @commit_on_success
@@ -389,16 +424,21 @@ class Command(InstanceDataCommand):
         tuple(make_model_option(rules, model) for model in rules) +
 
         # add other kinds of options
-        (make_option('-x', '--photo-path',
+        (make_option(*USERPHOTO_ARGS,
+                     action='store',
+                     type='string',
+                     dest='userphoto_path',
+                     help='path to userphotos that will be imported'),
+         make_option('-x', '--treephoto-path',
                      action='store',
                      type='string',
                      dest='treephoto_path',
-                     help='path to photos that will be imported'),
+                     help='path to treephotos that will be imported'),
          make_option('-l', '--rule-module',
                      action='store',
                      type='string',
                      dest='rule_module',
-                     help='Name of the module to import rules from'),)
+                     help='Name of the module to import rules from'))
     )
 
     def handle(self, *args, **options):
@@ -436,6 +476,19 @@ class Command(InstanceDataCommand):
                 self.stdout.write('No valid %s fixture provided ... SKIPPING'
                                   % model_name)
 
+        # user photos live on userprofile in otm1
+        userphoto_path = options.get('userphoto_path', None)
+        user_photo_fixture_specified_but_not_base_path = (
+            'userprofile' in json_hashes and
+            json_hashes['userprofile'] and
+            userphoto_path is None)
+
+        if user_photo_fixture_specified_but_not_base_path:
+            raise MigrationException('Must specify the user photo path to '
+                                     'import photos. please include a %s or '
+                                     '%s flag when importing.'
+                                     % USERPHOTO_ARGS)
+
         treephoto_path = options.get('treephoto_path', None)
         treephoto_fixture_with_no_path = ('treephoto' in json_hashes and
                                           json_hashes['treephoto'] and
@@ -458,12 +511,15 @@ class Command(InstanceDataCommand):
             'treephoto': partial(
                 save_treephoto, migration_rules, treephoto_path),
             'contenttype': make_contenttype_relics,
+            'userprofile': partial(process_userprofile, userphoto_path),
             'threadedcomment': partial(
                 save_threadedcomment, migration_rules, dependency_ids),
             'comment': partial(
                 save_comment, migration_rules, dependency_ids),
         }
 
+        # depedency_ids is a cache of old pks to new pks, it is inflated
+        # from database records for performance.
         for relic in OTM1UserRelic.objects.filter(instance=instance):
             dependency_ids['user'][relic.otm1_id] = relic.otm2_user_id
 
