@@ -31,8 +31,8 @@ exports.init = function(options) {
     $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
     var prompter = statePrompter.init({
-        warning: options.config.exitWarning,
-        question: options.config.exitQuestion
+        warning: options.config.trans.exitWarning,
+        question: options.config.trans.exitQuestion
     });
 
     // Add threaded comments "reply" links
@@ -162,7 +162,7 @@ exports.init = function(options) {
         $streetViewContainer.show();
         var panorama = streetView.create({
             streetViewElem: $streetViewContainer[0],
-            noStreetViewText: options.config.noStreetViewText,
+            noStreetViewText: options.config.trans.noStreetViewText,
             location: options.location.point
         });
         form.saveOkStream

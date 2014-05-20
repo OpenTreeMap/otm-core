@@ -39,7 +39,12 @@ otm.settings.geocoder = {
     threshold: 80
 };
 
-otm.settings.noStreetViewText = '{% trans "Could not load street view for this location" %}';
+otm.settings.trans = {
+    noStreetViewText: '{% trans "Could not load street view for this location" %}',
+    {# this has to be broken into two sections because window.onbeforeunload has a default but confirm() does not #}
+    exitWarning: '{% trans "You have begun entering data. Any unsaved changes will be lost." %}',
+    exitQuestion: '{% trans "Are you sure you want to continue?" %}'
+}
 
 otm.settings.errorMessages = {
     '500': {
@@ -50,10 +55,6 @@ otm.settings.errorMessages = {
 otm.settings.errorMessages.default = otm.settings.errorMessages['500'];
 
 otm.settings.doubleClickInterval = '{{ settings.DOUBLE_CLICK_INTERVAL }}';
-
-{# this has to be broken into two sections because window.onbeforeunload has a default but confirm() does not #}
-otm.settings.exitWarning = '{% trans "You have begun entering data. Any unsaved changes will be lost." %}';
-otm.settings.exitQuestion = '{% trans "Are you sure you want to continue?" %}';
 
 {% if request.instance %}
     otm.settings.instance = {
