@@ -147,7 +147,7 @@ function showPlotDetailPopup(newPopup) {
 
 function getPlotAccordionContent(id) {
     var search = $.ajax({
-        url: config.instance.url + 'plots/' + id + '/detail',
+        url: config.instance.url + 'features/' + id + '/detail',
         type: 'GET',
         dataType: 'html'
     });

@@ -122,10 +122,10 @@ def requires_feature(ft):
     return wrapper_function
 
 
-def render_template(templ, callable_or_dict=None, statuscode=None, **kwargs):
+def render_template(template):
     """
-    takes a template to render to and an object to render
-    the data for this template.
+    takes a template to render to and returns a function that
+    takes an object to render the data for this template.
 
     If callable_or_dict is callable, it will be called with
     the request and any additional arguments to produce the
@@ -135,27 +135,29 @@ def render_template(templ, callable_or_dict=None, statuscode=None, **kwargs):
     Otherwise, callable_or_dict is used as the parameters for
     the rendered response.
     """
-    def wrapper(request, *args, **wrapper_kwargs):
-        if callable(callable_or_dict):
-            params = callable_or_dict(request, *args, **wrapper_kwargs)
-        else:
-            params = callable_or_dict
+    def outer_wrapper(callable_or_dict=None, statuscode=None, **kwargs):
+        def wrapper(request, *args, **wrapper_kwargs):
+            if callable(callable_or_dict):
+                params = callable_or_dict(request, *args, **wrapper_kwargs)
+            else:
+                params = callable_or_dict
 
-        # If we want to return some other response
-        # type we can, that simply overrides the default
-        # behavior
-        if params is None or isinstance(params, dict):
-            resp = render_to_response(templ, params,
-                                      RequestContext(request), **kwargs)
-        else:
-            resp = params
+            # If we want to return some other response
+            # type we can, that simply overrides the default
+            # behavior
+            if params is None or isinstance(params, dict):
+                resp = render_to_response(template, params,
+                                          RequestContext(request), **kwargs)
+            else:
+                resp = params
 
-        if statuscode:
-            resp.status_code = statuscode
+            if statuscode:
+                resp.status_code = statuscode
 
-        return resp
+            return resp
 
-    return wrapper
+        return wrapper
+    return outer_wrapper
 
 
 def json_api_call(req_function):
@@ -169,32 +171,34 @@ def json_api_call(req_function):
             return outp
         else:
             return '%s' % json.dumps(outp, cls=LazyEncoder)
-    return string_as_file_call("application/json", newreq)
+    return string_to_response("application/json")(newreq)
 
 
-def string_as_file_call(content_type, req_function):
+def string_to_response(content_type):
     """
     Wrap a view-like function that returns a string and marshalls it into an
     HttpResponse with the given Content-Type
     """
-    @wraps(req_function)
-    def newreq(request, *args, **kwargs):
-        try:
-            outp = req_function(request, *args, **kwargs)
-            if issubclass(outp.__class__, HttpResponse):
-                response = outp
-            else:
-                response = HttpResponse()
-                response.write(outp)
-                response['Content-length'] = str(len(response.content))
+    def outer_wrapper(req_function):
+        @wraps(req_function)
+        def newreq(request, *args, **kwargs):
+            try:
+                outp = req_function(request, *args, **kwargs)
+                if issubclass(outp.__class__, HttpResponse):
+                    response = outp
+                else:
+                    response = HttpResponse()
+                    response.write(outp)
+                    response['Content-length'] = str(len(response.content))
 
-            response['Content-Type'] = content_type
+                response['Content-Type'] = content_type
 
-        except HttpBadRequestException, bad_request:
-            response = HttpResponseBadRequest(bad_request.message)
+            except HttpBadRequestException, bad_request:
+                response = HttpResponseBadRequest(bad_request.message)
 
-        return response
-    return newreq
+            return response
+        return newreq
+    return outer_wrapper
 
 
 def return_400_if_validation_errors(req):

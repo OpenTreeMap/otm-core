@@ -52,14 +52,27 @@ def _add_map_feature_photo_helper(request, instance, feature_id):
     return feature.add_photo(data, request.user)
 
 
-def render_map_feature_detail(request, instance, feature_id):
+def map_feature_detail(request, instance, feature_id, render=False):
     feature = get_map_feature_or_404(feature_id, instance)
-    if feature.is_plot:
-        template = 'treemap/plot_detail.html'
-    else:
-        template = 'map_features/%s_detail.html' % feature.feature_type
     context = map_feature_detail_helper(request, instance, feature)
-    return render_to_response(template, context, RequestContext(request))
+
+    if render:
+        if feature.is_plot:
+            template = 'treemap/plot_detail.html'
+        else:
+            template = 'map_features/%s_detail.html' % feature.feature_type
+        return render_to_response(template, context, RequestContext(request))
+    else:
+        return context
+
+
+def render_map_feature_detail(*args, **kwargs):
+    return map_feature_detail(*args, render=True, **kwargs)
+
+
+def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
+    feature = get_map_feature_or_404(feature_id, instance, 'Plot')
+    return map_feature_detail_helper(request, instance, feature, edit, tree_id)
 
 
 def render_map_feature_add(request, instance, type):
@@ -242,8 +255,3 @@ def map_feature_popup(request, instance, feature_id):
     feature = get_map_feature_or_404(feature_id, instance)
     context = context_dict_for_map_feature(request, feature)
     return context
-
-
-def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
-    feature = get_map_feature_or_404(feature_id, instance, 'Plot')
-    return map_feature_detail_helper(request, instance, feature, edit, tree_id)

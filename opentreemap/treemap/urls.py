@@ -8,20 +8,19 @@ from django.conf.urls import patterns, url
 from opentreemap.util import route
 
 from treemap.views import (boundary_to_geojson_view, index_view, map_view,
-                           delete_tree_view, update_map_feature_detail_view,
-                           delete_map_feature_view, instance_settings_js_view,
-                           get_map_feature_detail_view, edits_view,
+                           delete_tree_view, instance_settings_js_view,
+                           edits_view,
                            search_tree_benefits_view, species_list_view,
                            boundary_autocomplete_view, instance_user_view,
                            map_feature_popup_view, instance_user_audits_view,
-                           plot_accordion_view, add_map_feature_view,
+                           map_feature_accordion_view,
                            add_tree_photo_endpoint, photo_review_endpoint,
                            photo_review_partial_endpoint,
                            approve_or_reject_photo_view, next_photo_endpoint,
                            get_plot_eco_view, edit_plot_detail_view,
                            static_page_view, get_map_feature_sidebar_view,
-                           tree_detail_view, get_map_feature_add_view,
-                           add_map_feature_photo_endpoint)
+                           tree_detail_view, add_map_feature_photo_endpoint,
+                           map_feature_detail_view, map_feature_add_view)
 
 # Testing notes:
 # We want to test that every URL succeeds (200) or fails with bad data (404).
@@ -50,13 +49,9 @@ urlpatterns = patterns(
     url(r'^map/$', map_view, name='map'),
 
     url(r'^features/(?P<feature_id>\d+)/$',
-        route(GET=get_map_feature_detail_view,
-              PUT=update_map_feature_detail_view,
-              DELETE=delete_map_feature_view),
-        name='map_feature_detail'),
+        map_feature_detail_view, name='map_feature_detail'),
     url(r'^features/(?P<type>\w+)/$',
-        route(GET=get_map_feature_add_view, POST=add_map_feature_view),
-        name='add_map_feature'),
+        map_feature_add_view, name='add_map_feature'),
     url(r'^features/(?P<feature_id>\d+)/(?P<edit>edit)$',
         edit_plot_detail_view, name='map_feature_detail_edit'),
     url(r'^features/(?P<feature_id>\d+)/popup$',
@@ -67,10 +62,10 @@ urlpatterns = patterns(
         get_map_feature_sidebar_view, name='map_feature_sidebar'),
     url(r'^features/(?P<feature_id>\d+)/photo$',
         add_map_feature_photo_endpoint, name='add_photo_to_map_feature'),
+    url(r'^features/(?P<feature_id>\d+)/detail$',
+        map_feature_accordion_view, name='map_feature_accordion'),
 
-    url(r'^plots/$', route(POST=add_map_feature_view), name='add_plot'),
-    url(r'^plots/(?P<feature_id>\d+)/detail$',
-        plot_accordion_view, name='plot_accordion'),
+    url(r'^plots/$', route(POST=map_feature_add_view), name='add_plot'),
     url(r'^plots/(?P<feature_id>\d+)/eco$',
         get_plot_eco_view, name='plot_eco'),
     url(r'^plots/(?P<feature_id>\d+)/trees/(?P<tree_id>\d+)/eco$',
