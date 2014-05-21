@@ -151,13 +151,12 @@ map_feature_popup_view = do(
     render_template('treemap/partials/map_feature_popup.html'),
     map_feature_popup)
 
-# FIXME: the returned template is now probably misnamed
 add_map_feature_photo_endpoint = do(
     require_http_method("POST"),
     login_or_401,
     instance_request,
     creates_instance_user,
-    render_template('treemap/partials/tree_carousel.html'),
+    render_template('treemap/partials/photo_carousel.html'),
     add_map_feature_photo)
 
 
@@ -203,7 +202,7 @@ add_tree_photo_endpoint = do(
     login_or_401,
     instance_request,
     creates_instance_user,
-    render_template('treemap/partials/tree_carousel.html'),
+    render_template('treemap/partials/photo_carousel.html'),
     add_tree_photo)
 
 #####################################

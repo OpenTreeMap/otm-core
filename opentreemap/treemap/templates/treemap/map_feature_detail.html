@@ -20,7 +20,7 @@
     <div class="span3">
       <div class="photo-container">
         <div id="tree-photo-carousel" class="carousel slide" data-interval="">
-            {% include "treemap/partials/tree_carousel.html" with photos=tree.photos %}
+            {% include "treemap/partials/photo_carousel.html" with photos=tree.photos %}
         </div>
 {% if feature.is_plot %}
         <button id="toggle-add-photo-modal"
