@@ -17,7 +17,7 @@
 <div id="tree-photo-thumbnails">
   <div>
     <ol class="carousel-indicators">{% for photo in photos %}
-      <li data-target="#tree-photo-carousel" data-slide-to="{{ forloop.counter0 }}"
+      <li data-target="#photo-carousel" data-slide-to="{{ forloop.counter0 }}"
             class="{{ forloop.first|yesno:"active," }}">
         <img src="{{ photo.thumbnail.url }}" alt="">
       </li>
@@ -26,7 +26,7 @@
 </div>
 {% if photos|length > 1 %}
 <a class="carousel-control left disabled" href="" data-slide="prev"><i class="icon-left-circled"></i></a>
-<a class="carousel-control right" href="#tree-photo-carousel" data-slide="next"><i class="icon-right-circled"></i></a>
+<a class="carousel-control right" href="#photo-carousel" data-slide="next"><i class="icon-right-circled"></i></a>
 {% endif %}
 {% if error %}
 <div class="text-error">{{ error }}</div>
