@@ -217,17 +217,15 @@ def context_dict_for_plot(request, plot, tree_id=None):
     if not has_photo:
         context['progress_messages'].append(trans('Add a photo'))
 
+    url_kwargs = {'instance_url_name': instance.url_name,
+                  'feature_id': plot.pk}
     if tree:
-        context['upload_tree_photo_url'] = \
-            reverse('add_photo_to_tree',
-                    kwargs={'instance_url_name': instance.url_name,
-                            'feature_id': plot.pk,
-                            'tree_id': tree.pk})
+        url_name = 'add_photo_to_tree'
+        url_kwargs = dict(url_kwargs.items() + [('tree_id', tree.pk)])
     else:
-        context['upload_tree_photo_url'] = \
-            reverse('add_photo_to_plot',
-                    kwargs={'instance_url_name': instance.url_name,
-                            'feature_id': plot.pk})
+        url_name = 'add_photo_to_plot'
+
+    context['upload_photo_endpoint'] = reverse(url_name, kwargs=url_kwargs)
 
     context['plot'] = plot
     context['has_tree'] = tree is not None
