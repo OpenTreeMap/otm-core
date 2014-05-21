@@ -15,12 +15,13 @@ require('jqueryFileUpload');
 
 module.exports.init = function(options) {
     var $panel = $(options.panelId),
+        $image = $(options.imageElement),
+        $error = $(options.error),
+        $imageContainer = $(options.imageContainer),
+        dataType = options.dataType || 'json',
+
         $chooser = $panel.find('.fileChooser'),
         $progressBar = $panel.find('.progress').children().first(),
-        $image = $(options.imageElement),
-        $imageContainer = $(options.imageContainer),
-        $error = $(options.error),
-        dataType = options.dataType || 'json',
         callback,
         finishedStream = new Bacon.EventStream(function(subscribe) {
             callback = subscribe;
