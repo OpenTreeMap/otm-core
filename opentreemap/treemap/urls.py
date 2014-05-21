@@ -73,6 +73,13 @@ urlpatterns = patterns(
     url(r'^plots/(?P<feature_id>\d+)/trees/(?P<tree_id>\d+)/$',
         tree_detail_view, name='tree_detail'),
 
+    # TODO: this duplication exists in multiple places.
+    # we make two endpoints for 'plots/<id>/tree/<id>/' and 'plots/<id>/'
+    # to simplify the client, because the plot_detail page itself can
+    # have two different urls, and it makes it easier to say stuff like
+    # url = document.url = '/photos' or whatever. We can find a higher level
+    # way to handle this duplication and reduce the total number of endpoints
+    # for great good.
     url(r'^plots/(?P<feature_id>\d+)/photo$',
         add_tree_photo_endpoint, name='add_photo_to_plot'),
     url(r'^plots/(?P<feature_id>\d+)/tree/(?P<tree_id>\d+)/photo$',

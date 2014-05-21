@@ -18,6 +18,7 @@ from treemap.audit import Audit
 from treemap.ecobenefits import get_benefits_for_filter
 from treemap.lib import format_benefits
 from treemap.lib.tree import add_tree_photo_helper
+from treemap.lib.photo import context_dict_for_photo
 
 
 def tree_detail(request, instance, feature_id, tree_id):
@@ -39,7 +40,8 @@ def add_tree_photo(request, instance, feature_id, tree_id=None):
             photos = []
         # TODO: Better display error messages in the view
         error = '; '.join(e.messages)
-    return {'photos': photos, 'error': error}
+    return {'photos': map(context_dict_for_photo, photos),
+            'error': error}
 
 
 @transaction.commit_on_success

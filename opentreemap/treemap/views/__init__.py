@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from functools import partial
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import etag
@@ -43,6 +45,14 @@ from treemap.views.map_feature import (render_map_feature_detail,
                                        map_feature_hash,
                                        add_map_feature_photo)
 
+
+add_map_feature_photo_do = partial(
+    do,
+    require_http_method("POST"),
+    login_or_401,
+    instance_request,
+    creates_instance_user,
+    render_template('treemap/partials/photo_carousel.html'))
 
 #####################################
 # misc content views
@@ -151,12 +161,7 @@ map_feature_popup_view = do(
     render_template('treemap/partials/map_feature_popup.html'),
     map_feature_popup)
 
-add_map_feature_photo_endpoint = do(
-    require_http_method("POST"),
-    login_or_401,
-    instance_request,
-    creates_instance_user,
-    render_template('treemap/partials/photo_carousel.html'),
+add_map_feature_photo_endpoint = add_map_feature_photo_do(
     add_map_feature_photo)
 
 
@@ -197,13 +202,7 @@ search_tree_benefits_view = do(
     render_template('treemap/partials/eco_benefits.html'),
     search_tree_benefits)
 
-add_tree_photo_endpoint = do(
-    require_http_method("POST"),
-    login_or_401,
-    instance_request,
-    creates_instance_user,
-    render_template('treemap/partials/photo_carousel.html'),
-    add_tree_photo)
+add_tree_photo_endpoint = add_map_feature_photo_do(add_tree_photo)
 
 #####################################
 # user

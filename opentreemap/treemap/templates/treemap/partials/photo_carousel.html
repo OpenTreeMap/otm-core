@@ -4,7 +4,7 @@
 <div class="carousel-inner">
 {% for photo in photos %}
   <div class="item {{ forloop.first|yesno:"active," }}">
-    <a href="{{ photo.image.url }}"><img src="{{ photo.thumbnail.url }}" alt=""></a>
+    <a href="{{ photo.image }}"><img src="{{ photo.thumbnail }}" alt=""></a>
   </div>
 {% empty %}
   {% if feature.is_plot %}
@@ -19,7 +19,7 @@
     <ol class="carousel-indicators">{% for photo in photos %}
       <li data-target="#photo-carousel" data-slide-to="{{ forloop.counter0 }}"
             class="{{ forloop.first|yesno:"active," }}">
-        <img src="{{ photo.thumbnail.url }}" alt="">
+        <img src="{{ photo.thumbnail }}" alt="">
       </li>
     {% endfor %}</ol>
   </div>

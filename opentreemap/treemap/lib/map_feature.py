@@ -6,14 +6,16 @@ from __future__ import division
 import datetime
 
 from django.core.urlresolvers import reverse
+from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as trans
 from django.db.models import Q
 
 from treemap.audit import Audit
 from treemap.ecobackend import BAD_CODE_PAIR
 from treemap.models import Tree, MapFeature
+
 from treemap.lib import format_benefits
-from django.shortcuts import get_object_or_404
+from treemap.lib.photo import context_dict_for_photo
 
 
 def _map_feature_audits(user, instance, feature, filters=None,
@@ -181,13 +183,13 @@ def context_dict_for_plot(request, plot, tree_id=None):
     if tree:
         tree.convert_to_display_units()
 
-    photos = []
     if tree is not None:
-        from treemap.lib.tree import context_dict_for_treephoto
-        photos = [context_dict_for_treephoto(photo)
-                  for photo in tree.treephoto_set.all()]
-
-    context['photos'] = photos
+        photos = tree.photos()
+        # can't send a regular photo qs because the API will
+        # serialize this to JSON, which is not supported for qs
+        context['photos'] = map(context_dict_for_photo, photos)
+    else:
+        photos = []
 
     has_tree_diameter = tree is not None and tree.diameter is not None
     has_tree_species_with_code = tree is not None \
@@ -241,20 +243,30 @@ def context_dict_for_plot(request, plot, tree_id=None):
 
 def context_dict_for_resource(request, resource):
     context = context_dict_for_map_feature(request, resource)
+    instance = request.instance
 
     # Give them 2 for adding the resource and answering its questions
     total_progress_items = 3
     completed_progress_items = 2
 
-    has_photo = False  # TODO: support resource photos
-    if has_photo:
+    photos = resource.photos()
+    context['photos'] = map(context_dict_for_photo, photos)
+
+    has_photos = len(photos) > 1
+
+    if has_photos:
         completed_progress_items += 1
+
+    context['upload_photo_endpoint'] = reverse(
+        'add_photo_to_map_feature',
+        kwargs={'instance_url_name': instance.url_name,
+                'feature_id': resource.pk})
 
     context['progress_percent'] = int(100 * (
         completed_progress_items / total_progress_items) + .5)
 
     context['progress_messages'] = []
-    if not has_photo:
+    if not has_photos:
         context['progress_messages'].append(trans('Add a photo'))
 
     audits = _map_feature_audits(request.user, request.instance, resource)
@@ -293,6 +305,8 @@ def context_dict_for_map_feature(request, feature):
         'feature': feature,
         'feature_type': feature.feature_type,
         'title': title,
+        'upload_photo_endpoint': None,
+        'photos': None,
     }
 
     _add_eco_benefits_to_context_dict(instance, feature, context)
