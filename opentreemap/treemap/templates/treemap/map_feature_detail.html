@@ -12,26 +12,29 @@
 {% endblock subhead_exports %}
 
 {% block content %}
-{% include "treemap/partials/upload_image.html" with panel_id="add-photo-modal" title="Add a Photo" endpoint=upload_tree_photo_url %}
+{% include "treemap/partials/upload_image.html" with panel_id="add-photo-modal" title="Add a Photo" %}
 
 <div class="image-background"></div>
 <div class="container contained topper tree-details">
   <div class="row-fluid">
     <div class="span3">
       <div class="photo-container">
-        <div id="tree-photo-carousel" class="carousel slide" data-interval="">
-            {% include "treemap/partials/tree_carousel.html" with photos=tree.photos %}
+        <div id="photo-carousel" class="carousel slide" data-interval="">
+            {% include "treemap/partials/photo_carousel.html" %}
         </div>
-{% if feature.is_plot %}
         <button id="toggle-add-photo-modal"
                 data-toggle="modal"
                 data-target="#add-photo-modal"
-                data-always-enable="{{ last_effective_instance_user.can_add_photos_to_tree }}"
                 data-href="{{ request.get_full_path }}"
                 disabled="disabled"
+                {% if feature.is_plot %}
                 data-disabled-title="{% trans "Adding tree photos is not available to all users" %}"
+                data-always-enable="{{ last_effective_instance_user.can_add_photos_to_tree }}"
+                {% else %}
+                data-disabled-title="{% trans "Adding resource photos is not available to all users" %}"
+                data-always-enable="{{ last_effective_instance_user.can_add_photos_to_map_feature }}"
+                {% endif %}
                 class="btn btn-mini add-photos">{% trans "Add Photo" %}</button>
-{% endif %}
       </div>
       <div id="sidebar">
         {% include "treemap/partials/sidebar.html" %}
@@ -206,7 +209,7 @@ var mapFeatureOptions = {
     imageUploadPanel: {
         panelId: '#add-photo-modal',
         dataType: 'html',
-        imageContainer: '#tree-photo-carousel'
+        imageContainer: '#photo-carousel'
     },
     location: {
         edit: '#edit-location',

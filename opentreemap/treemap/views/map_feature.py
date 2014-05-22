@@ -20,6 +20,7 @@ from treemap.util import (package_validation_errors,
                           bad_request_json_response, to_object_name)
 
 from treemap.images import get_image_from_request
+from treemap.lib.photo import context_dict_for_photo
 from treemap.lib.map_feature import (get_map_feature_or_404,
                                      context_dict_for_map_feature,
                                      map_feature_detail_helper)
@@ -248,7 +249,8 @@ def add_map_feature_photo(request, instance, feature_id):
         error = '; '.join(e.messages)
     feature = get_map_feature_or_404(feature_id, instance)
     photos = feature.photos()
-    return {'photos': photos, 'error': error}
+    return {'photos': map(context_dict_for_photo, photos),
+            'error': error}
 
 
 def map_feature_popup(request, instance, feature_id):

@@ -494,23 +494,29 @@ class InstanceUser(Auditable, models.Model):
     reputation = models.IntegerField(default=0)
     admin = models.BooleanField(default=False)
 
-    # FIXME: need equivalent function for MapFeaturePhoto
-    def can_add_photos_to_tree(self):
+    def _can_add_photos_to(self, model_name, extra_fields=None):
         # Users can add photos only if they have all
         # WRITE_DIRECTLY or WRITE_WITH_AUDIT permissions
-        # on tree photo
-        fields = {'tree', 'image', 'thumbnail', 'id', 'map_feature'}
+        fields = {'image', 'thumbnail', 'id', 'map_feature'}
+
+        if extra_fields:
+            fields.update(extra_fields)
 
         perms = self.user.get_instance_permissions(
-            self.instance, 'TreePhoto')
+            self.instance, model_name)
 
         fieldperms = {perm.field_name
-                      for perm
-                      in perms
+                      for perm in perms
                       if perm.allows_writes}
 
         enabled = self.instance.feature_enabled('tree_image_upload')
         return enabled and fieldperms == fields
+
+    def can_add_photos_to_tree(self):
+        return self._can_add_photos_to('TreePhoto', {'tree'})
+
+    def can_add_photos_to_map_feature(self):
+        return self._can_add_photos_to('MapFeaturePhoto')
 
     def save_with_user(self, user, *args, **kwargs):
         self.full_clean()

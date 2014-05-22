@@ -45,10 +45,3 @@ def add_tree_photo_helper(request, instance, feature_id, tree_id=None):
     treephoto = tree.add_photo(data, request.user)
 
     return treephoto, tree
-
-
-def context_dict_for_treephoto(photo):
-    photo_dict = photo.as_dict()
-    photo_dict['image'] = photo.image.url
-    photo_dict['thumbnail'] = photo.thumbnail.url
-    return photo_dict
