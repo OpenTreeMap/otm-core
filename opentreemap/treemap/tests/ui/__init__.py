@@ -5,20 +5,23 @@ from django.conf import settings
 from django.db import connection
 from psycopg2._psycopg import InterfaceError
 
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import (WebDriverException,
+                                        StaleElementReferenceException)
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 
 from treemap.tests import create_mock_system_user, make_commander_user
 
-from treemap.models import Tree, Plot, Instance, User
+from treemap.models import Tree, Plot, Instance
 
 
 def patch_broken_pipe_error():
-    """Monkey Patch BaseServer.handle_error to not write
+    """
+    Monkey Patch BaseServer.handle_error to not write
     a stacktrace to stderr on broken pipe.
-    http://stackoverflow.com/a/21788372/362702"""
+    http://stackoverflow.com/a/21788372/362702
+    """
     import sys
     from SocketServer import BaseServer
     from wsgiref import handlers
@@ -41,8 +44,10 @@ def patch_broken_pipe_error():
     BaseServer.handle_error = my_handle_error
     handlers.BaseHandler.log_exception = my_log_exception
 
-
-patch_broken_pipe_error()  # Muzzle annoying output from UI tests
+# In many tests we close the browser when there are still pending requests,
+# such as for map tiles. When running on a dev machine that leads to messy
+# output about "broken pipe" errors. Muzzle it.
+patch_broken_pipe_error()
 
 
 class UITestCase(LiveServerTestCase):
@@ -72,6 +77,14 @@ class UITestCase(LiveServerTestCase):
         if hasattr(self, 'display'):
             self.display.stop()
 
+        # I believe this line is no longer necessary, but I'm leaving it here
+        # until the UI tests have run many times without deadlocking.
+        # -RM 20140522
+        #self.kill_pending_transactions()
+
+        super(UITestCase, self).tearDown()
+
+    def kill_pending_transactions(self):
         # The super.tearDown sometimes hangs when truncating tables
         # because of lingering pending transactions with locks on those tables.
         # Kill them to avoid deadlock!
@@ -84,8 +97,6 @@ class UITestCase(LiveServerTestCase):
         except InterfaceError:
             # Sometimes we get "connection already closed"
             pass
-
-        super(UITestCase, self).tearDown()
 
     def click(self, selector):
         self.find(selector).click()
@@ -105,7 +116,7 @@ class UITestCase(LiveServerTestCase):
         return self.driver.find_element_by_id(id)
 
     def process_login_form(self, username, password):
-        username_elmt = self.find_name('username')
+        username_elmt = self.wait_until_present('[name="username"]')
         password_elmt = self.find_name('password')
 
         username_elmt.send_keys(username)
@@ -119,15 +130,68 @@ class UITestCase(LiveServerTestCase):
     def find_anchor_by_url(self, url):
         return self.find("[href='%s']" % url)
 
-    def wait_until_enabled(self, element, timeout=10):
-        def isPresentAndEnabled(driver):
-            return element.get_attribute("disabled") is None
-        WebDriverWait(self.driver, timeout).until(isPresentAndEnabled)
+    def wait_until_present(self, selector, timeout=10):
+        """
+        Wait until an element with CSS 'selector' exists on the page.
+        Useful for detecting that an operation loads the page you're expecting.
+        """
+        element = [None]  # use list so it can be set by inner scope
 
-    def wait_until_visible(self, element, timeout=10):
-        def isVisible(driver):
-            return element.is_displayed()
-        WebDriverWait(self.driver, timeout).until(isVisible)
+        def is_present(driver):
+            element[0] = self.find(selector)
+            return element[0] is not None
+
+        WebDriverWait(self.driver, timeout).until(is_present)
+        return element[0]
+
+    def wait_until_text_present(self, text, timeout=10):
+        """
+        Wait until 'text' exists on the page.
+        Useful for detecting that an operation loads the page you're expecting.
+        """
+        WebDriverWait(self.driver, timeout).until(
+            lambda driver: text in driver.page_source)
+
+    def wait_until_enabled(self, element_or_selector, timeout=10):
+        """
+        Wait until 'element_or_selector' is enabled.
+        """
+        element = self._get_element(element_or_selector)
+        WebDriverWait(self.driver, timeout).until(
+            lambda driver: element.get_attribute("disabled") is None)
+        return element
+
+    def wait_until_visible(self, element_or_selector, timeout=10):
+        """
+        Wait until 'element_or_selector' (known to already exist on the page)
+        is displayed.
+        """
+        element = self._get_element(element_or_selector)
+        WebDriverWait(self.driver, timeout).until(
+            lambda driver: element.is_displayed())
+        return element
+
+    def wait_until_invisible(self, element_or_selector, timeout=10):
+        """
+        Wait until 'element_or_selector' (known to already exist on the page)
+        is not displayed.
+        """
+        element = self._get_element(element_or_selector)
+
+        def is_invisible(driver):
+            try:
+                return not element.is_displayed()
+            except StaleElementReferenceException:
+                return True
+
+        WebDriverWait(self.driver, timeout).until(is_invisible)
+        return element
+
+    def _get_element(self, element_or_selector):
+        if isinstance(element_or_selector, basestring):
+            return self.find(element_or_selector)
+        else:
+            return element_or_selector
 
 
 class TreemapUITestCase(UITestCase):
@@ -154,10 +218,9 @@ class TreemapUITestCase(UITestCase):
 
         self.profile = RegistrationProfile.objects.create_profile(self.user)
 
-    def tearDown(self):
-        self.instance.delete()
-        self.user.delete_with_user(User.system_user())
-        super(TreemapUITestCase, self).tearDown()
+        # Note: tables are truncated between tests (because LiveServerTestCase
+        # inherits from TransactionTestCase, which does the truncation).
+        # So there's no need to delete the objects we've created.
 
     def login_workflow(self):
         self.browse_to_url('/accounts/logout/')
@@ -249,14 +312,13 @@ class TreemapUITestCase(UITestCase):
 
         if whenDone == 'close':
             # Wait for "browse trees" mode
-            self.wait_until_visible(self.find('#sidebar-browse-trees'))
+            self.wait_until_visible('#sidebar-browse-trees')
         elif whenDone == 'edit':
             # Wait for "save" button on "plot detail" page
-            self.wait_until_visible(self.find('#save-edit-plot'), 30)
+            self.wait_until_visible('#save-edit-plot', 30)
         else:
             # Wait for "Add Tree" step 1
-            self.wait_until_visible(
-                self.find('#sidebar-add-tree .form-search'))
+            self.wait_until_visible('#sidebar-add-tree .form-search')
 
     def login_and_go_to_map_page(self):
         self.login_workflow()

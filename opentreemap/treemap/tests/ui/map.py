@@ -3,16 +3,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from time import sleep
-
 from treemap.tests.ui import TreemapUITestCase, ui_test_urls
 from treemap.models import Tree, Plot
 
 
-DATABASE_COMMIT_DELAY = 2
-
-
 class MapTest(TreemapUITestCase):
+    # Use modified URL set (e.g. to mock out tiler requests)
     urls = 'treemap.tests.ui.ui_test_urls'
 
     def test_simple_add_plot_to_map(self):
@@ -40,9 +36,7 @@ class MapTest(TreemapUITestCase):
         self.login_and_go_to_map_page()
         self.start_add_tree(0, 10)
 
-        diameter = self.driver.find_element_by_css_selector(
-            'input[data-class="diameter-input"]')
-
+        diameter = self.find('input[data-class="diameter-input"]')
         diameter.send_keys('44.0')
 
         self.add_tree_done()
@@ -175,6 +169,7 @@ class MapTest(TreemapUITestCase):
         self.click_point_on_map(20, 20)
 
         self.click('#quick-edit-button')
+        self.wait_until_visible('#save-details-button')
 
         diameter = self.driver.find_element_by_css_selector(
             'input[data-class="diameter-input"]')
@@ -183,9 +178,7 @@ class MapTest(TreemapUITestCase):
         diameter.send_keys('32.0')
 
         self.click('#save-details-button')
-
-        # Need to wait for change in database
-        sleep(DATABASE_COMMIT_DELAY)
+        self.wait_until_visible('#quick-edit-button')
 
         # Reload tree
         tree = Tree.objects.get(pk=tree.pk)
@@ -229,7 +222,7 @@ class ModeChangeTest(TreemapUITestCase):
         self.click_point_on_map(20, 20)
 
         # enter edit mode, which should lock
-        self.driver.find_element_by_id('quick-edit-button').click()
+        self.click('#quick-edit-button')
 
         expected_alert_text = ("You have begun entering data. "
                                "Any unsaved changes will be lost. "

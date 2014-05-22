@@ -7,7 +7,6 @@ from django.core.urlresolvers import reverse
 from django.core import mail
 
 from registration.models import RegistrationProfile
-from time import sleep
 
 from treemap.tests.ui import UITestCase
 from treemap.tests import make_user, create_mock_system_user
@@ -20,7 +19,6 @@ from treemap.tests import make_user, create_mock_system_user
 
 class LoginLogoutTest(UITestCase):
     def setUp(self):
-
         create_mock_system_user()
 
         super(LoginLogoutTest, self).setUp()
@@ -35,48 +33,34 @@ class LoginLogoutTest(UITestCase):
         self.process_login_form(
             self.user.username, 'passwordinvalid')
 
+        # There should be an error list with at least one element
+        self.wait_until_present('.errorlist li')
+
         # We should be on the same page
         self.assertEqual(login_url, self.driver.current_url)
-
-        # There should be an error div with at least one
-        # element
-        errors = self.driver.find_elements_by_css_selector('.errorlist li')
-        self.assertEqual(len(errors), 1)
 
     def test_valid_login(self):
         self.browse_to_url(reverse('auth_login'))
 
         login_url = self.driver.current_url
 
-        self.click_when_visible('#login')
         self.process_login_form(self.user.username, 'password')
+
+        email_element = self.wait_until_present(
+            '[data-field="user.email"][data-class="display"]')
 
         # We should not be on the same page
         self.assertNotEqual(login_url, self.driver.current_url)
 
-        # And we should expect our username in the url
+        # We should expect our username in the url
         self.assertIn(self.user.username, self.driver.current_url)
 
-        emails = self.driver.find_elements_by_xpath(
-            "//*[@data-field='user.email']")
-
-        self.assertGreater(len(emails), 0, 'data-field = user.email not found')
-
-        founddisplay = False
-        for email_elmt in emails:
-            value = email_elmt.get_attribute('data-value')
-            dataclass = email_elmt.get_attribute('data-class')
-            if dataclass == 'display':
-                self.assertEqual(self.user.email, value)
-                founddisplay = True
-
-        if not founddisplay:
-            self.fail('No display list element was found')
+        value = email_element.get_attribute('data-value')
+        self.assertEqual(self.user.email, value)
 
 
 class ForgotUsernameTest(UITestCase):
     def setUp(self):
-
         create_mock_system_user()
 
         super(ForgotUsernameTest, self).setUp()
@@ -92,8 +76,8 @@ class ForgotUsernameTest(UITestCase):
         forgot_username_url = reverse('forgot_username')
 
         link = self.find_anchor_by_url(forgot_username_url)
-
         link.click()
+        self.wait_until_present('input[name="email"]')
 
         self.assertEqual(self.live_server_url + forgot_username_url,
                          self.driver.current_url)
@@ -106,6 +90,6 @@ class ForgotUsernameTest(UITestCase):
         email_elem.send_keys(self.user.email)
 
         self.click('form input[type="submit"]')
-        sleep(1)
+        self.wait_until_text_present('Email Sent')
 
         self.assertEqual(len(mail.outbox), 1)

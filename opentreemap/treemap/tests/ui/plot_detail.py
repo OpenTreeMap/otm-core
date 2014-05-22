@@ -3,8 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from time import sleep
-
 from selenium.common.exceptions import ElementNotVisibleException
 from django.contrib.gis.geos import Point
 
@@ -13,8 +11,6 @@ from django.utils.unittest.case import skip
 from treemap.tests.ui import TreemapUITestCase
 
 from treemap.models import Plot, Tree
-
-DATABASE_COMMIT_DELAY = 2
 
 
 class PlotEditTest(TreemapUITestCase):
@@ -26,9 +22,6 @@ class PlotEditTest(TreemapUITestCase):
 
         self.add_tree_done()
 
-        # Need to wait for change in database
-        sleep(DATABASE_COMMIT_DELAY)
-
         self.assertEqual(1, self.nplots())
 
         plot = self.instance_plots().order_by('-id')[0]
@@ -38,15 +31,12 @@ class PlotEditTest(TreemapUITestCase):
         self.go_to_feature_detail(plot.pk, edit=True)
 
         plot_width_field = self.find('input[name="plot.width"]')
-
         plot_width_field.clear()
         plot_width_field.send_keys('5')
 
         self.click('#save-edit-plot')
+        self.wait_until_visible('#edit-plot')
 
-        self.wait_until_visible(self.find('#edit-plot'))
-
-        # Reload tree
         plot = Plot.objects.get(pk=plot.pk)
 
         self.assertEqual(plot.width, 5)
@@ -55,9 +45,7 @@ class PlotEditTest(TreemapUITestCase):
           "https://github.com/azavea/OTM2/issues/943")
     def test_tree_add_cancel(self):
 
-        plot = Plot(instance=self.instance,
-                    geom=Point(0, 0))
-
+        plot = Plot(instance=self.instance, geom=Point(0, 0))
         plot.save_with_user(self.user)
 
         self.login_workflow()
@@ -65,6 +53,7 @@ class PlotEditTest(TreemapUITestCase):
 
         self.click('#add-tree')
         self.click('#cancel-edit-plot')
+        self.wait_until_visible('#edit-plot')
 
         with self.assertRaises(ElementNotVisibleException):
             self.click('#tree-details')
@@ -74,12 +63,15 @@ class PlotEditTest(TreemapUITestCase):
 
 class PlotDeleteTest(TreemapUITestCase):
 
-    def tearDown(self, *args, **kwargs):
-        # This sleep is critical, removing it causes the tests to break
-        sleep(10)
-        super(PlotDeleteTest, self).tearDown(*args, **kwargs)
+    def setUp(self):
+        super(PlotDeleteTest, self).setUp()
+        self.login_workflow()
 
-    def select_buttons(self):
+        self.plot = Plot(instance=self.instance, geom=Point(0, 0))
+        self.plot.save_with_user(self.user)
+        self.assertEqual(Plot.objects.count(), 1)
+
+    def _select_buttons(self):
         self.delete_begin = self.find_id('delete-plot-or-tree')
         self.delete_confirm = self.find_id('delete-confirm')
         self.delete_cancel = self.find_id('delete-cancel')
@@ -88,72 +80,58 @@ class PlotDeleteTest(TreemapUITestCase):
         self.save_edit = self.find_id('save-edit-plot')
         self.edit_plot = self.find_id('edit-plot')
 
-    def assertCantClickDeleteOrCancel(self):
+    def _assertCantClickDeleteOrCancel(self):
         with self.assertRaises(ElementNotVisibleException):
             self.delete_confirm.click()
             self.delete_cancel.click()
 
+    def _click_delete(self):
+        self._select_buttons()
+        self.delete_begin.click()
+        self.delete_confirm.click()
+        self.wait_until_invisible(self.delete_confirm)
+
+    def _assert_plot_and_tree_counts(self, nplots, ntrees):
+        self.assertEqual(Plot.objects.count(), nplots)
+        self.assertEqual(Tree.objects.count(), ntrees)
+
     def test_delete_tree(self):
-        plot = Plot(instance=self.instance,
-                    geom=Point(0, 0))
-        plot.save_with_user(self.user)
-        tree = Tree(instance=self.instance,
-                    plot=plot)
+        tree = Tree(instance=self.instance, plot=self.plot)
         tree.save_with_user(self.user)
-
-        self.assertEqual(Plot.objects.count(), 1)
         self.assertEqual(Tree.objects.count(), 1)
 
-        self.login_workflow()
-        self.go_to_feature_detail(plot.pk)
-        self.select_buttons()
-        self.assertCantClickDeleteOrCancel()
-        self.assertEqual(Plot.objects.count(), 1)
-        self.assertEqual(Tree.objects.count(), 1)
+        self.go_to_feature_detail(self.plot.pk)
+        self._select_buttons()
+        self._assertCantClickDeleteOrCancel()
+        self._assert_plot_and_tree_counts(1, 1)
 
         self.delete_begin.click()
         self.delete_cancel.click()
-        self.assertCantClickDeleteOrCancel()
-        self.assertEqual(Plot.objects.count(), 1)
-        self.assertEqual(Tree.objects.count(), 1)
+        self._assertCantClickDeleteOrCancel()
+        self._assert_plot_and_tree_counts(1, 1)
 
-        self.select_buttons()
-        self.delete_begin.click()
-        self.delete_confirm.click()
-        sleep(DATABASE_COMMIT_DELAY)
-        self.assertEqual(Plot.objects.count(), 1)
-        self.assertEqual(Tree.objects.count(), 0)
+        self._click_delete()
+        self._assert_plot_and_tree_counts(1, 0)
 
     def test_delete_plot(self):
-        plot = Plot(instance=self.instance,
-                    geom=Point(0, 0))
-        plot.save_with_user(self.user)
-
-        self.login_workflow()
-        self.go_to_feature_detail(plot.pk)
-        self.select_buttons()
-        self.assertCantClickDeleteOrCancel()
+        self.go_to_feature_detail(self.plot.pk)
+        self._select_buttons()
+        self._assertCantClickDeleteOrCancel()
         self.assertEqual(Plot.objects.count(), 1)
 
-        self.select_buttons()
+        self._select_buttons()
         self.delete_begin.click()
         self.delete_cancel.click()
         self.assertEqual(Plot.objects.count(), 1)
-        self.assertCantClickDeleteOrCancel()
+        self._assertCantClickDeleteOrCancel()
 
-        self.delete_begin.click()
-        self.delete_confirm.click()
-        sleep(DATABASE_COMMIT_DELAY)
+        self._click_delete()
         self.assertEqual(Plot.objects.count(), 0)
 
     def test_add_tree_then_delete(self):
-        plot = Plot(instance=self.instance,
-                    geom=Point(0, 0))
-        plot.save_with_user(self.user)
-        self.login_workflow()
-        self.go_to_feature_detail(plot.pk, edit=True)
+        self.go_to_feature_detail(self.plot.pk, edit=True)
 
-        self.select_buttons()
+        self._select_buttons()
         self.add_tree.click()
         self.diameter_input.clear()
         self.diameter_input.send_keys('11')
@@ -162,9 +140,7 @@ class PlotDeleteTest(TreemapUITestCase):
 
         self.assertEqual(Tree.objects.count(), 1)
 
-        self.delete_begin.click()
-        self.delete_confirm.click()
-        sleep(DATABASE_COMMIT_DELAY)
+        self._click_delete()
         self.assertEqual(Tree.objects.count(), 0)
 
     @skip("revist when urls are figured out")
@@ -178,58 +154,42 @@ class PlotDeleteTest(TreemapUITestCase):
         """
 
         # make a plot and tree
-        plot = Plot(instance=self.instance,
-                    geom=Point(0, 0))
-        plot.save_with_user(self.user)
-        tree1 = Tree(instance=self.instance,
-                     plot=plot)
+        tree1 = Tree(instance=self.instance, plot=self.plot)
         tree1.save_with_user(self.user)
 
-        # login and delete the tree from plot detail page
-        self.login_workflow()
-        self.go_to_feature_detail(plot.pk)
-        self.select_buttons()
+        # delete the tree from plot detail page
+        self.go_to_feature_detail(self.plot.pk)
+        self._select_buttons()
         self.delete_begin.click()
         self.delete_confirm.click()
-        sleep(DATABASE_COMMIT_DELAY)
+        self.wait_until_invisible(self.delete_confirm)
 
         # Expect tree to be deleted and redirect
         # to detail page for the plot
-        self.assertEqual(Plot.objects.count(), 1)
-        self.assertEqual(Tree.objects.count(), 0)
+        self._assert_plot_and_tree_counts(1, 0)
         self.assertTrue(
             self.driver.current_url.endswith(
-                '/autotest-instance/features/%s/' % plot.pk))
+                '/autotest-instance/features/%s/' % self.plot.pk))
 
         # make another tree to reestablish test case
-        tree2 = Tree(instance=self.instance,
-                     plot=plot)
+        tree2 = Tree(instance=self.instance, plot=self.plot)
         tree2.save_with_user(self.user)
-        self.assertEqual(Plot.objects.count(), 1)
-        self.assertEqual(Tree.objects.count(), 1)
+        self._assert_plot_and_tree_counts(1, 1)
 
         # delete the tree from the tree detail page
-        self.go_to_tree_detail(plot.pk, tree2.pk)
-        self.select_buttons()
-        self.delete_begin.click()
-        self.delete_confirm.click()
-        sleep(DATABASE_COMMIT_DELAY)
+        self.go_to_tree_detail(self.plot.pk, tree2.pk)
+        self._click_delete()
 
         # Expect tree to be deleted and redirect
         # to detail page for the plot (again)
-        self.assertEqual(Plot.objects.count(), 1)
-        self.assertEqual(Tree.objects.count(), 0)
+        self._assert_plot_and_tree_counts(1, 0)
         self.assertTrue(
             self.driver.current_url.endswith(
-                '/autotest-instance/features/%s/' % plot.pk))
+                '/autotest-instance/features/%s/' % self.plot.pk))
 
         # finally, delete the plot and expect to be
         # on the map page
-        self.select_buttons()
-        self.delete_begin.click()
-        self.delete_confirm.click()
-        sleep(DATABASE_COMMIT_DELAY)
-        self.assertEqual(Plot.objects.count(), 0)
-        self.assertEqual(Tree.objects.count(), 0)
+        self._click_delete()
+        self._assert_plot_and_tree_counts(0, 0)
         self.assertTrue(
             self.driver.current_url.endswith('/autotest-instance/map/'))
