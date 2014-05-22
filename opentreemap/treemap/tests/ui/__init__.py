@@ -1,5 +1,7 @@
 import importlib
 
+from time import sleep
+
 from django.test import LiveServerTestCase
 from django.conf import settings
 from django.db import connection
