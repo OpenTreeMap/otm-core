@@ -252,7 +252,7 @@ def context_dict_for_resource(request, resource):
     photos = resource.photos()
     context['photos'] = map(context_dict_for_photo, photos)
 
-    has_photos = len(photos) > 1
+    has_photos = len(photos) > 0
 
     if has_photos:
         completed_progress_items += 1
