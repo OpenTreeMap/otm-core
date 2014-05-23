@@ -32,7 +32,12 @@ class Command(BaseCommand):
         make_option('--geojson',
                     dest='geojson',
                     help=('Specify a boundary via a geojson file. Must be '
-                          'projected in EPSG3857'))
+                          'projected in EPSG3857')),
+        make_option('--url_name',
+                    dest='url_name',
+                    help=('Specify a "url_name" starting with a '
+                          'lowercase letter and containing lowercase '
+                          'letters, numbers, and dashes ("-")'))
     )
 
     def handle(self, *args, **options):
