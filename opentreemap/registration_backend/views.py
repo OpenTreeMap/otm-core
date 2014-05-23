@@ -7,7 +7,6 @@ from django import forms
 from django.utils.translation import ugettext_lazy as trans
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
-from django.contrib.sites.models import Site
 
 from registration import signals
 from registration.forms import RegistrationFormUniqueEmail\
@@ -95,10 +94,11 @@ class RegistrationView(DefaultRegistrationView):
         email = cleaned_data['email']
         password = cleaned_data['password1']
 
-        if Site._meta.installed:
-            site = Site.objects.get_current()
-        else:
-            site = RequestSite(request)
+        # TODO: Either add some Site fixtures or remove the Sites framework
+        # if Site._meta.installed:
+        #     site = Site.objects.get_current()
+        # else:
+        site = RequestSite(request)
 
         should_email = should_send_user_activation(
             request, username, email, password)
