@@ -155,20 +155,12 @@ def get_map_feature_or_404(feature_id, instance, type=None):
         return feature
 
 
-def map_feature_detail_helper(request, instance, feature,
-                              edit=False, tree_id=None):
-    if feature.is_plot:
-        context = context_dict_for_plot(request, feature, tree_id)
+def context_dict_for_plot(request, plot, edit=False, tree_id=None):
+    context = context_dict_for_map_feature(request, plot)
+
+    if edit:
         context['editmode'] = edit
 
-    else:
-        context = context_dict_for_resource(request, feature)
-
-    return context
-
-
-def context_dict_for_plot(request, plot, tree_id=None):
-    context = context_dict_for_map_feature(request, plot)
     instance = request.instance
     user = request.user
 

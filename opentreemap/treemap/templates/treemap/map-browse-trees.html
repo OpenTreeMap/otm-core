@@ -4,7 +4,11 @@
 <div class="accordion" id="map-info">
   <div class="accordion-group">
     <div class="accordion-heading">
-      <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#map-info" href="#tree-detail">{% trans "Tree Details" %} <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
+      <a class="accordion-toggle collapsed" data-toggle="collapse"
+         data-parent="#map-info" href="#tree-detail"
+         id="accordion-map-feature-detail-tab">
+        {% trans "Tree Details" %}<span class="arrow pull-right"><i class="icon-right-open"></i></span>
+      </a>
     </div>
     <div id="tree-detail" class="accordion-body collapse">
       <div class="accordion-body-buttons" id="map-plot-details-button" style="display: none;">
@@ -19,7 +23,7 @@
                 <button class="btn btn-success" data-class="edit" id="save-details-button" style="display:none">Save</button>
                 <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</button>
       </div>
-      <div class="accordion-inner" id="plot-accordion">
+      <div class="accordion-inner" id="map-feature-accordion">
       </div>
       <div id="move-plot-buttons">
         <button class="btn btn-block"

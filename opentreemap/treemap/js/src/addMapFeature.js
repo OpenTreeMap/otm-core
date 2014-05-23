@@ -149,7 +149,7 @@ function init(options) {
             if (!container) {
                 container = streetView.create({
                     streetViewElem: $streetViewContainer[0],
-                    noStreetViewText: options.config.noStreetViewText,
+                    noStreetViewText: options.config.trans.noStreetViewText,
                     hideAddress: true,
                     location: latlng
                 });

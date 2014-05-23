@@ -60,19 +60,27 @@ function init(options) {
        .zip(popupHtmlStream, makePopup) // TODO: size is not being sent to makePopup
        .onValue(showPlotDetailPopup);
 
-    accordionHtmlStream.onValue(function (html) {
-        var visible = html !== '' && html !== undefined;
+    accordionHtmlStream.onValue(function () { $buttonGroup.show(); });
 
-        $accordionSection.collapse(visible ? 'show' : 'hide');
-    });
-    accordionHtmlStream.onValue(function (html) {
-            $('#plot-accordion').html(html);
-        });
-    accordionHtmlStream.onValue(_.bind($buttonGroup.show, $buttonGroup));
+    var featureTypeStream = accordionHtmlStream.map($)
+            .map('.attr', 'data-map-feature-type');
+
+    featureTypeStream
+        .decode({plot: 'show', resource: 'hide'})
+        .onValue($accordionSection.collapse);
+
+    featureTypeStream
+        .decode({plot: 'visible', resource: 'hidden'})
+        .assign($('#quick-edit-button'), 'css', 'visibility');
+
+    featureTypeStream
+        .decode({plot: config.trans.treeDetails,
+                 resource: config.trans.resourceDetails})
+        .assign($('#accordion-map-feature-detail-tab'), 'html');
 
     var showTreeDetailLink = $accordionSection.parent().find('a');
     showTreeDetailLink.on('click', function(event) {
-        if ($('#plot-accordion').html().length === 0) {
+        if ($('#map-feature-accordion').html().length === 0) {
             event.stopPropagation();
         }
     });

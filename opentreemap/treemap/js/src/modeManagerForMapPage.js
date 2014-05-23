@@ -96,8 +96,8 @@ function init(config, mapManager, triggerSearchBus) {
     });
 
     prompter = statePrompter.init({
-        warning: config.exitWarning,
-        question: config.exitQuestion
+        warning: config.trans.exitWarning,
+        question: config.trans.exitQuestion
     });
 
     form.inEditModeProperty.onValue(function (inEditMode) {
