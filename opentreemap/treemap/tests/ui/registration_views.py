@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from time import sleep
 from django.core.urlresolvers import reverse
 from django.core import mail
 
@@ -57,6 +58,8 @@ class LoginLogoutTest(UITestCase):
 
         value = email_element.get_attribute('data-value')
         self.assertEqual(self.user.email, value)
+
+        sleep(1)  # prevent hang
 
 
 class ForgotUsernameTest(UITestCase):

@@ -168,7 +168,7 @@ class MapTest(TreemapUITestCase):
         # Click on the tree we added
         self.click_point_on_map(20, 20)
 
-        self.click('#quick-edit-button')
+        self.click_when_visible('#quick-edit-button')
         self.wait_until_visible('#save-details-button')
 
         diameter = self.driver.find_element_by_css_selector(
@@ -222,7 +222,7 @@ class ModeChangeTest(TreemapUITestCase):
         self.click_point_on_map(20, 20)
 
         # enter edit mode, which should lock
-        self.click('#quick-edit-button')
+        self.click_when_visible('#quick-edit-button')
 
         expected_alert_text = ("You have begun entering data. "
                                "Any unsaved changes will be lost. "

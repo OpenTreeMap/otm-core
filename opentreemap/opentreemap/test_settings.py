@@ -7,3 +7,8 @@ PASSWORD_HASHERS = (
 )
 
 STATIC_URL = 'http://localhost:/static/'
+
+# For session management use file backend instead of DB, to reduce extraneous
+# transactions which can cause deadlock when UI test tearDown() truncates all
+# tables.
+SESSION_ENGINE = "django.contrib.sessions.backends.file"
