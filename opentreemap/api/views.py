@@ -29,9 +29,9 @@ from treemap.decorators import api_admin_instance_request as \
 from treemap.exceptions import HttpBadRequestException
 from treemap.audit import Audit, approve_or_reject_audit_and_apply
 
-from api.auth import (create_401unauthorized, check_signature,
-                      check_signature_and_require_login, login_required)
-
+from api.auth import create_401unauthorized
+from api.decorators import (check_signature, check_signature_and_require_login,
+                            login_required, set_api_version)
 from api.instance import instance_info, instances_closest_to_point
 from api.plots import plots_closest_to_point, get_plot, update_or_create_plot
 from api.user import (user_info, create_user, update_user,
@@ -267,8 +267,13 @@ def add_photo(request, instance, plot_id):
 # authentication "login_optional" before they can access they
 # instance data
 
-instance_api_do = partial(do, check_signature,
-                          instance_request, json_api_call)
+instance_api_do = partial(
+    do, check_signature, set_api_version, instance_request, json_api_call)
+
+api_do = partial(do, check_signature, set_api_version, json_api_call)
+
+logged_in_api_do = partial(
+    do, set_api_version, check_signature_and_require_login, json_api_call)
 
 plots_closest_to_point_endpoint = instance_api_do(plots_closest_to_point)
 
@@ -294,51 +299,39 @@ plot_endpoint = instance_api_do(
 species_list_endpoint = instance_api_do(
     route(GET=species_list))
 
-user_endpoint = do(
-    check_signature,
-    json_api_call,
+user_endpoint = api_do(
     route(
         GET=do(login_required, user_info),
         POST=do(
             return_400_if_validation_errors,
             create_user)))
 
-update_user_endpoint = do(
-    check_signature_and_require_login,
-    json_api_call,
+update_user_endpoint = logged_in_api_do(
     return_400_if_validation_errors,
     route(PUT=update_user))
 
-add_photo_endpoint = do(
-    check_signature_and_require_login,
-    json_api_call,
+add_photo_endpoint = logged_in_api_do(
     route(
         POST=do(
             instance_request,
             return_400_if_validation_errors,
             add_photo)))
 
-status_view = do(
-    check_signature,
-    json_api_call,
-    route(GET=status))
+status_view = api_do(route(GET=status))
 
-version_view = do(
-    check_signature,
-    json_api_call,
-    route(GET=version))
+version_view = api_do(route(GET=version))
+
+update_profile_photo_endpoint = logged_in_api_do(
+    route(POST=update_profile_photo))
 
 export_users_csv_endpoint = do(
     check_signature_and_require_login,
+    set_api_version,
     admin_instance_request,
     route(GET=users_csv))
 
 export_users_json_endpoint = do(
     check_signature_and_require_login,
+    set_api_version,
     admin_instance_request,
     route(GET=users_json))
-
-update_profile_photo_endpoint = do(
-    check_signature_and_require_login,
-    json_api_call,
-    route(POST=update_profile_photo))

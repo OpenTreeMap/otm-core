@@ -38,11 +38,11 @@ from api.models import APIAccessCredential
 from api.views import add_photo_endpoint, update_profile_photo_endpoint
 from api.instance import instances_closest_to_point, instance_info
 from api.user import create_user
-from api.auth import (get_signature_for_request, check_signature,
-                      SIG_TIMESTAMP_FORMAT)
+from api.auth import get_signature_for_request
+from api.decorators import (check_signature, SIG_TIMESTAMP_FORMAT)
 
 
-API_PFX = "/api/v2"
+API_PFX = "/api/v3"
 
 
 def sign_request_as_user(request, user):
@@ -1168,7 +1168,8 @@ class TreePhotoTest(LocalMediaTestCase):
 
             req = sign_request_as_user(req, self.user)
 
-            response = add_photo_endpoint(req, self.instance.url_name, plot_id)
+            response = add_photo_endpoint(req, '3', self.instance.url_name,
+                                          plot_id)
 
         plot = Plot.objects.get(pk=plot.pk)
 
@@ -1209,7 +1210,8 @@ class UserTest(LocalMediaTestCase):
         peon = make_user(username='peon', password='pw')
         peon.save()
 
-        url = reverse('update_user_photo', kwargs={'user_id': peon.pk})
+        url = reverse('update_user_photo', kwargs={'version': 3,
+                                                   'user_id': peon.pk})
 
         with open(TreePhotoTest.test_jpeg_path) as img:
             req = self.factory.post(
@@ -1217,7 +1219,7 @@ class UserTest(LocalMediaTestCase):
 
             req = sign_request_as_user(req, peon)
 
-            response = update_profile_photo_endpoint(req, str(peon.pk))
+            response = update_profile_photo_endpoint(req, '3', str(peon.pk))
 
         self.assertEquals(response.status_code, 200)
 
@@ -1231,7 +1233,8 @@ class UserTest(LocalMediaTestCase):
         peon = make_user(username='peon', password='pw')
         peon.save()
 
-        url = reverse('update_user_photo', kwargs={'user_id': peon.pk})
+        url = reverse('update_user_photo', kwargs={'version': 3,
+                                                   'user_id': peon.pk})
 
         grunt = make_user(username='grunt', password='pw')
         grunt.save()
@@ -1242,7 +1245,7 @@ class UserTest(LocalMediaTestCase):
 
             req = sign_request_as_user(req, peon)
 
-            response = update_profile_photo_endpoint(req, str(grunt.pk))
+            response = update_profile_photo_endpoint(req, '3', str(grunt.pk))
 
         self.assertEquals(response.status_code, 403)
 
@@ -1309,7 +1312,8 @@ class UserTest(LocalMediaTestCase):
         peon = make_user(username='peon', password='pw')
         peon.save()
 
-        url = reverse('update_user', kwargs={'user_id': peon.pk})
+        url = reverse('update_user', kwargs={'version': 3,
+                                             'user_id': peon.pk})
 
         def updatePeonRequest(d):
             return put_json(url, d, self.client, user=peon)
@@ -1335,7 +1339,8 @@ class UserTest(LocalMediaTestCase):
         peon = make_user(username='peon', password='pw')
         peon.save()
 
-        url = reverse('update_user', kwargs={'user_id': peon.pk})
+        url = reverse('update_user', kwargs={'version': 3,
+                                             'user_id': peon.pk})
 
         resp = put_json(url, {'username': ''},
                         self.client, user=peon)
@@ -1349,7 +1354,8 @@ class UserTest(LocalMediaTestCase):
         grunt = make_user(username='grunt', password='pw')
         grunt.save()
 
-        url = reverse('update_user', kwargs={'user_id': peon.pk})
+        url = reverse('update_user', kwargs={'version': 3,
+                                             'user_id': peon.pk})
 
         resp = put_json(url, {'password': 'whateva'},
                         self.client, user=grunt)
@@ -1593,7 +1599,8 @@ class UserApiExportsTest(UserExportsTestCase):
 
     def _test_requires_admin_access(self, endpoint_name):
         url = reverse('user_csv',
-                      kwargs={'instance_url_name': self.instance.url_name})
+                      kwargs={'version': 3,
+                              'instance_url_name': self.instance.url_name})
 
         iuser = self.user1.get_instance_user(self.instance)
         iuser.admin = False
