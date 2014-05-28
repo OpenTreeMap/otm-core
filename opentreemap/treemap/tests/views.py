@@ -23,7 +23,7 @@ from django.contrib.gis.geos import Point
 
 from treemap import ecobackend
 from treemap.udf import UserDefinedFieldDefinition
-from treemap.audit import (Role, Audit, approve_or_reject_audit_and_apply,
+from treemap.audit import (Audit, approve_or_reject_audit_and_apply,
                            approve_or_reject_audits_and_apply,
                            FieldPermission)
 from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
@@ -52,18 +52,14 @@ class InstanceValidationTest(TestCase):
 
     def setUp(self):
 
-        global_role = Role(name='global', rep_thresh=0)
-        global_role.save()
-
         p = Point(-8515941.0, 4953519.0)
-        self.instance1 = Instance(name='i1', geo_rev=0, center=p,
-                                  default_role=global_role)
 
+        self.instance1 = Instance(name='i1', geo_rev=0, center=p)
+        self.instance1.seed_with_dummy_default_role()
         self.instance1.save()
 
-        self.instance2 = Instance(name='i2', geo_rev=0, center=p,
-                                  default_role=global_role)
-
+        self.instance2 = Instance(name='i2', geo_rev=0, center=p)
+        self.instance2.seed_with_dummy_default_role()
         self.instance2.save()
 
 
@@ -76,12 +72,9 @@ class StaticPageViewTest(ViewTestCase):
                                      instance=self.instance)
         self.staticPage.save()
 
-        global_role = Role(name='global', rep_thresh=0)
-        global_role.save()
-
         p = Point(-8515941.0, 4953519.0)
-        self.otherInstance = Instance(name='i1', geo_rev=0, center=p,
-                                      default_role=global_role)
+        self.otherInstance = Instance(name='i1', geo_rev=0, center=p)
+        self.otherInstance.seed_with_dummy_default_role()
 
     def test_can_get_page(self):
         # Note- case insensitive match

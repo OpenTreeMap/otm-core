@@ -286,16 +286,18 @@ def make_instance(name=None, is_public=False, url_name=None, point=None):
             Max('id'))['id__max'] or 0
         url_name = 'generated-%d' % (max_instance + 1)
 
-    global_role = Role.objects.filter(name='global', rep_thresh=0)
-    if not global_role.exists():
-        global_role = Role.objects.create(name='global', rep_thresh=0)
-    else:
-        global_role = global_role[0]
-
     p1 = point or Point(0, 0)
 
-    instance = Instance(name=name, geo_rev=0, default_role=global_role,
+    instance = Instance(name=name, geo_rev=0,
                         is_public=is_public, url_name=url_name)
+
+    instance.seed_with_dummy_default_role()
+
+    # promote the dummy role to a real role
+    # instead of creating another unprivileged role.
+    # callers should add roles/permissions as needed.
+    instance.default_role.instance = instance
+    instance.default_role.save()
 
     tri = Polygon(((p1.x, p1.y),
                    (p1.x + 10, p1.y + 10),
