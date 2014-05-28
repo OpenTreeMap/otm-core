@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from time import sleep
 from selenium.common.exceptions import ElementNotVisibleException
 from django.contrib.gis.geos import Point
 
@@ -15,20 +16,18 @@ from treemap.models import Plot, Tree
 
 class PlotEditTest(TreemapUITestCase):
 
-    def test_empty_plot_edit_url(self):
+    def test_edit_empty_plot(self):
 
         self.login_and_go_to_map_page()
         self.start_add_tree(20, 20)
 
-        self.add_tree_done()
+        self.add_tree_done('edit')
 
         self.assertEqual(1, self.nplots())
 
         plot = self.instance_plots().order_by('-id')[0]
 
         self.assertEqual(plot.width, None)
-
-        self.go_to_feature_detail(plot.pk, edit=True)
 
         plot_width_field = self.find('input[name="plot.width"]')
         plot_width_field.clear()
@@ -40,6 +39,8 @@ class PlotEditTest(TreemapUITestCase):
         plot = Plot.objects.get(pk=plot.pk)
 
         self.assertEqual(plot.width, 5)
+
+        sleep(1)  # prevent hang
 
     @skip("This test will pass when issue #943 is fixed "
           "https://github.com/azavea/OTM2/issues/943")
