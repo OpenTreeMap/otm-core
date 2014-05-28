@@ -15,7 +15,7 @@ from treemap.tests.views import LocalMediaTestCase, media_dir
 from treemap.tests import (make_instance, make_commander_user, make_request,
                            set_write_permissions, make_commander_role)
 from treemap.models import Species, Plot, Tree, User, InstanceUser
-from treemap.audit import Audit
+from treemap.audit import Audit, add_default_permissions
 
 from exporter.models import ExportJob
 from exporter import tasks
@@ -42,11 +42,24 @@ class AsyncCSVTestCase(LocalMediaTestCase):
         csvreader = csv.reader(csv_file, delimiter=b",")
         rows = list(csvreader)
 
+        self.assertTrue(len(rows) > 1)
         for (header, value) in headers_and_values.iteritems():
             self.assertEqual(value,
                              rows[row_index][rows[0].index(header)])
 
     def assertTaskProducesCSV(self, user, model, assert_fields_and_values):
+        self._assertTaskProducesCSVBase(user, model, assert_fields_and_values)
+
+        # run the test again without a user
+        # catches original version of:
+        # https://github.com/OpenTreeMap/OTM2/issues/1384
+        # "initial_qs referenced before assignment"
+        add_default_permissions(self.instance,
+                                [self.instance.default_role])
+        self._assertTaskProducesCSVBase(None, model, assert_fields_and_values)
+
+    def _assertTaskProducesCSVBase(self, user, model,
+                                   assert_fields_and_values):
         job = ExportJob(instance=self.instance, user=user)
         job.save()
         tasks.csv_export(job.pk, model, '', '')

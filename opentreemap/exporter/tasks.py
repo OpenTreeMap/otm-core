@@ -16,15 +16,18 @@ from exporter.models import ExportJob
 
 
 def extra_select_and_values_for_model(
-        instance, user, table, model, prefix=None):
+        instance, job, table, model, prefix=None):
     if prefix:
         prefix += '__'
     else:
         prefix = ''
 
-    perms = user.get_instance_permissions(instance,
-                                          model)\
-                .values_list('field_name', flat=True)
+    if job.user:
+        perms_qs = job.user.get_instance_permissions(instance, model)
+    else:
+        perms_qs = instance.default_role.model_permissions(model)
+
+    perms = perms_qs.values_list('field_name', flat=True)
 
     extra_select = {}
     prefixed_names = []
@@ -45,63 +48,58 @@ def csv_export(job_pk, model, query, display_filters):
     job = ExportJob.objects.get(pk=job_pk)
     instance = job.instance
 
-    if job.user and job.user.is_authenticated():
-        if model == 'species':
-            initial_qs = (Species.objects.
-                          filter(instance=instance))
+    if model == 'species':
+        initial_qs = (Species.objects.
+                      filter(instance=instance))
 
-            extra_select, values = extra_select_and_values_for_model(
-                instance, job.user, 'treemap_species', 'species')
-            ordered_fields = values + extra_select.keys()
+        extra_select, values = extra_select_and_values_for_model(
+            instance, job, 'treemap_species', 'species')
+        ordered_fields = values + extra_select.keys()
+        limited_qs = initial_qs.extra(select=extra_select)\
+                               .values(*ordered_fields)
+    else:
+        # model == 'tree'
+
+        # TODO: if an anonymous job with the given query has been
+        # done since the last update to the audit records table,
+        # just return that job
+
+        # get the plots for the provided
+        # query and turn them into a tree queryset
+        initial_qs = Filter(query, display_filters, instance)\
+            .get_objects(Tree)
+
+        extra_select_tree, values_tree = extra_select_and_values_for_model(
+            instance, job, 'treemap_tree', 'Tree')
+        extra_select_plot, values_plot = extra_select_and_values_for_model(
+            instance, job, 'treemap_mapfeature', 'Plot',
+            prefix='plot')
+        extra_select_sp, values_sp = extra_select_and_values_for_model(
+            instance, job, 'treemap_species', 'Species',
+            prefix='species')
+
+        if 'plot__geom' in values_plot:
+            values_plot = [f for f in values_plot if f != 'plot__geom']
+            values_plot += ['plot__geom__x', 'plot__geom__y']
+
+        extra_select = {'plot__geom__x':
+                        'ST_X(treemap_mapfeature.the_geom_webmercator)',
+                        'plot__geom__y':
+                        'ST_Y(treemap_mapfeature.the_geom_webmercator)'}
+
+        extra_select.update(extra_select_tree)
+        extra_select.update(extra_select_plot)
+        extra_select.update(extra_select_sp)
+
+        ordered_fields = (sorted(values_tree) +
+                          sorted(values_plot) +
+                          sorted(values_sp))
+
+        if ordered_fields:
             limited_qs = initial_qs.extra(select=extra_select)\
                                    .values(*ordered_fields)
         else:
-            # model == 'tree'
-
-            # TODO: if an anonymous job with the given query has been
-            # done since the last update to the audit records table,
-            # just return that job
-
-            # get the plots for the provided
-            # query and turn them into a tree queryset
-            initial_qs = Filter(query, display_filters, instance)\
-                .get_objects(Tree)
-
-            extra_select_tree, values_tree = extra_select_and_values_for_model(
-                instance, job.user, 'treemap_tree', 'Tree')
-            extra_select_plot, values_plot = extra_select_and_values_for_model(
-                instance, job.user, 'treemap_mapfeature', 'Plot',
-                prefix='plot')
-            extra_select_sp, values_sp = extra_select_and_values_for_model(
-                instance, job.user, 'treemap_species', 'Species',
-                prefix='species')
-
-            if 'plot__geom' in values_plot:
-                values_plot = [f for f in values_plot if f != 'plot__geom']
-                values_plot += ['plot__geom__x', 'plot__geom__y']
-
-            extra_select = {'plot__geom__x':
-                            'ST_X(treemap_mapfeature.the_geom_webmercator)',
-                            'plot__geom__y':
-                            'ST_Y(treemap_mapfeature.the_geom_webmercator)'}
-
-            extra_select.update(extra_select_tree)
-            extra_select.update(extra_select_plot)
-            extra_select.update(extra_select_sp)
-
-            ordered_fields = (sorted(values_tree) +
-                              sorted(values_plot) +
-                              sorted(values_sp))
-
-            if ordered_fields:
-                limited_qs = initial_qs.extra(select=extra_select)\
-                                       .values(*ordered_fields)
-            else:
-                limited_qs = initial_qs.none()
-
-    else:
-        ordered_fields = None
-        limited_qs = initial_qs.none()
+            limited_qs = initial_qs.none()
 
     if not initial_qs.exists():
         job.status = ExportJob.EMPTY_QUERYSET_ERROR
