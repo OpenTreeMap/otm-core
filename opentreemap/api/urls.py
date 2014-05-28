@@ -28,7 +28,7 @@ urlpatterns = patterns(
     (r'^$', status_view),
     (r'^version$', version_view),
 
-    (r'^user$', user_endpoint),
+    url(r'^user$', user_endpoint, name='user_info'),
     url(r'^user/(?P<user_id>\d+)$', update_user_endpoint,
         name='update_user'),
     url(r'^user/(?P<user_id>\d+)/photo$', update_profile_photo_endpoint,

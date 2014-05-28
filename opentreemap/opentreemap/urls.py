@@ -50,7 +50,7 @@ urlpatterns = patterns(
         user_audits_view, name='user_audits'),
     url(r'^users/%s/photo/$' % USERNAME_PATTERN,
         upload_user_photo_view, name='user_photo'),
-    url(r'^api/v2/', include('api.urls')),
+    url(r'^api/v(?P<version>\d+)/', include('api.urls')),
     # The profile view is handled specially by redirecting to
     # the page of the currently logged in user
     url(r'^accounts/profile/$', profile_to_user_view, name='profile'),
