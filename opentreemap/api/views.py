@@ -35,7 +35,8 @@ from api.decorators import (check_signature, check_signature_and_require_login,
 from api.instance import instance_info, instances_closest_to_point
 from api.plots import plots_closest_to_point, get_plot, update_or_create_plot
 from api.user import (user_info, create_user, update_user,
-                      update_profile_photo)
+                      update_profile_photo, transform_user_request,
+                      transform_user_response)
 from exporter.user import users_json, users_csv
 
 
@@ -301,13 +302,16 @@ species_list_endpoint = instance_api_do(
 
 user_endpoint = api_do(
     route(
-        GET=do(login_required, user_info),
+        GET=do(login_required, transform_user_response, user_info),
         POST=do(
+            transform_user_request,
             return_400_if_validation_errors,
             create_user)))
 
 update_user_endpoint = logged_in_api_do(
+    transform_user_request,
     return_400_if_validation_errors,
+    transform_user_response,
     route(PUT=update_user))
 
 add_photo_endpoint = logged_in_api_do(

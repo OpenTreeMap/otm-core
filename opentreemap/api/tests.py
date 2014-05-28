@@ -39,10 +39,11 @@ from api.views import add_photo_endpoint, update_profile_photo_endpoint
 from api.instance import instances_closest_to_point, instance_info
 from api.user import create_user
 from api.auth import get_signature_for_request
-from api.decorators import (check_signature, SIG_TIMESTAMP_FORMAT)
+from api.decorators import (check_signature, SIG_TIMESTAMP_FORMAT,
+                            API_VERSIONS)
 
-
-API_PFX = "/api/v3"
+LATEST_API = str(max(API_VERSIONS))
+API_PFX = "/api/v%s" % LATEST_API
 
 
 def sign_request_as_user(request, user):
@@ -1168,8 +1169,8 @@ class TreePhotoTest(LocalMediaTestCase):
 
             req = sign_request_as_user(req, self.user)
 
-            response = add_photo_endpoint(req, '3', self.instance.url_name,
-                                          plot_id)
+            response = add_photo_endpoint(req, LATEST_API,
+                                          self.instance.url_name, plot_id)
 
         plot = Plot.objects.get(pk=plot.pk)
 
@@ -1219,7 +1220,8 @@ class UserTest(LocalMediaTestCase):
 
             req = sign_request_as_user(req, peon)
 
-            response = update_profile_photo_endpoint(req, '3', str(peon.pk))
+            response = update_profile_photo_endpoint(req, LATEST_API,
+                                                     str(peon.pk))
 
         self.assertEquals(response.status_code, 200)
 
@@ -1245,7 +1247,8 @@ class UserTest(LocalMediaTestCase):
 
             req = sign_request_as_user(req, peon)
 
-            response = update_profile_photo_endpoint(req, '3', str(grunt.pk))
+            response = update_profile_photo_endpoint(req, LATEST_API,
+                                                     str(grunt.pk))
 
         self.assertEquals(response.status_code, 403)
 
@@ -1261,6 +1264,19 @@ class UserTest(LocalMediaTestCase):
 
         valid_password = user.check_password(self.defaultUserDict['password'])
         self.assertEqual(valid_password, True)
+
+    def testGetUserVersion2(self):
+        peon = make_user(username='peon', password='pw')
+        peon.first_name = 'Puny'
+        peon.last_name = 'Mortal'
+        peon.save()
+
+        url = reverse('user_info', kwargs={'version': 2})
+
+        ret = loads(get_signed(self.client, url, user=peon).content)
+
+        self.assertEqual(peon.first_name, ret['firstname'])
+        self.assertEqual(peon.last_name, ret['lastname'])
 
     def testCreateDuplicateUsername(self):
         create_user(self.make_post_request(self.defaultUserDict))
@@ -1334,6 +1350,26 @@ class UserTest(LocalMediaTestCase):
         valid_password = peon.check_password('whateva')
 
         self.assertTrue(valid_password)
+
+    def testUpdateUserNameVersion2(self):
+        peon = make_user(username='peon', password='pw')
+        peon.save()
+
+        url = reverse('update_user', kwargs={'version': 2,
+                                             'user_id': peon.pk})
+
+        def updatePeonRequest(d):
+            return put_json(url, d, self.client, user=peon)
+
+        updatePeonRequest({'lastname': 'l1'})
+
+        peon = User.objects.get(pk=peon.pk)
+        self.assertEquals(peon.last_name, 'l1')
+
+        updatePeonRequest({'lastname': 'l2'})
+
+        peon = User.objects.get(pk=peon.pk)
+        self.assertEquals(peon.last_name, 'l2')
 
     def testCantRemoveRequiredFields(self):
         peon = make_user(username='peon', password='pw')

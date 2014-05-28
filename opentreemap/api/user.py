@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
+from functools import wraps
+from io import BytesIO
 
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, HttpResponseForbidden
@@ -29,14 +31,17 @@ def update_profile_photo(request, user_id):
     return upload_user_photo(request, user)
 
 
-def user_info(request):
-    user_dict = request.user.as_dict()
+def _context_dict_for_user(user):
+    user_dict = user.as_dict()
 
     del user_dict['password']
-
     user_dict["status"] = "success"
 
     return user_dict
+
+
+def user_info(request):
+    return _context_dict_for_user(request.user)
 
 
 def _conflict_response(s):
@@ -71,7 +76,7 @@ def update_user(request, user_id):
     else:
         user.save()
 
-    return user
+    return _context_dict_for_user(user)
 
 
 def create_user(request):
@@ -110,3 +115,47 @@ def create_user(request):
     RegistrationProfile.objects.create_profile(user)
 
     return {'status': 'success', 'id': user.pk}
+
+
+def transform_user_request(user_view_fn):
+    """
+    There was an issue with User first/last name fields being duplicated
+
+    The issue was fixed in 3d2e95390c, but needs to be supported for API < 3
+    """
+    @wraps(user_view_fn)
+    def wrapper(request, *args, **kwargs):
+        if request.api_version < 3:
+            body_dict = json.loads(request.body)
+
+            body_dict['first_name'] = body_dict.get('firstname', '')
+            body_dict['last_name'] = body_dict.get('lastname', '')
+
+            body = json.dumps(body_dict)
+            # You can't directly set a new request body
+            # (http://stackoverflow.com/a/22745559)
+            request._body = body
+            request._stream = BytesIO(body)
+
+        return user_view_fn(request, *args, **kwargs)
+
+    return wrapper
+
+
+def transform_user_response(user_view_fn):
+    """
+    There was an issue with User first/last name fields being duplicated
+
+    The issue was fixed in 3d2e95390c, but needs to be supported for API < 3
+    """
+    @wraps(user_view_fn)
+    def wrapper(request, *args, **kwargs):
+        user_dict = user_view_fn(request, *args, **kwargs)
+
+        if request.api_version < 3:
+            user_dict['firstname'] = user_dict['first_name']
+            user_dict['lastname'] = user_dict['last_name']
+
+        return user_dict
+
+    return wrapper
