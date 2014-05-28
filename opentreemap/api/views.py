@@ -270,9 +270,11 @@ def add_photo(request, instance, plot_id):
 instance_api_do = partial(do, check_signature,
                           instance_request, json_api_call)
 
+api_do = partial(do, check_signature, json_api_call)
+
 plots_closest_to_point_endpoint = instance_api_do(plots_closest_to_point)
 
-instances_closest_to_point_endpoint = instance_api_do(
+instances_closest_to_point_endpoint = api_do(
     instances_closest_to_point)
 
 instance_info_endpoint = instance_api_do(instance_info)

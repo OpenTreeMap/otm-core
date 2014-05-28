@@ -15,13 +15,17 @@ from api.views import (status_view, version_view,
                        plot_endpoint, edits, plots_closest_to_point_endpoint,
                        instance_info_endpoint, add_photo_endpoint,
                        export_users_csv_endpoint, export_users_json_endpoint,
-                       update_profile_photo_endpoint)
+                       update_profile_photo_endpoint,
+                       instances_closest_to_point_endpoint)
 
 from treemap.instance import URL_NAME_PATTERN
 
 
 instance_pattern = (r'^instance/(?P<instance_url_name>' +
                     URL_NAME_PATTERN + r')')
+
+lat_lon_pattern = '(?P<lat>-{0,1}\d+(\.\d+){0,1}),' \
+                  '(?P<lng>-{0,1}\d+(\.\d+){0,1})'
 
 urlpatterns = patterns(
     '',
@@ -35,6 +39,9 @@ urlpatterns = patterns(
         name='update_user_photo'),
     (r'^user/(?P<user_id>\d+)/reset_password$', reset_password),
     (r'^user/(?P<user_id>\d+)/edits$', edits),
+
+    ('^locations/' + lat_lon_pattern + '/instances',
+     instances_closest_to_point_endpoint),
 
     (instance_pattern + r'/plots/(?P<plot_id>\d+)/tree/photo$',
      add_photo_endpoint),
@@ -54,10 +61,8 @@ urlpatterns = patterns(
     (instance_pattern + r'/plots$', plots_endpoint),
     (instance_pattern + r'/plots/(?P<plot_id>\d+)$',
      plot_endpoint),
-    (instance_pattern + r'/locations/'
-     '(?P<lat>-{0,1}\d+(\.\d+){0,1}),(?P<lng>-{0,1}\d+(\.\d+){0,1})'
-     '/plots', plots_closest_to_point_endpoint),
-
+    (instance_pattern + r'/locations/' + lat_lon_pattern + '/plots',
+     plots_closest_to_point_endpoint),
     url(instance_pattern + r'/users.csv',
         export_users_csv_endpoint, name='user_csv'),
     url(instance_pattern + r'/users.json',
