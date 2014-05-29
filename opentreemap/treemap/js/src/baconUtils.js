@@ -120,6 +120,10 @@ exports.enterOrClickEventStream = function(options) {
         triggerEventStream = enterKeyPressStream.merge(
             performSearchClickStream);
 
+    // When enter is pressed blur the text input that caused it to close
+    // any touch keyboards that may be open
+    enterKeyPressStream.map('.target').map($).onValue('.blur');
+
     return triggerEventStream;
 };
 
