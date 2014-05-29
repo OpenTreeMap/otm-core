@@ -343,6 +343,21 @@ class Instance(models.Model):
         from treemap.plugin import feature_enabled
         return feature_enabled(self, feature)
 
+    def seed_with_dummy_default_role(self):
+        """
+        Instances need roles and roles needs instances... crazy stuff
+        we're going to create the needed role below however, we'll temporarily
+        use a 'dummy role'. The dummy role has no instance.
+        """
+        from treemap.audit import Role
+        dummy_roles = Role.objects.filter(instance__isnull=True)
+        if len(dummy_roles) == 0:
+            dummy_role = Role.objects.create(name='empty', rep_thresh=0)
+        else:
+            dummy_role = dummy_roles[0]
+
+        self.default_role = dummy_role
+
     def save(self, *args, **kwargs):
         self.full_clean()
 

@@ -88,24 +88,14 @@ class Command(BaseCommand):
                             'letters, numbers, and dashes ("-")')
         url_name = options.get('url_name')
 
-        # Instances need roles and roles needs instances... crazy
-        # stuff we're going to create the needed role below however,
-        # we'll temporarily use a 'dummy role'. The dummy role has
-        # no instance.
-        dummy_roles = Role.objects.filter(instance__isnull=True)
-        if len(dummy_roles) == 0:
-            dummy_role = Role.objects.create(name='empty', rep_thresh=0)
-        else:
-            dummy_role = dummy_roles[0]
-
         instance = Instance(
             config={},
             name=name,
             bounds=bounds,
             is_public=True,
-            default_role=dummy_role,
             url_name=url_name)
 
+        instance.seed_with_dummy_default_role()
         instance.full_clean()
         instance.save()
 
