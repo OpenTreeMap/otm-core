@@ -17,7 +17,7 @@ from django.http import HttpResponseRedirect
 
 from opentreemap.util import json_from_request
 
-from treemap.audit import Audit
+from treemap.audit import Audit, Authorizable, get_auditable_class
 from treemap.decorators import get_instance_or_404
 from treemap.images import save_image_from_request
 from treemap.util import (package_validation_errors,
@@ -98,24 +98,43 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
 
     if instance:
         if instance.is_accessible_by(logged_in_user):
-            instance_filter = Q(pk=instance.pk)
+            instances = Instance.objects.filter(pk=instance.pk)
         else:
-            # Force no results
-            return {'audits': [],
-                    'next_page': None,
-                    'prev_page': None}
+            instances = []
     # If we didn't specify an instance we only want to
     # show audits where the user has permission
     else:
-        instance_filter = _user_accessible_instance_filter(logged_in_user)
+        instances = Instance.objects.filter(
+            _user_accessible_instance_filter(logged_in_user))
 
-    instances = Instance.objects.filter(instance_filter)
+    if len(instances) == 0:
+        # Force no results
+        return {'audits': [],
+                'total_count': 0,
+                'next_page': None,
+                'prev_page': None}
 
-    # We need a filter per-instance in order to only show UDF collection
-    # visible to the user
-    for inst in Instance.objects.filter(instance_filter):
-        # Only add UDF collections if their parent models are being shown
+    model_filter = Q()
+    # We only want to show the TreePhoto's image, not other fields
+    # and we want to do it automatically if 'Tree' was specified as
+    # a model
+    # There is no need to check permissions, because photos are always visible
+    if 'Tree' in models:
+        model_filter = model_filter | Q(model='TreePhoto', field='image')
+
+    # We need a filter per-instance in to only show fields visible to the user
+    for inst in instances:
         for model in models:
+            ModelClass = get_auditable_class(model)
+            if issubclass(ModelClass, Authorizable):
+                fake_model = ModelClass(instance=inst)
+                visible_fields = fake_model.visible_fields(logged_in_user)
+                model_filter = model_filter |\
+                    Q(model=model, field__in=visible_fields, instance=inst)
+            else:
+                model_filter = model_filter | Q(model=model, instance=inst)
+
+            # Only add UDF collections if their parent models are being shown
             if model == 'Tree':
                 fake_model = Tree(instance=inst)
             elif model == 'Plot':
