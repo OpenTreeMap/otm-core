@@ -62,12 +62,15 @@ function init(options) {
 
     accordionHtmlStream.onValue(function () { $buttonGroup.show(); });
 
+    accordionHtmlStream.assign($('#map-feature-accordion'), 'html');
+
+    accordionHtmlStream
+        .map(BU.isDefinedNonEmpty)
+        .decode({true: 'show', false: 'hide'})
+        .onValue(_.bind($accordionSection.collapse, $accordionSection));
+
     var featureTypeStream = accordionHtmlStream.map($)
             .map('.attr', 'data-map-feature-type');
-
-    featureTypeStream
-        .decode({plot: 'show', resource: 'hide'})
-        .onValue($accordionSection.collapse);
 
     featureTypeStream
         .decode({plot: 'visible', resource: 'hidden'})
