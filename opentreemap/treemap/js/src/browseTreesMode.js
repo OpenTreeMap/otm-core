@@ -137,7 +137,7 @@ function showPlotDetailPopup(newPopup) {
 
     popup = newPopup;
 
-    plotMarker.useTreeIcon(popup.isPlot);
+    plotMarker.useTreeIcon(popup ? popup.isPlot : false);
 
     if (popup) {
         // Add the popup
