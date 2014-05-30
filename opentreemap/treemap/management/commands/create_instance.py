@@ -8,7 +8,7 @@ from optparse import make_option
 
 from django.core.management.base import BaseCommand
 
-from django.contrib.gis.geos import MultiPolygon, Polygon, GEOSGeometry
+from django.contrib.gis.geos import MultiPolygon, Polygon, GEOSGeometry, Point
 
 from treemap.instance import Instance
 from treemap.models import Boundary, InstanceUser, User
@@ -28,11 +28,11 @@ class Command(BaseCommand):
                     help='Specify admin user id'),
         make_option('--center',
                     dest='center',
-                    help='Specify the center of the map as an X,Y pair'),
+                    help='Specify the center of the map as a lat,lng pair'),
         make_option('--geojson',
                     dest='geojson',
                     help=('Specify a boundary via a geojson file. Must be '
-                          'projected in EPSG3857')),
+                          'projected in EPSG:4326')),
         make_option('--url_name',
                     dest='url_name',
                     help=('Specify a "url_name" starting with a '
@@ -49,8 +49,6 @@ class Command(BaseCommand):
 
         if not options['user']:
             logger.warning('An admin user was not specified. While not a '
-
-
                            'problem initially, no users will be able to '
                            'modify many parts of this instance. It is '
                            'recommended that you create a user first and call '
@@ -67,10 +65,14 @@ class Command(BaseCommand):
         if options['center']:
             center = options['center'].split(',')
             if len(center) != 2:
-                raise Exception('Center should be an x,y pair in EPSG3857')
+                raise Exception('Center should be a lat,lng pair in SRID 4326')
 
-            x = int(center[0])
-            y = int(center[1])
+            center_pt = Point(float(center[0]), float(center[1]), srid=4326)
+
+            # Bounding box built in web mercator to have units in meters
+            center_pt.transform(3857)
+            x = center_pt.x
+            y = center_pt.y
             offset = 50000
             bounds = Polygon(((x - offset, y - offset),
                               (x - offset, y + offset),
@@ -80,7 +82,7 @@ class Command(BaseCommand):
 
             bounds = MultiPolygon((bounds, ))
         else:
-            bounds = GEOSGeometry(open(options['geojson']).read())
+            bounds = GEOSGeometry(open(options['geojson'], srid=4326).read())
 
         if not options.get('url_name', None):
             raise Exception('You must specify a "url_name" starting with a '
