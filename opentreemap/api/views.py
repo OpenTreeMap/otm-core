@@ -278,8 +278,6 @@ api_do = partial(do, csrf_exempt, check_signature, set_api_version,
 logged_in_api_do = partial(do, csrf_exempt, set_api_version,
                            check_signature_and_require_login, json_api_call)
 
-api_do = partial(do, check_signature, json_api_call)
-
 plots_closest_to_point_endpoint = instance_api_do(plots_closest_to_point)
 
 instances_closest_to_point_endpoint = api_do(
