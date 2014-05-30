@@ -1,10 +1,12 @@
 {# Template meant to be included as the contents of a Bootstrap Carousel #}
-{# Expects to be given - photos: a list of TreePhoto objects, error: an optional error message #}
+{# Expects to be given - photos: a list of MapFeaturePhoto objects, error: an optional error message #}
 
 <div class="carousel-inner">
 {% for photo in photos %}
   <div class="item {{ forloop.first|yesno:"active," }}">
-    <a href="{{ photo.image }}"><img src="{{ photo.thumbnail }}" alt=""></a>
+    <a data-toggle="lightbox" href="#photo-lightbox-{{ forloop.counter0 }}">
+      <img src="{{ photo.thumbnail }}" alt="">
+    </a>
   </div>
 {% empty %}
   {% if feature.is_plot %}
@@ -24,6 +26,19 @@
     {% endfor %}</ol>
   </div>
 </div>
+{% for photo in photos %}
+  <div id="photo-lightbox-{{ forloop.counter0 }}" class="lightbox hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="lightbox-header">
+      <button type="button" class="close" data-dismiss="lightbox" aria-hidden="true">×</button>
+    </div>
+    <div class="lightbox-content">
+      <img src="{{ photo.image }}">
+    </div>
+    <div class="lightbox-footer">
+      Add Rotate controls Here!
+    </div>
+  </div>
+{% endfor %}
 {% if photos|length > 1 %}
 <a class="carousel-control left disabled" href="" data-slide="prev"><i class="icon-left-circled"></i></a>
 <a class="carousel-control right" href="#photo-carousel" data-slide="next"><i class="icon-right-circled"></i></a>

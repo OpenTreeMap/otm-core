@@ -13,6 +13,9 @@ require('jqueryUiWidget');
 require('jqueryIframeTransport');
 require('jqueryFileUpload');
 
+// Modal for viewing full image
+require('bootstrap-lightbox');
+
 module.exports.init = function(options) {
     var $panel = $(options.panelId),
         $image = $(options.imageElement),
@@ -111,6 +114,9 @@ module.exports.init = function(options) {
                 .addClass('disabled');
         }
     });
+
+    // Enable bootstrap lightbox on all photos
+    $imageContainer.find('[data-toggle="lightbox"]').lightbox();
 
     return finishedStream;
 };

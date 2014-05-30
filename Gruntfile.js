@@ -1,8 +1,8 @@
+"use strict";
+
 var path = require('path');
 
 module.exports = function(grunt) {
-    "use strict";
-
     var debug = typeof grunt.option('dev') !== "undefined";
 
     var appBundlePath = 'treemap/static/js/treemap.js';
@@ -160,16 +160,20 @@ module.exports = function(grunt) {
                             exports: null,
                             depends: { jquery: 'jQuery' }
                         },
-                        // END modules which add themselves to the jQuery object
-                        jscolor: {
-                            path: './treemap/js/shim/jscolor.js',
-                            exports: null
-                        },
-                        // Bootstrap-datepicker puts itself onto the jQuery object
                         "bootstrap-datepicker": {
                             path: './treemap/js/shim/bootstrap-datepicker.js',
                             exports: null,
                             depends: { jquery: 'jQuery', bootstrap: 'bootstrap' }
+                        },
+                        "bootstrap-lightbox": {
+                            path: './treemap/js/shim/bootstrap-lightbox.js',
+                            exports: null,
+                            depends: { jquery: 'jQuery', bootstrap: 'bootstrap' }
+                        },
+                        // END modules which add themselves to the jQuery object
+                        jscolor: {
+                            path: './treemap/js/shim/jscolor.js',
+                            exports: null
                         },
                         history: {
                             path: './treemap/js/shim/native.history.js',
@@ -212,6 +216,7 @@ module.exports = function(grunt) {
             treemap: {
                 src: ['treemap/css/vendor/bootstrap.css',
                       'treemap/css/vendor/bootstrap-responsive.css',
+                      'treemap/css/vendor/bootstrap-lightbox.css',
                       'treemap/css/vendor/datepicker.css',
                       'treemap/css/vendor/fontello.css',
                       'treemap/css/vendor/toastr.css',
