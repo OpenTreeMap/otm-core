@@ -276,9 +276,11 @@ api_do = partial(do, check_signature, set_api_version, json_api_call)
 logged_in_api_do = partial(
     do, set_api_version, check_signature_and_require_login, json_api_call)
 
+api_do = partial(do, check_signature, json_api_call)
+
 plots_closest_to_point_endpoint = instance_api_do(plots_closest_to_point)
 
-instances_closest_to_point_endpoint = instance_api_do(
+instances_closest_to_point_endpoint = api_do(
     instances_closest_to_point)
 
 instance_info_endpoint = instance_api_do(instance_info)
