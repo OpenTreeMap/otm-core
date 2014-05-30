@@ -48,11 +48,7 @@ class Command(BaseCommand):
         name = args[0]
 
         if not options['user']:
-            logger.warning('An admin user was not specified. While not a '
-                           'problem initially, no users will be able to '
-                           'modify many parts of this instance. It is '
-                           'recommended that you create a user first and call '
-                           'this command with "--user"')
+            raise Exception('An admin user must be specified. with "--user"')
 
         if options.get('center', None) and options.get('geojson', None):
             raise Exception('You must specifiy only one of '
