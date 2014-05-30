@@ -8,6 +8,7 @@ from functools import partial
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.db import transaction
@@ -268,13 +269,14 @@ def add_photo(request, instance, plot_id):
 # authentication "login_optional" before they can access they
 # instance data
 
-instance_api_do = partial(
-    do, check_signature, set_api_version, instance_request, json_api_call)
+instance_api_do = partial(do, csrf_exempt, check_signature, set_api_version,
+                          instance_request, json_api_call)
 
-api_do = partial(do, check_signature, set_api_version, json_api_call)
+api_do = partial(do, csrf_exempt, check_signature, set_api_version,
+                 json_api_call)
 
-logged_in_api_do = partial(
-    do, set_api_version, check_signature_and_require_login, json_api_call)
+logged_in_api_do = partial(do, csrf_exempt, set_api_version,
+                           check_signature_and_require_login, json_api_call)
 
 api_do = partial(do, check_signature, json_api_call)
 
@@ -331,12 +333,14 @@ update_profile_photo_endpoint = logged_in_api_do(
     route(POST=update_profile_photo))
 
 export_users_csv_endpoint = do(
+    csrf_exempt,
     check_signature_and_require_login,
     set_api_version,
     admin_instance_request,
     route(GET=users_csv))
 
 export_users_json_endpoint = do(
+    csrf_exempt,
     check_signature_and_require_login,
     set_api_version,
     admin_instance_request,

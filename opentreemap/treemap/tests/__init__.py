@@ -181,6 +181,11 @@ def make_observer_role(instance):
                              permissions)
 
 
+def set_invisible_permissions(instance, user, model_type, field_names):
+    set_permissions(instance, user, model_type, field_names,
+                    FieldPermission.NONE)
+
+
 def set_read_permissions(instance, user, model_type, field_names):
     set_permissions(instance, user, model_type, field_names,
                     FieldPermission.READ_ONLY)
@@ -304,6 +309,13 @@ def make_instance(name=None, is_public=False, url_name=None, point=None):
                    (p1.x + 20, p1.y),
                    (p1.x, p1.y)))
     instance.bounds = MultiPolygon((tri,))
+    instance.save()
+
+    new_role = Role.objects.create(
+        name='role-%s' % name, instance=instance,
+        rep_thresh=0, default_permission=FieldPermission.READ_ONLY)
+
+    instance.default_role = new_role
     instance.save()
 
     return instance

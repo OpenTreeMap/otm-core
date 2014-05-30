@@ -198,7 +198,7 @@ def approve_or_reject_existing_edit(audit, user, approved):
     # 'user' is authorized to approve this edit
     _verify_user_can_apply_audit(audit, user)
 
-    TheModel = _get_auditable_class(audit.model)
+    TheModel = get_auditable_class(audit.model)
 
     # If we want to 'review approve' this audit nothing
     # happens to the model, we're just saying "looks good!"
@@ -290,7 +290,7 @@ def approve_or_reject_audit_and_apply(audit, user, approved):
                          current_value=audit.current_value,
                          user=user)
 
-    TheModel = _get_auditable_class(audit.model)
+    TheModel = get_auditable_class(audit.model)
     if approved:
         review_audit.action = Audit.Type.PendingApprove
 
@@ -560,7 +560,7 @@ class FieldPermission(models.Model):
 
     def clean(self):
         try:
-            cls = _get_authorizable_class(self.model_name)
+            cls = get_authorizable_class(self.model_name)
             cls._meta.get_field_by_name(self.field_name)
             assert issubclass(cls, Authorizable)
         except KeyError:
@@ -949,7 +949,7 @@ class Auditable(UserTrackable):
             model_id = self.pk
         else:
             model_id = _reserve_model_id(
-                _get_authorizable_class(self._model_name))
+                get_authorizable_class(self._model_name))
             self.pk = model_id
             self.id = model_id  # for e.g. Plot, where pk != id
             self.is_pending_insert = True
@@ -1105,7 +1105,7 @@ class Audit(models.Model):
 
         # get the model/field class for each audit record and convert
         # the value to a python object
-        cls = _get_auditable_class(self.model)
+        cls = get_auditable_class(self.model)
         field_query = cls._meta.get_field_by_name(self.field)
         field_cls, fk_model_cls, is_local, m2m = field_query
         field_modified_value = field_cls.to_python(value)
@@ -1192,7 +1192,7 @@ class Audit(models.Model):
             obj._model_name, obj.instance, obj.pk)
 
     def short_descr(self):
-        cls = _get_auditable_class(self.model)
+        cls = get_auditable_class(self.model)
         # If a model has a defined short_descr method, use that
         if hasattr(cls, 'short_descr'):
             return cls.short_descr(self)
@@ -1306,6 +1306,6 @@ def _get_model_class(class_dict, cls, model_name):
 _auditable_classes = {}
 _authorizable_classes = {}
 
-_get_auditable_class = partial(_get_model_class, _auditable_classes, Auditable)
-_get_authorizable_class = partial(_get_model_class, _authorizable_classes,
-                                  Authorizable)
+get_auditable_class = partial(_get_model_class, _auditable_classes, Auditable)
+get_authorizable_class = partial(_get_model_class, _authorizable_classes,
+                                 Authorizable)

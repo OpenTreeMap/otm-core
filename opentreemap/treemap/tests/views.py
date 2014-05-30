@@ -25,7 +25,7 @@ from treemap import ecobackend
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.audit import (Audit, approve_or_reject_audit_and_apply,
                            approve_or_reject_audits_and_apply,
-                           FieldPermission)
+                           FieldPermission, add_default_permissions)
 from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, StaticPage, ITreeRegion)
 from treemap.views import (species_list, boundary_to_geojson, plot_detail,
@@ -44,7 +44,7 @@ from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            set_write_permissions, MockSession,
                            delete_all_app_users, set_read_permissions,
                            make_plain_user, LocalMediaTestCase, media_dir,
-                           make_instance_user)
+                           make_instance_user, set_invisible_permissions)
 from treemap.tests.udfs import make_collection_udf
 
 
@@ -996,6 +996,9 @@ class RecentEditsViewTest(ViewTestCase):
 
         self.instance = make_instance(is_public=True)
         self.instance2 = make_instance('i2', is_public=True)
+        add_default_permissions(self.instance, [self.instance.default_role])
+        add_default_permissions(self.instance2, [self.instance2.default_role])
+
         self.officer = make_officer_user(self.instance)
         self.commander = make_commander_user(self.instance)
         self.pending_user = make_apprentice_user(self.instance)
@@ -1333,6 +1336,8 @@ class RecentEditsViewTest(ViewTestCase):
         make_collection_udf(self.instance, 'Stew')
         set_write_permissions(self.instance, self.commander, 'Plot',
                               ['udf:Stew'])
+        set_read_permissions(self.instance, self.officer, 'Plot',
+                             self.plot.tracked_fields)
 
         self.plot.udfs['Stew'] = [{'action': 'water', 'height': 343}]
         self.plot.save_with_user(self.commander)
@@ -1340,6 +1345,14 @@ class RecentEditsViewTest(ViewTestCase):
         self.check_audits(
             "/sdj/?page_size=2&exclude_pending=true",
             [self.next_plot_delta, self.plot_delta], user=self.officer)
+
+    def test_normal_audits_not_shown_with_no_permissions(self):
+        set_invisible_permissions(self.instance, self.commander, 'Plot',
+                                  self.plot.tracked_fields)
+        set_invisible_permissions(self.instance, self.commander, 'Tree',
+                                  self.tree.tracked_fields)
+
+        self.check_audits("/sdj/", [], user=self.commander)
 
 
 class SpeciesViewTests(ViewTestCase):
@@ -1401,6 +1414,7 @@ class UserViewTests(ViewTestCase):
         self.instance.save()
 
         self.joe = make_commander_user(self.instance, 'joe')
+        add_default_permissions(self.instance, [self.instance.default_role])
 
     def test_get_by_username(self):
         context = user(make_request(), self.joe.username)

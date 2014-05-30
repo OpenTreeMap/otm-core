@@ -5,7 +5,6 @@ from __future__ import division
 
 import json
 
-from django.views.decorators.csrf import csrf_exempt
 from django.http import Http404
 
 
@@ -18,7 +17,6 @@ def route(**kwargs):
     request method/verb, and 'ELSE' maps to a view to pass the request
     to if the given request method/verb was not specified.
     """
-    @csrf_exempt
     def routed(request, *args2, **kwargs2):
         method = request.method
         if method in kwargs:

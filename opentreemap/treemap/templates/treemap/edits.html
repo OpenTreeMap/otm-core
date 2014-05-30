@@ -118,13 +118,13 @@ active
 
           <td>
             {% if audit.clean_previous_value %}
-            <a href="?models=Plot,id={{ audit.clean_previous_value.pk|unlocalize }}">
+            <a href="?models=Plot&model_id={{ audit.clean_previous_value.pk|unlocalize }}">
               Plot {{ audit.clean_previous_value }}
             </a>
             {% endif %}
           </td>
           <td>
-            <a href="?models=Plot,id={{ audit.clean_current_value.pk|unlocalize }}">
+            <a href="?models=Plot&model_id={{ audit.clean_current_value.pk|unlocalize }}">
               Plot {{ audit.clean_current_value|default_if_none:"" }}
             </a>
           </td>
