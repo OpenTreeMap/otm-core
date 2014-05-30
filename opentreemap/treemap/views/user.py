@@ -23,7 +23,7 @@ from treemap.images import save_image_from_request
 from treemap.util import (package_validation_errors,
                           bad_request_json_response,
                           get_filterable_audit_models)
-from treemap.models import Plot, Tree, User, Instance, InstanceUser
+from treemap.models import Plot, Tree, User, Instance, InstanceUser, MapFeature
 
 USER_EDIT_FIELDS = collections.OrderedDict([
     ('first_name',
@@ -114,13 +114,16 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
                 'next_page': None,
                 'prev_page': None}
 
+    map_feature_models = set(MapFeature.subclass_dict().keys())
     model_filter = Q()
     # We only want to show the TreePhoto's image, not other fields
     # and we want to do it automatically if 'Tree' was specified as
-    # a model
+    # a model.  The same goes for MapFeature(s) <-> MapFeaturePhoto
     # There is no need to check permissions, because photos are always visible
     if 'Tree' in models:
         model_filter = model_filter | Q(model='TreePhoto', field='image')
+    if map_feature_models.intersection(models):
+        model_filter = model_filter | Q(model='MapFeaturePhoto', field='image')
 
     # We need a filter per-instance in to only show fields visible to the user
     for inst in instances:
