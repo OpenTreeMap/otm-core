@@ -225,6 +225,10 @@ def save_audit(migration_rules, dependency_ids, model_hash, instance):
         model.current_value = audit_object_relic.otm2_model_id
 
     model.save()
+
+    # should we save relics audits, or is this a lie?
+    # TODO: make audit export ids have meaning, instead of just
+    # serializing them.
     OTM1ModelRelic.objects.create(
         instance=instance,
         otm1_model_id=model_hash['pk'],
