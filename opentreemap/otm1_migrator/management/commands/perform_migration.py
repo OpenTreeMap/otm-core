@@ -400,6 +400,7 @@ def hashes_to_saved_objects(
             model = model_save_fn(model_hash, instance)
 
             if model_key_map is not None and model and model.pk:
+                print("saved model: %s" % model.pk)
                 model_key_map[model_hash['pk']] = model.pk
         except Exception:
             raise
@@ -522,6 +523,7 @@ class Command(InstanceDataCommand):
                 save_comment, migration_rules, dependency_ids),
         }
 
+        print("reading relics into memory...", end="")
         # depedency_ids is a cache of old pks to new pks, it is inflated
         # from database records for performance.
         for relic in OTM1UserRelic.objects.filter(instance=instance).iterator():
@@ -533,6 +535,7 @@ class Command(InstanceDataCommand):
         for relic in chain(model_relics, comment_relics):
             model_ids = dependency_ids[relic.otm2_model_name]
             model_ids[relic.otm1_model_id] = relic.otm2_model_id
+        print("DONE")
 
         for model in migration_rules:
             if json_hashes[model]:
