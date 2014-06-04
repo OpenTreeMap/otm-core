@@ -24,7 +24,7 @@ class Migration(DataMigration):
                     if no_smush_val:
                         conflict_message = base_user_template % locals()
                         print(conflict_message)
-                    setattr(user, no_smush_field, smush_val)
+                    setattr(user, no_smush_field, smush_val[:30])
                     # for good measure
                     setattr(user, smush_field, '')
                     user.save()
