@@ -877,9 +877,10 @@ class MapFeaturePhoto(models.Model, Authorizable, Auditable):
     def image_prefix(self):
         return str(self.map_feature.pk)
 
-    def set_image(self, image_data):
+    def set_image(self, image_data, degrees_to_rotate=None):
         self.image, self.thumbnail = save_uploaded_image(
-            image_data, self.image_prefix, thumb_size=(256, 256))
+            image_data, self.image_prefix, thumb_size=(256, 256),
+            degrees_to_rotate=degrees_to_rotate)
 
     def save_with_user(self, *args, **kwargs):
         if not self.thumbnail.name:

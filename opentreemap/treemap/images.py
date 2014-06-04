@@ -45,7 +45,8 @@ def save_image_from_request(request, name_prefix, thumb_size=None):
     return save_uploaded_image(image_data, name_prefix, thumb_size)
 
 
-def save_uploaded_image(image_data, name_prefix, thumb_size=None):
+def save_uploaded_image(image_data, name_prefix, thumb_size=None,
+                        degrees_to_rotate=None):
     # We support passing data directly in here but we
     # have to treat it as a file-like object
     if type(image_data) is str:
@@ -77,7 +78,11 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None):
         hash = hashlib.md5(image_data.read()).hexdigest()
         name = "%s-%s.%s" % (name_prefix, hash, format.lower())
 
-        image = _rotate_image_based_on_exif(image)
+        if degrees_to_rotate is None:
+            image = _rotate_image_based_on_exif(image)
+        else:
+            image = image.rotate(degrees_to_rotate)
+
         image_file = _get_file_for_image(image, name, format)
         thumb_file = None
 

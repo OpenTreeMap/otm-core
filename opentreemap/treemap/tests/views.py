@@ -37,7 +37,8 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            forgot_username, update_user)
 from treemap.lib.tree import add_tree_photo_helper
 from treemap.views.user import _user_instances
-from treemap.views.map_feature import update_map_feature
+from treemap.views.map_feature import (update_map_feature,
+                                       rotate_map_feature_photo)
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
@@ -184,6 +185,33 @@ class TreePhotoTestCase(LocalMediaTestCase):
         self.tree.save_with_user(self.user)
 
         self.image = self.load_resource('tree1.gif')
+
+
+class TreePhotoRotationTest(TreePhotoTestCase):
+    def setUp(self):
+        super(TreePhotoRotationTest, self).setUp()
+        self.tree.add_photo(self.image, self.user)
+
+    def test_tree_photo_rotation(self):
+        old_photo = self.tree.photos()[0]
+        self.assertNotEqual(old_photo.image.width, old_photo.image.height)
+
+        context = rotate_map_feature_photo(
+            make_request({'degrees': '-90'}, user=self.user), self.instance,
+            self.plot.pk, old_photo.pk)
+
+        rotated_photo = TreePhoto.objects.get(pk=old_photo.pk)
+
+        self.assertEqual(None, context['error'])
+        self.assertEqual(1, len(context['photos']))
+        self.assertEqual(old_photo.pk, context['photos'][0]['id'])
+
+        self.assertEqual(
+            (old_photo.image.width, old_photo.image.height),
+            (rotated_photo.image.height, rotated_photo.image.width))
+        self.assertEqual(
+            (old_photo.thumbnail.width, old_photo.thumbnail.height),
+            (rotated_photo.thumbnail.height, rotated_photo.thumbnail.width))
 
 
 class ApproveOrRejectPhotoTest(TreePhotoTestCase):
