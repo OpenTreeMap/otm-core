@@ -8,14 +8,14 @@
     }
 
     marker-allow-overlap: true;
-    marker-line-width: 1;
 
 
     [zoom >= 15] {
         marker-line-color: #b6ce78;
+        marker-line-width: 1;
     }
     [zoom < 15] {
-        marker-line-color: #8BAA3D;
+       marker-line-width: 0;
     }
 
 
