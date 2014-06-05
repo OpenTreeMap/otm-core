@@ -30,13 +30,13 @@ body {
 .content {
 	position: relative;
 	overflow: auto;
-	margin-bottom: 39px;
+	margin-bottom: 40px;
 
 	&.map {
 		position: absolute;
 		overflow: hidden;
 		margin: 0;
-		top: 203px;
+		top: 205px;
 		width: 100%;
 		bottom: 40px;
 	}

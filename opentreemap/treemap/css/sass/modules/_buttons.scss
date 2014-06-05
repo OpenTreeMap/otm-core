@@ -34,9 +34,18 @@
     }
 
     @include button-size(1.4rem);
-    &.btn-large		{ @include button-size(1.8rem); }
-    &.btn-small		{ @include button-size(1.2rem); }
-    &.btn-mini		{ @include button-size(1.0rem); }
+    &.btn-lg { 
+        @include button-size(1.8rem);
+        padding: 10px 16px;
+    }
+    &.btn-sm { 
+        @include button-size(1.2rem);
+        padding: 5px 10px;
+    }
+    &.btn-xs { 
+        @include button-size(1.0rem);
+        padding: 1px 5px;
+    }
 }
 
 @mixin button-size($text-size: 1.2rem) {

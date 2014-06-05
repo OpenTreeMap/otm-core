@@ -2,7 +2,7 @@
 {% load i18n %}
 {% if field.is_visible %}
   {% if field.search_type == 'RANGE' %}
-    <div class="search-range">
+    <div class="search-range clearfix">
       <label>{{ field.label }}</label>
       {% with 'data-class=search data-search-type=MIN id=min'|add:field.id as extra %}
         {% include "treemap/field/inputs.html" %}

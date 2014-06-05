@@ -3,8 +3,8 @@
     <div class="add-step-header">{% trans "Set the" %} {{ feature_name }}'s {% trans "location" %}</div>
     <div class="add-step-content">
         {# Making onsubmit return false prevents the form from being submitted. We want to run JS code instead #}
-        <form class="form-search" onsubmit="return false;">
-            <input type="text" class="search-query" placeholder="{% trans 'Address, City, State' %}">
+        <form class="form-search form-inline" onsubmit="return false;">
+            <input type="text" class="search-query form-control" placeholder="{% trans 'Address, City, State' %}">
             <button class="btn btn-primary geocode">{% trans "Search" %}</button>
         </form>
         <a class="geolocate"><i class="icon-direction"></i> {% trans "Use Current Location" %}</a>

@@ -79,12 +79,14 @@
     &.leaflet-control-layers {
         .leaflet-control-layers-list {
             margin: 0;
+            padding-bottom: 3px;
         }
         .leaflet-control-layers-base {
 
             label {
-                font-size: 1.6rem;
-                padding: 0 5px;
+                font-size: 1.4rem;
+                padding: 0 8px;
+                margin-bottom: 3px;
 
                 .leaflet-control-layers-selector {
                     margin: 0 4px 0 0;

@@ -44,6 +44,7 @@
         border-radius: 6px;
         float: left;
         margin-left: 10px;
+        width: 245px;
 
         h3 {
             font-size: 1.4rem;
@@ -59,7 +60,6 @@
             input[type="text"] {
                 margin: 0;
                 padding-left: 32px;
-                width: 200px;
             }
 
             .typeahead-toggle {

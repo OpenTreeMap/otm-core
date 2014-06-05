@@ -110,7 +110,7 @@
     {% endblock subhead_exports %}
     {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
       {% if request.instance.supports_resources %}
-      <a class="btn btn-primary addBtn"
+      <a class="btn btn-primary btn-sm addBtn"
          data-action='addresource'
          data-feature="add_plot"
          data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
@@ -119,7 +119,7 @@
          data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource"
          disabled="disabled"><i class="icon-plus"></i> {% trans "Add a" %} {{ term.Resource }}</a>
       {% endif %}
-    <a class="btn btn-primary addBtn"
+    <a class="btn btn-primary btn-sm addBtn"
        data-action='addtree'
        data-feature="add_plot"
        data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
@@ -158,10 +158,10 @@
   <a id="perform-search" class="btn btn-primary btn-lg btn-block">{% trans "Search" %}</a>
   <div class="btn-group">
     {% if request.instance|feature_enabled:'advanced_search_filters' %}
-    <button id="search-advanced" class="btn">{% trans "Advanced" %}</button>
-    <button id="search-reset" class="btn">{% trans "Reset" %}</button>
+    <button id="search-advanced" class="btn btn-default btn-sm">{% trans "Advanced" %}</button>
+    <button id="search-reset" class="btn btn-default btn-sm">{% trans "Reset" %}</button>
     {% else %}
-    <button id="search-reset" class="btn btn-block">{% trans "Reset" %}</button>
+    <button id="search-reset" class="btn btn-block btn-default btn-sm">{% trans "Reset" %}</button>
     {% endif %}
   </div>
 </div>
