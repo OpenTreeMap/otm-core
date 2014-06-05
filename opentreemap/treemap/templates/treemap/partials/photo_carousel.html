@@ -1,3 +1,4 @@
+{% load i18n %}
 {# Template meant to be included as the contents of a Bootstrap Carousel #}
 {# Expects to be given - photos: a list of MapFeaturePhoto objects, error: an optional error message #}
 
@@ -29,13 +30,17 @@
 {% for photo in photos %}
   <div id="photo-lightbox-{{ forloop.counter0 }}" class="lightbox hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="lightbox-header">
-      <button type="button" class="close" data-dismiss="lightbox" aria-hidden="true">×</button>
+      <button type="button" class="close" data-dismiss="lightbox" aria-hidden="true">X</button>
     </div>
     <div class="lightbox-content">
-      <img src="{{ photo.image }}">
-    </div>
-    <div class="lightbox-footer">
-      Add Rotate controls Here!
+      <img data-photo-image src="{{ photo.image }}">
+      <div class="lightbox-caption">
+        <a class="btn pull-left" data-class="view" data-photo-edit>{% trans "Edit" %}</a>
+        <a class="btn pull-left" data-class="edit" data-photo-rotate="-90"><i class="icon-ccw"></i></a>
+        <a class="btn pull-right" data-class="edit" data-photo-rotate="90"><i class="icon-cw"></i></a>
+        <button data-class="edit" disabled="disabled" class="btn"
+            data-photo-save="{% url 'rotate_photo' instance_url_name=request.instance.url_name feature_id=photo.map_feature photo_id=photo.id %}">{% trans "Save" %}</button>
+      </div>
     </div>
   </div>
 {% endfor %}
