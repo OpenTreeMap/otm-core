@@ -38,7 +38,7 @@ def instances_closest_to_point(request, lat, lng):
     try:
         max_instances = int(request.GET.get('max', '10'))
 
-        if max_instances not in xrange(1, 501):
+        if not (1 <= max_instances <= 500):
             raise ValueError()
     except ValueError:
         raise HttpBadRequestException(
@@ -74,7 +74,7 @@ def instance_info(request, instance):
     """
     Get all the info we need about a given instance
 
-    If also includes info about the fields available for the
+    It also includes info about the fields available for the
     instance. If a user has been specified the field info
     will be tailored to that user
     """
