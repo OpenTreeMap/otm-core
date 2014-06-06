@@ -70,6 +70,7 @@ for model in {'plot', 'tree'}:
             value_transf = rules_for_model['value_transformers']
             value_transf[otm1name] = conversions[model][otm1name].get
 
+
 def transform_geometry(geometry_wkt):
     """
     Some records in the SD database are stored with a different srid. Fix them.
@@ -85,4 +86,3 @@ def transform_geometry(geometry_wkt):
         return bad_geom.transform(SpatialReference(4326), clone=True)
 
 MIGRATION_RULES['plot']['value_transformers']['geometry'] = transform_geometry
-

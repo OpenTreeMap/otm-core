@@ -530,11 +530,14 @@ class Command(InstanceDataCommand):
         print("reading relics into memory...", end="")
         # depedency_ids is a cache of old pks to new pks, it is inflated
         # from database records for performance.
-        for relic in OTM1UserRelic.objects.filter(instance=instance).iterator():
+        instance_relics = OTM1UserRelic.objects.filter(instance=instance)
+        for relic in instance_relics.iterator():
             dependency_ids['user'][relic.otm1_id] = relic.otm2_user_id
 
-        model_relics = OTM1ModelRelic.objects.filter(instance=instance).iterator()
-        comment_relics = OTM1CommentRelic.objects.filter(instance=instance).iterator()
+        model_relics =\
+            OTM1ModelRelic.objects.filter(instance=instance).iterator()
+        comment_relics =\
+            OTM1CommentRelic.objects.filter(instance=instance).iterator()
 
         for relic in chain(model_relics, comment_relics):
             model_ids = dependency_ids[relic.otm2_model_name]
