@@ -1072,6 +1072,7 @@ class Instance(LocalMediaTestCase):
 
 
 @override_settings(NEARBY_INSTANCE_RADIUS=2)
+@override_settings(FEATURE_BACKEND_FUNCTION=None)
 class InstancesClosestToPoint(TestCase):
     def setUp(self):
         self.i1 = make_instance(is_public=True, point=Point(0, 0))
