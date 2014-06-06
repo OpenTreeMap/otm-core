@@ -51,22 +51,22 @@ def instances_closest_to_point(request, lat, lng):
         raise HttpBadRequestException(
             'The distance parameter must be a number')
 
-    instances = Instance.objects.distance(point)\
-        .filter(is_public=True)\
-        .exclude(pk__in=user_instance_ids)\
-        .filter(bounds__distance_lte=(point, D(m=distance)))\
-        .order_by('distance')[0:max_instances]
+    instances = (Instance.objects.distance(point)
+                 .filter(bounds__distance_lte=(point, D(m=distance)))
+                 .order_by('distance'))
 
-    my_instances = Instance.objects.distance(point)\
-        .filter(pk__in=user_instance_ids)\
-        .filter(bounds__distance_lte=(point, D(m=distance)))\
-        .order_by('distance')
+    # drop non-mobile instances and convert to context dictionary
+    contextify = (lambda qs: map(_instance_info_dict,
+                                 filter(lambda i:
+                                        i.feature_enabled('mobile_apps'),
+                                        qs)))
 
     return {
-        'nearby': [_instance_info_dict(instance)
-                   for instance in instances],
-        'personal': [_instance_info_dict(instance)
-                     for instance in my_instances]
+        'nearby': contextify(instances
+                             .filter(is_public=True)
+                             .exclude(pk__in=user_instance_ids)
+                             [0:max_instances]),
+        'personal': contextify(instances.filter(pk__in=user_instance_ids))
     }
 
 
