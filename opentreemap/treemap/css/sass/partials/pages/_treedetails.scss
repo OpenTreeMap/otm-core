@@ -105,6 +105,7 @@
             margin: 0 ;
             white-space: nowrap;
             height: 50px;
+            width: auto;
 
             &:empty {
                 display: none;
@@ -174,6 +175,7 @@
         border-radius: 0;
         opacity: 0.5;
         color: #42424a;
+        top: 38%;
 
         &.right {
             left: auto;
@@ -199,7 +201,8 @@
 
     + button {
         position: absolute;
-        top: 195px;
+        top: 190px;
+        left: 22px;
         opacity: 0.85;
         background: black;
         opacity: 0.5;
@@ -211,7 +214,7 @@
         z-index: 999;
         padding: 5px 12px;
         font-size: 1.2rem !important;
-        border-radius: 0 9px 0 9px;
+        border-radius: 6px;
 
         &:hover {
             opacity: 0.85;
