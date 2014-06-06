@@ -1,6 +1,13 @@
 // Common Variables and Modules
 @import "base";
 
+// Modules
+@import "modules/animations";
+@import "modules/links";
+@import "modules/buttons";
+@import "modules/checkboxes";
+@import "modules/misc";
+
 // Partials
 // -- General
 @import "partials/typography";
@@ -24,3 +31,4 @@
 @import "partials/pages/admin";
 @import "partials/pages/content";
 @import "partials/pages/photos";
+@import "partials/pages/lightbox";

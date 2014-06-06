@@ -1,0 +1,25 @@
+// Partials: Lightbox/Modals
+
+.lightbox {
+    .close {
+        top: 4px;
+        right: 8px;
+        position: absolute;
+        z-index: 1060;
+    }
+    .lightbox-caption {
+        opacity: 0.25;
+        transition: all 0.5;
+
+        .btn-rotate {
+            margin-right: 5px;
+            padding: 4px 7px 1px 4px;
+        }
+    }
+
+    &:hover {
+        .lightbox-caption {
+            opacity: 1;
+        }
+    }
+}

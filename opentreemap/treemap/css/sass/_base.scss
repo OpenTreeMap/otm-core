@@ -37,9 +37,3 @@ $screen-md			 : "(min-width: 992px) and (max-width: 1199px)";
 $screen-ltlg         : "(max-width: 1199px)";
 $screen-lg			 : "(min-width: 1200px)";
 
-// Modules
-@import "modules/animations";
-@import "modules/links";
-@import "modules/buttons";
-@import "modules/checkboxes";
-@import "modules/misc";
