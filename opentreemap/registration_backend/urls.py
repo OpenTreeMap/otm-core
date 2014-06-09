@@ -8,7 +8,7 @@ from views import RegistrationView, ActivationView
 
 
 urlpatterns = patterns('',
-    url(r'^activate/complete/$',
+    url(r'^activation-complete/$',
        TemplateView.as_view(template_name='registration/activation_complete.html'),  # NOQA
        name='registration_activation_complete'),
     # Activation keys get matched by \w+ instead of the more specific
