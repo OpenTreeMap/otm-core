@@ -20,6 +20,32 @@ from treemap.species import ITREE_REGION_CHOICES
 
 URL_NAME_PATTERN = r'[a-zA-Z]+[a-zA-Z0-9\-]*'
 
+DEFAULT_MOBILE_SEARCH_FIELDS = {
+    'standard': [{'search_type': 'SPECIES',
+                  'identifier': 'species.id',
+                  'label': 'Species'},
+                 {'search_type': 'RANGE',
+                  'identifier': 'tree.diameter',
+                  'label': 'Diameter'},
+                 {'search_type': 'RANGE',
+                  'identifier': 'tree.height',
+                  'label': 'Height'}],
+    'missing': [{'identifier': 'species.id',
+                 'label': 'Missing Species'},
+                {'identifier': 'tree.diameter',
+                 'label': 'Missing Diameter'},
+                {'identifier': 'treePhoto.id',
+                 'label': 'Missing Photo'}]
+}
+
+DEFAULT_MOBILE_API_FIELDS = [
+    {'header': trans('Tree Information'),
+     'field_keys': ['tree.species', 'tree.diameter',
+                    'tree.height', 'tree.date_planted']},
+    {'header': trans('Planting Site Information'),
+     'field_keys': ['plot.width', 'plot.length']}
+]
+
 
 def reserved_name_validator(name):
     if name.lower() in [
@@ -129,12 +155,13 @@ class Instance(models.Model):
 
         return property(get_config, set_config)
 
-    mobile_search_fields = _make_config_property('mobile_search_fields',
-                                                 {'standard': [],
-                                                  'missing': []})
+    mobile_search_fields = _make_config_property(
+        'mobile_search_fields',
+        DEFAULT_MOBILE_SEARCH_FIELDS)
 
-    mobile_api_fields = _make_config_property('mobile_api_fields',
-                                              {})
+    mobile_api_fields = _make_config_property(
+        'mobile_api_fields',
+        DEFAULT_MOBILE_API_FIELDS)
 
     date_format = _make_config_property('date_format',
                                         settings.DATE_FORMAT)
