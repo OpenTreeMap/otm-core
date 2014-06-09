@@ -26,7 +26,7 @@ class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('--user',
                     dest='user',
-                    help='Specify admin user id'),
+                    help='Specify admin user name'),
         make_option('--center',
                     dest='center',
                     help='Specify the center of the map as a lat,lng pair'),
@@ -111,7 +111,7 @@ class Command(BaseCommand):
         instance.default_role = role
         instance.save()
 
-        user = User.objects.get(pk=options['user'])
+        user = User.objects.get(username=options['user'])
         InstanceUser(
             instance=instance,
             user=user,
