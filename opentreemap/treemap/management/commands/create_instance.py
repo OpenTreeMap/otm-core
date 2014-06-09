@@ -7,6 +7,7 @@ import logging
 from optparse import make_option
 
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
 from django.contrib.gis.geos import MultiPolygon, Polygon, GEOSGeometry, Point
 
@@ -40,6 +41,7 @@ class Command(BaseCommand):
                           'letters, numbers, and dashes ("-")'))
     )
 
+    @transaction.commit_on_success
     def handle(self, *args, **options):
         if len(args) != 1:
             raise Exception(
