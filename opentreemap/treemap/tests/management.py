@@ -18,7 +18,7 @@ class CreateInstanceManagementTest(TestCase):
 
     def test_can_create_instance(self):
         center = '0,0'
-        user = self.user.pk
+        user = self.user.username
         name = 'my_instance'
         url_name = 'my-instance'
 
