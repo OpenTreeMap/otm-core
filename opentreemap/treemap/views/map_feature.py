@@ -5,17 +5,19 @@ from __future__ import division
 
 import json
 import hashlib
+from functools import wraps
 
 from django.http import Http404
 from django.template import RequestContext
 from django.shortcuts import get_object_or_404, render_to_response
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from django.db import transaction
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 
 from treemap.units import Convertible
-from treemap.models import (Tree, Species, Instance,
-                            MapFeature)
+from treemap.models import (Tree, Species, Instance, MapFeature,
+                            MapFeaturePhoto)
 from treemap.util import (package_validation_errors,
                           bad_request_json_response, to_object_name)
 
@@ -52,6 +54,22 @@ def _add_map_feature_photo_helper(request, instance, feature_id):
     feature = get_map_feature_or_404(feature_id, instance)
     data = get_image_from_request(request)
     return feature.add_photo(data, request.user)
+
+
+def get_photo_context_and_errors(fn):
+    @wraps(fn)
+    def wrapper(request, instance, feature_id, *args, **kwargs):
+        error = None
+        try:
+            fn(request, instance, feature_id, *args, **kwargs)
+        except ValidationError as e:
+            error = '; '.join(e.messages)
+        feature = get_map_feature_or_404(feature_id, instance)
+        photos = feature.photos()
+        return {'photos': map(context_dict_for_photo, photos),
+                'error': error}
+
+    return wrapper
 
 
 def map_feature_detail(request, instance, feature_id, render=False):
@@ -245,16 +263,23 @@ def map_feature_hash(request, instance, feature_id, edit=False, tree_id=None):
     return hashlib.md5(base + ':' + str(pk)).hexdigest()
 
 
+@get_photo_context_and_errors
 def add_map_feature_photo(request, instance, feature_id):
-    error = None
-    try:
-        _add_map_feature_photo_helper(request, instance, feature_id)
-    except ValidationError as e:
-        error = '; '.join(e.messages)
-    feature = get_map_feature_or_404(feature_id, instance)
-    photos = feature.photos()
-    return {'photos': map(context_dict_for_photo, photos),
-            'error': error}
+    _add_map_feature_photo_helper(request, instance, feature_id)
+
+
+@get_photo_context_and_errors
+def rotate_map_feature_photo(request, instance, feature_id, photo_id):
+    orientation = request.REQUEST.get('degrees', None)
+    if orientation not in {'90', '180', '270', '-90', '-180', '-270'}:
+        raise ValidationError('"degrees" must be a multiple of 90°')
+
+    degrees = int(orientation)
+    mf_photo = get_object_or_404(MapFeaturePhoto, pk=photo_id)
+
+    image_data = mf_photo.image.read(settings.MAXIMUM_IMAGE_SIZE)
+    mf_photo.set_image(image_data, degrees_to_rotate=degrees)
+    mf_photo.save_with_user(request.user)
 
 
 def map_feature_popup(request, instance, feature_id):

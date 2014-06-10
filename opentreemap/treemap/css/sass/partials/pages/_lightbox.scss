@@ -1,0 +1,48 @@
+// Partials: Lightbox/Modals
+
+.lightbox {
+    height: 598px;
+
+    .close {
+        top: 4px;
+        right: 8px;
+        position: absolute;
+        z-index: 1060;
+    }
+
+    .lightbox-caption {
+        opacity: 0.25;
+        transition: all 0.5;
+
+        padding: 2%;
+        position: absolute;
+        left: 11px;
+        right: 12px;
+        bottom: 11px;
+        background: #000;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        text-align: center;
+        text-shadow: 0 -1px 0 #000;
+        text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+        font-size: 14px;
+        line-height: 18px;
+
+        .btn-rotate {
+            margin-right: 5px;
+            padding: 4px 7px 1px 4px;
+        }
+    }
+
+    img {
+      vertical-align: bottom;
+      max-height: 100%;
+      max-width: 100%;
+      position: absolute;
+      margin: auto;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+    }
+}

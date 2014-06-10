@@ -1,10 +1,15 @@
+{% load i18n %}
 {# Template meant to be included as the contents of a Bootstrap Carousel #}
-{# Expects to be given - photos: a list of TreePhoto objects, error: an optional error message #}
+{# Expects to be given - photos: a list of MapFeaturePhoto objects, error: an optional error message #}
 
 <div class="carousel-inner">
 {% for photo in photos %}
   <div class="item {{ forloop.first|yesno:"active," }}">
-    <a href="{{ photo.image }}"><img src="{{ photo.thumbnail }}" alt=""></a>
+    <a data-toggle="modal" href="#photo-lightbox"
+        data-photo-src="{{ photo.image }}"
+        data-endpoint="{% url 'rotate_photo' instance_url_name=request.instance.url_name feature_id=photo.map_feature photo_id=photo.id %}">
+      <img src="{{ photo.thumbnail }}" alt="">
+    </a>
   </div>
 {% empty %}
   {% if feature.is_plot %}
@@ -24,6 +29,8 @@
     {% endfor %}</ol>
   </div>
 </div>
+{% for photo in photos %}
+{% endfor %}
 {% if photos|length > 1 %}
 <a class="carousel-control left disabled" href="" data-slide="prev"><i class="icon-left-circled"></i></a>
 <a class="carousel-control right" href="#photo-carousel" data-slide="next"><i class="icon-right-circled"></i></a>

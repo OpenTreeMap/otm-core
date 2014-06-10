@@ -14,6 +14,23 @@
 {% block content %}
 {% include "treemap/partials/upload_image.html" with panel_id="add-photo-modal" title="Add a Photo" %}
 
+{# Modal for viewing and rotating photos, used by imageUploadPanel.js #}
+<div id="photo-lightbox" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content lightbox">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <img data-photo-image src="">
+      <div class="lightbox-caption">
+        <a class="btn btn-small pull-right" data-class="view" data-photo-edit>{% trans "Edit" %}</a>
+        <a class="btn btn-small pull-left btn-rotate" data-class="edit" data-photo-rotate="-90"><i class="icon-ccw"></i></a>
+        <a class="btn btn-small pull-left btn-rotate" data-class="edit" data-photo-rotate="90"><i class="icon-cw"></i></a>
+        <button data-class="edit" disabled="disabled" class="btn btn-small pull-right"
+            data-photo-save="">{% trans "Save" %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="image-background"></div>
 <div class="container contained topper tree-details">
   <div class="row">
@@ -210,7 +227,8 @@ var mapFeatureOptions = {
     imageUploadPanel: {
         panelId: '#add-photo-modal',
         dataType: 'html',
-        imageContainer: '#photo-carousel'
+        imageContainer: '#photo-carousel',
+        lightbox: '#photo-lightbox'
     },
     location: {
         edit: '#edit-location',

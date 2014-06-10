@@ -43,6 +43,7 @@ from treemap.views.map_feature import (render_map_feature_detail,
                                        map_feature_popup,
                                        add_map_feature,
                                        map_feature_hash,
+                                       rotate_map_feature_photo,
                                        add_map_feature_photo)
 
 
@@ -163,6 +164,9 @@ map_feature_popup_view = do(
 
 add_map_feature_photo_endpoint = add_map_feature_photo_do(
     add_map_feature_photo)
+
+rotate_map_feature_photo_endpoint = add_map_feature_photo_do(
+    rotate_map_feature_photo)
 
 
 #####################################
