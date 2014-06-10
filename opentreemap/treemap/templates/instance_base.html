@@ -86,7 +86,7 @@
             {% include "treemap/partials/display_filters.html" %}
           {% endfor %}
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3" id="missing-data">
           <h4>{% trans "Missing Data" %}</h4>
           {% for json in request.instance.advanced_search_fields.missing %}
             {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
@@ -110,7 +110,7 @@
     {% endblock subhead_exports %}
     {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
       {% if request.instance.supports_resources %}
-      <a class="btn btn-primary btn-sm addBtn"
+      <a class="btn btn-primary addBtn"
          data-action='addresource'
          data-feature="add_plot"
          data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
@@ -119,7 +119,7 @@
          data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource"
          disabled="disabled"><i class="icon-plus"></i> {% trans "Add a" %} {{ term.Resource }}</a>
       {% endif %}
-    <a class="btn btn-primary btn-sm addBtn"
+    <a class="btn btn-primary addBtn"
        data-action='addtree'
        data-feature="add_plot"
        data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
@@ -203,10 +203,10 @@
     {% for name in request.instance.static_page_names %}
     <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page=name %}">{{ name }}</a></li>
     {% endfor %}
+    {% if 'contact' in linkData.keys and linkData.contact %}
+    <li><a href="mailto:{{ linkData.contact }}">{% trans "Contact" %}</a></li>
+    {% endif %}
   </ul>
-  {% if 'contact' in linkData.keys and linkData.contact %}
-  <a href="mailto:{{ linkData.contact }}" class="pull-right partners">{% trans "Contact" %}</a>
-  {% endif %}
 {% endwith %}
 </div>
 {% endblock footer %}

@@ -27,7 +27,8 @@
         }
         > button.add-photos {
             position: absolute;
-            bottom: 0;
+            bottom: 6px;
+            left: 6px;
             opacity: 0.5;
             width: auto;
             background: black;
@@ -37,7 +38,7 @@
             z-index: 999;
             padding: 5px 12px;
             font-size: 1.2rem !important;
-            border-radius: 0 9px 0 9px;
+            border-radius: 6px;
         }
         &:hover {
             > button.add-photos {

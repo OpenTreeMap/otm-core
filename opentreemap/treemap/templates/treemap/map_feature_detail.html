@@ -143,6 +143,7 @@
 
         <!-- Maps -->
         <div class="col-md-4">
+          <div id="map" class="map-small"></div>
           <button
              disabled="disabled"
              data-always-enable="{{ last_effective_instance_user|geom_is_writable:feature.feature_type }}"
@@ -150,9 +151,9 @@
              data-href="{{ request.get_full_path }}"
              style="display:none"
              id="edit-location"
-             class="btn">{% trans "Move Location" %}</button>
-          <button class="btn" style="display:none" id="cancel-edit-location">{% trans "Cancel Move Location" %}</button>
-          <div id="map" class="map-small"></div>
+             class="btn btn-block btn-sm btn-otmsecondary">{% trans "Move Location" %}</button>
+          <button class="btn btn-block btn-sm btn-alert" style="display:none" id="cancel-edit-location">{% trans "Cancel Move Location" %}</button>
+          <br>
           <div id="street-view" class="street-view-small" style="display: none;"></div>
         </div>
       </div>
@@ -177,7 +178,7 @@
     <input type="hidden" name="next" value="{{request.get_full_path}}" />
     <input type="hidden" name="markup" value="5">
     <div class="submit">
-      <input type="submit" name="post" class="submit-post buttonSmall" value="Post" />
+      <input type="submit" name="post" class="submit-post btn btn-primary" value="Post" />
     </div>
   </form>
 </script>

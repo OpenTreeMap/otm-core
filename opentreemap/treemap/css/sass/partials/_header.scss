@@ -38,7 +38,7 @@
     display: inline-block;
 
     .search-block {
-        padding: 12px 14px;
+        padding: 12px 14px 16px;
         background: $light-gray-color;
         border: 1px solid $well-color;
         border-radius: 6px;
@@ -60,8 +60,12 @@
             input[type="text"] {
                 margin: 0;
                 padding-left: 32px;
+                font-size: 1.2rem;
             }
-
+            
+            .twitter-typeahead {
+                display: block !important;
+            }
             .typeahead-toggle {
                 padding: 9px 4px 7px;
                 position: absolute;

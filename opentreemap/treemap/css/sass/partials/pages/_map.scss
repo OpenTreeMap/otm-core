@@ -169,6 +169,7 @@ span.tt-dropdown-menu {
     .tt-suggestions {
         max-height: 300px;
         overflow: auto;
+        cursor: pointer;
 
         .tt-suggestion {
             padding: 8px 10px;
