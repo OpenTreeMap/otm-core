@@ -17,7 +17,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            top: 75px;
+            top: 60px;
         }
         .add-step {
             margin: 0;
@@ -101,14 +101,11 @@
                     margin: 0;
                 }
             
-                .geocode {
-                    padding: 8px 12px;
-                }
                 .geolocate {
                     font-size: 1.2rem;
                     color: $secondary-color;
                     display: block;
-                    margin: 3px 0 3px -3px;
+                    margin: 5px 0 12px -3px;
                     cursor: pointer;
                 }
                 .resource-question {
@@ -162,7 +159,7 @@
     .cancelBtn.small {
         position: relative;
         font-size: 2.4rem;
-        top: 10px;
+        top: 0;
         right: 20px;
         opacity: 0.5;
     }

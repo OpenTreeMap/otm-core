@@ -1,17 +1,13 @@
 {% load i18n %}
 {% load instance_config %}
 
-<div class="accordion" id="map-info">
-  <div class="accordion-group">
-    <div class="accordion-heading">
-      <a class="accordion-toggle collapsed" data-toggle="collapse"
-         data-parent="#map-info" href="#tree-detail"
-         id="accordion-map-feature-detail-tab">
-        {% trans "Tree Details" %}<span class="arrow pull-right"><i class="icon-right-open"></i></span>
-      </a>
+<div class="panel" id="map-info">
+  <div class="panel-group">
+    <div class="panel-heading">
+      <a class="panel-toggle collapsed" data-toggle="collapse" data-parent="#map-info" href="#tree-detail">{% trans "Tree Details" %} <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
     </div>
-    <div id="tree-detail" class="accordion-body collapse">
-      <div class="accordion-body-buttons" id="map-plot-details-button" style="display: none;">
+    <div id="tree-detail" class="panel-body collapse">
+      <div class="panel-body-buttons" id="map-plot-details-button" style="display: none;">
         <a class="btn" data-class="display" id="full-details-button">{% trans "Full Details" %}</a>
         <button class="btn"
                 data-class="display"
@@ -23,7 +19,7 @@
                 <button class="btn btn-success" data-class="edit" id="save-details-button" style="display:none">Save</button>
                 <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</button>
       </div>
-      <div class="accordion-inner" id="map-feature-accordion">
+      <div class="panel-inner" id="map-feature-accordion">
       </div>
       <div id="move-plot-buttons">
         <button class="btn btn-block"
@@ -41,7 +37,7 @@
                 id="cancel-edit-plot-location"
                 disabled="disabled">Cancel Tree Move</button>
       </div>
-      <div class="accordion-inner benefit-values hidden">
+      <div class="panel-inner benefit-values hidden">
         {% comment %}
         TODO: on tree select, make ajax call to ecobenefits with
          just one tree. render, calling format_benefits with
@@ -52,12 +48,12 @@
     </div>
   </div>
   {% if request.instance_supports_ecobenefits %}
-  <div class="accordion-group">
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#map-info" href="#yearlyEco">{% trans "Eco Benefits" %} <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
+  <div class="panel-group">
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#map-info" href="#yearlyEco">{% trans "Eco Benefits" %} <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
     </div>
-    <div id="yearlyEco" class="accordion-body collapse in">
-      <div class="accordion-inner benefit-values" id="benefit-values"></div>
+    <div id="yearlyEco" class="panel-body collapse in">
+      <div class="panel-inner benefit-values" id="benefit-values"></div>
     </div>
   </div>
   {% endif %}

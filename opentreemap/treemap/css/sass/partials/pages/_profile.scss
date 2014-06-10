@@ -27,7 +27,8 @@
         }
         > button.add-photos {
             position: absolute;
-            bottom: 0;
+            bottom: 6px;
+            left: 6px;
             opacity: 0.5;
             width: auto;
             background: black;
@@ -37,7 +38,7 @@
             z-index: 999;
             padding: 5px 12px;
             font-size: 1.2rem !important;
-            border-radius: 0 9px 0 9px;
+            border-radius: 6px;
         }
         &:hover {
             > button.add-photos {
@@ -78,7 +79,7 @@
 .profile {
     .profile-tabs {
         height: 85px;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
 
         .nav.nav-tabs {
             border: none;
@@ -121,9 +122,10 @@
                 }
                 .number {
                     display: block;
-                    font-weight: 400;
+                    font-weight: 700;
                     font-size: 2.4rem;
-                    margin: 3px 0;
+                    line-height: 2.4rem;
+                    margin: 0;
                     min-height: 20px;
                 }
             }

@@ -11,7 +11,7 @@
             {% csrf_token %}
             <legend>{% trans "Login" %}<a class="pull-right have-account" href="{% url 'registration_register' %}">{% trans "Need an account?" %}</a></legend>
             {{ form.as_p }}
-            <button type="submit" value="{% trans 'Log in' %}" class="btn btn-large btn-primary">{% trans 'Log in' %}</button>
+            <button type="submit" value="{% trans 'Log in' %}" class="btn btn-lg btn-primary">{% trans 'Log in' %}</button>
             <input type="hidden" name="next" value="{{ next }}" />
         </fieldset>
     </form>
@@ -32,10 +32,10 @@
     $(function(){
         // Add additional classes to the fields generated
         // by the stock Django login form
-        $('input[type="text"]').addClass('input-xlarge');
-        $('input[type="password"]').addClass('input-xlarge');
+        $('input[type="text"]').addClass('input-xlarge form-control');
+        $('input[type="password"]').addClass('input-xlarge form-control');
         $('input[name="username"]').focus();
-        $('ul.errorlist').addClass('alert alert-error');
+        $('ul.errorlist').addClass('alert alert-danger');
     })
 })(require);
 </script>

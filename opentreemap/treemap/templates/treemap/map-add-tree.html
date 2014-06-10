@@ -34,26 +34,26 @@
                 <h6>Nearby Address</h6>
                 <hr/>
                 <label>{% trans "After I add this tree..." %}</label>
-                <span>
+                <div>
                     <input type="radio" name="addFeatureOptions" value="copy" id="addtree-addsame" /><label for="addtree-addsame">
                         {% trans "Add another tree with these details" %}
                     </label>
-                </span>
-                <span>
+                </div>
+                <div>
                     <input type="radio" name="addFeatureOptions" value="new" id="addtree-addnew" /><label for="addtree-addnew">
                         {% trans "Add another tree with new details" %}
                     </label>
-                </span>
-                <span>
+                </div>
+                <div>
                     <input type="radio" name="addFeatureOptions" value="edit" id="addtree-viewdetails" /><label for="addtree-viewdetails">
                         {% trans "Continue editing this tree" %}
                     </label>
-                </span>
-                <span>
+                </div>
+                <div>
                     <input type="radio" name="addFeatureOptions" value="close" id="addtree-done" checked /><label for="addtree-done">
                         {% trans "I'm done!" %}
                     </label>
-                </span>
+                </div>
             </div>
             {% include 'treemap/partials/step_controls.html' with last=True %}
         </div>

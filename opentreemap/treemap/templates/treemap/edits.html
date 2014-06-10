@@ -28,8 +28,8 @@ active
 {% block content %}
 <div class="image-background"></div>
 <div class="container contained profile">
-  <div class="row-fluid">
-    <div class="span12">
+  <div class="row">
+    <div class="col-md-12">
       <h1>
         {% trans "Edits" %}
         <a class="btn pull-right" href="{% url 'edits' instance_url_name=request.instance.url_name %}">{% trans "Reset" %}</a>

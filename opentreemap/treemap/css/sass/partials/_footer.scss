@@ -7,14 +7,14 @@ footer {
     width: 100%;
     bottom: 0;
     z-index: 99;
+    height: 40px;
 
     &:empty {
         display: none;
     }
 
     .footer-inner {
-        padding: 9px 15px 10px;
-        height: 20px;
+        padding: 6px 15px 10px;
     }
 
     a {

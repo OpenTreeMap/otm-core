@@ -13,17 +13,19 @@
         height: 100%;
         overflow: auto;
     }
-    .accordion {
+    .panel {
+        border: none;
         margin: 0;
     }
-    .accordion-group {
+    .panel-group {
         border-radius: 0;
         margin-bottom: 0;
         border: none;
         border-top: 1px solid darken($secondary-color, 25%);
     }
-    .accordion-heading {
+    .panel-heading {
         background: $secondary-color;
+        padding: 0;
 
         a {
             text-decoration: none;
@@ -34,6 +36,7 @@
             padding: 15px;
             font-size: 1.6rem;
             font-weight: 700;
+            display: block;
 
             &.collapsed {
                 color: lighten($secondary-color, 35%);
@@ -51,14 +54,15 @@
             }
         }
     }
-    .accordion-inner {
+    .panel-inner {
         padding: 0;
     }
 
-    .accordion-body {
+    .panel-body {
         background: white;
+        padding: 0;
 
-        .accordion-body-buttons {
+        .panel-body-buttons {
             padding: 10px 15px;
         }
         .tree-details-species {
@@ -137,18 +141,18 @@
         }
         &.resource-benefit {
             .benefit-icon {
-                background: $secondary-color;
+                background: $button-success;
             }
             .benefit-label {
-                color: $secondary-color;
+                color: $button-success;
             }
         }
 
         .benefit-icon {
             padding: 5px;
-            background: $primary-color;
-            width: 16px;
-            height: 16px;
+            background: $button-primary;
+            width: 26px;
+            height: 26px;
             border-radius: 999px;
             color: white;
             float: left;
@@ -156,8 +160,9 @@
             margin-bottom: 0;
 
             > i {
-                margin-top: 1px;
-                font-size: 1.2rem;            
+                top: -5px;
+                font-size: 1.2rem;
+                position: relative;        
             }
         }
         .benefit-label {
@@ -166,7 +171,7 @@
             float: left;
             margin: 2px 0 0;
             line-height: 2.1rem;
-            color: $primary-color;
+            color: $button-primary;
             max-width: 265px;
         }
         .benefit-content {

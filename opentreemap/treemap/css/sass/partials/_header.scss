@@ -2,7 +2,7 @@
 
 .header {
     padding: 59px 15px 15px;
-    height: 85px;
+    height: 163px;
     background: #fff;
     position: relative;
     z-index: 100;
@@ -38,12 +38,13 @@
     display: inline-block;
 
     .search-block {
-        padding: 12px 14px;
+        padding: 12px 14px 16px;
         background: $light-gray-color;
         border: 1px solid $well-color;
         border-radius: 6px;
         float: left;
         margin-left: 10px;
+        width: 245px;
 
         h3 {
             font-size: 1.4rem;
@@ -59,9 +60,12 @@
             input[type="text"] {
                 margin: 0;
                 padding-left: 32px;
-                width: 200px;
+                font-size: 1.2rem;
             }
-
+            
+            .twitter-typeahead {
+                display: block !important;
+            }
             .typeahead-toggle {
                 padding: 9px 4px 7px;
                 position: absolute;

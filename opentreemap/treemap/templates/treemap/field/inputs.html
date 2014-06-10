@@ -2,7 +2,7 @@
 {% load dateformat %}
 {% if field.choices %}
     <select name="{{ field.identifier }}" {{ extra|default_if_none:"" }}
-            class="{{ class|default_if_none:"" }}">
+            class="{{ class|default_if_none:"" }} form-control">
         {% for option in field.choices %}
             <option value="{{ option.value }}"
               {% ifequal option.value field.value %}selected="selected"{% endifequal %}>
@@ -22,28 +22,28 @@
 {% elif field.data_type == 'date' or field.data_type == 'datetime' %}
     <input name="{{ field.identifier }}"
            type="text"
-           class="{{ class|default_if_none:"" }}"
+           class="{{ class|default_if_none:"" }} form-control"
            {% include "treemap/partials/date_picker_init.html" with date_picker_value=field.value %}
            {{ extra|default:"" }} />
 {% elif field.data_type == 'long_string' %}
     <textarea name="{{ field.identifier }}"
-           class="{{ class|default_if_none:"" }}"
+           class="{{ class|default_if_none:"" }} form-control"
            value="{{ field.value|default_if_none:""|unlocalize }}"
            {{ extra|default:"" }} ></textarea>
 {% else %}
   {% if field.units %}
-  <div class="input-append">
+  <div class="input-group">
     <input name="{{ field.identifier }}"
            type="text"
-           class="{{ class|default_if_none:"" }}"
+           class="{{ class|default_if_none:"" }} form-control"
            value="{{ field.value|default_if_none:""|unlocalize }}"
            {{ extra|default:"" }} />
-    <span class="add-on" {{ unit_extra|default:"" }}>{{ field.units }}</span>
+    <span class="input-group-addon" {{ unit_extra|default:"" }}>{{ field.units }}</span>
   </div>
   {% else %}
     <input name="{{ field.identifier }}"
            type="text"
-           class="{{ class|default_if_none:"" }}"
+           class="{{ class|default_if_none:"" }} form-control"
            value="{{ field.value|default_if_none:""|unlocalize }}"
            {{ extra|default:"" }} />
   {% endif %}

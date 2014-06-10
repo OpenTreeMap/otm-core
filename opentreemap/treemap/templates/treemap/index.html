@@ -4,8 +4,8 @@
 {% block content %}
 <div class="image-background"></div>
 <div class="container contained profile">
-    <div class="row-fluid">
-    	<div class="span12">
+    <div class="row">
+    	<div class="col-md-12">
 			<h1>{{ request.instance.name }}</h1>
 			<a href="{% url 'map' instance_url_name=request.instance.url_name %}" class="btn">{% trans "Explore Trees" %}</a>
 		</div>

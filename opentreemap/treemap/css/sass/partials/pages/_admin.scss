@@ -10,10 +10,17 @@
             padding: 0;
 
             &.nav-header {
+                color: #CCC;
+                margin-top: 12px;
+
+                &:first-child {
+                    margin-top: 0;
+                }
             }
             &.active {
                 a {
                     background: $secondary-color;
+                    color: white;
                 }
             }
             a {
@@ -74,6 +81,7 @@
 
     input {
         width: 50%;
+        margin-bottom: 8px;
     }
 
     textarea {
@@ -82,7 +90,7 @@
     }
 
     .messages,
-    .text-error {
+    .text-danger {
         &:empty {
             display: none !important;
         }

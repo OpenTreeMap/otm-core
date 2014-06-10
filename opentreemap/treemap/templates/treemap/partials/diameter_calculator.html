@@ -11,23 +11,23 @@
   <tbody id="diameter-worksheet">
     <tr id="trunk-row">
       <td>
-        <div class="input-append">
-          <input class="input-small"
+        <div class="input-group">
+          <input class="input-sm form-control"
                  data-class="diameter-input"
                  type="text"
                  data-value="{{ field.value|unlocalize }}"
                  data-digits="{{ field.digits }}"
                   />
-          <span class="add-on" {{ unit_extra|default:"" }}>{{ field.units }}</span>
+          <span class="input-group-addon" {{ unit_extra|default:"" }}>{{ field.units }}</span>
         </div>
       </td>
       <td>
-        <div class="input-append">
-          <input class="input-small"
+        <div class="input-group">
+          <input class="input-sm form-control"
                  data-class="circumference-input"
                  type="text"
                   />
-          <span class="add-on" {{ unit_extra|default:"" }}>{{ field.units }}</span>
+          <span class="input-group-addon" {{ unit_extra|default:"" }}>{{ field.units }}</span>
         </div>
       </td>
     </tr>
