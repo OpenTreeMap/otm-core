@@ -10,10 +10,17 @@
             padding: 0;
 
             &.nav-header {
+                color: #CCC;
+                margin-top: 12px;
+
+                &:first-child {
+                    margin-top: 0;
+                }
             }
             &.active {
                 a {
                     background: $secondary-color;
+                    color: white;
                 }
             }
             a {
