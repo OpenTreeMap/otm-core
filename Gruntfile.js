@@ -165,11 +165,6 @@ module.exports = function(grunt) {
                             exports: null,
                             depends: { jquery: 'jQuery', bootstrap: 'bootstrap' }
                         },
-                        "bootstrap-lightbox": {
-                            path: './treemap/js/shim/bootstrap-lightbox.js',
-                            exports: null,
-                            depends: { jquery: 'jQuery', bootstrap: 'bootstrap' }
-                        },
                         // END modules which add themselves to the jQuery object
                         jscolor: {
                             path: './treemap/js/shim/jscolor.js',

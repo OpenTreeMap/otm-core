@@ -5,7 +5,9 @@
 <div class="carousel-inner">
 {% for photo in photos %}
   <div class="item {{ forloop.first|yesno:"active," }}">
-    <a data-toggle="lightbox" href="#photo-lightbox-{{ forloop.counter0 }}">
+    <a data-toggle="modal" href="#photo-lightbox"
+        data-photo-src="{{ photo.image }}"
+        data-endpoint="{% url 'rotate_photo' instance_url_name=request.instance.url_name feature_id=photo.map_feature photo_id=photo.id %}">
       <img src="{{ photo.thumbnail }}" alt="">
     </a>
   </div>
@@ -28,19 +30,6 @@
   </div>
 </div>
 {% for photo in photos %}
-  <div id="photo-lightbox-{{ forloop.counter0 }}" class="lightbox hide fade" tabindex="-1" role="dialog" aria-hidden="true">
-    <button type="button" class="close" data-dismiss="lightbox" aria-hidden="true">&times;</button>
-    <div class="lightbox-content">
-      <img data-photo-image src="{{ photo.image }}">
-      <div class="lightbox-caption">
-        <a class="btn btn-small pull-right" data-class="view" data-photo-edit>{% trans "Edit" %}</a>
-        <a class="btn btn-small pull-left btn-rotate" data-class="edit" data-photo-rotate="-90"><i class="icon-ccw"></i></a>
-        <a class="btn btn-small pull-left btn-rotate" data-class="edit" data-photo-rotate="90"><i class="icon-cw"></i></a>
-        <button data-class="edit" disabled="disabled" class="btn btn-small pull-right"
-            data-photo-save="{% url 'rotate_photo' instance_url_name=request.instance.url_name feature_id=photo.map_feature photo_id=photo.id %}">{% trans "Save" %}</button>
-      </div>
-    </div>
-  </div>
 {% endfor %}
 {% if photos|length > 1 %}
 <a class="carousel-control left disabled" href="" data-slide="prev"><i class="icon-left-circled"></i></a>

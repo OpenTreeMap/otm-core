@@ -15,9 +15,6 @@ require('jqueryUiWidget');
 require('jqueryIframeTransport');
 require('jqueryFileUpload');
 
-// Modal for viewing full image
-require('bootstrap-lightbox');
-
 module.exports.init = function(options) {
     var $panel = $(options.panelId),
         $image = $(options.imageElement),
@@ -32,7 +29,11 @@ module.exports.init = function(options) {
             callback = subscribe;
 
             return function() { callback = null; };
-        });
+        }),
+
+        currentRotation = 0,
+        $lightbox = $(options.lightbox),
+        $lightboxImage = $lightbox.find('[data-photo-image]');
 
     function loadImageCarouselHtml(data) {
         if ($imageContainer.length > 0) {
@@ -120,52 +121,43 @@ module.exports.init = function(options) {
         }
     });
 
-    // Enable bootstrap lightbox on all photos
-    $imageContainer.find('[data-toggle="lightbox"]').lightbox();
+    function rotateLightboxImage(degrees) {
+        var rotationProperty = format('rotate(%ddeg)', degrees);
 
-    function rotateLightboxImage($lightbox, degrees) {
-        var $image = $lightbox.find('[data-photo-image]'),
-            rotationProperty = format('rotate(%ddeg)', degrees);
-
-        $image.css({'-webkit-transform': rotationProperty,
-                    '-moz-transform': rotationProperty,
-                    '-ms-transform': rotationProperty,
-                    'transform': rotationProperty});
+        $lightboxImage.css({
+            '-webkit-transform': rotationProperty,
+            '-moz-transform': rotationProperty,
+            '-ms-transform': rotationProperty,
+            'transform': rotationProperty
+        });
     }
 
-    var currentRotation = 0;
     // Reset image rotation  and buttons on opening the lightbox
-    $imageContainer.on('click', '[data-toggle="lightbox"]', function(e) {
-        var $lightbox = $($(e.currentTarget).attr('href'));
+    $imageContainer.on('click', '[href="' + options.lightbox + '"]', function(e) {
+        var $toggle = $(this),
+        endpoint = $toggle.attr('data-endpoint');
+
+        e.preventDefault();
+
         currentRotation = 0;
-        rotateLightboxImage($lightbox, 0);
+        rotateLightboxImage(0);
+        $lightboxImage.attr('src', $toggle.attr('data-photo-src'));
         $lightbox.find('[data-class="view"]').show();
         $lightbox.find('[data-class="edit"]').hide();
+        $lightbox.find('[data-photo-save]').attr('data-photo-save', endpoint);
     });
-    $imageContainer.on('click', '[data-class="view"]', function() {
-        var $lightbox = $(this).closest('.lightbox');
-
+    $lightbox.on('click', '[data-class="view"]', function() {
         $lightbox.find('[data-class="view"]').hide();
         $lightbox.find('[data-class="edit"]').show();
     });
 
-    $imageContainer.on('click', '[data-photo-rotate]', function(e) {
+    $lightbox.on('click', '[data-photo-rotate]', function(e) {
         var $target = $(e.currentTarget),
             $saveButton = $target.siblings('[data-photo-save]').first(),
-            $lightbox = $target.closest('.lightbox'),
             degrees = parseInt($target.attr('data-photo-rotate'), 10);
 
-        currentRotation = (currentRotation + degrees) % 360;
-        rotateLightboxImage($lightbox, currentRotation);
-
-        // Need to swap width and height of modals on each rotation to prevent
-        // image overflowing container
-        _.each([$lightbox, $lightbox.find('.lightbox-content')], function($elem) {
-            var width = $elem.width(),
-                height = $elem.height();
-            $elem.width(height);
-            $elem.height(width);
-        });
+        currentRotation = (360 + currentRotation + degrees) % 360;
+        rotateLightboxImage(currentRotation);
 
         // Don't allowing saving if there is no rotation to be done
         if (currentRotation === 0) {
@@ -175,18 +167,20 @@ module.exports.init = function(options) {
         }
     });
 
-    $imageContainer.on('click', '[data-photo-save]', function(e) {
+    $lightbox.on('click', '[data-photo-save]', function(e) {
         var $button = $(e.target),
-            $lightbox = $button.closest('.lightbox');
+            // CSS rotations are reversed from the backend rotations
+            degreesToSave = -currentRotation;
+
         $button.prop('disabled', true);  // Prevent double submissions
 
         $.ajax({
             method: 'POST',
             url: $button.attr('data-photo-save'),
-            data: {'degrees': currentRotation}
+            data: {'degrees': degreesToSave}
         })
         .done(function(data) {
-            $lightbox.lightbox('hide');
+            $lightbox.modal('hide');
             loadImageCarouselHtml(data);
         });
     });
