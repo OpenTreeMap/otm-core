@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as trans
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
@@ -22,11 +23,29 @@ from treemap.plugin import should_send_user_activation
 from treemap.util import get_instance_or_404
 
 
+class LoginForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super(LoginForm, self).__init__(*args, **kwargs)
+
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'input-xlarge form-control'
+
+
 class RegistrationForm(DefaultRegistrationForm):
-    organization = forms.CharField(
-        max_length=100,
-        required=False,
-        label=trans('Organization'))
+    def __init__(self, *args, **kwargs):
+        super(RegistrationForm, self).__init__(*args, **kwargs)
+
+        self.fields['email'].label=trans('Email')
+        self.fields['password2'].label=trans('Confirm Password')
+
+        for field_name, field in self.fields.items():
+            if not isinstance(field, forms.BooleanField):
+                field.widget.attrs['class'] = 'form-control'
+
+        self.fields['password1'].widget.attrs['outer_class'] = 'field-left'
+        self.fields['password2'].widget.attrs['outer_class'] = 'field-right'
+        self.fields['first_name'].widget.attrs['outer_class'] = 'field-left'
+        self.fields['last_name'].widget.attrs['outer_class'] = 'field-right'
 
     first_name = forms.CharField(
         max_length=100,
@@ -37,6 +56,11 @@ class RegistrationForm(DefaultRegistrationForm):
         max_length=100,
         required=False,
         label=trans('Last name'))
+
+    organization = forms.CharField(
+        max_length=100,
+        required=False,
+        label=trans('Organization'))
 
     allow_email_contact = forms.BooleanField(
         required=False,

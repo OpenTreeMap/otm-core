@@ -9,33 +9,51 @@
     <form method="post" action=".">
         <fieldset>
             {% csrf_token %}
-            <legend>{% trans "Login" %}<a class="pull-right have-account" href="{% url 'registration_register' %}">{% trans "Need an account?" %}</a></legend>
-            {{ form.as_p }}
+            <legend>{% trans "Log in to OpenTreeMap" %}</legend>
+            {% if form.non_field_errors %}
+                <ul class='errorlist'>
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+          {% for field in form %}
+                <div class="field">
+                    {% if field.name == "username" %}
+                        <a href="{% url 'forgot_username' %}" class="pull-right">
+                            {% trans "Recover my username" %}
+                        </a>
+                    {% endif %}
+                    {% if field.name == "password" %}
+                        <a href="{% url 'auth_password_reset' %}" class="pull-right">
+                            {% trans "Reset my password" %}
+                        </a>
+                    {% endif %}
+                    {{ field.label_tag}}
+                    {{ field }}
+                    {{ field.errors|safe }}
+                </div>
+            {% endfor %}
             <button type="submit" value="{% trans 'Log in' %}" class="btn btn-lg btn-primary">{% trans 'Log in' %}</button>
             <input type="hidden" name="next" value="{{ next }}" />
         </fieldset>
     </form>
   </div>
   <div class="well login-signup-panel signup-option">
-    <p>{% trans "Forgot password?" %} <a href="{% url 'auth_password_reset' %}" class="btn">{% trans "Reset it" %}</a></p>
-    <br />
-    <p>{% trans "Forgot username?" %} <a href="{% url 'forgot_username' %}" class="btn">{% trans "Recover it" %}</a></p>
+    <p>
+      {% trans "Don't have an account?" %}
+      <a class="btn btn-lg btn-primary" href="{% url 'registration_register' %}">{% trans "Register" %}</a>
+    </p>
   </div>
 </div>
 {% endblock content %}
 
 {% block scripts %}
 <script>
-(function(require) {
-    // TODO: Remove this when the login form is subclassed
+(function (require) {
     var $ = require('jquery');
-    $(function(){
-        // Add additional classes to the fields generated
-        // by the stock Django login form
-        $('input[type="text"]').addClass('input-xlarge form-control');
-        $('input[type="password"]').addClass('input-xlarge form-control');
+    $(function () {
         $('input[name="username"]').focus();
-        $('ul.errorlist').addClass('alert alert-danger');
     })
 })(require);
 </script>

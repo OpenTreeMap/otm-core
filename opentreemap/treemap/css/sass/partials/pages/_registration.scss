@@ -22,13 +22,35 @@
         box-sizing: content-box;
     }
     form {
-        p.required {
+        div.field {
             > label {
                 &:after {
-                    content: '*';
-                    margin-left: 5px;
+                    content: ':';
                 }
             }
+        }
+        div.required {
+            > label {
+                &:after {
+                    content: ': *';
+                }
+            }
+        }
+        div.field-left {
+            display: inline-block;
+            width: 49%;
+            padding-right: 8px;
+        }
+        div.field-right {
+            display: inline-block;
+            width: 50%;
+            padding-left: 8px;
+        }
+        div.section-header {
+            font-size: 1.7rem;
+            font-weight: bold;
+            margin-top: 10px;
+            border-bottom: 1px solid #e5e5e5;
         }
         button.btn {
             margin: 0 auto;
