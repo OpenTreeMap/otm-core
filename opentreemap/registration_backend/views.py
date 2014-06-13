@@ -35,8 +35,8 @@ class RegistrationForm(DefaultRegistrationForm):
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
 
-        self.fields['email'].label=trans('Email')
-        self.fields['password2'].label=trans('Confirm Password')
+        self.fields['email'].label = trans('Email')
+        self.fields['password2'].label = trans('Confirm Password')
 
         for field_name, field in self.fields.items():
             if not isinstance(field, forms.BooleanField):
