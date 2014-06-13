@@ -32,7 +32,7 @@ USERNAME_PATTERN = r'(?P<username>[\w.@+-]+)'
 
 urlpatterns = patterns(
     '',
-    url(r'^$', index_view),
+    url(r'^$', index_view, name='instance_index_view'),
     url(r'page/(?P<page>[a-zA-Z0-9 ]+)/$',
         static_page_view, name='static_page'),
     url(r'^boundaries/(?P<boundary_id>\d+)/geojson/$',

@@ -32,7 +32,8 @@ from treemap.views.tree import (add_tree_photo, tree_detail,
 
 from treemap.views.misc import (edits, get_map_view_context, static_page,
                                 boundary_to_geojson, boundary_autocomplete,
-                                species_list, compile_scss, index)
+                                species_list, compile_scss, index,
+                                public_instances_geojson)
 
 from treemap.views.map_feature import (render_map_feature_detail,
                                        render_map_feature_add,
@@ -83,6 +84,10 @@ instance_not_available_view = render_template(
 landing_view = render_template('base.html')()
 
 unsupported_view = render_template('treemap/unsupported.html')()
+
+instances_geojson_view = do(
+    json_api_call,
+    public_instances_geojson)
 
 error_404_view = render_template('404.html')(statuscode=404)
 error_500_view = render_template('500.html')(statuscode=500)

@@ -37,6 +37,7 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            forgot_username, update_user)
 from treemap.lib.tree import add_tree_photo_helper
 from treemap.views.user import _user_instances
+from treemap.views.misc import public_instances_geojson
 from treemap.views.map_feature import (update_map_feature,
                                        rotate_map_feature_photo)
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
@@ -1759,3 +1760,49 @@ class UserInstancesViewTests(TestCase):
         # User anonymous views b's instances
         instances = _user_instances(None, self.user_b, self.c)
         self.assertEquals(instances, [self.b_public])
+
+
+class InstanceListTest(TestCase):
+    def setUp(self):
+        self.i1 = make_instance()
+        self.i1.is_public = True
+        self.i1.save()
+
+        commander = make_commander_user(instance=self.i1)
+
+        plot1 = Plot(instance=self.i1, geom=self.i1.center)
+        plot1.save_with_user(commander)
+
+        plot2 = Plot(instance=self.i1, geom=self.i1.center)
+        plot2.save_with_user(commander)
+
+        tree = Tree(plot=plot1, instance=self.i1)
+        tree.save_with_user(commander)
+
+    def test_instance_list_results(self):
+        instance_list = public_instances_geojson(make_request())
+
+        self.assertEqual(1, len(instance_list))
+
+        instance_dict = instance_list[0]
+
+        # Is GeoJSON
+        self.assertIn('type', instance_dict)
+        self.assertIn('geometry', instance_dict)
+        self.assertIn('properties', instance_dict)
+
+        self.assertEqual(self.i1.name, instance_dict['properties']['name'])
+        self.assertEqual(1, instance_dict['properties']['tree_count'])
+        self.assertEqual(2, instance_dict['properties']['plot_count'])
+
+    def test_instance_list_only_public(self):
+        private_instance = make_instance()
+
+        private_instance.is_public = False
+        private_instance.save()
+
+        other_instance = make_instance()
+        other_instance.is_public = True
+        other_instance.save()
+
+        self.assertEqual(2, len(public_instances_geojson(make_request())))
