@@ -208,11 +208,18 @@ exports.init = function(options) {
 
                 data[name] =
                     _.map($table.find('tr[data-value-id]').toArray(), function(row) {
-                        return _.object(headers, $(row)
-                                        .find('td')
+                        var $row = $(row),
+                            $tds = $row.find('td'),
+                            id = $row.attr('data-value-id'),
+
+                            rowData = _.object(headers, $tds
                                         .map(function() {
                                             return $.trim($(this).html());
                                         }));
+                        if (! _.isEmpty(id)) {
+                            rowData.id = id;
+                        }
+                        return rowData;
                     });
             });
 
