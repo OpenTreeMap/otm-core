@@ -128,8 +128,13 @@ def transform_user_request(user_view_fn):
         if request.api_version < 3:
             body_dict = json.loads(request.body)
 
-            body_dict['first_name'] = body_dict.get('firstname', '')
-            body_dict['last_name'] = body_dict.get('lastname', '')
+            if 'firstname' in body_dict:
+                body_dict['first_name'] = body_dict.get('firstname', '')
+                del body_dict['firstname']
+
+            if 'lastname' in body_dict:
+                body_dict['last_name'] = body_dict.get('lastname', '')
+                del body_dict['lastname']
 
             body = json.dumps(body_dict)
             # You can't directly set a new request body
