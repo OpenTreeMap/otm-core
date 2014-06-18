@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.db.models import Q
+
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
@@ -51,9 +53,10 @@ def instances_closest_to_point(request, lat, lng):
         raise HttpBadRequestException(
             'The distance parameter must be a number')
 
-    instances = (Instance.objects.distance(point)
-                 .filter(bounds__distance_lte=(point, D(m=distance)))
-                 .order_by('distance'))
+    instances = Instance.objects.distance(point).order_by('distance')
+
+    nearby_predicate = Q(bounds__distance_lte=(point, D(m=distance)))
+    personal_predicate = Q(pk__in=user_instance_ids)
 
     # drop non-mobile instances and convert to context dictionary
     contextify = (lambda qs: map(_instance_info_dict,
@@ -64,9 +67,10 @@ def instances_closest_to_point(request, lat, lng):
     return {
         'nearby': contextify(instances
                              .filter(is_public=True)
-                             .exclude(pk__in=user_instance_ids)
+                             .filter(nearby_predicate)
+                             .exclude(personal_predicate)
                              [0:max_instances]),
-        'personal': contextify(instances.filter(pk__in=user_instance_ids))
+        'personal': contextify(instances.filter(personal_predicate))
     }
 
 
