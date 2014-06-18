@@ -1,3 +1,6 @@
+{% load i18n %}
+{% load instance_config %}
+
 <input type="hidden"
        data-typeahead-hidden
        id="{{ field.label }}-hidden"
@@ -13,3 +16,9 @@
        value="{{ field.value.id }}"
        data-typeahead-restore="{{ field.identifier }}"
        data-datum="id" />
+<p>
+  <a class="external-help-link"
+     target="_blank"
+     href="{% include "treemap/partials/treekey_url.html" with linkData=request.instance|instance_config:"linkData" %}"
+     >{% trans "Need help identifying the tree's species?" %}</a>
+</p>

@@ -24,6 +24,10 @@ ECO_SERVICE_URL = 'http://localhost:13000'
 # the 'GTM-' prefix
 GOOGLE_ANALYTICS_ID = None
 
+# Tree Key URL to use for help links of an instance doesn't provide
+# one
+DEFAULT_TREE_KEY_URL = 'http://www.arborday.org/trees/whatTree/'
+
 # Storage backend config
 # Uncomment the following to enable S3-backed storage:
 # DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'

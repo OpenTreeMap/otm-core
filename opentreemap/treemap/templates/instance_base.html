@@ -194,11 +194,7 @@
   {% with linkData=request.instance|instance_config:"linkData" %}
   <ul class="list-inline pull-left">
     <li><a target="_blank"
-           {% if 'treekey' in linkData.keys and linkData.treekey %}
-           href="{{ linkData.treekey }}"
-           {% else %}
-           href="http://www.arborday.org/trees/whatTree/"
-           {% endif %}
+           href="{% include "treemap/partials/treekey_url.html" %}"
            >{% trans "Tree ID" %}</a></li>
     {% for name in request.instance.static_page_names %}
     <li><a href="{% url 'static_page' instance_url_name=request.instance.url_name page=name %}">{{ name }}</a></li>
@@ -207,7 +203,7 @@
     <li><a href="mailto:{{ linkData.contact }}">{% trans "Contact" %}</a></li>
     {% endif %}
   </ul>
-{% endwith %}
+  {% endwith %}
 </div>
 {% endblock footer %}
 

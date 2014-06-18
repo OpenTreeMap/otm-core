@@ -1,0 +1,5 @@
+{% if 'treekey' in linkData.keys and linkData.treekey %}
+{{ linkData.treekey }}
+{% else %}
+{{ settings.DEFAULT_TREE_KEY_URL }}
+{% endif %}
