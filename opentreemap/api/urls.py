@@ -7,7 +7,7 @@ from django.conf.urls import patterns, url
 
 from opentreemap.util import route
 
-from api.views import (status_view, version_view,
+from api.views import (status_view, version_view, public_instances_endpoint,
                        remove_current_tree_from_plot, plots_endpoint,
                        species_list_endpoint, approve_pending_edit,
                        reject_pending_edit, update_user_endpoint,
@@ -42,6 +42,8 @@ urlpatterns = patterns(
 
     ('^locations/' + lat_lon_pattern + '/instances',
      instances_closest_to_point_endpoint),
+
+    ('^instances', public_instances_endpoint),
 
     (instance_pattern + r'/plots/(?P<plot_id>\d+)/tree/photo$',
      add_photo_endpoint),
