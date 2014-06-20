@@ -141,6 +141,8 @@ class Instance(models.Model):
     itree_region_default = models.CharField(
         max_length=20, null=True, blank=True, choices=ITREE_REGION_CHOICES)
 
+    adjuncts_timestamp = models.BigIntegerField(default=0)
+
     objects = models.GeoManager()
 
     def __unicode__(self):
@@ -243,12 +245,13 @@ class Instance(models.Model):
                 num += 1
 
         # prevent circular import
-        from treemap.udf import UserDefinedFieldDefinition
+        from treemap.udf import udf_cache
 
-        udfds = UserDefinedFieldDefinition.objects.filter(
-            instance=self,
-            name__in=udfc_names,
-            model_type__in=udfc_models)
+        udfds = []
+        for model_name in udfc_models:
+            for udfd in udf_cache.get_defs_for_model(model_name, self.id):
+               if udfd.name in udfc_names:
+                   udfds.append(udfd)
 
         udfc = deepcopy(empty_udfc)
 

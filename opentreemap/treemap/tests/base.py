@@ -7,7 +7,7 @@ _test_settings = {
 
     'STATIC_URL': 'http://localhost:/static/',
 
-    # Test authors shouldn't need to understand when to invalidate caches
+    # Without this we'd need to invalidate the cache before every test.
     'USE_OBJECT_CACHES': False,
 }
 

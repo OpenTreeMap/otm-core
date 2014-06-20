@@ -2,6 +2,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
+
 from django.http import Http404
 
 import hashlib
@@ -15,6 +16,7 @@ from django.core import validators
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.db import IntegrityError, transaction
+from django.db.models.signals import post_save
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as trans
 from django.contrib.auth.models import (UserManager, AbstractBaseUser,
@@ -29,6 +31,8 @@ from treemap.images import save_uploaded_image
 from treemap.units import Convertible
 from treemap.udf import UDFModel, GeoHStoreUDFManager
 from treemap.instance import Instance
+from treemap.lib.object_caches import (permissions,
+                                     update_cached_role_for_instance_user)
 
 
 def _action_format_string_for_location(action):
@@ -387,13 +391,6 @@ class User(Auditable, AbstractUniqueEmailUser):
         else:
             return instance_user
 
-    def get_instance_permissions(self, instance, model_name=None):
-        role = self.get_role(instance)
-        perms = FieldPermission.objects.filter(role=role)
-        if model_name:
-            perms = perms.filter(model_name=model_name)
-        return perms
-
     def get_role(self, instance):
         iuser = self.get_instance_user(instance)
         role = iuser.role if iuser else instance.default_role
@@ -499,8 +496,7 @@ class InstanceUser(Auditable, models.Model):
         if extra_fields:
             fields.update(extra_fields)
 
-        perms = self.user.get_instance_permissions(
-            self.instance, model_name)
+        perms = permissions(self.user, self.instance, model_name)
 
         fieldperms = {perm.field_name
                       for perm in perms
@@ -525,6 +521,8 @@ class InstanceUser(Auditable, models.Model):
 
     def __unicode__(self):
         return '%s/%s' % (self.user.get_username(), self.instance.name)
+
+post_save.connect(update_cached_role_for_instance_user, sender=InstanceUser)
 
 
 class MapFeature(Convertible, UDFModel, Authorizable, Auditable):

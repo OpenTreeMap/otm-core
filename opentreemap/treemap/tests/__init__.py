@@ -478,5 +478,6 @@ from middleware import *      # NOQA
 from json_field import *      # NOQA
 from units import *           # NOQA
 from management import *      # NOQA
-from ecobenefits import *   # NOQA
-from ui import *        # NOQA
+from ecobenefits import *     # NOQA
+from ui import *              # NOQA
+from object_caches import *   # NOQA

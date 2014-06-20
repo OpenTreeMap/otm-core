@@ -33,12 +33,11 @@ def feature_enabled(instance, feature):
     return instance.feature_enabled(feature)
 
 
-def _role_allows_perm(role, model_name, predicate,
-                      perm_attr, field=None):
-    perms = role.model_permissions(model_name).all()
+def _role_allows_perm(role, model_name, predicate, perm_attr, field=None):
+    perms = role.model_permissions(model_name)
 
     if field:
-        perms = perms.filter(field_name=field)
+        perms = [perm for perm in perms if perm.field_name == field]
 
     return predicate(getattr(perm, perm_attr) for perm in perms)
 

@@ -20,6 +20,8 @@ from django.db import IntegrityError, connection, transaction
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name)
 from treemap.util import all_subclasses
+from treemap.lib.object_caches import (permissions, role_permissions,
+                                     on_field_permission_save_after)
 
 
 def model_hasattr(obj, name):
@@ -384,8 +386,7 @@ def _verify_user_can_apply_audit(audit, user):
         field = audit.field
         model = audit.model
 
-    perms = user.get_instance_permissions(audit.instance,
-                                          model_name=model)
+    perms = permissions(user, audit.instance, model)
 
     foundperm = False
     for perm in perms:
@@ -584,6 +585,9 @@ class FieldPermission(models.Model):
         super(FieldPermission, self).save(*args, **kwargs)
 
 
+post_save.connect(on_field_permission_save_after, sender=FieldPermission)
+
+
 class Role(models.Model):
     name = models.CharField(max_length=255)
     instance = models.ForeignKey('Instance', null=True, blank=True)
@@ -599,8 +603,8 @@ class Role(models.Model):
     def plot_permissions(self):
         return self.model_permissions('Plot')
 
-    def model_permissions(self, model):
-        return self.fieldpermission_set.filter(model_name=model)
+    def model_permissions(self, model_name):
+        return role_permissions(self, self.instance, model_name)
 
     def __unicode__(self):
         return '%s (%s)' % (self.name, self.pk)
@@ -624,13 +628,12 @@ class Authorizable(UserTrackable):
 
     def _get_perms_set(self, user, direct_only=False):
 
-        try:
-            perms = user.get_instance_permissions(self.instance,
-                                                  self._model_name)
-        except ObjectDoesNotExist:
+        if not self.instance:
             raise AuthorizeException(trans(
                 "Cannot retrieve permissions for this object because "
                 "it does not have an instance associated with it."))
+
+        perms = permissions(user, self.instance, self._model_name)
 
         if direct_only:
             perm_set = {perm.field_name
@@ -691,7 +694,7 @@ class Authorizable(UserTrackable):
         fields that inheriting subclasses will want to treat as
         special pending_edit fields.
         """
-        perms = user.get_instance_permissions(self.instance, self._model_name)
+        perms = permissions(user, self.instance, self._model_name)
         fields_to_audit = []
         for perm in perms:
             if ((perm.permission_level == FieldPermission.WRITE_WITH_AUDIT and
@@ -702,7 +705,7 @@ class Authorizable(UserTrackable):
         return fields_to_audit
 
     def mask_unauthorized_fields(self, user):
-        perms = user.get_instance_permissions(self.instance, self._model_name)
+        perms = permissions(user, self.instance, self._model_name)
         readable_fields = {perm.field_name for perm
                            in perms
                            if perm.allows_reads}
@@ -716,13 +719,7 @@ class Authorizable(UserTrackable):
         self._has_been_masked = True
 
     def _perms_for_user(self, user):
-        if user is None or user.is_anonymous():
-            perms = self.instance.default_role.fieldpermission_set
-        else:
-            perms = user.get_instance_permissions(
-                self.instance, self._model_name)
-
-        return perms.filter(model_name=self._model_name)
+        return permissions(user, self.instance, self._model_name)
 
     def visible_fields(self, user):
         perms = self._perms_for_user(user)

@@ -20,6 +20,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 
 from treemap import ecobackend
+from treemap.lib.object_caches import permissions
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.audit import (Audit, approve_or_reject_audit_and_apply,
                            approve_or_reject_audits_and_apply,
@@ -342,10 +343,10 @@ class PlotImageUpdateTest(LocalMediaTestCase):
 
     def _make_audited_request(self):
         # Update user to only have pending permission
-        perms = self.user.get_instance_permissions(self.instance)
+        perms = permissions(self.user, self.instance)
 
         def update_perms(plevel):
-            for perm in perms:
+            for perm in perms.all():
                 perm.permission_level = plevel
                 perm.save()
 

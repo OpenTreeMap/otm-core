@@ -30,6 +30,7 @@ from treemap.instance import Instance
 from treemap.audit import (UserTrackable, Audit, UserTrackingException,
                            _reserve_model_id, FieldPermission,
                            AuthorizeException, Authorizable, Auditable)
+from treemap.lib.object_caches import permissions
 from treemap.util import safe_get_model_class, to_object_name
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -183,8 +184,8 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
         field_perm = None
         model = self.field_definition.model_type
         field = 'udf:%s' % self.field_definition.name
-        perms = user.get_instance_permissions(self.field_definition.instance,
-                                              model_name=model)
+        perms = permissions(user, self.field_definition.instance,
+                            model_name=model)
         for perm in perms:
             if perm.field_name == field and perm.allows_writes:
                 field_perm = perm
@@ -920,7 +921,7 @@ class UDFDCache(object):
             if instance_id:
                 udfs = udfs.filter(instance__pk=instance_id)
 
-            # Iterating over a queryset isn't theadsafe
+            # Iterating over a queryset isn't thread-safe
             # so we need to force it here
             return self.put(key, list(udfs))
         else:
