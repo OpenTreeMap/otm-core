@@ -58,19 +58,13 @@ def instances_closest_to_point(request, lat, lng):
     nearby_predicate = Q(bounds__distance_lte=(point, D(m=distance)))
     personal_predicate = Q(pk__in=user_instance_ids)
 
-    # drop non-mobile instances and convert to context dictionary
-    contextify = (lambda qs: map(_instance_info_dict,
-                                 filter(lambda i:
-                                        i.feature_enabled('mobile_apps'),
-                                        qs)))
-
     return {
-        'nearby': contextify(instances
-                             .filter(is_public=True)
-                             .filter(nearby_predicate)
-                             .exclude(personal_predicate)
-                             [0:max_instances]),
-        'personal': contextify(instances.filter(personal_predicate))
+        'nearby': _contextify_instances(instances
+                                        .filter(is_public=True)
+                                        .filter(nearby_predicate)
+                                        .exclude(personal_predicate)
+                                        [0:max_instances]),
+        'personal': _contextify_instances(instances.filter(personal_predicate))
     }
 
 
@@ -156,6 +150,16 @@ def instance_info(request, instance):
         info['logoUrl'] = instance.logo.url
 
     return info
+
+
+def public_instances(request):
+    return _contextify_instances(Instance.objects.filter(is_public=True))
+
+
+def _contextify_instances(instances):
+    """ Drops non-mobile instances and converts to context dictionary"""
+    return map(_instance_info_dict,
+               filter(lambda i: i.feature_enabled('mobile_apps'), instances))
 
 
 def _instance_info_dict(instance):

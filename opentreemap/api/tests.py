@@ -36,7 +36,8 @@ from exporter.tests import UserExportsTestCase
 from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
 from api.models import APIAccessCredential
 from api.views import add_photo_endpoint, update_profile_photo_endpoint
-from api.instance import instances_closest_to_point, instance_info
+from api.instance import (instances_closest_to_point, instance_info,
+                          public_instances)
 from api.user import create_user
 from api.auth import get_signature_for_request
 from api.decorators import (check_signature, SIG_TIMESTAMP_FORMAT,
@@ -1124,6 +1125,20 @@ class InstancesClosestToPoint(TestCase):
 
         self.assertEqual(1, len(instance_infos['personal']))
         self.assertEqual(self.i2.pk, instance_infos['personal'][0]['id'])
+
+
+@override_settings(FEATURE_BACKEND_FUNCTION=None)
+class PublicInstancesTest(TestCase):
+    def setUp(self):
+        self.i1 = make_instance(is_public=True, point=Point(0, 0))
+        self.i2 = make_instance(is_public=False, point=Point(0, 0))
+
+    def test_public_list(self):
+        request = sign_request(make_request())
+
+        instance_infos = public_instances(request)
+        self.assertEqual(1, len(instance_infos))
+        self.assertEqual(self.i1.pk, instance_infos[0]['id'])
 
 
 class TreePhotoTest(LocalMediaTestCase):
