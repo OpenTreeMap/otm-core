@@ -86,16 +86,6 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
     start_pos = page * page_size
     end_pos = start_pos + page_size
 
-    model_filter = Q(model__in=models)
-
-    # We only want to show the TreePhoto's image, not other fields
-    # and we want to do it automatically if 'Tree' was specified as
-    # a model
-    # FIXME: This should also show MapFeaturePhoto if any map feature
-    #        models are in the filter
-    if 'Tree' in models:
-        model_filter = model_filter | Q(model='TreePhoto', field='image')
-
     if instance:
         if instance.is_accessible_by(logged_in_user):
             instances = Instance.objects.filter(pk=instance.pk)
