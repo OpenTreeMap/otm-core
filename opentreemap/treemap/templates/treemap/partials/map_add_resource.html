@@ -12,7 +12,7 @@
             </div>
             <div class="add-step-content">
                 <label>{{ term.Resource }} {% trans "Type" %}</label>
-                {% for cls in resource_classes %}
+                {% for cls in resource_classes %} </br>
                     <input type="radio"
                            name="addResourceType"
                            value="{{ cls.feature_type }}"
