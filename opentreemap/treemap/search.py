@@ -27,12 +27,14 @@ DEFAULT_MAPPING = {'plot': '',
                    'tree': 'tree__',
                    'species': 'tree__species__',
                    'treePhoto': 'tree__treephoto__',
+                   'mapFeaturePhoto': 'mapfeaturephoto__',
                    'mapFeature': ''}
 
 TREE_MAPPING = {'plot': 'plot__',
                 'tree': '',
                 'species': 'species__',
                 'treePhoto': 'treephoto__',
+                'mapFeaturePhoto': 'treephoto__',
                 'mapFeature': 'plot__'}
 
 PLOT_RELATED_MODELS = {Plot, Tree, Species, TreePhoto}
