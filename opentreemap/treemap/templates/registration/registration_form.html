@@ -23,8 +23,9 @@
         <input type="file" class="profile-photo-upload"><br><br>
         -->
         {% csrf_token %}
-        <div><a href="{% url 'auth_login' %}" class="pull-right">{% trans "I already have an account" %}</a></div>
-        <legend>{% trans "Create an Account" %}</legend>
+        <legend>{% trans "Create an Account" %}
+            <a href="{% url 'auth_login' %}" class="pull-right">{% trans "I already have an account" %}</a>
+        </legend>
         <h5>Fields marked with an asterisk (*) are required.</h5>
         {% for field in form %}
             <div class="field {{ field.css_classes }} {{ field.field.widget.attrs.outer_class }}">
