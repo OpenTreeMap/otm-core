@@ -1,12 +1,12 @@
 {% load i18n %}
 {% if field.type == 'choice' %}
-<select data-field-name="{{ field.name }}">
+<select class="form-control" data-field-name="{{ field.name }}">
   {% for choice in field.choices %}
   <option value="{{ choice }}">{{ choice }}</option>
   {% endfor %}
 </select>
 {% elif field.type == 'date' %}
-<input type="text" data-field-name="{{ field.name }}" data-date-format="yyyy-mm-dd"
+<input class="form-control" type="text" data-field-name="{{ field.name }}" data-date-format="yyyy-mm-dd"
        data-moment-date-format="YYYY-MM-DD" value="{% trans "Today" %}" />
 {% else %}
 <input type="text" data-field-name="{{ field.name }}" />
