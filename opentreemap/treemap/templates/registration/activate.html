@@ -5,10 +5,10 @@
 <div class="content login-signup">
   <div class="well login-signup-panel">
   {% if account %}
-    <h3>{% trans "Account successfully activated" %}</h3>
+    <legend>{% trans "Account successfully activated" %}</legend>
     <p><a href="{% url 'auth_login' %}">{% trans "Log in" %}</a> {% trans "to start exploring trees!" %}</p>
   {% else %}
-    <h3>{% trans "Account Activation Issue" %}</h3>
+    <legend>{% trans "Account Activation Issue" %}</legend>
     {% url 'auth_login' as login_url %}
     {% blocktrans with settings.SUPPORT_EMAIL_ADDRESS as support_email %}
     <p>You may have clicked on the activation link twice or did not copy the entire URL into your web browser.  Please try <a href="{{ login_url }}">logging in.</a></p>

@@ -76,6 +76,9 @@ body {
         display: block;
         z-index: 0;
     }
+    &.create-map {
+        margin-top: 50px;
+    }
 
     > div {
         z-index: 10;

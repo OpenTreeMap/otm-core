@@ -20,20 +20,64 @@
         color: $main-text-color;
         margin: 0 -20px 20px -20px;
         box-sizing: content-box;
+
+        > a {
+            font-size: 1.4rem;
+            color: $primary-color;
+            line-height: 4.4rem;
+
+            &:hover {
+                color: darken($primary-color, 10%);
+            }
+        }
     }
     form {
-        p.required {
+        div.field {
+            > a {
+                font-size: 1.4rem;
+                color: $primary-color;
+            }
             > label {
                 &:after {
-                    content: '*';
-                    margin-left: 5px;
+                    content: ':';
                 }
             }
+            > input {
+                clear: both;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+        div.required {
+            > label {
+                &:after {
+                    content: ': *';
+                }
+            }
+        }
+        div.field-left {
+            display: inline-block;
+            width: 49%;
+            padding-right: 8px;
+        }
+        div.field-right {
+            display: inline-block;
+            width: 50%;
+            padding-left: 8px;
+        }
+        div.section-header {
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-top: 15px;
+            border-bottom: 1px solid #e5e5e5;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            color: $primary-color;
         }
         button.btn {
             margin: 0 auto;
             display: block;
-            padding: 10px 26px;
+            padding: 10px 26px !important;
         }
     }
 }
@@ -49,9 +93,13 @@
     background-color: $navbar-color;
     margin-top: 15px;
 
-    p {
+    h3 {
         margin-bottom: 0;
         color: #FFF;
+        text-align: left;
+        display: inline-block;
+        top: 3px;
+        position: relative;
     }
     a {
         margin-left: 20px;
@@ -65,11 +113,14 @@
 }
 
 label[for="id_allow_email_contact"] {
-    float: right;
-    width: 95%;
+    width: 75%;
+    margin-bottom: 15px;
 }
 #id_allow_email_contact {
     float: left;
+    width: 15px;
+    clear: none;
+    margin: 2px 10px 0 0;
 }
 
 @media (max-width: 767px) {
