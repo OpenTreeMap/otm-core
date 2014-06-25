@@ -33,6 +33,8 @@
     }
     form {
         div.field {
+            margin-bottom: 10px;
+
             > a {
                 font-size: 1.4rem;
                 color: $primary-color;
@@ -45,7 +47,6 @@
             > input {
                 clear: both;
                 width: 100%;
-                margin-bottom: 10px;
             }
         }
         div.required {

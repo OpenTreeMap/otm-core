@@ -51,8 +51,17 @@
 }
 
 .errorlist {
-	margin: 0;
+	margin: 6px 0 8px;
 	padding: 0;
 	list-style: none;
     color: red;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.6rem;
+
+    > li {
+        font-size: 1.2rem;
+        font-weight: 700;
+        line-height: 1.6rem;
+    }
 }
