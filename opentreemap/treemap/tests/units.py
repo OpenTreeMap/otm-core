@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.test import TestCase
 from django.test.utils import override_settings
 from django.contrib.gis.geos import Point
 
@@ -12,6 +11,7 @@ from treemap.units import (is_convertible, is_formattable, get_display_value,
 from treemap.models import Plot, Tree
 from treemap.json_field import set_attr_on_json_field
 from treemap.tests import make_instance, make_commander_user
+from treemap.tests.base import OTMTestCase
 
 UNIT_TEST_DISPLAY_DEFAULTS = {
     'test': {
@@ -30,7 +30,7 @@ UNIT_TEST_STORAGE_UNITS = {
 
 @override_settings(DISPLAY_DEFAULTS=UNIT_TEST_DISPLAY_DEFAULTS,
                    STORAGE_UNITS=UNIT_TEST_STORAGE_UNITS)
-class UnitConverterTest(TestCase):
+class UnitConverterTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
 
@@ -108,7 +108,7 @@ INTEGRATION_TEST_DISPLAY_DEFAULTS = {
 
 
 @override_settings(DISPLAY_DEFAULTS=INTEGRATION_TEST_DISPLAY_DEFAULTS)
-class ConvertibleTest(TestCase):
+class ConvertibleTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)

@@ -1,3 +1,4 @@
+from django.test.utils import override_settings
 import importlib
 
 from time import sleep
@@ -52,6 +53,12 @@ def patch_broken_pipe_error():
 patch_broken_pipe_error()
 
 
+@override_settings(
+    # For session management use file backend instead of DB, to reduce
+    # extraneous transactions which can cause deadlock when tearDown()
+    # truncates all tables.
+    SESSION_ENGINE="django.contrib.sessions.backends.file"
+)
 class UITestCase(LiveServerTestCase):
     def use_xvfb(self):
         from pyvirtualdisplay import Display

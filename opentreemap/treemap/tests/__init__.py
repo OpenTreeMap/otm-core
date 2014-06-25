@@ -10,7 +10,7 @@ from unittest import TestSuite
 import shutil
 import tempfile
 
-from django.test import TestCase, LiveServerTestCase
+from django.test import LiveServerTestCase
 from django.test.client import RequestFactory
 from django.test.simple import DjangoTestSuiteRunner
 from django.conf import settings
@@ -25,6 +25,7 @@ from django.contrib.auth.models import AnonymousUser
 from treemap.models import User, InstanceUser
 from treemap.audit import Authorizable, add_default_permissions
 from treemap.util import leaf_subclasses
+from treemap.tests.base import OTMTestCase
 
 from djcelery.contrib.test_runner import CeleryTestSuiteRunner
 
@@ -368,7 +369,7 @@ def media_dir(f):
     return m
 
 
-class LocalMediaTestCase(TestCase):
+class LocalMediaTestCase(OTMTestCase):
     def setUp(self):
         self.photoDir = tempfile.mkdtemp()
         self.mediaUrl = '/testingmedia/'
@@ -398,7 +399,7 @@ class LocalMediaTestCase(TestCase):
         self.assertFalse(os.path.exists(path), '%s exists' % path)
 
 
-class ViewTestCase(TestCase):
+class ViewTestCase(OTMTestCase):
     def _add_global_url(self, url, view_fn):
         """
         Insert a new url into treemap for Client resolution
@@ -441,7 +442,7 @@ class ViewTestCase(TestCase):
                               url, url_args)
 
 
-class RequestTestCase(TestCase):
+class RequestTestCase(OTMTestCase):
 
     def assertOk(self, res):
         self.assertTrue(res.status_code >= 200 and res.status_code <= 200,

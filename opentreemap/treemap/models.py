@@ -22,13 +22,12 @@ from django.contrib.auth.models import (UserManager, AbstractBaseUser,
 
 from treemap.species import ITREE_REGIONS
 from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
-                           Dictable, Audit, AuthorizableQuerySet,
-                           AuthorizableManager)
+                           Dictable, Audit)
 from treemap.util import leaf_subclasses
 from treemap.decorators import classproperty
 from treemap.images import save_uploaded_image
 from treemap.units import Convertible
-from treemap.udf import UDFModel, GeoHStoreUDFManager, GeoHStoreUDFQuerySet
+from treemap.udf import UDFModel, GeoHStoreUDFManager
 from treemap.instance import Instance
 
 
@@ -65,18 +64,6 @@ def _action_format_string_for_readonly(action, readonly):
                                         '%(value)s')
     }
     return lang[action] % {'value': value}
-
-
-class AuthorizableGeoHStoreUDFQuerySet(AuthorizableQuerySet,
-                                       GeoHStoreUDFQuerySet):
-    pass
-
-
-class AuthorizableGeoHStoreUDFManager(AuthorizableManager,
-                                      GeoHStoreUDFManager):
-    def get_query_set(self):
-        return AuthorizableGeoHStoreUDFQuerySet(self.model,
-                                                using=self._db)
 
 
 class StaticPage(models.Model):
@@ -453,7 +440,7 @@ class Species(UDFModel, Authorizable, Auditable):
     max_dbh = models.IntegerField(default=200)
     max_height = models.IntegerField(default=800)
 
-    objects = AuthorizableGeoHStoreUDFManager()
+    objects = GeoHStoreUDFManager()
 
     @property
     def display_name(self):
@@ -541,7 +528,7 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
 
     readonly = models.BooleanField(default=False)
 
-    objects = AuthorizableGeoHStoreUDFManager()
+    objects = GeoHStoreUDFManager()
 
     area_field_name = None  # subclass responsibility
 
@@ -674,7 +661,7 @@ class Plot(MapFeature):
 
     owner_orig_id = models.CharField(max_length=255, null=True, blank=True)
 
-    objects = AuthorizableGeoHStoreUDFManager()
+    objects = GeoHStoreUDFManager()
 
     @classproperty
     def benefits(cls):
@@ -747,7 +734,7 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
     date_removed = models.DateField(null=True, blank=True,
                                     help_text=trans("Date Removed"))
 
-    objects = AuthorizableGeoHStoreUDFManager()
+    objects = GeoHStoreUDFManager()
 
     def __unicode__(self):
         diameter_chunk = ("Diameter: %s, " % self.diameter

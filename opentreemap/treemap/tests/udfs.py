@@ -8,7 +8,6 @@ from random import shuffle
 from datetime import datetime
 import psycopg2
 
-from django.test import TestCase
 from django.db import connection
 from django.db.models import Q
 from django.core.exceptions import ValidationError
@@ -24,6 +23,7 @@ from treemap.models import Plot
 from treemap.audit import (AuthorizeException, FieldPermission,
                            approve_or_reject_audit_and_apply,
                            approve_or_reject_audits_and_apply)
+from treemap.tests.base import OTMTestCase
 
 
 def make_collection_udf(instance, name='Stewardship', model='Plot',
@@ -47,7 +47,7 @@ def make_collection_udf(instance, name='Stewardship', model='Plot',
         name=name)
 
 
-class ScalarUDFFilterTest(TestCase):
+class ScalarUDFFilterTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.commander_user = make_commander_user(self.instance)
@@ -277,7 +277,7 @@ class ScalarUDFFilterTest(TestCase):
             {plot.pk for plot in plots})
 
 
-class UDFAuditTest(TestCase):
+class UDFAuditTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.commander_user = make_commander_user(self.instance)
@@ -469,7 +469,7 @@ class UDFAuditTest(TestCase):
         self.assertEqual(col[0]['a string'], 's')
 
 
-class ScalarUDFDefTest(TestCase):
+class ScalarUDFDefTest(OTMTestCase):
 
     def setUp(self):
         self.instance = make_instance()
@@ -676,7 +676,7 @@ class ScalarUDFDefTest(TestCase):
             iscollection=True)
 
 
-class ScalarUDFTest(TestCase):
+class ScalarUDFTest(OTMTestCase):
 
     def setUp(self):
         self.instance = make_instance()
@@ -854,7 +854,7 @@ class ScalarUDFTest(TestCase):
                           lambda: self.plot.udfs['RaNdoName'])
 
 
-class CollectionUDFTest(TestCase):
+class CollectionUDFTest(OTMTestCase):
 
     def setUp(self):
         self.instance = make_instance()
@@ -987,7 +987,7 @@ class CollectionUDFTest(TestCase):
             self.commander_user)
 
 
-class UdfDeleteTest(TestCase):
+class UdfDeleteTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.commander_user = make_commander_user(self.instance)

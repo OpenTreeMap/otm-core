@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.test import TestCase
 from django.test.utils import override_settings
 from django.contrib.gis.geos import Point, MultiPolygon
 from django.core.exceptions import ValidationError
@@ -14,9 +13,10 @@ from treemap.audit import Audit, ReputationMetric, Role
 from treemap.tests import (make_instance, make_commander_user,
                            make_user_with_default_role, make_user,
                            make_simple_boundary)
+from treemap.tests.base import OTMTestCase
 
 
-class HashModelTest(TestCase):
+class HashModelTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
@@ -72,7 +72,7 @@ class HashModelTest(TestCase):
         self.assertNotEqual(h1, h2, "Hashes should change")
 
 
-class GeoRevIncr(TestCase):
+class GeoRevIncr(OTMTestCase):
     def setUp(self):
         self.p1 = Point(-8515941.0, 4953519.0)
         self.p2 = Point(-7615441.0, 5953519.0)
@@ -123,7 +123,7 @@ class GeoRevIncr(TestCase):
         self.assertEqual(rev4 + 1, rev5)
 
 
-class SpeciesModelTests(TestCase):
+class SpeciesModelTests(OTMTestCase):
     def test_scientific_name_genus(self):
         s = Species(genus='Ulmus')
         self.assertEquals(s.scientific_name, 'Ulmus')
@@ -141,7 +141,7 @@ class SpeciesModelTests(TestCase):
         self.assertEquals(s.scientific_name, "Ulmus rubra 'Columella'")
 
 
-class ModelUnicodeTests(TestCase):
+class ModelUnicodeTests(OTMTestCase):
 
     def setUp(self):
         self.instance = make_instance(name='Test Instance')
@@ -231,7 +231,7 @@ class ModelUnicodeTests(TestCase):
                          'Test Instance - Tree - Test Action')
 
 
-class PlotTest(TestCase):
+class PlotTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
@@ -300,7 +300,7 @@ class PlotTest(TestCase):
                          self.plot.address_full)
 
 
-class InstanceUserModelTest(TestCase):
+class InstanceUserModelTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
 
@@ -315,7 +315,7 @@ class InstanceUserModelTest(TestCase):
         self.assertEqual(user.get_instance_user(self.instance), None)
 
 
-class InstanceTest(TestCase):
+class InstanceTest(OTMTestCase):
 
     def test_can_set_center(self):
         instance = make_instance(url_name="blah")

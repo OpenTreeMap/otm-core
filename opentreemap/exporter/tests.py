@@ -8,12 +8,12 @@ import json
 
 from django.contrib.gis.geos import Point
 from django.utils.unittest.case import skip
-from django.test import TestCase
 
 from treemap.udf import UserDefinedFieldDefinition, DATETIME_FORMAT
 from treemap.tests.views import LocalMediaTestCase, media_dir
 from treemap.tests import (make_instance, make_commander_user, make_request,
                            set_write_permissions, make_commander_role)
+from treemap.tests.base import OTMTestCase
 from treemap.models import Species, Plot, Tree, User, InstanceUser
 from treemap.audit import Audit, add_default_permissions
 
@@ -168,7 +168,7 @@ class ExportSpeciesTaskTest(AsyncCSVTestCase):
                                         'foo', '.*species_export(_\d+)?\.csv')
 
 
-class UserExportsTestCase(TestCase):
+class UserExportsTestCase(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.commander = make_commander_user(self.instance, "comm")

@@ -5,11 +5,9 @@ from __future__ import division
 
 import os.path
 import json
-import unittest
 from StringIO import StringIO
 import psycopg2
 
-from django.test import TestCase
 from django.test.utils import override_settings
 from django.test.client import RequestFactory
 from django.http import Http404, HttpResponse
@@ -47,10 +45,11 @@ from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            delete_all_app_users, set_read_permissions,
                            make_plain_user, LocalMediaTestCase, media_dir,
                            make_instance_user, set_invisible_permissions)
+from treemap.tests.base import OTMTestCase, LocalTransactionTestCase
 from treemap.tests.udfs import make_collection_udf
 
 
-class InstanceValidationTest(TestCase):
+class InstanceValidationTest(OTMTestCase):
 
     def setUp(self):
 
@@ -578,7 +577,7 @@ class UserPhotoUpdateTest(LocalMediaTestCase):
         self.assertEqual(response.status_code, 400)
 
 
-class PlotUpdateTest(unittest.TestCase):
+class PlotUpdateTest(LocalTransactionTestCase):
     def setUp(self):
         User._system_user.save_base()
 
@@ -1724,7 +1723,7 @@ class ForgotUsernameTests(ViewTestCase):
         self.assertEquals(len(mail.outbox), 0)
 
 
-class UserInstancesViewTests(TestCase):
+class UserInstancesViewTests(OTMTestCase):
     def setUp(self):
         self.user_a = make_plain_user('a')
         self.user_b = make_plain_user('b')
@@ -1762,7 +1761,7 @@ class UserInstancesViewTests(TestCase):
         self.assertEquals(instances, [self.b_public])
 
 
-class InstanceListTest(TestCase):
+class InstanceListTest(OTMTestCase):
     def setUp(self):
         self.i1 = make_instance()
         self.i1.is_public = True

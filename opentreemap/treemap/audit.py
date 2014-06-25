@@ -611,28 +611,6 @@ class AuthorizeException(Exception):
         super(Exception, self).__init__(name)
 
 
-class AuthorizableQuerySet(models.query.QuerySet):
-
-    def limit_fields_by_user(self, instance, user):
-        """
-        Filters a queryset based on what field permissions a user has on the
-        model type.
-        """
-        perms = user.get_instance_permissions(instance,
-                                              self.model.__name__)\
-                    .values_list('field_name', flat=True)
-
-        if perms:
-            return self.values(*perms)
-        else:
-            return self.none()
-
-
-class AuthorizableManager(models.GeoManager):
-    def get_query_set(self):
-        return AuthorizableQuerySet(self.model, using=self._db)
-
-
 class Authorizable(UserTrackable):
     """
     Determines whether or not a user can save based on the

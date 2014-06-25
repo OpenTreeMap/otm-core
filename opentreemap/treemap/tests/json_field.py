@@ -3,13 +3,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.test import TestCase
-
 from treemap.tests import make_instance
+from treemap.tests.base import OTMTestCase
 from treemap.json_field import get_attr_from_json_field, set_attr_on_json_field
 
 
-class JsonFieldTests(TestCase):
+class JsonFieldTests(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.instance.config = '{"a":"x", "b":{"c":"y"}}'
