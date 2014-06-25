@@ -27,7 +27,7 @@ from treemap.util import leaf_subclasses
 from treemap.decorators import classproperty
 from treemap.images import save_uploaded_image
 from treemap.units import Convertible
-from treemap.udf import UDFModel, GeoHStoreUDFManager, GeoHStoreUDFQuerySet
+from treemap.udf import UDFModel, GeoHStoreUDFManager
 from treemap.instance import Instance
 
 

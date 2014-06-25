@@ -2,7 +2,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.test import TestCase
+from treemap.tests.base import OTMTestCase
 
 from geocode.views import geocode
 from django.test.client import RequestFactory
@@ -16,7 +16,7 @@ class MockGeocodeRequest():
         self.REQUEST = {'address': address}
 
 
-class GeocodeTest(TestCase):
+class GeocodeTest(OTMTestCase):
 
     def setUp(self):
         self.factory = RequestFactory()

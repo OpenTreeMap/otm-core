@@ -7,17 +7,17 @@ import os
 import json
 
 from django.contrib.gis.geos.point import Point
-from django.test import TestCase
 from django.test.utils import override_settings
 
 from treemap.models import Plot
 from treemap.tests import (make_instance, make_commander_user, login,
                            make_simple_boundary, RequestTestCase)
+from treemap.tests.base import OTMTestCase
 
 from opentreemap.local_settings import STATIC_ROOT
 
 
-class UrlTestCase(TestCase):
+class UrlTestCase(OTMTestCase):
 
     def assert_status_code(self, url, code, method='GET', data='',
                            content_type=None):

@@ -6,13 +6,13 @@ from __future__ import division
 from StringIO import StringIO
 
 from django.core.management import call_command
-from django.test import TestCase
 
 from treemap.models import Instance, Plot, Tree, Species
 from treemap.tests import (make_instance, make_user, make_commander_user)
+from treemap.tests.base import OTMTestCase
 
 
-class CreateInstanceManagementTest(TestCase):
+class CreateInstanceManagementTest(OTMTestCase):
     def setUp(self):
         self.user = make_user(username='WALL-E', password='EVE')
 
@@ -28,7 +28,7 @@ class CreateInstanceManagementTest(TestCase):
         self.assertEqual(Instance.objects.count(), 1)
 
 
-class RandomTreesManagementTest(TestCase):
+class RandomTreesManagementTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         user = make_commander_user(instance=self.instance)

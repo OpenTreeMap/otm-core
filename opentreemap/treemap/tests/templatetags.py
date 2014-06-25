@@ -9,7 +9,6 @@ import os
 from shutil import rmtree
 
 from django.template import Template, Context, TemplateSyntaxError
-from django.test import TestCase
 from django.test.utils import override_settings
 from django.contrib.auth.models import AnonymousUser
 
@@ -20,10 +19,11 @@ from treemap.udf import UserDefinedFieldDefinition
 from treemap.models import Plot, Tree, InstanceUser
 from treemap.tests import (make_instance, make_observer_user,
                            make_commander_user, make_user)
+from treemap.tests.base import OTMTestCase
 from treemap.templatetags.util import display_name
 
 
-class UserCanReadTagTest(TestCase):
+class UserCanReadTagTest(OTMTestCase):
 
     def setUp(self):
         self.instance = make_instance()
@@ -148,7 +148,7 @@ class UserCanReadTagTest(TestCase):
         self.assertEqual(render(), 'plot udf b')
 
 
-class UserCanCreateTagTest(TestCase):
+class UserCanCreateTagTest(OTMTestCase):
 
     def setUp(self):
         self.instance = make_instance()
@@ -188,7 +188,7 @@ class UserCanCreateTagTest(TestCase):
             self._render_basic_template_with_vars(user, self.plot), 'true')
 
 
-class UserContentTagTests(TestCase):
+class UserContentTagTests(OTMTestCase):
 
     def setUp(self):
         self.instance = make_instance()
@@ -298,7 +298,7 @@ class UserContentTagTests(TestCase):
 
 @override_settings(TEMPLATE_LOADERS=(
     'django.template.loaders.filesystem.Loader',))
-class InlineFieldTagTests(TestCase):
+class InlineFieldTagTests(OTMTestCase):
 
     def setUp(self):
         self.instance = make_instance()
@@ -605,7 +605,7 @@ class InlineFieldTagTests(TestCase):
                 )).strip()
 
 
-class PartialTagTest(TestCase):
+class PartialTagTest(OTMTestCase):
     def _assert_renders_as(self, template_text, subdict_name, expected):
         context = Context({
             'mine': {'val': 'yes'},
@@ -623,7 +623,7 @@ class PartialTagTest(TestCase):
         self._assert_renders_as("{{ yours }}", 'mine', '')
 
 
-class DisplayValueTagTest(TestCase):
+class DisplayValueTagTest(OTMTestCase):
     def test_display_value_converts_string_plot(self):
         self.assertEqual('Planting Site', display_name('plot'))
 

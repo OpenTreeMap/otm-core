@@ -8,7 +8,6 @@ import psycopg2
 
 from datetime import datetime
 
-from django.test import TestCase
 from django.db.models import Q
 from django.db.models.query import ValuesListQuerySet
 from django.db import connection
@@ -19,6 +18,7 @@ from django.contrib.gis.measure import Distance
 
 from treemap.tests import (make_instance, make_commander_user,
                            make_simple_polygon, set_write_permissions)
+from treemap.tests.base import OTMTestCase
 from treemap.tests.udfs import make_collection_udf
 from treemap.models import (Tree, Plot, Boundary, Species)
 from treemap.udf import UserDefinedFieldDefinition
@@ -31,7 +31,7 @@ COLLECTION_UDF_DATATYPE = [{'type': 'choice',
                             'name': 'date'}]
 
 
-class FilterParserTests(TestCase):
+class FilterParserTests(OTMTestCase):
     def _setup_tree_and_collection_udf(self):
         instance = make_instance()
 
@@ -426,7 +426,7 @@ class FilterParserTests(TestCase):
         self.assertEqual(search._parse_value("2013-04-01 12:00:00"), date)
 
 
-class SearchTests(TestCase):
+class SearchTests(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.commander = make_commander_user(self.instance)

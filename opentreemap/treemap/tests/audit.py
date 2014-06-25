@@ -6,7 +6,6 @@ from __future__ import division
 import psycopg2
 import json
 
-from django.test import TestCase
 from django.test.client import RequestFactory
 from django.core.exceptions import (FieldError, ValidationError,
                                     ObjectDoesNotExist)
@@ -30,9 +29,10 @@ from treemap.tests import (make_instance, make_user_with_default_role,
                            make_user_and_role, make_commander_user,
                            make_officer_user, make_observer_user,
                            make_apprentice_user, set_write_permissions)
+from treemap.tests.base import OTMTestCase
 
 
-class ScopeModelTest(TestCase):
+class ScopeModelTest(OTMTestCase):
     """
     Tests that the various operations on models are scoped to the
     instance they exist within. In general, ForeignKey relationships
@@ -114,7 +114,7 @@ class ScopeModelTest(TestCase):
         self.assertRaises(ValidationError, tree.save_with_user, self.user)
 
 
-class AuditTest(TestCase):
+class AuditTest(OTMTestCase):
 
     def setUp(self):
         inst = self.instance = make_instance()
@@ -229,7 +229,7 @@ class AuditTest(TestCase):
                          'treemap_mapfeature_id_seq')
 
 
-class MultiUserTestCase(TestCase):
+class MultiUserTestCase(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.commander_user = make_commander_user(self.instance)
@@ -386,7 +386,7 @@ class ReviewTest(MultiUserTestCase):
             width_audit, self.commander_user, approved=False)
 
 
-class PendingTest(TestCase):
+class PendingTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.commander_user = make_commander_user(self.instance)
@@ -511,7 +511,7 @@ class PendingTest(TestCase):
                          Plot.objects.get(pk=self.plot.pk).hash)
 
 
-class PendingInsertTest(TestCase):
+class PendingInsertTest(OTMTestCase):
 
     def setUp(self):
         psycopg2.extras.register_hstore(connection.cursor(), globally=True)
@@ -757,7 +757,7 @@ class PendingInsertTest(TestCase):
                           self.commander_user, True)
 
 
-class ReputationTest(TestCase):
+class ReputationTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
 
@@ -848,7 +848,7 @@ class ReputationTest(TestCase):
         self._test_negative_adjustment(3, 0)
 
 
-class UserRoleFieldPermissionTest(TestCase):
+class UserRoleFieldPermissionTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.commander = make_commander_user(self.instance)
@@ -1007,7 +1007,7 @@ class UserRoleFieldPermissionTest(TestCase):
                             110)
 
 
-class FieldPermMgmtTest(TestCase):
+class FieldPermMgmtTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.commander = make_commander_user(self.instance)
@@ -1035,7 +1035,7 @@ class FieldPermMgmtTest(TestCase):
         self.assertInvalidFPRaises(model_name='Tree', field_name='model_name')
 
 
-class AuditDetailTagTest(TestCase):
+class AuditDetailTagTest(OTMTestCase):
 
     def setUp(self):
         self.p1 = Point(-8515222.0, 4953200.0)

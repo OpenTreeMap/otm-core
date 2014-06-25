@@ -15,7 +15,6 @@ import datetime
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
-from django.test import TestCase
 from django.test.utils import override_settings
 from django.test.client import Client, RequestFactory, ClientHandler
 from django.http import HttpRequest
@@ -30,6 +29,7 @@ from treemap.audit import ReputationMetric, Audit
 from treemap.tests import (make_user, make_request,
                            make_instance, LocalMediaTestCase, media_dir,
                            make_commander_user)
+from treemap.tests.base import OTMTestCase
 
 from exporter.tests import UserExportsTestCase
 
@@ -168,7 +168,7 @@ def assert_reputation(test_case, expected_reputation):
                           % (reputation, expected_reputation))
 
 
-class Version(TestCase):
+class Version(OTMTestCase):
     def setUp(self):
         setupTreemapEnv()
 
@@ -190,7 +190,7 @@ class Version(TestCase):
         teardownTreemapEnv()
 
 
-class PlotListing(TestCase):
+class PlotListing(OTMTestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
         self.u = User.objects.get(username="commander")
@@ -350,7 +350,7 @@ class PlotListing(TestCase):
         self.assertEqual(rids, set([p1.pk, p2.pk, p3.pk]))
 
 
-class Locations(TestCase):
+class Locations(OTMTestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
         self.user = User.objects.get(username="commander")
@@ -443,7 +443,7 @@ class Locations(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class CreatePlotAndTree(TestCase):
+class CreatePlotAndTree(OTMTestCase):
 
     def setUp(self):
         self.instance = setupTreemapEnv()
@@ -569,7 +569,7 @@ class CreatePlotAndTree(TestCase):
         self.assertEqual(10.0, tree.height)
 
 
-class UpdatePlotAndTree(TestCase):
+class UpdatePlotAndTree(OTMTestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
 
@@ -1074,7 +1074,7 @@ class Instance(LocalMediaTestCase):
 
 @override_settings(NEARBY_INSTANCE_RADIUS=2)
 @override_settings(FEATURE_BACKEND_FUNCTION=None)
-class InstancesClosestToPoint(TestCase):
+class InstancesClosestToPoint(OTMTestCase):
     def setUp(self):
         self.i1 = make_instance(is_public=True, point=Point(0, 0))
         self.i2 = make_instance(is_public=False, point=Point(0, 0))
@@ -1128,7 +1128,7 @@ class InstancesClosestToPoint(TestCase):
 
 
 @override_settings(FEATURE_BACKEND_FUNCTION=None)
-class PublicInstancesTest(TestCase):
+class PublicInstancesTest(OTMTestCase):
     def setUp(self):
         self.i1 = make_instance(is_public=True, point=Point(0, 0))
         self.i2 = make_instance(is_public=False, point=Point(0, 0))
@@ -1415,7 +1415,7 @@ class UserTest(LocalMediaTestCase):
         self.assertEquals(resp.status_code, 403)
 
 
-class SigningTest(TestCase):
+class SigningTest(OTMTestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -1588,7 +1588,7 @@ class SigningTest(TestCase):
         self.assertEqual(req.user.pk, peon.pk)
 
 
-class Authentication(TestCase):
+class Authentication(OTMTestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
         self.jim = User.objects.get(username="jim")
