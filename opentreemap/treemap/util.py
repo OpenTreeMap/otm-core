@@ -51,25 +51,40 @@ def add_visited_instance(request, instance):
     if not (hasattr(request, 'session') and request.session):
         return
 
-    visited_instances = request.session.get('visited_instances', OrderedDict())
+    # get the visited instances as a list of tuples, read into
+    # OrderedDict. OrderedDict has nice convenience methods for this
+    # purpose, but doesn't serialize well, so we pass it through.
+    visited_instances = request.session.get('visited_instances', [])
+    visited_instances = OrderedDict(visited_instances)
 
+    # delete the existing entry for this instance so it can be
+    # reinserted as the most recent entry.
     if instance.pk in visited_instances:
         del visited_instances[instance.pk]
-    visited_instances[instance.pk] = datetime.datetime.now()
 
-    request.session['visited_instances'] = visited_instances
+    stamp = datetime.datetime.now().isoformat()
+    visited_instances[instance.pk] = stamp
+
+    # turn back into a list of tuples
+    request.session['visited_instances'] = visited_instances.items()
     request.session.modified = True
 
 
 def get_last_visited_instance(request):
-    if hasattr(request, 'session') and 'visited_instances' in request.session:
-        instance_id = next(reversed(request.session['visited_instances']))
-        try:
-            instance = Instance.objects.get(pk=instance_id)
-        except (Instance.DoesNotExist, MultipleObjectsReturned):
-            instance = None
-    else:
+    if not hasattr(request, 'session'):
         instance = None
+    else:
+        visited_instances = request.session.get('visited_instances', [])
+        if not visited_instances:
+            instance = None
+        else:
+            # get the first tuple member of the last entry
+            # visited_instances have entries '(<pk>, <timestamp>)'
+            instance_id = visited_instances[-1][0]
+            try:
+                instance = Instance.objects.get(pk=instance_id)
+            except (Instance.DoesNotExist, MultipleObjectsReturned):
+                instance = None
 
     return instance
 
