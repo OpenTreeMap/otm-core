@@ -388,7 +388,7 @@ def save_user(migration_rules, model_hash, instance):
 
 def hashes_to_saved_objects(
         migration_rules, model_name, model_hashes, dependency_ids,
-        model_save_fn, instance):
+        model_save_fn, instance, message_receiver=None):
 
     model_key_map = dependency_ids.get(model_name, {})
     # the model_key_map will be filled from the
@@ -404,7 +404,8 @@ def hashes_to_saved_objects(
             model = model_save_fn(model_hash, instance)
 
             if model_key_map is not None and model and model.pk:
-                print("saved model: %s" % model.pk)
+                if callable(message_receiver):
+                    message_receiver("saved model: %s" % model.pk)
                 model_key_map[model_hash['pk']] = model.pk
         except Exception:
             raise
@@ -554,4 +555,5 @@ class Command(InstanceDataCommand):
                                         model, sorted_hashes,
                                         dependency_ids,
                                         save_fns[model],
-                                        instance)
+                                        instance,
+                                        message_receiver=print)
