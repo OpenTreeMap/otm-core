@@ -14,7 +14,7 @@ from django.core.exceptions import (ValidationError, MultipleObjectsReturned,
 from django.core import validators
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as trans
 from django.contrib.auth.models import (UserManager, AbstractBaseUser,
@@ -807,12 +807,8 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
         else:
             return super(Tree, clz).action_format_string_for_audit(audit)
 
+    @transaction.atomic
     def delete_with_user(self, user, *args, **kwargs):
-        # All callers should decorate with @transaction.commit_on_success
-        # TODO: upgrade to django 1.6 so that we can decorate this with
-        # @transaction.atomically which supports nesting. Since
-        # @commit_on_success does not, we have to defer using it to the
-        # calling functions.
         photos = self.photos()
         for photo in photos:
             photo.delete_with_user(user)

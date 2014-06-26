@@ -224,7 +224,7 @@ def reject_pending_edit(request, instance, pending_edit_id):
 @json_api_call
 @instance_request
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def remove_plot(request, instance, plot_id):
     plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
     try:
@@ -240,7 +240,7 @@ def remove_plot(request, instance, plot_id):
 @json_api_call
 @instance_request
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def remove_current_tree_from_plot(request, instance, plot_id):
     plot = get_object_or_404(Plot, pk=plot_id, instance=instance)
     tree = plot.current_tree()

@@ -1,4 +1,4 @@
-from django.test import TestCase, SimpleTestCase
+from django.test import TestCase
 from django.test.utils import override_settings
 
 _test_settings = {
@@ -16,13 +16,5 @@ _test_settings = {
 class OTMTestCase(TestCase):
     """
     Base class for OTM2 tests.
-    """
-    pass
-
-
-@override_settings(**_test_settings)
-class LocalTransactionTestCase(SimpleTestCase):
-    """
-    Base class for OTM2 tests which manage their own transactions.
     """
     pass

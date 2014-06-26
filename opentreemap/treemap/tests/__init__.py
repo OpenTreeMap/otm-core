@@ -275,12 +275,6 @@ def make_user_and_role(instance, username, rolename, permissions):
     return make_user(instance, username, make_role)
 
 
-def delete_all_app_users():
-    for app_user in User.objects.exclude(pk=User._system_user.pk):
-        InstanceUser.objects.filter(user_id=app_user.pk).delete()
-        app_user.delete_with_user(User._system_user)
-
-
 def make_instance(name=None, is_public=False, url_name=None, point=None):
     if name is None:
         max_instance = Instance.objects.all().aggregate(

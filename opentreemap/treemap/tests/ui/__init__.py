@@ -1,12 +1,9 @@
-from django.test.utils import override_settings
 import importlib
 
 from time import sleep
 
 from django.test import LiveServerTestCase
 from django.conf import settings
-from django.db import connection
-from psycopg2._psycopg import InterfaceError
 
 from selenium.common.exceptions import (WebDriverException,
                                         StaleElementReferenceException)
@@ -53,12 +50,6 @@ def patch_broken_pipe_error():
 patch_broken_pipe_error()
 
 
-@override_settings(
-    # For session management use file backend instead of DB, to reduce
-    # extraneous transactions which can cause deadlock when tearDown()
-    # truncates all tables.
-    SESSION_ENGINE="django.contrib.sessions.backends.file"
-)
 class UITestCase(LiveServerTestCase):
     def use_xvfb(self):
         from pyvirtualdisplay import Display
@@ -86,26 +77,7 @@ class UITestCase(LiveServerTestCase):
         if hasattr(self, 'display'):
             self.display.stop()
 
-        # I believe this line is no longer necessary, but I'm leaving it here
-        # until the UI tests have run many times without deadlocking.
-        # -RM 20140522
-        #self.kill_pending_transactions()
-
         super(UITestCase, self).tearDown()
-
-    def kill_pending_transactions(self):
-        # The super.tearDown sometimes hangs when truncating tables
-        # because of lingering pending transactions with locks on those tables.
-        # Kill them to avoid deadlock!
-        try:
-            dbname = settings.DATABASES['default']['NAME']
-            sql = "select pg_terminate_backend(procpid)" + \
-                " from pg_stat_activity where datname='%s'" % dbname + \
-                " and current_query='<IDLE> in transaction';"
-            connection.cursor().execute(sql)
-        except InterfaceError:
-            # Sometimes we get "connection already closed"
-            pass
 
     def click(self, selector):
         self.find(selector).click()
@@ -226,10 +198,6 @@ class TreemapUITestCase(UITestCase):
                                         username='username')
 
         self.profile = RegistrationProfile.objects.create_profile(self.user)
-
-        # Note: tables are truncated between tests (because LiveServerTestCase
-        # inherits from TransactionTestCase, which does the truncation).
-        # So there's no need to delete the objects we've created.
 
     def login_workflow(self):
         self.browse_to_url('/accounts/logout/')

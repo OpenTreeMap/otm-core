@@ -144,7 +144,7 @@ class PlotDeleteTest(TreemapUITestCase):
         self._click_delete()
         self.assertEqual(Tree.objects.count(), 0)
 
-    @skip("revist when urls are figured out")
+    @skip("revisit when urls are figured out")
     def test_delete_tree_from_both_urls(self):
         """
         tests that features/%s/trees/%s/ and features/%s/

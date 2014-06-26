@@ -1,6 +1,6 @@
 boto==2.11.0
 django-storages==1.1.8
-Django==1.5
+Django==1.6
 South==0.7.6
 Pillow==2.3.1
 argparse==1.2.1
@@ -11,7 +11,7 @@ wsgiref==0.1.2
 pep8==1.4.6
 flake8==2.0
 python-omgeo==1.5
-git+https://github.com/azavea/django-registration.git
+git+https://github.com/azavea/django-registration.git@2d725d7368
 modgrammar-py2==0.9.1
 django-celery-with-redis==3.0
 # libsass==0.2.4

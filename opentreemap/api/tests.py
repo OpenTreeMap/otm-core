@@ -33,7 +33,7 @@ from treemap.tests.base import OTMTestCase
 
 from exporter.tests import UserExportsTestCase
 
-from api.test_utils import setupTreemapEnv, teardownTreemapEnv, mkPlot, mkTree
+from api.test_utils import setupTreemapEnv, mkPlot, mkTree
 from api.models import APIAccessCredential
 from api.views import add_photo_endpoint, update_profile_photo_endpoint
 from api.instance import (instances_closest_to_point, instance_info,
@@ -186,19 +186,12 @@ class Version(OTMTestCase):
         self.assertEqual(content["otm_version"], settings.OTM_VERSION)
         self.assertEqual(content["api_version"], settings.API_VERSION)
 
-    def tearDown(self):
-        teardownTreemapEnv()
-
 
 class PlotListing(OTMTestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
         self.u = User.objects.get(username="commander")
         self.client = Client()
-
-    def tearDown(self):
-        teardownTreemapEnv()
-        User.objects.filter(username__in=['peon', 'duke', 'leroi']).delete()
 
     def test_edits(self):
         #TODO: Test recent edits
@@ -1158,9 +1151,6 @@ class TreePhotoTest(LocalMediaTestCase):
 
         self.factory = RequestFactory()
 
-    def tearDown(self):
-        teardownTreemapEnv()
-
     def assertSuccessfulResponse(self, response):
         self.assertIsNotNone(response)
         self.assertIsNotNone(response.content)
@@ -1642,9 +1632,6 @@ class Authentication(OTMTestCase):
         self.assertEqual(content['username'], self.jim.username)
         self.assertEqual(content['status'], 'success')
         self.assertEqual(content['reputation'], 1001)
-
-    def tearDown(self):
-        teardownTreemapEnv()
 
 
 class UserApiExportsTest(UserExportsTestCase):
