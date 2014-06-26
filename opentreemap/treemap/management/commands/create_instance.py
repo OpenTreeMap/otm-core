@@ -29,7 +29,7 @@ class Command(BaseCommand):
                     help='Specify admin user name'),
         make_option('--center',
                     dest='center',
-                    help='Specify the center of the map as a lat,lng pair'),
+                    help='Specify the center of the map as a lon,lat pair'),
         make_option('--geojson',
                     dest='geojson',
                     help=('Specify a boundary via a geojson file. Must be '
@@ -63,7 +63,7 @@ class Command(BaseCommand):
         if options['center']:
             center = options['center'].split(',')
             if len(center) != 2:
-                raise Exception('Center should be a lat,lng pair in SRID 4326')
+                raise Exception('Center should be a lon,lat pair')
 
             center_pt = Point(float(center[0]), float(center[1]), srid=4326)
 
