@@ -35,7 +35,7 @@ from treemap.views import (species_list, boundary_to_geojson, plot_detail,
                            delete_map_feature, delete_tree, user,
                            forgot_username, update_user)
 from treemap.lib.tree import add_tree_photo_helper
-from treemap.views.user import _user_instances
+from treemap.lib.user import get_user_instances
 from treemap.views.misc import public_instances_geojson
 from treemap.views.map_feature import (update_map_feature,
                                        rotate_map_feature_photo)
@@ -1743,17 +1743,17 @@ class UserInstancesViewTests(OTMTestCase):
 
     def test_a_views_a(self):
         # User a views their own instances
-        instances = _user_instances(self.user_a, self.user_a, self.c)
+        instances = get_user_instances(self.user_a, self.user_a, self.c)
         self.assertEquals(instances, [self.a, self.ab, self.c])
 
     def test_a_views_b(self):
         # User a views b's instances
-        instances = _user_instances(self.user_a, self.user_b, self.c)
+        instances = get_user_instances(self.user_a, self.user_b, self.c)
         self.assertEquals(instances, [self.ab, self.b_public])
 
     def test_anonymous_views_b(self):
         # User anonymous views b's instances
-        instances = _user_instances(None, self.user_b, self.c)
+        instances = get_user_instances(None, self.user_b, self.c)
         self.assertEquals(instances, [self.b_public])
 
 
