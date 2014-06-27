@@ -13,7 +13,7 @@ from functools import partial
 from itertools import chain
 
 from django.conf import settings
-from django.db.transaction import commit_on_success
+from django.db.transaction import atomic
 from django.contrib.contenttypes.models import ContentType
 
 from treemap import SPECIES
@@ -76,7 +76,7 @@ def overwrite_old_pks(migration_rules, model_hash, model_name, dependency_ids):
                 model_hash['fields'][field] = new_id
 
 
-@commit_on_success
+@atomic
 def save_species(migration_rules, model_hash, instance):
     # Does this species already exist?
     genus, species, cultivar, other = [
@@ -131,7 +131,7 @@ def save_species(migration_rules, model_hash, instance):
     return model
 
 
-@commit_on_success
+@atomic
 def save_other_with_user(migration_rules, model_name, model_hash, instance):
 
     model = hash_to_model(migration_rules,
@@ -148,7 +148,7 @@ def save_other_with_user(migration_rules, model_name, model_hash, instance):
     return model
 
 
-@commit_on_success
+@atomic
 def process_userprofile(photo_basepath, model_hash, instance):
     """
     Read the otm1 user photo off userprofile fixture, load the file,
@@ -184,7 +184,7 @@ def process_userprofile(photo_basepath, model_hash, instance):
     # no otm2_model_id(required) to bind it to.
 
 
-@commit_on_success
+@atomic
 def save_treephoto(migration_rules, treephoto_path, model_hash, instance):
     model = hash_to_model(migration_rules,
                           'treephoto', model_hash,
@@ -208,7 +208,7 @@ def save_treephoto(migration_rules, treephoto_path, model_hash, instance):
     return model
 
 
-@commit_on_success
+@atomic
 def save_audit(migration_rules, dependency_ids, model_hash, instance):
     model = hash_to_model(migration_rules, 'audit', model_hash, instance)
     fields = model_hash['fields']
@@ -236,7 +236,7 @@ def save_audit(migration_rules, dependency_ids, model_hash, instance):
         otm2_model_id=model.pk)
 
 
-@commit_on_success
+@atomic
 def save_comment(migration_rules, dependency_ids, model_hash, instance):
     model = hash_to_model(migration_rules,
                           'comment', model_hash,
@@ -267,7 +267,7 @@ def save_comment(migration_rules, dependency_ids, model_hash, instance):
     return model
 
 
-@commit_on_success
+@atomic
 def save_threadedcomment(
         migration_rules, dependency_ids, model_hash, instance):
 
@@ -358,7 +358,7 @@ def _uniquify_username(username):
     return username
 
 
-@commit_on_success
+@atomic
 def save_user(migration_rules, model_hash, instance):
     model = hash_to_model(migration_rules, 'user', model_hash, instance)
 
@@ -388,7 +388,7 @@ def save_user(migration_rules, model_hash, instance):
 
 def hashes_to_saved_objects(
         migration_rules, model_name, model_hashes, dependency_ids,
-        model_save_fn, instance):
+        model_save_fn, instance, message_receiver=None):
 
     model_key_map = dependency_ids.get(model_name, {})
     # the model_key_map will be filled from the
@@ -404,7 +404,8 @@ def hashes_to_saved_objects(
             model = model_save_fn(model_hash, instance)
 
             if model_key_map is not None and model and model.pk:
-                print("saved model: %s" % model.pk)
+                if callable(message_receiver):
+                    message_receiver("saved model: %s" % model.pk)
                 model_key_map[model_hash['pk']] = model.pk
         except Exception:
             raise
@@ -554,4 +555,5 @@ class Command(InstanceDataCommand):
                                         model, sorted_hashes,
                                         dependency_ids,
                                         save_fns[model],
-                                        instance)
+                                        instance,
+                                        message_receiver=print)

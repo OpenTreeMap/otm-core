@@ -44,7 +44,7 @@ def add_tree_photo(request, instance, feature_id, tree_id=None):
             'error': error}
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def delete_tree(request, instance, feature_id, tree_id):
     InstanceTree = instance.scope_model(Tree)
     tree = get_object_or_404(InstanceTree, pk=tree_id, plot_id=feature_id)

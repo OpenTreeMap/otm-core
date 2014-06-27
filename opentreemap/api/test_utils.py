@@ -8,7 +8,7 @@ from django.contrib.gis.geos.point import Point
 from django.contrib.gis.geos.polygon import Polygon
 import django.shortcuts
 
-from treemap.models import Species, Boundary, Tree, Plot, User
+from treemap.models import Species, Boundary, Tree, Plot
 from treemap.tests import (make_instance, make_commander_user,
                            make_apprentice_user, make_user_with_default_role)
 
@@ -94,21 +94,3 @@ def setupTreemapEnv():
     s3.save_with_user(commander)
 
     return instance
-
-
-def teardownTreemapEnv():
-    commander = User.objects.get(username="commander")
-
-    for r in Tree.objects.all():
-        r.delete_with_user(commander)
-
-    for r in Plot.objects.all():
-        r.delete_with_user(commander)
-
-    for r in Boundary.objects.all():
-        r.delete()
-
-    for r in Species.objects.all():
-        r.delete_with_user(commander)
-
-    commander.delete_with_user(User._system_user)

@@ -110,7 +110,7 @@ def photo_review(request, instance):
     }
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def approve_or_reject_photo(
         request, instance, feature_id, photo_id, action):
 

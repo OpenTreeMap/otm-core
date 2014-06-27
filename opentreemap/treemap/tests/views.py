@@ -42,10 +42,10 @@ from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
                            set_write_permissions, MockSession,
-                           delete_all_app_users, set_read_permissions,
+                           set_read_permissions,
                            make_plain_user, LocalMediaTestCase, media_dir,
                            make_instance_user, set_invisible_permissions)
-from treemap.tests.base import OTMTestCase, LocalTransactionTestCase
+from treemap.tests.base import OTMTestCase
 from treemap.tests.udfs import make_collection_udf
 
 
@@ -577,7 +577,7 @@ class UserPhotoUpdateTest(LocalMediaTestCase):
         self.assertEqual(response.status_code, 400)
 
 
-class PlotUpdateTest(LocalTransactionTestCase):
+class PlotUpdateTest(OTMTestCase):
     def setUp(self):
         User._system_user.save_base()
 
@@ -624,11 +624,6 @@ class PlotUpdateTest(LocalTransactionTestCase):
         self.plot.save_with_user(self.user)
 
         psycopg2.extras.register_hstore(connection.cursor(), globally=True)
-
-    def tearDown(self):
-        self.plot.delete_with_user(self.user, cascade=True)
-        self.choice_field.delete()
-        delete_all_app_users()
 
     def test_creates_new_plot(self):
         plot = Plot(instance=self.instance)

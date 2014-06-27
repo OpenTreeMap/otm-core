@@ -188,6 +188,12 @@ def test(test_filter="", coverage=None):
         _report_coverage()
         _fetch_coverage('coverage.tar.gz')
 
+def check_settings():
+    "Run the (added in 1.6) check management command to validate settings"
+    require('site_path')
+    require('venv_path')
+    _manage('check')
+
 def uitest(test_filter="", coverage=False):
     """ Run selenium UI tests """
     require('site_path')

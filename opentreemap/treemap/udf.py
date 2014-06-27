@@ -371,7 +371,7 @@ class UserDefinedFieldDefinition(models.Model):
             self.datatype = json.dumps(datatype)
             self.save()
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def update_choice(
             self, old_choice_value, new_choice_value, name=None):
         datatype = self.datatype_dict
@@ -419,9 +419,6 @@ class UserDefinedFieldDefinition(models.Model):
                         'Name is allowed only for collection fields')})
 
             self._update_choice_scalar(old_choice_value, new_choice_value)
-
-        # indicate success to transaction manager
-        return True
 
     def validate(self):
         model_type = self.model_type
@@ -522,7 +519,7 @@ class UserDefinedFieldDefinition(models.Model):
         self.validate()
         super(UserDefinedFieldDefinition, self).save(*args, **kwargs)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def delete(self, *args, **kwargs):
 
         if self.iscollection:
@@ -1242,7 +1239,7 @@ class UDFWhereNode(GeoWhereNode):
 
         return None
 
-    def sql_for_columns(self, lvalue, qn, connection):
+    def sql_for_columns(self, lvalue, qn, connection, internal_type=None):
         """
         Most of the interesting stuff happens here. In particular,
         this method checks if the field is a udf, and if so
@@ -1259,7 +1256,7 @@ class UDFWhereNode(GeoWhereNode):
 
             # Apply normal quoting and alias rules
             field = super(UDFWhereNode, self).sql_for_columns(
-                udf_field_def, qn, connection)
+                udf_field_def, qn, connection, internal_type=internal_type)
 
             # If a datatype can in, apply it as a cast
             if datatype:
@@ -1408,5 +1405,5 @@ class GeoHStoreUDFManager(models.GeoManager, HStoreManager):
     """
     Merges the normal geo manager with the hstore manager backend
     """
-    def get_query_set(self):
+    def get_queryset(self):
         return GeoHStoreUDFQuerySet(self.model, using=self._db)

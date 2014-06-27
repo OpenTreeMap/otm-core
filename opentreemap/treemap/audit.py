@@ -76,7 +76,7 @@ def _reserve_model_id(model_class):
     return model_id
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def approve_or_reject_audits_and_apply(audits, user, approved):
     """
     Approve or reject a series of audits. This method provides additional

@@ -41,7 +41,7 @@ class Command(BaseCommand):
                           'letters, numbers, and dashes ("-")'))
     )
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def handle(self, *args, **options):
         if len(args) != 1:
             raise Exception(

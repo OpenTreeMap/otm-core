@@ -125,7 +125,7 @@ def delete_map_feature(request, instance, feature_id, type='Plot'):
         return "; ".join(ve.messages)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def update_map_feature(request_dict, user, feature):
     """
     Update a map feature. Expects JSON in the request body to be:

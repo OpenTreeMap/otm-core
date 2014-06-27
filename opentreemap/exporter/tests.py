@@ -7,7 +7,6 @@ import csv
 import json
 
 from django.contrib.gis.geos import Point
-from django.utils.unittest.case import skip
 
 from treemap.udf import UserDefinedFieldDefinition, DATETIME_FORMAT
 from treemap.tests.views import LocalMediaTestCase, media_dir
@@ -156,11 +155,10 @@ class ExportSpeciesTaskTest(AsyncCSVTestCase):
         species = Species(common_name='foo', instance=self.instance)
         species.save_with_user(self.user)
 
-    @skip('Need to figure how to remove transactions here')
     @media_dir
     def test_species_task_unit(self):
         self.assertTaskProducesCSV(
-            self.user, 'species', {'common_name': 'foo'})
+            self.user, 'species', {'common name': 'foo'})
 
     @media_dir
     def test_psuedo_async_species_export(self):
