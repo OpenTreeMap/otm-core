@@ -62,6 +62,11 @@ class RegistrationForm(DefaultRegistrationForm):
         required=False,
         label=trans('Organization'))
 
+    make_info_public = forms.BooleanField(
+        required=False,
+        label=trans("Display my first name, last name, and organization "
+                    "on my publicly visible user profile page."))
+
     allow_email_contact = forms.BooleanField(
         required=False,
         label=trans('I wish to receive occasional email '
@@ -135,6 +140,8 @@ class RegistrationView(DefaultRegistrationView):
         user.organization = cleaned_data.get('organization', '')
         user.allow_email_contact = cleaned_data.get(
             'allow_email_contact', False)
+        user.make_info_public = cleaned_data.get(
+            'make_info_public', False)
         user.save_with_user(user)
 
         if hasattr(request, 'instance'):

@@ -56,12 +56,14 @@
         color: $well-color;
         font-weight: 700;
         margin-bottom: 2px;
+        width: 100%;
     }
     .field-view {
         margin-bottom: 15px;
         font-weight: 300;
     }
 
+    [data-field="user.make_info_public"][data-class="edit"],
     [data-field="user.allow_email_contact"][data-class="edit"] {
         float: left;
         padding-right: 10px;

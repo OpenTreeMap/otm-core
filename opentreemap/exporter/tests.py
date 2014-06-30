@@ -167,6 +167,11 @@ class ExportSpeciesTaskTest(AsyncCSVTestCase):
 
 
 class UserExportsTestCase(OTMTestCase):
+
+    def assertUserJSON(self, data, expectations):
+        for key, value in expectations.items():
+            self.assertEqual(data[key], value)
+
     def setUp(self):
         self.instance = make_instance()
         self.commander = make_commander_user(self.instance, "comm")
@@ -174,7 +179,7 @@ class UserExportsTestCase(OTMTestCase):
         # Note unicode '⅀' is on purpose
         self.user1 = User(username='estraven', password='estraven',
                           email='estraven@example.com',
-                          organization='org111',
+                          organization='karhide',
                           first_name='therem', last_name='⅀straven')
 
         self.user1.save_with_user(self.commander)
@@ -209,7 +214,7 @@ class UserExportsTestCase(OTMTestCase):
 
 class UserExportsTest(UserExportsTestCase):
 
-    def test_export_users_csv(self):
+    def get_csv_data_with_base_assertions(self):
         resp = users_csv(make_request(), self.instance)
         reader = csv.reader(resp)
 
@@ -223,36 +228,60 @@ class UserExportsTest(UserExportsTestCase):
                 for row in reader]
 
         commander, user1data, user2data = data
-
         self.assertEquals(commander['username'], self.commander.username)
+        self.assertUserJSON(user1data,
+                            {'username': self.user1.username,
+                             'email': '',
+                             'email_hash': self.user1.email_hash,
+                             'allow_email_contact': 'False',
+                             'role': 'commander',
+                             'created': str(self.user1.created),
+                             'last_edit_model': 'Plot',
+                             'last_edit_model_id': str(self.plot.pk),
+                             'last_edit_instance_id': str(self.instance.pk),
+                             'last_edit_user_id': str(self.user1.pk)})
 
-        self.assertEquals(user1data['username'], self.user1.username)
-        self.assertEquals(user1data['email'], '')
-        self.assertEquals(user1data['email_hash'], self.user1.email_hash)
-        self.assertEquals(user1data['first_name'], self.user1.first_name)
-        self.assertEquals(user1data['last_name'], self.user1.last_name)
-        self.assertEquals(user1data['organization'], self.user1.organization)
-        self.assertEquals(user1data['allow_email_contact'], 'False')
-        self.assertEquals(user1data['role'], 'commander')
-        self.assertEquals(user1data['created'], str(self.user1.created))
+        self.assertUserJSON(user2data,
+                            {'email': 'genly@example.com',
+                             'email_hash': self.user2.email_hash,
+                             'last_edit_model': 'Tree',
+                             'last_edit_model_id': str(self.tree.pk),
+                             'last_edit_instance_id': str(self.instance.pk),
+                             'last_edit_user_id': str(self.user2.pk)})
+        return data
 
-        self.assertEquals(user1data['last_edit_model'], 'Plot')
-        self.assertEquals(user1data['last_edit_model_id'], str(self.plot.pk))
-        self.assertEquals(user1data['last_edit_instance_id'],
-                          str(self.instance.pk))
+    def test_export_users_csv_keep_info_private(self):
+        data = self.get_csv_data_with_base_assertions()
+        commander, user1data, user2data = data
+        self.assertEquals(commander['username'], self.commander.username)
+        self.assertUserJSON(user1data,
+                            {'first_name': '',
+                             'last_name': '',
+                             'organization': ''})
 
-        self.assertEquals(user1data['last_edit_user_id'], str(self.user1.pk))
+    def test_export_users_csv_make_info_public(self):
+        self.user1.make_info_public = True
+        self.user1.save()
+        data = self.get_csv_data_with_base_assertions()
+        commander, user1data, user2data = data
+        self.assertEquals(commander['username'], self.commander.username)
+        self.assertUserJSON(user1data,
+                            {'first_name': self.user1.first_name,
+                             'last_name': self.user1.last_name,
+                             'organization': self.user1.organization})
 
-        self.assertEquals(user2data['email'], 'genly@example.com')
-        self.assertEquals(user2data['email_hash'], self.user2.email_hash)
-        self.assertEquals(user2data['last_edit_model'], 'Tree')
-        self.assertEquals(user2data['last_edit_model_id'], str(self.tree.pk))
-        self.assertEquals(user2data['last_edit_instance_id'],
-                          str(self.instance.pk))
+    def test_export_users_json_keep_info_private(self):
+        resp = users_json(make_request(), self.instance)
 
-        self.assertEquals(user2data['last_edit_user_id'], str(self.user2.pk))
+        data = json.loads(resp.content)
 
-    def test_export_users_json(self):
+        commander, user1data, user2data = data
+        self.assertFalse('first_name' in user1data)
+
+    def test_export_users_json_make_info_public(self):
+        self.user1.make_info_public = True
+        self.user1.save()
+
         resp = users_json(make_request(), self.instance)
 
         data = json.loads(resp.content)
@@ -260,32 +289,28 @@ class UserExportsTest(UserExportsTestCase):
         commander, user1data, user2data = data
 
         self.assertEquals(commander['username'], self.commander.username)
-
-        self.assertEquals(user1data['username'], self.user1.username)
         self.assertEquals(user1data.get('email'), None)
-        self.assertEquals(user1data['email_hash'], self.user1.email_hash)
-        self.assertEquals(user1data['first_name'], self.user1.first_name)
-        self.assertEquals(user1data['last_name'], self.user1.last_name)
-        self.assertEquals(user1data['organization'], self.user1.organization)
-        self.assertEquals(user1data['allow_email_contact'], 'False')
-        self.assertEquals(user1data['role'], 'commander')
-        self.assertEquals(user1data['created'], str(self.user1.created))
+        self.assertUserJSON(user1data,
+                            {'username': self.user1.username,
+                             'email_hash': self.user1.email_hash,
+                             'first_name': self.user1.first_name,
+                             'last_name': self.user1.last_name,
+                             'organization': self.user1.organization,
+                             'allow_email_contact': 'False',
+                             'role': 'commander',
+                             'created': str(self.user1.created)})
 
-        self.assertEquals(user1data['last_edit_model'], 'Plot')
-        self.assertEquals(user1data['last_edit_model_id'], str(self.plot.pk))
-        self.assertEquals(user1data['last_edit_instance_id'],
-                          str(self.instance.pk))
-
-        self.assertEquals(user1data['last_edit_user_id'], str(self.user1.pk))
-
-        self.assertEquals(user2data['email'], 'genly@example.com')
-        self.assertEquals(user2data['email_hash'], self.user2.email_hash)
-        self.assertEquals(user2data['last_edit_model'], 'Tree')
-        self.assertEquals(user2data['last_edit_model_id'], str(self.tree.pk))
-        self.assertEquals(user2data['last_edit_instance_id'],
-                          str(self.instance.pk))
-
-        self.assertEquals(user2data['last_edit_user_id'], str(self.user2.pk))
+        self.assertUserJSON(user2data,
+                            {'last_edit_model': 'Plot',
+                             'last_edit_model_id': str(self.plot.pk),
+                             'last_edit_instance_id': str(self.instance.pk),
+                             'last_edit_user_id': str(self.user1.pk),
+                             'email': 'genly@example.com',
+                             'email_hash': self.user2.email_hash,
+                             'last_edit_model': 'Tree',
+                             'last_edit_model_id': str(self.tree.pk),
+                             'last_edit_instance_id': str(self.instance.pk),
+                             'last_edit_user_id': str(self.user2.pk)})
 
     def test_min_edit_date(self):
         last_week = now() - datetime.timedelta(days=7)
