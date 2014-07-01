@@ -113,11 +113,12 @@
     border-radius: 3px;
 }
 
-label[for="id_allow_email_contact"] {
+label[for="id_allow_email_contact"], label[for="id_make_info_public"] {
     width: 75%;
     margin-bottom: 15px;
 }
-#id_allow_email_contact {
+
+#id_allow_email_contact, #id_make_info_public {
     float: left;
     width: 15px;
     clear: none;

@@ -110,11 +110,11 @@ def _user_as_dict(user, instance):
         email = user.email
 
     modeldata = {'username': user.username,
+                 'organization': user.get_organization(),
+                 'first_name': user.get_first_name(),
+                 'last_name': user.get_last_name(),
                  'email': email,
                  'email_hash': user.email_hash,
-                 'organization': user.organization,
-                 'first_name': user.first_name,
-                 'last_name': user.last_name,
                  'allow_email_contact': str(user.allow_email_contact),
                  'created': str(user.created),
                  'role': role_name}

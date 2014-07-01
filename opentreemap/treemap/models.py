@@ -290,12 +290,12 @@ class AbstractUniqueEmailUser(AbstractBaseUser, PermissionsMixin):
         """
         Returns the first_name plus the last_name, with a space in between.
         """
-        full_name = '%s %s' % (self.first_name, self.last_name)
+        full_name = '%s %s' % (self.get_first_name(), self.get_last_name())
         return full_name.strip()
 
     def get_short_name(self):
         "Returns the short name for the user."
-        return self.first_name
+        return self.get_first_name()
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """
@@ -315,6 +315,7 @@ class User(Auditable, AbstractUniqueEmailUser):
         trans('last name'), max_length=30, default='', blank=True)
     organization = models.CharField(max_length=255, default='', blank=True)
 
+    make_info_public = models.BooleanField(default=False)
     allow_email_contact = models.BooleanField(default=False)
 
     @classmethod
@@ -350,6 +351,15 @@ class User(Auditable, AbstractUniqueEmailUser):
     def dict(self):
         return {'id': self.pk,
                 'username': self.username}
+
+    def get_first_name(self):
+        return self.first_name if self.make_info_public else ''
+
+    def get_last_name(self):
+        return self.last_name if self.make_info_public else ''
+
+    def get_organization(self):
+        return self.organization if self.make_info_public else ''
 
     def get_instance_user(self, instance):
         try:
