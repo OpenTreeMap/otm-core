@@ -101,6 +101,8 @@ def create_user(request):
     if dup_username.exists():
         return _conflict_response(trans('Username is already in use'))
     if dup_email.exists():
+        # BE WARNED - The iOS application relies on this error message string.
+        # If you change this you WILL NEED TO ALTER CODE THERE AS WELL.
         return _conflict_response(trans('Email is already in use'))
 
     user = User(**data)
