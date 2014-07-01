@@ -815,6 +815,9 @@ class UDFDescriptor(Creator):
         # UDFDictionary needs a reference to the model instance to lookup
         # collection UDFs
         udf_dict = obj.__dict__[self.field.name]
+        # Workaround for test failure on some dev machines
+        if udf_dict == '':
+            udf_dict = UDFDictionary({}, self.field, obj)
         udf_dict.instance = obj
 
         return udf_dict
