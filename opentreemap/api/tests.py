@@ -1198,13 +1198,16 @@ class UserTest(LocalMediaTestCase):
         super(UserTest, self).setUp()
 
         self.factory = RequestFactory()
-        self.defaultUserDict = {'organization': 'azavea',
-                                'last_name': 'smith',
-                                'first_name': 'john',
-                                'email': 'j@smith.co',
-                                'username': 'jsmith',
-                                'password': 'password',
-                                'allow_email_contact': True}
+        self.defaultBaseUserDict = {'organization': 'azavea',
+                                    'last_name': 'smith',
+                                    'first_name': 'john',
+                                    'email': 'j@smith.co',
+                                    'username': 'jsmith',
+                                    'password': 'password'}
+
+        self.defaultUserDict = {'allow_email_contact': True}
+        self.defaultUserDict.update(self.defaultBaseUserDict)
+
 
     def make_post_request(self, datadict):
         r = sign_request(make_request(method='POST',
@@ -1329,6 +1332,21 @@ class UserTest(LocalMediaTestCase):
         resp = create_user(self.make_post_request(self.defaultUserDict))
 
         self.assertIsNotNone(resp['id'])
+
+
+    def test_boolean_defaults_empty(self):
+        user_id = create_user(
+            self.make_post_request(self.defaultBaseUserDict))['id']
+        user = User.objects.get(pk=user_id)
+        self.assertEqual(user.allow_email_contact, False)
+        self.assertEqual(user.make_info_public, False)
+
+    def test_boolean_defaults_partial(self):
+        user_id = create_user(
+            self.make_post_request(self.defaultUserDict))['id']
+        user = User.objects.get(pk=user_id)
+        self.assertEqual(user.allow_email_contact, True)
+        self.assertEqual(user.make_info_public, False)
 
     def testUpdateUserRequiredField(self):
         peon = make_user(username='peon', password='pw')

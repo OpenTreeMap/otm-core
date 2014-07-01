@@ -18,9 +18,9 @@ from treemap.views import upload_user_photo
 from treemap.models import User
 
 
-REQ_FIELDS = {'email', 'username', 'password',
-              'allow_email_contact', 'make_info_public'}
-ALL_FIELDS = REQ_FIELDS | {'organization', 'last_name', 'first_name'}
+REQ_FIELDS = {'email', 'username', 'password'}
+ALL_FIELDS = REQ_FIELDS | {'organization', 'last_name', 'first_name',
+                           'allow_email_contact', 'make_info_public'}
 
 
 def update_profile_photo(request, user_id):
@@ -82,12 +82,6 @@ def update_user(request, user_id):
 
 def create_user(request):
     data = json.loads(request.body)
-
-    if 'allow_email_contact' not in data:
-        data['allow_email_contact'] = False
-
-    if 'make_info_public' not in data:
-        data['make_info_public'] = False
 
     errors = {}
     for field in REQ_FIELDS:
