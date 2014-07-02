@@ -12,7 +12,7 @@ from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as trans
 from django.dispatch import receiver
 from django.db.models import OneToOneField
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.db.models.fields import FieldDoesNotExist
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, connection, transaction
@@ -21,7 +21,7 @@ from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name)
 from treemap.util import all_subclasses
 from treemap.lib.object_caches import (permissions, role_permissions,
-                                     on_field_permission_save_after)
+                                     on_field_permission_changed)
 
 
 def model_hasattr(obj, name):
@@ -585,7 +585,8 @@ class FieldPermission(models.Model):
         super(FieldPermission, self).save(*args, **kwargs)
 
 
-post_save.connect(on_field_permission_save_after, sender=FieldPermission)
+post_save.connect(on_field_permission_changed, sender=FieldPermission)
+post_delete.connect(on_field_permission_changed, sender=FieldPermission)
 
 
 class Role(models.Model):

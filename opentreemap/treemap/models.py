@@ -16,7 +16,7 @@ from django.core import validators
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.db import IntegrityError, transaction
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as trans
 from django.contrib.auth.models import (UserManager, AbstractBaseUser,
@@ -32,7 +32,7 @@ from treemap.units import Convertible
 from treemap.udf import UDFModel, GeoHStoreUDFManager
 from treemap.instance import Instance
 from treemap.lib.object_caches import (permissions,
-                                     on_instance_user_save_after)
+                                     on_instance_user_changed)
 
 
 def _action_format_string_for_location(action):
@@ -522,7 +522,8 @@ class InstanceUser(Auditable, models.Model):
     def __unicode__(self):
         return '%s/%s' % (self.user.get_username(), self.instance.name)
 
-post_save.connect(on_instance_user_save_after, sender=InstanceUser)
+post_save.connect(on_instance_user_changed, sender=InstanceUser)
+post_delete.connect(on_instance_user_changed, sender=InstanceUser)
 
 
 class MapFeature(Convertible, UDFModel, Authorizable, Auditable):

@@ -64,15 +64,23 @@ class PermissionsCacheTest(TestCase):
         fp.permission_level = level
         fp.save()
 
-    def set_permission_silently(self, role, level, model_name='Plot',
-                                field_name='geom'):
-        # update() sends no signals, so cache won't be invalidated
-        FieldPermission.objects.filter(
+    def get_single_perm_qs(self, role, model_name='Plot', field_name='geom'):
+        return FieldPermission.objects.filter(
             model_name=model_name,
             field_name=field_name,
             role=role,
             instance=self.instance
-        ).update(permission_level=level)
+        )
+
+    def set_permission_silently(self, role, level, model_name='Plot',
+                                field_name='geom'):
+        # update() sends no signals, so cache won't be invalidated
+        qs = self.get_single_perm_qs(role, model_name, field_name)
+        qs.update(permission_level=level)
+
+    def delete_permission(self, role, model_name='Plot', field_name='geom'):
+        qs = self.get_single_perm_qs(role, model_name, field_name)
+        qs.delete()
 
     def test_user_permission(self):
         self.assert_user_permission(self.user, WRITE)
@@ -91,22 +99,27 @@ class PermissionsCacheTest(TestCase):
         self.assertEqual(len(perms), 80)
 
     def test_unknown_model_name(self):
-        perms = permissions(self.user, self.instance, 'foo')
-        self.assertEqual(len(perms), 0)
-        perms = role_permissions(self.role, self.instance, 'foo')
-        self.assertEqual(len(perms), 0)
+        self.get_user_permission(self.user, 0, 'foo')
+        self.get_role_permission(self.user, 0, 'foo')
 
     def test_unknown_field_name(self):
         self.get_user_permission(self.user, 0, 'Plot', 'bar')
         self.get_role_permission(self.role, 0, 'Plot', 'bar')
 
     def test_user_perm_sees_perm_update(self):
+        self.assert_user_permission(self.user, WRITE)  # loads cache
         self.set_permission(self.role, READ)
         self.assert_user_permission(self.user, READ)
 
     def test_role_perm_sees_perm_update(self):
+        self.assert_user_permission(self.user, WRITE)  # loads cache
         self.set_permission(self.role, READ)
         self.assert_role_permission(self.role, READ)
+
+    def test_user_perm_sees_perm_delete(self):
+        self.assert_user_permission(self.user, WRITE)  # loads cache
+        self.delete_permission(self.role)
+        self.get_user_permission(self.user, 0)
 
     def test_user_perm_sees_role_update(self):
         iuser = InstanceUser.objects.get(user=self.user)

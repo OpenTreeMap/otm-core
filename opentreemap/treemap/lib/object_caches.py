@@ -42,25 +42,22 @@ def clear_caches():
     global _adjuncts
     _adjuncts = {}
 
-# These functions are called by post_save hooks defined elsewhere.
+# These functions are called by save and delete signal hooks defined elsewhere.
 # (Defining them here with @receiver caused circular import problems.)
 
-# Called on post_save of InstanceUser
-def on_instance_user_save_after(*args, **kwargs):
+def on_instance_user_changed(*args, **kwargs):
     if settings.USE_OBJECT_CACHES:
         instance_user = kwargs['instance']
         _invalidate_adjuncts(instance_user.instance)
 
 
-# Called on post_save of FieldPermission
-def on_field_permission_save_after(*args, **kwargs):
+def on_field_permission_changed(*args, **kwargs):
     if settings.USE_OBJECT_CACHES:
         field_permission = kwargs['instance']
         _invalidate_adjuncts(field_permission.instance)
 
 
-# Called on post_save of UserDefinedFieldDefinition
-def on_udf_def_save_after(*args, **kwargs):
+def on_udf_def_changed(*args, **kwargs):
     if settings.USE_OBJECT_CACHES:
         udf_def = kwargs['instance']
         _invalidate_adjuncts(udf_def.instance)
