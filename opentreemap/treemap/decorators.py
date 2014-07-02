@@ -259,9 +259,7 @@ def username_matches_request_user(view_fn):
 def creates_instance_user(view_fn):
     @wraps(view_fn)
     def wrapper(request, instance, *args, **kwargs):
-        # When I placed this import up top I got a AUTH_USER_MODEL error,
-        # which usually implies there an issue loading and validating models.
-        # Putting it here fixed it.
+        # prevent circular imports
         from treemap.models import InstanceUser
 
         if request.user.get_instance_user(instance) is None:

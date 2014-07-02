@@ -27,6 +27,7 @@ from treemap.decorators import json_api_call, return_400_if_validation_errors
 from treemap.decorators import api_instance_request as instance_request
 from treemap.decorators import api_admin_instance_request as \
     admin_instance_request
+from treemap.decorators import creates_instance_user
 from treemap.exceptions import HttpBadRequestException
 from treemap.audit import Audit, approve_or_reject_audit_and_apply
 
@@ -204,6 +205,7 @@ def _approve_or_reject_pending_edit(
 
 @require_http_methods(["POST"])
 @instance_request
+@creates_instance_user
 @json_api_call
 @login_required
 def approve_pending_edit(request, instance, pending_edit_id):
@@ -213,6 +215,7 @@ def approve_pending_edit(request, instance, pending_edit_id):
 
 @require_http_methods(["POST"])
 @instance_request
+@creates_instance_user
 @json_api_call
 @login_required
 def reject_pending_edit(request, instance, pending_edit_id):
@@ -223,6 +226,7 @@ def reject_pending_edit(request, instance, pending_edit_id):
 @require_http_methods(["DELETE"])
 @json_api_call
 @instance_request
+@creates_instance_user
 @login_required
 @transaction.atomic
 def remove_plot(request, instance, plot_id):
@@ -239,6 +243,7 @@ def remove_plot(request, instance, plot_id):
 @require_http_methods(["DELETE"])
 @json_api_call
 @instance_request
+@creates_instance_user
 @login_required
 @transaction.atomic
 def remove_current_tree_from_plot(request, instance, plot_id):
@@ -292,12 +297,14 @@ plots_endpoint = instance_api_do(
     route(GET=get_plot_list,
           POST=do(
               login_required,
+              creates_instance_user,
               update_or_create_plot)))
 
 
 plot_endpoint = instance_api_do(
     route(GET=get_plot,
           ELSE=do(login_required,
+                  creates_instance_user,
                   route(
                       PUT=update_or_create_plot,
                       DELETE=remove_plot))))
@@ -323,6 +330,7 @@ add_photo_endpoint = logged_in_api_do(
     route(
         POST=do(
             instance_request,
+            creates_instance_user,
             return_400_if_validation_errors,
             add_photo)))
 
