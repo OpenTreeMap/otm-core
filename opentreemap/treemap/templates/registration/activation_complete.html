@@ -4,19 +4,9 @@
 {% block content %}
 <div class="content login-signup">
   <div class="well login-signup-panel">
-    <h2 class="text-center">
-      Thank you for activating your OpenTreeMap.org account.
-    </h2>
-    <h3>
-      Want to request Beta access to the site and create your own tree map?
-    </h3>
-    <a href="/beta/" class="btn btn-primary btn-lg">Request Beta Access</a>
-    <hr>
-    <h5>
-      Just want to view an existing map?
-      Ask the map owner to add you as a user on their map.
-      Then visit the website for that tree map.
-    </h5>
+    <legend>{% trans "Account created!" %}</legend>
+    <p>{% trans "Congratulations! Your OpenTreeMap account has now been created. You just received an email to confirm your email address, but in the meantime, why not explore some nearby tree maps?" %}</p>
+    <a href="" class="btn btn-primary btn-lg">Explore Tree Maps</a>
   </div>
 </div>
 {% endblock %}
