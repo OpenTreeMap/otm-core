@@ -1208,7 +1208,6 @@ class UserTest(LocalMediaTestCase):
         self.defaultUserDict = {'allow_email_contact': True}
         self.defaultUserDict.update(self.defaultBaseUserDict)
 
-
     def make_post_request(self, datadict):
         r = sign_request(make_request(method='POST',
                                       body=dumps(datadict)))
@@ -1332,7 +1331,6 @@ class UserTest(LocalMediaTestCase):
         resp = create_user(self.make_post_request(self.defaultUserDict))
 
         self.assertIsNotNone(resp['id'])
-
 
     def test_boolean_defaults_empty(self):
         user_id = create_user(

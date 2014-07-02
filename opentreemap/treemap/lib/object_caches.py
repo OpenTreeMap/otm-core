@@ -16,6 +16,7 @@ _adjuncts = {}
 # ------------------------------------------------------------------------
 # Interface functions
 
+
 def permissions(user, instance, model_name=None):
     if settings.USE_OBJECT_CACHES:
         return _get_adjuncts(instance).permissions(user, model_name)
@@ -38,32 +39,25 @@ def udf_defs(instance, model_name):
     else:
         return _udf_defs_from_db(instance, model_name)
 
+
 def clear_caches():
     global _adjuncts
     _adjuncts = {}
 
-# These functions are called by save and delete signal hooks defined elsewhere.
-# (Defining them here with @receiver caused circular import problems.)
 
-def on_instance_user_changed(*args, **kwargs):
+def invalidate_adjuncts(*args, **kwargs):
+    # Called by 'save' and 'delete' signal handlers for adjunct objects
     if settings.USE_OBJECT_CACHES:
-        instance_user = kwargs['instance']
-        _invalidate_adjuncts(instance_user.instance)
-
-
-def on_field_permission_changed(*args, **kwargs):
-    if settings.USE_OBJECT_CACHES:
-        field_permission = kwargs['instance']
-        _invalidate_adjuncts(field_permission.instance)
-
-
-def on_udf_def_changed(*args, **kwargs):
-    if settings.USE_OBJECT_CACHES:
-        udf_def = kwargs['instance']
-        _invalidate_adjuncts(udf_def.instance)
+        adjunct_object = kwargs['instance']  # 'instance' is a Django term here
+        instance = adjunct_object.instance
+        if instance.id in _adjuncts:
+            del _adjuncts[instance.id]
+        instance.adjuncts_timestamp += 1
+        instance.save()
 
 # ------------------------------------------------------------------------
 # Fetch info from database when not using cache
+
 
 def _permissions_from_db(user, instance, model_name):
     if user is None or user.is_anonymous():
@@ -89,6 +83,7 @@ def _udf_defs_from_db(instance, model_name):
 
 # ------------------------------------------------------------------------
 # Fetch info from cache
+
 
 def _get_adjuncts(instance):
     adjuncts = _adjuncts.get(instance.id)
@@ -159,4 +154,3 @@ class _InstanceAdjuncts:
         qs = UserDefinedFieldDefinition.objects.filter(instance=self._instance)
         for udfd in qs:
             self._append_value(self._udf_defs, udfd.model_type, udfd)
-

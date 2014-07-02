@@ -23,16 +23,16 @@ from django.contrib.auth.models import (UserManager, AbstractBaseUser,
                                         PermissionsMixin)
 
 from treemap.species import ITREE_REGIONS
-from treemap.audit import (Auditable, Authorizable, FieldPermission, Role,
-                           Dictable, Audit)
+from treemap.audit import (Auditable, Authorizable, Role, Dictable, Audit)
+# Import this even though it's not referenced, so Django can find it
+from treemap.audit import FieldPermission  # NOQA
 from treemap.util import leaf_subclasses
 from treemap.decorators import classproperty
 from treemap.images import save_uploaded_image
 from treemap.units import Convertible
 from treemap.udf import UDFModel, GeoHStoreUDFManager
 from treemap.instance import Instance
-from treemap.lib.object_caches import (permissions,
-                                     on_instance_user_changed)
+from treemap.lib.object_caches import (permissions, invalidate_adjuncts)
 
 
 def _action_format_string_for_location(action):
@@ -522,8 +522,8 @@ class InstanceUser(Auditable, models.Model):
     def __unicode__(self):
         return '%s/%s' % (self.user.get_username(), self.instance.name)
 
-post_save.connect(on_instance_user_changed, sender=InstanceUser)
-post_delete.connect(on_instance_user_changed, sender=InstanceUser)
+post_save.connect(invalidate_adjuncts, sender=InstanceUser)
+post_delete.connect(invalidate_adjuncts, sender=InstanceUser)
 
 
 class MapFeature(Convertible, UDFModel, Authorizable, Auditable):

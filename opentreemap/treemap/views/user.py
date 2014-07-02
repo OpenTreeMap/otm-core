@@ -57,10 +57,9 @@ USER_EDIT_FIELDS = collections.OrderedDict([
 
 def _user_instances(logged_in_user, user, current_instance=None):
     # Which instances can the user being inspected see?
-    user_instances = {iu.instance
-                      for iu in InstanceUser.objects
-                            .filter(user=user)
-                            .select_related('instance')}
+    user_instances = {iu.instance for iu in InstanceUser.objects
+                        .filter(user_id=user.pk)
+                        .select_related('instance')}
 
     # Which instances can the logged-in user see?
     accessible_filter = _user_accessible_instance_filter(logged_in_user)
@@ -125,7 +124,7 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
     if logged_in_user == user:
         # The logged-in user can see all their own edits
         model_filter = model_filter | \
-                       Q(model__in=models) | Q(model__startswith='udf:')
+            Q(model__in=models) | Q(model__startswith='udf:')
     else:
         # Filter other users' edits by their visibility to the logged-in user
         for inst in instances:

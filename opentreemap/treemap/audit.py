@@ -21,7 +21,7 @@ from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name)
 from treemap.util import all_subclasses
 from treemap.lib.object_caches import (permissions, role_permissions,
-                                     on_field_permission_changed)
+                                       invalidate_adjuncts)
 
 
 def model_hasattr(obj, name):
@@ -585,8 +585,8 @@ class FieldPermission(models.Model):
         super(FieldPermission, self).save(*args, **kwargs)
 
 
-post_save.connect(on_field_permission_changed, sender=FieldPermission)
-post_delete.connect(on_field_permission_changed, sender=FieldPermission)
+post_save.connect(invalidate_adjuncts, sender=FieldPermission)
+post_delete.connect(invalidate_adjuncts, sender=FieldPermission)
 
 
 class Role(models.Model):

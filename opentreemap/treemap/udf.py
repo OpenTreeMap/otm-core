@@ -17,7 +17,6 @@ from django.db.models.fields.subclassing import Creator
 from django.db.models.base import ModelBase
 from django.db.models.sql.constants import ORDER_PATTERN
 from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
 
 from django.contrib.gis.db.models.sql.where import GeoWhereNode
 from django.contrib.gis.db.models.sql.query import GeoQuery
@@ -30,7 +29,7 @@ from treemap.instance import Instance
 from treemap.audit import (UserTrackable, Audit, UserTrackingException,
                            _reserve_model_id, FieldPermission,
                            AuthorizeException, Authorizable, Auditable)
-from treemap.lib.object_caches import permissions, on_udf_def_changed, \
+from treemap.lib.object_caches import permissions, invalidate_adjuncts, \
     udf_defs
 from treemap.util import safe_get_model_class, to_object_name
 
@@ -685,8 +684,8 @@ class UserDefinedFieldDefinition(models.Model):
         return 'udf:%s' % self.name
 
 
-post_save.connect(on_udf_def_changed, sender=UserDefinedFieldDefinition)
-post_delete.connect(on_udf_def_changed, sender=UserDefinedFieldDefinition)
+post_save.connect(invalidate_adjuncts, sender=UserDefinedFieldDefinition)
+post_delete.connect(invalidate_adjuncts, sender=UserDefinedFieldDefinition)
 
 
 class UDFDictionary(HStoreDict):

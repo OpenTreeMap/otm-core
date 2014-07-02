@@ -6,7 +6,7 @@ from django.test.utils import override_settings
 
 from treemap.audit import FieldPermission
 from treemap.lib.object_caches import (clear_caches, role_permissions,
-                                     permissions, udf_defs)
+                                       permissions, udf_defs)
 from treemap.models import InstanceUser
 from treemap.tests import (make_instance, make_commander_user,
                            make_user)
@@ -55,7 +55,8 @@ class PermissionsCacheTest(TestCase):
         perm = self.get_user_permission(user, 1, model_name, field_name)
         self.assertEqual(level, perm.permission_level)
 
-    def set_permission(self, role, level, model_name='Plot', field_name='geom'):
+    def set_permission(self, role, level, model_name='Plot',
+                       field_name='geom'):
         fp, created = FieldPermission.objects.get_or_create(
             model_name=model_name,
             field_name=field_name,

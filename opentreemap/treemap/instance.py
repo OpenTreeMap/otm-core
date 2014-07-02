@@ -142,6 +142,7 @@ class Instance(models.Model):
     itree_region_default = models.CharField(
         max_length=20, null=True, blank=True, choices=ITREE_REGION_CHOICES)
 
+    # Monotonically increasing number used to invalidate my InstanceAdjuncts
     adjuncts_timestamp = models.BigIntegerField(default=0)
 
     objects = models.GeoManager()
@@ -248,8 +249,8 @@ class Instance(models.Model):
         udfds = []
         for model_name in udfc_models:
             for udfd in udf_defs(self, model_name):
-               if udfd.name in udfc_names:
-                   udfds.append(udfd)
+                if udfd.name in udfc_names:
+                    udfds.append(udfd)
 
         udfc = deepcopy(empty_udfc)
 
