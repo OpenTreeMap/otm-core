@@ -54,6 +54,28 @@ def instance_request(view_fn, redirect=True):
     return wrapper
 
 
+def log(message=None):
+    """Log a message before passing through to the wrapped function.
+
+    This is useful if you want to determine whether wrappers are
+    passing down the pipeline to the functions they wrap, or exiting
+    early, usually with some kind of exception.
+
+    Example:
+    example_view = do(instance_request,
+                      log("instance_request passed"),
+                      json_api_call,
+                      example)
+    """
+    def decorator(view_fn):
+        @wraps(view_fn)
+        def f(*args, **kwargs):
+            print(message)
+            return view_fn(*args, **kwargs)
+        return f
+    return decorator
+
+
 def user_must_be_admin(view_fn):
     @wraps(view_fn)
     def f(request, instance, *args, **kwargs):
