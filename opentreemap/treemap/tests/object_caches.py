@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
+import json
+
 from django.test import TestCase
 from django.test.utils import override_settings
 
 from treemap.audit import FieldPermission
 from treemap.lib.object_caches import (clear_caches, role_permissions,
-                                     permissions)
+                                     permissions, udf_defs)
 from treemap.models import InstanceUser
 from treemap.tests import (make_instance, make_commander_user,
                            make_user)
+from treemap.udf import UserDefinedFieldDefinition
 
 WRITE = FieldPermission.WRITE_DIRECTLY
 READ = FieldPermission.READ_ONLY
+
 
 @override_settings(USE_OBJECT_CACHES=True)
 class PermissionsCacheTest(TestCase):
@@ -131,5 +135,61 @@ class PermissionsCacheTest(TestCase):
         self.assert_role_permission(self.role, READ)
 
 
+@override_settings(USE_OBJECT_CACHES=True)
+class UDFDefinitionCacheTest(TestCase):
+    def setUp(self):
+        clear_caches()
+        self.instance = make_instance()
+        self.udfd_plot_a = self.make_udf_def('Plot', 'a')
+        self.udfd_plot_b = self.make_udf_def('Plot', 'b')
+        self.udfd_tree_a = self.make_udf_def('Tree', 'a')
 
+    def make_udf_def(self, model_type, name):
+        return UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type=model_type,
+            datatype=json.dumps({'type': 'string'}),
+            iscollection=False,
+            name=name)
 
+    def assert_udf_def_count(self, model_name, count):
+        defs = udf_defs(self.instance, model_name)
+        self.assertEqual(len(defs), count)
+
+    def assert_udf_name(self, model_name, name):
+        defs = udf_defs(self.instance, model_name)
+        self.assertEqual(len(defs), 1)
+        self.assertEqual(defs[0].name, name)
+
+    def test_defs_cached(self):
+        self.assert_udf_def_count('Plot', 2)
+        self.assert_udf_def_count('Tree', 1)
+
+    def test_invalid_model_name(self):
+        self.assert_udf_def_count('foo', 0)
+
+    def test_update(self):
+        self.assert_udf_name('Tree', 'a')  # load cache
+        self.udfd_tree_a.name = 'c'
+        self.udfd_tree_a.save()
+        self.assert_udf_name('Tree', 'c')
+
+    def test_delete(self):
+        self.assert_udf_name('Tree', 'a')  # load cache
+        UserDefinedFieldDefinition.objects \
+            .filter(model_type='Tree') \
+            .delete()
+        self.assert_udf_def_count('Tree', 0)
+
+    def test_external_update(self):
+        self.assert_udf_name('Tree', 'a')  # load cache
+        # Simulate external update by setting permission without
+        # invalidating the cache, then updating the instance timestamp.
+        # update() sends no signals, so cache won't be invalidated.
+        UserDefinedFieldDefinition.objects \
+            .filter(model_type='Tree') \
+            .update(name='c')
+        self.assert_udf_name('Tree', 'a')
+        self.instance.adjuncts_timestamp += 1
+        self.instance.save()
+        self.assert_udf_name('Tree', 'c')

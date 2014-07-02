@@ -32,6 +32,12 @@ def role_permissions(role, instance=None, model_name=None):
         return _role_permissions_from_db(role, model_name)
 
 
+def udf_defs(instance, model_name):
+    if settings.USE_OBJECT_CACHES:
+        return _get_adjuncts(instance).udf_defs(model_name)
+    else:
+        return _udf_defs_from_db(instance, model_name)
+
 def clear_caches():
     global _adjuncts
     _adjuncts = {}
@@ -40,7 +46,7 @@ def clear_caches():
 # (Defining them here with @receiver caused circular import problems.)
 
 # Called on post_save of InstanceUser
-def update_cached_role_for_instance_user(*args, **kwargs):
+def on_instance_user_save_after(*args, **kwargs):
     if settings.USE_OBJECT_CACHES:
         instance_user = kwargs['instance']
         _invalidate_adjuncts(instance_user.instance)
@@ -51,6 +57,13 @@ def on_field_permission_save_after(*args, **kwargs):
     if settings.USE_OBJECT_CACHES:
         field_permission = kwargs['instance']
         _invalidate_adjuncts(field_permission.instance)
+
+
+# Called on post_save of UserDefinedFieldDefinition
+def on_udf_def_save_after(*args, **kwargs):
+    if settings.USE_OBJECT_CACHES:
+        udf_def = kwargs['instance']
+        _invalidate_adjuncts(udf_def.instance)
 
 # ------------------------------------------------------------------------
 # Fetch info from database when not using cache
@@ -68,7 +81,14 @@ def _role_permissions_from_db(role, model_name):
         perms = role.fieldpermission_set.filter(model_name=model_name)
     else:
         perms = role.fieldpermission_set.all()
-    return perms
+    return list(perms)
+
+
+def _udf_defs_from_db(instance, model_name):
+    from treemap.udf import UserDefinedFieldDefinition
+    defs = UserDefinedFieldDefinition.objects.filter(
+        instance=instance, model_type=model_name)
+    return list(defs)
 
 # ------------------------------------------------------------------------
 # Fetch info from cache
@@ -93,7 +113,7 @@ class _InstanceAdjuncts:
         self._instance = instance
         self._user_role_ids = {}
         self._permissions = {}
-        self._udfs = {}
+        self._udf_defs = {}
         self.timestamp = instance.adjuncts_timestamp
 
     def permissions(self, user, model_name):
@@ -111,6 +131,12 @@ class _InstanceAdjuncts:
         perms = self._permissions.get((role_id, model_name))
         return perms if perms else []
 
+    def udf_defs(self, model_name):
+        if not self._udf_defs:
+            self._load_udf_defs()
+        defs = self._udf_defs.get(model_name)
+        return defs if defs else []
+
     def _load_roles(self):
         from treemap.models import InstanceUser
 
@@ -122,11 +148,18 @@ class _InstanceAdjuncts:
     def _load_permissions(self):
         from treemap.audit import FieldPermission
         for fp in FieldPermission.objects.filter(instance=self._instance):
-            self._append_permission((fp.role_id, fp.model_name), fp)
-            self._append_permission((fp.role_id, None), fp)
+            dict = self._permissions
+            self._append_value(dict, (fp.role_id, fp.model_name), fp)
+            self._append_value(dict, (fp.role_id, None), fp)
 
-    def _append_permission(self, key, value):
-        if key not in self._permissions:
-            self._permissions[key] = []
-        self._permissions[key].append(value)
+    def _append_value(self, dict, key, value):
+        if key not in dict:
+            dict[key] = []
+        dict[key].append(value)
+
+    def _load_udf_defs(self):
+        from treemap.udf import UserDefinedFieldDefinition
+        qs = UserDefinedFieldDefinition.objects.filter(instance=self._instance)
+        for udfd in qs:
+            self._append_value(self._udf_defs, udfd.model_type, udfd)
 

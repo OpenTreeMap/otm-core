@@ -16,6 +16,7 @@ from urllib import urlencode
 from copy import deepcopy
 
 from treemap.json_field import JSONField
+from treemap.lib.object_caches import udf_defs
 from treemap.species import ITREE_REGION_CHOICES
 
 URL_NAME_PATTERN = r'[a-zA-Z]+[a-zA-Z0-9\-]*'
@@ -244,12 +245,9 @@ class Instance(models.Model):
                 field['id'] = "%s_%s" % (field.get('identifier', ''), num)
                 num += 1
 
-        # prevent circular import
-        from treemap.udf import udf_cache
-
         udfds = []
         for model_name in udfc_models:
-            for udfd in udf_cache.get_defs_for_model(model_name, self.id):
+            for udfd in udf_defs(self, model_name):
                if udfd.name in udfc_names:
                    udfds.append(udfd)
 

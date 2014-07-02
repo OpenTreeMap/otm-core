@@ -16,7 +16,7 @@ from django.db.models import Q
 from django.db.models.fields.subclassing import Creator
 from django.db.models.base import ModelBase
 from django.db.models.sql.constants import ORDER_PATTERN
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from django.contrib.gis.db.models.sql.where import GeoWhereNode
@@ -30,7 +30,8 @@ from treemap.instance import Instance
 from treemap.audit import (UserTrackable, Audit, UserTrackingException,
                            _reserve_model_id, FieldPermission,
                            AuthorizeException, Authorizable, Auditable)
-from treemap.lib.object_caches import permissions
+from treemap.lib.object_caches import permissions, on_udf_def_changed, \
+    udf_defs
 from treemap.util import safe_get_model_class, to_object_name
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -555,7 +556,6 @@ class UserDefinedFieldDefinition(models.Model):
             instance=self.instance).delete()
 
         super(UserDefinedFieldDefinition, self).delete(*args, **kwargs)
-        udf_cache.remove_def_from_cache(self)
 
     @property
     def datatype_dict(self):
@@ -683,6 +683,10 @@ class UserDefinedFieldDefinition(models.Model):
     @property
     def canonical_name(self):
         return 'udf:%s' % self.name
+
+
+post_save.connect(on_udf_def_changed, sender=UserDefinedFieldDefinition)
+post_delete.connect(on_udf_def_changed, sender=UserDefinedFieldDefinition)
 
 
 class UDFDictionary(HStoreDict):
@@ -890,58 +894,6 @@ class UDFModelBase(ModelBase):
         return new
 
 
-class UDFDCache(object):
-    """
-    Cache user defined field defintions
-    """
-    def __init__(self, max_size=10000):
-        self.reset()
-        self.max_size = max_size
-
-    def reset(self):
-        self.cache = {}
-
-    def put(self, k, v):
-        if len(self.cache) == self.max_size:
-            self.reset()
-
-        self.cache[k] = v
-        return v
-
-    def _cache_key(self, model_name, instance_id):
-        return (model_name, instance_id)
-
-    def get_defs_for_model(self, model_name, instance_id=None):
-        key = self._cache_key(model_name, instance_id)
-
-        if key not in self.cache:
-            udfs = UserDefinedFieldDefinition.objects.filter(
-                model_type=model_name)
-
-            if instance_id:
-                udfs = udfs.filter(instance__pk=instance_id)
-
-            # Iterating over a queryset isn't thread-safe
-            # so we need to force it here
-            return self.put(key, list(udfs))
-        else:
-            return self.cache[key]
-
-    def remove_def_from_cache(self, udf_def):
-        key = self._cache_key(udf_def.model_type, udf_def.instance_id)
-
-        if key in self.cache:
-            del self.cache[key]
-
-
-udf_cache = UDFDCache()
-
-
-@receiver(post_save, sender=UserDefinedFieldDefinition)
-def clear_udf_cache(*args, **kwargs):
-    udf_cache.reset()
-
-
 class UDFModel(UserTrackable, models.Model):
     """
     Classes that extend this model gain support for scalar UDF
@@ -970,8 +922,10 @@ class UDFModel(UserTrackable, models.Model):
         return normal_fields or self.dirty_collection_udfs
 
     def get_user_defined_fields(self):
-        return udf_cache.get_defs_for_model(
-            self._model_name, self.instance_id)
+        if hasattr(self, 'instance'):
+            return udf_defs(self.instance, self._model_name)
+        else:
+            return []
 
     def audits(self):
         regular_audits = Q(model=self._model_name,

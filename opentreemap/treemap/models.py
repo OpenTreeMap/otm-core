@@ -32,7 +32,7 @@ from treemap.units import Convertible
 from treemap.udf import UDFModel, GeoHStoreUDFManager
 from treemap.instance import Instance
 from treemap.lib.object_caches import (permissions,
-                                     update_cached_role_for_instance_user)
+                                     on_instance_user_save_after)
 
 
 def _action_format_string_for_location(action):
@@ -522,7 +522,7 @@ class InstanceUser(Auditable, models.Model):
     def __unicode__(self):
         return '%s/%s' % (self.user.get_username(), self.instance.name)
 
-post_save.connect(update_cached_role_for_instance_user, sender=InstanceUser)
+post_save.connect(on_instance_user_save_after, sender=InstanceUser)
 
 
 class MapFeature(Convertible, UDFModel, Authorizable, Auditable):

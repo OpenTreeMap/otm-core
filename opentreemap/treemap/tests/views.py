@@ -346,7 +346,7 @@ class PlotImageUpdateTest(LocalMediaTestCase):
         perms = permissions(self.user, self.instance)
 
         def update_perms(plevel):
-            for perm in perms.all():
+            for perm in perms:
                 perm.permission_level = plevel
                 perm.save()
 
