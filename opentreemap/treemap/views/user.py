@@ -25,7 +25,7 @@ from treemap.util import (package_validation_errors,
                           get_filterable_audit_models)
 from treemap.models import Plot, Tree, User, Instance, InstanceUser, MapFeature
 
-USER_EDIT_FIELDS = collections.OrderedDict([
+USER_PROFILE_FIELDS = collections.OrderedDict([
     ('first_name',
      {'label': trans('First Name'),
       'identifier': 'user.first_name',
@@ -252,7 +252,7 @@ def update_user(request, user):
             if model != 'user':
                 return bad_request_json_response(
                     'All fields should be prefixed with "user."')
-            if field not in USER_EDIT_FIELDS:
+            if field not in USER_PROFILE_FIELDS:
                 return bad_request_json_response(
                     field + ' is not an updatable field')
         except ValueError:
@@ -337,10 +337,10 @@ def user(request, username):
     public_fields = []
     private_fields = []
 
-    for field in USER_EDIT_FIELDS.values():
+    for field in USER_PROFILE_FIELDS.values():
         field_tuple = (field['label'], field['identifier'],
                        field.get('template', "treemap/field/div.html"))
-        if field['visibility'] == 'public':
+        if field['visibility'] == 'public' and user.make_info_public is True:
             public_fields.append(field_tuple)
         else:
             private_fields.append(field_tuple)
