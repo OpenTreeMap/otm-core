@@ -174,14 +174,14 @@ var makeNameAttributeTestCases = {
 };
 
 module.exports = {
-    'makeNameAttribute': _.mapValues(makeNameAttributeTestCases, function(testCase) {
+    'makeNameAttribute': _.mapValues(makeNameAttributeTestCases, function(TestCase) {
         return function() {
             var outputs = udfcSearch._makeNameAttribute(testCase.state,
                                                         testCase.state[testCase.fieldKey]);
             assert.deepEqual(outputs, testCase.outputs, 'The elems should match');
         };
     }),
-    'diff states': _.mapValues(pushStateDiffTestCases, function(testCase) {
+    'diff states': _.mapValues(pushStateDiffTestCases, function(TestCase) {
         return function () {
             $('body').append('<div id="test-canvas" />');
             $('#test-canvas').append(initialDomData.body);

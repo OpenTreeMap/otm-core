@@ -60,7 +60,7 @@ module.exports = {
     "afterEach": function() {
         $('#search').empty();
     },
-    "buildElems": _.mapValues(buildElemsCases, function(testCase) {
+    "buildElems": _.mapValues(buildElemsCases, function(TestCase) {
         return function() {
             var $markup = $(testCase.markup);
             $('#search').append($markup);

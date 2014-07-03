@@ -7,6 +7,7 @@ from celery import task
 from tempfile import TemporaryFile
 
 from django.core.files import File
+from treemap.lib.object_caches import permissions
 
 from treemap.search import Filter
 from treemap.models import Species, Tree
@@ -22,21 +23,17 @@ def extra_select_and_values_for_model(
     else:
         prefix = ''
 
-    if job.user:
-        perms_qs = job.user.get_instance_permissions(instance, model)
-    else:
-        perms_qs = instance.default_role.model_permissions(model)
-
-    perms = perms_qs.values_list('field_name', flat=True)
+    perms = permissions(job.user, instance, model)
 
     extra_select = {}
     prefixed_names = []
 
     for perm in perms:
-        prefixed_name = prefix + perm
+        field_name = perm.field_name
+        prefixed_name = prefix + field_name
 
-        if perm.startswith('udf:'):
-            name = perm[4:]
+        if field_name.startswith('udf:'):
+            name = field_name[4:]
             extra_select[prefixed_name] = "%s.udfs->'%s'" % (table, name)
 
         prefixed_names.append(prefixed_name)

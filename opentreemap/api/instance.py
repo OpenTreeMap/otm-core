@@ -10,6 +10,7 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 
 from treemap.exceptions import HttpBadRequestException
+from treemap.lib.object_caches import role_permissions
 from treemap.models import Instance, InstanceUser
 from treemap.units import (get_units_if_convertible, get_digits_if_formattable,
                            get_conversion_factor)
@@ -92,7 +93,7 @@ def instance_info(request, instance):
                                       udf.canonical_name): udf
                            for udf in collection_udfs}
 
-    for fp in role.fieldpermission_set.all():
+    for fp in role_permissions(role, instance):
         model = fp.model_name.lower()
         field_key = '%s.%s' % (model, fp.field_name)
         if fp.allows_reads:

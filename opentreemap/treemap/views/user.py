@@ -57,8 +57,9 @@ USER_EDIT_FIELDS = collections.OrderedDict([
 
 def _user_instances(logged_in_user, user, current_instance=None):
     # Which instances can the user being inspected see?
-    user_instances = {iu.instance
-                      for iu in InstanceUser.objects.filter(user=user)}
+    user_instances = {iu.instance for iu in InstanceUser.objects
+                        .filter(user_id=user.pk)
+                        .select_related('instance')}
 
     # Which instances can the logged-in user see?
     accessible_filter = _user_accessible_instance_filter(logged_in_user)
@@ -120,38 +121,47 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
     if map_feature_models.intersection(models):
         model_filter = model_filter | Q(model='MapFeaturePhoto', field='image')
 
-    # We need a filter per-instance in to only show fields visible to the user
-    for inst in instances:
-        for model in models:
-            ModelClass = get_auditable_class(model)
-            if issubclass(ModelClass, Authorizable):
-                fake_model = ModelClass(instance=inst)
-                visible_fields = fake_model.visible_fields(logged_in_user)
+    if logged_in_user == user:
+        # The logged-in user can see all their own edits
+        model_filter = model_filter | \
+            Q(model__in=models) | Q(model__startswith='udf:')
+    else:
+        # Filter other users' edits by their visibility to the logged-in user
+        for inst in instances:
+            for model in models:
+                ModelClass = get_auditable_class(model)
+                if issubclass(ModelClass, Authorizable):
+                    fake_model = ModelClass(instance=inst)
+                    visible_fields = fake_model.visible_fields(logged_in_user)
+                    model_filter = model_filter |\
+                        Q(model=model, field__in=visible_fields, instance=inst)
+                else:
+                    model_filter = model_filter | Q(model=model, instance=inst)
+
+                # Add UDF collections related to model
+                if model == 'Tree':
+                    fake_model = Tree(instance=inst)
+                elif model == 'Plot':
+                    fake_model = Plot(instance=inst)
+                else:
+                    continue
+
+                model_collection_udfs_audit_names =\
+                    fake_model.visible_collection_udfs_audit_names(
+                        logged_in_user)
+
                 model_filter = model_filter |\
-                    Q(model=model, field__in=visible_fields, instance=inst)
-            else:
-                model_filter = model_filter | Q(model=model, instance=inst)
+                    Q(model__in=model_collection_udfs_audit_names)
 
-            # Only add UDF collections if their parent models are being shown
-            if model == 'Tree':
-                fake_model = Tree(instance=inst)
-            elif model == 'Plot':
-                fake_model = Plot(instance=inst)
-            else:
-                continue
+    udf_bookkeeping_fields = Q(
+        model__startswith='udf:',
+        field__in=('id', 'model_id', 'field_definition'))
 
-            model_collection_udfs_audit_names =\
-                fake_model.visible_collection_udfs_audit_names(logged_in_user)
-
-            # Don't show the fields that every collection UDF has, because they
-            # are not very interesting
-            model_filter = model_filter |\
-                (Q(model__in=model_collection_udfs_audit_names) &
-                 ~Q(field__in=('id', 'model_id', 'field_definition')))
-
-    audits = Audit.objects.filter(model_filter)\
-                          .filter(instance__in=instances)\
-                          .order_by('-created', 'id')
+    audits = Audit.objects \
+        .filter(model_filter) \
+        .filter(instance__in=instances) \
+        .exclude(udf_bookkeeping_fields) \
+        .order_by('-created', 'id')
 
     if user:
         audits = audits.filter(user=user)
