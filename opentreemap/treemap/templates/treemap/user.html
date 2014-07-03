@@ -40,10 +40,12 @@ active
                     {% else %}
                       <img class="user-photo" id="user-photo" src="{{STATIC_URL}}img/profile.png">
                     {% endif %}
+                    {% usercontent for user %}
                     <button id="toggle-set-photo-modal"
                       data-toggle="modal"
                       data-target="#set-photo-modal"
                       class="btn btn-xs add-photos">{% trans "Add Photo" %}</button>
+                    {% endusercontent %}
                 </div>
                 <h1>{{ user.username }}
                     <small>{% trans "User Profile" %}</small>
