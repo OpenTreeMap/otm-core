@@ -16,7 +16,7 @@ from django.shortcuts import get_object_or_404
 
 from treemap.models import User, Species, StaticPage, MapFeature, Instance
 
-from treemap.views.user import get_audits, get_audits_params
+from treemap.lib.user import get_audits, get_audits_params
 
 from treemap.lib import COLOR_RE
 
