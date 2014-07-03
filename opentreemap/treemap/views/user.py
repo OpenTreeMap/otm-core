@@ -58,7 +58,7 @@ USER_EDIT_FIELDS = collections.OrderedDict([
 def _user_instances(logged_in_user, user, current_instance=None):
     # Which instances can the user being inspected see?
     user_instances = {iu.instance for iu in InstanceUser.objects
-                        .filter(user_id=user.pk)
+                        .filter(user=user)
                         .select_related('instance')}
 
     # Which instances can the logged-in user see?
