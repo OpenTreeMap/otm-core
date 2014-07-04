@@ -3,6 +3,8 @@ import importlib
 from time import sleep
 
 from django.test import LiveServerTestCase
+from django.test.utils import override_settings
+
 from django.conf import settings
 
 from selenium.common.exceptions import (WebDriverException,
@@ -12,6 +14,7 @@ from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 
 from treemap.tests import create_mock_system_user, make_commander_user
+from treemap.tests.base import TEST_SETTINGS
 
 from treemap.models import Tree, Plot, Instance
 
@@ -50,6 +53,7 @@ def patch_broken_pipe_error():
 patch_broken_pipe_error()
 
 
+@override_settings(**TEST_SETTINGS)
 class UITestCase(LiveServerTestCase):
     def use_xvfb(self):
         from pyvirtualdisplay import Display
