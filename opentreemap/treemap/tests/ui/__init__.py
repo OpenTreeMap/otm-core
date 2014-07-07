@@ -202,10 +202,6 @@ class TreemapUITestCase(UITestCase):
     def login_workflow(self):
         self.browse_to_url('/accounts/logout/')
         self.browse_to_url('/accounts/login/')
-
-        login = self.find_id("login")
-        login.click()
-
         self.process_login_form(self.user.username, 'password')
 
     def drag_marker_on_map(self, endx, endy):
