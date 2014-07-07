@@ -12,8 +12,9 @@ from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 
 from treemap.tests import create_mock_system_user, make_commander_user
-
 from treemap.models import Tree, Plot, Instance
+from treemap.lib.object_caches import clear_caches
+from treemap.plugin import setup_for_ui_test
 
 
 def patch_broken_pipe_error():
@@ -70,6 +71,10 @@ class UITestCase(LiveServerTestCase):
             self.use_xvfb()
 
         self.driver.implicitly_wait(10)
+
+        clear_caches()
+        setup_for_ui_test()
+
         super(UITestCase, self).setUp()
 
     def tearDown(self):

@@ -76,3 +76,6 @@ feature_enabled = get_plugin_function('FEATURE_BACKEND_FUNCTION',
 should_send_user_activation = get_plugin_function(
     'USER_ACTIVATION_FUNCTION',
     lambda request, username, email, password: True)
+
+
+setup_for_ui_test = get_plugin_function('UITEST_SETUP_FUNCTION', lambda: None)
