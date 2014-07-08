@@ -9,6 +9,7 @@ FEATURE_BACKEND_FUNCTION = None
 USER_ACTIVATION_FUNCTION = None
 
 UITEST_CREATE_INSTANCE_FUNCTION = 'treemap.tests.make_instance'
+UITEST_SETUP_FUNCTION = None
 
 # This email is shown in various contact/error pages
 # throughout the site
