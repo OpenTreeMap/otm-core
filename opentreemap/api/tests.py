@@ -1064,6 +1064,16 @@ class Instance(LocalMediaTestCase):
         # so I test for a fragment that remains the same
         self.assertTrue('logos/2by2' in info['logoUrl'])
 
+    def test_date_format_conversion(self):
+        self.instance.date_format = 'F j, Y'
+        self.instance.short_date_format = 'm/d/Y'
+        self.instance.save()
+
+        request = sign_request_as_user(make_request(), self.user)
+        info = instance_info(request, self.instance)
+        self.assertEqual('MM/dd/yyyy', info.get('short_date_format'))
+        self.assertEqual('MMMM d, yyyy', info.get('date_format'))
+
 
 @override_settings(NEARBY_INSTANCE_RADIUS=2)
 @override_settings(FEATURE_BACKEND_FUNCTION=None)
@@ -1651,7 +1661,6 @@ class Authentication(OTMTestCase):
 
 
 class UserApiExportsTest(UserExportsTestCase):
-
     def _test_requires_admin_access(self, endpoint_name):
         url = reverse('user_csv',
                       kwargs={'version': 3,

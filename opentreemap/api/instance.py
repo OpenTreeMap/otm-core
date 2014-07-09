@@ -140,6 +140,8 @@ def instance_info(request, instance):
     info['fields'] = perms
     info['field_key_groups'] = instance.mobile_api_fields
     info['search'] = instance.mobile_search_fields
+    info['date_format'] = _unicode_dateformat(instance.date_format)
+    info['short_date_format'] = _unicode_dateformat(instance.short_date_format)
 
     public_config_keys = ['scss_variables']
 
@@ -214,3 +216,31 @@ def _instance_eco_dict(instance):
             }
         ]
     }
+
+
+def _unicode_dateformat(date_format):
+    """
+    Converts a Django DATE_FORMAT into a standard unicode date format (see
+    http://www.unicode.org/reports/tr35/tr35-31/tr35-dates.html#Date_Format_Patterns)  # NOQA
+    This is the format used by Java SimpleDateFormat and iOS NSDateFormatter
+
+    Not an exhaustive conversion, but it suites our needs at the moment
+    """
+    conv_dict = {
+        'j': 'd',
+        'd': 'dd',
+        'D': 'EEE',
+        'l': 'EEEE',
+        'n': 'M',
+        'm': 'MM',
+        'N': 'MMM',
+        'M': 'MMM',
+        'F': 'MMMM',
+        'E': 'MMMM',  # Locale text mont,
+        'y': 'yy',
+        'Y': 'yyyy'
+    }
+
+    unicode_format = ''.join(conv_dict.get(ch, ch) for ch in date_format)
+
+    return unicode_format
