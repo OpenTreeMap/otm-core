@@ -27,7 +27,7 @@ active
 {% block content %}
 
 {% url 'user_photo' user.username as photo_url %}
-{% include "treemap/partials/upload_image.html" with panel_id="set-photo-modal" title="Set a Photo" endpoint=photo_url %}
+{% include "treemap/partials/upload_image.html" with panel_id="set-photo-modal" title="Set a Photo" upload_photo_endpoint=photo_url %}
 <div class="image-background"></div>
 
 <div class="container contained topper profile">
