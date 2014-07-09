@@ -96,6 +96,9 @@
                 select {
                     font-size: 1.2rem;
                 }
+                span {
+                    display: block;
+                }
                 .twitter-typeahead{
                         display:block !important;
                     }
@@ -126,6 +129,10 @@
                         padding-left: 15px;
                         border-left: 8px solid #f1f2f2;
                         margin-top: 15px;
+                        
+                        &.alert {
+                            border-left: none;
+                        }
                     }
                 }
 

@@ -4,9 +4,11 @@
 {% block content %}
 <div class="content login-signup">
   <div class="well login-signup-panel">
-    <legend>{% trans "Account created!" %}</legend>
-    <p>{% trans "Congratulations! Your OpenTreeMap account has now been created. You just received an email to confirm your email address, but in the meantime, why not explore some nearby tree maps?" %}</p>
-    <a href="" class="btn btn-primary btn-lg">Explore Tree Maps</a>
+    <legend>{% trans "Thanks for activating your account" %}</legend>
+    <p>{% trans "Your OpenTreeMap account has been confirmed. Login to start exploring trees near you." %}</p>
+    <p class="text-center margin-top">
+        <a href="{% url 'auth_login' %}" class="btn btn-primary btn-lg">Login to OpenTreeMap</a>
+    </p>
   </div>
 </div>
 {% endblock %}

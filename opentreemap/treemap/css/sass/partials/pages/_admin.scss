@@ -10,7 +10,7 @@
             padding: 0;
 
             &.nav-header {
-                color: #afafaf;
+                color: darken($well-color, 25%);
                 margin-top: 12px;
 
                 &:first-child {

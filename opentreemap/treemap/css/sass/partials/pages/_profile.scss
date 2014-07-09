@@ -8,7 +8,7 @@
 
         small {
             font-size: 1.4rem;
-            color: #c2c2c2;
+            color: darken($well-color, 25%);
             display: block;
             line-height: 3.6rem;
             font-weight: 300;
@@ -53,7 +53,7 @@
     margin: 20px 0 0;
 
     label {
-        color: $well-color;
+        color: darken($well-color, 25%);
         font-weight: 700;
         margin-bottom: 2px;
         width: 100%;
