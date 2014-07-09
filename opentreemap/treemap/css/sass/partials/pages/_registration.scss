@@ -49,7 +49,7 @@
             }
             > label {
                 &:after {
-                    content: ':';
+                    content: '';
                 }
             }
             > input {
@@ -60,7 +60,7 @@
         div.required {
             > label {
                 &:after {
-                    content: ': *';
+                    content: ' *';
                 }
             }
         }
