@@ -99,9 +99,9 @@ class TreeBenefitsCalculator(BenefitCalculator):
         # instance forces a region on us
         regions = instance.itree_regions()
         if len(regions) == 1:
-            region = regions[0]
+            region_code = regions[0].code
         else:
-            region = None
+            region_code = None
 
         # We want to do a values query that returns the info that
         # we need for an eco calculation:
@@ -114,7 +114,7 @@ class TreeBenefitsCalculator(BenefitCalculator):
 
         # If there isn't a single region we need to
         # include geometry information
-        if not region:
+        if not region_code:
             values += ('plot__geom',)
 
         # We use two extra instance filter to help out
@@ -132,7 +132,7 @@ class TreeBenefitsCalculator(BenefitCalculator):
         # on plot/mapfeature. To make sure the djago machinery
         # does that we use "plot__geom" above and then
         # do this rather dubious string manipulation below
-        if not region:
+        if not region_code:
             targetGeomField = '"treemap_mapfeature"."the_geom_webmercator"'
             xyGeomFields = 'ST_X(%s), ST_Y(%s)' % \
                            (targetGeomField, targetGeomField)
@@ -141,7 +141,7 @@ class TreeBenefitsCalculator(BenefitCalculator):
 
         params = {'query': query,
                   'instance_id': instance.pk,
-                  'region': region or ""}
+                  'region': region_code or ""}
 
         rawb, err = ecobackend.json_benefits_call(
             'eco_summary.json', params.iteritems(), post=True)
