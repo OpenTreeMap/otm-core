@@ -37,8 +37,9 @@ urlpatterns = patterns(
         name='update_user'),
     url(r'^user/(?P<user_id>\d+)/photo$', update_profile_photo_endpoint,
         name='update_user_photo'),
-    (r'^user/(?P<user_id>\d+)/reset_password$', reset_password),
     (r'^user/(?P<user_id>\d+)/edits$', edits),
+
+    (r'^send-password-reset-email$', reset_password),
 
     ('^locations/' + lat_lon_pattern + '/instances',
      instances_closest_to_point_endpoint),
