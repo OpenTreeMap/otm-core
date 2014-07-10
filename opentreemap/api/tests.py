@@ -1689,3 +1689,12 @@ class UserApiExportsTest(UserExportsTestCase):
 
     def test_json_requires_admin(self):
         self._test_requires_admin_access('users_json')
+
+
+class PasswordResetTest(OTMTestCase):
+    def test_send_password_reset_email_url(self):
+        data = {"email": self.user1.email}
+        response = post_json(
+            "%s/send-password-reset-email" % API_PFX,
+            data, self.client, None)
+        self.assertEquals(response.status_code, 200)
