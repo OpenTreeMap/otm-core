@@ -112,7 +112,7 @@ def reset_password(request):
             'use_https': request.is_secure(),
             'token_generator': default_token_generator,
             'from_email': None,
-            'email_template_name': 'reset_email_password.html',
+            'email_template_name': 'registration/password_reset_email.html',
             'request': request}
 
         resetform.save(**opts)
