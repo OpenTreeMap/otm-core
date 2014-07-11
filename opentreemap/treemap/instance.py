@@ -181,23 +181,12 @@ class Instance(models.Model):
     def advanced_search_fields(self):
         # TODO pull from the config once users have a way to set search fields
 
-        from treemap.util import to_object_name
-
-        # if we come to support more udfc searches, we can add them here.
-        udfc_models = ['Tree', 'Plot']
-        udfc_names = ['Stewardship', 'Alerts']
-
-        # must inflate object so that template can look for keys
-        empty_udfc = {to_object_name(n_k):
-                      {to_object_name(m_k): {'fields': [], 'udfd': None}
-                       for m_k in udfc_models}
-                      for n_k in udfc_names}
-
         if not self.feature_enabled('advanced_search_filters'):
             return {'standard': [], 'missing': [], 'display': [],
-                    'udfc': empty_udfc}
+                    'udfc': self._get_udfc_search_fields()}
 
         from treemap.models import MapFeature  # prevent circular import
+
         fields = {
             'standard': [
                 {'identifier': 'tree.diameter', 'search_type': 'RANGE'},
@@ -246,6 +235,22 @@ class Instance(models.Model):
                 field['id'] = "%s_%s" % (field.get('identifier', ''), num)
                 num += 1
 
+        fields['udfc'] = self._get_udfc_search_fields()
+
+        return fields
+
+    def _get_udfc_search_fields(self):
+        from treemap.util import to_object_name
+
+        # if we come to support more udfc searches, we can add them here.
+        udfc_models = ['Tree', 'Plot']
+        udfc_names = ['Stewardship', 'Alerts']
+
+        empty_udfc = {to_object_name(n_k):
+                      {to_object_name(m_k): {'fields': [], 'udfd': None}
+                       for m_k in udfc_models}
+                      for n_k in udfc_names}
+
         udfds = []
         for model_name in udfc_models:
             for udfd in udf_defs(self, model_name):
@@ -262,9 +267,7 @@ class Instance(models.Model):
             name_dict = udfc[to_object_name(udfd.name)]
             name_dict[to_object_name(udfd.model_type)] = udfd_info
 
-        fields['udfc'] = udfc
-
-        return fields
+        return udfc
 
     @property
     def supports_resources(self):

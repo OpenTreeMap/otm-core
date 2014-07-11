@@ -70,6 +70,7 @@
 {% block subhead %}
 <div class="subhead">
   {% with advanced_search_fields=request.instance.advanced_search_fields %}
+  {% if request.instance|feature_enabled:'advanced_search_filters' %}
   <div class="advanced-search">
     <div class="container">
       <div class="row">
@@ -95,6 +96,7 @@
       </div>
     </div>
   </div>
+  {% endif %}
 
   {% include "udfc_search.html" %}
 
@@ -157,12 +159,8 @@
 <div class="search-options">
   <a id="perform-search" class="btn btn-primary btn-lg btn-block">{% trans "Search" %}</a>
   <div class="btn-group">
-    {% if request.instance|feature_enabled:'advanced_search_filters' %}
     <button id="search-advanced" class="btn btn-default btn-sm">{% trans "Advanced" %}</button>
     <button id="search-reset" class="btn btn-default btn-sm">{% trans "Reset" %}</button>
-    {% else %}
-    <button id="search-reset" class="btn btn-block btn-default btn-sm">{% trans "Reset" %}</button>
-    {% endif %}
   </div>
 </div>
 {% endblock searchoptions %}
