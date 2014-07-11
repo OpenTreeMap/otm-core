@@ -1700,3 +1700,4 @@ class PasswordResetTest(OTMTestCase):
         url = "%s/send-password-reset-email?email=%s"
         response = post_json(url % (API_PFX, self.jim.email),
                              {}, self.client, None)
+        self.assertEquals(response.status_code, 200)

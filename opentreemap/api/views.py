@@ -103,7 +103,7 @@ def edits(request, instance, user_id):
 
 
 def reset_password(request):
-    email =  request.REQUEST["email"]
+    email = request.REQUEST["email"]
     try:
         User.objects.get(email=email)
     except User.DoesNotExist:
