@@ -2,14 +2,14 @@
 {% load util %}
 
 {% if photo %}
-<li class="col-md-4" data-total-pages="{{ total_pages }}">
-  <div class="thumbnail">
-    <a href="{{ photo.image.url }}">
+<div class="col-md-4" data-total-pages="{{ total_pages }}">
+    <a class="thumbnail" href="{{ photo.image.url }}">
       <img data-id="{{ photo.pk }}" src="{{ photo.thumbnail.url }}">
     </a>
-    <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="approve" %}">{% trans "Approve" %}</a>
-    <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="reject" %}">{% trans "Reject" %}</a>
-    <div><a href="{{ photo|detail_link }}">{% trans "View Detail" %}</a></div>
-  </div>
-</li>
+    <div class="btn-group">
+        <a class="action btn btn-sm" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="approve" %}">{% trans "Approve" %}</a>
+        <a class="action btn btn-sm" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="reject" %}">{% trans "Reject" %}</a>
+        <a class="btn btn-sm" href="{{ photo|detail_link }}">{% trans "View Detail" %}</a>
+    </div>
+</div>
 {% endif %}

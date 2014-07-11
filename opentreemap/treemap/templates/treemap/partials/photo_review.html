@@ -1,21 +1,21 @@
 {% load i18n %}
 
-<ul class="thumbnails">
+<div class="row">
   {% for photo in photos %}
   {% include "treemap/partials/photo.html" %}
   {% endfor %}
-</ul>
+</div>
 
-<div class="pagination">
-  <ul>
+<div class="text-center">
+<ul class="pagination pagination-sm">
     <li class="{% if not prev_page %}disabled{% endif %}">
-      <a data-page="{{ prev_page|default_if_none:"" }}">{% trans "Prev" %}</a>
+        <a data-page="{{ prev_page|default_if_none:"" }}">&laquo;</a>
     </li>
     {% for page in pages %}
     <li class="{% if cur_page == page %}active{% endif %}"><a data-page="{{ page }}">{{ page }}</a></li>
     {% endfor %}
     <li class="{% if not next_page %}disabled{% endif %}">
-      <a data-page="{{ next_page|default_if_none:""}}">{% trans "Next" %}</a>
+        <a data-page="{{ next_page|default_if_none:""}}">&raquo;</a>
     </li>
-  </ul>
+</ul>
 </div>
