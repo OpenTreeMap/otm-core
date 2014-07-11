@@ -1,0 +1,90 @@
+#modeling {
+
+    .header {
+        height: 140px;
+
+        .logo {
+            img {
+                max-height: 68px;
+            }
+        }
+        .search-block-wrapper {
+            margin-top: -5px;
+
+            .search-block {
+                height: 72px;
+                padding: 10px 14px;
+
+                &.search-block-large {
+                    width: 325px;
+                }
+
+                h4 {
+                    font-size: 2.1rem;
+                    margin: 4px 0 6px;
+
+                    i {
+                        font-size: 1.6rem;
+                        margin-left: 5px;
+                    }
+                }
+                h6 {
+                    font-style: italic;
+                    font-weight: 400;
+                    color: $subtext-color;
+                    margin: 0;
+
+                    > a {
+                        font-weight: 700;
+                        color: $subtext-color;
+                    }
+                }
+                label {
+                    display: block;
+                    font-size: 1rem;
+                    font-weight: 700;
+                    color: $main-text-color;
+                    margin-top: -2px;
+                }
+            }
+        }
+    }
+    .content.map {
+        top: 140px;
+        bottom: 0;
+
+        .sidebar {
+            right: auto;
+            left: 0;
+            border: none;
+
+            .templates {
+                height: 50px;
+                background: $main-text-color;
+                padding: 12px 15px;
+            }
+            .panel-group {
+                .panel-heading {
+                    border-radius: 0;
+
+                    + .panel-collapse {
+                        .panel-body {
+                            border: none;
+                        }
+                    }
+                }
+            }
+            .panel {
+                border-radius: 0;
+
+                + .panel {
+                    margin: 0;
+                }
+            }
+        }
+        .map {
+            right: 0;
+            left: 350px;
+        }
+    }
+}

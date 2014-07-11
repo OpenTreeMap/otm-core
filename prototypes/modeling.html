@@ -19,7 +19,7 @@
     <link href="static/css/main.css" rel="stylesheet">
 </head>
 <body>
-<div class="wrapper">
+<div id="modeling" class="wrapper">
     <!-- Top Nav -->
     <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="collapse navbar-collapse" id="otm-navbar-collapse">
@@ -32,6 +32,14 @@
                   </ul>
               </li>
               <li><a>Explore Trees</a></li>
+              <li class="dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown">Planting Simulations</a>
+                  <ul class="dropdown-menu">
+                      <li><a>Explore & Model Trees</a></li>
+                      <li><a>Urban Forests Scenarios</a></li>
+                      <li><a>Saved Simulations</a></li>
+                  </ul>
+              </li>
               <li><a>View Edits</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
@@ -86,89 +94,121 @@
         <div class="logo">
           <a href=""><img id="site-logo" src="static/img/logo.png" alt="OpenTreeMap"></a>
         </div>
-        <div class="search-wrapper hidden">
+        <div class="search-wrapper">
             <div class="search-block-wrapper">
 
-                <!--Species Search-->
-                <div class="search-block visible-desktop">
-                    <h3>Search by Species</h3>
-                    <div class="search-field-group">
-                        <a class="typeahead-toggle" id="species-toggle"><i class="icon-menu"></i></a>
-                        <input type="text" data-class="search" id="species-typeahead" placeholder="Common or Scientific Name"/>
-                        <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
-                    </div>
+                <div class="search-block search-block-large">
+                    <h4>Unnamed Model <a href="#"><i class="icon-floppy"></i></a></h4>
+                    <h6>Save your model or <a href="#">start a new one</a></h6>
                 </div>
-            
-                <!-- Location Search -->
+
                 <div class="search-block">
-                    <h3>Search by Location</h3>
+                    <label>Search by Location</label>
                     <div class="search-field-group">
                         <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
                         <input type="text" data-class="search" id="boundary-typeahead" placeholder="Address, City, State"/>
                         <input name="plot.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />
                     </div>
                 </div>
-            </div>
-            <div class="search-options">
-                <a id="perform-search" class="btn btn-primary btn-large btn-block">Search</a>
-                <div class="btn-group">
-                    <button id="search-advanced" class="btn">Advanced</button>
-                    <button id="search-reset" class="btn">Reset</button>
-                </div>
-            </div>
-            
-            <!-- Advanced Search -->
-            <div id="advanced-search-pane" style="display: none;">
-                <div id="standard-search"></div>
-                <div id="missing-search"></div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Subheader with Counts -->
-    <div class="subhead hidden">
-        <div class="advanced-search">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6">
-                    </div>
-                    <div class="col-md-3" id="display-filters" data-search-type="IN" data-search-identifier="mapFeature.feature_type">
-                        <h4>Display Filters</h4>
-                    </div>
-                    <div class="col-md-3" id="missing-data">
-                        <h4>Missing Data</h4>
-                    </div>
-                </div>
             </div>
-        </div>
-        <div class="stats-bar">
-            <div style="display: inline;" id="tree-and-planting-site-counts">
-                <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites
-            </div>
-            <a href="javascript:;" class="btn btn-primary btn-xs exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
-            <a class="btn btn-primary addBtn"><i class="icon-plus"></i> Add a Tree</a>
         </div>
     </div>
- 
-    <!-- Background Image for Interior Pages -->
-    <div class="image-background hidden"></div>
 
     <!-- CONTENT!! -->
-    
-</div>
+    <div class="content map">
+        <div class="sidebar">
+            <div class="templates">
+                <label>Templates</label>
+                <select>
+                    <option>Custom Model</option>
+                </select>
+            </div>
+            <div class="panel-group" id="accordion">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#layers">
+                                Priority Layers
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="layers" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <div class="panel-group" id="accordion-inner">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h4 class="panel-title">
+                                            <a data-toggle="collapse" href="#biodiversity">
+                                                Biodiversity
+                                            </a>
+                                        </h4>
+                                    </div>
+                                    <div id="biodiversity" class="panel-collapse collapse">
+                                        <div class="panel-body">
+                                            <div class="layer">
+                                                Flowers
+                                            </div>
+                                            <div class="layer">
+                                                Animals
+                                            </div>
+                                            <div class="layer">
+                                                Biodomes
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-<!-- Footer -->
-<footer class="hidden">
-    <div class="footer-inner">
-        <ul class="list-inline pull-left">
-            <li><a>Tree Key</a></li>
-            <li><a>Resources</a></li>
-            <li><a>FAQ</a></li>
-            <li><a>About</a></li>
-            <li><a>Contact</a></li>
-        </ul>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h4 class="panel-title">
+                                            <a data-toggle="collapse" href="#socioeconomic">
+                                                Socioeconomic
+                                            </a>
+                                        </h4>
+                                    </div>
+                                    <div id="socioeconomic" class="panel-collapse collapse">
+                                        <div class="panel-body">
+                                            <div class="layer">
+                                                Home Ownership
+                                            </div>
+                                            <div class="layer">
+                                                Property Value
+                                            </div>
+                                            <div class="layer">
+                                                Crime
+                                            </div>
+                                            <div class="layer">
+                                                Population Density
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#masks">
+                                Masks
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="masks" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="map" class="map">
+
+        </div>
     </div>
-</footer>
+</div>
     
 <!-- 
 
