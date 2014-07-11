@@ -11,7 +11,7 @@ from api.views import (status_view, version_view, public_instances_endpoint,
                        remove_current_tree_from_plot, plots_endpoint,
                        species_list_endpoint, approve_pending_edit,
                        reject_pending_edit, update_user_endpoint,
-                       reset_password, user_endpoint,
+                       reset_password_endpoint, user_endpoint,
                        plot_endpoint, edits, plots_closest_to_point_endpoint,
                        instance_info_endpoint, add_photo_endpoint,
                        export_users_csv_endpoint, export_users_json_endpoint,
@@ -39,7 +39,7 @@ urlpatterns = patterns(
         name='update_user_photo'),
     (r'^user/(?P<user_id>\d+)/edits$', edits),
 
-    (r'^send-password-reset-email$', reset_password),
+    (r'^send-password-reset-email$', reset_password_endpoint),
 
     ('^locations/' + lat_lon_pattern + '/instances',
      instances_closest_to_point_endpoint),

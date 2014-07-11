@@ -35,8 +35,7 @@ from exporter.tests import UserExportsTestCase
 
 from api.test_utils import setupTreemapEnv, mkPlot, mkTree
 from api.models import APIAccessCredential
-from api.views import (add_photo_endpoint, update_profile_photo_endpoint,
-                       reset_password)
+from api.views import (add_photo_endpoint, update_profile_photo_endpoint)
 from api.instance import (instances_closest_to_point, instance_info,
                           public_instances)
 from api.user import create_user
@@ -1697,9 +1696,7 @@ class PasswordResetTest(OTMTestCase):
         self.instance = setupTreemapEnv()
         self.jim = User.objects.get(username="jim")
 
-    def test_send_password_reset_email(self):
-        data = {"email": self.jim.email}
-        r = sign_request(make_request(method='POST',
-                                      params=data))
-        response = reset_password(r)
-        self.assertEquals(response.status_code, 200)
+    def test_send_password_reset_email_url(self):
+        url = "%s/send-password-reset-email?email=%s"
+        response = post_json(url % (API_PFX, self.jim.email),
+                             {}, self.client, None)
