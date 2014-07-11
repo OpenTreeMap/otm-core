@@ -96,7 +96,7 @@
                 select {
                     font-size: 1.2rem;
                 }
-                span {
+                span:not('.input-group-addon') {
                     display: block;
                 }
                 .twitter-typeahead{
