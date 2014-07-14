@@ -17,7 +17,7 @@ from django.contrib.auth.tokens import default_token_generator
 
 from opentreemap.util import route, decorate as do
 
-from treemap.models import Plot, Tree
+from treemap.models import Plot, Tree, User
 from treemap.views import species_list
 from treemap.lib.map_feature import context_dict_for_plot
 from treemap.lib.tree import add_tree_photo_helper
@@ -102,17 +102,20 @@ def edits(request, instance, user_id):
     return keys
 
 
-@require_http_methods(["POST"])
-@json_api_call
 def reset_password(request):
-    resetform = PasswordResetForm({"email": request.REQUEST["email"]})
+    email = request.REQUEST["email"]
+    try:
+        User.objects.get(email=email)
+    except User.DoesNotExist:
+        return {"status": "failure", "message": "Email address not found."}
 
+    resetform = PasswordResetForm({"email": email})
     if (resetform.is_valid()):
         opts = {
             'use_https': request.is_secure(),
             'token_generator': default_token_generator,
             'from_email': None,
-            'email_template_name': 'reset_email_password.html',
+            'email_template_name': 'registration/password_reset_email.html',
             'request': request}
 
         resetform.save(**opts)
@@ -354,3 +357,5 @@ export_users_json_endpoint = do(
     set_api_version,
     admin_instance_request,
     route(GET=users_json))
+
+reset_password_endpoint = api_do(route(POST=reset_password))

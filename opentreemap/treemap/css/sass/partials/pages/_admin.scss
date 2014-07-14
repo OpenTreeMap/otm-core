@@ -130,10 +130,9 @@
     }
 
     #photo-review-container {
-        .thumbnails {
-            .span4:nth-child(3n-2) {
-                margin-left: 0;
-            }
+        .thumbnail img {
+            width: 100%;
+            height: auto;
         }
     }
 }

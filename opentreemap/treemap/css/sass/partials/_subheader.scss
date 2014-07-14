@@ -24,7 +24,10 @@
     > .advanced-search {
         padding: 20px;
         background: lighten($primary-color, 45%);
-        border-bottom: 1px solid lighten($primary-color, 15%);
+
+        + .stats-bar {
+            border-top: 1px solid lighten($primary-color, 15%);
+        }
 
         form {
             margin: 0 0 10px;
@@ -187,6 +190,10 @@
             }
         }
 
+        > * {
+            float: left;
+        }
+
         span {
             padding: 14px 15px;
             color: white;
@@ -197,7 +204,9 @@
         .udfc-label {
             position: relative;
             display: inline-block;
-            margin: 0;
+            margin: 0 5px 0;
+            overflow: hidden;
+            width: 160px;
 
             &:after {
                 content: '\25BC';
@@ -238,12 +247,11 @@
                 line-height: 2.0rem;
                 font-size: 1.4rem;
                 border-radius: 0;
-                min-width: 100px;
-                width: auto;
-                max-width: 220px;
+                width: 175px;
                 text-indent: 0.01px;
                 text-overflow: '';
                 font-family: $base-font-family;
+                
                 
                 option {
                     color: black;
