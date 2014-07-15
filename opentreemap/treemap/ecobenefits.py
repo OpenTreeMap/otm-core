@@ -97,9 +97,9 @@ class TreeBenefitsCalculator(BenefitCalculator):
         # When calculating benefits we can skip region information
         # if there is only one intersecting region or if the
         # instance forces a region on us
-        regions = instance.itree_regions()
-        if len(regions) == 1:
-            region_code = regions[0].code
+        region_codes = instance.itree_region_codes()
+        if len(region_codes) == 1:
+            region_code = region_codes[0]
         else:
             region_code = None
 

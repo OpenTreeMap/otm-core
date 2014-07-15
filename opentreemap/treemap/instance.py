@@ -327,16 +327,17 @@ class Instance(models.Model):
 
         return names
 
-    def itree_regions(self):
+    def itree_region_codes(self):
         from treemap.models import ITreeRegion
 
         if self.itree_region_default:
-            regions = [self.itree_region_default]
+            region_codes = [self.itree_region_default]
         else:
-            regions = ITreeRegion.objects.filter(
-                geometry__intersects=self.bounds)
+            region_codes = ITreeRegion.objects \
+                .filter(geometry__intersects=self.bounds) \
+                .values_list('code', flat=True)
 
-        return regions
+        return region_codes
 
     def has_itree_region(self):
         from treemap.models import ITreeRegion  # prevent circular import
