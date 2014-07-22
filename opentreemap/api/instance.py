@@ -20,6 +20,8 @@ from treemap.util import safe_get_model_class
 from treemap.templatetags.form_extras import field_type_label_choices
 from treemap.json_field import is_json_field_reference
 
+import treemap.lib.perms as perms_lib
+
 
 def transform_instance_info_response(instance_view_fn):
     """
@@ -109,14 +111,16 @@ def instance_info(request, instance):
         if instance_user:
             role = instance_user.role
 
-    perms = {}
-
     collection_udfs = instance.userdefinedfielddefinition_set\
                               .filter(iscollection=True)
     collection_udf_dict = {"%s.%s" % (udf.model_type.lower(),
                                       udf.canonical_name): udf
                            for udf in collection_udfs}
 
+    # collect perms for the given role/instance into a serializable
+    # dictionary. If a field isn't at least readable, it doesn't
+    # get sent over at all.
+    perms = {}
     for fp in role_permissions(role, instance):
         model = fp.model_name.lower()
         field_key = '%s.%s' % (model, fp.field_name)
@@ -166,6 +170,12 @@ def instance_info(request, instance):
     info['search'] = instance.mobile_search_fields
     info['date_format'] = _unicode_dateformat(instance.date_format)
     info['short_date_format'] = _unicode_dateformat(instance.short_date_format)
+
+    info['meta_perms'] = {
+        'can_add_tree': perms_lib.plot_is_creatable(role),
+        'can_edit_tree': perms_lib.plot_is_writable(role),
+        'can_edit_tree_photo': perms_lib.treephoto_is_writable(role),
+    }
 
     public_config_keys = ['scss_variables']
 
