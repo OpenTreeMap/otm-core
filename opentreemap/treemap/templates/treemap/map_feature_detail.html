@@ -46,10 +46,10 @@
                 disabled="disabled"
                 {% if feature.is_plot %}
                 data-disabled-title="{% trans "Adding tree photos is not available to all users" %}"
-                data-always-enable="{{ last_effective_instance_user.can_add_photos_to_tree }}"
+                data-always-enable="{{ last_effective_instance_user|treephoto_is_writable }}"
                 {% else %}
                 data-disabled-title="{% trans "Adding resource photos is not available to all users" %}"
-                data-always-enable="{{ last_effective_instance_user.can_add_photos_to_map_feature }}"
+                data-always-enable="{{ last_effective_instance_user|mapfeaturephoto_is_writable }}"
                 {% endif %}
                 class="btn btn-xs add-photos">{% trans "Add Photo" %}</button>
       </div>
