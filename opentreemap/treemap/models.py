@@ -32,7 +32,7 @@ from treemap.images import save_uploaded_image
 from treemap.units import Convertible
 from treemap.udf import UDFModel, GeoHStoreUDFManager
 from treemap.instance import Instance
-from treemap.lib.object_caches import (permissions, invalidate_adjuncts)
+from treemap.lib.object_caches import invalidate_adjuncts
 
 
 def _action_format_string_for_location(action):
@@ -487,29 +487,6 @@ class InstanceUser(Auditable, models.Model):
     role = models.ForeignKey(Role)
     reputation = models.IntegerField(default=0)
     admin = models.BooleanField(default=False)
-
-    def _can_add_photos_to(self, model_name, extra_fields=None):
-        # Users can add photos only if they have all
-        # WRITE_DIRECTLY or WRITE_WITH_AUDIT permissions
-        fields = {'image', 'thumbnail', 'id', 'map_feature'}
-
-        if extra_fields:
-            fields.update(extra_fields)
-
-        perms = permissions(self.user, self.instance, model_name)
-
-        fieldperms = {perm.field_name
-                      for perm in perms
-                      if perm.allows_writes}
-
-        enabled = self.instance.feature_enabled('tree_image_upload')
-        return enabled and fieldperms == fields
-
-    def can_add_photos_to_tree(self):
-        return self._can_add_photos_to('TreePhoto', {'tree'})
-
-    def can_add_photos_to_map_feature(self):
-        return self._can_add_photos_to('MapFeaturePhoto')
 
     def save_with_user(self, user, *args, **kwargs):
         self.full_clean()
