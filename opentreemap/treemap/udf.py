@@ -683,6 +683,10 @@ class UserDefinedFieldDefinition(models.Model):
     def canonical_name(self):
         return 'udf:%s' % self.name
 
+    @property
+    def full_name(self):
+        return to_object_name(self.model_type) + '.' + self.canonical_name
+
 
 post_save.connect(invalidate_adjuncts, sender=UserDefinedFieldDefinition)
 post_delete.connect(invalidate_adjuncts, sender=UserDefinedFieldDefinition)
@@ -911,6 +915,9 @@ class UDFModel(UserTrackable, models.Model):
     def __init__(self, *args, **kwargs):
         super(UDFModel, self).__init__(*args, **kwargs)
         self._do_not_track.add('udfs')
+        # Collection UDF audits are handled by the UDFCollectionValue class
+        self._do_not_track |= {udfd.canonical_name
+                               for udfd in self.collection_udfs}
         self.populate_previous_state()
 
         self.dirty_collection_udfs = False
@@ -1031,7 +1038,7 @@ class UDFModel(UserTrackable, models.Model):
     def as_dict(self, *args, **kwargs):
         base_model_dict = super(UDFModel, self).as_dict(*args, **kwargs)
 
-        for field in self.scalar_udf_field_names:
+        for field in self.udf_field_names:
             value = self.udfs[field]
 
             # Format dates. Always use datetime for dict serialzation
