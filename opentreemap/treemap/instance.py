@@ -44,8 +44,27 @@ DEFAULT_MOBILE_API_FIELDS = [
      'field_keys': ['tree.species', 'tree.diameter',
                     'tree.height', 'tree.date_planted']},
     {'header': trans('Planting Site Information'),
-     'field_keys': ['plot.width', 'plot.length']}
+     'field_keys': ['plot.width', 'plot.length']},
+    {'header': trans('Stewardship'),
+     'collection_udf_keys': ['plot.udf:Stewardship', 'tree.udf:Stewardship']}
 ]
+
+DEFAULT_TREE_STEWARDSHIP_CHOICES = [
+    'Watered',
+    'Pruned',
+    'Mulched, Had Compost Added, or Soil Amended',
+    'Cleared of Trash or Debris']
+
+DEFAULT_PLOT_STEWARDSHIP_CHOICES = [
+    'Enlarged',
+    'Changed to Include a Guard',
+    'Changed to Remove a Guard',
+    'Filled with Herbaceous Plantings']
+
+# Used for collection UDF search on the web
+# if we come to support more udfcs, we can add them here.
+UDFC_MODELS = ['Tree', 'Plot']
+UDFC_NAMES = ['Stewardship', 'Alerts']
 
 
 def reserved_name_validator(name):
@@ -53,6 +72,28 @@ def reserved_name_validator(name):
             r.lower() for r in settings.RESERVED_INSTANCE_URL_NAMES]:
         raise ValidationError(trans('%(instancename)s is a reserved name and '
                                     'cannot be used') % {'instancename': name})
+
+
+def create_stewardship_udfs(instance):
+    from treemap.udf import UserDefinedFieldDefinition  # Circular import
+
+    def create_udf(model, choices):
+        return UserDefinedFieldDefinition.objects.create(
+            instance_id=instance.pk,
+            model_type=model,
+            datatype=json.dumps([
+                {'type': 'choice',
+                 'choices': choices,
+                 'name': 'Action'},
+                {'type': 'date',
+                 'name': 'Date'}]),
+            iscollection=True,
+            name='Stewardship')
+
+    opts = (('Plot', DEFAULT_PLOT_STEWARDSHIP_CHOICES),
+            ('Tree', DEFAULT_TREE_STEWARDSHIP_CHOICES))
+
+    return [create_udf(model, choices) for model, choices in opts]
 
 
 class Instance(models.Model):
@@ -159,14 +200,6 @@ class Instance(models.Model):
 
         return property(get_config, set_config)
 
-    mobile_search_fields = _make_config_property(
-        'mobile_search_fields',
-        DEFAULT_MOBILE_SEARCH_FIELDS)
-
-    mobile_api_fields = _make_config_property(
-        'mobile_api_fields',
-        DEFAULT_MOBILE_API_FIELDS)
-
     date_format = _make_config_property('date_format',
                                         settings.DATE_FORMAT)
 
@@ -176,6 +209,12 @@ class Instance(models.Model):
     scss_variables = _make_config_property('scss_variables')
 
     map_feature_types = _make_config_property('map_feature_types', ['Plot'])
+
+    mobile_search_fields = _make_config_property('mobile_search_fields',
+                                                 DEFAULT_MOBILE_SEARCH_FIELDS)
+
+    mobile_api_fields = _make_config_property('mobile_api_fields',
+                                              DEFAULT_MOBILE_API_FIELDS)
 
     @property
     def advanced_search_fields(self):
@@ -242,19 +281,15 @@ class Instance(models.Model):
     def _get_udfc_search_fields(self):
         from treemap.util import to_object_name
 
-        # if we come to support more udfc searches, we can add them here.
-        udfc_models = ['Tree', 'Plot']
-        udfc_names = ['Stewardship', 'Alerts']
-
         empty_udfc = {to_object_name(n_k):
                       {to_object_name(m_k): {'fields': [], 'udfd': None}
-                       for m_k in udfc_models}
-                      for n_k in udfc_names}
+                       for m_k in UDFC_MODELS}
+                      for n_k in UDFC_NAMES}
 
         udfds = []
-        for model_name in udfc_models:
+        for model_name in UDFC_MODELS:
             for udfd in udf_defs(self, model_name):
-                if udfd.name in udfc_names:
+                if udfd.name in UDFC_NAMES:
                     udfds.append(udfd)
 
         udfc = deepcopy(empty_udfc)

@@ -353,21 +353,19 @@ class InstanceTest(OTMTestCase):
 
     def test_config_accessors_work(self):
         instance = make_instance()
-        instance.mobile_search_fields = ['field 1', 'field 2']
+        instance.date_format = 'd/m/Y'
         instance.save()
 
         reloaded_instance = Instance.objects.get(pk=instance.pk)
 
-        self.assertEqual(reloaded_instance.mobile_search_fields,
-                         ['field 1', 'field 2'])
+        self.assertEqual(reloaded_instance.date_format, 'd/m/Y')
 
-        instance.mobile_search_fields.append('field 3')
+        instance.date_format += 'Y'
         instance.save()
 
         reloaded_instance = Instance.objects.get(pk=instance.pk)
 
-        self.assertEqual(reloaded_instance.mobile_search_fields,
-                         ['field 1', 'field 2', 'field 3'])
+        self.assertEqual(reloaded_instance.date_format, 'd/m/YY')
 
     def test_verify_cant_do_lookup(self):
         self.assertRaises(TypeError, Instance.objects.filter, config='test')

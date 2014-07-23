@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from functools import wraps
+
 from django.db.models import Q
 
 from django.conf import settings
@@ -17,6 +19,28 @@ from treemap.units import (get_units_if_convertible, get_digits_if_formattable,
 from treemap.util import safe_get_model_class
 from treemap.templatetags.form_extras import field_type_label_choices
 from treemap.json_field import is_json_field_reference
+
+
+def transform_instance_info_response(instance_view_fn):
+    """
+    Collection UDFs were added to the API in version 3
+
+    They need to be removed in older versions of the API, to support clients
+    which can not render collection UDFs
+    """
+    @wraps(instance_view_fn)
+    def wrapper(request, *args, **kwargs):
+        instance_info_dict = instance_view_fn(request, *args, **kwargs)
+
+        if request.api_version < 3:
+            instance_info_dict['field_key_groups'] =\
+                [field_group for field_group
+                 in instance_info_dict['field_key_groups']
+                 if 'collection_udf_keys' not in field_group]
+
+        return instance_info_dict
+
+    return wrapper
 
 
 def instances_closest_to_point(request, lat, lng):
