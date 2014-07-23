@@ -35,7 +35,8 @@ from exporter.tests import UserExportsTestCase
 
 from api.test_utils import setupTreemapEnv, mkPlot, mkTree
 from api.models import APIAccessCredential
-from api.views import (add_photo_endpoint, update_profile_photo_endpoint)
+from api.views import (add_photo_endpoint, update_profile_photo_endpoint,
+                       instance_info_endpoint)
 from api.instance import (instances_closest_to_point, instance_info,
                           public_instances)
 from api.user import create_user
@@ -1073,6 +1074,26 @@ class Instance(LocalMediaTestCase):
         info = instance_info(request, self.instance)
         self.assertEqual('MM/dd/yyyy', info.get('short_date_format'))
         self.assertEqual('MMMM d, yyyy', info.get('date_format'))
+
+    def test_collection_udfs_v3(self):
+        request = sign_request_as_user(make_request(), self.user)
+
+        response = instance_info_endpoint(request, 3, self.instance.url_name)
+        info_dict = json.loads(response.content)
+
+        self.assertIn({'header': 'Stewardship',
+                       'collection_udf_keys': ['plot.udf:Stewardship',
+                                               'tree.udf:Stewardship']},
+                      info_dict['field_key_groups'])
+
+    def test_collection_udfs_removed_in_v2(self):
+        request = sign_request_as_user(make_request(), self.user)
+
+        response = instance_info_endpoint(request, 2, self.instance.url_name)
+        info_dict = json.loads(response.content)
+
+        for field_group in info_dict['field_key_groups']:
+            self.assertNotIn('collection_udf_keys', field_group)
 
 
 @override_settings(NEARBY_INSTANCE_RADIUS=2)
