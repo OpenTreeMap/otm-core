@@ -488,6 +488,9 @@ class InstanceUser(Auditable, models.Model):
     reputation = models.IntegerField(default=0)
     admin = models.BooleanField(default=False)
 
+    class Meta:
+        unique_together = ('instance', 'user',)
+
     def save_with_user(self, user, *args, **kwargs):
         self.full_clean()
         super(InstanceUser, self).save_with_user(user, *args, **kwargs)
