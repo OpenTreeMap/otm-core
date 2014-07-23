@@ -511,6 +511,9 @@ class InstanceUser(Auditable, models.Model):
     def can_add_photos_to_map_feature(self):
         return self._can_add_photos_to('MapFeaturePhoto')
 
+    class Meta:
+        unique_together = ('instance', 'user',)
+
     def save_with_user(self, user, *args, **kwargs):
         self.full_clean()
         super(InstanceUser, self).save_with_user(user, *args, **kwargs)
