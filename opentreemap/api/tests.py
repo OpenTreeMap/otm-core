@@ -1083,7 +1083,8 @@ class Instance(LocalMediaTestCase):
 
         self.assertIn({'header': 'Stewardship',
                        'collection_udf_keys': ['plot.udf:Stewardship',
-                                               'tree.udf:Stewardship']},
+                                               'tree.udf:Stewardship'],
+                       'sort_key': 'Date'},
                       info_dict['field_key_groups'])
 
     def test_collection_udfs_removed_in_v2(self):
