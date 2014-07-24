@@ -46,7 +46,8 @@ DEFAULT_MOBILE_API_FIELDS = [
     {'header': trans('Planting Site Information'),
      'field_keys': ['plot.width', 'plot.length']},
     {'header': trans('Stewardship'),
-     'collection_udf_keys': ['plot.udf:Stewardship', 'tree.udf:Stewardship']}
+     'collection_udf_keys': ['plot.udf:Stewardship', 'tree.udf:Stewardship'],
+     'sort_key': 'Date'}
 ]
 
 DEFAULT_TREE_STEWARDSHIP_CHOICES = [
