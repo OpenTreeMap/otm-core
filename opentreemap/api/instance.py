@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import json
 from functools import wraps
 
 from django.db.models import Q
@@ -127,7 +128,7 @@ def instance_info(request, instance):
         if fp.allows_reads:
             if field_key in collection_udf_dict:
                 choices = []
-                data_type = collection_udf_dict[field_key].datatype
+                data_type = json.loads(collection_udf_dict[field_key].datatype)
             elif is_json_field_reference(fp.field_name):
                 choices = None
                 data_type = "string"
