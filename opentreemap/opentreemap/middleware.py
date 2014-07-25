@@ -7,6 +7,16 @@ logger = logging.getLogger(__name__)
 
 _ie_version_regex = re.compile(r'MSIE\s+([\d]+)')
 
+CONTENT_TYPE_PASS_THROUGHS = ('application/json', 'text/csv')
+
+REQUIRED_SETTINGS = ('IE_VERSION_MINIMUM',
+                     'IE_VERSION_UNSUPPORTED_REDIRECT_PATH')
+REQUIRED_SETTING_MSG = ('InternetExplorerRedirectMiddleware is loaded '
+                        'but %s was not found in settings.')
+
+REQUIRED_PARAMETERS = ('HTTP_USER_AGENT', 'PATH_INFO')
+REQUIRED_PARAMETER_MSG = 'The request did not include %s'
+
 
 # Reference: http://djangosnippets.org/snippets/510/
 # Reference: http://djangosnippets.org/snippets/1147/
@@ -25,23 +35,24 @@ class InternetExplorerRedirectMiddleware:
             return None
 
     def process_request(self, request):
-        if not hasattr(settings, 'IE_VERSION_MINIMUM'):
-            logger.warning('InternetExplorerRedirectMiddleware is loaded '
-                           'but IE_VERSION_MINIMUM was not found in settings.')
-            return None
 
-        if not hasattr(settings, 'IE_VERSION_UNSUPPORTED_REDIRECT_PATH'):
-            logger.warning('InternetExplorerRedirectMiddleware is loaded '
-                           'but IE_VERSION_UNSUPPORTED_REDIRECT_PATH was '
-                           'not found in settings.')
-            return None
+        for value in CONTENT_TYPE_PASS_THROUGHS:
+            if request.META.get('HTTP_ACCEPT', '').find(value) != -1:
+                return None
 
-        if 'HTTP_USER_AGENT' not in request.META:
-            logger.warning('The request did not include an HTTP_USER_AGENT')
-            return None
+        required_setting_msgs = [REQUIRED_SETTING_MSG % setting
+                                 for setting in REQUIRED_SETTINGS
+                                 if not hasattr(settings, setting)]
 
-        if 'PATH_INFO' not in request.META:
-            logger.warning('The request did not include PATH_INFO')
+        required_parameter_msgs = [REQUIRED_PARAMETER_MSG % parameter
+                                   for parameter in REQUIRED_PARAMETERS
+                                   if parameter not in request.META]
+
+        validation_msgs = required_setting_msgs + required_parameter_msgs
+
+        if validation_msgs:
+            for msg in validation_msgs:
+                logger.warning(msg)
             return None
 
         request.ie_version = self._parse_major_ie_version_from_user_agent(
