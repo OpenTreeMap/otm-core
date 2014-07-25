@@ -68,4 +68,7 @@ def hash_to_model(config, model_name, data_hash, instance):
     if model_hasattr(model, 'instance'):
         model.instance = instance
 
+    for mutator in config[model_name].get('record_mutators', []):
+        mutator(model, data_hash['fields'])
+
     return model
