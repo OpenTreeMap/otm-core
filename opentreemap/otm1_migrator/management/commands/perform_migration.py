@@ -359,6 +359,20 @@ def _uniquify_username(username):
 
 
 @atomic
+def save_boundary(migration_rules, model_hash, instance):
+    model = hash_to_model(migration_rules, 'boundary', model_hash, instance)
+    model.save()
+    OTM1ModelRelic.objects.get_or_create(
+        instance=instance,
+        otm1_model_id=model_hash['pk'],
+        otm2_model_name='boundary',
+        otm2_model_id=model.pk)
+
+    instance.boundaries.add(model)
+    return model
+
+
+@atomic
 def save_user(migration_rules, model_hash, instance):
     model = hash_to_model(migration_rules, 'user', model_hash, instance)
 
@@ -513,7 +527,8 @@ class Command(InstanceDataCommand):
 
         # TODO: should this be merged into MIGRATION_RULES?
         save_fns = {
-            'user': partial(save_user, migration_rules),
+            'boundary': partial(save_boundary, migration_rules),
+            'user': partial(save_user, migration_rules, instance),
             'audit': partial(save_audit, migration_rules, dependency_ids),
             'species': partial(save_species, migration_rules),
             'plot': partial(save_other_with_user, migration_rules, 'plot'),

@@ -1,4 +1,5 @@
-from treemap.models import User, Plot, Tree, Species, Audit, TreePhoto
+from treemap.models import (User, Plot, Tree, Species,
+                            Audit, TreePhoto, Boundary)
 
 from threadedcomments.models import ThreadedComment
 
@@ -39,6 +40,16 @@ MIGRATION_RULES = {
         'renamed_fields': {'tree': 'tree_id'},
         'removed_fields': {'title', 'reported', 'reported_by', 'comment'},
         'missing_fields': set()
+    },
+    'boundary': {
+        'command_line_flag': '-b',
+        'model_class': Boundary,
+        'common_fields': {'name'},
+        'renamed_fields': {'geometry': 'geom'},
+        'removed_fields': {'region_id', 'city', 'state', 'county'},
+        'value_transformers': {
+            'geometry': (lambda x: fromstr(x, srid=4326)),
+        },
     },
     'tree': {
         'command_line_flag': '-t',
