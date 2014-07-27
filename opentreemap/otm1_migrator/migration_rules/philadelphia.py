@@ -15,6 +15,7 @@ SORT_ORDER_INDEX = {
     'Sussex': 14,
 }
 
+
 def mutate_boundary(boundary_obj, otm1_fields):
     if ((boundary_obj.name.find('County') != -1
          or boundary_obj.name == 'Philadelphia')):
