@@ -20,18 +20,21 @@ class USER_AGENT_STRINGS:
 
 
 class MockRequest():
-    def __init__(self, http_user_agent=None, path_info='/'):
+    def __init__(self, http_user_agent=None, path_info='/', other_params=None):
         self.META = {
             'HTTP_USER_AGENT': http_user_agent,
             'PATH_INFO': path_info
         }
+        if other_params:
+            for k, v in other_params.items():
+                self.META[k] = v
 
 
 @override_settings(IE_VERSION_MINIMUM=9)
 class InternetExplorerRedirectMiddlewareTests(OTMTestCase):
 
-    def _request_with_agent(self, http_user_agent):
-        req = MockRequest(http_user_agent)
+    def _request_with_agent(self, *args, **kwargs):
+        req = MockRequest(*args, **kwargs)
         res = InternetExplorerRedirectMiddleware().process_request(req)
         return req, res
 
@@ -81,3 +84,10 @@ class InternetExplorerRedirectMiddlewareTests(OTMTestCase):
                                settings.IE_VERSION_UNSUPPORTED_REDIRECT_PATH)
         self.assertEquals(6, req.ie_version, 'Expected the middleware to set '
                           '"ie_version" to 6')
+
+    def test_detects_json_and_does_not_redirect(self):
+        params = {'HTTP_ACCEPT': 'application/json;q=0.9,*/*;q=0.8'}
+        # normally, ie 8 would redirect
+        req, res = self._request_with_agent(USER_AGENT_STRINGS.IE_8,
+                                            other_params=params)
+        self.assertIsNone(res, 'Expected middleware to return None for JSON')
