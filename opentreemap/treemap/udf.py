@@ -1036,14 +1036,26 @@ class UDFModel(UserTrackable, models.Model):
             ['udf:' + name for name in self.scalar_udf_field_names]
 
     def as_dict(self, *args, **kwargs):
+
+        def _format_value(value):
+            # Format dates. Always use datetime for dict serialzation
+            if hasattr(value, 'strftime'):
+                return value.strftime(DATETIME_FORMAT)
+            return value
+
         base_model_dict = super(UDFModel, self).as_dict(*args, **kwargs)
 
         for field in self.udf_field_names:
             value = self.udfs[field]
 
-            # Format dates. Always use datetime for dict serialzation
-            if hasattr(value, 'strftime'):
-                value = value.strftime(DATETIME_FORMAT)
+            if isinstance(value, list):
+                # For colllection UDFs, we need to format each subvalue inside
+                # each dictionary
+                value = [{k: _format_value(val)}
+                         for sub_dict in value
+                         for k, val in sub_dict.iteritems()]
+            else:
+                value = _format_value(value)
 
             base_model_dict['udf:' + field] = value
 
