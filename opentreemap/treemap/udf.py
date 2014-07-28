@@ -1051,9 +1051,9 @@ class UDFModel(UserTrackable, models.Model):
             if isinstance(value, list):
                 # For colllection UDFs, we need to format each subvalue inside
                 # each dictionary
-                value = [{k: _format_value(val)}
-                         for sub_dict in value
-                         for k, val in sub_dict.iteritems()]
+                value = [{k: _format_value(val)
+                         for k, val in sub_dict.iteritems()}
+                         for sub_dict in value]
             else:
                 value = _format_value(value)
 
