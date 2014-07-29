@@ -74,6 +74,15 @@ def _allows_perm(role_related_obj, model_name,
             return False
         else:
             role = role_related_obj.role
+    elif isinstance(role_related_obj, type(None)):
+        # almost certainly this is being called with
+        # last_effective_instance_user without checking
+        # first if it is None. Since we haven't received
+        # the instance along with it, we can't resolve
+        # the default role, so perms must be blocked entirely.
+        # this is not so bad, because this block is mostly
+        # to prevent 500 errors.
+        return False
     elif isinstance(role_related_obj, Role):
         role = role_related_obj
     else:
