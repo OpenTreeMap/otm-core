@@ -2,6 +2,8 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    L = require('leaflet'),
+    toastr = require('toastr'),
     otmTypeahead = require('treemap/otmTypeahead'),
     plotMover = require('treemap/plotMover'),
     diameterCalculator = require('treemap/diameterCalculator'),
@@ -28,6 +30,14 @@ function init(options) {
         options.config, markerMoveStream, formSelector);
 }
 
+function onClick(e) { 
+    toastr.options = {
+        "positionClass": "toast-bottom-left",
+        "timeOut": "3000"
+    };
+    toastr.info('Click "Save" or "Cancel" to end your Quick Edit session.');
+}
+
 function activate() {
     otmTypeahead.bulkCreate(typeaheads);
 
@@ -46,11 +56,15 @@ function activate() {
         saveOkStream: inlineEditForm.saveOkStream
     });
 
+    mapManager.map.on('click', onClick);
+
 }
 
 function deactivate() {
     calculator.destroy();
     inlineEditForm.cancel();
+
+    mapManager.map.off('click', onClick);
 }
 
 function onSaveBefore(data) {
