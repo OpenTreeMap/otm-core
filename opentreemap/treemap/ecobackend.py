@@ -46,8 +46,7 @@ def json_benefits_call(endpoint, params, post=False):
         data = json.dumps(paramdata)
         req = urllib2.Request(url,
                               data,
-                              #{'Content-Type': 'application/json'},
-                              {'Content-Type': 'text/plain'})
+                              {'Content-Type': 'application/json'})
     else:
         paramString = "&".join(["%s=%s" % (urllib.quote_plus(str(name)),
                                            urllib.quote_plus(str(val)))
