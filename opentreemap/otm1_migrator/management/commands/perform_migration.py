@@ -358,6 +358,10 @@ def _uniquify_username(username):
     return username
 
 
+def _sanitize_username(username):
+    return username.replace(' ', '_')
+
+
 @atomic
 def save_boundary(migration_rules, model_hash, instance):
     model = hash_to_model(migration_rules, 'boundary', model_hash, instance)
@@ -373,31 +377,45 @@ def save_boundary(migration_rules, model_hash, instance):
 
 
 @atomic
-def save_user(migration_rules, model_hash, instance):
-    model = hash_to_model(migration_rules, 'user', model_hash, instance)
+def save_user(migration_rules, user_hash, instance):
+    """
+    Save otm1 user record into otm2.
 
-    try:
-        # TODO: this is REALLY ambiguous. If the try fails,
-        # does the previously assigned value of 'model' persist?
-        model = User.objects.get(email__iexact=model.email)
-    except User.DoesNotExist:
-        model.username = _uniquify_username(model.username)
-        model.save()
+    In the case of validation problems, username can be arbitrarily
+    changed. Since we log the otm1_username in the relic, it's simple
+    enough to query for all users that have a different username than
+    the one stored in their relic and take further action as necessary.
+    """
+    user = hash_to_model(migration_rules, 'user', user_hash, instance)
+
+    # don't save another user if this email address already exists.
+    # just observe and report
+    duplicate_email_qs = User.objects.filter(email__iexact=user.email)
+    if duplicate_email_qs.exists():
+        user = duplicate_email_qs[0]
+    else:
+        # replace spaces in the username.
+        # then, if the sanitized username already exists,
+        # uniquify it. This transformation order is important.
+        # uniquification must happen as the last step.
+        user.username = _uniquify_username(_sanitize_username(user.username))
+        user.save()
 
     try:
         InstanceUser.objects.get(instance=instance,
-                                 user=model)
+                                 user=user)
     except InstanceUser.DoesNotExist:
         InstanceUser.objects.create(instance=instance,
-                                    user=model, role=instance.default_role)
+                                    user=user,
+                                    role=instance.default_role)
 
     (OTM1UserRelic
      .objects
      .get_or_create(instance=instance,
-                    otm1_username=model_hash['fields']['username'],
-                    otm2_user=model,
-                    otm1_id=model_hash['pk'],
-                    email=model_hash['fields']['email']))
+                    otm1_username=user_hash['fields']['username'],
+                    otm2_user=user,
+                    otm1_id=user_hash['pk'],
+                    email=user_hash['fields']['email']))
 
 
 def hashes_to_saved_objects(
@@ -528,7 +546,7 @@ class Command(InstanceDataCommand):
         # TODO: should this be merged into MIGRATION_RULES?
         save_fns = {
             'boundary': partial(save_boundary, migration_rules),
-            'user': partial(save_user, migration_rules, instance),
+            'user': partial(save_user, migration_rules),
             'audit': partial(save_audit, migration_rules, dependency_ids),
             'species': partial(save_species, migration_rules),
             'plot': partial(save_other_with_user, migration_rules, 'plot'),
