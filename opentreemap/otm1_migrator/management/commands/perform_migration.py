@@ -466,7 +466,12 @@ class Command(InstanceDataCommand):
         tuple(make_model_option(rules, model) for model in rules) +
 
         # add other kinds of options
-        (make_option(*USERPHOTO_ARGS,
+        (make_option('--config-file',
+                     action='store',
+                     dest='config_file',
+                     default=None,
+                     help='provide config by file instead of command line'),
+         make_option(*USERPHOTO_ARGS,
                      action='store',
                      type='string',
                      dest='userphoto_path',
@@ -491,6 +496,12 @@ class Command(InstanceDataCommand):
                               'Unfortunately, django runs out of memory when '
                               'this command is run in DEBUG mode.')
             return 1
+
+        if options['config_file']:
+            config_data = json.load(open(options['config_file'], 'r'))
+            for k, v in config_data.items():
+                if not options.get(k, None):
+                    options[k] = v
 
         if options['instance']:
             # initialize system_user??
