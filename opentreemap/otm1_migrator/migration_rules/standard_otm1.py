@@ -69,6 +69,10 @@ MIGRATION_RULES = {
                            'url', 'pests', 'steward_user',
                            'import_event'},
         'missing_fields': {'instance', },
+        'value_transformers': {
+            'readonly':
+            (lambda x: False if (x is None or x is False) else True),
+        }
     },
     'audit': {
         'command_line_flag': '-a',
