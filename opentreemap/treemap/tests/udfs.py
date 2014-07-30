@@ -469,8 +469,7 @@ class UDFAuditTest(OTMTestCase):
         self.assertEqual(col[0]['a string'], 's')
 
 
-class ScalarUDFDefTest(OTMTestCase):
-
+class UDFDefTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
 
@@ -675,6 +674,27 @@ class ScalarUDFDefTest(OTMTestCase):
               'name': 'something'}],
             iscollection=True)
 
+    def test_default_values(self):
+        with self.assertRaises(ValidationError):
+            self._create_and_save_with_datatype(
+                [{'type': 'choice',
+                  'name': 'a name',
+                  'choices': ['a', 'b'],
+                  'default': 'c'},
+                 {'type': 'string',
+                  'name': 'something'}],
+                iscollection=True)
+
+        self._create_and_save_with_datatype(
+            [{'type': 'choice',
+              'name': 'a name',
+              'choices': ['a', 'b'],
+              'default': 'a'},
+             {'type': 'string',
+              'name': 'something',
+              'default': 'anything'}],
+            iscollection=True)
+
 
 class ScalarUDFTest(OTMTestCase):
 
@@ -855,7 +875,6 @@ class ScalarUDFTest(OTMTestCase):
 
 
 class CollectionUDFTest(OTMTestCase):
-
     def setUp(self):
         self.instance = make_instance()
         self.p = Point(-8515941.0, 4953519.0)

@@ -516,6 +516,14 @@ class UserDefinedFieldDefinition(models.Model):
             if len(choices) != len(set(choices)):
                 raise ValidationError(trans('duplicate choices'))
 
+        if 'default' in datatype:
+            try:
+                self.clean_value(datatype['default'], datatype)
+            except ValidationError as e:
+                raise ValidationError(
+                    'Default must be valid for field: %(underlying_error)s' %
+                    {'underlying_error': e.message})
+
     def save(self, *args, **kwargs):
         self.validate()
         super(UserDefinedFieldDefinition, self).save(*args, **kwargs)
