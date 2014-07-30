@@ -100,6 +100,8 @@ MIGRATION_RULES = {
                            'import_event'},
         'missing_fields': {'instance', },
         'value_transformers': {
+            'readonly':
+            (lambda x: False if (x is None or x is False) else True),
             'geometry': (lambda x: fromstr(x, srid=4326)),
         },
     },
