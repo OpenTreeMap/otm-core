@@ -515,26 +515,11 @@ class Command(InstanceDataCommand):
         migration_mod = importlib.import_module(rule_module)
         migration_rules = migration_mod.MIGRATION_RULES
 
-        # look for fixtures of the form '<model>_fixture' that
-        # were passed in as command line args and load them as
-        # python objects
-        json_hashes = {}
-        for model_name in migration_rules:
-            option_name = model_name + '_fixture'
-            try:
-                model_file = open(options[option_name], 'r')
-                json_hashes[model_name] = json.load(model_file)
-            except:
-                json_hashes[model_name] = []
-                self.stdout.write('No valid %s fixture provided ... SKIPPING'
-                                  % model_name)
-
         # user photos live on userprofile in otm1
         userphoto_path = options.get('userphoto_path', None)
         user_photo_fixture_specified_but_not_base_path = (
-            'userprofile' in json_hashes and
-            json_hashes['userprofile'] and
-            userphoto_path is None)
+            userphoto_path is None and
+            options.get('userphoto_fixture') is not None)
 
         if user_photo_fixture_specified_but_not_base_path:
             raise MigrationException('Must specify the user photo path to '
@@ -543,9 +528,10 @@ class Command(InstanceDataCommand):
                                      % USERPHOTO_ARGS)
 
         treephoto_path = options.get('treephoto_path', None)
-        treephoto_fixture_with_no_path = ('treephoto' in json_hashes and
-                                          json_hashes['treephoto'] and
-                                          treephoto_path is None)
+        treephoto_fixture_with_no_path = (
+            treephoto_path is None and
+            options.get('treephoto_fixture') is not None)
+
         if treephoto_fixture_with_no_path:
             raise MigrationException('Must specify the tree photo path to '
                                      'import photo')
@@ -572,28 +558,53 @@ class Command(InstanceDataCommand):
                 save_comment, migration_rules, dependency_ids),
         }
 
+        instance_relics = OTM1UserRelic.objects.filter(instance=instance)
+        model_relics = (OTM1ModelRelic
+                        .objects
+                        .filter(instance=instance)
+                        .iterator())
+
+        comment_relics = (OTM1CommentRelic
+                          .objects
+                          .filter(instance=instance)
+                          .iterator())
+
         print("reading relics into memory...", end="")
         # depedency_ids is a cache of old pks to new pks, it is inflated
         # from database records for performance.
-        instance_relics = OTM1UserRelic.objects.filter(instance=instance)
         for relic in instance_relics.iterator():
             dependency_ids['user'][relic.otm1_id] = relic.otm2_user_id
-
-        model_relics =\
-            OTM1ModelRelic.objects.filter(instance=instance).iterator()
-        comment_relics =\
-            OTM1CommentRelic.objects.filter(instance=instance).iterator()
-
         for relic in chain(model_relics, comment_relics):
             model_ids = dependency_ids[relic.otm2_model_name]
             model_ids[relic.otm1_model_id] = relic.otm2_model_id
         print("DONE")
 
+        def _get_json_hash(model_name):
+            """
+            look for fixtures of the form '<model>_fixture' that
+            were passed in as command line args and load them as
+            python objects
+            """
+            option_name = model_name + '_fixture'
+            self.stdout.write("trying '%s' ... " % option_name)
+            if options[option_name] and os.path.exists(options[option_name]):
+                model_file = open(options[option_name], 'r')
+                self.stdout.write("Loaded fixtures '%s' ... SUCCESS"
+                                  % option_name)
+                json_hash = json.load(model_file)
+                model_file.close()
+            else:
+                self.stdout.write('No valid %s fixture provided ... SKIPPING'
+                                  % model_name)
+                json_hash = None
+            return json_hash
+
         for model in migration_rules:
-            if json_hashes[model]:
+            json_hash = _get_json_hash(model)
+            if json_hash:
                 # hashes must be sorted by pk for the case of models
                 # that have foreign keys to themselves
-                sorted_hashes = sorted(json_hashes[model],
+                sorted_hashes = sorted(json_hash,
                                        key=operator.itemgetter('pk'))
                 hashes_to_saved_objects(migration_rules,
                                         model, sorted_hashes,
