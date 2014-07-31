@@ -14,36 +14,39 @@ from django.contrib.gis.geos import GEOSGeometry
 BAD_CODE_PAIR = 'bad code pair'
 
 
-def json_benefits_call(endpoint, params, post=False):
+def json_benefits_call(endpoint, params, post=False, convert_params=True):
     url = "%s/%s" % (settings.ECO_SERVICE_URL, endpoint)
 
     if post:
-        paramdata = {}
+        if convert_params:
+            paramdata = {}
 
-        # Group all keys called "param" as a list
-        for k, v in params:
-            # The postgis adapter stores geometry objects
-            # which are not normally serialzable. str(x) will
-            # turn it into a ewkb encoded string which doesn't
-            # translate well. Instead, we send over ewkt and
-            # the associated ST_XXX call
-            if isinstance(v, PostGISAdapter):
-                bytestring = v.ewkb
-                hexstring = ''.join('%02X' % ord(x) for x in bytestring)
+            # Group all keys called "param" as a list
+            for k, v in params:
+                # The postgis adapter stores geometry objects
+                # which are not normally serialzable. str(x) will
+                # turn it into a ewkb encoded string which doesn't
+                # translate well. Instead, we send over ewkt and
+                # the associated ST_XXX call
+                if isinstance(v, PostGISAdapter):
+                    bytestring = v.ewkb
+                    hexstring = ''.join('%02X' % ord(x) for x in bytestring)
 
-                v = "ST_GeomFromEWKT('%s')" % GEOSGeometry(hexstring).ewkt
-            else:
-                v = str(v)
-
-            if k == "param":
-                if k in paramdata:
-                    paramdata[k].append(v)
+                    v = "ST_GeomFromEWKT('%s')" % GEOSGeometry(hexstring).ewkt
                 else:
-                    paramdata[k] = [v]
-            else:
-                paramdata[k] = v
+                    v = str(v)
 
-        data = json.dumps(paramdata)
+                if k == "param":
+                    if k in paramdata:
+                        paramdata[k].append(v)
+                    else:
+                        paramdata[k] = [v]
+                else:
+                    paramdata[k] = v
+
+            data = json.dumps(paramdata)
+        else:
+            data = json.dumps(params)
         req = urllib2.Request(url,
                               data,
                               {'Content-Type': 'application/json'})
