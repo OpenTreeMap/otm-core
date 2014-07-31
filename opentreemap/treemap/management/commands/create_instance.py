@@ -11,7 +11,8 @@ from django.db import transaction
 
 from django.contrib.gis.geos import MultiPolygon, Polygon, GEOSGeometry, Point
 
-from treemap.instance import Instance, create_stewardship_udfs
+from treemap.instance import (Instance, create_stewardship_udfs,
+                              add_species_to_instance)
 from treemap.models import Boundary, InstanceUser, User
 from treemap.audit import (Role, FieldPermission, add_default_permissions)
 
@@ -107,6 +108,8 @@ class Command(BaseCommand):
             default_permission=FieldPermission.WRITE_DIRECTLY)
 
         create_stewardship_udfs(instance)
+
+        add_species_to_instance(instance)
 
         add_default_permissions(instance, roles=[role])
 
