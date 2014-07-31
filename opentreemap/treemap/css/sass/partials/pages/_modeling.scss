@@ -63,7 +63,16 @@
                 background: $main-text-color;
                 padding: 12px 15px;
             }
-            .panel-group {
+            > .panel-group {
+                border-radius: 0;
+                border: none;
+                top: 50px;
+                z-index: 9;
+                bottom: 0;
+                position: absolute;
+                height: auto;
+                width: 100%;
+
                 .panel-heading {
                     border-radius: 0;
 
@@ -90,7 +99,12 @@
     
     .layer-group {
         .panel-heading {
-            background: lighten($secondary-color, 15%);
+            padding: 10px 15px;
+            background: $light-gray-color;
+            border-bottom: 1px solid darken($light-gray-color, 10%);
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: $main-text-color;
 
             input.slider {
                 display: none;
@@ -122,6 +136,83 @@
         div.slider {
             width: 90% !important;
             margin: 0 5%;
+        }
+    }
+}
+
+#masks {
+    @include checkboxes;
+
+    .mask-header {
+        padding: 10px 15px;
+        background: $light-gray-color;
+        border-top: 1px solid darken($light-gray-color, 10%);
+        border-bottom: 1px solid darken($light-gray-color, 10%);
+        font-size: 1.6rem;
+        font-weight: 700;
+
+        &:first-of-type {
+            border-top: none;
+        }
+        & + .mask-row {
+            border-top: none;
+        }
+    }
+    .mask-row {
+        padding: 10px 15px 9px;
+        border-top: 1px solid $light-gray-color;
+
+        &:hover {
+            background: lighten($light-gray-color, 2%);
+        }
+
+        label {
+            font-weight: 400;
+            font-size: 1.4rem;
+        }
+    }
+}
+
+#saveModel,
+#newModel {
+    .modal-dialog {
+        margin: 100px auto 30px;
+    }
+    .modal-header {
+        padding: 15px 20px 0;
+        border-bottom: none;
+        
+        h4 {
+            font-size: 3rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+        h5 {
+            font-size: 2.1rem;
+            margin-top: 10px;
+            text-align: left;
+        }
+    }
+    .modal-body {
+        padding: 12px 20px;
+
+        p {
+            color: $subtext-color;
+            font-weight: 700;
+            font-size: 1.4rem;
+        }
+    }
+    .modal-footer {
+        .btn-link {
+            font-weight: 700;
+            color: $primary-color;
+            background: none;
+            border: none;
+
+            &:hover {
+                box-shadow: none;
+                color: darken($primary-color, 10%);
+            }
         }
     }
 }

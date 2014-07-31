@@ -99,7 +99,7 @@
             <div class="search-block-wrapper">
 
                 <div class="search-block search-block-large">
-                    <h4>Unnamed Model <a href="#"><i class="icon-floppy"></i></a></h4>
+                    <h4>Unnamed model <a href="#" data-toggle="modal" data-target="#saveModel"><i class="icon-floppy"></i></a></h4>
                     <h6>Save your model or <a href="#">start a new one</a></h6>
                 </div>
 
@@ -148,13 +148,37 @@
                                     <div id="biodiversity" class="panel-collapse collapse">
                                         <div class="panel-body">
                                             <div class="layer">
-                                                Flowers
+                                                <h4>Flowers</h4>
+                                                <div class="row">
+                                                    <div class="col-sm-10">
+                                                        <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="0" />
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <div class="layer-value">0</div>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="layer">
-                                                Animals
+                                                <h4>Animals</h4>
+                                                <div class="row">
+                                                    <div class="col-sm-10">
+                                                        <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="0" />
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <div class="layer-value">0</div>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="layer">
-                                                Biodomes
+                                                <h4>Biodomes</h4>
+                                                <div class="row">
+                                                    <div class="col-sm-10">
+                                                        <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="0" />
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <div class="layer-value">0</div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -163,10 +187,15 @@
                                 <div class="panel panel-default layer-group">
                                     <div class="panel-heading">
                                         <h4 class="panel-title">
-                                            <a data-toggle="collapse" href="#socioeconomic" class="collapsed">
-                                                Socioeconomic
-                                            </a>
-                                            <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="0" />
+                                            <a data-toggle="collapse" href="#socioeconomic" class="collapsed">Socioeconomic</a>
+                                            <div class="row">
+                                                <div class="col-sm-10">
+                                                    <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="0" />
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <div class="layer-value">0</div>
+                                                </div>
+                                            </div>
                                         </h4>
                                     </div>
                                     <div id="socioeconomic" class="panel-collapse collapse">
@@ -183,13 +212,37 @@
                                                 </div>
                                             </div>
                                             <div class="layer">
-                                                Property Value
+                                                <h4>Property Ownership</h4>
+                                                <div class="row">
+                                                    <div class="col-sm-10">
+                                                        <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="0" />
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <div class="layer-value">0</div>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="layer">
-                                                Crime
+                                                <h4>Crime</h4>
+                                                <div class="row">
+                                                    <div class="col-sm-10">
+                                                        <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="0" />
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <div class="layer-value">0</div>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="layer">
-                                                Population Density
+                                                <h4>Population Density</h4>
+                                                <div class="row">
+                                                    <div class="col-sm-10">
+                                                        <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="0" />
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <div class="layer-value">0</div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -208,7 +261,62 @@
                     </div>
                     <div id="masks" class="panel-collapse collapse">
                         <div class="panel-body">
-                            masks!
+                            <div class="mask-header">Tree Canopy</div>
+                            <div class="mask-row">
+                                <input checked="checked" type="checkbox" id="_1" data-search-display="Tree">
+                                <label for="_1">Show trees</label>
+                            </div>
+                            <div class="mask-header">Surfaces and Land Type</div>
+                            <div class="mask-row">
+                                <input checked="checked" type="checkbox" id="_2" data-search-display="Tree">
+                                <label for="_2">Pervious Surface</label>
+                            </div>
+                            <div class="mask-row">
+                                <input checked="checked" type="checkbox" id="_3" data-search-display="Tree">
+                                <label for="_3">Protected Land</label>
+                            </div>
+                            <div class="mask-row">
+                                <input checked="checked" type="checkbox" id="_4" data-search-display="Tree">
+                                <label for="_4">Street Casings</label>
+                            </div>
+                            <div class="mask-row">
+                                <input checked="checked" type="checkbox" id="_5" data-search-display="Tree">
+                                <label for="_5">Roads and Paved Surfaces</label>
+                            </div>
+                            <div class="mask-row">
+                                <input checked="checked" type="checkbox" id="_6" data-search-display="Tree">
+                                <label for="_6">Shrubbery</label>
+                            </div>
+                            <div class="mask-header">Land Use</div>
+                            <div class="mask-row">
+                                <input checked="checked" type="checkbox" id="_7" data-search-display="Tree">
+                                <label for="_7">Residential (high)</label>
+                            </div>
+                            <div class="mask-row">
+                                <input checked="checked" type="checkbox" id="_8" data-search-display="Tree">
+                                <label for="_8">Residential (low/medium)</label>
+                            </div>
+                            <div class="mask-row">
+                                <input checked="checked" type="checkbox" id="_9" data-search-display="Tree">
+                                <label for="_9">Civil</label>
+                            </div>
+                            <div class="mask-row">
+                                <input checked="checked" type="checkbox" id="_10" data-search-display="Tree">
+                                <label for="_10">Amusement/Parks</label>
+                            </div>
+                            <div class="mask-row">
+                                <input checked="checked" type="checkbox" id="_11" data-search-display="Tree">
+                                <label for="_11">Industrial</label>
+                            </div>
+                            <div class="mask-row">
+                                <input checked="checked" type="checkbox" id="_12" data-search-display="Tree">
+                                <label for="_12">Commercial</label>
+                            </div>
+                            <div class="mask-header">Boundaries</div>
+                            <div class="mask-row">
+                                <input checked="checked" type="checkbox" id="_13" data-search-display="Tree">
+                                <label for="_13">City Council Districts</label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -216,6 +324,40 @@
         </div>
         <div id="map" class="map">
 
+        </div>
+    </div>
+    <div class="modal fade" id="newModel" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="newModel">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Explore and model trees</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Urban forest modeling allows you to experiment with creating heat maps based on criteria such as population density, urban heat island temperatures, and health data. Weight these indicators, view planting areas by surface and cover, planting capacity, and tree cover to find the best places to plant trees to help our urban forests.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link">View saved models</button>
+                    <button type="button" class="btn btn-otmprimary" data-dismiss="modal">Start new model</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="saveModel" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="saveModel">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h5 class="modal-title">Save model</h5>
+                </div>
+                <div class="modal-body">
+                    <label>Enter a model name:</label>
+                    <input class="form-control" type="text" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-otmprimary" data-dismiss="modal">OK</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -239,11 +381,12 @@
     });
 
     $('.slider').slider({
-        value: 0    
+        value: 0,
+        tooltip: 'hide'
     }).on('slide', function(e) {
-        var value = $(this).slider('getValue');
-        $(this).closest('.layer').find('.layer-value').text(value[0].value);
+        $(this).closest('.row').find('.layer-value').text(e.value);
     });
+    $('#newModel').modal('show');
 </script>
 </body>
 </html>
