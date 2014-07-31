@@ -30,3 +30,12 @@ def mutate_boundary(boundary_obj, otm1_fields):
         boundary_obj.sort_order = SORT_ORDER_INDEX[county]
 
 MIGRATION_RULES['boundary']['record_mutators'] = [mutate_boundary]
+MIGRATION_RULES['species']['missing_fields'] |= {'other'}
+
+# these fields don't exist in the ptm fixture, so can't be specified
+# as a value that gets discarded. Remove them.
+MIGRATION_RULES['species']['removed_fields'] -= {'family'}
+MIGRATION_RULES['tree']['removed_fields'] -= {'pests', 'url'}
+
+# this field doesn't exist, so can no longer have a to -> from def
+del MIGRATION_RULES['species']['renamed_fields']['other_part_of_name']

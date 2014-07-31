@@ -359,7 +359,11 @@ def _uniquify_username(username):
 
 
 def _sanitize_username(username):
-    return username.replace(' ', '_')
+    # yes, there was actually a user with newlines
+    # in their username
+    return (username
+            .replace(' ', '_')
+            .replace('\n', ''))
 
 
 @atomic
