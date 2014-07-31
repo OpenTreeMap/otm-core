@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenTreeMap</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="utf-8" />
+
+    <link rel="icon" type="image/png" href="/favicon.png" />
+
+    <!-- 
+    
+        NOTES
+        *****
+        Just pulling in static CSS files, needs to have an alias of 
+        /opentreemap/treemap/static/ here for that to work.
+    
+    -->
+    <link href="static/css/vendor.css" rel="stylesheet">
+    <link href="css/slider.css" rel="stylesheet">
+    <link href="static/css/main.css" rel="stylesheet">
+</head>
+<body>
+<div id="modeling" class="wrapper">
+    <!-- Top Nav -->
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="collapse navbar-collapse" id="otm-navbar-collapse">
+          <ul class="nav navbar-nav navbar-left">
+              <li class="add-menu dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown"><i class="icon-plus-circled"></i></a>
+                  <ul class="dropdown-menu">
+                      <li><a>Add a Tree</a></li>
+                      <li><a>Add a Resource</a></li>
+                  </ul>
+              </li>
+              <li><a>Explore Trees</a></li>
+              <li class="dropdown active">
+                  <a class="dropdown-toggle" data-toggle="dropdown">Planting Simulations</a>
+                  <ul class="dropdown-menu">
+                      <li><a>Explore & Model Trees</a></li>
+                      <li><a>Urban Forests Scenarios</a></li>
+                      <li><a>Saved Simulations</a></li>
+                  </ul>
+              </li>
+              <li><a>View Edits</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+              <li class="dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown">My Tree Map</a>
+                  <ul class="dropdown-menu">
+                      <li><a><i class="icon-cog"></i> Customize Tree Map</a></li>
+                      <li><a><i class="icon-thumbs-up"></i> Moderate</a></li>
+                  </ul>
+              </li>
+              <li><a>My Account</a></li>
+              <li class="user-img">
+                <a><img src="static/img/profile.png"></a>
+              </li>
+          </ul>
+        </div>
+    </div>
+
+    <!-- NEW! User Dock, showing quick information about "My Profile" -->
+    <div class="user-dock">
+        <div class="row">
+            <div class="col-sm-1">
+                <a><img src="static/img/profile.png" class="user-img" style="max-width: 100%;"></a>
+            </div>
+            <div class="col-sm-3">
+                <h2>administrator</h2>
+                <h4>Administrative User</h4>
+                <a class="btn btn-primary">Edit Profile</a>
+                <a class="btn">Logout</a>
+            </div>
+            <div class="col-sm-4">
+                <label>My Tree Maps <a class="pull-right">View All Maps</a></label>
+                <ul>
+                    <li><a>testmap</a> <span>Owner</span></li>
+                    <li><a>testmap</a> <span>User</span></li>
+                    <li><a>testmap</a> <span>User</span></li>
+                </ul>
+            </div>
+            <div class="col-sm-4">
+                <label>My Recent Contributions <a class="pull-right">View All Edits</a></label>
+                <ul>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logo and Search -->
+    <div class="header">
+        <div class="logo">
+          <a href=""><img id="site-logo" src="static/img/logo.png" alt="OpenTreeMap"></a>
+        </div>
+    </div>
+
+    <div class="image-background"></div>
+    <div class="container contained">
+        test
+    </div>
+</div>
+
+<!-- Footer -->
+<footer>
+    <div class="footer-inner">
+        <ul class="list-inline pull-left">
+            <li><a>Tree Key</a></li>
+            <li><a>Resources</a></li>
+            <li><a>FAQ</a></li>
+            <li><a>About</a></li>
+            <li><a>Contact</a></li>
+        </ul>
+    </div>
+</footer>
+    
+<!-- 
+
+    NOTES
+    *****
+    This is just placeholder to show interactivity.
+    Hopefully it just helps give a sense of how things should work.
+
+-->
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/bootstrap-slider.js"></script>
+<script>
+    // Just adds dropdowns to navbar, user-dock
+    $('.dropdown-toggle').dropdown();
+    $('.user-img').on('click', function() {
+        $('.user-dock').toggleClass('active');
+    });
+    $('.slider').slider();
+</script>
+</body>
+</html>

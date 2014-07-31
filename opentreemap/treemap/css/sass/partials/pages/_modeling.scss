@@ -87,4 +87,41 @@
             left: 350px;
         }
     }
+    
+    .layer-group {
+        .panel-heading {
+            background: lighten($secondary-color, 15%);
+
+            input.slider {
+                display: none;
+            }
+            div.slider {
+                //width: 90% !important;
+                //margin: 0 5%;
+            }
+
+            a {
+                box-shadow: none;
+                background: transparent;
+            }
+        }
+    }
+
+    .layer {
+        padding: 15px;
+        border-bottom: 1px solid $light-gray-color;
+        border-left: 6px solid $secondary-color;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        input.slider {
+            display: none;
+        }
+        div.slider {
+            width: 90% !important;
+            margin: 0 5%;
+        }
+    }
 }
