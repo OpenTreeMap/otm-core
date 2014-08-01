@@ -40,7 +40,7 @@ AWS_HEADERS = {
 }
 
 # Size is in bytes
-MAXIMUM_IMAGE_SIZE = 20971520 # 20mb
+MAXIMUM_IMAGE_SIZE = 20971520  # 20mb
 
 # API distance check, in meters
 MAP_CLICK_RADIUS = 100
