@@ -31,8 +31,7 @@ server based on [Windshaft](https://github.com/CartoDB/Windshaft)
 benefits calculation service
 * [OpenTreeMap-iOS](https://github.com/OpenTreeMap/OpenTreeMap-iOS) - An 
 OpenTreeMap client for iOS devices.
-* [OpenTreeMap-Android](https://github.com/OpenTreeMap/OpenTreeMap-Android) 
-- An OpenTreeMap client for Android devices.
+* [OpenTreeMap-Android](https://github.com/OpenTreeMap/OpenTreeMap-Android) - An OpenTreeMap client for Android devices.
 
 ###Deprecated Repositories
 
