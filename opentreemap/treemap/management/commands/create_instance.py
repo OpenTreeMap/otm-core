@@ -13,7 +13,8 @@ from django.contrib.gis.geos import MultiPolygon, Polygon, GEOSGeometry, Point
 
 from treemap.instance import (Instance, create_stewardship_udfs,
                               add_species_to_instance)
-from treemap.models import Boundary, InstanceUser, User
+from treemap.models import (Boundary, InstanceUser, User,
+                            BenefitCurrencyConversion)
 from treemap.audit import (Role, FieldPermission, add_default_permissions)
 
 logger = logging.getLogger('')
@@ -112,6 +113,13 @@ class Command(BaseCommand):
         add_species_to_instance(instance)
 
         add_default_permissions(instance, roles=[role])
+
+        eco_benefits_conversion = \
+            BenefitCurrencyConversion.get_default_for_point(Point(x, y))
+        if eco_benefits_conversion:
+            eco_benefits_conversion.save()
+
+        instance.eco_benefits_conversion = eco_benefits_conversion
 
         instance.default_role = role
         instance.save()
