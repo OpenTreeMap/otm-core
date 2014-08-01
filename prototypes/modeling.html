@@ -121,9 +121,24 @@
         <div class="sidebar">
             <div class="templates">
                 <label>Templates</label>
-                <select>
-                    <option>Custom Model</option>
-                </select>
+                <label class="custom-select">
+                    <select>
+                        <option selected>Custom Model</option>
+                        <option>&nbsp;</option>
+                        <option>Scientific Models</option>
+                        <option>---</option>
+                        <option>Model</option>
+                        <option>Model</option>
+                        <option>Model</option>
+                        <option>&nbsp;</option>
+                        <option>My Models</option>
+                        <option>---</option>
+                        <option>Model</option>
+                        <option>Model</option>
+                        <option>Model</option>
+                        <option>Model</option>
+                    </select>
+                </label>
             </div>
             <div class="panel-group" id="accordion">
                 <div class="panel panel-default">
@@ -140,9 +155,15 @@
                                 <div class="panel panel-default layer-group">
                                     <div class="panel-heading">
                                         <h4 class="panel-title">
-                                            <a data-toggle="collapse" href="#biodiversity" class="collapsed">
-                                                Biodiversity
-                                            </a>
+                                            <a data-toggle="collapse" href="#biodiversity" class="collapsed">Biodiversity</a>
+                                            <div class="row">
+                                                <div class="col-sm-9 col-sm-offset-1">
+                                                    <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="0" />
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <div class="layer-value">0</div>
+                                                </div>
+                                            </div>
                                         </h4>
                                     </div>
                                     <div id="biodiversity" class="panel-collapse collapse">
@@ -189,7 +210,7 @@
                                         <h4 class="panel-title">
                                             <a data-toggle="collapse" href="#socioeconomic" class="collapsed">Socioeconomic</a>
                                             <div class="row">
-                                                <div class="col-sm-10">
+                                                <div class="col-sm-9 col-sm-offset-1">
                                                     <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="0" />
                                                 </div>
                                                 <div class="col-sm-2">
@@ -323,7 +344,18 @@
             </div>
         </div>
         <div id="map" class="map">
+            <div class="options">
+                <div class="options-toggle">Options</div>
+                <div class="options-content">
+                    <label>Areas visible:</label>
+                    <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="5" data-slider-step="1" data-slider-value="5" />
+                    <small class="pull-left">Best Areas</small><small class="pull-right">All Areas</small>
 
+                    <label>Transparency:</label>
+                    <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="100" />
+                    <small class="pull-left">0%</small><small class="pull-right">100%</small>
+                </div>
+            </div>
         </div>
     </div>
     <div class="modal fade" id="newModel" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="newModel">

@@ -26,6 +26,7 @@
                     i {
                         font-size: 1.6rem;
                         margin-left: 5px;
+                        outline: none;
                     }
                 }
                 h6 {
@@ -61,7 +62,75 @@
             .templates {
                 height: 50px;
                 background: $main-text-color;
-                padding: 12px 15px;
+                padding: 9px 15px;
+                overflow: hidden;
+
+                > label:not(.custom-select) {
+                    color: #818181;
+                    font-size: 1.4rem;
+                    font-weight: 700;
+                    margin-bottom: 0;
+                    line-height: 1;
+                }
+
+                select {
+                    padding: 9px 10px;
+                    margin: 0;
+                    background: lighten($main-text-color, 12%);
+                    color: white;
+                    border-radius: 0;
+                    font-weight: 400;
+                    border: none;
+                    outline: none;
+                    display: inline-block;
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
+                    appearance: none;
+                    cursor: pointer;
+                    width: 100%;
+                }
+                
+                @media screen and ( -webkit-min-device-pixel-ratio: 0 ) {
+                    select {
+                        padding-right: 18px;
+                    }
+                    label.custom-select:before {
+                        height: 35px !important;
+                    }
+                }
+                
+                label.custom-select {
+                    position: relative;
+                    width: 200px;
+                    margin: 0 0 0 10px;
+                    top: -2px;
+
+                    &:after {
+                        content: '>';
+                        font: 14px "Consolas", monospace;
+                        color: $light-gray-color;
+                        -webkit-transform: rotate(90deg);
+                        -moz-transform: rotate(90deg);
+                        -ms-transform: rotate(90deg);
+                        transform: rotate(90deg);
+                        right: 12px;
+                        top: 8px;
+                        padding: 0 0 2px;
+                        position: absolute;
+                        pointer-events: none;
+                    }
+                    &:before {
+                        content: '';
+                        right: 0px;
+                        top: 0px;
+                        width: 26px;
+                        height: 37px;
+                        background: lighten($main-text-color, 12%);
+                        position: absolute;
+                        pointer-events: none;
+                        display: block;
+                    }
+                }
             }
             > .panel-group {
                 border-radius: 0;
@@ -94,18 +163,72 @@
         .map {
             right: 0;
             left: 350px;
+
+            .options {
+                position: absolute;
+                top: 16px;
+                right: 60px;
+
+                &:hover {
+                    .options-toggle {
+                        border-radius: 6px 6px 0 0;
+                    }
+                    .options-content {
+                        display: block;
+                        border-radius: 6px 0 6px 6px;
+                    }
+                }
+
+                .options-toggle {
+                    background: white;
+                    padding: 6px 10px;
+                    width: auto;
+                    display: inline-block;
+                    position: absolute;
+                    font-size: 1.4rem;
+                    right: 0;
+                    font-weight: 700;
+                    border-radius: 6px;
+                }
+                .options-content {
+                    background: white;
+                    width: 260px;
+                    padding: 20px 20px 15px;
+                    position: absolute;
+                    top: 32px;
+                    right: 0;
+                    border-radius: 6px;
+                    display: none;
+
+                    label {
+                        float: left;
+                        clear: both;
+                    }
+                    input.slider {
+                        display: none;
+                    }
+                    div.slider {
+                        width: 100% !important;
+                    }
+                    small {
+                        font-size: 1.1rem;
+                        font-weight: 700;
+                        color: $subtext-color;
+                        margin: 0 0 10px;
+                    }
+                }
+            }
         }
     }
     
     .layer-group {
         .panel-heading {
-            padding: 10px 15px;
+            padding: 15px;
             background: $light-gray-color;
             border-bottom: 1px solid darken($light-gray-color, 10%);
             font-size: 1.6rem;
             font-weight: 700;
-            color: $main-text-color;
-
+            
             input.slider {
                 display: none;
             }
@@ -117,6 +240,12 @@
             a {
                 box-shadow: none;
                 background: transparent;
+                color: $main-text-color;
+                padding: 0 0 10px;
+
+                &.collapsed {
+                    opacity: 0.5;
+                }
             }
         }
     }
@@ -130,6 +259,11 @@
             border-bottom: none;
         }
 
+        h4 {
+            font-weight: 700;
+            margin: 0 0 6px;
+            font-size: 1.4rem;
+        }
         input.slider {
             display: none;
         }
