@@ -18,7 +18,7 @@ wiki](https://github.com/OpenTreeMap/OTM2/wiki/Installation-Guide).
 Alternatively, you can also use the [otm2-vagrant 
 project](https://github.com/OpenTreeMap/otm2-vagrant) to get started. 
 While not recommended for production, otm2-vagrant greatly simplifies 
-getting a development environment for testing and demoing OTM2 locally.
+getting a development environment for testing and contributing to OTM2 locally.
 
 ##Other Repositories
 
