@@ -15,9 +15,11 @@ from urllib import urlencode
 
 from copy import deepcopy
 
+from treemap import SPECIES
 from treemap.json_field import JSONField
 from treemap.lib.object_caches import udf_defs
-from treemap.species import ITREE_REGION_CHOICES
+from treemap.species import (species_codes_for_regions, all_species_codes,
+                             ITREE_REGION_CHOICES)
 
 URL_NAME_PATTERN = r'[a-zA-Z]+[a-zA-Z0-9\-]*'
 
@@ -95,6 +97,37 @@ def create_stewardship_udfs(instance):
             ('Tree', DEFAULT_TREE_STEWARDSHIP_CHOICES))
 
     return [create_udf(model, choices) for model, choices in opts]
+
+
+def add_species_to_instance(instance):
+    from treemap.models import ITreeRegion, Species
+
+    # Create species for all regions that intersect the instance
+    itree_regions = ITreeRegion.objects.filter(
+        geometry__intersects=instance.bounds)
+    eco_region_codes = itree_regions.values_list('code', flat=True)
+    species_codes = species_codes_for_regions(eco_region_codes)
+
+    # If there are no eco regions intersecting the map regions
+    # default to using all species codes
+    if not species_codes:
+        species_codes = all_species_codes()
+
+    # Convert the list to a set for fast lookups
+    species_code_set = set(species_codes)
+
+    # Create and save a Species for each otm_code
+    # Saving one by one is SLOW. It takes many seconds
+    # to do the average species list of ~250 items.
+    # Using bulk_create bypasses auditing but keeps
+    # speed up.
+    # TODO: bulk create audit records for species rows
+    instance_species_list = []
+    for species_dict in SPECIES:
+        if species_dict['otm_code'] in species_code_set:
+            species_dict['instance'] = instance
+            instance_species_list.append(Species(**species_dict))
+    Species.objects.bulk_create(instance_species_list)
 
 
 class Instance(models.Model):
