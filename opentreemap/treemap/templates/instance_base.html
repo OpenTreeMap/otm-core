@@ -49,6 +49,16 @@
   {% endif %}
 {% endif %}
 <li class="explore-map {% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Map" %}</a></li>
+{% if request.instance|feature_enabled:'prioritize_planting_sites' or request.instance|feature_enabled:'model_tree_growth' %}
+<li class="dropdown {% block activemodeling %}{% endblock %}">
+  <a class="dropdown-toggle" data-toggle="dropdown">{% trans "Plan" %}</a>
+  <ul class="dropdown-menu">
+    <li><a href="{% url 'prioritize_planting_sites' instance_url_name=request.instance.url_name %}">{% trans "Prioritize Planting Sites" %}</a></li>
+    <li><a href="{% url 'model_scenarios' instance_url_name=request.instance.url_name %}">{% trans "Model Urban Forest Scenarios" %}</a></li>
+    <li><a href="">{% trans "Saved Simulations" %}</a></li>
+  </ul>
+</li>
+{% endif %}
 {% if request.instance|feature_enabled:'recent_edits_report' %}
 <li class="{% block activerecentedits %}{% endblock %}">
   <a href="{% url 'edits' instance_url_name=request.instance.url_name %}">{% trans "View Edits" %}</a>
@@ -156,7 +166,10 @@
 {% endblock export %}
 
 {% block search %}
-{% include "treemap/partials/search_bar.html" %}
+<div class="search-block-wrapper">
+  {% include "treemap/partials/search_species.html" %}
+  {% include "treemap/partials/search_location.html" %}
+</div>
 {% endblock search %}
 
 {% block searchoptions %}
