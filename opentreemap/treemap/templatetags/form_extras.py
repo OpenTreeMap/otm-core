@@ -360,7 +360,7 @@ class AbstractNode(template.Node):
         elif is_convertible_or_formattable(object_name, field_name):
             display_val = format_value(
                 model.instance, object_name, field_name, field_value)
-            if units is not '':
+            if units != '':
                 display_val += (' %s' % units)
         elif data_type == 'bool':
             display_val = trans('Yes') if field_value else trans('No')
