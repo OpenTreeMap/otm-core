@@ -1214,7 +1214,7 @@ class UDFWhereNode(GeoWhereNode):
         """
         try:
             udfmarker, udffield = field[:2]
-            datatype = field[2] if len(field) is 3 else ''
+            datatype = field[2] if len(field) == 3 else ''
 
             if udfmarker == 'udf':
                 return (udffield, datatype)
