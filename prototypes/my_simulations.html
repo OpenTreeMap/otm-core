@@ -16,10 +16,11 @@
     
     -->
     <link href="static/css/vendor.css" rel="stylesheet">
+    <link href="css/slider.css" rel="stylesheet">
     <link href="static/css/main.css" rel="stylesheet">
 </head>
 <body>
-<div class="wrapper">
+<div id="modeling" class="wrapper">
     <!-- Top Nav -->
     <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="collapse navbar-collapse" id="otm-navbar-collapse">
@@ -32,6 +33,14 @@
                   </ul>
               </li>
               <li><a>Explore Trees</a></li>
+              <li class="dropdown active">
+                  <a class="dropdown-toggle" data-toggle="dropdown">Planting Simulations</a>
+                  <ul class="dropdown-menu">
+                      <li><a>Explore & Model Trees</a></li>
+                      <li><a>Urban Forests Scenarios</a></li>
+                      <li><a>Saved Simulations</a></li>
+                  </ul>
+              </li>
               <li><a>View Edits</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
@@ -86,73 +95,12 @@
         <div class="logo">
           <a href=""><img id="site-logo" src="static/img/logo.png" alt="OpenTreeMap"></a>
         </div>
-        <div class="search-wrapper hidden">
-            <div class="search-block-wrapper">
-
-                <!--Species Search-->
-                <div class="search-block visible-desktop">
-                    <h3>Search by Species</h3>
-                    <div class="search-field-group">
-                        <a class="typeahead-toggle" id="species-toggle"><i class="icon-menu"></i></a>
-                        <input type="text" data-class="search" id="species-typeahead" placeholder="Common or Scientific Name"/>
-                        <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
-                    </div>
-                </div>
-            
-                <!-- Location Search -->
-                <div class="search-block">
-                    <h3>Search by Location</h3>
-                    <div class="search-field-group">
-                        <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
-                        <input type="text" data-class="search" id="boundary-typeahead" placeholder="Address, City, State"/>
-                        <input name="plot.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />
-                    </div>
-                </div>
-            </div>
-            <div class="search-options">
-                <a id="perform-search" class="btn btn-primary btn-large btn-block">Search</a>
-                <div class="btn-group">
-                    <button id="search-advanced" class="btn">Advanced</button>
-                    <button id="search-reset" class="btn">Reset</button>
-                </div>
-            </div>
-            
-            <!-- Advanced Search -->
-            <div id="advanced-search-pane" style="display: none;">
-                <div id="standard-search"></div>
-                <div id="missing-search"></div>
-            </div>
-        </div>
     </div>
 
-    <!-- Subheader with Counts -->
-    <div class="subhead hidden">
-        <div class="advanced-search">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6">
-                    </div>
-                    <div class="col-md-3" id="display-filters" data-search-type="IN" data-search-identifier="mapFeature.feature_type">
-                        <h4>Display Filters</h4>
-                    </div>
-                    <div class="col-md-3" id="missing-data">
-                        <h4>Missing Data</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="stats-bar">
-            <div style="display: inline;" id="tree-and-planting-site-counts">
-                <span id="tree-count">4567</span> trees, <span id="planting-site-count">10,683</span> planting sites
-            </div>
-            <a href="javascript:;" class="btn btn-primary btn-xs exportBtn" id="exportbutton"><i class="icon-export"></i> Export Search Results</a>
-            <a class="btn btn-primary addBtn"><i class="icon-plus"></i> Add a Tree</a>
-        </div>
+    <div class="image-background"></div>
+    <div class="container contained">
+        test
     </div>
- 
-    <!-- Background Image for Interior Pages -->
-    <div class="image-background hidden"></div>
-
 </div>
 
 <!-- Footer -->
@@ -178,12 +126,14 @@
 -->
 <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
+<script src="js/bootstrap-slider.js"></script>
 <script>
     // Just adds dropdowns to navbar, user-dock
     $('.dropdown-toggle').dropdown();
     $('.user-img').on('click', function() {
         $('.user-dock').toggleClass('active');
     });
+    $('.slider').slider();
 </script>
 </body>
 </html>

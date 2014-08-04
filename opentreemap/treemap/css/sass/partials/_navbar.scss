@@ -150,7 +150,7 @@
     background: lighten($navbar-color, 5%);
     z-index: 999;
     top: -106px;
-    height: 105px;
+    height: 150px;
     padding: 20px 30px 25px;
     display: block;
     transition: top 0.5s;
@@ -181,6 +181,7 @@
     }
     label {
         color: $well-color;
+        width: 100%;
 
         a {
             color: white;
