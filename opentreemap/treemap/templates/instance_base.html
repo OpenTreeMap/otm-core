@@ -198,6 +198,8 @@
 
 {% block searchscripts %}
 <script type="text/javascript">
+    // This allows searches on non-map pages to redirect to the map page.
+    // Map pages should override this block, and not call this function.
     (function(require) {
         require("treemap/searchBar").initDefaults(otm.settings);
     })(require);
