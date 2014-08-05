@@ -1,4 +1,5 @@
 from otm1_migrator.migration_rules.standard_otm1 import MIGRATION_RULES
+from otm1_migrator.migration_rules import standard_otm1
 
 SORT_ORDER_INDEX = {
     'Bucks': 3,
@@ -39,3 +40,4 @@ MIGRATION_RULES['tree']['removed_fields'] -= {'pests', 'url'}
 
 # this field doesn't exist, so can no longer have a to -> from def
 del MIGRATION_RULES['species']['renamed_fields']['other_part_of_name']
+MODEL_ORDER = standard_otm1.MODEL_ORDER

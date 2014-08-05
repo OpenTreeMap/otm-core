@@ -10,6 +10,8 @@ from django.contrib.contenttypes.models import ContentType
 
 from treemap.models import Instance, User
 
+UNBOUND_MODEL_ID = -1
+
 
 
 

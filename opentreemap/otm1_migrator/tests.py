@@ -15,7 +15,7 @@ from treemap.tests import (make_instance, make_commander_user,
                            LocalMediaTestCase, media_dir)
 
 from otm1_migrator.management.commands.perform_migration import (
-    dict_to_model, dicts_to_saved_objects, save_treephoto,
+    dict_to_model, save_objects, save_treephoto,
     save_species, process_userprofile)
 
 from otm1_migrator.migration_rules.standard_otm1 import MIGRATION_RULES
@@ -183,7 +183,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         species_dict = json.loads(self.species_blob)
         species_dicts = [species_dict, species_dict, species_dict]
 
-        dicts_to_saved_objects(
+        save_objects(
             MIGRATION_RULES,
             "species", species_dicts, {},
             partial(save_species, MIGRATION_RULES),
@@ -195,7 +195,7 @@ class MigrationCommandTests(LocalMediaTestCase):
     def test_species_dict_to_model(self):
         species_dict = json.loads(self.species_blob)
 
-        dicts_to_saved_objects(
+        save_objects(
             MIGRATION_RULES,
             "species", [species_dict], {},
             partial(save_species, MIGRATION_RULES),
@@ -239,7 +239,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         userprofile_fixture = json.loads(self.userprofile_blob %
                                          (otm1_user_id, photo_path))
 
-        dicts_to_saved_objects(
+        save_objects(
             MIGRATION_RULES,
             "userprofile",
             [userprofile_fixture],
@@ -269,7 +269,7 @@ class MigrationCommandTests(LocalMediaTestCase):
 
         save_treephoto_blank = partial(save_treephoto, MIGRATION_RULES, '')
 
-        dicts_to_saved_objects(
+        save_objects(
             MIGRATION_RULES,
             "treephoto", [tp_dict],
             {'tree': {1: tree.pk},
