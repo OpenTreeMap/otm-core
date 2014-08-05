@@ -61,7 +61,7 @@ module.exports = {
         var triggerSearchFromSidebar = new Bacon.Bus();
 
         // init mapManager before searchBar so that .setCenterWM is set
-        mapManager.createTreeMap({ config: config, selector: '#map' });
+        mapManager.createTreeMap({ config: config, domId: 'map' });
 
 
         // When there is a single geocode result (either by an exact match

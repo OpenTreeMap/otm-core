@@ -20,16 +20,11 @@ MapManager.prototype = {
 
     createTreeMap: function (options) {
         var config = options.config,
-            mapOptions = {
-                disableScrollWithMouseWheel: options.disableScrollWithMouseWheel
-            },
-            map = this.createMap($(options.selector)[0], config, mapOptions),
             plotLayer = createPlotTileLayer(config),
             allPlotsLayer = createPlotTileLayer(config),
             boundsLayer = createBoundsTileLayer(config),
             utfLayer = createPlotUTFLayer(config);
 
-        this.map = map;
         this._config = config;
         this._plotLayer = plotLayer;
         this._allPlotsLayer = allPlotsLayer;
@@ -37,28 +32,27 @@ MapManager.prototype = {
 
         allPlotsLayer.setOpacity(0.3);
 
-        map.utfEvents = BU.leafletEventStream(utfLayer, 'click');
+        options.centerWM = options.centerWM || config.instance.center;
+        options.zoom = options.zoom || this.ZOOM_DEFAULT;
+        var map = this.createMap(options);
 
-        var center = options.center || config.instance.center,
-            zoom = options.zoom || this.ZOOM_DEFAULT;
-        this.setCenterAndZoomWM(zoom, center);
+        map.utfEvents = BU.leafletEventStream(utfLayer, 'click');
 
         map.addLayer(boundsLayer);
         map.addLayer(plotLayer);
+        map.addLayer(utfLayer);
 
-        // Delay loading of UTF grid; otherwise UTF tiler requests precede
-        // visible tile requests, making the map appear to load more slowly.
-        _.defer(function () {
-            map.addLayer(utfLayer);
-        });
+        return map;
     },
 
-    createMap: function (elmt, config, options) {
-        options = options || {};
-
-        var basemapMapping = getBasemapLayers(config);
-
-        var map = L.map(elmt, {center: new L.LatLng(0.0, 0.0), zoom: 2});
+    createMap: function (options) {
+        var center = options.centerWM || {x: 0, y: 0},
+            zoom = options.zoom || 2,
+            map = L.map(options.domId, {
+                center: U.webMercatorToLeafletLatLng(center.x, center.y),
+                zoom: zoom
+            }),
+            basemapMapping = getBasemapLayers(options.config);
 
         if (_.isArray(basemapMapping)) {
             _.each(_.values(basemapMapping),
@@ -67,9 +61,7 @@ MapManager.prototype = {
                 });
         } else {
             var visible = _.keys(basemapMapping)[0];
-
             map.addLayer(basemapMapping[visible]);
-
             L.control.layers(basemapMapping).addTo(map);
         }
 
@@ -77,6 +69,7 @@ MapManager.prototype = {
             map.scrollWheelZoom = false;
         }
 
+        this.map = map;
         return map;
     },
 
@@ -104,8 +97,7 @@ MapManager.prototype = {
     },
 
     setCenterAndZoomLL: function (zoom, location, reset) {
-        // never zoom out, or try to zoom
-        // farther than allowed.
+        // Never zoom out, or try to zoom farther than allowed.
         var zoomToApply = Math.max(
             this.map.getZoom(),
             Math.min(zoom, this.map.getMaxZoom()));

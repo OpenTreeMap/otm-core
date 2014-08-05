@@ -123,9 +123,9 @@ exports.init = function(options) {
     var mapManager = new MapManager();
     mapManager.createTreeMap({
         config: options.config,
-        selector: '#map',
+        domId: 'map',
         disableScrollWithMouseWheel: true,
-        center: options.location.point,
+        centerWM: options.location.point,
         zoom: mapManager.ZOOM_PLOT
     });
 
