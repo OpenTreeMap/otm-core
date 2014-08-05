@@ -23,7 +23,8 @@ from treemap.images import save_uploaded_image
 
 from otm1_migrator.models import (OTM1UserRelic, OTM1ModelRelic,
                                   OTM1CommentRelic)
-from otm1_migrator.data_util import dict_to_model, MigrationException
+from otm1_migrator.data_util import (dict_to_model, MigrationException,
+                                     sanitize_username, uniquify_username)
 
 USERPHOTO_ARGS = ('-y', '--userphoto-path')
 
@@ -348,24 +349,6 @@ def make_contenttype_relics(model_dict, instance):
                                          otm2_model_id=content_type_id)
 
 
-def _uniquify_username(username):
-    username_template = '%s_%%d' % username
-    i = 0
-    while User.objects.filter(username=username).exists():
-        username = username_template % i
-        i += 1
-
-    return username
-
-
-def _sanitize_username(username):
-    # yes, there was actually a user with newlines
-    # in their username
-    return (username
-            .replace(' ', '_')
-            .replace('\n', ''))
-
-
 @atomic
 def save_boundary(migration_rules, model_dict, instance):
     model = dict_to_model(migration_rules, 'boundary', model_dict, instance)
@@ -402,7 +385,7 @@ def save_user(migration_rules, user_dict, instance):
         # then, if the sanitized username already exists,
         # uniquify it. This transformation order is important.
         # uniquification must happen as the last step.
-        user.username = _uniquify_username(_sanitize_username(user.username))
+        user.username = uniquify_username(sanitize_username(user.username))
         user.save()
 
     try:

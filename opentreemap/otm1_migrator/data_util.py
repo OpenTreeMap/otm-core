@@ -1,3 +1,4 @@
+from treemap.models import User
 from treemap.audit import model_hasattr
 
 
@@ -72,3 +73,21 @@ def dict_to_model(config, model_name, data_dict, instance):
         mutator(model, data_dict['fields'])
 
     return model
+
+
+def uniquify_username(username):
+    username_template = '%s_%%d' % username
+    i = 0
+    while User.objects.filter(username=username).exists():
+        username = username_template % i
+        i += 1
+
+    return username
+
+
+def sanitize_username(username):
+    # yes, there was actually a user with newlines
+    # in their username
+    return (username
+            .replace(' ', '_')
+            .replace('\n', ''))
