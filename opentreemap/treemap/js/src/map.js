@@ -7,7 +7,8 @@ var $ = require('jquery'),
     L = require('leaflet'),
     csrf = require('treemap/csrf'),
 
-    mapManager = require('treemap/mapManager'),
+    MapManager = require('treemap/MapManager'),
+    mapManager = new MapManager(),
     addTreeModeName = require('treemap/addTreeMode').name,
     addResourceModeName = require('treemap/addResourceMode').name,
     mapState = require('treemap/mapState'),
@@ -60,7 +61,7 @@ module.exports = {
         var triggerSearchFromSidebar = new Bacon.Bus();
 
         // init mapManager before searchBar so that .setCenterWM is set
-        mapManager.init({ config: config, selector: '#map' });
+        mapManager.createTreeMap({ config: config, selector: '#map' });
 
 
         // When there is a single geocode result (either by an exact match
@@ -68,7 +69,7 @@ module.exports = {
         // if the map is not already zoomed in.
         var bar = SearchBar.init(config);
 
-        bar.geocodedLocationStream.onValue(mapManager.setCenterWM);
+        bar.geocodedLocationStream.onValue(mapManager, 'setCenterWM');
 
         var zoomLatLngStream = mapState.stateChangeStream.filter('.zoomLatLng');
 
@@ -116,8 +117,10 @@ module.exports = {
 
         mapManager.map.on("moveend", serializeZoomLatLngFromMap);
 
-        Search.init(ecoBenefitsSearchEvents, config, mapManager.setFilter);
-
+        Search.init(
+            ecoBenefitsSearchEvents,
+            config,
+            _.bind(mapManager.setFilter, mapManager));
 
         boundarySelect.init({
             config: config,

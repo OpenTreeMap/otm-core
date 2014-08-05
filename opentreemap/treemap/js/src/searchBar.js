@@ -18,7 +18,8 @@ var $ = require('jquery'),
     Search = require('treemap/search'),
     udfcSearch = require('treemap/udfcSearch'),
     BU = require('treemap/baconUtils'),
-    mapManager = require('treemap/mapManager');
+    MapManager = require('treemap/MapManager'),
+    mapManager = new MapManager();
 
 // Placed onto the jquery object
 require('bootstrap-datepicker');

@@ -2,10 +2,8 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
-    google = require('googlemaps'),
     L = require('leaflet'),
     U = require('treemap/utility'),
-    Bacon = require('baconjs'),
     BU = require('treemap/baconUtils'),
     makeLayerFilterable = require('treemap/makeLayerFilterable');
 
@@ -14,106 +12,122 @@ require('utfgrid');
 require('leafletbing');
 require('leafletgoogle');
 
-exports.ZOOM_DEFAULT = 11;
-exports.ZOOM_PLOT = 18;
+var MapManager = function() {}  // constructor
 
+MapManager.prototype = {
+    ZOOM_DEFAULT: 11,
+    ZOOM_PLOT: 18,
 
-exports.init = function(options) {
-    var config = options.config,
-        mapOptions = {
-            disableScrollWithMouseWheel: options.disableScrollWithMouseWheel
-        },
-        map = createMap($(options.selector)[0], config, mapOptions),
-        plotLayer = createPlotTileLayer(config),
-        allPlotsLayer = createPlotTileLayer(config),
-        boundsLayer = createBoundsTileLayer(config),
-        utfLayer = createPlotUTFLayer(config);
+    createTreeMap: function (options) {
+        var config = options.config,
+            mapOptions = {
+                disableScrollWithMouseWheel: options.disableScrollWithMouseWheel
+            },
+            map = this.createMap($(options.selector)[0], config, mapOptions),
+            plotLayer = createPlotTileLayer(config),
+            allPlotsLayer = createPlotTileLayer(config),
+            boundsLayer = createBoundsTileLayer(config),
+            utfLayer = createPlotUTFLayer(config);
 
-    allPlotsLayer.setOpacity(0.3);
+        this.map = map;
+        this._config = config;
+        this._plotLayer = plotLayer;
+        this._allPlotsLayer = allPlotsLayer;
+        this._utfLayer = utfLayer;
 
-    exports.map = map;
+        allPlotsLayer.setOpacity(0.3);
 
-    map.utfEvents = BU.leafletEventStream(utfLayer, 'click');
+        map.utfEvents = BU.leafletEventStream(utfLayer, 'click');
 
-    exports.updateGeoRevHash = function(geoRevHash) {
-        if (geoRevHash !== config.instance.rev) {
-            config.instance.rev = geoRevHash;
+        var center = options.center || config.instance.center,
+            zoom = options.zoom || this.ZOOM_DEFAULT;
+        this.setCenterAndZoomWM(zoom, center);
 
-            var pngUrl = getPlotLayerURL(config, 'png');
-            plotLayer.setUnfilteredUrl(pngUrl);
-            allPlotsLayer.setUnfilteredUrl(pngUrl);
+        map.addLayer(boundsLayer);
+        map.addLayer(plotLayer);
 
-            utfLayer.setUrl(getPlotLayerURL(config, 'grid.json'));
+        // Delay loading of UTF grid; otherwise UTF tiler requests precede
+        // visible tile requests, making the map appear to load more slowly.
+        _.defer(function () {
+            map.addLayer(utfLayer);
+        });
+    },
+
+    createMap: function (elmt, config, options) {
+        options = options || {};
+
+        var basemapMapping = getBasemapLayers(config);
+
+        var map = L.map(elmt, {center: new L.LatLng(0.0, 0.0), zoom: 2});
+
+        if (_.isArray(basemapMapping)) {
+            _.each(_.values(basemapMapping),
+                function (layer) {
+                    map.addLayer(layer);
+                });
+        } else {
+            var visible = _.keys(basemapMapping)[0];
+
+            map.addLayer(basemapMapping[visible]);
+
+            L.control.layers(basemapMapping).addTo(map);
         }
-    };
 
-    exports.setFilter = function (filter) {
-        plotLayer.setFilter(filter);
+        if (options.disableScrollWithMouseWheel) {
+            map.scrollWheelZoom = false;
+        }
 
-        if (!allPlotsLayer.map) {
-            map.addLayer(allPlotsLayer);
+        return map;
+    },
+
+    updateGeoRevHash: function (geoRevHash) {
+        if (geoRevHash !== this._config.instance.rev) {
+            this._config.instance.rev = geoRevHash;
+
+            var pngUrl = getPlotLayerURL(this._config, 'png');
+            this._plotLayer.setUnfilteredUrl(pngUrl);
+            this._allPlotsLayer.setUnfilteredUrl(pngUrl);
+
+            this._utfLayer.setUrl(getPlotLayerURL(this._config, 'grid.json'));
+        }
+    },
+
+    setFilter: function (filter) {
+        this._plotLayer.setFilter(filter);
+
+        if (!this._allPlotsLayer.map) {
+            this.map.addLayer(this._allPlotsLayer);
         }
         if (_.isEmpty(filter)) {
-            map.removeLayer(allPlotsLayer);
+            this.map.removeLayer(this._allPlotsLayer);
         }
-    };
+    },
 
-    var setCenterAndZoomLL = exports.setCenterAndZoomLL = function(zoom, location, reset) {
-
+    setCenterAndZoomLL: function (zoom, location, reset) {
         // never zoom out, or try to zoom
         // farther than allowed.
         var zoomToApply = Math.max(
-            map.getZoom(),
-            Math.min(zoom, map.getMaxZoom()));
+            this.map.getZoom(),
+            Math.min(zoom, this.map.getMaxZoom()));
 
-        map.setView(location, zoomToApply, {reset: !!reset});
-    };
+        this.map.setView(location, zoomToApply, {reset: !!reset});
+    },
 
-    var setCenterAndZoomWM = exports.setCenterAndZoomWM = function(zoom, location, reset) {
-        setCenterAndZoomLL(zoom,
-                         U.webMercatorToLeafletLatLng(location.x, location.y),
-                         reset);
-    };
+    setCenterAndZoomWM: function (zoom, location, reset) {
+        this.setCenterAndZoomLL(
+            zoom,
+            U.webMercatorToLeafletLatLng(location.x, location.y),
+            reset);
+    },
 
-    exports.setCenterWM = _.partial(setCenterAndZoomWM, exports.ZOOM_PLOT);
-    exports.setCenterLL = _.partial(setCenterAndZoomLL, exports.ZOOM_PLOT);
+    setCenterWM: function(location, reset) {
+        this.setCenterAndZoomWM(this.ZOOM_PLOT, location, reset);
+    },
 
-    var center = options.center || config.instance.center,
-        zoom = options.zoom || exports.ZOOM_DEFAULT;
-    setCenterAndZoomWM(zoom, center);
-
-    map.addLayer(boundsLayer);
-    map.addLayer(plotLayer);
-
-    // Delay loading of UTF grid; otherwise UTF tiler requests precede
-    // visible tile requests, making the map appear to load more slowly.
-    _.defer(function () { map.addLayer(utfLayer); });
-};
-
-var createMap = exports.createMap = function(elmt, config, options) {
-    options = options || {};
-
-    var basemapMapping = getBasemapLayers(config);
-
-    var map = L.map(elmt, {center: new L.LatLng(0.0, 0.0), zoom: 2});
-
-    if (_.isArray(basemapMapping)) {
-        _.each(_.values(basemapMapping),
-               function(layer) { map.addLayer(layer); });
-    } else {
-        var visible = _.keys(basemapMapping)[0];
-
-        map.addLayer(basemapMapping[visible]);
-
-        L.control.layers(basemapMapping).addTo(map);
+    setCenterLL: function(location, reset) {
+        this.setCenterAndZoomLL(this.ZOOM_PLOT, location, reset);
     }
-
-    if (options.disableScrollWithMouseWheel) {
-        map.scrollWheelZoom = false;
-    }
-
-    return map;
-};
+}
 
 function getBasemapLayers(config) {
     function makeBingLayer(layer) {
@@ -200,3 +214,5 @@ function createBoundsTileLayer(config) {
         getBoundsLayerURL(config, 'png'),
         { maxZoom: 20 });
 }
+
+module.exports = MapManager;
