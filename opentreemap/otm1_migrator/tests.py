@@ -15,7 +15,7 @@ from treemap.tests import (make_instance, make_commander_user,
                            LocalMediaTestCase, media_dir)
 
 from otm1_migrator.management.commands.perform_migration import (
-    hash_to_model, hashes_to_saved_objects, save_treephoto,
+    dict_to_model, dicts_to_saved_objects, save_treephoto,
     save_species, process_userprofile)
 
 from otm1_migrator.migration_rules.standard_otm1 import MIGRATION_RULES
@@ -161,9 +161,9 @@ class MigrationCommandTests(LocalMediaTestCase):
         "genus": "Eucalyptus"}}
         """
 
-    def test_user_hash_to_model(self):
+    def test_user_dict_to_model(self):
         user_dict = json.loads(self.user_blob)
-        user = hash_to_model(MIGRATION_RULES,
+        user = dict_to_model(MIGRATION_RULES,
                              'user', user_dict, self.instance)
 
         user.save_with_user(self.commander)
@@ -183,7 +183,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         species_dict = json.loads(self.species_blob)
         species_dicts = [species_dict, species_dict, species_dict]
 
-        hashes_to_saved_objects(
+        dicts_to_saved_objects(
             MIGRATION_RULES,
             "species", species_dicts, {},
             partial(save_species, MIGRATION_RULES),
@@ -192,10 +192,10 @@ class MigrationCommandTests(LocalMediaTestCase):
         allspecies = Species.objects.filter(instance=self.instance)
         self.assertEqual(len(allspecies), 1)
 
-    def test_species_hash_to_model(self):
+    def test_species_dict_to_model(self):
         species_dict = json.loads(self.species_blob)
 
-        hashes_to_saved_objects(
+        dicts_to_saved_objects(
             MIGRATION_RULES,
             "species", [species_dict], {},
             partial(save_species, MIGRATION_RULES),
@@ -224,7 +224,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         self.assertEqual(species.plant_guide, None)
 
     @media_dir
-    def test_userphoto_hash_to_model(self):
+    def test_userphoto_dict_to_model(self):
 
         # just use a tree photo - it doesn't matter
         photo_path = self.resource_path('tree1.gif')
@@ -239,7 +239,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         userprofile_fixture = json.loads(self.userprofile_blob %
                                          (otm1_user_id, photo_path))
 
-        hashes_to_saved_objects(
+        dicts_to_saved_objects(
             MIGRATION_RULES,
             "userprofile",
             [userprofile_fixture],
@@ -255,7 +255,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         self.assertIsNotNone(user.thumbnail)
 
     @media_dir
-    def test_treephoto_hash_to_model(self):
+    def test_treephoto_dict_to_model(self):
         plot = Plot(geom=Point(0, 0), instance=self.instance)
         plot.save_with_user(self.commander)
         tree = Tree(plot=plot, instance=self.instance)
@@ -269,7 +269,7 @@ class MigrationCommandTests(LocalMediaTestCase):
 
         save_treephoto_blank = partial(save_treephoto, MIGRATION_RULES, '')
 
-        hashes_to_saved_objects(
+        dicts_to_saved_objects(
             MIGRATION_RULES,
             "treephoto", [tp_dict],
             {'tree': {1: tree.pk},
@@ -283,9 +283,9 @@ class MigrationCommandTests(LocalMediaTestCase):
         self.assertIsNotNone(photo.image)
         self.assertIsNotNone(photo.thumbnail)
 
-    def test_plot_hash_to_model(self):
+    def test_plot_dict_to_model(self):
         plot_dict = json.loads(self.plot_blob)
-        plot = hash_to_model(MIGRATION_RULES,
+        plot = dict_to_model(MIGRATION_RULES,
                              'plot', plot_dict, self.instance)
         # test that the plot geom is transformed as follows
         test_geom = copy(plot.geom)
@@ -302,7 +302,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         self.assertEqual(plot.geom.y, test_geom.y)
         self.assertEqual(plot.length, 1.3)
 
-    def test_tree_hash_to_model(self):
+    def test_tree_dict_to_model(self):
         test_plot = Plot(geom=Point(0, 0), instance=self.instance)
         test_plot.id = 95
         test_plot.save_with_user(self.commander)
@@ -313,7 +313,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         test_species.save_with_user(self.commander)
 
         tree_dict = json.loads(self.tree_blob)
-        tree = hash_to_model(MIGRATION_RULES,
+        tree = dict_to_model(MIGRATION_RULES,
                              'tree', tree_dict, self.instance)
         tree.save_with_user(self.commander)
         tree = Tree.objects.get(pk=tree.pk)
