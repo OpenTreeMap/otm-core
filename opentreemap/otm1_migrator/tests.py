@@ -14,6 +14,7 @@ from treemap.models import Plot, Tree, Species, User, TreePhoto
 from treemap.tests import (make_instance, make_commander_user,
                            LocalMediaTestCase, media_dir)
 
+from otm1_migrator.models import MigrationEvent
 from otm1_migrator.management.commands.perform_migration import (
     dict_to_model, save_objects, save_treephoto,
     save_species, process_userprofile)
@@ -24,9 +25,18 @@ from otm1_migrator.migration_rules.standard_otm1 import MIGRATION_RULES
 class MigrationCommandTests(LocalMediaTestCase):
     def setUp(self):
         super(MigrationCommandTests, self).setUp()
-
+        self.migration_event = MigrationEvent()
+        self.migration_rules = MIGRATION_RULES
         self.instance = make_instance()
         self.commander = make_commander_user(self.instance)
+
+        def default_partial(fn, *args):
+            return partial(fn,
+                           self.migration_rules,
+                           self.migration_event,
+                           *args)
+
+        self.default_partial = default_partial
 
         self.treephoto_blob = """
         {"pk": 54,
@@ -186,7 +196,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         save_objects(
             MIGRATION_RULES,
             "species", species_dicts, {},
-            partial(save_species, MIGRATION_RULES),
+            self.default_partial(save_species),
             self.instance)
 
         allspecies = Species.objects.filter(instance=self.instance)
@@ -198,7 +208,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         save_objects(
             MIGRATION_RULES,
             "species", [species_dict], {},
-            partial(save_species, MIGRATION_RULES),
+            self.default_partial(save_species),
             self.instance)
 
         allspecies = Species.objects.filter(instance=self.instance)
@@ -233,7 +243,8 @@ class MigrationCommandTests(LocalMediaTestCase):
 
         self.assertEqual(qs.count(), 0)
 
-        process_userprofile_blank = partial(process_userprofile, '')
+        process_userprofile_blank = self.default_partial(
+            process_userprofile, '')
 
         otm1_user_id = 755
         userprofile_fixture = json.loads(self.userprofile_blob %
@@ -267,7 +278,7 @@ class MigrationCommandTests(LocalMediaTestCase):
 
         self.assertEqual(TreePhoto.objects.count(), 0)
 
-        save_treephoto_blank = partial(save_treephoto, MIGRATION_RULES, '')
+        save_treephoto_blank = self.default_partial(save_treephoto, '')
 
         save_objects(
             MIGRATION_RULES,
