@@ -11,12 +11,6 @@ from django.contrib.contenttypes.models import ContentType
 from treemap.models import Instance, User
 
 
-class OTM1UserRelic(models.Model):
-    instance = models.ForeignKey(Instance)
-    otm1_username = models.CharField(max_length=255)
-    otm1_id = models.IntegerField()
-    otm2_user = models.ForeignKey(User)
-    email = models.EmailField()
 
 
 class AbstractRelic(models.Model):
@@ -45,6 +39,19 @@ class AbstractRelic(models.Model):
 
 class OTM1ModelRelic(AbstractRelic):
     otm2_model_name = models.CharField(max_length=255)
+
+
+class OTM1UserRelic(AbstractRelic):
+    otm2_model_name = models.CharField(max_length=255,
+                                       default='user',
+                                       editable=False)
+    otm1_username = models.CharField(max_length=255)
+    email = models.EmailField()
+
+    def save(self, *args, **kwargs):
+        if not User.objects.filter(pk=self.otm2_model_id).exists():
+            raise Exception('User not found')
+        super(OTM1UserRelic, self).save(*args, **kwargs)
 
 
 class OTM1CommentRelic(AbstractRelic):

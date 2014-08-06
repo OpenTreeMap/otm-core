@@ -416,9 +416,9 @@ def save_user(migration_rules, user_hash, instance):
     (OTM1UserRelic
      .objects
      .get_or_create(instance=instance,
+                    otm2_model_id=user.pk,
+                    otm1_model_id=user_hash['pk'],
                     otm1_username=user_hash['fields']['username'],
-                    otm2_user=user,
-                    otm1_id=user_hash['pk'],
                     email=user_hash['fields']['email']))
 
 
@@ -562,7 +562,7 @@ class Command(InstanceDataCommand):
                 save_comment, migration_rules, dependency_ids),
         }
 
-        instance_relics = OTM1UserRelic.objects.filter(instance=instance)
+        user_relics = OTM1UserRelic.objects.filter(instance=instance)
         model_relics = (OTM1ModelRelic
                         .objects
                         .filter(instance=instance)
@@ -576,9 +576,7 @@ class Command(InstanceDataCommand):
         print("reading relics into memory...", end="")
         # depedency_ids is a cache of old pks to new pks, it is inflated
         # from database records for performance.
-        for relic in instance_relics.iterator():
-            dependency_ids['user'][relic.otm1_id] = relic.otm2_user_id
-        for relic in chain(model_relics, comment_relics):
+        for relic in chain(user_relics, model_relics, comment_relics):
             model_ids = dependency_ids[relic.otm2_model_name]
             model_ids[relic.otm1_model_id] = relic.otm2_model_id
         print("DONE")
