@@ -317,7 +317,8 @@ def save_threadedcomment(migration_rules, migration_event,
     # find relic/dependency id for the parent and set that.
     if model_dict['fields']['parent']:
         parent_relic = (OTM1CommentRelic.objects
-                        .get(otm1_model_id=model_dict['fields']['parent']))
+                        .get(instance=instance,
+                             otm1_model_id=model_dict['fields']['parent']))
         model.parent_id = parent_relic.otm2_model_id
 
     else:
