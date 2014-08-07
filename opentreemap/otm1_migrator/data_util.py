@@ -47,16 +47,15 @@ def dict_to_model(config, model_name, data_dict, instance):
 
     model = config[model_name]['model_class']()
 
-    identity = (lambda x: x)
-
     for field in (common_fields
                   .union(renamed_fields)
                   .union(dependency_fields.values())):
         transform_fn = (config[model_name]
                         .get('value_transformers', {})
-                        .get(field, identity))
+                        .get(field, None))
 
-        transformed_value = transform_fn(data_dict['fields'][field])
+        transformed_value = (transform_fn(data_dict['fields'][field])
+                             if transform_fn else data_dict['fields'][field])
         field = renamed_fields.get(field, field)
         if field in dependency_fields.values():
             field += '_id'
