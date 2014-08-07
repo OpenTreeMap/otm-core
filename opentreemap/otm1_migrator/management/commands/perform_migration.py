@@ -21,9 +21,11 @@ from treemap.models import User, Species, InstanceUser, Tree
 from treemap.management.util import InstanceDataCommand
 from treemap.images import save_uploaded_image
 
+from otm1_migrator import models
 from otm1_migrator.models import (OTM1UserRelic, OTM1ModelRelic,
-                                  OTM1CommentRelic)
-from otm1_migrator.data_util import hash_to_model, MigrationException
+                                  OTM1CommentRelic, MigrationEvent)
+from otm1_migrator.data_util import (dict_to_model, MigrationException,
+                                     sanitize_username, uniquify_username)
 
 USERPHOTO_ARGS = ('-y', '--userphoto-path')
 
@@ -54,7 +56,7 @@ def save_model_with_user(migration_rules, model, instance):
     return model
 
 
-def overwrite_old_pks(migration_rules, model_hash, model_name, dependency_ids):
+def overwrite_old_pk(migration_rules, model_dict, model_name, relic_ids):
     dependencies = (migration_rules
                     .get(model_name, {})
                     .get('dependencies', {})
@@ -64,23 +66,26 @@ def overwrite_old_pks(migration_rules, model_hash, model_name, dependency_ids):
     # their corresponding otm2 pks
     if dependencies:
         for name, field in dependencies:
-            old_id = model_hash['fields'][field]
+            old_id = model_dict['fields'][field]
             if old_id:
-                old_id_to_new_id = dependency_ids[name]
+                old_id_to_new_id = relic_ids[name]
                 try:
                     new_id = old_id_to_new_id[old_id]
                 except KeyError:
                     raise MigrationException("Dependency not found. "
                                              "Have you imported %s yet?"
                                              % name)
-                model_hash['fields'][field] = new_id
+                model_dict['fields'][field] = new_id
 
 
+# TODO: this appears to have fallen out of sync with how species
+# is modeled.
 @atomic
-def save_species(migration_rules, model_hash, instance):
+def save_species(migration_rules, migration_event,
+                 model_dict, instance):
     # Does this species already exist?
     genus, species, cultivar, other = [
-        model_hash['fields'].get(thing, '')
+        model_dict['fields'].get(thing, '')
         for thing in ['genus', 'species', 'cultivar', 'other_part_of_name']]
 
     existingspecies = Species.objects.filter(genus=genus,
@@ -90,7 +95,8 @@ def save_species(migration_rules, model_hash, instance):
 
     relicinfo = {
         'instance': instance,
-        'otm1_model_id': model_hash['pk'],
+        'migration_event': migration_event,
+        'otm1_model_id': model_dict['pk'],
         'otm2_model_name': 'species'
     }
 
@@ -103,8 +109,8 @@ def save_species(migration_rules, model_hash, instance):
 
     if len(existingspecies) == 0:
 
-        model = hash_to_model(migration_rules,
-                              'species', model_hash,
+        model = dict_to_model(migration_rules,
+                              'species', model_dict,
                               instance)
 
         for sp in SPECIES:
@@ -132,24 +138,27 @@ def save_species(migration_rules, model_hash, instance):
 
 
 @atomic
-def save_other_with_user(migration_rules, model_name, model_hash, instance):
+def save_other_with_user(migration_rules, migration_event,
+                         model_name, model_dict, instance):
 
-    model = hash_to_model(migration_rules,
-                          model_name, model_hash,
+    model = dict_to_model(migration_rules,
+                          model_name, model_dict,
                           instance)
 
     model = save_model_with_user(migration_rules, model, instance)
 
-    OTM1ModelRelic.objects.get_or_create(
+    OTM1ModelRelic.objects.create(
         instance=instance,
-        otm1_model_id=model_hash['pk'],
+        migration_event=migration_event,
+        otm1_model_id=model_dict['pk'],
         otm2_model_name=model_name,
         otm2_model_id=model.pk)
     return model
 
 
 @atomic
-def process_userprofile(photo_basepath, model_hash, instance):
+def process_userprofile(migration_rules, migration_event,
+                        photo_basepath, model_dict, instance):
     """
     Read the otm1 user photo off userprofile fixture, load the file,
     create storage-backed image and thumbnail, attach to user.
@@ -162,11 +171,11 @@ def process_userprofile(photo_basepath, model_hash, instance):
     * "migrate" userprofile using this migrator
       with photo_path matching local.
     """
-    photo_path = model_hash['fields']['photo']
+    photo_path = model_dict['fields']['photo']
     if not photo_path:
         return None
 
-    user = User.objects.get(pk=model_hash['fields']['user'])
+    user = User.objects.get(pk=model_dict['fields']['user'])
 
     photo_full_path = os.path.join(photo_basepath, photo_path)
     try:
@@ -179,45 +188,51 @@ def process_userprofile(photo_basepath, model_hash, instance):
         photo_data, "user-%s" % user.pk, thumb_size=(85, 85))
     user.save()
 
-    # cannot save a relic because unlike other models, we're not going
-    # to ever put a UserProfile in the otm2 database, so there'll be
-    # no otm2_model_id(required) to bind it to.
+    OTM1ModelRelic.objects.create(instance=instance,
+                                  migration_event=migration_event,
+                                  otm1_model_id=model_dict['pk'],
+                                  otm2_model_name='userprofile',
+                                  otm2_model_id=models.UNBOUND_MODEL_ID)
+    return None
 
 
 @atomic
-def save_treephoto(migration_rules, treephoto_path, model_hash, instance):
-    model = hash_to_model(migration_rules,
-                          'treephoto', model_hash,
+def save_treephoto(migration_rules, migration_event,
+                   treephoto_path, model_dict, instance):
+    model = dict_to_model(migration_rules,
+                          'treephoto', model_dict,
                           instance)
 
     image = open(os.path.join(treephoto_path,
-                              model_hash['fields']['photo']))
+                              model_dict['fields']['photo']))
     model.set_image(image)
     model.map_feature_id = Tree.objects.values_list('plot__id', flat=True)\
                                        .get(pk=model.tree_id)
 
-    del model_hash['fields']['photo']
+    del model_dict['fields']['photo']
 
     model = save_model_with_user(migration_rules, model, instance)
 
-    OTM1ModelRelic.objects.get_or_create(
+    OTM1ModelRelic.objects.create(
         instance=instance,
-        otm1_model_id=model_hash['pk'],
+        migration_event=migration_event,
+        otm1_model_id=model_dict['pk'],
         otm2_model_name='treephoto',
         otm2_model_id=model.pk)
     return model
 
 
 @atomic
-def save_audit(migration_rules, dependency_ids, model_hash, instance):
-    model = hash_to_model(migration_rules, 'audit', model_hash, instance)
-    fields = model_hash['fields']
+def save_audit(migration_rules, migration_event,
+               relic_ids, model_dict, instance):
+    model = dict_to_model(migration_rules, 'audit', model_dict, instance)
+    fields = model_dict['fields']
 
     # update the object_id
     audit_object_relic = OTM1ModelRelic.objects.get(
         instance=instance,
-        otm2_model_name__iexact=model_hash['fields']['model'],
-        otm1_model_id=model_hash['fields']['model_id'])
+        otm2_model_name__iexact=model_dict['fields']['model'],
+        otm1_model_id=model_dict['fields']['model_id'])
     model.model_id = audit_object_relic.otm2_model_id
 
     if ((fields['field'] == 'id' and
@@ -231,28 +246,31 @@ def save_audit(migration_rules, dependency_ids, model_hash, instance):
     # serializing them.
     OTM1ModelRelic.objects.create(
         instance=instance,
-        otm1_model_id=model_hash['pk'],
+        migration_event=migration_event,
+        otm1_model_id=model_dict['pk'],
         otm2_model_name='audit',
         otm2_model_id=model.pk)
+    return model
 
 
 @atomic
-def save_comment(migration_rules, dependency_ids, model_hash, instance):
-    model = hash_to_model(migration_rules,
-                          'comment', model_hash,
+def save_comment(migration_rules, migration_event,
+                 relic_ids, model_dict, instance):
+    model = dict_to_model(migration_rules,
+                          'comment', model_dict,
                           instance)
 
     model.site_id = 1
 
-    if model.content_type_id == -1:
+    if model.content_type_id == models.UNBOUND_MODEL_ID:
         print("Can't import comment %s because "
               "it is assigned to a ContentType (model) "
               "that does not exist in OTM2 .. SKIPPING"
               % model.comment)
         return None
 
-    old_object_id = int(model_hash['fields']['object_pk'])
-    new_object_id = dependency_ids[model.content_type.model][old_object_id]
+    old_object_id = int(model_dict['fields']['object_pk'])
+    new_object_id = relic_ids[model.content_type.model][old_object_id]
 
     # object_id is called object_pk in later versions
     model.object_pk = new_object_id
@@ -261,23 +279,24 @@ def save_comment(migration_rules, dependency_ids, model_hash, instance):
 
     OTM1CommentRelic.objects.create(
         instance=instance,
-        otm1_model_id=model_hash['pk'],
+        migration_event=migration_event,
+        otm1_model_id=model_dict['pk'],
         otm2_model_id=model.pk)
 
     return model
 
 
 @atomic
-def save_threadedcomment(
-        migration_rules, dependency_ids, model_hash, instance):
+def save_threadedcomment(migration_rules, migration_event,
+                         relic_ids, model_dict, instance):
 
-    model = hash_to_model(migration_rules,
-                          'threadedcomment', model_hash,
+    model = dict_to_model(migration_rules,
+                          'threadedcomment', model_dict,
                           instance)
 
     model.site_id = 1
 
-    if model.content_type_id == -1:
+    if model.content_type_id == models.UNBOUND_MODEL_ID:
         print("Can't import threadedcomment %s because "
               "it is assigned to a ContentType (model) "
               "that does not exist in OTM2 .. SKIPPING"
@@ -285,15 +304,21 @@ def save_threadedcomment(
         return None
     model.save()
 
-    old_object_id = model_hash['fields']['object_id']
-    new_object_id = dependency_ids[model.content_type.model][old_object_id]
+    old_object_id = model_dict['fields']['object_id']
+    try:
+        new_object_id = relic_ids[model.content_type.model][old_object_id]
+    except KeyError:
+        raise MigrationException("threadedcomment dependency not met. "
+                                 "did you import %s yet?"
+                                 % model.content_type.model)
     # object_id is called object_pk in later versions
     model.object_pk = new_object_id
 
     # find relic/dependency id for the parent and set that.
-    if model_hash['fields']['parent']:
+    if model_dict['fields']['parent']:
         parent_relic = (OTM1CommentRelic.objects
-                        .get(otm1_model_id=model_hash['fields']['parent']))
+                        .get(instance=instance,
+                             otm1_model_id=model_dict['fields']['parent']))
         model.parent_id = parent_relic.otm2_model_id
 
     else:
@@ -303,27 +328,30 @@ def save_threadedcomment(
 
     if ((parent_relic and
          parent_relic.otm1_last_child_id is not None and
-         parent_relic.otm1_last_child_id == model_hash['pk'])):
+         parent_relic.otm1_last_child_id == model_dict['pk'])):
         parent = parent_relic.summon()
         parent.last_child = model.pk
         parent.save()
 
     OTM1CommentRelic.objects.create(
         instance=instance,
-        otm1_model_id=model_hash['pk'],
+        migration_event=migration_event,
+        otm1_model_id=model_dict['pk'],
         otm2_model_id=model.pk,
-        otm1_last_child_id=model_hash['fields'].get('last_child', None))
+        otm1_last_child_id=model_dict['fields'].get('last_child', None))
 
     return model
 
 
-def make_contenttype_relics(model_hash, instance):
+@atomic
+def make_contenttype_relics(migration_rules, migration_event,
+                            model_dict, instance):
     """
     There must be a relic for ContentType because comments use them
     as foreign keys. However, unlike other migrations, there's no
     need to save the them, because they exist already.
     """
-    fields = model_hash['fields']
+    fields = model_dict['fields']
 
     # user is a special case - it's auth.user in otm1
     # and treemap.user in otm2
@@ -340,39 +368,25 @@ def make_contenttype_relics(model_hash, instance):
 
         # set the content_type_id to a special number so a model's
         # conten_type can be validated before trying to import it.
-        content_type_id = -1
+        content_type_id = models.UNBOUND_MODEL_ID
 
-    OTM1ModelRelic.objects.get_or_create(instance=instance,
-                                         otm1_model_id=model_hash['pk'],
-                                         otm2_model_name='contenttype',
-                                         otm2_model_id=content_type_id)
-
-
-def _uniquify_username(username):
-    username_template = '%s_%%d' % username
-    i = 0
-    while User.objects.filter(username=username).exists():
-        username = username_template % i
-        i += 1
-
-    return username
-
-
-def _sanitize_username(username):
-    # yes, there was actually a user with newlines
-    # in their username
-    return (username
-            .replace(' ', '_')
-            .replace('\n', ''))
+    OTM1ModelRelic.objects.create(instance=instance,
+                                  migration_event=migration_event,
+                                  otm1_model_id=model_dict['pk'],
+                                  otm2_model_name='contenttype',
+                                  otm2_model_id=content_type_id)
+    return None
 
 
 @atomic
-def save_boundary(migration_rules, model_hash, instance):
-    model = hash_to_model(migration_rules, 'boundary', model_hash, instance)
+def save_boundary(migration_rules, migration_event,
+                  model_dict, instance):
+    model = dict_to_model(migration_rules, 'boundary', model_dict, instance)
     model.save()
-    OTM1ModelRelic.objects.get_or_create(
+    OTM1ModelRelic.objects.create(
         instance=instance,
-        otm1_model_id=model_hash['pk'],
+        migration_event=migration_event,
+        otm1_model_id=model_dict['pk'],
         otm2_model_name='boundary',
         otm2_model_id=model.pk)
 
@@ -381,7 +395,7 @@ def save_boundary(migration_rules, model_hash, instance):
 
 
 @atomic
-def save_user(migration_rules, user_hash, instance):
+def save_user(migration_rules, migration_event, user_dict, instance):
     """
     Save otm1 user record into otm2.
 
@@ -390,61 +404,58 @@ def save_user(migration_rules, user_hash, instance):
     enough to query for all users that have a different username than
     the one stored in their relic and take further action as necessary.
     """
-    user = hash_to_model(migration_rules, 'user', user_hash, instance)
-
     # don't save another user if this email address already exists.
     # just observe and report
-    duplicate_email_qs = User.objects.filter(email__iexact=user.email)
-    if duplicate_email_qs.exists():
-        user = duplicate_email_qs[0]
+    users_with_this_email = User.objects.filter(
+        email__iexact=user_dict['fields']['email'])
+    if users_with_this_email.exists():
+        user = users_with_this_email[0]
     else:
         # replace spaces in the username.
         # then, if the sanitized username already exists,
         # uniquify it. This transformation order is important.
         # uniquification must happen as the last step.
-        user.username = _uniquify_username(_sanitize_username(user.username))
+        user = dict_to_model(migration_rules, 'user', user_dict, instance)
+        user.username = uniquify_username(sanitize_username(user.username))
         user.save()
 
     try:
-        InstanceUser.objects.get(instance=instance,
-                                 user=user)
+        InstanceUser.objects.get(instance=instance, user=user)
     except InstanceUser.DoesNotExist:
         InstanceUser.objects.create(instance=instance,
                                     user=user,
                                     role=instance.default_role)
 
-    (OTM1UserRelic
-     .objects
-     .get_or_create(instance=instance,
-                    otm1_username=user_hash['fields']['username'],
-                    otm2_user=user,
-                    otm1_id=user_hash['pk'],
-                    email=user_hash['fields']['email']))
+    relic = OTM1UserRelic(instance=instance,
+                          migration_event=migration_event,
+                          otm2_model_id=user.pk,
+                          otm1_model_id=user_dict['pk'],
+                          otm1_username=user_dict['fields']['username'],
+                          email=user_dict['fields']['email'])
+    relic.save()
+    return user
 
 
-def hashes_to_saved_objects(
-        migration_rules, model_name, model_hashes, dependency_ids,
-        model_save_fn, instance, message_receiver=None):
+def save_objects(migration_rules, model_name, model_dicts, relic_ids,
+                 model_save_fn, instance, message_receiver=None):
 
-    model_key_map = dependency_ids.get(model_name, {})
+    model_key_map = relic_ids.get(model_name, {})
     # the model_key_map will be filled from the
     # database each time. combined with this statement,
     # the command becomes idempotent
-    hashes_to_save = (hash for hash in model_hashes
-                      if hash['pk'] not in model_key_map)
+    dicts_to_save = (dict for dict in model_dicts
+                     if dict['pk'] not in model_key_map)
 
-    for model_hash in hashes_to_save:
-        try:
-            overwrite_old_pks(
-                migration_rules, model_hash, model_name, dependency_ids)
-            model = model_save_fn(model_hash, instance)
+    for model_dict in dicts_to_save:
+        overwrite_old_pk(
+            migration_rules, model_dict, model_name, relic_ids)
+        model = model_save_fn(model_dict, instance)
 
-            if model_key_map is not None and model and model.pk:
-                if callable(message_receiver):
-                    message_receiver("saved model: %s" % model.pk)
-                model_key_map[model_hash['pk']] = model.pk
-        except Exception:
-            raise
+        if model_key_map is not None and model and model.pk:
+            if callable(message_receiver):
+                message_receiver("saved model: %s - %s" %
+                                 (model_name, model.pk))
+            model_key_map[model_dict['pk']] = model.pk
 
 
 def make_model_option(migration_rules, model):
@@ -507,17 +518,11 @@ class Command(InstanceDataCommand):
                 if not options.get(k, None):
                     options[k] = v
 
-        if options['instance']:
-            # initialize system_user??
-            instance, _ = self.setup_env(*args, **options)
-        else:
-            self.stdout.write('Invalid instance provided.')
-            return 1
-
         rule_module = (options['rule_module'] or
                        'otm1_migrator.migration_rules.standard_otm1')
         migration_mod = importlib.import_module(rule_module)
         migration_rules = migration_mod.MIGRATION_RULES
+        model_order = migration_mod.MODEL_ORDER
 
         # user photos live on userprofile in otm1
         userphoto_path = options.get('userphoto_path', None)
@@ -540,29 +545,44 @@ class Command(InstanceDataCommand):
             raise MigrationException('Must specify the tree photo path to '
                                      'import photo')
 
-        # TODO: don't call this dependency anymore.
-        # It's an idempotency checker too.
-        dependency_ids = {model: {} for model in migration_rules}
+        ################################################
+        # BEGIN SIDE EFFECTS
+        ################################################
+
+        migration_event = MigrationEvent.objects.create()
+
+        if options['instance']:
+            # initialize system_user??
+            instance, _ = self.setup_env(*args, **options)
+        else:
+            migration_event.status = MigrationEvent.FAILURE
+            migration_event.save()
+            self.stdout.write('Invalid instance provided.')
+            return 1
+
+        relic_ids = {model: {} for model in migration_rules}
+
+        def default_partial(fn, *args):
+            return partial(fn, migration_rules, migration_event, *args)
 
         # TODO: should this be merged into MIGRATION_RULES?
         save_fns = {
-            'boundary': partial(save_boundary, migration_rules),
-            'user': partial(save_user, migration_rules),
-            'audit': partial(save_audit, migration_rules, dependency_ids),
-            'species': partial(save_species, migration_rules),
-            'plot': partial(save_other_with_user, migration_rules, 'plot'),
-            'tree': partial(save_other_with_user, migration_rules, 'tree'),
-            'treephoto': partial(
-                save_treephoto, migration_rules, treephoto_path),
-            'contenttype': make_contenttype_relics,
-            'userprofile': partial(process_userprofile, userphoto_path),
-            'threadedcomment': partial(
-                save_threadedcomment, migration_rules, dependency_ids),
-            'comment': partial(
-                save_comment, migration_rules, dependency_ids),
+            'boundary': default_partial(save_boundary),
+            'user': default_partial(save_user),
+            'audit': default_partial(save_audit, relic_ids),
+            'species': default_partial(save_species),
+            'plot': default_partial(save_other_with_user, 'plot'),
+            'tree': default_partial(save_other_with_user, 'tree'),
+            'treephoto': default_partial(save_treephoto, treephoto_path),
+            'contenttype': default_partial(make_contenttype_relics),
+            'userprofile': default_partial(process_userprofile,
+                                           userphoto_path),
+            'threadedcomment': default_partial(save_threadedcomment,
+                                               relic_ids),
+            'comment': default_partial(save_comment, relic_ids),
         }
 
-        instance_relics = OTM1UserRelic.objects.filter(instance=instance)
+        user_relics = OTM1UserRelic.objects.filter(instance=instance)
         model_relics = (OTM1ModelRelic
                         .objects
                         .filter(instance=instance)
@@ -573,46 +593,60 @@ class Command(InstanceDataCommand):
                           .filter(instance=instance)
                           .iterator())
 
-        print("reading relics into memory...", end="")
+        def _rpad_string(desired_length, pad_char, string):
+            return string + (desired_length - len(string)) * pad_char
+
+        self.stdout.write(_rpad_string(50, ".", "Reading relics into memory"))
         # depedency_ids is a cache of old pks to new pks, it is inflated
         # from database records for performance.
-        for relic in instance_relics.iterator():
-            dependency_ids['user'][relic.otm1_id] = relic.otm2_user_id
-        for relic in chain(model_relics, comment_relics):
-            model_ids = dependency_ids[relic.otm2_model_name]
-            model_ids[relic.otm1_model_id] = relic.otm2_model_id
-        print("DONE")
+        for relic in chain(user_relics, model_relics, comment_relics):
+            model = relic.otm2_model_name
+            otm1_id = relic.otm1_model_id
+            relic_ids[model][otm1_id] = relic.otm2_model_id
+        self.stdout.write(_rpad_string(50, ".",
+                                       "Done reading relics into memory"))
 
-        def _get_json_hash(model_name):
+        def _get_json_dict(model_name):
             """
             look for fixtures of the form '<model>_fixture' that
             were passed in as command line args and load them as
             python objects
             """
             option_name = model_name + '_fixture'
-            self.stdout.write("trying '%s' ... " % option_name)
             if options[option_name] and os.path.exists(options[option_name]):
                 model_file = open(options[option_name], 'r')
-                self.stdout.write("Loaded fixtures '%s' ... SUCCESS"
-                                  % option_name)
-                json_hash = json.load(model_file)
+                self.stdout.write(
+                    "%sSUCCESS" %
+                    _rpad_string(50, ".",
+                                 "Loaded fixture '%s'" % option_name))
+                json_dict = json.load(model_file)
                 model_file.close()
             else:
-                self.stdout.write('No valid %s fixture provided ... SKIPPING'
-                                  % model_name)
-                json_hash = None
-            return json_hash
+                self.stdout.write(
+                    "%sSKIPPING" %
+                    _rpad_string(50, ".",
+                                 "No valid '%s' fixture " % model_name))
+                json_dict = None
+            return json_dict
 
-        for model in migration_rules:
-            json_hash = _get_json_hash(model)
-            if json_hash:
-                # hashes must be sorted by pk for the case of models
+        for model in model_order:
+            json_dict = _get_json_dict(model)
+            if json_dict:
+                # dicts must be sorted by pk for the case of models
                 # that have foreign keys to themselves
-                sorted_hashes = sorted(json_hash,
-                                       key=operator.itemgetter('pk'))
-                hashes_to_saved_objects(migration_rules,
-                                        model, sorted_hashes,
-                                        dependency_ids,
-                                        save_fns[model],
-                                        instance,
-                                        message_receiver=print)
+                sorted_dicts = sorted(json_dict,
+                                      key=operator.itemgetter('pk'))
+                try:
+                    save_objects(migration_rules,
+                                 model, sorted_dicts,
+                                 relic_ids,
+                                 save_fns[model],
+                                 instance,
+                                 message_receiver=print)
+                except MigrationException:
+                    migration_event.status = MigrationEvent.FAILURE
+                    migration_event.save()
+                    raise
+
+        migration_event.status = MigrationEvent.SUCCESS
+        migration_event.save()

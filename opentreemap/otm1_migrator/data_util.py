@@ -1,3 +1,4 @@
+from treemap.models import User
 from treemap.audit import model_hasattr
 
 
@@ -5,7 +6,7 @@ class MigrationException(Exception):
     pass
 
 
-def validate_model_dict(config, model_name, data_hash):
+def validate_model_dict(config, model_name, data_dict):
     """
     Makes sure the fields specified in the config global
     account for all of the provided data
@@ -23,7 +24,7 @@ def validate_model_dict(config, model_name, data_hash):
                        undecided_fields |
                        dependency_fields)
 
-    provided_fields = set(data_hash['fields'].keys())
+    provided_fields = set(data_dict['fields'].keys())
 
     if expected_fields != provided_fields:
         raise Exception('model validation failure. \n\n'
@@ -35,13 +36,13 @@ def validate_model_dict(config, model_name, data_hash):
                            symmetric_difference(provided_fields)))
 
 
-def hash_to_model(config, model_name, data_hash, instance):
+def dict_to_model(config, model_name, data_dict, instance):
     """
     Takes a model specified in the config global and a
-    hash of json data and attempts to populate a django
+    dict of json data and attempts to populate a django
     model. Does not save.
     """
-    validate_model_dict(config, model_name, data_hash)
+    validate_model_dict(config, model_name, data_dict)
 
     common_fields = config[model_name].get('common_fields', set())
     renamed_fields = config[model_name].get('renamed_fields', {})
@@ -58,7 +59,7 @@ def hash_to_model(config, model_name, data_hash, instance):
                         .get('value_transformers', {})
                         .get(field, identity))
 
-        transformed_value = transform_fn(data_hash['fields'][field])
+        transformed_value = transform_fn(data_dict['fields'][field])
         field = renamed_fields.get(field, field)
         if field in dependency_fields.values():
             field += '_id'
@@ -69,6 +70,24 @@ def hash_to_model(config, model_name, data_hash, instance):
         model.instance = instance
 
     for mutator in config[model_name].get('record_mutators', []):
-        mutator(model, data_hash['fields'])
+        mutator(model, data_dict['fields'])
 
     return model
+
+
+def uniquify_username(username):
+    username_template = '%s_%%d' % username
+    i = 0
+    while User.objects.filter(username=username).exists():
+        username = username_template % i
+        i += 1
+
+    return username
+
+
+def sanitize_username(username):
+    # yes, there was actually a user with newlines
+    # in their username
+    return (username
+            .replace(' ', '_')
+            .replace('\n', ''))

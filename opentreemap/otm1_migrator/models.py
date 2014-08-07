@@ -10,16 +10,24 @@ from django.contrib.contenttypes.models import ContentType
 
 from treemap.models import Instance, User
 
+UNBOUND_MODEL_ID = -1
 
-class OTM1UserRelic(models.Model):
-    instance = models.ForeignKey(Instance)
-    otm1_username = models.CharField(max_length=255)
-    otm1_id = models.IntegerField()
-    otm2_user = models.ForeignKey(User)
-    email = models.EmailField()
+
+class MigrationEvent(models.Model):
+    SUCCESS = 0
+    FAILURE = 1
+    created = models.DateTimeField(auto_now_add=True,
+                                   editable=False)
+    completed = models.DateTimeField(auto_now=True,
+                                     editable=False)
+    status = models.IntegerField(null=True, blank=True,
+                                 choices=((SUCCESS, 'SUCCESS'),
+                                          (FAILURE, 'FAILURE')))
 
 
 class AbstractRelic(models.Model):
+    migration_event = models.ForeignKey(MigrationEvent,
+                                        null=True, blank=True)
     instance = models.ForeignKey(Instance)
     otm1_model_id = models.IntegerField()
     otm2_model_id = models.IntegerField()
@@ -45,6 +53,19 @@ class AbstractRelic(models.Model):
 
 class OTM1ModelRelic(AbstractRelic):
     otm2_model_name = models.CharField(max_length=255)
+
+
+class OTM1UserRelic(AbstractRelic):
+    otm2_model_name = models.CharField(max_length=255,
+                                       default='user',
+                                       editable=False)
+    otm1_username = models.CharField(max_length=255)
+    email = models.EmailField()
+
+    def save(self, *args, **kwargs):
+        if not User.objects.filter(pk=self.otm2_model_id).exists():
+            raise Exception('User not found')
+        super(OTM1UserRelic, self).save(*args, **kwargs)
 
 
 class OTM1CommentRelic(AbstractRelic):

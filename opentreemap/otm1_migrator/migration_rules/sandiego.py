@@ -3,6 +3,8 @@ from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.gdal.error import OGRException
 
 from otm1_migrator.migration_rules.standard_otm1 import MIGRATION_RULES
+from otm1_migrator.migration_rules import standard_otm1
+
 
 udfs = {
     'plot': {
@@ -86,3 +88,4 @@ def transform_geometry(geometry_wkt):
         return bad_geom.transform(SpatialReference(4326), clone=True)
 
 MIGRATION_RULES['plot']['value_transformers']['geometry'] = transform_geometry
+MODEL_ORDER = standard_otm1.MODEL_ORDER

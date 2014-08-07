@@ -178,3 +178,8 @@ MIGRATION_RULES = {
                            'last_child'}
     }
 }
+
+PRIORITY_ORDER = ['user', 'contenttype', 'species', 'plot']
+MODEL_ORDER = (PRIORITY_ORDER +
+               [model for model in MIGRATION_RULES
+                if model not in PRIORITY_ORDER])
