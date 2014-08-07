@@ -13,7 +13,7 @@ require('utfgrid');
 require('leafletbing');
 require('leafletgoogle');
 
-var MapManager = function() {}  // constructor
+var MapManager = function() {};  // constructor
 
 MapManager.prototype = {
     ZOOM_DEFAULT: 11,
@@ -44,9 +44,9 @@ MapManager.prototype = {
         map.addLayer(utfLayer);
 
         if (options.trackZoomLatLng) {
-            map.on("moveend", _.bind(serializeZoomLatLngFromMap, this));
+            map.on("moveend", _.partial(serializeZoomLatLngFromMap, map));
             mapState.stateChangeStream.filter('.zoomLatLng')
-                .onValue(_.bind(deserializeZoomLatLngAndSetOnMap, this));
+                .onValue(_.partial(deserializeZoomLatLngAndSetOnMap, this));
         }
 
         return map;
@@ -126,7 +126,7 @@ MapManager.prototype = {
     setCenterLL: function(location, reset) {
         this.setCenterAndZoomLL(this.ZOOM_PLOT, location, reset);
     }
-}
+};
 
 function getBasemapLayers(config) {
     function makeBingLayer(layer) {
@@ -214,15 +214,15 @@ function createBoundsTileLayer(config) {
         { maxZoom: 20 });
 }
 
-function deserializeZoomLatLngAndSetOnMap (state) {
+function deserializeZoomLatLngAndSetOnMap(mapManager, state) {
     var zll = state.zoomLatLng,
         center = new L.LatLng(zll.lat, zll.lng);
-    this.setCenterAndZoomLL(zll.zoom, center);
+    mapManager.setCenterAndZoomLL(zll.zoom, center);
 }
 
-function serializeZoomLatLngFromMap () {
-    var zoom = this.map.getZoom(),
-        center = this.map.getCenter();
+function serializeZoomLatLngFromMap(map) {
+    var zoom = map.getZoom(),
+        center = map.getCenter();
     mapState.setZoomLatLng(zoom, center);
 }
 
