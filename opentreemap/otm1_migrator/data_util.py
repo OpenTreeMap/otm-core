@@ -16,12 +16,9 @@ def validate_model_dict(config, model_name, data_dict):
     removed_fields = config[model_name].get('removed_fields', set())
     dependency_fields = set(config[model_name]
                             .get('dependencies', {}).values())
-    undecided_fields = (config[model_name]
-                        .get('undecided_fields', set()))
     expected_fields = (common_fields |
                        renamed_fields |
                        removed_fields |
-                       undecided_fields |
                        dependency_fields)
 
     provided_fields = set(data_dict['fields'].keys())

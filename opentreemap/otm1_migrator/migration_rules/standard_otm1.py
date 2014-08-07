@@ -19,9 +19,6 @@ from django.contrib.gis.geos import fromstr
 # renamed_fields:     a mapping where keys are fields in the provided data
 #                     and values are their names in the otm2 model.
 #
-# undecided_fields:   fields that we're not sure what to do with. These should
-#                     be resolved into other categories before this is used
-#                     for a production migration.
 # removed_fields:     fields in the provided data that will be discarded.
 #
 # missing_fields:     fields in the otm2 django model that are not provided.
@@ -60,7 +57,6 @@ MIGRATION_RULES = {
         'common_fields': {'readonly', 'canopy_height',
                           'date_planted', 'date_removed', 'height'},
         'renamed_fields': {'dbh': 'diameter'},
-        'undecided_fields': set(),
         'removed_fields': {'tree_owner', 'steward_name', 'sponsor',
                            'species_other1', 'species_other2',
                            'orig_species', 'present', 'last_updated',
@@ -93,7 +89,6 @@ MIGRATION_RULES = {
         'common_fields': {'width', 'length', 'address_street', 'address_zip',
                           'address_city', 'owner_orig_id', 'readonly'},
         'renamed_fields': {'geometry': 'geom'},
-        'undecided_fields': set(),
         'removed_fields': {'type', 'powerline_conflict_potential',
                            'sidewalk_damage', 'neighborhood',
                            'neighborhoods', 'zipcode', 'geocoded_accuracy',
