@@ -3,7 +3,7 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     inlineEditForm = require('treemap/inlineEditForm'),
-    mapManager = require('treemap/mapManager'),
+    MapManager = require('treemap/MapManager'),
     BU = require('treemap/baconUtils'),
     Bacon = require('baconjs'),
     U = require('treemap/utility'),
@@ -120,11 +120,12 @@ exports.init = function(options) {
         }
     }
 
-    mapManager.init({
+    var mapManager = new MapManager();
+    mapManager.createTreeMap({
         config: options.config,
-        selector: '#map',
+        domId: 'map',
         disableScrollWithMouseWheel: true,
-        center: options.location.point,
+        centerWM: options.location.point,
         zoom: mapManager.ZOOM_PLOT
     });
 

@@ -7,7 +7,8 @@ var $ = require('jquery'),
     L = require('leaflet'),
     csrf = require('treemap/csrf'),
 
-    mapManager = require('treemap/mapManager'),
+    MapManager = require('treemap/MapManager'),
+    mapManager = new MapManager(),
     addTreeModeName = require('treemap/addTreeMode').name,
     addResourceModeName = require('treemap/addResourceMode').name,
     mapState = require('treemap/mapState'),
@@ -42,25 +43,17 @@ function changeMode (modeName) {
     }
 }
 
-function deserializeZoomLatLngAndSetOnMap (state) {
-    var zll = state.zoomLatLng,
-        center = new L.LatLng(zll.lat, zll.lng);
-    mapManager.setCenterAndZoomLL(zll.zoom, center);
-}
-
-function serializeZoomLatLngFromMap () {
-    var zoom = mapManager.map.getZoom(),
-        center = mapManager.map.getCenter();
-    mapState.setZoomLatLng(zoom, center);
-}
-
 module.exports = {
     initMapPage: function (config) {
 
         var triggerSearchFromSidebar = new Bacon.Bus();
 
         // init mapManager before searchBar so that .setCenterWM is set
-        mapManager.init({ config: config, selector: '#map' });
+        mapManager.createTreeMap({
+            config: config,
+            domId: 'map',
+            trackZoomLatLng: true
+        });
 
 
         // When there is a single geocode result (either by an exact match
@@ -68,11 +61,7 @@ module.exports = {
         // if the map is not already zoomed in.
         var bar = SearchBar.init(config);
 
-        bar.geocodedLocationStream.onValue(mapManager.setCenterWM);
-
-        var zoomLatLngStream = mapState.stateChangeStream.filter('.zoomLatLng');
-
-        zoomLatLngStream.onValue(deserializeZoomLatLngAndSetOnMap);
+        bar.geocodedLocationStream.onValue(mapManager, 'setCenterWM');
 
         var triggeredQueryStream =
             Bacon.mergeAll(
@@ -114,10 +103,10 @@ module.exports = {
         $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
 
-        mapManager.map.on("moveend", serializeZoomLatLngFromMap);
-
-        Search.init(ecoBenefitsSearchEvents, config, mapManager.setFilter);
-
+        Search.init(
+            ecoBenefitsSearchEvents,
+            config,
+            _.bind(mapManager.setFilter, mapManager));
 
         boundarySelect.init({
             config: config,

@@ -44,7 +44,7 @@
       })(window,document,'script','dataLayer','GTM-{{ settings.GOOGLE_ANALYTICS_ID }}');</script>
     <!-- End Google Tag Manager -->
     {% endif %}
-    <div class="wrapper">
+    <div {% block outermost_atts %}{% endblock outermost_atts %} class="wrapper">
       {% block topnav %}
       <!-- Top Nav -->
       <div class="navbar navbar-inverse navbar-fixed-top">

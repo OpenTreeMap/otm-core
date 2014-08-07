@@ -1,0 +1,11 @@
+{% load i18n %}
+
+<!--Species Search-->
+<div class="search-block visible-md visible-lg">
+  <h3>{% trans "Search by Species" %}</h3>
+  <div class="search-field-group">
+    <a class="typeahead-toggle" id="species-toggle"><i class="icon-menu"></i></a>
+    <input type="text" data-class="search" id="species-typeahead" class="form-control" placeholder="Common or Scientific Name"/>
+    <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
+  </div>
+</div>
