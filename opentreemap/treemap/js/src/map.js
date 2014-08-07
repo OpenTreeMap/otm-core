@@ -43,25 +43,17 @@ function changeMode (modeName) {
     }
 }
 
-function deserializeZoomLatLngAndSetOnMap (state) {
-    var zll = state.zoomLatLng,
-        center = new L.LatLng(zll.lat, zll.lng);
-    mapManager.setCenterAndZoomLL(zll.zoom, center);
-}
-
-function serializeZoomLatLngFromMap () {
-    var zoom = mapManager.map.getZoom(),
-        center = mapManager.map.getCenter();
-    mapState.setZoomLatLng(zoom, center);
-}
-
 module.exports = {
     initMapPage: function (config) {
 
         var triggerSearchFromSidebar = new Bacon.Bus();
 
         // init mapManager before searchBar so that .setCenterWM is set
-        mapManager.createTreeMap({ config: config, domId: 'map' });
+        mapManager.createTreeMap({
+            config: config,
+            domId: 'map',
+            trackZoomLatLng: true
+        });
 
 
         // When there is a single geocode result (either by an exact match
@@ -70,10 +62,6 @@ module.exports = {
         var bar = SearchBar.init(config);
 
         bar.geocodedLocationStream.onValue(mapManager, 'setCenterWM');
-
-        var zoomLatLngStream = mapState.stateChangeStream.filter('.zoomLatLng');
-
-        zoomLatLngStream.onValue(deserializeZoomLatLngAndSetOnMap);
 
         var triggeredQueryStream =
             Bacon.mergeAll(
@@ -114,8 +102,6 @@ module.exports = {
 
         $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
-
-        mapManager.map.on("moveend", serializeZoomLatLngFromMap);
 
         Search.init(
             ecoBenefitsSearchEvents,

@@ -5,7 +5,8 @@ var $ = require('jquery'),
     L = require('leaflet'),
     U = require('treemap/utility'),
     BU = require('treemap/baconUtils'),
-    makeLayerFilterable = require('treemap/makeLayerFilterable');
+    makeLayerFilterable = require('treemap/makeLayerFilterable'),
+    mapState = require('treemap/mapState');
 
 // Leaflet extensions
 require('utfgrid');
@@ -41,6 +42,12 @@ MapManager.prototype = {
         map.addLayer(boundsLayer);
         map.addLayer(plotLayer);
         map.addLayer(utfLayer);
+
+        if (options.trackZoomLatLng) {
+            map.on("moveend", _.bind(serializeZoomLatLngFromMap, this));
+            mapState.stateChangeStream.filter('.zoomLatLng')
+                .onValue(_.bind(deserializeZoomLatLngAndSetOnMap, this));
+        }
 
         return map;
     },
@@ -205,6 +212,18 @@ function createBoundsTileLayer(config) {
     return L.tileLayer(
         getBoundsLayerURL(config, 'png'),
         { maxZoom: 20 });
+}
+
+function deserializeZoomLatLngAndSetOnMap (state) {
+    var zll = state.zoomLatLng,
+        center = new L.LatLng(zll.lat, zll.lng);
+    this.setCenterAndZoomLL(zll.zoom, center);
+}
+
+function serializeZoomLatLngFromMap () {
+    var zoom = this.map.getZoom(),
+        center = this.map.getCenter();
+    mapState.setZoomLatLng(zoom, center);
 }
 
 module.exports = MapManager;
