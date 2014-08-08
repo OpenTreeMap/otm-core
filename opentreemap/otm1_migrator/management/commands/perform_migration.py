@@ -469,7 +469,9 @@ def make_model_option(migration_rules, model):
 
 
 from otm1_migrator.migration_rules.standard_otm1 \
-    import MIGRATION_RULES as rules
+    import MIGRATION_RULES as RULES
+from otm1_migrator.migration_rules.standard_otm1 \
+    import MODEL_ORDER as ORDER
 
 
 class Command(InstanceDataCommand):
@@ -478,7 +480,7 @@ class Command(InstanceDataCommand):
         InstanceDataCommand.option_list +
 
         # add options for model fixtures
-        tuple(make_model_option(rules, model) for model in rules) +
+        tuple(make_model_option(RULES, model) for model in RULES) +
 
         # add other kinds of options
         (make_option('--config-file',
@@ -522,7 +524,14 @@ class Command(InstanceDataCommand):
                        'otm1_migrator.migration_rules.standard_otm1')
         migration_mod = importlib.import_module(rule_module)
         migration_rules = migration_mod.MIGRATION_RULES
-        model_order = migration_mod.MODEL_ORDER
+        try:
+            model_order = migration_mod.MODEL_ORDER
+        except AttributeError:
+            model_order = ORDER
+        try:
+            udfs = migration_mod.UDFS
+        except AttributeError:
+            udfs = {}
 
         # user photos live on userprofile in otm1
         userphoto_path = options.get('userphoto_path', None)
