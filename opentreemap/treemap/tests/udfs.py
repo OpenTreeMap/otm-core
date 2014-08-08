@@ -18,9 +18,12 @@ from treemap.tests import (make_instance, make_commander_user,
                            make_officer_user,
                            set_write_permissions)
 
+from treemap.lib.object_caches import role_permissions
+from treemap.lib.udf import udf_create
+
 from treemap.udf import UserDefinedFieldDefinition
-from treemap.models import Plot
-from treemap.audit import (AuthorizeException, FieldPermission,
+from treemap.models import (Plot, User)
+from treemap.audit import (AuthorizeException, FieldPermission, Role,
                            approve_or_reject_audit_and_apply,
                            approve_or_reject_audits_and_apply)
 from treemap.tests.base import OTMTestCase
@@ -1056,3 +1059,126 @@ class UdfDeleteTest(OTMTestCase):
         self.assertTrue(qs.exists())
         udf_def.delete()
         self.assertFalse(qs.exists())
+
+
+class UdfCRUTestCase(OTMTestCase):
+    def setUp(self):
+        User._system_user.save_base()
+
+        self.instance = make_instance()
+        self.user = make_commander_user(self.instance)
+
+        set_write_permissions(self.instance, self.user,
+                              'Plot', ['udf:Test choice'])
+
+        self.udf = UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'choice',
+                                 'choices': ['a', 'b', 'c']}),
+            iscollection=False,
+            name='Test choice')
+
+
+class UdfCreateTest(UdfCRUTestCase):
+    def test_create_non_choice_udf(self):
+        body = {'udf.name': 'cool udf',
+                'udf.model': 'Plot',
+                'udf.type': 'string'}
+
+        udf = udf_create(body, self.instance)
+        self.assertEqual(udf.instance_id, self.instance.pk)
+        self.assertEqual(udf.model_type, 'Plot')
+        self.assertEqual(udf.name, 'cool udf')
+        self.assertEqual(udf.datatype_dict['type'], 'string')
+
+    def test_adds_udf_to_role_when_created(self):
+        body = {'udf.name': 'cool udf',
+                'udf.model': 'Plot',
+                'udf.type': 'string'}
+
+        udf_create(body, self.instance)
+
+        roles_in_instance = Role.objects.filter(instance=self.instance)
+
+        self.assertGreater(len(roles_in_instance), 0)
+
+        for role in roles_in_instance:
+            perms = [perm.field_name
+                     for perm in role_permissions(role, self.instance)]
+
+            self.assertIn('udf:cool udf', perms)
+
+    def test_create_choice_udf(self):
+        body = {'udf.name': 'cool udf',
+                'udf.model': 'Plot',
+                'udf.type': 'choice',
+                'udf.choices': ['a', 'b', 'c']}
+
+        udf = udf_create(body, self.instance)
+
+        self.assertEqual(udf.instance_id, self.instance.pk)
+        self.assertEqual(udf.model_type, 'Plot')
+        self.assertEqual(udf.name, 'cool udf')
+        self.assertEqual(udf.datatype_dict['type'], 'choice')
+        self.assertEqual(udf.datatype_dict['choices'], ['a', 'b', 'c'])
+
+    def test_invalid_choice_list(self):
+        body = {'udf.name': 'cool udf',
+                'udf.model': 'Plot',
+                'udf.type': 'choice'}
+
+        self.assertRaises(ValidationError, udf_create, body, self.instance)
+
+        body = {'udf.name': 'cool udf',
+                'udf.model': 'Plot',
+                'udf.type': 'choice',
+                'udf.choices': ['', 'a']}
+
+        self.assertRaises(ValidationError, udf_create, body, self.instance)
+
+        body = {'udf.name': 'cool udf',
+                'udf.model': 'Plot',
+                'udf.type': 'choice',
+                'udf.choices': ['a', 'a']}
+
+        self.assertRaises(ValidationError, udf_create, body, self.instance)
+
+    def test_missing_params(self):
+        body = {'udf.model': 'Plot',
+                'udf.type': 'string',
+                'udf.choices': []}
+
+        self.assertRaises(ValidationError, udf_create, body, self.instance)
+
+        body = {'udf.name': 'cool udf',
+                'udf.type': 'string',
+                'udf.choices': []}
+
+        self.assertRaises(ValidationError, udf_create, body, self.instance)
+
+        body = {'udf.name': 'cool udf',
+                'udf.model': 'Plot'}
+
+        self.assertRaises(ValidationError, udf_create, body, self.instance)
+
+    def test_empty_name(self):
+        body = {'udf.name': '',
+                'udf.model': 'Plot',
+                'udf.type': 'string'}
+
+        self.assertRaises(ValidationError, udf_create, body, self.instance)
+
+    def test_duplicate_name(self):
+        body = {'udf.name': 'Test choice',
+                'udf.model': 'Plot',
+                'udf.type': 'string'}
+
+        self.assertRaises(ValidationError, udf_create, body, self.instance)
+
+    def test_invalid_model_name(self):
+        body = {'udf.name': 'Testing choice',
+                'udf.model': 'Shoe',
+                'udf.type': 'string'}
+
+        self.assertRaises(ValidationError, udf_create, body, self.instance)
