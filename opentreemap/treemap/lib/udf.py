@@ -8,6 +8,29 @@ from treemap.audit import Role, FieldPermission
 from treemap.udf import (UserDefinedFieldDefinition)
 
 
+def udf_exists(params, instance):
+    """
+    A little helper function to enable searching for a udf using
+    the same syntax as udf_create.
+
+    Unfortunately, udf_create is designed to read a dict of data
+    that is quite different than the syntax you'd use for querying
+    the UserDefinedFieldDefinition model directly.
+
+    To make a more consistent API for the common case of first
+    checking if a UDF exists using a data dict, and if not,
+    creating it using the same API, this function exists.
+    """
+    data = _parse_params(params)
+
+    udfs = UserDefinedFieldDefinition.objects.filter(
+        instance=instance,
+        model_type=data['model_type'],
+        name=data['name'])
+
+    return udfs.exists()
+
+
 @transaction.atomic
 def udf_create(params, instance):
     data = _parse_params(params)

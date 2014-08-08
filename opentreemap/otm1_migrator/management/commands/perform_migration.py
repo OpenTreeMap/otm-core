@@ -25,7 +25,8 @@ from otm1_migrator import models
 from otm1_migrator.models import (OTM1UserRelic, OTM1ModelRelic,
                                   OTM1CommentRelic, MigrationEvent)
 from otm1_migrator.data_util import (dict_to_model, MigrationException,
-                                     sanitize_username, uniquify_username)
+                                     sanitize_username, uniquify_username,
+                                     add_udfs_to_migration_rules, create_udfs)
 
 USERPHOTO_ARGS = ('-y', '--userphoto-path')
 
@@ -568,6 +569,9 @@ class Command(InstanceDataCommand):
             migration_event.save()
             self.stdout.write('Invalid instance provided.')
             return 1
+
+        create_udfs(udfs, instance)
+        add_udfs_to_migration_rules(migration_rules, udfs, instance)
 
         relic_ids = {model: {} for model in migration_rules}
 

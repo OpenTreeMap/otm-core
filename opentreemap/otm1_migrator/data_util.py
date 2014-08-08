@@ -1,6 +1,9 @@
 from treemap.models import User
 from treemap.audit import model_hasattr
 
+from treemap.util import to_model_name
+from treemap.lib import udf as udf_lib
+
 
 class MigrationException(Exception):
     pass
@@ -47,6 +50,10 @@ def dict_to_model(config, model_name, data_dict, instance):
 
     model = config[model_name]['model_class']()
 
+    # instance *must* be set before UDF assignment
+    if model_hasattr(model, 'instance'):
+        model.instance = instance
+
     for field in (common_fields
                   .union(renamed_fields)
                   .union(dependency_fields.values())):
@@ -56,14 +63,16 @@ def dict_to_model(config, model_name, data_dict, instance):
 
         transformed_value = (transform_fn(data_dict['fields'][field])
                              if transform_fn else data_dict['fields'][field])
-        field = renamed_fields.get(field, field)
-        if field in dependency_fields.values():
-            field += '_id'
+        transformed_field = renamed_fields.get(field, field)
 
-        setattr(model, field, transformed_value)
-
-    if model_hasattr(model, 'instance'):
-        model.instance = instance
+        if transformed_field.startswith('udf:'):
+            if transformed_value is not None:
+                model.udfs[transformed_field[4:]] = transformed_value
+        else:
+            suffix = ('_id'
+                      if transformed_field in dependency_fields.values()
+                      else '')
+            setattr(model, transformed_field + suffix, transformed_value)
 
     for mutator in config[model_name].get('record_mutators', []):
         mutator(model, data_dict['fields'])
@@ -87,3 +96,47 @@ def sanitize_username(username):
     return (username
             .replace(' ', '_')
             .replace('\n', ''))
+
+
+def add_udfs_to_migration_rules(migration_rules, udfs, instance):
+
+    for model in udfs:
+        model_rules = migration_rules[model]
+        model_rules['removed_fields'] -= set(udfs[model].keys())
+
+        for field, field_rules in udfs[model].items():
+            prefixed = 'udf:' + field_rules['udf.name']
+            model_rules['renamed_fields'][field] = prefixed
+
+            conversions = {str(i+1): v for i, v in
+                           enumerate(field_rules.get('udf.choices', []))}
+
+            if conversions:
+                value_transformers = model_rules.get(
+                    'value_transformers', {})
+                value_transformers[field] = conversions.get
+                model_rules['value_transformers'] = value_transformers
+
+
+def create_udfs(udfs, instance):
+    for model, model_rules in udfs.items():
+        for field, field_rules in model_rules.items():
+            # convert the migrator udf schema
+            # to the udf-lib friendly schema
+
+            name = field_rules['udf.name']
+            model_type = to_model_name(model)
+            choices = field_rules.get('udf.choices')
+            datatype_type = field_rules.get(
+                'udf.type', 'choice' if choices else 'string')
+
+            udf_params = {
+                'udf.name': name,
+                'udf.model': model_type,
+                'udf.type': datatype_type,
+                'udf.choices': choices
+            }
+
+            if not udf_lib.udf_exists(udf_params, instance):
+                print "Creating udf %s" % name
+                udf_lib.udf_create(udf_params, instance)
