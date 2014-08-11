@@ -25,7 +25,8 @@ from otm1_migrator import models
 from otm1_migrator.models import (OTM1UserRelic, OTM1ModelRelic,
                                   OTM1CommentRelic, MigrationEvent)
 from otm1_migrator.data_util import (dict_to_model, MigrationException,
-                                     sanitize_username, uniquify_username)
+                                     sanitize_username, uniquify_username,
+                                     add_udfs_to_migration_rules, create_udfs)
 
 USERPHOTO_ARGS = ('-y', '--userphoto-path')
 
@@ -54,28 +55,6 @@ def save_model_with_user(migration_rules, model, instance):
     user = find_user_to_save_with(migration_rules, model)
     model.save_with_user_without_verifying_authorization(user)
     return model
-
-
-def overwrite_old_pk(migration_rules, model_dict, model_name, relic_ids):
-    dependencies = (migration_rules
-                    .get(model_name, {})
-                    .get('dependencies', {})
-                    .items())
-
-    # rewrite the fixture so that otm1 pks are replaced by
-    # their corresponding otm2 pks
-    if dependencies:
-        for name, field in dependencies:
-            old_id = model_dict['fields'][field]
-            if old_id:
-                old_id_to_new_id = relic_ids[name]
-                try:
-                    new_id = old_id_to_new_id[old_id]
-                except KeyError:
-                    raise MigrationException("Dependency not found. "
-                                             "Have you imported %s yet?"
-                                             % name)
-                model_dict['fields'][field] = new_id
 
 
 # TODO: this appears to have fallen out of sync with how species
@@ -344,8 +323,8 @@ def save_threadedcomment(migration_rules, migration_event,
 
 
 @atomic
-def make_contenttype_relics(migration_rules, migration_event,
-                            model_dict, instance):
+def process_contenttype(migration_rules, migration_event,
+                        model_dict, instance):
     """
     There must be a relic for ContentType because comments use them
     as foreign keys. However, unlike other migrations, there's no
@@ -447,8 +426,26 @@ def save_objects(migration_rules, model_name, model_dicts, relic_ids,
                      if dict['pk'] not in model_key_map)
 
     for model_dict in dicts_to_save:
-        overwrite_old_pk(
-            migration_rules, model_dict, model_name, relic_ids)
+        dependencies = (migration_rules
+                        .get(model_name, {})
+                        .get('dependencies', {})
+                        .items())
+
+        # rewrite the fixture so that otm1 pks are replaced by
+        # their corresponding otm2 pks
+        if dependencies:
+            for name, field in dependencies:
+                old_id = model_dict['fields'][field]
+                if old_id:
+                    old_id_to_new_id = relic_ids[name]
+                    try:
+                        new_id = old_id_to_new_id[old_id]
+                    except KeyError:
+                        raise MigrationException("Dependency not found. "
+                                                 "Have you imported %s yet?"
+                                                 % name)
+                    model_dict['fields'][field] = new_id
+
         model = model_save_fn(model_dict, instance)
 
         if model_key_map is not None and model and model.pk:
@@ -469,7 +466,9 @@ def make_model_option(migration_rules, model):
 
 
 from otm1_migrator.migration_rules.standard_otm1 \
-    import MIGRATION_RULES as rules
+    import MIGRATION_RULES as RULES
+from otm1_migrator.migration_rules.standard_otm1 \
+    import MODEL_ORDER as ORDER
 
 
 class Command(InstanceDataCommand):
@@ -478,7 +477,7 @@ class Command(InstanceDataCommand):
         InstanceDataCommand.option_list +
 
         # add options for model fixtures
-        tuple(make_model_option(rules, model) for model in rules) +
+        tuple(make_model_option(RULES, model) for model in RULES) +
 
         # add other kinds of options
         (make_option('--config-file',
@@ -522,7 +521,14 @@ class Command(InstanceDataCommand):
                        'otm1_migrator.migration_rules.standard_otm1')
         migration_mod = importlib.import_module(rule_module)
         migration_rules = migration_mod.MIGRATION_RULES
-        model_order = migration_mod.MODEL_ORDER
+        try:
+            model_order = migration_mod.MODEL_ORDER
+        except AttributeError:
+            model_order = ORDER
+        try:
+            udfs = migration_mod.UDFS
+        except AttributeError:
+            udfs = {}
 
         # user photos live on userprofile in otm1
         userphoto_path = options.get('userphoto_path', None)
@@ -560,6 +566,9 @@ class Command(InstanceDataCommand):
             self.stdout.write('Invalid instance provided.')
             return 1
 
+        create_udfs(udfs, instance)
+        add_udfs_to_migration_rules(migration_rules, udfs, instance)
+
         relic_ids = {model: {} for model in migration_rules}
 
         def default_partial(fn, *args):
@@ -574,7 +583,7 @@ class Command(InstanceDataCommand):
             'plot': default_partial(save_other_with_user, 'plot'),
             'tree': default_partial(save_other_with_user, 'tree'),
             'treephoto': default_partial(save_treephoto, treephoto_path),
-            'contenttype': default_partial(make_contenttype_relics),
+            'contenttype': default_partial(process_contenttype),
             'userprofile': default_partial(process_userprofile,
                                            userphoto_path),
             'threadedcomment': default_partial(save_threadedcomment,

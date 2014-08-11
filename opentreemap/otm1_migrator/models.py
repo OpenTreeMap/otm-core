@@ -14,13 +14,14 @@ UNBOUND_MODEL_ID = -1
 
 
 class MigrationEvent(models.Model):
+    INCOMPLETE = -1
     SUCCESS = 0
     FAILURE = 1
     created = models.DateTimeField(auto_now_add=True,
                                    editable=False)
     completed = models.DateTimeField(auto_now=True,
                                      editable=False)
-    status = models.IntegerField(null=True, blank=True,
+    status = models.IntegerField(default=INCOMPLETE,
                                  choices=((SUCCESS, 'SUCCESS'),
                                           (FAILURE, 'FAILURE')))
 
