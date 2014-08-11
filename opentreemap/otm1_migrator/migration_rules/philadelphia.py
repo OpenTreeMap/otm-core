@@ -1,5 +1,48 @@
 from otm1_migrator.migration_rules.standard_otm1 import MIGRATION_RULES
 
+UDFS = {
+    'plot': {
+        'owner_additional_id': {
+            'udf.name': 'Owner Additional Id'
+        },
+        'owner_additional_properties': {
+            'udf.name': 'Owner Additional Properties'
+        },
+        'type': {
+            'udf.name': 'Plot Type',
+            'udf.choices': ['Well/Pit', 'Median/Island', 'Tree Lawn',
+                            'Park', 'Planter', 'Other', 'Yard',
+                            'Natural Area']
+        },
+        'powerline_conflict_potential': {
+            'udf.name': 'Powerlines Overhead',
+            'udf.choices': ['Yes', 'No', 'Unknown']
+        },
+        'sidewalk_damage': {
+            'udf.name': 'Sidewalk Damage',
+            'udf.choices': ['Minor or No Damage', 'Raised More Than 3/4 Inch']
+        }
+    },
+    'tree': {
+        'sponsor': {'udf.name': 'Sponsor'},
+        'projects': {'udf.name': 'Projects'},
+        'canopy_condition': {
+            'udf.name': 'Canopy Condition',
+            'udf.choices': ['Full - No Gaps',
+                            'Small Gaps (up to 25% missing)',
+                            'Moderate Gaps (up to 50% missing)',
+                            'Large Gaps (up to 75% missing)',
+                            'Little or None (up to 100% missing)']
+        },
+        'condition': {
+            'udf.name': 'Tree Condition',
+            'udf.choices': ['Dead', 'Critical', 'Poor',
+                            'Fair', 'Good',
+                            'Very Good', 'Excellent']
+        }
+    }
+}
+
 SORT_ORDER_INDEX = {
     'Bucks': 3,
     'Burlington': 4,
