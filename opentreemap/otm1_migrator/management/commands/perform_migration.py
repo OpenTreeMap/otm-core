@@ -57,28 +57,6 @@ def save_model_with_user(migration_rules, model, instance):
     return model
 
 
-def overwrite_old_pk(migration_rules, model_dict, model_name, relic_ids):
-    dependencies = (migration_rules
-                    .get(model_name, {})
-                    .get('dependencies', {})
-                    .items())
-
-    # rewrite the fixture so that otm1 pks are replaced by
-    # their corresponding otm2 pks
-    if dependencies:
-        for name, field in dependencies:
-            old_id = model_dict['fields'][field]
-            if old_id:
-                old_id_to_new_id = relic_ids[name]
-                try:
-                    new_id = old_id_to_new_id[old_id]
-                except KeyError:
-                    raise MigrationException("Dependency not found. "
-                                             "Have you imported %s yet?"
-                                             % name)
-                model_dict['fields'][field] = new_id
-
-
 # TODO: this appears to have fallen out of sync with how species
 # is modeled.
 @atomic
@@ -448,8 +426,26 @@ def save_objects(migration_rules, model_name, model_dicts, relic_ids,
                      if dict['pk'] not in model_key_map)
 
     for model_dict in dicts_to_save:
-        overwrite_old_pk(
-            migration_rules, model_dict, model_name, relic_ids)
+        dependencies = (migration_rules
+                        .get(model_name, {})
+                        .get('dependencies', {})
+                        .items())
+
+        # rewrite the fixture so that otm1 pks are replaced by
+        # their corresponding otm2 pks
+        if dependencies:
+            for name, field in dependencies:
+                old_id = model_dict['fields'][field]
+                if old_id:
+                    old_id_to_new_id = relic_ids[name]
+                    try:
+                        new_id = old_id_to_new_id[old_id]
+                    except KeyError:
+                        raise MigrationException("Dependency not found. "
+                                                 "Have you imported %s yet?"
+                                                 % name)
+                    model_dict['fields'][field] = new_id
+
         model = model_save_fn(model_dict, instance)
 
         if model_key_map is not None and model and model.pk:
