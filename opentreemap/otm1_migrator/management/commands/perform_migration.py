@@ -323,8 +323,8 @@ def save_threadedcomment(migration_rules, migration_event,
 
 
 @atomic
-def make_contenttype_relics(migration_rules, migration_event,
-                            model_dict, instance):
+def process_contenttype(migration_rules, migration_event,
+                        model_dict, instance):
     """
     There must be a relic for ContentType because comments use them
     as foreign keys. However, unlike other migrations, there's no
@@ -583,7 +583,7 @@ class Command(InstanceDataCommand):
             'plot': default_partial(save_other_with_user, 'plot'),
             'tree': default_partial(save_other_with_user, 'tree'),
             'treephoto': default_partial(save_treephoto, treephoto_path),
-            'contenttype': default_partial(make_contenttype_relics),
+            'contenttype': default_partial(process_contenttype),
             'userprofile': default_partial(process_userprofile,
                                            userphoto_path),
             'threadedcomment': default_partial(save_threadedcomment,
