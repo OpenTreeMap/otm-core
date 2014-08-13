@@ -439,7 +439,6 @@ class Locations(OTMTestCase):
 
 
 class CreatePlotAndTree(OTMTestCase):
-
     def setUp(self):
         self.instance = setupTreemapEnv()
 
@@ -1022,6 +1021,34 @@ class UpdatePlotAndTree(OTMTestCase):
 
         self.assertTrue(len(plot) == 1, 'Expected plot to be here')
         self.assertTrue(len(tree) == 0, 'Expected tree to be gone')
+
+    def test_update_collection_udf(self):
+        test_plot = mkPlot(self.instance, self.user)
+
+        updated_values = {'tree':
+                          {'udf:Stewardship':
+                           [{'Action': 'Watered', 'Date': '2014-01-01'}]},
+                          'plot':
+                          {'udf:Stewardship':
+                           [{'Action': 'Enlarged', 'Date': '2014-02-02'}]}}
+
+        response = put_json("%s/instance/%s/plots/%d" %
+                            (API_PFX, self.instance.url_name, test_plot.pk),
+                            updated_values, self.client, self.user)
+
+        self.assertEqual(200, response.status_code)
+        response_json = loads(response.content)
+
+        updated_plot = Plot.objects.get(pk=test_plot.pk)
+        new_tree = updated_plot.current_tree()
+
+        self.assertEqual(updated_plot.pk, response_json['plot']['id'])
+        self.assertEqual(new_tree.pk,
+                         response_json['tree']['id'])
+        self.assertEqual(updated_plot.udfs['Stewardship'][0]['id'],
+                         response_json['plot']['udf:Stewardship'][0]['id'])
+        self.assertEqual(new_tree.udfs['Stewardship'][0]['id'],
+                         response_json['tree']['udf:Stewardship'][0]['id'])
 
 
 class Instance(LocalMediaTestCase):

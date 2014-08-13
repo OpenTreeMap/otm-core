@@ -9,6 +9,7 @@ from django.contrib.gis.geos.polygon import Polygon
 import django.shortcuts
 
 from treemap.models import Species, Boundary, Tree, Plot
+from treemap.instance import create_stewardship_udfs
 from treemap.tests import (make_instance, make_commander_user,
                            make_apprentice_user, make_user_with_default_role)
 
@@ -52,6 +53,7 @@ def setupTreemapEnv():
     django.shortcuts.render_to_response = local_render_to_response
 
     instance = make_instance(is_public=True)
+    create_stewardship_udfs(instance)
 
     make_user_with_default_role(instance, 'jim')
     commander = make_commander_user(instance, 'commander')

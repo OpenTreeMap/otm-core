@@ -720,6 +720,9 @@ class UDFDictionary(HStoreDict):
         """
         return self._base_collection_fields(clean=True)
 
+    def force_reload_of_collection_fields(self):
+        self._collection_fields = None
+
     def _base_collection_fields(self, clean):
 
         if self._collection_fields is None:
@@ -1114,6 +1117,9 @@ class UDFModel(UserTrackable, models.Model):
                  .filter(model_id=self.pk)\
                  .exclude(id__in=ids_specified)\
                  .delete()
+
+        # We need to reload collection UDFs in order to have their IDs set
+        self.udfs.force_reload_of_collection_fields()
 
         self.dirty_collection_udfs = False
 
