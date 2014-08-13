@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
+import copy
 from functools import wraps
 
 from django.db.models import Q
@@ -165,9 +166,29 @@ def instance_info(request, instance):
                 'is_collection': field_key in collection_udf_dict
             }
 
+    def get_key_for_group(field_group):
+        for key in ('collection_udf_keys', 'field_keys'):
+            if key in field_group:
+                return key
+        return None
+
+    # Remove fields from mobile_api_fields if they are not present in perms
+    # (Generally because the user doesn't have read permissions)
+    # If no fields are left in a group, remove the group
+    mobile_api_fields = copy.deepcopy(instance.mobile_api_fields)
+
+    for field_group in mobile_api_fields:
+        key = get_key_for_group(field_group)
+        if key:
+            field_group[key] = [field for field in field_group[key]
+                                if field in perms]
+
+    readable_mobile_api_fields = [group for group in mobile_api_fields
+                                  if group.get(get_key_for_group(group), None)]
+
     info = _instance_info_dict(instance)
     info['fields'] = perms
-    info['field_key_groups'] = instance.mobile_api_fields
+    info['field_key_groups'] = readable_mobile_api_fields
     info['search'] = instance.mobile_search_fields
     info['date_format'] = _unicode_dateformat(instance.date_format)
     info['short_date_format'] = _unicode_dateformat(instance.short_date_format)

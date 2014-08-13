@@ -25,8 +25,9 @@ from django.core.urlresolvers import reverse
 from django.core.files import File
 
 from treemap.models import Species, Plot, Tree, User
+from treemap.instance import create_stewardship_udfs
 from treemap.audit import ReputationMetric, Audit
-from treemap.tests import (make_user, make_request,
+from treemap.tests import (make_user, make_request, set_invisible_permissions,
                            make_instance, LocalMediaTestCase, media_dir,
                            make_commander_user)
 from treemap.tests.base import OTMTestCase
@@ -1033,7 +1034,10 @@ class Instance(LocalMediaTestCase):
         super(Instance, self).setUp()
 
         self.instance = make_instance(is_public=True, point=Point(0, 0))
+        create_stewardship_udfs(self.instance)
+
         self.user = make_commander_user(instance=self.instance)
+
         self.expected_scss_variables = {
             'primary-color': '123456',
             'secondary-color': '987654'
@@ -1075,8 +1079,25 @@ class Instance(LocalMediaTestCase):
         self.assertEqual('MM/dd/yyyy', info.get('short_date_format'))
         self.assertEqual('MMMM d, yyyy', info.get('date_format'))
 
+    def test_removes_unreadable_api_fields(self):
+        request = sign_request_as_user(make_request(user=self.user), self.user)
+        info = instance_info(request, self.instance)
+
+        self.assertDictContainsSubset(
+            {'field_keys': ['tree.species', 'tree.diameter', 'tree.height',
+                            'tree.date_planted']},
+            info.get('field_key_groups')[0])
+
+        set_invisible_permissions(self.instance, self.user, 'Tree',
+                                  ['species', 'diameter', 'height'])
+        info = instance_info(request, self.instance)
+
+        self.assertDictContainsSubset(
+            {'field_keys': ['tree.date_planted']},
+            info.get('field_key_groups')[0])
+
     def test_collection_udfs_v3(self):
-        request = sign_request_as_user(make_request(), self.user)
+        request = sign_request_as_user(make_request(user=self.user), self.user)
 
         response = instance_info_endpoint(request, 3, self.instance.url_name)
         info_dict = json.loads(response.content)
@@ -1088,7 +1109,7 @@ class Instance(LocalMediaTestCase):
                       info_dict['field_key_groups'])
 
     def test_collection_udfs_removed_in_v2(self):
-        request = sign_request_as_user(make_request(), self.user)
+        request = sign_request_as_user(make_request(user=self.user), self.user)
 
         response = instance_info_endpoint(request, 2, self.instance.url_name)
         info_dict = json.loads(response.content)
