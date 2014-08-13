@@ -37,7 +37,7 @@ DEFAULT_MOBILE_SEARCH_FIELDS = {
                  'label': 'Missing Species'},
                 {'identifier': 'tree.diameter',
                  'label': 'Missing Diameter'},
-                {'identifier': 'treePhoto.id',
+                {'identifier': 'mapFeaturePhoto.id',
                  'label': 'Missing Photo'}]
 }
 
