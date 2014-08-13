@@ -48,22 +48,28 @@
     </li>
   {% endif %}
 {% endif %}
+
 <li class="explore-map {% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Map" %}</a></li>
-{% if request.instance|feature_enabled:'prioritize_planting_sites' or request.instance|feature_enabled:'model_tree_growth' %}
-<li class="dropdown {% block activemodeling %}{% endblock %}">
-  <a class="dropdown-toggle" data-toggle="dropdown">{% trans "Plan" %}</a>
-  <ul class="dropdown-menu">
-    <li><a href="{% url 'prioritize_planting_sites' instance_url_name=request.instance.url_name %}">{% trans "Prioritize Planting Sites" %}</a></li>
-    <li><a href="{% url 'model_scenarios' instance_url_name=request.instance.url_name %}">{% trans "Model Urban Forest Scenarios" %}</a></li>
-    <li><a href="">{% trans "Saved Simulations" %}</a></li>
-  </ul>
-</li>
+
+{% if settings.MODELING_PRIORITIZATION_VIEW_NAME %}
+  {% if request.instance|feature_enabled:'prioritize_planting_sites' or request.instance|feature_enabled:'model_tree_growth' %}
+    <li class="dropdown {% block activemodeling %}{% endblock %}">
+      <a class="dropdown-toggle" data-toggle="dropdown">{% trans "Plan" %}</a>
+      <ul class="dropdown-menu">
+        <li><a href="{% url settings.MODELING_PRIORITIZATION_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Prioritize Planting Sites" %}</a></li>
+        <li><a href="{% url settings.MODELING_SCENARIOS_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Model Urban Forest Scenarios" %}</a></li>
+        <li><a href="">{% trans "Saved Simulations" %}</a></li>
+      </ul>
+    </li>
+  {% endif %}
 {% endif %}
+
 {% if request.instance|feature_enabled:'recent_edits_report' %}
 <li class="{% block activerecentedits %}{% endblock %}">
   <a href="{% url 'edits' instance_url_name=request.instance.url_name %}">{% trans "View Edits" %}</a>
 </li>
 {% endif %}
+
 {% if settings.MANAGEMENT_VIEW_NAME and last_effective_instance_user.admin %}
 <li class="{% block activemanagement %}{% endblock %}">
   <a href="{% url settings.MANAGEMENT_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Manage" %}</a>
