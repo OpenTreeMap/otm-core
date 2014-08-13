@@ -1,7 +1,8 @@
 #modeling {
 
     .header {
-        height: 140px;
+        height: 145px;
+        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
 
         .logo {
             img {
@@ -12,7 +13,7 @@
             margin-top: -5px;
 
             .search-block {
-                height: 72px;
+                height: 78px;
                 padding: 10px 14px;
 
                 &.search-block-large {
@@ -41,17 +42,13 @@
                     }
                 }
                 label {
-                    display: block;
-                    font-size: 1rem;
-                    font-weight: 700;
-                    color: $main-text-color;
                     margin-top: -2px;
                 }
             }
         }
     }
     .content.map {
-        top: 140px;
+        top: 145px;
         bottom: 0;
 
         .sidebar {
@@ -167,7 +164,8 @@
             .options {
                 position: absolute;
                 top: 16px;
-                right: 60px;
+                right: 70px;
+                z-index: 4;
 
                 &:hover {
                     .options-toggle {
@@ -181,7 +179,7 @@
 
                 .options-toggle {
                     background: white;
-                    padding: 6px 10px;
+                    padding: 7px 12px 8px;
                     width: auto;
                     display: inline-block;
                     position: absolute;
@@ -189,6 +187,7 @@
                     right: 0;
                     font-weight: 700;
                     border-radius: 6px;
+                    box-shadow: 0 1px 7px rgba(0,0,0,0.4);
                 }
                 .options-content {
                     background: white;
@@ -199,6 +198,7 @@
                     right: 0;
                     border-radius: 6px;
                     display: none;
+                    box-shadow: 0 1px 7px rgba(0,0,0,0.4);
 
                     label {
                         float: left;
