@@ -6,6 +6,7 @@
     <meta charset="utf-8" />
 
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 
     <!-- 
     
@@ -160,107 +161,158 @@
             <div class="col-lg-12">
                 <div class="row">
                     <div class="col-lg-3 moderation-nav">
+                        <div class="row">
+                            <div class="medallion center-block">
+                                <i class="fa fa-microphone"></i>
+                            </div>
+                        </div>
                         <ul class="nav nav-pills nav-stacked">
                             <li><a href="#">Manage Users</a></li>
-                            <li><a href="#">Moderate Comments</a></li>
+                            <li class="active"><a href="#">Moderate Comments</a></li>
                             <li><a href="#">Moderate Photos</a></li>
                             <li><a href="#">Review Edits</a></li>
                         </ul>
                     </div>  
-                    <div class="col-lg-9">
+                    <div class="col-lg-9 comments">
                         <div class="row">
-                            <h1>Moderate Comments</h1>
+                            <div class="col-lg-8">
+                                <h1>Moderate Comments</h1>
+                            </div>
+                            <div class="col-lg-4 text-right">
+                                <div class="btn-group">
+                                  <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-toggle="dropdown">
+                                    Active <span class="caret"></span>
+                                  </button>
+                                  <ul class="dropdown-menu" role="menu">
+                                    <li><a href="#">Active</a></li>
+                                    <li><a href="#">Hidden</a></li>
+                                    <li><a href="#">Archived</a></li>
+                                  </ul>
+                                </div>
+                                <button type="button" class="btn btn-sm" ><i class="fa fa-share-square-o"></i>Export All</button>
+                            </div>
+                            
                         </div>
-                        <div class="row">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th><input type="checkbox"><span class="caret"></span></th>
-                                        <th>ID</th>
-                                        <th>Flag</th>
-                                        <th>Comment</th>
-                                        <th>Actions</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><input type="checkbox"></td>
-                                        <td><a href="#">27018</a></td>
-                                        <td><span class="label label-danger">7</span></td>
-                                        <td><a href="#" class="clearfix">Administrator</a>
-                                            <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
-                                        <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
-                                        <td>10:53AM</td>
-                                    </tr>
-                                    <tr>
-                                        <td><input type="checkbox"></td>
-                                        <td><a href="#">27018</a></td>
-                                        <td><span class="label label-danger">7</span></td>
-                                        <td><a href="#" class="clearfix">Administrator</a>
-                                            <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
-                                        <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
-                                        <td>10:53AM</td>
-                                    </tr>
-                                    <tr>
-                                        <td><input type="checkbox"></td>
-                                        <td><a href="#">27018</a></td>
-                                        <td><span class="label label-danger">7</span></td>
-                                        <td><a href="#" class="clearfix">Administrator</a>
-                                            <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
-                                        <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
-                                        <td>10:53AM</td>
-                                    </tr>
-                                    <tr>
-                                        <td><input type="checkbox"></td>
-                                        <td><a href="#">27018</a></td>
-                                        <td><span class="label label-danger">7</span></td>
-                                        <td><a href="#" class="clearfix">Administrator</a>
-                                            <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
-                                        <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
-                                        <td>10:53AM</td>
-                                    </tr>
-                                    <tr>
-                                        <td><input type="checkbox"></td>
-                                        <td><a href="#">27018</a></td>
-                                        <td><span class="label label-danger">7</span></td>
-                                        <td><a href="#" class="clearfix">Administrator</a>
-                                            <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
-                                        <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
-                                        <td>10:53AM</td>
-                                    </tr>
-                                    <tr>
-                                        <td><input type="checkbox"></td>
-                                        <td><a href="#">27018</a></td>
-                                        <td><span class="label label-danger">7</span></td>
-                                        <td><a href="#" class="clearfix">Administrator</a>
-                                            <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
-                                        <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
-                                        <td>10:53AM</td>
-                                    </tr>
-                                    <tr>
-                                        <td><input type="checkbox"></td>
-                                        <td><a href="#">27018</a></td>
-                                        <td><span class="label label-danger">7</span></td>
-                                        <td><a href="#" class="clearfix">Administrator</a>
-                                            <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
-                                        <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
-                                        <td>10:53AM</td>
-                                    </tr>
-                                    <tr>
-                                        <td><input type="checkbox"></td>
-                                        <td><a href="#">27018</a></td>
-                                        <td><span class="label label-danger">7</span></td>
-                                        <td><a href="#" class="clearfix">Administrator</a>
-                                            <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
-                                        <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
-                                        <td>10:53AM</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+                        <div class="row comment-table">
+                            <div class="col-lg-12">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th class="selector">
+                                                <div class="btn-group">
+                                                    <input type="checkbox">
+                                                    <button type="button" class="btn dropdown-toggle" data-toggle="dropdown"><i class="fa fa-caret-down"></i></button>
+                                                        <ul class="dropdown-menu" role="menu">
+                                                            <li><a href="#">Hide</a></li>
+                                                            <li><a href="#">Unhide</a></li>
+                                                            <li><a href="#">Archive</a></li>
+                                                            <li><a href="#">Unarchive</a></li>
+                                                            <li><a href="#">Unflag</a></li>
+                                                        </ul>
+                                                </div>
+                                            </th>
+                                            <th>ID</th>
+                                            <th>Flag</th>
+                                            <th>Comment</th>
+                                            <th>Actions</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><input type="checkbox"></td>
+                                            <td><a href="#">27018</a></td>
+                                            <td><span class="label label-danger">7</span></td>
+                                            <td><a href="#" class="clearfix">Administrator</a>
+                                                <p>Lorem ipsum sit dolor amet consectetur adipiscing elit.Vivamus orci elit, fermentum eu magna at. Pelletesque accumsan, lacus et pellentesque pulvinar, neque dolor facilisis tellus, fermentum neque dolor facilisis tellus.  <a href="#">less</a></p>
+                                                <p><label>Flagged By: <a href="#">TestUser456 (07/28/14)</a>, <a href="#">TestUser789 (07/29/14)</a></label></p>
+                                                <p><label>Previously Flagged By: <a href="#">TestUser123 (07/25/14)</a></label></p>
+                                                </td>
+                                            <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
+                                            <td>10:53AM</td>
+                                        </tr>
+                                        <tr>
+                                            <td><input type="checkbox"></td>
+                                            <td><a href="#">27018</a></td>
+                                            <td><span class="label label-danger">7</span></td>
+                                            <td><a href="#" class="clearfix">Administrator</a>
+                                                <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
+                                            <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
+                                            <td>10:53AM</td>
+                                        </tr>
+                                        <tr>
+                                            <td><input type="checkbox"></td>
+                                            <td><a href="#">27018</a></td>
+                                            <td><span class="label label-danger">7</span></td>
+                                            <td><a href="#" class="clearfix">Administrator</a>
+                                                <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
+                                            <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
+                                            <td>10:53AM</td>
+                                        </tr>
+                                        <tr>
+                                            <td><input type="checkbox"></td>
+                                            <td><a href="#">27018</a></td>
+                                            <td><span class="label label-danger">7</span></td>
+                                            <td><a href="#" class="clearfix">Administrator</a>
+                                                <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
+                                            <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
+                                            <td>10:53AM</td>
+                                        </tr>
+                                        <tr>
+                                            <td><input type="checkbox"></td>
+                                            <td><a href="#">27018</a></td>
+                                            <td><span class="label label-danger">7</span></td>
+                                            <td><a href="#" class="clearfix">Administrator</a>
+                                                <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
+                                            <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
+                                            <td>10:53AM</td>
+                                        </tr>
+                                        <tr>
+                                            <td><input type="checkbox"></td>
+                                            <td><a href="#">27018</a></td>
+                                            <td><span class="label label-danger">7</span></td>
+                                            <td><a href="#" class="clearfix">Administrator</a>
+                                                <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
+                                            <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
+                                            <td>10:53AM</td>
+                                        </tr>
+                                        <tr>
+                                            <td><input type="checkbox"></td>
+                                            <td><a href="#">27018</a></td>
+                                            <td><span class="label label-danger">7</span></td>
+                                            <td><a href="#" class="clearfix">Administrator</a>
+                                                <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
+                                            <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
+                                            <td>10:53AM</td>
+                                        </tr>
+                                        <tr>
+                                            <td><input type="checkbox"></td>
+                                            <td><a href="#">27018</a></td>
+                                            <td><span class="label label-danger">7</span></td>
+                                            <td><a href="#" class="clearfix">Administrator</a>
+                                                <p>Lorem ipsum sit dolor amet consectetur adipiscing elitmus orci elit, fermentum at. <a href="#">more</a></p></td>
+                                            <td><a href="#">Unflag</a>|<a href="#">Hide</a>|<a href="#">Archive</a></td>
+                                            <td>10:53AM</td>
+                                        </tr>
+                                    </tbody>
+                                </table> <!--END OF TABLE -->
+                            </div> <!--END OF TABLE COL-12 SECTION -->
+                        </div> <!--END OF COMMENT TABLE -->
+
+                        <div class="row center-block text-center"><!--PAGINATION -->
+                            <ul class="pagination">
+                              <li class="disabled"><a href="#">&laquo;</a></li>
+                              <li class="active"><a href="#">1 <span class="sr-only">(current)</span></a></li>
+                              <li><a href="#">2</a></li>
+                              <li><a href="#">3</a></li>
+                              <li><a href="#">4</a></li>
+                              <li><a href="#">5</a></li>
+                              <li><a href="#">&raquo;</a></li>
+                            </ul>
+                        </div> <!--END OF PAGINATION -->
+                    
+                    </div> <!--END OF COMMENT AREA -->
+                </div> <!--END OF MAIN CONTENT ROW -->
                 
             </div>
         </div>
