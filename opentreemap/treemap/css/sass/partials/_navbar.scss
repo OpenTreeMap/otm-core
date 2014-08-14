@@ -47,7 +47,6 @@
                 &.open {
                     > a {
                         background-color: transparent !important;
-                        border-bottom: none;
                     }
                 }
 
@@ -92,6 +91,7 @@
                 > a {
                     font-size: 2rem;
                     width: 28px;
+                    border-bottom: none;
                 }
             }
             &.user-img {
@@ -122,6 +122,7 @@
                 height: 44px;
                 font-size: 1.4rem;
                 font-weight: 400;
+                cursor: pointer;
 
                 > .reputation {
                     font-size: 1.2rem;
