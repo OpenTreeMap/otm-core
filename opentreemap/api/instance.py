@@ -227,6 +227,11 @@ def _instance_info_dict(instance):
     bounds = instance.bounds
     bounds.transform(4326)
     extent = bounds.extent
+    p1 = Point(float(extent[0]), float(extent[1]), srid=4326)
+    p2 = Point(float(extent[2]), float(extent[3]), srid=4326)
+    p1.transform(3857)
+    p2.transform(3857)
+    extent_radius = p1.distance(p2) / 2
 
     info = {'geoRevHash': instance.geo_rev_hash,
             'id': instance.pk,
@@ -238,6 +243,7 @@ def _instance_info_dict(instance):
                        'min_lat': extent[1],
                        'max_lng': extent[2],
                        'max_lat': extent[3]},
+            'extent_radius': extent_radius,
             'eco': _instance_eco_dict(instance)
             }
 
