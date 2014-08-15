@@ -15,6 +15,7 @@ def species_codes_for_regions(region_codes):
     # Converting to a set removes duplicates
     return list(set(species_codes))
 
+# TODO: this appears not to be used. is it?
 def get_itree_code(region_code, otm_code):
     if otm_code:
         if region_code in _CODES:

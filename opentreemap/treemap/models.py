@@ -22,7 +22,7 @@ from django.utils.translation import ugettext_lazy as trans
 from django.contrib.auth.models import (UserManager, AbstractBaseUser,
                                         PermissionsMixin)
 
-from treemap.species import ITREE_REGIONS
+from treemap.species.codes import ITREE_REGIONS
 from treemap.audit import (Auditable, Authorizable, Role, Dictable, Audit)
 # Import this even though it's not referenced, so Django can find it
 from treemap.audit import FieldPermission  # NOQA
