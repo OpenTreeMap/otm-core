@@ -8,7 +8,7 @@ import urllib
 from django.db.models import Q
 
 from treemap.audit import Audit, Authorizable, get_auditable_class
-from treemap.models import Plot, Tree, Instance, MapFeature, InstanceUser
+from treemap.models import Plot, Tree, Instance, MapFeature, InstanceUser, User
 from treemap.util import get_filterable_audit_models
 
 
@@ -87,6 +87,7 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
         .filter(model_filter) \
         .filter(instance__in=instances) \
         .exclude(udf_bookkeeping_fields) \
+        .exclude(user=User.system_user()) \
         .order_by('-created', 'id')
 
     if user:

@@ -12,7 +12,7 @@ from django.db.models import Q
 
 from treemap.audit import Audit
 from treemap.ecobackend import BAD_CODE_PAIR
-from treemap.models import Tree, MapFeature
+from treemap.models import Tree, MapFeature, User
 
 from treemap.lib import format_benefits
 from treemap.lib.photo import context_dict_for_photo
@@ -41,7 +41,9 @@ def _map_feature_audits(user, instance, feature, filters=None,
     # (about a 50% inprovement!)
     # TODO: Verify this is still the case now that we are also getting
     # collection udf audits
-    iaudit = Audit.objects.filter(instance=instance)
+    iaudit = Audit.objects\
+        .filter(instance=instance)\
+        .exclude(user=User.system_user())
 
     audits = []
     for afilter in filters:
