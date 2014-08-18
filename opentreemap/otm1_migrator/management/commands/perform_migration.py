@@ -31,32 +31,6 @@ from otm1_migrator.data_util import (dict_to_model, MigrationException,
 USERPHOTO_ARGS = ('-y', '--userphoto-path')
 
 
-def find_user_to_save_with(migration_rules, model):
-    model_name = model.__class__.__name__.lower()
-
-    user_field_to_try = (migration_rules[model_name]
-                         .get('dependencies', {})
-                         .get('user', None))
-
-    if user_field_to_try:
-        potential_user_id = getattr(model, user_field_to_try, None)
-    else:
-        potential_user_id = None
-
-    try:
-        user = User.objects.get(pk=potential_user_id)
-    except User.DoesNotExist:
-        user = User.system_user()
-
-    return user
-
-
-def save_model_with_user(migration_rules, model, instance):
-    user = find_user_to_save_with(migration_rules, model)
-    model.save_with_user_without_verifying_authorization(user)
-    return model
-
-
 # TODO: this appears to have fallen out of sync with how species
 # is modeled.
 @atomic
@@ -104,7 +78,8 @@ def save_species(migration_rules, migration_event,
         if not model.common_name:
             model.common_name = ''
 
-        model = save_model_with_user(migration_rules, model, instance)
+        model.save_with_user_without_verifying_authorization(
+            User.system_user())
 
         relic.otm2_model_id = model.pk
     else:
@@ -124,7 +99,8 @@ def save_other_with_user(migration_rules, migration_event,
                           model_name, model_dict,
                           instance)
 
-    model = save_model_with_user(migration_rules, model, instance)
+    model.save_with_user_without_verifying_authorization(
+        User.system_user())
 
     OTM1ModelRelic.objects.create(
         instance=instance,
@@ -190,7 +166,8 @@ def save_treephoto(migration_rules, migration_event,
 
     del model_dict['fields']['photo']
 
-    model = save_model_with_user(migration_rules, model, instance)
+    model.save_with_user_without_verifying_authorization(
+        User.system_user())
 
     OTM1ModelRelic.objects.create(
         instance=instance,
