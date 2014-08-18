@@ -119,7 +119,7 @@
           <h3>{% trans "Comments" %}</h3>
           <div id="comments-container">
             {% get_comment_list for feature as comments %}
-            {% for comment in comments %}
+            {% for comment in comments|fill_tree|annotate_tree %}
                {% ifchanged comment.parent_id %}{% else %}</li>{% endifchanged %}
                {% if not comment.open and not comment.close %}</li>{% endif %}
                {% if comment.open %}<ul>{% endif %}
