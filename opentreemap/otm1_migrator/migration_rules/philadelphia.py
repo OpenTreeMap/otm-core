@@ -59,7 +59,8 @@ SORT_ORDER_INDEX = {
 }
 
 
-def mutate_boundary(boundary_obj, otm1_fields):
+def mutate_boundary(boundary_obj, boundary_dict):
+    otm1_fields = boundary_dict.get('fields')
     if ((boundary_obj.name.find('County') != -1
          or boundary_obj.name == 'Philadelphia')):
         boundary_obj.category = 'County'
@@ -71,8 +72,11 @@ def mutate_boundary(boundary_obj, otm1_fields):
         county = otm1_fields['county']
         boundary_obj.category = county + ' Township'
         boundary_obj.sort_order = SORT_ORDER_INDEX[county]
+    return boundary_obj
 
-MIGRATION_RULES['boundary']['record_mutators'] = [mutate_boundary]
+MIGRATION_RULES['boundary']['record_mutators'] = (MIGRATION_RULES['boundary']
+                                                  .get('record_mutators', [])
+                                                  + [mutate_boundary])
 MIGRATION_RULES['species']['missing_fields'] |= {'other'}
 
 # these fields don't exist in the ptm fixture, so can't be specified

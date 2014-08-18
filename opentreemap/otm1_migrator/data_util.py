@@ -4,6 +4,9 @@ from treemap.audit import model_hasattr
 from treemap.util import to_model_name
 from treemap.lib import udf as udf_lib
 
+PROCESS_WITHOUT_SAVE = 'PROCESS_WITHOUT_SAVE'
+DO_NOT_PROCESS = 'DO_NOT_PROCESS'
+
 
 class MigrationException(Exception):
     pass
@@ -48,7 +51,12 @@ def dict_to_model(config, model_name, data_dict, instance):
     renamed_fields = config[model_name].get('renamed_fields', {})
     dependency_fields = config[model_name].get('dependencies', {})
 
-    model = config[model_name]['model_class']()
+    ModelClass = config[model_name].get('model_class')
+
+    if ModelClass is None:
+        return PROCESS_WITHOUT_SAVE
+    else:
+        model = ModelClass()
 
     # instance *must* be set before UDF assignment
     if model_hasattr(model, 'instance'):
@@ -75,7 +83,8 @@ def dict_to_model(config, model_name, data_dict, instance):
             setattr(model, transformed_field + suffix, transformed_value)
 
     for mutator in config[model_name].get('record_mutators', []):
-        mutator(model, data_dict['fields'])
+        if model != DO_NOT_PROCESS and model is not None:
+            model = mutator(model, data_dict)
 
     return model
 
@@ -140,3 +149,12 @@ def create_udfs(udfs, instance):
             if not udf_lib.udf_exists(udf_params, instance):
                 print "Creating udf %s" % name
                 udf_lib.udf_create(udf_params, instance)
+
+
+def discard_deleted(model_obj, model_dict):
+    if model_dict['fields']['present'] is False:
+        print("Discarding deleted '%s' with otm1 pk: %s"
+              % (model_dict['model'], model_dict['pk']))
+        return DO_NOT_PROCESS
+    else:
+        return model_obj

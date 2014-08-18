@@ -5,6 +5,8 @@ from threadedcomments.models import ThreadedComment
 
 from django.contrib.gis.geos import fromstr
 
+from otm1_migrator.data_util import discard_deleted
+
 # model specification:
 #
 # model_class:        the django class object used to instantiate objects
@@ -68,7 +70,8 @@ MIGRATION_RULES = {
         'value_transformers': {
             'readonly':
             (lambda x: False if (x is None or x is False) else True),
-        }
+        },
+        'record_mutators': [discard_deleted]
     },
     'audit': {
         'command_line_flag': '-a',
@@ -103,6 +106,7 @@ MIGRATION_RULES = {
             (lambda x: False if (x is None or x is False) else True),
             'geometry': (lambda x: fromstr(x, srid=4326)),
         },
+        'record_mutators': [discard_deleted]
     },
     'species': {
         'command_line_flag': '-s',
@@ -141,7 +145,8 @@ MIGRATION_RULES = {
     },
     'userprofile': {
         'command_line_flag': '-z',
-        'dependencies': {'user': 'user'}
+        'dependencies': {'user': 'user'},
+        'common_fields': {'photo'}
     },
     'comment': {
         'command_line_flag': '-n',
