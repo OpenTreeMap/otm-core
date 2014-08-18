@@ -922,6 +922,48 @@ class PlotViewTest(PlotViewTestCase):
         self.assertEquals(plot_wo_tree, context['plot'])
         self.assertNotIn('benefits', context)
 
+    def test_system_user_hidden_from_audit_history(self):
+        plot = Plot(instance=self.instance, geom=self.p)
+        plot.save_with_user(self.user)
+
+        plot.width = 9
+        plot.save_with_user(self.user)
+
+        details = self.get_plot_context(plot)
+
+        self.assertIn('recent_activity', details)
+
+        audit_groups = details['recent_activity']
+
+        _, _, audit_list = audit_groups[0]
+        audit = audit_list[0]
+
+        self.assertEqual(audit.model, 'Plot')
+        self.assertEqual(audit.field, 'width')
+
+        # Add the system user to the instance with "commander" permissions
+        system_user = User.system_user()
+        InstanceUser(instance=self.instance, user=system_user,
+                     role=self.user.get_role(self.instance)
+                     ).save_with_user(system_user)
+
+        plot.length = 9
+        plot.save_with_user(system_user)
+
+        # There is now a system user audit on the plot
+        self.assertEqual(1, len(Audit.objects.filter(model_id=plot.pk,
+                                                     model='Plot',
+                                                     user=system_user)))
+
+        # But the audits returned by the view are the same
+        new_details = self.get_plot_context(plot)
+
+        self.assertIn('recent_activity', new_details)
+
+        new_audit_groups = new_details['recent_activity']
+
+        self.assertEqual(audit_groups, new_audit_groups)
+
 
 class PlotViewProgressTest(PlotViewTestCase):
 
@@ -1377,6 +1419,34 @@ class RecentEditsViewTest(ViewTestCase):
                                   self.tree.tracked_fields)
 
         self.check_audits("/sdj/", [], user=self.commander)
+
+    def test_system_user_edits_hidden(self):
+        self.check_audits('/blah/?page_size=2',
+                          [self.next_plot_delta, self.plot_delta])
+        self.check_user_audits('/blah/?page_size=2&instance_id=%s'
+                               % self.instance.pk, self.commander.username,
+                               [self.next_plot_delta, self.plot_delta])
+
+        # Add the system user to the instance with "commander" permissions
+        system_user = User.system_user()
+        InstanceUser(instance=self.instance, user=system_user,
+                     role=self.commander.get_role(self.instance)
+                     ).save_with_user(system_user)
+
+        self.plot.width += 42
+        self.plot.save_with_user(system_user)
+
+        # There is now a system user audit on the plot
+        self.assertEqual(1, len(Audit.objects.filter(model_id=self.plot.pk,
+                                                     model='Plot',
+                                                     user=system_user)))
+
+        # But the audits returned by the view are the same
+        self.check_audits('/blah/?page_size=2',
+                          [self.next_plot_delta, self.plot_delta])
+        self.check_user_audits('/blah/?page_size=2&instance_id=%s'
+                               % self.instance.pk, self.commander.username,
+                               [self.next_plot_delta, self.plot_delta])
 
 
 class SpeciesViewTests(ViewTestCase):
