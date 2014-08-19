@@ -3,7 +3,9 @@ from treemap.models import (User, Plot, Tree, Species,
 
 from threadedcomments.models import ThreadedComment
 
-from otm1_migrator.data_util import coerce_null_boolean, coerce_null_string
+from otm1_migrator.data_util import (coerce_null_boolean,
+                                     coerce_null_string,
+                                     correct_none_string)
 
 from django.contrib.gis.geos import fromstr
 
@@ -80,6 +82,10 @@ MIGRATION_RULES = {
                           'previous_value', 'current_value',
                           'action', 'requires_auth',
                           'ref', 'created', 'updated'},
+        'value_transformers': {
+            'previous_value': correct_none_string,
+            'current_value': correct_none_string,
+        }
     },
     'plot': {
         'command_line_flag': '-p',

@@ -171,3 +171,10 @@ def coerce_null_string(value):
         return ''
     else:
         return value
+
+
+def correct_none_string(value):
+    if value == 'None':
+        return None
+    else:
+        return value

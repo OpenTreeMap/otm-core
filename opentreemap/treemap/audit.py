@@ -1090,8 +1090,24 @@ class Audit(models.Model):
         if isinstance(field_cls, models.GeometryField):
             field_modified_value = GEOSGeometry(field_modified_value)
         elif isinstance(field_cls, models.ForeignKey):
-            field_modified_value = field_cls.rel.to.objects.get(
-                pk=field_modified_value)
+            if isinstance(field_modified_value, (str, unicode)):
+                # sometimes audit records have descriptive string values
+                # stored in what should be a foreign key field.
+                # these cannot be resolved to foreign key models.
+                # unfortunately, django accepts strings as pks and
+                # converts them implicitly, so it will choke on an
+                # audit value with a non-parseable string, without
+                # providing a decipherable error message.
+                # Here we explicitly try that conversion and if
+                # parsing fails, it should be the case that a readable
+                # string is stored instead of a PK, so return that
+                # without trying to resolve a foreign key model.
+                try:
+                    pk = int(field_modified_value)
+                    field_modified_value = field_cls.rel.to.objects.get(
+                        pk=pk)
+                except ValueError:
+                    pass
 
         return field_modified_value
 

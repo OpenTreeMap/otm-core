@@ -21,8 +21,6 @@
             <td>
             {% if audit.field == 'plot' %}
                 Planting Site {{ audit.clean_current_value }}
-            {% elif audit.field == 'species' %}
-                {{ audit.clean_current_value.display_name }}
             {% else %}
                 {{ audit.current_display_value|default_if_none:"" }}
             {% endif %}
