@@ -17,6 +17,22 @@
 # so that Species instances can be created and saved
 # using these dictionary objects as "templates."
 
+def otm_code_search(candidate):
+    genus, species, cultivar, other = [
+        candidate.get(thing, '')
+        for thing in ['genus', 'species',
+                      'cultivar', 'other_part_of_name']]
+
+    for species_dict in SPECIES:
+        if ((species_dict['genus'] == genus and
+             species_dict['species'] == species and
+             species_dict['cultivar'] == cultivar and
+             species_dict['other'] == other)):
+            return species_dict['otm_code']
+    else:
+        return None
+
+
 SPECIES = [
 {"otm_code": "AB", "other": "", "common_name": "Fir", "genus": "Abies", "cultivar": "", "species": ""},
 {"otm_code": "ABAL", "other": "", "common_name": "Silver fir", "genus": "Abies", "cultivar": "", "species": "alba"},
