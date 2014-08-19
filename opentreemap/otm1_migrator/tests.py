@@ -58,6 +58,12 @@ class MigrationCommandTests(LocalMediaTestCase):
         "model": "profiles.userprofile",
         "fields": {
         "user": %d,
+        "site_edits": "",
+        "uid": "",
+        "updates": "",
+        "active": "",
+        "volunteer": "",
+        "zip_code": "",
         "photo": "%s"}}
         """
 

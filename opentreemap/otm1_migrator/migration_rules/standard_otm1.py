@@ -3,6 +3,8 @@ from treemap.models import (User, Plot, Tree, Species,
 
 from threadedcomments.models import ThreadedComment
 
+from otm1_migrator.data_util import coerce_null_boolean, coerce_null_string
+
 from django.contrib.gis.geos import fromstr
 
 # model specification:
@@ -65,10 +67,7 @@ MIGRATION_RULES = {
                            'url', 'pests', 'steward_user',
                            'import_event'},
         'missing_fields': {'instance', },
-        'value_transformers': {
-            'readonly':
-            (lambda x: False if (x is None or x is False) else True),
-        }
+        'value_transformers': {'readonly': coerce_null_boolean}
     },
     'audit': {
         'command_line_flag': '-a',
@@ -99,8 +98,7 @@ MIGRATION_RULES = {
                            'import_event'},
         'missing_fields': {'instance', },
         'value_transformers': {
-            'readonly':
-            (lambda x: False if (x is None or x is False) else True),
+            'readonly': coerce_null_boolean,
             'geometry': (lambda x: fromstr(x, srid=4326)),
         },
     },
@@ -122,6 +120,7 @@ MIGRATION_RULES = {
                            'tree_count', 'resource', 'itree_code',
                            'family', 'scientific_name', 'symbol'},
         'value_transformers': {
+            'common_name': coerce_null_string,
             'v_max_height': (lambda x: x or 10000),
             'v_max_dbh': (lambda x: x or 10000),
             'native_status': (lambda x: x and x.lower() == 'true')
@@ -138,10 +137,14 @@ MIGRATION_RULES = {
     },
     'contenttype': {
         'command_line_flag': '-c',
+        'common_fields': {'model', 'name', 'app_label'}
     },
     'userprofile': {
         'command_line_flag': '-z',
-        'dependencies': {'user': 'user'}
+        'dependencies': {'user': 'user'},
+        'common_fields': {'photo'},
+        'removed_fields': {'site_edits', 'uid', 'active',
+                           'zip_code', 'updates', 'volunteer'}
     },
     'comment': {
         'command_line_flag': '-n',
@@ -174,7 +177,10 @@ MIGRATION_RULES = {
     }
 }
 
-PRIORITY_ORDER = ['user', 'contenttype', 'species', 'plot']
+# This is a concession. It would be better, but more difficult, if
+# users of MIGRATION_RULES would resolve a priority order based on
+# dependencies in order to make this more DRY.
+PRIORITY_ORDER = ['user', 'contenttype', 'species', 'plot', 'tree']
 MODEL_ORDER = (PRIORITY_ORDER +
                [model for model in MIGRATION_RULES
                 if model not in PRIORITY_ORDER])

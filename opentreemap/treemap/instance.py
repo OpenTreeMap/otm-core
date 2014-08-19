@@ -15,11 +15,11 @@ from urllib import urlencode
 
 from copy import deepcopy
 
-from treemap import SPECIES
+from treemap.species import SPECIES
 from treemap.json_field import JSONField
 from treemap.lib.object_caches import udf_defs
-from treemap.species import (species_codes_for_regions, all_species_codes,
-                             ITREE_REGION_CHOICES)
+from treemap.species.codes import (species_codes_for_regions,
+                                   all_species_codes, ITREE_REGION_CHOICES)
 
 URL_NAME_PATTERN = r'[a-zA-Z]+[a-zA-Z0-9\-]*'
 

@@ -4,6 +4,9 @@ from treemap.audit import model_hasattr
 from treemap.util import to_model_name
 from treemap.lib import udf as udf_lib
 
+PROCESS_WITHOUT_SAVE = 'PROCESS_WITHOUT_SAVE'
+DO_NOT_PROCESS = 'DO_NOT_PROCESS'
+
 
 class MigrationException(Exception):
     pass
@@ -27,13 +30,13 @@ def validate_model_dict(config, model_name, data_dict):
     provided_fields = set(data_dict['fields'].keys())
 
     if expected_fields != provided_fields:
-        raise Exception('model validation failure. \n\n'
-                        'Expected: %s \n\n'
-                        'Got: %s\n\n'
-                        'Symmetric Difference: %s'
-                        % (expected_fields, provided_fields,
-                           expected_fields.
-                           symmetric_difference(provided_fields)))
+        raise Exception(
+            'model validation failure: "%s".\n\n'
+            'Expected: %s \n\n'
+            'Got: %s\n\n'
+            'Symmetric Difference: %s'
+            % (model_name, expected_fields, provided_fields,
+               expected_fields.symmetric_difference(provided_fields)))
 
 
 def dict_to_model(config, model_name, data_dict, instance):
@@ -48,7 +51,12 @@ def dict_to_model(config, model_name, data_dict, instance):
     renamed_fields = config[model_name].get('renamed_fields', {})
     dependency_fields = config[model_name].get('dependencies', {})
 
-    model = config[model_name]['model_class']()
+    ModelClass = config[model_name].get('model_class')
+
+    if ModelClass is None:
+        return PROCESS_WITHOUT_SAVE
+    else:
+        model = ModelClass()
 
     # instance *must* be set before UDF assignment
     if model_hasattr(model, 'instance'):
@@ -74,10 +82,19 @@ def dict_to_model(config, model_name, data_dict, instance):
                       else '')
             setattr(model, transformed_field + suffix, transformed_value)
 
-    for mutator in config[model_name].get('record_mutators', []):
-        mutator(model, data_dict['fields'])
+    result = model
+    for mutator in config[model_name].get('presave_actions', []):
+        if result != DO_NOT_PROCESS and result is not None:
+            result = mutator(result, data_dict)
 
-    return model
+    # result can be one of three things:
+    # * A valid model object. This will be saved and a relic created for it.
+    # * A pseudo-enum value, DO_NOT_PROCESS, indicating that this
+    #   record should be wholly disregarded. This means not even
+    #   creating a relic.
+    # * A psuedo-enum value, PROCESS_WITHOUT_SAVE, indicating that
+    #   this record won't be saved, but a relic should be create for it.
+    return result
 
 
 def uniquify_username(username):
@@ -140,3 +157,17 @@ def create_udfs(udfs, instance):
             if not udf_lib.udf_exists(udf_params, instance):
                 print "Creating udf %s" % name
                 udf_lib.udf_create(udf_params, instance)
+
+
+def coerce_null_boolean(value):
+    if value is None or value is False:
+        return False
+    else:
+        return True
+
+
+def coerce_null_string(value):
+    if value is None:
+        return ''
+    else:
+        return value

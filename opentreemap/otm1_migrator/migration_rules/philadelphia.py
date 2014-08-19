@@ -1,5 +1,7 @@
 from otm1_migrator.migration_rules.standard_otm1 import MIGRATION_RULES
 
+from treemap.models import ITreeCodeOverride, ITreeRegion, User
+
 UDFS = {
     'plot': {
         'owner_additional_id': {
@@ -59,7 +61,22 @@ SORT_ORDER_INDEX = {
 }
 
 
-def mutate_boundary(boundary_obj, otm1_fields):
+def create_override(species_obj, species_dict):
+    for region in ['NoEastXXX', 'PiedmtCLT']:
+        override = ITreeCodeOverride(
+            instance_species_id=species_obj.pk,
+            region=ITreeRegion.objects.get(code=region),
+            itree_code=species_dict['fields']['itree_code'])
+        override.save_with_user(User.system_user())
+    return species_obj
+
+MIGRATION_RULES['species']['postsave_actions'] = (MIGRATION_RULES['species']
+                                                  .get('postsave_actions', [])
+                                                  + [create_override])
+
+
+def mutate_boundary(boundary_obj, boundary_dict):
+    otm1_fields = boundary_dict.get('fields')
     if ((boundary_obj.name.find('County') != -1
          or boundary_obj.name == 'Philadelphia')):
         boundary_obj.category = 'County'
@@ -71,8 +88,11 @@ def mutate_boundary(boundary_obj, otm1_fields):
         county = otm1_fields['county']
         boundary_obj.category = county + ' Township'
         boundary_obj.sort_order = SORT_ORDER_INDEX[county]
+    return boundary_obj
 
-MIGRATION_RULES['boundary']['record_mutators'] = [mutate_boundary]
+MIGRATION_RULES['boundary']['presave_actions'] = (MIGRATION_RULES['boundary']
+                                                  .get('presave_actions', [])
+                                                  + [mutate_boundary])
 MIGRATION_RULES['species']['missing_fields'] |= {'other'}
 
 # these fields don't exist in the ptm fixture, so can't be specified
