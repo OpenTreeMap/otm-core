@@ -18,6 +18,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from treemap.species import otm_code_search
 from treemap.models import User, InstanceUser, Tree
+from treemap.util import to_object_name
 from treemap.management.util import InstanceDataCommand
 from treemap.images import save_uploaded_image
 
@@ -50,28 +51,47 @@ def save_species(migration_rules, migration_event,
     return species_obj
 
 
-
-
-
-
 @atomic
-def save_other_with_user(migration_rules, migration_event,
-                         model_name, model_dict, instance):
+def save_plot(migration_rules, migration_event,
+              plot_dict, plot_obj, instance):
 
-    model = dict_to_model(migration_rules,
-                          model_name, model_dict,
-                          instance)
-
-    model.save_with_user_without_verifying_authorization(
-        User.system_user())
+    if plot_dict['fields']['present'] is False:
+        plot_obj = None
+        pk = models.UNBOUND_MODEL_ID
+    else:
+        plot_obj.save_with_user_without_verifying_authorization(
+            User.system_user())
+        pk = plot_obj.pk
 
     OTM1ModelRelic.objects.create(
         instance=instance,
         migration_event=migration_event,
-        otm1_model_id=model_dict['pk'],
-        otm2_model_name=model_name,
-        otm2_model_id=model.pk)
-    return model
+        otm1_model_id=plot_dict['pk'],
+        otm2_model_name='plot',
+        otm2_model_id=pk)
+    return plot_obj
+
+
+@atomic
+def save_tree(migration_rules, migration_event,
+              tree_dict, tree_obj, instance):
+
+    if ((tree_dict['fields']['present'] is False or
+         tree_dict['fields']['plot'] == models.UNBOUND_MODEL_ID)):
+        tree_obj = None
+        pk = models.UNBOUND_MODEL_ID
+    else:
+        tree_obj.save_with_user_without_verifying_authorization(
+            User.system_user())
+        pk = tree_obj.pk
+
+    OTM1ModelRelic.objects.create(
+        instance=instance,
+        migration_event=migration_event,
+        otm1_model_id=tree_dict['pk'],
+        otm2_model_name='tree',
+        otm2_model_id=pk)
+    return tree_obj
 
 
 @atomic
@@ -118,16 +138,23 @@ def process_userprofile(migration_rules, migration_event,
 def save_treephoto(migration_rules, migration_event,
                    treephoto_path, model_dict, treephoto_obj, instance):
 
-    image = open(os.path.join(treephoto_path,
-                              model_dict['fields']['photo']))
-    treephoto_obj.set_image(image)
-    treephoto_obj.map_feature_id = Tree.objects.values_list('plot__id', flat=True)\
-                                               .get(pk=treephoto_obj.tree_id)
+    if model_dict['fields']['tree'] == models.UNBOUND_MODEL_ID:
+        treephoto_obj = None
+        pk = models.UNBOUND_MODEL_ID
+    else:
+        image = open(os.path.join(treephoto_path,
+                                  model_dict['fields']['photo']))
+        treephoto_obj.set_image(image)
+        treephoto_obj.map_feature_id = (Tree
+                                        .objects
+                                        .values_list('plot__id', flat=True)
+                                        .get(pk=treephoto_obj.tree_id))
 
-    del model_dict['fields']['photo']
+        del model_dict['fields']['photo']
 
-    treephoto_obj.save_with_user_without_verifying_authorization(
-        User.system_user())
+        treephoto_obj.save_with_user_without_verifying_authorization(
+            User.system_user())
+        pk = treephoto_obj.pk
 
     OTM1ModelRelic.objects.create(
         instance=instance,
@@ -144,16 +171,22 @@ def save_audit(migration_rules, migration_event,
 
     fields = model_dict['fields']
 
-    # update the object_id
-    audit_object_relic = OTM1ModelRelic.objects.get(
-        instance=instance,
-        otm2_model_name__iexact=model_dict['fields']['model'],
-        otm1_model_id=model_dict['fields']['model_id'])
-    model.model_id = audit_object_relic.otm2_model_id
+    # the migrator uses downcase names
+    model_name = to_object_name(fields['model'])
+
+    model_id = relic_ids[model_name][fields['model_id']]
+
+    if model_id == models.UNBOUND_MODEL_ID:
+        print("cannot save this audit. "
+              "The underlying model '%s' was discarded."
+              % model_name)
+        return None
+
+    audit_obj.model_id = model_id
 
     if ((fields['field'] == 'id' and
          fields['current_value'] == fields['model_id'])):
-        model.current_value = audit_object_relic.otm2_model_id
+        audit_obj.current_value = model_id
 
     audit_obj.save()
 
@@ -208,15 +241,26 @@ def save_threadedcomment(migration_rules, migration_event,
               "that does not exist in OTM2 .. SKIPPING"
               % tcomment_obj.comment)
         return None
-    tcomment_obj.save()
+    content_type = ContentType.objects.get(pk=tcomment_obj.content_type_id)
 
     old_object_id = model_dict['fields']['object_id']
     try:
-        new_object_id = relic_ids[model.content_type.model][old_object_id]
+        new_object_id = relic_ids[content_type.model][old_object_id]
     except KeyError:
         raise MigrationException("threadedcomment dependency not met. "
                                  "did you import %s yet?"
                                  % tcomment_obj.content_type.model)
+
+    if new_object_id == models.UNBOUND_MODEL_ID:
+        print("Can't import threadedcomment %s because "
+              "it is assigned to a model object '%s:%s' that does "
+              "not exist in OTM2. It is probably the case that it "
+              "was marked as deleted in OTM1. .. SKIPPING"
+              % (model_dict['pk'], content_type.model, old_object_id))
+        return None
+
+    tcomment_obj.save()
+
     # object_id is called object_pk in later versions
     tcomment_obj.object_pk = new_object_id
 
@@ -520,8 +564,8 @@ class Command(InstanceDataCommand):
             'user': default_partial(save_user),
             'audit': default_partial(save_audit, relic_ids),
             'species': default_partial(save_species),
-            'plot': default_partial(save_other_with_user, 'plot'),
-            'tree': default_partial(save_other_with_user, 'tree'),
+            'plot': default_partial(save_plot),
+            'tree': default_partial(save_tree),
             'treephoto': default_partial(save_treephoto, treephoto_path),
             'contenttype': default_partial(process_contenttype),
             'userprofile': default_partial(process_userprofile,
