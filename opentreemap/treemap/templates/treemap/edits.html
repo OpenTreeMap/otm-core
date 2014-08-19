@@ -129,14 +129,6 @@ active
             </a>
           </td>
 
-          {% elif audit.field == 'species' %}
-          <td>
-            {{ audit.clean_previous_value.scientific_name|default_if_none:"" }}
-          </td>
-          <td>
-            {{ audit.clean_current_value.scientific_name|default_if_none:"" }}
-          </td>
-
           {% elif audit.field == 'id' %}
           <td>{{ audit.previous_display_value|default_if_none:""|unlocalize }}</td>
           <td>{{ audit.current_display_value|default_if_none:""|unlocalize }}</td>
