@@ -9,6 +9,7 @@ import os
 import importlib
 import json
 import operator
+import dateutil.parser
 from functools import partial
 from itertools import chain
 
@@ -188,6 +189,13 @@ def save_audit(migration_rules, migration_event,
          fields['current_value'] == fields['model_id'])):
         audit_obj.current_value = model_id
 
+    # after the initial save, `created` can be updated without
+    # getting clobbered by `auto_now_add`.
+    # save the object, then set the created time.
+    audit_obj.save()
+    created = fields['created']
+    assert created != '' and not created is None
+    audit_obj.created = dateutil.parser.parse(created)
     audit_obj.save()
 
     OTM1ModelRelic.objects.create(
