@@ -244,10 +244,10 @@ def save_threadedcomment(migration_rules, migration_event,
     tcomment_obj.site_id = 1
 
     if tcomment_obj.content_type_id == models.UNBOUND_MODEL_ID:
-        print("Can't import threadedcomment %s because "
-              "it is assigned to a ContentType (model) "
-              "that does not exist in OTM2 .. SKIPPING"
-              % tcomment_obj.comment)
+        print("Can't import threadedcomment '%s' because "
+              "its ContentType (model) "
+              "does not exist in OTM2 .. SKIPPING"
+              % tcomment_obj.comment[:10] + '...')
         return None
     content_type = ContentType.objects.get(pk=tcomment_obj.content_type_id)
 
@@ -260,11 +260,12 @@ def save_threadedcomment(migration_rules, migration_event,
                                  % tcomment_obj.content_type.model)
 
     if new_object_id == models.UNBOUND_MODEL_ID:
-        print("Can't import threadedcomment %s because "
-              "it is assigned to a model object '%s:%s' that does "
-              "not exist in OTM2. It is probably the case that it "
+        print("Can't import threadedcomment '%s' because "
+              "it's model object '%s:%s' does "
+              "not exist in OTM2. It probably "
               "was marked as deleted in OTM1. .. SKIPPING"
-              % (model_dict['pk'], content_type.model, old_object_id))
+              % (tcomment_obj.comment[:10] + '...',
+                 content_type.model, old_object_id))
         return None
 
     tcomment_obj.save()
