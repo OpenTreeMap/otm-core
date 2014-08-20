@@ -198,7 +198,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'opentreemap.context_processors.global_settings',
 )
 
-COMMENTS_APP = 'threadedcomments'
+COMMENTS_APP = 'otm_comments'
 
 # APPS THAT ARE DEVELOPED IN CONJUNCTION WITH OTM2
 # these are the apps we want to test by default using
@@ -210,6 +210,7 @@ MANAGED_APPS = (
     'management',
     'exporter',
     'otm1_migrator',
+    'otm_comments',
 )
 
 UNMANAGED_APPS = (

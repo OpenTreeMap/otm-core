@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.http import Http404
 
 import hashlib
 import re
@@ -13,6 +12,7 @@ from django.core.mail import send_mail
 from django.core.exceptions import (ValidationError, MultipleObjectsReturned,
                                     ObjectDoesNotExist)
 from django.core import validators
+from django.http import Http404
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.db import IntegrityError, transaction
