@@ -8,8 +8,6 @@ from threadedcomments.models import ThreadedComment
 
 from django.contrib.gis.db import models
 
-from treemap.instance import Instance
-
 
 class EnhancedThreadedComment(ThreadedComment):
     """
@@ -21,7 +19,7 @@ class EnhancedThreadedComment(ThreadedComment):
 
     # We could retrieve this through the GenericForeignKey on ThreadedComment,
     # but it makes things simpler to record instance here.
-    instance = models.ForeignKey(Instance)
+    instance = models.ForeignKey('treemap.Instance')
 
     def save(self, *args, **kwargs):
         if hasattr(self.content_object, 'instance'):
