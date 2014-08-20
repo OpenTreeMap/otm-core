@@ -96,6 +96,23 @@ def save_tree(migration_rules, migration_event,
 
 
 @atomic
+def process_reputation(migration_rules, migration_event,
+                       model_dict, rep_obj, instance):
+
+    iuser = InstanceUser.objects.get(user_id=model_dict['fields']['user'],
+                                     instance_id=instance.id)
+    iuser.reputation = model_dict['fields']['reputation']
+    iuser.save()
+
+    OTM1ModelRelic.objects.create(instance=instance,
+                                  migration_event=migration_event,
+                                  otm1_model_id=model_dict['pk'],
+                                  otm2_model_name='reputation',
+                                  otm2_model_id=models.UNBOUND_MODEL_ID)
+    return None
+
+
+@atomic
 def process_userprofile(migration_rules, migration_event,
                         photo_basepath, model_dict, up_obj, instance):
     """
@@ -577,6 +594,7 @@ class Command(InstanceDataCommand):
             'tree': default_partial(save_tree),
             'treephoto': default_partial(save_treephoto, treephoto_path),
             'contenttype': default_partial(process_contenttype),
+            'reputation': default_partial(process_reputation),
             'userprofile': default_partial(process_userprofile,
                                            userphoto_path),
             'threadedcomment': default_partial(save_threadedcomment,
