@@ -379,10 +379,12 @@ def save_user(migration_rules, migration_event, user_dict, user_obj, instance):
     enough to query for all users that have a different username than
     the one stored in their relic and take further action as necessary.
     """
+    otm1_email = user_dict['fields']['email']
+    assert otm1_email != ''
     # don't save another user if this email address already exists.
     # just observe and report
-    users_with_this_email = User.objects.filter(
-        email__iexact=user_dict['fields']['email'])
+    users_with_this_email = User.objects.filter(email__iexact=otm1_email)
+
     if users_with_this_email.exists():
         user_obj = users_with_this_email[0]
     else:
@@ -407,7 +409,7 @@ def save_user(migration_rules, migration_event, user_dict, user_obj, instance):
                           otm2_model_id=user_obj.pk,
                           otm1_model_id=user_dict['pk'],
                           otm1_username=user_dict['fields']['username'],
-                          email=user_dict['fields']['email'])
+                          email=otm1_email)
     relic.save()
     return user_obj
 
