@@ -47,7 +47,7 @@ def _map_feature_audits(user, instance, feature, filters=None,
 
     audits = []
     for afilter in filters:
-        audits += list(iaudit.filter(afilter).order_by('-updated')[:5])
+        audits += list(iaudit.filter(afilter).order_by('-created')[:5])
 
     # UDF collection audits have some fields which aren't very useful to show
     udf_collection_exclude_filter = Q(
@@ -56,7 +56,7 @@ def _map_feature_audits(user, instance, feature, filters=None,
     for afilter in cudf_filters:
         audits += list(iaudit.filter(afilter)
                              .exclude(udf_collection_exclude_filter)
-                             .order_by('-updated')[:5])
+                             .order_by('-created')[:5])
 
     audits = sorted(audits, key=lambda audit: audit.updated, reverse=True)[:5]
 
@@ -126,7 +126,7 @@ def _add_audits_to_context(audits, context):
     for audit in audits:
         if _audits_are_in_different_groups(last_audit, audit):
             current_audit_group = {
-                'updated': audit.updated,
+                'created': audit.created,
                 'user': audit.user,
                 'audits': []}
             audit_groups.append(current_audit_group)
@@ -134,7 +134,7 @@ def _add_audits_to_context(audits, context):
         last_audit = audit
     # Converting the audit groups to tuples makes the template code cleaner
     context['recent_activity'] = [
-        (ag['user'], ag['updated'], ag['audits']) for ag in audit_groups]
+        (ag['user'], ag['created'], ag['audits']) for ag in audit_groups]
 
     if len(audits) > 0:
         context['latest_update'] = audits[0]
