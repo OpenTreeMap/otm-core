@@ -6,7 +6,7 @@
   <p>
     {{ latest_update.user.username }}
     {{ latest_update.short_descr }}
-    on {{ latest_update.updated|date:request.instance.date_format }}
+    on {{ latest_update.created|date:request.instance.date_format }}
   </p>
 
   <div class="progress">

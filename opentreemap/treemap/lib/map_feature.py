@@ -116,7 +116,7 @@ def _add_audits_to_context(audits, context):
         elif prev_audit.user_id != audit.user_id:
             return True
         else:
-            time_difference = last_audit.updated - audit.updated
+            time_difference = last_audit.created - audit.created
             return time_difference > datetime.timedelta(days=1)
 
     audit_groups = []
