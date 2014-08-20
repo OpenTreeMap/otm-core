@@ -1038,7 +1038,7 @@ class Audit(models.Model):
     requires_auth = models.BooleanField(default=False)
     ref = models.ForeignKey('Audit', null=True)
 
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
     updated = models.DateTimeField(auto_now=True, db_index=True)
 
     class Type:

@@ -21,9 +21,9 @@
 </div>
 <div class="well">
   <h3>{% trans "Recent Edits" %}</h3>
-  {% for user, updated, audits in recent_activity %}
+  {% for user, created, audits in recent_activity %}
   <h5>{{ user.username }}</h5>
-  <p class="text-muted">{{ updated|date:request.instance.date_format }} ({{ updated|naturaltime }})</p>
+  <p class="text-muted">{{ created|date:request.instance.date_format }} ({{ created|naturaltime }})</p>
   <ul>
     {% for audit in audits %}
       <li>{{ audit.short_descr }}</li>
