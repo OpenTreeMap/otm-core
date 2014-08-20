@@ -1,7 +1,7 @@
 from treemap.models import (User, Plot, Tree, Species,
                             Audit, TreePhoto, Boundary)
 
-from threadedcomments.models import ThreadedComment
+from otm_comments.models import EnhancedThreadedComment
 
 from django.contrib.gis.geos import fromstr
 
@@ -145,7 +145,7 @@ MIGRATION_RULES = {
     },
     'comment': {
         'command_line_flag': '-n',
-        'model_class': ThreadedComment,
+        'model_class': EnhancedThreadedComment,
         'dependencies': {'user': 'user',
                          'contenttype': 'content_type'},
         'common_fields': {'comment', 'is_public',
@@ -156,7 +156,7 @@ MIGRATION_RULES = {
     },
     'threadedcomment': {
         'command_line_flag': '-r',
-        'model_class': ThreadedComment,
+        'model_class': EnhancedThreadedComment,
         'dependencies': {'user': 'user',
                          'contenttype': 'content_type'},
         'common_fields': {'comment', 'is_public', 'is_approved',
