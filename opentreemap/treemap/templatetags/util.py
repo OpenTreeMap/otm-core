@@ -103,3 +103,12 @@ def is_filterable_audit_model(model_name):
     allowed_models = get_filterable_audit_models()
 
     return model_name in allowed_models.values()
+
+
+@register.filter
+def tabindex(value, index):
+    """
+    Adds a tabindex to a Django forms widget
+    """
+    value.field.widget.attrs['tabindex'] = index
+    return value
