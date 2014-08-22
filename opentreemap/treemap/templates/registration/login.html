@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load util %}
 
 {% block page_title %} | {% trans "Login" %}{% endblock %}
 
@@ -30,11 +31,11 @@
                         </a>
                     {% endif %}
                     {{ field.label_tag}}
-                    {{ field }}
+                    {{ field|tabindex:forloop.counter }}
                     {{ field.errors|safe }}
                 </div>
             {% endfor %}
-            <button type="submit" value="{% trans 'Log in' %}" class="btn btn-lg btn-primary">{% trans 'Log in' %}</button>
+            <button type="submit" value="{% trans 'Log in' %}" class="btn btn-lg btn-primary" tabindex="3">{% trans 'Log in' %}</button>
             <input type="hidden" name="next" value="{{ next }}" />
         </fieldset>
     </form>
