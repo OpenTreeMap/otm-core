@@ -37,11 +37,15 @@ MapManager.prototype = {
         options.zoom = options.zoom || this.ZOOM_DEFAULT;
         var map = this.createMap(options);
 
-        map.utfEvents = BU.leafletEventStream(utfLayer, 'click');
+        if (options.plotLayerViewOnly) {
+            this.layersControl.addOverlay(plotLayer, 'OpenTreeMap Trees')
+        } else {
+            map.addLayer(plotLayer);
+            map.addLayer(utfLayer);
+            map.utfEvents = BU.leafletEventStream(utfLayer, 'click');
+        }
 
         map.addLayer(boundsLayer);
-        map.addLayer(plotLayer);
-        map.addLayer(utfLayer);
 
         if (options.trackZoomLatLng) {
             map.on("moveend", _.partial(serializeZoomLatLngFromMap, map));
@@ -69,7 +73,7 @@ MapManager.prototype = {
         } else {
             var visible = _.keys(basemapMapping)[0];
             map.addLayer(basemapMapping[visible]);
-            L.control.layers(basemapMapping).addTo(map);
+            this.layersControl = L.control.layers(basemapMapping).addTo(map);
         }
 
         if (options.disableScrollWithMouseWheel) {
