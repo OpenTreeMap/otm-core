@@ -15,14 +15,11 @@ var $ = require('jquery'),
 
 $.ajaxSetup(require('treemap/csrf').jqueryAjaxSetupOptions);
 
-module.exports.init = function (config) {
+module.exports.init = function (options) {
+    var config = options.config;
 
     // init mapManager before searchBar so that .setCenterWM is set
-    mapManager.createTreeMap({
-        config: config,
-        domId: 'map',
-        trackZoomLatLng: true
-    });
+    mapManager.createTreeMap(options);
 
     // When there is a single geocode result (either by an exact match
     // or the user selects a candidate) move the map to it and zoom

@@ -23,7 +23,11 @@ function changeMode (modeName) {
 }
 
 module.exports.init = function (config) {
-    var mapPage = MapPage.init(config),
+    var mapPage = MapPage.init({
+            config: config,
+            domId: 'map',
+            trackZoomLatLng: true
+        }),
         mapManager = mapPage.mapManager,
 
         triggerSearchFromSidebar = new Bacon.Bus(),
