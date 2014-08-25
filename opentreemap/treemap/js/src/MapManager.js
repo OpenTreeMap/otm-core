@@ -38,7 +38,7 @@ MapManager.prototype = {
         var map = this.createMap(options);
 
         if (options.plotLayerViewOnly) {
-            this.layersControl.addOverlay(plotLayer, 'OpenTreeMap Trees')
+            this.layersControl.addOverlay(plotLayer, 'OpenTreeMap Trees');
         } else {
             map.addLayer(plotLayer);
             map.addLayer(utfLayer);
