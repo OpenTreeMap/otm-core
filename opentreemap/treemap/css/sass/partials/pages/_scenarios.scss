@@ -1,0 +1,80 @@
+#sidebar-scenarios {
+
+    > .sidebar-inner {
+
+        > h3 {
+            padding: 22px 20px 22px;
+            margin: 0;
+            font-size: 2.1rem;
+            background: $secondary-color;
+            color: white;
+
+            &:before {
+                content: counter(steps) ". ";
+                counter-increment: steps;
+                font-size: 1.6rem;
+                margin-right: 5px;
+            }
+        }
+
+        .add-step-container {
+            position: absolute;
+            overflow: hidden;
+            overflow-y: auto;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 67px;
+        }
+        .add-step {
+            .add-step-content {
+                padding: 20px;
+                position: absolute;
+                bottom: 60px;
+                top: 0;
+                overflow-y: auto;
+                left: 0;
+                right: 0;
+
+                .content-header {
+                    margin: 15px -20px;
+                    background: $light-gray-color;
+                    padding: 8px 20px;
+                    font-size: 1.2rem;
+                    font-weight: 700;
+
+                    &:first-of-type {
+                        margin-top: -20px;
+                    }
+                }
+
+                @include checkboxes;
+            }
+            .add-step-footer {
+                margin: 0;
+                padding: 0 20px;
+                border-top: 1px solid $light-gray-color;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+
+                .counter {
+                    position: absolute;
+                    top: 18px;
+                    font-size: 1.4rem;
+                    left: 0;
+                    right: 0;
+                    text-align: center;
+                }
+                .pager {
+                    position: relative;
+                    margin: 13px 0;
+                }
+              .footer-step-number:before {
+                  content: counter(steps);
+              }
+            }
+        }
+    }
+}

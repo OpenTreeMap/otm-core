@@ -176,7 +176,7 @@
                         border-radius: 6px 0 6px 6px;
                     }
                 }
-
+                
                 .options-toggle {
                     background: white;
                     padding: 7px 12px 8px;
@@ -198,11 +198,32 @@
                     right: 0;
                     border-radius: 6px;
                     display: none;
-                    box-shadow: 0 1px 7px rgba(0,0,0,0.4);
+                    box-shadow: 0 4px 7px rgba(0, 0, 0, 0.25);
 
                     label {
                         float: left;
                         clear: both;
+                        margin: 12px 0 0;
+
+                        &[for="visibility-slider"] + div.slider > .slider-track {
+                            background: #002400;
+                            background: -moz-linear-gradient(left, #002400 0%, #005700 17%, #008a00 33%, #52b152 67%, #83c783 83%, #b4ddb4 100%);
+                            background: -webkit-gradient(linear, left top, right top, color-stop(0%,#002400), color-stop(17%,#005700), color-stop(33%,#008a00), color-stop(67%,#52b152), color-stop(83%,#83c783), color-stop(100%,#b4ddb4));
+                            background: -webkit-linear-gradient(left, #002400 0%,#005700 17%,#008a00 33%,#52b152 67%,#83c783 83%,#b4ddb4 100%);
+                            background: -o-linear-gradient(left, #002400 0%,#005700 17%,#008a00 33%,#52b152 67%,#83c783 83%,#b4ddb4 100%);
+                            background: -ms-linear-gradient(left, #002400 0%,#005700 17%,#008a00 33%,#52b152 67%,#83c783 83%,#b4ddb4 100%);
+                            background: linear-gradient(to right, #002400 0%,#005700 17%,#008a00 33%,#52b152 67%,#83c783 83%,#b4ddb4 100%);
+                            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#002400', endColorstr='#b4ddb4',GradientType=1 );
+
+                            > .slider-selection {
+                                background: transparent;
+                                box-shadow: none;
+                            }
+                        }
+
+                        &:first-of-type {
+                            margin-top: 0;
+                        }
                     }
                     input.slider {
                         display: none;
@@ -210,11 +231,18 @@
                     div.slider {
                         width: 100% !important;
                     }
+                    div.slider-handle {
+                        width: 18px;
+                        height: 18px;
+                        opacity: 1;
+                        margin-top: -4px;
+                        border: 2px solid white;
+                    }
                     small {
                         font-size: 1.1rem;
                         font-weight: 700;
                         color: $subtext-color;
-                        margin: 0 0 10px;
+                        margin: 0;
                     }
                 }
             }
