@@ -78,6 +78,12 @@
                             label {
                                 font-size: 1.1rem;
                                 font-weight: 700;
+
+                                > em {
+                                    margin-left: 5px;
+                                    color: $main-text-color;
+                                    font-style: normal;
+                                }
                             }
                             input.form-control {
                                 font-size: 1.2rem;
