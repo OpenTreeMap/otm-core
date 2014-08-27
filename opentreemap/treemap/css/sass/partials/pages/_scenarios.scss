@@ -1,0 +1,154 @@
+#sidebar-scenarios {
+
+    > .sidebar-inner {
+
+        > h3 {
+            padding: 18px 16px 16px;
+            margin: 0;
+            font-size: 2.1rem;
+            background: $secondary-color;
+            color: white;
+
+            &:before {
+                content: counter(steps) ". ";
+                counter-increment: steps;
+                font-size: 1.6rem;
+                margin-right: 5px;
+            }
+        }
+
+        .add-step-container {
+            position: absolute;
+            overflow: hidden;
+            overflow-y: auto;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 55px;
+        }
+        .add-step {
+            .add-step-content {
+                padding: 20px;
+                position: absolute;
+                bottom: 105px;
+                top: 0;
+                overflow-y: auto;
+                left: 0;
+                right: 0;
+
+                .content-header {
+                    margin: 0 -20px;
+                    background: $light-gray-color;
+                    color: darken($subtext-color, 10%);
+                    padding: 8px 16px;
+                    font-size: 1.2rem;
+                    font-weight: 700;
+
+                    &:first-of-type {
+                        margin-top: -20px;
+                    }
+
+                    a {
+                        border-bottom: 1px dotted;
+                    }
+                }
+                .content-empty {
+                    padding: 15px 0 20px;
+                    margin: 0;
+                }
+                .content-row {
+                    border-bottom: 1px solid $light-gray-color;
+                    margin: 0 -20px;
+                    padding: 6px 20px 14px;
+
+                    > .row {
+                        margin-left: -10px;
+                        margin-right: -10px;
+
+                        > div {
+                            padding-left: 5px;
+                            padding-right: 5px;
+
+                            a {
+                                float: right;
+                                padding: 6px 0;
+                                margin-top: 24px;
+                                text-align: right;
+                            }
+                            label {
+                                font-size: 1.1rem;
+                                font-weight: 700;
+
+                                > em {
+                                    margin-left: 5px;
+                                    color: $main-text-color;
+                                    font-style: normal;
+                                }
+                            }
+                            input.form-control {
+                                font-size: 1.2rem;
+                            }
+                        }
+                    }
+                }
+
+                @include checkboxes;
+            }
+            .add-step-footer {
+                margin: 0;
+                padding: 0 20px;
+                border-top: 1px solid $light-gray-color;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+
+                .counter {
+                    position: absolute;
+                    top: 18px;
+                    font-size: 1.4rem;
+                    left: 0;
+                    right: 0;
+                    text-align: center;
+                }
+                .pager {
+                    position: relative;
+                    margin: 13px 0;
+                }
+                .calculate {
+                    margin: 0 -20px 0;
+
+                    .btn {
+                        border-radius: 0;
+                    }
+                }
+                .footer-step-number:before {
+                    content: counter(steps);
+                }
+            }
+        }
+    }
+}
+
+#map {
+    .map-popover {
+        background: black;
+        background: rgba(0,0,0,0.85);
+        max-width: 600px;
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        margin-left: -300px;
+        padding: 8px 36px 10px 16px;
+        font-size: 1.2rem;
+        color: white;
+        border-radius: 6px;
+
+        .close {
+            margin-right: -20px;
+            color: #FFF;
+            font-weight: 300;
+            outline: none;
+        }
+    }
+}
