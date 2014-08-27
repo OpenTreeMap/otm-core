@@ -285,10 +285,10 @@ def save_threadedcomment(migration_rules, migration_event,
                  content_type.model, old_object_id))
         return None
 
-    tcomment_obj.save()
-
     # object_id is called object_pk in later versions
     tcomment_obj.object_pk = new_object_id
+
+    tcomment_obj.save()
 
     # find relic/dependency id for the parent and set that.
     if model_dict['fields']['parent']:

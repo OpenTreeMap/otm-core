@@ -71,6 +71,7 @@ class OTM1UserRelic(AbstractRelic):
 
 class OTM1CommentRelic(AbstractRelic):
     otm2_model_name = models.CharField(max_length=255,
+                                       # TODO: change to enhancedthreadedcomment
                                        default='threadedcomment',
                                        editable=False)
     otm1_last_child_id = models.IntegerField(null=True, blank=True)
