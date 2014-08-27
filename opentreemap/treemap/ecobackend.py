@@ -6,12 +6,47 @@ from __future__ import division
 import urllib2
 import urllib
 import json
+import re
 
 from django.conf import settings
 from django.contrib.gis.db.backends.postgis.adapter import PostGISAdapter
 from django.contrib.gis.geos import GEOSGeometry
 
-BAD_CODE_PAIR = 'bad code pair'
+import logging
+logger = logging.getLogger(__name__)
+
+
+# A system for handling unstructured text errors from the ecoservice
+#
+# Each key in `ECOBENEFIT_ERRORS` has a corresponding template
+# block in the plot_detail page that will display a user friendly
+# error message, as descriptive as possible.
+#
+# Each Value in `ECOBENEFIT_ERRORS` is a list of regexps used to
+# correctly identify a given error type. They will all be tried in
+# succession.
+#
+# If no pattern is found for any key, a 500 will raise.
+#
+# TODO: when the ecoservice starts returning structured error output
+# replace these patterns with simple destructuring.
+#
+
+BAD_CODE_PAIR = 'invalid_eco_pair'
+UNKNOWN_ECOBENEFIT_ERROR = 'unknown_ecobenefit_error'
+ECOBENEFIT_ERRORS = {
+    BAD_CODE_PAIR: [
+        (r'iTree code not found for otmcode '
+         r'([A-Z]+) in region ([A-Z][a-z]+[A-Z]+)\n')],
+    UNKNOWN_ECOBENEFIT_ERROR: [
+        'Species data not found for the .* region',
+        ('There are overrides defined for instance .* in '
+         'the .* region but not for species ID .*'),
+        ('There are overrides defined for the instance, '
+         'but not for the .* region'),
+        'Missing or invalid .* parameter',
+    ]
+}
 
 
 def json_benefits_call(endpoint, params, post=False, convert_params=True):
@@ -59,11 +94,14 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
         req = url + '?' + paramString
 
     try:
-        rslt = json.loads(urllib2.urlopen(req).read())
+        return (json.loads(urllib2.urlopen(req).read()), None)
     except urllib2.HTTPError as e:
-        if e.fp.read() == 'invalid otm code for region\n':
-            return (None, BAD_CODE_PAIR)
+        error_body = e.fp.read()
+        logger.warning("ECOBENEFIT FAILURE: " + error_body)
+        for code, patterns in ECOBENEFIT_ERRORS.items():
+            for pattern in patterns:
+                match = re.match(pattern, error_body)
+                if match:
+                    return (None, code)
         else:
             raise
-
-    return (rslt, None)

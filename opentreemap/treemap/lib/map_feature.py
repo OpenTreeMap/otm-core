@@ -11,7 +11,7 @@ from django.utils.translation import ugettext as trans
 from django.db.models import Q
 
 from treemap.audit import Audit
-from treemap.ecobackend import BAD_CODE_PAIR
+from treemap.ecobackend import ECOBENEFIT_ERRORS
 from treemap.models import Tree, MapFeature, User
 
 from treemap.lib import format_benefits
@@ -72,8 +72,9 @@ def _add_eco_benefits_to_context_dict(instance, feature, context):
     benefits, basis, error = FeatureClass.benefits\
                                          .benefits_for_object(
                                              instance, feature)
-    if error == BAD_CODE_PAIR:
-        context['invalid_eco_pair'] = True
+
+    if error in ECOBENEFIT_ERRORS:
+        context[error] = True
     elif benefits:
         context.update(format_benefits(instance, benefits, basis))
 
