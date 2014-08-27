@@ -96,6 +96,23 @@ def save_tree(migration_rules, migration_event,
 
 
 @atomic
+def process_reputation(migration_rules, migration_event,
+                       model_dict, rep_obj, instance):
+
+    iuser = InstanceUser.objects.get(user_id=model_dict['fields']['user'],
+                                     instance_id=instance.id)
+    iuser.reputation = model_dict['fields']['reputation']
+    iuser.save()
+
+    OTM1ModelRelic.objects.create(instance=instance,
+                                  migration_event=migration_event,
+                                  otm1_model_id=model_dict['pk'],
+                                  otm2_model_name='reputation',
+                                  otm2_model_id=models.UNBOUND_MODEL_ID)
+    return None
+
+
+@atomic
 def process_userprofile(migration_rules, migration_event,
                         photo_basepath, model_dict, up_obj, instance):
     """
@@ -268,10 +285,10 @@ def save_threadedcomment(migration_rules, migration_event,
                  content_type.model, old_object_id))
         return None
 
-    tcomment_obj.save()
-
     # object_id is called object_pk in later versions
     tcomment_obj.object_pk = new_object_id
+
+    tcomment_obj.save()
 
     # find relic/dependency id for the parent and set that.
     if model_dict['fields']['parent']:
@@ -362,10 +379,12 @@ def save_user(migration_rules, migration_event, user_dict, user_obj, instance):
     enough to query for all users that have a different username than
     the one stored in their relic and take further action as necessary.
     """
+    otm1_email = user_dict['fields']['email']
+    assert otm1_email != ''
     # don't save another user if this email address already exists.
     # just observe and report
-    users_with_this_email = User.objects.filter(
-        email__iexact=user_dict['fields']['email'])
+    users_with_this_email = User.objects.filter(email__iexact=otm1_email)
+
     if users_with_this_email.exists():
         user_obj = users_with_this_email[0]
     else:
@@ -390,7 +409,7 @@ def save_user(migration_rules, migration_event, user_dict, user_obj, instance):
                           otm2_model_id=user_obj.pk,
                           otm1_model_id=user_dict['pk'],
                           otm1_username=user_dict['fields']['username'],
-                          email=user_dict['fields']['email'])
+                          email=otm1_email)
     relic.save()
     return user_obj
 
@@ -577,6 +596,7 @@ class Command(InstanceDataCommand):
             'tree': default_partial(save_tree),
             'treephoto': default_partial(save_treephoto, treephoto_path),
             'contenttype': default_partial(process_contenttype),
+            'reputation': default_partial(process_reputation),
             'userprofile': default_partial(process_userprofile,
                                            userphoto_path),
             'threadedcomment': default_partial(save_threadedcomment,

@@ -152,6 +152,11 @@ MIGRATION_RULES = {
         'removed_fields': {'site_edits', 'uid', 'active',
                            'zip_code', 'updates', 'volunteer'}
     },
+    'reputation': {
+        'command_line_flag': '-j',
+        'dependencies': {'user': 'user'},
+        'removed_fields': {'reputation'}
+    },
     'comment': {
         'command_line_flag': '-n',
         'model_class': EnhancedThreadedComment,
