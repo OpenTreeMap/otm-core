@@ -11,7 +11,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import ugettext as trans
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseBadRequest
 
 from opentreemap.util import json_from_request, dotted_split
 
@@ -121,6 +121,9 @@ def profile_to_user(request):
 
 def forgot_username(request):
     user_email = request.REQUEST['email']
+    if not user_email:
+          return HttpResponseBadRequest("email field is required!")
+
     users = User.objects.filter(email=user_email)
 
     # Don't reveal if we don't have that email, to prevent email harvesting
