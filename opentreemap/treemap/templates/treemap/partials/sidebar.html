@@ -2,12 +2,14 @@
 {% load i18n %}
 
 <div class="well">
+  {% if latest_update %}
   <h4>{% trans "Latest Update" %}</h4>
   <p>
     {{ latest_update.user.username }}
     {{ latest_update.short_descr }}
     on {{ latest_update.created|date:request.instance.date_format }}
   </p>
+  {% endif %}
 
   <div class="progress">
     <div class="progress-bar" style="width: {{ progress_percent }}%;"></div>
@@ -19,6 +21,8 @@
     {% endfor %}
   </ul>
 </div>
+
+{% if recent_activity %}
 <div class="well">
   <h3>{% trans "Recent Edits" %}</h3>
   {% for user, created, audits in recent_activity %}
@@ -31,6 +35,8 @@
   </ul>
   {% endfor %}
 </div>
+{% endif %}
+
 {% if feature.is_plot %}
 <div class="well">
   <h3>{% trans "Nearby Trees" %}</h3>
