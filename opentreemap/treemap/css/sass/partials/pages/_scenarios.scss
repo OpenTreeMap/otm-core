@@ -30,7 +30,7 @@
             .add-step-content {
                 padding: 20px;
                 position: absolute;
-                bottom: 105px;
+                bottom: 145px;
                 top: 0;
                 overflow-y: auto;
                 left: 0;
@@ -99,7 +99,7 @@
                 padding: 0 20px;
                 border-top: 1px solid $light-gray-color;
                 position: absolute;
-                bottom: 0;
+                bottom: 40px;
                 left: 0;
                 right: 0;
 
@@ -136,13 +136,14 @@
         background: rgba(0,0,0,0.85);
         max-width: 600px;
         position: absolute;
-        bottom: 20px;
+        bottom: 60px;
         left: 50%;
         margin-left: -300px;
         padding: 8px 36px 10px 16px;
         font-size: 1.2rem;
         color: white;
         border-radius: 6px;
+        z-index: 100;
 
         .close {
             margin-right: -20px;
