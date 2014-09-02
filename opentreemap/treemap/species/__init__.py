@@ -33,6 +33,14 @@ def otm_code_search(candidate):
         return None
 
 
+def species_search(otm_code):
+    """Return species for a given otm_code."""
+    for species_dict in SPECIES:
+        if species_dict['otm_code'] == otm_code:
+            return species_dict
+    return None
+
+
 SPECIES = [
 {"otm_code": "AB", "other": "", "common_name": "Fir", "genus": "Abies", "cultivar": "", "species": ""},
 {"otm_code": "ABAL", "other": "", "common_name": "Silver fir", "genus": "Abies", "cultivar": "", "species": "alba"},

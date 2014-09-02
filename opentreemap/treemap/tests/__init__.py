@@ -482,3 +482,4 @@ from ecobenefits import *     # NOQA
 from ui import *              # NOQA
 from object_caches import *   # NOQA
 from perms import *           # NOQA
+from species import *         # NOQA
