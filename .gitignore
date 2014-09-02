@@ -1,6 +1,8 @@
 go
 env
 *.pyc
+*.swp
+*~
 .vagrant
 .#*
 local_settings.py
