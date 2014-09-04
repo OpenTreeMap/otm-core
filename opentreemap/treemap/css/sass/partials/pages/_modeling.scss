@@ -155,6 +155,12 @@
                 + .panel {
                     margin: 0;
                 }
+
+                div.slider {
+                    // Fix slider width defaulting to 100px when it is
+                    // rendered in a hidden container.
+                    width: 100% !important;
+                }
             }
         }
         .map {
