@@ -37,8 +37,15 @@ exports.applyDateToDatepicker = function($elem, value) {
 };
 
 var getTimestampFromDatepicker = exports.getTimestampFromDatepicker = function($elem) {
-    var format = getDateFieldFormat($elem);
-    return moment($elem.datepicker("getDate")).format(format);
+    // The datepicker always has a value, so we must check the
+    // text box to which the date picker is attached for a non-empty
+    // value before fetching the value from the datepicker
+    if ($elem.val()) {
+        var format = getDateFieldFormat($elem);
+        return moment($elem.datepicker("getDate")).format(format);
+    } else {
+        return '';
+    }
 };
 
 exports.formToDictionary = function ($form, $editFields, $displayFields) {
