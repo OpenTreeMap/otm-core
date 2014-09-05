@@ -10,7 +10,9 @@ var state,
     stateChangeBus = new Bacon.Bus(),
     modeNamesForUrl = [
         require('treemap/addTreeMode').name,
-        require('treemap/addResourceMode').name
+        require('treemap/addResourceMode').name,
+        'prioritization',
+        'scenarios'
     ];
 
 module.exports = {
