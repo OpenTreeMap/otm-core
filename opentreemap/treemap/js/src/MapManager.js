@@ -46,6 +46,7 @@ MapManager.prototype = {
         }
 
         map.addLayer(boundsLayer);
+        this.layersControl.addOverlay(boundsLayer, 'Boundaries');
 
         if (options.trackZoomLatLng) {
             map.on("moveend", _.partial(serializeZoomLatLngFromMap, map));
