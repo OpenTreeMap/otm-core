@@ -1,5 +1,16 @@
 #sidebar-scenarios {
 
+    > .shadow {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #fff;
+        opacity: 0.5;
+        z-index: 50;
+    }
+
     > .sidebar-inner {
 
         > h3 {
@@ -30,7 +41,8 @@
             .add-step-content {
                 padding: 20px;
                 position: absolute;
-                bottom: 145px;
+                // Height of the sidebar footer.
+                bottom: 200px;
                 top: 0;
                 overflow-y: auto;
                 left: 0;
@@ -55,6 +67,12 @@
                 .content-empty {
                     padding: 15px 0 20px;
                     margin: 0;
+
+                    a {
+                        text-decoration: underline;
+                        font-weight: bold;
+                        font-style: italic;
+                    }
                 }
                 .content-row {
                     border-bottom: 1px solid $light-gray-color;
@@ -115,6 +133,14 @@
                     position: relative;
                     margin: 13px 0;
                 }
+                .summary {
+                    font-size: 1em;
+
+                    .tree-count {
+                        font-weight: bold;
+                        color: $primary-color;
+                    }
+                }
                 .calculate {
                     margin: 0 -20px 0;
 
@@ -144,12 +170,11 @@
         color: white;
         border-radius: 6px;
         z-index: 100;
+        // Hidden by default.
+        display: none;
 
-        .close {
+        .close, .cancel-action, .done {
             margin-right: -20px;
-            color: #FFF;
-            font-weight: 300;
-            outline: none;
         }
     }
 }
