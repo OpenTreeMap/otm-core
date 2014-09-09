@@ -15,7 +15,10 @@
 {% block scripts %}
 <script>
 (function(require) {
-   require('treemap/photoReview').init();
+   require('treemap/photoReview').init({
+       url: "{% url 'photo_review' instance_url_name=request.instance.url_name %}",
+       nextPhotoUrl: "{% url 'photo_review_next' instance_url_name=request.instance.url_name %}"
+   });
 })(require);
 </script>
 {% endblock scripts %}

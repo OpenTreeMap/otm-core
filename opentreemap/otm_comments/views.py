@@ -20,9 +20,10 @@ def _comments(request, instance):
     is_removed = request.GET.get('removed', None)
     sort = request.GET.get('sort', '-submit_date')
 
+    # Note: we tried .prefetch_related('content_object')
+    # but it gives comment.content_object = None  (Django 1.6)
     comments = EnhancedThreadedComment.objects \
         .filter(instance=instance) \
-        .prefetch_related('content_object') \
         .order_by(sort)
 
     if is_archived is not None:
@@ -36,7 +37,7 @@ def _comments(request, instance):
     return comments
 
 
-def comments_review(request, instance):
+def comment_moderation(request, instance):
     page_number = int(request.GET.get('page', '1'))
     page_size = int(request.GET.get('size', '5'))
 

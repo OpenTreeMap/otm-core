@@ -47,6 +47,7 @@ from treemap.views.map_feature import (render_map_feature_detail,
                                        rotate_map_feature_photo,
                                        add_map_feature_photo)
 
+from otm_comments.views import comment_moderation
 
 add_map_feature_photo_do = partial(
     do,
@@ -273,3 +274,19 @@ approve_or_reject_photo_view = do(
     require_http_method("POST"),
     admin_instance_request,
     approve_or_reject_photo)
+
+#####################################
+# comment moderation
+#####################################
+
+comment_moderation_endpoint = do(
+    require_http_method("GET"),
+    admin_instance_request,
+    render_template('otm_comments/moderation.html'),
+    comment_moderation)
+
+comment_moderation_partial_endpoint = do(
+    require_http_method("GET"),
+    admin_instance_request,
+    render_template('otm_comments/partials/moderation.html'),
+    comment_moderation)

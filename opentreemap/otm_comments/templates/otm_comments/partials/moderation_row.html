@@ -1,0 +1,20 @@
+{% load i18n %}
+{% load humanize %}
+{% load util %}
+
+<tr>
+    <td><input type="checkbox"></td>
+    <td><a href="{{ comment.content_object|detail_link }}">{{ comment.id }}</a></td>
+    <td><span class="label label-danger">7</span></td>
+    <td><a class="clearfix" href="{{ comment.user|detail_link }}">
+          {{ comment.user_name }}
+        </a>
+        <p>{{ comment.comment }} <a href="#">less</a></p>
+        <p><label>Flagged By: <a href="#">TestUser456 (07/28/14)</a>, <a href="#">TestUser789 (07/29/14)</a></label></p>
+        <p><label>Previously Flagged By: <a href="#">TestUser123 (07/25/14)</a></label></p>
+        </td>
+    <td>
+      <a href="#">{% if comment.is_removed %}Unhide{% else %}Hide{% endif %}
+      </a>|<a href="#">{% if comment.is_archived %}Un-archive{% else %}Archive{% endif %}</a></td>
+    <td title="{{ comment.submit_date }}">{{ comment.submit_date|naturaltime }}</td>
+</tr>
