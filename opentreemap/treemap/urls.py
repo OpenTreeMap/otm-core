@@ -21,9 +21,7 @@ from treemap.views import (boundary_to_geojson_view, index_view, map_view,
                            static_page_view, get_map_feature_sidebar_view,
                            tree_detail_view, add_map_feature_photo_endpoint,
                            map_feature_detail_view, map_feature_add_view,
-                           rotate_map_feature_photo_endpoint,
-                           comment_moderation_endpoint,
-                           comment_moderation_partial_endpoint)
+                           rotate_map_feature_photo_endpoint)
 
 # Testing notes:
 # We want to test that every URL succeeds (200) or fails with bad data (404).
@@ -45,9 +43,6 @@ urlpatterns = patterns(
     url(r'^photo_review/$', photo_review_partial_endpoint,
         name='photo_review'),
     url(r'^photo_review/next$', next_photo_endpoint, name='photo_review_next'),
-    url(r'^comment_moderation_full/$', comment_moderation_endpoint),
-    url(r'^comment_moderation/$', comment_moderation_partial_endpoint,
-        name='comment_moderation'),
     url('^features/(?P<feature_id>\d+)/photo/(?P<photo_id>\d+)/'
         '(?P<action>(approve)|(reject))$',
         approve_or_reject_photo_view, name='approve_or_reject_photo'),

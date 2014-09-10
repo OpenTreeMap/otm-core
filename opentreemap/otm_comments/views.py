@@ -184,3 +184,15 @@ comments_csv_endpoint = do(
     require_http_method("GET"),
     admin_instance_request,
     comments_csv)
+
+comment_moderation_endpoint = do(
+    require_http_method("GET"),
+    admin_instance_request,
+    render_template('otm_comments/moderation.html'),
+    comment_moderation)
+
+comment_moderation_partial_endpoint = do(
+    require_http_method("GET"),
+    admin_instance_request,
+    render_template('otm_comments/partials/moderation.html'),
+    comment_moderation)
