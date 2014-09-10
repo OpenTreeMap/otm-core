@@ -124,14 +124,14 @@
                {% if not comment.open and not comment.close %}</li>{% endif %}
                {% if comment.open %}<ul>{% endif %}
 
-               <li class="comment_li" id="c{{ comment.id }}">
+               <li class="comment_li" id="c{{ comment.id|unlocalize }}">
                  <div class="comment">
                    <div class="comment_info">
                      <div class="comment_user">{{ comment.user_name }}</div>
                      <div class="comment_data">
                        {{ comment.submit_date|date:"d M Y, H:i" }}
                        {% if request.user.is_authenticated %}
-                       | <a data-comment-id="{{ comment.id }}" class="comment_reply_link">Reply</a>
+                       | <a data-comment-id="{{ comment.id|unlocalize }}" class="comment_reply_link">Reply</a>
                        {% endif %}
                      </div>
                    </div>
