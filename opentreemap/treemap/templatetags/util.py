@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from treemap.models import MapFeature, Tree, TreePhoto, MapFeaturePhoto
 from treemap.udf import UserDefinedCollectionValue
-from treemap.util import get_filterable_audit_models, leaf_subclasses
+from treemap.util import get_filterable_audit_models
 
 register = template.Library()
 
