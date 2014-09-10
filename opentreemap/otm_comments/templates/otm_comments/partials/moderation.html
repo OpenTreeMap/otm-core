@@ -39,9 +39,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                    {% for comment in comments %}
-                        {% include 'otm_comments/partials/moderation_row.html' %}
-                    {% endfor %}
+                    {% include 'otm_comments/partials/moderation_rows.html' %}
                     </tbody>
                 </table> <!--END OF TABLE -->
             </div> <!--END OF TABLE COL-12 SECTION -->
