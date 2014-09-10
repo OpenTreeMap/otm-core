@@ -221,7 +221,8 @@ module.exports = function(grunt) {
                       'treemap/css/vendor/datepicker.css',
                       'treemap/css/vendor/fontello.css',
                       'treemap/css/vendor/toastr.css',
-                      'treemap/css/vendor/leaflet.css'],
+                      'treemap/css/vendor/leaflet.css',
+                      'treemap/css/vendor/leaflet.draw.css'],
                 dest: 'treemap/static/css/vendor.css'
             }
         },
