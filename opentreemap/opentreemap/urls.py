@@ -75,7 +75,7 @@ urlpatterns = patterns(
        name='instance_registration_register'),
     url(instance_pattern + r'/', include('treemap.urls')),
     url(instance_pattern + r'/export/', include('exporter.urls')),
-    url(instance_pattern + r'/comment-review/', include('otm_comments.urls'))
+    url(instance_pattern + r'/comments/', include('otm_comments.urls'))
 )
 
 if settings.USE_JS_I18N:
