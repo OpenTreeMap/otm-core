@@ -1,5 +1,6 @@
 from treemap.models import (User, Plot, Tree, Species,
-                            Audit, TreePhoto, Boundary)
+                            Audit, TreePhoto, Boundary,
+                            TreeFavorite)
 
 from otm_comments.models import EnhancedThreadedComment
 
@@ -185,6 +186,14 @@ MIGRATION_RULES = {
         'missing_fields': {'title',
                            'tree_path',
                            'last_child'}
+    },
+    'treefavorite': {
+        'command_line_flag': '-o',
+        'model_class': TreeFavorite,
+        'dependencies': {'user': 'user',
+                         'tree': 'tree'},
+        'renamed_fields': {'date_created': 'created'},
+        'common_fields': {'user', 'tree'}
     }
 }
 

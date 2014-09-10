@@ -225,6 +225,25 @@ def save_audit(migration_rules, migration_event,
 
 
 @atomic
+def save_treefavorite(migration_rules, migration_event,
+                      fav_dict, fav_obj, instance):
+    fav_obj.save()
+    created = fav_dict['fields']['date_created']
+    assert created != '' and not created is None
+    fav_obj.created = dateutil.parser.parse(created)
+    fav_obj.save()
+
+    OTM1ModelRelic.objects.create(
+        instance=instance,
+        migration_event=migration_event,
+        otm1_model_id=fav_dict['pk'],
+        otm2_model_name='treefavorite',
+        otm2_model_id=fav_obj.pk)
+
+    return fav_obj
+
+
+@atomic
 def save_comment(migration_rules, migration_event,
                  relic_ids, model_dict, comment_obj, instance):
 
@@ -602,6 +621,7 @@ class Command(InstanceDataCommand):
             'threadedcomment': default_partial(save_threadedcomment,
                                                relic_ids),
             'comment': default_partial(save_comment, relic_ids),
+            'treefavorite': default_partial(save_treefavorite),
         }
 
         user_relics = OTM1UserRelic.objects.filter(instance=instance)
