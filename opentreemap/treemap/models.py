@@ -804,6 +804,15 @@ class Tree(Convertible, UDFModel, Authorizable, Auditable):
         super(Tree, self).delete_with_user(user, *args, **kwargs)
 
 
+class TreeFavorite(models.Model):
+    user = models.ForeignKey(User)
+    tree = models.ForeignKey(Tree)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'tree',)
+
+
 class MapFeaturePhoto(models.Model, Authorizable, Auditable):
     map_feature = models.ForeignKey(MapFeature)
 
