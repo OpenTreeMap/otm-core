@@ -1,0 +1,22 @@
+{% extends "instance_base.html" %}
+{% load i18n %}
+
+{% block page_title %} | {% trans "Comment Moderation" %} {% endblock %}
+
+{% block content %}
+
+<div class="content">
+  {% include "otm_comments/partials/moderation.html" %}
+</div>
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+(function(require) {
+   // TODO: call appropriate init()
+   //require('otm_comments/moderation').init();
+})(require);
+</script>
+{% endblock scripts %}

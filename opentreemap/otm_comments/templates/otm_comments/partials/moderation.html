@@ -1,0 +1,63 @@
+{% load i18n %}
+
+<div class="page-header">
+    <h1>Moderate Comments
+        <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-toggle="dropdown">
+            Active <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+            <li><a href="#">Active</a></li>
+            <li><a href="#">Hidden</a></li>
+            <li><a href="#">Archived</a></li>
+        </ul>
+        <button type="button" class="btn btn-sm" ><i class="fa fa-share-square-o"></i>Export All</button>
+    </h1>
+    <div class="comments">
+        <div class="row comment-table">
+            <div class="col-lg-12">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th class="selector">
+                                <div class="btn-group">
+                                    <input type="checkbox">
+                                    <button type="button" class="btn dropdown-toggle" data-toggle="dropdown"><i class="fa fa-caret-down"></i></button>
+                                        <ul class="dropdown-menu" role="menu">
+                                            <li><a href="#">Hide</a></li>
+                                            <li><a href="#">Unhide</a></li>
+                                            <li><a href="#">Archive</a></li>
+                                            <li><a href="#">Unarchive</a></li>
+                                            <li><a href="#">Unflag</a></li>
+                                        </ul>
+                                </div>
+                            </th>
+                            <th>ID</th>
+                            <th>Flag</th>
+                            <th>Comment</th>
+                            <th>Actions</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for comment in comments %}
+                        {% include 'otm_comments/partials/moderation_row.html' %}
+                    {% endfor %}
+                    </tbody>
+                </table> <!--END OF TABLE -->
+            </div> <!--END OF TABLE COL-12 SECTION -->
+        </div> <!--END OF COMMENT TABLE -->
+
+        <div class="row center-block text-center"><!--PAGINATION -->
+            <ul class="pagination">
+              <li class="disabled"><a href="#">&laquo;</a></li>
+              <li class="active"><a href="#">1 <span class="sr-only">(current)</span></a></li>
+              <li><a href="#">2</a></li>
+              <li><a href="#">3</a></li>
+              <li><a href="#">4</a></li>
+              <li><a href="#">5</a></li>
+              <li><a href="#">&raquo;</a></li>
+            </ul>
+        </div> <!--END OF PAGINATION -->
+
+    </div> <!--END OF COMMENT AREA -->
+</div> <!--END OF MAIN CONTENT ROW -->

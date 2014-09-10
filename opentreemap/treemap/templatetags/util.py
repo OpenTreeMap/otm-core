@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from treemap.models import MapFeature, Tree, TreePhoto, MapFeaturePhoto
 from treemap.udf import UserDefinedCollectionValue
-from treemap.util import get_filterable_audit_models
+from treemap.util import get_filterable_audit_models, leaf_subclasses
 
 register = template.Library()
 
@@ -30,7 +30,8 @@ MODEL_DETAILS = {
     'tree': lambda tree: _instance_reverse(
         'tree_detail', tree, feature_id=tree.plot.pk, tree_id=tree.pk),
     'treephoto': lambda tp: MODEL_DETAILS['tree'](tp.tree),
-    'mapfeaturephoto': _map_feature_photo_detail_link
+    'mapfeaturephoto': _map_feature_photo_detail_link,
+    'user': lambda user: reverse('user', args=(user.pk,))
 }
 
 
@@ -43,9 +44,12 @@ def detail_link(thing):
     For example, a 'treephoto' instance provides a link to
     the given tree.
     """
-    name = thing.__class__.__name__.lower()
-    if name in MODEL_DETAILS:
-        return MODEL_DETAILS[name](thing)
+    name = thing.__class__.__name__
+    nameLower = name.lower()
+    if nameLower in MODEL_DETAILS:
+        return MODEL_DETAILS[nameLower](thing)
+    elif MapFeature.has_subclass(name):
+        return MODEL_DETAILS['mapfeature'](thing)
     else:
         return None
 

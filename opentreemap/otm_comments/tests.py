@@ -13,7 +13,7 @@ from treemap.tests.base import OTMTestCase
 from treemap.tests import make_instance, make_commander_user, make_request
 
 from otm_comments.models import EnhancedThreadedComment
-from otm_comments.views import comments_review
+from otm_comments.views import comment_moderation
 
 
 def make_comment(model, user, text='testing 1 2 3', **kwargs):
@@ -50,7 +50,7 @@ class CommentReviewTest(OTMTestCase):
         self.plot.save_with_user(self.user)
 
     def _get_comments(self, **get_params):
-        context = comments_review(make_request(get_params), self.instance)
+        context = comment_moderation(make_request(get_params), self.instance)
 
         return context['comments']
 
