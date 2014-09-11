@@ -3,10 +3,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-
 from threadedcomments.models import ThreadedComment
 
+from django.conf import settings
 from django.contrib.gis.db import models
+
+from treemap.audit import Auditable
 
 
 class EnhancedThreadedComment(ThreadedComment):
@@ -21,8 +23,24 @@ class EnhancedThreadedComment(ThreadedComment):
     # but it makes things simpler to record instance here.
     instance = models.ForeignKey('treemap.Instance')
 
+    @property
+    def is_flagged(self):
+        return self.enhancedthreadedcommentflag_set.filter(
+            hidden=False).exists()
+
+    def is_flagged_by_user(self, user):
+        return self.enhancedthreadedcommentflag_set.filter(
+            user=user, hidden=False).exists()
+
     def save(self, *args, **kwargs):
         if hasattr(self.content_object, 'instance'):
             self.instance = self.content_object.instance
 
         super(EnhancedThreadedComment, self).save(*args, **kwargs)
+
+
+class EnhancedThreadedCommentFlag(models.Model, Auditable):
+    comment = models.ForeignKey(EnhancedThreadedComment)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    flagged_at = models.DateTimeField(auto_now_add=True)
+    hidden = models.BooleanField(default=False)
