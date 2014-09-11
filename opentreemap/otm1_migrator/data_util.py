@@ -1,3 +1,5 @@
+import dateutil.parser
+
 from treemap.models import User
 from treemap.audit import model_hasattr
 
@@ -178,3 +180,8 @@ def correct_none_string(value):
         return None
     else:
         return value
+
+
+def inflate_date(date_str):
+    assert date_str != '' and not date_str is None
+    return dateutil.parser.parse(date_str)

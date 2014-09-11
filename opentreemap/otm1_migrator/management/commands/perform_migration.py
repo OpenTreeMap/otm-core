@@ -9,7 +9,7 @@ import os
 import importlib
 import json
 import operator
-import dateutil.parser
+import pytz
 from functools import partial
 from itertools import chain
 
@@ -28,7 +28,8 @@ from otm1_migrator.models import (OTM1UserRelic, OTM1ModelRelic,
                                   OTM1CommentRelic, MigrationEvent)
 from otm1_migrator.data_util import (dict_to_model, MigrationException,
                                      sanitize_username, uniquify_username,
-                                     add_udfs_to_migration_rules, create_udfs)
+                                     add_udfs_to_migration_rules, create_udfs,
+                                     inflate_date)
 from otm1_migrator import data_util
 
 USERPHOTO_ARGS = ('-y', '--userphoto-path')
@@ -210,9 +211,7 @@ def save_audit(migration_rules, migration_event,
     # getting clobbered by `auto_now_add`.
     # save the object, then set the created time.
     audit_obj.save()
-    created = fields['created']
-    assert created != '' and not created is None
-    audit_obj.created = dateutil.parser.parse(created)
+    audit_obj.created = inflate_date(fields['created'])
     audit_obj.save()
 
     OTM1ModelRelic.objects.create(
@@ -228,9 +227,7 @@ def save_audit(migration_rules, migration_event,
 def save_treefavorite(migration_rules, migration_event,
                       fav_dict, fav_obj, instance):
     fav_obj.save()
-    created = fav_dict['fields']['date_created']
-    assert created != '' and not created is None
-    fav_obj.created = dateutil.parser.parse(created)
+    fav_obj.created = inflate_date(fav_dict['fields']['created'])
     fav_obj.save()
 
     OTM1ModelRelic.objects.create(
@@ -405,7 +402,30 @@ def save_user(migration_rules, migration_event, user_dict, user_obj, instance):
     users_with_this_email = User.objects.filter(email__iexact=otm1_email)
 
     if users_with_this_email.exists():
+        assert len(users_with_this_email) == 1
         user_obj = users_with_this_email[0]
+
+        last_login = inflate_date(user_dict['fields']['last_login'])
+        date_joined = inflate_date(user_dict['fields']['date_joined'])
+        first_name = user_dict['fields']['first_name']
+        last_name = user_dict['fields']['last_name']
+
+        # coerce to UTC. This may not be perfectly correct, but
+        # given how unlikely it is for a user to create a new account
+        # on the same day they logged in with an existing account,
+        # we can live with the ambiguity.
+        if last_login.replace(tzinfo=pytz.UTC) > user_obj.last_login:
+            user_obj.username = user_dict['fields']['username']
+            user_obj.password = user_dict['fields']['password']
+            user_obj.last_login = last_login
+            if date_joined.replace(tzinfo=pytz.UTC) < user_obj.date_joined:
+                user_obj.date_joined = date_joined
+            if first_name:
+                user_obj.first_name = first_name
+            if last_name:
+                user_obj.last_name = last_name
+            if user_dict['fields']['is_active']:
+                user_obj.is_active = True
     else:
         # replace spaces in the username.
         # then, if the sanitized username already exists,
