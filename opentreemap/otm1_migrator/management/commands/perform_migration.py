@@ -418,6 +418,9 @@ def save_user(migration_rules, migration_event, user_dict, user_obj, instance):
             user_obj.username = user_dict['fields']['username']
             user_obj.password = user_dict['fields']['password']
             user_obj.last_login = last_login
+
+            # we're keeping the *login* info for the most recently used
+            # account, but the *joined* info for the earliest created account.
             if date_joined.replace(tzinfo=pytz.UTC) < user_obj.date_joined:
                 user_obj.date_joined = date_joined
             if first_name:
