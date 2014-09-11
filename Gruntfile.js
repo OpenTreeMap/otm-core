@@ -15,6 +15,8 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-file-creator');
+    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-shell');
 
     grunt.file.setBase('opentreemap');
 
@@ -69,6 +71,12 @@ module.exports = function(grunt) {
         });
     }
 
+    function getAliasFiles(aliases) {
+        return aliases.map(function(alias) {
+            return alias.split(':')[0];
+        });
+    }
+
     grunt.initConfig({
         'file-creator': {
             test: {
@@ -76,6 +84,17 @@ module.exports = function(grunt) {
                     fs.writeSync(fd, 'TEST_MODULES = ["' + getTestAliasNames().join('","') + '"];');
                     done();
                 }
+            }
+        },
+        watch: {
+            treemap: {
+                files: getAliasFiles(getRegularAliases()),
+                tasks: ['check', 'shell:check_static']
+            }
+        },
+        shell: {
+            check_static: {
+                command: 'fab vagrant static:dev'
             }
         },
         browserify: {
