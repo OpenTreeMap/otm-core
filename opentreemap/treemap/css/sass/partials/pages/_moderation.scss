@@ -123,6 +123,18 @@
             padding:2px 8px;
             border-radius:9px;
         }
+        .comment {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 360px;
+
+            &.less {
+                max-height: 4.4rem;
+            }
+            &:not(.less) {
+                display: inline;
+            }
+        }
     }
 
     .pagination {

@@ -6,10 +6,8 @@
     <td><input type="checkbox"></td>
     <td><a href="{{ comment.content_object|detail_link }}">{{ comment.id }}</a></td>
     <td><span class="label label-danger">{{ comment.visible_flag_count }}</span></td>
-    <td><a class="clearfix" href="{{ comment.user|detail_link }}">
-          {{ comment.user_name }}
-        </a>
-        <p>{{ comment.comment }} <a href="#">less</a></p>
+    <td>
+        <div class="comment less">{{ comment.comment }}</div> <a data-less-more href="#">more</a>
 <!-- TODO: Implement flagged by and previously flagged by -->
 <!--         <p><label>Flagged By: <a href="#">TestUser456 (07/28/14)</a>, <a href="#">TestUser789 (07/29/14)</a></label></p> -->
 <!--         <p><label>Previously Flagged By: <a href="#">TestUser123 (07/25/14)</a></label></p> -->

@@ -9,6 +9,11 @@ var $ = require('jquery'),
 module.exports = function(options) {
     var $container = $(options.container),
 
+        lessOrMoreElementStream = $container.asEventStream('click', '[data-less-more]')
+            .doAction('.preventDefault')
+            .map('.target')
+            .map($),
+
         // We use event delegation on the outer container, because we replace
         // the entire table including the pagination and filter section.
         //
@@ -23,6 +28,12 @@ module.exports = function(options) {
             .map('.target')
             .map('.href')
             .filter(BU.isDefinedNonEmpty);
+
+    lessOrMoreElementStream.onValue(function($elem) {
+        $elem.text($elem.text() == 'less' ? 'more' : 'less');
+        var $text = $elem.prev();
+        $text.toggleClass('less');
+    });
 
     urlStream.onValue($container, 'load');
 };
