@@ -16,8 +16,9 @@ module.exports = function(options) {
         // for anchor tags which have href values
         pageEventStream = $container.asEventStream('click', '.pagination li a'),
         filterEventStream = $container.asEventStream('click', '[data-comments-filter] li a'),
+        sortingEventStream = $container.asEventStream('click', '[data-comments-sort] th a'),
 
-        urlStream = Bacon.mergeAll(pageEventStream, filterEventStream)
+        urlStream = Bacon.mergeAll(pageEventStream, filterEventStream, sortingEventStream)
             .doAction('.preventDefault')
             .map('.target')
             .map('.href')

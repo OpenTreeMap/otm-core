@@ -1,6 +1,6 @@
 {% load i18n %}
+{% load sort %}
 
-{% url 'comment_moderation' request.instance.url_name as mod_url %}
 <div class="page-header">
   <h1>Moderate Comments
     <div class="btn-group">
@@ -11,17 +11,17 @@
         {% if comments_filter == 'Active' %}
         <li class="active"><a>Active</a></li>
         {% else %}
-        <li><a href="{{ mod_url }}?archived=False&removed=None">Active</a></li>
+        <li><a href="{{ comments_url_with_sort }}&archived=False&removed=None">Active</a></li>
         {% endif %}
         {% if comments_filter == 'Hidden' %}
         <li class="active"><a>Hidden</a></li>
         {% else %}
-        <li><a href="{{ mod_url }}?archived=None&removed=True">Hidden</a></li>
+        <li><a href="{{ comments_url_with_sort }}&archived=None&removed=True">Hidden</a></li>
         {% endif %}
         {% if comments_filter == 'Archived' %}
         <li class="active"><a>Archived</a></li>
         {% else %}
-        <li><a href="{{ mod_url }}?archived=True&removed=None">Archived</a></li>
+        <li><a href="{{ comments_url_with_sort }}&archived=True&removed=None">Archived</a></li>
         {% endif %}
       </ul>
     </div>
@@ -33,7 +33,7 @@
     <div class="col-lg-12">
       <table class="table table-hover">
         <thead>
-          <tr>
+          <tr data-comments-sort>
             <th class="selector">
               <div class="btn-group">
                 <input type="checkbox">
@@ -47,11 +47,19 @@
                 </ul>
               </div>
             </th>
-            <th>ID</th>
-            <th>Flag</th>
-            <th>Comment</th>
+            <th>
+              <a href="{{ comments_url_with_filter }}&sort={{ 'id'|reverse_if_current:comments_sort }}">ID</a>
+            </th>
+            <th>
+              <a href="{{ comments_url_with_filter }}&sort={{ 'visible_flag_count'|reverse_if_current:comments_sort }}">Flag</a>
+            </th>
+            <th>
+              <a href="{{ comments_url_with_filter }}&sort={{ 'user__username'|reverse_if_current:comments_sort }}">Comment</a>
+            </th>
             <th>Actions</th>
-            <th>Date</th>
+            <th>
+              <a href="{{ comments_url_with_filter }}&sort={{ 'submit_date'|reverse_if_current:comments_sort }}">Date</a>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -67,7 +75,7 @@
     <ul class="pagination">
       {% if comments.has_previous %}
         <li>
-          <a href="{{ comments_url_with_params }}&page={{ comments.previous_page_number }}">&laquo;</a>
+          <a href="{{ comments_url_without_page }}&page={{ comments.previous_page_number }}">&laquo;</a>
         </li>
       {% else %}
         <li class="disabled"><a>&laquo;</a></li>
@@ -78,12 +86,12 @@
             <a>{{ page_num }} <span class="sr-only">(current)</span></a>
           </li>
         {% else %}
-          <li><a href="{{ comments_url_with_params }}&page={{ page_num }}">{{ page_num }}</a></li>
+          <li><a href="{{ comments_url_without_page }}&page={{ page_num }}">{{ page_num }}</a></li>
         {% endif %}
       {% endfor %}
       {% if comments.has_next %}
         <li>
-          <a href="{{ comments_url_with_params }}&page={{ comments.next_page_number }}">&raquo;</a>
+          <a href="{{ comments_url_without_page }}&page={{ comments.next_page_number }}">&raquo;</a>
         </li>
       {% else %}
         <li class="disabled"><a>&raquo;</a></li>

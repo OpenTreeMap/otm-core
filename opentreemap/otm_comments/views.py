@@ -46,7 +46,7 @@ def _comments(request, instance):
             'WHERE otm_comments_enhancedthreadedcommentflag.comment_id = ' +
             'otm_comments_enhancedthreadedcomment.threadedcomment_ptr_id ' +
             'AND not hidden'})\
-        .order_by(sort)
+        .extra(order_by=[sort])
 
     if is_archived is not None:
         comments = comments.filter(is_archived=is_archived)
@@ -73,8 +73,15 @@ def comment_moderation(request, instance):
 
     comments_url = reverse('comment_moderation', args=(instance.url_name,))
 
-    comments_url_with_params = ('%s?archived=%s&removed=%s'
-                                % (comments_url, is_archived, is_removed))
+    params = {'url': comments_url, 'archived': is_archived, 'sort': sort,
+              'removed': is_removed, 'page': paged_comments.number}
+    comments_url_without_page =\
+        ('%(url)s?archived=%(archived)s&removed=%(removed)s&sort=%(sort)s'
+         % params)
+    comments_url_with_filter =\
+        ('%(url)s?archived=%(archived)s&removed=%(removed)s'
+         % params)
+    comments_url_with_sort = '%(url)s?sort=%(sort)s' % params
 
     comments_filter = 'Active'
     if is_archived is None and is_removed:
@@ -85,7 +92,10 @@ def comment_moderation(request, instance):
     return {
         'comments': paged_comments,
         'comments_filter': comments_filter,
-        'comments_url_with_params': comments_url_with_params
+        'comments_url_without_page': comments_url_without_page,
+        'comments_url_with_filter': comments_url_with_filter,
+        'comments_url_with_sort': comments_url_with_sort,
+        'comments_sort': sort
     }
 
 
