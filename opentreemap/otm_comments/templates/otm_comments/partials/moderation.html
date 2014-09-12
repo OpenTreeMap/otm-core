@@ -50,15 +50,32 @@
     </div> <!--END OF TABLE COL-12 SECTION -->
   </div> <!--END OF COMMENT TABLE -->
 
+  {% url 'comment_moderation' request.instance.url_name as mod_url %}
   <div class="row center-block text-center"><!--PAGINATION -->
     <ul class="pagination">
-      <li class="disabled"><a href="#">&laquo;</a></li>
-      <li class="active"><a href="#">1 <span class="sr-only">(current)</span></a></li>
-      <li><a href="#">2</a></li>
-      <li><a href="#">3</a></li>
-      <li><a href="#">4</a></li>
-      <li><a href="#">5</a></li>
-      <li><a href="#">&raquo;</a></li>
+      {% if comments.has_previous %}
+        <li>
+          <a href="{{ mod_url }}?page={{ comments.previous_page_number }}">&laquo;</a>
+        </li>
+      {% else %}
+        <li class="disabled"><a>&laquo;</a></li>
+      {% endif %}
+      {% for page_num in comments.paginator.page_range %}
+        {% if comments.number == page_num %}
+          <li class="active">
+            <a>{{ page_num }} <span class="sr-only">(current)</span></a>
+          </li>
+        {% else %}
+          <li><a href="{{ mod_url }}?page={{ page_num }}">{{ page_num }}</a></li>
+        {% endif %}
+      {% endfor %}
+      {% if comments.has_next %}
+        <li>
+          <a href="{{ mod_url }}?page={{ comments.next_page_number }}">&raquo;</a>
+        </li>
+      {% else %}
+        <li class="disabled"><a>&raquo;</a></li>
+      {% endif %}
     </ul>
   </div> <!--END OF PAGINATION -->
 

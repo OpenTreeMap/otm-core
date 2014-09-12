@@ -5,7 +5,7 @@
 
 {% block content %}
 
-<div class="content">
+<div id="comments-content" class="content">
   {% include "otm_comments/partials/moderation.html" %}
 </div>
 
@@ -15,8 +15,9 @@
 {% block scripts %}
 <script>
 (function(require) {
-   // TODO: call appropriate init()
-   //require('otm_comments/moderation').init();
+    require('otm_comments/moderation')({
+      container: '#comments-content'
+    });
 })(require);
 </script>
 {% endblock scripts %}
