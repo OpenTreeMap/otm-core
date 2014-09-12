@@ -14,17 +14,12 @@ from django.http import HttpResponse
 from django.templatetags.l10n import localize
 
 from treemap.udf import DATETIME_FORMAT
+from treemap.util import get_csv_response
 from treemap.models import User, Audit
 
 
 def users_csv(request, instance):
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=user_export.csv;'
-    response['Cache-Control'] = 'no-cache'
-
-    # add BOM to support CSVs in MS Excel
-    # http://en.wikipedia.org/wiki/Byte_order_mark
-    response.write(u'\ufeff'.encode('utf8'))
+    response = get_csv_response()
 
     field_names = ['username', 'email', 'first_name',
                    'last_name', 'email_hash',
