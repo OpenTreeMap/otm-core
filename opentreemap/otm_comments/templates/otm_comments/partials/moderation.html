@@ -1,15 +1,28 @@
 {% load i18n %}
 
+{% url 'comment_moderation' request.instance.url_name as mod_url %}
 <div class="page-header">
   <h1>Moderate Comments
     <div class="btn-group">
       <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-toggle="dropdown">
-        Active <span class="caret"></span>
+        {{ comments_filter }} <span class="caret"></span>
       </button>
-      <ul class="dropdown-menu" role="menu">
-        <li><a href="#">Active</a></li>
-        <li><a href="#">Hidden</a></li>
-        <li><a href="#">Archived</a></li>
+      <ul data-comments-filter class="dropdown-menu" role="menu">
+        {% if comments_filter == 'Active' %}
+        <li class="active"><a>Active</a></li>
+        {% else %}
+        <li><a href="{{ mod_url }}?archived=False&removed=None">Active</a></li>
+        {% endif %}
+        {% if comments_filter == 'Hidden' %}
+        <li class="active"><a>Hidden</a></li>
+        {% else %}
+        <li><a href="{{ mod_url }}?archived=None&removed=True">Hidden</a></li>
+        {% endif %}
+        {% if comments_filter == 'Archived' %}
+        <li class="active"><a>Archived</a></li>
+        {% else %}
+        <li><a href="{{ mod_url }}?archived=True&removed=None">Archived</a></li>
+        {% endif %}
       </ul>
     </div>
     <button type="button" class="btn btn-sm" ><i class="icon-export"></i>Export All</button>
@@ -50,12 +63,11 @@
     </div> <!--END OF TABLE COL-12 SECTION -->
   </div> <!--END OF COMMENT TABLE -->
 
-  {% url 'comment_moderation' request.instance.url_name as mod_url %}
   <div class="row center-block text-center"><!--PAGINATION -->
     <ul class="pagination">
       {% if comments.has_previous %}
         <li>
-          <a href="{{ mod_url }}?page={{ comments.previous_page_number }}">&laquo;</a>
+          <a href="{{ comments_url_with_params }}&page={{ comments.previous_page_number }}">&laquo;</a>
         </li>
       {% else %}
         <li class="disabled"><a>&laquo;</a></li>
@@ -66,12 +78,12 @@
             <a>{{ page_num }} <span class="sr-only">(current)</span></a>
           </li>
         {% else %}
-          <li><a href="{{ mod_url }}?page={{ page_num }}">{{ page_num }}</a></li>
+          <li><a href="{{ comments_url_with_params }}&page={{ page_num }}">{{ page_num }}</a></li>
         {% endif %}
       {% endfor %}
       {% if comments.has_next %}
         <li>
-          <a href="{{ mod_url }}?page={{ comments.next_page_number }}">&raquo;</a>
+          <a href="{{ comments_url_with_params }}&page={{ comments.next_page_number }}">&raquo;</a>
         </li>
       {% else %}
         <li class="disabled"><a>&raquo;</a></li>

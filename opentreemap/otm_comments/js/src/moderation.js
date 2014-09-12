@@ -10,11 +10,14 @@ module.exports = function(options) {
     var $container = $(options.container),
 
         // We use event delegation on the outer container, because we replace
-        // the entire table including pagination section.
+        // the entire table including the pagination and filter section.
         //
         // We prevent default events for everything, but only get new pages
         // for anchor tags which have href values
-        urlStream = $container.asEventStream('click', '.pagination li a')
+        pageEventStream = $container.asEventStream('click', '.pagination li a'),
+        filterEventStream = $container.asEventStream('click', '[data-comments-filter] li a'),
+
+        urlStream = Bacon.mergeAll(pageEventStream, filterEventStream)
             .doAction('.preventDefault')
             .map('.target')
             .map('.href')

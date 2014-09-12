@@ -79,8 +79,8 @@ class CommentReviewTest(CommentTestCase):
 
         comments = self._get_comments()
 
-        # Without any parameters, you get all comments
-        self.assertEqual(2, len(comments))
+        # Without any parameters, you get only "Active" comments
+        self.assertEqual(1, len(comments))
 
         comments = self._get_comments(archived='True')
 
@@ -93,15 +93,18 @@ class CommentReviewTest(CommentTestCase):
         self.assertEqual(ecomment2, comments[0])
 
     def test_hidden_filter(self):
-        ecomment1 = make_comment(self.plot, self.user, is_archived=True,
-                                 is_removed=False)
+        make_comment(self.plot, self.user, is_archived=True, is_removed=False)
         ecomment2 = make_comment(self.plot, self.user, is_archived=False,
                                  is_removed=True)
+        ecomment3 = make_comment(self.plot, self.user, is_archived=False,
+                                 is_removed=False)
 
         comments = self._get_comments()
 
-        # Without any parameters, you get all comments
+        # Without any parameters, you get "Active" comments
         self.assertEqual(2, len(comments))
+        self.assertIn(ecomment2, comments)
+        self.assertIn(ecomment3, comments)
 
         comments = self._get_comments(removed='True')
 
@@ -111,7 +114,7 @@ class CommentReviewTest(CommentTestCase):
         comments = self._get_comments(removed='False')
 
         self.assertEqual(1, len(comments))
-        self.assertEqual(ecomment1, comments[0])
+        self.assertEqual(ecomment3, comments[0])
 
     def test_sorting(self):
         today = datetime.now()

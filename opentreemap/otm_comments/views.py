@@ -9,6 +9,7 @@ from djqscsv import render_to_csv_response
 
 from django.core.paginator import Paginator, EmptyPage
 from django.db import transaction
+from django.core.urlresolvers import reverse
 
 from opentreemap.util import decorate as do
 
@@ -20,10 +21,20 @@ from otm_comments.models import (EnhancedThreadedComment,
                                  EnhancedThreadedCommentFlag)
 
 
-def _comments(request, instance):
-    is_archived = request.GET.get('archived', None)
-    is_removed = request.GET.get('removed', None)
+def _comments_params(request):
+    # The default view shows all unarchived comments
+    is_archived = request.GET.get('archived', 'False')
+    is_removed = request.GET.get('removed', 'None')
     sort = request.GET.get('sort', '-submit_date')
+
+    is_archived = None if is_archived == 'None' else (is_archived == 'True')
+    is_removed = None if is_removed == 'None' else (is_removed == 'True')
+
+    return (is_archived, is_removed, sort)
+
+
+def _comments(request, instance):
+    (is_archived, is_removed, sort) = _comments_params(request)
 
     # Note: we tried .prefetch_related('content_object')
     # but it gives comment.content_object = None  (Django 1.6)
@@ -38,17 +49,16 @@ def _comments(request, instance):
         .order_by(sort)
 
     if is_archived is not None:
-        is_archived = is_archived == 'True'
         comments = comments.filter(is_archived=is_archived)
 
     if is_removed is not None:
-        is_removed = is_removed == 'True'
         comments = comments.filter(is_removed=is_removed)
 
     return comments
 
 
 def comment_moderation(request, instance):
+    (is_archived, is_removed, sort) = _comments_params(request)
     page_number = int(request.GET.get('page', '1'))
     page_size = int(request.GET.get('size', '5'))
 
@@ -61,8 +71,21 @@ def comment_moderation(request, instance):
         # If the page number is out of bounds, return the last page
         paged_comments = paginator.page(paginator.num_pages)
 
+    comments_url = reverse('comment_moderation', args=(instance.url_name,))
+
+    comments_url_with_params = ('%s?archived=%s&removed=%s'
+                                % (comments_url, is_archived, is_removed))
+
+    comments_filter = 'Active'
+    if is_archived is None and is_removed:
+        comments_filter = 'Hidden'
+    elif is_archived and is_removed is None:
+        comments_filter = 'Archived'
+
     return {
-        'comments': paged_comments
+        'comments': paged_comments,
+        'comments_filter': comments_filter,
+        'comments_url_with_params': comments_url_with_params
     }
 
 
