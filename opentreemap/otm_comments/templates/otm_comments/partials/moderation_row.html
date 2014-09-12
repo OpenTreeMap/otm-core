@@ -10,8 +10,9 @@
           {{ comment.user_name }}
         </a>
         <p>{{ comment.comment }} <a href="#">less</a></p>
-        <p><label>Flagged By: <a href="#">TestUser456 (07/28/14)</a>, <a href="#">TestUser789 (07/29/14)</a></label></p>
-        <p><label>Previously Flagged By: <a href="#">TestUser123 (07/25/14)</a></label></p>
+<!-- TODO: Implement flagged by and previously flagged by -->
+<!--         <p><label>Flagged By: <a href="#">TestUser456 (07/28/14)</a>, <a href="#">TestUser789 (07/29/14)</a></label></p> -->
+<!--         <p><label>Previously Flagged By: <a href="#">TestUser123 (07/25/14)</a></label></p> -->
         </td>
     <td>
       <a href="#">{% if comment.is_removed %}Unhide{% else %}Hide{% endif %}
