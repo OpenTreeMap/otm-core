@@ -226,9 +226,8 @@ def save_treefavorite(migration_rules, migration_event,
     return fav_obj
 
 
-@atomic
-def save_comment(migration_rules, migration_event,
-                 relic_ids, model_dict, comment_obj, instance):
+def _base_process_comment(migration_rules, migration_event,
+                          relic_ids, model_dict, comment_obj, instance):
 
     comment_obj.site_id = 1
 
@@ -238,12 +237,38 @@ def save_comment(migration_rules, migration_event,
               "that does not exist in OTM2 .. SKIPPING"
               % comment_obj.comment)
         return None
+    content_type = ContentType.objects.get(pk=comment_obj.content_type_id)
 
     old_object_id = int(model_dict['fields']['object_pk'])
-    new_object_id = relic_ids[comment_obj.content_type.model][old_object_id]
+    try:
+        new_object_id = relic_ids[content_type.model][old_object_id]
+    except KeyError:
+        raise MigrationException("threadedcomment dependency not met. "
+                                 "did you import %s yet?"
+                                 % comment_obj.content_type.model)
+
+    if new_object_id == models.UNBOUND_MODEL_ID:
+        print("Can't import comment '%s' because "
+              "it's model object '%s:%s' does "
+              "not exist in OTM2. It probably "
+              "was marked as deleted in OTM1. .. SKIPPING"
+              % (comment_obj.comment[:10] + '...',
+                 content_type.model, old_object_id))
+        return None
 
     # object_id is called object_pk in later versions
     comment_obj.object_pk = new_object_id
+
+    return comment_obj
+
+
+@atomic
+def save_comment(migration_rules, migration_event,
+                 relic_ids, model_dict, comment_obj, instance):
+
+    comment_obj = _base_process_comment(migration_rules, migration_event,
+                                        relic_ids, model_dict, comment_obj,
+                                        instance)
 
     comment_obj.save()
 
@@ -260,35 +285,9 @@ def save_comment(migration_rules, migration_event,
 def save_threadedcomment(migration_rules, migration_event,
                          relic_ids, model_dict, tcomment_obj, instance):
 
-    tcomment_obj.site_id = 1
-
-    if tcomment_obj.content_type_id == models.UNBOUND_MODEL_ID:
-        print("Can't import threadedcomment '%s' because "
-              "its ContentType (model) "
-              "does not exist in OTM2 .. SKIPPING"
-              % tcomment_obj.comment[:10] + '...')
-        return None
-    content_type = ContentType.objects.get(pk=tcomment_obj.content_type_id)
-
-    old_object_id = model_dict['fields']['object_id']
-    try:
-        new_object_id = relic_ids[content_type.model][old_object_id]
-    except KeyError:
-        raise MigrationException("threadedcomment dependency not met. "
-                                 "did you import %s yet?"
-                                 % tcomment_obj.content_type.model)
-
-    if new_object_id == models.UNBOUND_MODEL_ID:
-        print("Can't import threadedcomment '%s' because "
-              "it's model object '%s:%s' does "
-              "not exist in OTM2. It probably "
-              "was marked as deleted in OTM1. .. SKIPPING"
-              % (tcomment_obj.comment[:10] + '...',
-                 content_type.model, old_object_id))
-        return None
-
-    # object_id is called object_pk in later versions
-    tcomment_obj.object_pk = new_object_id
+    tcomment_obj = _base_process_comment(migration_rules, migration_event,
+                                         relic_ids, model_dict, tcomment_obj,
+                                         instance)
 
     tcomment_obj.save()
 
