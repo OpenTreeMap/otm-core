@@ -7,7 +7,7 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import RegexValidator
 from django.conf import settings
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext_lazy as trans
 
 import hashlib
 import json
