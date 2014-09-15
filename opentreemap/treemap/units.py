@@ -7,7 +7,7 @@ from functools import partial
 from numbers import Number
 
 from django.conf import settings
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext_lazy as trans
 from django.utils.formats import number_format
 
 from treemap.json_field import get_attr_from_json_field
