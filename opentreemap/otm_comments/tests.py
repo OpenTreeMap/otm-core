@@ -3,15 +3,21 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from time import sleep
+
 from datetime import datetime, timedelta
 
 from django.contrib.gis.geos import Point
 from django.contrib.sites.models import Site
+from django.core.urlresolvers import reverse
+
+from selenium.webdriver.support.wait import WebDriverWait
 
 from treemap.models import Plot
 from treemap.tests.base import OTMTestCase
 from treemap.tests import (make_instance, make_commander_user,
                            make_admin_user, make_request)
+from treemap.tests.ui import TreemapUITestCase
 
 from otm_comments.models import (EnhancedThreadedComment,
                                  EnhancedThreadedCommentFlag)
@@ -26,15 +32,19 @@ def make_comment(model, user, text='testing 1 2 3', **kwargs):
         content_object=model, user=user, comment=text, site=site, **kwargs)
 
 
-class CommentTestCase(OTMTestCase):
-    # A base class for comment tests
+class CommentTestMixin(object):
+    # A mixin class for comment tests, sets up some non-comment related data
     def setUp(self):
-        super(CommentTestCase, self).setUp()
+        super(CommentTestMixin, self).setUp()
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
         self.admin = make_admin_user(self.instance)
         self.plot = Plot(geom=Point(0, 0), instance=self.instance)
         self.plot.save_with_user(self.user)
+
+
+class CommentTestCase(CommentTestMixin, OTMTestCase):
+    pass
 
 
 class EnhancedCommentTest(CommentTestCase):
@@ -148,6 +158,114 @@ class CommentReviewTest(CommentTestCase):
         self.assertEqual(ecomment3, comments[0])
         self.assertEqual(ecomment2, comments[1])
         self.assertEqual(ecomment1, comments[2])
+
+
+class CommentReviewUITest(CommentTestMixin, TreemapUITestCase):
+
+    def setUp(self):
+        super(CommentReviewUITest, self).setUp()
+        self.removed_comment =\
+            make_comment(self.plot, self.user, is_removed=True)
+        make_comment(self.plot, self.user)
+        make_comment(self.plot, self.user)
+        make_comment(self.plot, self.user)
+        make_comment(self.plot, self.user)
+        make_comment(self.plot, self.user, text="""
+                     This is a really long comment
+
+                     It spans a lot of lines, and has a lot of text
+
+                     So it should get cut off in the UI, and only show the
+                     first few lines.
+
+                     We have a link on the page to show less/more of the
+                     comment text.
+
+                     Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                     sed do eiusmod tempor incididunt ut labore et dolore magna
+                     aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+                     ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                     Duis aute irure dolor in reprehenderit in voluptate velit
+                     esse cillum dolore eu fugiat nulla pariatur. Excepteur
+                     sint occaecat cupidatat non proident, sunt in culpa qui
+                     officia deserunt mollit anim id est laborum
+                     """)
+
+        self.login_workflow(user=self.admin)
+        self.comments_url = reverse('comment_moderation_full',
+                                    args=(self.instance.url_name,))
+        self.browse_to_url(self.comments_url)
+
+    def assert_num_rows(self, num, msg):
+        rows = self.driver.find_elements_by_css_selector(
+            '.comment-table tbody tr')
+
+        self.assertEqual(num, len(rows), msg)
+
+    def test_pagination(self):
+        self.assert_num_rows(5, 'There are 5 comments on the first page')
+
+        page_2_link = self.find('.pagination').find_element_by_link_text('2')
+        page_2_link.click()
+
+        # The 3rd link is page 2, due to the "previous" link
+        self.wait_until_present('.pagination li:nth-child(3).active')
+        self.assert_num_rows(1, 'There is 1 comment on the second page')
+
+    def test_filtering(self):
+        self.assert_num_rows(
+            5, 'There are 5 comments on this page before filtering')
+
+        self.click('.page-header [data-toggle="dropdown"]')
+
+        dropdown = self.driver.find_element_by_css_selector(
+            '[data-comments-filter]')
+        hidden_link = dropdown.find_element_by_link_text('Hidden')
+
+        self.wait_until_visible(hidden_link)
+        hidden_link.click()
+
+        sleep(3)
+
+        self.assert_num_rows(1, 'Only the hidden comment should be shown')
+
+        id_link = self.find('.comment-table tbody') \
+            .find_element_by_link_text(str(self.removed_comment.pk))
+
+        url = id_link.get_attribute('href')
+        reversed_url = reverse('map_feature_detail',
+                               args=(self.instance.url_name, self.plot.pk))
+
+        self.assertTrue(url.endswith(reversed_url),
+                        'The comment should link to the detail page')
+
+    def test_less_or_more(self):
+        first_comment = self.find('.comment-table tbody tr:first-child')
+
+        height = first_comment.size['height']
+
+        less_or_more_link = \
+            first_comment.find_element_by_css_selector('[data-less-more]')
+        less_or_more_link.click()
+
+        # After clicking the text should change to "less"
+        WebDriverWait(self.driver, 3).until(
+            lambda driver: less_or_more_link.text == 'less')
+
+        updated_height = first_comment.size['height']
+
+        # The table row should get larger
+        self.assertGreater(updated_height, height)
+
+        # After clicking again the text should change to "more"
+        less_or_more_link.click()
+        WebDriverWait(self.driver, 3).until(
+            lambda driver: less_or_more_link.text == 'more')
+
+        updated_height = first_comment.size['height']
+
+        # The table row should go back to the original height
+        self.assertEqual(updated_height, height)
 
 
 def _comment_ids_to_params(*args):
