@@ -3,15 +3,46 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from exporter.models import ExportJob
 from tasks import async_csv_export
+from django.shortcuts import get_object_or_404
+
 
 from opentreemap.util import decorate as do
 
-from django.shortcuts import get_object_or_404
-
+from treemap.util import get_csv_response, get_json_response
 from treemap.decorators import (json_api_call, instance_request,
                                 requires_feature)
+
+from exporter.models import ExportJob
+from exporter.user import write_users
+
+############################################
+# synchronous exports
+############################################
+#
+# TODO: these should not exist. They are legacy views.
+#
+
+
+def _get_user_extra_args(request):
+    return [request.REQUEST.get("minJoinDate"),
+            request.REQUEST.get("minEditDate")]
+
+
+def users_csv(request, instance):
+    "Return a user csv synchronously"
+    response = get_csv_response('users.csv')
+    extra = _get_user_extra_args(request)
+    write_users('csv', response, instance, *extra)
+    return response
+
+
+def users_json(request, instance):
+    response = get_json_response('user_export.json')
+    extra = _get_user_extra_args(request)
+    write_users('json', response, instance, *extra)
+    return response
+
 
 
 def begin_export(request, instance, model):

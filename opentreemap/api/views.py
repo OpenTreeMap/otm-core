@@ -40,7 +40,7 @@ from api.plots import plots_closest_to_point, get_plot, update_or_create_plot
 from api.user import (user_info, create_user, update_user,
                       update_profile_photo, transform_user_request,
                       transform_user_response)
-from exporter.user import users_json, users_csv
+from exporter.views import users_json, users_csv
 
 
 def datetime_to_iso_string(d):
