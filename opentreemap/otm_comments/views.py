@@ -9,6 +9,7 @@ from djqscsv import render_to_csv_response
 
 from django.core.paginator import Paginator, EmptyPage
 from django.db import transaction
+from django.core.urlresolvers import reverse
 
 from opentreemap.util import decorate as do
 
@@ -20,10 +21,20 @@ from otm_comments.models import (EnhancedThreadedComment,
                                  EnhancedThreadedCommentFlag)
 
 
-def _comments(request, instance):
-    is_archived = request.GET.get('archived', None)
-    is_removed = request.GET.get('removed', None)
+def _comments_params(request):
+    # The default view shows all unarchived comments
+    is_archived = request.GET.get('archived', 'False')
+    is_removed = request.GET.get('removed', 'None')
     sort = request.GET.get('sort', '-submit_date')
+
+    is_archived = None if is_archived == 'None' else (is_archived == 'True')
+    is_removed = None if is_removed == 'None' else (is_removed == 'True')
+
+    return (is_archived, is_removed, sort)
+
+
+def _comments(request, instance):
+    (is_archived, is_removed, sort) = _comments_params(request)
 
     # Note: we tried .prefetch_related('content_object')
     # but it gives comment.content_object = None  (Django 1.6)
@@ -35,20 +46,19 @@ def _comments(request, instance):
             'WHERE otm_comments_enhancedthreadedcommentflag.comment_id = ' +
             'otm_comments_enhancedthreadedcomment.threadedcomment_ptr_id ' +
             'AND not hidden'})\
-        .order_by(sort)
+        .extra(order_by=[sort])
 
     if is_archived is not None:
-        is_archived = is_archived == 'True'
         comments = comments.filter(is_archived=is_archived)
 
     if is_removed is not None:
-        is_removed = is_removed == 'True'
         comments = comments.filter(is_removed=is_removed)
 
     return comments
 
 
 def comment_moderation(request, instance):
+    (is_archived, is_removed, sort) = _comments_params(request)
     page_number = int(request.GET.get('page', '1'))
     page_size = int(request.GET.get('size', '5'))
 
@@ -61,8 +71,31 @@ def comment_moderation(request, instance):
         # If the page number is out of bounds, return the last page
         paged_comments = paginator.page(paginator.num_pages)
 
+    comments_url = reverse('comment_moderation', args=(instance.url_name,))
+
+    params = {'url': comments_url, 'archived': is_archived, 'sort': sort,
+              'removed': is_removed, 'page': paged_comments.number}
+    comments_url_without_page =\
+        ('%(url)s?archived=%(archived)s&removed=%(removed)s&sort=%(sort)s'
+         % params)
+    comments_url_with_filter =\
+        ('%(url)s?archived=%(archived)s&removed=%(removed)s'
+         % params)
+    comments_url_with_sort = '%(url)s?sort=%(sort)s' % params
+
+    comments_filter = 'Active'
+    if is_archived is None and is_removed:
+        comments_filter = 'Hidden'
+    elif is_archived and is_removed is None:
+        comments_filter = 'Archived'
+
     return {
-        'comments': paged_comments
+        'comments': paged_comments,
+        'comments_filter': comments_filter,
+        'comments_url_without_page': comments_url_without_page,
+        'comments_url_with_filter': comments_url_with_filter,
+        'comments_url_with_sort': comments_url_with_sort,
+        'comments_sort': sort
     }
 
 
@@ -184,3 +217,15 @@ comments_csv_endpoint = do(
     require_http_method("GET"),
     admin_instance_request,
     comments_csv)
+
+comment_moderation_endpoint = do(
+    require_http_method("GET"),
+    admin_instance_request,
+    render_template('otm_comments/moderation.html'),
+    comment_moderation)
+
+comment_moderation_partial_endpoint = do(
+    require_http_method("GET"),
+    admin_instance_request,
+    render_template('otm_comments/partials/moderation.html'),
+    comment_moderation)

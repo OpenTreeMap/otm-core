@@ -204,10 +204,17 @@ class TreemapUITestCase(UITestCase):
 
         self.profile = RegistrationProfile.objects.create_profile(self.user)
 
-    def login_workflow(self):
+    def login_workflow(self, user=None):
+        if user is None:
+            user = self.user
         self.browse_to_url('/accounts/logout/')
         self.browse_to_url('/accounts/login/')
-        self.process_login_form(self.user.username, 'password')
+        self.process_login_form(user.username, 'password')
+
+        def url_is_user_page(driver):
+            return driver.current_url.endswith('/users/%s/' % user.username)
+
+        WebDriverWait(self.driver, 10).until(url_is_user_page)
 
     def drag_marker_on_map(self, endx, endy):
         actions = ActionChains(self.driver)
