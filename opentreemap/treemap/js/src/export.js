@@ -5,16 +5,73 @@ var $ = require('jquery'),
     url = require('url'),
     U = require('treemap/utility'),
     _ = require('lodash'),
-    Bacon = require('baconjs');
+    Bacon = require('baconjs'),
+
+    startUrlAttr = 'data-export-start-url',
+    enableExportSelector = '[' + startUrlAttr + ']',
+    panelSelector = '#export-panel',
+    cancelSelector = panelSelector + " * [data-dismiss]",
+
+    // While there is an active job id, query the
+    // check exporter end-point
+    defaultInterval = 2000, // 2s
+
+    _activeJob = null,
+    jobManager = {
+        stop: function () { _activeJob = null; },
+        start: function (jobId) { _activeJob = jobId; },
+        isCurrent: function (jobId) { return _activeJob === jobId; }
+    },
+
+    config;
+
+////////////////////////////////////////
+// ajax / job mgmt
+////////////////////////////////////////
+
+function getQueryStringObject () {
+    return {q: url.parse(window.location.href, true).query.q || '' };
+}
+
+function isComplete (resp) { return resp.status === 'COMPLETE'; }
+function isFailed (resp) { return !_.contains(['COMPLETE', 'PENDING'], resp.status); }
+
+function getJobStartStream (element) {
+    var $element = $(element),
+        elementStartUrl = $element.attr(startUrlAttr);
+    return $element.asEventStream('click')
+        .map(getQueryStringObject)
+        .flatMap(BU.jsonRequest('GET', elementStartUrl));
+}
+
+function makeJobCheckStream (attrStream) {
+    function poll (jobId) {
+        jobManager.start(jobId);
+        var url = config.exportCheckUrl + '/' + jobId + '/';
+        return Bacon.fromPoll(defaultInterval, function() {
+            return jobManager.isCurrent(jobId) ?
+                BU.jsonRequest('GET', url)() : new Bacon.End();
+        });
+    }
+    // because poll has a type of (a -> Stream a) and
+    // so does Bacon.fromPromise which is called implicitly,
+    // this stream has to be unboxed twice to produce a flat
+    // stream of json responses.
+    return attrStream.flatMap(poll).flatMap(_.identity);
+}
+
+////////////////////////////////////////
+// ui
+////////////////////////////////////////
 
 
-// Given a map of logical names to jquery elements
-// (such as {e1: $(...), e2: $(...)})
-//
-// return a new RadioGroup with a single method
-// show(name) that will hide all elements except
-// name
 var RadioGroup = function(elementMap) {
+    // Given a map of logical names to jquery elements
+    // (such as {e1: $(...), e2: $(...)})
+    //
+    // return a new RadioGroup with a single method
+    // show(name) that will hide all elements except
+    // name
     this.show = function(elementToShow) {
         _.each(elementMap, function($thing, name) {
             if (name === elementToShow) {
@@ -26,124 +83,83 @@ var RadioGroup = function(elementMap) {
     };
 };
 
-// Used to control polling.
-//
-// On each polling loop `generator` is called
-// and if either the result is falsey, or
-// someone has called `stop`, the polling will stop.
-var RepeatPredicate = function(generator) {
-    var that = this;
+function getDisplayManager () {
+    var $panel = $(panelSelector),
+        messageRadioGroup = new RadioGroup({
+            prep: $panel.find('.prep-msg'),
+            err: $panel.find('.error-msg')
+        }),
 
-    this._stopped = false;
+        dismissRadioGroup = new RadioGroup({
+            cancel: $panel.find('.dismiss-cancel'),
+            ok: $panel.find('.dismiss-ok')
+        });
 
-    this.stop = function() { that._stopped = true; };
-
-    this.next = function() {
-        if (that._stopped) {
-            return false;
+    function wait() {
+        messageRadioGroup.show('prep');
+        dismissRadioGroup.show('cancel');
+        $panel.modal('show');
+    }
+    function dismiss() {
+        messageRadioGroup.show('prep');
+        dismissRadioGroup.show('cancel');
+        $panel.modal('hide');
+    }
+    function error() {
+        messageRadioGroup.show('err');
+        dismissRadioGroup.show('ok');
+        $panel.modal('show');
+    }
+    function fail(msg) {
+        // Error response or something we can't handle
+        if (msg === null || msg === '') {
+            error();
         } else {
-            return generator();
+            dismissRadioGroup.show('ok');
+            $panel.find('.modal-body').html(msg);
+            $panel.modal('show');
         }
-    };
-};
+    }
 
-function getCheckUrlForJob(options, jobId) {
-    return U.appendSegmentToUrl(jobId, options.checkTreeExportUrl, true);
+    return {wait: wait,
+            dismiss: dismiss,
+            error: error,
+            fail: fail};
 }
 
-function startNewPollingLoop(interval, predicate) {
-    var pollStream = Bacon.fromPoll(interval, function() {
-        var next = predicate.next();
-        return next ? new Bacon.Next(next) : new Bacon.End();
-    });
+exports.run = function (options) {
+    config = options.config;
 
-    return pollStream;
-}
+    var startStreams = _.map($(enableExportSelector), getJobStartStream),
+        startStream = Bacon.mergeAll(startStreams),
+        displayManager = getDisplayManager(),
+        cancelStream = $(cancelSelector).asEventStream('click'),
+        checkStream = makeJobCheckStream(startStream.map('.job_id')),
+        fileUrlStream = checkStream.filter(isComplete).map('.url'),
+        checkFailureMessageStream = checkStream.filter(isFailed).map('.message'),
+        normalExitStream = Bacon.mergeAll(cancelStream, fileUrlStream),
+        exitStream = Bacon.mergeAll(normalExitStream, checkFailureMessageStream),
+        globalStream = Bacon.mergeAll(exitStream, checkStream, startStream);
 
-exports.init = function(options) {
-    var initialRequestStream = $(options.trigger).asEventStream('click')
-            .map(function() {
-                return {q: url.parse(window.location.href, true).query.q || '' };
-            })
-            .flatMap(BU.jsonRequest('GET', options.startTreeExportUrl));
+    // pass server failure message through to UI
+    startStream.onError(displayManager.error);
 
-    var activePredicate = null;
+    // start waiting when a job is initiated
+    startStream.onValue(displayManager.wait);
 
-    $(options.cancel).asEventStream('click')
-        .onValue(function() {
-            if (activePredicate) { activePredicate.stop(); }
-        });
+    // an error can result from a generic javascript error
+    // or a specific error condition returned by the server
+    checkStream.onError(displayManager.error);
+    checkFailureMessageStream.onValue(displayManager.fail);
 
-    var messageRadioGroup = new RadioGroup({
-        prep: $(options.panel).find('.prep-msg'),
-        err: $(options.panel).find('.error-msg')
-    });
+    fileUrlStream.onValue(function (url) { window.location.href = url; });
 
-    var dismissRadioGroup = new RadioGroup({
-        cancel: $(options.panel).find('.dismiss-cancel'),
-        ok: $(options.panel).find('.dismiss-ok')
-    });
+    // dismiss the display manager when there's no error
+    // to leave in the modal for acknowledgement
+    normalExitStream.onValue(displayManager.dismiss);
 
-    var $panel = $(options.panel);
-
-    initialRequestStream
-        .onError(function() {
-            if (activePredicate) { activePredicate.stop(); }
-
-            messageRadioGroup.show('error');
-            dismissRadioGroup.show('ok');
-
-            $panel.modal('show');
-        });
-
-    // While there is an active job id, query the
-    // check exporter end-point
-    var interval = 2000; // 2s
-
-    var startNewActiveJobPollingLoop = function(pred) {
-        var responseStream = startNewPollingLoop(interval, pred)
-                .map(getCheckUrlForJob, options)
-                .flatMap(function(url) { return BU.jsonRequest('GET', url)(); });
-
-        responseStream.onValue(function(resp) {
-            if (resp.status == 'COMPLETE') {
-                // Tirgger the download
-                pred.stop();
-
-                window.location.href = resp.url;
-                $panel.modal('hide');
-            } else if (resp.status != 'PENDING') {
-                pred.stop();
-
-                // Error response or something we can't handle
-                dismissRadioGroup.show('ok');
-
-                $panel.find('.modal-body').html(resp.message);
-            }
-        });
-
-        responseStream.onError(function() {
-            pred.stop();
-
-            dismissRadioGroup.show('ok');
-            messageRadioGroup.show('error');
-        });
-    };
-
-    initialRequestStream
-        .map('.job_id')
-        .onValue(function(jobid) {
-            messageRadioGroup.show('prep');
-            dismissRadioGroup.show('cancel');
-
-            $panel.modal('show');
-
-            if (activePredicate) {
-                // Stop an existing job if it exists
-                activePredicate.stop();
-            }
-
-            activePredicate = new RepeatPredicate(function() { return jobid; });
-            startNewActiveJobPollingLoop(activePredicate);
-        });
+    // clear the active job and stop polling if an error occurs
+    // or a finish condition occurs
+    exitStream.onValue(jobManager.stop);
+    globalStream.onError(jobManager.stop);
 };

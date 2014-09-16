@@ -31,6 +31,8 @@ otm.settings.loginUrl = "{% url 'django.contrib.auth.views.login' %}?next=";
 
 otm.settings.staticUrl = '{{ STATIC_URL }}';
 
+otm.settings.exportCheckUrl = '{{ SITE_ROOT }}{{ request.instance.url_name }}/export/check';
+
 otm.settings.geocoder = {
     maxLocations: 20,
     errorString: '{% trans "That address was not found near this map. You may need to include a city and state." %}',
