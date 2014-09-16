@@ -41,3 +41,7 @@ class ExportJob(models.Model):
             return None
         else:
             return self.outfile.url
+
+    def complete_with(self, filename, file_obj):
+        self.outfile.save(filename, file_obj)
+        self.status = self.COMPLETE

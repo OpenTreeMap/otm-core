@@ -195,12 +195,19 @@ def get_filterable_audit_models():
     return {model.lower(): model for model in models}
 
 
-def get_csv_response():
+def get_csv_response(filename):
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=user_export.csv;'
+    response['Content-Disposition'] = 'attachment; filename=%s;' % filename
     response['Cache-Control'] = 'no-cache'
 
     # add BOM to support CSVs in MS Excel
     # http://en.wikipedia.org/wiki/Byte_order_mark
     response.write(u'\ufeff'.encode('utf8'))
+    return response
+
+
+def get_json_response(filename):
+    response = HttpResponse(content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename=%s;' % filename
+    response['Cache-Control'] = 'no-cache'
     return response

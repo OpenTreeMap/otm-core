@@ -108,12 +108,8 @@ def csv_export(job_pk, model, query, display_filters):
         job.status = ExportJob.MODEL_PERMISSION_ERROR
     else:
         csv_file = TemporaryFile()
-
         write_csv(limited_qs, csv_file, field_order=ordered_fields)
-
-        csv_name = generate_filename(limited_qs)
-        job.outfile.save(csv_name, File(csv_file))
-        job.status = ExportJob.COMPLETE
+        job.complete_with(generate_filename(limited_qs), File(csv_file))
 
     job.save()
 
