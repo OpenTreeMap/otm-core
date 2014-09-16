@@ -4,6 +4,7 @@
 {% load auth_extras %}
 {% load form_extras %}
 {% load udf %}
+{% load util %}
 
 {% block page_title %} | {% trans "Planting Site" %} {{plot.pk}}{% endblock %}
 
@@ -63,12 +64,10 @@
 
   {# Render collection UDF fields for the Tree #}
   {% if tree %}
-    {% for udf in tree.get_user_defined_fields %}
-      {% if udf.iscollection %}
-        {% with values=udf|collection_values_for_model_id:tree.pk %}
+    {% for udf in tree.collection_udfs %}
+      {% with values=tree.udfs|get:udf.name %}
           {% include "treemap/partials/collectionudf.html" with udf=udf model=tree values=values %}
         {% endwith %}
-      {% endif %}
     {% endfor %}
   {% endif %}
 </div>
@@ -99,12 +98,10 @@
 </table>
 
 {# Render collection UDF fields for the Plot  #}
-{% for udf in plot.get_user_defined_fields %}
-  {% if udf.iscollection %}
-    {% with values=udf|collection_values_for_model_id:plot.pk %}
-      {% include "treemap/partials/collectionudf.html" with udf=udf model=plot values=values %}
-    {% endwith %}
-  {% endif %}
+{% for udf in plot.collection_udfs %}
+  {% with values=plot.udfs|get:udf.name %}
+    {% include "treemap/partials/collectionudf.html" with udf=udf model=plot values=values %}
+  {% endwith %}
 {% endfor %}
 
 <!-- Ecosystem Benefits -->
