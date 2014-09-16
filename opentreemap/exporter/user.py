@@ -124,10 +124,13 @@ def _sanitize_unicode_record(record):
 
 
 @contextmanager
-def _date_filter(timestamp, name):
+def _date_filter(timestamp, filter_name):
     try:
         filter_date = datetime.strptime(timestamp, DATETIME_FORMAT)
     except ValueError:
-        raise ValidationError("%(name)s %(ts)s not a valid timestamp"
-                              % {"ts": timestamp, "name": name})
+        raise ValidationError("%(filter_name)s='%(ts)s' not a valid timestamp "
+                              "of format: %(format)s"
+                              % {"ts": timestamp,
+                                 "format": DATETIME_FORMAT,
+                                 "filter_name": filter_name})
     yield filter_date

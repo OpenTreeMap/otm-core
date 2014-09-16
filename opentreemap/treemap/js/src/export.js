@@ -7,14 +7,14 @@ var $ = require('jquery'),
     _ = require('lodash'),
     Bacon = require('baconjs'),
 
-    startUrlAttr = 'data-export-start-url',
-    enableExportSelector = '[' + startUrlAttr + ']',
-    panelSelector = '#export-panel',
-    cancelSelector = panelSelector + " * [data-dismiss]",
+    START_URL_ATTR = 'data-export-start-url',
+    ENABLE_EXPORT_SELECTOR = '[' + START_URL_ATTR + ']',
+    PANEL_SELECTOR = '#export-panel',
+    CANCEL_SELECTOR = PANEL_SELECTOR + " * [data-dismiss]",
 
     // While there is an active job id, query the
     // check exporter end-point
-    defaultInterval = 2000, // 2s
+    DEFAULT_INTERVAL = 2000, // 2s
 
     _activeJob = null,
     jobManager = {
@@ -38,7 +38,7 @@ function isFailed (resp) { return !_.contains(['COMPLETE', 'PENDING'], resp.stat
 
 function getJobStartStream (element) {
     var $element = $(element),
-        elementStartUrl = $element.attr(startUrlAttr);
+        elementStartUrl = $element.attr(START_URL_ATTR);
     return $element.asEventStream('click')
         .map(getQueryStringObject)
         .flatMap(BU.jsonRequest('GET', elementStartUrl));
@@ -48,7 +48,7 @@ function makeJobCheckStream (attrStream) {
     function poll (jobId) {
         jobManager.start(jobId);
         var url = config.exportCheckUrl + '/' + jobId + '/';
-        return Bacon.fromPoll(defaultInterval, function() {
+        return Bacon.fromPoll(DEFAULT_INTERVAL, function() {
             return jobManager.isCurrent(jobId) ?
                 BU.jsonRequest('GET', url)() : new Bacon.End();
         });
@@ -84,7 +84,7 @@ var RadioGroup = function(elementMap) {
 };
 
 function getDisplayManager () {
-    var $panel = $(panelSelector),
+    var $panel = $(PANEL_SELECTOR),
         messageRadioGroup = new RadioGroup({
             prep: $panel.find('.prep-msg'),
             err: $panel.find('.error-msg')
@@ -130,10 +130,10 @@ function getDisplayManager () {
 exports.run = function (options) {
     config = options.config;
 
-    var startStreams = _.map($(enableExportSelector), getJobStartStream),
+    var startStreams = _.map($(ENABLE_EXPORT_SELECTOR), getJobStartStream),
         startStream = Bacon.mergeAll(startStreams),
         displayManager = getDisplayManager(),
-        cancelStream = $(cancelSelector).asEventStream('click'),
+        cancelStream = $(CANCEL_SELECTOR).asEventStream('click'),
         checkStream = makeJobCheckStream(startStream.map('.job_id')),
         fileUrlStream = checkStream.filter(isComplete).map('.url'),
         checkFailureMessageStream = checkStream.filter(isFailed).map('.message'),

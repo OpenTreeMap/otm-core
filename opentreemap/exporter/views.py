@@ -3,9 +3,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from tasks import async_csv_export
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 
+from tasks import async_csv_export, async_users_export
 
 from opentreemap.util import decorate as do
 
@@ -20,7 +21,13 @@ from exporter.user import write_users
 # synchronous exports
 ############################################
 #
-# TODO: these should not exist. They are legacy views.
+# these are legacy views that are used by the API to provide
+# this data to external services. they are not used by the web
+# client (js) or the android app. generally, they should not
+# be used, because synchronous exports are a costly burden
+# on the request/response cycle.
+#
+# TODO: convert the API to provide asynchronous exporting.
 #
 
 
@@ -43,6 +50,21 @@ def users_json(request, instance):
     write_users('json', response, instance, *extra)
     return response
 
+
+############################################
+# async exports
+############################################
+
+def begin_export_users(request, instance, data_format):
+    if not request.user.is_authenticated():
+        raise Http404()
+
+    job = ExportJob.objects.create(instance=instance,
+                                   user=request.user)
+
+    async_users_export.delay(job.pk, data_format)
+
+    return {'start_status': 'OK', 'job_id': job.pk}
 
 
 def begin_export(request, instance, model):
