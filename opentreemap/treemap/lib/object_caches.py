@@ -33,7 +33,7 @@ def role_permissions(role, instance=None, model_name=None):
         return _role_permissions_from_db(role, model_name)
 
 
-def udf_defs(instance, model_name):
+def udf_defs(instance, model_name=None):
     if settings.USE_OBJECT_CACHES:
         return _get_adjuncts(instance).udf_defs(model_name)
     else:
@@ -77,8 +77,9 @@ def _role_permissions_from_db(role, model_name):
 
 def _udf_defs_from_db(instance, model_name):
     from treemap.udf import UserDefinedFieldDefinition
-    defs = UserDefinedFieldDefinition.objects.filter(
-        instance=instance, model_type=model_name)
+    defs = UserDefinedFieldDefinition.objects.filter(instance=instance)
+    if model_name:
+        defs = defs.filter(model_type=model_name)
     return list(defs)
 
 # ------------------------------------------------------------------------
@@ -154,3 +155,5 @@ class _InstanceAdjuncts:
         qs = UserDefinedFieldDefinition.objects.filter(instance=self._instance)
         for udfd in qs:
             self._append_value(self._udf_defs, udfd.model_type, udfd)
+            # Add to the "None" key for looking up UDF defs without model name
+            self._append_value(self._udf_defs, None, udfd)
