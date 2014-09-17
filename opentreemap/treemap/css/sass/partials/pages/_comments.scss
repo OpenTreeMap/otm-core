@@ -4,12 +4,21 @@
     ul {
         list-style: none;
         margin: 0;
+        padding: 0;
+
+        &:last-of-type {
+            margin-bottom: 20px;
+        }
 
         > li {
             padding: 15px;
             border: 1px solid #EEE;
             border-radius: 9px;
             margin-bottom: 10px;
+
+            > ul {
+                margin: 15px 0 10px !important;
+            }
 
             .comment_info {
                 font-size: 1.2rem;
@@ -31,4 +40,13 @@
             }
         }
     }
+
+    .submit {
+        margin-top: 10px;
+    }
+}
+
+#id_comment {
+    width: 100%;
+    height: 100px;
 }
