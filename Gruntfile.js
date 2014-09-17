@@ -87,13 +87,21 @@ module.exports = function(grunt) {
             }
         },
         watch: {
-            treemap: {
+            js: {
                 files: getAliasFiles(getRegularAliases()),
-                tasks: ['check', 'shell:check_static']
+                tasks: ['shell:collect_static']
+            },
+            css: {
+                files: 'treemap/css/sass/**/*.scss',
+                tasks: ['shell:collect_static']
+            },
+            lint: {
+                files: getAliasFiles(getRegularAliases()),
+                tasks: ['check']
             }
         },
         shell: {
-            check_static: {
+            collect_static: {
                 command: 'fab vagrant static:dev'
             }
         },
