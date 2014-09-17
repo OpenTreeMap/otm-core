@@ -4,24 +4,27 @@ from __future__ import division
 
 import hashlib
 from functools import partial
+from datetime import datetime
 
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as trans
+from django.utils.dateformat import format
 from django.dispatch import receiver
 from django.db.models import OneToOneField
 from django.db.models.signals import post_save, post_delete
 from django.db.models.fields import FieldDoesNotExist
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, connection, transaction
+from django.conf import settings
 
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name)
 from treemap.util import all_subclasses
 from treemap.lib.object_caches import (permissions, role_permissions,
-                                       invalidate_adjuncts)
+                                       invalidate_adjuncts, udf_defs)
 
 
 def model_hasattr(obj, name):
@@ -1072,7 +1075,6 @@ class Audit(models.Model):
         Where possible, django model field classes are used to
         convert the value.
         """
-
         # some django fields can't handle .to_python(None), but
         # for insert audits (None -> <value>) this method will
         # still be called.
@@ -1081,6 +1083,26 @@ class Audit(models.Model):
 
         # get the model/field class for each audit record and convert
         # the value to a python object
+        if self.field.startswith('udf:'):
+            field_name = self.field[4:]
+            udfds = udf_defs(self.instance)
+
+            if self.model.startswith('udf:'):
+                udfd_pk = int(self.model[4:])
+                udf_def = next((udfd for udfd in udfds if udfd.pk == udfd_pk),
+                               None)
+                datatype = udf_def.datatype_by_field[field_name]
+            else:
+                udf_def = next((udfd for udfd in udfds
+                                if udfd.name == field_name), None)
+                datatype = udf_def.datatype_dict
+            if udf_def is not None:
+                return udf_def.clean_value(value, datatype)
+            else:
+                raise Exception(
+                    'Cannot format a UDF audit whose definition has been'
+                    ' deleted! This audit should be deleted as well')
+
         cls = get_auditable_class(self.model)
         field_query = cls._meta.get_field_by_name(self.field)
         field_cls, fk_model_cls, is_local, m2m = field_query
@@ -1119,6 +1141,8 @@ class Audit(models.Model):
                 return '%d,%d' % (value.x, value.y)
             if value.geom_type in {'MultiPolygon', 'Polygon'}:
                 value = value.area
+        elif isinstance(value, datetime):
+            value = format(value, settings.SHORT_DATE_FORMAT)
 
         if is_convertible_or_formattable(model_name, self.field):
             _, value = get_display_value(
@@ -1132,17 +1156,11 @@ class Audit(models.Model):
 
     @property
     def clean_current_value(self):
-        if self.field and self.field.startswith('udf:'):
-            return self.current_value
-        else:
-            return self._deserialize_value(self.current_value)
+        return self._deserialize_value(self.current_value)
 
     @property
     def clean_previous_value(self):
-        if self.field.startswith('udf:'):
-            return self.previous_value
-        else:
-            return self._deserialize_value(self.previous_value)
+        return self._deserialize_value(self.previous_value)
 
     @property
     def current_display_value(self):

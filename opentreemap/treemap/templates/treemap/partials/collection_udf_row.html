@@ -6,7 +6,15 @@
    {% endif %}
    >
   {% for field in udf.datatype_dict %}
-  <td>{{ value.data|get:field.name }}</td>
+  <td>
+  {% with field_value=value|get:field.name %}
+    {% if field.type == "date" %}
+    {{ field_value|date:request.instance.short_date_format }}
+    {% else %}
+    {{ field_value }}
+    {% endif %}
+  {% endwith %}
+  </td>
   {% endfor %}
   <td></td>
 </tr>
