@@ -75,6 +75,18 @@ browser. Please reference the existing modules in the
 directory for examples of how we use stream processing rather than
 directly attaching callbacks to DOM events.
 
+### Testing
+
+We have built a [mocha](http://visionmedia.github.io/mocha/)-based
+unit test setup for our Javascript. The
+[html test harness](https://github.com/OpenTreeMap/OTM2/blob/master/opentreemap/treemap/js/test/test.html)
+handles finding and executing tests from any of the modules in the
+[test directory](https://github.com/OpenTreeMap/OTM2/tree/master/opentreemap/treemap/js/test).
+Individual tests are just functions exported from a module in the test
+directory. You can open ``test.html`` to run the tests on demand, or
+use [testem](https://github.com/airportyh/testem) to run the test
+suite when files change.
+
 ## Architecture
 
 This section addresses the question of where code should live.
