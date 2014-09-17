@@ -89,7 +89,7 @@ module.exports = function(grunt) {
         watch: {
             treemap: {
                 files: getAliasFiles(getRegularAliases()),
-                tasks: ['shell:check_static']
+                tasks: ['check', 'shell:check_static']
             }
         },
         shell: {
