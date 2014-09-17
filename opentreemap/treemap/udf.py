@@ -148,6 +148,28 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
                                 'model': model_name,
                                 'value': audit.current_display_value}
 
+    def get_cleaned_data(self):
+        # Grab each datatype and assign the sub-name to the
+        # definition. These are used to clean the data
+        cleaned_data = {}
+        for subfield_name in self.data:
+            sub_value = self.data.get(subfield_name, None)
+
+            datatype = self.field_definition.datatype_by_field[subfield_name]
+            try:
+                sub_value = self.field_definition.clean_value(sub_value,
+                                                              datatype)
+            except ValidationError:
+                # If there was an error coming from the database
+                # just continue with whatever the value was.
+                pass
+
+            cleaned_data[subfield_name] = sub_value
+
+        cleaned_data['id'] = self.pk
+
+        return cleaned_data
+
     def as_dict(self, *args, **kwargs):
         base_model_dict = super(
             UserDefinedCollectionValue, self).as_dict(*args, **kwargs)
@@ -569,6 +591,16 @@ class UserDefinedFieldDefinition(models.Model):
         return json.loads(self.datatype)
 
     @property
+    def datatype_by_field(self):
+        datatypes_raw = self.datatype_dict
+        datatypes = {}
+
+        for datatype_dict in datatypes_raw:
+            datatypes[datatype_dict['name']] = datatype_dict
+
+        return datatypes
+
+    @property
     def permissions_for_udf(self):
         return FieldPermission.objects.filter(
             instance=self.instance,
@@ -734,35 +766,18 @@ class UDFDictionary(HStoreDict):
                 field_definition__in=udfs_on_model)
 
             for value in values:
+                if clean:
+                    data = value.get_cleaned_data()
+                else:
+                    data = value.data
+                    data['id'] = value.pk
+
                 name = value.field_definition.name
-
-                # Grab each datatype and assign the sub-name to the
-                # definition. These are used to clean the data
-                datatypes_raw = value.field_definition.datatype_dict
-                datatypes = {}
-
-                for datatype_dict in datatypes_raw:
-                    datatypes[datatype_dict['name']] = datatype_dict
 
                 if name not in self._collection_fields:
                     self._collection_fields[name] = []
 
-                cleaned_data = {}
-                for subfield_name in value.data:
-                    sub_value = value.data.get(subfield_name, None)
-                    if clean:
-                        try:
-                            sub_value = value.field_definition.clean_value(
-                                sub_value, datatypes[subfield_name])
-                        except ValidationError:
-                            # If there was an error coming from the database
-                            # just continue with whatever the value was.
-                            pass
-
-                    cleaned_data[subfield_name] = sub_value
-
-                cleaned_data['id'] = value.pk
-                self._collection_fields[name].append(cleaned_data)
+                self._collection_fields[name].append(data)
 
         return self._collection_fields
 
