@@ -121,7 +121,8 @@
     </div>
     {% block subhead_exports %}
       {% if request.instance|feature_enabled:'exports' %}
-      <a href="javascript:;" class="btn btn-primary btn-xs exportBtn" id="exportbutton">
+      <a href="javascript:;" class="btn btn-primary btn-xs exportBtn"
+         data-export-start-url="{% url 'begin_export' instance_url_name=request.instance.url_name model='tree' %}">
         <i class="icon-export"></i> {% trans "Export Search Results" %}
       </a>
       {% endif %}
@@ -151,24 +152,7 @@
 {% endblock subhead %}
 
 {% block export %}
-<div id="export-panel" class="modal fade">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h2></h2>
-      </div>
-      <div class="modal-body">
-        <span class="prep-msg">{% trans "Preparing your export..." %}</span>
-        <span style="display: none;" class="error-msg">{% trans "There was  an error while generating your export. Please try again later." %}</span>
-      </div>
-      <div class="modal-footer">
-        <a href="#" class="btn dismiss-cancel" data-dismiss="modal">{% trans "Cancel" %}</a>
-        <a style="display: none;" href="#" class="btn dismiss-ok" data-dismiss="modal">{% trans "OK" %}</a>
-      </div>
-    </div>
-  </div>
-</div>
+{% include "treemap/partials/export.html" %}
 {% endblock export %}
 
 {% block search %}
@@ -187,20 +171,6 @@
   </div>
 </div>
 {% endblock searchoptions %}
-
-{% block exportscript %}
-<script type="text/javascript">
-    (function(require) {
-        require('treemap/export').init({
-            trigger: '#exportbutton',
-            panel: '#export-panel',
-            cancel: '#export-panel * [data-dismiss]',
-            startTreeExportUrl: '{% url 'start_export' instance_url_name=request.instance.url_name model='tree' %}',
-            checkTreeExportUrl: '{{ SITE_ROOT }}{{ request.instance.url_name }}/export/check'
-        });
-    })(require);
-</script>
-{% endblock exportscript %}
 
 {% block searchscripts %}
 <script type="text/javascript">

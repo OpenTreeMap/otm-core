@@ -18,8 +18,7 @@ from treemap.audit import Audit, add_default_permissions
 
 from exporter.models import ExportJob
 from exporter import tasks
-from exporter.views import begin_export, check_export
-from exporter.user import users_json, users_csv
+from exporter.views import begin_export, check_export, users_json, users_csv
 
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError

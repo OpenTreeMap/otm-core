@@ -65,7 +65,7 @@ def user_csv(request, instance):
     duplicate_relics = OTM1UserRelic.objects.raw(duplicate_ids_query)
     relics = duplicate_relics
 
-    response = get_csv_response()
+    response = get_csv_response('user_export.csv')
 
     writer = csv.DictWriter(response,
                             ['otm1_user_id',

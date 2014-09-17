@@ -15,6 +15,8 @@ from treemap.models import Species, Tree
 from djqscsv import write_csv, generate_filename
 from exporter.models import ExportJob
 
+from exporter.user import write_users
+
 
 def extra_select_and_values_for_model(
         instance, job, table, model, prefix=None):
@@ -39,6 +41,24 @@ def extra_select_and_values_for_model(
         prefixed_names.append(prefixed_name)
 
     return (extra_select, prefixed_names)
+
+
+def users_export(job_pk, data_format):
+    job = ExportJob.objects.get(pk=job_pk)
+    instance = job.instance
+
+    if data_format == 'csv':
+        filename = 'users.csv'
+    else:
+        filename = 'users.json'
+
+    file_obj = TemporaryFile()
+    write_users(data_format, file_obj, instance)
+    job.complete_with(filename, File(file_obj))
+    job.save()
+
+
+async_users_export = task(users_export)
 
 
 def csv_export(job_pk, model, query, display_filters):
@@ -108,12 +128,8 @@ def csv_export(job_pk, model, query, display_filters):
         job.status = ExportJob.MODEL_PERMISSION_ERROR
     else:
         csv_file = TemporaryFile()
-
         write_csv(limited_qs, csv_file, field_order=ordered_fields)
-
-        csv_name = generate_filename(limited_qs)
-        job.outfile.save(csv_name, File(csv_file))
-        job.status = ExportJob.COMPLETE
+        job.complete_with(generate_filename(limited_qs), File(csv_file))
 
     job.save()
 

@@ -3,15 +3,68 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from exporter.models import ExportJob
-from tasks import async_csv_export
+from django.http import Http404
+from django.shortcuts import get_object_or_404
+
+from tasks import async_csv_export, async_users_export
 
 from opentreemap.util import decorate as do
 
-from django.shortcuts import get_object_or_404
-
+from treemap.util import get_csv_response, get_json_response
 from treemap.decorators import (json_api_call, instance_request,
                                 requires_feature)
+
+from exporter.models import ExportJob
+from exporter.user import write_users
+
+############################################
+# synchronous exports
+############################################
+#
+# these are legacy views that are used by the API to provide
+# this data to external services. they are not used by the web
+# client (js) or the android app. generally, they should not
+# be used, because synchronous exports are a costly burden
+# on the request/response cycle.
+#
+# TODO: convert the API to provide asynchronous exporting.
+#
+
+
+def _get_user_extra_args(request):
+    return [request.REQUEST.get("minJoinDate"),
+            request.REQUEST.get("minEditDate")]
+
+
+def users_csv(request, instance):
+    "Return a user csv synchronously"
+    response = get_csv_response('users.csv')
+    extra = _get_user_extra_args(request)
+    write_users('csv', response, instance, *extra)
+    return response
+
+
+def users_json(request, instance):
+    response = get_json_response('user_export.json')
+    extra = _get_user_extra_args(request)
+    write_users('json', response, instance, *extra)
+    return response
+
+
+############################################
+# async exports
+############################################
+
+def begin_export_users(request, instance, data_format):
+    if not request.user.is_authenticated():
+        raise Http404()
+
+    job = ExportJob.objects.create(instance=instance,
+                                   user=request.user)
+
+    async_users_export.delay(job.pk, data_format)
+
+    return {'start_status': 'OK', 'job_id': job.pk}
 
 
 def begin_export(request, instance, model):

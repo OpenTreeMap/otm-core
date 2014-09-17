@@ -8,19 +8,22 @@ import json
 
 from datetime import datetime
 
+from contextlib import contextmanager
+
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.http import HttpResponse
 from django.templatetags.l10n import localize
 
 from treemap.udf import DATETIME_FORMAT
-from treemap.util import get_csv_response
 from treemap.models import User, Audit
 
 
-def users_csv(request, instance):
-    response = get_csv_response()
+def write_users(data_format, *args, **kwargs):
+    fn = _write_users_csv if data_format == 'csv' else _write_users_json
+    fn(*args, **kwargs)
 
+
+def _write_users_csv(csv_obj, instance, min_join_ts=None, min_edit_ts=None):
     field_names = ['username', 'email', 'first_name',
                    'last_name', 'email_hash',
                    'allow_email_contact', 'role', 'created', 'organization',
@@ -30,65 +33,40 @@ def users_csv(request, instance):
                    'last_edit_user_id', 'last_edit_action',
                    'last_edit_requires_auth', 'last_edit_ref',
                    'last_edit_created']
-
-    writer = csv.DictWriter(response, field_names)
+    writer = csv.DictWriter(csv_obj, field_names)
     writer.writeheader()
-
-    for user in _users_export(request, instance):
+    for user in _users_export(instance, min_join_ts, min_edit_ts):
         writer.writerow(_user_as_dict(user, instance))
 
-    return response
+
+def _write_users_json(json_obj, instance, min_join_ts=None, min_edit_ts=None):
+    users = _users_export(instance, min_join_ts, min_edit_ts)
+    users_list = [_user_as_dict(user, instance) for user in users]
+    json_obj.write(json.dumps(users_list))
 
 
-def users_json(request, instance):
-    response = HttpResponse(content_type='application/json')
-    response['Content-Disposition'] = 'attachment; filename=user_export.json;'
-    response['Cache-Control'] = 'no-cache'
-
-    users_list = [_user_as_dict(user, instance)
-                  for user in _users_export(request, instance)]
-
-    response.write(json.dumps(users_list))
-
-    return response
-
-
-def _users_export(request, instance):
+def _users_export(instance, min_join_ts, min_edit_ts):
     users = User.objects.filter(instance=instance)\
                         .order_by('username')
 
-    min_join_ts = request.REQUEST.get("minJoinDate")
     if min_join_ts:
-        try:
-            min_join_date = datetime.strptime(min_join_ts, DATETIME_FORMAT)
-        except ValueError:
-            raise ValidationError("minJoinDate %(ts)s not a valid timestamp"
-                                  % {"ts": min_join_ts})
+        with _date_filter(min_join_ts, 'minJoinDate') as min_join_date:
+            iuser_ids = Audit.objects.filter(instance=instance)\
+                                     .filter(model='InstanceUser')\
+                                     .filter(created__gt=min_join_date)\
+                                     .distinct('model_id')\
+                                     .values_list('model_id', flat=True)
+            users = users.filter(instanceuser__in=iuser_ids)
 
-        iuser_ids = Audit.objects.filter(instance=instance)\
-                                 .filter(model='InstanceUser')\
-                                 .filter(created__gt=min_join_date)\
-                                 .distinct('model_id')\
-                                 .values_list('model_id', flat=True)
-
-        users = users.filter(instanceuser__in=iuser_ids)
-
-    min_edit_ts = request.REQUEST.get("minEditDate")
     if min_edit_ts:
-        try:
-            min_edit_date = datetime.strptime(min_edit_ts, DATETIME_FORMAT)
-        except ValueError:
-            raise ValidationError("minEditDate %(ts)s not a valid timestamp"
-                                  % {"ts": min_edit_ts})
-
-        user_ids = Audit.objects\
-            .filter(instance=instance)\
-            .filter(Q(created__gt=min_edit_date) |
-                    Q(updated__gt=min_edit_date))\
-            .distinct('user')\
-            .values_list('user_id', flat=True)
-
-        users = users.filter(id__in=user_ids)
+        with _date_filter(min_edit_ts, 'minEditDate') as min_edit_date:
+            user_ids = Audit.objects\
+                            .filter(instance=instance)\
+                            .filter(Q(created__gt=min_edit_date) |
+                                    Q(updated__gt=min_edit_date))\
+                            .distinct('user')\
+                            .values_list('user_id', flat=True)
+            users = users.filter(id__in=user_ids)
 
     return users
 
@@ -143,3 +121,16 @@ def _sanitize_unicode_record(record):
             obj[_sanitize_value(key)] = _sanitize_value(val)
 
     return obj
+
+
+@contextmanager
+def _date_filter(timestamp, filter_name):
+    try:
+        filter_date = datetime.strptime(timestamp, DATETIME_FORMAT)
+    except ValueError:
+        raise ValidationError("%(filter_name)s='%(ts)s' not a valid timestamp "
+                              "of format: %(format)s"
+                              % {"ts": timestamp,
+                                 "format": DATETIME_FORMAT,
+                                 "filter_name": filter_name})
+    yield filter_date
