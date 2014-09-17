@@ -24,6 +24,16 @@ correct settings.
 fab vagrant check
 ```
 
+### Testing
+
+We try to unit test as much of our code as possible.
+If you are using the vagrant-based development setup, there is a task that will run the unit test suite.
+Please run the unit tests before submitting a pull request if you modify Python code,
+
+```
+fab vagrant test
+```
+
 ### View Functions
 
 OpenTreeMap uses functional views rather than class-based views and
