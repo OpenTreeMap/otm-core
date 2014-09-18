@@ -162,7 +162,6 @@ class CommentReviewTest(CommentTestCase):
 
 
 class CommentReviewUITest(CommentTestMixin, TreemapUITestCase):
-
     def setUp(self):
         super(CommentReviewUITest, self).setUp()
         self.removed_comment =\
@@ -197,20 +196,30 @@ class CommentReviewUITest(CommentTestMixin, TreemapUITestCase):
                                     args=(self.instance.url_name,))
         self.browse_to_url(self.comments_url)
 
-    def assert_num_rows(self, num, msg):
+    def assert_num_rows(self, num, msg=None):
         rows = self.driver.find_elements_by_css_selector(
             '.comment-table tbody tr')
 
         self.assertEqual(num, len(rows), msg)
 
+    def go_to_page(self, page_num):
+        page = str(page_num)
+        page_link = self.find('.pagination').find_element_by_link_text(page)
+        page_link.click()
+
+        self.wait_until_on_page(page_num)
+
+    def wait_until_on_page(self, page_num):
+        # The each link is page # + 1, due to the "previous" link
+        page_num = page_num + 1
+        self.wait_until_present('.pagination li:nth-child(%s).active'
+                                % page_num)
+
     def test_pagination(self):
         self.assert_num_rows(5, 'There are 5 comments on the first page')
 
-        page_2_link = self.find('.pagination').find_element_by_link_text('2')
-        page_2_link.click()
+        self.go_to_page(2)
 
-        # The 3rd link is page 2, due to the "previous" link
-        self.wait_until_present('.pagination li:nth-child(3).active')
         self.assert_num_rows(1, 'There is 1 comment on the second page')
 
     def test_filtering(self):
@@ -267,6 +276,50 @@ class CommentReviewUITest(CommentTestMixin, TreemapUITestCase):
 
         # The table row should go back to the original height
         self.assertEqual(updated_height, height)
+
+    def test_archiving_single(self):
+        self.go_to_page(2)
+
+        self.assert_num_rows(1)
+
+        self.find('.comment-table tbody tr') \
+            .find_element_by_link_text('Archive') \
+            .click()
+
+        # Archiving the only item on this page should bring us back to page 1
+        self.wait_until_on_page(1)
+
+        self.assert_num_rows(5)
+
+        self.assertEqual(1, EnhancedThreadedComment.objects
+                         .filter(is_archived=True).count())
+
+    def test_archiving_batch(self):
+        checkboxes = self.driver \
+            .find_elements_by_css_selector('[data-batch-action-checkbox]')
+
+        for checkbox in checkboxes:
+            self.assertFalse(checkbox.is_selected())
+
+        batch_checkbox = self.find('[data-comment-toggle-all]')
+        batch_checkbox.click()
+
+        for checkbox in checkboxes:
+            self.assertTrue(
+                checkbox.is_selected(),
+                "The select all checkbox should check every row's box")
+
+        # Open the batch action dropdown
+        self.click('[data-comment-batch-dropdown]')
+
+        self.find('[data-comment-batch]') \
+            .find_element_by_link_text('Archive') \
+            .click()
+
+        sleep(3)
+
+        self.assertEqual(5, EnhancedThreadedComment.objects
+                         .filter(is_archived=True).count())
 
 
 def _comment_ids_to_params(*args):

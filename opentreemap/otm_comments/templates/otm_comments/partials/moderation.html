@@ -37,7 +37,7 @@
             <th class="selector">
               <div class="btn-group">
                 <input type="checkbox" data-comment-toggle-all>
-                <button type="button" class="btn dropdown-toggle" data-toggle="dropdown"><i class="icon-down-dir"></i></button>
+                <button data-comment-batch-dropdown type="button" class="btn dropdown-toggle" data-toggle="dropdown"><i class="icon-down-dir"></i></button>
                 <ul class="dropdown-menu" role="menu" data-comment-batch>
                   <li><a href="{% url 'hide-comments' request.instance.url_name %}">Hide</a></li>
                   <li><a href="{% url 'show-comments' request.instance.url_name %}">Unhide</a></li>
