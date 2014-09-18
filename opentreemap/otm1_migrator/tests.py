@@ -222,7 +222,7 @@ class MigrationCommandTests(LocalMediaTestCase):
 
         species = allspecies[0]
 
-        self.assertEqual(species.otm_code, 'EUVI')
+        self.assertEqual(species.otm_code, '')
         self.assertEqual(species.genus, 'Eucalyptus')
         self.assertEqual(species.species, 'viminalis')
         self.assertEqual(species.cultivar, '')
