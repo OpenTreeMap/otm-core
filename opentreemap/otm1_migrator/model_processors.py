@@ -25,7 +25,6 @@ from otm1_migrator.data_util import (MigrationException, sanitize_username,
 def save_species(migration_rules, migration_event,
                  species_dict, species_obj, instance):
 
-    species_obj.otm_code = otm_code_search(species_dict['fields']) or ''
     species_obj.save_with_user_without_verifying_authorization(
         User.system_user())
 
