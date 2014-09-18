@@ -11,24 +11,24 @@
         {% if comments_filter == 'Active' %}
         <li class="active"><a>Active</a></li>
         {% else %}
-        <li><a href="{{ comments_url_with_sort }}&archived=False&removed=None">Active</a></li>
+        <li><a href="{{ comments_url_for_filter }}&archived=False&removed=None">Active</a></li>
         {% endif %}
         {% if comments_filter == 'Hidden' %}
         <li class="active"><a>Hidden</a></li>
         {% else %}
-        <li><a href="{{ comments_url_with_sort }}&archived=None&removed=True">Hidden</a></li>
+        <li><a href="{{ comments_url_for_filter }}&archived=None&removed=True">Hidden</a></li>
         {% endif %}
         {% if comments_filter == 'Archived' %}
         <li class="active"><a>Archived</a></li>
         {% else %}
-        <li><a href="{{ comments_url_with_sort }}&archived=True&removed=None">Archived</a></li>
+        <li><a href="{{ comments_url_for_filter }}&archived=True&removed=None">Archived</a></li>
         {% endif %}
       </ul>
     </div>
     <button type="button" class="btn btn-sm" ><i class="icon-export"></i>Export All</button>
   </h1>
 </div> <!--END OF PAGE HEADER -->
-<div class="comments">
+<div class="comments" data-comments-params="{{ comments_params }}">
   <div class="row comment-table">
     <div class="col-lg-12">
       <table class="table table-hover">
@@ -36,35 +36,35 @@
           <tr data-comments-sort>
             <th class="selector">
               <div class="btn-group">
-                <input type="checkbox">
+                <input type="checkbox" data-comment-toggle-all>
                 <button type="button" class="btn dropdown-toggle" data-toggle="dropdown"><i class="icon-down-dir"></i></button>
-                <ul class="dropdown-menu" role="menu">
-                  <li><a href="#">Hide</a></li>
-                  <li><a href="#">Unhide</a></li>
-                  <li><a href="#">Archive</a></li>
-                  <li><a href="#">Unarchive</a></li>
-                  <li><a href="#">Unflag</a></li>
+                <ul class="dropdown-menu" role="menu" data-comment-batch>
+                  <li><a href="{% url 'hide-comments' request.instance.url_name %}">Hide</a></li>
+                  <li><a href="{% url 'show-comments' request.instance.url_name %}">Unhide</a></li>
+                  <li><a href="{% url 'archive-comments' request.instance.url_name %}">Archive</a></li>
+                  <li><a href="{% url 'unarchive-comments' request.instance.url_name %}">Unarchive</a></li>
+                  <li><a href="{% url 'hide-comment-flags' request.instance.url_name %}">Unflag</a></li>
                 </ul>
               </div>
             </th>
             <th>
-              <a href="{{ comments_url_with_filter }}&sort={{ 'id'|reverse_if_current:comments_sort }}">ID</a>
+              <a href="{{ comments_url_for_sort }}&sort={{ 'id'|reverse_if_current:comments_sort }}">ID</a>
             </th>
             <th>
-              <a href="{{ comments_url_with_filter }}&sort={{ 'visible_flag_count'|reverse_if_current:comments_sort }}">Flag</a>
+              <a href="{{ comments_url_for_sort }}&sort={{ 'visible_flag_count'|reverse_if_current:comments_sort }}">Flag</a>
             </th>
             <th>
-              <a href="{{ comments_url_with_filter }}&sort={{ 'user__username'|reverse_if_current:comments_sort }}">Comment</a>
+              <a href="{{ comments_url_for_sort }}&sort={{ 'user__username'|reverse_if_current:comments_sort }}">Comment</a>
             </th>
             <th>Actions</th>
             <th>
-              <a href="{{ comments_url_with_filter }}&sort={{ 'submit_date'|reverse_if_current:comments_sort }}">Date</a>
+              <a href="{{ comments_url_for_sort }}&sort={{ 'submit_date'|reverse_if_current:comments_sort }}">Date</a>
             </th>
           </tr>
         </thead>
         <tbody>
         {% for comment in comments %}
-        {% include 'otm_comments/partials/moderation_row.html' %}
+          {% include 'otm_comments/partials/moderation_row.html' %}
         {% endfor %}
         </tbody>
       </table> <!--END OF TABLE -->
@@ -75,7 +75,7 @@
     <ul class="pagination">
       {% if comments.has_previous %}
         <li>
-          <a href="{{ comments_url_without_page }}&page={{ comments.previous_page_number }}">&laquo;</a>
+          <a href="{{ comments_url_for_pagination }}&page={{ comments.previous_page_number }}">&laquo;</a>
         </li>
       {% else %}
         <li class="disabled"><a>&laquo;</a></li>
@@ -86,12 +86,12 @@
             <a>{{ page_num }} <span class="sr-only">(current)</span></a>
           </li>
         {% else %}
-          <li><a href="{{ comments_url_without_page }}&page={{ page_num }}">{{ page_num }}</a></li>
+          <li><a href="{{ comments_url_for_pagination }}&page={{ page_num }}">{{ page_num }}</a></li>
         {% endif %}
       {% endfor %}
       {% if comments.has_next %}
         <li>
-          <a href="{{ comments_url_without_page }}&page={{ comments.next_page_number }}">&raquo;</a>
+          <a href="{{ comments_url_for_pagination }}&page={{ comments.next_page_number }}">&raquo;</a>
         </li>
       {% else %}
         <li class="disabled"><a>&raquo;</a></li>
