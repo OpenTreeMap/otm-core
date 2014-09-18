@@ -228,7 +228,7 @@ def save_audit(migration_rules, migration_event,
 def save_treefavorite(migration_rules, migration_event,
                       fav_dict, fav_obj, instance):
     fav_obj.save()
-    fav_obj.created = inflate_date(fav_dict['fields']['created'])
+    fav_obj.created = inflate_date(fav_dict['fields']['date_created'])
     fav_obj.save()
 
     OTM1ModelRelic.objects.create(
@@ -254,7 +254,12 @@ def _base_process_comment(migration_rules, migration_event,
         return None
     content_type = ContentType.objects.get(pk=comment_obj.content_type_id)
 
-    old_object_id = int(model_dict['fields']['object_pk'])
+    # sometimes this is called object_pk, other times
+    # it is called object_id. Try both.
+    old_object_id = int(model_dict['fields']
+                        .get('object_pk',
+                             model_dict['fields']
+                             .get('object_id')))
     try:
         new_object_id = relic_ids[content_type.model][old_object_id]
     except KeyError:
@@ -285,6 +290,9 @@ def save_comment(migration_rules, migration_event,
                                         relic_ids, model_dict, comment_obj,
                                         instance)
 
+    if comment_obj is None:
+        return None
+
     comment_obj.save()
 
     OTM1CommentRelic.objects.create(
@@ -303,6 +311,9 @@ def save_threadedcomment(migration_rules, migration_event,
     tcomment_obj = _base_process_comment(migration_rules, migration_event,
                                          relic_ids, model_dict, tcomment_obj,
                                          instance)
+
+    if tcomment_obj is None:
+        return None
 
     tcomment_obj.save()
 
