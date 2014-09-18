@@ -9,8 +9,7 @@ import pytz
 from django.db.transaction import atomic
 from django.contrib.contenttypes.models import ContentType
 
-from treemap.species import otm_code_search
-from treemap.models import User, InstanceUser, Tree
+from treemap.models import User, InstanceUser, Tree, Species
 from treemap.util import to_object_name
 from treemap.images import save_uploaded_image
 
@@ -24,6 +23,23 @@ from otm1_migrator.data_util import (MigrationException, sanitize_username,
 @atomic
 def save_species(migration_rules, migration_event,
                  species_dict, species_obj, instance):
+
+    non_migrated_species = Species.objects.raw("""
+    SELECT *
+    FROM treemap_species
+    WHERE instance_id=%(instance_id)s
+    AND id not in
+    (SELECT otm2_model_id
+     FROM otm1_migrator_otm1modelrelic
+     WHERE otm2_model_name='species'
+     AND instance_id=%(instance_id)s)
+    """ % {'instance_id': instance.pk})
+
+    if len(list(non_migrated_species)) > 0:
+        raise MigrationException("You cannot migrate species, at all, "
+                                 "if any species for this instance are "
+                                 "not the result of a migration. This is "
+                                 "necessary to avoid record duplication.")
 
     species_obj.save_with_user_without_verifying_authorization(
         User.system_user())
