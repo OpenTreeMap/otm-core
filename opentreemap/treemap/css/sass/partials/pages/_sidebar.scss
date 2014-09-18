@@ -108,6 +108,11 @@
             }
         }
     }
+    .tree-details-species + div[data-class="edit"] {
+        span.twitter-typeahead {
+            display: block !important;
+        }
+    }
 }
 
 #move-plot-buttons {

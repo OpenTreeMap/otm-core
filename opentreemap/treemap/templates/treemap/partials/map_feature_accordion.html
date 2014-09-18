@@ -12,7 +12,7 @@
 
     {% trans "Trunk Diameter" as diameter %}
     {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field/diameter_div.html" %}
-
+    <hr>
     {% trans "Tree Height" as height %}
     {% field height from "tree.height" for request.user withtemplate "treemap/field/div.html" %}
     {% endif %}

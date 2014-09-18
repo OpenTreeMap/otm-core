@@ -11,20 +11,13 @@
     }
 
     .lightbox-caption {
-        opacity: 0.25;
-        transition: all 0.5;
-
-        padding: 2%;
+        padding: 15px;
         position: absolute;
-        left: 11px;
-        right: 12px;
-        bottom: 11px;
-        background: #000;
-        background: rgba(0, 0, 0, 0.6);
-        color: white;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-top: 1px solid $light-gray-color;
         text-align: center;
-        text-shadow: 0 -1px 0 #000;
-        text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
         font-size: 14px;
         line-height: 18px;
 

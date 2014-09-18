@@ -6,7 +6,7 @@
         font-size: 2.4rem;
         font-weight: 300;
         line-height: 3rem;
-        margin-bottom: 8px;
+        margin: 25px 0 10px;
     }
 
     .detail-header {
@@ -224,11 +224,5 @@
     &:hover + button {
         opacity: 0.85;
         background: black;
-    }
-}
-
-#comments-container {
-    .submit {
-        margin-top: 10px;
     }
 }
