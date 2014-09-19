@@ -3,12 +3,12 @@
 {% load humanize %}
 {% load util %}
 
-<tr data-comment-id="{{ comment.id }}">
+<tr data-comment-id="{{ comment.id|unlocalize }}">
     <td>
       <input data-batch-action-checkbox type="checkbox"
              {% if comment.id in comment_ids %}checked="checked"{% endif %} />
     </td>
-    <td><a href="{{ comment.content_object|detail_link }}">{{ comment.id }}</a></td>
+    <td><a href="{{ comment.content_object|detail_link }}">{{ comment.id|unlocalize }}</a></td>
     <td><span class="label label-danger">{{ comment.visible_flag_count }}</span></td>
     <td>
       <div class="comment less">{{ comment.comment }}</div> <a data-less-more href="#">more</a>
