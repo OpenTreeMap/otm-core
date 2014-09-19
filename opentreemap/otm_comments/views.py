@@ -122,10 +122,6 @@ def comments_csv(request, instance):
     )
 
 
-def _create_success_object_response():
-    return {'success': True}
-
-
 def _get_comment_ids(request):
     comment_ids_string = request.POST.get('comment-ids', None)
     if comment_ids_string:
@@ -147,15 +143,16 @@ def flag(request, instance, comment_id):
         # there is a new reply, flagging a comment removes it from the archive
         comment.is_archived = False
         comment.save()
-    return _create_success_object_response()
+    return {'comment': comment}
 
 
 @transaction.atomic
 def unflag(request, instance, comment_id):
-    EnhancedThreadedCommentFlag.objects.filter(
-        comment__id=comment_id, comment__instance=instance,
-        user=request.user).update(hidden=True)
-    return _create_success_object_response()
+    comment = EnhancedThreadedComment.objects.get(pk=comment_id,
+                                                  instance=instance)
+    flags = comment.enhancedthreadedcommentflag_set.filter(user=request.user)
+    flags.update(hidden=True)
+    return {'comment': comment}
 
 
 @transaction.atomic
@@ -203,11 +200,14 @@ _admin_post_do = partial(do, require_http_method("POST"),
                          render_template(
                              "otm_comments/partials/moderation.html"))
 
-_post_returns_json_do = partial(do, require_http_method("POST"),
-                                instance_request, json_api_call)
+_render_flagging_view = partial(
+    do,
+    require_http_method("POST"),
+    instance_request,
+    render_template("otm_comments/partials/flagging.html"))
 
-flag_endpoint = _post_returns_json_do(flag)
-unflag_endpoint = _post_returns_json_do(unflag)
+flag_endpoint = _render_flagging_view(flag)
+unflag_endpoint = _render_flagging_view(unflag)
 hide_flags_endpoint = _admin_post_do(hide_flags)
 archive_endpoint = _admin_post_do(archive)
 unarchive_endpoint = _admin_post_do(unarchive)
