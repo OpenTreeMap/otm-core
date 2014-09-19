@@ -170,7 +170,8 @@ class PlotDeleteTest(TreemapUITestCase):
         self._assert_plot_and_tree_counts(1, 0)
         self.assertTrue(
             self.driver.current_url.endswith(
-                '/autotest-instance/features/%s/' % self.plot.pk))
+                '/%s/features/%s/' % (self.instance.url_name,
+                                      self.plot.pk)))
 
         # make another tree to reestablish test case
         tree2 = Tree(instance=self.instance, plot=self.plot)
@@ -186,11 +187,12 @@ class PlotDeleteTest(TreemapUITestCase):
         self._assert_plot_and_tree_counts(1, 0)
         self.assertTrue(
             self.driver.current_url.endswith(
-                '/autotest-instance/features/%s/' % self.plot.pk))
+                '/%s/features/%s/' % (self.instance.url_name, self.plot.pk)))
 
         # finally, delete the plot and expect to be
         # on the map page
         self._click_delete()
         self._assert_plot_and_tree_counts(0, 0)
         self.assertTrue(
-            self.driver.current_url.endswith('/autotest-instance/map/'))
+            self.driver.current_url.endswith('/%s/map/'
+                                             % self.instance.url_name))
