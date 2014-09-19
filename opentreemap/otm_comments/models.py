@@ -32,6 +32,16 @@ class EnhancedThreadedComment(ThreadedComment):
         return self.enhancedthreadedcommentflag_set.filter(
             hidden=False).exists()
 
+    @property
+    def visible_flags(self):
+        return self.enhancedthreadedcommentflag_set.filter(
+            hidden=False)
+
+    @property
+    def hidden_flags(self):
+        return self.enhancedthreadedcommentflag_set.filter(
+            hidden=True)
+
     def is_flagged_by_user(self, user):
         return self.enhancedthreadedcommentflag_set.filter(
             user=user, hidden=False).exists()
