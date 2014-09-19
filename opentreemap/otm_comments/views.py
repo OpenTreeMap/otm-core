@@ -73,15 +73,18 @@ def comment_moderation(request, instance):
 
     comments_url = reverse('comment_moderation', args=(instance.url_name,))
 
-    params = {'url': comments_url, 'archived': is_archived, 'sort': sort,
-              'removed': is_removed, 'page': paged_comments.number}
-    comments_url_without_page =\
-        ('%(url)s?archived=%(archived)s&removed=%(removed)s&sort=%(sort)s'
-         % params)
-    comments_url_with_filter =\
-        ('%(url)s?archived=%(archived)s&removed=%(removed)s'
-         % params)
-    comments_url_with_sort = '%(url)s?sort=%(sort)s' % params
+    params = {'archived': is_archived, 'sort': sort, 'removed': is_removed,
+              'page': paged_comments.number}
+
+    def urlize(*keys):
+        return '&'.join(['%s=%s' % (key, params[key]) for key in keys])
+
+    url = comments_url + '?'
+    comments_url_for_pagination = url + urlize('archived', 'removed', 'sort')
+    comments_url_for_sort = url + urlize('archived', 'removed')
+    comments_url_for_filter = url + urlize('sort')
+
+    full_params = urlize('archived', 'removed', 'sort', 'page')
 
     comments_filter = 'Active'
     if is_archived is None and is_removed:
@@ -89,13 +92,20 @@ def comment_moderation(request, instance):
     elif is_archived and is_removed is None:
         comments_filter = 'Archived'
 
+    checked_comments = _get_comment_ids(request)
+    if len(checked_comments) == 1:
+        # Don't check the box for non-batch requests
+        checked_comments = []
+
     return {
         'comments': paged_comments,
         'comments_filter': comments_filter,
-        'comments_url_without_page': comments_url_without_page,
-        'comments_url_with_filter': comments_url_with_filter,
-        'comments_url_with_sort': comments_url_with_sort,
-        'comments_sort': sort
+        'comments_url_for_pagination': comments_url_for_pagination,
+        'comments_url_for_sort': comments_url_for_sort,
+        'comments_url_for_filter': comments_url_for_filter,
+        'comments_params': full_params,
+        'comments_sort': sort,
+        'comment_ids': checked_comments
     }
 
 
@@ -118,7 +128,7 @@ def _create_success_object_response():
 
 
 def _get_comment_ids(request):
-    comment_ids_string = request.GET.get('comment-ids', None)
+    comment_ids_string = request.POST.get('comment-ids', None)
     if comment_ids_string:
         return [int(id) for id in comment_ids_string.split(',')]
     else:
@@ -155,52 +165,44 @@ def hide_flags(request, instance):
     EnhancedThreadedCommentFlag.objects.filter(comment__id__in=comment_ids,
                                                comment__instance=instance)\
         .update(hidden=True)
-    return {'comments': EnhancedThreadedComment.objects.filter(
-        pk__in=comment_ids, instance=instance)}
+    return comment_moderation(request, instance)
 
 
-def _set_prop_on_comments(instance, comment_ids, prop_name, prop_value):
+def _set_prop_on_comments(request, instance, prop_name, prop_value):
+    comment_ids = _get_comment_ids(request)
     comments = EnhancedThreadedComment.objects.filter(
         pk__in=comment_ids, instance=instance)
 
     for comment in comments:
         setattr(comment, prop_name, prop_value)
         comment.save()
-    return {'comments': comments}
+    return comment_moderation(request, instance)
 
 
 @transaction.atomic
 def archive(request, instance):
-    return _set_prop_on_comments(instance,
-                                 _get_comment_ids(request),
-                                 'is_archived', True)
+    return _set_prop_on_comments(request, instance, 'is_archived', True)
 
 
 @transaction.atomic
 def unarchive(request, instance):
-    return _set_prop_on_comments(instance,
-                                 _get_comment_ids(request),
-                                 'is_archived', False)
+    return _set_prop_on_comments(request, instance, 'is_archived', False)
 
 
 @transaction.atomic
 def hide(request, instance):
-    return _set_prop_on_comments(instance,
-                                 _get_comment_ids(request),
-                                 'is_removed', True)
+    return _set_prop_on_comments(request, instance, 'is_removed', True)
 
 
 @transaction.atomic
 def show(request, instance):
-    return _set_prop_on_comments(instance,
-                                 _get_comment_ids(request),
-                                 'is_removed', False)
+    return _set_prop_on_comments(request, instance, 'is_removed', False)
 
 
 _admin_post_do = partial(do, require_http_method("POST"),
                          admin_instance_request,
                          render_template(
-                             "otm_comments/partials/moderation_rows.html"))
+                             "otm_comments/partials/moderation.html"))
 
 _post_returns_json_do = partial(do, require_http_method("POST"),
                                 instance_request, json_api_call)

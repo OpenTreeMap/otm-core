@@ -2,8 +2,11 @@
 {% load humanize %}
 {% load util %}
 
-<tr>
-    <td><input type="checkbox"></td>
+<tr data-comment-id="{{ comment.id }}">
+    <td>
+      <input data-batch-action-checkbox type="checkbox"
+             {% if comment.id in comment_ids %}checked="checked"{% endif %} />
+    </td>
     <td><a href="{{ comment.content_object|detail_link }}">{{ comment.id }}</a></td>
     <td><span class="label label-danger">{{ comment.visible_flag_count }}</span></td>
     <td>
@@ -11,9 +14,26 @@
 <!-- TODO: Implement flagged by and previously flagged by -->
 <!--         <p><label>Flagged By: <a href="#">TestUser456 (07/28/14)</a>, <a href="#">TestUser789 (07/29/14)</a></label></p> -->
 <!--         <p><label>Previously Flagged By: <a href="#">TestUser123 (07/25/14)</a></label></p> -->
-        </td>
+    </td>
+    {% spaceless %}
     <td>
-      <a href="#">{% if comment.is_removed %}Unhide{% else %}Hide{% endif %}
-      </a>|<a href="#">{% if comment.is_archived %}Un-archive{% else %}Archive{% endif %}</a></td>
+      {# Moderators don't see flag, only unflag.  The "|" is inside the if for that reason #}
+      {% if comment.visible_flag_count > 0 %}
+      <a href="{% url 'hide-comment-flags' request.instance.url_name %}">Unflag</a>
+      |
+      {% endif %}
+      {% if comment.is_removed %}
+      <a href="{% url 'show-comments' request.instance.url_name %}">Unhide</a>
+      {% else %}
+      <a href="{% url 'hide-comments' request.instance.url_name %}">Hide</a>
+      {% endif %}
+      |
+      {% if comment.is_archived %}
+      <a href="{% url 'unarchive-comments' request.instance.url_name %}">Unarchive</a>
+      {% else %}
+      <a href="{% url 'archive-comments' request.instance.url_name %}">Archive</a>
+      {% endif %}
+    </td>
+    {% endspaceless %}
     <td title="{{ comment.submit_date }}">{{ comment.submit_date|naturaltime }}</td>
 </tr>
