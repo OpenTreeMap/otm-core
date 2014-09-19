@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load l10n %}
 {% load humanize %}
 {% load util %}
 
@@ -10,10 +11,24 @@
     <td><a href="{{ comment.content_object|detail_link }}">{{ comment.id }}</a></td>
     <td><span class="label label-danger">{{ comment.visible_flag_count }}</span></td>
     <td>
-        <div class="comment less">{{ comment.comment }}</div> <a data-less-more href="#">more</a>
-<!-- TODO: Implement flagged by and previously flagged by -->
-<!--         <p><label>Flagged By: <a href="#">TestUser456 (07/28/14)</a>, <a href="#">TestUser789 (07/29/14)</a></label></p> -->
-<!--         <p><label>Previously Flagged By: <a href="#">TestUser123 (07/25/14)</a></label></p> -->
+      <div class="comment less">{{ comment.comment }}</div> <a data-less-more href="#">more</a>
+      {% with visible_flags=comment.visible_flags %}
+      {% if visible_flags %}
+        <p><label>Flagged By: {% spaceless %}
+        {% for flag in visible_flags %}
+          <a href="{{ flag.user|detail_link }}">{{ flag.user.username }} ({{ flag.flagged_at|date:request.instance.short_date_format }})</a>,
+        {% endfor %}
+        {% endspaceless %}</label></p>
+      {% endif %}
+      {% endwith %}
+      {% with hidden_flags=comment.hidden_flags %}
+      {% if hidden_flags %}
+        <p><label>Previously Flagged By: {% spaceless %}
+        {% for flag in hidden_flags %}
+          <a href="{{ flag.user|detail_link }}">{{ flag.user.username }} ({{ flag.flagged_at|date:request.instance.short_date_format }})</a>,
+        {% endfor %}
+        {% endspaceless %}</label></p>
+      {% endif %}
     </td>
     {% spaceless %}
     <td>
