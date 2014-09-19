@@ -131,7 +131,8 @@ class MapTest(TreemapUITestCase):
         # Expect to be on edit page for the plot
         self.assertTrue(
             self.driver.current_url.endswith(
-                '/autotest-instance/features/%s/edit' % plot.pk))
+                '/%s/features/%s/edit' %
+                (self.instance.url_name, plot.pk)))
 
         self.assertEqual(initial_tree_count, self.ntrees())
         self.assertEqual(initial_plot_count + 1, self.nplots())
@@ -191,15 +192,15 @@ class ModeChangeTest(TreemapUITestCase):
 
     def test_leave_page(self):
         self.login_and_go_to_map_page()
-        self.browse_to_url('/autotest-instance/edits/')
+        self.browse_to_instance_url('edits/')
         self.assertTrue(self.driver.current_url.endswith('edits/'),
                         "When no locks are present, browsing should succeed")
 
     def test_locked_leave_page_add_tree(self):
         self.login_workflow()
-        self.browse_to_url("/autotest-instance/map/")
+        self.browse_to_instance_url("map/")
         self.click_add_tree()
-        self.browse_to_url('/autotest-instance/edits/')
+        self.browse_to_instance_url('edits/')
 
         self.driver.switch_to_alert().dismiss()
 

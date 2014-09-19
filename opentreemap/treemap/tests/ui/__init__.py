@@ -113,6 +113,12 @@ class UITestCase(LiveServerTestCase):
     def browse_to_url(self, url):
         self.driver.get(self.live_server_url + url)
 
+    def browse_to_instance_url(self, url, instance=None):
+        instance = instance if instance is not None else self.instance
+        self.driver.get('%s/%s/%s' % (self.live_server_url,
+                                      self.instance.url_name,
+                                      url))
+
     def find_anchor_by_url(self, url):
         return self.find("[href='%s']" % url)
 
@@ -268,16 +274,16 @@ class TreemapUITestCase(UITestCase):
         return self.instance_plots().count()
 
     def go_to_map_page(self):
-        self.browse_to_url("/autotest-instance/map/")
+        self.browse_to_instance_url("map/")
 
     def go_to_feature_detail(self, feature_id, edit=False):
-        self.browse_to_url("/autotest-instance/features/%s/%s"
-                           % (feature_id,
-                              "edit" if edit else ""))
+        self.browse_to_instance_url("features/%s/%s"
+                                    % (feature_id,
+                                       "edit" if edit else ""))
 
     def go_to_tree_detail(self, plot_id, tree_id):
-        self.browse_to_url("/autotest-instance/features/%s/trees/%s/"
-                           % (plot_id, tree_id))
+        self.browse_to_instance_url("features/%s/trees/%s/"
+                                    % (plot_id, tree_id))
 
     def add_tree_done(self, whenDone='close'):
         # Move to "Finalize" step

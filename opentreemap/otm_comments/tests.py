@@ -564,3 +564,45 @@ class CommentHideAndShowTest(CommentModerationTestCase):
         updated_comments = EnhancedThreadedComment.objects.all()
         for updated_comment in updated_comments:
             self.assertTrue(updated_comment.is_removed)
+
+
+class CommentUITest(CommentTestMixin, TreemapUITestCase):
+    def assertCommentText(self, pk, comment_text):
+        comment_text_el = (self
+                           .find_id('c' + str(pk))
+                           .find_element_by_css_selector('.comment_text'))
+        self.assertEqual(comment_text_el.text, comment_text)
+
+    def click_post_button(self):
+        (self
+         .find('.comment-create-form')
+         .find_element_by_name('post')
+         .click())
+
+    def test_mask_comment(self):
+        comment_text = "Time is a flat circle."
+        removed_text = "[This comment has been removed by a moderator.]"
+        comment_input_element_selector = '#id_comment'
+
+        self.login_workflow()
+
+        self.go_to_feature_detail(self.plot.pk)
+
+        self.wait_until_present(comment_input_element_selector)
+
+        self.find(comment_input_element_selector).send_keys(comment_text)
+        self.click_post_button()
+
+        sleep(3)
+        comment_obj = EnhancedThreadedComment.objects.get(
+            object_pk=self.plot.pk, content_type__name='plot')
+        self.assertEqual(comment_obj.comment, comment_text)
+        self.assertCommentText(comment_obj.pk, comment_text)
+
+        self.go_to_feature_detail(self.plot.pk)
+        self.assertCommentText(comment_obj.pk, comment_text)
+
+        comment_obj.is_removed = True
+        comment_obj.save()
+        self.go_to_feature_detail(self.plot.pk)
+        self.assertCommentText(comment_obj.pk, removed_text)

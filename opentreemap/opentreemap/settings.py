@@ -1,7 +1,6 @@
 import os
 
 # Django settings for opentreemap project.
-
 OTM_VERSION = 'dev'
 API_VERSION = 'v0.1'
 
@@ -199,6 +198,13 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 COMMENTS_APP = 'otm_comments'
+
+# Necessary to prevent the underlying `django_comments` app
+# from hiding all comments with `is_removed` set to true.
+# We want to show these comments, with details masked to
+# indicate that they were "hidden" by a moderator.
+COMMENTS_HIDE_REMOVED = False
+
 
 # APPS THAT ARE DEVELOPED IN CONJUNCTION WITH OTM2
 # these are the apps we want to test by default using
