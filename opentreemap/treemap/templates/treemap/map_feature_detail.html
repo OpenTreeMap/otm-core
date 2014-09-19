@@ -127,16 +127,24 @@
                <li class="comment_li" id="c{{ comment.id|unlocalize }}">
                  <div class="comment">
                    <div class="comment_info">
+                     {% if comment.is_removed %}
+                     <div class="comment_user">[{% trans "Removed by Moderator" %}]</div>
+                     {% else %}
                      <div class="comment_user">{{ comment.user_name }}</div>
+                     {% endif %}
                      <div class="comment_data">
                        {{ comment.submit_date|date:"d M Y, H:i" }}
-                       {% if request.user.is_authenticated %}
+                       {% if request.user.is_authenticated and not comment.is_removed %}
                        | <a data-comment-id="{{ comment.id|unlocalize }}" class="comment_reply_link">Reply</a>
                        {% endif %}
                      </div>
                    </div>
                    <div class="comment_text">
+                     {% if comment.is_removed %}
+                     [{% trans "This comment has been removed by a moderator." %}]
+                     {% else %}
                      {{ comment.comment }}
+                     {% endif %}
                    </div>
                  </div>
                {% for close in comment.close %}</li></ul>{% endfor %}

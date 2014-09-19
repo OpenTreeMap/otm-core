@@ -25,6 +25,10 @@ class EnhancedThreadedComment(ThreadedComment):
 
     @property
     def is_flagged(self):
+        """
+        Flagging is something a regular user does to suggest
+        that the comment be `removed` by an adminstrator
+        """
         return self.enhancedthreadedcommentflag_set.filter(
             hidden=False).exists()
 
@@ -43,4 +47,6 @@ class EnhancedThreadedCommentFlag(models.Model, Auditable):
     comment = models.ForeignKey(EnhancedThreadedComment)
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     flagged_at = models.DateTimeField(auto_now_add=True)
+    # whether the flag itself was hidden, NOT the related
+    # comment. That is decided by `comment.is_removed`
     hidden = models.BooleanField(default=False)
