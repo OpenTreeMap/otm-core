@@ -31,7 +31,7 @@ module.exports = function(options) {
             .map('.target.href')
             .filter(BU.isDefinedNonEmpty),
 
-        singleActionStream = $container.asEventStream('click', '[data-comment-id] a'),
+        singleActionStream = $container.asEventStream('click', '[data-comment-single-action] a'),
         batchActionStream = $container.asEventStream('click', '[data-comment-batch] a'),
         toggleAllEventStream = $container.asEventStream('click', '[data-comment-toggle-all]'),
 
