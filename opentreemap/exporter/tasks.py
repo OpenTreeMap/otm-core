@@ -43,7 +43,8 @@ def extra_select_and_values_for_model(
     return (extra_select, prefixed_names)
 
 
-def users_export(job_pk, data_format):
+@task
+def async_users_export(job_pk, data_format):
     job = ExportJob.objects.get(pk=job_pk)
     instance = job.instance
 
@@ -58,10 +59,8 @@ def users_export(job_pk, data_format):
     job.save()
 
 
-async_users_export = task(users_export)
-
-
-def csv_export(job_pk, model, query, display_filters):
+@task
+def async_csv_export(job_pk, model, query, display_filters):
     job = ExportJob.objects.get(pk=job_pk)
     instance = job.instance
 
@@ -133,4 +132,12 @@ def csv_export(job_pk, model, query, display_filters):
 
     job.save()
 
-async_csv_export = task(csv_export)
+
+@task
+def simple_async_csv(job_pk, qs):
+    job = ExportJob.objects.get(pk=job_pk)
+
+    file_obj = TemporaryFile()
+    write_csv(qs, file_obj)
+    job.complete_with(generate_filename(qs), File(file_obj))
+    job.save()
