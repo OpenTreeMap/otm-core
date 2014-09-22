@@ -326,15 +326,27 @@ def _comment_ids_to_params(*args):
     return {'comment-ids': ','.join(str(arg) for arg in args)}
 
 
-def make_post_request(user, params={}):
+def make_post_request(user, params=None):
     # TODO: We should really be using the make_request helper in treemap.tests,
     # but it *always* does .get(), even when method='POST'
+    params = params or {}
     req = RequestFactory().post("hello/world", params)
     setattr(req, 'user', user)
     return req
 
 
 class CommentModerationTestCase(CommentTestCase):
+
+    def hit_flag_endpoint(self, *args, **kwargs):
+        req = make_post_request(*args, **kwargs)
+        req.instance = self.instance
+        flag(req, self.instance, self.comment.id)
+
+    def hit_unflag_endpoint(self, *args, **kwargs):
+        req = make_post_request(*args, **kwargs)
+        req.instance = self.instance
+        unflag(req, self.instance, self.comment.id)
+
     def setUp(self):
         super(CommentModerationTestCase, self).setUp()
         self.comment = make_comment(self.plot, self.user)
@@ -347,8 +359,7 @@ class CommentFlagTest(CommentModerationTestCase):
         self.assertFalse(self.comment.is_flagged_by_user(self.user))
         self.assertFalse(self.comment.is_flagged_by_user(self.admin))
 
-        req = make_post_request(user=self.user)
-        flag(req, self.instance, self.comment.id)
+        self.hit_flag_endpoint(user=self.user)
 
         updated_comment = EnhancedThreadedComment.objects.get(
             pk=self.comment.id)
@@ -360,52 +371,50 @@ class CommentFlagTest(CommentModerationTestCase):
         self.assertFalse(updated_comment.is_flagged_by_user(self.admin))
 
     def test_can_unflag(self):
-        req = make_post_request(user=self.user)
-        flag(req, self.instance, self.comment.id)
+        self.hit_flag_endpoint(user=self.user)
+
         updated_comment = EnhancedThreadedComment.objects.get(
             pk=self.comment.id)
         self.assertTrue(updated_comment.is_flagged)
 
-        req = make_post_request(user=self.user)
-        unflag(req, self.instance, self.comment.id)
+        self.hit_unflag_endpoint(user=self.user)
+
         updated_comment = EnhancedThreadedComment.objects.get(
             pk=self.comment.id)
         self.assertFalse(updated_comment.is_flagged)
 
     def test_cant_double_flag(self):
-        req = make_post_request(user=self.user)
-        flag(req, self.instance, self.comment.id)
+        self.hit_flag_endpoint(user=self.user)
+
         self.assertEqual(1, EnhancedThreadedCommentFlag.objects
                          .all().count(),
                          "There should be 1 comment flag row created")
 
-        req = make_post_request(user=self.user)
-        flag(req, self.instance, self.comment.id)
+        self.hit_flag_endpoint(user=self.user)
+
         self.assertEqual(1, EnhancedThreadedCommentFlag.objects
                          .all().count(),
                          "There should still be 1 comment flag row")
 
     def test_flag_unflag_flag_makes_two_rows(self):
-        req = make_post_request(user=self.user)
-        flag(req, self.instance, self.comment.id)
+        self.hit_flag_endpoint(user=self.user)
+
         self.assertEqual(1, EnhancedThreadedCommentFlag.objects
                          .all().count(),
                          "There should be 1 comment flag row created")
 
-        req = make_post_request(user=self.user)
-        unflag(req, self.instance, self.comment.id)
+        self.hit_unflag_endpoint(user=self.user)
+
         self.assertEqual(1, EnhancedThreadedCommentFlag.objects
                          .all().count(),
                          "There should still 1 comment flag row after unflag")
 
-        req = make_post_request(user=self.user)
-        flag(req, self.instance, self.comment.id)
+        self.hit_flag_endpoint(user=self.user)
         self.assertEqual(2, EnhancedThreadedCommentFlag.objects.all().count(),
                          "There should be 2 comment flag rows")
 
     def test_flag_hide_flags_flag_makes_two_rows(self):
-        req = make_post_request(user=self.user)
-        flag(req, self.instance, self.comment.id)
+        self.hit_flag_endpoint(user=self.user)
         self.assertEqual(1, EnhancedThreadedCommentFlag.objects.all().count(),
                          "There should be 1 comment flag row created")
 
@@ -415,16 +424,13 @@ class CommentFlagTest(CommentModerationTestCase):
         self.assertEqual(1, EnhancedThreadedCommentFlag.objects.all().count(),
                          "There should still 1 comment flag row after unflag")
 
-        req = make_post_request(user=self.user)
-        flag(req, self.instance, self.comment.id)
+        self.hit_flag_endpoint(user=self.user)
         self.assertEqual(2, EnhancedThreadedCommentFlag.objects.all().count(),
                          "There should be 2 comment flag rows")
 
     def test_multiple_flags(self):
-        req = make_post_request(user=self.user)
-        flag(req, self.instance, self.comment.id)
-        req = make_post_request(user=self.admin)
-        flag(req, self.instance, self.comment.id)
+        self.hit_flag_endpoint(user=self.user)
+        self.hit_flag_endpoint(user=self.admin)
 
         self.assertEqual(2, EnhancedThreadedCommentFlag.objects.all().count(),
                          "There should be 2 comment flag rows")
@@ -432,8 +438,7 @@ class CommentFlagTest(CommentModerationTestCase):
             pk=self.comment.id)
         self.assertTrue(updated_comment.is_flagged)
 
-        req = make_post_request(user=self.user)
-        unflag(req, self.instance, self.comment.id)
+        self.hit_unflag_endpoint(user=self.user)
         self.assertEqual(2, EnhancedThreadedCommentFlag.objects.all().count(),
                          "Unflagging should not remove comment rows")
         self.assertTrue(updated_comment.is_flagged,
@@ -442,10 +447,8 @@ class CommentFlagTest(CommentModerationTestCase):
         self.assertTrue(updated_comment.is_flagged_by_user(self.admin))
 
     def test_hide_flags(self):
-        req = make_post_request(user=self.user)
-        flag(req, self.instance, self.comment.id)
-        req = make_post_request(user=self.admin)
-        flag(req, self.instance, self.comment.id)
+        self.hit_flag_endpoint(user=self.user)
+        self.hit_flag_endpoint(user=self.admin)
         self.assertEqual(2, EnhancedThreadedCommentFlag.objects
                          .filter(hidden=False).count(),
                          "There should be 2 non-hidden comment flag rows")
@@ -466,11 +469,9 @@ class CommentFlagTest(CommentModerationTestCase):
         self.assertFalse(updated_comment.is_flagged_by_user(self.admin))
 
     def test_batch_hide_flags(self):
-        req = make_post_request(user=self.admin)
-        flag(req, self.instance, self.comment.id)
+        self.hit_flag_endpoint(user=self.admin)
 
-        req = make_post_request(user=self.user)
-        flag(req, self.instance, self.comment2.id)
+        self.hit_flag_endpoint(user=self.user)
 
         self.assertEqual(2, EnhancedThreadedCommentFlag.objects
                          .filter(hidden=False).count(),
@@ -523,9 +524,8 @@ class CommentArchiveTest(CommentModerationTestCase):
         self.comment.is_archived = True
         self.comment.save()
 
-        req = make_post_request(user=self.user,
-                                params=_comment_ids_to_params(self.comment.id))
-        flag(req, self.instance, self.comment.id)
+        self.hit_flag_endpoint(user=self.user,
+                               params=_comment_ids_to_params(self.comment.id))
         updated_comment = EnhancedThreadedComment.objects.get(
             pk=self.comment.id)
         self.assertFalse(updated_comment.is_archived)
