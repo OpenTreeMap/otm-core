@@ -32,7 +32,7 @@
       {% endwith %}
     </td>
     {% spaceless %}
-    <td>
+    <td data-comment-single-action>
       {# Moderators don't see flag, only unflag.  The "|" is inside the if for that reason #}
       {% if comment.visible_flag_count > 0 %}
       <a href="{% url 'hide-comment-flags' request.instance.url_name %}">Unflag</a>
