@@ -4,6 +4,7 @@ var path = require('path');
 
 module.exports = function(grunt) {
     var debug = typeof grunt.option('dev') !== "undefined";
+    var noLint = typeof grunt.option('nolint') !== "undefined";
 
     var appBundlePath = 'treemap/static/js/treemap.js';
     var testBundlePath = 'treemap/static/js/treemap.test.js';
@@ -89,7 +90,7 @@ module.exports = function(grunt) {
         watch: {
             js: {
                 files: getAliasFiles(getRegularAliases()),
-                tasks: ['shell:collect_static']
+                tasks: noLint ? ['shell:collect_static'] : ['check', 'shell:collect_static']
             },
             css: {
                 files: 'treemap/css/sass/**/*.scss',
