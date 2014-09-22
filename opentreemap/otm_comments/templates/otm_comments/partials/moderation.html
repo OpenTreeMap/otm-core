@@ -25,7 +25,7 @@
         {% endif %}
       </ul>
     </div>
-    <button type="button" class="btn btn-sm" ><i class="icon-export"></i>Export All</button>
+    <button type="button" class="btn btn-sm" data-export-start-url="{% url 'comments-csv' request.instance.url_name %}?{{ comments_params }}"><i class="icon-export"></i>Export All</button>
   </h1>
 </div> <!--END OF PAGE HEADER -->
 <div class="comments" data-comments-params="{{ comments_params }}">

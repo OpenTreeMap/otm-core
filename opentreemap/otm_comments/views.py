@@ -5,8 +5,6 @@ from __future__ import division
 
 from functools import partial
 
-from djqscsv import render_to_csv_response
-
 from django.core.paginator import Paginator, EmptyPage
 from django.db import transaction
 from django.core.urlresolvers import reverse
@@ -16,6 +14,8 @@ from opentreemap.util import decorate as do
 from treemap.decorators import (instance_request, admin_instance_request,
                                 require_http_method, json_api_call,
                                 render_template)
+
+from exporter.decorators import queryset_as_exported_csv
 
 from otm_comments.models import (EnhancedThreadedComment,
                                  EnhancedThreadedCommentFlag)
@@ -111,7 +111,7 @@ def comment_moderation(request, instance):
 
 def comments_csv(request, instance):
     comments = _comments(request, instance)
-    qs = comments.values(
+    return comments.values(
         'id',
         'user__username',
         'comment',
@@ -120,7 +120,6 @@ def comments_csv(request, instance):
         'visible_flag_count',
         'submit_date'
     )
-    return render_to_csv_response(qs)
 
 
 def _create_success_object_response():
@@ -218,6 +217,8 @@ show_endpoint = _admin_post_do(show)
 comments_csv_endpoint = do(
     require_http_method("GET"),
     admin_instance_request,
+    json_api_call,
+    queryset_as_exported_csv,
     comments_csv)
 
 comment_moderation_endpoint = do(

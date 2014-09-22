@@ -40,12 +40,22 @@ function getQueryStringObject () {
 function isComplete (resp) { return resp.status === 'COMPLETE'; }
 function isFailed (resp) { return !_.contains(['COMPLETE', 'PENDING'], resp.status); }
 
-function getJobStartStream (element) {
-    var $element = $(element),
-        elementStartUrl = $element.attr(START_URL_ATTR);
-    return $element.asEventStream('click')
-        .map(getQueryStringObject)
-        .flatMap(BU.jsonRequest('GET', elementStartUrl));
+function getJobStartStream () {
+    // Some exportable links are added to the page dynamically with AJAX
+    // Rather than explicitly re-initing this module each time that happens,
+    // we use a single delegated event on 'body'
+    return $('body').asEventStream('click', ENABLE_EXPORT_SELECTOR)
+        .flatMap(function(e) {
+            var elementStartUrl = $(e.target).attr(START_URL_ATTR),
+                queryStringObject = getQueryStringObject();
+
+            return Bacon.fromPromise($.ajax({
+                method: 'GET',
+                url: elementStartUrl,
+                contentType: 'application/json',
+                data: queryStringObject
+            }));
+        });
 }
 
 function makeJobCheckStream (attrStream) {
@@ -112,8 +122,7 @@ function getDisplayManager (defaultErrorMessage) {
 exports.run = function (options) {
     config = options.config;
 
-    var startStreams = _.map($(ENABLE_EXPORT_SELECTOR), getJobStartStream),
-        startStream = Bacon.mergeAll(startStreams),
+    var startStream = getJobStartStream(),
         defaultErrorMessage = $(ERROR_LABEL_SELECTOR).html(),
         displayManager = getDisplayManager(defaultErrorMessage),
         cancelStream = $(BUTTON_SELECTOR).asEventStream('click'),
