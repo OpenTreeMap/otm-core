@@ -31,7 +31,7 @@ MODEL_DETAILS = {
         'tree_detail', tree, feature_id=tree.plot.pk, tree_id=tree.pk),
     'treephoto': lambda tp: MODEL_DETAILS['tree'](tp.tree),
     'mapfeaturephoto': _map_feature_photo_detail_link,
-    'user': lambda user: reverse('user', args=(user.pk,))
+    'user': lambda user: reverse('user', args=(user.username,))
 }
 
 

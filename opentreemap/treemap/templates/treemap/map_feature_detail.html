@@ -135,7 +135,7 @@
                      <div class="comment_data">
                        {{ comment.submit_date|date:"d M Y, H:i" }}
                        {% if request.user.is_authenticated and not comment.is_removed %}
-                       | <a data-comment-id="{{ comment.id|unlocalize }}" class="comment_reply_link">Reply</a>
+                       | <a href="javascript:void(0);"  data-comment-id="{{ comment.id|unlocalize }}" class="comment_reply_link">Reply</a>
                        | <div data-class="comment-flag">{% include "otm_comments/partials/flagging.html" %}</div>
                        {% endif %}
                      </div>
