@@ -49,6 +49,7 @@ exports.init = function(options) {
             parent: $a.data("comment-id"),
             classname: 'comment-reply-form'
         }));
+        $('#id_comment').focus();
     });
 
     if (options.config.loggedIn) {
