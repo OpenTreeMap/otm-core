@@ -5,7 +5,7 @@
 <div class="sidebar-inner">
     <a href="javascript:;" class="close cancelBtn small">×</a>
     <h3>{% trans "Add a" %} {{ term.Resource }}</h3>
-    <div class="add-step-container">
+    <div class="add-step-container" id="add-resource-container">
         <div class="add-step active">
             <div class="add-step-header">
               {% blocktrans with Resource=terms.Resource%} Select {{ Resource }} Type {% endblocktrans %}

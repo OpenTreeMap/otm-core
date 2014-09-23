@@ -132,6 +132,7 @@ function init(config, mapManager, triggerSearchBus) {
         sidebar: sidebarAddTree,
         onClose: _.partial(activateBrowseTreesMode, true),
         formSelector: '#add-tree-form',
+        validationFields: '#add-tree-container [data-class="error"]',
         indexOfSetLocationStep: 0,
         typeaheads: [getSpeciesTypeaheadOptions(config, "add-tree-species")],
         addFeatureRadioOptions: 'addFeatureOptions',
@@ -157,6 +158,7 @@ function init(config, mapManager, triggerSearchBus) {
         sidebar: sidebarAddResource,
         onClose: _.partial(activateBrowseTreesMode, true),
         formSelector: '#add-resource-form',
+        validationFields: '#add-resource-container [data-class="error"]',
         indexOfSetLocationStep: 1,
         addFeatureRadioOptions: 'addResourceOptions',
         triggerSearchBus: triggerSearchBus

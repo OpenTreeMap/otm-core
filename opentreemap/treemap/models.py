@@ -26,7 +26,7 @@ from treemap.species.codes import ITREE_REGIONS
 from treemap.audit import (Auditable, Authorizable, Role, Dictable, Audit)
 # Import this even though it's not referenced, so Django can find it
 from treemap.audit import FieldPermission  # NOQA
-from treemap.util import leaf_subclasses
+from treemap.util import leaf_subclasses, to_object_name
 from treemap.decorators import classproperty
 from treemap.images import save_uploaded_image
 from treemap.units import Convertible
@@ -539,6 +539,10 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
     def _is_generic(self):
         return self.__class__.__name__ == 'MapFeature'
 
+    @classproperty
+    def geom_field_name(cls):
+        return "%s.geom" % to_object_name(cls.map_feature_type)
+
     @property
     def is_plot(self):
         return isinstance(self, Plot)
@@ -550,6 +554,17 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
             raise Exception(
                 'Never save a MapFeature -- only save a MapFeature subclass')
         super(MapFeature, self).save_with_user(user, *args, **kwargs)
+
+    def clean(self):
+        super(MapFeature, self).clean()
+
+        if not self.instance.bounds.contains(self.geom):
+            raise ValidationError({
+                "geom": [
+                    trans(
+                        "%(model)ss must be created inside the map boundaries")
+                    % {'model': self.display_name}]
+            })
 
     def photos(self):
         return self.mapfeaturephoto_set.order_by('-created_at')
@@ -698,6 +713,10 @@ class Plot(MapFeature):
             raise ValidationError(trans(
                 "Cannot delete plot with existing trees."))
         super(Plot, self).delete_with_user(user, *args, **kwargs)
+
+    @classproperty
+    def display_name(cls):
+        return trans('Planting Site')
 
 
 # UDFModel overrides implementations of methods in
