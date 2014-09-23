@@ -9,7 +9,8 @@
     "lodash": "2.4.x",
     "mustache": "~0.7.2",
     "moment": "~2.2.1",
-    "console-browserify": "~1.0.1"
+    "console-browserify": "~1.0.1",
+    "leaflet-pip": "~0.1.1"
   },
   "devDependencies": {
     "grunt-browserify": "1.2.5",
