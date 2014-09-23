@@ -33,17 +33,17 @@ exports.init = function(options) {
     }
 
     function nextPageExists() {
-        return !!$container.find('.pagination ul li:last-child [data-page]').attr('data-page');
+        return !!$container.find('.pagination li:last-child [data-page]').attr('data-page');
     }
 
     $container.on('click', '.action', function(e) {
         e.preventDefault();
-        var $li = $(this).closest('li');
+        var $photo = $(this).closest('[data-photo]');
 
         var stream = BU.jsonRequest('POST', $(this).attr('href'))();
 
         stream.onValue(function() {
-            $li.remove();
+            $photo.remove();
         });
         stream.onError(showErrorMessage);
 
@@ -51,12 +51,12 @@ exports.init = function(options) {
             stream
                 .flatMap(getReviewMarkupForNextPhoto)
                 .map($)
-                .onValue($container.find('ul.thumbnails'), 'append');
+                .onValue($container.find('[data-photo-container]'), 'append');
         }
     });
 
     function createPageUpdateStream(initialPageStream) {
-        var pageStream = $container.find('.pagination ul li')
+        var pageStream = $container.find('.pagination li')
                 .asEventStream('click')
                 .map('.target')
                 .map($)
