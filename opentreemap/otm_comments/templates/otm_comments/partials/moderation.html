@@ -56,8 +56,8 @@
             <th>
               <a href="{{ comments_url_for_sort }}&sort={{ 'user__username'|reverse_if_current:comments_sort }}">Comment</a>
             </th>
-            <th>Actions</th>
-            <th>
+            <th class="actions">Actions</th>
+            <th class="date">
               <a href="{{ comments_url_for_sort }}&sort={{ 'submit_date'|reverse_if_current:comments_sort }}">Date</a>
             </th>
           </tr>

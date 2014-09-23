@@ -99,6 +99,18 @@
             }
         }
 
+        th.selector > .btn-group {
+            width: 63px;
+        }
+
+        th.actions {
+            min-width: 200px;
+        }
+
+        th.date {
+            min-width: 150px;
+        }
+
         .table-hover {
             > tbody > tr:hover {
                 > td,
