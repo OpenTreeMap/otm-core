@@ -14,7 +14,7 @@ from treemap.tests import (make_instance, make_commander_user, login,
                            make_simple_boundary, RequestTestCase)
 from treemap.tests.base import OTMTestCase
 
-from opentreemap.local_settings import STATIC_ROOT
+from opentreemap.settings import STATIC_ROOT
 
 
 class UrlTestCase(OTMTestCase):

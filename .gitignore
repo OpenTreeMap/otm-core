@@ -5,7 +5,7 @@ env
 *~
 .vagrant
 .#*
-local_settings.py
+opentreemap/opentreemap/settings/local_settings.py
 /static
 .coverage
 .sass-cache
