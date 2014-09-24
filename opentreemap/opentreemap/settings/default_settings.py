@@ -290,43 +290,6 @@ DISPLAY_DEFAULTS = {
     }
 }
 
-#
-# Mount extra urls from local settings. These should be a
-# tuple of (url path, url module). Something like:
-#
-# EXTRA_URLS = (('/extra_api/', 'apiv2.urls),
-#               ('/local/', 'local.urls))
-#
-EXTRA_URLS = ()
-
-EXTRA_MANAGED_APPS = ()
-EXTRA_UNMANAGED_APPS = ()
-EXTRA_MIDDLEWARE_CLASSES = ()
-EXTRA_RESERVED_INSTANCE_URL_NAMES = ()
-EXTRA_UI_TESTS = ()
-
-EXTRA_DISPLAY_DEFAULTS = {}
-EXTRA_STORAGE_UNITS = {}
-
-BING_API_KEY = None
-
-from opentreemap.local_settings import *  # NOQA
-
-MANAGED_APPS = EXTRA_MANAGED_APPS + MANAGED_APPS
-UNMANAGED_APPS = EXTRA_UNMANAGED_APPS + UNMANAGED_APPS
-INSTALLED_APPS = MANAGED_APPS + UNMANAGED_APPS
-MIDDLEWARE_CLASSES += EXTRA_MIDDLEWARE_CLASSES
-RESERVED_INSTANCE_URL_NAMES += EXTRA_RESERVED_INSTANCE_URL_NAMES
-
-DISPLAY_DEFAULTS.update(EXTRA_DISPLAY_DEFAULTS)
-STORAGE_UNITS.update(EXTRA_STORAGE_UNITS)
-
-# CELERY
-# NOTE: BROKER_URL and CELERY_RESULT_BACKEND must be set
-#       to a valid redis URL in local_settings.py
-import djcelery
-djcelery.setup_loader()
-
 # Time in ms for two clicks to be considered a double-click in some scenarios
 DOUBLE_CLICK_INTERVAL = 300
 
@@ -337,3 +300,5 @@ IE_VERSION_MINIMUM = 9 if DEBUG else 10
 IE_VERSION_UNSUPPORTED_REDIRECT_PATH = '/unsupported'
 
 USE_OBJECT_CACHES = True
+
+BING_API_KEY = None
