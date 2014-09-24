@@ -35,30 +35,6 @@ exports.init = function(options) {
         question: options.config.trans.exitQuestion
     });
 
-    // Add threaded comments "reply" links
-    var commentFormTempl = $("#template-comment").html();
-
-    $('a[data-comment-id]').click(function () {
-        var $a = $(this);
-
-        // Close other forms
-        $(".comment-reply-form").remove();
-
-        var templ = $("#template-comment").html();
-        $a.closest(".comment").append(_.template(commentFormTempl, {
-            parent: $a.data("comment-id"),
-            classname: 'comment-reply-form'
-        }));
-        $('#id_comment').focus();
-    });
-
-    if (options.config.loggedIn) {
-        $('#comments-container').append(_.template(commentFormTempl, {
-            parent: '',
-            classname: 'comment-create-form'
-        }));
-    }
-
     var imageFinishedStream = imageUploadPanel.init(options.imageUploadPanel);
 
     var shouldBeInEditModeBus = new Bacon.Bus();
