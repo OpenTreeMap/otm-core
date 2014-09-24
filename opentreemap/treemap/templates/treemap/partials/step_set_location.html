@@ -12,6 +12,8 @@
         <div class="alert alert-danger text-danger geocode-error" style="display: none;">{% trans "Unable to locate this address. You may need to include a city and state." %}</div>
         <div class="alert alert-danger text-danger geolocate-error" style="display: none;">{% trans "Unable to determine current location" %}</div>
         <div class="alert alert-info move-marker-message" style="display: none;">{% trans "Please move marker to exact location of the" %} {{ feature_name }}</div>
+        <div class="alert alert-info" style="display: none;"
+          data-class="error" data-field="mapFeature.geom"></div>
     </div>
     {% include 'treemap/partials/step_controls.html' %}
 </div>

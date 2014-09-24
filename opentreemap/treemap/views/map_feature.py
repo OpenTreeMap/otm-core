@@ -236,6 +236,10 @@ def update_map_feature(request_dict, user, feature):
         errors.update(save_and_return_errors(tree, user))
 
     if errors:
+        # It simplifies the templates and client-side logic if the geometry
+        # field errors are returned under the generic name
+        if feature.geom_field_name in errors:
+            errors['mapFeature.geom'] = errors[feature.geom_field_name]
         raise ValidationError(errors)
 
     # Refresh feature.instance in case geo_rev_hash was updated

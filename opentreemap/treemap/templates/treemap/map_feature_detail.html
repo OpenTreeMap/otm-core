@@ -110,6 +110,8 @@
           <!-- Map Feature Details -->
           <form id="plot-form">
 
+            {# There isn't a field to show "inline" errors for geom fields, so just show it up top #}
+            <div class="alert alert-warning" data-class="error" data-field="mapFeature.geom" style="display: none;"></div>
             {% block subclass_details %}
             {% endblock subclass_details %}
 

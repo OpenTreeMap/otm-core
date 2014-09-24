@@ -83,6 +83,17 @@ module.exports = {
             }
         }
 
+        function getStepNumberForElement(element) {
+            var $step = $(_.find($steps, function(step) {
+                return $.contains(step, element);
+            }));
+            if ($step.length > 0) {
+                return $step.index();
+            } else {
+                return maxStepNumber;
+            }
+        }
+
         return {
             maxStepNumber: maxStepNumber,
             stepChangeStartStream: stepChangeStartStream,
@@ -90,7 +101,8 @@ module.exports = {
             allDoneStream: $nextButtons.last().asEventStream('click'),
             showStep: showStep,
             activateStep: activateStep,
-            enableNext: enableNext
+            enableNext: enableNext,
+            getStepNumberForElement: getStepNumberForElement
         };
     }
 };

@@ -7,7 +7,8 @@ var $ = require('jquery'),
     _ = require('lodash'),
     Bacon = require('baconjs'),
     U = require('treemap/utility'),
-    L = require('leaflet');
+    L = require('leaflet'),
+    leafletPip = require('leaflet-pip');
 
 var marker,
     shouldUseTreeIcon,
@@ -18,13 +19,21 @@ var marker,
     trackingMarker,
     config,
     lastMarkerLocation,
-    map;
+    map,
+    boundsGeoJson;
 
 exports = module.exports = {
 
     init: function(theConfig, theMap) {
         map = theMap;
         config = theConfig;
+        boundsGeoJson = L.geoJson(config.instance.bounds, {
+            style: {
+                color: "#dddddd",
+                fill: false,
+                dashArray: "5, 10"
+            }
+        });
     },
 
     useTreeIcon: function(shouldUse) {
@@ -48,13 +57,28 @@ exports = module.exports = {
 
     // Let user place the marker by clicking the map
     enablePlacing: function () {
+        // The instance boundaries are often "ugly boxes", so we should only
+        // show them when it is very helpful, like when moving a marker
+        // We remove the layer in disablePlacing
+        boundsGeoJson.addTo(map);
+
         // Add a 'tracking marker' that follows the mouse, until
         // the object is placed
         if (!trackingMarker) {
-            trackingMarker = L.marker({lat:0, lng:0});
+            var mapCenter = U.webMercatorToLeafletLatLng(config.instance.center.x,
+                                                         config.instance.center.y);
+
+            trackingMarker = L.marker(mapCenter);
 
             map.on('mousemove', function(event) {
-                trackingMarker.setLatLng(event.latlng);
+                var latLng = event.latlng,
+                    polysForPoint = leafletPip.pointInLayer(latLng, boundsGeoJson, true);
+
+                // Stop tracking the mouse when we move outside the bounds, so
+                // the marker will be "stuck" in the valid area
+                if (polysForPoint.length > 0) {
+                    trackingMarker.setLatLng(event.latlng);
+                }
             });
         }
         trackingMarker.setIcon(getMarkerIcon(false));
@@ -64,6 +88,7 @@ exports = module.exports = {
     },
 
     disablePlacing: function() {
+        map.removeLayer(boundsGeoJson);
         if (trackingMarker) {
             map.removeLayer(trackingMarker);
         }
@@ -110,9 +135,7 @@ exports = module.exports = {
             map.removeLayer(marker);
         }
 
-        if (trackingMarker) {
-            map.removeLayer(trackingMarker);
-        }
+        exports.disablePlacing();
 
         markerWasMoved = false;
     },

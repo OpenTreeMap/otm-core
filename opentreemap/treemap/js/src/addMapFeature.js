@@ -40,7 +40,7 @@ function init(options) {
 
         $form = U.$find(formSelector, $sidebar),
         editFields = formSelector + ' [data-class="edit"]',
-        validationFields = formSelector + ' [data-class="error"]',
+        validationFields = options.validationFields || formSelector + ' [data-class="error"]',
         $placeMarkerMessage = U.$find('.place-marker-message', $sidebar),
         $moveMarkerMessage = U.$find('.move-marker-message', $sidebar);
 
@@ -323,12 +323,20 @@ function init(options) {
         // Feature wasn't saved. Show validation errors.
         if (jqXHR.responseJSON) {
             var errorDict = jqXHR.responseJSON.validationErrors;
-            _.each(errorDict, function (errorList, fieldName) {
-                FH.getField($(validationFields), fieldName)
-                    .html(errorList.join(','))
-                    .show();
+            var errorSteps = _.map(errorDict, function (errorList, fieldName) {
+                var errorElem = FH.getField($(validationFields), fieldName);
+                if (errorElem.length > 0) {
+                    errorElem.html(errorList.join(',')).show();
+
+                    return stepControls.getStepNumberForElement(errorElem[0]);
+                } else {
+                    // If we can't find the step number, max - 1 is
+                    // a reasonable default
+                    return stepControls.maxStepNumber - 1;
+                }
             });
-            stepControls.showStep(stepControls.maxStepNumber - 1);
+            // Show the first step that had an error
+            stepControls.showStep(_.min(errorSteps));
         }
     }
 

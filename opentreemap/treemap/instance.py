@@ -356,6 +356,12 @@ class Instance(models.Model):
                            'xmax': xmax, 'ymax': ymax})
 
     @property
+    def bounds_as_geojson(self):
+        boundary = self.bounds
+        boundary.transform(4326)
+        return boundary.json
+
+    @property
     def center(self):
         return self.center_override or self.bounds.centroid
 
