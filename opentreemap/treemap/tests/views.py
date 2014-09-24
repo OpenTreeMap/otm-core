@@ -176,9 +176,10 @@ class TreePhotoTestCase(LocalMediaTestCase):
     def setUp(self):
         super(TreePhotoTestCase, self).setUp()
 
-        self.instance = make_instance()
-        self.user = make_commander_user(self.instance)
         self.p1 = Point(-7615441.0, 5953519.0)
+
+        self.instance = make_instance(point=self.p1)
+        self.user = make_commander_user(self.instance)
         self.plot = Plot(geom=self.p1, instance=self.instance)
         self.plot.save_with_user(self.user)
 
@@ -334,7 +335,7 @@ class PlotImageUpdateTest(LocalMediaTestCase):
         # Give this plot a unique number so we can check for
         # correctness
         self.plot = Plot(
-            geom=Point(0, 0), instance=self.instance, pk=449293)
+            geom=self.instance.center, instance=self.instance, pk=449293)
 
         self.plot.save_with_user(self.user)
 
@@ -589,8 +590,6 @@ class PlotUpdateTest(OTMTestCase):
         set_write_permissions(self.instance, self.user,
                               'Tree', ['udf:Test col'])
 
-        self.p = Point(-7615441.0, 5953519.0)
-
         self.choice_field = UserDefinedFieldDefinition.objects.create(
             instance=self.instance,
             model_type='Plot',
@@ -621,7 +620,7 @@ class PlotUpdateTest(OTMTestCase):
             iscollection=True,
             name='Test col')
 
-        self.plot = Plot(instance=self.instance, geom=self.p)
+        self.plot = Plot(instance=self.instance, geom=self.instance.center)
         self.plot.save_with_user(self.user)
 
         psycopg2.extras.register_hstore(connection.cursor(), globally=True)
@@ -1060,8 +1059,10 @@ class RecentEditsViewTest(ViewTestCase):
     def setUp(self):
         self.longMessage = True
 
-        self.instance = make_instance(is_public=True)
-        self.instance2 = make_instance('i2', is_public=True)
+        self.p1 = Point(-7615441.0, 5953519.0)
+
+        self.instance = make_instance(is_public=True, point=self.p1)
+        self.instance2 = make_instance('i2', is_public=True, point=self.p1)
         add_default_permissions(self.instance, [self.instance.default_role])
         add_default_permissions(self.instance2, [self.instance2.default_role])
 
@@ -1072,7 +1073,6 @@ class RecentEditsViewTest(ViewTestCase):
                              role=self.commander.get_role(self.instance))
         iuser.save_with_user(self.commander)
 
-        self.p1 = Point(-7615441.0, 5953519.0)
         self.factory = RequestFactory()
 
         self.plot = Plot(geom=self.p1, instance=self.instance)
@@ -1523,8 +1523,7 @@ class UserViewTests(ViewTestCase):
                           'no_way_this_is_a_username')
 
     def test_all_private_audits_are_filtered_out(self):
-        p = Point(-7615441.0, 5953519.0)
-        plot = Plot(instance=self.instance, geom=p)
+        plot = Plot(instance=self.instance, geom=self.instance.center)
         plot.save_with_user(self.joe)
 
         context = user(make_request(), self.joe.username)
@@ -1717,9 +1716,10 @@ class ScssCompilationTests(ViewTestCase):
 class DeleteViewTests(ViewTestCase):
     def setUp(self):
         super(DeleteViewTests, self).setUp()
-        self.instance = make_instance()
-        self.user = make_commander_user(self.instance)
         self.p1 = Point(-7615441.0, 5953519.0)
+
+        self.instance = make_instance(point=self.p1)
+        self.user = make_commander_user(self.instance)
 
         self.request = self.factory.get('')
         self.request.user = self.user

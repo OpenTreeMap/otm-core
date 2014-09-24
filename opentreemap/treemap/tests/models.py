@@ -18,11 +18,10 @@ from treemap.tests.base import OTMTestCase
 
 class HashModelTest(OTMTestCase):
     def setUp(self):
-        self.instance = make_instance()
-        self.user = make_commander_user(self.instance)
-
         self.p1 = Point(-8515941.0, 4953519.0)
-        self.p2 = Point(-7615441.0, 5953519.0)
+
+        self.instance = make_instance(point=self.p1)
+        self.user = make_commander_user(self.instance)
 
     def test_changing_fields_changes_hash(self):
         plot = Plot(geom=self.p1, instance=self.instance)
@@ -74,8 +73,8 @@ class HashModelTest(OTMTestCase):
 
 class GeoRevIncr(OTMTestCase):
     def setUp(self):
-        self.p1 = Point(-8515941.0, 4953519.0)
-        self.p2 = Point(-7615441.0, 5953519.0)
+        self.p1 = Point(0, 0)
+        self.p2 = Point(5, 5)
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
 
@@ -155,7 +154,7 @@ class ModelUnicodeTests(OTMTestCase):
 
         self.user = make_user(username='commander', password='pw')
 
-        self.plot = Plot(geom=Point(0, 0), instance=self.instance,
+        self.plot = Plot(geom=Point(1, 1), instance=self.instance,
                          address_street="123 Main Street")
 
         self.plot.save_base()
@@ -205,7 +204,7 @@ class ModelUnicodeTests(OTMTestCase):
 
     def test_plot_model(self):
         self.assertEqual(unicode(self.plot),
-                         'Plot (0.0, 0.0) 123 Main Street')
+                         'Plot (1.0, 1.0) 123 Main Street')
 
     def test_tree_model(self):
         self.assertEqual(unicode(self.tree), '')
@@ -233,11 +232,12 @@ class ModelUnicodeTests(OTMTestCase):
 
 class PlotTest(OTMTestCase):
     def setUp(self):
-        self.instance = make_instance()
+        self.p = Point(-7615441.0, 5953519.0)
+
+        self.instance = make_instance(point=self.p)
         self.user = make_commander_user(self.instance)
 
-        self.plot = Plot(geom=Point(0, 0), instance=self.instance)
-        self.p = Point(-7615441.0, 5953519.0)
+        self.plot = Plot(geom=self.instance.center, instance=self.instance)
 
     def test_plot_history_shows_all_trees(self):
         p = Plot(instance=self.instance, geom=self.p)

@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib.gis.geos.collections import MultiPolygon
-from django.contrib.gis.geos.point import Point
 from django.contrib.gis.geos.polygon import Polygon
 import django.shortcuts
 
@@ -14,7 +13,9 @@ from treemap.tests import (make_instance, make_commander_user,
                            make_apprentice_user, make_user_with_default_role)
 
 
-def mkPlot(instance, user, geom=Point(50, 50)):
+def mkPlot(instance, user, geom=None):
+    if geom is None:
+        geom = instance.center
     p = Plot(geom=geom, instance=instance)
     p.save_with_user(user)
 

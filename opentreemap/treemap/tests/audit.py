@@ -41,10 +41,10 @@ class ScopeModelTest(OTMTestCase):
     """
 
     def setUp(self):
-        self.p1 = Point(-8515222.0, 4953200.0)
-        self.p2 = Point(-7515222.0, 3953200.0)
+        self.p1 = Point(0, 0)
+        self.p2 = Point(5, 5)
 
-        self.instance1 = make_instance()
+        self.instance1 = make_instance(point=self.p1)
         self.user = make_user_with_default_role(self.instance1, 'auser')
         self.global_role = self.instance1.default_role
 
@@ -171,8 +171,7 @@ class AuditTest(OTMTestCase):
                 'created': None}
 
     def test_cant_use_regular_methods(self):
-        p = Point(-8515222.0, 4953200.0)
-        plot = Plot(geom=p, instance=self.instance)
+        plot = Plot(geom=self.instance.center, instance=self.instance)
         self.assertRaises(UserTrackingException, plot.save)
         self.assertRaises(UserTrackingException, plot.delete)
 
@@ -181,8 +180,7 @@ class AuditTest(OTMTestCase):
         self.assertRaises(UserTrackingException, tree.delete)
 
     def test_basic_audit(self):
-        p = Point(-8515222.0, 4953200.0)
-        plot = Plot(geom=p, instance=self.instance)
+        plot = Plot(geom=self.instance.center, instance=self.instance)
         plot.save_with_user(self.user1)
 
         self.assertAuditsEqual([
@@ -231,13 +229,13 @@ class AuditTest(OTMTestCase):
 
 class MultiUserTestCase(OTMTestCase):
     def setUp(self):
-        self.instance = make_instance()
+        self.p1 = Point(-7615441.0, 5953519.0)
+        self.instance = make_instance(point=self.p1)
         self.commander_user = make_commander_user(self.instance)
         self.direct_user = make_officer_user(self.instance)
         self.pending_user = make_apprentice_user(self.instance)
         self.observer_user = make_observer_user(self.instance)
 
-        self.p1 = Point(-7615441.0, 5953519.0)
         self.plot = Plot(geom=self.p1, instance=self.instance)
         self.plot.save_with_user(self.commander_user)
 
@@ -388,13 +386,13 @@ class ReviewTest(MultiUserTestCase):
 
 class PendingTest(OTMTestCase):
     def setUp(self):
-        self.instance = make_instance()
+        self.p1 = Point(-7615441.0, 5953519.0)
+        self.instance = make_instance(point=self.p1)
         self.commander_user = make_commander_user(self.instance)
         self.direct_user = make_officer_user(self.instance)
         self.pending_user = make_apprentice_user(self.instance)
         self.observer_user = make_observer_user(self.instance)
 
-        self.p1 = Point(-7615441.0, 5953519.0)
         self.plot = Plot(geom=self.p1, instance=self.instance)
         self.plot.save_with_user(self.commander_user)
 
@@ -516,10 +514,10 @@ class PendingInsertTest(OTMTestCase):
     def setUp(self):
         psycopg2.extras.register_hstore(connection.cursor(), globally=True)
 
-        self.instance = make_instance()
+        self.p1 = Point(-7615441.0, 5953519.0)
+        self.instance = make_instance(point=self.p1)
         self.commander_user = make_commander_user(self.instance)
         self.pending_user = make_apprentice_user(self.instance)
-        self.p1 = Point(-7615441.0, 5953519.0)
 
         # we need there to be no audits so that we can
         # iterate over all audits without conflict
@@ -716,12 +714,9 @@ class PendingInsertTest(OTMTestCase):
         Approve all trees. The one on the (Still) pending plot
         should fail. all else should pass.
         """
-        p1 = Point(0, 0)
-        p2 = Point(1, 1)
-        p3 = Point(2, 2)
-        plot1 = Plot(geom=p1, instance=self.instance)
-        plot2 = Plot(geom=p2, instance=self.instance)
-        plot3 = Plot(geom=p3, instance=self.instance)
+        plot1 = Plot(geom=self.instance.center, instance=self.instance)
+        plot2 = Plot(geom=self.instance.center, instance=self.instance)
+        plot3 = Plot(geom=self.instance.center, instance=self.instance)
         plot1.save_with_user(self.commander_user)
         plot2.save_with_user(self.pending_user)
         plot3.save_with_user(self.pending_user)
@@ -759,13 +754,13 @@ class PendingInsertTest(OTMTestCase):
 
 class ReputationTest(OTMTestCase):
     def setUp(self):
-        self.instance = make_instance()
+        self.p1 = Point(-7615441.0, 5953519.0)
+        self.instance = make_instance(point=self.p1)
 
         self.commander = make_commander_user(self.instance)
         self.privileged_user = make_officer_user(self.instance)
         self.unprivileged_user = make_apprentice_user(self.instance)
 
-        self.p1 = Point(-7615441.0, 5953519.0)
         self.plot = Plot(geom=self.p1, instance=self.instance)
 
         self.plot.save_with_user(self.commander)
@@ -850,13 +845,13 @@ class ReputationTest(OTMTestCase):
 
 class UserRoleFieldPermissionTest(OTMTestCase):
     def setUp(self):
-        self.instance = make_instance()
+        self.p1 = Point(-8515941.0, 4953519.0)
+        self.instance = make_instance(point=self.p1)
         self.commander = make_commander_user(self.instance)
         self.officer = make_officer_user(self.instance)
         self.observer = make_observer_user(self.instance)
         self.outlaw = make_user_with_default_role(self.instance, 'outlaw')
 
-        self.p1 = Point(-8515941.0, 4953519.0)
         self.plot = Plot(geom=self.p1, instance=self.instance)
         self.plot.save_with_user(self.officer)
 
@@ -1040,7 +1035,7 @@ class AuditDetailTagTest(OTMTestCase):
     def setUp(self):
         self.p1 = Point(-8515222.0, 4953200.0)
 
-        self.instance = make_instance()
+        self.instance = make_instance(point=self.p1)
         self.user = make_commander_user(self.instance)
 
         self.plot = Plot(geom=self.p1, instance=self.instance)

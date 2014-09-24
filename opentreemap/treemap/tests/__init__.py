@@ -299,11 +299,12 @@ def make_instance(name=None, is_public=False, url_name=None, point=None):
     instance.default_role.instance = instance
     instance.default_role.save()
 
-    tri = Polygon(((p1.x, p1.y),
-                   (p1.x + 10, p1.y + 10),
-                   (p1.x + 20, p1.y),
-                   (p1.x, p1.y)))
-    instance.bounds = MultiPolygon((tri,))
+    square = Polygon(((p1.x - 300, p1.y - 300),
+                      (p1.x - 300, p1.y + 300),
+                      (p1.x + 300, p1.y + 300),
+                      (p1.x + 300, p1.y - 300),
+                      (p1.x - 300, p1.y - 300)))
+    instance.bounds = MultiPolygon((square,))
     instance.save()
 
     new_role = Role.objects.create(

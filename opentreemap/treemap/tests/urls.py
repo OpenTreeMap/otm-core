@@ -6,7 +6,6 @@ from __future__ import division
 import os
 import json
 
-from django.contrib.gis.geos.point import Point
 from django.test.utils import override_settings
 
 from treemap.models import Plot
@@ -146,7 +145,7 @@ class TreemapUrlTests(UrlTestCase):
 
     def make_plot(self):
         user = make_commander_user(self.instance)
-        plot = Plot(geom=Point(0, 0), instance=self.instance)
+        plot = Plot(geom=self.instance.center, instance=self.instance)
         plot.save_with_user(user)
         return plot
 

@@ -6,8 +6,6 @@ from __future__ import division
 import csv
 import json
 
-from django.contrib.gis.geos import Point
-
 from treemap.udf import UserDefinedFieldDefinition, DATETIME_FORMAT
 from treemap.tests.views import LocalMediaTestCase, media_dir
 from treemap.tests import (make_instance, make_commander_user, make_request,
@@ -113,7 +111,7 @@ class ExportTreeTaskTest(AsyncCSVTestCase):
             iscollection=False,
             name='Test int')
 
-        p = Plot(geom=Point(0, 0), instance=self.instance,
+        p = Plot(geom=self.instance.center, instance=self.instance,
                  address_street="123 Main Street")
         p.udfs['Test choice'] = 'a'
 
@@ -201,10 +199,8 @@ class UserExportsTestCase(OTMTestCase):
                               role=role)
         iuser2.save_with_user(self.user2)
 
-        pt = Point(0, 0)
-
-        self.plot = Plot(geom=pt, readonly=False, instance=self.instance,
-                         width=4)
+        self.plot = Plot(geom=self.instance.center, readonly=False,
+                         instance=self.instance, width=4)
         self.plot.save_with_user(self.user1)
 
         self.tree = Tree(instance=self.instance, plot=self.plot, diameter=3)

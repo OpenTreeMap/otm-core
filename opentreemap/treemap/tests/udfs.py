@@ -52,15 +52,14 @@ def make_collection_udf(instance, name='Stewardship', model='Plot',
 
 class ScalarUDFFilterTest(OTMTestCase):
     def setUp(self):
-        self.instance = make_instance()
+        self.p = Point(0, 0)
+        self.instance = make_instance(point=self.p)
         self.commander_user = make_commander_user(self.instance)
         set_write_permissions(self.instance, self.commander_user,
                               'Plot',
                               ['udf:Test choice', 'udf:Test string',
                                'udf:Test int', 'udf:Test date',
                                'udf:Test float'])
-
-        self.p = Point(-8515941.0, 4953519.0)
 
         UserDefinedFieldDefinition.objects.create(
             instance=self.instance,
@@ -282,12 +281,11 @@ class ScalarUDFFilterTest(OTMTestCase):
 
 class UDFAuditTest(OTMTestCase):
     def setUp(self):
-        self.instance = make_instance()
+        self.p = Point(-8515941.0, 4953519.0)
+        self.instance = make_instance(point=self.p)
         self.commander_user = make_commander_user(self.instance)
         set_write_permissions(self.instance, self.commander_user,
                               'Plot', ['udf:Test choice'])
-
-        self.p = Point(-8515941.0, 4953519.0)
 
         UserDefinedFieldDefinition.objects.create(
             instance=self.instance,
@@ -702,8 +700,8 @@ class UDFDefTest(OTMTestCase):
 class ScalarUDFTest(OTMTestCase):
 
     def setUp(self):
-        self.instance = make_instance()
         self.p = Point(-8515941.0, 4953519.0)
+        self.instance = make_instance(point=self.p)
 
         def make_and_save_type(dtype):
             UserDefinedFieldDefinition.objects.create(
@@ -879,8 +877,8 @@ class ScalarUDFTest(OTMTestCase):
 
 class CollectionUDFTest(OTMTestCase):
     def setUp(self):
-        self.instance = make_instance()
         self.p = Point(-8515941.0, 4953519.0)
+        self.instance = make_instance(point=self.p)
 
         self.udf = make_collection_udf(self.instance, 'Stewardship')
 

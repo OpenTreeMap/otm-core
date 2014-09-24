@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.test.utils import override_settings
-from django.contrib.gis.geos import Point
 
 from treemap.units import (is_convertible, is_formattable, get_display_value,
                            is_convertible_or_formattable, get_storage_value)
@@ -112,7 +111,7 @@ class ConvertibleTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
-        self.plot = Plot(instance=self.instance, geom=Point(-7615441, 5953519))
+        self.plot = Plot(instance=self.instance, geom=self.instance.center)
         self.plot.save_with_user(self.user)
         self.tree = Tree(instance=self.instance, plot=self.plot)
         self.tree.save_with_user(self.user)

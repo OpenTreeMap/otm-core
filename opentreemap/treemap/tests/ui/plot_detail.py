@@ -5,7 +5,6 @@ from __future__ import division
 
 from time import sleep
 from selenium.common.exceptions import ElementNotVisibleException
-from django.contrib.gis.geos import Point
 
 from django.utils.unittest.case import skip
 
@@ -46,7 +45,7 @@ class PlotEditTest(TreemapUITestCase):
           "https://github.com/azavea/OTM2/issues/943")
     def test_tree_add_cancel(self):
 
-        plot = Plot(instance=self.instance, geom=Point(0, 0))
+        plot = Plot(instance=self.instance, geom=self.instance.center)
         plot.save_with_user(self.user)
 
         self.login_workflow()
@@ -68,7 +67,7 @@ class PlotDeleteTest(TreemapUITestCase):
         super(PlotDeleteTest, self).setUp()
         self.login_workflow()
 
-        self.plot = Plot(instance=self.instance, geom=Point(0, 0))
+        self.plot = Plot(instance=self.instance, geom=self.instance.center)
         self.plot.save_with_user(self.user)
         self.assertEqual(Plot.objects.count(), 1)
 
