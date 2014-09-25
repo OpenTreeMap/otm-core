@@ -1,4 +1,6 @@
 {% load i18n %}
+{% load dateformat %}
+
 {% if field.type == 'choice' %}
 <select class="form-control" data-field-name="{{ field.name }}">
   {% for choice in field.choices %}
@@ -6,8 +8,9 @@
   {% endfor %}
 </select>
 {% elif field.type == 'date' %}
-<input class="form-control" type="text" data-field-name="{{ field.name }}" data-date-format="yyyy-mm-dd"
-       data-moment-date-format="YYYY-MM-DD" value="{% trans "Today" %}" />
+<input class="form-control" type="text" data-field-name="{{ field.name }}"
+       data-date-display-format="{{ request.instance.short_date_format|moment_format }}"
+       data-date-serialize-format="YYYY-MM-DD" value="{% trans "Today" %}" />
 {% else %}
 <input type="text" data-field-name="{{ field.name }}" />
 {% endif %}

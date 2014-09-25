@@ -23,3 +23,28 @@ def datepicker_format(date_format):
     date_format = date_format.replace('Y', 'yyyy')
 
     return date_format
+
+
+@register.filter
+@stringfilter
+def moment_format(date_format):
+    """
+    Converts a Django DATE_FORMAT to the one specified at:
+    http://momentjs.com/docs/#/displaying/
+    """
+    conv_dict = {
+        'j': 'D',
+        'd': 'DD',
+        'D': 'ddd',
+        'l': 'dddd',
+        'n': 'M',
+        'm': 'MM',
+        'N': 'MMM',
+        'M': 'MMM',
+        'F': 'MMMM',
+        'E': 'MMMM',  # Locale text month,
+        'y': 'YY',
+        'Y': 'YYYY'
+    }
+    moment_format = ''.join(conv_dict.get(ch, ch) for ch in date_format)
+    return moment_format
