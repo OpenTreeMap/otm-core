@@ -588,8 +588,8 @@ class UpdatePlotAndTree(OTMTestCase):
         test_plot.length = 2
         test_plot.geocoded_address = 'foo'
         test_plot.save_with_user(self.user)
-        self.assertEqual(50, test_plot.geom.x)
-        self.assertEqual(50, test_plot.geom.y)
+        self.assertEqual(0, test_plot.geom.x)
+        self.assertEqual(0, test_plot.geom.y)
         self.assertEqual(1, test_plot.width)
         self.assertEqual(2, test_plot.length)
 
@@ -597,7 +597,7 @@ class UpdatePlotAndTree(OTMTestCase):
 
         updated_values = {'plot':
                           {'geom':
-                           {'y': 70, 'x': 60, 'srid': 4326},
+                           {'y': 0.001, 'x': 0.001, 'srid': 4326},
                            'width': 11,
                            'length': 22}}
 
@@ -608,8 +608,8 @@ class UpdatePlotAndTree(OTMTestCase):
         self.assertEqual(200, response.status_code)
 
         response_json = loads(response.content)
-        self.assertAlmostEqual(70, response_json['plot']['geom']['y'])
-        self.assertAlmostEqual(60, response_json['plot']['geom']['x'])
+        self.assertAlmostEqual(0.001, response_json['plot']['geom']['y'])
+        self.assertAlmostEqual(0.001, response_json['plot']['geom']['x'])
         self.assertEqual(11, response_json['plot']['width'])
         self.assertEqual(22, response_json['plot']['length'])
 
@@ -1151,8 +1151,8 @@ class InstancesClosestToPoint(OTMTestCase):
     def setUp(self):
         self.i1 = make_instance(is_public=True, point=Point(0, 0))
         self.i2 = make_instance(is_public=False, point=Point(0, 0))
-        self.i3 = make_instance(is_public=True, point=Point(0, 9))
-        self.i4 = make_instance(is_public=False, point=Point(10, 0))
+        self.i3 = make_instance(is_public=True, point=Point(0, 9000))
+        self.i4 = make_instance(is_public=False, point=Point(10000, 0))
         self.user = make_commander_user(instance=self.i2)
 
     def test_nearby_list_default(self):

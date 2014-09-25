@@ -7,7 +7,6 @@ from time import sleep
 
 from datetime import datetime, timedelta
 
-from django.contrib.gis.geos import Point
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.test.client import RequestFactory
@@ -40,7 +39,7 @@ class CommentTestMixin(object):
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
         self.admin = make_admin_user(self.instance)
-        self.plot = Plot(geom=Point(0, 0), instance=self.instance)
+        self.plot = Plot(geom=self.instance.center, instance=self.instance)
         self.plot.save_with_user(self.user)
 
 

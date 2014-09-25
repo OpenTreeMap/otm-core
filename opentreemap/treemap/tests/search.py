@@ -47,9 +47,7 @@ class FilterParserTests(OTMTestCase):
         d1 = {'action': 'prune', 'date': "2014-05-3 00:00:00"}
         d2 = {'action': 'water', 'date': "2014-04-29 00:00:00"}
 
-        p1 = Point(-7615441.0, 5953519.0)
-
-        self.plot = Plot(instance=instance, geom=p1)
+        self.plot = Plot(instance=instance, geom=instance.center)
         self.plot.udfs[self.plotstew.name] = [d1]
         self.plot.save_with_user(commander)
 
@@ -428,9 +426,9 @@ class FilterParserTests(OTMTestCase):
 
 class SearchTests(OTMTestCase):
     def setUp(self):
-        self.instance = make_instance()
+        self.p1 = Point(0, 0)
+        self.instance = make_instance(point=self.p1)
         self.commander = make_commander_user(self.instance)
-        self.p1 = Point(-7615441.0, 5953519.0)
 
     def create_tree_and_plot(self, plotudfs=None, treeudfs=None):
         plot = Plot(geom=self.p1, instance=self.instance)
@@ -734,9 +732,9 @@ class SearchTests(OTMTestCase):
         self.assertEqual(ids, {p1.pk})
 
     def test_within_radius_integration(self):
-        test_point = Point(-7615443.0, 5953520.0)
-        near_point = Point(-7615444.0, 5953521.0)
-        far_point = Point(-9615444.0, 8953521.0)
+        test_point = Point(0, 0)
+        near_point = Point(1, 1)
+        far_point = Point(250, 250)
 
         near_plot = Plot(geom=near_point, instance=self.instance)
         near_plot.save_with_user(self.commander)

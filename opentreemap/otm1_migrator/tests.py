@@ -6,8 +6,6 @@ from __future__ import division
 import json
 from copy import copy
 
-from django.contrib.gis.geos import Point
-
 from functools import partial
 
 from treemap.models import Plot, Tree, Species, User, TreePhoto
@@ -273,7 +271,7 @@ class MigrationCommandTests(LocalMediaTestCase):
 
     @media_dir
     def test_treephoto_dict_to_model(self):
-        plot = Plot(geom=Point(0, 0), instance=self.instance)
+        plot = Plot(geom=self.instance.center, instance=self.instance)
         plot.save_with_user(self.commander)
         tree = Tree(plot=plot, instance=self.instance)
         tree.save_with_user(self.commander)
@@ -320,7 +318,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         self.assertEqual(plot.length, 1.3)
 
     def test_tree_dict_to_model(self):
-        test_plot = Plot(geom=Point(0, 0), instance=self.instance)
+        test_plot = Plot(geom=self.instance.center, instance=self.instance)
         test_plot.id = 95
         test_plot.save_with_user(self.commander)
 

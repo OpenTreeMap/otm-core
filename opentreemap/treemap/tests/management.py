@@ -6,6 +6,7 @@ from __future__ import division
 from StringIO import StringIO
 
 from django.core.management import call_command
+from django.contrib.gis.geos import Polygon, MultiPolygon
 
 from treemap.models import Instance, Plot, Tree, Species
 from treemap.tests import (make_instance, make_user, make_commander_user)
@@ -31,6 +32,14 @@ class CreateInstanceManagementTest(OTMTestCase):
 class RandomTreesManagementTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
+        p1 = self.instance.center
+        square = Polygon(((p1.x - 10000, p1.y - 10000),
+                        (p1.x - 10000, p1.y + 10000),
+                        (p1.x + 10000, p1.y + 10000),
+                        (p1.x + 10000, p1.y - 10000),
+                        (p1.x - 10000, p1.y - 10000)))
+        self.instance.bounds = MultiPolygon((square,))
+        self.instance.save()
         user = make_commander_user(instance=self.instance)
         species = Species(instance=self.instance, otm_code='',
                           common_name='', genus='')
