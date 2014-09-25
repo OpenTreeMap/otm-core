@@ -24,7 +24,7 @@ exports.init = function(options) {
     var udfRowTemplate = _.template(
         '<tr data-value-id="">' +
             '<% _.each(fields, function (field) { %>' +
-            '<td> <%= field %> </td>' +
+            '<td data-value="<%= field.value %>"> <%= field.display %> </td>' +
             '<% }) %>' +
             '</tr>');
 
@@ -34,10 +34,20 @@ exports.init = function(options) {
         var fields = $('table[data-udf-id="' + id + '"] * [data-field-name]').toArray();
 
         var data = _.map(fields, function(field) {
-            if ($(field).attr('data-moment-date-format')) {
-                return moment($(field).datepicker("getDate")).format($(field).attr('data-moment-date-format'));
+            var $field = $(field);
+            if ($field.attr('data-date-display-format')) {
+                var displayFormat = $field.attr('data-date-display-format'),
+                    valueFormat = $field.attr('data-date-serialize-format'),
+                    date = $field.datepicker("getDate");
+                return {
+                    display: moment(date).format(displayFormat),
+                    value: moment(date).format(valueFormat),
+                };
             } else {
-                return $(field).val();
+                return {
+                    value: $field.val(),
+                    display: $field.val()
+                };
             }
         });
 
