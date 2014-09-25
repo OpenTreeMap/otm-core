@@ -100,7 +100,7 @@
         }
 
         th.selector > .btn-group {
-            width: 63px;
+            width: 64px;
         }
 
         th.actions {
@@ -146,6 +146,9 @@
             &:not(.less) {
                 display: inline;
             }
+        }
+        .user-link {
+            display: block;
         }
     }
 

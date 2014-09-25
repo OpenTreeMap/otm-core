@@ -1,6 +1,7 @@
 {% load i18n %}
 
-<div class="row">
+{# JS stuffs the next photo into [data-photo-container], so it should be the container around each photo.html #}
+<div class="row" data-photo-container>
   {% for photo in photos %}
   {% include "treemap/partials/photo.html" %}
   {% endfor %}

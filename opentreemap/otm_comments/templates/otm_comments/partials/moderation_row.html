@@ -11,6 +11,7 @@
     <td><a href="{{ comment.content_object|detail_link }}">{{ comment.id|unlocalize }}</a></td>
     <td><span class="label label-danger">{{ comment.visible_flag_count }}</span></td>
     <td>
+      <a class="user-link" href="{{ comment.user|detail_link }}">{{ comment.user.username }} </a>
       <div class="comment less">{{ comment.comment }}</div> <a data-less-more href="#">more</a>
       {% with visible_flags=comment.visible_flags %}
       {% if visible_flags %}
