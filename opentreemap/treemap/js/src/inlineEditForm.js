@@ -204,6 +204,7 @@ exports.init = function(options) {
                         .map(function() {
                             return $(this).html();
                         });
+
                 headers = _.compact(headers);
 
                 data[name] =
@@ -214,7 +215,7 @@ exports.init = function(options) {
 
                             rowData = _.object(headers, $tds
                                         .map(function() {
-                                            return $.trim($(this).html());
+                                            return $.trim($(this).attr('data-value'));
                                         }));
                         if (! _.isEmpty(id)) {
                             rowData.id = id;
