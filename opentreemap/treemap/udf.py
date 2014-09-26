@@ -18,12 +18,11 @@ from django.db.models.base import ModelBase
 from django.db.models.sql.constants import ORDER_PATTERN
 from django.db.models.signals import post_save, post_delete
 
-from django.contrib.gis.db.models.sql.where import GeoWhereNode
 from django.contrib.gis.db.models.sql.query import GeoQuery
 
 from django_hstore.fields import DictionaryField, HStoreDict
-from django_hstore.managers import HStoreManager
-from django_hstore.query import HStoreQuerySet
+from django_hstore.managers import HStoreManager, HStoreGeoManager
+from django_hstore.query import HStoreGeoQuerySet, HStoreGeoWhereNode
 
 from treemap.instance import Instance
 from treemap.audit import (UserTrackable, Audit, UserTrackingException,
@@ -1202,112 +1201,46 @@ def quotesingle(string):
     return string.replace("'", "''")
 
 
-class UDFWhereNode(GeoWhereNode):
+class UDFWhereNode(HStoreGeoWhereNode):
     """
     This class allows us to write the where clauses for a
     query that looks something like:
 
     Plot.objects.filter(**{'udf:Plant Date': datetime(2000,1,2)})
 
-    And transforms it into SQL looking something like:
+    And transforms it into something like:
+    Plot.objects.filter(udfs={'Plant Date': datetime(2000,1,2)})
 
-    ("treemap_plot"."udfs"->'Plant Date')::timestamp ==
-    '2000-01-02'::timestamp
+    This will allow django-hstore to transform it into SQL similar to:
 
+    ("treemap_plot"."udfs"->'Plant Date')::timestamp = '2000-01-02'::timestamp
     """
-
-    def get_udf_if_field_is_udf(self, field):
-        """
-        Since the field system is mostly stateless we would normally
-        lose the actual udf info rather quickly. To prevent this
-        we store the udf as a tuple with the first element being a
-        marker. The last element may optionally be a sql datatype:
-
-        ('udf', 'Plant Date', 'timestamp')
-        ('udf', 'Nickname')
-
-        If the input field matches the spec a tuple of:
-
-        (field name, datatype)
-
-        ...will be returned (where datatype may be empty, but will
-        not None)
-        """
-        try:
-            udfmarker, udffield = field[:2]
-            datatype = field[2] if len(field) == 3 else ''
-
-            if udfmarker == 'udf':
-                return (udffield, datatype)
-        except:
-            pass
-
-        return None
-
-    def sql_for_columns(self, lvalue, qn, connection, internal_type=None):
-        """
-        Most of the interesting stuff happens here. In particular,
-        this method checks if the field is a udf, and if so
-        does the transformation described above (in docs for UDFWhereNode)
-        """
-        udffield = self.get_udf_if_field_is_udf(lvalue[1])
-
-        if udffield:
-            udffieldname, datatype = udffield
-
-            # Update the field to the concrete data field
-            # and force the type to 'hstore', just in case
-            udf_field_def = (lvalue[0], 'udfs', 'hstore')
-
-            # Apply normal quoting and alias rules
-            field = super(UDFWhereNode, self).sql_for_columns(
-                udf_field_def, qn, connection, internal_type=internal_type)
-
-            # If a datatype can in, apply it as a cast
-            if datatype:
-                datatype = '::' + datatype
-
-            accessor = ("(%s->'%s')%s" %
-                        (field, quotesingle(udffieldname), datatype))
-
-            return accessor
-        else:
-            return super(UDFWhereNode, self)\
-                .sql_for_columns(lvalue, qn, connection)
-
-    def udf_sql_type(self, thing):
-        """
-        Attempt to convert a python value into a sql
-        equivalent
-        """
-        if isinstance(thing, datetime):
-            return 'timestamp'
-        elif isinstance(thing, (int, long)):
-            return 'integer'
-        elif isinstance(thing, float):
-            return 'numeric'
-        else:
-            return ''
 
     def make_atom(self, child, qn, connection):
         """
-        Add type information to udf definitions
+        Converts the 'udf:Field Name' syntax to the syntax expected by
+        django-hstore. e.g. filter(**{'udf:Field Name__gt': 17}) will be
+        converted into filter(udfs__gt={'Field Name': 17})
 
-        Since we don't have much info about UDFs (besides the name)
-        we try to tease out the datatype by looking at the
-        target value (i.e. filter(field=value), looking at value)
 
-        Since there isn't a good way to pass the datatype that we
-        slurped up, it is appended to the field definition.
         """
-        constraint, lookup, _, param_or_value = child
+        lvalue, lookup, value_annot, param = child
 
         # Note that 'isnull' means that `param_or_value` will always
         # be boolean (True, False). If this is the case, we don't
         # want to update the datatype
-        if ((self.get_udf_if_field_is_udf(constraint.col) and
-             lookup != 'isnull')):
-            constraint.col += (self.udf_sql_type(param_or_value), )
+        if (isinstance(lvalue.col, tuple) and lvalue.col[0] == 'udf'
+           and lookup != 'isnull'):
+            # For exact searches on scalar UDFs, we actually want contains,
+            # because we don't care about other UDF values
+            if lookup == 'exact':
+                lookup = 'contains'
+            hstore_key = lvalue.col[1]
+            lvalue.col = 'udfs'
+            wrapped_param = {}
+            wrapped_param[hstore_key] = param
+
+            child = (lvalue, lookup, value_annot, wrapped_param)
 
         return super(UDFWhereNode, self).make_atom(child, qn, connection)
 
@@ -1319,6 +1252,8 @@ class UDFQuery(GeoQuery):
     UDF Query encapsulates query compilation changes. In particular,
     it injects UDFWhereNode as the default WhereNode type (which can
     not be overwritten)
+    NOTE: This class *must* inherit from GeoQuery, not HstoreGeoQuery
+          HStoreGeoQuery will overwrite our WhereNode with it's own
     """
 
     def __init__(self, model):
@@ -1385,7 +1320,7 @@ class UDFQuery(GeoQuery):
             self.default_ordering = False
 
 
-class UDFQuerySet(models.query.GeoQuerySet):
+class UDFQuerySet(HStoreGeoQuerySet):
     """
     A query set that supports udf-based filter queries
 
@@ -1398,17 +1333,9 @@ class UDFQuerySet(models.query.GeoQuerySet):
         self.query = query or UDFQuery(model)
 
 
-class GeoHStoreUDFQuerySet(UDFQuerySet, HStoreQuerySet):
-    """
-    Merges hstore with the UDFQuerySet which includes the standard
-    GeoQuerySet
-    """
-    pass
-
-
-class GeoHStoreUDFManager(models.GeoManager, HStoreManager):
+class GeoHStoreUDFManager(HStoreGeoManager):
     """
     Merges the normal geo manager with the hstore manager backend
     """
     def get_queryset(self):
-        return GeoHStoreUDFQuerySet(self.model, using=self._db)
+        return UDFQuerySet(self.model, using=self._db)

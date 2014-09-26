@@ -6,7 +6,10 @@ Pillow==2.3.1
 argparse==1.2.1
 gunicorn==0.17.2
 psycopg2==2.4.6
-django-hstore==1.2.2
+# django-hstore==1.2.2
+# We added type casting to django-hstore
+# There is a PR for this here: https://github.com/djangonauts/django-hstore/pull/72
+git+https://github.com/azavea/django-hstore.git@1480f4ef3602a
 wsgiref==0.1.2
 pep8==1.4.6
 flake8==2.0
