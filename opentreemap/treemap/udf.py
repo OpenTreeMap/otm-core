@@ -564,7 +564,7 @@ class UserDefinedFieldDefinition(models.Model):
             objects_with_udf_data = (Model
                                      .objects
                                      .filter(instance=self.instance)
-                                     .exclude(**{self.canonical_name: ""}))
+                                     .filter(udfs__contains=[self.name]))
 
             for obj in objects_with_udf_data:
                 del obj.udfs[self.name]
