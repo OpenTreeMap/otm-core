@@ -14,8 +14,10 @@ def queryset_as_exported_csv(fn):
     def wrapped_fn(request, instance, *args, **kwargs):
         qs = fn(request, instance, *args, **kwargs)
 
-        job = ExportJob.objects.create(instance=instance,
-                                       user=request.user)
+        job = ExportJob.objects.create(
+            instance=instance,
+            description="job created by '%s' fn" % fn,
+            user=request.user)
         simple_async_csv.delay(job.pk, qs)
 
         return {'start_status': 'OK', 'job_id': job.pk}
