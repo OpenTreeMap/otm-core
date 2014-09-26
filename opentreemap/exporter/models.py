@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import datetime
+
 from django.contrib.gis.db import models
 
 from treemap.models import User
@@ -35,6 +37,17 @@ class ExportJob(models.Model):
                                  default=PENDING)
     user = models.ForeignKey(User, null=True, blank=True)
     outfile = models.FileField(upload_to="exports/%Y/%m/%d")
+    created = models.DateTimeField(null=True, blank=True)
+    modified = models.DateTimeField(null=True, blank=True)
+    description = models.CharField(max_length=255)
+
+    def save(self, *args, **kwargs):
+        now = datetime.datetime.now()
+        if self.pk:
+            self.modified = now
+        else:
+            self.created = now
+        super(ExportJob, self).save(*args, **kwargs)
 
     def get_url_if_ready(self):
         if self.status < self.COMPLETE:

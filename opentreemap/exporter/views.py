@@ -59,8 +59,10 @@ def begin_export_users(request, instance, data_format):
     if not request.user.is_authenticated():
         raise Http404()
 
-    job = ExportJob.objects.create(instance=instance,
-                                   user=request.user)
+    job = ExportJob.objects.create(
+        instance=instance,
+        user=request.user,
+        description='user export with %s format' % data_format)
 
     async_users_export.delay(job.pk, data_format)
 
@@ -71,7 +73,8 @@ def begin_export(request, instance, model):
     query = request.GET.get('q', None)
     display_filters = request.GET.get('show', None)
 
-    job = ExportJob(instance=instance)
+    job = ExportJob(instance=instance,
+                    description='csv export of %s' % model)
 
     if request.user.is_authenticated():
         job.user = request.user
