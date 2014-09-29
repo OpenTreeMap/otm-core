@@ -545,7 +545,7 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
 
     @property
     def is_plot(self):
-        return isinstance(self, Plot)
+        return getattr(self, 'feature_type', None) == 'Plot'
 
     def save_with_user(self, user, *args, **kwargs):
         self.full_clean_with_user(user)
@@ -639,7 +639,7 @@ class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
 
         if self.is_plot:
             # The hash for a plot includes the hash for its trees
-            tree_hashes = [t.hash for t in self.tree_set.all()]
+            tree_hashes = [t.hash for t in self.plot.tree_set.all()]
             string_to_hash += "," + ",".join(tree_hashes)
 
         return hashlib.md5(string_to_hash).hexdigest()
