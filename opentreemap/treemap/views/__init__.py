@@ -16,7 +16,7 @@ from treemap.decorators import (json_api_call, render_template, login_or_401,
                                 requires_feature,
                                 creates_instance_user, instance_request,
                                 username_matches_request_user,
-                                admin_instance_request)
+                                admin_instance_request, json_api_edit)
 
 from treemap.views.user import (forgot_username, upload_user_photo,
                                 user_audits, update_user, user,
@@ -132,9 +132,7 @@ map_feature_add_view = do(
     route(
         GET=render_map_feature_add,
         POST=do(
-            login_or_401,
-            json_api_call,
-            creates_instance_user,
+            json_api_edit,
             add_map_feature)))
 
 map_feature_detail_view = do(
@@ -142,9 +140,7 @@ map_feature_detail_view = do(
     route(
         GET=render_map_feature_detail,
         ELSE=do(
-            login_or_401,
-            json_api_call,
-            creates_instance_user,
+            json_api_edit,
             route(
                 PUT=update_map_feature_detail,
                 DELETE=delete_map_feature))))
@@ -196,10 +192,8 @@ get_plot_eco_view = do(
 #####################################
 
 delete_tree_view = do(
-    login_or_401,
-    json_api_call,
+    json_api_edit,
     instance_request,
-    creates_instance_user,
     delete_tree)
 
 tree_detail_view = instance_request(tree_detail)

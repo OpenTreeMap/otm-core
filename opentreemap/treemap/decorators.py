@@ -16,6 +16,8 @@ from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 
+from opentreemap.util import decorate as do
+
 from treemap.util import (LazyEncoder, add_visited_instance,
                           get_instance_or_404, login_redirect)
 from treemap.exceptions import (FeatureNotEnabledException,
@@ -194,6 +196,17 @@ def json_api_call(req_function):
         else:
             return '%s' % json.dumps(outp, cls=LazyEncoder)
     return string_to_response("application/json")(newreq)
+
+
+def json_api_edit(req_function):
+    """
+    Wraps view function for an AJAX call which modifies data.
+    """
+    return do(
+        login_or_401,
+        json_api_call,
+        creates_instance_user,
+        req_function)
 
 
 def string_to_response(content_type):
