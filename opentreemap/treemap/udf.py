@@ -1201,6 +1201,10 @@ def quotesingle(string):
     return string.replace("'", "''")
 
 
+def _is_scalar_udf(lvalue):
+    return isinstance(lvalue.col, tuple) and lvalue.col[0] == 'udf'
+
+
 class UDFWhereNode(HStoreGeoWhereNode):
     """
     This class allows us to write the where clauses for a
@@ -1216,21 +1220,18 @@ class UDFWhereNode(HStoreGeoWhereNode):
     ("treemap_plot"."udfs"->'Plant Date')::timestamp = '2000-01-02'::timestamp
     """
 
-    def make_atom(self, child, qn, connection):
+    def add(self, child, *args, **kwargs):
         """
         Converts the 'udf:Field Name' syntax to the syntax expected by
         django-hstore. e.g. filter(**{'udf:Field Name__gt': 17}) will be
         converted into filter(udfs__gt={'Field Name': 17})
-
-
         """
-        lvalue, lookup, value_annot, param = child
+        if not isinstance(child, tuple):
+            return super(UDFWhereNode, self).add(child, *args, **kwargs)
+        lvalue, lookup, param = child
 
-        # Note that 'isnull' means that `param_or_value` will always
-        # be boolean (True, False). If this is the case, we don't
-        # want to update the datatype
-        if (isinstance(lvalue.col, tuple) and lvalue.col[0] == 'udf'
-           and lookup != 'isnull'):
+        # contains and icontains are handled below in make_atom
+        if _is_scalar_udf(lvalue) and lookup not in ('contains', 'icontains'):
             # For exact searches on scalar UDFs, we actually want contains,
             # because we don't care about other UDF values
             if lookup == 'exact':
@@ -1240,7 +1241,32 @@ class UDFWhereNode(HStoreGeoWhereNode):
             wrapped_param = {}
             wrapped_param[hstore_key] = param
 
-            child = (lvalue, lookup, value_annot, wrapped_param)
+            child = (lvalue, lookup, wrapped_param)
+
+        return super(UDFWhereNode, self).add(child, *args, **kwargs)
+
+    def make_atom(self, child, qn, connection):
+        """
+        django-hstore overloads contains to mean an *exact* search for subsets
+        of key value pairs.  Because of this, to make our udf:field Name syntax
+        work we have to handle generating SQL for contains and icontains here,
+        instead of modifying the query and delegating it to django-hstore
+        """
+        if not isinstance(child, tuple):
+            return super(UDFWhereNode, self).make_atom(child, qn, connection)
+
+        lvalue, lookup, value_annot, value = child
+
+        if _is_scalar_udf(lvalue) and lookup in ('contains', 'icontains'):
+            hstore_key = lvalue.col[1]
+            lvalue.col = 'udfs'
+
+            lvalue, params = lvalue.process(lookup, value, connection)
+            field = self.sql_for_columns(lvalue, qn, connection)
+
+            op = 'LIKE' if lookup == 'contains' else 'ILIKE'
+            sql = '(%s->\'%s\') %s %%s' % (field, hstore_key, op)
+            return (sql, params)
 
         return super(UDFWhereNode, self).make_atom(child, qn, connection)
 
