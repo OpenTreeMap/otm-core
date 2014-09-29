@@ -147,4 +147,17 @@ exports.juxt = function(fns) {
     };
 };
 
-
+// TODO: Remove once flatMap is supported natively in lodash.
+exports.flatMap = function(coll, callback, thisArg) {
+    return _.map(
+        _.reduce(
+            coll,
+            function(acc, item) {
+                return acc.concat(item);
+            },
+            []
+        ),
+        callback,
+        thisArg
+    );
+};
