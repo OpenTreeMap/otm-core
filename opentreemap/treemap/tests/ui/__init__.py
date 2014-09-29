@@ -1,9 +1,8 @@
 import importlib
 
-from time import sleep
-
 from django.test import LiveServerTestCase
 from django.conf import settings
+from django.contrib.gis.geos import Point
 
 from selenium.common.exceptions import (WebDriverException,
                                         StaleElementReferenceException)
@@ -11,8 +10,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 
-from treemap.tests import create_mock_system_user, make_commander_user
-from treemap.models import Tree, Plot, Instance
+from treemap.tests import make_commander_user
+from treemap.models import Instance
 from treemap.lib.object_caches import clear_caches
 from treemap.plugin import setup_for_ui_test
 
@@ -203,7 +202,8 @@ class TreemapUITestCase(UITestCase):
         self.instance = create_instance(
             name=instance_name,
             is_public=False,
-            url_name='autotest-instance')
+            url_name='autotest-instance',
+            edge_length=20000)
 
         self.user = make_commander_user(instance=self.instance,
                                         username='username')

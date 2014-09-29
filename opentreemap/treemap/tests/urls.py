@@ -257,8 +257,7 @@ class TreemapUrlTests(UrlTestCase):
 
 class InstanceUrlTests(RequestTestCase):
     def setUp(self):
-        make_instance(name='The inztance',
-                      is_public=True,
+        make_instance(name='The inztance', is_public=True,
                       url_name='ThEiNsTaNCe')
 
     def test_case_insensitive_url_lookup_upper(self):
