@@ -83,7 +83,7 @@ def user_csv(request, instance):
         user = User.objects.get(pk=relic.otm2_model_id)
         if relic.otm1_username == user.username:
             continue
-        assert relic.email == user.email
+        assert relic.email.lower() == user.email.lower()
         row = {
             'otm1_user_id': relic.otm1_model_id,
             'otm2_model_id': user.pk,
