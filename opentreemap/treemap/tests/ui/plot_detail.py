@@ -88,6 +88,7 @@ class PlotDeleteTest(TreemapUITestCase):
     def _click_delete(self):
         self._select_buttons()
         self.delete_begin.click()
+        self.wait_until_visible(self.delete_confirm)
         self.delete_confirm.click()
         self.wait_until_invisible(self.delete_confirm)
 

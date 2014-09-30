@@ -275,7 +275,8 @@ def make_user_and_role(instance, username, rolename, permissions):
     return make_user(instance, username, make_role)
 
 
-def make_instance(name=None, is_public=False, url_name=None, point=None):
+def make_instance(name=None, is_public=False, url_name=None, point=None,
+                  edge_length=600):
     if name is None:
         max_instance = Instance.objects.all().aggregate(
             Max('id'))['id__max'] or 0
@@ -299,11 +300,12 @@ def make_instance(name=None, is_public=False, url_name=None, point=None):
     instance.default_role.instance = instance
     instance.default_role.save()
 
-    square = Polygon(((p1.x - 300, p1.y - 300),
-                      (p1.x - 300, p1.y + 300),
-                      (p1.x + 300, p1.y + 300),
-                      (p1.x + 300, p1.y - 300),
-                      (p1.x - 300, p1.y - 300)))
+    d = edge_length / 2
+    square = Polygon(((p1.x - d, p1.y - d),
+                      (p1.x - d, p1.y + d),
+                      (p1.x + d, p1.y + d),
+                      (p1.x + d, p1.y - d),
+                      (p1.x - d, p1.y - d)))
     instance.bounds = MultiPolygon((square,))
     instance.save()
 

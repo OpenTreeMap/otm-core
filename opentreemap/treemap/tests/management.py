@@ -31,15 +31,7 @@ class CreateInstanceManagementTest(OTMTestCase):
 
 class RandomTreesManagementTest(OTMTestCase):
     def setUp(self):
-        self.instance = make_instance()
-        p1 = self.instance.center
-        square = Polygon(((p1.x - 10000, p1.y - 10000),
-                        (p1.x - 10000, p1.y + 10000),
-                        (p1.x + 10000, p1.y + 10000),
-                        (p1.x + 10000, p1.y - 10000),
-                        (p1.x - 10000, p1.y - 10000)))
-        self.instance.bounds = MultiPolygon((square,))
-        self.instance.save()
+        self.instance = make_instance(edge_length=20000)
         user = make_commander_user(instance=self.instance)
         species = Species(instance=self.instance, otm_code='',
                           common_name='', genus='')
