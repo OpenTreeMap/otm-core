@@ -192,8 +192,8 @@ get_plot_eco_view = do(
 #####################################
 
 delete_tree_view = do(
-    json_api_edit,
     instance_request,
+    json_api_edit,
     delete_tree)
 
 tree_detail_view = instance_request(tree_detail)
