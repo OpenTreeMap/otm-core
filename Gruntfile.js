@@ -97,7 +97,10 @@ module.exports = function(grunt) {
                 tasks: ['shell:collect_static']
             },
             lint: {
-                files: getAliasFiles(getRegularAliases()),
+                files: [].concat(
+                    getAliasFiles(getSrcAliases()),
+                    getAliasFiles(getTestAliases())
+                ),
                 tasks: ['check']
             }
         },
@@ -216,7 +219,8 @@ module.exports = function(grunt) {
             options: {
                 jshintrc: "../.jshintrc"
             },
-            treemap: ['../Gruntfile.js', '*/js/src/**/*.js']
+            treemap: ['../Gruntfile.js', '*/js/src/**/*.js'],
+            tests: getAliasFiles(getTestAliases())
         },
         uglify: {
             options: {
