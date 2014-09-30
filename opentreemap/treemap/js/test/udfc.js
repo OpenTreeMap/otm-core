@@ -133,11 +133,11 @@ var pushStateDiffTestCases = {
             dateFieldKey: 'data',
             actionFieldKey: 'action'
         },
-        domExpectations: _.extend(
-            {}, emptyActionExpectations, {
-                invisibleTreeOptions: 0,
-                visibleTreeOptions: initialDomData.treeActions.count,
-                actionName: 'udf:tree:18.action' })
+        domExpectations: _.extend({}, emptyActionExpectations, {
+            invisibleTreeOptions: 0,
+            visibleTreeOptions: initialDomData.treeActions.count,
+            actionName: 'udf:tree:18.action'
+        })
     }
 };
 
