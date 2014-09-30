@@ -2,7 +2,6 @@ import importlib
 
 from django.test import LiveServerTestCase
 from django.conf import settings
-from django.contrib.gis.geos import Point
 
 from selenium.common.exceptions import (WebDriverException,
                                         StaleElementReferenceException)

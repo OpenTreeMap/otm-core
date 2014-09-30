@@ -6,7 +6,6 @@ from __future__ import division
 from StringIO import StringIO
 
 from django.core.management import call_command
-from django.contrib.gis.geos import Polygon, MultiPolygon
 
 from treemap.models import Instance, Plot, Tree, Species
 from treemap.tests import (make_instance, make_user, make_commander_user)
