@@ -193,4 +193,48 @@
             margin-right: -20px;
         }
     }
+
+    .marker-popup {
+        width: 200px;
+
+        h4, h5 {
+            font-weight: bold;
+        }
+
+        h5 {
+            margin: 5px 0;
+        }
+
+        .text-gray {
+            color: #555;
+        }
+    }
+
+    .polygon-popup {
+        width: 250px;
+        color: #000;
+
+        h4, h5 {
+            font-weight: bold;
+        }
+
+        h5 {
+            margin: 5px 0;
+        }
+
+        a {
+            text-decoration: underline;
+        }
+
+        .land-use {
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            margin: 5px 0 10px 0;
+            padding: 5px 0;
+        }
+
+        .text-gray {
+            color: #555;
+        }
+    }
 }
