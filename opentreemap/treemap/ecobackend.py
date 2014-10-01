@@ -37,7 +37,7 @@ UNKNOWN_ECOBENEFIT_ERROR = 'unknown_ecobenefit_error'
 ECOBENEFIT_ERRORS = {
     BAD_CODE_PAIR: [
         (r'iTree code not found for otmcode '
-         r'([A-Z]+) in region ([A-Z][a-z]+[A-Z]+)\n')],
+         r'([A-Z]+) in region ([A-Za-z]+)\n')],
     UNKNOWN_ECOBENEFIT_ERROR: [
         'Species data not found for the .* region',
         ('There are overrides defined for instance .* in '
@@ -47,6 +47,10 @@ ECOBENEFIT_ERRORS = {
         'Missing or invalid .* parameter',
     ]
 }
+
+
+class UnrecognizedEcoException(Exception):
+    pass
 
 
 def json_benefits_call(endpoint, params, post=False, convert_params=True):
@@ -104,4 +108,7 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
                 if match:
                     return (None, code)
         else:
-            raise
+            # We lose the traceback by raising our own exception here, but the
+            # traceback will all be inside urllib2 and this message is better
+            # Python 3 would let us keep the traceback and still set a message
+            raise UnrecognizedEcoException(error_body)
