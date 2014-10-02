@@ -822,7 +822,8 @@ class SpeciesImportRow(GenericImportRow):
                 setattr(species, modelkey, importdata)
 
         if species_edited:
-            species.save()
+            data_owner = self.import_event.owner
+            species.save_with_user(data_owner)
 
 # TODO: Remove?
 #         resources = data[fields.species.RESOURCE]
@@ -961,7 +962,7 @@ class TreeImportRow(GenericImportRow):
                 setattr(plot, modelkey, importdata)
 
         if plot_edited:
-            plot.save()
+            plot.save_with_user(data_owner)
 
         for modelkey, importdatakey in TreeImportRow.TREE_MAP.iteritems():
             importdata = data.get(importdatakey, None)
@@ -974,7 +975,7 @@ class TreeImportRow(GenericImportRow):
 
         if tree_edited:
             tree.plot = plot
-            tree.save()
+            tree.save_with_user(data_owner)
 
         self.plot = plot
         self.status = TreeImportRow.SUCCESS

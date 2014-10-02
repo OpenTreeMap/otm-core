@@ -911,7 +911,7 @@ class TreeIntegrationTests(IntegrationTests):
     def test_all_tree_data(self):
         s1_gsc = Species(instance=self.instance, genus='g1', species='s1',
                          cultivar='c1')
-        s1_gsc.save(self.user)
+        s1_gsc.save_with_user(self.user)
 
         csv = """
         | point x | point y | tree owner | tree steward | diameter | tree height |

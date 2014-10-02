@@ -163,14 +163,15 @@ def merge_species(request):
             content_type='application/json',
             status=400)
 
+    # TODO: .update_with_user()?
     Tree.objects.filter(species=species_to_delete)\
                 .update(species=species_to_replace_with)
 
-    species_to_delete.delete()
+    species_to_delete.delete_with_user(request.user)
 
     # Force a tree count update
     species_to_replace_with.tree_count = 0
-    species_to_replace_with.save()
+    species_to_replace_with.save_with_user(request.user)
 
     return HttpResponse(
         json.dumps({"status": "ok"}),
