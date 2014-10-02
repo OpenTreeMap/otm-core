@@ -1,9 +1,14 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 from celery import task
 
-from importer.models import TreeImportRow, GenericImportEvent, \
-    GenericImportRow
+from importer.models import TreeImportRow, GenericImportEvent, GenericImportRow
 
 BLOCK_SIZE = 250
+
 
 def get_waiting_row_count(ie):
     return ie.rows()\
@@ -20,6 +25,7 @@ def validate_rows(ie, i):
         ie.status = GenericImportEvent.FINISHED_VERIFICATION
         ie.save()
 
+
 @task()
 def run_import_event_validation(ie):
     filevalid = ie.validate_main_file()
@@ -29,8 +35,9 @@ def run_import_event_validation(ie):
 
     rows = ie.rows()
     if filevalid:
-        for i in xrange(0,rows.count(), BLOCK_SIZE):
+        for i in xrange(0, rows.count(), BLOCK_SIZE):
             validate_rows.delay(ie, i)
+
 
 @task()
 def commit_rows(ie, i):
@@ -51,16 +58,15 @@ def commit_rows(ie, i):
         ie.status = GenericImportEvent.FINISHED_CREATING
         ie.save()
 
+
 @task()
 def commit_import_event(ie):
     filevalid = ie.validate_main_file()
 
     rows = ie.rows()
-    success = []
-    failed = []
 
     #TODO: When using OTM ID field, don't include
     #      that tree in proximity check (duh)
     if filevalid:
-        for i in xrange(0,rows.count(), BLOCK_SIZE):
+        for i in xrange(0, rows.count(), BLOCK_SIZE):
             commit_rows.delay(ie, i)

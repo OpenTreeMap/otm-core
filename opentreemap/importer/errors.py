@@ -1,21 +1,26 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 # 3 tuples (error id, error descr, fatal)
 from importer.fields import trees
 
 
 EMPTY_FILE = (1, 'No rows found', True)
-MISSING_POINTS = (2, 'You must specify a "%s" and "%s" field' %\
+MISSING_POINTS = (2, 'You must specify a "%s" and "%s" field' %
                   (trees.POINT_X, trees.POINT_Y), True)
 
-UNMATCHED_FIELDS = (3, "Some fields in the uploaded dataset "\
+UNMATCHED_FIELDS = (3, "Some fields in the uploaded dataset "
                     "didn't match the template", False)
 
-MISSING_SPECIES_FIELDS = (4, 'You must specify i-Tree Code, Common Name '\
+MISSING_SPECIES_FIELDS = (4, 'You must specify i-Tree Code, Common Name '
                           'Genus and Species', True)
 
 MISSING_FIELD = (5, 'This field is required', True)
 GENERIC_ERROR = (6, 'There was an exception', True)
 
-INVALID_GEOM = (10, 'Longitude must be between -180 and 180 and '\
+INVALID_GEOM = (10, 'Longitude must be between -180 and 180 and '
                 'latitude must be betwen -90 and 90', True)
 
 GEOM_OUT_OF_BOUNDS = (11, 'Geometry must be in a neighborhood', True)
@@ -24,9 +29,9 @@ EXCL_ZONE = (12, 'Geometry may not be in an exclusion zone', True)
 
 INVALID_SPECIES = (20, 'Could not find matching species', True)
 
-INVALID_OTM_ID = (30, 'The given Open Tree Map ID does not exist '\
-                  'in the system. This ID is automatically generated '\
-                  'by Open Tree Map and should only be used for '\
+INVALID_OTM_ID = (30, 'The given Open Tree Map ID does not exist '
+                  'in the system. This ID is automatically generated '
+                  'by Open Tree Map and should only be used for '
                   'updating existing records', True)
 
 FLOAT_ERROR = (40, 'Not formatted as a number', True)

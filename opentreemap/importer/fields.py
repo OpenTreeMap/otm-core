@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
+
 class species(object):
     GENUS = 'genus'
     SPECIES = 'species'
@@ -33,7 +39,6 @@ class species(object):
     ID = 'database id of species'
     SCIENTIFIC_NAME = 'scientific name'
 
-
     CHOICE_MAP = {
         FLOWERING_PERIOD: 'seasons',
         FRUIT_PERIOD: 'seasons'
@@ -41,24 +46,24 @@ class species(object):
 
     DATE_FIELDS = set()
 
-    STRING_FIELDS = { GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME, COMMON_NAME,
-                      USDA_SYMBOL, ALT_SYMBOL, ITREE_CODE, FAMILY,
-                      FACT_SHEET}
+    STRING_FIELDS = {GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME, COMMON_NAME,
+                     USDA_SYMBOL, ALT_SYMBOL, ITREE_CODE, FAMILY,
+                     FACT_SHEET}
 
-    POS_FLOAT_FIELDS = { MAX_DIAMETER, MAX_HEIGHT }
+    POS_FLOAT_FIELDS = {MAX_DIAMETER, MAX_HEIGHT}
 
     FLOAT_FIELDS = set()
 
     POS_INT_FIELDS = set()
 
-    BOOLEAN_FIELDS = { NATIVE_STATUS, FALL_COLORS, EDIBLE,
-                       FLOWERING, WILDLIFE }
+    BOOLEAN_FIELDS = {NATIVE_STATUS, FALL_COLORS, EDIBLE, FLOWERING, WILDLIFE}
 
     ALL = DATE_FIELDS | STRING_FIELDS | POS_FLOAT_FIELDS | \
-          FLOAT_FIELDS | POS_INT_FIELDS | BOOLEAN_FIELDS | \
-          set(CHOICE_MAP.keys())
+        FLOAT_FIELDS | POS_INT_FIELDS | BOOLEAN_FIELDS | \
+        set(CHOICE_MAP.keys())
 
     PLOT_CHOICES = set()
+
 
 class trees(object):
     # X/Y are required
@@ -135,30 +140,24 @@ class trees(object):
         LOCAL_PROJECTS: 'projects'
     }
 
-    DATE_FIELDS = { DATE_PLANTED }
+    DATE_FIELDS = {DATE_PLANTED}
 
-    STRING_FIELDS = { ADDRESS, GENUS, SPECIES,
-                      CULTIVAR, OTHER_PART_OF_NAME, URL,
-                      NOTES, OWNER, SPONSOR,
-                      STEWARD, DATA_SOURCE,
-                      LOCAL_PROJECTS, NOTES, ORIG_ID_NUMBER }
+    STRING_FIELDS = {ADDRESS, GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME,
+                     URL, NOTES, OWNER, SPONSOR, STEWARD, DATA_SOURCE,
+                     LOCAL_PROJECTS, NOTES, ORIG_ID_NUMBER}
 
-    POS_FLOAT_FIELDS = { PLOT_WIDTH, PLOT_LENGTH,
-                         DIAMETER, TREE_HEIGHT,
-                         CANOPY_HEIGHT }
+    POS_FLOAT_FIELDS = {PLOT_WIDTH, PLOT_LENGTH, DIAMETER, TREE_HEIGHT,
+                        CANOPY_HEIGHT}
 
-    FLOAT_FIELDS = { POINT_X, POINT_Y }
+    FLOAT_FIELDS = {POINT_X, POINT_Y}
 
-    POS_INT_FIELDS = { OPENTREEMAP_ID_NUMBER }
+    POS_INT_FIELDS = {OPENTREEMAP_ID_NUMBER}
 
-    BOOLEAN_FIELDS = { READ_ONLY, TREE_PRESENT }
+    BOOLEAN_FIELDS = {READ_ONLY, TREE_PRESENT}
 
-    ALL = { POINT_X, POINT_Y, ADDRESS, PLOT_WIDTH,
-            PLOT_LENGTH, READ_ONLY, OPENTREEMAP_ID_NUMBER,
-            TREE_PRESENT, PLOT_TYPE, POWERLINE_CONFLICT,
-            SIDEWALK, GENUS, SPECIES, CULTIVAR,
-            OTHER_PART_OF_NAME, DIAMETER, ORIG_ID_NUMBER,
-            CANOPY_HEIGHT, DATE_PLANTED, TREE_CONDITION,
-            CANOPY_CONDITION, ACTIONS, PESTS,
-            LOCAL_PROJECTS, URL, NOTES, OWNER,
-            SPONSOR, STEWARD, DATA_SOURCE, TREE_HEIGHT }
+    ALL = {POINT_X, POINT_Y, ADDRESS, PLOT_WIDTH, PLOT_LENGTH, READ_ONLY,
+           OPENTREEMAP_ID_NUMBER, TREE_PRESENT, PLOT_TYPE, POWERLINE_CONFLICT,
+           SIDEWALK, GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME, DIAMETER,
+           ORIG_ID_NUMBER, CANOPY_HEIGHT, DATE_PLANTED, TREE_CONDITION,
+           CANOPY_CONDITION, ACTIONS, PESTS, LOCAL_PROJECTS, URL, NOTES, OWNER,
+           SPONSOR, STEWARD, DATA_SOURCE, TREE_HEIGHT}
