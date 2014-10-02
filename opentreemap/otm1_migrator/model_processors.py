@@ -13,6 +13,7 @@ from treemap.models import User, InstanceUser, Tree, Species
 from treemap.util import to_object_name
 from treemap.images import save_uploaded_image
 
+from registration.models import RegistrationProfile
 from otm1_migrator import models
 from otm1_migrator.models import (OTM1UserRelic, OTM1ModelRelic,
                                   OTM1CommentRelic)
@@ -22,7 +23,8 @@ from otm1_migrator.data_util import (MigrationException, sanitize_username,
 
 @atomic
 def save_species(migration_rules, migration_event,
-                 species_dict, species_obj, instance):
+                 species_dict, species_obj, instance,
+                 **kwargs):
 
     non_migrated_species = Species.objects.raw("""
     SELECT *
@@ -56,7 +58,8 @@ def save_species(migration_rules, migration_event,
 
 @atomic
 def save_plot(migration_rules, migration_event,
-              plot_dict, plot_obj, instance):
+              plot_dict, plot_obj, instance,
+              **kwargs):
 
     if plot_dict['fields']['present'] is False:
         plot_obj = None
@@ -77,7 +80,8 @@ def save_plot(migration_rules, migration_event,
 
 @atomic
 def save_tree(migration_rules, migration_event,
-              tree_dict, tree_obj, instance):
+              tree_dict, tree_obj, instance,
+              **kwargs):
 
     if ((tree_dict['fields']['present'] is False or
          tree_dict['fields']['plot'] == models.UNBOUND_MODEL_ID)):
@@ -99,7 +103,7 @@ def save_tree(migration_rules, migration_event,
 
 @atomic
 def process_reputation(migration_rules, migration_event,
-                       model_dict, rep_obj, instance):
+                       model_dict, rep_obj, instance, **kwargs):
 
     iuser = InstanceUser.objects.get(user_id=model_dict['fields']['user'],
                                      instance_id=instance.id)
@@ -116,7 +120,8 @@ def process_reputation(migration_rules, migration_event,
 
 @atomic
 def process_userprofile(migration_rules, migration_event,
-                        photo_basepath, model_dict, up_obj, instance):
+                        photo_basepath, model_dict, up_obj,
+                        instance, **kwargs):
     """
     Read the otm1 user photo off userprofile fixture, load the file,
     create storage-backed image and thumbnail, attach to user.
@@ -155,8 +160,8 @@ def process_userprofile(migration_rules, migration_event,
 
 
 @atomic
-def save_treephoto(migration_rules, migration_event,
-                   treephoto_path, model_dict, treephoto_obj, instance):
+def save_treephoto(migration_rules, migration_event, treephoto_path,
+                   model_dict, treephoto_obj, instance, **kwargs):
 
     if model_dict['fields']['tree'] == models.UNBOUND_MODEL_ID:
         treephoto_obj = None
@@ -186,8 +191,8 @@ def save_treephoto(migration_rules, migration_event,
 
 
 @atomic
-def save_audit(migration_rules, migration_event,
-               relic_ids, model_dict, audit_obj, instance):
+def save_audit(migration_rules, migration_event, relic_ids,
+               model_dict, audit_obj, instance, **kwargs):
 
     fields = model_dict['fields']
 
@@ -225,8 +230,8 @@ def save_audit(migration_rules, migration_event,
 
 
 @atomic
-def save_treefavorite(migration_rules, migration_event,
-                      fav_dict, fav_obj, instance):
+def save_treefavorite(migration_rules, migration_event, fav_dict,
+                      fav_obj, instance, **kwargs):
     fav_obj.save()
     fav_obj.created = inflate_date(fav_dict['fields']['date_created'])
     fav_obj.save()
@@ -283,8 +288,8 @@ def _base_process_comment(migration_rules, migration_event,
 
 
 @atomic
-def save_comment(migration_rules, migration_event,
-                 relic_ids, model_dict, comment_obj, instance):
+def save_comment(migration_rules, migration_event, relic_ids,
+                 model_dict, comment_obj, instance, **kwargs):
 
     comment_obj = _base_process_comment(migration_rules, migration_event,
                                         relic_ids, model_dict, comment_obj,
@@ -305,8 +310,8 @@ def save_comment(migration_rules, migration_event,
 
 
 @atomic
-def save_threadedcomment(migration_rules, migration_event,
-                         relic_ids, model_dict, tcomment_obj, instance):
+def save_threadedcomment(migration_rules, migration_event, relic_ids,
+                         model_dict, tcomment_obj, instance, **kwargs):
 
     tcomment_obj = _base_process_comment(migration_rules, migration_event,
                                          relic_ids, model_dict, tcomment_obj,
@@ -347,8 +352,8 @@ def save_threadedcomment(migration_rules, migration_event,
 
 
 @atomic
-def process_contenttype(migration_rules, migration_event,
-                        model_dict, ct_obj, instance):
+def process_contenttype(migration_rules, migration_event, model_dict,
+                        ct_obj, instance, **kwargs):
     """
     There must be a relic for ContentType because comments use them
     as foreign keys. However, unlike other migrations, there's no
@@ -382,8 +387,8 @@ def process_contenttype(migration_rules, migration_event,
 
 
 @atomic
-def save_boundary(migration_rules, migration_event,
-                  model_dict, boundary_obj, instance):
+def save_boundary(migration_rules, migration_event, model_dict,
+                  boundary_obj, instance, **kwargs):
     boundary_obj.save()
     OTM1ModelRelic.objects.create(
         instance=instance,
@@ -397,7 +402,70 @@ def save_boundary(migration_rules, migration_event,
 
 
 @atomic
-def save_user(migration_rules, migration_event, user_dict, user_obj, instance):
+def save_registrationprofile(migration_rules, migration_event, rp_dict,
+                             candidate_rp_obj, instance, **kwargs):
+    user = candidate_rp_obj.user
+    existing_rps = RegistrationProfile.objects.filter(user_id=user.pk)
+    already_exists = len(existing_rps) > 0
+
+    if already_exists:
+        assert len(existing_rps) == 1
+        rp_obj = existing_rps[0]
+    else:
+        rp_obj = candidate_rp_obj
+
+    if user.is_active:
+        # if the user has been marked as active for any reason,
+        # the rp should reflect that.
+        #
+        # for example, if the multi-record user was merged, it will be
+        # set to active if any of the user accounts were active.
+        # therefore, the corresponding registrationprofile for this
+        # user should be considered active as well.
+        rp_obj.activation_key = RegistrationProfile.ACTIVATED
+    else:
+        if not already_exists:
+            # if not active and not merged, then just carry the
+            # activation_key over, which happened already.
+            pass
+        else:
+            # if the rp exists, but the user is not active, we want to
+            # merge the existing record with this candidate by
+            # prefering the key that was assigned to the user account
+            # that was chosen by the migration, so emails sitting in
+            # their inbox will still work on otm2.
+            otm1_id_for_candidate = kwargs['old_model_dict']['fields']['user']
+            chosen_user_relic = OTM1UserRelic.objects.get_chosen_one(user.pk)
+
+            if not chosen_user_relic:
+                # there's nothing we can do if we can't find a
+                # definitive user that resulted from a related
+                # relic. best to just save the rp_obj and wait for new
+                # emails to be generated.
+                pass
+            else:
+                # since we have the chosen user relic, we can compare
+                # the otm1_model_id to the old_model_dict for this
+                # registration profile to see if this
+                # registrationprofile corresponds to the user that got
+                # chosen.
+                if chosen_user_relic.otm1_model_id == otm1_id_for_candidate:
+                    rp_obj.activation_key = candidate_rp_obj.activation_key
+
+    rp_obj.save()
+
+    OTM1ModelRelic.objects.create(
+        instance=instance,
+        migration_event=migration_event,
+        otm2_model_name='registrationprofile',
+        otm1_model_id=rp_dict['pk'],
+        otm2_model_id=rp_obj.pk)
+    return rp_obj
+
+
+@atomic
+def save_user(migration_rules, migration_event, user_dict,
+              user_obj, instance, **kwargs):
     """
     Save otm1 user record into otm2.
 
