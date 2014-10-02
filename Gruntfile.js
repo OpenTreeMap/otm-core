@@ -106,7 +106,7 @@ module.exports = function(grunt) {
         },
         shell: {
             collect_static: {
-                command: 'fab vagrant static:dev'
+                command: 'fab vagrant static' + (debug ? ':dev_mode=True' : '')
             }
         },
         browserify: {
