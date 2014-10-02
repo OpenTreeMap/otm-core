@@ -65,8 +65,6 @@ def commit_import_event(ie):
 
     rows = ie.rows()
 
-    #TODO: When using OTM ID field, don't include
-    #      that tree in proximity check (duh)
     if filevalid:
         for i in xrange(0, rows.count(), BLOCK_SIZE):
             commit_rows.delay(ie, i)

@@ -213,6 +213,7 @@ def update(request, import_type, import_event_id):
         if k in basedata:
             basedata[k] = v
 
+    # TODO: Validate happens *after* save()?
     row.datadict = basedata
     row.save()
     row.validate_row()
@@ -391,11 +392,6 @@ def solve(request, import_event_id, import_row_idx):
 @transaction.commit_manually
 @login_required
 def commit(request, import_event_id, import_type=None):
-    #TODO:!!! NEED TO ADD TREES TO WATCH LIST
-    #TODO:!!! Trees in the same import event should not cause
-    #         proximity issues
-    #TODO:!!! NEED TO INDICATE TREES TO BE ADDED TO WATCH LIST
-    #TODO:!!! NEED TO CLEAR TILE CACHE
     #TODO:!!! If 'Plot' already exists on row *update* when changed
     if import_type == 'species':
         model = SpeciesImportEvent
@@ -413,7 +409,6 @@ def commit(request, import_event_id, import_type=None):
     transaction.commit()
 
     commit_import_event.delay(ie)
-    #TODO: Update tree counts for species
 
     return HttpResponse(
         json.dumps({'status': 'done'}),

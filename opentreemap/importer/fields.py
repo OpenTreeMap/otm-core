@@ -10,9 +10,9 @@ class species(object):
     CULTIVAR = 'cultivar'
     OTHER_PART_OF_NAME = 'other part of scientific name'
     COMMON_NAME = 'common name'
-    USDA_SYMBOL = 'usda symbol'
-    ALT_SYMBOL = 'alternative symbol'
-    ITREE_CODE = 'i-tree code'
+    USDA_SYMBOL = 'usda symbol'  # TODO: Remove?
+    ALT_SYMBOL = 'alternative symbol'  # TODO: Remove?
+    ITREE_CODE = 'i-tree code'  # TODO: Remove?
 
     # This is a pseudo field which is filled in
     # when a matching species is found, but before
@@ -20,6 +20,7 @@ class species(object):
     # that somehow match this one (usda, sci name)
     ORIG_SPECIES = 'calc__species'
 
+    # TODO: Remove these?
     # This is a pseudo field which is filled in
     # when a matching itree code is found
     RESOURCE = 'calc__resource'
@@ -90,12 +91,12 @@ class trees(object):
     OPENTREEMAP_ID_NUMBER = 'opentreemap id number'
     ORIG_ID_NUMBER = 'original id number'
 
-    TREE_PRESENT = 'tree present'
+    TREE_PRESENT = 'tree present'  # TODO: Remove?
 
     # Choice fields
-    PLOT_TYPE = 'plot type'
-    POWERLINE_CONFLICT = 'powerline conflict'
-    SIDEWALK = 'sidewalk'
+    PLOT_TYPE = 'plot type'  # TODO: Remove?
+    POWERLINE_CONFLICT = 'powerline conflict'  # TODO: Remove?
+    SIDEWALK = 'sidewalk'  # TODO: Remove?
 
     # Tree Fields
     GENUS = 'genus'
@@ -107,12 +108,13 @@ class trees(object):
     CANOPY_HEIGHT = 'canopy height'
     DATE_PLANTED = 'date planted'
     DATA_SOURCE = 'data source'
-    OWNER = 'tree owner'
-    SPONSOR = 'tree sponsor'
-    STEWARD = 'tree steward'
-    NOTES = 'notes'
-    URL = 'tree url'
+    OWNER = 'tree owner'  # TODO: Remove?
+    SPONSOR = 'tree sponsor'  # TODO: Remove?
+    STEWARD = 'tree steward'  # TODO: Remove?
+    NOTES = 'notes'  # TODO: Remove?
+    URL = 'tree url'  # TODO: Remove?
 
+    # TODO: None of these are part of tree or plot anymore.  Remove?
     # Choice Fields
     TREE_CONDITION = 'condition'
     CANOPY_CONDITION = 'canopy condition'

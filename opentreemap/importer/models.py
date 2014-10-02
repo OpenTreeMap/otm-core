@@ -814,8 +814,6 @@ class SpeciesImportRow(GenericImportRow):
             self.import_event.max_tree_height_conversion_factor
         })
 
-        #TODO: Update tree count nonsense
-
         for modelkey, datakey in SpeciesImportRow.SPECIES_MAP.iteritems():
             importdata = data.get(datakey, None)
 
