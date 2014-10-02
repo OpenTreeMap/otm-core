@@ -13,6 +13,7 @@ from treemap.models import User, InstanceUser, Tree, Species
 from treemap.util import to_object_name
 from treemap.images import save_uploaded_image
 
+from registration.models import RegistrationProfile
 from otm1_migrator import models
 from otm1_migrator.models import (OTM1UserRelic, OTM1ModelRelic,
                                   OTM1CommentRelic)
@@ -398,6 +399,68 @@ def save_boundary(migration_rules, migration_event, model_dict,
 
     instance.boundaries.add(boundary_obj)
     return boundary_obj
+
+
+@atomic
+def save_registrationprofile(migration_rules, migration_event, rp_dict,
+                             candidate_rp_obj, instance, **kwargs):
+    user = candidate_rp_obj.user
+    existing_rps = RegistrationProfile.objects.filter(user_id=user.pk)
+    already_exists = len(existing_rps) > 0
+
+    if already_exists:
+        assert len(existing_rps) == 1
+        rp_obj = existing_rps[0]
+    else:
+        rp_obj = candidate_rp_obj
+
+    if user.is_active:
+        # if the user has been marked as active for any reason,
+        # the rp should reflect that.
+        #
+        # for example, if the multi-record user was merged, it will be
+        # set to active if any of the user accounts were active.
+        # therefore, the corresponding registrationprofile for this
+        # user should be considered active as well.
+        rp_obj.activation_key = RegistrationProfile.ACTIVATED
+    else:
+        if not already_exists:
+            # if not active and not merged, then just carry the
+            # activation_key over, which happened already.
+            pass
+        else:
+            # if the rp exists, but the user is not active, we want to
+            # merge the existing record with this candidate by
+            # prefering the key that was assigned to the user account
+            # that was chosen by the migration, so emails sitting in
+            # their inbox will still work on otm2.
+            otm1_id_for_candidate = kwargs['old_model_dict']['fields']['user']
+            chosen_user_relic = OTM1UserRelic.objects.get_chosen_one(user.pk)
+
+            if not chosen_user_relic:
+                # there's nothing we can do if we can't find a
+                # definitive user that resulted from a related
+                # relic. best to just save the rp_obj and wait for new
+                # emails to be generated.
+                pass
+            else:
+                # since we have the chosen user relic, we can compare
+                # the otm1_model_id to the old_model_dict for this
+                # registration profile to see if this
+                # registrationprofile corresponds to the user that got
+                # chosen.
+                if chosen_user_relic.otm1_model_id == otm1_id_for_candidate:
+                    rp_obj.activation_key = candidate_rp_obj.activation_key
+
+    rp_obj.save()
+
+    OTM1ModelRelic.objects.create(
+        instance=instance,
+        migration_event=migration_event,
+        otm2_model_name='registrationprofile',
+        otm1_model_id=rp_dict['pk'],
+        otm2_model_id=rp_obj.pk)
+    return rp_obj
 
 
 @atomic

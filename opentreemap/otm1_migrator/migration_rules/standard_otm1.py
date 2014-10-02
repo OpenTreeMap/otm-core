@@ -3,6 +3,7 @@ from treemap.models import (User, Plot, Tree, Species,
                             TreeFavorite)
 
 from otm_comments.models import EnhancedThreadedComment
+from registration.models import RegistrationProfile
 
 from otm1_migrator.data_util import (coerce_null_boolean,
                                      coerce_null_string,
@@ -157,6 +158,12 @@ MIGRATION_RULES = {
         'command_line_flag': '-j',
         'dependencies': {'user': 'user'},
         'removed_fields': {'reputation'}
+    },
+    'registrationprofile': {
+        'command_line_flag': '-e',
+        'model_class': RegistrationProfile,
+        'dependencies': {'user': 'user'},
+        'common_fields': {'user', 'activation_key'},
     },
     'comment': {
         'command_line_flag': '-n',

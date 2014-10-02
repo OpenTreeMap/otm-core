@@ -56,12 +56,34 @@ class OTM1ModelRelic(AbstractRelic):
     otm2_model_name = models.CharField(max_length=255)
 
 
+class OTM1UserRelicManager(models.Manager):
+    def get_chosen_one(self, user_id):
+        """ For a given user_id, find the relic who got the same
+        username on otm2.
+
+        Sometimes this is impossible, if the username was subsequently
+        uniquified because it was already in use.  This is because
+        there is a two-step user uniquification in the migration:
+        1) choose a best username for a given set of duplicate email addresses
+        2) "Try" to choose that username on otm2, uniquifying if taken.
+        """
+        user = User.objects.get(pk=user_id)
+        try:
+            return self.get_queryset().get(otm1_username=user.username)
+        except OTM1UserRelic.DoesNotExist:
+            return None
+
+
 class OTM1UserRelic(AbstractRelic):
     otm2_model_name = models.CharField(max_length=255,
                                        default='user',
                                        editable=False)
     otm1_username = models.CharField(max_length=255)
     email = models.EmailField()
+    objects = OTM1UserRelicManager()
+
+    def get_chosen_one(self):
+        return self.objects.get_chosen_one(self.otm2_model_id)
 
     def save(self, *args, **kwargs):
         if not User.objects.filter(pk=self.otm2_model_id).exists():

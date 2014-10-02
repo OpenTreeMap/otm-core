@@ -30,6 +30,7 @@ from otm1_migrator.model_processors import (save_boundary, save_user,
                                             process_contenttype,
                                             process_reputation,
                                             process_userprofile,
+                                            save_registrationprofile,
                                             save_threadedcomment,
                                             save_comment, save_treefavorite)
 
@@ -222,6 +223,7 @@ class Command(InstanceDataCommand):
             'treephoto': default_partial(save_treephoto, treephoto_path),
             'contenttype': default_partial(process_contenttype),
             'reputation': default_partial(process_reputation),
+            'registrationprofile': default_partial(save_registrationprofile),
             'userprofile': default_partial(process_userprofile,
                                            userphoto_path),
             'threadedcomment': default_partial(save_threadedcomment,
