@@ -22,7 +22,8 @@ from otm1_migrator.data_util import (MigrationException, sanitize_username,
 
 @atomic
 def save_species(migration_rules, migration_event,
-                 species_dict, species_obj, instance):
+                 species_dict, species_obj, instance,
+                 **kwargs):
 
     non_migrated_species = Species.objects.raw("""
     SELECT *
@@ -56,7 +57,8 @@ def save_species(migration_rules, migration_event,
 
 @atomic
 def save_plot(migration_rules, migration_event,
-              plot_dict, plot_obj, instance):
+              plot_dict, plot_obj, instance,
+              **kwargs):
 
     if plot_dict['fields']['present'] is False:
         plot_obj = None
@@ -77,7 +79,8 @@ def save_plot(migration_rules, migration_event,
 
 @atomic
 def save_tree(migration_rules, migration_event,
-              tree_dict, tree_obj, instance):
+              tree_dict, tree_obj, instance,
+              **kwargs):
 
     if ((tree_dict['fields']['present'] is False or
          tree_dict['fields']['plot'] == models.UNBOUND_MODEL_ID)):
@@ -99,7 +102,7 @@ def save_tree(migration_rules, migration_event,
 
 @atomic
 def process_reputation(migration_rules, migration_event,
-                       model_dict, rep_obj, instance):
+                       model_dict, rep_obj, instance, **kwargs):
 
     iuser = InstanceUser.objects.get(user_id=model_dict['fields']['user'],
                                      instance_id=instance.id)
@@ -116,7 +119,8 @@ def process_reputation(migration_rules, migration_event,
 
 @atomic
 def process_userprofile(migration_rules, migration_event,
-                        photo_basepath, model_dict, up_obj, instance):
+                        photo_basepath, model_dict, up_obj,
+                        instance, **kwargs):
     """
     Read the otm1 user photo off userprofile fixture, load the file,
     create storage-backed image and thumbnail, attach to user.
@@ -155,8 +159,8 @@ def process_userprofile(migration_rules, migration_event,
 
 
 @atomic
-def save_treephoto(migration_rules, migration_event,
-                   treephoto_path, model_dict, treephoto_obj, instance):
+def save_treephoto(migration_rules, migration_event, treephoto_path,
+                   model_dict, treephoto_obj, instance, **kwargs):
 
     if model_dict['fields']['tree'] == models.UNBOUND_MODEL_ID:
         treephoto_obj = None
@@ -186,8 +190,8 @@ def save_treephoto(migration_rules, migration_event,
 
 
 @atomic
-def save_audit(migration_rules, migration_event,
-               relic_ids, model_dict, audit_obj, instance):
+def save_audit(migration_rules, migration_event, relic_ids,
+               model_dict, audit_obj, instance, **kwargs):
 
     fields = model_dict['fields']
 
@@ -225,8 +229,8 @@ def save_audit(migration_rules, migration_event,
 
 
 @atomic
-def save_treefavorite(migration_rules, migration_event,
-                      fav_dict, fav_obj, instance):
+def save_treefavorite(migration_rules, migration_event, fav_dict,
+                      fav_obj, instance, **kwargs):
     fav_obj.save()
     fav_obj.created = inflate_date(fav_dict['fields']['date_created'])
     fav_obj.save()
@@ -283,8 +287,8 @@ def _base_process_comment(migration_rules, migration_event,
 
 
 @atomic
-def save_comment(migration_rules, migration_event,
-                 relic_ids, model_dict, comment_obj, instance):
+def save_comment(migration_rules, migration_event, relic_ids,
+                 model_dict, comment_obj, instance, **kwargs):
 
     comment_obj = _base_process_comment(migration_rules, migration_event,
                                         relic_ids, model_dict, comment_obj,
@@ -305,8 +309,8 @@ def save_comment(migration_rules, migration_event,
 
 
 @atomic
-def save_threadedcomment(migration_rules, migration_event,
-                         relic_ids, model_dict, tcomment_obj, instance):
+def save_threadedcomment(migration_rules, migration_event, relic_ids,
+                         model_dict, tcomment_obj, instance, **kwargs):
 
     tcomment_obj = _base_process_comment(migration_rules, migration_event,
                                          relic_ids, model_dict, tcomment_obj,
@@ -347,8 +351,8 @@ def save_threadedcomment(migration_rules, migration_event,
 
 
 @atomic
-def process_contenttype(migration_rules, migration_event,
-                        model_dict, ct_obj, instance):
+def process_contenttype(migration_rules, migration_event, model_dict,
+                        ct_obj, instance, **kwargs):
     """
     There must be a relic for ContentType because comments use them
     as foreign keys. However, unlike other migrations, there's no
@@ -382,8 +386,8 @@ def process_contenttype(migration_rules, migration_event,
 
 
 @atomic
-def save_boundary(migration_rules, migration_event,
-                  model_dict, boundary_obj, instance):
+def save_boundary(migration_rules, migration_event, model_dict,
+                  boundary_obj, instance, **kwargs):
     boundary_obj.save()
     OTM1ModelRelic.objects.create(
         instance=instance,
@@ -397,7 +401,8 @@ def save_boundary(migration_rules, migration_event,
 
 
 @atomic
-def save_user(migration_rules, migration_event, user_dict, user_obj, instance):
+def save_user(migration_rules, migration_event, user_dict,
+              user_obj, instance, **kwargs):
     """
     Save otm1 user record into otm2.
 

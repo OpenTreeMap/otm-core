@@ -54,6 +54,8 @@ def save_objects(migration_rules, model_name, model_dicts, relic_ids,
                         .get('dependencies', {})
                         .items())
 
+        old_model_dict = model_dict.copy()
+        old_model_dict['fields'] = model_dict['fields'].copy()
         # rewrite the fixture so that otm1 pks are replaced by
         # their corresponding otm2 pks
         if dependencies:
@@ -75,7 +77,8 @@ def save_objects(migration_rules, model_name, model_dicts, relic_ids,
         if model == data_util.DO_NOT_PROCESS:
             continue
         else:
-            model = model_process_fn(model_dict, model, instance)
+            model = model_process_fn(model_dict, model, instance,
+                                     old_model_dict=old_model_dict)
             if model != data_util.PROCESS_WITHOUT_SAVE and model is not None:
                 pk = model.pk
                 for fn in migration_rules[model_name].get(
