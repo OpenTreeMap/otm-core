@@ -10,9 +10,6 @@ from django.conf import settings
 from treemap.util import get_csv_response
 from treemap.models import User
 
-from opentreemap.util import decorate as do
-from treemap.decorators import admin_instance_request, require_http_method
-
 from models import OTM1UserRelic
 
 # assumptions:
@@ -99,8 +96,3 @@ def user_csv(request, instance):
         writer.writerow(row)
 
     return response
-
-user_csv_endpoint = do(
-    require_http_method("GET"),
-    admin_instance_request,
-    user_csv)
