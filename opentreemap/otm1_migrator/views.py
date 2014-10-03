@@ -46,7 +46,7 @@ def render_email_body(user, instance):
     }
 
 
-def user_csv(request, instance):
+def dupl_user_csv(request, instance):
     duplicate_ids_query = """
     SELECT *
     FROM otm1_migrator_otm1userrelic
