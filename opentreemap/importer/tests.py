@@ -21,6 +21,7 @@ from django.utils.importlib import import_module
 from api.test_utils import setupTreemapEnv, mkPlot
 
 from treemap.models import Species, Plot, Tree, User
+from treemap.tests import make_admin_user, make_instance
 
 from importer.views import (create_rows_for_event, process_csv, process_status,
                             commit, merge_species)
@@ -31,26 +32,13 @@ from importer.models import (TreeImportEvent, TreeImportRow,
 
 class MergeTest(TestCase):
     def setUp(self):
-        setupTreemapEnv()
+        self.instance = setupTreemapEnv()
 
-        self.user = User(username='smith')
-        self.user.save()
-
-        p1 = mkPlot(self.user, geom=Point(25.0000001, 25.0000001))
-        p1.save()
-
-        p2 = mkPlot(self.user, geom=Point(25.0000002, 25.0000002))
-        p2.save()
+        self.user = make_admin_user(self.instance)
 
         ss = Species.objects.all()
         self.s1 = ss[0]
         self.s2 = ss[1]
-
-        self.t1 = Tree(plot=p1, species=self.s1, last_updated_by=self.user)
-        self.t1.save()
-
-        self.t2 = Tree(plot=p2, species=self.s2, last_updated_by=self.user)
-        self.t2.save()
 
     def test_cant_merge_same_species(self):
         r = HttpRequest()
@@ -70,6 +58,14 @@ class MergeTest(TestCase):
         self.assertEqual(resp.status_code, 400)
 
     def test_merges(self):
+        p1 = mkPlot(self.instance, self.user, geom=Point(25.000001, 25.000001))
+        p2 = mkPlot(self.instance, self.user, geom=Point(25.000002, 25.000002))
+
+        t1 = Tree(plot=p1, species=self.s1, instance=self.instance)
+        t2 = Tree(plot=p2, species=self.s2, instance=self.instance)
+        for tree in (t1, t2):
+            tree.save_with_user(self.user)
+
         r = HttpRequest()
         r.REQUEST = {
             'species_to_delete': self.s1.pk,
@@ -84,8 +80,9 @@ class MergeTest(TestCase):
         self.assertRaises(Species.DoesNotExist,
                           Species.objects.get, pk=self.s1.pk)
 
-        t1r = Tree.objects.get(pk=self.t1.pk)
-        t2r = Tree.objects.get(pk=self.t2.pk)
+        # Requery the Trees to assert that species has changed
+        t1r = Tree.objects.get(pk=t1.pk)
+        t2r = Tree.objects.get(pk=t2.pk)
 
         self.assertEqual(t1r.species.pk, self.s2.pk)
         self.assertEqual(t2r.species.pk, self.s2.pk)
