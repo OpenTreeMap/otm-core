@@ -583,8 +583,8 @@ class SpeciesImportRow(GenericImportRow):
             matching_species = Species.objects \
                 .filter(genus__iexact=genus) \
                 .filter(species__iexact=species) \
-                .filter(cultivar_name__iexact=cultivar) \
-                .filter(other_part_of_name__iexact=other_part)
+                .filter(cultivar__iexact=cultivar) \
+                .filter(other__iexact=other_part)
 
             self.cleaned[fields.species.ORIG_SPECIES]\
                 |= {s.pk for s in matching_species}
@@ -1076,8 +1076,8 @@ class TreeImportRow(GenericImportRow):
             matching_species = Species.objects \
                 .filter(genus__iexact=genus) \
                 .filter(species__iexact=species) \
-                .filter(cultivar_name__iexact=cultivar) \
-                .filter(other_part_of_name__iexact=other_part)
+                .filter(cultivar__iexact=cultivar) \
+                .filter(other__iexact=other_part)
 
             if len(matching_species) == 1:
                 self.cleaned[fields.trees.SPECIES_OBJECT] = matching_species[0]
