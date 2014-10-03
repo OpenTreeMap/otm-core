@@ -10,9 +10,6 @@ from django.conf import settings
 from treemap.util import get_csv_response
 from treemap.models import User
 
-from opentreemap.util import decorate as do
-from treemap.decorators import admin_instance_request, require_http_method
-
 from models import OTM1UserRelic
 
 # assumptions:
@@ -49,7 +46,7 @@ def render_email_body(user, instance):
     }
 
 
-def user_csv(request, instance):
+def dupl_user_csv(request, instance):
     duplicate_ids_query = """
     SELECT *
     FROM otm1_migrator_otm1userrelic
@@ -99,8 +96,3 @@ def user_csv(request, instance):
         writer.writerow(row)
 
     return response
-
-user_csv_endpoint = do(
-    require_http_method("GET"),
-    admin_instance_request,
-    user_csv)
