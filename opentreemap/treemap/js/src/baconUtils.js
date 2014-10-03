@@ -2,6 +2,7 @@
 
 var Bacon = require('baconjs'),
     $ = require('jquery'),
+    R = require('ramda'),
     _ = require('lodash');
 
 // Bacon.js is an npm module, but only extends jQuery if it's a global object
@@ -27,21 +28,13 @@ exports.not = function(staticValue, streamValue) {
     return staticValue !== streamValue;
 };
 
-var isDefined = exports.isDefined = function (value) {
-    return value !== undefined;
-};
+var isDefined = exports.isDefined = R.not(_.isUndefined);
 
-var isDefinedNonEmpty = exports.isDefinedNonEmpty = function (value) {
-    return value !== undefined && value !== "";
-};
+var isDefinedNonEmpty = exports.isDefinedNonEmpty = R.and(R.not(_.isUndefined), R.not(R.eq('')));
 
-var isUndefined = exports.isUndefined = function (value) {
-    return value === undefined;
-};
+var isUndefined = exports.isUndefined = _.isUndefined;
 
-var isUndefinedOrEmpty = exports.isUndefinedOrEmpty = function (value) {
-    return value === undefined || value === "";
-};
+var isUndefinedOrEmpty = exports.isUndefinedOrEmpty = R.or(_.isUndefined, R.eq(''));
 
 exports.isPropertyDefined = function(key, object) {
     return isDefined(object) && isDefined(object[key]);
