@@ -682,8 +682,8 @@ class SpeciesIntegrationTests(IntegrationTests):
 
         self.assertEqual(s.wildlife_value, True)
         self.assertEqual(s.fact_sheet, 'fs')
-        self.assertEqual(s.v_max_dbh, 10)
-        self.assertEqual(s.v_max_height, 91)
+        self.assertEqual(s.max_dbh, 10)
+        self.assertEqual(s.max_height, 91)
 
     @skip("We need to re-work iTree validation")
     def test_overrides_species(self):
@@ -775,13 +775,13 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertIsNotNone(plot1)
         self.assertIsNotNone(plot2)
 
-        self.assertEqual(int(plot1.geometry.x*10), 342)
-        self.assertEqual(int(plot1.geometry.y*10), 292)
-        self.assertEqual(plot1.current_tree().dbh, 12)
+        self.assertEqual(int(plot1.geom.x*10), 342)
+        self.assertEqual(int(plot1.geom.y*10), 292)
+        self.assertEqual(plot1.current_tree().diameter, 12)
 
-        self.assertEqual(int(plot2.geometry.x*10), 192)
-        self.assertEqual(int(plot2.geometry.y*10), 272)
-        self.assertEqual(plot2.current_tree().dbh, 14)
+        self.assertEqual(int(plot2.geom.x*10), 192)
+        self.assertEqual(int(plot2.geom.y*10), 272)
+        self.assertEqual(plot2.current_tree().diameter, 14)
 
     def test_bad_structure(self):
         # Point Y -> PointY, expecting two errors
@@ -803,15 +803,15 @@ class TreeIntegrationTests(IntegrationTests):
         s1_g.save_with_user(self.user)
 
         csv = """
-        | point x | point y | diameter | read only | condition | genus | tree height |
-        | -34.2   | 24.2    | q12      | true      | Dead      |       |         |
-        | 323     | 23.2    | 14       | falseo    | Critical  |       |         |
-        | 32.1    | 22.4    | 15       | true      | Dead      |       |         |
-        | 33.2    | 19.1    | 32       | true      | Arg       |       |         |
-        | 33.2    | q19.1   | -33.3    | true      | Dead      | gfail |         |
-        | 32.1    | 12.1    |          | false     | Dead      | g1    | 200     |
-        | 32.1    | 12.1    | 300      | false     | Dead      | g1    |         |
-        | 11.1    | 12.1    |          | false     | Dead      |       |         |
+        | point x | point y | diameter | read only | genus | tree height |
+        | -34.2   | 24.2    | q12      | true      |       |         |
+        | 323     | 23.2    | 14       | falseo    |       |         |
+        | 32.1    | 22.4    | 15       | true      |       |         |
+        | 33.2    | 19.1    | 32       | true      |       |         |
+        | 33.2    | q19.1   | -33.3    | true      | gfail |         |
+        | 32.1    | 12.1    |          | false     | g1    | 200     |
+        | 32.1    | 12.1    | 300      | false     | g1    |         |
+        | 11.1    | 12.1    |          | false     |       |         |
         """
 
         gflds = [fields.trees.POINT_X, fields.trees.POINT_Y]
@@ -916,7 +916,7 @@ class TreeIntegrationTests(IntegrationTests):
 
         self.assertEqual(plot.width, 13.0*2.5)
         self.assertEqual(plot.length, 14.0*1.5)
-        self.assertEqual(plot.current_tree().dbh, 3.5*12.0)
+        self.assertEqual(plot.current_tree().diameter, 3.5*12.0)
         self.assertEqual(plot.current_tree().height, 10.0 * 4.5)
         self.assertEqual(plot.current_tree().canopy_height, 11.0 * 5.5)
 
@@ -926,17 +926,15 @@ class TreeIntegrationTests(IntegrationTests):
         s1_gsc.save_with_user(self.user)
 
         csv = """
-        | point x | point y | tree owner | tree steward | diameter | tree height |
-        | 45.53   | 31.1    | jimmy      | jane         | 23.1     | 90.1        |
+        | point x | point y | diameter | tree height |
+        | 45.53   | 31.1    | 23.1     | 90.1        |
         """
 
         ieid = self.run_through_commit_views(csv)
         ie = TreeImportEvent.objects.get(pk=ieid)
         tree = ie.treeimportrow_set.all()[0].plot.current_tree()
 
-        self.assertEqual(tree.tree_owner, 'jimmy')
-        self.assertEqual(tree.steward_name, 'jane')
-        self.assertEqual(tree.dbh, 23.1)
+        self.assertEqual(tree.diameter, 23.1)
         self.assertEqual(tree.height, 90.1)
 
         csv = """
@@ -957,8 +955,8 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(tree2.species.pk, s1_gsc.pk)
 
         csv = """
-        | point x | point y | tree sponsor | date planted | read only | tree url    |
-        | 45.12   | 55.12   | treeluvr     | 2012-02-03   | true      | http://spam |
+        | point x | point y | date planted | read only |
+        | 45.12   | 55.12   | 2012-02-03   | true      |
         """
 
         ieid = self.run_through_commit_views(csv)
@@ -967,75 +965,28 @@ class TreeIntegrationTests(IntegrationTests):
 
         dateplanted = date(2012, 2, 3)
 
-        self.assertEqual(tree.sponsor, 'treeluvr')
         self.assertEqual(tree.date_planted, dateplanted)
         self.assertEqual(tree.readonly, True)
-        self.assertEqual(tree.url, 'http://spam')
-
-        valid_canopy_type = settings.CHOICES['canopy_conditions'][0][1]
-        tgt_canopy_type = settings.CHOICES['canopy_conditions'][0][0]
-
-        valid_cond_type = settings.CHOICES['conditions'][0][1]
-        tgt_cond_type = settings.CHOICES['conditions'][0][0]
-
-        valid_pest_type = settings.CHOICES['pests'][0][1]
-        tgt_pest_type = settings.CHOICES['pests'][0][0]
-
-        valid_lcl_type = settings.CHOICES['projects'][0][1]
-
-        csv = """
-        | point x | point y | condition | canopy condition | pests and diseases | local projects |
-        | 45.66   | 53.13   | %s        | %s               | %s                 | %s             |
-        """ % (valid_cond_type, valid_canopy_type, valid_pest_type, valid_lcl_type)
-
-        ieid = self.run_through_commit_views(csv)
-        ie = TreeImportEvent.objects.get(pk=ieid)
-        tree = ie.treeimportrow_set.all()[0].plot.current_tree()
-
-        self.assertEqual(tree.condition, tgt_cond_type)
-        self.assertEqual(tree.canopy_condition, tgt_canopy_type)
-        self.assertEqual(tree.pests, tgt_pest_type)
-
-        #TODO: Projects and Actions work differently...
-        #      need to handle those cases
-        # self.assertEqual(tree.projects, 'San Francisco Landmark')
 
     def test_all_plot_data(self):
-        valid_plot_type = settings.CHOICES['plot_types'][0][1]
-        tgt_plot_type = settings.CHOICES['plot_types'][0][0]
-
         csv = """
-        | point x | point y | plot width | plot length | plot type | read only |
-        | 45.53   | 31.1    | 19.2       | 13          | %s        | false     |
-        """ % valid_plot_type
-
-        ieid = self.run_through_commit_views(csv)
-        ie = TreeImportEvent.objects.get(pk=ieid)
-        plot = ie.treeimportrow_set.all()[0].plot
-
-        self.assertEqual(int(plot.geometry.x*100), 4553)
-        self.assertEqual(int(plot.geometry.y*100), 3110)
-        self.assertEqual(plot.width, 19.2)
-        self.assertEqual(plot.length, 13)
-        self.assertEqual(plot.type, tgt_plot_type)
-        self.assertEqual(plot.readonly, False)
-
-        csv = """
-        | point x | point y | sidewalk           | powerline conflict | notes |
-        | 45.53   | 31.1    | Minor or No Damage | No                 | anote |
+        | point x | point y | plot width | plot length | read only |
+        | 45.53   | 31.1    | 19.2       | 13          | false     |
         """
 
         ieid = self.run_through_commit_views(csv)
         ie = TreeImportEvent.objects.get(pk=ieid)
         plot = ie.treeimportrow_set.all()[0].plot
 
-        self.assertEqual(plot.sidewalk_damage, '1')
-        self.assertEqual(plot.powerline_conflict_potential, '2')
-        self.assertEqual(plot.owner_additional_properties, 'anote')
+        self.assertEqual(int(plot.geom.x*100), 4553)
+        self.assertEqual(int(plot.geom.y*100), 3110)
+        self.assertEqual(plot.width, 19.2)
+        self.assertEqual(plot.length, 13)
+        self.assertEqual(plot.readonly, False)
 
         csv = """
-        | point x | point y | original id number | data source |
-        | 45.53   | 31.1    | 443                | trees r us  |
+        | point x | point y | original id number |
+        | 45.53   | 31.1    | 443                |
         """
 
         ieid = self.run_through_commit_views(csv)
@@ -1043,21 +994,20 @@ class TreeIntegrationTests(IntegrationTests):
         plot = ie.treeimportrow_set.all()[0].plot
 
         self.assertEqual(plot.owner_orig_id, '443')
-        self.assertEqual(plot.owner_additional_id, 'trees r us')
 
     def test_override_with_opentreemap_id(self):
         p1 = mkPlot(self.instance, self.user, geom=Point(55.0, 25.0))
 
         csv = """
-        | point x | point y | opentreemap id number | data source |
-        | 45.53   | 31.1    | %s                    | trees r us  |
+        | point x | point y | opentreemap id number |
+        | 45.53   | 31.1    | %s                    |
         """ % p1.pk
 
         self.run_through_commit_views(csv)
 
         p1b = Plot.objects.get(pk=p1.pk)
-        self.assertEqual(int(p1b.geometry.x*100), 4553)
-        self.assertEqual(int(p1b.geometry.y*100), 3110)
+        self.assertEqual(int(p1b.geom.x*100), 4553)
+        self.assertEqual(int(p1b.geom.y*100), 3110)
 
     def test_tree_present_works_as_expected(self):
         csv = """

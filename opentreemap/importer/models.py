@@ -499,11 +499,9 @@ class SpeciesImportRow(GenericImportRow):
     VERIFIED = 4
 
     SPECIES_MAP = {
-        'symbol': fields.species.USDA_SYMBOL,
-        'itree_code': fields.species.ITREE_CODE,
         'genus': fields.species.GENUS,
         'species': fields.species.SPECIES,
-        'cultivar_name': fields.species.CULTIVAR,
+        'cultivar': fields.species.CULTIVAR,
         'common_name': fields.species.COMMON_NAME,
         'native_status': fields.species.NATIVE_STATUS,
         'fall_conspicuous': fields.species.FALL_COLORS,
@@ -512,14 +510,11 @@ class SpeciesImportRow(GenericImportRow):
         'bloom_period': fields.species.FLOWERING_PERIOD,
         'fruit_period': fields.species.FRUIT_PERIOD,
         'wildlife_value': fields.species.WILDLIFE,
-        'v_max_dbh': fields.species.MAX_DIAMETER,
-        'v_max_height': fields.species.MAX_HEIGHT,
+        'max_dbh': fields.species.MAX_DIAMETER,
+        'max_height': fields.species.MAX_HEIGHT,
         'fact_sheet': fields.species.FACT_SHEET,
-        'family': fields.species.FAMILY,
-        'other_part_of_name': fields.species.OTHER_PART_OF_NAME,
-        'id': fields.species.ID,
-        'tree_count': fields.species.TREE_COUNT,
-        'scientific_name': fields.species.SCIENTIFIC_NAME,
+        'other': fields.species.OTHER_PART_OF_NAME,
+        'id': fields.species.ID
     }
 
     # Species reference
@@ -617,8 +612,10 @@ class SpeciesImportRow(GenericImportRow):
                        self.cleaned.get(fields.species.CULTIVAR,
                                         '')}
 
+        # We don't save USDA code on individual species anymore, but otm_codes
+        # are mostly USDA codes, so it doesn't hurt when trying to match
         return self.validate_code(fields.species.USDA_SYMBOL,
-                                  'symbol', addl_filter)
+                                  'otm_code', addl_filter)
 
     def validate_required_fields(self):
         req = {fields.species.GENUS,
@@ -854,33 +851,21 @@ class TreeImportRow(GenericImportRow):
     VERIFIED = 4
 
     PLOT_MAP = {
-        'geometry': fields.trees.POINT,
+        'geom': fields.trees.POINT,
         'width': fields.trees.PLOT_WIDTH,
         'length': fields.trees.PLOT_LENGTH,
-        'type': fields.trees.PLOT_TYPE,
         'readonly': fields.trees.READ_ONLY,
-        'sidewalk_damage': fields.trees.SIDEWALK,
-        'powerline_conflict_potential': fields.trees.POWERLINE_CONFLICT,
-        'owner_orig_id': fields.trees.ORIG_ID_NUMBER,
-        'owner_additional_id': fields.trees.DATA_SOURCE,
-        'owner_additional_properties': fields.trees.NOTES
+        'owner_orig_id': fields.trees.ORIG_ID_NUMBER
     }
 
+    # TODO: Why no date_removed?
     TREE_MAP = {
-        'tree_owner': fields.trees.OWNER,
-        'steward_name': fields.trees.STEWARD,
-        'dbh': fields.trees.DIAMETER,
+        'diameter': fields.trees.DIAMETER,
         'height': fields.trees.TREE_HEIGHT,
         'canopy_height': fields.trees.CANOPY_HEIGHT,
         'species': fields.trees.SPECIES_OBJECT,
-        'sponsor': fields.trees.SPONSOR,
         'date_planted': fields.trees.DATE_PLANTED,
-        'readonly': fields.trees.READ_ONLY,
-        'projects': fields.trees.LOCAL_PROJECTS,
-        'condition': fields.trees.TREE_CONDITION,
-        'canopy_condition': fields.trees.CANOPY_CONDITION,
-        'url': fields.trees.URL,
-        'pests': fields.trees.PESTS
+        'readonly': fields.trees.READ_ONLY
     }
 
     # plot that was created from this row
@@ -1055,12 +1040,12 @@ class TreeImportRow(GenericImportRow):
     def validate_species_dbh_max(self, species):
         return self.validate_species_max(
             fields.trees.DIAMETER,
-            species.v_max_dbh, errors.SPECIES_DBH_TOO_HIGH)
+            species.max_dbh, errors.SPECIES_DBH_TOO_HIGH)
 
     def validate_species_height_max(self, species):
         return self.validate_species_max(
             fields.trees.TREE_HEIGHT,
-            species.v_max_height, errors.SPECIES_HEIGHT_TOO_HIGH)
+            species.max_height, errors.SPECIES_HEIGHT_TOO_HIGH)
 
     def validate_species(self):
         genus = self.datadict.get(fields.trees.GENUS, '')
