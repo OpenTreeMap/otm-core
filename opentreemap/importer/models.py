@@ -934,7 +934,7 @@ class TreeImportRow(GenericImportRow):
         # Initially grab plot from row if it exists
         plot = self.plot
         if plot is None:
-            plot = Plot(present=True)
+            plot = Plot()
 
         # Event if TREE_PRESENT is None, a tree
         # can still be spawned here if there is
@@ -950,7 +950,7 @@ class TreeImportRow(GenericImportRow):
             if data.get(self.model_fields.TREE_PRESENT, False):
                 tree_edited = True
                 if tree is None:
-                    tree = Tree(present=True)
+                    tree = Tree()
 
         data_owner = self.import_event.owner
 
@@ -970,7 +970,7 @@ class TreeImportRow(GenericImportRow):
             if importdata:
                 tree_edited = True
                 if tree is None:
-                    tree = Tree(present=True)
+                    tree = Tree()
                 setattr(tree, modelkey, importdata)
 
         if tree_edited:
@@ -1033,8 +1033,7 @@ class TreeImportRow(GenericImportRow):
     def validate_proximity(self, point):
         base_import_event = self.import_event.base_import_event
         nearby = Plot.objects\
-                     .filter(present=True,
-                             geometry__distance_lte=(point, D(ft=10.0)))\
+                     .filter(geometry__distance_lte=(point, D(ft=10.0)))\
                      .distance(point)\
                      .exclude(import_event=base_import_event)\
                      .order_by('distance')[:5]
