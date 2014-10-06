@@ -15,6 +15,8 @@ from django.conf import settings
 from django.db import transaction
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 
+from opentreemap.util import dotted_split
+
 from treemap.units import Convertible
 from treemap.models import (Tree, Species, Instance, MapFeature,
                             MapFeaturePhoto)
@@ -146,16 +148,6 @@ def update_map_feature(request_dict, user, feature):
         # We're going to always work in display units here
         feature.convert_to_display_units()
 
-    def split_model_or_raise(identifier):
-        parts = identifier.split('.', 1)
-
-        if (len(parts) != 2 or
-                parts[0] not in feature_object_names + ['tree']):
-            raise Exception(
-                'Malformed request - invalid field %s' % identifier)
-        else:
-            return parts
-
     def set_attr_on_model(model, attr, val):
         field_classname = \
             model._meta.get_field_by_name(attr)[0].__class__.__name__
@@ -203,7 +195,11 @@ def update_map_feature(request_dict, user, feature):
     tree = None
 
     for (identifier, value) in request_dict.iteritems():
-        object_name, field = split_model_or_raise(identifier)
+        split_template = 'Malformed request - invalid field %s'
+        object_name, field = dotted_split(identifier, 2,
+                                          failure_format_string=split_template)
+        if (object_name not in feature_object_names + ['tree']):
+            raise Exception(split_template % identifier)
 
         tree_udfc_names = [fdef.canonical_name
                            for fdef in udf_defs(feature.instance, 'Tree')

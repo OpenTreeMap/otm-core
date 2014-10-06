@@ -12,6 +12,8 @@ from django.db.models import Q
 from django.contrib.gis.measure import Distance
 from django.contrib.gis.geos import Point
 
+from opentreemap.util import dotted_split
+
 from treemap.models import Boundary, Tree, Plot, Species, TreePhoto
 from treemap.udf import DATETIME_FORMAT, UDFModel, UserDefinedCollectionValue
 from treemap.util import to_object_name
@@ -186,14 +188,10 @@ def _parse_predicate(query, mapping):
 
 
 def _parse_predicate_key(key, mapping):
-    parts = key.split('.')
-
-    if len(parts) != 2:
-        raise ParseException(
-            'Keys must be in the form of "model.field", not "%s"' %
-            key)
-
-    model, field = parts
+    format_string = 'Keys must be in the form of "model.field", not "%s"'
+    model, field = dotted_split(key, 2,
+                                failure_format_string=format_string,
+                                cls=ParseException)
 
     if _is_udf(model):
         _, mapping_model, _ = model.split(':')

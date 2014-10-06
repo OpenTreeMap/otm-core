@@ -63,3 +63,28 @@ def merge_view_contexts(viewfns):
 
         return context
     return wrapped
+
+
+def dotted_split(string, item_count,
+                 maxsplit=None,
+                 failure_format_string="Malformed string: '%s'",
+                 cls=Exception):
+    """
+    Split at period characters, validating
+    that the number of splits is as it was intended
+    by the caller.
+
+    The normal str.split function in python does not
+    provide validation, only a maxsplit, at which point
+    it will stop. This function is more precise because
+    it allows the callers to make guarantees about the
+    number of returned values.
+    """
+    if maxsplit is not None:
+        parts = string.split('.', maxsplit)
+    else:
+        parts = string.split('.')
+    if len(parts) != item_count:
+        raise cls(failure_format_string % string)
+    else:
+        return parts

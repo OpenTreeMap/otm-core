@@ -13,7 +13,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
 
-from opentreemap.util import json_from_request
+from opentreemap.util import json_from_request, dotted_split
 
 from treemap.decorators import get_instance_or_404
 from treemap.images import save_image_from_request
@@ -78,7 +78,7 @@ def update_user(request, user):
     new_values = json_from_request(request) or {}
     for key in new_values:
         try:
-            model, field = key.split('.', 1)
+            model, field = dotted_split(key, 2, cls=ValueError)
             if model != 'user':
                 return bad_request_json_response(
                     'All fields should be prefixed with "user."')

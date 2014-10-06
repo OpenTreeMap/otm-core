@@ -4,6 +4,8 @@ from django.utils.six import with_metaclass
 from south.modelsinspector import add_introspection_rules
 
 import json
+
+from opentreemap.util import dotted_split
 from DotDict import DotDict
 
 
@@ -29,7 +31,7 @@ def is_json_field_reference(field_path):
 
 
 def _get_json_as_dotdict(model, field_path):
-    field, json_path = field_path.split('.', 1)
+    field, json_path = dotted_split(field_path, 2, maxsplit=1)
     if not hasattr(model, field):
         raise ValueError('Field %s not found' % field_path)
     dotdict = getattr(model, field)
