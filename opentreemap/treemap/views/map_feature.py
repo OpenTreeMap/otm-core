@@ -23,6 +23,7 @@ from treemap.util import (package_validation_errors,
 
 from treemap.images import get_image_from_request
 from treemap.lib.photo import context_dict_for_photo
+from treemap.lib.object_caches import udf_defs
 from treemap.lib.map_feature import (get_map_feature_or_404,
                                      context_dict_for_plot,
                                      context_dict_for_resource,
@@ -204,7 +205,15 @@ def update_map_feature(request_dict, user, feature):
     for (identifier, value) in request_dict.iteritems():
         object_name, field = split_model_or_raise(identifier)
 
-        if object_name in feature_object_names:
+        tree_udfc_names = [fdef.canonical_name
+                           for fdef in udf_defs(feature.instance, 'Tree')
+                           if fdef.iscollection]
+
+        if ((field in tree_udfc_names and
+             feature.current_tree() is None and
+             value == [])):
+            continue
+        elif object_name in feature_object_names:
             model = feature
         elif object_name == 'tree' and feature.feature_type == 'Plot':
             # Get the tree or spawn a new one if needed

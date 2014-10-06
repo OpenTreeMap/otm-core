@@ -66,6 +66,14 @@ class PlotDetailDeleteUITestCase(PlotDetailUITestCase):
 
 
 class PlotEditTest(PlotDetailUITestCase):
+    def test_edit_empty_plot_doesnt_create_tree(self):
+        self.go_to_feature_detail(self.plot.pk)
+        self._select_buttons()
+        self.edit_plot.click()
+        self.save_edit.click()
+        self.wait_until_visible(self.edit_plot)
+        self.assertEqual(Tree.objects.count(), 0)
+
     def test_edit_empty_plot_from_map(self):
         Plot.objects.all().delete()
         self.login_and_go_to_map_page()
