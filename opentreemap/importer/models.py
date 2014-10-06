@@ -1007,12 +1007,16 @@ class TreeImportRow(GenericImportRow):
         return True
 
     def validate_proximity(self, point):
-        base_import_event = self.import_event.base_import_event
+        plot_ids_from_this_import = TreeImportRow.objects\
+            .filter(import_event=self.import_event)\
+            .filter(plot__isnull=False)\
+            .values_list('plot__pk', flat=True)
+
         nearby = Plot.objects\
                      .filter(instance=self.import_event.instance)\
-                     .filter(geometry__distance_lte=(point, D(ft=10.0)))\
+                     .filter(geom__distance_lte=(point, D(ft=10.0)))\
                      .distance(point)\
-                     .exclude(import_event=base_import_event)\
+                     .exclude(pk__in=plot_ids_from_this_import)\
                      .order_by('distance')[:5]
 
         if len(nearby) > 0:
@@ -1110,7 +1114,6 @@ class TreeImportRow(GenericImportRow):
             self.validate_species_dbh_max(species)
             self.validate_species_height_max(species)
 
-        # TODO: Remove?
         if pt:
             self.validate_proximity(pt)
 
