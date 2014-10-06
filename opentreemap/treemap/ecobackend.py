@@ -49,10 +49,6 @@ ECOBENEFIT_ERRORS = {
 }
 
 
-class UnrecognizedEcoException(Exception):
-    pass
-
-
 def json_benefits_call(endpoint, params, post=False, convert_params=True):
     url = "%s/%s" % (settings.ECO_SERVICE_URL, endpoint)
 
@@ -108,7 +104,8 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
                 if match:
                     return (None, code)
         else:
-            # We lose the traceback by raising our own exception here, but the
-            # traceback will all be inside urllib2 and this message is better
-            # Python 3 would let us keep the traceback and still set a message
-            raise UnrecognizedEcoException(error_body)
+            # the caller decides if it wants to raise the error
+            # as an exception, or return it as a status code on
+            # a json response. therefore, it's always save to
+            # return this string, and never raise.
+            return (None, UNKNOWN_ECOBENEFIT_ERROR)
