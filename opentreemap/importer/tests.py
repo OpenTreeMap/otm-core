@@ -804,14 +804,13 @@ class TreeIntegrationTests(IntegrationTests):
 
         csv = """
         | point x | point y | diameter | read only | genus | tree height |
-        | -34.2   | 24.2    | q12      | true      |       |         |
-        | 323     | 23.2    | 14       | falseo    |       |         |
-        | 32.1    | 22.4    | 15       | true      |       |         |
-        | 33.2    | 19.1    | 32       | true      |       |         |
-        | 33.2    | q19.1   | -33.3    | true      | gfail |         |
-        | 32.1    | 12.1    |          | false     | g1    | 200     |
-        | 32.1    | 12.1    | 300      | false     | g1    |         |
-        | 11.1    | 12.1    |          | false     |       |         |
+        | -34.2   | 24.2    | q12      | true      |       |             |
+        | 323     | 23.2    | 14       | falseo    |       |             |
+        | 32.1    | 22.4    | 15       | true      |       |             |
+        | 33.2    | 19.1    | 32       | true      |       |             |
+        | 33.2    | q19.1   | -33.3    | true      | gfail |             |
+        | 32.1    | 12.1    |          | false     | g1    | 200         |
+        | 32.1    | 12.1    | 300      | false     | g1    |             |
         """
 
         gflds = [fields.trees.POINT_X, fields.trees.POINT_Y]
@@ -822,17 +821,14 @@ class TreeIntegrationTests(IntegrationTests):
         ierrors = self.extract_errors(j)
         self.assertEqual(ierrors['0'],
                          [(errors.FLOAT_ERROR[0],
-                           [fields.trees.DIAMETER], None),
-                          (errors.GEOM_OUT_OF_BOUNDS[0], gflds, None)])
+                           [fields.trees.DIAMETER], None)])
 
         self.assertEqual(ierrors['1'],
                          [(errors.BOOL_ERROR[0],
                            [fields.trees.READ_ONLY], None),
                           (errors.INVALID_GEOM[0], gflds, None)])
         self.assertNotIn('2', ierrors)
-        self.assertEqual(ierrors['3'],
-                         [(errors.INVALID_CHOICE[0],
-                           [fields.trees.TREE_CONDITION], 'conditions')])
+        self.assertNotIn('3', ierrors)
         self.assertEqual(ierrors['4'],
                          [(errors.POS_FLOAT_ERROR[0],
                            [fields.trees.DIAMETER], None),
