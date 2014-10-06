@@ -13,7 +13,7 @@ var $                   = require('jquery'),
     editTreeDetailsMode = require('treemap/editTreeDetailsMode'),
     addResourceMode     = require('treemap/addResourceMode'),
     inlineEditForm      = require('treemap/inlineEditForm'),
-    mapState            = require('treemap/mapState'),
+    urlState            = require('treemap/urlState'),
     plotMarker          = require('treemap/plotMarker'),
     statePrompter       = require('treemap/statePrompter'),
     prompter,
@@ -56,7 +56,7 @@ function activateMode(mode, sidebar, safeTransition) {
         } else {
             prompter.unlock();
         }
-        mapState.setModeName(mode.name);
+        urlState.setModeName(mode.name);
         currentMode = mode;
     }
 }

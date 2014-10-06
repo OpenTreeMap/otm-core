@@ -6,7 +6,7 @@ var $ = require('jquery'),
     U = require('treemap/utility'),
     BU = require('treemap/baconUtils'),
     makeLayerFilterable = require('treemap/makeLayerFilterable'),
-    mapState = require('treemap/mapState');
+    urlState = require('treemap/urlState');
 
 // Leaflet extensions
 require('utfgrid');
@@ -50,7 +50,7 @@ MapManager.prototype = {
 
         if (options.trackZoomLatLng) {
             map.on("moveend", _.partial(serializeZoomLatLngFromMap, map));
-            mapState.stateChangeStream.filter('.zoomLatLng')
+            urlState.stateChangeStream.filter('.zoomLatLng')
                 .onValue(_.partial(deserializeZoomLatLngAndSetOnMap, this));
         }
 
@@ -228,7 +228,7 @@ function deserializeZoomLatLngAndSetOnMap(mapManager, state) {
 function serializeZoomLatLngFromMap(map) {
     var zoom = map.getZoom(),
         center = map.getCenter();
-    mapState.setZoomLatLng(zoom, center);
+    urlState.setZoomLatLng(zoom, center);
 }
 
 module.exports = MapManager;
