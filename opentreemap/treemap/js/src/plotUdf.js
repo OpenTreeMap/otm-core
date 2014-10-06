@@ -15,6 +15,7 @@ exports.init = function(form) {
             '<% _.each(fields, function (field) { %>' +
             '<td data-value="<%= field.value %>"> <%= field.display %> </td>' +
             '<% }) %>' +
+            '<td></td>' +
             '</tr>');
 
     // Wire up collection udfs
