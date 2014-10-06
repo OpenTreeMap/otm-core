@@ -52,7 +52,7 @@
 <li class="explore-map {% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Map" %}</a></li>
 
 {% if settings.MODELING_VIEW_NAME %}
-  {% if request.instance|feature_enabled:'prioritize_planting_sites' or request.instance|feature_enabled:'model_tree_growth' %}
+  {% if request.instance|feature_enabled:'modeling' %}
     <li class="dropdown {% block activemodeling %}{% endblock %}">
       <a class="dropdown-toggle" data-toggle="dropdown">{% trans "Plan" %}</a>
       <ul class="modeling dropdown-menu">
