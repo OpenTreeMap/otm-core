@@ -8,7 +8,7 @@ import json
 import io
 
 from django.db import transaction
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
@@ -38,10 +38,11 @@ def lowerkeys(h):
     return h2
 
 
-def find_similar_species(request):
+def find_similar_species(request, instance):
     target = request.REQUEST['target']
 
     species = Species.objects\
+                     .filter(instance=instance)\
                      .extra(
                          select={
                              'l': ("levenshtein(genus || ' ' || species || "
@@ -60,9 +61,10 @@ def find_similar_species(request):
     return HttpResponse(json.dumps(output), content_type='application/json')
 
 
-def counts(request):
+def counts(request, instance):
     active_trees = TreeImportEvent\
         .objects\
+        .filter(instance=instance)\
         .order_by('id')\
         .exclude(status=GenericImportEvent.FINISHED_CREATING)\
         .exclude(status=GenericImportEvent.FINISHED_VERIFICATION)\
@@ -70,6 +72,7 @@ def counts(request):
 
     active_species = SpeciesImportEvent\
         .objects\
+        .filter(instance=instance)\
         .order_by('id')\
         .exclude(status=GenericImportEvent.FINISHED_CREATING)\
         .exclude(status=GenericImportEvent.FINISHED_VERIFICATION)\
@@ -83,7 +86,7 @@ def counts(request):
 
 
 @login_required
-def create(request):
+def create(request, instance):
     if request.REQUEST['type'] == 'tree':
         kwargs = {
             'fileconstructor': TreeImportEvent,
@@ -108,20 +111,22 @@ def create(request):
             'fileconstructor': SpeciesImportEvent
         }
 
-    process_csv(request, **kwargs)
+    process_csv(request, instance, **kwargs)
 
     return HttpResponseRedirect(reverse('importer:list_imports'))
 
 
 @login_required
-def list_imports(request):
-    trees = TreeImportEvent.objects.order_by('id')
+def list_imports(request, instance):
+    trees = TreeImportEvent.objects.filter(instance=instance).order_by('id')
 
     active_trees = trees.exclude(status=GenericImportEvent.FINISHED_CREATING)
 
     finished_trees = trees.filter(status=GenericImportEvent.FINISHED_CREATING)
 
-    species = SpeciesImportEvent.objects.order_by('id')
+    species = SpeciesImportEvent.objects\
+        .filter(instance=instance)\
+        .order_by('id')
 
     active_species = species.exclude(
         status=GenericImportEvent.FINISHED_CREATING)
@@ -129,7 +134,7 @@ def list_imports(request):
     finished_species = species.filter(
         status=GenericImportEvent.FINISHED_CREATING)
 
-    all_species = Species.objects.all()
+    all_species = Species.objects.filter(instance=instance)
     all_species = sorted(all_species, key=lambda s: s.get_long_name())
 
     return render_to_response(
@@ -145,7 +150,7 @@ def list_imports(request):
 
 @login_required
 @transaction.commit_on_success
-def merge_species(request):
+def merge_species(request, instance):
     # TODO: We don't set User.is_staff, probably should use a decorator anyways
     if not request.user.is_staff:
         raise Exception("Must be admin")
@@ -153,9 +158,10 @@ def merge_species(request):
     species_to_delete_id = request.REQUEST['species_to_delete']
     species_to_replace_with_id = request.REQUEST['species_to_replace_with']
 
-    species_to_delete = Species.objects.get(pk=species_to_delete_id)
-    species_to_replace_with = Species.objects.get(
-        pk=species_to_replace_with_id)
+    species_to_delete = get_object_or_404(
+        Species, instance=instance, pk=species_to_delete_id)
+    species_to_replace_with = get_object_or_404(
+        Species, instance=instance, pk=species_to_replace_with_id)
 
     if species_to_delete.pk == species_to_replace_with.pk:
         return HttpResponse(
@@ -164,8 +170,10 @@ def merge_species(request):
             status=400)
 
     # TODO: .update_with_user()?
-    Tree.objects.filter(species=species_to_delete)\
-                .update(species=species_to_replace_with)
+    Tree.objects\
+        .filter(instance=instance)\
+        .filter(species=species_to_delete)\
+        .update(species=species_to_replace_with)
 
     species_to_delete.delete_with_user(request.user)
 
@@ -179,26 +187,29 @@ def merge_species(request):
 
 
 @login_required
-def show_species_import_status(request, import_event_id):
-    return show_import_status(request, import_event_id, SpeciesImportEvent)
+def show_species_import_status(request, instance, import_event_id):
+    return show_import_status(request, instance, import_event_id,
+                              SpeciesImportEvent)
 
 
 @login_required
-def show_tree_import_status(request, import_event_id):
-    return show_import_status(request, import_event_id, TreeImportEvent)
+def show_tree_import_status(request, instance, import_event_id):
+    return show_import_status(request, instance, import_event_id,
+                              TreeImportEvent)
 
 
 @login_required
-def show_import_status(request, import_event_id, Model):
+def show_import_status(request, instance, import_event_id, Model):
     return render_to_response(
         'importer/status.html',
         RequestContext(
             request,
-            {'event': Model.objects.get(pk=import_event_id)}))
+            {'event': get_object_or_404(Model, instance=instance,
+                                        pk=import_event_id)}))
 
 
 @login_required
-def update(request, import_type, import_event_id):
+def update(request, instance, import_type, import_event_id):
     if import_type == 'tree':
         Model = TreeImportEvent
     else:
@@ -207,7 +218,9 @@ def update(request, import_type, import_event_id):
     rowdata = json.loads(request.REQUEST['row'])
     idx = rowdata['id']
 
-    row = Model.objects.get(pk=import_event_id).rows().get(idx=idx)
+    row = get_object_or_404(Model, instance=instance, pk=import_event_id)\
+        .rows()\
+        .get(idx=idx)
     basedata = row.datadict
 
     for k, v in rowdata.iteritems():
@@ -224,7 +237,7 @@ def update(request, import_type, import_event_id):
 
 # TODO: Remove this method
 @login_required
-def update_row(request, import_event_row_id):
+def update_row(request, instance, import_event_row_id):
     update_keys = {key.split('update__')[1]
                    for key
                    in request.REQUEST.keys()
@@ -246,7 +259,7 @@ def update_row(request, import_event_row_id):
 
 
 @login_required
-def results(request, import_event_id, import_type, subtype):
+def results(request, instance, import_event_id, import_type, subtype):
     """ Return a json array for each row of a given subtype
     where subtype is a valid status for a TreeImportRow
     """
@@ -273,7 +286,7 @@ def results(request, import_event_id, import_type, subtype):
     page_start = page_size * page
     page_end = page_size * (page + 1)
 
-    ie = Model.objects.get(pk=import_event_id)
+    ie = get_object_or_404(Model, pk=import_event_id, instance=instance)
 
     header = None
     output = {}
@@ -335,8 +348,8 @@ def results(request, import_event_id, import_type, subtype):
     return HttpResponse(json.dumps(output), content_type='application/json')
 
 
-def process_status(request, import_id, TheImportEvent):
-    ie = TheImportEvent.objects.get(pk=import_id)
+def process_status(request, instance, import_id, TheImportEvent):
+    ie = get_object_or_404(TheImportEvent, instance=instance, pk=import_id)
 
     resp = None
     if ie.errors:
@@ -359,8 +372,9 @@ def process_status(request, import_id, TheImportEvent):
     return HttpResponse(json.dumps(resp), content_type='application/json')
 
 
-def solve(request, import_event_id, import_row_idx):
-    ie = SpeciesImportEvent.objects.get(pk=import_event_id)
+def solve(request, instance, import_event_id, import_row_idx):
+    ie = get_object_or_404(SpeciesImportEvent, pk=import_event_id,
+                           instance=instance)
     row = ie.rows().get(idx=import_row_idx)
 
     data = dict(json.loads(request.REQUEST['data']))
@@ -377,7 +391,8 @@ def solve(request, import_event_id, import_row_idx):
     row.datadict = data
 
     if tgtspecies != 'new':
-        row.species = Species.objects.get(pk=tgtspecies)
+        row.species = get_object_or_404(Species, instance=instance,
+                                        pk=tgtspecies)
 
     row.merged = True
     row.save()
@@ -392,16 +407,16 @@ def solve(request, import_event_id, import_row_idx):
 
 @transaction.commit_manually
 @login_required
-def commit(request, import_event_id, import_type=None):
+def commit(request, instance, import_event_id, import_type=None):
     #TODO:!!! If 'Plot' already exists on row *update* when changed
     if import_type == 'species':
-        model = SpeciesImportEvent
+        Model = SpeciesImportEvent
     elif import_type == 'tree':
-        model = TreeImportEvent
+        Model = TreeImportEvent
     else:
         raise Exception('invalid import type')
 
-    ie = model.objects.get(pk=import_event_id)
+    ie = get_object_or_404(Model, instance=instance, pk=import_event_id)
     ie.status = GenericImportEvent.CREATING
 
     ie.save()
@@ -417,7 +432,7 @@ def commit(request, import_event_id, import_type=None):
 
 
 @transaction.commit_manually
-def process_csv(request, fileconstructor, **kwargs):
+def process_csv(request, instance, fileconstructor, **kwargs):
     files = request.FILES
     filename = files.keys()[0]
     fileobj = files[filename]
@@ -429,6 +444,7 @@ def process_csv(request, fileconstructor, **kwargs):
     owner = request.user
     ie = fileconstructor(file_name=filename,
                          owner=owner,
+                         instance=instance,
                          **kwargs)
 
     ie.save()
@@ -491,7 +507,7 @@ def _build_species_object(species, fieldmap, included_fields):
 
 
 @login_required
-def export_all_species(request):
+def export_all_species(request, instance):
     response = HttpResponse(mimetype='text/csv')
 
     # Maps [attr on species model] -> field name
@@ -510,7 +526,7 @@ def export_all_species(request):
     writer = csv.DictWriter(response, included_fields)
     writer.writeheader()
 
-    for s in Species.objects.all():
+    for s in Species.objects.filter(instance=instance):
         obj = _build_species_object(s, fieldmap, included_fields)
         writer.writerow(obj)
 
@@ -520,10 +536,11 @@ def export_all_species(request):
 
 
 @login_required
-def export_single_species_import(request, import_event_id):
+def export_single_species_import(request, instance, import_event_id):
     fieldmap = SpeciesImportRow.SPECIES_MAP
 
-    ie = SpeciesImportEvent.objects.get(pk=import_event_id)
+    ie = get_object_or_404(SpeciesImportEvent, instance=instance,
+                           pk=import_event_id)
 
     response = HttpResponse(mimetype='text/csv')
 
@@ -545,7 +562,7 @@ def export_single_species_import(request, import_event_id):
 
 
 @login_required
-def export_single_tree_import(request, import_event_id):
+def export_single_tree_import(request, instance, import_event_id):
     # TODO: Why doesn't this use fields.trees.ALL?
     all_fields = (
         fields.trees.POINT_X,
@@ -580,7 +597,8 @@ def export_single_tree_import(request, import_event_id):
         fields.trees.LOCAL_PROJECTS,
         fields.trees.DATA_SOURCE)
 
-    ie = TreeImportEvent.objects.get(pk=import_event_id)
+    ie = get_object_or_404(TreeImportEvent, instance=instance,
+                           pk=import_event_id)
 
     response = HttpResponse(mimetype='text/csv')
 
@@ -645,8 +663,8 @@ def export_single_tree_import(request, import_event_id):
     return response
 
 
-def process_commit(request, import_id):
-    ie = TreeImportEvent.objects.get(pk=import_id)
+def process_commit(request, instance, import_id):
+    ie = get_object_or_404(TreeImportEvent, instance=instance, pk=import_id)
 
     commit_import_event(ie)
 

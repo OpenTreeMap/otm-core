@@ -51,7 +51,7 @@ class MergeTest(TestCase):
 
         spcnt = Species.objects.all().count()
 
-        resp = merge_species(r)
+        resp = merge_species(r, self.instance)
 
         self.assertEqual(Species.objects.all().count(), spcnt)
         self.assertEqual(resp.status_code, 400)
@@ -74,7 +74,7 @@ class MergeTest(TestCase):
         r.user = self.user
         r.user.is_staff = True
 
-        merge_species(r)
+        merge_species(r, self.instance)
 
         self.assertRaises(Species.DoesNotExist,
                           Species.objects.get, pk=self.s1.pk)
@@ -93,7 +93,8 @@ class ValidationTest(TestCase):
         self.user = make_admin_user(self.instance)
 
         self.ie = TreeImportEvent(file_name='file',
-                                  owner=self.user)
+                                  owner=self.user,
+                                  instance=self.instance)
         self.ie.save()
 
     def mkrow(self, data):
@@ -363,7 +364,8 @@ class FileLevelValidationTest(TestCase):
         self.user = make_admin_user(self.instance)
 
     def test_empty_file_error(self):
-        ie = TreeImportEvent(file_name='file', owner=self.user)
+        ie = TreeImportEvent(file_name='file', owner=self.user,
+                             instance=self.instance)
         ie.save()
 
         base_rows = TreeImportRow.objects.count()
@@ -387,7 +389,8 @@ class FileLevelValidationTest(TestCase):
         self.assertEqual(etpl, errors.EMPTY_FILE)
 
     def test_missing_point_field(self):
-        ie = TreeImportEvent(file_name='file', owner=self.user)
+        ie = TreeImportEvent(file_name='file', owner=self.user,
+                             instance=self.instance)
         ie.save()
 
         TreeImportRow.objects.count()
@@ -410,7 +413,8 @@ class FileLevelValidationTest(TestCase):
         self.assertEqual(etpl, errors.MISSING_POINTS)
 
     def test_unknown_field(self):
-        ie = TreeImportEvent(file_name='file', owner=self.user)
+        ie = TreeImportEvent(file_name='file', owner=self.user,
+                             instance=self.instance)
         ie.save()
 
         TreeImportRow.objects.count()
@@ -464,22 +468,22 @@ class IntegrationTests(TestCase):
 
     def run_through_process_views(self, csv):
         r = self.create_csv_request(csv, name='some name')
-        pk = process_csv(r, fileconstructor=self.constructor())
+        pk = process_csv(r, self.instance, fileconstructor=self.constructor())
 
-        resp = process_status(None, pk, self.constructor())
+        resp = process_status(None, self.instance, pk, self.constructor())
         content = json.loads(resp.content)
         content['pk'] = pk
         return content
 
     def run_through_commit_views(self, csv):
         r = self.create_csv_request(csv, name='some name')
-        pk = process_csv(r, fileconstructor=self.constructor())
+        pk = process_csv(r, self.instance, fileconstructor=self.constructor())
 
         req = HttpRequest()
         req.user = self.user
         login(self.client, self.user.username)
 
-        commit(req, pk, self.import_type())
+        commit(req, self.instance, pk, self.import_type())
         return pk
 
     def extract_errors(self, json):
@@ -710,6 +714,7 @@ class SpeciesExportTests(TestCase):
         login(self.client, user.username)
 
     def test_export_all_species(self):
+        # TODO: This needs the instance name in the URL
         response = self.client.get('/importer/export/species/all')
         reader = csv.reader(response)
         reader_rows = [r for r in reader][1:]
@@ -886,7 +891,7 @@ class TreeIntegrationTests(IntegrationTests):
         """
 
         r = self.create_csv_request(csv, name='some name')
-        ieid = process_csv(r, fileconstructor=self.constructor(),
+        ieid = process_csv(r, self.instance, fileconstructor=self.constructor(),
                            plot_length_conversion_factor=1.5,
                            plot_width_conversion_factor=2.5,
                            diameter_conversion_factor=3.5,
@@ -897,7 +902,7 @@ class TreeIntegrationTests(IntegrationTests):
         req.user = self.user
         login(self.client, self.user.username)
 
-        commit(req, ieid, self.import_type())
+        commit(req, self.instance, ieid, self.import_type())
 
         ie = TreeImportEvent.objects.get(pk=ieid)
         plot = ie.treeimportrow_set.all()[0].plot

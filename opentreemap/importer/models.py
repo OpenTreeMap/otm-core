@@ -13,7 +13,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 
-from treemap.models import Species, Plot, Tree, User
+from treemap.models import Species, Plot, Tree, User, Instance
 
 from importer import fields
 from importer import errors
@@ -41,6 +41,7 @@ class GenericImportEvent(models.Model):
 
     # Metadata about this particular import
     owner = models.ForeignKey(User)
+    instance = models.ForeignKey(Instance)
     created = models.DateTimeField(auto_now=True)
     completed = models.DateTimeField(null=True, blank=True)
 
@@ -797,7 +798,7 @@ class SpeciesImportRow(GenericImportRow):
 
         # If not specified create a new one
         if species is None:
-            species = Species()
+            species = Species(instance=self.import_event.instance)
 
         # Convert units
         self.convert_units(data, {
@@ -928,7 +929,7 @@ class TreeImportRow(GenericImportRow):
         # Initially grab plot from row if it exists
         plot = self.plot
         if plot is None:
-            plot = Plot()
+            plot = Plot(instance=self.import_event.instance)
 
         # Event if TREE_PRESENT is None, a tree
         # can still be spawned here if there is
@@ -969,6 +970,7 @@ class TreeImportRow(GenericImportRow):
 
         if tree_edited:
             tree.plot = plot
+            tree.instance = plot.instance
             tree.save_with_user(data_owner)
 
         self.plot = plot
@@ -1027,6 +1029,7 @@ class TreeImportRow(GenericImportRow):
     def validate_proximity(self, point):
         base_import_event = self.import_event.base_import_event
         nearby = Plot.objects\
+                     .filter(instance=self.import_event.instance)\
                      .filter(geometry__distance_lte=(point, D(ft=10.0)))\
                      .distance(point)\
                      .exclude(import_event=base_import_event)\
