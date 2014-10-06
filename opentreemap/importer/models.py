@@ -499,7 +499,6 @@ class SpeciesImportRow(GenericImportRow):
 
     SPECIES_MAP = {
         'symbol': fields.species.USDA_SYMBOL,
-        'alternate_symbol': fields.species.ALT_SYMBOL,
         'itree_code': fields.species.ITREE_CODE,
         'genus': fields.species.GENUS,
         'species': fields.species.SPECIES,
@@ -620,10 +619,6 @@ class SpeciesImportRow(GenericImportRow):
         return self.validate_code(fields.species.USDA_SYMBOL,
                                   'symbol', addl_filter)
 
-    def validate_alt_code(self):
-        return self.validate_code(fields.species.ALT_SYMBOL,
-                                  'alternate_symbol')
-
     def validate_required_fields(self):
         req = {fields.species.GENUS,
                fields.species.COMMON_NAME, fields.species.ITREE_CODE}
@@ -723,7 +718,6 @@ class SpeciesImportRow(GenericImportRow):
 
         self.validate_species()
         self.validate_usda_code()
-        self.validate_alt_code()
 
         self.validate_itree_code()
         self.validate_required_fields()
