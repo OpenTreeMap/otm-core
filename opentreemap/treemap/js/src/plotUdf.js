@@ -22,8 +22,9 @@ require('bootstrap-datepicker');
 
 exports.init = function(form) {
 
-    function markAsResolved () {
-        var $resolvedContainer = $(this).closest('tr')
+    function markTargetAsResolved (event) {
+        var $el = $(event.target),
+            $resolvedContainer = $el.closest('tr')
                 .find('td:contains("Unresolved")');
         $resolvedContainer.text('Resolved');
         $resolvedContainer.attr('data-value', 'Resolved');
@@ -35,7 +36,7 @@ exports.init = function(form) {
             $unresolved = $tables.find('tr[data-value-id] td:contains("Unresolved")');
         $buttons.remove();
         $unresolved.next().append(resolveButtonMarkup);
-        $tables.find('.resolveBtn').click(markAsResolved);
+        $tables.find('.resolveBtn').click(markTargetAsResolved);
     }
 
     function formatField (field) {
