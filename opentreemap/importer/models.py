@@ -1029,7 +1029,6 @@ class TreeImportRow(GenericImportRow):
 
         return True
 
-    # TODO: Remove?
     def validate_proximity(self, point):
         base_import_event = self.import_event.base_import_event
         nearby = Plot.objects\

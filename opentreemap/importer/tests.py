@@ -13,15 +13,14 @@ from StringIO import StringIO
 
 from django.conf import settings
 from django.test import TestCase
+from django.utils.unittest.case import skip
 from django.http import HttpRequest
-from django.contrib.auth import login, authenticate
 from django.contrib.gis.geos import Point
-from django.utils.importlib import import_module
 
 from api.test_utils import setupTreemapEnv, mkPlot
 
 from treemap.models import Species, Plot, Tree, User
-from treemap.tests import make_admin_user, make_instance
+from treemap.tests import make_admin_user, make_instance, login
 
 from importer.views import (create_rows_for_event, process_csv, process_status,
                             commit, merge_species)
@@ -90,8 +89,8 @@ class MergeTest(TestCase):
 
 class ValidationTest(TestCase):
     def setUp(self):
-        self.user = User(username='smith')
-        self.user.save()
+        self.instance = make_instance()
+        self.user = make_admin_user(self.instance)
 
         self.ie = TreeImportEvent(file_name='file',
                                   owner=self.user)
@@ -128,14 +127,12 @@ class ValidationTest(TestCase):
                                          % (errn, local_errors))
 
     def test_species_dbh_and_height(self):
-        s1_gsc = Species(symbol='S1G__', scientific_name='', family='',
-                         genus='g1', species='s1', cultivar_name='c1',
-                         v_max_height=30, v_max_dbh=19)
-        s1_gs = Species(symbol='S1GS_', scientific_name='', family='',
-                        genus='g1', species='s1', cultivar_name='',
-                        v_max_height=22, v_max_dbh=12)
-        s1_gsc.save()
-        s1_gs.save()
+        s1_gsc = Species(instance=self.instance, genus='g1', species='s1',
+                         cultivar='c1', max_height=30, max_dbh=19)
+        s1_gs = Species(instance=self.instance, genus='g1', species='s1',
+                        cultivar='', max_height=22, max_dbh=12)
+        s1_gsc.save_with_user(self.user)
+        s1_gs.save_with_user(self.user)
 
         row = {'point x': '16',
                'point y': '20',
@@ -165,21 +162,17 @@ class ValidationTest(TestCase):
         self.assertNotHasError(i, errors.SPECIES_HEIGHT_TOO_HIGH)
 
     def test_proximity(self):
-        setupTreemapEnv()
+        p1 = mkPlot(self.instance, self.user,
+                    geom=Point(25.0000001, 25.0000001))
 
-        user = User.objects.get(username="jim")
+        p2 = mkPlot(self.instance, self.user,
+                    geom=Point(25.0000002, 25.0000002))
 
-        p1 = mkPlot(user, geom=Point(25.0000001, 25.0000001))
-        p1.save()
+        p3 = mkPlot(self.instance, self.user,
+                    geom=Point(25.0000003, 25.0000003))
 
-        p2 = mkPlot(user, geom=Point(25.0000002, 25.0000002))
-        p2.save()
-
-        p3 = mkPlot(user, geom=Point(25.0000003, 25.0000003))
-        p3.save()
-
-        p4 = mkPlot(user, geom=Point(27.0000001, 27.0000001))
-        p4.save()
+        p4 = mkPlot(self.instance, self.user,
+                    geom=Point(27.0000001, 27.0000001))
 
         n1 = {p.pk for p in [p1, p2, p3]}
         n2 = {p4.pk}
@@ -203,20 +196,20 @@ class ValidationTest(TestCase):
         self.assertNotHasError(i, errors.NEARBY_TREES)
 
     def test_species_id(self):
-        s1_gsc = Species(symbol='S1G__', scientific_name='', family='',
-                         genus='g1', species='s1', cultivar_name='c1')
-        s1_gs = Species(symbol='S1GS_', scientific_name='', family='',
-                        genus='g1', species='s1', cultivar_name='')
-        s1_g = Species(symbol='S1GSC', scientific_name='', family='',
-                       genus='g1', species='', cultivar_name='')
+        s1_gsc = Species(instance=self.instance, genus='g1', species='s1',
+                         cultivar='c1')
+        s1_gs = Species(instance=self.instance, genus='g1', species='s1',
+                        cultivar='')
+        s1_g = Species(instance=self.instance, genus='g1', species='',
+                       cultivar='')
 
-        s2_gsc = Species(symbol='S2GSC', scientific_name='', family='',
-                         genus='g2', species='s2', cultivar_name='c2')
-        s2_gs = Species(symbol='S2GS_', scientific_name='', family='',
-                        genus='g2', species='s2', cultivar_name='')
+        s2_gsc = Species(instance=self.instance, genus='g2', species='s2',
+                         cultivar='c2')
+        s2_gs = Species(instance=self.instance, genus='g2', species='s2',
+                        cultivar='')
 
         for s in [s1_gsc, s1_gs, s1_g, s2_gsc, s2_gs]:
-            s.save()
+            s.save_with_user(self.user)
 
         # Simple genus, species, cultivar matches
         i = self.mkrow({'point x': '16',
@@ -294,15 +287,9 @@ class ValidationTest(TestCase):
         self.assertFalse(r)
         self.assertHasError(i, errors.INVALID_OTM_ID)
 
-        # Add in plot
-        setupTreemapEnv()  # We need the whole darn thing
-                           # just so we can add a plot :(
-
         # SetupTME provides a special user for us to use
         # as well as particular neighborhood
-        user = User.objects.get(username="jim")
-        p = mkPlot(user, geom=Point(25, 25))
-        p.save()
+        p = mkPlot(self.instance, self.user, geom=Point(25, 25))
 
         # With an existing plot it should be fine
         i = self.mkrow({'point x': '16',
@@ -372,8 +359,8 @@ class FileLevelValidationTest(TestCase):
         return t
 
     def setUp(self):
-        self.user = User(username='smith')
-        self.user.save()
+        self.instance = make_instance()
+        self.user = make_admin_user(self.instance)
 
     def test_empty_file_error(self):
         ie = TreeImportEvent(file_name='file', owner=self.user)
@@ -449,9 +436,9 @@ class FileLevelValidationTest(TestCase):
 
 class IntegrationTests(TestCase):
     def setUp(self):
-        setupTreemapEnv()
+        self.instance = setupTreemapEnv()
 
-        self.user = User.objects.get(username='jim')
+        self.user = make_admin_user(self.instance)
 
     def create_csv_stream(self, stuff):
         csvfile = StringIO()
@@ -462,19 +449,13 @@ class IntegrationTests(TestCase):
 
         return StringIO(csvfile.getvalue())
 
-    def login(self, request, **creds):
-        engine = import_module(settings.SESSION_ENGINE)
-        request.session = engine.SessionStore()
-        user = authenticate(**creds)
-        login(request, user)
-
     def create_csv_request(self, stuff, **kwargs):
         rows = [[z.strip() for z in a.split('|')[1:-1]]
                 for a in stuff.split('\n') if len(a.strip()) > 0]
 
         req = HttpRequest()
         req.user = self.user
-        self.login(req, username="jim", password="jim")
+        login(self.client, self.user.username)
 
         req.FILES = {'filename': self.create_csv_stream(rows)}
         req.REQUEST = kwargs
@@ -496,7 +477,7 @@ class IntegrationTests(TestCase):
 
         req = HttpRequest()
         req.user = self.user
-        self.login(req, username="jim", password="jim")
+        login(self.client, self.user.username)
 
         commit(req, pk, self.import_type())
         return pk
@@ -604,10 +585,10 @@ class SpeciesIntegrationTests(IntegrationTests):
         ie = SpeciesImportEvent.objects.get(pk=j['pk'])
         s1,s2,s3 = [s.pk for s in Species.objects.all()]
 
-        s4s = Species(symbol='gnsn', scientific_name='', family='',
-                      genus='genusN', species='speciesN', cultivar_name='',
-                      other_part_of_name='var3', v_max_dbh=50.0, v_max_height=100.0)
-        s4s.save()
+        s4s = Species(instance=self.instance, genus='genusN',
+                      species='speciesN', cultivar='', other='var3',
+                      max_dbh=50.0, max_height=100.0)
+        s4s.save_with_user(user)
         s4 = s4s.pk
 
         rows = ie.rows()
@@ -644,15 +625,14 @@ class SpeciesIntegrationTests(IntegrationTests):
         csv = """
         | genus     | species     | common name | i-tree code  | cultivar | %s  | %s  |
         | newgenus2 | newspecies1 | g1 s2 wowza | BDL OTHER    | cvar     | sci | fam |
-        """ % ('other part of scientific name', 'family')
+        """ % ('other', 'family')
 
         seid = self.run_through_commit_views(csv)
         ie = SpeciesImportEvent.objects.get(pk=seid)
         s = ie.rows().all()[0].species
 
-        self.assertEqual(s.cultivar_name, 'cvar')
-        self.assertEqual(s.family, 'fam')
-        self.assertEqual(s.other_part_of_name, 'sci')
+        self.assertEqual(s.cultivar, 'cvar')
+        self.assertEqual(s.other, 'sci')
 
         csv = """
         | genus     | species     | common name | i-tree code  | %s   | %s    | %s   |
@@ -663,7 +643,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         ie = SpeciesImportEvent.objects.get(pk=seid)
         s = ie.rows().all()[0].species
 
-        self.assertEqual(s.native_status, 'True')
+        self.assertEqual(s.native_status, True)
         self.assertEqual(s.fall_conspicuous, True)
         self.assertEqual(s.palatable_human, True)
 
@@ -720,13 +700,14 @@ class SpeciesIntegrationTests(IntegrationTests):
 
 class SpeciesExportTests(TestCase):
     def setUp(self):
-        Species.objects.create(symbol='S1GSC', scientific_name='', family='',
-                               genus='g1', species='', cultivar_name='',
-                               v_max_dbh=50.0, v_max_height=100.0)
-        User.objects.create_user(username='foo',
-                                 email='foo@bar.com',
-                                 password='bar')
-        self.client.login(username='foo', password='bar')
+        instance = make_instance()
+        user = make_admin_user(instance)
+
+        species = Species(instance=instance, genus='g1', species='',
+                          cultivar='', max_dbh=50.0, max_height=100.0)
+        species.save_with_user(user)
+
+        login(self.client, user.username)
 
     def test_export_all_species(self):
         response = self.client.get('/importer/export/species/all')
@@ -805,10 +786,9 @@ class TreeIntegrationTests(IntegrationTests):
                           errors.UNMATCHED_FIELDS[0]})
 
     def test_faulty_data1(self):
-        s1_g = Species(symbol='S1GSC', scientific_name='', family='',
-                       genus='g1', species='', cultivar_name='',
-                       v_max_dbh=50.0, v_max_height=100.0)
-        s1_g.save()
+        s1_g = Species(instance=self.instance, genus='g1', species='',
+                       cultivar='', max_dbh=50.0, max_height=100.0)
+        s1_g.save_with_user(self.user)
 
         csv = """
         | point x | point y | diameter | read only | condition | genus | tree height |
@@ -858,8 +838,8 @@ class TreeIntegrationTests(IntegrationTests):
                          [(errors.EXCL_ZONE[0], gflds, None)])
 
     def test_faulty_data2(self):
-        p1 = mkPlot(self.user, geom=Point(25.0000001, 25.0000001))
-        p1.save()
+        p1 = mkPlot(self.instance, self.user,
+                    geom=Point(25.0000001, 25.0000001))
 
         string_too_long = 'a' * 256
 
@@ -915,7 +895,7 @@ class TreeIntegrationTests(IntegrationTests):
 
         req = HttpRequest()
         req.user = self.user
-        self.login(req, username="jim", password="jim")
+        login(self.client, self.user.username)
 
         commit(req, ieid, self.import_type())
 
@@ -929,9 +909,9 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(plot.current_tree().canopy_height, 11.0 * 5.5)
 
     def test_all_tree_data(self):
-        s1_gsc = Species(symbol='S1G__', scientific_name='',family='',
-                         genus='g1', species='s1', cultivar_name='c1')
-        s1_gsc.save()
+        s1_gsc = Species(instance=self.instance, genus='g1', species='s1',
+                         cultivar='c1')
+        s1_gsc.save(self.user)
 
         csv = """
         | point x | point y | tree owner | tree steward | diameter | tree height |
@@ -1054,8 +1034,7 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(plot.owner_additional_id, 'trees r us')
 
     def test_override_with_opentreemap_id(self):
-        p1 = mkPlot(self.user, geom=Point(55.0, 25.0))
-        p1.save()
+        p1 = mkPlot(self.instance, self.user, geom=Point(55.0, 25.0))
 
         csv = """
         | point x | point y | opentreemap id number | data source |
