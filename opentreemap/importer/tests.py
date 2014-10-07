@@ -524,6 +524,7 @@ class SpeciesIntegrationTests(IntegrationTests):
                          {errors.MISSING_SPECIES_FIELDS[0],
                           errors.UNMATCHED_FIELDS[0]})
 
+    @skip("We need to re-work iTree validation")
     def test_noerror_load(self):
         csv = """
         | genus   | species    | common name | i-tree code  |
@@ -536,6 +537,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         self.assertEqual(j['status'], 'success')
         self.assertEqual(j['rows'], 2)
 
+    @skip("We need to re-work iTree validation")
     def test_invalid_itree(self):
         csv = """
         | genus   | species    | common name | i-tree code  |
@@ -556,6 +558,7 @@ class SpeciesIntegrationTests(IntegrationTests):
                           (errors.MISSING_FIELD[0],
                            ['i-tree code'], None)])
 
+    @skip("We need to re-work iTree validation")
     def test_multiregion_itree(self):
         itree = 'NoEastXXX:ACPL,NMtnPrFNL:BDL OTHER'
         csv = """
@@ -570,6 +573,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         self.assertEqual({(r.meta_species, r.region) for r in s.resource.all()},
                          {('ACPL', 'NoEastXXX'), ('BDL OTHER', 'NMtnPrFNL')})
 
+    @skip("We need to re-work iTree validation")
     def test_species_matching(self):
         csv = """
         | genus   | species    | common name | i-tree code  | usda symbol | alternative symbol | other part of scientific name |
@@ -609,6 +613,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         self.assertEqual(m4, {s1,s2,s3})
         self.assertEqual(m5, {s4})
 
+    @skip("OTM2 species don't have a symbol field")
     def test_all_species_data(self):
         csv = """
         | genus     | species     | common name | i-tree code  | usda symbol | alternative symbol |
@@ -680,6 +685,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         self.assertEqual(s.v_max_dbh, 10)
         self.assertEqual(s.v_max_height, 91)
 
+    @skip("We need to re-work iTree validation")
     def test_overrides_species(self):
         csv = """
         | genus   | species    | common name | i-tree code  | usda symbol | alternative symbol |
