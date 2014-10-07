@@ -983,7 +983,8 @@ class TreeImportRow(GenericImportRow):
                               (fields.trees.POINT_X, fields.trees.POINT_Y))
             return False
 
-        p = Point(x, y)
+        p = Point(x, y, srid=4326)
+        p.transform(3857)
 
         if self.import_event.instance.bounds.contains(p):
             self.cleaned[fields.trees.POINT] = p

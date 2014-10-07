@@ -15,7 +15,7 @@ from django.conf import settings
 from django.test import TestCase
 from django.utils.unittest.case import skip
 from django.http import HttpRequest
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
 from api.test_utils import setupTreemapEnv, mkPlot
 
@@ -57,8 +57,8 @@ class MergeTest(TestCase):
         self.assertEqual(resp.status_code, 400)
 
     def test_merges(self):
-        p1 = mkPlot(self.instance, self.user, geom=Point(25.000001, 25.000001))
-        p2 = mkPlot(self.instance, self.user, geom=Point(25.000002, 25.000002))
+        p1 = mkPlot(self.instance, self.user)
+        p2 = mkPlot(self.instance, self.user)
 
         t1 = Tree(plot=p1, species=self.s1, instance=self.instance)
         t2 = Tree(plot=p2, species=self.s2, instance=self.instance)
@@ -89,7 +89,9 @@ class MergeTest(TestCase):
 
 class ValidationTest(TestCase):
     def setUp(self):
-        self.instance = make_instance()
+        center_point = Point(25, 25, srid=4326)
+        center_point.transform(3857)
+        self.instance = make_instance(point=center_point, edge_length=500000)
         self.user = make_admin_user(self.instance)
 
         self.ie = TreeImportEvent(file_name='file',
@@ -164,16 +166,16 @@ class ValidationTest(TestCase):
 
     def test_proximity(self):
         p1 = mkPlot(self.instance, self.user,
-                    geom=Point(25.0000001, 25.0000001))
+                    geom=Point(25.0000001, 25.0000001, srid=4326))
 
         p2 = mkPlot(self.instance, self.user,
-                    geom=Point(25.0000002, 25.0000002))
+                    geom=Point(25.0000002, 25.0000002, srid=4326))
 
         p3 = mkPlot(self.instance, self.user,
-                    geom=Point(25.0000003, 25.0000003))
+                    geom=Point(25.0000003, 25.0000003, srid=4326))
 
         p4 = mkPlot(self.instance, self.user,
-                    geom=Point(27.0000001, 27.0000001))
+                    geom=Point(27.0000001, 27.0000001, srid=4326))
 
         n1 = {p.pk for p in [p1, p2, p3]}
         n2 = {p4.pk}
@@ -271,8 +273,8 @@ class ValidationTest(TestCase):
         self.assertFalse(r)
         self.assertHasError(i, errors.INT_ERROR, None)
 
-        i = self.mkrow({'point x': '16',
-                        'point y': '20',
+        i = self.mkrow({'point x': '25',
+                        'point y': '25',
                         'opentreemap id number': '-22'})
         r = i.validate_row()
 
@@ -280,21 +282,19 @@ class ValidationTest(TestCase):
         self.assertHasError(i, errors.POS_INT_ERROR)
 
         # With no plots in the system, all ids should fail
-        i = self.mkrow({'point x': '16',
-                        'point y': '20',
+        i = self.mkrow({'point x': '25',
+                        'point y': '25',
                         'opentreemap id number': '44'})
         r = i.validate_row()
 
         self.assertFalse(r)
         self.assertHasError(i, errors.INVALID_OTM_ID)
 
-        # SetupTME provides a special user for us to use
-        # as well as particular neighborhood
-        p = mkPlot(self.instance, self.user, geom=Point(25, 25))
+        p = mkPlot(self.instance, self.user)
 
         # With an existing plot it should be fine
-        i = self.mkrow({'point x': '16',
-                        'point y': '20',
+        i = self.mkrow({'point x': '25',
+                        'point y': '25',
                         'opentreemap id number': p.pk})
         r = i.validate_row()
 
@@ -740,6 +740,15 @@ class SpeciesExportTests(TestCase):
 class TreeIntegrationTests(IntegrationTests):
     def setUp(self):
         super(TreeIntegrationTests, self).setUp()
+        # To make plot validation easier, the bounds are basically the world
+        # There are tests for plot in instance bounds in ValidationTest
+        square = Polygon(((-6000000, -6000000),
+                          (-6000000, 6000000),
+                          (6000000, 6000000),
+                          (6000000, -6000000),
+                          (-6000000, -6000000)))
+        self.instance.bounds = MultiPolygon(square)
+        self.instance.save()
 
         settings.DBH_TO_INCHES_FACTOR = 1.0
 
@@ -775,12 +784,16 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertIsNotNone(plot1)
         self.assertIsNotNone(plot2)
 
-        self.assertEqual(int(plot1.geom.x*10), 342)
-        self.assertEqual(int(plot1.geom.y*10), 292)
+        p1_geom = plot1.geom
+        p1_geom.transform(4326)
+        self.assertEqual(int(p1_geom.x*10), 342)
+        self.assertEqual(int(p1_geom.y*10), 291)
         self.assertEqual(plot1.current_tree().diameter, 12)
 
-        self.assertEqual(int(plot2.geom.x*10), 192)
-        self.assertEqual(int(plot2.geom.y*10), 272)
+        p2_geom = plot2.geom
+        p2_geom.transform(4326)
+        self.assertEqual(int(p2_geom.x*10), 191)
+        self.assertEqual(int(p2_geom.y*10), 271)
         self.assertEqual(plot2.current_tree().diameter, 14)
 
     def test_bad_structure(self):
@@ -845,7 +858,7 @@ class TreeIntegrationTests(IntegrationTests):
 
     def test_faulty_data2(self):
         p1 = mkPlot(self.instance, self.user,
-                    geom=Point(25.0000001, 25.0000001))
+                    geom=Point(25.0000001, 25.0000001, srid=4326))
 
         string_too_long = 'a' * 256
 
@@ -950,7 +963,7 @@ class TreeIntegrationTests(IntegrationTests):
 
         csv = """
         | point x | point y | date planted | read only |
-        | 45.12   | 55.12   | 2012-02-03   | true      |
+        | 25.00   | 25.00   | 2012-02-03   | true      |
         """
 
         ieid = self.run_through_commit_views(csv)
@@ -972,8 +985,10 @@ class TreeIntegrationTests(IntegrationTests):
         ie = TreeImportEvent.objects.get(pk=ieid)
         plot = ie.treeimportrow_set.all()[0].plot
 
-        self.assertEqual(int(plot.geom.x*100), 4553)
-        self.assertEqual(int(plot.geom.y*100), 3110)
+        plot_geom = plot.geom
+        plot_geom.transform(4326)
+        self.assertEqual(int(plot_geom.x*100), 4553)
+        self.assertEqual(int(plot_geom.y*100), 3109)
         self.assertEqual(plot.width, 19.2)
         self.assertEqual(plot.length, 13)
         self.assertEqual(plot.readonly, False)
@@ -990,7 +1005,7 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(plot.owner_orig_id, '443')
 
     def test_override_with_opentreemap_id(self):
-        p1 = mkPlot(self.instance, self.user, geom=Point(55.0, 25.0))
+        p1 = mkPlot(self.instance, self.user)
 
         csv = """
         | point x | point y | opentreemap id number |
@@ -999,9 +1014,10 @@ class TreeIntegrationTests(IntegrationTests):
 
         self.run_through_commit_views(csv)
 
-        p1b = Plot.objects.get(pk=p1.pk)
-        self.assertEqual(int(p1b.geom.x*100), 4553)
-        self.assertEqual(int(p1b.geom.y*100), 3110)
+        p1_geom = Plot.objects.get(pk=p1.pk).geom
+        p1_geom.transform(4326)
+        self.assertEqual(int(p1_geom.x*100), 4553)
+        self.assertEqual(int(p1_geom.y*100), 3109)
 
     def test_tree_present_works_as_expected(self):
         csv = """
