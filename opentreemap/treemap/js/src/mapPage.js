@@ -9,7 +9,7 @@ var $ = require('jquery'),
     BU = require('treemap/baconUtils'),
     MapManager = require('treemap/MapManager'),
     mapManager = new MapManager(),
-    mapState = require('treemap/mapState'),
+    urlState = require('treemap/urlState'),
     SearchBar = require('treemap/searchBar'),
     boundarySelect = require('treemap/boundarySelect');
 
@@ -30,7 +30,7 @@ module.exports.init = function (options) {
 
     var triggeredQueryStream =
         Bacon.mergeAll(
-            mapState.stateChangeStream // URL changed
+            urlState.stateChangeStream // URL changed
                 .filter('.search')     // search changed
                 .map('.search'),       // get search string
             searchBar.resetStream.map({})
@@ -42,7 +42,7 @@ module.exports.init = function (options) {
 
     triggeredQueryStream.onValue(searchBar.applySearchToDom);
 
-    builtSearchEvents.onValue(mapState.setSearch);
+    builtSearchEvents.onValue(urlState.setSearch);
 
     boundarySelect.init({
         config: config,
@@ -58,9 +58,9 @@ module.exports.init = function (options) {
         mapManager: mapManager,
         map: mapManager.map,
         builtSearchEvents: builtSearchEvents,
-        getMapStateSearch: mapState.getSearch,
-        mapStateChangeStream: mapState.stateChangeStream,
-        initMapState: mapState.init
+        getMapStateSearch: urlState.getSearch,
+        mapStateChangeStream: urlState.stateChangeStream,
+        initMapState: urlState.init
     };
 };
 
