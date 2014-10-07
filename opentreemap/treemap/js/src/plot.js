@@ -123,6 +123,7 @@ exports.init = function(options) {
         $tables.find('.resolveBtn').click(function () {
             $(this).closest('tr')
                 .find('td:contains("Unresolved")')
+                .attr('data-value', 'Resolved')
                 .text('Resolved');
         });
     }
