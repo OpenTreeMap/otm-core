@@ -13,6 +13,8 @@ from django.utils import dateformat
 from django.utils.translation import ugettext as trans
 from django.conf import settings
 
+from opentreemap.util import dotted_split
+
 from treemap.util import safe_get_model_class, to_object_name, to_model_name
 from treemap.json_field import (is_json_field_reference,
                                 get_attr_from_json_field)
@@ -299,7 +301,8 @@ class AbstractNode(template.Node):
                 'expected a string with the format "object_name.property" '
                 'to follow "from" %s' % identifier)
 
-        model_name_or_object_name, field_name = identifier.split('.', 1)
+        model_name_or_object_name, field_name = dotted_split(identifier, 2,
+                                                             maxsplit=1)
         model = self.get_model(context, model_name_or_object_name, instance)
 
         object_name = to_object_name(model_name_or_object_name)
