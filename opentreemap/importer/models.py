@@ -985,17 +985,12 @@ class TreeImportRow(GenericImportRow):
 
         p = Point(x, y)
 
-# TODO: Remove
-#         if ExclusionMask.objects.filter(geometry__contains=p).exists():
-#             self.append_error(errors.EXCL_ZONE,
-#                               (fields.trees.POINT_X, fields.trees.POINT_Y))
-#             return False
-#         elif Neighborhood.objects.filter(geometry__contains=p).exists():
-#             self.cleaned[fields.trees.POINT] = p
-#         else:
-#             self.append_error(errors.GEOM_OUT_OF_BOUNDS,
-#                               (fields.trees.POINT_X, fields.trees.POINT_Y))
-#             return False
+        if self.import_event.instance.bounds.contains(p):
+            self.cleaned[fields.trees.POINT] = p
+        else:
+            self.append_error(errors.GEOM_OUT_OF_BOUNDS,
+                              (fields.trees.POINT_X, fields.trees.POINT_Y))
+            return False
 
         return True
 

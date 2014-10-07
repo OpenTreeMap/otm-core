@@ -23,7 +23,7 @@ GENERIC_ERROR = (6, 'There was an exception', True)
 INVALID_GEOM = (10, 'Longitude must be between -180 and 180 and '
                 'latitude must be betwen -90 and 90', True)
 
-GEOM_OUT_OF_BOUNDS = (11, 'Geometry must be in a neighborhood', True)
+GEOM_OUT_OF_BOUNDS = (11, 'Geometry must be inside the map bounds', True)
 
 EXCL_ZONE = (12, 'Geometry may not be in an exclusion zone', True)
 

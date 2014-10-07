@@ -846,8 +846,6 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(ierrors['6'],
                          [(errors.SPECIES_DBH_TOO_HIGH[0],
                            [fields.trees.DIAMETER], 50.0)])
-        self.assertEqual(ierrors['7'],
-                         [(errors.EXCL_ZONE[0], gflds, None)])
 
     def test_faulty_data2(self):
         p1 = mkPlot(self.instance, self.user,
