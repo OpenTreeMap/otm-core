@@ -52,8 +52,17 @@ def invalidate_adjuncts(*args, **kwargs):
         instance = adjunct_object.instance
         if instance.id in _adjuncts:
             del _adjuncts[instance.id]
-        instance.adjuncts_timestamp += 1
-        instance.save()
+        increment_adjuncts_timestamp(instance)
+
+
+def increment_adjuncts_timestamp(instance):
+    from treemap.models import Instance
+    # The instance passed to this function may have stale data, so we
+    # don't want to save stale fields along with the new timestamp.
+    instance = Instance.objects.get(pk=instance.id)
+    instance.adjuncts_timestamp += 1
+    instance.save()
+
 
 # ------------------------------------------------------------------------
 # Fetch info from database when not using cache
