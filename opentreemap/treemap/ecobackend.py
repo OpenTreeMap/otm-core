@@ -93,6 +93,13 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
         # A get request is assumed by urllib2
         req = url + '?' + paramString
 
+
+    # the caller decides if it wants to raise the error
+    # as an exception, or return it as a status code on
+    # a json response. therefore, it's always safe to
+    # return this string, and never raise.
+    general_unhandled_struct = (None, UNKNOWN_ECOBENEFIT_ERROR)
+
     try:
         return (json.loads(urllib2.urlopen(req).read()), None)
     except urllib2.HTTPError as e:
@@ -104,8 +111,7 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
                 if match:
                     return (None, code)
         else:
-            # the caller decides if it wants to raise the error
-            # as an exception, or return it as a status code on
-            # a json response. therefore, it's always save to
-            # return this string, and never raise.
-            return (None, UNKNOWN_ECOBENEFIT_ERROR)
+            return general_unhandled_struct
+    except urllib2.URLError:
+        return general_unhandled_struct
+
