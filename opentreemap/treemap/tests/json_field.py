@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from treemap.tests import make_instance
+from treemap.instance import Instance
 from treemap.tests.base import OTMTestCase
 from treemap.json_field import get_attr_from_json_field, set_attr_on_json_field
 
@@ -50,3 +51,13 @@ class JsonFieldTests(OTMTestCase):
                           self.instance, "config.a.no", "1")
         self.assertRaises(KeyError, set_attr_on_json_field,
                           self.instance, "config.b.c.no", "1")
+
+    def test_contains_lookup(self):
+        self.instance.config = ['a', 'b', 'c']
+        self.instance.save()
+
+        self.assertEquals(set(Instance.objects.filter(config__contains='a')),
+                          {self.instance})
+
+        self.assertEquals(set(Instance.objects.filter(config__contains='x')),
+                          set())

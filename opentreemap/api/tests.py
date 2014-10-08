@@ -1147,6 +1147,7 @@ class Instance(LocalMediaTestCase):
 
 @override_settings(NEARBY_INSTANCE_RADIUS=2)
 @override_settings(FEATURE_BACKEND_FUNCTION=None)
+@override_settings(MOBILE_INSTANCES_FUNCTION=None)
 class InstancesClosestToPoint(OTMTestCase):
     def setUp(self):
         self.i1 = make_instance(is_public=True, point=Point(0, 0))
@@ -1201,6 +1202,7 @@ class InstancesClosestToPoint(OTMTestCase):
 
 
 @override_settings(FEATURE_BACKEND_FUNCTION=None)
+@override_settings(MOBILE_INSTANCES_FUNCTION=None)
 class PublicInstancesTest(OTMTestCase):
     def setUp(self):
         self.i1 = make_instance(is_public=True, point=Point(0, 0))

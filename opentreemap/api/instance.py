@@ -21,6 +21,7 @@ from treemap.units import (get_units_if_convertible, get_digits_if_formattable,
 from treemap.util import safe_get_model_class
 from treemap.templatetags.form_extras import field_type_label_choices
 from treemap.json_field import is_json_field_reference
+from treemap.plugin import get_mobile_instances_filter
 
 import treemap.lib.perms as perms_lib
 
@@ -82,7 +83,10 @@ def instances_closest_to_point(request, lat, lng):
         raise HttpBadRequestException(
             'The distance parameter must be a number')
 
-    instances = Instance.objects.distance(point).order_by('distance')
+    instances = Instance.objects \
+                        .filter(get_mobile_instances_filter()) \
+                        .distance(point) \
+                        .order_by('distance')
 
     nearby_predicate = Q(bounds__distance_lte=(point, D(m=distance)))
     personal_predicate = Q(pk__in=user_instance_ids)
@@ -212,13 +216,14 @@ def instance_info(request, instance):
 
 
 def public_instances(request):
-    return _contextify_instances(Instance.objects.filter(is_public=True))
+    return _contextify_instances(Instance.objects
+                                 .filter(is_public=True)
+                                 .filter(get_mobile_instances_filter()))
 
 
 def _contextify_instances(instances):
-    """ Drops non-mobile instances and converts to context dictionary"""
-    return map(_instance_info_dict,
-               filter(lambda i: i.feature_enabled('mobile_apps'), instances))
+    """ Converts instances to context dictionary"""
+    return map(_instance_info_dict, instances)
 
 
 def _instance_info_dict(instance):
