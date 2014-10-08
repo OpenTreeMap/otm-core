@@ -1,0 +1,5 @@
+max-line-length: 80
+test-warnings: true
+uses:
+    - django
+    - celery

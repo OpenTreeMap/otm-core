@@ -1,5 +1,6 @@
-![OTM2 open source 
-logo](https://opentreemap.github.io/images/logo@2x.png)
+![OTM2 open source logo](https://opentreemap.github.io/images/logo@2x.png)
+
+[![Code Health](https://landscape.io/github/OpenTreeMap/OTM2/master/landscape.png)](https://landscape.io/github/OpenTreeMap/OTM2/master)
 
 #OpenTreeMap 2
 
