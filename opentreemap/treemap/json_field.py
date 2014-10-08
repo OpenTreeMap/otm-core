@@ -21,6 +21,9 @@ class JSONField(with_metaclass(models.SubfieldBase, models.TextField)):
         return json.dumps(value or {})
 
     def get_prep_lookup(self, lookup_type, value):
+        # Contains lookups will generally work when looking for values
+        if lookup_type in ('contains', 'icontains'):
+            return super(JSONField, self).get_prep_lookup(lookup_type, value)
         raise TypeError("JSONField doesn't support lookups")
 
 add_introspection_rules([], ["^treemap\.json_field\.JSONField"])
