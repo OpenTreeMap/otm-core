@@ -4,16 +4,74 @@ var _ = require('lodash'),
     Bacon = require('baconjs'),
     url = require('url'),
     L = require('leaflet'),
-    History = require('history');
+    History = require('history'),
 
-var state,
-    stateChangeBus = new Bacon.Bus(),
     modeNamesForUrl = [
         require('treemap/addTreeMode').name,
         require('treemap/addResourceMode').name,
         'prioritization',
         'scenarios'
     ];
+
+var _state = null,
+    _stateChangeBus = new Bacon.Bus();
+
+var serializers = {
+    zoomLatLng: function(state, query) {
+        if (state.zoomLatLng) {
+            var zoom = state.zoomLatLng.zoom,
+                precision = Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2)),
+                lat = state.zoomLatLng.lat.toFixed(precision),
+                lng = state.zoomLatLng.lng.toFixed(precision);
+            query.z = [zoom, lat, lng].join('/');
+        }
+    },
+
+    search: function(state, query) {
+        if (state.search && state.search.filter && !_.isEmpty(state.search.filter)) {
+            query.q = JSON.stringify(state.search.filter);
+        }
+        if (state.search && state.search.display) {
+            query.show = JSON.stringify(state.search.display);
+        }
+    },
+
+    modeName: function(state, query) {
+        if (state.modeName) {
+            query.m = state.modeName;
+        }
+    }
+};
+
+var deserializers = {
+    z: function(newState, query) {
+        var zoomLatLng = query.z;
+        newState.zoomLatLng = null;
+        if (zoomLatLng) {
+            var parts = zoomLatLng.split("/"),
+                zoom = parseInt(parts[0], 10),
+                lat = parseFloat(parts[1]),
+                lng = parseFloat(parts[2]);
+            if (!isNaN(zoom) && !isNaN(lat) && !isNaN(lng)) {
+                newState.zoomLatLng = makeZoomLatLng(zoom, lat, lng);
+            }
+        }
+    },
+
+    q: function(newState, query) {
+        newState.search = newState.search || {};
+        newState.search.filter = JSON.parse(query.q || '{}');
+    },
+
+    show: function(newState, query) {
+        newState.search = newState.search || {};
+        newState.search.display = query.show ? JSON.parse(query.show) : undefined;
+    },
+
+    m: function(newState, query) {
+        newState.modeName = query.m || '';
+    }
+};
 
 module.exports = {
     init: function () {
@@ -32,53 +90,59 @@ module.exports = {
 
     setZoomLatLng: function (zoom, center) {
         var zoomLatLng = makeZoomLatLng(zoom, center.lat, center.lng);
-        if (!_.isEqual(zoomLatLng, state.zoomLatLng)) {
-            state.zoomLatLng = zoomLatLng;
-            History.replaceState(state, document.title, getUrlFromCurrentState());
+        if (!_.isEqual(zoomLatLng, _state.zoomLatLng)) {
+            _state.zoomLatLng = zoomLatLng;
+            History.replaceState(_state, document.title, getUrlFromCurrentState());
         }
     },
 
     setSearch: function (otmSearch) {
-        if (!_.isEqual(otmSearch, state.search)) {
-            state.search = otmSearch;
-            History.pushState(state, document.title, getUrlFromCurrentState());
+        if (!_.isEqual(otmSearch, _state.search)) {
+            _state.search = otmSearch;
+            History.pushState(_state, document.title, getUrlFromCurrentState());
         }
     },
 
     setModeName: function (modeName) {
         // We only want "Add Tree" mode in the url
         modeName = (_.contains(modeNamesForUrl, modeName) ? modeName : '');
-        if (modeName !== state.modeName) {
-            state.modeName = modeName;
-            History.replaceState(state, document.title, getUrlFromCurrentState());
+        if (modeName !== _state.modeName) {
+            _state.modeName = modeName;
+            History.replaceState(_state, document.title, getUrlFromCurrentState());
         }
     },
 
     getSearch: function() {
-        return state.search;
+        return _state.search;
     },
 
-    stateChangeStream: stateChangeBus.map(_.identity)
+    get: function(key) {
+        return _state[key];
+    },
+
+    set: function(key, value) {
+        if (!_.isEqual(_state && _state[key], value)) {
+            _state[key] = value;
+            History.replaceState(_state, document.title, getUrlFromCurrentState());
+        }
+    },
+
+    stateChangeStream: _stateChangeBus.map(_.identity)
 };
 
 function getStateFromCurrentUrl() {
     var newState = {},
-        query = url.parse(window.location.href, true).query,
-        zoomLatLng = query.z;
-    newState.zoomLatLng = null;
-    if (zoomLatLng) {
-        var parts = zoomLatLng.split("/"),
-            zoom = parseInt(parts[0], 10),
-            lat = parseFloat(parts[1]),
-            lng = parseFloat(parts[2]);
-        if (!isNaN(zoom) && !isNaN(lat) && !isNaN(lng)) {
-            newState.zoomLatLng = makeZoomLatLng(zoom, lat, lng);
+        query = url.parse(window.location.href, true).query;
+
+    _.each(query, function(v, k) {
+        var deserialize = deserializers[k];
+        if (deserialize) {
+            deserialize(newState, query);
+        } else {
+            newState[k] = query[k];
         }
-    }
-    newState.search = {};
-    newState.search.filter = JSON.parse(query.q || '{}');
-    newState.search.display = query.show ? JSON.parse(query.show) : undefined;
-    newState.modeName = query.m || '';
+    });
+
     return newState;
 }
 
@@ -89,22 +153,16 @@ function makeZoomLatLng(zoom, lat, lng) {
 function getUrlFromCurrentState() {
     var parsedUrl = url.parse(window.location.href),
         query = {};
-    if (state.zoomLatLng) {
-        var zoom = state.zoomLatLng.zoom,
-            precision = Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2)),
-            lat = state.zoomLatLng.lat.toFixed(precision),
-            lng = state.zoomLatLng.lng.toFixed(precision);
-        query.z = [zoom, lat, lng].join('/');
-    }
-    if (state.search && state.search.filter && !_.isEmpty(state.search.filter)) {
-        query.q = JSON.stringify(state.search.filter);
-    }
-    if (state.search && state.search.display) {
-        query.show = JSON.stringify(state.search.display);
-    }
-    if (state.modeName) {
-        query.m = state.modeName;
-    }
+
+    _.each(_state, function(v, k) {
+        var serialize = serializers[k];
+        if (serialize) {
+            serialize(_state, query);
+        } else {
+            query[k] = v;
+        }
+    });
+
     parsedUrl.query = query;
     parsedUrl.search = null;
     var urlText = url.format(parsedUrl).replace(/%2F/g, '/');
@@ -112,18 +170,11 @@ function getUrlFromCurrentState() {
 }
 
 function setStateAndPushToApp(newState) {
-    var changedState = {};
-    if (!state || !_.isEqual(newState.zoomLatLng, state.zoomLatLng)) {
-        changedState.zoomLatLng = newState.zoomLatLng;
-    }
-    if (!state || !_.isEqual(newState.search, state.search)) {
-        changedState.search = newState.search;
-    }
-    if (!state || newState.modeName !== state.modeName) {
-        changedState.modeName = newState.modeName;
-    }
-    state = newState;
+    var changedState = _.omit(newState, function(v, k) {
+        return _state && _.isEqual(_state[k], v);
+    });
+    _state = newState;
     if (!_.isEmpty(changedState)) {
-        stateChangeBus.push(changedState);
+        _stateChangeBus.push(changedState);
     }
 }
