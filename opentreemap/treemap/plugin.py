@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.conf import settings
+from django.db.models import Q
 from django.test.signals import setting_changed
 from django.dispatch import receiver
 
@@ -18,6 +19,7 @@ from django.dispatch import receiver
 #
 
 _plugin_fn_dict = {}
+_plugin_setting_dict = {}
 
 
 def get_plugin_function(plugin_fn_setting, default_fn):
@@ -79,3 +81,7 @@ should_send_user_activation = get_plugin_function(
 
 
 setup_for_ui_test = get_plugin_function('UITEST_SETUP_FUNCTION', lambda: None)
+
+
+get_mobile_instances_filter = get_plugin_function('MOBILE_INSTANCES_FUNCTION',
+                                                  lambda: Q())
