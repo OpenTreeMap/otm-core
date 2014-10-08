@@ -2,8 +2,8 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    R = require('ramda'),
     otmTypeahead = require('treemap/otmTypeahead'),
-    BU = require('treemap/baconUtils'),
     FH = require('treemap/fieldHelpers'),
     diameterCalculator = require('treemap/diameterCalculator'),
     plotUdf = require('treemap/plotUdf'),
@@ -59,7 +59,8 @@ exports.init = function(options) {
 
     var newTreeIdStream = form.saveOkStream
             .map('.responseData.treeId')
-            .filter(BU.isDefined);
+            .filter(R.not(_.isUndefined))
+            .filter(R.not(_.isNull));
 
     newTreeIdStream.onValue(function (val) {
         initializeTreeIdSection(val);
