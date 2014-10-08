@@ -94,13 +94,6 @@ def _get_adjuncts(instance):
     return adjuncts
 
 
-def _invalidate_adjuncts(instance):
-    if instance.id in _adjuncts:
-        del _adjuncts[instance.id]
-    instance.adjuncts_timestamp += 1
-    instance.save()
-
-
 class _InstanceAdjuncts:
     def __init__(self, instance):
         self._instance = instance
