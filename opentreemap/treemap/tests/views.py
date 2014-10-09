@@ -1473,10 +1473,10 @@ class SpeciesViewTests(ViewTestCase):
             {'tokens': {'oak', 'acorn', 'oakenitus'}}
         ]
         for i, item in enumerate(self.species_dict):
-            species = Species(common_name=item.get('common_name'),
-                              genus=item.get('genus'),
-                              species=item.get('species'),
-                              cultivar=item.get('cultivar'),
+            species = Species(common_name=item.get('common_name', ''),
+                              genus=item.get('genus', ''),
+                              species=item.get('species', ''),
+                              cultivar=item.get('cultivar', ''),
                               otm_code=str(i),
                               instance=self.instance)
             species.save_with_user(self.commander)

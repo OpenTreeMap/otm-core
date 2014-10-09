@@ -131,7 +131,15 @@ MIGRATION_RULES = {
             'common_name': coerce_null_string,
             'v_max_height': (lambda x: x or 10000),
             'v_max_dbh': (lambda x: x or 10000),
-            'native_status': (lambda x: x and x.lower() == 'true')
+            'native_status': (lambda x: x and x.lower() == 'true'),
+            'species': coerce_null_string,
+            'cultivar_name': coerce_null_string,
+            'other_part_of_name': coerce_null_string,
+            'gender': coerce_null_string,
+            'bloom_period': coerce_null_string,
+            'fruit_period': coerce_null_string,
+            'fact_sheet': coerce_null_string,
+            'plant_guide': coerce_null_string
         },
     },
     'user': {
