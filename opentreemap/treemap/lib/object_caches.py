@@ -57,9 +57,10 @@ def invalidate_adjuncts(*args, **kwargs):
 
 
 def increment_adjuncts_timestamp(instance):
+    # Increment the timestamp carefully.
+    # Don't call save(), to avoid storing possibly-stale data in "instance".
+    # Use a SQL increment, to prevent race conditions between servers.
     from treemap.models import Instance
-    # The instance passed to this function may have stale data, so we
-    # don't want to save stale fields along with the new timestamp.
     Instance.objects.filter(pk=instance.id)\
                     .update(adjuncts_timestamp=F('adjuncts_timestamp') + 1)
 
