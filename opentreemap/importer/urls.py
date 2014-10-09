@@ -19,7 +19,7 @@ _import_api_pattern = r'(?P<import_type>[a-z]+)/(?P<import_event_id>\d+)'
 
 
 urlpatterns = patterns(
-    'importer.views',
+    '',
     url(r'^$', list_imports, name='list_imports'),
     url(r'^create$', create, name='create'),
     url(r'^status/tree/(?P<import_event_id>\d+)$', show_tree_import_status,
