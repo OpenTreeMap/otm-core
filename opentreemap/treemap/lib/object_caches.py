@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
+from django.db.models import F
 
 # For each instance, cache "adjunct" objects -- frequently-accessed objects
 # which change rarely -- by storing them in local memory. Track cache validity
@@ -52,8 +53,17 @@ def invalidate_adjuncts(*args, **kwargs):
         instance = adjunct_object.instance
         if instance.id in _adjuncts:
             del _adjuncts[instance.id]
-        instance.adjuncts_timestamp += 1
-        instance.save()
+        increment_adjuncts_timestamp(instance)
+
+
+def increment_adjuncts_timestamp(instance):
+    # Increment the timestamp carefully.
+    # Don't call save(), to avoid storing possibly-stale data in "instance".
+    # Use a SQL increment, to prevent race conditions between servers.
+    from treemap.models import Instance
+    Instance.objects.filter(pk=instance.id)\
+                    .update(adjuncts_timestamp=F('adjuncts_timestamp') + 1)
+
 
 # ------------------------------------------------------------------------
 # Fetch info from database when not using cache
@@ -92,13 +102,6 @@ def _get_adjuncts(instance):
         adjuncts = _InstanceAdjuncts(instance)
         _adjuncts[instance.id] = adjuncts
     return adjuncts
-
-
-def _invalidate_adjuncts(instance):
-    if instance.id in _adjuncts:
-        del _adjuncts[instance.id]
-    instance.adjuncts_timestamp += 1
-    instance.save()
 
 
 class _InstanceAdjuncts:
