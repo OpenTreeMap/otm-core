@@ -16,6 +16,9 @@ from treemap.tests import (make_instance, make_commander_user,
 def mkPlot(instance, user, geom=None):
     if geom is None:
         geom = instance.center
+    elif geom.srs.srid != 3857:
+        geom.transform(3857)
+
     p = Plot(geom=geom, instance=instance)
     p.save_with_user(user)
 
