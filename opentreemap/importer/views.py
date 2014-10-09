@@ -170,10 +170,13 @@ def merge_species(request, instance):
             status=400)
 
     # TODO: .update_with_user()?
-    Tree.objects\
+    trees_to_update = Tree.objects\
         .filter(instance=instance)\
-        .filter(species=species_to_delete)\
-        .update(species=species_to_replace_with)
+        .filter(species=species_to_delete)
+
+    for tree in trees_to_update:
+        tree.species = species_to_replace_with
+        tree.save_with_user(request.user)
 
     species_to_delete.delete_with_user(request.user)
 
