@@ -593,6 +593,11 @@ post_delete.connect(invalidate_adjuncts, sender=FieldPermission)
 
 
 class Role(models.Model):
+    # special role names, used in the app
+    ADMINISTRATOR = 'administrator'
+    EDITOR = 'editor'
+    PUBLIC = 'public'
+
     name = models.CharField(max_length=255)
     instance = models.ForeignKey('Instance', null=True, blank=True)
     default_permission = models.IntegerField(choices=FieldPermission.choices,
@@ -655,7 +660,7 @@ class Authorizable(UserTrackable):
         field permissions on a model.
         """
 
-        is_admin = user.get_role(self.instance).name == 'administrator'
+        is_admin = user.get_role(self.instance).name == Role.ADMINISTRATOR
         if is_admin:
             return True
         else:
