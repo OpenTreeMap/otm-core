@@ -92,6 +92,13 @@ module.exports = function(grunt) {
                 files: getAliasFiles(getRegularAliases()),
                 tasks: noLint ? ['shell:collect_static'] : ['check', 'shell:collect_static']
             },
+            test: {
+                files: [].concat(
+                    getAliasFiles(getSrcAliases()),
+                    getAliasFiles(getTestAliases())
+                ),
+                tasks: noLint ? ['js'] : ['check', 'js']
+            },
             css: {
                 files: 'treemap/css/sass/**/*.scss',
                 tasks: ['shell:collect_static']
