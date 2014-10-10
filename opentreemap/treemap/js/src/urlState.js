@@ -133,7 +133,7 @@ module.exports = {
 function getStateFromCurrentUrl() {
     var newState = {},
         query = url.parse(window.location.href, true).query,
-        allKeys = _.union(_.keys(deserializers, _.keys(query)));
+        allKeys = _.union(_.keys(deserializers), _.keys(query));
 
     _.each(allKeys, function(k) {
         var deserialize = deserializers[k];
