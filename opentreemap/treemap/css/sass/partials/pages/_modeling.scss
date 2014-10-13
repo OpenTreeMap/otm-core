@@ -86,7 +86,7 @@
                     cursor: pointer;
                     width: 100%;
                 }
-                
+
                 @media screen and ( -webkit-min-device-pixel-ratio: 0 ) {
                     select {
                         padding-right: 18px;
@@ -95,7 +95,7 @@
                         height: 35px !important;
                     }
                 }
-                
+
                 label.custom-select {
                     position: relative;
                     width: 200px;
@@ -182,7 +182,7 @@
                         border-radius: 6px 0 6px 6px;
                     }
                 }
-                
+
                 .options-toggle {
                     background: white;
                     padding: 7px 12px 8px;
@@ -254,7 +254,7 @@
             }
         }
     }
-    
+
     .layer-group {
         .panel-heading {
             padding: 15px;
@@ -262,7 +262,7 @@
             border-bottom: 1px solid darken($light-gray-color, 10%);
             font-size: 1.6rem;
             font-weight: 700;
-            
+
             input.slider {
                 display: none;
             }
@@ -349,7 +349,7 @@
     .modal-header {
         padding: 15px 20px 0;
         border-bottom: none;
-        
+
         h4 {
             font-size: 3rem;
             margin-top: 10px;
