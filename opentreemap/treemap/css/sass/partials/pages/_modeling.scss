@@ -51,10 +51,19 @@
         top: 145px;
         bottom: 0;
 
+        #sidebar-switcher {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 350px;
+            height: 40px;
+        }
+
         .sidebar {
             right: auto;
             left: 0;
             border: none;
+            margin-top: 40px;
 
             .templates {
                 height: 50px;
