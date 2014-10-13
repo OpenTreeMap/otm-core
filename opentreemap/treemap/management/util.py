@@ -44,7 +44,8 @@ class InstanceDataCommand(BaseCommand):
         instance_user = user.get_instance_user(instance)
 
         if instance_user is None:
-            r = Role.objects.get_or_create(name='administrator', rep_thresh=0,
+            r = Role.objects.get_or_create(name=Role.ADMINISTRATOR,
+                                           rep_thresh=0,
                                            instance=instance,
                                            default_permission=3)
             instance_user = InstanceUser(instance=instance,
@@ -52,7 +53,7 @@ class InstanceDataCommand(BaseCommand):
                                          role=r[0])
             instance_user.save_with_user(user)
             self.stdout.write(
-                'Added system user to instance with "administrator" role')
+                'Added system user to instance with ADMINISTRATOR role')
 
         add_default_permissions(instance)
 

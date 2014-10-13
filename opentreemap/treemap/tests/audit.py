@@ -921,7 +921,7 @@ class UserRoleFieldPermissionTest(OTMTestCase):
 
         iuser = self.outlaw.get_instance_user(self.instance)
         role = Role.objects.create(instance=self.instance,
-                                   name='administrator',
+                                   name=Role.ADMINISTRATOR,
                                    rep_thresh=0)
         iuser.role = role
         iuser.save_with_user(self.commander)
