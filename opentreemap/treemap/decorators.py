@@ -236,21 +236,29 @@ def string_to_response(content_type):
     return outer_wrapper
 
 
-def return_400_if_validation_errors(req):
-    @wraps(req)
-    def run_and_catch_validations(*args, **kwargs):
-        try:
-            return req(*args, **kwargs)
-        except ValidationError as e:
-            if hasattr(e, 'message_dict'):
-                message_dict = e.message_dict
-            else:
-                message_dict = {'errors': e.messages}
+def return_400_if_validation_errors(wrap_validation_errors=False):
+    def outer(req):
+        @wraps(req)
+        def run_and_catch_validations(*args, **kwargs):
+            try:
+                return req(*args, **kwargs)
+            except ValidationError as e:
+                if hasattr(e, 'message_dict'):
+                    message_dict = e.message_dict
+                else:
+                    message_dict = {'errors': e.messages}
 
-            return HttpResponseBadRequest(
-                json.dumps(message_dict, cls=LazyEncoder))
+                # some clients prefer to filter the error stream for
+                # a validationErrors attribute, but this can't be done
+                # until *after* the ValidationError processing
+                # has been completed.
+                if wrap_validation_errors:
+                    message_dict = {'validationErrors': message_dict}
+                return HttpResponseBadRequest(
+                    json.dumps(message_dict, cls=LazyEncoder))
 
-    return run_and_catch_validations
+        return run_and_catch_validations
+    return outer
 
 
 def login_or_401(view_fn):

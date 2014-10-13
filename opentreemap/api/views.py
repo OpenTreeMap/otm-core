@@ -322,12 +322,12 @@ user_endpoint = api_do(
         GET=do(login_required, transform_user_response, user_info),
         POST=do(
             transform_user_request,
-            return_400_if_validation_errors,
+            return_400_if_validation_errors(False),
             create_user)))
 
 update_user_endpoint = logged_in_api_do(
     transform_user_request,
-    return_400_if_validation_errors,
+    return_400_if_validation_errors(False),
     transform_user_response,
     route(PUT=update_user))
 
@@ -336,7 +336,7 @@ add_photo_endpoint = logged_in_api_do(
         POST=do(
             instance_request,
             creates_instance_user,
-            return_400_if_validation_errors,
+            return_400_if_validation_errors(False),
             add_photo)))
 
 status_view = api_do(route(GET=status))
