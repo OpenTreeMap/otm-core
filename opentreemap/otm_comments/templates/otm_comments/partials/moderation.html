@@ -71,32 +71,6 @@
     </div> <!--END OF TABLE COL-12 SECTION -->
   </div> <!--END OF COMMENT TABLE -->
 
-  <div class="row center-block text-center"><!--PAGINATION -->
-    <ul class="pagination">
-      {% if comments.has_previous %}
-        <li>
-          <a href="{{ comments_url_for_pagination }}&page={{ comments.previous_page_number }}">&laquo;</a>
-        </li>
-      {% else %}
-        <li class="disabled"><a>&laquo;</a></li>
-      {% endif %}
-      {% for page_num in comments.paginator.page_range %}
-        {% if comments.number == page_num %}
-          <li class="active">
-            <a>{{ page_num }} <span class="sr-only">(current)</span></a>
-          </li>
-        {% else %}
-          <li><a href="{{ comments_url_for_pagination }}&page={{ page_num }}">{{ page_num }}</a></li>
-        {% endif %}
-      {% endfor %}
-      {% if comments.has_next %}
-        <li>
-          <a href="{{ comments_url_for_pagination }}&page={{ comments.next_page_number }}">&raquo;</a>
-        </li>
-      {% else %}
-        <li class="disabled"><a>&raquo;</a></li>
-      {% endif %}
-    </ul>
-  </div> <!--END OF PAGINATION -->
+  {% include 'treemap/partials/paging_controls.html' with paging=comments url=comments_url_for_pagination %}
 
 </div> <!--END OF COMMENT AREA -->
