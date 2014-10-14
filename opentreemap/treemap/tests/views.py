@@ -1814,17 +1814,17 @@ class UserInstancesViewTests(OTMTestCase):
     def test_a_views_a(self):
         # User a views their own instances
         instances = get_user_instances(self.user_a, self.user_a, self.c)
-        self.assertEquals(instances, [self.a, self.ab, self.c])
+        self.assertEquals(list(instances), [self.a, self.ab, self.c])
 
     def test_a_views_b(self):
         # User a views b's instances
         instances = get_user_instances(self.user_a, self.user_b, self.c)
-        self.assertEquals(instances, [self.ab, self.b_public])
+        self.assertEquals(list(instances), [self.ab, self.b_public])
 
     def test_anonymous_views_b(self):
         # User anonymous views b's instances
         instances = get_user_instances(None, self.user_b, self.c)
-        self.assertEquals(instances, [self.b_public])
+        self.assertEquals(list(instances), [self.b_public])
 
 
 class InstanceListTest(OTMTestCase):
