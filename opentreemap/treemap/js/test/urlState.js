@@ -57,7 +57,7 @@ function WindowApiMock() {
 
 function createContext() {
     var win = new WindowApiMock(),
-    history = new HistoryApiMock();
+        history = new HistoryApiMock();
 
     history.onStateChange(function() {
         win.setLocationHref(history.getStateUrl());
