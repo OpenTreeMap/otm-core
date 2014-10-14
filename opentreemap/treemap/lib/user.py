@@ -29,7 +29,7 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
         instances = Instance.objects.filter(
             user_accessible_instance_filter(logged_in_user))
 
-    if len(instances) == 0:
+    if not instances.exists():
         # Force no results
         return {'audits': Audit.objects.none(),
                 'total_count': 0,
@@ -104,7 +104,7 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
     query_vars = {k: v for (k, v) in query_vars.iteritems() if k != 'page'}
     next_page = None
     prev_page = None
-    if len(audits) == page_size:
+    if audits.count() == page_size:
         query_vars['page'] = page + 1
         next_page = "?" + urllib.urlencode(query_vars)
     if page > 0:
