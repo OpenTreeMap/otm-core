@@ -2,7 +2,7 @@ from django import template
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
 
-from treemap.models import MapFeature, Tree, TreePhoto, MapFeaturePhoto
+from treemap.models import MapFeature, Tree, TreePhoto, MapFeaturePhoto, Audit
 from treemap.udf import UserDefinedCollectionValue
 from treemap.util import get_filterable_audit_models
 
@@ -88,13 +88,20 @@ def audit_detail_link(audit):
 
 
 @register.filter
-def display_name(model_or_name):
-    if isinstance(model_or_name, basestring):
-        name = model_or_name
+def display_name(audit_or_model_or_name):
+    if isinstance(audit_or_model_or_name, (Audit, basestring)):
+        if isinstance(audit_or_model_or_name, Audit):
+            audit = audit_or_model_or_name
+            name = audit.model
+            extra_args = [audit.instance]
+        else:
+            name = audit_or_model_or_name
+            extra_args = []
         if name.startswith('udf:'):
-            name = UserDefinedCollectionValue.get_display_model_name(name)
+            name = (UserDefinedCollectionValue
+                    .get_display_model_name(name, *extra_args))
     else:
-        name = model_or_name.__class__.__name__
+        name = audit_or_model_or_name.__class__.__name__
 
     if name.lower() == 'plot':
         return 'Planting Site'

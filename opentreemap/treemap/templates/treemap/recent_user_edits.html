@@ -15,7 +15,7 @@
         {% for audit in audits %}
         <tr data-id="{{audit.id}}">
             <td>{{ audit.display_action }}</td>
-            <td>{{ audit.model|display_name }}</td>
+            <td>{{ audit|display_name }}</td>
             <td>{{ audit.field_display_name }}</td>
 
             <td>

@@ -31,7 +31,7 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
 
     if len(instances) == 0:
         # Force no results
-        return {'audits': [],
+        return {'audits': Audit.objects.none(),
                 'total_count': 0,
                 'next_page': None,
                 'prev_page': None}
@@ -83,12 +83,13 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
         model__startswith='udf:',
         field__in=('id', 'model_id', 'field_definition'))
 
-    audits = Audit.objects \
-        .filter(model_filter) \
-        .filter(instance__in=instances) \
-        .exclude(udf_bookkeeping_fields) \
-        .exclude(user=User.system_user()) \
-        .order_by('-created', 'id')
+    audits = (Audit.objects
+              .filter(model_filter)
+              .filter(instance__in=instances)
+              .select_related('instance')
+              .exclude(udf_bookkeeping_fields)
+              .exclude(user=User.system_user())
+              .order_by('-created', 'id'))
 
     if user:
         audits = audits.filter(user=user)
