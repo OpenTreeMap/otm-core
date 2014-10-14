@@ -88,3 +88,12 @@ def dotted_split(string, item_count,
         raise cls(failure_format_string % string)
     else:
         return parts
+
+
+def any_args_contain_pattern(args, patterns):
+    for arg in args:
+        for pattern in patterns:
+            if arg.find(pattern) >= 0:
+                return True
+    else:
+        return False
