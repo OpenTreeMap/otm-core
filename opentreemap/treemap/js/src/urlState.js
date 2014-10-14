@@ -14,7 +14,46 @@ var _ = require('lodash'),
     ];
 
 var _state = null,
-    _stateChangeBus = new Bacon.Bus();
+    _stateChangeBus = new Bacon.Bus(),
+    _history = null,
+    _window = null;
+
+function HistoryApi() {
+    function onStateChange(callback) {
+        History.Adapter.bind(window, 'statechange', callback);
+        // We use the "History" library for "pushState" etc. capabilities on IE9.
+        // If we drop IE9 support we should change "History" to "history" in this
+        // module, and replace the above "bind" call with:
+        //        window.onpopstate = function(event) {
+        //            setStateAndPushToApp(event.state || getStateFromCurrentUrl());
+        //        };
+    }
+    function getState() {
+        return History.getState();
+    }
+    function pushState(state, title, url) {
+        History.pushState(state, title, url);
+    }
+    function replaceState(state, title, url) {
+        History.replaceState(state, title, url);
+    }
+    return {
+        onStateChange: onStateChange,
+        getState: getState,
+        pushState: pushState,
+        replaceState: replaceState
+    };
+}
+
+
+function WindowApi() {
+    return {
+        getLocationHref: function() {
+            return window.location.href;
+        }
+    };
+}
+
 
 var serializers = {
     zoomLatLng: function(state, query) {
@@ -74,41 +113,43 @@ var deserializers = {
 };
 
 module.exports = {
-    init: function () {
+    init: function (options) {
+        options = _.defaults(options, {
+            historyApi: new HistoryApi(),
+            windowApi: new WindowApi()
+        });
+
+        _state = null;
+        _history = options.historyApi;
+        _window = options.windowApi;
+
         setStateAndPushToApp(getStateFromCurrentUrl());
 
-        History.Adapter.bind(window, 'statechange', function() {
-            setStateAndPushToApp(History.getState().data || getStateFromCurrentUrl());
+        _history.onStateChange(function() {
+            setStateAndPushToApp(_history.getState().data || getStateFromCurrentUrl());
         });
-// We use the "History" library for "pushState" etc. capabilities on IE9.
-// If we drop IE9 support we should change "History" to "history" in this
-// module, and replace the above "bind" call with:
-//        window.onpopstate = function(event) {
-//            setStateAndPushToApp(event.state || getStateFromCurrentUrl());
-//        };
     },
 
     setZoomLatLng: function (zoom, center) {
         var zoomLatLng = makeZoomLatLng(zoom, center.lat, center.lng);
         if (!_.isEqual(zoomLatLng, _state.zoomLatLng)) {
             _state.zoomLatLng = zoomLatLng;
-            History.replaceState(_state, document.title, getUrlFromCurrentState());
+            _history.replaceState(_state, document.title, getUrlFromCurrentState());
         }
     },
 
     setSearch: function (otmSearch) {
         if (!_.isEqual(otmSearch, _state.search)) {
             _state.search = otmSearch;
-            History.pushState(_state, document.title, getUrlFromCurrentState());
+            _history.pushState(_state, document.title, getUrlFromCurrentState());
         }
     },
 
     setModeName: function (modeName) {
-        // We only want "Add Tree" mode in the url
-        modeName = (_.contains(modeNamesForUrl, modeName) ? modeName : '');
+        modeName = _.contains(modeNamesForUrl, modeName) ? modeName : '';
         if (modeName !== _state.modeName) {
             _state.modeName = modeName;
-            History.replaceState(_state, document.title, getUrlFromCurrentState());
+            _history.replaceState(_state, document.title, getUrlFromCurrentState());
         }
     },
 
@@ -123,7 +164,7 @@ module.exports = {
     set: function(key, value) {
         if (!_.isEqual(_state && _state[key], value)) {
             _state[key] = value;
-            History.replaceState(_state, document.title, getUrlFromCurrentState());
+            _history.replaceState(_state, document.title, getUrlFromCurrentState());
         }
     },
 
@@ -132,7 +173,7 @@ module.exports = {
 
 function getStateFromCurrentUrl() {
     var newState = {},
-        query = url.parse(window.location.href, true).query,
+        query = url.parse(_window.getLocationHref(), true).query,
         allKeys = _.union(_.keys(deserializers), _.keys(query));
 
     _.each(allKeys, function(k) {
@@ -152,7 +193,7 @@ function makeZoomLatLng(zoom, lat, lng) {
 }
 
 function getUrlFromCurrentState() {
-    var parsedUrl = url.parse(window.location.href),
+    var parsedUrl = url.parse(_window.getLocationHref()),
         query = {};
 
     _.each(_state, function(v, k) {
