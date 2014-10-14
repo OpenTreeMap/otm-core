@@ -114,7 +114,7 @@ var deserializers = {
 
 module.exports = {
     init: function (options) {
-        options = _.defaults(options, {
+        options = _.defaults({}, options, {
             historyApi: new HistoryApi(),
             windowApi: new WindowApi()
         });
