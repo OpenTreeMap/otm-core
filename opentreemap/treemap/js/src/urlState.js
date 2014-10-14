@@ -113,6 +113,28 @@ var deserializers = {
     }
 };
 
+function set(key, value, options) {
+    options = _.defaults({}, options, {
+        silent: false,
+        replaceState: false
+    });
+    var currentValue = _state && _state[key];
+    if (!_.isEqual(currentValue, value)) {
+        var newState = _.extend({}, _state);
+        newState[key] = value;
+
+        if (options.silent) {
+            _state[key] = value;
+        }
+
+        if (options.replaceState) {
+            _history.replaceState(newState, document.title, getUrlFromState(newState));
+        } else {
+            _history.pushState(newState, document.title, getUrlFromState(newState));
+        }
+    }
+}
+
 module.exports = {
     init: function (options) {
         options = _.defaults({}, options, {
@@ -162,27 +184,7 @@ module.exports = {
         return _state[key];
     },
 
-    set: function(key, value, options) {
-        options = _.defaults({}, options, {
-            silent: false,
-            replaceState: false
-        });
-        var currentValue = _state && _state[key];
-        if (!_.isEqual(currentValue, value)) {
-            var newState = _.extend({}, _state);
-            newState[key] = value;
-
-            if (options.silent) {
-                _state[key] = value;
-            }
-
-            if (options.replaceState) {
-                _history.replaceState(newState, document.title, getUrlFromState(newState));
-            } else {
-                _history.pushState(newState, document.title, getUrlFromState(newState));
-            }
-        }
-    },
+    set: set,
 
     // TODO: Rename to changeStream.
     stateChangeStream: _stateChangeBus.map(_.identity)
