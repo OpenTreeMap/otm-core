@@ -54,7 +54,7 @@ function WindowApi() {
     };
 }
 
-
+// Serialize state to query.
 var serializers = {
     zoomLatLng: function(state, query) {
         if (state.zoomLatLng) {
@@ -82,6 +82,7 @@ var serializers = {
     }
 };
 
+// Deserialize query to newState.
 var deserializers = {
     z: function(newState, query) {
         var zoomLatLng = query.z;
@@ -161,13 +162,29 @@ module.exports = {
         return _state[key];
     },
 
-    set: function(key, value) {
-        if (!_.isEqual(_state && _state[key], value)) {
-            _state[key] = value;
-            _history.replaceState(_state, document.title, getUrlFromCurrentState());
+    set: function(key, value, options) {
+        options = _.defaults({}, options, {
+            silent: false,
+            replaceState: false
+        });
+        var currentValue = _state && _state[key];
+        if (!_.isEqual(currentValue, value)) {
+            var newState = _.extend({}, _state);
+            newState[key] = value;
+
+            if (options.silent) {
+                _state[key] = value;
+            }
+
+            if (options.replaceState) {
+                _history.replaceState(newState, document.title, getUrlFromState(newState));
+            } else {
+                _history.pushState(newState, document.title, getUrlFromState(newState));
+            }
         }
     },
 
+    // TODO: Rename to changeStream.
     stateChangeStream: _stateChangeBus.map(_.identity)
 };
 
@@ -192,14 +209,14 @@ function makeZoomLatLng(zoom, lat, lng) {
     return { zoom: zoom, lat: lat, lng: lng };
 }
 
-function getUrlFromCurrentState() {
+function getUrlFromState(state) {
     var parsedUrl = url.parse(_window.getLocationHref()),
         query = {};
 
-    _.each(_state, function(v, k) {
+    _.each(state, function(v, k) {
         var serialize = serializers[k];
         if (serialize) {
-            serialize(_state, query);
+            serialize(state, query);
         } else {
             query[k] = v;
         }
@@ -209,6 +226,10 @@ function getUrlFromCurrentState() {
     parsedUrl.search = null;
     var urlText = url.format(parsedUrl).replace(/%2F/g, '/');
     return urlText;
+}
+
+function getUrlFromCurrentState() {
+    return getUrlFromState(_state);
 }
 
 function setStateAndPushToApp(newState) {
