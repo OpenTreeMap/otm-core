@@ -118,11 +118,15 @@ function set(key, value, options) {
         silent: false,
         replaceState: false
     });
+
     var currentValue = _state && _state[key];
+
     if (!_.isEqual(currentValue, value)) {
         var newState = _.extend({}, _state);
         newState[key] = value;
 
+        // If there are no differences between _state and newState then there
+        // will be nothing for stateChangeStream to emit.
         if (options.silent) {
             _state[key] = value;
         }
@@ -155,25 +159,25 @@ module.exports = {
 
     setZoomLatLng: function (zoom, center) {
         var zoomLatLng = makeZoomLatLng(zoom, center.lat, center.lng);
-        if (!_.isEqual(zoomLatLng, _state.zoomLatLng)) {
-            _state.zoomLatLng = zoomLatLng;
-            _history.replaceState(_state, document.title, getUrlFromCurrentState());
-        }
+        set('zoomLatLng', zoomLatLng, {
+            silent: true,
+            replaceState: true
+        });
     },
 
     setSearch: function (otmSearch) {
-        if (!_.isEqual(otmSearch, _state.search)) {
-            _state.search = otmSearch;
-            _history.pushState(_state, document.title, getUrlFromCurrentState());
-        }
+        set('search', otmSearch, {
+            silent: true,
+            replaceState: false
+        });
     },
 
     setModeName: function (modeName) {
         modeName = _.contains(modeNamesForUrl, modeName) ? modeName : '';
-        if (modeName !== _state.modeName) {
-            _state.modeName = modeName;
-            _history.replaceState(_state, document.title, getUrlFromCurrentState());
-        }
+        set('modeName', modeName, {
+            silent: true,
+            replaceState: true
+        });
     },
 
     getSearch: function() {
@@ -228,10 +232,6 @@ function getUrlFromState(state) {
     parsedUrl.search = null;
     var urlText = url.format(parsedUrl).replace(/%2F/g, '/');
     return urlText;
-}
-
-function getUrlFromCurrentState() {
-    return getUrlFromState(_state);
 }
 
 function setStateAndPushToApp(newState) {
