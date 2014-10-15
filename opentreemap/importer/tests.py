@@ -129,11 +129,11 @@ class ValidationTest(TestCase):
                     raise AssertionError('Error code %s found in %s'
                                          % (errn, local_errors))
 
-    def test_species_dbh_and_height(self):
+    def test_species_diameter_and_height(self):
         s1_gsc = Species(instance=self.instance, genus='g1', species='s1',
-                         cultivar='c1', max_height=30, max_dbh=19)
+                         cultivar='c1', max_height=30, max_diameter=19)
         s1_gs = Species(instance=self.instance, genus='g1', species='s1',
-                        cultivar='', max_height=22, max_dbh=12)
+                        cultivar='', max_height=22, max_diameter=12)
         s1_gsc.save_with_user(self.user)
         s1_gs.save_with_user(self.user)
 
@@ -513,9 +513,9 @@ class SpeciesIntegrationTests(IntegrationTests):
 
     def test_bad_structure(self):
         csv = """
-        | family | native status | diameter |
-        | f1     | ns11          | 12       |
-        | f2     | ns12          | 14       |
+        | family | is native | diameter |
+        | f1     | ns11      | 12       |
+        | f2     | ns12      | 14       |
         """
 
         j = self.run_through_process_views(csv)
@@ -595,7 +595,7 @@ class SpeciesIntegrationTests(IntegrationTests):
 
         s4s = Species(instance=self.instance, genus='genusN',
                       species='speciesN', cultivar='', other='var3',
-                      max_dbh=50.0, max_height=100.0)
+                      max_diameter=50.0, max_height=100.0)
         s4s.save_with_user(user)
         s4 = s4s.pk
 
@@ -641,7 +641,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         s = ie.rows().all()[0].species
 
         self.assertEqual(s.cultivar, 'cvar')
-        self.assertEqual(s.other, 'sci')
+        self.assertEqual(s.other_part_of_name, 'sci')
 
         csv = """
         | genus     | species     | common name | i-tree code  | %s   | %s    | %s   |
@@ -652,7 +652,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         ie = SpeciesImportEvent.objects.get(pk=seid)
         s = ie.rows().all()[0].species
 
-        self.assertEqual(s.native_status, True)
+        self.assertEqual(s.is_native, True)
         self.assertEqual(s.fall_conspicuous, True)
         self.assertEqual(s.palatable_human, True)
 
@@ -668,8 +668,8 @@ class SpeciesIntegrationTests(IntegrationTests):
         seasons = {k: v for (v,k) in settings.CHOICES['seasons']}
 
         self.assertEqual(s.flower_conspicuous, True)
-        self.assertEqual(s.bloom_period, seasons['summer'])
-        self.assertEqual(s.fruit_period, seasons['fall'])
+        self.assertEqual(s.flowering_period, seasons['summer'])
+        self.assertEqual(s.fruit_or_nut_period, seasons['fall'])
 
         csv = """
         | genus     | species     | common name | i-tree code  | %s   | %s | %s | %s |
@@ -680,9 +680,9 @@ class SpeciesIntegrationTests(IntegrationTests):
         ie = SpeciesImportEvent.objects.get(pk=seid)
         s = ie.rows().all()[0].species
 
-        self.assertEqual(s.wildlife_value, True)
-        self.assertEqual(s.fact_sheet, 'fs')
-        self.assertEqual(s.max_dbh, 10)
+        self.assertEqual(s.has_wildlife_value, True)
+        self.assertEqual(s.fact_sheet_url, 'fs')
+        self.assertEqual(s.max_diameter, 10)
         self.assertEqual(s.max_height, 91)
 
     @skip("We need to re-work iTree validation")
@@ -714,7 +714,7 @@ class SpeciesExportTests(TestCase):
         user = make_admin_user(instance)
 
         species = Species(instance=instance, genus='g1', species='',
-                          cultivar='', max_dbh=50.0, max_height=100.0)
+                          cultivar='', max_diameter=50.0, max_height=100.0)
         species.save_with_user(user)
 
         login(self.client, user.username)
@@ -812,7 +812,7 @@ class TreeIntegrationTests(IntegrationTests):
 
     def test_faulty_data1(self):
         s1_g = Species(instance=self.instance, genus='g1', species='',
-                       cultivar='', max_dbh=50.0, max_height=100.0)
+                       cultivar='', max_diameter=50.0, max_height=100.0)
         s1_g.save_with_user(self.user)
 
         csv = """

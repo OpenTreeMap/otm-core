@@ -15,7 +15,7 @@ class SpeciesTests(OTMTestCase):
             genus='Abies',
             species='alba',
             cultivar='',
-            other_part_in_name=''
+            other_part_of_name=''
         )
         otm_code = otm_code_search(candidate)
         self.assertEqual(otm_code, 'ABAL')

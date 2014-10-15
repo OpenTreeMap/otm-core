@@ -55,7 +55,7 @@ class EcoTest(UrlTestCase):
         self.species = Species(otm_code='CEAT',
                                genus='cedrus',
                                species='atlantica',
-                               max_dbh=2000,
+                               max_diameter=2000,
                                max_height=100,
                                instance=self.instance)
 

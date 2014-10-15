@@ -503,17 +503,19 @@ class SpeciesImportRow(GenericImportRow):
         'species': fields.species.SPECIES,
         'cultivar': fields.species.CULTIVAR,
         'common_name': fields.species.COMMON_NAME,
-        'native_status': fields.species.NATIVE_STATUS,
-        'fall_conspicuous': fields.species.FALL_COLORS,
-        'palatable_human': fields.species.EDIBLE,
-        'flower_conspicuous': fields.species.FLOWERING,
-        'bloom_period': fields.species.FLOWERING_PERIOD,
-        'fruit_period': fields.species.FRUIT_PERIOD,
-        'wildlife_value': fields.species.WILDLIFE,
-        'max_dbh': fields.species.MAX_DIAMETER,
+        'is_native': fields.species.IS_NATIVE,
+        'gender': fields.species.GENDER,
+        'fall_conspicuous': fields.species.FALL_CONSPICUOUS,
+        'palatable_human': fields.species.PALATABLE_HUMAN,
+        'flower_conspicuous': fields.species.FLOWER_CONSPICUOUS,
+        'flowering_period': fields.species.FLOWERING_PERIOD,
+        'fruit_or_nut_period': fields.species.FRUIT_OR_NUT_PERIOD,
+        'has_wildlife_value': fields.species.HAS_WILDLIFE_VALUE,
+        'max_diameter': fields.species.MAX_DIAMETER,
         'max_height': fields.species.MAX_HEIGHT,
-        'fact_sheet': fields.species.FACT_SHEET,
-        'other': fields.species.OTHER_PART_OF_NAME,
+        'fact_sheet_url': fields.species.FACT_SHEET_URL,
+        'plant_guide_url': fields.species.PLANT_GUIDE_URL,
+        'other_part_of_name': fields.species.OTHER_PART_OF_NAME,
         'id': fields.species.ID
     }
 
@@ -565,21 +567,19 @@ class SpeciesImportRow(GenericImportRow):
         species = self.datadict.get(fields.species.SPECIES, '')
         cultivar = self.datadict.get(fields.species.CULTIVAR, '')
         other_part = self.datadict.get(fields.species.OTHER_PART_OF_NAME, '')
-        family = self.datadict.get(fields.species.FAMILY, '')
 
         # Save these as "empty" strings
         self.cleaned[fields.species.GENUS] = genus
         self.cleaned[fields.species.SPECIES] = species
         self.cleaned[fields.species.CULTIVAR] = cultivar
         self.cleaned[fields.species.OTHER_PART_OF_NAME] = other_part
-        self.cleaned[fields.species.FAMILY] = family
 
         if genus != '' or species != '' or cultivar != '' or other_part != '':
             matching_species = Species.objects \
                 .filter(genus__iexact=genus) \
                 .filter(species__iexact=species) \
                 .filter(cultivar__iexact=cultivar) \
-                .filter(other__iexact=other_part)
+                .filter(other_part_of_name__iexact=other_part)
 
             self.cleaned[fields.species.ORIG_SPECIES]\
                 |= {s.pk for s in matching_species}
@@ -620,7 +620,7 @@ class SpeciesImportRow(GenericImportRow):
     def validate_required_fields(self):
         req = {fields.species.GENUS,
                fields.species.COMMON_NAME, fields.species.ITREE_CODE}
-
+        
         has_errors = False
 
         for field in req:
@@ -723,9 +723,9 @@ class SpeciesImportRow(GenericImportRow):
         # Native status is a horrible field that pretends to
         # be a boolean value but is actually a string so we
         # change it here
-        if fields.species.NATIVE_STATUS in self.cleaned:
-            self.cleaned[fields.species.NATIVE_STATUS] = str(
-                self.cleaned[fields.species.NATIVE_STATUS])
+        if fields.species.IS_NATIVE in self.cleaned:
+            self.cleaned[fields.species.IS_NATIVE] = str(
+                self.cleaned[fields.species.IS_NATIVE])
 
         # If same is set to true this is essentially a no-op
         same = False
@@ -1040,7 +1040,7 @@ class TreeImportRow(GenericImportRow):
     def validate_species_dbh_max(self, species):
         return self.validate_species_max(
             fields.trees.DIAMETER,
-            species.max_dbh, errors.SPECIES_DBH_TOO_HIGH)
+            species.max_diameter, errors.SPECIES_DBH_TOO_HIGH)
 
     def validate_species_height_max(self, species):
         return self.validate_species_max(
@@ -1058,7 +1058,7 @@ class TreeImportRow(GenericImportRow):
                 .filter(genus__iexact=genus) \
                 .filter(species__iexact=species) \
                 .filter(cultivar__iexact=cultivar) \
-                .filter(other__iexact=other_part)
+                .filter(other_part_of_name__iexact=other_part)
 
             if len(matching_species) == 1:
                 self.cleaned[fields.trees.SPECIES_OBJECT] = matching_species[0]

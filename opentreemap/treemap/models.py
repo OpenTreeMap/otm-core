@@ -429,22 +429,22 @@ class Species(UDFModel, Authorizable, Auditable):
     genus = models.CharField(max_length=255)
     species = models.CharField(max_length=255, blank=True)
     cultivar = models.CharField(max_length=255, blank=True)
-    other = models.CharField(max_length=255, blank=True)
+    other_part_of_name = models.CharField(max_length=255, blank=True)
 
-    ### Copied from original OTM ###
-    native_status = models.NullBooleanField()
+    ### From original OTM (some renamed) ###
+    is_native = models.NullBooleanField()
     gender = models.CharField(max_length=50, blank=True)
-    bloom_period = models.CharField(max_length=255, blank=True)
-    fruit_period = models.CharField(max_length=255, blank=True)
+    flowering_period = models.CharField(max_length=255, blank=True)
+    fruit_or_nut_period = models.CharField(max_length=255, blank=True)
     fall_conspicuous = models.NullBooleanField()
     flower_conspicuous = models.NullBooleanField()
     palatable_human = models.NullBooleanField()
-    wildlife_value = models.NullBooleanField()
-    fact_sheet = models.URLField(max_length=255, blank=True)
-    plant_guide = models.URLField(max_length=255, blank=True)
+    has_wildlife_value = models.NullBooleanField()
+    fact_sheet_url = models.URLField(max_length=255, blank=True)
+    plant_guide_url = models.URLField(max_length=255, blank=True)
 
     ### Used for validation
-    max_dbh = models.IntegerField(default=200)
+    max_diameter = models.IntegerField(default=200)
     max_height = models.IntegerField(default=800)
 
     objects = GeoHStoreUDFManager()

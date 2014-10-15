@@ -8,11 +8,10 @@ class species(object):
     GENUS = 'genus'
     SPECIES = 'species'
     CULTIVAR = 'cultivar'
-    OTHER_PART_OF_NAME = 'other part of scientific name'
+    OTHER_PART_OF_NAME = 'other part of name'
     COMMON_NAME = 'common name'
-    USDA_SYMBOL = 'usda symbol'  # TODO: Remove?
-    ALT_SYMBOL = 'alternative symbol'  # TODO: Remove?
-    ITREE_CODE = 'i-tree code'  # TODO: Remove?
+    USDA_SYMBOL = 'usda symbol'
+    ITREE_CODE = 'i-tree code'
 
     # This is a pseudo field which is filled in
     # when a matching species is found, but before
@@ -20,36 +19,36 @@ class species(object):
     # that somehow match this one (usda, sci name)
     ORIG_SPECIES = 'calc__species'
 
-    # TODO: Remove these?
     # This is a pseudo field which is filled in
     # when a matching itree code is found
     RESOURCE = 'calc__resource'
 
-    FAMILY = 'family'
-    NATIVE_STATUS = 'native status'
-    FALL_COLORS = 'fall colors'
-    EDIBLE = 'palatable human'
-    FLOWERING = 'flowering'
+    IS_NATIVE = 'is native'
+    GENDER = 'gender'
+    FALL_CONSPICUOUS = 'fall conspicuous'
+    PALATABLE_HUMAN = 'palatable human'
+    FLOWER_CONSPICUOUS = 'flower conspicuous'
     FLOWERING_PERIOD = 'flowering period'
-    FRUIT_PERIOD = 'fruit or nut period'
-    WILDLIFE = 'wildlife'
-    MAX_DIAMETER = 'max diameter at breast height'
+    FRUIT_OR_NUT_PERIOD = 'fruit or nut period'
+    HAS_WILDLIFE_VALUE = 'has wildlife value'
+    MAX_DIAMETER = 'max diameter'
     MAX_HEIGHT = 'max height'
-    FACT_SHEET = 'fact sheet'
+    FACT_SHEET_URL = 'fact sheet url'
+    PLANT_GUIDE_URL = 'plant guide url'
     TREE_COUNT = 'number of trees in database'
     ID = 'database id of species'
     SCIENTIFIC_NAME = 'scientific name'
 
     CHOICE_MAP = {
         FLOWERING_PERIOD: 'seasons',
-        FRUIT_PERIOD: 'seasons'
+        FRUIT_OR_NUT_PERIOD: 'seasons'
     }
 
     DATE_FIELDS = set()
 
     STRING_FIELDS = {GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME, COMMON_NAME,
-                     USDA_SYMBOL, ALT_SYMBOL, ITREE_CODE, FAMILY,
-                     FACT_SHEET}
+                     USDA_SYMBOL, ITREE_CODE, GENDER, FACT_SHEET_URL,
+                     PLANT_GUIDE_URL}
 
     POS_FLOAT_FIELDS = {MAX_DIAMETER, MAX_HEIGHT}
 
@@ -57,7 +56,8 @@ class species(object):
 
     POS_INT_FIELDS = set()
 
-    BOOLEAN_FIELDS = {NATIVE_STATUS, FALL_COLORS, EDIBLE, FLOWERING, WILDLIFE}
+    BOOLEAN_FIELDS = {IS_NATIVE, FALL_CONSPICUOUS, PALATABLE_HUMAN,
+                      FLOWER_CONSPICUOUS, HAS_WILDLIFE_VALUE}
 
     ALL = DATE_FIELDS | STRING_FIELDS | POS_FLOAT_FIELDS | \
         FLOAT_FIELDS | POS_INT_FIELDS | BOOLEAN_FIELDS | \
@@ -102,7 +102,7 @@ class trees(object):
     GENUS = 'genus'
     SPECIES = 'species'
     CULTIVAR = 'cultivar'
-    OTHER_PART_OF_NAME = 'other part of scientific name'
+    OTHER_PART_OF_NAME = 'other part of name'
     DIAMETER = 'diameter'
     TREE_HEIGHT = 'tree height'
     CANOPY_HEIGHT = 'canopy height'

@@ -226,16 +226,16 @@ class MigrationCommandTests(LocalMediaTestCase):
         self.assertEqual(species.cultivar, '')
         self.assertEqual(species.gender, '')
         self.assertEqual(species.common_name, "Basket willow")
-        self.assertEqual(species.native_status, False)
-        self.assertEqual(species.bloom_period, '')
-        self.assertEqual(species.fruit_period, '')
+        self.assertEqual(species.is_native, False)
+        self.assertEqual(species.flowering_period, '')
+        self.assertEqual(species.fruit_or_nut_period, '')
         self.assertEqual(species.fall_conspicuous, None)
         self.assertEqual(species.flower_conspicuous, None)
         self.assertEqual(species.palatable_human, None)
-        self.assertEqual(species.wildlife_value, None)
-        self.assertEqual(species.fact_sheet,
+        self.assertEqual(species.has_wildlife_value, None)
+        self.assertEqual(species.fact_sheet_url,
                          'http://eol.org/search?q=Salix viminalis')
-        self.assertEqual(species.plant_guide, '')
+        self.assertEqual(species.plant_guide_url, '')
 
     @media_dir
     def test_userphoto_dict_to_model(self):
