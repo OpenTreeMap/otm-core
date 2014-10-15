@@ -109,7 +109,7 @@ var urlStateTests = {
     'stateChangeStream': function(done) {
         var context = createContext();
         context.windowApi.setLocationHref('?m=scenarios&foo=bar');
-        urlState.stateChangeStream.onValue(function(state) {
+        urlState.stateChangeStream.take(1).onValue(function(state) {
             // Test state was initialized from URL.
             assert.equal(state.modeName, 'scenarios');
             assert.equal(state.foo, 'bar');
@@ -124,6 +124,23 @@ var urlStateTests = {
             done();
         });
         urlState.init(context);
+    },
+
+    'silent mode': function(done) {
+        var context = createContext();
+        urlState.init(context);
+        urlState.stateChangeStream.take(1).onValue(function(state) {
+            assert.deepEqual(state, {bar: 2});
+            done();
+        });
+        // This should NOT trigger an update on stateChangeStream.
+        urlState.set('foo', 1, {
+            silent: true
+        });
+        // This SHOULD trigger an update on stateChangeStream.
+        urlState.set('bar', 2, {
+            silent: false
+        });
     }
 };
 
