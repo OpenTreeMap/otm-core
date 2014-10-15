@@ -1562,7 +1562,7 @@ class UserUpdateViewTests(ViewTestCase):
         else:
             context = response
         self.assertTrue('ok' in context)
-        self.assertFalse('error' in context)
+        self.assertFalse('globalErrors' in context)
         self.assertFalse('validationErrors' in context)
 
     def assertBadRequest(self, response):
@@ -1570,7 +1570,7 @@ class UserUpdateViewTests(ViewTestCase):
         self.assertEquals(400, response.status_code)
         context = json.loads(response.content)
         self.assertFalse('ok' in context)
-        self.assertTrue('error' in context)
+        self.assertTrue('globalErrors' in context)
 
     def test_empty_update_returns_ok(self):
         self.assertOk(update_user(
@@ -1604,8 +1604,8 @@ class UserUpdateViewTests(ViewTestCase):
             make_request(user=self.joe, body=update), self.joe)
         self.assertBadRequest(response)
         context = json.loads(response.content)
-        self.assertTrue('validationErrors' in context)
-        self.assertTrue('user.email' in context['validationErrors'])
+        self.assertTrue('fieldErrors' in context)
+        self.assertTrue('user.email' in context['fieldErrors'])
 
     def test_cant_change_password_through_update_view(self):
         self.joe.set_password = 'joe'

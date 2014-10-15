@@ -113,15 +113,20 @@ def get_instance_or_404(**kwargs):
     return get_object_or_404(Instance, **new_kwargs)
 
 
-def bad_request_json_response(message=None, validation_error_dict=None):
-    if message is None:
-        message = 'One or more of the specified values are invalid.'
+def bad_request_json_response(messages=None, validation_error_dict=None):
     response = HttpResponse()
-    response.status_code = 400
-    content = {'error': message}
+
+    if isinstance(messages, basestring):
+        messages = [messages]
+    elif messages is None:
+        messages = ['One or more of the specified values are invalid.']
+
+    content = {'globalErrors': messages}
     if validation_error_dict:
-        content['validationErrors'] = validation_error_dict
+        content['fieldErrors'] = validation_error_dict
     response.write(json.dumps(content, cls=LazyEncoder))
+
+    response.status_code = 400
     response['Content-length'] = str(len(response.content))
     response['Content-Type'] = "application/json"
     return response

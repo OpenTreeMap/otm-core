@@ -75,6 +75,7 @@ def instance_user_audits(request, instance_url_name, username):
 
 
 def update_user(request, user):
+    # TODO: accumulate these errors, don't raise right away
     new_values = json_from_request(request) or {}
     for key in new_values:
         try:
@@ -109,7 +110,9 @@ def upload_user_photo(request, user):
     except ValidationError as e:
         # Most of these ValidationError are not field-errors and so their
         # messages are a Dict, which is why they simply joined together
-        return bad_request_json_response('; '.join(e.messages))
+        # TODO: what do you mean "most of"?
+        # TODO: the client might be expecting semicolons, we dropped em
+        return bad_request_json_response(e.messages)
 
     return {'url': user.thumbnail.url}
 
