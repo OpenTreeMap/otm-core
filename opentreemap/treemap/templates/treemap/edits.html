@@ -64,10 +64,10 @@ active
           <td>
             {% if audit.model|is_filterable_audit_model %}
             <a href="?models={{ audit.model }}">
-              {{ audit.model|display_name }}
+              {{ audit|display_name }}
             </a>
             {% else %}
-            {{ audit.model|display_name }}
+            {{ audit|display_name }}
             {% endif %}
           </td>
           <td>

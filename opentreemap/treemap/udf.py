@@ -100,14 +100,19 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
         pass
 
     @staticmethod
-    def get_display_model_name(audit_name):
+    def get_display_model_name(audit_name, instance=None):
         if audit_name.startswith('udf:'):
             try:
                 # UDF Collections store their model names in the audit table as
                 # udf:<pk of UserDefinedFieldDefinition>
                 pk = int(audit_name[4:])
-                udf_def = UserDefinedFieldDefinition.objects.get(pk=pk)
-                return udf_def.name
+                if not instance:
+                    udf_def = UserDefinedFieldDefinition.objects.get(pk=pk)
+                    return udf_def.name
+                else:
+                    for udf_def in udf_defs(instance):
+                        if udf_def.pk == pk:
+                            return udf_def.name
             except (ValueError, UserDefinedFieldDefinition.DoesNotExist):
                 pass  # If something goes wrong, just use the defaults
         return audit_name

@@ -22,16 +22,16 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
         if instance.is_accessible_by(logged_in_user):
             instances = Instance.objects.filter(pk=instance.pk)
         else:
-            instances = []
+            instances = Instance.objects.none()
     # If we didn't specify an instance we only want to
     # show audits where the user has permission
     else:
         instances = Instance.objects.filter(
             user_accessible_instance_filter(logged_in_user))
 
-    if len(instances) == 0:
+    if not instances.exists():
         # Force no results
-        return {'audits': [],
+        return {'audits': Audit.objects.none(),
                 'total_count': 0,
                 'next_page': None,
                 'prev_page': None}
@@ -83,12 +83,13 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
         model__startswith='udf:',
         field__in=('id', 'model_id', 'field_definition'))
 
-    audits = Audit.objects \
-        .filter(model_filter) \
-        .filter(instance__in=instances) \
-        .exclude(udf_bookkeeping_fields) \
-        .exclude(user=User.system_user()) \
-        .order_by('-created', 'id')
+    audits = (Audit.objects
+              .filter(model_filter)
+              .filter(instance__in=instances)
+              .select_related('instance')
+              .exclude(udf_bookkeeping_fields)
+              .exclude(user=User.system_user())
+              .order_by('-created', 'id'))
 
     if user:
         audits = audits.filter(user=user)
@@ -103,7 +104,7 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
     query_vars = {k: v for (k, v) in query_vars.iteritems() if k != 'page'}
     next_page = None
     prev_page = None
-    if len(audits) == page_size:
+    if audits.count() == page_size:
         query_vars['page'] = page + 1
         next_page = "?" + urllib.urlencode(query_vars)
     if page > 0:
@@ -162,20 +163,21 @@ def user_accessible_instance_filter(logged_in_user):
 
 
 def get_user_instances(logged_in_user, user, current_instance=None):
-    # Which instances can the user being inspected see?
-    user_instances = {iu.instance for iu in InstanceUser.objects
-                        .filter(user=user)
-                        .select_related('instance')}
 
     # Which instances can the logged-in user see?
-    accessible_filter = user_accessible_instance_filter(logged_in_user)
-    accessible_instances = set(Instance.objects.filter(accessible_filter))
+    instance_filter = (user_accessible_instance_filter(logged_in_user))
 
-    instances = user_instances.intersection(accessible_instances)
+    user_instance_ids = (InstanceUser.objects
+                         .filter(user_id=user.pk)
+                         .values_list('instance_id', flat=True))
+
+    instance_filter = Q(instance_filter, Q(pk__in=user_instance_ids))
 
     # The logged-in user should see the current instance in their own list
     if current_instance and logged_in_user == user:
-        instances = instances.union({current_instance})
+        instance_filter = instance_filter | Q(pk=current_instance.id)
 
-    instances = sorted(instances, cmp=lambda x, y: cmp(x.name, y.name))
-    return instances
+    return (Instance.objects
+            .filter(instance_filter)
+            .distinct()
+            .order_by('name'))
