@@ -125,10 +125,10 @@ function set(key, value, options) {
         var newState = _.extend({}, _state);
         newState[key] = value;
 
-        // If there are no differences between _state and newState then there
-        // will be nothing for stateChangeStream to emit.
+        // Prevent data from being pushed to _stateChangeBus by making _state
+        // identical to newState.
         if (options.silent) {
-            _state[key] = value;
+            _state = newState;
         }
 
         if (options.replaceState) {
