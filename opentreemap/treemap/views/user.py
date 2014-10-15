@@ -17,7 +17,7 @@ from opentreemap.util import json_from_request, dotted_split
 
 from treemap.decorators import get_instance_or_404
 from treemap.images import save_image_from_request
-from treemap.util import (package_validation_errors,
+from treemap.util import (package_field_errors,
                           bad_request_json_response)
 from treemap.models import User
 from treemap.util import get_filterable_audit_models
@@ -94,7 +94,7 @@ def update_user(request, user):
         return {"ok": True}
     except ValidationError, ve:
         return bad_request_json_response(
-            validation_error_dict=package_validation_errors('user', ve))
+            validation_error_dict=package_field_errors('user', ve))
 
 
 def upload_user_photo(request, user):

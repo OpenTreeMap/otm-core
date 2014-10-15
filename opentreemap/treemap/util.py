@@ -127,7 +127,7 @@ def bad_request_json_response(message=None, validation_error_dict=None):
     return response
 
 
-def package_validation_errors(model_name, validation_error):
+def package_field_errors(model_name, validation_error):
     """
     validation_error contains a dictionary of error messages of the form
     {fieldname1: [messages], fieldname2: [messages]}.

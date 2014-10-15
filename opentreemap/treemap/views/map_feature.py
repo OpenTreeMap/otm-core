@@ -20,7 +20,7 @@ from opentreemap.util import dotted_split
 from treemap.units import Convertible
 from treemap.models import (Tree, Species, Instance, MapFeature,
                             MapFeaturePhoto)
-from treemap.util import (package_validation_errors,
+from treemap.util import (package_field_errors,
                           bad_request_json_response, to_object_name)
 
 from treemap.images import get_image_from_request
@@ -190,7 +190,7 @@ def update_map_feature(request_dict, user, feature):
             thing.save_with_user(user)
             return {}
         except ValidationError as e:
-            return package_validation_errors(thing._model_name, e)
+            return package_field_errors(thing._model_name, e)
 
     tree = None
 
