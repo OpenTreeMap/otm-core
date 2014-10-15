@@ -14,8 +14,7 @@ MISSING_POINTS = (2, 'You must specify a "%s" and "%s" field' %
 UNMATCHED_FIELDS = (3, "Some fields in the uploaded dataset "
                     "didn't match the template", False)
 
-MISSING_SPECIES_FIELDS = (4, 'You must specify i-Tree Code, Common Name '
-                          'Genus and Species', True)
+MISSING_SPECIES_FIELDS = (4, 'You must specify Common Name and Genus', True)
 
 MISSING_FIELD = (5, 'This field is required', True)
 GENERIC_ERROR = (6, 'There was an exception', True)
@@ -45,7 +44,6 @@ INVALID_DATE = (46, 'Invalid date (must by YYYY-MM-DD', True)
 INVALID_CHOICE = (50, 'These fields must contain a choice value', True)
 
 INVALID_ITREE_CODE = (60, "iTree doesn't exist", True)
-MISSING_ITREE_CODE = (61, 'iTree code is missing', True)
 
 TOO_MANY_SPECIES = (70, 'More than one species was matched by this row', False)
 MERGE_REQ = (71, 'This row must be merged', False)

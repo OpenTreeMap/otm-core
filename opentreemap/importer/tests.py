@@ -552,11 +552,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         self.assertEqual(ierrors['1'],
                          [(errors.INVALID_ITREE_CODE[0],
                            [fields.species.ITREE_CODE], None)])
-        self.assertEqual(ierrors['2'],
-                         [(errors.MISSING_ITREE_CODE[0],
-                           ['i-tree code'], None),
-                          (errors.MISSING_FIELD[0],
-                           ['i-tree code'], None)])
+        self.assertNotIn('2', ierrors)
 
     @skip("We need to re-work iTree validation")
     def test_multiregion_itree(self):

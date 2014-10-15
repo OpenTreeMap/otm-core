@@ -155,8 +155,7 @@ class SpeciesImportEvent(GenericImportEvent):
         datastr = self.rows()[0].data
         input_fields = set(json.loads(datastr).keys())
 
-        req = {fields.species.GENUS,
-               fields.species.COMMON_NAME, fields.species.ITREE_CODE}
+        req = {fields.species.GENUS, fields.species.COMMON_NAME}
 
         req -= input_fields
         if req:
@@ -618,9 +617,8 @@ class SpeciesImportRow(GenericImportRow):
                                   'otm_code', addl_filter)
 
     def validate_required_fields(self):
-        req = {fields.species.GENUS,
-               fields.species.COMMON_NAME, fields.species.ITREE_CODE}
-        
+        req = {fields.species.GENUS, fields.species.COMMON_NAME}
+
         has_errors = False
 
         for field in req:
@@ -682,10 +680,6 @@ class SpeciesImportRow(GenericImportRow):
                     has_error = True
                     self.append_error(errors.INVALID_ITREE_CODE,
                                       (fields.species.ITREE_CODE,))
-        else:
-            has_error = True
-            self.append_error(errors.MISSING_ITREE_CODE,
-                              (fields.species.ITREE_CODE,))
 
         return not has_error
 

@@ -1136,6 +1136,3 @@ SPECIES = [
 {"otm_code": "ZESE"  , "common_name": "Japanese zelkova"            , "genus": "Zelkova"       , "species": "serrata"       , "cultivar": ""              , "other_part_of_name": ""},
 {"otm_code": "ZESE_V", "common_name": "Japanese zelkova 'Village Green'", "genus": "Zelkova"   , "species": "serrata"       , "cultivar": "Village Green" , "other_part_of_name": ""},
 ]
-
-for species in SPECIES:
-    species['other_part_of_name'] = species.pop('other')
