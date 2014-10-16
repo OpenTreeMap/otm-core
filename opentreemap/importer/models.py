@@ -14,6 +14,8 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 
 from treemap.models import Species, Plot, Tree, User, Instance
+from treemap.species.codes import (has_itree_code, all_itree_region_codes,
+                                   all_itree_codes)
 
 from importer import fields
 from importer import errors
@@ -122,6 +124,12 @@ class SpeciesImportEvent(GenericImportEvent):
 
     max_diameter_conversion_factor = models.FloatField(default=1.0)
     max_tree_height_conversion_factor = models.FloatField(default=1.0)
+
+    def __init__(self, *args, **kwargs):
+        super(SpeciesImportEvent, self).__init__(*args, **kwargs)
+        self.all_region_codes = all_itree_region_codes()
+        self.all_itree_codes = all_itree_codes()
+        self.instance_region_codes = self.instance.itree_region_codes()
 
     def create_row(self, *args, **kwargs):
         return SpeciesImportRow.objects.create(*args, **kwargs)
@@ -376,7 +384,8 @@ class GenericImportRow(models.Model):
             return i
 
     def convert_units(self, data, converts):
-        INCHES_TO_DBH_FACTOR = 1.0 / settings.DBH_TO_INCHES_FACTOR
+        # TODO: Convert using instance's per-field units choice
+        INCHES_TO_DBH_FACTOR = 1.0  #/ settings.DBH_TO_INCHES_FACTOR
 
         # Similar to tree
         for fld, factor in converts.iteritems():
@@ -524,6 +533,7 @@ class SpeciesImportRow(GenericImportRow):
 
     import_event = models.ForeignKey(SpeciesImportEvent)
 
+
     def diff_from_species(self, species):
         """ Compute how this row is different from
         the given species
@@ -629,59 +639,75 @@ class SpeciesImportRow(GenericImportRow):
 
         return not has_errors
 
-    def validate_itree_code(self):
-        default_region = settings.ITREE_REGION
+    def validate_itree_code_and_region(self, region, code):
+        error = None
+        if region not in self.import_event.all_region_codes:
+            error = errors.INVALID_ITREE_REGION
 
-        def is_valid_code(code, region=default_region):
-            # Each region/datatype pair has its own set of benefits
-            # in this case we're using the 'electricity' benefit
-            # as the prototype
-            return False
-            # TODO: Make work in OTM2
-#             breaks, data = benefits._get_data(region, 'electricity')
+        elif region not in self.import_event.instance_region_codes:
+            error = errors.ITREE_REGION_NOT_IN_INSTANCE
 
-#             return code in data
+        elif code not in self.import_event.all_itree_codes:
+            error = errors.INVALID_ITREE_CODE
 
-        has_error = False
-        itreecode = self.datadict.get(fields.species.ITREE_CODE)
+        elif not has_itree_code(region, code):
+            error = errors.ITREE_CODE_NOT_IN_REGION
 
-        # There are two formats for this column
-        # The first is simply an itree code:
-        # 'CEL OTHER'
-        #
-        # The other is a pairing between regions and itree codes
-        # that looks something like:
-        # <region>:<code>, ...
-        # SoCalCSMA:CEL OTHER, InlEmpCLM:CEL OTHER
-        if itreecode:
-            rsrcs = []
+        return error
 
-            if ':' in itreecode:
-                codes = [regioncode.split(':')
-                         for regioncode in itreecode.split(',')]
+    def validate_itree_code(self, itree_code):
+        region = None
+        error = None
+        n_regions = len(self.import_event.instance_region_codes)
+        if n_regions == 0:
+            error = errors.INSTANCE_HAS_NO_ITREE_REGION
 
-                for region, code in codes:
-                    if is_valid_code(code, region):
-                        rsrcs.append((code, region))
-                    else:
-                        has_error = True
-                        self.append_error(errors.INVALID_ITREE_CODE,
-                                          (fields.species.ITREE_CODE,),
-                                          {'region': region,
-                                           'code': code})
-                        break
+        elif n_regions > 1:
+            error = errors.INSTANCE_HAS_MULTIPLE_ITREE_REGIONS
 
-                if not has_error:
-                    self.cleaned[fields.species.RESOURCE] = rsrcs
-            else:
-                if is_valid_code(itreecode):
-                    self.cleaned[fields.species.RESOURCE] = [(itreecode, None)]
-                else:
-                    has_error = True
-                    self.append_error(errors.INVALID_ITREE_CODE,
-                                      (fields.species.ITREE_CODE,))
+        else:
+            region = self.import_event.instance_region_codes[0]
+            if itree_code not in self.import_event.all_itree_codes:
+                error = errors.INVALID_ITREE_CODE
 
-        return not has_error
+            elif not has_itree_code(region, itree_code):
+                error = errors.ITREE_CODE_NOT_IN_REGION
+
+        return error, region
+
+    def validate_itree_code_field(self):
+        itree_code = self.datadict.get(fields.species.ITREE_CODE)
+        if not itree_code:
+            return
+
+        pairs = []
+        error = None
+
+        if ':' in itree_code:
+            # Field contains region:code pairs, e.g.
+            # SoCalCSMA:CEL OTHER, InlEmpCLM:CEL OTHER
+            codes = [pair.split(':')
+                     for pair in itree_code.split(',')]
+
+            for region, code in codes:
+                region = region.strip()
+                code = code.strip()
+                error = self.validate_itree_code_and_region(region, code)
+                pairs.append((code, region))
+                if error:
+                    break
+
+        else:
+            # Field contains a single i-Tree code
+            error, region = self.validate_itree_code(itree_code)
+            pairs.append((itree_code, region))
+
+        if error:
+            self.append_error(error, fields.species.ITREE_CODE,
+                              {'code': pairs[-1][0],
+                               'region': pairs[-1][1]})
+        else:
+            self.cleaned[fields.species.RESOURCE] = pairs
 
     def validate_row(self):
         """
@@ -711,7 +737,7 @@ class SpeciesImportRow(GenericImportRow):
         self.validate_species()
         self.validate_usda_code()
 
-        self.validate_itree_code()
+        self.validate_itree_code_field()
         self.validate_required_fields()
 
         # Native status is a horrible field that pretends to

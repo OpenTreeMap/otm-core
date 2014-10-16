@@ -19,8 +19,9 @@ from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
 from api.test_utils import setupTreemapEnv, mkPlot
 
-from treemap.models import Species, Plot, Tree, User
-from treemap.tests import make_admin_user, make_instance, login
+from treemap.models import Species, Plot, Tree
+from treemap.tests import (make_admin_user, make_instance, login,
+                           make_commander_user)
 
 from importer.views import (create_rows_for_event, process_csv, process_status,
                             commit, merge_species)
@@ -88,6 +89,35 @@ class MergeTest(TestCase):
 
 
 class ValidationTest(TestCase):
+
+    def assertHasError(self, thing, error, data=None, df=None):
+        local_errors = ''
+        code, message, fatal = error
+        if thing.errors:
+            local_errors = json.loads(thing.errors)
+            for e in local_errors:
+                if e['code'] == code:
+                    if data is not None:
+                        edata = e['data']
+                        if df:
+                            edata = df(edata)
+                        self.assertEqual(edata, data)
+                    return
+
+        raise AssertionError('Error code %s not found in %s'
+                             % (code, local_errors))
+
+    def assertNotHasError(self, thing, error):
+        code, message, fatal = error
+        if thing.errors:
+            local_errors = json.loads(thing.errors)
+            for e in local_errors:
+                if e['code'] == code:
+                    raise AssertionError('Error code %s found in %s'
+                                         % (code, local_errors))
+
+
+class TreeValidationTest(ValidationTest):
     def setUp(self):
         center_point = Point(25, 25, srid=4326)
         center_point.transform(3857)
@@ -102,32 +132,6 @@ class ValidationTest(TestCase):
     def mkrow(self, data):
         return TreeImportRow.objects.create(
             data=json.dumps(data), import_event=self.ie, idx=1)
-
-    def assertHasError(self, thing, err, data=None, df=None):
-        local_errors = ''
-        errn, msg, fatal = err
-        if thing.errors:
-            local_errors = json.loads(thing.errors)
-            for e in local_errors:
-                if e['code'] == errn:
-                    if data is not None:
-                        edata = e['data']
-                        if df:
-                            edata = df(edata)
-                        self.assertEqual(edata, data)
-                    return
-
-        raise AssertionError('Error code %s not found in %s'
-                             % (errn, local_errors))
-
-    def assertNotHasError(self, thing, err, data=None):
-        errn, msg, fatal = err
-        if thing.errors:
-            local_errors = json.loads(thing.errors)
-            for e in local_errors:
-                if e['code'] == errn:
-                    raise AssertionError('Error code %s found in %s'
-                                         % (errn, local_errors))
 
     def test_species_diameter_and_height(self):
         s1_gsc = Species(instance=self.instance, genus='g1', species='s1',
@@ -348,7 +352,69 @@ class ValidationTest(TestCase):
         self.assertNotHasError(i, errors.FLOAT_ERROR)
 
 
-class FileLevelValidationTest(TestCase):
+class SpeciesValidationTest(ValidationTest):
+    def setUp(self):
+        self.instance = None
+        self.user = None
+
+    def _make_import_event(self):
+        if not self.instance:
+            self.instance = make_instance()
+            self.instance.itree_region_default = 'NoEastXXX'
+            self.instance.save()
+        if not self.user:
+            self.user = make_admin_user(self.instance)
+        import_event = SpeciesImportEvent(
+            file_name='file', owner=self.user, instance=self.instance)
+        import_event.save()
+        return import_event
+
+    def _make_and_validate_row(self, data):
+        import_event = self._make_import_event()
+        d = {'genus': 'g1', 'common name': 'c1'}
+        d.update(data)
+        row = SpeciesImportRow.objects.create(
+            data=json.dumps(d), import_event=import_event, idx=1)
+        row.validate_row()
+        return row
+
+    def _assert_row_has_error(self, data, error):
+        row = self._make_and_validate_row(data)
+        self.assertHasError(row, error)
+
+    def test_invalid_itree_region(self):
+        self._assert_row_has_error({'i-tree code': 'foo:ACME'},
+                                   errors.INVALID_ITREE_REGION)
+
+    def test_itree_region_not_in_instance(self):
+        self._assert_row_has_error({'i-tree code': 'CaNCCoJBK:ACME'},
+                                   errors.ITREE_REGION_NOT_IN_INSTANCE)
+
+    def test_invalid_itree_code(self):
+        self._assert_row_has_error({'i-tree code': 'x'},
+                                   errors.INVALID_ITREE_CODE)
+        self._assert_row_has_error({'i-tree code': 'NoEastXXX:x'},
+                                   errors.INVALID_ITREE_CODE)
+
+    def test_invalid_itree_code_for_region(self):
+        self._assert_row_has_error({'i-tree code': 'FRVE'},
+                                   errors.ITREE_CODE_NOT_IN_REGION)
+        self._assert_row_has_error({'i-tree code': 'NoEastXXX:FRVE'},
+                                   errors.ITREE_CODE_NOT_IN_REGION)
+
+    def test_instance_has_no_itree_region(self):
+        self.instance = make_instance()
+        self._assert_row_has_error({'i-tree code': 'FRVE'},
+                                   errors.INSTANCE_HAS_NO_ITREE_REGION)
+
+    def test_instance_has_multiple_itree_regions(self):
+        center = Point(-13162685, 4033811, srid=3857)  # Los Angeles
+        self.instance = make_instance(point=center, edge_length=500000)
+        self._assert_row_has_error({'i-tree code': 'FRVE'},
+                                   errors.INSTANCE_HAS_MULTIPLE_ITREE_REGIONS)
+
+
+class FileLevelTreeValidationTest(TestCase):
     def write_csv(self, stuff):
         t = tempfile.NamedTemporaryFile()
 
@@ -524,7 +590,7 @@ class SpeciesIntegrationTests(IntegrationTests):
                          {errors.MISSING_SPECIES_FIELDS[0],
                           errors.UNMATCHED_FIELDS[0]})
 
-    @skip("We need to re-work iTree validation")
+    @skip("Failing")
     def test_noerror_load(self):
         csv = """
         | genus   | species    | common name | i-tree code  |
@@ -537,26 +603,13 @@ class SpeciesIntegrationTests(IntegrationTests):
         self.assertEqual(j['status'], 'success')
         self.assertEqual(j['rows'], 2)
 
-    @skip("We need to re-work iTree validation")
-    def test_invalid_itree(self):
-        csv = """
-        | genus   | species    | common name | i-tree code  |
-        | testus1 | specieius9 | g1 s2 wowza | BDL OTHER    |
-        | genus   |            | common name | failure      |
-        | testus1 | specieius9 | g1 s2 wowza |              |
-        """
-
-        j = self.run_through_process_views(csv)
-        ierrors = self.extract_errors(j)
-        self.assertNotIn('0', ierrors)
-        self.assertEqual(ierrors['1'],
-                         [(errors.INVALID_ITREE_CODE[0],
-                           [fields.species.ITREE_CODE], None)])
-        self.assertNotIn('2', ierrors)
-
-    @skip("We need to re-work iTree validation")
+    @skip("Must test for ITreeCodeOverrides (once we're creating them)")
     def test_multiregion_itree(self):
-        itree = 'NoEastXXX:ACPL,NMtnPrFNL:BDL OTHER'
+        center = Point(-13162685, 4033811, srid=3857)  # Los Angeles
+        self.instance = make_instance(point=center, edge_length=500000)
+        self.user = None  # need an admin user but there's already one on another instance
+
+        itree = 'SoCalCSMA:WARO,NMtnPrFNL:CEL OTHER'
         csv = """
         | genus   | species    | common name | i-tree code  |
         | testus1 | specieius9 | g1 s2 wowza | %s           |
@@ -567,7 +620,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         s = ie.rows().all()[0].species
 
         self.assertEqual({(r.meta_species, r.region) for r in s.resource.all()},
-                         {('ACPL', 'NoEastXXX'), ('BDL OTHER', 'NMtnPrFNL')})
+                         {('WARO', 'SoCalCSMA'), ('CEL OTHER', 'NMtnPrFNL')})
 
     @skip("We need to re-work iTree validation")
     def test_species_matching(self):

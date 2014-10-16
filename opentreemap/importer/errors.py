@@ -43,7 +43,15 @@ INVALID_DATE = (46, 'Invalid date (must by YYYY-MM-DD', True)
 
 INVALID_CHOICE = (50, 'These fields must contain a choice value', True)
 
-INVALID_ITREE_CODE = (60, "iTree doesn't exist", True)
+INVALID_ITREE_REGION = (60, 'Unknown i-Tree region', True)
+ITREE_REGION_NOT_IN_INSTANCE = (61, "i-Tree region not valid for this treemap",
+                                True)
+INVALID_ITREE_CODE = (62, 'Unknown i-Tree code', True)
+ITREE_CODE_NOT_IN_REGION = (63, 'i-Tree code not defined for region', True)
+INSTANCE_HAS_NO_ITREE_REGION = (64, 'This treemap intersects no i-Tree '
+                                'regions and has no default region', True)
+INSTANCE_HAS_MULTIPLE_ITREE_REGIONS = (65, 'This treemap intersects more than '
+                                      'one i-Tree region', True)
 
 TOO_MANY_SPECIES = (70, 'More than one species was matched by this row', False)
 MERGE_REQ = (71, 'This row must be merged', False)
