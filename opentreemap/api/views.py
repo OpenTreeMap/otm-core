@@ -23,7 +23,9 @@ from treemap.lib.map_feature import context_dict_for_plot
 from treemap.lib.tree import add_tree_photo_helper
 from treemap.lib.photo import context_dict_for_photo
 
-from treemap.decorators import json_api_call, return_400_if_validation_errors
+from treemap.decorators import (json_api_call,
+                                return_400_if_validation_errors,
+                                require_http_method)
 from treemap.decorators import api_instance_request as instance_request
 from treemap.decorators import api_admin_instance_request as \
     admin_instance_request
@@ -344,7 +346,9 @@ status_view = api_do(route(GET=status))
 version_view = api_do(route(GET=version))
 
 update_profile_photo_endpoint = logged_in_api_do(
-    route(POST=update_profile_photo))
+    require_http_method('POST'),
+    return_400_if_validation_errors,
+    update_profile_photo)
 
 export_users_csv_endpoint = do(
     csrf_exempt,

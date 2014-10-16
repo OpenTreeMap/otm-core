@@ -302,11 +302,12 @@ exports.init = function(options) {
         },
 
         validationErrorsStream = responseErrorStream
-            .filter('.validationErrors')
-            .map('.validationErrors'),
+            .filter('.fieldErrors')
+            .map('.fieldErrors'),
 
+        // TODO: handle global_errors AND bubble up unhandled
         unhandledErrorStream = responseErrorStream
-            .filter(BU.isPropertyUndefined, 'validationErrors')
+            .filter(BU.isPropertyUndefined, 'fieldErrors')
             .map('.error'),
 
         editStartStream = actionStream.filter(isEditStart),

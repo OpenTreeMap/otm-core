@@ -21,6 +21,7 @@ from django.contrib.gis.geos import Point
 
 from treemap import ecobackend
 from treemap.lib.object_caches import permissions
+from treemap.decorators import return_400_if_validation_errors
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.audit import (Audit, approve_or_reject_audit_and_apply,
                            approve_or_reject_audits_and_apply,
@@ -569,14 +570,14 @@ class UserPhotoUpdateTest(LocalMediaTestCase):
 
     @media_dir
     def test_non_image(self):
-        response = self.upload_photo('nonImage.jpg')
-        self.assertEqual(response.status_code, 400)
+        with self.assertRaises(ValidationError):
+            self.upload_photo('nonImage.jpg')
 
     @media_dir
     @override_settings(MAXIMUM_IMAGE_SIZE=10)
     def test_rejects_large_files(self):
-        response = self.upload_photo('tree2.jpg')
-        self.assertEqual(response.status_code, 400)
+        with self.assertRaises(ValidationError):
+            self.upload_photo('tree2.jpg')
 
 
 class PlotUpdateTest(OTMTestCase):
@@ -1562,7 +1563,7 @@ class UserUpdateViewTests(ViewTestCase):
         else:
             context = response
         self.assertTrue('ok' in context)
-        self.assertFalse('error' in context)
+        self.assertFalse('globalErrors' in context)
         self.assertFalse('validationErrors' in context)
 
     def assertBadRequest(self, response):
@@ -1570,7 +1571,7 @@ class UserUpdateViewTests(ViewTestCase):
         self.assertEquals(400, response.status_code)
         context = json.loads(response.content)
         self.assertFalse('ok' in context)
-        self.assertTrue('error' in context)
+        self.assertTrue('globalErrors' in context)
 
     def test_empty_update_returns_ok(self):
         self.assertOk(update_user(
@@ -1590,7 +1591,7 @@ class UserUpdateViewTests(ViewTestCase):
         self.joe.name = 'Joe'
         self.joe.save()
         update = b'{"name": "Joseph"}'
-        response = update_user(
+        response = return_400_if_validation_errors(update_user)(
             make_request(user=self.joe, body=update), self.joe)
         self.assertBadRequest(response)
         context = json.loads(response.content)
@@ -1600,18 +1601,18 @@ class UserUpdateViewTests(ViewTestCase):
         self.joe.email = 'joe@gmail.com'
         self.joe.save()
         update = b'{"user.email": "@not_valid@"}'
-        response = update_user(
+        response = return_400_if_validation_errors(update_user)(
             make_request(user=self.joe, body=update), self.joe)
         self.assertBadRequest(response)
         context = json.loads(response.content)
-        self.assertTrue('validationErrors' in context)
-        self.assertTrue('user.email' in context['validationErrors'])
+        self.assertTrue('fieldErrors' in context)
+        self.assertTrue('user.email' in context['fieldErrors'])
 
     def test_cant_change_password_through_update_view(self):
         self.joe.set_password = 'joe'
         self.joe.save()
         update = b'{"user.password": "sekrit"}'
-        self.assertBadRequest(update_user(
+        self.assertBadRequest(return_400_if_validation_errors(update_user)(
             make_request(user=self.joe, body=update), self.joe))
 
 

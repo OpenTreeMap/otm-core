@@ -239,13 +239,18 @@ def string_to_response(content_type):
 def return_400_if_validation_errors(req):
     @wraps(req)
     def run_and_catch_validations(*args, **kwargs):
+        # message_dict = {'globalErrors': [],
+        #                 'fieldErrors': {}}
+        message_dict = {}
         try:
             return req(*args, **kwargs)
         except ValidationError as e:
+            # todo: confirm message_dict really means field errors and
+            # messages really means global errors
             if hasattr(e, 'message_dict'):
-                message_dict = e.message_dict
-            else:
-                message_dict = {'errors': e.messages}
+                message_dict['fieldErrors'] = e.message_dict
+            if hasattr(e, 'messages'):
+                message_dict['globalErrors'] = e.messages
 
             return HttpResponseBadRequest(
                 json.dumps(message_dict, cls=LazyEncoder))

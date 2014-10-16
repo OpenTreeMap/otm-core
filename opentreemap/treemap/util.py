@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import json
 import datetime
 from collections import OrderedDict
 
@@ -113,21 +112,7 @@ def get_instance_or_404(**kwargs):
     return get_object_or_404(Instance, **new_kwargs)
 
 
-def bad_request_json_response(message=None, validation_error_dict=None):
-    if message is None:
-        message = 'One or more of the specified values are invalid.'
-    response = HttpResponse()
-    response.status_code = 400
-    content = {'error': message}
-    if validation_error_dict:
-        content['validationErrors'] = validation_error_dict
-    response.write(json.dumps(content, cls=LazyEncoder))
-    response['Content-length'] = str(len(response.content))
-    response['Content-Type'] = "application/json"
-    return response
-
-
-def package_validation_errors(model_name, validation_error):
+def package_field_errors(model_name, validation_error):
     """
     validation_error contains a dictionary of error messages of the form
     {fieldname1: [messages], fieldname2: [messages]}.
