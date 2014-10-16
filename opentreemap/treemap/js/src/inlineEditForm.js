@@ -2,7 +2,9 @@
 
 var $ = require('jquery'),
     Bacon = require('baconjs'),
+    R = require('ramda'),
     BU = require('treemap/baconUtils'),
+    U = require('treemap/utility'),
     _ = require('lodash'),
     moment = require('moment'),
     FH = require('treemap/fieldHelpers'),
@@ -44,6 +46,7 @@ exports.init = function(options) {
         $cancel = $(options.cancel),
         displayFields = options.displayFields,
         editFields = options.editFields,
+        globalErrorSection = options.globalErrorSection,
         validationFields = options.validationFields,
         errorCallback = options.errorCallback || $.noop,
         onSaveBefore = options.onSaveBefore || _.identity,
@@ -237,6 +240,18 @@ exports.init = function(options) {
             }));
         },
 
+        showGlobalErrors = function (errors) {
+            var $globalErrorSection = $(globalErrorSection);
+
+            if ($globalErrorSection.length > 0) {
+                globalErrorSection.html(errors.join(','));
+            } else {
+                console.log('Global error returned from server, ' +
+                            'but no dom element bound from client.',
+                            errors);
+            }
+        },
+
         showValidationErrorsInline = function (errors) {
             $(validationFields).each(function() {
                 $(this).html('');
@@ -259,10 +274,15 @@ exports.init = function(options) {
             .errors()
             .mapError(function (e) {
                 var result = ('responseJSON' in e) ? e.responseJSON : {};
-                if (!('error' in result)) {
-                    // Make sure there's an "error" property; we look for it below.
+                if ('error' in result) {
+                    U.warnDeprecatedErrorMessage(result);
+                    result.unstructuredError = result.error;
+                }
+                if (!('unstructuredError' in result)) {
+                    // Make sure there's an 'unstructuredError' property
+                    // we look for it in the stream that responds to this.
                     // Give it the error object to help with debugging.
-                    result.error = e;
+                    result.unstructuredError = e;
                 }
                 return result;
             }),
@@ -302,12 +322,17 @@ exports.init = function(options) {
         },
 
         validationErrorsStream = responseErrorStream
-            .filter('.validationErrors')
-            .map('.validationErrors'),
+            .filter('.fieldErrors')
+            .map('.fieldErrors'),
+
+        globalErrorsStream = responseErrorStream
+            .filter('.globalErrors')
+            .map('.globalErrors'),
 
         unhandledErrorStream = responseErrorStream
-            .filter(BU.isPropertyUndefined, 'validationErrors')
-            .map('.error'),
+            .filter(R.and(BU.isPropertyUndefined('fieldErrors'),
+                          BU.isPropertyUndefined('globalErrors')))
+            .map('.unstructuredError'),
 
         editStartStream = actionStream.filter(isEditStart),
 
@@ -348,6 +373,7 @@ exports.init = function(options) {
 
     saveOKFormDataStream.onValue(formFieldsToDisplayValues);
 
+    globalErrorsStream.onValue(showGlobalErrors);
     validationErrorsStream.onValue(showValidationErrorsInline);
 
     unhandledErrorStream.onValue(errorCallback);

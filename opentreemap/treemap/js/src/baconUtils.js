@@ -36,19 +36,15 @@ var isUndefined = exports.isUndefined = _.isUndefined;
 
 var isUndefinedOrEmpty = exports.isUndefinedOrEmpty = R.or(_.isUndefined, R.eq(''));
 
-exports.isPropertyDefined = function(key, object) {
-    return isDefined(object) && isDefined(object[key]);
-};
-
-exports.isPropertyUndefined = function(key, object) {
-    return isUndefined(object) || isUndefined(object[key]);
-};
-
 // Used to get object property values
 // Needed for keys with '.' in them, as Bacon will treat a '.' a in key as an
 // indication that there are nested objects
-exports.getValueForKey = function(key, object) {
-    return object[key];
+var getValueForKey = exports.getValueForKey = function(key) {
+    return function (object) { return object[key]; };
+};
+
+exports.isPropertyUndefined = function(key) {
+    return R.or(isUndefined, R.compose(isUndefined, getValueForKey(key)));
 };
 
 exports.fetchFromIdStream = function (idStream, fetchFn, undefinedMapping, errorMapping) {

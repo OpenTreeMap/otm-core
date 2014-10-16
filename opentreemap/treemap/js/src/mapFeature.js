@@ -145,7 +145,7 @@ exports.init = function(options) {
         });
         form.saveOkStream
             .map('.formData')
-            .map(BU.getValueForKey, 'plot.geom')
+            .map(BU.getValueForKey('plot.geom'))
             .filter(BU.isDefined)
             .onValue(panorama.update);
     }

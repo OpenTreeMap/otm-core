@@ -17,8 +17,7 @@ from opentreemap.util import json_from_request, dotted_split
 
 from treemap.decorators import get_instance_or_404
 from treemap.images import save_image_from_request
-from treemap.util import (package_validation_errors,
-                          bad_request_json_response)
+from treemap.util import package_field_errors
 from treemap.models import User
 from treemap.util import get_filterable_audit_models
 from treemap.lib.user import get_audits, get_user_instances, get_audits_params
@@ -80,21 +79,18 @@ def update_user(request, user):
         try:
             model, field = dotted_split(key, 2, cls=ValueError)
             if model != 'user':
-                return bad_request_json_response(
+                raise ValidationError(
                     'All fields should be prefixed with "user."')
             if field not in USER_PROFILE_FIELDS:
-                return bad_request_json_response(
-                    field + ' is not an updatable field')
+                raise ValidationError(field + ' is not an updatable field')
         except ValueError:
-            return bad_request_json_response(
-                'All fields should be prefixed with "user."')
+            raise ValidationError('All fields should be prefixed with "user."')
         setattr(user, field, new_values[key])
     try:
         user.save()
         return {"ok": True}
-    except ValidationError, ve:
-        return bad_request_json_response(
-            validation_error_dict=package_validation_errors('user', ve))
+    except ValidationError as ve:
+        raise ValidationError(package_field_errors('user', ve))
 
 
 def upload_user_photo(request, user):
@@ -102,14 +98,9 @@ def upload_user_photo(request, user):
     Saves a user profile photo whose data is in the request.
     The callee or decorator is reponsible for ensuring request.user == user
     """
-    try:
-        user.photo, user.thumbnail = save_image_from_request(
-            request, name_prefix="user-%s" % user.pk, thumb_size=(85, 85))
-        user.save_with_user(request.user)
-    except ValidationError as e:
-        # Most of these ValidationError are not field-errors and so their
-        # messages are a Dict, which is why they simply joined together
-        return bad_request_json_response('; '.join(e.messages))
+    user.photo, user.thumbnail = save_image_from_request(
+        request, name_prefix="user-%s" % user.pk, thumb_size=(85, 85))
+    user.save_with_user(request.user)
 
     return {'url': user.thumbnail.url}
 

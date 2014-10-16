@@ -6,6 +6,7 @@ from __future__ import division
 import json
 from functools import wraps
 
+from django.utils.translation import ugettext as trans
 from django.core.exceptions import PermissionDenied
 from django.template import RequestContext
 from django.shortcuts import get_object_or_404, render_to_response
@@ -239,13 +240,16 @@ def string_to_response(content_type):
 def return_400_if_validation_errors(req):
     @wraps(req)
     def run_and_catch_validations(*args, **kwargs):
+        message_dict = {}
         try:
             return req(*args, **kwargs)
         except ValidationError as e:
             if hasattr(e, 'message_dict'):
-                message_dict = e.message_dict
+                message_dict['fieldErrors'] = e.message_dict
+                message_dict['globalErrors'] = [trans(
+                    'One or more of the specified values are invalid.')]
             else:
-                message_dict = {'errors': e.messages}
+                message_dict['globalErrors'] = e.messages
 
             return HttpResponseBadRequest(
                 json.dumps(message_dict, cls=LazyEncoder))
