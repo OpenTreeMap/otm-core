@@ -22,6 +22,7 @@ from treemap.views import species_list
 from treemap.lib.map_feature import context_dict_for_plot
 from treemap.lib.tree import add_tree_photo_helper
 from treemap.lib.photo import context_dict_for_photo
+from treemap.lib.dates import DATETIME_FORMAT
 
 from treemap.decorators import (json_api_call,
                                 return_400_if_validation_errors,
@@ -47,7 +48,7 @@ from exporter.views import users_json, users_csv
 
 def datetime_to_iso_string(d):
     if d:
-        return d.strftime('%Y-%m-%d %H:%M:%S')
+        return d.strftime(DATETIME_FORMAT)
     else:
         return None
 

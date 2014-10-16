@@ -14,8 +14,9 @@ from django.contrib.gis.geos import Point
 
 from opentreemap.util import dotted_split
 
+from treemap.lib.dates import DATETIME_FORMAT
 from treemap.models import Boundary, Tree, Plot, Species, TreePhoto
-from treemap.udf import DATETIME_FORMAT, UDFModel, UserDefinedCollectionValue
+from treemap.udf import UDFModel, UserDefinedCollectionValue
 from treemap.util import to_object_name
 
 
