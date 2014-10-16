@@ -8,6 +8,7 @@ require('bootstrap');
 var $ = require('jquery'),
     Bacon = require('baconjs'),
     format = require('util').format,
+    U = require('treemap/utility'),
     _ = require('lodash');
 
 // jQuery-File-Upload and its dependencies
@@ -73,7 +74,16 @@ module.exports.init = function(options) {
             // error messages inside the HTML fragment it gives back
             if (dataType == 'json') {
                 var json = data.jqXHR.responseJSON,
-                    message = (json && json.error ? json.error : "Unable to upload image");
+                    message;
+
+                if (json && json.error) {
+                    U.warnDeprecatedErrorMessage(json);
+                    message = json.error;
+                } else if (json && json.globalErrors) {
+                    message = json.globalErrors.join(',');
+                } else {
+                    message = "Unable to upload image";
+                }
                 $error.text(message).show();
             }
         }

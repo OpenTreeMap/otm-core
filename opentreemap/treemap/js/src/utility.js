@@ -148,3 +148,9 @@ exports.juxt = function(fns) {
 };
 
 
+exports.warnDeprecatedErrorMessage = function (errorObject) {
+    console.log('returning "error" as a key from an ' +
+                'endpoint is deprecated. Please use ' +
+                '"globalErrors" or "fieldErrors"');
+    console.log(errorObject);
+};

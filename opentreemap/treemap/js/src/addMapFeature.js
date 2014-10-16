@@ -322,7 +322,7 @@ function init(options) {
     function onAddFeatureError(jqXHR, textStatus, errorThrown) {
         // Feature wasn't saved. Show validation errors.
         if (jqXHR.responseJSON) {
-            var errorDict = jqXHR.responseJSON.validationErrors;
+            var errorDict = jqXHR.responseJSON.fieldErrors;
             var errorSteps = _.map(errorDict, function (errorList, fieldName) {
                 var errorElem = FH.getField($(validationFields), fieldName);
                 if (errorElem.length > 0) {

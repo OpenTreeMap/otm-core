@@ -12,6 +12,7 @@ from django.views.decorators.http import etag
 from opentreemap.util import route, decorate as do
 
 from treemap.decorators import (json_api_call, render_template, login_or_401,
+                                return_400_if_validation_errors,
                                 require_http_method, string_to_response,
                                 requires_feature,
                                 creates_instance_user, instance_request,
@@ -133,6 +134,7 @@ map_feature_add_view = do(
         GET=render_map_feature_add,
         POST=do(
             json_api_edit,
+            return_400_if_validation_errors,
             add_map_feature)))
 
 map_feature_detail_view = do(
@@ -141,6 +143,7 @@ map_feature_detail_view = do(
         GET=render_map_feature_detail,
         ELSE=do(
             json_api_edit,
+            return_400_if_validation_errors,
             route(
                 PUT=update_map_feature_detail,
                 DELETE=delete_map_feature))))
@@ -222,6 +225,7 @@ update_user_view = do(
     require_http_method("PUT"),
     username_matches_request_user,
     json_api_call,
+    return_400_if_validation_errors,
     update_user)
 
 user_audits_view = do(
@@ -232,6 +236,7 @@ upload_user_photo_view = do(
     require_http_method("POST"),
     username_matches_request_user,
     json_api_call,
+    return_400_if_validation_errors,
     upload_user_photo)
 
 forgot_username_view = route(
