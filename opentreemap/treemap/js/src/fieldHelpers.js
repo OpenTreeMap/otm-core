@@ -4,13 +4,14 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    format = require('util').format,
     moment = require('moment');
 
 var DATETIME_FORMAT = exports.DATETIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
 var DATE_FORMAT = exports.DATE_FORMAT = "YYYY-MM-DD";
 
 var getField = exports.getField = function ($fields, name) {
-    return $fields.filter('[data-field="' + name + '"]');
+    return $fields.filter(format('[data-field="%s"]', name));
 };
 var getSerializableField = exports.getSerializableField = function ($fields, name) {
     // takes a jQuery collection of edit fields and returns the
