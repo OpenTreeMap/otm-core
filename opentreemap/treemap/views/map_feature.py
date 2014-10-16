@@ -20,8 +20,7 @@ from opentreemap.util import dotted_split
 from treemap.units import Convertible
 from treemap.models import (Tree, Species, Instance, MapFeature,
                             MapFeaturePhoto)
-from treemap.util import (package_field_errors,
-                          bad_request_json_response, to_object_name)
+from treemap.util import (package_field_errors, to_object_name)
 
 from treemap.images import get_image_from_request
 from treemap.lib.photo import context_dict_for_photo
@@ -33,24 +32,20 @@ from treemap.lib.map_feature import (get_map_feature_or_404,
 
 
 def _request_to_update_map_feature(request, instance, feature):
-    try:
-        request_dict = json.loads(request.body)
-        feature, tree = update_map_feature(request_dict, request.user, feature)
+    request_dict = json.loads(request.body)
+    feature, tree = update_map_feature(request_dict, request.user, feature)
 
-        # We need to reload the instance here since a new georev
-        # may have been set
-        instance = Instance.objects.get(pk=instance.pk)
+    # We need to reload the instance here since a new georev
+    # may have been set
+    instance = Instance.objects.get(pk=instance.pk)
 
-        return {
-            'ok': True,
-            'geoRevHash': instance.geo_rev_hash,
-            'featureId': feature.id,
-            'treeId': tree.id if tree else None,
-            'enabled': instance.feature_enabled('add_plot')
-        }
-    except ValidationError as ve:
-        return bad_request_json_response(
-            validation_error_dict=ve.message_dict)
+    return {
+        'ok': True,
+        'geoRevHash': instance.geo_rev_hash,
+        'featureId': feature.id,
+        'treeId': tree.id if tree else None,
+        'enabled': instance.feature_enabled('add_plot')
+    }
 
 
 def _add_map_feature_photo_helper(request, instance, feature_id):
