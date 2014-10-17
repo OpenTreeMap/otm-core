@@ -30,7 +30,7 @@ class CreateInstanceManagementTest(OTMTestCase):
 
 class RandomTreesManagementTest(OTMTestCase):
     def setUp(self):
-        self.instance = make_instance(edge_length=20000)
+        self.instance = make_instance(edge_length=100000)
         user = make_commander_user(instance=self.instance)
         species = Species(instance=self.instance, otm_code='',
                           common_name='', genus='')
