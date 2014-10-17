@@ -257,8 +257,15 @@ exports.init = function(options) {
                 $(this).html('');
             });
             _.each(errors, function (errorList, fieldName) {
-                FH.getField($(validationFields), fieldName)
-                    .html(errorList.join(','));
+                var $field = FH.getField($(validationFields), fieldName);
+
+                if ($field.length > 0) {
+                    $field.html(errorList.join(','));
+                } else {
+                    console.log('Field error returned from server, ' +
+                                'but no dom element bound from client.',
+                                fieldName, errorList);
+                }
             });
         },
 
