@@ -504,7 +504,7 @@ class UserDefinedFieldDefinition(models.Model):
                         errors['name'] = []
                     errors['name'].append(trans('Id is an invalid name'))
             else:
-                errors['datatype'] = 'Must provide a list with a collection'
+                errors['datatype'] = ['Must provide a list with a collection']
 
             if errors:
                 raise ValidationError(errors)
@@ -717,8 +717,8 @@ class UserDefinedFieldDefinition(models.Model):
                         msgs = e.messages
                         errors['udf:%s' % self.name] = msgs
                 else:
-                    errors['udf:%s' % self.name] = ('Invalid subfield %s' %
-                                                    subfield_name)
+                    errors['udf:%s' % self.name] = ['Invalid subfield %s' %
+                                                    subfield_name]
 
         if errors:
             raise ValidationError(errors)
@@ -1143,8 +1143,6 @@ class UDFModel(UserTrackable, models.Model):
         self.dirty_collection_udfs = False
 
     def clean_udfs(self):
-        errors = {}
-
         scalar_fields = {field.name: field
                          for field in self.get_user_defined_fields()
                          if not field.iscollection}
@@ -1153,6 +1151,7 @@ class UDFModel(UserTrackable, models.Model):
                              for field in self.get_user_defined_fields()
                              if field.iscollection}
 
+        errors = {}
         # Clean scalar udfs
         for (key, val) in self.udfs.iteritems():
             field = scalar_fields.get(key, None)
@@ -1162,8 +1161,8 @@ class UDFModel(UserTrackable, models.Model):
                 except ValidationError as e:
                     errors['udf:%s' % key] = e.messages
             else:
-                errors['udf:%s' % key] = trans(
-                    'Invalid user defined field name')
+                errors['udf:%s' % key] = [trans(
+                    'Invalid user defined field name')]
 
         # Clean collection values, but only if they were loaded
         if self.udfs.collection_data_loaded:
@@ -1178,8 +1177,8 @@ class UDFModel(UserTrackable, models.Model):
                     except ValidationError as e:
                         errors.update(e.message_dict)
                 else:
-                    errors['udf:%s' % collection_field_name] = trans(
-                        'Invalid user defined field name')
+                    errors['udf:%s' % collection_field_name] = [trans(
+                        'Invalid user defined field name')]
 
         if errors:
             raise ValidationError(errors)
