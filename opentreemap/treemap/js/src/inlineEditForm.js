@@ -244,7 +244,7 @@ exports.init = function(options) {
             var $globalErrorSection = $(globalErrorSection);
 
             if ($globalErrorSection.length > 0) {
-                globalErrorSection.html(errors.join(','));
+                $globalErrorSection.html(errors.join(','));
             } else {
                 console.log('Global error returned from server, ' +
                             'but no dom element bound from client.',
