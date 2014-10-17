@@ -10,6 +10,7 @@
 {% elif field.type == 'date' %}
 <input class="form-control" type="text" data-field-name="{{ field.name }}"
        data-date-display-format="{{ request.instance.short_date_format|moment_format }}"
+       data-date-format="{{ request.instance.short_date_format|datepicker_format }}"
        data-date-serialize-format="YYYY-MM-DD" value="{% trans "Today" %}" />
 {% else %}
 <input type="text" data-field-name="{{ field.name }}" />
