@@ -322,13 +322,13 @@ class UserDefinedFieldDefinition(models.Model):
             self, datatype, old_choice_value, new_choice_value):
         if datatype['type'] != 'choice':
             raise ValidationError(
-                {'datatype': trans("can't change choices "
-                                   "on a non-choice field")})
+                {'datatype': [trans("can't change choices "
+                                    "on a non-choice field")]})
 
         if old_choice_value not in datatype['choices']:
             raise ValidationError(
-                {'datatype': trans("choice '%(choice)s' not found") % {
-                    'choice': old_choice_value}})
+                {'datatype': [trans("choice '%(choice)s' not found") % {
+                    'choice': old_choice_value}]})
 
         choices = datatype['choices']
         if new_choice_value:
@@ -379,7 +379,7 @@ class UserDefinedFieldDefinition(models.Model):
         if self.iscollection:
             if name is None:
                 raise ValidationError({
-                    'name': trans('Name is required for collection fields')})
+                    'name': [trans('Name is required for collection fields')]})
 
             datatypes = {d['name']: d for d in self.datatype_dict}
             datatypes[name]['choices'].append(new_choice_value)
@@ -389,8 +389,8 @@ class UserDefinedFieldDefinition(models.Model):
         else:
             if name is not None:
                 raise ValidationError({
-                    'name': trans(
-                        'Name is allowed only for collection fields')})
+                    'name': [trans(
+                        'Name is allowed only for collection fields')]})
 
             datatype = self.datatype_dict
             datatype['choices'].append(new_choice_value)
@@ -406,7 +406,7 @@ class UserDefinedFieldDefinition(models.Model):
         if self.iscollection:
             if name is None:
                 raise ValidationError({
-                    'name': trans('Name is required for collection fields')})
+                    'name': [trans('Name is required for collection fields')]})
 
             datatypes = {info['name']: info for info in datatype}
             datatype = self._validate_and_update_choice(
@@ -442,8 +442,8 @@ class UserDefinedFieldDefinition(models.Model):
         else:
             if name is not None:
                 raise ValidationError({
-                    'name': trans(
-                        'Name is allowed only for collection fields')})
+                    'name': [trans(
+                        'Name is allowed only for collection fields')]})
 
             self._update_choice_scalar(old_choice_value, new_choice_value)
 
@@ -456,11 +456,11 @@ class UserDefinedFieldDefinition(models.Model):
 
         if self.name in field_names:
             raise ValidationError(
-                {'name': trans('cannot use fields that already '
-                               'exist on the model')})
+                {'name': [trans('cannot use fields that already '
+                                'exist on the model')]})
         if not self.name:
             raise ValidationError(
-                {'name': trans('name cannot be blank')})
+                {'name': [trans('name cannot be blank')]})
 
         existing_objects = UserDefinedFieldDefinition\
             .objects\
@@ -504,7 +504,7 @@ class UserDefinedFieldDefinition(models.Model):
                         errors['name'] = []
                     errors['name'].append(trans('Id is an invalid name'))
             else:
-                errors['datatype'] = 'Must provide a list with a collection'
+                errors['datatype'] = ['Must provide a list with a collection']
 
             if errors:
                 raise ValidationError(errors)
@@ -717,8 +717,8 @@ class UserDefinedFieldDefinition(models.Model):
                         msgs = e.messages
                         errors['udf:%s' % self.name] = msgs
                 else:
-                    errors['udf:%s' % self.name] = ('Invalid subfield %s' %
-                                                    subfield_name)
+                    errors['udf:%s' % self.name] = ['Invalid subfield %s' %
+                                                    subfield_name]
 
         if errors:
             raise ValidationError(errors)
@@ -1143,8 +1143,6 @@ class UDFModel(UserTrackable, models.Model):
         self.dirty_collection_udfs = False
 
     def clean_udfs(self):
-        errors = {}
-
         scalar_fields = {field.name: field
                          for field in self.get_user_defined_fields()
                          if not field.iscollection}
@@ -1153,6 +1151,7 @@ class UDFModel(UserTrackable, models.Model):
                              for field in self.get_user_defined_fields()
                              if field.iscollection}
 
+        errors = {}
         # Clean scalar udfs
         for (key, val) in self.udfs.iteritems():
             field = scalar_fields.get(key, None)
@@ -1162,8 +1161,8 @@ class UDFModel(UserTrackable, models.Model):
                 except ValidationError as e:
                     errors['udf:%s' % key] = e.messages
             else:
-                errors['udf:%s' % key] = trans(
-                    'Invalid user defined field name')
+                errors['udf:%s' % key] = [trans(
+                    'Invalid user defined field name')]
 
         # Clean collection values, but only if they were loaded
         if self.udfs.collection_data_loaded:
@@ -1178,8 +1177,8 @@ class UDFModel(UserTrackable, models.Model):
                     except ValidationError as e:
                         errors.update(e.message_dict)
                 else:
-                    errors['udf:%s' % collection_field_name] = trans(
-                        'Invalid user defined field name')
+                    errors['udf:%s' % collection_field_name] = [trans(
+                        'Invalid user defined field name')]
 
         if errors:
             raise ValidationError(errors)
