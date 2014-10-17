@@ -322,13 +322,13 @@ class UserDefinedFieldDefinition(models.Model):
             self, datatype, old_choice_value, new_choice_value):
         if datatype['type'] != 'choice':
             raise ValidationError(
-                {'datatype': trans("can't change choices "
-                                   "on a non-choice field")})
+                {'datatype': [trans("can't change choices "
+                                    "on a non-choice field")]})
 
         if old_choice_value not in datatype['choices']:
             raise ValidationError(
-                {'datatype': trans("choice '%(choice)s' not found") % {
-                    'choice': old_choice_value}})
+                {'datatype': [trans("choice '%(choice)s' not found") % {
+                    'choice': old_choice_value}]})
 
         choices = datatype['choices']
         if new_choice_value:
@@ -379,7 +379,7 @@ class UserDefinedFieldDefinition(models.Model):
         if self.iscollection:
             if name is None:
                 raise ValidationError({
-                    'name': trans('Name is required for collection fields')})
+                    'name': [trans('Name is required for collection fields')]})
 
             datatypes = {d['name']: d for d in self.datatype_dict}
             datatypes[name]['choices'].append(new_choice_value)
@@ -389,8 +389,8 @@ class UserDefinedFieldDefinition(models.Model):
         else:
             if name is not None:
                 raise ValidationError({
-                    'name': trans(
-                        'Name is allowed only for collection fields')})
+                    'name': [trans(
+                        'Name is allowed only for collection fields')]})
 
             datatype = self.datatype_dict
             datatype['choices'].append(new_choice_value)
@@ -406,7 +406,7 @@ class UserDefinedFieldDefinition(models.Model):
         if self.iscollection:
             if name is None:
                 raise ValidationError({
-                    'name': trans('Name is required for collection fields')})
+                    'name': [trans('Name is required for collection fields')]})
 
             datatypes = {info['name']: info for info in datatype}
             datatype = self._validate_and_update_choice(
@@ -442,8 +442,8 @@ class UserDefinedFieldDefinition(models.Model):
         else:
             if name is not None:
                 raise ValidationError({
-                    'name': trans(
-                        'Name is allowed only for collection fields')})
+                    'name': [trans(
+                        'Name is allowed only for collection fields')]})
 
             self._update_choice_scalar(old_choice_value, new_choice_value)
 
@@ -456,11 +456,11 @@ class UserDefinedFieldDefinition(models.Model):
 
         if self.name in field_names:
             raise ValidationError(
-                {'name': trans('cannot use fields that already '
-                               'exist on the model')})
+                {'name': [trans('cannot use fields that already '
+                                'exist on the model')]})
         if not self.name:
             raise ValidationError(
-                {'name': trans('name cannot be blank')})
+                {'name': [trans('name cannot be blank')]})
 
         existing_objects = UserDefinedFieldDefinition\
             .objects\
