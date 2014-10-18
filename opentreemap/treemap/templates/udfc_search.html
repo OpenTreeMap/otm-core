@@ -14,7 +14,7 @@
 
 {% if t_stew_allowed or p_stew_allowed or t_alerts_allowed or p_alerts_allowed %}
 
-<div class="udfc-search">
+<div class="udfc-search clearfix">
   <span>{% trans "I am looking for" %}</span>
   <label class="udfc-label">
     <select id="udfc-search-model">
@@ -59,7 +59,7 @@
     </select>
   </label>
 
-  
+
   <div id="udfc-extra-clauses" style="display: none">
     {% if alerts %}
     {% if t_alerts_allowed or p_alerts_allowed %}
@@ -71,7 +71,7 @@
     {% endif %}
     {% endif %}
   </div>
-  
+
 
   <label class="udfc-label">
     <select id="udfc-search-action" data-search-type="IS">
