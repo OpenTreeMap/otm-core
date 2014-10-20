@@ -122,7 +122,7 @@ def profile_to_user(request):
 def forgot_username(request):
     user_email = request.REQUEST['email']
     if not user_email:
-          return HttpResponseBadRequest("email field is required!")
+          return HttpResponseBadRequest(trans('Email field is required'))
 
     users = User.objects.filter(email=user_email)
 
