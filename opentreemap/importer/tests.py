@@ -20,7 +20,8 @@ from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from api.test_utils import setupTreemapEnv, mkPlot
 
 from treemap.instance import add_species_to_instance
-from treemap.models import Species, Plot, Tree
+from treemap.models import Species, Plot, Tree, ITreeCodeOverride, ITreeRegion
+from treemap.species.codes import get_itree_code
 from treemap.tests import (make_admin_user, make_instance, login)
 
 from importer.views import (create_rows_for_event, process_csv, process_status,
@@ -357,12 +358,27 @@ class SpeciesValidationTest(ValidationTest):
         self.instance = None
         self.user = None
 
+    def _make_los_angeles_instance(self):
+        center = Point(-13162685, 4033811, srid=3857)
+        self.instance = make_instance(point=center, edge_length=500000)
+
+    def _add_species(self, species_dicts):
+        instance_species_list = []
+        for species_dict in species_dicts:
+            species_dict['instance'] = self.instance
+            instance_species_list.append(Species(**species_dict))
+        Species.objects.bulk_create(instance_species_list)
+
     def _make_import_event(self):
         if not self.instance:
             self.instance = make_instance()
             self.instance.itree_region_default = 'NoEastXXX'
             self.instance.save()
-        add_species_to_instance(self.instance)
+        self._add_species([
+            {"otm_code": "PR"  , "common_name": "Plum"         , "genus": "Prunus"},
+            {"otm_code": "PR"  , "common_name": "Cherry"       , "genus": "Prunus"},
+            {"otm_code": "PRAM", "common_name": "American plum", "genus": "Prunus", "species": "americana"},
+            ])
         if not self.user:
             self.user = make_admin_user(self.instance)
         import_event = SpeciesImportEvent(
@@ -370,7 +386,7 @@ class SpeciesValidationTest(ValidationTest):
         import_event.save()
         return import_event
 
-    def _make_and_validate_row(self, data={}):
+    def _make_row(self, data={}):
         import_event = self._make_import_event()
         d = {'genus': 'g1',
              'species': '',
@@ -380,7 +396,16 @@ class SpeciesValidationTest(ValidationTest):
         d.update(data)
         row = SpeciesImportRow.objects.create(
             data=json.dumps(d), import_event=import_event, idx=1)
+        return row
+
+    def _make_and_validate_row(self, data={}):
+        row = self._make_row(data)
         row.validate_row()
+        return row
+
+    def _make_and_commit_row(self, data={}):
+        row = self._make_row(data)
+        row.commit_row()
         return row
 
     def _assert_row_has_error(self, data, error):
@@ -389,36 +414,110 @@ class SpeciesValidationTest(ValidationTest):
 
 
 class ITreeValidationTest(SpeciesValidationTest):
-    def test_invalid_itree_region(self):
+    def test_error_invalid_itree_region(self):
         self._assert_row_has_error({'i-tree code': 'foo:ACME'},
                                    errors.INVALID_ITREE_REGION)
 
-    def test_itree_region_not_in_instance(self):
+    def test_error_itree_region_not_in_instance(self):
         self._assert_row_has_error({'i-tree code': 'CaNCCoJBK:ACME'},
                                    errors.ITREE_REGION_NOT_IN_INSTANCE)
 
-    def test_invalid_itree_code(self):
+    def test_error_invalid_itree_code(self):
         self._assert_row_has_error({'i-tree code': 'x'},
                                    errors.INVALID_ITREE_CODE)
         self._assert_row_has_error({'i-tree code': 'NoEastXXX:x'},
                                    errors.INVALID_ITREE_CODE)
 
-    def test_invalid_itree_code_for_region(self):
+    def test_error_invalid_itree_code_for_region(self):
         self._assert_row_has_error({'i-tree code': 'FRVE'},
                                    errors.ITREE_CODE_NOT_IN_REGION)
         self._assert_row_has_error({'i-tree code': 'NoEastXXX:FRVE'},
                                    errors.ITREE_CODE_NOT_IN_REGION)
 
-    def test_instance_has_no_itree_region(self):
+    def test_error_instance_has_no_itree_region(self):
         self.instance = make_instance()
         self._assert_row_has_error({'i-tree code': 'FRVE'},
                                    errors.INSTANCE_HAS_NO_ITREE_REGION)
 
-    def test_instance_has_multiple_itree_regions(self):
-        center = Point(-13162685, 4033811, srid=3857)  # Los Angeles
-        self.instance = make_instance(point=center, edge_length=500000)
+    def test_error_instance_has_multiple_itree_regions(self):
+        self._make_los_angeles_instance()
         self._assert_row_has_error({'i-tree code': 'FRVE'},
                                    errors.INSTANCE_HAS_MULTIPLE_ITREE_REGIONS)
+
+
+class ITreeCommitTest(SpeciesValidationTest):
+    def setUp(self):
+        super(ITreeCommitTest, self).setUp()
+        self._make_los_angeles_instance()
+        self._add_species([
+            {"otm_code": "ABCO", "common_name": "White fir", "genus": "Abies", "species": "concolor"},
+            ])
+
+    def _make_itree_code_override(self, region_code, itree_code):
+        species = Species.objects.get(instance=self.instance, otm_code='ABCO')
+        ITreeCodeOverride(
+            instance_species=species,
+            region=ITreeRegion.objects.get(code=region_code),
+            itree_code=itree_code
+        ).save_base()
+
+    def _assert_correct_itree_code(self, itree_pair, row):
+        # Make sure OTM sees the correct i-Tree code
+        region_code, itree_code = itree_pair.split(':')
+        code = row.species.get_itree_code(region_code)
+        self.assertEqual(itree_code, code)
+
+    def _assert_overrides(self, itree_string, expected_override_count,
+                          expected_override_code=None):
+        row = self._make_and_commit_row({
+            'genus': 'Abies',
+            'species': 'concolor',
+            'common name': 'White fir',
+            'i-tree code': itree_string})
+
+        # Verify expected overrides
+        overrides = ITreeCodeOverride.objects.filter(
+            instance_species=row.species)
+        self.assertEqual(expected_override_count, overrides.count())
+
+        if expected_override_code:
+            self.assertHasError(row, errors.MERGE_REQ)
+            self.assertEqual(expected_override_code, overrides[0].itree_code)
+        else:
+            self.assertEqual(row.errors, '')
+
+        return row
+
+    def _assert_itree_and_overrides(self, itree_pair, expected_override_count,
+                                    expected_override_code=None):
+        row = self._assert_overrides(itree_pair, expected_override_count,
+                                     expected_override_code)
+        self._assert_correct_itree_code(itree_pair, row)
+
+    def test_match_of_default_makes_no_override(self):
+        self._assert_itree_and_overrides('NMtnPrFNL:PIPU', 0)
+
+    def test_match_of_default_but_not_override_updates_override(self):
+        self._make_itree_code_override('NMtnPrFNL', 'CEL OTHER')
+        self._assert_itree_and_overrides('NMtnPrFNL:PIPU', 1, 'PIPU')
+
+    def test_match_of_override_makes_no_override(self):
+        self._make_itree_code_override('NMtnPrFNL', 'CEL OTHER')
+        self._assert_itree_and_overrides('NMtnPrFNL:CEL OTHER', 1)
+
+    def test_nonmatch_of_override_updates_override(self):
+        self._make_itree_code_override('NMtnPrFNL', 'CEL OTHER')
+        self._assert_itree_and_overrides('NMtnPrFNL:FRPE', 1, 'FRPE')
+
+    def test_match_of_nothing_makes_override(self):
+        self._assert_itree_and_overrides('NMtnPrFNL:FRPE', 1, 'FRPE')
+
+    def test_multiple_itree_codes(self):
+        itree_pairs = ['NMtnPrFNL:FRPE', 'TpIntWBOI:CEL OTHER']
+        itree_string = ','.join(itree_pairs)
+        row = self._assert_overrides(itree_string, 1, 'FRPE')
+        for pair in itree_pairs:
+            self._assert_correct_itree_code(pair, row)
 
 
 class ScientificNameValidationTest(SpeciesValidationTest):

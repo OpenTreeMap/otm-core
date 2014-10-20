@@ -21,7 +21,7 @@ class species(object):
 
     # This is a pseudo field which is filled in
     # when a matching itree code is found
-    RESOURCE = 'calc__resource'
+    ITREE_PAIRS = 'calc__itree'
 
     IS_NATIVE = 'is native'
     GENDER = 'gender'

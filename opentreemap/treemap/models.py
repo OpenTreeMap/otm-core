@@ -22,7 +22,7 @@ from django.utils.translation import ugettext_lazy as trans
 from django.contrib.auth.models import (UserManager, AbstractBaseUser,
                                         PermissionsMixin)
 
-from treemap.species.codes import ITREE_REGIONS
+from treemap.species.codes import ITREE_REGIONS, get_itree_code
 from treemap.audit import (Auditable, Authorizable, Role, Dictable, Audit)
 # Import this even though it's not referenced, so Django can find it
 from treemap.audit import FieldPermission  # NOQA
@@ -473,6 +473,22 @@ class Species(UDFModel, Authorizable, Auditable):
         props['scientific_name'] = self.scientific_name
 
         return props
+
+    def get_itree_code(self, region_code=None):
+        if not region_code:
+            region_codes = self.instance.itree_region_codes()
+            if len(region_codes) == 1:
+                region_code = region_codes[0]
+            else:
+                return None
+        override = ITreeCodeOverride.objects.filter(
+            instance_species=self,
+            region=ITreeRegion.objects.get(code=region_code),
+            )
+        if override.exists():
+            return override[0].itree_code
+        else:
+            return get_itree_code(region_code, self.otm_code)
 
     def __unicode__(self):
         return self.display_name

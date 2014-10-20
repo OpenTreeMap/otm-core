@@ -2,6 +2,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
+from django.db import transaction
 
 import json
 from datetime import datetime
@@ -13,9 +14,10 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 
-from treemap.models import Species, Plot, Tree, User, Instance
+from treemap.models import (Species, Plot, Tree, User, Instance,
+                            ITreeCodeOverride, ITreeRegion)
 from treemap.species.codes import (has_itree_code, all_itree_region_codes,
-                                   all_itree_codes)
+                                   all_itree_codes, get_itree_code)
 
 from importer import fields
 from importer import errors
@@ -563,6 +565,15 @@ class SpeciesImportRow(GenericImportRow):
         # Always include the ID (so the client can use it)
         result['id'] = (species.pk, None)
 
+        # Compare i-Tree codes
+        key = fields.species.ITREE_PAIRS
+        if key in data:
+            row_itree_pairs = data[key]
+            model_itree_pairs = [(species.get_itree_code(region), region)
+                                 for (_, region) in row_itree_pairs]
+            if row_itree_pairs != model_itree_pairs:
+                result[key] = (model_itree_pairs, row_itree_pairs)
+
         return result
 
     @property
@@ -681,7 +692,7 @@ class SpeciesImportRow(GenericImportRow):
                               {'code': pairs[-1][0],
                                'region': pairs[-1][1]})
         else:
-            self.cleaned[fields.species.RESOURCE] = pairs
+            self.cleaned[fields.species.ITREE_PAIRS] = pairs
 
     def validate_row(self):
         """
@@ -764,6 +775,7 @@ class SpeciesImportRow(GenericImportRow):
         self.save()
         return not fatal
 
+    @transaction.atomic
     def commit_row(self):
         # First validate
         if not self.validate_row():
@@ -806,25 +818,18 @@ class SpeciesImportRow(GenericImportRow):
             data_owner = self.import_event.owner
             species.save_with_user(data_owner)
 
-# TODO: Remove?
-#         resources = data[fields.species.RESOURCE]
-#
-#         species.resource.clear()
-#
-#         for code, region in resources:
-#             r = Resource.objects.filter(meta_species=code,
-#                                         region=region)
-#
-#             if r.exists():
-#                 resource = r[0]
-#             else:
-#                 resource = Resource.objects.create(meta_species=code,
-#                                                    region=region)
-#
-#             species.resource.add(resource)
-#
-#         species.save()
-#         resource.save()
+        # Make i-Tree code override(s) if necessary
+        if fields.species.ITREE_PAIRS in data:
+            for itree_code, region_code in data[fields.species.ITREE_PAIRS]:
+
+                if itree_code != species.get_itree_code(region_code):
+
+                    override = ITreeCodeOverride.objects.get_or_create(
+                        instance_species=species,
+                        region=ITreeRegion.objects.get(code=region_code),
+                    )[0]
+                    override.itree_code = itree_code
+                    override.save_with_user(data_owner)
 
         self.species = species
         self.status = TreeImportRow.SUCCESS
