@@ -4,22 +4,12 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from treemap.tests.base import OTMTestCase
-from treemap.species import otm_code_search, species_search
+from treemap.species import species_for_otm_code
 
 
 class SpeciesTests(OTMTestCase):
     """Test species lookup utility functions."""
 
-    def test_otm_code_search(self):
-        candidate = dict(
-            genus='Abies',
-            species='alba',
-            cultivar='',
-            other_part_of_name=''
-        )
-        otm_code = otm_code_search(candidate)
-        self.assertEqual(otm_code, 'ABAL')
-
-    def test_species_search(self):
-        species = species_search('ABAL')
+    def test_species_for_otm_code(self):
+        species = species_for_otm_code('ABAL')
         self.assertEqual(species['common_name'], 'Silver fir')

@@ -572,12 +572,15 @@ class SpeciesImportRow(GenericImportRow):
         return fields.species
 
     def validate_species(self):
+        # Note we handle multiple matches only for edge cases like
+        # genus='Prunus' (species/genus/other blank), which matches
+        # both 'Plum' and 'Cherry'
+
         genus = self.datadict.get(fields.species.GENUS, '')
         species = self.datadict.get(fields.species.SPECIES, '')
         cultivar = self.datadict.get(fields.species.CULTIVAR, '')
         other_part = self.datadict.get(fields.species.OTHER_PART_OF_NAME, '')
 
-        # Save these as "empty" strings
         self.cleaned[fields.species.GENUS] = genus
         self.cleaned[fields.species.SPECIES] = species
         self.cleaned[fields.species.CULTIVAR] = cultivar
@@ -590,41 +593,20 @@ class SpeciesImportRow(GenericImportRow):
                 .filter(cultivar__iexact=cultivar) \
                 .filter(other_part_of_name__iexact=other_part)
 
-            self.cleaned[fields.species.POSSIBLE_MATCHES]\
+            self.cleaned[fields.species.POSSIBLE_MATCHES] \
                 |= {s.pk for s in matching_species}
-
-        return True
-
-    def validate_code(self, fld, species_fld, addl_filters=None):
-        value = self.datadict.get(fld, None)
-
-        if value:
-            self.cleaned[fld] = value
-
-            matching_species = Species.objects\
-                                      .filter(**{species_fld: value})
-
-            if addl_filters:
-                matching_species = matching_species\
-                    .filter(**addl_filters)
-
-            self.cleaned[fields.species.POSSIBLE_MATCHES]\
-                |= {s.pk for s in matching_species}
-
-        return True
 
     def validate_usda_code(self):
-        # USDA codes don't cover cultivars, so assert that
-        # a 'matching' species *must* have the same cultivar
-        # and same USDA code
-        addl_filter = {'cultivar_name':
-                       self.cleaned.get(fields.species.CULTIVAR,
-                                        '')}
+        # Look for an OTM code matching the USDA code.
+        # They won't match if there's a cultivar, but it might help
+        # if file's USDA codes are better than its scientific names.
+        usda_code = self.datadict.get(fields.species.USDA_SYMBOL, None)
+        if usda_code:
+            matching_species = Species.objects.filter(otm_code=usda_code)
 
-        # We don't save USDA code on individual species anymore, but otm_codes
-        # are mostly USDA codes, so it doesn't hurt when trying to match
-        return self.validate_code(fields.species.USDA_SYMBOL,
-                                  'otm_code', addl_filter)
+            self.cleaned[fields.species.POSSIBLE_MATCHES] \
+                |= {s.pk for s in matching_species}
+
 
     def validate_required_fields(self):
         req = {fields.species.GENUS, fields.species.COMMON_NAME}
@@ -723,15 +705,11 @@ class SpeciesImportRow(GenericImportRow):
         # Clear errrors
         self.errors = ''
 
-        # NOTE: Validations append errors directly to importrow
-        # and move data over to the 'cleaned' hash as it is
-        # validated
-
         # Convert all fields to correct datatypes
         self.validate_and_convert_datatypes()
 
-        # Check to see if this species matches any existing ones
-        # they'll be stored as a set of POSSIBLE_MATCHES
+        # Check to see if this species matches any existing ones.
+        # They'll be stored as a set of POSSIBLE_MATCHES
         self.cleaned[fields.species.POSSIBLE_MATCHES] = set()
 
         self.validate_species()

@@ -1,44 +1,29 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
 
-# The ``SPECIES`` array contains objects with
-# the following format
-#
-#   { 
-#     "otm_code": "",
-#     "genus": "",
-#     "species": "",
-#     "cultivar": "",
-#     "other": "",
-#     "common_name": ""
-#   }
-#
-# The field map to the properties of the Species model
-# so that Species instances can be created and saved
-# using these dictionary objects as "templates."
-
-def otm_code_search(candidate):
-    genus, species, cultivar, other = [
-        candidate.get(thing, '')
-        for thing in ['genus', 'species',
-                      'cultivar', 'other_part_of_name']]
-
-    for species_dict in SPECIES:
-        if ((species_dict['genus'] == genus and
-             species_dict['species'] == species and
-             species_dict['cultivar'] == cultivar and
-             species_dict['other_part_of_name'] == other)):
-            return species_dict['otm_code']
-    else:
-        return None
-
-
-def species_search(otm_code):
+def species_for_otm_code(otm_code):
     """Return species for a given otm_code."""
     for species_dict in SPECIES:
         if species_dict['otm_code'] == otm_code:
             return species_dict
     return None
+
+
+# The ``SPECIES`` array contains objects with
+# the following format
+#
+#   {
+#     "otm_code": "",
+#     "common_name": ""
+#     "genus": "",
+#     "species": "",
+#     "cultivar": "",
+#     "other_part_of_name": "",
+#   }
+#
+# The fields map to the properties of the Species model
+# so that Species instances can be created and saved
+# using these dictionary objects as "templates."
 
 
 SPECIES = [
@@ -1136,3 +1121,4 @@ SPECIES = [
 {"otm_code": "ZESE"  , "common_name": "Japanese zelkova"            , "genus": "Zelkova"       , "species": "serrata"       , "cultivar": ""              , "other_part_of_name": ""},
 {"otm_code": "ZESE_V", "common_name": "Japanese zelkova 'Village Green'", "genus": "Zelkova"   , "species": "serrata"       , "cultivar": "Village Green" , "other_part_of_name": ""},
 ]
+

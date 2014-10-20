@@ -19,9 +19,9 @@ from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
 from api.test_utils import setupTreemapEnv, mkPlot
 
+from treemap.instance import add_species_to_instance
 from treemap.models import Species, Plot, Tree
-from treemap.tests import (make_admin_user, make_instance, login,
-                           make_commander_user)
+from treemap.tests import (make_admin_user, make_instance, login)
 
 from importer.views import (create_rows_for_event, process_csv, process_status,
                             commit, merge_species)
@@ -362,6 +362,7 @@ class SpeciesValidationTest(ValidationTest):
             self.instance = make_instance()
             self.instance.itree_region_default = 'NoEastXXX'
             self.instance.save()
+        add_species_to_instance(self.instance)
         if not self.user:
             self.user = make_admin_user(self.instance)
         import_event = SpeciesImportEvent(
@@ -369,9 +370,13 @@ class SpeciesValidationTest(ValidationTest):
         import_event.save()
         return import_event
 
-    def _make_and_validate_row(self, data):
+    def _make_and_validate_row(self, data={}):
         import_event = self._make_import_event()
-        d = {'genus': 'g1', 'common name': 'c1'}
+        d = {'genus': 'g1',
+             'species': '',
+             'cultivar': '',
+             'other_part_of_name': '',
+             'common name': 'c1'}
         d.update(data)
         row = SpeciesImportRow.objects.create(
             data=json.dumps(d), import_event=import_event, idx=1)
@@ -382,6 +387,8 @@ class SpeciesValidationTest(ValidationTest):
         row = self._make_and_validate_row(data)
         self.assertHasError(row, error)
 
+
+class ITreeValidationTest(SpeciesValidationTest):
     def test_invalid_itree_region(self):
         self._assert_row_has_error({'i-tree code': 'foo:ACME'},
                                    errors.INVALID_ITREE_REGION)
@@ -412,6 +419,40 @@ class SpeciesValidationTest(ValidationTest):
         self.instance = make_instance(point=center, edge_length=500000)
         self._assert_row_has_error({'i-tree code': 'FRVE'},
                                    errors.INSTANCE_HAS_MULTIPLE_ITREE_REGIONS)
+
+
+class ScientificNameValidationTest(SpeciesValidationTest):
+    def _assert_match_results(self, expected_match_count, data):
+        row = self._make_and_validate_row(data)
+        matches = row.cleaned[fields.species.POSSIBLE_MATCHES]
+        self.assertEqual(len(matches), expected_match_count)
+        return matches
+
+    def test_match_species(self):
+        self._assert_match_results(1, {
+            'genus': 'Prunus',
+            'species': 'americana',
+        })
+
+    def test_match_usda_code(self):
+        self._assert_match_results(1, {
+            'genus': 'Prunus',
+            'species': 'WRONG americana',
+            'usda symbol': 'PRAM'
+        })
+
+    def test_match_species_and_usda_code(self):
+        self._assert_match_results(1, {
+            'genus': 'Prunus',
+            'species': 'americana',
+            'usda symbol': 'PRAM'
+        })
+
+    def test_double_species_match(self):
+        self._assert_match_results(2, {'genus': 'Prunus'})
+
+    def test_species_mismatch(self):
+        self._assert_match_results(0, {'genus': 'Venus'})
 
 
 class FileLevelTreeValidationTest(TestCase):
