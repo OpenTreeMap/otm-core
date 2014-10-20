@@ -121,6 +121,11 @@ def profile_to_user(request):
 
 def forgot_username(request):
     user_email = request.REQUEST['email']
+    if not user_email:
+        raise ValidationError({
+            'user.email': [trans('Email field is required')]
+        })
+
     users = User.objects.filter(email=user_email)
 
     # Don't reveal if we don't have that email, to prevent email harvesting

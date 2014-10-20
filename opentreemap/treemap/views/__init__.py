@@ -243,6 +243,7 @@ forgot_username_view = route(
     GET=render_template('treemap/forgot_username.html')(),
     POST=do(
         render_template('treemap/forgot_username_done.html'),
+        return_400_if_validation_errors,
         forgot_username))
 
 #####################################
