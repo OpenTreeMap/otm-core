@@ -23,7 +23,7 @@ def get_itree_code(region_code, otm_code):
                 return _CODES[region_code][otm_code]
     return None
 
-# The ``CODES`` dictionary has the following format
+# The ``_CODES`` dictionary has the following format
 #
 #   {
 #     itree_region_code: {
