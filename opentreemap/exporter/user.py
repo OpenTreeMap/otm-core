@@ -14,7 +14,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.templatetags.l10n import localize
 
-from treemap.udf import DATETIME_FORMAT
+from treemap.lib.dates import DATETIME_FORMAT
 from treemap.models import User, Audit
 
 

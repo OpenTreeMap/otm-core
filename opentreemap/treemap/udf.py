@@ -6,7 +6,6 @@ from __future__ import division
 import json
 import copy
 import re
-from datetime import datetime
 
 from django.core.exceptions import ValidationError, FieldError
 from django.utils.translation import ugettext_lazy as trans
@@ -30,10 +29,9 @@ from treemap.audit import (UserTrackable, Audit, UserTrackingException,
                            AuthorizeException, Authorizable, Auditable)
 from treemap.lib.object_caches import permissions, invalidate_adjuncts, \
     udf_defs
+from treemap.lib.dates import (parse_date_string_with_or_without_time,
+                               DATETIME_FORMAT)
 from treemap.util import safe_get_model_class, to_object_name
-
-DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-DATE_FORMAT = '%Y-%m-%d'
 
 
 def safe_get_udf_model_class(model_string):
@@ -679,11 +677,7 @@ class UserDefinedFieldDefinition(models.Model):
                                       {'fieldname': self.name})
 
         elif datatype == 'date':
-            try:
-                return datetime.strptime(value.strip(), DATETIME_FORMAT)
-            except ValueError:
-                # If the time is not included, try again with date only
-                return datetime.strptime(value.strip(), DATE_FORMAT)
+            return parse_date_string_with_or_without_time(value)
         elif datatype == 'choice':
             if value in datatype_dict['choices']:
                 return value
