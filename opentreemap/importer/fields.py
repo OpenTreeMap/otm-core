@@ -17,7 +17,7 @@ class species(object):
     # when a matching species is found, but before
     # a commit is made. It is a list of all species
     # that somehow match this one (usda, sci name)
-    ORIG_SPECIES = 'calc__species'
+    POSSIBLE_MATCHES = 'calc__species'
 
     # This is a pseudo field which is filled in
     # when a matching itree code is found

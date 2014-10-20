@@ -652,7 +652,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         matches = []
         for row in rows:
             row.validate_row()
-            matches.append(row.cleaned[fields.species.ORIG_SPECIES])
+            matches.append(row.cleaned[fields.species.POSSIBLE_MATCHES])
 
         m1, m2, m3, m4, m5 = matches
 

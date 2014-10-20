@@ -590,7 +590,7 @@ class SpeciesImportRow(GenericImportRow):
                 .filter(cultivar__iexact=cultivar) \
                 .filter(other_part_of_name__iexact=other_part)
 
-            self.cleaned[fields.species.ORIG_SPECIES]\
+            self.cleaned[fields.species.POSSIBLE_MATCHES]\
                 |= {s.pk for s in matching_species}
 
         return True
@@ -608,7 +608,7 @@ class SpeciesImportRow(GenericImportRow):
                 matching_species = matching_species\
                     .filter(**addl_filters)
 
-            self.cleaned[fields.species.ORIG_SPECIES]\
+            self.cleaned[fields.species.POSSIBLE_MATCHES]\
                 |= {s.pk for s in matching_species}
 
         return True
@@ -731,8 +731,8 @@ class SpeciesImportRow(GenericImportRow):
         self.validate_and_convert_datatypes()
 
         # Check to see if this species matches any existing ones
-        # they'll be stored as a set of ORIG_SPECIES
-        self.cleaned[fields.species.ORIG_SPECIES] = set()
+        # they'll be stored as a set of POSSIBLE_MATCHES
+        self.cleaned[fields.species.POSSIBLE_MATCHES] = set()
 
         self.validate_species()
         self.validate_usda_code()
@@ -750,7 +750,7 @@ class SpeciesImportRow(GenericImportRow):
         # If same is set to true this is essentially a no-op
         same = False
 
-        possible_matches = self.cleaned[fields.species.ORIG_SPECIES]
+        possible_matches = self.cleaned[fields.species.POSSIBLE_MATCHES]
         # TODO: Certain fields require this flag to be reset
         if not self.merged:
             if len(possible_matches) == 0:
