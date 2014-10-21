@@ -90,7 +90,7 @@
     .create-instance-map {
         width: 100%;
         height: 500px;
-        
+
         .leaflet-control-container .leaflet-bottom .leaflet-control {
             margin-bottom: 0;
         }
@@ -166,7 +166,7 @@
             }
 		}
 	}
-	
+
 	.price-level {
 		padding: 0;
 		width: 25%;
@@ -180,13 +180,13 @@
 			text-transform: uppercase;
 			color: $subtext-color;
             margin-bottom: 8px;
-		}		
+		}
 
 		.price-body {
 			border-color: $light-gray-color;
 			border-width: 1px 1px 1px 0;
 			border-style: solid;
-		}		
+		}
 		.price-header {
 			height: 215px;
 			padding-top: 15px;
@@ -204,9 +204,9 @@
 				&.oak {
 					color: #598139;
 				}
-				&.redwood {
-					color: #4B5E2A;
-				}	
+				&.sycamore {
+					color: #54823c;
+				}
 			}
 			h6 {
 				text-transform: none;
@@ -217,7 +217,7 @@
 			img {
 				width: 114px;
 			}
-		}	
+		}
 		.price-aspect {
 			&:last-child {
 				border-bottom: 0;
