@@ -130,7 +130,7 @@
                  <div class="comment">
                    <div class="comment_info">
                      {% if comment.is_removed %}
-                     <div class="comment_user">[{% trans "Removed by Moderator" %}]</div>
+                     <div class="comment_user deactive">[{% trans "Removed by Moderator" %}]</div>
                      {% else %}
                      <div class="comment_user">{{ comment.user_name }}</div>
                      {% endif %}
@@ -144,7 +144,7 @@
                    </div>
                    <div class="comment_text">
                      {% if comment.is_removed %}
-                     [{% trans "This comment has been removed by a moderator." %}]
+                     <div class="deactive">[{% trans "This comment has been removed by a moderator." %}]</div>
                      {% else %}
                      {{ comment.comment }}
                      {% endif %}
