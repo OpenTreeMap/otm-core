@@ -15,6 +15,7 @@ from treemap.ecobenefits import (TreeBenefitsCalculator,
                                  _annotate_basis_with_extra_stats,
                                  _combine_grouped_benefits)
 
+from treemap.ecobenefits import BenefitCategory
 from treemap.views import search_tree_benefits
 
 
@@ -88,10 +89,14 @@ class EcoTest(UrlTestCase):
 
         bens = rslt['plot']
 
-        self.assert_benefit_value(bens, 'energy', 'kwh', 1896)
-        self.assert_benefit_value(bens, 'airquality', 'lbs/year', 6)
-        self.assert_benefit_value(bens, 'stormwater', 'gal', 3185)
-        self.assert_benefit_value(bens, 'co2', 'lbs/year', 563)
+        self.assert_benefit_value(bens, BenefitCategory.ENERGY, 'kwh', 1896)
+        self.assert_benefit_value(bens, BenefitCategory.AIRQUALITY,
+                                  'lbs/year', 6)
+        self.assert_benefit_value(bens, BenefitCategory.STORMWATER,
+                                  'gal', 3185)
+        self.assert_benefit_value(bens, BenefitCategory.CO2, 'lbs/year', 563)
+        self.assert_benefit_value(bens, BenefitCategory.CO2STORAGE,
+                                  'lbs', 6575)
 
     def testSearchBenefits(self):
         request = make_request(
@@ -176,13 +181,13 @@ class EcoTest(UrlTestCase):
                        {'value': 3,
                         'currency': 9,
                         'unit': 'gal',
-                        'label': 'stormwater',
+                        'label': BenefitCategory.STORMWATER,
                         'unit-name': 'eco'},
                        'benefit2':
                        {'value': 3,
                         'currency': 9,
                         'unit': 'gal',
-                        'label': 'stormwater',
+                        'label': BenefitCategory.STORMWATER,
                         'unit-name': 'eco'}}}
         groups = {}
         _combine_grouped_benefits(groups, base_group)
@@ -195,26 +200,26 @@ class EcoTest(UrlTestCase):
                        {'value': 3,
                         'currency': 9,
                         'unit': 'gal',
-                        'label': 'stormwater',
+                        'label': BenefitCategory.STORMWATER,
                         'unit-name': 'eco'},
                        'benefit2':
                        {'value': 4,
                         'currency': 10,
                         'unit': 'gal',
-                        'label': 'stormwater',
+                        'label': BenefitCategory.STORMWATER,
                         'unit-name': 'eco'}}}
         new_group = {'group2':
                      {'benefit1':
                       {'value': 5,
                        'currency': 11,
                        'unit': 'gal',
-                       'label': 'stormwater',
+                       'label': BenefitCategory.STORMWATER,
                        'unit-name': 'eco'},
                       'benefit2':
                       {'value': 6,
                        'currency': 19,
                        'unit': 'gal',
-                       'label': 'stormwater',
+                       'label': BenefitCategory.STORMWATER,
                        'unit-name': 'eco'}}}
         groups = {}
         _combine_grouped_benefits(groups, base_group)
@@ -230,37 +235,37 @@ class EcoTest(UrlTestCase):
                       {'benefit1':
                        {'value': 3,
                         'unit': 'gal',
-                        'label': 'stormwater',
+                        'label': BenefitCategory.STORMWATER,
                         'unit-name': 'eco'},
                        'benefit2':
                        {'value': 4,
                         'currency': 10,
                         'unit': 'gal',
-                        'label': 'stormwater',
+                        'label': BenefitCategory.STORMWATER,
                         'unit-name': 'eco'},
                        'benefit3':
                        {'value': 32,
                         'currency': 919,
                         'unit': 'gal',
-                        'label': 'stormwater',
+                        'label': BenefitCategory.STORMWATER,
                         'unit-name': 'eco'}}}
         new_group = {'group1':
                      {'benefit1':
                       {'value': 5,
                        'currency': 11,
                        'unit': 'gal',
-                       'label': 'stormwater',
+                       'label': BenefitCategory.STORMWATER,
                        'unit-name': 'eco'},
                       'benefit2':
                       {'value': 7,
                        'unit': 'gal',
                        'currency': 19,
-                       'label': 'stormwater',
+                       'label': BenefitCategory.STORMWATER,
                        'unit-name': 'eco'},
                       'benefit4':
                       {'value': 7,
                        'unit': 'gal',
-                       'label': 'stormwater',
+                       'label': BenefitCategory.STORMWATER,
                        'unit-name': 'eco'}}}
         groups = {}
         _combine_grouped_benefits(groups, base_group)
@@ -271,24 +276,24 @@ class EcoTest(UrlTestCase):
                    {'value': 8,
                     'currency': 11,
                     'unit': 'gal',
-                    'label': 'stormwater',
+                    'label': BenefitCategory.STORMWATER,
                     'unit-name': 'eco'},
                    'benefit2':
                    {'value': 11,
                     'currency': 29,
                     'unit': 'gal',
-                    'label': 'stormwater',
+                    'label': BenefitCategory.STORMWATER,
                     'unit-name': 'eco'},
                    'benefit3':
                    {'value': 32,
                     'currency': 919,
                     'unit': 'gal',
-                    'label': 'stormwater',
+                    'label': BenefitCategory.STORMWATER,
                     'unit-name': 'eco'},
                    'benefit4':
                    {'value': 7,
                     'unit': 'gal',
-                    'label': 'stormwater',
+                    'label': BenefitCategory.STORMWATER,
                     'unit-name': 'eco'}}}
 
         self.assertEqual(groups, target)

@@ -16,6 +16,16 @@ GAL_PER_CUBIC_M = 264.172052
 LBS_PER_KG = 2.20462
 
 
+class BenefitCategory(object):
+    ENERGY = 'energy'
+    STORMWATER = 'stormwater'
+    AIRQUALITY = 'airquality'
+    CO2 = 'co2'
+    CO2STORAGE = 'co2storage'
+
+    GROUPS = (ENERGY, STORMWATER, AIRQUALITY, CO2, CO2STORAGE)
+
+
 class BenefitCalculator(object):
     """
     Compute benefit for a given set of filtered objects
@@ -233,11 +243,11 @@ class TreeBenefitsCalculator(BenefitCalculator):
         # we are pulling from the speadsheets are in kgs... we
         # need to verify units
         groups = {
-            'airquality': ('lbs/year', aqfactors),
-            'co2': ('lbs/year', co2factors),
-            'co2storage': ('lbs', co2storagefactors),
-            'stormwater': ('gal', hydrofactors),
-            'energy': ('kwh', energyfactor)
+            BenefitCategory.AIRQUALITY: ('lbs/year', aqfactors),
+            BenefitCategory.CO2: ('lbs/year', co2factors),
+            BenefitCategory.CO2STORAGE: ('lbs', co2storagefactors),
+            BenefitCategory.STORMWATER: ('gal', hydrofactors),
+            BenefitCategory.ENERGY: ('kwh', energyfactor)
         }
 
         # currency conversions are in lbs, so do this calc first
@@ -398,15 +408,15 @@ def within_itree_regions(request):
 
 benefit_labels = {
     # Translators: 'Energy conserved' is the name of an eco benefit
-    'energy':     trans('Energy conserved'),
+    BenefitCategory.ENERGY:     trans('Energy conserved'),
     # Translators: 'Stormwater filtered' is the name of an eco benefit
-    'stormwater': trans('Stormwater filtered'),
+    BenefitCategory.STORMWATER: trans('Stormwater filtered'),
     # Translators: 'Carbon dioxide removed' is the name of an eco benefit
-    'co2':        trans('Carbon dioxide removed'),
+    BenefitCategory.CO2:        trans('Carbon dioxide removed'),
     # Translators: 'Carbon dioxide stored' is the name of an eco benefit
-    'co2storage': trans('Carbon dioxide stored to date'),
+    BenefitCategory.CO2STORAGE: trans('Carbon dioxide stored to date'),
     # Translators: 'Air quality improved' is the name of an eco benefit
-    'airquality': trans('Air quality improved')
+    BenefitCategory.AIRQUALITY: trans('Air quality improved')
 }
 
 
