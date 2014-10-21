@@ -14,8 +14,8 @@ class PlotEditDeleteTest(PlotDetailDeleteUITestCase):
     def test_add_tree_then_delete(self):
         self.go_to_feature_detail(self.plot.pk, edit=True)
 
-        self._select_buttons()
-        self.add_tree.click()
+        self._select_elements()
+        self.begin_add_tree.click()
         self.diameter_input.clear()
         self.diameter_input.send_keys('11')
         self.save_edit.click()
