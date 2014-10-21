@@ -138,6 +138,10 @@
         .thumbnail img {
             width: 100%;
             height: auto;
+
+            @media (min-width: 992px){
+                height: 240px;
+            }
         }
     }
 }
