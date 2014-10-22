@@ -502,6 +502,23 @@ class SpeciesCommitTest(SpeciesValidationTest):
         self.assertEqual(1, species.count())
         self.assertEqual(species[0].gender, 'male')
 
+    def test_otm_code_found_for_species_not_in_instance(self):
+        self._make_and_commit_row({
+            'genus': 'Prunus',
+            'species': 'armeniaca',
+            'common name': 'Apricot'})
+        species = Species.objects.filter(otm_code='PRAR')
+        self.assertEqual(1, species.count())
+
+    def test_otm_code_not_found_for_unknown_species(self):
+        self._make_and_commit_row({
+            'genus': 'Pluto',
+            'species': 'icecreamius',
+            'common name': 'Pluto ice cream tree'})
+        species = Species.objects.filter(genus='Pluto')
+        self.assertEqual(1, species.count())
+        self.assertEqual('', species[0].otm_code)
+
 
 class ITreeCommitTest(SpeciesValidationTest):
     def setUp(self):

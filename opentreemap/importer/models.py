@@ -15,6 +15,7 @@ from django.contrib.gis.measure import D
 
 from treemap.models import (Species, Plot, Tree, User, Instance,
                             ITreeCodeOverride, ITreeRegion)
+from treemap.species import species_for_scientific_name
 from treemap.species.codes import (has_itree_code, all_itree_region_codes,
                                    all_itree_codes)
 
@@ -798,6 +799,15 @@ class SpeciesImportRow(GenericImportRow):
             if importdata is not None:
                 species_edited = True
                 setattr(species, modelkey, importdata)
+
+        # Set OTM code if missing and available
+        if not species.otm_code:
+            species_dict = species_for_scientific_name(
+                species.genus, species.species, species.cultivar,
+                species.other_part_of_name)
+            if species_dict:
+                species_edited = True
+                species.otm_code = species_dict['otm_code']
 
         if species_edited:
             data_owner = self.import_event.owner

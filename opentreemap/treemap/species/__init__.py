@@ -8,6 +8,14 @@ def species_for_otm_code(otm_code):
             return species_dict
     return None
 
+def species_for_scientific_name(genus, species, cultivar, other):
+    """Return species for a given scientific name."""
+    key = _make_scientific_name_key(genus, species, cultivar, other)
+    return _SPECIES_BY_SCIENTIFIC_NAME.get(key, None)
+
+def _make_scientific_name_key(g, s, c, o):
+    return '|'.join([g.lower(), s.lower(), c.lower(), o.lower()])
+
 
 # The ``SPECIES`` array contains objects with
 # the following format
@@ -24,7 +32,6 @@ def species_for_otm_code(otm_code):
 # The fields map to the properties of the Species model
 # so that Species instances can be created and saved
 # using these dictionary objects as "templates."
-
 
 SPECIES = [
 {"otm_code": "AB"    , "common_name": "Fir"                         , "genus": "Abies"         , "species": ""              , "cultivar": ""              , "other_part_of_name": ""},
@@ -1122,3 +1129,8 @@ SPECIES = [
 {"otm_code": "ZESE_V", "common_name": "Japanese zelkova 'Village Green'", "genus": "Zelkova"   , "species": "serrata"       , "cultivar": "Village Green" , "other_part_of_name": ""},
 ]
 
+_SPECIES_BY_SCIENTIFIC_NAME = {
+    _make_scientific_name_key(
+        s['genus'], s['species'], s['cultivar'], s['other_part_of_name']) : s
+    for s in SPECIES
+}
