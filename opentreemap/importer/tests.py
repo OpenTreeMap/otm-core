@@ -378,6 +378,7 @@ class SpeciesValidationTest(ValidationTest):
             {"otm_code": "PR"  , "common_name": "Plum"         , "genus": "Prunus"},
             {"otm_code": "PR"  , "common_name": "Cherry"       , "genus": "Prunus"},
             {"otm_code": "PRAM", "common_name": "American plum", "genus": "Prunus", "species": "americana"},
+            {"otm_code": "PRAV", "common_name": "Sweet cherry" , "genus": "Prunus", "species": "avium"},
             ])
         if not self.user:
             self.user = make_admin_user(self.instance)
@@ -443,6 +444,63 @@ class ITreeValidationTest(SpeciesValidationTest):
         self._make_los_angeles_instance()
         self._assert_row_has_error({'i-tree code': 'FRVE'},
                                    errors.INSTANCE_HAS_MULTIPLE_ITREE_REGIONS)
+
+
+class SpeciesCommitTest(SpeciesValidationTest):
+
+    def test_species_added_with_all_fields(self):
+        row = self._make_and_commit_row({
+            'genus': 'the genus',
+            'species': 'the species',
+            'common name': 'the common name',
+            'cultivar': 'the cultivar',
+            'other part of name': 'the other',
+            'is native': 'True',
+            'gender': 'the gender',
+            'flowering period': 'summer',
+            'fruit or nut period': 'fall',
+            'fall conspicuous': 'True',
+            'flower conspicuous': 'True',
+            'palatable human': 'True',
+            'has wildlife value': 'True',
+            'fact sheet url': 'the fact sheet url',
+            'plant guide url': 'the plant guide url',
+            'max diameter': '10',
+            'max height': '91',
+        })
+        self.assertNotHasError(row, errors.MERGE_REQ)
+        qs = Species.objects.filter(genus='the genus')
+        self.assertEqual(1, qs.count())
+
+        s = qs[0]
+        self.assertEqual(s.genus, 'the genus')
+        self.assertEqual(s.species, 'the species')
+        self.assertEqual(s.common_name, 'the common name')
+        self.assertEqual(s.cultivar, 'the cultivar')
+        self.assertEqual(s.other_part_of_name, 'the other')
+        self.assertEqual(s.is_native, True)
+        self.assertEqual(s.fall_conspicuous, True)
+        self.assertEqual(s.palatable_human, True)
+        self.assertEqual(s.flower_conspicuous, True)
+        self.assertEqual(s.flowering_period, 'summer')
+        self.assertEqual(s.fruit_or_nut_period, 'fall')
+        self.assertEqual(s.has_wildlife_value, True)
+        self.assertEqual(s.max_diameter, 10)
+        self.assertEqual(s.max_height, 91)
+        self.assertEqual(s.gender, 'the gender')
+        self.assertEqual(s.fact_sheet_url, 'the fact sheet url')
+        self.assertEqual(s.plant_guide_url, 'the plant guide url')
+
+    def test_species_updated(self):
+        row = self._make_and_commit_row({
+            'genus': 'Prunus',
+            'species': 'americana',
+            'common name': 'American plum',
+            'gender': 'male'})
+        self.assertHasError(row, errors.MERGE_REQ)
+        species = Species.objects.filter(otm_code='PRAM')
+        self.assertEqual(1, species.count())
+        self.assertEqual(species[0].gender, 'male')
 
 
 class ITreeCommitTest(SpeciesValidationTest):
@@ -545,6 +603,13 @@ class ScientificNameValidationTest(SpeciesValidationTest):
             'genus': 'Prunus',
             'species': 'americana',
             'usda symbol': 'PRAM'
+        })
+
+    def test_match_species_and_different_usda_code(self):
+        self._assert_match_results(2, {
+            'genus': 'Prunus',
+            'species': 'americana',
+            'usda symbol': 'PRAV'
         })
 
     def test_double_species_match(self):
@@ -730,171 +795,17 @@ class SpeciesIntegrationTests(IntegrationTests):
                          {errors.MISSING_SPECIES_FIELDS[0],
                           errors.UNMATCHED_FIELDS[0]})
 
-    @skip("Failing")
     def test_noerror_load(self):
         csv = """
-        | genus   | species    | common name | i-tree code  |
-        | g1      | s1         | g1 s1 wowza | BDM OTHER    |
-        | g2      | s2         | g2 s2 wowza | BDL OTHER    |
+        | genus   | species    | common name |
+        | g1      | s1         | g1 s1 wowza |
+        | g2      | s2         | g2 s2 wowza |
         """
 
         j = self.run_through_process_views(csv)
 
         self.assertEqual(j['status'], 'success')
         self.assertEqual(j['rows'], 2)
-
-    @skip("Must test for ITreeCodeOverrides (once we're creating them)")
-    def test_multiregion_itree(self):
-        center = Point(-13162685, 4033811, srid=3857)  # Los Angeles
-        self.instance = make_instance(point=center, edge_length=500000)
-        self.user = None  # need an admin user but there's already one on another instance
-
-        itree = 'SoCalCSMA:WARO,NMtnPrFNL:CEL OTHER'
-        csv = """
-        | genus   | species    | common name | i-tree code  |
-        | testus1 | specieius9 | g1 s2 wowza | %s           |
-        """ % itree
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-        s = ie.rows().all()[0].species
-
-        self.assertEqual({(r.meta_species, r.region) for r in s.resource.all()},
-                         {('WARO', 'SoCalCSMA'), ('CEL OTHER', 'NMtnPrFNL')})
-
-    @skip("We need to re-work iTree validation")
-    def test_species_matching(self):
-        csv = """
-        | genus   | species    | common name | i-tree code  | usda symbol | alternative symbol | other part of scientific name |
-        | testus1 | specieius1 | g1 s2 wowza | BDL OTHER    |             |     |      |
-        | genus   | blah       | common name | BDL OTHER    | s1          |     |      |
-        | testus1 | specieius1 | g1 s2 wowza | BDL OTHER    | s2          |     |      |
-        | testus2 | specieius2 | g1 s2 wowza | BDL OTHER    | s1          | a3  |      |
-        | genusN  | speciesN   | gN sN wowza | BDL OTHER    |             |     | var3 |
-        """
-
-        j = self.run_through_process_views(csv)
-        ierrors = self.extract_errors(j)
-
-        # Errors for multiple species matches
-        self.assertEqual(len(ierrors), 4)
-
-        ie = SpeciesImportEvent.objects.get(pk=j['pk'])
-        s1,s2,s3 = [s.pk for s in Species.objects.all()]
-
-        s4s = Species(instance=self.instance, genus='genusN',
-                      species='speciesN', cultivar='', other='var3',
-                      max_diameter=50.0, max_height=100.0)
-        s4s.save_with_user(user)
-        s4 = s4s.pk
-
-        rows = ie.rows()
-        matches = []
-        for row in rows:
-            row.validate_row()
-            matches.append(row.cleaned[fields.species.POSSIBLE_MATCHES])
-
-        m1, m2, m3, m4, m5 = matches
-
-        self.assertEqual(m1, {s1})
-        self.assertEqual(m2, {s1})
-        self.assertEqual(m3, {s1,s2})
-        self.assertEqual(m4, {s1,s2,s3})
-        self.assertEqual(m5, {s4})
-
-    @skip("OTM2 species don't have a symbol field")
-    def test_all_species_data(self):
-        csv = """
-        | genus     | species     | common name | i-tree code  | usda symbol | alternative symbol |
-        | newgenus1 | newspecies1 | g1 s2 wowza | BDL OTHER    | sym1        | a1    |
-        """
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-        s = ie.rows().all()[0].species
-
-        self.assertEqual(s.genus, 'newgenus1')
-        self.assertEqual(s.species, 'newspecies1')
-        self.assertEqual(s.common_name, 'g1 s2 wowza')
-        self.assertEqual(s.symbol, 'sym1')
-        self.assertEqual(s.alternate_symbol, 'a1')
-        self.assertEqual(s.itree_code, 'BDL OTHER')
-
-        csv = """
-        | genus     | species     | common name | i-tree code  | cultivar | %s  | %s  |
-        | newgenus2 | newspecies1 | g1 s2 wowza | BDL OTHER    | cvar     | sci | fam |
-        """ % ('other', 'family')
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-        s = ie.rows().all()[0].species
-
-        self.assertEqual(s.cultivar, 'cvar')
-        self.assertEqual(s.other_part_of_name, 'sci')
-
-        csv = """
-        | genus     | species     | common name | i-tree code  | %s   | %s    | %s   |
-        | newgenus3 | newspecies1 | g1 s2 wowza | BDL OTHER    | true | true  | true |
-        """ % ('native status', 'fall colors', 'palatable human')
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-        s = ie.rows().all()[0].species
-
-        self.assertEqual(s.is_native, True)
-        self.assertEqual(s.fall_conspicuous, True)
-        self.assertEqual(s.palatable_human, True)
-
-        csv = """
-        | genus     | species     | common name | i-tree code  | %s   | %s      | %s   |
-        | newgenus4 | newspecies1 | g1 s2 wowza | BDL OTHER    | true | summer  | fall |
-        """ % ('flowering', 'flowering period', 'fruit or nut period')
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-        s = ie.rows().all()[0].species
-
-        seasons = {k: v for (v,k) in settings.CHOICES['seasons']}
-
-        self.assertEqual(s.flower_conspicuous, True)
-        self.assertEqual(s.flowering_period, seasons['summer'])
-        self.assertEqual(s.fruit_or_nut_period, seasons['fall'])
-
-        csv = """
-        | genus     | species     | common name | i-tree code  | %s   | %s | %s | %s |
-        | newgenus1 | newspecies1 | g1 s2 wowza | BDL OTHER    | true | 10 | 91 | fs |
-        """ % ('wildlife', 'max diameter at breast height', 'max height', 'fact sheet')
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-        s = ie.rows().all()[0].species
-
-        self.assertEqual(s.has_wildlife_value, True)
-        self.assertEqual(s.fact_sheet_url, 'fs')
-        self.assertEqual(s.max_diameter, 10)
-        self.assertEqual(s.max_height, 91)
-
-    @skip("We need to re-work iTree validation")
-    def test_overrides_species(self):
-        csv = """
-        | genus   | species    | common name | i-tree code  | usda symbol | alternative symbol |
-        | testus1 | specieius1 | g1 s2 wowza | BDL OTHER    |             |     |
-        | genus   | blah       | common name | BDM OTHER    | s2          |     |
-        """
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-
-        # Test to make sure things were updated
-        s1 = Species.objects.get(symbol='s1')
-        self.assertEqual(s1.genus, 'testus1')
-        self.assertEqual(s1.species, 'specieius1')
-        self.assertEqual(s1.common_name, 'g1 s2 wowza')
-
-        s2 = Species.objects.get(symbol='s2')
-        self.assertEqual(s2.genus, 'genus')
-        self.assertEqual(s2.species, 'blah')
-        self.assertEqual(s2.common_name, 'common name')
 
 
 class SpeciesExportTests(TestCase):
