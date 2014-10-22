@@ -13,21 +13,8 @@
 <h3>{% trans "Tree Information" %}</h3>
 
 <!-- Add a Tree Section -->
-<div id="add-tree-section" {{ has_tree|yesno:"style=display:none;," }}>
-  <div class="alert alert-warning" id="no-tree-message">
-    <p>{% trans "There is no tree for this planting site." %}</p>
-    {% usercancreate tree %}
-    <a href="javascript:;" id="add-tree" class="btn btn-warning" style="display: none;">{% trans "Add Tree" %}</a>
-    <a href="javascript:;" id="cancel-add-tree" class="btn" style="display: none;">{% trans "Cancel Adding Tree" %}</a>
+{% include "treemap/partials/plot_detail_add_tree.html" %}
 
-    {# Hidden id fields for use in creating a new tree #}
-    {% create from "Tree.plot" for request.user in request.instance withtemplate "treemap/field/hidden.html" %}
-    {% localize off %}
-    {% field from "plot.id" for request.user withtemplate "treemap/field/hidden.html" %}
-    {% endlocalize %}
-    {% endusercancreate %}
-  </div>
-</div>
 
 <!-- Tree Information -->
 <div id="tree-details" {{ has_tree|yesno:",style=display:none;" }}>
@@ -143,10 +130,9 @@
           treeIdColumn: '#tree-id-column',
           ecoBenefits: '#ecobenefits',
           plotId: {{ plot.id }},
-          addTree: '#add-tree',
-          noTreeMessage: '#no-tree-message',
-          cancelAddTree: '#cancel-add-tree',
-          addTreeSection: '#add-tree-section',
+          treePresenceSection: '#tree-presence-section',
+          beginAddTree: '#begin-add-tree',
+          addTreeControls: '#add-tree-controls',
           treeSection: '#tree-details',
           inlineEditForm: mapFeatureOptions.inlineEditForm,
           form: mapFeature.inlineEditForm,

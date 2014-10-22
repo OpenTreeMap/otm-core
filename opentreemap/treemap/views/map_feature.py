@@ -44,7 +44,8 @@ def _request_to_update_map_feature(request, instance, feature):
         'geoRevHash': instance.geo_rev_hash,
         'featureId': feature.id,
         'treeId': tree.id if tree else None,
-        'enabled': instance.feature_enabled('add_plot')
+        'feature': context_dict_for_map_feature(request, feature),
+        'enabled': instance.feature_enabled('add_plot'),
     }
 
 

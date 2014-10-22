@@ -1,0 +1,19 @@
+{% load i18n %}
+{% load l10n %}
+{% load auth_extras %}
+{% load form_extras %}
+
+<!-- Add a Tree Section -->
+<div class="alert alert-warning" id="tree-presence-section" {{ has_tree|yesno:"style=display:none;," }}>
+  <p>{% trans "There is no tree for this planting site." %}</p>
+  {% usercancreate tree %}
+  <div id="add-tree-controls" {% if not editmode %}style="display:none;"{% endif %}>
+    <a href="javascript:;" id="begin-add-tree" class="btn btn-warning" style="display: none;">{% trans "Add Tree" %}</a>
+    {# Hidden id fields for use in creating a new tree #}
+    {% create from "Tree.plot" for request.user in request.instance withtemplate "treemap/field/hidden.html" %}
+    {% localize off %}
+    {% field from "plot.id" for request.user withtemplate "treemap/field/hidden.html" %}
+    {% endlocalize %}
+  </div>
+  {% endusercancreate %}
+</div>

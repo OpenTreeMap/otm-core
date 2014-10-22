@@ -3,22 +3,39 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     R = require('ramda'),
+    format = require('util').format,
     otmTypeahead = require('treemap/otmTypeahead'),
     FH = require('treemap/fieldHelpers'),
     diameterCalculator = require('treemap/diameterCalculator'),
     plotUdf = require('treemap/plotUdf'),
+    plotAddTree = require('treemap/plotAddTree'),
     moment = require('moment');
 
 // Placed onto the jquery object
 require('bootstrap-datepicker');
 
+function excludeNullMap (obs, fn) {
+    return obs.map(fn)
+        .filter(R.not(_.isUndefined))
+        .filter(R.not(_.isNull));
+}
+
 exports.init = function(options) {
     var form = options.form,
-        $addTree = $(options.addTree),
-        $noTreeMessage = $(options.noTreeMessage),
-        $cancelAddTree = $(options.cancelAddTree),
-        $addTreeSection = $(options.addTreeSection),
-        $treeSection = $(options.treeSection);
+        $treeSection = $(options.treeSection),
+        newTreeIdStream = excludeNullMap(form.saveOkStream,
+                                         '.responseData.treeId'),
+        newTitleStream = excludeNullMap(form.saveOkStream,
+                                        '.responseData.feature.title'),
+        newAddressStream = excludeNullMap(form.saveOkStream,
+                                          '.responseData.feature.address_full');
+
+    function initializeTreeIdSection (id) {
+        var $section = $(options.treeIdColumn);
+        $section.attr('data-tree-id', id);
+        $section.html(format('<a href="trees/%s/">%s</a>', id, id));
+        $(options.treePresenceSection).hide();
+    }
 
     otmTypeahead.bulkCreate(options.typeaheads);
 
@@ -30,54 +47,16 @@ exports.init = function(options) {
 
     plotUdf.init(form);
 
-    function showAddTree() {
-        $addTree.show();
-        $noTreeMessage.show();
-        $cancelAddTree.hide();
-    }
-    function hideAddTree() {
-        $addTree.hide();
-        $noTreeMessage.hide();
-        $cancelAddTree.hide();
-    }
-    $addTree.click(function() {
-        var $editFields = $(options.inlineEditForm.editFields);
-        $addTree.hide();
-        $noTreeMessage.hide();
-        $cancelAddTree.show();
-        $treeSection.show();
-        FH.getSerializableField($editFields, 'tree.plot').val(options.plotId);
-    });
-    $cancelAddTree.click(function() {
-        var $editFields = $(options.inlineEditForm.editFields);
-        $addTree.show();
-        $noTreeMessage.show();
-        $cancelAddTree.hide();
-        $treeSection.hide();
-        FH.getSerializableField($editFields, 'tree.plot').val('');
-    });
+    newTreeIdStream.onValue(initializeTreeIdSection);
+    newTitleStream.onValue($('#map-feature-title'), 'html');
+    newAddressStream.onValue($('#map-feature-address'), 'html');
 
-    var newTreeIdStream = form.saveOkStream
-            .map('.responseData.treeId')
-            .filter(R.not(_.isUndefined))
-            .filter(R.not(_.isNull));
 
-    newTreeIdStream.onValue(function (val) {
-        initializeTreeIdSection(val);
-        $addTreeSection.hide();
-    });
+    var beginAddStream = plotAddTree.init(options);
+    beginAddStream.onValue($treeSection, 'show');
 
-    function initializeTreeIdSection (id) {
-        var $section = $(options.treeIdColumn);
-        $section.attr('data-tree-id', id);
-        $section.html('<a href="trees/' + id + '/">' + id + '</a>');
-    }
-
-    form.inEditModeProperty.onValue(function (inEditMode) {
-        if (inEditMode) {
-            showAddTree();
-        } else {
-            hideAddTree();
-        }
-    });
+    form.cancelStream
+        .skipUntil(beginAddStream)
+        .takeUntil(newTreeIdStream)
+        .onValue($treeSection, 'hide');
 };

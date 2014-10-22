@@ -185,6 +185,14 @@ class UITestCase(LiveServerTestCase):
 
 
 class TreemapUITestCase(UITestCase):
+    def assertElementVisibility(self, element, visible):
+        if isinstance(element, basestring):
+            element = self.find_id(element)
+        wait = (self.wait_until_visible if visible
+                else self.wait_until_invisible)
+        wait(element)
+        self.assertEqual(visible, element.is_displayed())
+
     def setUp(self):
         # for some reason, the call to this helper
         # in setup_databases() on the test runner
