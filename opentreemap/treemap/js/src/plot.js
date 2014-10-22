@@ -24,7 +24,12 @@ exports.init = function(options) {
     var form = options.form,
         $treeSection = $(options.treeSection),
         newTreeIdStream = excludeNullMap(form.saveOkStream,
-                                         '.responseData.treeId');
+                                         '.responseData.treeId'),
+        newTitleStream = excludeNullMap(form.saveOkStream,
+                                        '.responseData.feature.title'),
+        newAddressStream = excludeNullMap(form.saveOkStream,
+                                          '.responseData.feature.address_full');
+
     function initializeTreeIdSection (id) {
         var $section = $(options.treeIdColumn);
         $section.attr('data-tree-id', id);
@@ -43,6 +48,8 @@ exports.init = function(options) {
     plotUdf.init(form);
 
     newTreeIdStream.onValue(initializeTreeIdSection);
+    newTitleStream.onValue($('#map-feature-title'), 'html');
+    newAddressStream.onValue($('#map-feature-address'), 'html');
 
 
     var beginAddStream = plotAddTree.init(options);

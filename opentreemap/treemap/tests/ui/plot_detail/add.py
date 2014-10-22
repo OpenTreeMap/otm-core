@@ -55,6 +55,29 @@ class PlotAddTest(PlotDetailUITestCase):
 
         self.assertFalse(Tree.objects.filter(plot=self.plot).exists())
 
+    def test_add_tree_cleans_up_header(self):
+        "Addresses #1715 on github"
+        self.go_to_feature_detail(self.plot.pk)
+        self.assertEqual(self.find_id('map-feature-title').text,
+                         "Empty Planting Site")
+
+        self._select_elements()
+        self.edit_plot.click()
+        self.wait_until_visible(self.begin_add_tree)
+
+        self.begin_add_tree.click()
+        self.find('input[name="tree.height"]').send_keys('11')
+        self.save_edit.click()
+        self.wait_until_visible(self.edit_plot)
+        self.assertEqual(Tree.objects.filter(plot=self.plot).count(), 1)
+
+        self.assertEqual(self.find_id('map-feature-title').text,
+                         "Missing Species")
+
+        self.go_to_feature_detail(self.plot.pk)
+        self.assertEqual(self.find_id('map-feature-title').text,
+                         "Missing Species")
+
     def test_empty_plot_has_add_tree_section(self):
         "Address #1375 and #1027 on github"
         self.go_to_feature_detail(self.plot.pk)

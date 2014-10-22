@@ -300,6 +300,7 @@ def context_dict_for_map_feature(request, feature):
         'feature': feature,
         'feature_type': feature.feature_type,
         'title': title,
+        'address_full': feature.address_full,
         'upload_photo_endpoint': None,
         'photos': None,
     }
