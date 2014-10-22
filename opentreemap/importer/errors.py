@@ -51,7 +51,7 @@ ITREE_CODE_NOT_IN_REGION = (63, 'i-Tree code not defined for region', True)
 INSTANCE_HAS_NO_ITREE_REGION = (64, 'This treemap intersects no i-Tree '
                                 'regions and has no default region', True)
 INSTANCE_HAS_MULTIPLE_ITREE_REGIONS = (65, 'This treemap intersects more than '
-                                      'one i-Tree region', True)
+                                       'one i-Tree region', True)
 
 TOO_MANY_SPECIES = (70, 'More than one species was matched by this row', False)
 MERGE_REQ = (71, 'This row must be merged', False)

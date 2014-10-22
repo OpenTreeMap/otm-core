@@ -100,7 +100,7 @@ def create_stewardship_udfs(instance):
 
 
 def add_species_to_instance(instance):
-    from treemap.models import ITreeRegion, Species
+    from treemap.models import Species
 
     region_codes = instance.itree_region_codes()
     if region_codes:

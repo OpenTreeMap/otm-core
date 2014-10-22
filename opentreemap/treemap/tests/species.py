@@ -13,3 +13,4 @@ class SpeciesTests(OTMTestCase):
     def test_species_for_otm_code(self):
         species = species_for_otm_code('ABAL')
         self.assertEqual(species['common_name'], 'Silver fir')
+

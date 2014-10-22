@@ -5,13 +5,31 @@ from __future__ import division
 
 
 class species(object):
+    # Fields of the OTM Species object
     GENUS = 'genus'
     SPECIES = 'species'
     CULTIVAR = 'cultivar'
     OTHER_PART_OF_NAME = 'other part of name'
     COMMON_NAME = 'common name'
+    IS_NATIVE = 'is native'
+    GENDER = 'gender'
+    FLOWERING_PERIOD = 'flowering period'
+    FRUIT_OR_NUT_PERIOD = 'fruit or nut period'
+    FALL_CONSPICUOUS = 'fall conspicuous'
+    FLOWER_CONSPICUOUS = 'flower conspicuous'
+    PALATABLE_HUMAN = 'palatable human'
+    HAS_WILDLIFE_VALUE = 'has wildlife value'
+    FACT_SHEET_URL = 'fact sheet url'
+    PLANT_GUIDE_URL = 'plant guide url'
+    MAX_DIAMETER = 'max diameter'
+    MAX_HEIGHT = 'max height'
+
+    # Other import and/or export fields
+    ID = 'database id of species'
+    SCIENTIFIC_NAME = 'scientific name'
     USDA_SYMBOL = 'usda symbol'
     ITREE_CODE = 'i-tree code'
+    TREE_COUNT = 'number of trees in database'
 
     # This is a pseudo field which is filled in
     # when a matching species is found, but before
@@ -22,22 +40,6 @@ class species(object):
     # This is a pseudo field which is filled in
     # when a matching itree code is found
     ITREE_PAIRS = 'calc__itree'
-
-    IS_NATIVE = 'is native'
-    GENDER = 'gender'
-    FALL_CONSPICUOUS = 'fall conspicuous'
-    PALATABLE_HUMAN = 'palatable human'
-    FLOWER_CONSPICUOUS = 'flower conspicuous'
-    FLOWERING_PERIOD = 'flowering period'
-    FRUIT_OR_NUT_PERIOD = 'fruit or nut period'
-    HAS_WILDLIFE_VALUE = 'has wildlife value'
-    MAX_DIAMETER = 'max diameter'
-    MAX_HEIGHT = 'max height'
-    FACT_SHEET_URL = 'fact sheet url'
-    PLANT_GUIDE_URL = 'plant guide url'
-    TREE_COUNT = 'number of trees in database'
-    ID = 'database id of species'
-    SCIENTIFIC_NAME = 'scientific name'
 
     # TODO: support i18n
     CHOICE_MAP = {

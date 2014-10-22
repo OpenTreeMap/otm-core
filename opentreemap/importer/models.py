@@ -8,7 +8,6 @@ import json
 from datetime import datetime
 
 from django.db.models import Count
-from django.conf import settings
 
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
@@ -17,7 +16,7 @@ from django.contrib.gis.measure import D
 from treemap.models import (Species, Plot, Tree, User, Instance,
                             ITreeCodeOverride, ITreeRegion)
 from treemap.species.codes import (has_itree_code, all_itree_region_codes,
-                                   all_itree_codes, get_itree_code)
+                                   all_itree_codes)
 
 from importer import fields
 from importer import errors
@@ -387,7 +386,7 @@ class GenericImportRow(models.Model):
 
     def convert_units(self, data, converts):
         # TODO: Convert using instance's per-field units choice
-        INCHES_TO_DBH_FACTOR = 1.0  #/ settings.DBH_TO_INCHES_FACTOR
+        INCHES_TO_DBH_FACTOR = 1.0  # / settings.DBH_TO_INCHES_FACTOR
 
         # Similar to tree
         for fld, factor in converts.iteritems():
@@ -507,20 +506,20 @@ class SpeciesImportRow(GenericImportRow):
         'genus': fields.species.GENUS,
         'species': fields.species.SPECIES,
         'cultivar': fields.species.CULTIVAR,
+        'other_part_of_name': fields.species.OTHER_PART_OF_NAME,
         'common_name': fields.species.COMMON_NAME,
         'is_native': fields.species.IS_NATIVE,
         'gender': fields.species.GENDER,
-        'fall_conspicuous': fields.species.FALL_CONSPICUOUS,
-        'palatable_human': fields.species.PALATABLE_HUMAN,
-        'flower_conspicuous': fields.species.FLOWER_CONSPICUOUS,
         'flowering_period': fields.species.FLOWERING_PERIOD,
         'fruit_or_nut_period': fields.species.FRUIT_OR_NUT_PERIOD,
+        'fall_conspicuous': fields.species.FALL_CONSPICUOUS,
+        'flower_conspicuous': fields.species.FLOWER_CONSPICUOUS,
+        'palatable_human': fields.species.PALATABLE_HUMAN,
         'has_wildlife_value': fields.species.HAS_WILDLIFE_VALUE,
-        'max_diameter': fields.species.MAX_DIAMETER,
-        'max_height': fields.species.MAX_HEIGHT,
         'fact_sheet_url': fields.species.FACT_SHEET_URL,
         'plant_guide_url': fields.species.PLANT_GUIDE_URL,
-        'other_part_of_name': fields.species.OTHER_PART_OF_NAME,
+        'max_diameter': fields.species.MAX_DIAMETER,
+        'max_height': fields.species.MAX_HEIGHT,
         'id': fields.species.ID
     }
 
@@ -700,7 +699,7 @@ class SpeciesImportRow(GenericImportRow):
         - The 'cleaned' field on self will be set as fields
           get validated
         """
-        # Clear errrors
+        # Clear errors
         self.errors = ''
 
         # Convert all fields to correct datatypes
@@ -709,19 +708,11 @@ class SpeciesImportRow(GenericImportRow):
         # Check to see if this species matches any existing ones.
         # They'll be stored as a set of POSSIBLE_MATCHES
         self.cleaned[fields.species.POSSIBLE_MATCHES] = set()
-
         self.validate_species()
         self.validate_usda_code()
 
         self.validate_itree_code_field()
         self.validate_required_fields()
-
-        # Native status is a horrible field that pretends to
-        # be a boolean value but is actually a string so we
-        # change it here
-        if fields.species.IS_NATIVE in self.cleaned:
-            self.cleaned[fields.species.IS_NATIVE] = str(
-                self.cleaned[fields.species.IS_NATIVE])
 
         # If same is set to true this is essentially a no-op
         same = False
@@ -785,8 +776,7 @@ class SpeciesImportRow(GenericImportRow):
 
         species_edited = False
 
-        # Initially grab species from row if it exists
-        # and edit it
+        # Initially grab species from row if it exists and edit it
         species = self.species
 
         # If not specified create a new one
