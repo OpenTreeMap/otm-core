@@ -533,39 +533,37 @@ class SpeciesImportRow(GenericImportRow):
 
     import_event = models.ForeignKey(SpeciesImportEvent)
 
-
     def diff_from_species(self, species):
-        """ Compute how this row is different from
-        the given species
+        """ Compute how this row is different from the given species.
 
         The result is a json dict with field names:
         { '<field name>': ['<species value>', '<row value>'] }
 
-        Note that you can't *remove* data with species import
+        Note that you can't *remove* data with species import.
 
         If the returned dictionary is empty, importing this
-        row will (essentially) be a nop
+        row will (essentially) be a nop.
 
-        This should only be called after a verify because I
-        uses cleaned data
+        This should only be called after a verify because it
+        uses cleaned data.
         """
         #TODO: Test me
         if species is None:
             return {}
 
         data = self.cleaned
-        rslt = {}
-        for (modelkey, rowkey) in SpeciesImportRow.SPECIES_MAP.iteritems():
-            rowdata = data.get(rowkey, None)
-            modeldata = getattr(species, modelkey)
+        result = {}
+        for (model_key, row_key) in SpeciesImportRow.SPECIES_MAP.iteritems():
+            row_data = data.get(row_key, None)
+            model_data = getattr(species, model_key)
 
-            if rowdata and rowdata != modeldata:
-                    rslt[rowkey] = (modeldata, rowdata)
+            if row_data and row_data != model_data:
+                result[row_key] = (model_data, row_data)
 
-        # Always include the ID
-        rslt['id'] = (species.pk, None)
+        # Always include the ID (so the client can use it)
+        result['id'] = (species.pk, None)
 
-        return rslt
+        return result
 
     @property
     def model_fields(self):
@@ -607,19 +605,13 @@ class SpeciesImportRow(GenericImportRow):
             self.cleaned[fields.species.POSSIBLE_MATCHES] \
                 |= {s.pk for s in matching_species}
 
-
     def validate_required_fields(self):
         req = {fields.species.GENUS, fields.species.COMMON_NAME}
-
-        has_errors = False
 
         for field in req:
             value = self.cleaned.get(field, None)
             if not value:
-                has_errors = True
                 self.append_error(errors.MISSING_FIELD, field)
-
-        return not has_errors
 
     def validate_itree_code_and_region(self, region, code):
         error = None
@@ -743,7 +735,6 @@ class SpeciesImportRow(GenericImportRow):
                 if all([diff.keys() == ['id'] for diff in diffs]):
                     self.merged = True
                     same = True
-
                     self.species = species[0]
                 else:
                     diff_keys = set()
