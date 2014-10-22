@@ -433,19 +433,14 @@ class GenericImportRow(models.Model):
 
     def validate_choice_fields(self):
         has_errors = False
-        for field, choice_key in self.model_fields.CHOICE_MAP.iteritems():
+        for field, choices in self.model_fields.CHOICE_MAP.iteritems():
             value = self.datadict.get(field, None)
-            #TODO: Remove hack that checks for '-'
-            if value and value != '-':
-                all_choices = settings.CHOICES[choice_key]
-                choices = {value: id for (id, value) in all_choices}
-
+            if value:
                 if value in choices:
-                    self.cleaned[field] = choices[value]
+                    self.cleaned[field] = value
                 else:
                     has_errors = True
-                    self.append_error(errors.INVALID_CHOICE,
-                                      field, choice_key)
+                    self.append_error(errors.INVALID_CHOICE, field, value)
 
         return has_errors
 

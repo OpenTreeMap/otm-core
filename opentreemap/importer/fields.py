@@ -39,9 +39,10 @@ class species(object):
     ID = 'database id of species'
     SCIENTIFIC_NAME = 'scientific name'
 
+    # TODO: support i18n
     CHOICE_MAP = {
-        FLOWERING_PERIOD: 'seasons',
-        FRUIT_OR_NUT_PERIOD: 'seasons'
+        FLOWERING_PERIOD: ['spring', 'summer', 'fall', 'winter'],
+        FRUIT_OR_NUT_PERIOD: ['spring', 'summer', 'fall', 'winter'],
     }
 
     DATE_FIELDS = set()
