@@ -22,6 +22,7 @@ from treemap.util import safe_get_model_class
 from treemap.templatetags.form_extras import field_type_label_choices
 from treemap.json_field import is_json_field_reference
 from treemap.plugin import get_mobile_instances_filter
+from treemap.ecobenefits import BenefitCategory
 
 import treemap.lib.perms as perms_lib
 
@@ -273,13 +274,7 @@ def _instance_eco_dict(instance):
                 "label": "Tree Benefits",
                 # The tree benefits _are_ listed under "plot"
                 "model": "plot",
-                "keys": [
-                    "energy",
-                    "stormwater",
-                    "airquality",
-                    "co2",
-                    "co2storage"
-                ]
+                "keys": BenefitCategory.GROUPS,
             }
         ]
     }

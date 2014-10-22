@@ -16,6 +16,7 @@ from treemap.search import Filter
 from treemap.models import Plot, Tree
 from treemap.audit import Audit
 from treemap.ecobenefits import get_benefits_for_filter
+from treemap.ecobenefits import BenefitCategory
 from treemap.lib import format_benefits
 from treemap.lib.tree import add_tree_photo_helper
 from treemap.lib.photo import context_dict_for_photo
@@ -72,7 +73,7 @@ def search_tree_benefits(request, instance):
     total_currency_saved = 0
 
     for benefit_name, benefit in benefits.get('plot', {}).iteritems():
-        if benefit_name != 'co2storage':
+        if benefit_name != BenefitCategory.CO2STORAGE:
             currency = benefit.get('currency', 0.0)
             if currency:
                 total_currency_saved += currency

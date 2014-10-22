@@ -91,7 +91,10 @@ def get_convertible_units(category_name, value_name):
 
 
 def _get_display_default(category_name, value_name, key):
+    from treemap.ecobenefits import BenefitCategory
     defaults = settings.DISPLAY_DEFAULTS
+    if category_name == 'eco' and value_name not in BenefitCategory.GROUPS:
+        raise Exception('%s not in %s' % (value_name, BenefitCategory.GROUPS))
     return defaults[category_name][value_name][key]
 
 
