@@ -8,6 +8,8 @@ from django.db.models import Q
 from django.test.signals import setting_changed
 from django.dispatch import receiver
 
+from treemap.lib import get_function_by_path
+
 #
 # Plugin functions allow python modules which are not part of the OTM2 core the
 # the ability to override select functionality.
@@ -55,12 +57,7 @@ def _resolve_plugin_function(fn_setting, default_fn):
     if fn_path is None:
         return default_fn
 
-    fn_paths = fn_path.split('.')
-    modulepath = '.'.join(fn_paths[:-1])
-    fcn = fn_paths[-1]
-    mod = __import__(modulepath, fromlist=[fcn])
-
-    return getattr(mod, fcn)
+    return get_function_by_path(fn_path)
 
 
 # Needed to support use of @override_settings in unit tests

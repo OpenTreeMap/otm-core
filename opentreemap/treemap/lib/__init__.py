@@ -41,3 +41,13 @@ def format_benefits(instance, benefits, basis):
             'basis': basis}
 
     return rslt
+
+
+def get_function_by_path(fn_path):
+    fn_paths = fn_path.split('.')
+    modulepath = '.'.join(fn_paths[:-1])
+    fcn = fn_paths[-1]
+    mod = __import__(modulepath, fromlist=[fcn])
+
+    return getattr(mod, fcn)
+
