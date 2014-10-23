@@ -82,18 +82,18 @@ def setupTreemapEnv():
     s3 = Species(otm_code="s3", genus="testus2", species="specieius3",
                  cultivar='', instance=instance)
 
-    s1.native_status = True
+    s1.is_native = True
     s1.fall_conspicuous = True
     s1.flower_conspicuous = True
     s1.palatable_human = True
 
-    s2.native_status = True
+    s2.is_native = True
     s2.fall_conspicuous = False
     s2.flower_conspicuous = True
     s2.palatable_human = False
-    s2.wildlife_value = True
+    s2.has_wildlife_value = True
 
-    s3.wildlife_value = True
+    s3.has_wildlife_value = True
 
     s1.save_with_user(commander)
     s2.save_with_user(commander)

@@ -1,10 +1,16 @@
 # flake8: noqa
 
-def _all_region_codes():
+def all_itree_region_codes():
     return _CODES.keys()
 
+def all_itree_codes():
+    codes = set.union(
+        *[set(d.values()) for d in _CODES.values()]
+    )
+    return codes
+
 def all_species_codes():
-    return species_codes_for_regions(_all_region_codes())
+    return species_codes_for_regions(all_itree_region_codes())
 
 def species_codes_for_regions(region_codes):
     if region_codes is None:
@@ -15,7 +21,6 @@ def species_codes_for_regions(region_codes):
     # Converting to a set removes duplicates
     return list(set(species_codes))
 
-# TODO: this appears not to be used. is it?
 def get_itree_code(region_code, otm_code):
     if otm_code:
         if region_code in _CODES:
@@ -23,7 +28,12 @@ def get_itree_code(region_code, otm_code):
                 return _CODES[region_code][otm_code]
     return None
 
-# The ``CODES`` dictionary has the following format
+def has_itree_code(region_code, itree_code):
+    # TODO: Pull i-Tree codes from eco csv's rather than _CODES[region_code],
+    # which is not guaranteed to have all values
+    return region_code in _CODES and itree_code in _CODES[region_code].values()
+
+# The ``_CODES`` dictionary has the following format
 #
 #   {
 #     itree_region_code: {

@@ -469,28 +469,7 @@ def process_csv(request, instance, fileconstructor, **kwargs):
     return ie.pk
 
 
-# TODO: Why doesn't this use fields.species.ALL?
-all_species_fields = (
-    fields.species.GENUS,
-    fields.species.SPECIES,
-    fields.species.CULTIVAR,
-    fields.species.OTHER_PART_OF_NAME,
-    fields.species.COMMON_NAME,
-    fields.species.USDA_SYMBOL,
-    fields.species.ALT_SYMBOL,
-    fields.species.ITREE_CODE,
-    fields.species.FAMILY,
-    fields.species.NATIVE_STATUS,
-    fields.species.FALL_COLORS,
-    fields.species.EDIBLE,
-    fields.species.FLOWERING,
-    fields.species.FLOWERING_PERIOD,
-    fields.species.FRUIT_PERIOD,
-    fields.species.WILDLIFE,
-    fields.species.MAX_DIAMETER,
-    fields.species.MAX_HEIGHT,
-    fields.species.FACT_SHEET,
-)
+all_species_fields = fields.species.ALL
 
 
 def _build_species_object(species, fieldmap, included_fields):

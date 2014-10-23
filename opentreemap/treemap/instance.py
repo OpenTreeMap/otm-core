@@ -100,17 +100,14 @@ def create_stewardship_udfs(instance):
 
 
 def add_species_to_instance(instance):
-    from treemap.models import ITreeRegion, Species
+    from treemap.models import Species
 
-    # Create species for all regions that intersect the instance
-    itree_regions = ITreeRegion.objects.filter(
-        geometry__intersects=instance.bounds)
-    eco_region_codes = itree_regions.values_list('code', flat=True)
-    species_codes = species_codes_for_regions(eco_region_codes)
-
-    # If there are no eco regions intersecting the map regions
-    # default to using all species codes
-    if not species_codes:
+    region_codes = instance.itree_region_codes()
+    if region_codes:
+        # Add species from all of the instance's i-Tree regions
+        species_codes = species_codes_for_regions(region_codes)
+    else:
+        # Add all species
         species_codes = all_species_codes()
 
     # Convert the list to a set for fast lookups

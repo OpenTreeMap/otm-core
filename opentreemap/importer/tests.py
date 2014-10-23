@@ -19,8 +19,10 @@ from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
 from api.test_utils import setupTreemapEnv, mkPlot
 
-from treemap.models import Species, Plot, Tree, User
-from treemap.tests import make_admin_user, make_instance, login
+from treemap.instance import add_species_to_instance
+from treemap.models import Species, Plot, Tree, ITreeCodeOverride, ITreeRegion
+from treemap.species.codes import get_itree_code
+from treemap.tests import (make_admin_user, make_instance, login)
 
 from importer.views import (create_rows_for_event, process_csv, process_status,
                             commit, merge_species)
@@ -88,6 +90,35 @@ class MergeTest(TestCase):
 
 
 class ValidationTest(TestCase):
+
+    def assertHasError(self, thing, error, data=None, df=None):
+        local_errors = ''
+        code, message, fatal = error
+        if thing.errors:
+            local_errors = json.loads(thing.errors)
+            for e in local_errors:
+                if e['code'] == code:
+                    if data is not None:
+                        edata = e['data']
+                        if df:
+                            edata = df(edata)
+                        self.assertEqual(edata, data)
+                    return
+
+        raise AssertionError('Error code %s not found in %s'
+                             % (code, local_errors))
+
+    def assertNotHasError(self, thing, error):
+        code, message, fatal = error
+        if thing.errors:
+            local_errors = json.loads(thing.errors)
+            for e in local_errors:
+                if e['code'] == code:
+                    raise AssertionError('Error code %s found in %s'
+                                         % (code, local_errors))
+
+
+class TreeValidationTest(ValidationTest):
     def setUp(self):
         center_point = Point(25, 25, srid=4326)
         center_point.transform(3857)
@@ -103,37 +134,11 @@ class ValidationTest(TestCase):
         return TreeImportRow.objects.create(
             data=json.dumps(data), import_event=self.ie, idx=1)
 
-    def assertHasError(self, thing, err, data=None, df=None):
-        local_errors = ''
-        errn, msg, fatal = err
-        if thing.errors:
-            local_errors = json.loads(thing.errors)
-            for e in local_errors:
-                if e['code'] == errn:
-                    if data is not None:
-                        edata = e['data']
-                        if df:
-                            edata = df(edata)
-                        self.assertEqual(edata, data)
-                    return
-
-        raise AssertionError('Error code %s not found in %s'
-                             % (errn, local_errors))
-
-    def assertNotHasError(self, thing, err, data=None):
-        errn, msg, fatal = err
-        if thing.errors:
-            local_errors = json.loads(thing.errors)
-            for e in local_errors:
-                if e['code'] == errn:
-                    raise AssertionError('Error code %s found in %s'
-                                         % (errn, local_errors))
-
-    def test_species_dbh_and_height(self):
+    def test_species_diameter_and_height(self):
         s1_gsc = Species(instance=self.instance, genus='g1', species='s1',
-                         cultivar='c1', max_height=30, max_dbh=19)
+                         cultivar='c1', max_height=30, max_diameter=19)
         s1_gs = Species(instance=self.instance, genus='g1', species='s1',
-                        cultivar='', max_height=22, max_dbh=12)
+                        cultivar='', max_height=22, max_diameter=12)
         s1_gsc.save_with_user(self.user)
         s1_gs.save_with_user(self.user)
 
@@ -348,7 +353,290 @@ class ValidationTest(TestCase):
         self.assertNotHasError(i, errors.FLOAT_ERROR)
 
 
-class FileLevelValidationTest(TestCase):
+class SpeciesValidationTest(ValidationTest):
+    def setUp(self):
+        self.instance = None
+        self.user = None
+
+    def _make_los_angeles_instance(self):
+        center = Point(-13162685, 4033811, srid=3857)
+        self.instance = make_instance(point=center, edge_length=500000)
+
+    def _add_species(self, species_dicts):
+        instance_species_list = []
+        for species_dict in species_dicts:
+            species_dict['instance'] = self.instance
+            instance_species_list.append(Species(**species_dict))
+        Species.objects.bulk_create(instance_species_list)
+
+    def _make_import_event(self):
+        if not self.instance:
+            self.instance = make_instance()
+            self.instance.itree_region_default = 'NoEastXXX'
+            self.instance.save()
+        self._add_species([
+            {"otm_code": "PR"  , "common_name": "Plum"         , "genus": "Prunus"},
+            {"otm_code": "PR"  , "common_name": "Cherry"       , "genus": "Prunus"},
+            {"otm_code": "PRAM", "common_name": "American plum", "genus": "Prunus", "species": "americana"},
+            {"otm_code": "PRAV", "common_name": "Sweet cherry" , "genus": "Prunus", "species": "avium"},
+            ])
+        if not self.user:
+            self.user = make_admin_user(self.instance)
+        import_event = SpeciesImportEvent(
+            file_name='file', owner=self.user, instance=self.instance)
+        import_event.save()
+        return import_event
+
+    def _make_row(self, data={}):
+        import_event = self._make_import_event()
+        d = {'genus': 'g1',
+             'species': '',
+             'cultivar': '',
+             'other_part_of_name': '',
+             'common name': 'c1'}
+        d.update(data)
+        row = SpeciesImportRow.objects.create(
+            data=json.dumps(d), import_event=import_event, idx=1)
+        return row
+
+    def _make_and_validate_row(self, data={}):
+        row = self._make_row(data)
+        row.validate_row()
+        return row
+
+    def _make_and_commit_row(self, data={}):
+        row = self._make_row(data)
+        row.commit_row()
+        return row
+
+    def _assert_row_has_error(self, data, error):
+        row = self._make_and_validate_row(data)
+        self.assertHasError(row, error)
+
+
+class ITreeValidationTest(SpeciesValidationTest):
+    def test_error_invalid_itree_region(self):
+        self._assert_row_has_error({'i-tree code': 'foo:ACME'},
+                                   errors.INVALID_ITREE_REGION)
+
+    def test_error_itree_region_not_in_instance(self):
+        self._assert_row_has_error({'i-tree code': 'CaNCCoJBK:ACME'},
+                                   errors.ITREE_REGION_NOT_IN_INSTANCE)
+
+    def test_error_invalid_itree_code(self):
+        self._assert_row_has_error({'i-tree code': 'x'},
+                                   errors.INVALID_ITREE_CODE)
+        self._assert_row_has_error({'i-tree code': 'NoEastXXX:x'},
+                                   errors.INVALID_ITREE_CODE)
+
+    def test_error_invalid_itree_code_for_region(self):
+        self._assert_row_has_error({'i-tree code': 'FRVE'},
+                                   errors.ITREE_CODE_NOT_IN_REGION)
+        self._assert_row_has_error({'i-tree code': 'NoEastXXX:FRVE'},
+                                   errors.ITREE_CODE_NOT_IN_REGION)
+
+    def test_error_instance_has_no_itree_region(self):
+        self.instance = make_instance()
+        self._assert_row_has_error({'i-tree code': 'FRVE'},
+                                   errors.INSTANCE_HAS_NO_ITREE_REGION)
+
+    def test_error_instance_has_multiple_itree_regions(self):
+        self._make_los_angeles_instance()
+        self._assert_row_has_error({'i-tree code': 'FRVE'},
+                                   errors.INSTANCE_HAS_MULTIPLE_ITREE_REGIONS)
+
+
+class SpeciesCommitTest(SpeciesValidationTest):
+
+    def test_species_added_with_all_fields(self):
+        row = self._make_and_commit_row({
+            'genus': 'the genus',
+            'species': 'the species',
+            'common name': 'the common name',
+            'cultivar': 'the cultivar',
+            'other part of name': 'the other',
+            'is native': 'True',
+            'gender': 'the gender',
+            'flowering period': 'summer',
+            'fruit or nut period': 'fall',
+            'fall conspicuous': 'True',
+            'flower conspicuous': 'True',
+            'palatable human': 'True',
+            'has wildlife value': 'True',
+            'fact sheet url': 'the fact sheet url',
+            'plant guide url': 'the plant guide url',
+            'max diameter': '10',
+            'max height': '91',
+        })
+        self.assertNotHasError(row, errors.MERGE_REQ)
+        qs = Species.objects.filter(genus='the genus')
+        self.assertEqual(1, qs.count())
+
+        s = qs[0]
+        self.assertEqual(s.genus, 'the genus')
+        self.assertEqual(s.species, 'the species')
+        self.assertEqual(s.common_name, 'the common name')
+        self.assertEqual(s.cultivar, 'the cultivar')
+        self.assertEqual(s.other_part_of_name, 'the other')
+        self.assertEqual(s.is_native, True)
+        self.assertEqual(s.fall_conspicuous, True)
+        self.assertEqual(s.palatable_human, True)
+        self.assertEqual(s.flower_conspicuous, True)
+        self.assertEqual(s.flowering_period, 'summer')
+        self.assertEqual(s.fruit_or_nut_period, 'fall')
+        self.assertEqual(s.has_wildlife_value, True)
+        self.assertEqual(s.max_diameter, 10)
+        self.assertEqual(s.max_height, 91)
+        self.assertEqual(s.gender, 'the gender')
+        self.assertEqual(s.fact_sheet_url, 'the fact sheet url')
+        self.assertEqual(s.plant_guide_url, 'the plant guide url')
+
+    def test_species_updated(self):
+        row = self._make_and_commit_row({
+            'genus': 'Prunus',
+            'species': 'americana',
+            'common name': 'American plum',
+            'gender': 'male'})
+        self.assertHasError(row, errors.MERGE_REQ)
+        species = Species.objects.filter(otm_code='PRAM')
+        self.assertEqual(1, species.count())
+        self.assertEqual(species[0].gender, 'male')
+
+    def test_otm_code_found_for_species_not_in_instance(self):
+        self._make_and_commit_row({
+            'genus': 'Prunus',
+            'species': 'armeniaca',
+            'common name': 'Apricot'})
+        species = Species.objects.filter(otm_code='PRAR')
+        self.assertEqual(1, species.count())
+
+    def test_otm_code_not_found_for_unknown_species(self):
+        self._make_and_commit_row({
+            'genus': 'Pluto',
+            'species': 'icecreamius',
+            'common name': 'Pluto ice cream tree'})
+        species = Species.objects.filter(genus='Pluto')
+        self.assertEqual(1, species.count())
+        self.assertEqual('', species[0].otm_code)
+
+
+class ITreeCommitTest(SpeciesValidationTest):
+    def setUp(self):
+        super(ITreeCommitTest, self).setUp()
+        self._make_los_angeles_instance()
+        self._add_species([
+            {"otm_code": "ABCO", "common_name": "White fir", "genus": "Abies", "species": "concolor"},
+            ])
+
+    def _make_itree_code_override(self, region_code, itree_code):
+        species = Species.objects.get(instance=self.instance, otm_code='ABCO')
+        ITreeCodeOverride(
+            instance_species=species,
+            region=ITreeRegion.objects.get(code=region_code),
+            itree_code=itree_code
+        ).save_base()
+
+    def _assert_correct_itree_code(self, itree_pair, row):
+        # Make sure OTM sees the correct i-Tree code
+        region_code, itree_code = itree_pair.split(':')
+        code = row.species.get_itree_code(region_code)
+        self.assertEqual(itree_code, code)
+
+    def _assert_overrides(self, itree_string, expected_override_count,
+                          expected_override_code=None):
+        row = self._make_and_commit_row({
+            'genus': 'Abies',
+            'species': 'concolor',
+            'common name': 'White fir',
+            'i-tree code': itree_string})
+
+        # Verify expected overrides
+        overrides = ITreeCodeOverride.objects.filter(
+            instance_species=row.species)
+        self.assertEqual(expected_override_count, overrides.count())
+
+        if expected_override_code:
+            self.assertHasError(row, errors.MERGE_REQ)
+            self.assertEqual(expected_override_code, overrides[0].itree_code)
+        else:
+            self.assertEqual(row.errors, '')
+
+        return row
+
+    def _assert_itree_and_overrides(self, itree_pair, expected_override_count,
+                                    expected_override_code=None):
+        row = self._assert_overrides(itree_pair, expected_override_count,
+                                     expected_override_code)
+        self._assert_correct_itree_code(itree_pair, row)
+
+    def test_match_of_default_makes_no_override(self):
+        self._assert_itree_and_overrides('NMtnPrFNL:PIPU', 0)
+
+    def test_match_of_default_but_not_override_updates_override(self):
+        self._make_itree_code_override('NMtnPrFNL', 'CEL OTHER')
+        self._assert_itree_and_overrides('NMtnPrFNL:PIPU', 1, 'PIPU')
+
+    def test_match_of_override_makes_no_override(self):
+        self._make_itree_code_override('NMtnPrFNL', 'CEL OTHER')
+        self._assert_itree_and_overrides('NMtnPrFNL:CEL OTHER', 1)
+
+    def test_nonmatch_of_override_updates_override(self):
+        self._make_itree_code_override('NMtnPrFNL', 'CEL OTHER')
+        self._assert_itree_and_overrides('NMtnPrFNL:FRPE', 1, 'FRPE')
+
+    def test_match_of_nothing_makes_override(self):
+        self._assert_itree_and_overrides('NMtnPrFNL:FRPE', 1, 'FRPE')
+
+    def test_multiple_itree_codes(self):
+        itree_pairs = ['NMtnPrFNL:FRPE', 'TpIntWBOI:CEL OTHER']
+        itree_string = ','.join(itree_pairs)
+        row = self._assert_overrides(itree_string, 1, 'FRPE')
+        for pair in itree_pairs:
+            self._assert_correct_itree_code(pair, row)
+
+
+class ScientificNameValidationTest(SpeciesValidationTest):
+    def _assert_match_results(self, expected_match_count, data):
+        row = self._make_and_validate_row(data)
+        matches = row.cleaned[fields.species.POSSIBLE_MATCHES]
+        self.assertEqual(len(matches), expected_match_count)
+        return matches
+
+    def test_match_species(self):
+        self._assert_match_results(1, {
+            'genus': 'Prunus',
+            'species': 'americana',
+        })
+
+    def test_match_usda_code(self):
+        self._assert_match_results(1, {
+            'genus': 'Prunus',
+            'species': 'WRONG americana',
+            'usda symbol': 'PRAM'
+        })
+
+    def test_match_species_and_usda_code(self):
+        self._assert_match_results(1, {
+            'genus': 'Prunus',
+            'species': 'americana',
+            'usda symbol': 'PRAM'
+        })
+
+    def test_match_species_and_different_usda_code(self):
+        self._assert_match_results(2, {
+            'genus': 'Prunus',
+            'species': 'americana',
+            'usda symbol': 'PRAV'
+        })
+
+    def test_double_species_match(self):
+        self._assert_match_results(2, {'genus': 'Prunus'})
+
+    def test_species_mismatch(self):
+        self._assert_match_results(0, {'genus': 'Venus'})
+
+
+class FileLevelTreeValidationTest(TestCase):
     def write_csv(self, stuff):
         t = tempfile.NamedTemporaryFile()
 
@@ -513,9 +801,9 @@ class SpeciesIntegrationTests(IntegrationTests):
 
     def test_bad_structure(self):
         csv = """
-        | family | native status | diameter |
-        | f1     | ns11          | 12       |
-        | f2     | ns12          | 14       |
+        | family | is native | diameter |
+        | f1     | ns11      | 12       |
+        | f2     | ns12      | 14       |
         """
 
         j = self.run_through_process_views(csv)
@@ -524,188 +812,17 @@ class SpeciesIntegrationTests(IntegrationTests):
                          {errors.MISSING_SPECIES_FIELDS[0],
                           errors.UNMATCHED_FIELDS[0]})
 
-    @skip("We need to re-work iTree validation")
     def test_noerror_load(self):
         csv = """
-        | genus   | species    | common name | i-tree code  |
-        | g1      | s1         | g1 s1 wowza | BDM OTHER    |
-        | g2      | s2         | g2 s2 wowza | BDL OTHER    |
+        | genus   | species    | common name |
+        | g1      | s1         | g1 s1 wowza |
+        | g2      | s2         | g2 s2 wowza |
         """
 
         j = self.run_through_process_views(csv)
 
         self.assertEqual(j['status'], 'success')
         self.assertEqual(j['rows'], 2)
-
-    @skip("We need to re-work iTree validation")
-    def test_invalid_itree(self):
-        csv = """
-        | genus   | species    | common name | i-tree code  |
-        | testus1 | specieius9 | g1 s2 wowza | BDL OTHER    |
-        | genus   |            | common name | failure      |
-        | testus1 | specieius9 | g1 s2 wowza |              |
-        """
-
-        j = self.run_through_process_views(csv)
-        ierrors = self.extract_errors(j)
-        self.assertNotIn('0', ierrors)
-        self.assertEqual(ierrors['1'],
-                         [(errors.INVALID_ITREE_CODE[0],
-                           [fields.species.ITREE_CODE], None)])
-        self.assertEqual(ierrors['2'],
-                         [(errors.MISSING_ITREE_CODE[0],
-                           ['i-tree code'], None),
-                          (errors.MISSING_FIELD[0],
-                           ['i-tree code'], None)])
-
-    @skip("We need to re-work iTree validation")
-    def test_multiregion_itree(self):
-        itree = 'NoEastXXX:ACPL,NMtnPrFNL:BDL OTHER'
-        csv = """
-        | genus   | species    | common name | i-tree code  |
-        | testus1 | specieius9 | g1 s2 wowza | %s           |
-        """ % itree
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-        s = ie.rows().all()[0].species
-
-        self.assertEqual({(r.meta_species, r.region) for r in s.resource.all()},
-                         {('ACPL', 'NoEastXXX'), ('BDL OTHER', 'NMtnPrFNL')})
-
-    @skip("We need to re-work iTree validation")
-    def test_species_matching(self):
-        csv = """
-        | genus   | species    | common name | i-tree code  | usda symbol | alternative symbol | other part of scientific name |
-        | testus1 | specieius1 | g1 s2 wowza | BDL OTHER    |             |     |      |
-        | genus   | blah       | common name | BDL OTHER    | s1          |     |      |
-        | testus1 | specieius1 | g1 s2 wowza | BDL OTHER    | s2          |     |      |
-        | testus2 | specieius2 | g1 s2 wowza | BDL OTHER    | s1          | a3  |      |
-        | genusN  | speciesN   | gN sN wowza | BDL OTHER    |             |     | var3 |
-        """
-
-        j = self.run_through_process_views(csv)
-        ierrors = self.extract_errors(j)
-
-        # Errors for multiple species matches
-        self.assertEqual(len(ierrors), 4)
-
-        ie = SpeciesImportEvent.objects.get(pk=j['pk'])
-        s1,s2,s3 = [s.pk for s in Species.objects.all()]
-
-        s4s = Species(instance=self.instance, genus='genusN',
-                      species='speciesN', cultivar='', other='var3',
-                      max_dbh=50.0, max_height=100.0)
-        s4s.save_with_user(user)
-        s4 = s4s.pk
-
-        rows = ie.rows()
-        matches = []
-        for row in rows:
-            row.validate_row()
-            matches.append(row.cleaned[fields.species.ORIG_SPECIES])
-
-        m1, m2, m3, m4, m5 = matches
-
-        self.assertEqual(m1, {s1})
-        self.assertEqual(m2, {s1})
-        self.assertEqual(m3, {s1,s2})
-        self.assertEqual(m4, {s1,s2,s3})
-        self.assertEqual(m5, {s4})
-
-    @skip("OTM2 species don't have a symbol field")
-    def test_all_species_data(self):
-        csv = """
-        | genus     | species     | common name | i-tree code  | usda symbol | alternative symbol |
-        | newgenus1 | newspecies1 | g1 s2 wowza | BDL OTHER    | sym1        | a1    |
-        """
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-        s = ie.rows().all()[0].species
-
-        self.assertEqual(s.genus, 'newgenus1')
-        self.assertEqual(s.species, 'newspecies1')
-        self.assertEqual(s.common_name, 'g1 s2 wowza')
-        self.assertEqual(s.symbol, 'sym1')
-        self.assertEqual(s.alternate_symbol, 'a1')
-        self.assertEqual(s.itree_code, 'BDL OTHER')
-
-        csv = """
-        | genus     | species     | common name | i-tree code  | cultivar | %s  | %s  |
-        | newgenus2 | newspecies1 | g1 s2 wowza | BDL OTHER    | cvar     | sci | fam |
-        """ % ('other', 'family')
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-        s = ie.rows().all()[0].species
-
-        self.assertEqual(s.cultivar, 'cvar')
-        self.assertEqual(s.other, 'sci')
-
-        csv = """
-        | genus     | species     | common name | i-tree code  | %s   | %s    | %s   |
-        | newgenus3 | newspecies1 | g1 s2 wowza | BDL OTHER    | true | true  | true |
-        """ % ('native status', 'fall colors', 'palatable human')
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-        s = ie.rows().all()[0].species
-
-        self.assertEqual(s.native_status, True)
-        self.assertEqual(s.fall_conspicuous, True)
-        self.assertEqual(s.palatable_human, True)
-
-        csv = """
-        | genus     | species     | common name | i-tree code  | %s   | %s      | %s   |
-        | newgenus4 | newspecies1 | g1 s2 wowza | BDL OTHER    | true | summer  | fall |
-        """ % ('flowering', 'flowering period', 'fruit or nut period')
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-        s = ie.rows().all()[0].species
-
-        seasons = {k: v for (v,k) in settings.CHOICES['seasons']}
-
-        self.assertEqual(s.flower_conspicuous, True)
-        self.assertEqual(s.bloom_period, seasons['summer'])
-        self.assertEqual(s.fruit_period, seasons['fall'])
-
-        csv = """
-        | genus     | species     | common name | i-tree code  | %s   | %s | %s | %s |
-        | newgenus1 | newspecies1 | g1 s2 wowza | BDL OTHER    | true | 10 | 91 | fs |
-        """ % ('wildlife', 'max diameter at breast height', 'max height', 'fact sheet')
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-        s = ie.rows().all()[0].species
-
-        self.assertEqual(s.wildlife_value, True)
-        self.assertEqual(s.fact_sheet, 'fs')
-        self.assertEqual(s.max_dbh, 10)
-        self.assertEqual(s.max_height, 91)
-
-    @skip("We need to re-work iTree validation")
-    def test_overrides_species(self):
-        csv = """
-        | genus   | species    | common name | i-tree code  | usda symbol | alternative symbol |
-        | testus1 | specieius1 | g1 s2 wowza | BDL OTHER    |             |     |
-        | genus   | blah       | common name | BDM OTHER    | s2          |     |
-        """
-
-        seid = self.run_through_commit_views(csv)
-        ie = SpeciesImportEvent.objects.get(pk=seid)
-
-        # Test to make sure things were updated
-        s1 = Species.objects.get(symbol='s1')
-        self.assertEqual(s1.genus, 'testus1')
-        self.assertEqual(s1.species, 'specieius1')
-        self.assertEqual(s1.common_name, 'g1 s2 wowza')
-
-        s2 = Species.objects.get(symbol='s2')
-        self.assertEqual(s2.genus, 'genus')
-        self.assertEqual(s2.species, 'blah')
-        self.assertEqual(s2.common_name, 'common name')
 
 
 class SpeciesExportTests(TestCase):
@@ -714,7 +831,7 @@ class SpeciesExportTests(TestCase):
         user = make_admin_user(instance)
 
         species = Species(instance=instance, genus='g1', species='',
-                          cultivar='', max_dbh=50.0, max_height=100.0)
+                          cultivar='', max_diameter=50.0, max_height=100.0)
         species.save_with_user(user)
 
         login(self.client, user.username)
@@ -812,7 +929,7 @@ class TreeIntegrationTests(IntegrationTests):
 
     def test_faulty_data1(self):
         s1_g = Species(instance=self.instance, genus='g1', species='',
-                       cultivar='', max_dbh=50.0, max_height=100.0)
+                       cultivar='', max_diameter=50.0, max_height=100.0)
         s1_g.save_with_user(self.user)
 
         csv = """

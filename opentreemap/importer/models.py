@@ -2,18 +2,22 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
+from django.db import transaction
 
 import json
 from datetime import datetime
 
 from django.db.models import Count
-from django.conf import settings
 
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 
-from treemap.models import Species, Plot, Tree, User, Instance
+from treemap.models import (Species, Plot, Tree, User, Instance,
+                            ITreeCodeOverride, ITreeRegion)
+from treemap.species import species_for_scientific_name
+from treemap.species.codes import (has_itree_code, all_itree_region_codes,
+                                   all_itree_codes)
 
 from importer import fields
 from importer import errors
@@ -123,6 +127,12 @@ class SpeciesImportEvent(GenericImportEvent):
     max_diameter_conversion_factor = models.FloatField(default=1.0)
     max_tree_height_conversion_factor = models.FloatField(default=1.0)
 
+    def __init__(self, *args, **kwargs):
+        super(SpeciesImportEvent, self).__init__(*args, **kwargs)
+        self.all_region_codes = all_itree_region_codes()
+        self.all_itree_codes = all_itree_codes()
+        self.instance_region_codes = self.instance.itree_region_codes()
+
     def create_row(self, *args, **kwargs):
         return SpeciesImportRow.objects.create(*args, **kwargs)
 
@@ -155,8 +165,7 @@ class SpeciesImportEvent(GenericImportEvent):
         datastr = self.rows()[0].data
         input_fields = set(json.loads(datastr).keys())
 
-        req = {fields.species.GENUS,
-               fields.species.COMMON_NAME, fields.species.ITREE_CODE}
+        req = {fields.species.GENUS, fields.species.COMMON_NAME}
 
         req -= input_fields
         if req:
@@ -377,7 +386,8 @@ class GenericImportRow(models.Model):
             return i
 
     def convert_units(self, data, converts):
-        INCHES_TO_DBH_FACTOR = 1.0 / settings.DBH_TO_INCHES_FACTOR
+        # TODO: Convert using instance's per-field units choice
+        INCHES_TO_DBH_FACTOR = 1.0  # / settings.DBH_TO_INCHES_FACTOR
 
         # Similar to tree
         for fld, factor in converts.iteritems():
@@ -423,19 +433,14 @@ class GenericImportRow(models.Model):
 
     def validate_choice_fields(self):
         has_errors = False
-        for field, choice_key in self.model_fields.CHOICE_MAP.iteritems():
+        for field, choices in self.model_fields.CHOICE_MAP.iteritems():
             value = self.datadict.get(field, None)
-            #TODO: Remove hack that checks for '-'
-            if value and value != '-':
-                all_choices = settings.CHOICES[choice_key]
-                choices = {value: id for (id, value) in all_choices}
-
+            if value:
                 if value in choices:
-                    self.cleaned[field] = choices[value]
+                    self.cleaned[field] = value
                 else:
                     has_errors = True
-                    self.append_error(errors.INVALID_CHOICE,
-                                      field, choice_key)
+                    self.append_error(errors.INVALID_CHOICE, field, value)
 
         return has_errors
 
@@ -502,18 +507,20 @@ class SpeciesImportRow(GenericImportRow):
         'genus': fields.species.GENUS,
         'species': fields.species.SPECIES,
         'cultivar': fields.species.CULTIVAR,
+        'other_part_of_name': fields.species.OTHER_PART_OF_NAME,
         'common_name': fields.species.COMMON_NAME,
-        'native_status': fields.species.NATIVE_STATUS,
-        'fall_conspicuous': fields.species.FALL_COLORS,
-        'palatable_human': fields.species.EDIBLE,
-        'flower_conspicuous': fields.species.FLOWERING,
-        'bloom_period': fields.species.FLOWERING_PERIOD,
-        'fruit_period': fields.species.FRUIT_PERIOD,
-        'wildlife_value': fields.species.WILDLIFE,
-        'max_dbh': fields.species.MAX_DIAMETER,
+        'is_native': fields.species.IS_NATIVE,
+        'gender': fields.species.GENDER,
+        'flowering_period': fields.species.FLOWERING_PERIOD,
+        'fruit_or_nut_period': fields.species.FRUIT_OR_NUT_PERIOD,
+        'fall_conspicuous': fields.species.FALL_CONSPICUOUS,
+        'flower_conspicuous': fields.species.FLOWER_CONSPICUOUS,
+        'palatable_human': fields.species.PALATABLE_HUMAN,
+        'has_wildlife_value': fields.species.HAS_WILDLIFE_VALUE,
+        'fact_sheet_url': fields.species.FACT_SHEET_URL,
+        'plant_guide_url': fields.species.PLANT_GUIDE_URL,
+        'max_diameter': fields.species.MAX_DIAMETER,
         'max_height': fields.species.MAX_HEIGHT,
-        'fact_sheet': fields.species.FACT_SHEET,
-        'other': fields.species.OTHER_PART_OF_NAME,
         'id': fields.species.ID
     }
 
@@ -524,170 +531,163 @@ class SpeciesImportRow(GenericImportRow):
     import_event = models.ForeignKey(SpeciesImportEvent)
 
     def diff_from_species(self, species):
-        """ Compute how this row is different from
-        the given species
+        """ Compute how this row is different from the given species.
 
         The result is a json dict with field names:
         { '<field name>': ['<species value>', '<row value>'] }
 
-        Note that you can't *remove* data with species import
+        Note that you can't *remove* data with species import.
 
         If the returned dictionary is empty, importing this
-        row will (essentially) be a nop
+        row will (essentially) be a nop.
 
-        This should only be called after a verify because I
-        uses cleaned data
+        This should only be called after a verify because it
+        uses cleaned data.
         """
         #TODO: Test me
         if species is None:
             return {}
 
         data = self.cleaned
-        rslt = {}
-        for (modelkey, rowkey) in SpeciesImportRow.SPECIES_MAP.iteritems():
-            rowdata = data.get(rowkey, None)
-            modeldata = getattr(species, modelkey)
+        result = {}
+        for (model_key, row_key) in SpeciesImportRow.SPECIES_MAP.iteritems():
+            row_data = data.get(row_key, None)
+            model_data = getattr(species, model_key)
 
-            if rowdata and rowdata != modeldata:
-                    rslt[rowkey] = (modeldata, rowdata)
+            if row_data and row_data != model_data:
+                result[row_key] = (model_data, row_data)
 
-        # Always include the ID
-        rslt['id'] = (species.pk, None)
+        # Always include the ID (so the client can use it)
+        result['id'] = (species.pk, None)
 
-        return rslt
+        # Compare i-Tree codes
+        key = fields.species.ITREE_PAIRS
+        if key in data:
+            row_itree_pairs = data[key]
+            model_itree_pairs = [(species.get_itree_code(region), region)
+                                 for (_, region) in row_itree_pairs]
+            if row_itree_pairs != model_itree_pairs:
+                result[key] = (model_itree_pairs, row_itree_pairs)
+
+        return result
 
     @property
     def model_fields(self):
         return fields.species
 
     def validate_species(self):
+        # Note we handle multiple matches only for edge cases like
+        # genus='Prunus' (species/genus/other blank), which matches
+        # both 'Plum' and 'Cherry'
+
         genus = self.datadict.get(fields.species.GENUS, '')
         species = self.datadict.get(fields.species.SPECIES, '')
         cultivar = self.datadict.get(fields.species.CULTIVAR, '')
         other_part = self.datadict.get(fields.species.OTHER_PART_OF_NAME, '')
-        family = self.datadict.get(fields.species.FAMILY, '')
 
-        # Save these as "empty" strings
         self.cleaned[fields.species.GENUS] = genus
         self.cleaned[fields.species.SPECIES] = species
         self.cleaned[fields.species.CULTIVAR] = cultivar
         self.cleaned[fields.species.OTHER_PART_OF_NAME] = other_part
-        self.cleaned[fields.species.FAMILY] = family
 
         if genus != '' or species != '' or cultivar != '' or other_part != '':
             matching_species = Species.objects \
                 .filter(genus__iexact=genus) \
                 .filter(species__iexact=species) \
                 .filter(cultivar__iexact=cultivar) \
-                .filter(other__iexact=other_part)
+                .filter(other_part_of_name__iexact=other_part)
 
-            self.cleaned[fields.species.ORIG_SPECIES]\
+            self.cleaned[fields.species.POSSIBLE_MATCHES] \
                 |= {s.pk for s in matching_species}
-
-        return True
-
-    def validate_code(self, fld, species_fld, addl_filters=None):
-        value = self.datadict.get(fld, None)
-
-        if value:
-            self.cleaned[fld] = value
-
-            matching_species = Species.objects\
-                                      .filter(**{species_fld: value})
-
-            if addl_filters:
-                matching_species = matching_species\
-                    .filter(**addl_filters)
-
-            self.cleaned[fields.species.ORIG_SPECIES]\
-                |= {s.pk for s in matching_species}
-
-        return True
 
     def validate_usda_code(self):
-        # USDA codes don't cover cultivars, so assert that
-        # a 'matching' species *must* have the same cultivar
-        # and same USDA code
-        addl_filter = {'cultivar_name':
-                       self.cleaned.get(fields.species.CULTIVAR,
-                                        '')}
+        # Look for an OTM code matching the USDA code.
+        # They won't match if there's a cultivar, but it might help
+        # if file's USDA codes are better than its scientific names.
+        usda_code = self.datadict.get(fields.species.USDA_SYMBOL, None)
+        if usda_code:
+            matching_species = Species.objects.filter(otm_code=usda_code)
 
-        # We don't save USDA code on individual species anymore, but otm_codes
-        # are mostly USDA codes, so it doesn't hurt when trying to match
-        return self.validate_code(fields.species.USDA_SYMBOL,
-                                  'otm_code', addl_filter)
+            self.cleaned[fields.species.POSSIBLE_MATCHES] \
+                |= {s.pk for s in matching_species}
 
     def validate_required_fields(self):
-        req = {fields.species.GENUS,
-               fields.species.COMMON_NAME, fields.species.ITREE_CODE}
-
-        has_errors = False
+        req = {fields.species.GENUS, fields.species.COMMON_NAME}
 
         for field in req:
             value = self.cleaned.get(field, None)
             if not value:
-                has_errors = True
                 self.append_error(errors.MISSING_FIELD, field)
 
-        return not has_errors
+    def validate_itree_code_and_region(self, region, code):
+        error = None
+        if region not in self.import_event.all_region_codes:
+            error = errors.INVALID_ITREE_REGION
 
-    def validate_itree_code(self):
-        default_region = settings.ITREE_REGION
+        elif region not in self.import_event.instance_region_codes:
+            error = errors.ITREE_REGION_NOT_IN_INSTANCE
 
-        def is_valid_code(code, region=default_region):
-            # Each region/datatype pair has its own set of benefits
-            # in this case we're using the 'electricity' benefit
-            # as the prototype
-            return False
-            # TODO: Make work in OTM2
-#             breaks, data = benefits._get_data(region, 'electricity')
+        elif code not in self.import_event.all_itree_codes:
+            error = errors.INVALID_ITREE_CODE
 
-#             return code in data
+        elif not has_itree_code(region, code):
+            error = errors.ITREE_CODE_NOT_IN_REGION
 
-        has_error = False
-        itreecode = self.datadict.get(fields.species.ITREE_CODE)
+        return error
 
-        # There are two formats for this column
-        # The first is simply an itree code:
-        # 'CEL OTHER'
-        #
-        # The other is a pairing between regions and itree codes
-        # that looks something like:
-        # <region>:<code>, ...
-        # SoCalCSMA:CEL OTHER, InlEmpCLM:CEL OTHER
-        if itreecode:
-            rsrcs = []
+    def validate_itree_code(self, itree_code):
+        region = None
+        error = None
+        n_regions = len(self.import_event.instance_region_codes)
+        if n_regions == 0:
+            error = errors.INSTANCE_HAS_NO_ITREE_REGION
 
-            if ':' in itreecode:
-                codes = [regioncode.split(':')
-                         for regioncode in itreecode.split(',')]
+        elif n_regions > 1:
+            error = errors.INSTANCE_HAS_MULTIPLE_ITREE_REGIONS
 
-                for region, code in codes:
-                    if is_valid_code(code, region):
-                        rsrcs.append((code, region))
-                    else:
-                        has_error = True
-                        self.append_error(errors.INVALID_ITREE_CODE,
-                                          (fields.species.ITREE_CODE,),
-                                          {'region': region,
-                                           'code': code})
-                        break
-
-                if not has_error:
-                    self.cleaned[fields.species.RESOURCE] = rsrcs
-            else:
-                if is_valid_code(itreecode):
-                    self.cleaned[fields.species.RESOURCE] = [(itreecode, None)]
-                else:
-                    has_error = True
-                    self.append_error(errors.INVALID_ITREE_CODE,
-                                      (fields.species.ITREE_CODE,))
         else:
-            has_error = True
-            self.append_error(errors.MISSING_ITREE_CODE,
-                              (fields.species.ITREE_CODE,))
+            region = self.import_event.instance_region_codes[0]
+            if itree_code not in self.import_event.all_itree_codes:
+                error = errors.INVALID_ITREE_CODE
 
-        return not has_error
+            elif not has_itree_code(region, itree_code):
+                error = errors.ITREE_CODE_NOT_IN_REGION
+
+        return error, region
+
+    def validate_itree_code_field(self):
+        itree_code = self.datadict.get(fields.species.ITREE_CODE)
+        if not itree_code:
+            return
+
+        pairs = []
+        error = None
+
+        if ':' in itree_code:
+            # Field contains region:code pairs, e.g.
+            # SoCalCSMA:CEL OTHER, InlEmpCLM:CEL OTHER
+            codes = [pair.split(':')
+                     for pair in itree_code.split(',')]
+
+            for region, code in codes:
+                region = region.strip()
+                code = code.strip()
+                error = self.validate_itree_code_and_region(region, code)
+                pairs.append((code, region))
+                if error:
+                    break
+
+        else:
+            # Field contains a single i-Tree code
+            error, region = self.validate_itree_code(itree_code)
+            pairs.append((itree_code, region))
+
+        if error:
+            self.append_error(error, fields.species.ITREE_CODE,
+                              {'code': pairs[-1][0],
+                               'region': pairs[-1][1]})
+        else:
+            self.cleaned[fields.species.ITREE_PAIRS] = pairs
 
     def validate_row(self):
         """
@@ -700,37 +700,25 @@ class SpeciesImportRow(GenericImportRow):
         - The 'cleaned' field on self will be set as fields
           get validated
         """
-        # Clear errrors
+        # Clear errors
         self.errors = ''
-
-        # NOTE: Validations append errors directly to importrow
-        # and move data over to the 'cleaned' hash as it is
-        # validated
 
         # Convert all fields to correct datatypes
         self.validate_and_convert_datatypes()
 
-        # Check to see if this species matches any existing ones
-        # they'll be stored as a set of ORIG_SPECIES
-        self.cleaned[fields.species.ORIG_SPECIES] = set()
-
+        # Check to see if this species matches any existing ones.
+        # They'll be stored as a set of POSSIBLE_MATCHES
+        self.cleaned[fields.species.POSSIBLE_MATCHES] = set()
         self.validate_species()
         self.validate_usda_code()
 
-        self.validate_itree_code()
+        self.validate_itree_code_field()
         self.validate_required_fields()
-
-        # Native status is a horrible field that pretends to
-        # be a boolean value but is actually a string so we
-        # change it here
-        if fields.species.NATIVE_STATUS in self.cleaned:
-            self.cleaned[fields.species.NATIVE_STATUS] = str(
-                self.cleaned[fields.species.NATIVE_STATUS])
 
         # If same is set to true this is essentially a no-op
         same = False
 
-        possible_matches = self.cleaned[fields.species.ORIG_SPECIES]
+        possible_matches = self.cleaned[fields.species.POSSIBLE_MATCHES]
         # TODO: Certain fields require this flag to be reset
         if not self.merged:
             if len(possible_matches) == 0:
@@ -745,7 +733,6 @@ class SpeciesImportRow(GenericImportRow):
                 if all([diff.keys() == ['id'] for diff in diffs]):
                     self.merged = True
                     same = True
-
                     self.species = species[0]
                 else:
                     diff_keys = set()
@@ -775,6 +762,7 @@ class SpeciesImportRow(GenericImportRow):
         self.save()
         return not fatal
 
+    @transaction.atomic
     def commit_row(self):
         # First validate
         if not self.validate_row():
@@ -789,8 +777,7 @@ class SpeciesImportRow(GenericImportRow):
 
         species_edited = False
 
-        # Initially grab species from row if it exists
-        # and edit it
+        # Initially grab species from row if it exists and edit it
         species = self.species
 
         # If not specified create a new one
@@ -813,29 +800,31 @@ class SpeciesImportRow(GenericImportRow):
                 species_edited = True
                 setattr(species, modelkey, importdata)
 
+        # Set OTM code if missing and available
+        if not species.otm_code:
+            species_dict = species_for_scientific_name(
+                species.genus, species.species, species.cultivar,
+                species.other_part_of_name)
+            if species_dict:
+                species_edited = True
+                species.otm_code = species_dict['otm_code']
+
         if species_edited:
             data_owner = self.import_event.owner
             species.save_with_user(data_owner)
 
-# TODO: Remove?
-#         resources = data[fields.species.RESOURCE]
-#
-#         species.resource.clear()
-#
-#         for code, region in resources:
-#             r = Resource.objects.filter(meta_species=code,
-#                                         region=region)
-#
-#             if r.exists():
-#                 resource = r[0]
-#             else:
-#                 resource = Resource.objects.create(meta_species=code,
-#                                                    region=region)
-#
-#             species.resource.add(resource)
-#
-#         species.save()
-#         resource.save()
+        # Make i-Tree code override(s) if necessary
+        if fields.species.ITREE_PAIRS in data:
+            for itree_code, region_code in data[fields.species.ITREE_PAIRS]:
+
+                if itree_code != species.get_itree_code(region_code):
+
+                    override = ITreeCodeOverride.objects.get_or_create(
+                        instance_species=species,
+                        region=ITreeRegion.objects.get(code=region_code),
+                    )[0]
+                    override.itree_code = itree_code
+                    override.save_with_user(data_owner)
 
         self.species = species
         self.status = TreeImportRow.SUCCESS
@@ -1040,7 +1029,7 @@ class TreeImportRow(GenericImportRow):
     def validate_species_dbh_max(self, species):
         return self.validate_species_max(
             fields.trees.DIAMETER,
-            species.max_dbh, errors.SPECIES_DBH_TOO_HIGH)
+            species.max_diameter, errors.SPECIES_DBH_TOO_HIGH)
 
     def validate_species_height_max(self, species):
         return self.validate_species_max(
@@ -1058,7 +1047,7 @@ class TreeImportRow(GenericImportRow):
                 .filter(genus__iexact=genus) \
                 .filter(species__iexact=species) \
                 .filter(cultivar__iexact=cultivar) \
-                .filter(other__iexact=other_part)
+                .filter(other_part_of_name__iexact=other_part)
 
             if len(matching_species) == 1:
                 self.cleaned[fields.trees.SPECIES_OBJECT] = matching_species[0]
