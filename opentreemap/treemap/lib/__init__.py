@@ -50,4 +50,3 @@ def get_function_by_path(fn_path):
     mod = __import__(modulepath, fromlist=[fcn])
 
     return getattr(mod, fcn)
-
