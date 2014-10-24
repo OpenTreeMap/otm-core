@@ -15,7 +15,11 @@ from django.http import HttpResponse, HttpResponseRedirect
 
 from django.contrib.auth.decorators import login_required
 
+from opentreemap.util import decorate as do
+
 from treemap.models import Species, Tree
+from treemap.decorators import (admin_instance_request, require_http_method,
+                                render_template)
 
 from importer.models import (TreeImportEvent, TreeImportRow, GenericImportRow,
                              GenericImportEvent, SpeciesImportEvent,
@@ -116,8 +120,7 @@ def create(request, instance):
     return HttpResponseRedirect(reverse('importer:list_imports'))
 
 
-@login_required
-def list_imports(request, instance):
+def list_imports_view(request, instance):
     trees = TreeImportEvent.objects.filter(instance=instance).order_by('id')
 
     active_trees = trees.exclude(status=GenericImportEvent.FINISHED_CREATING)
@@ -135,17 +138,13 @@ def list_imports(request, instance):
         status=GenericImportEvent.FINISHED_CREATING)
 
     all_species = Species.objects.filter(instance=instance)
-    all_species = sorted(all_species, key=lambda s: s.get_long_name())
+    all_species = sorted(all_species, key=lambda s: s.display_name)
 
-    return render_to_response(
-        'importer/list.html',
-        RequestContext(
-            request,
-            {'trees_active': active_trees,
-             'trees_finished': finished_trees,
-             'species_active': active_species,
-             'species_finished': finished_species,
-             'all_species': all_species}))
+    return {'trees_active': active_trees,
+            'trees_finished': finished_trees,
+            'species_active': active_species,
+            'species_finished': finished_species,
+            'all_species': all_species}
 
 
 @login_required
@@ -682,3 +681,8 @@ def create_rows_for_event(importevent, csvfile):
         idx += 1
 
     return rows
+
+list_imports = do(admin_instance_request,
+                  require_http_method('GET'),
+                  render_template('importer/list.html'),
+                  list_imports_view)

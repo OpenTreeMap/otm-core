@@ -15,8 +15,8 @@
         /opentreemap/treemap/static/ here for that to work.
 
     -->
-    <link href="static/css/vendor.css" rel="stylesheet">
-    <link href="static/css/main.css" rel="stylesheet">
+    <link href="/static/css/vendor.css" rel="stylesheet">
+    <link href="/static/css/main.css" rel="stylesheet">
 </head>
 <body>
 <div class="wrapper">
@@ -168,9 +168,10 @@
                             </div>
 
                             <div class="row top-pad-lg">
+                            {% url 'importer:create' instance_url_name=request.instance.url_name as create_url %}
                                 <div class="col-md-6">
                                     <div class="well">
-                                        <form id="treeform" method="POST" action="{% url 'importer:create' %}" enctype="multipart/form-data">
+                                      <form id="treeform" method="POST" action="{{ create_url }}" enctype="multipart/form-data">
                                             <input type="hidden" name="type" value="tree"></input>
                                             <input name="unit_plot_length" value="1" type="hidden">
                                             <input name="unit_plot_width" value="1" type="hidden">
@@ -188,7 +189,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="well">
-                                        <form id="speciesform" method="POST" action="{% url 'importer:create' %}" enctype="multipart/form-data">
+                                      <form id="speciesform" method="POST" action="{{ create_url }}" enctype="multipart/form-data">
                                             <input type="hidden" name="type" value="species"></input>
                                             <div class="input-group">
                                                   <input type="text" class="form-control" placeholder="Upload Species">

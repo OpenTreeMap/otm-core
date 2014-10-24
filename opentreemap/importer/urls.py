@@ -3,8 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls.defaults import patterns, url
-from django.contrib import admin
+from django.conf.urls import patterns, url
 
 from importer.views import (
     list_imports, create, show_tree_import_status, show_species_import_status,
