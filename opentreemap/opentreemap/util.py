@@ -97,3 +97,12 @@ def any_args_contain_pattern(args, patterns):
                 return True
     else:
         return False
+
+
+def dict_pop(dictionary, query):
+    if query in dictionary:
+        match = dictionary[query]
+        del dictionary[query]
+        return (match, True)
+    else:
+        return (None, False)

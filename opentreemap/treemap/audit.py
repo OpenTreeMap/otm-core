@@ -20,6 +20,8 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, connection, transaction
 from django.conf import settings
 
+from opentreemap.util import dict_pop
+
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name)
 from treemap.util import all_subclasses
@@ -889,12 +891,8 @@ class Auditable(UserTrackable):
         # Authorizable class and then removes it from the kwargs, preserving
         # the normal save_with_user API.
         # TODO: decouple Authorizable from Auditable.
-        if kwargs.get('unsafe', None):
-            auth_bypass = True
-            kwargs = {k: v for k, v in kwargs.items()
-                      if k != 'unsafe'}
-        else:
-            auth_bypass = False
+        unsafe, _ = dict_pop(kwargs, 'unsafe')
+        auth_bypass = bool(unsafe)
 
         if self.is_pending_insert:
             raise Exception("You have already saved this object.")
