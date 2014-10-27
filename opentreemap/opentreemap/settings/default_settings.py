@@ -218,6 +218,7 @@ MANAGED_APPS = (
     'otm1_migrator',
     'otm_comments',
     'importer',
+    'appevents'
 )
 
 UNMANAGED_APPS = (
