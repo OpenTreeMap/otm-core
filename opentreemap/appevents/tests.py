@@ -3,10 +3,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from treemap.tests.base import OTMTestCase
-from appevents.models import AppEvent
-from django.utils.timezone import now
 from datetime import timedelta
+
+from django.utils.timezone import now
+
+from treemap.tests.base import OTMTestCase
+
+from appevents.models import AppEvent
 
 
 class AppEventTests(OTMTestCase):
