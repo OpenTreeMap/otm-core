@@ -19,7 +19,7 @@ from opentreemap.util import decorate as do
 
 from treemap.models import Species, Tree
 from treemap.decorators import (admin_instance_request, require_http_method,
-                                render_template)
+                                render_template, requires_feature)
 
 from importer.models import (TreeImportEvent, TreeImportRow, GenericImportRow,
                              GenericImportEvent, SpeciesImportEvent,
@@ -683,6 +683,7 @@ def create_rows_for_event(importevent, csvfile):
     return rows
 
 list_imports = do(admin_instance_request,
+                  requires_feature('bulk_upload'),
                   require_http_method('GET'),
                   render_template('importer/list.html'),
                   list_imports_view)
