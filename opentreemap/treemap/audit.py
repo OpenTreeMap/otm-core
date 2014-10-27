@@ -11,7 +11,7 @@ from django.contrib.gis.geos import GEOSGeometry
 
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as trans
-from django.utils.dateformat import format
+from django.utils.dateformat import format as dformat
 from django.dispatch import receiver
 from django.db.models import OneToOneField
 from django.db.models.signals import post_save, post_delete
@@ -1155,7 +1155,7 @@ class Audit(models.Model):
             if value.geom_type in {'MultiPolygon', 'Polygon'}:
                 value = value.area
         elif isinstance(value, datetime):
-            value = format(value, settings.SHORT_DATE_FORMAT)
+            value = dformat(value, settings.SHORT_DATE_FORMAT)
 
         if is_convertible_or_formattable(model_name, self.field):
             _, value = get_display_value(
