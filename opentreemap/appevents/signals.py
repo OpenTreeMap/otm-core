@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from models import AppEvent
