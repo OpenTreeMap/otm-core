@@ -27,6 +27,7 @@ from treemap.units import (is_convertible, is_convertible_or_formattable,
 from treemap.util import all_subclasses
 from treemap.lib.object_caches import (permissions, role_permissions,
                                        invalidate_adjuncts, udf_defs)
+from treemap.lib.dates import datesafe_eq
 
 
 def model_hasattr(obj, name):
@@ -460,8 +461,12 @@ class UserTrackable(Dictable):
                 old = self._previous_state.get(key, None)
                 new = d.get(key, None)
 
-                if new != old:
-                    updated[key] = [old, new]
+                if isinstance(new, datetime) or isinstance(old, datetime):
+                    if not datesafe_eq(new, old):
+                        updated[key] = [old, new]
+                else:
+                    if new != old:
+                        updated[key] = [old, new]
 
         return updated
 
