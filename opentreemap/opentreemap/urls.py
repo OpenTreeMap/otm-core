@@ -74,6 +74,8 @@ urlpatterns = patterns(
         RegistrationView.as_view(),
        name='instance_registration_register'),
     url(instance_pattern + r'/', include('treemap.urls')),
+    url(instance_pattern + r'/importer/', include('importer.urls',
+                                                  namespace='importer')),
     url(instance_pattern + r'/export/', include('exporter.urls')),
     url(instance_pattern + r'/comments/', include('otm_comments.urls')),
 )

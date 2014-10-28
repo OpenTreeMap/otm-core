@@ -3,16 +3,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls.defaults import patterns, url
-from django.contrib import admin
+from django.conf.urls import patterns, url
 
 from importer.views import (
     list_imports, create, show_tree_import_status, show_species_import_status,
     update_row, export_all_species, export_single_species_import,
     export_single_tree_import, merge_species, results, commit, update, solve,
     counts, find_similar_species)
-
-admin.autodiscover()
+from treemap.plugin import feature_enabled
 
 
 _import_api_pattern = r'(?P<import_type>[a-z]+)/(?P<import_event_id>\d+)'
@@ -47,3 +45,6 @@ urlpatterns = patterns(
     url(r'^api/species/similar', find_similar_species,
         name='find_similar_species'),
 )
+
+if not feature_enabled(None, 'bulk_upload'):
+    urlpatterns = patterns('')
