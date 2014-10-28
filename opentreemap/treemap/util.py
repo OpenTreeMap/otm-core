@@ -19,6 +19,7 @@ from django.utils.translation import ugettext_lazy as trans
 from django.db.models.fields.files import ImageFieldFile
 from django.contrib.gis.geos import Point
 
+from opentreemap.util import dict_pop
 from treemap.instance import Instance
 
 
@@ -107,9 +108,10 @@ def login_redirect(request):
 
 
 def get_instance_or_404(**kwargs):
-    new_kwargs = {('url_name__iexact' if k == 'url_name' else k): v
-                  for k, v in kwargs.iteritems()}
-    return get_object_or_404(Instance, **new_kwargs)
+    url_name, found = dict_pop(kwargs, 'url_name')
+    if found:
+        kwargs['url_name__iexact'] = url_name
+    return get_object_or_404(Instance, **kwargs)
 
 
 def package_field_errors(model_name, validation_error):

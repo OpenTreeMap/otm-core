@@ -11,7 +11,7 @@ from django.contrib.gis.geos import GEOSGeometry
 
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as trans
-from django.utils.dateformat import format
+from django.utils.dateformat import format as dformat
 from django.dispatch import receiver
 from django.db.models import OneToOneField
 from django.db.models.signals import post_save, post_delete
@@ -20,11 +20,14 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, connection, transaction
 from django.conf import settings
 
+from opentreemap.util import dict_pop
+
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name)
 from treemap.util import all_subclasses
 from treemap.lib.object_caches import (permissions, role_permissions,
                                        invalidate_adjuncts, udf_defs)
+from treemap.lib.dates import datesafe_eq
 
 
 def model_hasattr(obj, name):
@@ -458,8 +461,12 @@ class UserTrackable(Dictable):
                 old = self._previous_state.get(key, None)
                 new = d.get(key, None)
 
-                if new != old:
-                    updated[key] = [old, new]
+                if isinstance(new, datetime) or isinstance(old, datetime):
+                    if not datesafe_eq(new, old):
+                        updated[key] = [old, new]
+                else:
+                    if new != old:
+                        updated[key] = [old, new]
 
         return updated
 
@@ -889,12 +896,8 @@ class Auditable(UserTrackable):
         # Authorizable class and then removes it from the kwargs, preserving
         # the normal save_with_user API.
         # TODO: decouple Authorizable from Auditable.
-        if kwargs.get('unsafe', None):
-            auth_bypass = True
-            kwargs = {k: v for k, v in kwargs.items()
-                      if k != 'unsafe'}
-        else:
-            auth_bypass = False
+        unsafe, _ = dict_pop(kwargs, 'unsafe')
+        auth_bypass = bool(unsafe)
 
         if self.is_pending_insert:
             raise Exception("You have already saved this object.")
@@ -1157,7 +1160,7 @@ class Audit(models.Model):
             if value.geom_type in {'MultiPolygon', 'Polygon'}:
                 value = value.area
         elif isinstance(value, datetime):
-            value = format(value, settings.SHORT_DATE_FORMAT)
+            value = dformat(value, settings.SHORT_DATE_FORMAT)
 
         if is_convertible_or_formattable(model_name, self.field):
             _, value = get_display_value(
