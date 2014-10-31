@@ -20,8 +20,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, connection, transaction
 from django.conf import settings
 
-from opentreemap.util import dict_pop
-
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name)
 from treemap.util import all_subclasses
@@ -126,7 +124,7 @@ def add_default_permissions(instance, roles=None, models=None):
     if models is None:
         # MapFeature is "Authorizable", but it is effectively abstract
         # Only it's subclasses should have permissions added
-        models = all_subclasses(Authorizable) - {MapFeature}
+        models = all_subclasses(Authorizable) - {MapFeature, PendingAuditable}
 
     for role in roles:
         _add_default_permissions(models, role, instance)
@@ -453,6 +451,16 @@ class UserTrackable(Dictable):
                 in self._meta.fields
                 if field.name not in self._do_not_track]
 
+    def _direct_updates(self, updates, user):
+        pending_fields = self.get_pending_fields(user)
+        return {key: val for key, val in updates.iteritems()
+                if key not in pending_fields}
+
+    def _pending_updates(self, updates, user):
+        pending_fields = self.get_pending_fields(user)
+        return {key: val for key, val in updates.iteritems()
+                if key in pending_fields}
+
     def _updated_fields(self):
         updated = {}
         d = self.as_dict()
@@ -463,10 +471,10 @@ class UserTrackable(Dictable):
 
                 if isinstance(new, datetime) or isinstance(old, datetime):
                     if not datesafe_eq(new, old):
-                        updated[key] = [old, new]
+                        updated[key] = (old, new)
                 else:
                     if new != old:
-                        updated[key] = [old, new]
+                        updated[key] = (old, new)
 
         return updated
 
@@ -718,9 +726,10 @@ class Authorizable(UserTrackable):
         """
         perms = permissions(user, self.instance, self._model_name)
         fields_to_audit = []
+        tracked_fields = self.tracked_fields
         for perm in perms:
             if ((perm.permission_level == FieldPermission.WRITE_WITH_AUDIT and
-                 perm.field_name in self._updated_fields())):
+                 perm.field_name in tracked_fields)):
 
                 fields_to_audit.append(perm.field_name)
 
@@ -782,11 +791,8 @@ class Authorizable(UserTrackable):
 
     def save_with_user_without_verifying_authorization(self, user,
                                                        *args, **kwargs):
-
-        if isinstance(self, Auditable):
-            kwargs.update({'unsafe': True})
-
-        super(Authorizable, self).save_with_user(user, *args, **kwargs)
+        super(Authorizable, self).save_with_user(user, auth_bypass=True,
+                                                 *args, **kwargs)
 
     def delete_with_user(self, user, *args, **kwargs):
         self._assert_not_masked()
@@ -807,40 +813,9 @@ class Auditable(UserTrackable):
     """
     Watches an object for changes and logs them
 
-    You probably want to inherit this mixin after
-    Authorizable, and not before.
-
-    Ex.
-    class Foo(Authorizable, Auditable, models.Model):
-        ...
+    If you want to use this with Authorizable, you should mixin
+    PendingAuditable, which joins both classes together nicely
     """
-    def __init__(self, *args, **kwargs):
-        super(Auditable, self).__init__(*args, **kwargs)
-        self.is_pending_insert = False
-
-    def full_clean(self, *args, **kwargs):
-        if not isinstance(self, Authorizable):
-            super(Auditable, self).full_clean(*args, **kwargs)
-        else:
-            raise TypeError("all calls to full clean must be done via "
-                            "'full_clean_with_user'")
-
-    def full_clean_with_user(self, user):
-        if ((not isinstance(self, Authorizable) or
-             self.user_can_create(user, direct_only=True))):
-            exclude_fields = []
-        else:
-            # If we aren't making a real object then we shouldn't
-            # check foreign key contraints. These will be checked
-            # when the object is actually made. They are also enforced
-            # a the database level
-            exclude_fields = []
-            for field in self._fields_required_for_create():
-                if isinstance(field, models.ForeignKey):
-                    exclude_fields.append(field.name)
-
-        super(Auditable, self).full_clean(exclude=exclude_fields)
-
     def audits(self):
         return Audit.audits_for_object(self)
 
@@ -853,12 +828,6 @@ class Auditable(UserTrackable):
 
         super(Auditable, self).delete_with_user(user, *args, **kwargs)
         a.save()
-
-    def get_active_pending_audits(self):
-        return self.audits()\
-                   .filter(requires_auth=True)\
-                   .filter(ref__isnull=True)\
-                   .order_by('-created')
 
     def validate_foreign_keys_exist(self):
         """
@@ -890,84 +859,52 @@ class Auditable(UserTrackable):
                     raise IntegrityError("%s has non-existent %s" %
                                          (self, field.name))
 
-    def save_with_user(self, user, *args, **kwargs):
+    def save_with_user(self, user, updates=None, *args, **kwargs):
+        action = Audit.Type.Insert if self.pk is None else Audit.Type.Update
 
-        # A concession. This is a direct message from the Authorizable class
-        # to the Auditable class, even though ideally they shouldn't need to
-        # know about each other. Even though this method is inside Auditable
-        # some Auth tasks are performed in this method, coupling the two
-        # classes. Since that is happening, the Auth class needs to be able to
-        # communicate in order to bypass the normal flow of authorization.
-        # This conditional block receives the 'unsafe' directive from the
-        # Authorizable class and then removes it from the kwargs, preserving
-        # the normal save_with_user API.
-        # TODO: decouple Authorizable from Auditable.
-        unsafe, _ = dict_pop(kwargs, 'unsafe')
-        auth_bypass = bool(unsafe)
+        # We need to stash the updated fields, because `save` will change them
+        if updates is None:
+            updates = self._updated_fields()
+        elif 'updates' in kwargs:
+            del kwargs['updates']
 
-        if self.is_pending_insert:
-            raise Exception("You have already saved this object.")
+        # We need to run the super method to get a pk to put in the audits
+        super(Auditable, self).save_with_user(user, *args, **kwargs)
+        audits = list(self._make_audits(user, action, updates))
 
-        updates = self._updated_fields()
+        Audit.objects.bulk_create(audits)
+        ReputationMetric.apply_adjustment(*audits)
 
-        is_insert = self.pk is None
-        action = Audit.Type.Insert if is_insert else Audit.Type.Update
+    def _make_audits(self, user, audit_type, updates):
+        """Creates Audit objects suitable for using in a bulk_create
+        The object must have a pk set (this may be a reserved id)
 
-        pending_audits = []
-        pending_fields = self.get_pending_fields(user)
+        user - The user making the change
+        audit_type - This should be Audit.Type.Insert or Audit.Type.Update
+        """
+        if self.pk is None:
+            raise AuditException('Cannot create audits for a model with no pk')
 
-        for pending_field in pending_fields:
+        direct_updates = self._direct_updates(updates, user)
 
-            pending_audits.append((pending_field, updates[pending_field]))
-
-            # Clear changes to object
-            oldval = updates[pending_field][0]
-            try:
-                self.apply_change(pending_field, oldval)
-            except ValueError:
-                pass
-
-            # If a field is a "pending field" then it should
-            # be logically removed from the fields that are being
-            # marked as "updated"
-            del updates[pending_field]
+        # If this is an insert we need to make an Audit record for id
+        # (This field is normally not tracked)
+        if audit_type == Audit.Type.Insert:
+            direct_updates['id'] = (None, self.pk)
 
         instance = self.instance if hasattr(self, 'instance') else None
 
-        if ((not isinstance(self, Authorizable) or
-             self.user_can_create(user, direct_only=True) or
-             self.pk is not None or
-             auth_bypass)):
-            super(Auditable, self).save_with_user(user, *args, **kwargs)
-            model_id = self.pk
-        else:
-            model_id = _reserve_model_id(
-                get_authorizable_class(self._model_name))
-            self.pk = model_id
-            self.id = model_id  # for e.g. Plot, where pk != id
-            self.is_pending_insert = True
+        def make_audit(field, prev_val, cur_val):
+            return Audit(model=self._model_name, model_id=self.pk,
+                         instance=instance, field=field,
+                         previous_value=prev_val,
+                         current_value=cur_val,
+                         user=user, action=audit_type,
+                         requires_auth=False,
+                         ref=None)
 
-        if is_insert:
-            if self.is_pending_insert:
-                pending_audits.append(('id', (None, model_id)))
-            else:
-                updates['id'] = [None, model_id]
-
-        def make_audit_and_save(field, prev_val, cur_val, pending):
-
-            Audit(model=self._model_name, model_id=model_id,
-                  instance=instance, field=field,
-                  previous_value=prev_val,
-                  current_value=cur_val,
-                  user=user, action=action,
-                  requires_auth=pending,
-                  ref=None).save()
-
-        for [field, values] in updates.iteritems():
-            make_audit_and_save(field, values[0], values[1], False)
-
-        for (field, (prev_val, next_val)) in pending_audits:
-            make_audit_and_save(field, prev_val, next_val, True)
+        for [field, (prev_value, next_value)] in direct_updates.iteritems():
+            yield make_audit(field, prev_value, next_value)
 
     @property
     def hash(self):
@@ -1015,6 +952,129 @@ class Auditable(UserTrackable):
                                                 '%(field)s to %(value)s')
             }
         return lang[audit.action]
+
+
+class _PendingAuditable(Auditable):
+    """Subclasses Auditable to add support for pending audits.
+    You should never use this directly, since it requires Authorizable.
+    Instead use PendingAuditable (no underscore)
+    """
+    def __init__(self, *args, **kwargs):
+        super(_PendingAuditable, self).__init__(*args, **kwargs)
+        self.is_pending_insert = False
+
+    def full_clean(self, *args, **kwargs):
+        raise TypeError("all calls to full clean must be done via "
+                        "'full_clean_with_user'")
+
+    def full_clean_with_user(self, user):
+        if (self.user_can_create(user, direct_only=True)):
+            exclude_fields = []
+        else:
+            # If we aren't making a real object then we shouldn't
+            # check foreign key contraints. These will be checked
+            # when the object is actually made. They are also enforced
+            # a the database level
+            exclude_fields = []
+            for field in self._fields_required_for_create():
+                if isinstance(field, models.ForeignKey):
+                    exclude_fields.append(field.name)
+
+        super(_PendingAuditable, self).full_clean(exclude=exclude_fields)
+
+    def get_active_pending_audits(self):
+        return self.audits()\
+                   .filter(requires_auth=True)\
+                   .filter(ref__isnull=True)\
+                   .order_by('-created')
+
+    def save_with_user_without_verifying_authorization(self, user,
+                                                       *args, **kwargs):
+        return self.save_with_user(user, auth_bypass=True, *args, **kwargs)
+
+    @transaction.atomic
+    def save_with_user(self, user, auth_bypass=False, *args, **kwargs):
+        if self.is_pending_insert:
+            raise Exception("You have already saved this object.")
+
+        if auth_bypass in kwargs:
+            del kwargs['auth_bypass']
+
+        updates = self._updated_fields()
+        pending_updates = self._pending_updates(updates, user)
+
+        # Before saving we need to restore any pending values to their
+        # previous state
+        for pending_field, (old_val, _) in pending_updates.iteritems():
+            try:
+                self.apply_change(pending_field, old_val)
+            except ValueError:
+                pass
+
+        is_insert = self.pk is None
+
+        if ((self.user_can_create(user, direct_only=True)
+             or not is_insert or auth_bypass)):
+            # Auditable will make the audits for us (including pending audits)
+            return super(_PendingAuditable, self).save_with_user(
+                user, updates=updates, *args, **kwargs)
+        else:
+            # In the pending insert case we never save the model, only audits
+            # Thus we need to reserve a PK to place in the Audit row
+            model_id = _reserve_model_id(
+                get_authorizable_class(self._model_name))
+            self.pk = model_id
+            self.id = model_id  # for e.g. Plot, where pk != id
+            self.is_pending_insert = True
+
+            action = Audit.Type.Insert if is_insert else Audit.Type.Update
+            audits = list(self._make_audits(user, action, updates))
+
+            Audit.objects.bulk_create(audits)
+            ReputationMetric.apply_adjustment(*audits)
+
+    def _make_audits(self, user, audit_type, updates):
+        """Creates Audit objects suitable for using in a bulk_create
+        The object must have a pk set (this may be a reserved id)
+
+        user - The user making the change
+        audit_type - This should be Audit.Type.Insert or Audit.Type.Update
+        """
+        normal_audits = super(_PendingAuditable, self)._make_audits(
+            user, audit_type, updates)
+
+        for audit in normal_audits:
+            if self.is_pending_insert and audit.field == 'id':
+                audit.requires_auth = True
+            yield audit
+
+        pending_updates = self._pending_updates(updates, user)
+
+        instance = self.instance if hasattr(self, 'instance') else None
+
+        def make_pending_audit(field, prev_val, cur_val):
+            return Audit(model=self._model_name, model_id=self.pk,
+                         instance=instance, field=field,
+                         previous_value=prev_val,
+                         current_value=cur_val,
+                         user=user, action=audit_type,
+                         requires_auth=True,
+                         ref=None)
+
+        for [field, (prev_value, next_value)] in pending_updates.iteritems():
+            yield make_pending_audit(field, prev_value, next_value)
+
+
+class PendingAuditable(Authorizable, _PendingAuditable):
+    """
+    Ties together Authorizable and Auditable, mainly for the purpose of making
+    pending Audits when the user does not have permission to directly update
+    a field
+
+    You should probably be using this class instead of mixing in both
+    Auditable and Authorizable
+    """
+    pass
 
 
 ###
@@ -1282,37 +1342,44 @@ class ReputationMetric(models.Model):
         return "%s - %s - %s" % (self.instance, self.model_name, self.action)
 
     @staticmethod
-    def apply_adjustment(audit):
-        try:
-            rm = ReputationMetric.objects.get(instance=audit.instance,
-                                              model_name=audit.model,
-                                              action=audit.action)
-        except ObjectDoesNotExist:
-            return
+    def apply_adjustment(*audits):
+        iusers = {}
+        for audit in audits:
+            try:
+                rm = ReputationMetric.objects.get(instance=audit.instance,
+                                                  model_name=audit.model,
+                                                  action=audit.action)
+            except ObjectDoesNotExist:
+                return
 
-        iuser = audit.user.get_instance_user(audit.instance)
-
-        if audit.requires_auth and audit.ref:
-            review_audit = audit.ref
-            if review_audit.action == Audit.Type.PendingApprove:
-                iuser.reputation += rm.approval_score
-                iuser.save_base()
-            elif review_audit.action == Audit.Type.PendingReject:
-                new_score = iuser.reputation - rm.denial_score
-                if new_score >= 0:
-                    iuser.reputation = new_score
-                else:
-                    iuser.reputation = 0
-                iuser.save_base()
+            key = (audit.user.pk, audit.instance.pk)
+            if key in iusers:
+                iuser = iusers[key]
             else:
-                error_message = ("Referenced Audits must carry approval "
-                                 "actions. They must have an action of "
-                                 "PendingApprove or Pending Reject. "
-                                 "Something might be very wrong with your "
-                                 "database configuration.")
-                raise IntegrityError(error_message)
-        elif not audit.requires_auth:
-            iuser.reputation += rm.direct_write_score
+                iuser = audit.user.get_instance_user(audit.instance)
+                iusers[key] = iuser
+
+            if audit.requires_auth and audit.ref:
+                review_audit = audit.ref
+                if review_audit.action == Audit.Type.PendingApprove:
+                    iuser.reputation += rm.approval_score
+                elif review_audit.action == Audit.Type.PendingReject:
+                    new_score = iuser.reputation - rm.denial_score
+                    if new_score >= 0:
+                        iuser.reputation = new_score
+                    else:
+                        iuser.reputation = 0
+                else:
+                    error_message = ("Referenced Audits must carry approval "
+                                     "actions. They must have an action of "
+                                     "PendingApprove or Pending Reject. "
+                                     "Something might be very wrong with your "
+                                     "database configuration.")
+                    raise IntegrityError(error_message)
+            elif not audit.requires_auth:
+                iuser.reputation += rm.direct_write_score
+
+        for iuser in iusers.itervalues():
             iuser.save_base()
 
 
