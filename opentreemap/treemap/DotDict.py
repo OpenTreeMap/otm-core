@@ -67,5 +67,11 @@ class DotDict(dict):
             self[key] = default
         return self[key]
 
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+
     __setattr__ = __setitem__
     __getattr__ = __getitem__
