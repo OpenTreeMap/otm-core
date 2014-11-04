@@ -64,7 +64,7 @@ def get_id_sequence_name(model_class):
 
 def _reserve_model_id(model_class):
     """
-    queries the database to get id from the audit id sequence.
+    queries the database to get id from the model_class's id sequence.
     this is used to reserve an id for a record that hasn't been
     created yet, in order to make references to that record.
     """
@@ -80,6 +80,28 @@ def _reserve_model_id(model_class):
         raise IntegrityError(msg)
 
     return model_id
+
+
+def _reserve_model_id_range(model_class, num):
+    """
+    queries the db to get a range of ids from the model_class's id sequence.
+    this is used to reserve an id for a record that hasn't been
+    created yet, in order to make references to that record.
+    """
+    try:
+        id_seq_name = get_id_sequence_name(model_class)
+        cursor = connection.cursor()
+        cursor.execute(
+            "select nextval(%(seq)s) from generate_series( 1, %(num)s) id;",
+            {'seq': id_seq_name, 'num': num})
+
+        model_ids = [row[0] for row in cursor]
+        assert(type(model_id) in [int, long] for model_id in model_ids)
+    except:
+        msg = "There was a database error while retrieving a unique audit ID."
+        raise IntegrityError(msg)
+
+    return model_ids
 
 
 @transaction.atomic
@@ -407,6 +429,26 @@ def _verify_user_can_apply_audit(audit, user):
         raise AuthorizeException(
             "User %s can't edit field %s on model %s (No permissions found)" %
             (user, field, model))
+
+
+@transaction.atomic
+def bulk_create_with_user(auditables, user):
+    if not auditables or len({a._model_name for a in auditables}) != 1:
+        raise Exception('Auditables must be a nonempty list of the same model')
+
+    ModelClass = get_auditable_class(auditables[0]._model_name)
+    model_ids = _reserve_model_id_range(ModelClass, len(auditables))
+
+    audits = []
+    for model, model_id in zip(auditables, model_ids):
+        model.pk = model_id
+        model.id = model_id
+
+        updates = model._updated_fields()
+        audits.extend(model._make_audits(user, Audit.Type.Insert, updates))
+
+    ModelClass.objects.bulk_create(auditables)
+    Audit.objects.bulk_create(audits)
 
 
 class UserTrackingException(Exception):
