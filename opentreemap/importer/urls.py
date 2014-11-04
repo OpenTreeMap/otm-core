@@ -6,10 +6,11 @@ from __future__ import division
 from django.conf.urls import patterns, url
 
 from importer.views import (
-    list_imports, create, show_tree_import_status, show_species_import_status,
-    update_row, export_all_species, export_single_species_import,
-    export_single_tree_import, merge_species, results, commit, update, solve,
-    counts, find_similar_species)
+    list_imports_view, start_import_endpoint, show_tree_import_status,
+    show_species_import_status, update_row, export_all_species,
+    export_single_species_import, export_single_tree_import, merge_species,
+    results, commit, update, solve, counts, find_similar_species)
+
 from treemap.plugin import feature_enabled
 
 
@@ -18,8 +19,8 @@ _import_api_pattern = r'(?P<import_type>[a-z]+)/(?P<import_event_id>\d+)'
 
 urlpatterns = patterns(
     '',
-    url(r'^$', list_imports, name='list_imports'),
-    url(r'^create$', create, name='create'),
+    url(r'^$', list_imports_view, name='list_imports'),
+    url(r'^start_import$', start_import_endpoint, name='start_import'),
     url(r'^status/tree/(?P<import_event_id>\d+)$', show_tree_import_status,
         name='show_tree_import_status'),
     url(r'^status/species/(?P<import_event_id>\d+)$',

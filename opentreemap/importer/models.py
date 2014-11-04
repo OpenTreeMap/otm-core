@@ -73,7 +73,18 @@ class GenericImportEvent(models.Model):
     def active(self):
         return self.status != GenericImportEvent.FINISHED_CREATING
 
-    def row_type_counts(self):
+    def is_running(self):
+        return (
+            self.status == self.VERIFIYING or
+            self.status == self.CREATING)
+
+    def is_finished(self):
+        return (
+            self.status == self.FINISHED_VERIFICATION or
+            self.status == self.FINISHED_CREATING or
+            self.status == self.FAILED_FILE_VERIFICATION)
+
+    def row_counts_by_status(self):
         q = self.row_set()\
                 .values('status')\
                 .annotate(Count('status'))

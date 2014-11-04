@@ -83,17 +83,17 @@ def counts(request, instance):
         .exclude(status=GenericImportEvent.FAILED_FILE_VERIFICATION)
 
     output = {}
-    output['trees'] = {t.pk: t.row_type_counts() for t in active_trees}
-    output['species'] = {s.pk: s.row_type_counts() for s in active_species}
+    output['trees'] = {t.pk: t.row_counts_by_status() for t in active_trees}
+    output['species'] = {s.pk: s.row_counts_by_status()
+                         for s in active_species}
 
     return HttpResponse(json.dumps(output), content_type='application/json')
 
 
-@login_required
-def create(request, instance):
+def start_import(request, instance):
     if request.REQUEST['type'] == 'tree':
         kwargs = {
-            'fileconstructor': TreeImportEvent,
+            'ImportEventModel': TreeImportEvent,
 
             'plot_length_conversion_factor':
             float(request.REQUEST.get('unit_plot_length', 1.0)),
@@ -112,43 +112,36 @@ def create(request, instance):
         }
     elif request.REQUEST['type'] == 'species':
         kwargs = {
-            'fileconstructor': SpeciesImportEvent
+            'ImportEventModel': SpeciesImportEvent
         }
 
     process_csv(request, instance, **kwargs)
 
-    return HttpResponseRedirect(reverse('importer:list_imports'))
+    return list_imports(request, instance)
 
 
-def list_imports_view(request, instance):
+def list_imports(request, instance):
+    finished = GenericImportEvent.FINISHED_CREATING
+
     trees = TreeImportEvent.objects.filter(instance=instance).order_by('id')
-
-    active_trees = trees.exclude(status=GenericImportEvent.FINISHED_CREATING)
-
-    finished_trees = trees.filter(status=GenericImportEvent.FINISHED_CREATING)
+    active_trees = trees.exclude(status=finished)
+    finished_trees = trees.filter(status=finished)
 
     species = SpeciesImportEvent.objects\
         .filter(instance=instance)\
         .order_by('id')
-
-    active_species = species.exclude(
-        status=GenericImportEvent.FINISHED_CREATING)
-
-    finished_species = species.filter(
-        status=GenericImportEvent.FINISHED_CREATING)
-
-    all_species = Species.objects.filter(instance=instance)
-    all_species = sorted(all_species, key=lambda s: s.display_name)
+    active_species = species.exclude(status=finished)
+    finished_species = species.filter(status=finished)
 
     return {'trees_active': active_trees,
             'trees_finished': finished_trees,
             'species_active': active_species,
             'species_finished': finished_species,
-            'all_species': all_species}
+            }
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def merge_species(request, instance):
     # TODO: We don't set User.is_staff, probably should use a decorator anyways
     if not request.user.is_staff:
@@ -433,34 +426,27 @@ def commit(request, instance, import_event_id, import_type=None):
         content_type='application/json')
 
 
-@transaction.commit_manually
-def process_csv(request, instance, fileconstructor, **kwargs):
+def process_csv(request, instance, ImportEventModel, **kwargs):
     files = request.FILES
     filename = files.keys()[0]
-    fileobj = files[filename]
+    file_obj = files[filename]
 
-    fileobj = io.BytesIO(fileobj.read()
-                         .decode('latin1')
-                         .encode('utf-8'))
+    file_obj = io.BytesIO(file_obj.read()
+                          .decode('latin1')
+                          .encode('utf-8'))
 
     owner = request.user
-    ie = fileconstructor(file_name=filename,
-                         owner=owner,
-                         instance=instance,
-                         **kwargs)
-
+    ie = ImportEventModel(file_name=filename,
+                          owner=owner,
+                          instance=instance,
+                          **kwargs)
     ie.save()
 
     try:
-        rows = create_rows_for_event(ie, fileobj)
-
-        transaction.commit()
-
+        rows = create_rows_for_event(ie, file_obj)
         if rows:
             run_import_event_validation.delay(ie)
-
-    except Exception, e:
-        raise
+    except Exception as e:
         ie.append_error(errors.GENERIC_ERROR, data=str(e))
         ie.status = GenericImportEvent.FAILED_FILE_VERIFICATION
         ie.save()
@@ -655,6 +641,7 @@ def process_commit(request, instance, import_id):
         content_type='application/json')
 
 
+@transaction.atomic
 def create_rows_for_event(importevent, csvfile):
     rows = []
     reader = csv.DictReader(csvfile)
@@ -682,8 +669,14 @@ def create_rows_for_event(importevent, csvfile):
 
     return rows
 
-list_imports = do(admin_instance_request,
-                  requires_feature('bulk_upload'),
-                  require_http_method('GET'),
-                  render_template('importer/list.html'),
-                  list_imports_view)
+list_imports_view = do(admin_instance_request,
+                       requires_feature('bulk_upload'),
+                       require_http_method('GET'),
+                       render_template('importer/list.html'),
+                       list_imports)
+
+start_import_endpoint = do(admin_instance_request,
+                           requires_feature('bulk_upload'),
+                           require_http_method('POST'),
+                           render_template('importer/partials/list.html'),
+                           start_import)
