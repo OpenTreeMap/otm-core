@@ -21,9 +21,10 @@ from treemap.models import Species, Tree
 from treemap.decorators import (admin_instance_request, require_http_method,
                                 render_template, requires_feature)
 
-from importer.models import (TreeImportEvent, TreeImportRow, GenericImportRow,
-                             GenericImportEvent, SpeciesImportEvent,
-                             SpeciesImportRow)
+from importer.models import GenericImportEvent, GenericImportRow
+from importer.trees import TreeImportEvent, TreeImportRow
+from importer.species import SpeciesImportEvent, SpeciesImportRow
+
 from importer import errors, fields
 from importer.tasks import run_import_event_validation, commit_import_event
 

@@ -25,8 +25,8 @@ from treemap.tests import (make_admin_user, make_instance, login)
 from importer.views import (create_rows_for_event, process_csv, process_status,
                             commit, merge_species)
 from importer import errors, fields
-from importer.models import (TreeImportEvent, TreeImportRow,
-                             SpeciesImportEvent, SpeciesImportRow)
+from importer.trees import TreeImportEvent, TreeImportRow
+from importer.species import SpeciesImportEvent, SpeciesImportRow
 
 
 class MergeTest(TestCase):
