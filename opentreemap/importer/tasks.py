@@ -5,7 +5,8 @@ from __future__ import division
 
 from celery import task
 
-from importer.models import TreeImportRow, GenericImportEvent, GenericImportRow
+from importer.models import GenericImportEvent, GenericImportRow
+from importer.trees import TreeImportRow
 
 BLOCK_SIZE = 250
 
