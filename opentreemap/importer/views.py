@@ -672,11 +672,11 @@ def create_rows_for_event(importevent, csvfile):
 list_imports_view = do(admin_instance_request,
                        requires_feature('bulk_upload'),
                        require_http_method('GET'),
-                       render_template('importer/list.html'),
+                       render_template('importer/imports.html'),
                        list_imports)
 
 start_import_endpoint = do(admin_instance_request,
                            requires_feature('bulk_upload'),
                            require_http_method('POST'),
-                           render_template('importer/partials/list.html'),
+                           render_template('importer/partials/imports.html'),
                            start_import)
