@@ -1,0 +1,97 @@
+<div class="contained topper">
+  <div>
+    <div class="col-md-12">
+      <div>
+        <div>
+          <div class="row top-pad-lg">
+            <div class="col-md-6">
+              <div class="well">
+                <h4>Tree Import</h4>
+                <form id="import-trees-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="type" value="tree">
+                  <input name="unit_plot_length" value="1" type="hidden">
+                  <input name="unit_plot_width" value="1" type="hidden">
+                  <input name="unit_diameter" value="1" type="hidden">
+                  <input name="unit_tree_height" value="1" type="hidden">
+                  <input name="unit_canopy_height" value="1" type="hidden">
+                  <div class="input-group">
+                    File to Upload: <input type="file" name="file">
+                    <span class="input-group-btn">
+                      <button class="btn btn-info" type="submit" disabled>Import</button>
+                    </span>
+                  </div><!-- /input-group -->
+                </form>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="well">
+                <h4>Species Import</h4>
+                <form id="import-species-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="type" value="species">
+                  <div class="input-group">
+                    File to Upload: <input type="file" name="file">
+                    <span class="input-group-btn">
+                      <button class="btn btn-info" type="submit" disabled>Import</button>
+                    </span>
+                  </div><!-- /input-group -->
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <img src="/static/img/spinner.gif" class="spinner pull-left" style="display:none;">
+              <h2 class="top-pad-lg">Imports</h2>
+              <hr>
+
+              <h4>Active Tree Imports</h4>
+              {% include 'importer/partials/import_table.html' with things=trees_active id="activetree" link="tree" %}
+            </div>
+          </div>
+
+          <br>
+
+          <div class="row">
+            <div class="col-md-12">
+              <h4>Finished Tree Imports</h4>
+              {% include 'importer/partials/import_table.html' with things=trees_finished id="finishedtree" link="tree" %}
+            </div>
+          </div>
+
+          <br>
+
+          <div class="row">
+            <div class="col-md-12">
+              <h4>Active Species Imports</h4>
+              {% include 'importer/partials/import_table.html' with things=species_active id="activespecies" link="species" %}
+            </div>
+          </div>
+
+          <br>
+
+          <div class="row">
+            <div class="col-md-12">
+              <h4>Finished Species Imports</h4>
+              {% include 'importer/partials/import_table.html' with things=species_finished id="finishedspecies" link="species" %}
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <h2 class="top-pad-lg">Export</h2>
+              <hr>
+              <a href="{% url 'importer:export_all_species' instance_url_name=request.instance.url_name %}" class="btn btn-info">
+                Export All Species
+                <i class="icon-forward"></i>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div> <!-- END CONTAINER -->

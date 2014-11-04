@@ -1,0 +1,48 @@
+{% load subtract %}
+
+<table class="table table-striped" id="{{ id }}">
+    <thead>
+        <tr>
+            <th>Import Event</th>
+            <th>Status</th>
+            <th>Rows</th>
+            <th>View</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for ie in things %}
+        {% with count=ie.rows.count n_finished=ie.row_counts_by_status.3 %}
+            <tr data-id="{{ ie.pk }}" data-running="{{ ie.is_running }}" >
+                    <td>{{ ie }}</td>
+                    <td>{{ ie.status_summary }}</td>
+                {% if ie.is_running %}
+                    {# Running now, so show '# remaining / total' #}
+                    <td data-count="{{ count }}">
+                        {% if n_finished %}
+                            {{ count|subtract:n_finished }}
+                            /
+                        {% endif %}
+                        {{ count }}
+                    </td>
+                    <td></td>
+                {% elif ie.is_finished %}
+                    <td>{{ count }}</td>
+                    <td>
+                      <a href="{{ SITE_ROOT }}importer/export/{{ link }}/{{ ie.pk }}">
+                        Export
+                      </a>
+                      |
+                      <a href="{{ SITE_ROOT }}importer/status/{{ link }}/{{ ie.pk}}">
+                        View
+                      </a>
+                    </td>
+                {% else %}
+                    <td></td>
+                    <td></td>
+                {% endif %}
+            </tr>
+        {% endwith %}
+    {% endfor %}
+  </tbody>
+</table>
+

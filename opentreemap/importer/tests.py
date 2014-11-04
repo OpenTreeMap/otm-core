@@ -19,9 +19,7 @@ from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
 from api.test_utils import setupTreemapEnv, mkPlot
 
-from treemap.instance import add_species_to_instance
 from treemap.models import Species, Plot, Tree, ITreeCodeOverride, ITreeRegion
-from treemap.species.codes import get_itree_code
 from treemap.tests import (make_admin_user, make_instance, login)
 
 from importer.views import (create_rows_for_event, process_csv, process_status,
@@ -756,7 +754,7 @@ class IntegrationTests(TestCase):
 
     def run_through_process_views(self, csv):
         r = self.create_csv_request(csv, name='some name')
-        pk = process_csv(r, self.instance, fileconstructor=self.constructor())
+        pk = process_csv(r, self.instance, ImportEventModel=self.constructor())
 
         resp = process_status(None, self.instance, pk, self.constructor())
         content = json.loads(resp.content)
@@ -765,7 +763,7 @@ class IntegrationTests(TestCase):
 
     def run_through_commit_views(self, csv):
         r = self.create_csv_request(csv, name='some name')
-        pk = process_csv(r, self.instance, fileconstructor=self.constructor())
+        pk = process_csv(r, self.instance, ImportEventModel=self.constructor())
 
         req = HttpRequest()
         req.user = self.user
@@ -1022,7 +1020,7 @@ class TreeIntegrationTests(IntegrationTests):
         """
 
         r = self.create_csv_request(csv, name='some name')
-        ieid = process_csv(r, self.instance, fileconstructor=self.constructor(),
+        ieid = process_csv(r, self.instance, ImportEventModel=self.constructor(),
                            plot_length_conversion_factor=1.5,
                            plot_width_conversion_factor=2.5,
                            diameter_conversion_factor=3.5,
