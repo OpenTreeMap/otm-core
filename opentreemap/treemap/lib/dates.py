@@ -36,3 +36,10 @@ def datesafe_eq(obj1, obj2):
         obj2 = timezone.make_aware(obj2, pytz.UTC)
 
     return obj1 == obj2
+
+
+def make_aware(value):
+    if value is None or timezone.is_aware(value):
+        return value
+    else:
+        return timezone.make_aware(value, timezone.utc)
