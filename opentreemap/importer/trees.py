@@ -249,7 +249,12 @@ class TreeImportRow(GenericImportRow):
                      .filter(geom__distance_lte=(point, D(ft=10.0)))\
                      .distance(point)\
                      .exclude(pk__in=plot_ids_from_this_import)\
-                     .order_by('distance')[:5]
+
+        oid = self.cleaned.get(fields.trees.OPENTREEMAP_ID_NUMBER, None)
+        if oid:
+            nearby = nearby.exclude(pk=oid)
+
+        nearby = nearby.order_by('distance')[:5]
 
         if len(nearby) > 0:
             self.append_error(errors.NEARBY_TREES,
