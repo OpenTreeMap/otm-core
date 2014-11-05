@@ -347,7 +347,6 @@ class TreeImportRow(GenericImportRow):
 
         # These validations are non-fatal
         if species:
-            # TODO: These fields exist in OTM2, do they contain valid data?
             self.validate_species_dbh_max(species)
             self.validate_species_height_max(species)
 
