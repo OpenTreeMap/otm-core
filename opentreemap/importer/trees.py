@@ -84,10 +84,12 @@ class TreeImportRow(GenericImportRow):
         'width': fields.trees.PLOT_WIDTH,
         'length': fields.trees.PLOT_LENGTH,
         'readonly': fields.trees.READ_ONLY,
-        'owner_orig_id': fields.trees.ORIG_ID_NUMBER
+        'owner_orig_id': fields.trees.ORIG_ID_NUMBER,
+        'address_street': fields.trees.STREET_ADDRESS,
+        'address_city': fields.trees.CITY_ADDRESS,
+        'address_zip': fields.trees.POSTAL_CODE
     }
 
-    # TODO: Why no date_removed?
     TREE_MAP = {
         'diameter': fields.trees.DIAMETER,
         'height': fields.trees.TREE_HEIGHT,

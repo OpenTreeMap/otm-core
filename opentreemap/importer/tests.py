@@ -705,9 +705,10 @@ class FileLevelTreeValidationTest(TestCase):
 
         TreeImportRow.objects.count()
 
-        c = self.write_csv([['address', 'name', 'age', 'point x', 'point y'],
-                            ['123 Beach St', 'a', 'b', '5', '5'],
-                            ['222 Main St', 'a', 'b', '8', '8']])
+        c = self.write_csv([
+            ['street address', 'name', 'age', 'point x', 'point y'],
+            ['123 Beach St', 'a', 'b', '5', '5'],
+            ['222 Main St', 'a', 'b', '8', '8']])
 
         create_rows_for_event(ie, c)
         rslt = ie.validate_main_file()
@@ -978,13 +979,13 @@ class TreeIntegrationTests(IntegrationTests):
         string_too_long = 'a' * 256
 
         csv = """
-        | point x    | point y    | opentreemap id number | tree steward | date planted |
-        | 25.0000002 | 25.0000002 |                       |              | 2012-02-18   |
-        | 25.1000002 | 25.1000002 | 133                   |              |              |
-        | 25.1000002 | 25.1000002 | -3                    |              | 2023-FF-33   |
-        | 25.1000002 | 25.1000002 | bar                   |              | 2012-02-91   |
-        | 25.1000002 | 25.1000002 | %s                    | %s           |              |
-        """ % (p1.pk, string_too_long)
+        | point x    | point y    | opentreemap id number | date planted |
+        | 25.0000002 | 25.0000002 |                       | 2012-02-18   |
+        | 25.1000002 | 25.1000002 | 133                   |              |
+        | 25.1000002 | 25.1000002 | -3                    | 2023-FF-33   |
+        | 25.1000002 | 25.1000002 | bar                   | 2012-02-91   |
+        | 25.1000002 | 25.1000002 | %s                    |              |
+        """ % (p1.pk)
 
         gflds = [fields.trees.POINT_X, fields.trees.POINT_Y]
 
@@ -1009,9 +1010,7 @@ class TreeIntegrationTests(IntegrationTests):
                            [fields.trees.OPENTREEMAP_ID_NUMBER], None),
                           (errors.INVALID_DATE[0],
                            [fields.trees.DATE_PLANTED], None)])
-        self.assertEqual(ierrors['4'],
-                         [(errors.STRING_TOO_LONG[0],
-                           [fields.trees.STEWARD], None)])
+        self.assertNotIn('4', ierrors)
 
     def test_unit_changes(self):
         csv = """
