@@ -164,3 +164,20 @@ exports.triggeredObjectStream = function (obj) {
 
     return stream;
 };
+
+// Reload $container when a link inside it is clicked.
+// Arguments 2-n are CSS selectors, identifying <a> elements inside $container.
+// The href on each <a> should fetch an HTML partial, which will replace the
+// contents of $container.
+
+exports.reloadContainerOnClick = function ($container /*, selector1, selector2, ... */) {
+    var selectors = Array.prototype.slice.call(arguments, 1),
+        selector = selectors.join(','),
+        resultStream = $container.asEventStream('click', selector)
+            .doAction('.preventDefault')
+            .map('.target.href')
+            .filter(isDefinedNonEmpty); // ignore empty hrefs
+
+    resultStream.onValue($container, 'load');
+    return resultStream;  // in case further handling is desired
+};

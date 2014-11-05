@@ -7,6 +7,12 @@ var $ = require('jquery'),
     csrf = require('treemap/csrf'),
     BU = require('treemap/baconUtils');
 
+var dom = {
+    filterButtons: '[data-comments-filter] li a',
+    columnHeaders: '[data-comments-sort] th a',
+    pagingButtons: '.pagination li a'
+};
+
 $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
 module.exports = function(options) {
@@ -19,17 +25,6 @@ module.exports = function(options) {
 
         // We use event delegation on the outer container, because we replace
         // the entire table including the pagination and filter section.
-        //
-        // We prevent default events for everything, but only get new pages
-        // for anchor tags which have href values
-        pageEventStream = $container.asEventStream('click', '.pagination li a'),
-        filterEventStream = $container.asEventStream('click', '[data-comments-filter] li a'),
-        sortingEventStream = $container.asEventStream('click', '[data-comments-sort] th a'),
-
-        urlStream = Bacon.mergeAll(pageEventStream, filterEventStream, sortingEventStream)
-            .doAction('.preventDefault')
-            .map('.target.href')
-            .filter(BU.isDefinedNonEmpty),
 
         singleActionStream = $container.asEventStream('click', '[data-comment-single-action] a'),
         batchActionStream = $container.asEventStream('click', '[data-comment-batch] a'),
@@ -79,7 +74,7 @@ module.exports = function(options) {
         $text.toggleClass('less');
     });
 
-    urlStream.onValue($container, 'load');
+    BU.reloadOnClick($container, dom.pagingButtons, dom.filterButtons, dom.columnHeaders);
 
     actionResultStream.onValues(_.bind($container.load, $container));
 
