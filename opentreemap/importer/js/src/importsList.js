@@ -10,7 +10,7 @@ var dom = {
     treeForm: '#import-trees-form',
     speciesForm: '#import-species-form',
     fileChooser: 'input[type="file"]',
-    submitButton: 'button[type="submit"]',
+    importButton: 'button[type="submit"]',
     spinner: '#importer .spinner'
 };
 
@@ -21,23 +21,22 @@ function init(options) {
 }
 
 function handleForm(formSelector, url) {
-    var $formSelector = $(formSelector),
-        $fileChooser = $formSelector.find(dom.fileChooser),
-        $submitButton = $formSelector.find(dom.submitButton);
+    // Define events on the container so we can replace its contents
+    var $container = $(dom.container);
 
-    // Enable submit button when file chosen
-    $fileChooser.asEventStream('change')
-        .onValue($submitButton, 'prop', 'disabled', false);
+    // Enable import button when file chosen
+    $container.asEventStream('change', formSelector + ' ' + dom.fileChooser)
+        .onValue(enableImportButton, true);
 
-    // Submit form, using returned HTML to update tables
-    $formSelector.asEventStream('submit')
+    // Submit form, using returned HTML to replace page content
+    $container.asEventStream('submit', formSelector)
         .flatMap(startImport)
-        .onValue($(dom.container), 'html');
+        .onValue($container, 'html');
 
     function startImport(e) {
         var formData = new FormData(e.target);
         e.preventDefault();
-        $submitButton.prop('disabled', true);
+        enableImportButton(false);
         $(dom.spinner).show();
         return Bacon.fromPromise($.ajax({
             type: 'POST',
@@ -46,6 +45,12 @@ function handleForm(formSelector, url) {
             contentType: false,
             processData: false
         }));
+    }
+
+    function enableImportButton(shouldEnable) {
+        $(formSelector)
+            .find(dom.importButton)
+            .prop('disabled', !shouldEnable);
     }
 }
 
