@@ -81,10 +81,12 @@ class TreeImportRow(GenericImportRow):
         'width': fields.trees.PLOT_WIDTH,
         'length': fields.trees.PLOT_LENGTH,
         'readonly': fields.trees.READ_ONLY,
-        'owner_orig_id': fields.trees.ORIG_ID_NUMBER
+        'owner_orig_id': fields.trees.ORIG_ID_NUMBER,
+        'address_street': fields.trees.STREET_ADDRESS,
+        'address_city': fields.trees.CITY_ADDRESS,
+        'address_zip': fields.trees.POSTAL_CODE
     }
 
-    # TODO: Why no date_removed?
     TREE_MAP = {
         'diameter': fields.trees.DIAMETER,
         'height': fields.trees.TREE_HEIGHT,
@@ -244,7 +246,12 @@ class TreeImportRow(GenericImportRow):
                      .filter(geom__distance_lte=(point, D(ft=10.0)))\
                      .distance(point)\
                      .exclude(pk__in=plot_ids_from_this_import)\
-                     .order_by('distance')[:5]
+
+        oid = self.cleaned.get(fields.trees.OPENTREEMAP_ID_NUMBER, None)
+        if oid:
+            nearby = nearby.exclude(pk=oid)
+
+        nearby = nearby.order_by('distance')[:5]
 
         if len(nearby) > 0:
             self.append_error(errors.NEARBY_TREES,
@@ -337,7 +344,6 @@ class TreeImportRow(GenericImportRow):
 
         # These validations are non-fatal
         if species:
-            # TODO: These fields exist in OTM2, do they contain valid data?
             self.validate_species_dbh_max(species)
             self.validate_species_height_max(species)
 
