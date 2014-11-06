@@ -458,7 +458,7 @@ class UserTrackable(Dictable):
         d = self.as_dict()
         for key in d:
             if key not in self._do_not_track:
-                old = self._previous_state.get(key, None)
+                old = self.get_previous_state().get(key, None)
                 new = d.get(key, None)
 
                 if isinstance(new, datetime) or isinstance(old, datetime):
@@ -479,7 +479,7 @@ class UserTrackable(Dictable):
 
     def delete_with_user(self, user, *args, **kwargs):
         models.Model.delete(self, *args, **kwargs)
-        self._previous_state = {}
+        self.clear_previous_state()
 
     def save_with_user(self, user, *args, **kwargs):
         models.Model.save(self, *args, **kwargs)
@@ -498,6 +498,12 @@ class UserTrackable(Dictable):
     def fields(self):
         return self.as_dict().keys()
 
+    def get_previous_state(self):
+        return self._previous_state
+
+    def clear_previous_state(self):
+        self._previous_state = {}
+
     def populate_previous_state(self):
         """
         A helper method for setting up a previous state dictionary
@@ -507,7 +513,7 @@ class UserTrackable(Dictable):
             # User created the object as "MyObj(field1=...,field2=...)"
             # the saved state will include these changes but the actual
             # "initial" state is empty so we clear it here
-            self._previous_state = {}
+            self.clear_previous_state()
         else:
             self._previous_state = {k: v for k, v in self.as_dict().iteritems()
                                     if k not in self._do_not_track}
@@ -726,7 +732,7 @@ class Authorizable(UserTrackable):
                            in perms
                            if perm.allows_reads}
 
-        fields = set(self._previous_state.keys())
+        fields = set(self.get_previous_state().keys())
         unreadable_fields = fields - readable_fields
 
         for field_name in unreadable_fields:
