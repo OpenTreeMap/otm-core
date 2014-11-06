@@ -87,10 +87,6 @@ class SpeciesImportEvent(GenericImportEvent):
 
 class SpeciesImportRow(GenericImportRow):
 
-    SUCCESS = 0
-    ERROR = 1
-    VERIFIED = 4
-
     SPECIES_MAP = {
         'genus': fields.species.GENUS,
         'species': fields.species.SPECIES,

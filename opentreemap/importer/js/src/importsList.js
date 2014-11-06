@@ -3,7 +3,8 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     Bacon = require('baconjs'),
-    BU = require('treemap/baconUtils');
+    BU = require('treemap/baconUtils'),
+    statusView = require('importer/status');
 
 var dom = {
     container: '#importer',
@@ -11,24 +12,26 @@ var dom = {
     speciesForm: '#import-species-form',
     fileChooser: 'input[type="file"]',
     importButton: 'button[type="submit"]',
+    actionLink: 'td a',
     spinner: '#importer .spinner'
 };
 
 function init(options) {
-    var url = options.startImportUrl;
-    handleForm(dom.treeForm, url);
-    handleForm(dom.speciesForm, url);
-}
-
-function handleForm(formSelector, url) {
     // Define events on the container so we can replace its contents
     var $container = $(dom.container);
 
-    // Enable import button when file chosen
+    statusView.init($container);
+
+    handleForm($container, dom.treeForm, options);
+    handleForm($container, dom.speciesForm, options);
+
+    BU.reloadContainerOnClick($container, dom.actionLink);
+}
+
+function handleForm($container, formSelector, options) {
     $container.asEventStream('change', formSelector + ' ' + dom.fileChooser)
         .onValue(enableImportButton, true);
 
-    // Submit form, using returned HTML to replace page content
     $container.asEventStream('submit', formSelector)
         .flatMap(startImport)
         .onValue($container, 'html');
@@ -40,7 +43,7 @@ function handleForm(formSelector, url) {
         $(dom.spinner).show();
         return Bacon.fromPromise($.ajax({
             type: 'POST',
-            url: url,
+            url: options.startImportUrl,
             data: formData,
             contentType: false,
             processData: false
