@@ -23,7 +23,7 @@ from django.contrib.auth.models import (UserManager, AbstractBaseUser,
                                         PermissionsMixin)
 
 from treemap.species.codes import ITREE_REGIONS, get_itree_code
-from treemap.audit import (Auditable, Authorizable, Role, Dictable, Audit)
+from treemap.audit import Auditable, Role, Dictable, Audit, PendingAuditable
 # Import this even though it's not referenced, so Django can find it
 from treemap.audit import FieldPermission  # NOQA
 from treemap.util import leaf_subclasses, to_object_name
@@ -308,7 +308,7 @@ class AbstractUniqueEmailUser(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
-class User(Auditable, AbstractUniqueEmailUser):
+class User(AbstractUniqueEmailUser, Auditable):
     _system_user = None
 
     photo = models.ImageField(upload_to='users', null=True, blank=True)
@@ -415,7 +415,7 @@ class User(Auditable, AbstractUniqueEmailUser):
         self.save_with_user(system_user, *args, **kwargs)
 
 
-class Species(UDFModel, Authorizable, Auditable):
+class Species(UDFModel, PendingAuditable):
     """
     http://plants.usda.gov/adv_search.html
     """
@@ -522,7 +522,7 @@ post_save.connect(invalidate_adjuncts, sender=InstanceUser)
 post_delete.connect(invalidate_adjuncts, sender=InstanceUser)
 
 
-class MapFeature(Convertible, UDFModel, Authorizable, Auditable):
+class MapFeature(Convertible, UDFModel, PendingAuditable):
     "Superclass for map feature subclasses like Plot, RainBarrel, etc."
     instance = models.ForeignKey(Instance)
     geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
@@ -737,7 +737,7 @@ class Plot(MapFeature):
 
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
-class Tree(Convertible, UDFModel, Authorizable, Auditable):
+class Tree(Convertible, UDFModel, PendingAuditable):
     """
     Represents a single tree, belonging to an instance
     """
@@ -848,7 +848,7 @@ class TreeFavorite(models.Model):
         unique_together = ('user', 'tree',)
 
 
-class MapFeaturePhoto(models.Model, Authorizable, Auditable):
+class MapFeaturePhoto(models.Model, PendingAuditable):
     map_feature = models.ForeignKey(MapFeature)
 
     image = models.ImageField(
