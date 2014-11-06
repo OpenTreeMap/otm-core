@@ -74,7 +74,8 @@ module.exports = function(options) {
         $text.toggleClass('less');
     });
 
-    BU.reloadOnClick($container, dom.pagingButtons, dom.filterButtons, dom.columnHeaders);
+    BU.reloadContainerOnClick(
+        $container, dom.pagingButtons, dom.filterButtons, dom.columnHeaders);
 
     actionResultStream.onValues(_.bind($container.load, $container));
 

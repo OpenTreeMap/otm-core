@@ -28,13 +28,9 @@
                 {% elif ie.is_finished %}
                     <td>{{ count }}</td>
                     <td>
-                      <a href="{{ SITE_ROOT }}importer/export/{{ link }}/{{ ie.pk }}">
-                        Export
-                      </a>
+                      <a href="{% url 'importer:status' import_type=import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">View</a>
                       |
-                      <a href="{{ SITE_ROOT }}importer/status/{{ link }}/{{ ie.pk}}">
-                        View
-                      </a>
+                      <a href="javascript:;">Export</a>
                     </td>
                 {% else %}
                     <td></td>

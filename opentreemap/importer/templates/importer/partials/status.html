@@ -1,0 +1,50 @@
+{% load i18n %}
+
+<div class="contained topper">
+  <div>
+    <div class="col-md-12">
+      <div>
+        <div>
+{#        {% if event.has_errors %}#}
+{#          {% include 'importer/partials/file_level_error.html' with event=event %}#}
+{#        {% else %}#}
+          <div class="row">
+            <div class="col-md-12">
+              <h2>{% trans "Import Status" %}</h2>
+              <hr>
+
+              <ul class="nav nav-pills">
+                {% for panel in panels %}
+                  <li{% if forloop.first %} class="active"{% endif %}>
+                    <a href="#import-panel-{{ panel.name }}" data-toggle="tab">
+                      {{ panel.title }} ({{ panel.row_count }})
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+
+              <div class="tab-content">
+                {% for panel in panels %}
+                  <div class="tab-pane {% if forloop.first %}active{% endif %}"
+                       id="import-panel-{{ panel.name }}"
+                       style="overflow-x: scroll;">
+                    {% include "importer/partials/status_table.html" %}
+                  </div>
+                {% endfor %}
+              </div>
+
+            </div>
+          </div>
+
+          <button id="createtrees" class="btn btn-success btn-large">{% trans "Add to Tree Map" %}</button>
+
+          <a class="btn btn-success btn-large" data-action="back"
+              href="{% url 'importer:list_imports' instance_url_name=request.instance.url_name %}">
+            {% trans "Back to Uploads" %}
+          </a>
+{#        {% endif %}#}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

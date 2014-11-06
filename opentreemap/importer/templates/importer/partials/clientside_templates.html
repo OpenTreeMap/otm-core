@@ -1,0 +1,94 @@
+<script type="text/template" id="error-template">
+  <div class="error-popup popover fade bottom in" style="margin: 0; display: block; width: 200px;">
+    <div class="arrow"></div>
+    <h3 class="popover-title"><%= header %></h3>
+    <div class="popover-content">
+      <%= content %>
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="species-error-content">
+  <div>
+    <div>That species couldn't be found in the database.</div>
+    <div>Did you mean: <%= possible %>?</div>
+    <div>
+      <a class="yes btn btn-success btn-small">Yes</a>
+      <a class="moreoptions btn btn-info btn-small">More Options</a>
+      <a class="cancel btn btn-danger btn-small">Cancel</a>
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="generic-error">
+  <div>
+    <input type="text" value="<%= value %>" name="<%= field %>">
+    <a class="update btn btn-info btn-small">Update</a>
+    <a class="cancel btn btn-alert btn-small">Cancel</a>
+  </div>
+</script>
+
+<script type="text/template" id="species-error-more-content">
+  <div>Find a species by name:</div>
+  <div><input class="speciesbyname"></div>
+  <div>Or select from a list:</div>
+  <div>
+    <select class="specieslist">
+      <% _.each(species, function(s,i) { %>
+      <option data-index="<%= i %>"><%= s %></option>
+      <% }); %>
+    </select>
+  </div>
+  <div>
+    <a class="select btn btn-success btn-small">Select</a>
+    <a class="cancel btn btn-alert btn-small">Cancel</a>
+  </div>
+</script>
+
+<script type="text/template" id="merge-template">
+  <h1>Merge Species</h1>
+  <div class="mergespecies">
+    <table data-row="<%= fields.rowidx %>"
+           class="table table-condensed table-striped">
+      <tr>
+        <th>Field</th>
+        <% _.each(fields.header, function(f) { %><th><%= f %></th><% }) %>
+      </tr>
+      <% _.each(field_order, function(fo) {
+         var f = fields.indexed_data[fo]; %>
+      <tr data-field="<%= f.field %>">
+        <td>
+          <%= f.field %></td>
+        <% _.each(f.data, function(d) { %>
+        <td>
+          <% if (f.needsMerge) { %><input type="checkbox"><% } %>
+          <%= d %>
+        </td>
+        <% }); %>
+      </tr>
+      <% }) %>
+      <tr><td></td>
+        <td><button data-matches="new">Create New Species</button></td>
+      <% _.each(fields.keys, function(k) { %>
+        <td><button data-matches="<%= k %>">Merge Species</button></td>
+      <% }); %>
+    </table>
+  </div>
+</script>
+
+<script type="text/template" id="pager-template">
+  <div class="pages pagination pagination-small">
+    <ul>
+      <li><a href="#">&lt;</a></li>
+      <li><a href="#">&lt;&lt;</a></li>
+      <% _.each(_.range(start_page, end_page), function(i) { %>
+        <li
+          <% if (i == page) { %> class="active" <% } %>
+          ><a href="#"><%= i + 1 %></a>
+        </li>
+      <% }); %>
+      <li><a href="#">&gt;&gt;</a></li>
+      <li><a href="#">&gt;</a></li>
+    </ul>
+  </div>
+</script>

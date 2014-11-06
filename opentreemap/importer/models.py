@@ -141,7 +141,12 @@ class GenericImportRow(models.Model):
     errors = models.TextField(default='')
 
     # Status
+    SUCCESS = 0
+    ERROR = 1
+    WARNING = 2
     WAITING = 3
+    VERIFIED = 4
+
     status = models.IntegerField(default=WAITING)
 
     def __init__(self, *args, **kwargs):

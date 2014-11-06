@@ -4,14 +4,15 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import csv
+from django.core.paginator import Paginator
 import json
 import io
 
 from django.db import transaction
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
+from django.shortcuts import get_object_or_404
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
+from django.utils.translation import ugettext as trans
 
 from django.contrib.auth.decorators import login_required
 
@@ -183,28 +184,6 @@ def merge_species(request, instance):
 
 
 @login_required
-def show_species_import_status(request, instance, import_event_id):
-    return show_import_status(request, instance, import_event_id,
-                              SpeciesImportEvent)
-
-
-@login_required
-def show_tree_import_status(request, instance, import_event_id):
-    return show_import_status(request, instance, import_event_id,
-                              TreeImportEvent)
-
-
-@login_required
-def show_import_status(request, instance, import_event_id, Model):
-    return render_to_response(
-        'importer/status.html',
-        RequestContext(
-            request,
-            {'event': get_object_or_404(Model, instance=instance,
-                                        pk=import_event_id)}))
-
-
-@login_required
 def update(request, instance, import_type, import_event_id):
     if import_type == 'tree':
         Model = TreeImportEvent
@@ -254,94 +233,161 @@ def update_row(request, instance, import_event_row_id):
                                         args=(row.import_event.pk,)))
 
 
-@login_required
-def results(request, instance, import_event_id, import_type, subtype):
-    """ Return a json array for each row of a given subtype
-    where subtype is a valid status for a TreeImportRow
-    """
-    if import_type == 'tree':
-        status_map = {
-            'success': TreeImportRow.SUCCESS,
-            'error': TreeImportRow.ERROR,
-            'waiting': TreeImportRow.WAITING,
-            'watch': TreeImportRow.WATCH,
-            'verified': TreeImportRow.VERIFIED
-        }
+def show_import_status(request, instance, import_type, import_event_id):
+    ie = _get_import_event(instance, import_type, import_event_id)
 
-        Model = TreeImportEvent
+    panels = [_get_status_panel(instance, import_type, ie, spec)
+              for spec in _get_status_panel_specs(import_type)]
+
+    return {
+        'panels': panels
+    }
+
+
+def show_status_panel(request, instance, import_type, import_event_id):
+    panel_name = request.GET.get('panel')
+    page_number = int(request.GET.get('page'))
+
+    ie = _get_import_event(instance, import_type, import_event_id)
+
+    spec = [spec for spec in _get_status_panel_specs(import_type)
+            if spec['name'] == panel_name][0]
+
+    panel = _get_status_panel(instance, import_type, ie, spec, page_number)
+
+    return {
+        'panel': panel
+    }
+
+
+def _get_import_event(instance, import_type, import_event_id):
+    Model = TreeImportEvent if import_type == 'tree' else SpeciesImportEvent
+    return get_object_or_404(Model, pk=import_event_id, instance=instance)
+
+
+def _get_status_panel(instance, import_type, ie, panel_spec, page_number=1):
+    PAGE_SIZE = 10
+    status = panel_spec['status']
+    merge_required = panel_spec['name'] == 'merge_required'
+    if merge_required:
+        query = ie.rows() \
+            .filter(merged=False) \
+            .exclude(status=SpeciesImportRow.ERROR) \
+            .order_by('idx')
     else:
-        status_map = {
-            'success': SpeciesImportRow.SUCCESS,
-            'error': SpeciesImportRow.ERROR,
-            'verified': SpeciesImportRow.VERIFIED,
-        }
-        Model = SpeciesImportEvent
+        query = ie.rows() \
+            .filter(status=status) \
+            .order_by('idx')
 
-    page_size = 10
-    page = int(request.REQUEST.get('page', 0))
-    page_start = page_size * page
-    page_end = page_size * (page + 1)
-
-    ie = get_object_or_404(Model, pk=import_event_id, instance=instance)
-
-    header = None
-    output = {}
-
-    if subtype == 'mergereq':
-        query = ie.rows()\
-                  .filter(merged=False)\
-                  .exclude(status=SpeciesImportRow.ERROR)\
-                  .order_by('idx')
-    else:
-        query = ie.rows()\
-                  .filter(status=status_map[subtype])\
-                  .order_by('idx')
-
-    if import_type == 'species' and subtype == 'verified':
+    if import_type == 'species' and status == GenericImportRow.VERIFIED:
         query = query.filter(merged=True)
 
-    count = query.count()
-    total_pages = int(float(count) / page_size + 1)
+    field_names = [f.lower() for f
+                   in json.loads(ie.field_order)
+                   if f != 'ignore']
 
-    output['total_pages'] = total_pages
-    output['count'] = count
-    output['rows'] = []
+    row_data = [_get_row_data(row, field_names, merge_required)
+                for row in query]
+    rows = Paginator(row_data, PAGE_SIZE).page(page_number)
 
-    header_keys = None
-    for row in query[page_start:page_end]:
-        if header is None:
-            header_keys = row.datadict.keys()
+    paging_url = reverse('importer:status_panel',
+                         kwargs={'instance_url_name': instance.url_name,
+                                 'import_type': import_type,
+                                 'import_event_id': ie.pk})
+    paging_url += "?panel=%s" % panel_spec['name']
 
-        data = {
-            'row': row.idx,
-            'errors': row.errors_as_array(),
-            'data': [row.datadict[k] for k in header_keys]
+    return {
+        'name': panel_spec['name'],
+        'title': panel_spec['title'],
+        'field_names': field_names,
+        'row_count': len(row_data),
+        'rows': rows,
+        'paging_url': paging_url
+    }
+
+
+def _get_row_data(row, field_names, merge_required):
+    row_errors = row.errors_as_array()
+    error_fields = [e['fields'] for e in row_errors if e['fatal']]
+    error_fields = set(sum(error_fields, []))
+    warning_fields = [e['fields'] for e in row_errors if not e['fatal']]
+    warning_fields = set(sum(warning_fields, []))
+
+    field_data = [
+        _get_field_data(row, field_name, error_fields, warning_fields)
+        for field_name in field_names]
+
+    row_data = {
+        'index': row.idx,
+        'fields': field_data
+    }
+
+    # Generate diffs for merges
+    if merge_required:
+        # If errors.TOO_MANY_SPECIES we need to mine species
+        # otherwise we can just do simple diff
+        ecodes = {e['code']: e['data'] for e in row_errors}
+        if errors.TOO_MANY_SPECIES[0] in ecodes:
+            row_data['diffs'] = ecodes[errors.TOO_MANY_SPECIES[0]]
+        elif errors.MERGE_REQ[0] in ecodes:
+            row_data['diffs'] = [ecodes[errors.MERGE_REQ[0]]]
+
+    if hasattr(row, 'plot') and row.plot:
+        row_data['plot_id'] = row.plot.pk
+
+    if hasattr(row, 'species') and row.species:
+        row_data['species_id'] = row.species.pk
+
+    return row_data
+
+
+def _get_field_data(row, field_name, error_fields, warning_fields):
+    if field_name in error_fields:
+        css_class = 'error'
+    elif field_name in warning_fields:
+        css_class = 'warning'
+    else:
+        css_class = ''
+    return {
+        'name': field_name,
+        'value': row.datadict[field_name],
+        'css_class': css_class
+    }
+
+
+def _get_status_panel_specs(import_type):
+    verified_panel = {
+        'name': 'verified',
+        'status': GenericImportRow.VERIFIED,
+        'title': trans('Ready to Add')
+    }
+    error_panel = {
+        'name': 'error',
+        'status': GenericImportRow.ERROR,
+        'title': trans('Errors')
+    }
+    success_panel = {
+        'name': 'success',
+        'status': GenericImportRow.SUCCESS,
+        'title': trans('Successfully Added')
+    }
+
+    if import_type == 'tree':
+        warning_panel = {
+            'name': 'warning',
+            'status': TreeImportRow.WARNING,
+            'title': trans('Warnings')
         }
-
-        # Generate diffs for merge requests
-        if subtype == 'mergereq':
-            # If errors.TOO_MANY_SPECIES we need to mine species
-            # otherwise we can just do simple diff
-            ecodes = {e['code']: e['data'] for e in row.errors_as_array()}
-            if errors.TOO_MANY_SPECIES[0] in ecodes:
-                data['diffs'] = ecodes[errors.TOO_MANY_SPECIES[0]]
-            elif errors.MERGE_REQ[0] in ecodes:
-                data['diffs'] = [ecodes[errors.MERGE_REQ[0]]]
-
-        if hasattr(row, 'plot') and row.plot:
-            data['plot_id'] = row.plot.pk
-
-        if hasattr(row, 'species') and row.species:
-            data['species_id'] = row.species.pk
-
-        output['rows'].append(data)
-
-    output['field_order'] = [f.lower() for f
-                             in json.loads(ie.field_order)
-                             if f != "ignore"]
-    output['fields'] = header_keys or ie.rows()[0].datadict.keys()
-
-    return HttpResponse(json.dumps(output), content_type='application/json')
+        panels = [verified_panel, error_panel, warning_panel, success_panel]
+    else:
+        merge_required_panel = {
+            'name': 'merge_required',
+            'status': None,
+            'title': trans('Merge Required')
+        }
+        panels = [
+            verified_panel, merge_required_panel, error_panel, success_panel]
+    return panels
 
 
 def process_status(request, instance, import_id, TheImportEvent):
@@ -670,14 +716,24 @@ def create_rows_for_event(importevent, csvfile):
 
     return rows
 
-list_imports_view = do(admin_instance_request,
-                       requires_feature('bulk_upload'),
-                       require_http_method('GET'),
-                       render_template('importer/imports.html'),
-                       list_imports)
 
-start_import_endpoint = do(admin_instance_request,
-                           requires_feature('bulk_upload'),
-                           require_http_method('POST'),
-                           render_template('importer/partials/imports.html'),
-                           start_import)
+def _api_call(verb, template, view_fn):
+    return do(
+        admin_instance_request,
+        requires_feature('bulk_upload'),
+        require_http_method(verb),
+        render_template(template),
+        view_fn)
+
+
+list_imports_endpoint = _api_call(
+    'GET', 'importer/partials/imports.html', list_imports)
+
+start_import_endpoint = _api_call(
+    'POST', 'importer/partials/imports.html', start_import)
+
+show_import_status_endpoint = _api_call(
+    'GET', 'importer/partials/status.html', show_import_status)
+
+show_status_panel_endpoint = _api_call(
+    'GET', 'importer/partials/status_table.html', show_status_panel)

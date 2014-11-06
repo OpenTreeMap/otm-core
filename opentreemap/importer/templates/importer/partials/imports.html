@@ -3,7 +3,7 @@
     <div class="col-md-12">
       <div>
         <div>
-          <div class="row top-pad-lg">
+          <div class="row">
             <div class="col-md-6">
               <div class="well">
                 <h4>Tree Import</h4>
@@ -43,12 +43,12 @@
 
           <div class="row">
             <div class="col-md-12">
-              <img src="/static/img/spinner.gif" class="spinner pull-left" style="display:none;">
-              <h2 class="top-pad-lg">Imports</h2>
+              <img src="/static/img/spinner.gif" class="spinner pull-right" style="display:none;">
+              <h2>Imports</h2>
               <hr>
 
               <h4>Active Tree Imports</h4>
-              {% include 'importer/partials/import_table.html' with things=trees_active id="activetree" link="tree" %}
+              {% include 'importer/partials/import_table.html' with things=trees_active id="activetree" import_type="tree" %}
             </div>
           </div>
 
@@ -57,7 +57,7 @@
           <div class="row">
             <div class="col-md-12">
               <h4>Finished Tree Imports</h4>
-              {% include 'importer/partials/import_table.html' with things=trees_finished id="finishedtree" link="tree" %}
+              {% include 'importer/partials/import_table.html' with things=trees_finished id="finishedtree" import_type="tree" %}
             </div>
           </div>
 
@@ -66,7 +66,7 @@
           <div class="row">
             <div class="col-md-12">
               <h4>Active Species Imports</h4>
-              {% include 'importer/partials/import_table.html' with things=species_active id="activespecies" link="species" %}
+              {% include 'importer/partials/import_table.html' with things=species_active id="activespecies" import_type="species" %}
             </div>
           </div>
 
@@ -75,7 +75,7 @@
           <div class="row">
             <div class="col-md-12">
               <h4>Finished Species Imports</h4>
-              {% include 'importer/partials/import_table.html' with things=species_finished id="finishedspecies" link="species" %}
+              {% include 'importer/partials/import_table.html' with things=species_finished id="finishedspecies" import_type="species" %}
             </div>
           </div>
 

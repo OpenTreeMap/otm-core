@@ -74,10 +74,7 @@ class TreeImportEvent(GenericImportEvent):
 
 
 class TreeImportRow(GenericImportRow):
-    SUCCESS = 0
-    ERROR = 1
-    WATCH = 2
-    VERIFIED = 4
+    WARNING = 2
 
     PLOT_MAP = {
         'geom': fields.trees.POINT,
@@ -352,7 +349,7 @@ class TreeImportRow(GenericImportRow):
             self.status = TreeImportRow.ERROR
             fatal = True
         elif self.has_errors():  # Has 'warning'/tree watch errors
-            self.status = TreeImportRow.WATCH
+            self.status = TreeImportRow.WARNING
         else:
             self.status = TreeImportRow.VERIFIED
 
