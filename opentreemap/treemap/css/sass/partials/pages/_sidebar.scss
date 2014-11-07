@@ -1,5 +1,7 @@
 // Partial: Map Page Sidebar
 
+
+
 .sidebar {
     width: 350px;
     background: $navbar-color;
@@ -8,6 +10,10 @@
     top: 0;
     right: 0;
     bottom: 0;
+
+    // .popover {
+    //     left: 0 !important;
+    // }
 
     > div {
         height: 100%;
