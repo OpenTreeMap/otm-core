@@ -84,6 +84,21 @@
         }
     }
 
+    #instances {
+        table {
+            > tbody {
+                > tr {
+                    > td:first-child, th:first-child {
+                        max-width: 140px;
+                        overflow:hidden;
+                        white-space:nowrap;
+                        text-overflow:ellipsis;
+                    }
+                }
+            }
+        }
+    }
+
     input {
         width: 50%;
         margin-bottom: 8px;
