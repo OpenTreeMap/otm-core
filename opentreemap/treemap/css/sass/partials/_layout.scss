@@ -36,9 +36,13 @@ body {
 		position: absolute;
 		overflow: hidden;
 		margin: 0;
-		top: 205px;
+		top: 252px;
 		width: 100%;
 		bottom: 40px;
+
+        @media(min-width: 990px){
+            top: 205px;
+        }
 	}
 }
 
@@ -89,7 +93,7 @@ body {
 .alert {
     font-size: 1.4rem;
     line-height: 1.8rem;
-    
+
     .btn {
         margin-bottom: 5px;
     }
@@ -112,7 +116,7 @@ body {
 	border: 1px solid lighten($well-color, 10%);
 	background: $light-gray-color;
 	border-radius: 6px;
-	
+
 	> :last-child {
 		margin-bottom: 0;
 	}
