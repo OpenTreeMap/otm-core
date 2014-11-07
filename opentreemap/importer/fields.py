@@ -41,17 +41,11 @@ class species(object):
     # when a matching itree code is found
     ITREE_PAIRS = 'calc__itree'
 
-    # TODO: support i18n
-    CHOICE_MAP = {
-        FLOWERING_PERIOD: ['spring', 'summer', 'fall', 'winter'],
-        FRUIT_OR_NUT_PERIOD: ['spring', 'summer', 'fall', 'winter'],
-    }
-
     DATE_FIELDS = set()
 
     STRING_FIELDS = {GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME, COMMON_NAME,
-                     USDA_SYMBOL, ITREE_CODE, GENDER, FACT_SHEET_URL,
-                     PLANT_GUIDE_URL}
+                     USDA_SYMBOL, ITREE_CODE, GENDER, FLOWERING_PERIOD,
+                     FRUIT_OR_NUT_PERIOD, FACT_SHEET_URL, PLANT_GUIDE_URL}
 
     POS_FLOAT_FIELDS = {MAX_DIAMETER, MAX_HEIGHT}
 
@@ -63,8 +57,7 @@ class species(object):
                       FLOWER_CONSPICUOUS, HAS_WILDLIFE_VALUE}
 
     ALL = DATE_FIELDS | STRING_FIELDS | POS_FLOAT_FIELDS | \
-        FLOAT_FIELDS | POS_INT_FIELDS | BOOLEAN_FIELDS | \
-        set(CHOICE_MAP.keys())
+        FLOAT_FIELDS | POS_INT_FIELDS | BOOLEAN_FIELDS
 
     PLOT_CHOICES = set()
 
@@ -123,8 +116,6 @@ class trees(object):
     POS_INT_FIELDS = {OPENTREEMAP_ID_NUMBER}
 
     BOOLEAN_FIELDS = {READ_ONLY, TREE_PRESENT}
-
-    CHOICE_MAP = {}
 
     ALL = {POINT_X, POINT_Y, PLOT_WIDTH, PLOT_LENGTH, READ_ONLY, TREE_PRESENT,
            STREET_ADDRESS, CITY_ADDRESS, POSTAL_CODE, OPENTREEMAP_ID_NUMBER,

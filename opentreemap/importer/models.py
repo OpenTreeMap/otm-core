@@ -314,19 +314,6 @@ class GenericImportRow(models.Model):
 
         return has_errors
 
-    def validate_choice_fields(self):
-        has_errors = False
-        for field, choices in self.model_fields.CHOICE_MAP.iteritems():
-            value = self.datadict.get(field, None)
-            if value:
-                if value in choices:
-                    self.cleaned[field] = value
-                else:
-                    has_errors = True
-                    self.append_error(errors.INVALID_CHOICE, field, value)
-
-        return has_errors
-
     def validate_string_fields(self):
         has_errors = False
         for field in self.model_fields.STRING_FIELDS:
@@ -359,7 +346,6 @@ class GenericImportRow(models.Model):
     def validate_and_convert_datatypes(self):
         self.validate_numeric_fields()
         self.validate_boolean_fields()
-        self.validate_choice_fields()
         self.validate_string_fields()
         self.validate_date_fields()
 
