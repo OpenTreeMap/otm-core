@@ -26,8 +26,7 @@
               <div class="tab-content">
                 {% for panel in panels %}
                   <div class="tab-pane {% if forloop.first %}active{% endif %}"
-                       id="import-panel-{{ panel.name }}"
-                       style="overflow-x: scroll;">
+                       id="import-panel-{{ panel.name }}">
                     {% include "importer/partials/status_table.html" %}
                   </div>
                 {% endfor %}
