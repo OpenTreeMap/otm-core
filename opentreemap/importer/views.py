@@ -25,9 +25,9 @@ from treemap.decorators import (admin_instance_request, require_http_method,
 from importer.models import GenericImportEvent, GenericImportRow
 from importer.trees import TreeImportEvent, TreeImportRow
 from importer.species import SpeciesImportEvent, SpeciesImportRow
-
+from importer.tasks import (run_import_event_validation, commit_import_event,
+                            get_import_event_model)
 from importer import errors, fields
-from importer.tasks import run_import_event_validation, commit_import_event
 
 
 def lowerkeys(h):
@@ -93,10 +93,9 @@ def counts(request, instance):
 
 
 def start_import(request, instance):
-    if request.REQUEST['type'] == 'tree':
+    import_type = request.REQUEST['type']
+    if import_type == 'tree':
         kwargs = {
-            'ImportEventModel': TreeImportEvent,
-
             'plot_length_conversion_factor':
             float(request.REQUEST.get('unit_plot_length', 1.0)),
 
@@ -112,12 +111,10 @@ def start_import(request, instance):
             'canopy_height_conversion_factor':
             float(request.REQUEST.get('unit_canopy_height', 1.0))
         }
-    elif request.REQUEST['type'] == 'species':
-        kwargs = {
-            'ImportEventModel': SpeciesImportEvent
-        }
+    else:
+        kwargs = {}
 
-    process_csv(request, instance, **kwargs)
+    process_csv(request, instance, import_type, **kwargs)
 
     return list_imports(request, instance)
 
@@ -185,17 +182,12 @@ def merge_species(request, instance):
 
 @login_required
 def update(request, instance, import_type, import_event_id):
-    if import_type == 'tree':
-        Model = TreeImportEvent
-    else:
-        Model = SpeciesImportEvent
+    ie = _get_import_event(instance, import_type, import_event_id)
 
     rowdata = json.loads(request.REQUEST['row'])
     idx = rowdata['id']
 
-    row = get_object_or_404(Model, instance=instance, pk=import_event_id)\
-        .rows()\
-        .get(idx=idx)
+    row = ie.rows().get(idx=idx)
     basedata = row.datadict
 
     for k, v in rowdata.iteritems():
@@ -261,7 +253,7 @@ def show_status_panel(request, instance, import_type, import_event_id):
 
 
 def _get_import_event(instance, import_type, import_event_id):
-    Model = TreeImportEvent if import_type == 'tree' else SpeciesImportEvent
+    Model = get_import_event_model(import_type)
     return get_object_or_404(Model, pk=import_event_id, instance=instance)
 
 
@@ -390,8 +382,10 @@ def _get_status_panel_specs(import_type):
     return panels
 
 
-def process_status(request, instance, import_id, TheImportEvent):
-    ie = get_object_or_404(TheImportEvent, instance=instance, pk=import_id)
+# TODO: This is currently unused except for tests; likewise in OTM1.
+# But it might be useful, e.g. to show in the UI why an import failed
+def process_status(request, instance, import_type, import_event_id):
+    ie = _get_import_event(instance, import_type, import_event_id)
 
     resp = None
     if ie.errors:
@@ -449,16 +443,9 @@ def solve(request, instance, import_event_id, import_row_idx):
 
 @transaction.commit_manually
 @login_required
-def commit(request, instance, import_event_id, import_type=None):
+def commit(request, instance, import_type, import_event_id):
     #TODO:!!! If 'Plot' already exists on row *update* when changed
-    if import_type == 'species':
-        Model = SpeciesImportEvent
-    elif import_type == 'tree':
-        Model = TreeImportEvent
-    else:
-        raise Exception('invalid import type')
-
-    ie = get_object_or_404(Model, instance=instance, pk=import_event_id)
+    ie = _get_import_event(instance, import_type, import_event_id)
     ie.status = GenericImportEvent.CREATING
 
     ie.save()
@@ -466,14 +453,14 @@ def commit(request, instance, import_event_id, import_type=None):
 
     transaction.commit()
 
-    commit_import_event.delay(ie)
+    commit_import_event.delay(import_type, import_event_id)
 
     return HttpResponse(
         json.dumps({'status': 'done'}),
         content_type='application/json')
 
 
-def process_csv(request, instance, ImportEventModel, **kwargs):
+def process_csv(request, instance, import_type, **kwargs):
     files = request.FILES
     filename = files.keys()[0]
     file_obj = files[filename]
@@ -483,6 +470,7 @@ def process_csv(request, instance, ImportEventModel, **kwargs):
                           .encode('utf-8'))
 
     owner = request.user
+    ImportEventModel = get_import_event_model(import_type)
     ie = ImportEventModel(file_name=filename,
                           owner=owner,
                           instance=instance,
@@ -492,7 +480,7 @@ def process_csv(request, instance, ImportEventModel, **kwargs):
     try:
         rows = create_rows_for_event(ie, file_obj)
         if rows:
-            run_import_event_validation.delay(ie)
+            run_import_event_validation.delay(import_type, ie.pk)
     except Exception as e:
         ie.append_error(errors.GENERIC_ERROR, data=str(e))
         ie.status = GenericImportEvent.FAILED_FILE_VERIFICATION
@@ -675,17 +663,6 @@ def export_single_tree_import(request, instance, import_event_id):
     response['Content-Disposition'] = 'attachment; filename=trees.csv'
 
     return response
-
-
-def process_commit(request, instance, import_id):
-    ie = get_object_or_404(TreeImportEvent, instance=instance, pk=import_id)
-
-    commit_import_event(ie)
-
-    # TODO: What to return here?
-    return HttpResponse(
-        json.dumps({'status': 'success'}),
-        content_type='application/json')
 
 
 @transaction.atomic
