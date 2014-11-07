@@ -755,22 +755,22 @@ class IntegrationTests(TestCase):
 
     def run_through_process_views(self, csv):
         r = self.create_csv_request(csv, name='some name')
-        pk = process_csv(r, self.instance, ImportEventModel=self.constructor())
+        pk = process_csv(r, self.instance, self.import_type())
 
-        resp = process_status(None, self.instance, pk, self.constructor())
+        resp = process_status(None, self.instance, self.import_type(), pk)
         content = json.loads(resp.content)
         content['pk'] = pk
         return content
 
     def run_through_commit_views(self, csv):
         r = self.create_csv_request(csv, name='some name')
-        pk = process_csv(r, self.instance, ImportEventModel=self.constructor())
+        pk = process_csv(r, self.instance, self.import_type())
 
         req = HttpRequest()
         req.user = self.user
         login(self.client, self.user.username)
 
-        commit(req, self.instance, pk, self.import_type())
+        commit(req, self.instance, self.import_type(), pk)
         return pk
 
     def extract_errors(self, json):
@@ -789,12 +789,6 @@ class IntegrationTests(TestCase):
 
 
 class SpeciesIntegrationTests(IntegrationTests):
-    def rowconstructor(self):
-        return SpeciesImportRow
-
-    def constructor(self):
-        return SpeciesImportEvent
-
     def import_type(self):
         return 'species'
 
@@ -868,14 +862,8 @@ class TreeIntegrationTests(IntegrationTests):
 
         settings.DBH_TO_INCHES_FACTOR = 1.0
 
-    def rowconstructor(self):
-        return TreeImportRow
-
     def import_type(self):
         return 'tree'
-
-    def constructor(self):
-        return TreeImportEvent
 
     def test_noerror_load(self):
         csv = """
@@ -1019,7 +1007,7 @@ class TreeIntegrationTests(IntegrationTests):
         """
 
         r = self.create_csv_request(csv, name='some name')
-        ieid = process_csv(r, self.instance, ImportEventModel=self.constructor(),
+        ieid = process_csv(r, self.instance, self.import_type(),
                            plot_length_conversion_factor=1.5,
                            plot_width_conversion_factor=2.5,
                            diameter_conversion_factor=3.5,
@@ -1030,7 +1018,7 @@ class TreeIntegrationTests(IntegrationTests):
         req.user = self.user
         login(self.client, self.user.username)
 
-        commit(req, self.instance, ieid, self.import_type())
+        commit(req, self.instance, self.import_type(), ieid)
 
         ie = TreeImportEvent.objects.get(pk=ieid)
         plot = ie.treeimportrow_set.all()[0].plot
