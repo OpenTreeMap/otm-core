@@ -76,6 +76,8 @@ function handleForm($container, formSelector, startImportUrl, tablesUpdatedBus) 
 }
 
 function updateTablesIfImportsNotFinished(url, tablesUpdatedBus) {
+    // If some imports aren't finished we reload the tables,
+    // and push to the "tablesUpdatedBus" so we'll be called again.
     if ($(dom.importsFinished).val() === 'False') {
         $(dom.tablesContainer).load(url,
             function (response, status, xhr) {
