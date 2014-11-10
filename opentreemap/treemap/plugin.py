@@ -10,6 +10,11 @@ from django.dispatch import receiver
 
 from treemap.lib import get_function_by_path
 
+
+# For use in tests, as basic functions to use in override_settings
+always_false = lambda *args, **kwargs: False
+
+
 #
 # Plugin functions allow python modules which are not part of the OTM2 core the
 # the ability to override select functionality.

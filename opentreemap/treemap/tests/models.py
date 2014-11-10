@@ -316,7 +316,6 @@ class InstanceUserModelTest(OTMTestCase):
 
 
 class InstanceTest(OTMTestCase):
-
     def test_can_set_center(self):
         instance = make_instance(url_name="blah")
 
@@ -416,6 +415,7 @@ class InstanceTest(OTMTestCase):
 
         self.assertEqual(instance.has_itree_region(), True)
 
+    @override_settings(FEATURE_BACKEND_FUNCTION='treemap.plugin.always_false')
     def test_advanced_search_fields(self):
         instance = make_instance()
         self.assertEqual(instance.advanced_search_fields,
