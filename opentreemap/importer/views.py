@@ -30,14 +30,20 @@ from importer.tasks import (run_import_event_validation, commit_import_event,
 from importer import errors, fields
 
 
+def clean_string(s):
+    s = s.strip()
+    if not isinstance(s, unicode):
+        s = unicode(s, 'utf-8')
+    return s
+
+
 def lowerkeys(h):
     h2 = {}
     for (k, v) in h.iteritems():
         k = k.lower().strip()
         if k != 'ignore':
-            v = v.strip()
-            if not isinstance(v, unicode):
-                v = unicode(v, 'utf-8')
+            if isinstance(v, basestring):
+                v = clean_string(v)
 
             h2[k] = v
 
