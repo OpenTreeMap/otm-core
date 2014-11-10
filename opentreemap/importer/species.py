@@ -8,7 +8,7 @@ import json
 from django.contrib.gis.db import models
 from django.db import transaction
 
-from treemap.models import (Species, ITreeCodeOverride, ITreeRegion)
+from treemap.models import (Species, ITreeCodeOverride, ITreeRegion, User)
 from treemap.species import species_for_scientific_name
 from treemap.species.codes import (has_itree_code, all_itree_region_codes,
                                    all_itree_codes)
@@ -394,8 +394,8 @@ class SpeciesImportRow(GenericImportRow):
                 species.otm_code = species_dict['otm_code']
 
         if species_edited:
-            data_owner = self.import_event.owner
-            species.save_with_user(data_owner)
+            species.save_with_user_without_verifying_authorization(
+                User.system_user())
 
         # Make i-Tree code override(s) if necessary
         if fields.species.ITREE_PAIRS in data:
@@ -408,7 +408,7 @@ class SpeciesImportRow(GenericImportRow):
                         region=ITreeRegion.objects.get(code=region_code),
                     )[0]
                     override.itree_code = itree_code
-                    override.save_with_user(data_owner)
+                    override.save_with_user(User.system_user())
 
         self.species = species
         self.status = SpeciesImportRow.SUCCESS

@@ -9,7 +9,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 
-from treemap.models import Species, Plot, Tree
+from treemap.models import Species, Plot, Tree, User
 
 from importer.models import GenericImportRow, GenericImportEvent
 from importer import fields
@@ -160,8 +160,6 @@ class TreeImportRow(GenericImportRow):
                 if tree is None:
                     tree = Tree()
 
-        data_owner = self.import_event.owner
-
         for modelkey, importdatakey in TreeImportRow.PLOT_MAP.iteritems():
             importdata = data.get(importdatakey, None)
 
@@ -170,7 +168,8 @@ class TreeImportRow(GenericImportRow):
                 setattr(plot, modelkey, importdata)
 
         if plot_edited:
-            plot.save_with_user(data_owner)
+            plot.save_with_user_without_verifying_authorization(
+                User.system_user())
 
         for modelkey, importdatakey in TreeImportRow.TREE_MAP.iteritems():
             importdata = data.get(importdatakey, None)
@@ -184,7 +183,8 @@ class TreeImportRow(GenericImportRow):
         if tree_edited:
             tree.plot = plot
             tree.instance = plot.instance
-            tree.save_with_user(data_owner)
+            tree.save_with_user_without_verifying_authorization(
+                User.system_user())
 
         self.plot = plot
         self.status = TreeImportRow.SUCCESS
