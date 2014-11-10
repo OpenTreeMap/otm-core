@@ -1,6 +1,8 @@
 ![OTM2 open source logo](https://opentreemap.github.io/images/logo@2x.png)
 
 [![Code Health](https://landscape.io/github/OpenTreeMap/OTM2/master/landscape.png)](https://landscape.io/github/OpenTreeMap/OTM2/master)
+[![Build Status](https://travis-ci.org/OpenTreeMap/OTM2.svg?branch=master)](https://travis-ci.org/OpenTreeMap/OTM2)
+[![Coverage Status](https://coveralls.io/repos/OpenTreeMap/OTM2/badge.png)](https://coveralls.io/r/OpenTreeMap/OTM2)
 
 #OpenTreeMap 2
 
