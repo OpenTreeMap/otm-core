@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import itertools
 from django.contrib.gis.db import models
 from django.db import transaction
 
@@ -108,16 +109,19 @@ class SpeciesImportRow(GenericImportRow):
             return {}
 
         data = self.cleaned
-        result = {}
+        diffs = {}
         for (model_key, row_key) in SpeciesImportRow.SPECIES_MAP.iteritems():
             row_data = data.get(row_key, None)
             model_data = getattr(species, model_key)
 
-            if row_data and row_data != model_data:
-                result[row_key] = (model_data, row_data)
+            # Note if row_data == False we want row_has_value == True
+            row_has_value = row_data is not None and row_data != ''
+
+            if row_has_value and row_data != model_data:
+                diffs[row_key] = (model_data, row_data)
 
         # Always include the ID (so the client can use it)
-        result['id'] = (species.pk, None)
+        diffs['id'] = (species.pk, None)
 
         # Compare i-Tree codes
         key = fields.species.ITREE_PAIRS
@@ -126,9 +130,9 @@ class SpeciesImportRow(GenericImportRow):
             model_itree_pairs = [(species.get_itree_code(region), region)
                                  for (_, region) in row_itree_pairs]
             if row_itree_pairs != model_itree_pairs:
-                result[key] = (model_itree_pairs, row_itree_pairs)
+                diffs[key] = (model_itree_pairs, row_itree_pairs)
 
-        return result
+        return diffs
 
     @property
     def model_fields(self):
@@ -150,22 +154,12 @@ class SpeciesImportRow(GenericImportRow):
         self.cleaned[fields.species.OTHER_PART_OF_NAME] = other_part
 
         if genus != '' or species != '' or cultivar != '' or other_part != '':
-            matching_species = Species.objects \
-                .filter(genus__iexact=genus) \
-                .filter(species__iexact=species) \
-                .filter(cultivar__iexact=cultivar) \
-                .filter(other_part_of_name__iexact=other_part)
-
-            self.cleaned[fields.species.POSSIBLE_MATCHES] \
-                |= {s.pk for s in matching_species}
-
-    def validate_usda_code(self):
-        # Look for an OTM code matching the USDA code.
-        # They won't match if there's a cultivar, but it might help
-        # if file's USDA codes are better than its scientific names.
-        usda_code = self.datadict.get(fields.species.USDA_SYMBOL, None)
-        if usda_code:
-            matching_species = Species.objects.filter(otm_code=usda_code)
+            matching_species = Species.objects.filter(
+                instance_id=self.import_event.instance_id,
+                genus__iexact=genus,
+                species__iexact=species,
+                cultivar__iexact=cultivar,
+                other_part_of_name__iexact=other_part)
 
             self.cleaned[fields.species.POSSIBLE_MATCHES] \
                 |= {s.pk for s in matching_species}
@@ -269,57 +263,69 @@ class SpeciesImportRow(GenericImportRow):
         # They'll be stored as a set of POSSIBLE_MATCHES
         self.cleaned[fields.species.POSSIBLE_MATCHES] = set()
         self.validate_species()
-        self.validate_usda_code()
 
         self.validate_itree_code_field()
         self.validate_required_fields()
 
-        # If same is set to true this is essentially a no-op
-        same = False
-
-        possible_matches = self.cleaned[fields.species.POSSIBLE_MATCHES]
-        # TODO: Certain fields require this flag to be reset
+        identical_to_existing = False
         if not self.merged:
-            if len(possible_matches) == 0:
-                self.merged = True
-            else:
-                species = Species.objects.filter(pk__in=possible_matches)
-                diffs = [self.diff_from_species(s) for s in species]
-                # There's always a single field that has changed in the
-                # diff. This is the 'id' field of the existing species,
-                # which will never be the same as the None for the current
-                # id.
-                if all([diff.keys() == ['id'] for diff in diffs]):
-                    self.merged = True
-                    same = True
-                    self.species = species[0]
-                else:
-                    diff_keys = set()
-
-                    for diff in diffs:
-                        for key in diff.keys():
-                            diff_keys.add(key)
-
-                    if len(possible_matches) > 1:
-                        self.append_error(errors.TOO_MANY_SPECIES,
-                                          tuple(diff_keys), tuple(diffs))
-                    else:
-                        self.append_error(errors.MERGE_REQ, tuple(diff_keys),
-                                          diffs[0])
-                        pk = list(possible_matches)[0]
-                        self.species = Species.objects.get(pk=pk)
+            identical_to_existing = self._prepare_merge_data()
 
         fatal = False
         if self.has_fatal_error():
+            # User needs to resolve one or more errors for this row
             self.status = SpeciesImportRow.ERROR
             fatal = True
-        elif same:  # Nothing changed, this has been effectively added
+
+        elif identical_to_existing:
+            # We will ignore this row and consider it added
             self.status = SpeciesImportRow.SUCCESS
+
         else:
+            # This row is either ready to add or requires a merge
             self.status = SpeciesImportRow.VERIFIED
 
         self.save()
         return not fatal
+
+    def _prepare_merge_data(self):
+        identical_to_existing = False
+        possible_matches = self.cleaned[fields.species.POSSIBLE_MATCHES]
+
+        if len(possible_matches) == 0:
+            self.merged = True
+        else:
+            species = Species.objects.filter(pk__in=possible_matches)
+            diffs = [self.diff_from_species(s) for s in species]
+
+            if all(diff.keys() == ['id'] for diff in diffs):
+                # Imported data differs only in ID field (None vs. something)
+                identical_to_existing = True
+                self.merged = True
+
+            else:
+                # Filter out diffs whose "model value" is empty
+                filtered_diffs = [{k: v for k, v in diff.iteritems()
+                                   if v[0] is not None and v[0] != ''}
+                                  for diff in diffs]
+
+                diff_keys = [diff.keys() for diff in filtered_diffs]
+                diff_keys = set(itertools.chain(*diff_keys))
+                diff_keys.remove('id')
+
+                if len(diff_keys) == 0:
+                    # All diffs (except id) are with empty model fields,
+                    # so the row can be merged without user input
+                    self.merged = True
+                else:
+                    # Store diffs for user-directed merge
+                    self.append_error(errors.MERGE_REQUIRED,
+                                      tuple(diff_keys), filtered_diffs)
+
+            if len(possible_matches) == 1:
+                self.species = species[0]
+
+        return identical_to_existing
 
     @transaction.atomic
     def commit_row(self):

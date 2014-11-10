@@ -36,7 +36,7 @@ class Migration(DataMigration):
                 species.save()
 
     def backwards(self, orm):
-        "Write your backwards methods here."
+        print('Unwanted whitespace around species fields trimmed by this migration cannot be restored.')
 
     models = {
         u'auth.group': {

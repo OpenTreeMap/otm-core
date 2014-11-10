@@ -4,12 +4,12 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import csv
-from django.core.paginator import Paginator
 import json
 import io
 
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.translation import ugettext as trans
@@ -304,7 +304,8 @@ def _get_status_panel(instance, import_type, ie, panel_spec, page_number=1):
         'field_names': field_names,
         'row_count': len(row_data),
         'rows': rows,
-        'paging_url': paging_url
+        'paging_url': paging_url,
+        'import_event_id': ie.pk
     }
 
 
@@ -324,15 +325,11 @@ def _get_row_data(row, field_names, merge_required):
         'fields': field_data
     }
 
-    # Generate diffs for merges
     if merge_required:
-        # If errors.TOO_MANY_SPECIES we need to mine species
-        # otherwise we can just do simple diff
-        ecodes = {e['code']: e['data'] for e in row_errors}
-        if errors.TOO_MANY_SPECIES[0] in ecodes:
-            row_data['diffs'] = ecodes[errors.TOO_MANY_SPECIES[0]]
-        elif errors.MERGE_REQ[0] in ecodes:
-            row_data['diffs'] = [ecodes[errors.MERGE_REQ[0]]]
+        columns_for_merge, fields_to_merge = \
+            _get_merge_data(row, field_names, row_errors)
+        row_data['columns_for_merge'] = columns_for_merge
+        row_data['fields_to_merge'] = fields_to_merge
 
     if hasattr(row, 'plot') and row.plot:
         row_data['plot_id'] = row.plot.pk
@@ -341,6 +338,72 @@ def _get_row_data(row, field_names, merge_required):
         row_data['species_id'] = row.species.pk
 
     return row_data
+
+
+def _get_merge_data(row, field_names, row_errors):
+    error = [e for e in row_errors
+             if e['code'] == errors.MERGE_REQUIRED[0]][0]
+    species_diffs = error['data']
+    diff_names = error['fields']
+
+    # We know that genus/species/cultivar/other match.
+    # Only allow creating a new species if "common name" doesn't match.
+    create_species_allowed = 'common name' in diff_names
+
+    # species_diffs is a list with one element per matching species.
+    # Each element is a dict of fields where import and species differ:
+    #    key: field_name
+    #    value: [species_value, imported_value]
+    #
+    # Make a merge table whose rows contain:
+    #    field_name | import_value | species_1_value | species_2_value ...
+
+    columns_for_merge = [
+        {
+            'title': trans('Import Value'),
+            'action_title': trans('Create New Species'),
+            'species_id': 'new' if create_species_allowed else ''
+        }
+    ] + [
+        {
+            'title': trans('Match') + ' ' + str(i + 1),
+            'action_title': trans('Merge Species'),
+            'species_id': diffs['id'][0]
+        }
+        for i, diffs in enumerate(species_diffs)
+    ]
+
+    merge_names = [name for name in field_names if name in diff_names]
+
+    dom_names = ['row_%s_%s' % (row.idx, field_name.replace(' ', '_'))
+                 for field_name in merge_names]
+
+    fields_to_merge = [
+        {
+            'name': field_name,
+            'id': dom_name,
+            'values': [
+                _get_diff_value(dom_name, 0, row.datadict[field_name])
+            ] + [
+                _get_diff_value(dom_name, i + 1, diffs.get(field_name))
+                for i, diffs in enumerate(species_diffs)
+            ]
+        }
+        for (field_name, dom_name) in zip(merge_names, dom_names)]
+
+    return columns_for_merge, fields_to_merge
+
+
+def _get_diff_value(dom_name, i, value):
+    if isinstance(value, list):
+        value = value[0]
+    elif not value:
+        value = ''
+    return {
+        'id': "%s_%s" % (dom_name, i),
+        'value': value,
+        'checked': 'checked' if i == 0 else ''
+    }
 
 
 def _get_field_data(row, field_name, error_fields, warning_fields):
@@ -418,27 +481,25 @@ def process_status(request, instance, import_type, import_event_id):
     return HttpResponse(json.dumps(resp), content_type='application/json')
 
 
-def solve(request, instance, import_event_id, import_row_idx):
+def solve(request, instance, import_event_id, row_index):
     ie = get_object_or_404(SpeciesImportEvent, pk=import_event_id,
                            instance=instance)
-    row = ie.rows().get(idx=import_row_idx)
+    row = ie.rows().get(idx=row_index)
 
     data = dict(json.loads(request.REQUEST['data']))
-    tgtspecies = request.REQUEST['species']
+    target_species = request.REQUEST['species']
 
     # Strip off merge errors
-    merge_errors = {errors.TOO_MANY_SPECIES[0], errors.MERGE_REQ[0]}
-
     ierrors = [e for e in row.errors_as_array()
-               if e['code'] not in merge_errors]
+               if e['code'] != errors.MERGE_REQUIRED[0]]
 
     #TODO: Json handling is terrible.
     row.errors = json.dumps(ierrors)
     row.datadict = data
 
-    if tgtspecies != 'new':
+    if target_species != 'new':
         row.species = get_object_or_404(Species, instance=instance,
-                                        pk=tgtspecies)
+                                        pk=target_species)
 
     row.merged = True
     row.save()
@@ -513,7 +574,7 @@ def _build_species_object(species, fieldmap, included_fields):
                     newval = val.encode("utf-8")
                 else:
                     newval = str(val)
-                obj[v] = newval
+                obj[v] = newval.strip()
 
     return obj
 

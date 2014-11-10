@@ -6,9 +6,10 @@
           <div class="row">
             <div class="col-md-6">
               <div class="well">
-                <h4>Tree Import</h4>
                 <form id="import-trees-form">
                   {% csrf_token %}
+                  <button class="btn btn-info pull-right" type="submit" disabled>Import</button>
+                  <h4>Tree Import</h4>
                   <input type="hidden" name="type" value="tree">
                   <input name="unit_plot_length" value="1" type="hidden">
                   <input name="unit_plot_width" value="1" type="hidden">
@@ -17,24 +18,19 @@
                   <input name="unit_canopy_height" value="1" type="hidden">
                   <div class="input-group">
                     File to Upload: <input type="file" name="file">
-                    <span class="input-group-btn">
-                      <button class="btn btn-info" type="submit" disabled>Import</button>
-                    </span>
                   </div><!-- /input-group -->
                 </form>
               </div>
             </div>
             <div class="col-md-6">
               <div class="well">
-                <h4>Species Import</h4>
                 <form id="import-species-form">
                   {% csrf_token %}
+                  <button class="btn btn-info pull-right" type="submit" disabled>Import</button>
+                  <h4>Species Import</h4>
                   <input type="hidden" name="type" value="species">
                   <div class="input-group">
                     File to Upload: <input type="file" name="file">
-                    <span class="input-group-btn">
-                      <button class="btn btn-info" type="submit" disabled>Import</button>
-                    </span>
                   </div><!-- /input-group -->
                 </form>
               </div>
