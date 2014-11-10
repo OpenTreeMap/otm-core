@@ -1,6 +1,4 @@
-{% load subtract %}
-
-<table class="table table-striped" id="{{ id }}">
+<table class="table table-striped">
     <thead>
         <tr>
             <th>Import Event</th>
@@ -11,34 +9,27 @@
     </thead>
     <tbody>
     {% for ie in things %}
-        {% with count=ie.rows.count n_finished=ie.row_counts_by_status.3 %}
-            <tr data-id="{{ ie.pk }}" data-running="{{ ie.is_running }}" >
-                    <td>{{ ie }}</td>
-                    <td>{{ ie.status_summary }}</td>
-                {% if ie.is_running %}
-                    {# Running now, so show '# remaining / total' #}
-                    <td data-count="{{ count }}">
-                        {% if n_finished %}
-                            {{ count|subtract:n_finished }}
-                            /
-                        {% endif %}
-                        {{ count }}
-                    </td>
-                    <td></td>
-                {% elif ie.is_finished %}
-                    <td>{{ count }}</td>
-                    <td>
-                      <a href="{% url 'importer:status' import_type=import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">View</a>
-                      |
-                      <a href="javascript:;">Export</a>
-                    </td>
-                {% else %}
-                    <td></td>
-                    <td></td>
+        <tr>
+            <td>{{ ie }}</td>
+            <td>{{ ie.status_summary }}</td>
+            <td>
+                {% if ie.is_finished %}
+                    {{ ie.rows.count }}
+                {% elif ie.is_running %}
+                    {{ ie.completed_row_count }} / {{ ie.rows.count }}
                 {% endif %}
-            </tr>
-        {% endwith %}
+            </td>
+            <td>
+                {% if ie.is_finished %}
+                    <a href="{% url 'importer:status' import_type=import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">View</a>
+                    |
+                    <a href="javascript:;">Export</a>
+                {% else %}
+                    <img src="/static/img/spinnerSmall.gif">
+                {% endif %}
+            </td>
+        </tr>
     {% endfor %}
-  </tbody>
+    </tbody>
 </table>
 

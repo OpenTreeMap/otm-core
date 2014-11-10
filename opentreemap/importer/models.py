@@ -82,6 +82,10 @@ class GenericImportEvent(models.Model):
 
         return {r['status']: r['status__count'] for r in q}
 
+    def completed_row_count(self):
+        n_left = self.row_counts_by_status().get(GenericImportRow.WAITING, 0)
+        return self.row_set().count() - n_left
+
     def update_status(self):
         """ Update the status field based on current row statuses """
         pass

@@ -132,10 +132,14 @@ def list_imports(request, instance):
     active_species = species.exclude(status=finished)
     finished_species = species.filter(status=finished)
 
-    return {'trees_active': active_trees,
-            'trees_finished': finished_trees,
-            'species_active': active_species,
-            'species_finished': finished_species,
+    active_events = list(active_trees) + list(active_species)
+    imports_finished = all(ie.is_finished() for ie in active_events)
+
+    return {'active_trees': active_trees,
+            'finished_trees': finished_trees,
+            'active_species': active_species,
+            'finished_species': finished_species,
+            'imports_finished': imports_finished
             }
 
 
@@ -705,6 +709,9 @@ def _api_call(verb, template, view_fn):
 
 list_imports_endpoint = _api_call(
     'GET', 'importer/partials/imports.html', list_imports)
+
+refresh_imports_endpoint = _api_call(
+    'GET', 'importer/partials/import_tables.html', list_imports)
 
 start_import_endpoint = _api_call(
     'POST', 'importer/partials/imports.html', start_import)
