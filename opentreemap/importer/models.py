@@ -123,6 +123,41 @@ class GenericImportEvent(models.Model):
     def validate_main_file(self):
         raise Exception('Abstract Method')
 
+    def _validate_main_file(self, datasource, fieldsource,
+                            validate_custom_fields):
+        """
+        Make sure the imported file has rows and valid columns
+        """
+        if datasource.count() == 0:
+            self.append_error(errors.EMPTY_FILE)
+
+            # This is a fatal error. We need to have at least
+            # one row to get header info
+            self.status = self.FAILED_FILE_VERIFICATION
+            self.save()
+            return False
+
+        has_errors = False
+        datastr = datasource[0].data
+        input_fields = set(json.loads(datastr).keys())
+
+        custom_error = validate_custom_fields(input_fields)
+        if custom_error is not None:
+            has_errors = True
+            self.append_error(custom_error)
+
+        # It is a warning if there are extra input fields
+        rem = input_fields - fieldsource
+        if len(rem) > 0:
+            has_errors = True
+            self.append_error(errors.UNMATCHED_FIELDS, list(rem))
+
+        if has_errors:
+            self.status = GenericImportEvent.FAILED_FILE_VERIFICATION
+            self.save()
+
+        return not has_errors
+
 
 class GenericImportRow(models.Model):
     """
