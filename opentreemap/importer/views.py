@@ -177,7 +177,7 @@ def merge_species(request, instance):
 
     for tree in trees_to_update:
         tree.species = species_to_replace_with
-        tree.save_with_user_without_verifying_authorization(User.system_user())
+        tree.save_with_system_user_bypass_auth()
 
     species_to_delete.delete_with_user(request.user)
 

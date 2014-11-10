@@ -369,8 +369,7 @@ class SpeciesImportRow(GenericImportRow):
                 species.otm_code = species_dict['otm_code']
 
         if species_edited:
-            species.save_with_user_without_verifying_authorization(
-                User.system_user())
+            species.save_with_system_user_bypass_auth()
 
         # Make i-Tree code override(s) if necessary
         if fields.species.ITREE_PAIRS in data:

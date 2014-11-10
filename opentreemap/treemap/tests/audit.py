@@ -1085,6 +1085,5 @@ class SaveWithoutVerifyingTest(MultiUserTestCase):
         self.plot = self.plot
         self.plot.width = 444
         with self.assertRaises(AuthorizeException):
-            self.plot.save_with_user(self.observer_user)
-        (self.plot
-         .save_with_user_without_verifying_authorization(self.observer_user))
+            self.plot.save_with_user(User.system_user())
+        self.plot.save_with_system_user_bypass_auth()
