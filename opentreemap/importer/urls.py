@@ -10,7 +10,7 @@ from importer.views import (
     export_single_species_import, export_single_tree_import, merge_species,
     commit, update, solve, counts, find_similar_species,
     show_import_status_endpoint, list_imports_endpoint,
-    show_status_panel_endpoint)
+    show_status_panel_endpoint, refresh_imports_endpoint)
 
 from treemap.plugin import feature_enabled
 
@@ -21,6 +21,7 @@ _import_api_pattern = r'(?P<import_type>[a-z]+)/(?P<import_event_id>\d+)'
 urlpatterns = patterns(
     '',
     url(r'^$', list_imports_endpoint, name='list_imports'),
+    url(r'^refresh$', refresh_imports_endpoint, name='refresh_imports'),
     url(r'^start_import$', start_import_endpoint, name='start_import'),
     url(r'^status/%s/' % _import_api_pattern, show_import_status_endpoint,
         name='status'),

@@ -1,0 +1,41 @@
+<div id="import-tables">
+  <div class="row">
+    <div class="col-md-12">
+      <img src="/static/img/spinner.gif" class="spinner pull-right" style="display:none;">
+      <h2>Imports</h2>
+      <hr>
+
+      <h4>Active Tree Imports</h4>
+      {% include 'importer/partials/import_table.html' with things=active_trees import_type="tree" %}
+    </div>
+  </div>
+
+  <br>
+
+  <div class="row">
+    <div class="col-md-12">
+      <h4>Finished Tree Imports</h4>
+      {% include 'importer/partials/import_table.html' with things=finished_trees import_type="tree" %}
+    </div>
+  </div>
+
+  <br>
+
+  <div class="row">
+    <div class="col-md-12">
+      <h4>Active Species Imports</h4>
+      {% include 'importer/partials/import_table.html' with things=active_species import_type="species" %}
+    </div>
+  </div>
+
+  <br>
+
+  <div class="row">
+    <div class="col-md-12">
+      <h4>Finished Species Imports</h4>
+      {% include 'importer/partials/import_table.html' with things=finished_species import_type="species" %}
+    </div>
+  </div>
+
+  <input type="hidden" name="importsFinished" value="{{ imports_finished }}">
+</div>

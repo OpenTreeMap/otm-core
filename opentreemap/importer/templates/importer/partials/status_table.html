@@ -1,32 +1,34 @@
 {% load i18n %}
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            {% for name in panel.field_names %}
-                <th>{{ name }}</th>
-            {% endfor %}
-        </tr>
-    </thead>
-    <tbody>
-        {% if panel.rows %}
-            {% for row in panel.rows %}
-                <tr data-row-number="{{ row.index }}">
-                    {% for field in row.fields %}
-                        <td class="{{ field.css_class }}" {# blank or 'error' or 'warning' #}
-                            data-field-name="{{ field.name }}">
-                                {{ field.value }}
-                        </td>
-                    {% endfor %}
-            {% endfor %}
-        {% else %}
+<div  style="overflow-x: scroll;">
+    <table class="table table-striped">
+        <thead>
             <tr>
-                <td class="no-rows" colspan="{{ field_names|length|add:'1' }}">
-                    {% trans 'No rows' %}
-                </td>
+                {% for name in panel.field_names %}
+                    <th>{{ name }}</th>
+                {% endfor %}
             </tr>
-        {% endif %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {% if panel.rows %}
+                {% for row in panel.rows %}
+                    <tr data-row-number="{{ row.index }}">
+                        {% for field in row.fields %}
+                            <td class="{{ field.css_class }}" {# blank or 'error' or 'warning' #}
+                                data-field-name="{{ field.name }}">
+                                    {{ field.value }}
+                            </td>
+                        {% endfor %}
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td class="no-rows" colspan="{{ field_names|length|add:'1' }}">
+                        {% trans 'No rows' %}
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
 
 {% include 'treemap/partials/paging_controls.html' with paging=panel.rows url=panel.paging_url %}
