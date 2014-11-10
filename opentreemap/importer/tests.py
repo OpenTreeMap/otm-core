@@ -897,7 +897,8 @@ class TreeIntegrationTests(IntegrationTests):
         p2_geom = plot2.geom
         p2_geom.transform(4326)
         self.assertEqual(int(p2_geom.x*10), 191)
-        self.assertEqual(int(p2_geom.y*10), 271)
+        # FP math is annoying, some systems the following is 271, others 272
+        self.assertIn(int(p2_geom.y*10), [271, 272])
         self.assertEqual(plot2.current_tree().diameter, 14)
 
     def test_bad_structure(self):
