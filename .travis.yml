@@ -15,8 +15,7 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 install:
-  - pip install -r requirements.txt
-  - pip install -r test-requirements.txt
+  - pip install -r travis-requirements.txt
   - npm install
   - npm install -g grunt-cli@0.1.9
   - npm install -g testem
@@ -36,5 +35,8 @@ before_script:
 script:
   - flake8 --exclude migrations,opentreemap/settings/local_settings.py,*.pyc opentreemap
   - grunt check
-  - python opentreemap/manage.py test
   - testem ci -l firefox
+  - coverage run --source=. opentreemap/manage.py test
+
+after_success:
+  coveralls
