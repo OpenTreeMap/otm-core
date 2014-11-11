@@ -97,7 +97,9 @@ class PermissionsCacheTest(TestCase):
 
     def test_empty_model_name(self):
         perms = permissions(self.user, self.instance)
-        self.assertEqual(len(perms), 80)
+        self.assertEqual(len(perms), FieldPermission.objects.filter(
+            instance=self.instance, role=self.user.get_role(self.instance))
+            .count())
 
     def test_unknown_model_name(self):
         self.get_user_permission(self.user, 0, 'foo')

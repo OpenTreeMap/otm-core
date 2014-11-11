@@ -1,0 +1,42 @@
+language: python
+
+python: "2.7"
+
+services:
+  - redis-server
+  - postgresql
+
+env:
+  global:
+    DJANGO_SETTINGS_MODULE="opentreemap.settings"
+
+before_install:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+
+install:
+  - pip install -r travis-requirements.txt
+  - npm install
+  - npm install -g grunt-cli@0.1.9
+  - npm install -g testem
+
+before_script:
+  - cp ci/local_settings.py opentreemap/opentreemap/settings/local_settings.py
+  - psql -c "CREATE EXTENSION hstore;" -U postgres -d template1
+  - psql -c "CREATE DATABASE travis;" -U postgres
+  - psql -c "CREATE EXTENSION postgis;" -U postgres -d travis
+  - python opentreemap/manage.py syncdb --noinput
+  - python opentreemap/manage.py migrate --noinput
+  - mkdir -p /tmp/otm/static
+  - mkdir -p /tmp/otm/media
+  - grunt
+  - python opentreemap/manage.py collectstatic --noinput
+
+script:
+  - flake8 --exclude migrations,opentreemap/settings/local_settings.py,*.pyc opentreemap
+  - grunt check
+  - testem ci -l firefox
+  - coverage run --source=. opentreemap/manage.py test
+
+after_success:
+  coveralls
