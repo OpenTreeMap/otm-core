@@ -43,8 +43,7 @@ def save_species(migration_rules, migration_event,
                                  "not the result of a migration. This is "
                                  "necessary to avoid record duplication.")
 
-    species_obj.save_with_user_without_verifying_authorization(
-        User.system_user())
+    species_obj.save_with_system_user_bypass_auth()
 
     OTM1ModelRelic.objects.create(
         instance=instance,
@@ -65,8 +64,7 @@ def save_plot(migration_rules, migration_event,
         plot_obj = None
         pk = models.UNBOUND_MODEL_ID
     else:
-        plot_obj.save_with_user_without_verifying_authorization(
-            User.system_user())
+        plot_obj.save_with_system_user_bypass_auth()
         pk = plot_obj.pk
 
     OTM1ModelRelic.objects.create(
@@ -88,8 +86,7 @@ def save_tree(migration_rules, migration_event,
         tree_obj = None
         pk = models.UNBOUND_MODEL_ID
     else:
-        tree_obj.save_with_user_without_verifying_authorization(
-            User.system_user())
+        tree_obj.save_with_system_user_bypass_auth()
         pk = tree_obj.pk
 
     OTM1ModelRelic.objects.create(
@@ -177,8 +174,7 @@ def save_treephoto(migration_rules, migration_event, treephoto_path,
 
         del model_dict['fields']['photo']
 
-        treephoto_obj.save_with_user_without_verifying_authorization(
-            User.system_user())
+        treephoto_obj.save_with_system_user_bypass_auth()
         pk = treephoto_obj.pk
 
     OTM1ModelRelic.objects.create(

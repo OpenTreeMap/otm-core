@@ -831,9 +831,12 @@ class Authorizable(UserTrackable):
 
         super(Authorizable, self).save_with_user(user, *args, **kwargs)
 
-    def save_with_user_without_verifying_authorization(self, user,
-                                                       *args, **kwargs):
-        super(Authorizable, self).save_with_user(user, auth_bypass=True,
+    def save_with_system_user_bypass_auth(self,
+                                          *args,
+                                          **kwargs):
+        from treemap.models import User
+        super(Authorizable, self).save_with_user(User.system_user(),
+                                                 auth_bypass=True,
                                                  *args, **kwargs)
 
     def delete_with_user(self, user, *args, **kwargs):
@@ -1030,9 +1033,12 @@ class _PendingAuditable(Auditable):
                    .filter(ref__isnull=True)\
                    .order_by('-created')
 
-    def save_with_user_without_verifying_authorization(self, user,
-                                                       *args, **kwargs):
-        return self.save_with_user(user, auth_bypass=True, *args, **kwargs)
+    def save_with_system_user_bypass_auth(self,
+                                          *args,
+                                          **kwargs):
+        from treemap.models import User
+        return self.save_with_user(User.system_user(),
+                                   auth_bypass=True, *args, **kwargs)
 
     @transaction.atomic
     def save_with_user(self, user, auth_bypass=False, *args, **kwargs):

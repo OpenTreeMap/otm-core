@@ -3,8 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import json
-
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
@@ -41,36 +39,13 @@ class TreeImportEvent(GenericImportEvent):
         """
         Make sure the imported file has rows and valid columns
         """
-        if self.treeimportrow_set.count() == 0:
-            self.append_error(errors.EMPTY_FILE)
-
-            # This is a fatal error. We need to have at least
-            # one row to get header info
-            self.status = GenericImportEvent.FAILED_FILE_VERIFICATION
-            self.save()
-            return False
-
-        has_errors = False
-        datastr = self.treeimportrow_set.all()[0].data
-        input_fields = set(json.loads(datastr).keys())
-
-        # Point x/y fields are required
-        if (fields.trees.POINT_X not in input_fields or
-           fields.trees.POINT_Y not in input_fields):
-            has_errors = True
-            self.append_error(errors.MISSING_POINTS)
-
-        # It is a warning if there are extra input fields
-        rem = input_fields - fields.trees.ALL
-        if len(rem) > 0:
-            has_errors = True
-            self.append_error(errors.UNMATCHED_FIELDS, list(rem))
-
-        if has_errors:
-            self.status = GenericImportEvent.FAILED_FILE_VERIFICATION
-            self.save()
-
-        return not has_errors
+        def validate(input_fields):
+            # Point x/y fields are required
+            if ((fields.trees.POINT_X not in input_fields or
+                 fields.trees.POINT_Y not in input_fields)):
+                return errors.MISSING_POINTS
+        return self._validate_main_file(self.treeimportrow_set.all(),
+                                        fields.trees.ALL, validate)
 
 
 class TreeImportRow(GenericImportRow):
@@ -160,8 +135,6 @@ class TreeImportRow(GenericImportRow):
                 if tree is None:
                     tree = Tree()
 
-        data_owner = self.import_event.owner
-
         for modelkey, importdatakey in TreeImportRow.PLOT_MAP.iteritems():
             importdata = data.get(importdatakey, None)
 
@@ -170,7 +143,7 @@ class TreeImportRow(GenericImportRow):
                 setattr(plot, modelkey, importdata)
 
         if plot_edited:
-            plot.save_with_user(data_owner)
+            plot.save_with_system_user_bypass_auth()
 
         for modelkey, importdatakey in TreeImportRow.TREE_MAP.iteritems():
             importdata = data.get(importdatakey, None)
@@ -184,7 +157,7 @@ class TreeImportRow(GenericImportRow):
         if tree_edited:
             tree.plot = plot
             tree.instance = plot.instance
-            tree.save_with_user(data_owner)
+            tree.save_with_system_user_bypass_auth()
 
         self.plot = plot
         self.status = TreeImportRow.SUCCESS

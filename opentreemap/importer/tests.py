@@ -19,7 +19,8 @@ from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
 from api.test_utils import setupTreemapEnv, mkPlot
 
-from treemap.models import Species, Plot, Tree, ITreeCodeOverride, ITreeRegion
+from treemap.models import (Species, Plot, Tree, ITreeCodeOverride,
+                            ITreeRegion, User)
 from treemap.tests import (make_admin_user, make_instance, login)
 
 from importer.views import (create_rows_for_event, process_csv, process_status,
@@ -63,7 +64,7 @@ class MergeTest(TestCase):
         t1 = Tree(plot=p1, species=self.s1, instance=self.instance)
         t2 = Tree(plot=p2, species=self.s2, instance=self.instance)
         for tree in (t1, t2):
-            tree.save_with_user(self.user)
+            tree.save_with_system_user_bypass_auth()
 
         r = HttpRequest()
         r.REQUEST = {
@@ -137,8 +138,8 @@ class TreeValidationTest(ValidationTest):
                          cultivar='c1', max_height=30, max_diameter=19)
         s1_gs = Species(instance=self.instance, genus='g1', species='s1',
                         cultivar='', max_height=22, max_diameter=12)
-        s1_gsc.save_with_user(self.user)
-        s1_gs.save_with_user(self.user)
+        s1_gsc.save_with_system_user_bypass_auth()
+        s1_gs.save_with_system_user_bypass_auth()
 
         row = {'point x': '16',
                'point y': '20',
@@ -215,7 +216,7 @@ class TreeValidationTest(ValidationTest):
                         cultivar='')
 
         for s in [s1_gsc, s1_gs, s1_g, s2_gsc, s2_gs]:
-            s.save_with_user(self.user)
+            s.save_with_system_user_bypass_auth()
 
         # Simple genus, species, cultivar matches
         i = self.mkrow({'point x': '16',
@@ -825,7 +826,7 @@ class SpeciesExportTests(TestCase):
 
         species = Species(instance=instance, genus='g1', species='',
                           cultivar='', max_diameter=50.0, max_height=100.0)
-        species.save_with_user(user)
+        species.save_with_user(User.system_user())
 
         login(self.client, user.username)
 
@@ -918,7 +919,7 @@ class TreeIntegrationTests(IntegrationTests):
     def test_faulty_data1(self):
         s1_g = Species(instance=self.instance, genus='g1', species='',
                        cultivar='', max_diameter=50.0, max_height=100.0)
-        s1_g.save_with_user(self.user)
+        s1_g.save_with_system_user_bypass_auth()
 
         csv = """
         | point x | point y | diameter | read only | genus | tree height |
@@ -1033,7 +1034,7 @@ class TreeIntegrationTests(IntegrationTests):
     def test_all_tree_data(self):
         s1_gsc = Species(instance=self.instance, genus='g1', species='s1',
                          cultivar='c1')
-        s1_gsc.save_with_user(self.user)
+        s1_gsc.save_with_system_user_bypass_auth()
 
         csv = """
         | point x | point y | diameter | tree height |

@@ -3,12 +3,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import json
-
 from django.contrib.gis.db import models
 from django.db import transaction
 
-from treemap.models import (Species, ITreeCodeOverride, ITreeRegion)
+from treemap.models import (Species, ITreeCodeOverride, ITreeRegion, User)
 from treemap.species import species_for_scientific_name
 from treemap.species.codes import (has_itree_code, all_itree_region_codes,
                                    all_itree_codes)
@@ -52,37 +50,14 @@ class SpeciesImportEvent(GenericImportEvent):
         """
         Make sure the imported file has rows and valid columns
         """
-        if self.rows().count() == 0:
-            self.append_error(errors.EMPTY_FILE)
+        def validate(input_fields):
+            req = {fields.species.GENUS, fields.species.COMMON_NAME}
 
-            # This is a fatal error. We need to have at least
-            # one row to get header info
-            self.status = GenericImportEvent.FAILED_FILE_VERIFICATION
-            self.save()
-            return False
-
-        has_errors = False
-        datastr = self.rows()[0].data
-        input_fields = set(json.loads(datastr).keys())
-
-        req = {fields.species.GENUS, fields.species.COMMON_NAME}
-
-        req -= input_fields
-        if req:
-            has_errors = True
-            self.append_error(errors.MISSING_SPECIES_FIELDS)
-
-        # It is a warning if there are extra input fields
-        rem = input_fields - fields.species.ALL
-        if len(rem) > 0:
-            has_errors = True
-            self.append_error(errors.UNMATCHED_FIELDS, list(rem))
-
-        if has_errors:
-            self.status = GenericImportEvent.FAILED_FILE_VERIFICATION
-            self.save()
-
-        return not has_errors
+            req -= input_fields
+            if req:
+                return errors.MISSING_SPECIES_FIELDS
+        return self._validate_main_file(self.rows(),
+                                        fields.species.ALL, validate)
 
 
 class SpeciesImportRow(GenericImportRow):
@@ -394,8 +369,7 @@ class SpeciesImportRow(GenericImportRow):
                 species.otm_code = species_dict['otm_code']
 
         if species_edited:
-            data_owner = self.import_event.owner
-            species.save_with_user(data_owner)
+            species.save_with_system_user_bypass_auth()
 
         # Make i-Tree code override(s) if necessary
         if fields.species.ITREE_PAIRS in data:
@@ -408,7 +382,7 @@ class SpeciesImportRow(GenericImportRow):
                         region=ITreeRegion.objects.get(code=region_code),
                     )[0]
                     override.itree_code = itree_code
-                    override.save_with_user(data_owner)
+                    override.save_with_user(User.system_user())
 
         self.species = species
         self.status = SpeciesImportRow.SUCCESS

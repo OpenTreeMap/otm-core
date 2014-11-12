@@ -18,7 +18,7 @@ from django.contrib.auth.decorators import login_required
 
 from opentreemap.util import decorate as do
 
-from treemap.models import Species, Tree
+from treemap.models import Species, Tree, User
 from treemap.decorators import (admin_instance_request, require_http_method,
                                 render_template, requires_feature)
 
@@ -30,14 +30,20 @@ from importer.tasks import (run_import_event_validation, commit_import_event,
 from importer import errors, fields
 
 
+def clean_string(s):
+    s = s.strip()
+    if not isinstance(s, unicode):
+        s = unicode(s, 'utf-8')
+    return s
+
+
 def lowerkeys(h):
     h2 = {}
     for (k, v) in h.iteritems():
         k = k.lower().strip()
         if k != 'ignore':
-            v = v.strip()
-            if not isinstance(v, unicode):
-                v = unicode(v, 'utf-8')
+            if isinstance(v, basestring):
+                v = clean_string(v)
 
             h2[k] = v
 
@@ -171,13 +177,13 @@ def merge_species(request, instance):
 
     for tree in trees_to_update:
         tree.species = species_to_replace_with
-        tree.save_with_user(request.user)
+        tree.save_with_system_user_bypass_auth()
 
     species_to_delete.delete_with_user(request.user)
 
     # Force a tree count update
     species_to_replace_with.tree_count = 0
-    species_to_replace_with.save_with_user(request.user)
+    species_to_replace_with.save_with_user(User.system_user())
 
     return HttpResponse(
         json.dumps({"status": "ok"}),
