@@ -100,7 +100,7 @@ def counts(request, instance):
 
 def start_import(request, instance):
     import_type = request.REQUEST['type']
-    if import_type == 'tree':
+    if import_type == TreeImportEvent.import_type:
         kwargs = {
             'plot_length_conversion_factor':
             float(request.REQUEST.get('unit_plot_length', 1.0)),
@@ -252,10 +252,10 @@ def show_status_panel(request, instance, import_type, import_event_id):
 
     ie = _get_import_event(instance, import_type, import_event_id)
 
-    spec = [spec for spec in _get_status_panel_specs(import_type)
+    spec = [spec for spec in _get_status_panel_specs(ie)
             if spec['name'] == panel_name][0]
 
-    panel = _get_status_panel(instance, import_type, ie, spec, page_number)
+    panel = _get_status_panel(instance, ie, spec, page_number)
 
     return {
         'panel': panel
@@ -267,7 +267,7 @@ def _get_import_event(instance, import_type, import_event_id):
     return get_object_or_404(Model, pk=import_event_id, instance=instance)
 
 
-def _get_status_panel(instance, import_type, ie, panel_spec, page_number=1):
+def _get_status_panel(instance, ie, panel_spec, page_number=1):
     PAGE_SIZE = 10
     status = panel_spec['status']
     merge_required = panel_spec['name'] == 'merge_required'
@@ -281,7 +281,8 @@ def _get_status_panel(instance, import_type, ie, panel_spec, page_number=1):
             .filter(status=status) \
             .order_by('idx')
 
-    if import_type == 'species' and status == GenericImportRow.VERIFIED:
+    if isinstance(ie, SpeciesImportEvent) and \
+                    status == GenericImportRow.VERIFIED:
         query = query.filter(merged=True)
 
     field_names = [f.lower() for f
@@ -294,7 +295,7 @@ def _get_status_panel(instance, import_type, ie, panel_spec, page_number=1):
 
     paging_url = reverse('importer:status_panel',
                          kwargs={'instance_url_name': instance.url_name,
-                                 'import_type': import_type,
+                                 'import_type': ie.import_type,
                                  'import_event_id': ie.pk})
     paging_url += "?panel=%s" % panel_spec['name']
 
@@ -420,7 +421,7 @@ def _get_field_data(row, field_name, error_fields, warning_fields):
     }
 
 
-def _get_status_panel_specs(import_type):
+def _get_status_panel_specs(ie):
     verified_panel = {
         'name': 'verified',
         'status': GenericImportRow.VERIFIED,
@@ -437,7 +438,7 @@ def _get_status_panel_specs(import_type):
         'title': trans('Successfully Added')
     }
 
-    if import_type == 'tree':
+    if isinstance(ie, TreeImportEvent):
         warning_panel = {
             'name': 'warning',
             'status': TreeImportRow.WARNING,

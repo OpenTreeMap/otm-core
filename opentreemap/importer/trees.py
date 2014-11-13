@@ -20,6 +20,8 @@ class TreeImportEvent(GenericImportEvent):
     tree/plot information
     """
 
+    import_type = 'tree'
+
     plot_length_conversion_factor = models.FloatField(default=1.0)
     plot_width_conversion_factor = models.FloatField(default=1.0)
     diameter_conversion_factor = models.FloatField(default=1.0)

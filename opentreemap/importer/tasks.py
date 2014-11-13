@@ -78,9 +78,9 @@ def _get_import_event(import_type, import_event_id):
 
 
 def get_import_event_model(import_type):
-    if import_type == 'species':
+    if import_type == SpeciesImportEvent.import_type:
         Model = SpeciesImportEvent
-    elif import_type == 'tree':
+    elif import_type == TreeImportEvent.import_type:
         Model = TreeImportEvent
     else:
         raise Exception('Invalid import type "%s"' % import_type)

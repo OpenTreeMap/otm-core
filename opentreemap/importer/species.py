@@ -23,6 +23,8 @@ class SpeciesImportEvent(GenericImportEvent):
     species information
     """
 
+    import_type = 'species'
+
     max_diameter_conversion_factor = models.FloatField(default=1.0)
     max_tree_height_conversion_factor = models.FloatField(default=1.0)
 
