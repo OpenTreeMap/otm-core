@@ -1,0 +1,45 @@
+{% load l10n %}
+
+<tr {#style="display: none;"#}>
+    <td colspan="{{ panel.field_names|length }}">
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                  {% for column in row.columns_for_merge %}
+                    <th>{{ column.title }}</th>
+                  {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for field in row.fields_to_merge %}
+                    <tr>
+                        <td>{{ field.name }}</td>
+                      {% for value in field.values %}
+                        <td>
+                            <input type="radio"
+                                   id="{{ value.id }}"
+                                   name="{{ field.id }}"
+                                   {% if value.checked %}checked{% endif %}>
+                            <label for="{{ value.id }}">{{ value.value }}</label>
+                        </td>
+                      {% endfor %}
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td><button class="btn btn-sm">Cancel</button></td>
+                  {% for column in row.columns_for_merge %}
+                    <td>
+                      {% if column.species_id %}
+                        <a class="btn btn-sm"
+                           href="{% url 'importer:solve' instance_url_name=request.instance.url_name import_event_id=panel.import_event_id row_index=row.index %}?species={{ column.species_id|unlocalize }}">
+                            {{ column.action_title }}
+                        </a>
+                      {% endif %}
+                    </td>
+                  {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </td>
+</tr>

@@ -27,7 +27,6 @@ class species(object):
     # Other import and/or export fields
     ID = 'database id of species'
     SCIENTIFIC_NAME = 'scientific name'
-    USDA_SYMBOL = 'usda symbol'
     ITREE_CODE = 'i-tree code'
     TREE_COUNT = 'number of trees in database'
 
@@ -44,7 +43,7 @@ class species(object):
     DATE_FIELDS = set()
 
     STRING_FIELDS = {GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME, COMMON_NAME,
-                     USDA_SYMBOL, ITREE_CODE, GENDER, FLOWERING_PERIOD,
+                     ITREE_CODE, GENDER, FLOWERING_PERIOD,
                      FRUIT_OR_NUT_PERIOD, FACT_SHEET_URL, PLANT_GUIDE_URL}
 
     POS_FLOAT_FIELDS = {MAX_DIAMETER, MAX_HEIGHT}

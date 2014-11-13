@@ -116,6 +116,14 @@ class ValidationTest(TestCase):
                     raise AssertionError('Error code %s found in %s'
                                          % (code, local_errors))
 
+    def get_field_names_for_error(self, thing, error):
+        code, message, fatal = error
+        if thing.errors:
+            local_errors = json.loads(thing.errors)
+            for e in local_errors:
+                if e['code'] == code:
+                    return e['fields']
+
 
 class TreeValidationTest(ValidationTest):
     def setUp(self):
@@ -467,7 +475,7 @@ class SpeciesCommitTest(SpeciesValidationTest):
             'max diameter': '10',
             'max height': '91',
         })
-        self.assertNotHasError(row, errors.MERGE_REQ)
+        self.assertNotHasError(row, errors.MERGE_REQUIRED)
         qs = Species.objects.filter(genus='the genus')
         self.assertEqual(1, qs.count())
 
@@ -494,12 +502,11 @@ class SpeciesCommitTest(SpeciesValidationTest):
         row = self._make_and_commit_row({
             'genus': 'Prunus',
             'species': 'americana',
-            'common name': 'American plum',
-            'gender': 'male'})
-        self.assertHasError(row, errors.MERGE_REQ)
+            'common name': 'English Horn'})
+        self.assertHasError(row, errors.MERGE_REQUIRED)
         species = Species.objects.filter(otm_code='PRAM')
         self.assertEqual(1, species.count())
-        self.assertEqual(species[0].gender, 'male')
+        self.assertEqual(species[0].common_name, 'English Horn')
 
     def test_otm_code_found_for_species_not_in_instance(self):
         self._make_and_commit_row({
@@ -555,7 +562,7 @@ class ITreeCommitTest(SpeciesValidationTest):
         self.assertEqual(expected_override_count, overrides.count())
 
         if expected_override_code:
-            self.assertHasError(row, errors.MERGE_REQ)
+            self.assertHasError(row, errors.MERGE_REQUIRED)
             self.assertEqual(expected_override_code, overrides[0].itree_code)
         else:
             self.assertEqual(row.errors, '')
@@ -607,32 +614,64 @@ class ScientificNameValidationTest(SpeciesValidationTest):
             'species': 'americana',
         })
 
-    def test_match_usda_code(self):
-        self._assert_match_results(1, {
-            'genus': 'Prunus',
-            'species': 'WRONG americana',
-            'usda symbol': 'PRAM'
-        })
-
-    def test_match_species_and_usda_code(self):
-        self._assert_match_results(1, {
-            'genus': 'Prunus',
-            'species': 'americana',
-            'usda symbol': 'PRAM'
-        })
-
-    def test_match_species_and_different_usda_code(self):
-        self._assert_match_results(2, {
-            'genus': 'Prunus',
-            'species': 'americana',
-            'usda symbol': 'PRAV'
-        })
-
     def test_double_species_match(self):
         self._assert_match_results(2, {'genus': 'Prunus'})
 
     def test_species_mismatch(self):
         self._assert_match_results(0, {'genus': 'Venus'})
+
+
+class SpeciesStatusValidationTest(SpeciesValidationTest):
+    def _assert_status(self, expected_status, expect_merge_required, data):
+        row = self._make_and_validate_row(data)
+        self.assertEqual(expected_status, row.status)
+        if expect_merge_required:
+            self.assertHasError(row, errors.MERGE_REQUIRED)
+        else:
+            self.assertNotHasError(row, errors.MERGE_REQUIRED)
+        self.assertEqual(expect_merge_required, not row.merged)
+        return row
+
+    def test_exact_match(self):
+        self._assert_status(SpeciesImportRow.SUCCESS, False, {
+            "common name": "American plum",
+            "genus": "Prunus",
+            "species": "americana",
+        })
+
+    def test_different_than_non_empty_field(self):
+        self._assert_status(SpeciesImportRow.VERIFIED, True, {
+            "common name": "Not a tree at all",
+            "genus": "Prunus",
+            "species": "americana",
+        })
+
+    def test_different_than_empty_field(self):
+        self._assert_status(SpeciesImportRow.VERIFIED, False, {
+            "common name": "American plum",
+            "genus": "Prunus",
+            "species": "americana",
+            "is native": "Yes",
+        })
+
+    def test_different_than_empty_and_non_empty_field(self):
+        row = self._assert_status(SpeciesImportRow.VERIFIED, True, {
+            "common name": "Not a tree at all",
+            "genus": "Prunus",
+            "species": "americana",
+            "is native": "Yes",
+        })
+        differing_field_names = self.get_field_names_for_error(
+            row, errors.MERGE_REQUIRED)
+        self.assertEqual(['common name'], differing_field_names)
+
+    def test_fatal_error(self):
+        self._assert_status(SpeciesImportRow.ERROR, False, {
+            "common name": "American plum",
+            "genus": "Prunus",
+            "species": "americana",
+            "is native": "I am not a boolean value",
+        })
 
 
 class FileLevelTreeValidationTest(TestCase):
@@ -839,8 +878,6 @@ class SpeciesExportTests(TestCase):
 
         self.assertEqual('g1',
                          reader_rows[1][reader_rows[0].index('genus')])
-        self.assertEqual('S1GSC',
-                         reader_rows[1][reader_rows[0].index('usda symbol')])
         self.assertEqual(
             '50', reader_rows[1][reader_rows[0].index(
                 'max diameter at breast height')])

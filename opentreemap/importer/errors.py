@@ -11,8 +11,8 @@ EMPTY_FILE = (1, 'No rows found', True)
 MISSING_POINTS = (2, 'You must specify a "%s" and "%s" field' %
                   (trees.POINT_X, trees.POINT_Y), True)
 
-UNMATCHED_FIELDS = (3, "Some fields in the uploaded dataset "
-                    "didn't match the template", False)
+UNMATCHED_FIELDS = (3, "The uploaded dataset contains "
+                    "unrecognized field names", False)
 
 MISSING_SPECIES_FIELDS = (4, 'You must specify Common Name and Genus', True)
 
@@ -53,8 +53,7 @@ INSTANCE_HAS_NO_ITREE_REGION = (64, 'This treemap intersects no i-Tree '
 INSTANCE_HAS_MULTIPLE_ITREE_REGIONS = (65, 'This treemap intersects more than '
                                        'one i-Tree region', True)
 
-TOO_MANY_SPECIES = (70, 'More than one species was matched by this row', False)
-MERGE_REQ = (71, 'This row must be merged', False)
+MERGE_REQUIRED = (71, 'This row must be merged', False)
 
 NEARBY_TREES = (1050, 'There are already trees very close to this one', False)
 

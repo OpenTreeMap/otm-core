@@ -19,10 +19,14 @@
                                     {{ field.value }}
                             </td>
                         {% endfor %}
+                    </tr>
+                    {% if panel.name == 'merge_required' %}
+                        {% include 'importer/partials/merge_species.html' %}
+                    {% endif %}
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td class="no-rows" colspan="{{ field_names|length|add:'1' }}">
+                    <td class="no-rows" colspan="{{ panel.field_names|length }}">
                         {% trans 'No rows' %}
                     </td>
                 </tr>

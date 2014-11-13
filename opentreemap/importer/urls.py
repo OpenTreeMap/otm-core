@@ -40,7 +40,7 @@ urlpatterns = patterns(
     url(r'^api/merge$', merge_species, name='merge'),
     url(r'^api/%s/commit$' % _import_api_pattern, commit, name='commit'),
     url(r'^api/%s/update$' % _import_api_pattern, update, name='update'),
-    url(r'^api/species/(?P<import_event_id>\d+)/(?P<import_row_idx>\d+)/solve$',  # NOQA
+    url(r'^api/species/(?P<import_event_id>\d+)/(?P<row_index>\d+)/solve$',  # NOQA
         solve, name='solve'),
     url(r'^api/counts', counts, name='counts'),
     url(r'^api/species/similar', find_similar_species,
