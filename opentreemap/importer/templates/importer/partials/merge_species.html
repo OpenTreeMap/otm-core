@@ -1,6 +1,6 @@
 {% load l10n %}
 
-<tr {#style="display: none;"#}>
+<tr class='js-merge-controls' style="display: none;">
     <td colspan="{{ panel.field_names|length }}">
         <table>
             <thead>
@@ -20,6 +20,7 @@
                             <input type="radio"
                                    id="{{ value.id }}"
                                    name="{{ field.id }}"
+                                   value="{{ value.value }}"
                                    {% if value.checked %}checked{% endif %}>
                             <label for="{{ value.id }}">{{ value.value }}</label>
                         </td>
@@ -27,14 +28,18 @@
                     </tr>
                 {% endfor %}
                 <tr>
-                    <td><button class="btn btn-sm">Cancel</button></td>
+                    <td>
+                      <button class="btn btn-sm js-hide">Hide</button>
+                    </td>
                   {% for column in row.columns_for_merge %}
                     <td>
                       {% if column.species_id %}
-                        <a class="btn btn-sm"
-                           href="{% url 'importer:solve' instance_url_name=request.instance.url_name import_event_id=panel.import_event_id row_index=row.index %}?species={{ column.species_id|unlocalize }}">
-                            {{ column.action_title }}
-                        </a>
+                        <button class="btn btn-sm js-merge"
+                                data-merge-field-names="{{ row.merge_field_names }}"
+                                data-radio-group-names="{{ row.radio_group_names }}"
+                                data-href="{% url 'importer:solve' instance_url_name=request.instance.url_name import_event_id=panel.import_event_id row_index=row.index %}?species={{ column.species_id|unlocalize }}">
+                          {{ column.action_title }}
+                        </button>
                       {% endif %}
                     </td>
                   {% endfor %}

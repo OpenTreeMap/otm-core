@@ -8,14 +8,29 @@ var $ = require('jquery'),
 var dom = {
     pane: '.tab-pane',
     backLink: 'a[data-action="back"]',
-    pagingButtons: '.pagination li a'
+    pagingButtons: '.pagination li a',
+    rowInMergeRequiredTable: '#import-panel-merge_required .js-import-row',
+    mergeControls: '.js-merge-controls',
+    hideMergeControlsButton: '.js-hide',
+    mergeButton: '.js-merge'
 };
 
 function init($container) {
+    // Define events on the container so we can replace its contents
     BU.reloadContainerOnClick($container, dom.backLink);
 
     $container.asEventStream('click', dom.pagingButtons)
         .onValue(reloadPane);
+
+    $container.asEventStream('click', dom.rowInMergeRequiredTable)
+        .onValue(toggleMergeControls);
+
+    $container.asEventStream('click', dom.hideMergeControlsButton)
+        .onValue(hideMergeControls);
+
+    $container.asEventStream('click', dom.mergeButton)
+        .flatMap(mergeRow)
+        .onValue($container, 'html');
 }
 
 function reloadPane(e) {
@@ -23,6 +38,47 @@ function reloadPane(e) {
         $pane = $(button).closest(dom.pane);
     e.preventDefault();
     $pane.load(button.href);
+}
+
+function toggleMergeControls(e) {
+    $(e.target)
+        .closest(dom.rowInMergeRequiredTable)
+        .next()
+        .toggle('fast');
+}
+
+function hideMergeControls(e) {
+    $(e.target)
+        .closest(dom.mergeControls)
+        .hide('fast');
+}
+
+function mergeRow(e) {
+    e.preventDefault();
+    var $button = $(e.target),
+        url = $button.data('href'),
+        data = getMergeData($button);
+
+    $(dom.mergeButton).prop('disabled', true);
+
+    return Bacon.fromPromise(
+        $.post(url, {data: JSON.stringify(data)}));
+}
+
+function getMergeData($button) {
+    var $mergeControls = $button.closest(dom.mergeControls),
+        mergeFieldNames = $button.data('merge-field-names').split(','),
+        radioGroupNames = $button.data('radio-group-names').split(','),
+        data = {};
+
+    _.each(_.zip(mergeFieldNames, radioGroupNames),
+        function(fieldName, radioGroupName) {
+            var value = $mergeControls
+                .find("input:radio[name='" + radioGroupName + "']:checked")
+                .val();
+            data[fieldName] = value;
+        });
+    return data;
 }
 
 module.exports = {init: init};

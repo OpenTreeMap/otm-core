@@ -12,7 +12,7 @@
         <tbody>
             {% if panel.rows %}
                 {% for row in panel.rows %}
-                    <tr data-row-number="{{ row.index }}">
+                    <tr class="js-import-row">
                         {% for field in row.fields %}
                             <td class="{{ field.css_class }}" {# blank or 'error' or 'warning' #}
                                 data-field-name="{{ field.name }}">
