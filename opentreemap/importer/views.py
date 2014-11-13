@@ -100,7 +100,7 @@ def counts(request, instance):
 
 def start_import(request, instance):
     import_type = request.REQUEST['type']
-    if import_type == 'tree':
+    if import_type == TreeImportEvent.import_type:
         kwargs = {
             'plot_length_conversion_factor':
             float(request.REQUEST.get('unit_plot_length', 1.0)),
@@ -238,11 +238,15 @@ def update_row(request, instance, import_event_row_id):
 def show_import_status(request, instance, import_type, import_event_id):
     ie = _get_import_event(instance, import_type, import_event_id)
 
-    panels = [_get_status_panel(instance, import_type, ie, spec)
-              for spec in _get_status_panel_specs(import_type)]
+    return _get_status_panels(ie, instance)
 
+
+def _get_status_panels(ie, instance):
+    panels = [_get_status_panel(instance, ie, spec)
+              for spec in _get_status_panel_specs(ie)]
     return {
-        'panels': panels
+        'panels': panels,
+        'active_panel_name': panels[0]['name']
     }
 
 
@@ -252,10 +256,10 @@ def show_status_panel(request, instance, import_type, import_event_id):
 
     ie = _get_import_event(instance, import_type, import_event_id)
 
-    spec = [spec for spec in _get_status_panel_specs(import_type)
+    spec = [spec for spec in _get_status_panel_specs(ie)
             if spec['name'] == panel_name][0]
 
-    panel = _get_status_panel(instance, import_type, ie, spec, page_number)
+    panel = _get_status_panel(instance, ie, spec, page_number)
 
     return {
         'panel': panel
@@ -267,7 +271,7 @@ def _get_import_event(instance, import_type, import_event_id):
     return get_object_or_404(Model, pk=import_event_id, instance=instance)
 
 
-def _get_status_panel(instance, import_type, ie, panel_spec, page_number=1):
+def _get_status_panel(instance, ie, panel_spec, page_number=1):
     PAGE_SIZE = 10
     status = panel_spec['status']
     merge_required = panel_spec['name'] == 'merge_required'
@@ -281,7 +285,8 @@ def _get_status_panel(instance, import_type, ie, panel_spec, page_number=1):
             .filter(status=status) \
             .order_by('idx')
 
-    if import_type == 'species' and status == GenericImportRow.VERIFIED:
+    is_species = isinstance(ie, SpeciesImportEvent)
+    if is_species and status == GenericImportRow.VERIFIED:
         query = query.filter(merged=True)
 
     field_names = [f.lower() for f
@@ -294,7 +299,7 @@ def _get_status_panel(instance, import_type, ie, panel_spec, page_number=1):
 
     paging_url = reverse('importer:status_panel',
                          kwargs={'instance_url_name': instance.url_name,
-                                 'import_type': import_type,
+                                 'import_type': ie.import_type,
                                  'import_event_id': ie.pk})
     paging_url += "?panel=%s" % panel_spec['name']
 
@@ -326,10 +331,8 @@ def _get_row_data(row, field_names, merge_required):
     }
 
     if merge_required:
-        columns_for_merge, fields_to_merge = \
-            _get_merge_data(row, field_names, row_errors)
-        row_data['columns_for_merge'] = columns_for_merge
-        row_data['fields_to_merge'] = fields_to_merge
+        merge_data = _get_merge_data(row, field_names, row_errors)
+        row_data.update(merge_data)
 
     if hasattr(row, 'plot') and row.plot:
         row_data['plot_id'] = row.plot.pk
@@ -358,6 +361,12 @@ def _get_merge_data(row, field_names, row_errors):
     # Make a merge table whose rows contain:
     #    field_name | import_value | species_1_value | species_2_value ...
 
+    def number_suffix(i):
+        if len(species_diffs) > 1:
+            return ' %s' % (i + 1)
+        else:
+            return ''
+
     columns_for_merge = [
         {
             'title': trans('Import Value'),
@@ -366,8 +375,8 @@ def _get_merge_data(row, field_names, row_errors):
         }
     ] + [
         {
-            'title': trans('Match') + ' ' + str(i + 1),
-            'action_title': trans('Merge Species'),
+            'title': trans('Species Match') + number_suffix(i),
+            'action_title': trans('Update Species') + number_suffix(i),
             'species_id': diffs['id'][0]
         }
         for i, diffs in enumerate(species_diffs)
@@ -391,7 +400,12 @@ def _get_merge_data(row, field_names, row_errors):
         }
         for (field_name, dom_name) in zip(merge_names, dom_names)]
 
-    return columns_for_merge, fields_to_merge
+    return {
+        'columns_for_merge': columns_for_merge,
+        'fields_to_merge': fields_to_merge,
+        'merge_field_names': ','.join(merge_names),
+        'radio_group_names': ','.join(dom_names),
+        }
 
 
 def _get_diff_value(dom_name, i, value):
@@ -420,7 +434,7 @@ def _get_field_data(row, field_name, error_fields, warning_fields):
     }
 
 
-def _get_status_panel_specs(import_type):
+def _get_status_panel_specs(ie):
     verified_panel = {
         'name': 'verified',
         'status': GenericImportRow.VERIFIED,
@@ -437,7 +451,7 @@ def _get_status_panel_specs(import_type):
         'title': trans('Successfully Added')
     }
 
-    if import_type == 'tree':
+    if isinstance(ie, TreeImportEvent):
         warning_panel = {
             'name': 'warning',
             'status': TreeImportRow.WARNING,
@@ -487,7 +501,7 @@ def solve(request, instance, import_event_id, row_index):
     row = ie.rows().get(idx=row_index)
 
     data = dict(json.loads(request.REQUEST['data']))
-    target_species = request.REQUEST['species']
+    target_species = request.GET['species']
 
     # Strip off merge errors
     ierrors = [e for e in row.errors_as_array()
@@ -495,7 +509,7 @@ def solve(request, instance, import_event_id, row_index):
 
     #TODO: Json handling is terrible.
     row.errors = json.dumps(ierrors)
-    row.datadict = data
+    row.datadict.update(data)
 
     if target_species != 'new':
         row.species = get_object_or_404(Species, instance=instance,
@@ -504,12 +518,11 @@ def solve(request, instance, import_event_id, row_index):
     row.merged = True
     row.save()
 
-    rslt = row.validate_row()
+    row.validate_row()
 
-    return HttpResponse(
-        json.dumps({'status': 'ok',
-                    'validates': rslt}),
-        content_type='application/json')
+    context = _get_status_panels(ie, instance)
+    context['active_panel_name'] = 'merge_required'
+    return context
 
 
 @transaction.commit_manually
@@ -788,3 +801,6 @@ show_import_status_endpoint = _api_call(
 
 show_status_panel_endpoint = _api_call(
     'GET', 'importer/partials/status_table.html', show_status_panel)
+
+solve_endpoint = _api_call(
+    'POST', 'importer/partials/status.html', solve)
