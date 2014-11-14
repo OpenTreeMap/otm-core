@@ -50,17 +50,11 @@ class SpeciesImportEvent(GenericImportEvent):
             return super(SpeciesImportEvent, self).status_summary()
 
     def validate_main_file(self):
-        """
-        Make sure the imported file has rows and valid columns
-        """
-        def validate(input_fields):
-            req = {fields.species.GENUS, fields.species.COMMON_NAME}
+        required_fields = {fields.species.GENUS,
+                           fields.species.COMMON_NAME}
 
-            req -= input_fields
-            if req:
-                return errors.MISSING_SPECIES_FIELDS
-        return self._validate_main_file(self.rows(),
-                                        fields.species.ALL, validate)
+        return self._validate_field_names(fields.species.ALL, required_fields,
+                                          errors.MISSING_SPECIES_FIELDS)
 
 
 class SpeciesImportRow(GenericImportRow):

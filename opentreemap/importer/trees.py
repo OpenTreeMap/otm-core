@@ -38,16 +38,11 @@ class TreeImportEvent(GenericImportEvent):
         return u"Tree Import #%s" % self.pk
 
     def validate_main_file(self):
-        """
-        Make sure the imported file has rows and valid columns
-        """
-        def validate(input_fields):
-            # Point x/y fields are required
-            if ((fields.trees.POINT_X not in input_fields or
-                 fields.trees.POINT_Y not in input_fields)):
-                return errors.MISSING_POINTS
-        return self._validate_main_file(self.treeimportrow_set.all(),
-                                        fields.trees.ALL, validate)
+        required_fields = {fields.trees.POINT_X,
+                           fields.trees.POINT_Y}
+
+        return self._validate_field_names(fields.trees.ALL, required_fields,
+                                          errors.MISSING_POINTS)
 
 
 class TreeImportRow(GenericImportRow):
@@ -294,10 +289,6 @@ class TreeImportRow(GenericImportRow):
         # Clear errrors
         self.errors = ''
 
-        # NOTE: Validations append errors directly to importrow
-        # and move data over to the 'cleaned' hash as it is
-        # validated
-
         # Convert all fields to correct datatypes
         self.validate_and_convert_datatypes()
 
@@ -307,14 +298,12 @@ class TreeImportRow(GenericImportRow):
         # Attaches a GEOS point to fields.trees.POINT
         self.validate_geom()
 
-        # This could be None or not set if there
-        # was an earlier error
+        # This could be None or not set if there was an earlier error
         pt = self.cleaned.get(fields.trees.POINT, None)
 
         self.validate_species()
 
-        # This could be None or unset if species data were
-        # not given
+        # This could be None or unset if species data were not given
         species = self.cleaned.get(fields.trees.SPECIES_OBJECT, None)
 
         # These validations are non-fatal
