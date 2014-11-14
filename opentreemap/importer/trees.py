@@ -3,11 +3,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 
 from treemap.models import Species, Plot, Tree
+from treemap.lib.object_caches import udf_defs
 
 from importer.models import GenericImportRow, GenericImportEvent
 from importer import fields
@@ -37,11 +39,24 @@ class TreeImportEvent(GenericImportEvent):
     def __unicode__(self):
         return u"Tree Import #%s" % self.pk
 
+    def get_udf_column_name(self, udf_def):
+        # Prefix with model name, e.g. "Density" -> "Tree: Density"
+        return "%s: %s" % (udf_def.model_type, udf_def.name)
+
     def validate_main_file(self):
+        def udf_column_names(model_name):
+            return {self.get_udf_column_name(udf_def)
+                    for udf_def in udf_defs(self.instance, model_name)}
+
+        plot_udfs = udf_column_names('Plot')
+        tree_udfs = udf_column_names('Tree')
+
+        legal_fields = fields.trees.ALL | plot_udfs | tree_udfs
+
         required_fields = {fields.trees.POINT_X,
                            fields.trees.POINT_Y}
 
-        return self._validate_field_names(fields.trees.ALL, required_fields,
+        return self._validate_field_names(legal_fields, required_fields,
                                           errors.MISSING_POINTS)
 
 
@@ -275,6 +290,19 @@ class TreeImportRow(GenericImportRow):
 
         return True
 
+    def validate_user_defined_fields(self):
+        ie = self.import_event
+        for udf_def in udf_defs(ie.instance):
+            column_name = ie.get_udf_column_name(udf_def)
+            value = self.datadict.get(column_name, None)
+            if value:
+                try:
+                    udf_def.clean_value(value)
+                    self.cleaned[column_name] = value
+                except ValidationError as ve:
+                    self.append_error(
+                        errors.INVALID_UDF_VALUE, column_name, str(ve))
+
     def validate_row(self):
         """
         Validate a row. Returns True if there were no fatal errors,
@@ -291,6 +319,8 @@ class TreeImportRow(GenericImportRow):
 
         # Convert all fields to correct datatypes
         self.validate_and_convert_datatypes()
+
+        self.validate_user_defined_fields()
 
         # We can work on the 'cleaned' data from here on out
         self.validate_otm_id()

@@ -25,6 +25,8 @@ from treemap.tests import (make_admin_user, make_instance, login)
 
 from importer.views import (create_rows_for_event, process_csv, process_status,
                             commit, merge_species)
+from treemap.udf import UserDefinedFieldDefinition
+
 from importer import errors, fields
 from importer.trees import TreeImportEvent, TreeImportRow
 from importer.species import SpeciesImportEvent, SpeciesImportRow
@@ -140,6 +142,31 @@ class TreeValidationTest(ValidationTest):
     def mkrow(self, data):
         return TreeImportRow.objects.create(
             data=json.dumps(data), import_event=self.ie, idx=1)
+
+    def test_udf(self):
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'choice',
+                                 'choices': ['a', 'b', 'c']}),
+            iscollection=False,
+            name='Test choice')
+
+        row = {'point x': '16',
+               'point y': '20',
+               'Plot: Test choice': 'a'}
+
+        i = self.mkrow(row)
+        i.validate_row()
+
+        self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
+
+        row['Plot: Test choice'] = 'z'
+
+        i = self.mkrow(row)
+        i.validate_row()
+
+        self.assertHasError(i, errors.INVALID_UDF_VALUE)
 
     def test_species_diameter_and_height(self):
         s1_gsc = Species(instance=self.instance, genus='g1', species='s1',
@@ -952,6 +979,18 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual({e['code'] for e in j['errors']},
                          {errors.MISSING_POINTS[0],
                           errors.UNMATCHED_FIELDS[0]})
+
+    def test_unknown_udf(self):
+        csv = """
+        | point x | point y | diameter | tree: density |
+        | 34.2    | 24.2    | 12       | td1           |
+        | 19.2    | 23.2    | 14       | td2           |
+        """
+
+        j = self.run_through_process_views(csv)
+        self.assertEqual(len(j['errors']), 1)
+        self.assertEqual({e['code'] for e in j['errors']},
+                         {errors.UNMATCHED_FIELDS[0]})
 
     def test_faulty_data1(self):
         s1_g = Species(instance=self.instance, genus='g1', species='',
