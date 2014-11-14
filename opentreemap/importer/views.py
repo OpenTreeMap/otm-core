@@ -536,7 +536,6 @@ def solve(request, instance, import_event_id, row_index):
 @transaction.commit_manually
 @login_required
 def commit(request, instance, import_type, import_event_id):
-    #TODO:!!! If 'Plot' already exists on row *update* when changed
     ie = _get_import_event(instance, import_type, import_event_id)
     ie.status = GenericImportEvent.CREATING
 

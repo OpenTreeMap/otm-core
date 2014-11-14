@@ -44,9 +44,8 @@ def commit_import_event(import_type, import_event_id):
     ie = _get_import_event(import_type, import_event_id)
     filevalid = ie.validate_main_file()
 
-    rows = ie.rows()
-
     if filevalid:
+        rows = ie.rows()
         for i in xrange(0, rows.count(), BLOCK_SIZE):
             _commit_rows.delay(import_type, import_event_id, i)
 
