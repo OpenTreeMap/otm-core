@@ -653,12 +653,8 @@ def export_single_tree_import(request, instance, import_event_id):
     all_fields = (
         fields.trees.POINT_X,
         fields.trees.POINT_Y,
-        fields.trees.ADDRESS,
         fields.trees.PLOT_WIDTH,
         fields.trees.PLOT_LENGTH,
-        fields.trees.PLOT_TYPE,
-        fields.trees.POWERLINE_CONFLICT,
-        fields.trees.SIDEWALK,
         fields.trees.READ_ONLY,
         fields.trees.OPENTREEMAP_ID_NUMBER,
         fields.trees.TREE_PRESENT,
@@ -671,17 +667,7 @@ def export_single_tree_import(request, instance, import_event_id):
         fields.trees.ORIG_ID_NUMBER,
         fields.trees.CANOPY_HEIGHT,
         fields.trees.DATE_PLANTED,
-        fields.trees.TREE_CONDITION,
-        fields.trees.CANOPY_CONDITION,
-        fields.trees.ACTIONS,
-        fields.trees.PESTS,
-        fields.trees.URL,
-        fields.trees.NOTES,
-        fields.trees.OWNER,
-        fields.trees.SPONSOR,
-        fields.trees.STEWARD,
-        fields.trees.LOCAL_PROJECTS,
-        fields.trees.DATA_SOURCE)
+    )
 
     ie = get_object_or_404(TreeImportEvent, instance=instance,
                            pk=import_event_id)
@@ -697,19 +683,11 @@ def export_single_tree_import(request, instance, import_event_id):
             obj[fields.trees.POINT_X] = r.plot.geometry.x
             obj[fields.trees.POINT_Y] = r.plot.geometry.y
 
-            obj[fields.trees.ADDRESS] = r.plot.address_street
             obj[fields.trees.PLOT_WIDTH] = r.plot.width
             obj[fields.trees.PLOT_LENGTH] = r.plot.length
             obj[fields.trees.READ_ONLY] = r.plot.readonly
             obj[fields.trees.OPENTREEMAP_ID_NUMBER] = r.plot.pk
             obj[fields.trees.ORIG_ID_NUMBER] = r.plot.owner_orig_id
-            obj[fields.trees.DATA_SOURCE] = r.plot.owner_additional_id
-            obj[fields.trees.NOTES] = r.plot.owner_additional_properties
-            obj[fields.trees.SIDEWALK] = r.plot.sidewalk_damage
-            obj[fields.trees.POWERLINE_CONFLICT] =\
-                r.plot.powerline_conflict_potential
-            # TODO: What is Plot.type?
-            obj[fields.trees.PLOT_TYPE] = r.plot.type
 
             tree = r.plot.current_tree()
 
@@ -729,15 +707,6 @@ def export_single_tree_import(request, instance, import_event_id):
                 obj[fields.trees.TREE_HEIGHT] = tree.height
                 obj[fields.trees.CANOPY_HEIGHT] = tree.canopy_height
                 obj[fields.trees.DATE_PLANTED] = tree.date_planted
-                obj[fields.trees.OWNER] = tree.tree_owner
-                obj[fields.trees.SPONSOR] = tree.sponsor
-                obj[fields.trees.STEWARD] = tree.steward_name
-                obj[fields.trees.URL] = tree.url
-
-                obj[fields.trees.TREE_CONDITION] = tree.condition
-                obj[fields.trees.CANOPY_CONDITION] = tree.canopy_condition
-                obj[fields.trees.PESTS] = tree.pests
-                obj[fields.trees.LOCAL_PROJECTS] = tree.projects
 
         else:
             obj = lowerkeys(json.loads(r.data))
