@@ -7,6 +7,7 @@ import json
 from datetime import datetime
 
 from django.db.models import Count
+from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
 
 from treemap.models import User, Instance
@@ -47,19 +48,19 @@ class GenericImportEvent(models.Model):
     # database
     commited = models.BooleanField(default=False)
 
+    @property
+    def can_export(self):
+        return self.status != self.FAILED_FILE_VERIFICATION
+
     def status_summary(self):
-        if self.status == GenericImportEvent.PENDING_VERIFICATION:
-            return "Not Yet Started"
-        elif self.status == GenericImportEvent.VERIFIYING:
-            return "Verifying"
-        elif self.status == GenericImportEvent.FINISHED_VERIFICATION:
-            return "Verification Complete"
-        elif self.status == GenericImportEvent.CREATING:
-            return "Creating Trees"
-        elif self.status == GenericImportEvent.FAILED_FILE_VERIFICATION:
-            return "Invalid File Structure"
-        else:
-            return "Finished"
+        summaries = {
+            self.PENDING_VERIFICATION: "Not Yet Started",
+            self.VERIFIYING: "Verifying",
+            self.FINISHED_VERIFICATION: "Verification Complete",
+            self.CREATING: "Creating Trees",
+            self.FAILED_FILE_VERIFICATION: "Invalid File Structure",
+        }
+        return summaries.get(self.status, "Finished")
 
     def active(self):
         return self.status != GenericImportEvent.FINISHED_CREATING
@@ -93,6 +94,9 @@ class GenericImportEvent(models.Model):
     def append_error(self, err, data=None):
         code, msg, fatal = err
 
+        if data and not isinstance(data, list):
+            raise ValidationError("For this class, data must be a list")
+
         if self.errors is None or self.errors == '':
             self.errors = '[]'
 
@@ -123,8 +127,7 @@ class GenericImportEvent(models.Model):
     def validate_main_file(self):
         raise Exception('Abstract Method')
 
-    def _validate_field_names(self, legal_fields, required_fields,
-                              missing_required_field_error):
+    def _validate_field_names(self, legal_fields, required_fields):
         """
         Make sure the imported file has rows and valid columns
         """
@@ -146,9 +149,9 @@ class GenericImportEvent(models.Model):
                 self.append_error(errors.UNMATCHED_FIELDS, list(extra))
 
             missing_required_fields = required_fields - input_fields
-            if missing_required_fields:
+            for field in missing_required_fields:
                 is_valid = False
-                self.append_error(missing_required_field_error)
+                self.append_error(errors.MISSING_FIELD, data=[field])
 
         if not is_valid:
             self.status = self.FAILED_FILE_VERIFICATION

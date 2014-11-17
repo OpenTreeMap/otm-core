@@ -1,0 +1,27 @@
+{% extends "importer/partials/status.html" %}
+{% load i18n %}
+
+{% block main %}
+<ul class="nav nav-pills">
+{% for panel in panels %}
+  <li{% if panel.name == active_panel_name %} class="active"{% endif %}>
+    <a href="#import-panel-{{ panel.name }}" data-toggle="tab">
+      {{ panel.title }} ({{ panel.row_count }})
+    </a>
+  </li>
+{% endfor %}
+</ul>
+
+<div class="tab-content">
+{% for panel in panels %}
+  <div class="tab-pane {% if panel.name == active_panel_name %}active{% endif %}"
+       id="import-panel-{{ panel.name }}">
+    {% include "importer/partials/status_table.html" %}
+  </div>
+{% endfor %}
+</div>
+{% endblock main %}
+
+{% block extra_buttons %}
+<button id="createtrees" class="btn btn-success btn-large">{% trans "Add to Tree Map" %}</button>
+{% endblock extra_buttons %}

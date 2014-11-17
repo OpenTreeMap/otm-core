@@ -8,7 +8,8 @@ import json
 import io
 
 from django.db import transaction
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render_to_response
+from django.template import RequestContext
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
@@ -238,7 +239,14 @@ def update_row(request, instance, import_event_row_id):
 def show_import_status(request, instance, import_type, import_event_id):
     ie = _get_import_event(instance, import_type, import_event_id)
 
-    return _get_status_panels(ie, instance)
+    if ie.status == GenericImportEvent.FAILED_FILE_VERIFICATION:
+        template = 'importer/partials/file_status.html'
+        ctx = {'ie': ie}
+    else:
+        template = 'importer/partials/row_status.html'
+        ctx = _get_status_panels(ie, instance)
+
+    return render_to_response(template, ctx, RequestContext(request))
 
 
 def _get_status_panels(ie, instance):
@@ -566,7 +574,7 @@ def process_csv(request, instance, import_type, **kwargs):
         if rows:
             run_import_event_validation.delay(import_type, ie.pk)
     except Exception as e:
-        ie.append_error(errors.GENERIC_ERROR, data=str(e))
+        ie.append_error(errors.GENERIC_ERROR, data=[str(e)])
         ie.status = GenericImportEvent.FAILED_FILE_VERIFICATION
         ie.save()
 
@@ -719,32 +727,37 @@ def export_single_tree_import(request, instance, import_event_id):
 
 
 @transaction.atomic
-def create_rows_for_event(importevent, csvfile):
+def create_rows_for_event(ie, csvfile):
     rows = []
     reader = csv.DictReader(csvfile)
 
     fieldnames = reader.fieldnames
-    importevent.field_order = json.dumps(fieldnames)
-    importevent.save()
+    ie.field_order = json.dumps(fieldnames)
+    ie.save()
 
     idx = 0
     for row in reader:
+        # TODO: should we even create a row if
+        # we're about to break out? It's not like
+        # the file errors get attached to the row
+        # anyway.
         rows.append(
-            importevent.create_row(
+            ie.create_row(
                 data=json.dumps(lowerkeys(row)),
-                import_event=importevent, idx=idx))
+                import_event=ie, idx=idx))
 
-        # First row
+        # perform file validation with first row
         if idx == 0:
             # Break out early if there was an error
             # with the basic file structure
-            importevent.validate_main_file()
-            if importevent.has_errors():
-                return False
-
+            ie.validate_main_file()
+            if ie.has_errors():
+                break
         idx += 1
+    else:
+        ie.validate_main_file()
 
-    return rows
+    return False if ie.has_errors() else rows
 
 
 def _api_call(verb, template, view_fn):
@@ -765,11 +778,14 @@ refresh_imports_endpoint = _api_call(
 start_import_endpoint = _api_call(
     'POST', 'importer/partials/imports.html', start_import)
 
-show_import_status_endpoint = _api_call(
-    'GET', 'importer/partials/status.html', show_import_status)
-
 show_status_panel_endpoint = _api_call(
     'GET', 'importer/partials/status_table.html', show_status_panel)
 
 solve_endpoint = _api_call(
     'POST', 'importer/partials/status.html', solve)
+
+show_import_status_endpoint = do(
+    admin_instance_request,
+    requires_feature('bulk_upload'),
+    require_http_method('GET'),
+    show_import_status)

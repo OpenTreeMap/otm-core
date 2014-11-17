@@ -763,7 +763,7 @@ class FileLevelTreeValidationTest(TestCase):
         self.assertTrue(len(ierrors), 1)
         etpl = (ierrors[0]['code'], ierrors[0]['msg'], True)
 
-        self.assertEqual(etpl, errors.MISSING_POINTS)
+        self.assertEqual(etpl, errors.MISSING_FIELD)
 
     def test_unknown_field(self):
         ie = TreeImportEvent(file_name='file', owner=self.user,
@@ -867,9 +867,9 @@ class SpeciesIntegrationTests(IntegrationTests):
         """
 
         j = self.run_through_process_views(csv)
-        self.assertEqual(len(j['errors']), 2)
+        self.assertEqual(len(j['errors']), 3)
         self.assertEqual({e['code'] for e in j['errors']},
-                         {errors.MISSING_SPECIES_FIELDS[0],
+                         {errors.MISSING_FIELD[0],
                           errors.UNMATCHED_FIELDS[0]})
 
     def test_noerror_load(self):
@@ -977,7 +977,7 @@ class TreeIntegrationTests(IntegrationTests):
         j = self.run_through_process_views(csv)
         self.assertEqual(len(j['errors']), 2)
         self.assertEqual({e['code'] for e in j['errors']},
-                         {errors.MISSING_POINTS[0],
+                         {errors.MISSING_FIELD[0],
                           errors.UNMATCHED_FIELDS[0]})
 
     def test_unknown_udf(self):
@@ -1029,7 +1029,7 @@ class TreeIntegrationTests(IntegrationTests):
                            [fields.trees.DIAMETER], None),
                           (errors.FLOAT_ERROR[0],
                            [fields.trees.POINT_Y], None),
-                          (errors.MISSING_POINTS[0], gflds, None),
+                          (errors.MISSING_FIELD[0], gflds, None),
                           (errors.INVALID_SPECIES[0], sflds, 'gfail')])
         self.assertEqual(ierrors['5'],
                          [(errors.SPECIES_HEIGHT_TOO_HIGH[0],

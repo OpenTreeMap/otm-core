@@ -1,0 +1,29 @@
+{% extends "importer/partials/status.html" %}
+{% load i18n %}
+
+{% block main %}
+<h1> There were errors reading the file structure: </h1>
+
+{% with errors=ie.errors_as_array %}
+  {% if errors %}
+    <ul>
+      {% for error in errors %}
+        {% if error.data %}
+          <li>{{ error.msg }}:
+            <ul>
+              {% for item in error.data %}
+                {% if item %}
+                  <li>{{ item }}</li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+          </li>
+        {% else %}
+          <li>{{ error.msg }}</li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+{% endblock main %}
+

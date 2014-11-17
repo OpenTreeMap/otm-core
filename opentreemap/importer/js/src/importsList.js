@@ -16,7 +16,7 @@ var dom = {
     importButton: 'button[type="submit"]',
     actionLink: 'td a',
     spinner: '#importer .spinner',
-    importsFinished: 'input[name="importsFinished"]'
+    importsFinished: 'input[name="imports-finished"]'
 };
 
 var REFRESH_INTERVAL = 5 * 1000;
