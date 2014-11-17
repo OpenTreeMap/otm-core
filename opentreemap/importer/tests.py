@@ -306,7 +306,7 @@ class TreeValidationTest(ValidationTest):
         # silly invalid-int-errors should be caught
         i = self.mkrow({'point x': '16',
                         'point y': '20',
-                        'opentreemap id number': '44b'})
+                        'opentreemap plot id': '44b'})
         r = i.validate_row()
 
         self.assertFalse(r)
@@ -314,7 +314,7 @@ class TreeValidationTest(ValidationTest):
 
         i = self.mkrow({'point x': '25',
                         'point y': '25',
-                        'opentreemap id number': '-22'})
+                        'opentreemap plot id': '-22'})
         r = i.validate_row()
 
         self.assertFalse(r)
@@ -323,7 +323,7 @@ class TreeValidationTest(ValidationTest):
         # With no plots in the system, all ids should fail
         i = self.mkrow({'point x': '25',
                         'point y': '25',
-                        'opentreemap id number': '44'})
+                        'opentreemap plot id': '44'})
         r = i.validate_row()
 
         self.assertFalse(r)
@@ -334,7 +334,7 @@ class TreeValidationTest(ValidationTest):
         # With an existing plot it should be fine
         i = self.mkrow({'point x': '25',
                         'point y': '25',
-                        'opentreemap id number': p.pk})
+                        'opentreemap plot id': p.pk})
         r = i.validate_row()
 
         self.assertNotHasError(i, errors.INVALID_OTM_ID)
@@ -1045,7 +1045,7 @@ class TreeIntegrationTests(IntegrationTests):
         string_too_long = 'a' * 256
 
         csv = """
-        | point x    | point y    | opentreemap id number | date planted |
+        | point x    | point y    | opentreemap plot id | date planted |
         | 25.0000002 | 25.0000002 |                       | 2012-02-18   |
         | 25.1000002 | 25.1000002 | 133                   |              |
         | 25.1000002 | 25.1000002 | -3                    | 2023-FF-33   |
@@ -1063,17 +1063,17 @@ class TreeIntegrationTests(IntegrationTests):
                            [p1.pk])])
         self.assertEqual(ierrors['1'],
                          [(errors.INVALID_OTM_ID[0],
-                           [fields.trees.OPENTREEMAP_ID_NUMBER],
+                           [fields.trees.OPENTREEMAP_PLOT_ID],
                            None)])
         self.assertEqual(ierrors['2'],
                          [(errors.POS_INT_ERROR[0],
-                           [fields.trees.OPENTREEMAP_ID_NUMBER],
+                           [fields.trees.OPENTREEMAP_PLOT_ID],
                            None),
                           (errors.INVALID_DATE[0],
                            [fields.trees.DATE_PLANTED], None)])
         self.assertEqual(ierrors['3'],
                          [(errors.INT_ERROR[0],
-                           [fields.trees.OPENTREEMAP_ID_NUMBER], None),
+                           [fields.trees.OPENTREEMAP_PLOT_ID], None),
                           (errors.INVALID_DATE[0],
                            [fields.trees.DATE_PLANTED], None)])
         self.assertNotIn('4', ierrors)
@@ -1174,7 +1174,7 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(plot.readonly, False)
 
         csv = """
-        | point x | point y | original id number |
+        | point x | point y | external id number |
         | 45.53   | 31.1    | 443                |
         """
 
@@ -1188,7 +1188,7 @@ class TreeIntegrationTests(IntegrationTests):
         p1 = mkPlot(self.instance, self.user)
 
         csv = """
-        | point x | point y | opentreemap id number |
+        | point x | point y | opentreemap plot id |
         | 45.53   | 31.1    | %s                    |
         """ % p1.pk
 

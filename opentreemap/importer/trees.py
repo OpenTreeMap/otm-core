@@ -66,7 +66,7 @@ class TreeImportRow(GenericImportRow):
         'width': fields.trees.PLOT_WIDTH,
         'length': fields.trees.PLOT_LENGTH,
         'readonly': fields.trees.READ_ONLY,
-        'owner_orig_id': fields.trees.ORIG_ID_NUMBER,
+        'owner_orig_id': fields.trees.EXTERNAL_ID_NUMBER,
         'address_street': fields.trees.STREET_ADDRESS,
         'address_city': fields.trees.CITY_ADDRESS,
         'address_zip': fields.trees.POSTAL_CODE
@@ -92,8 +92,8 @@ class TreeImportRow(GenericImportRow):
         return fields.trees
 
     def commit_row(self):
-        # If this row was already commit... abort
         if self.plot:
+            # This row was already committed
             self.status = TreeImportRow.SUCCESS
             self.save()
 
@@ -135,9 +135,9 @@ class TreeImportRow(GenericImportRow):
         tree = plot.current_tree()
 
         # Check for an existing tree:
-        if self.model_fields.OPENTREEMAP_ID_NUMBER in data:
+        if self.model_fields.OPENTREEMAP_PLOT_ID in data:
             plot = Plot.objects.get(
-                pk=data[self.model_fields.OPENTREEMAP_ID_NUMBER])
+                pk=data[self.model_fields.OPENTREEMAP_PLOT_ID])
             tree = plot.current_tree()
         else:
             if data.get(self.model_fields.TREE_PRESENT, False):
@@ -207,13 +207,13 @@ class TreeImportRow(GenericImportRow):
         return True
 
     def validate_otm_id(self):
-        oid = self.cleaned.get(fields.trees.OPENTREEMAP_ID_NUMBER, None)
+        oid = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
         if oid:
             has_plot = Plot.objects.filter(pk=oid).exists()
 
             if not has_plot:
                 self.append_error(errors.INVALID_OTM_ID,
-                                  fields.trees.OPENTREEMAP_ID_NUMBER)
+                                  fields.trees.OPENTREEMAP_PLOT_ID)
                 return False
 
         return True
@@ -230,7 +230,7 @@ class TreeImportRow(GenericImportRow):
                      .distance(point)\
                      .exclude(pk__in=plot_ids_from_this_import)\
 
-        oid = self.cleaned.get(fields.trees.OPENTREEMAP_ID_NUMBER, None)
+        oid = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
         if oid:
             nearby = nearby.exclude(pk=oid)
 
