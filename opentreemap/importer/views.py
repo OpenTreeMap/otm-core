@@ -727,32 +727,37 @@ def export_single_tree_import(request, instance, import_event_id):
 
 
 @transaction.atomic
-def create_rows_for_event(importevent, csvfile):
+def create_rows_for_event(ie, csvfile):
     rows = []
     reader = csv.DictReader(csvfile)
 
     fieldnames = reader.fieldnames
-    importevent.field_order = json.dumps(fieldnames)
-    importevent.save()
+    ie.field_order = json.dumps(fieldnames)
+    ie.save()
 
     idx = 0
     for row in reader:
+        # TODO: should we even create a row if
+        # we're about to break out? It's not like
+        # the file errors get attached to the row
+        # anyway.
         rows.append(
-            importevent.create_row(
+            ie.create_row(
                 data=json.dumps(lowerkeys(row)),
-                import_event=importevent, idx=idx))
+                import_event=ie, idx=idx))
 
-        # First row
+        # perform file validation with first row
         if idx == 0:
             # Break out early if there was an error
             # with the basic file structure
-            importevent.validate_main_file()
-            if importevent.has_errors():
-                return False
-
+            ie.validate_main_file()
+            if ie.has_errors():
+                break
         idx += 1
+    else:
+        ie.validate_main_file()
 
-    return rows
+    return False if ie.has_errors() else rows
 
 
 def _api_call(verb, template, view_fn):
