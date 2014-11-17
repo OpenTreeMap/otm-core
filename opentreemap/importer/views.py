@@ -566,7 +566,7 @@ def process_csv(request, instance, import_type, **kwargs):
         if rows:
             run_import_event_validation.delay(import_type, ie.pk)
     except Exception as e:
-        ie.append_error(errors.GENERIC_ERROR, data=str(e))
+        ie.append_error(errors.GENERIC_ERROR, data=[str(e)])
         ie.status = GenericImportEvent.FAILED_FILE_VERIFICATION
         ie.save()
 
