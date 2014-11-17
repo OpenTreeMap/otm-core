@@ -12,30 +12,14 @@
             <div class="col-md-12">
               <h2>{% trans "Import Status" %}</h2>
               <hr>
-
-              <ul class="nav nav-pills">
-                {% for panel in panels %}
-                  <li{% if panel.name == active_panel_name %} class="active"{% endif %}>
-                    <a href="#import-panel-{{ panel.name }}" data-toggle="tab">
-                      {{ panel.title }} ({{ panel.row_count }})
-                    </a>
-                  </li>
-                {% endfor %}
-              </ul>
-
-              <div class="tab-content">
-                {% for panel in panels %}
-                  <div class="tab-pane {% if panel.name == active_panel_name %}active{% endif %}"
-                       id="import-panel-{{ panel.name }}">
-                    {% include "importer/partials/status_table.html" %}
-                  </div>
-                {% endfor %}
-              </div>
+              {% block main %}
+              {% endblock main %}
 
             </div>
           </div>
 
-          <button id="createtrees" class="btn btn-success btn-large">{% trans "Add to Tree Map" %}</button>
+          {% block extra_buttons %}
+          {% endblock extra_buttons %}
 
           <a class="btn btn-success btn-large" data-action="back"
               href="{% url 'importer:list_imports' instance_url_name=request.instance.url_name %}">

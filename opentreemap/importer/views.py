@@ -766,7 +766,7 @@ start_import_endpoint = _api_call(
     'POST', 'importer/partials/imports.html', start_import)
 
 show_import_status_endpoint = _api_call(
-    'GET', 'importer/partials/status.html', show_import_status)
+    'GET', 'importer/partials/row_status.html', show_import_status)
 
 show_status_panel_endpoint = _api_call(
     'GET', 'importer/partials/status_table.html', show_status_panel)
