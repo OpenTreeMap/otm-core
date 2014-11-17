@@ -48,19 +48,19 @@ class GenericImportEvent(models.Model):
     # database
     commited = models.BooleanField(default=False)
 
+    @property
+    def can_export(self):
+        return self.status != self.FAILED_FILE_VERIFICATION
+
     def status_summary(self):
-        if self.status == GenericImportEvent.PENDING_VERIFICATION:
-            return "Not Yet Started"
-        elif self.status == GenericImportEvent.VERIFIYING:
-            return "Verifying"
-        elif self.status == GenericImportEvent.FINISHED_VERIFICATION:
-            return "Verification Complete"
-        elif self.status == GenericImportEvent.CREATING:
-            return "Creating Trees"
-        elif self.status == GenericImportEvent.FAILED_FILE_VERIFICATION:
-            return "Invalid File Structure"
-        else:
-            return "Finished"
+        summaries = {
+            self.PENDING_VERIFICATION: "Not Yet Started",
+            self.VERIFIYING: "Verifying",
+            self.FINISHED_VERIFICATION: "Verification Complete",
+            self.CREATING: "Creating Trees",
+            self.FAILED_FILE_VERIFICATION: "Invalid File Structure",
+        }
+        return summaries.get(self.status, "Finished")
 
     def active(self):
         return self.status != GenericImportEvent.FINISHED_CREATING

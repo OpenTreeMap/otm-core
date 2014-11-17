@@ -22,8 +22,7 @@
             <td>
                 {% if ie.is_finished %}
                     <a href="{% url 'importer:status' import_type=import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">View</a>
-                    |
-                    <a href="javascript:;">Export</a>
+                    {% if ie.can_export %} | <a href="javascript:;">Export</a>{% endif %}
                 {% else %}
                     <img src="/static/img/spinnerSmall.gif">
                 {% endif %}

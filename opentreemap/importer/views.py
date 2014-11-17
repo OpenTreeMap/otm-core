@@ -8,7 +8,8 @@ import json
 import io
 
 from django.db import transaction
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render_to_response
+from django.template import RequestContext
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
@@ -238,7 +239,14 @@ def update_row(request, instance, import_event_row_id):
 def show_import_status(request, instance, import_type, import_event_id):
     ie = _get_import_event(instance, import_type, import_event_id)
 
-    return _get_status_panels(ie, instance)
+    if ie.status == GenericImportEvent.FAILED_FILE_VERIFICATION:
+        template = 'importer/partials/file_status.html'
+        ctx = {'ie': ie}
+    else:
+        template = 'importer/partials/row_status.html'
+        ctx = _get_status_panels(ie, instance)
+
+    return render_to_response(template, ctx, RequestContext(request))
 
 
 def _get_status_panels(ie, instance):
@@ -765,11 +773,14 @@ refresh_imports_endpoint = _api_call(
 start_import_endpoint = _api_call(
     'POST', 'importer/partials/imports.html', start_import)
 
-show_import_status_endpoint = _api_call(
-    'GET', 'importer/partials/row_status.html', show_import_status)
-
 show_status_panel_endpoint = _api_call(
     'GET', 'importer/partials/status_table.html', show_status_panel)
 
 solve_endpoint = _api_call(
     'POST', 'importer/partials/status.html', solve)
+
+show_import_status_endpoint = do(
+    admin_instance_request,
+    requires_feature('bulk_upload'),
+    require_http_method('GET'),
+    show_import_status)
