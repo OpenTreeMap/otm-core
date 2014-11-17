@@ -41,7 +41,7 @@ BOOL_ERROR = (44, 'Not formatted as a boolean', True)
 STRING_TOO_LONG = (45, 'Strings must be less than 255 characters', True)
 INVALID_DATE = (46, 'Invalid date (must by YYYY-MM-DD', True)
 
-INVALID_CHOICE = (50, 'These fields must contain a choice value', True)
+INVALID_UDF_VALUE = (50, 'Invalid value for custom field', True)
 
 INVALID_ITREE_REGION = (60, 'Unknown i-Tree region', True)
 ITREE_REGION_NOT_IN_INSTANCE = (61, "i-Tree region not valid for this treemap",

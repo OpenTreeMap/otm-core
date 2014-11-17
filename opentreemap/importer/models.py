@@ -123,32 +123,32 @@ class GenericImportEvent(models.Model):
     def validate_main_file(self):
         raise Exception('Abstract Method')
 
-    def _validate_main_file(self, datasource, fieldsource,
-                            validate_custom_fields):
+    def _validate_field_names(self, legal_fields, required_fields,
+                              missing_required_field_error):
         """
         Make sure the imported file has rows and valid columns
         """
         is_valid = True
 
-        # This is a fatal error. We need to have at least
-        # one row to get header info
-        if datasource.count() == 0:
+        rows = self.rows()
+        if rows.count() == 0:
             is_valid = False
             self.append_error(errors.EMPTY_FILE)
+
         else:
-            datastr = datasource[0].data
-            input_fields = set(json.loads(datastr).keys())
+            header = rows[0].data
+            input_fields = set(json.loads(header).keys())
 
-            custom_error = validate_custom_fields(input_fields)
-            if custom_error is not None:
+            # Extra input fields cause a fatal error
+            extra = input_fields.difference(legal_fields)
+            if len(extra) > 0:
                 is_valid = False
-                self.append_error(custom_error)
+                self.append_error(errors.UNMATCHED_FIELDS, list(extra))
 
-            # It is a warning if there are extra input fields
-            rem = input_fields - fieldsource
-            if len(rem) > 0:
+            missing_required_fields = required_fields - input_fields
+            if missing_required_fields:
                 is_valid = False
-                self.append_error(errors.UNMATCHED_FIELDS, list(rem))
+                self.append_error(missing_required_field_error)
 
         if not is_valid:
             self.status = self.FAILED_FILE_VERIFICATION

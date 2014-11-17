@@ -624,7 +624,7 @@ class UserDefinedFieldDefinition(models.Model):
         Given a value for this data type, validate and return the
         correct python/django representation.
 
-        For instance, this is a 'user' field this function will take
+        For instance, if this is a 'user' field this function will take
         in a user id (as a string) from the UDF dictionary and return
         a 'User' object.
 
@@ -683,7 +683,7 @@ class UserDefinedFieldDefinition(models.Model):
                 return value
             else:
                 raise ValidationError(
-                    trans('Invalid choice (%(given)s).'
+                    trans('Invalid choice (%(given)s). '
                           'Expecting %(allowed)s') %
                     {'given': value,
                      'allowed': ', '.join(datatype_dict['choices'])})
