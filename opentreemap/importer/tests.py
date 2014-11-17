@@ -748,9 +748,9 @@ class FileLevelTreeValidationTest(TestCase):
 
         TreeImportRow.objects.count()
 
-        c = self.write_csv([['address', 'plot width', 'plot_length'],
-                            ['123 Beach St', '5', '5'],
-                            ['222 Main St', '8', '8']])
+        c = self.write_csv([['plot width', 'plot length'],
+                            ['5', '5'],
+                            ['8', '8']])
 
         create_rows_for_event(ie, c)
         rslt = ie.validate_main_file()
