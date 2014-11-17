@@ -121,20 +121,17 @@ class TreeImportRow(GenericImportRow):
             self.import_event.canopy_height_conversion_factor
         })
 
-        plot_edited = False
-        tree_edited = False
-
         # Initially grab plot from row if it exists
         plot = self.plot
         if plot is None:
             plot = Plot(instance=self.import_event.instance)
 
-        # Event if TREE_PRESENT is None, a tree
-        # can still be spawned here if there is
-        # any tree data later
+        # Even if TREE_PRESENT is False, a tree can be spawned if there
+        # is tree data later
         tree = plot.current_tree()
 
         # Check for an existing tree:
+        tree_edited = False
         if self.model_fields.OPENTREEMAP_PLOT_ID in data:
             plot = Plot.objects.get(
                 pk=data[self.model_fields.OPENTREEMAP_PLOT_ID])
@@ -145,35 +142,39 @@ class TreeImportRow(GenericImportRow):
                 if tree is None:
                     tree = Tree()
 
-        for modelkey, importdatakey in TreeImportRow.PLOT_MAP.iteritems():
-            importdata = data.get(importdatakey, None)
-
-            if importdata:
-                plot_edited = True
-                setattr(plot, modelkey, importdata)
-
-        if plot_edited:
-            plot.save_with_system_user_bypass_auth()
-
-        for modelkey, importdatakey in TreeImportRow.TREE_MAP.iteritems():
-            importdata = data.get(importdatakey, None)
-
-            if importdata:
-                tree_edited = True
-                if tree is None:
-                    tree = Tree()
-                setattr(tree, modelkey, importdata)
-
-        if tree_edited:
-            tree.plot = plot
-            tree.instance = plot.instance
-            tree.save_with_system_user_bypass_auth()
+        self._commit_plot_data(data, plot)
+        self._commit_tree_data(data, plot, tree, tree_edited)
 
         self.plot = plot
         self.status = TreeImportRow.SUCCESS
         self.save()
 
         return True
+
+    def _commit_plot_data(self, data, plot):
+        plot_edited = False
+        for plot_attr, field_name in TreeImportRow.PLOT_MAP.iteritems():
+            value = data.get(field_name, None)
+            if value:
+                plot_edited = True
+                setattr(plot, plot_attr, value)
+
+        if plot_edited:
+            plot.save_with_system_user_bypass_auth()
+
+    def _commit_tree_data(self, data, plot, tree, tree_edited):
+        for tree_attr, field_name in TreeImportRow.TREE_MAP.iteritems():
+            value = data.get(field_name, None)
+            if value:
+                tree_edited = True
+                if tree is None:
+                    tree = Tree()
+                setattr(tree, tree_attr, value)
+
+        if tree_edited:
+            tree.plot = plot
+            tree.instance = plot.instance
+            tree.save_with_system_user_bypass_auth()
 
     def validate_geom(self):
         x = self.cleaned.get(fields.trees.POINT_X, None)
