@@ -53,11 +53,9 @@ class TreeImportEvent(GenericImportEvent):
 
         legal_fields = fields.trees.ALL | plot_udfs | tree_udfs
 
-        required_fields = {fields.trees.POINT_X,
-                           fields.trees.POINT_Y}
-
-        return self._validate_field_names(legal_fields, required_fields,
-                                          errors.MISSING_POINTS)
+        return self._validate_field_names(legal_fields,
+                                          {fields.trees.POINT_X,
+                                           fields.trees.POINT_Y})
 
 
 class TreeImportRow(GenericImportRow):
@@ -184,7 +182,7 @@ class TreeImportRow(GenericImportRow):
         # Note, this shouldn't really happen since main
         # file validation will fail, but butter safe than sorry
         if x is None or y is None:
-            self.append_error(errors.MISSING_POINTS,
+            self.append_error(errors.MISSING_FIELD,
                               (fields.trees.POINT_X, fields.trees.POINT_Y))
             return False
 

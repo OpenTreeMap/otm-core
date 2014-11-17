@@ -127,8 +127,7 @@ class GenericImportEvent(models.Model):
     def validate_main_file(self):
         raise Exception('Abstract Method')
 
-    def _validate_field_names(self, legal_fields, required_fields,
-                              missing_required_field_error):
+    def _validate_field_names(self, legal_fields, required_fields):
         """
         Make sure the imported file has rows and valid columns
         """
@@ -150,9 +149,9 @@ class GenericImportEvent(models.Model):
                 self.append_error(errors.UNMATCHED_FIELDS, list(extra))
 
             missing_required_fields = required_fields - input_fields
-            if missing_required_fields:
+            for field in missing_required_fields:
                 is_valid = False
-                self.append_error(missing_required_field_error)
+                self.append_error(errors.MISSING_FIELD, data=[field])
 
         if not is_valid:
             self.status = self.FAILED_FILE_VERIFICATION
