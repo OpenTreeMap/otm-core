@@ -4,14 +4,16 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-
 import tempfile
 import csv
 import json
+import psycopg2
+
 from datetime import date
 from StringIO import StringIO
 
 from django.conf import settings
+from django.db import connection
 from django.test import TestCase
 from django.utils.unittest.case import skip
 from django.http import HttpRequest
@@ -144,6 +146,8 @@ class TreeValidationTest(ValidationTest):
             data=json.dumps(data), import_event=self.ie, idx=1)
 
     def test_udf(self):
+        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
         UserDefinedFieldDefinition.objects.create(
             instance=self.instance,
             model_type='Plot',
@@ -154,14 +158,14 @@ class TreeValidationTest(ValidationTest):
 
         row = {'point x': '16',
                'point y': '20',
-               'Plot: Test choice': 'a'}
+               'plot: test choice': 'a'}
 
         i = self.mkrow(row)
         i.validate_row()
 
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['Plot: Test choice'] = 'z'
+        row['plot: test choice'] = 'z'
 
         i = self.mkrow(row)
         i.validate_row()
@@ -1154,6 +1158,39 @@ class TreeIntegrationTests(IntegrationTests):
 
         self.assertEqual(tree.date_planted, dateplanted)
         self.assertEqual(tree.readonly, True)
+
+        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
+        UserDefinedFieldDefinition.objects.create(
+            model_type='Plot',
+            name='Flatness',
+            datatype=json.dumps({'type': 'choice',
+                                 'choices': ['very', 'hardly', 'not']}),
+            iscollection=False,
+            instance=self.instance,
+        )
+
+        UserDefinedFieldDefinition.objects.create(
+            model_type='Tree',
+            name='Cuteness',
+            datatype=json.dumps({'type': 'choice',
+                                 'choices': ['lots', 'not much', 'none']}),
+            iscollection=False,
+            instance=self.instance,
+        )
+
+        csv = """
+        | point x | point y | tree: cuteness | plot: flatness |
+        | 25.00   | 25.00   | not much       | very           |
+        """
+
+        ieid = self.run_through_commit_views(csv)
+        ie = TreeImportEvent.objects.get(pk=ieid)
+        plot = ie.treeimportrow_set.all()[0].plot
+        tree = plot.current_tree()
+
+        self.assertEqual(plot.udfs['Flatness'], 'very')
+        self.assertEqual(tree.udfs['Cuteness'], 'not much')
 
     def test_all_plot_data(self):
         csv = """

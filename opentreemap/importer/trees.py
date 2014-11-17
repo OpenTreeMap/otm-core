@@ -41,7 +41,7 @@ class TreeImportEvent(GenericImportEvent):
 
     def get_udf_column_name(self, udf_def):
         # Prefix with model name, e.g. "Density" -> "Tree: Density"
-        return "%s: %s" % (udf_def.model_type, udf_def.name)
+        return "%s: %s" % (udf_def.model_type.lower(), udf_def.name.lower())
 
     def validate_main_file(self):
         def udf_column_names(model_name):
@@ -140,7 +140,7 @@ class TreeImportRow(GenericImportRow):
             if data.get(self.model_fields.TREE_PRESENT, False):
                 tree_edited = True
                 if tree is None:
-                    tree = Tree()
+                    tree = Tree(instance=plot.instance)
 
         self._commit_plot_data(data, plot)
         self._commit_tree_data(data, plot, tree, tree_edited)
@@ -159,6 +159,15 @@ class TreeImportRow(GenericImportRow):
                 plot_edited = True
                 setattr(plot, plot_attr, value)
 
+        ie = self.import_event
+        plot_udf_defs = udf_defs(ie.instance, 'Plot')
+        for udf_def in plot_udf_defs:
+            udf_column_name = ie.get_udf_column_name(udf_def)
+            value = data.get(udf_column_name, None)
+            if value:
+                plot_edited = True
+                plot.udfs[udf_def.name] = value
+
         if plot_edited:
             plot.save_with_system_user_bypass_auth()
 
@@ -168,12 +177,22 @@ class TreeImportRow(GenericImportRow):
             if value:
                 tree_edited = True
                 if tree is None:
-                    tree = Tree()
+                    tree = Tree(instance=plot.instance)
                 setattr(tree, tree_attr, value)
+
+        ie = self.import_event
+        tree_udf_defs = udf_defs(ie.instance, 'Tree')
+        for udf_def in tree_udf_defs:
+            udf_column_name = ie.get_udf_column_name(udf_def)
+            value = data.get(udf_column_name, None)
+            if value:
+                tree_edited = True
+                if tree is None:
+                    tree = Tree(instance=plot.instance)
+                tree.udfs[udf_def.name] = value
 
         if tree_edited:
             tree.plot = plot
-            tree.instance = plot.instance
             tree.save_with_system_user_bypass_auth()
 
     def validate_geom(self):
