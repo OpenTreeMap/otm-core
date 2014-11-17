@@ -7,18 +7,33 @@ from __future__ import division
 from importer.fields import trees
 
 
+######################################
+# FILE LEVEL ERRORS
+######################################
+#
+# Errors that are attributed to the file and prevent the
+# rows from being loaded and validated.
+#
 EMPTY_FILE = (1, 'No rows found', True)
-MISSING_POINTS = (2, 'You must specify a "%s" and "%s" field' %
+MISSING_POINTS = (2, 'The uploaded file must contain a "%s" and "%s" field' %
                   (trees.POINT_X, trees.POINT_Y), True)
 
-UNMATCHED_FIELDS = (3, "The uploaded dataset contains "
-                    "unrecognized field names", False)
+UNMATCHED_FIELDS = (3, "There were some fields in the "
+                    "file that didn't match the template", False)
 
 MISSING_SPECIES_FIELDS = (4, 'You must specify Common Name and Genus', True)
 
 MISSING_FIELD = (5, 'This field is required', True)
-GENERIC_ERROR = (6, 'There was an exception', True)
+GENERIC_ERROR = (6, 'An exception was raised while uploading the file. '
+                 'Please check the file and try again.', True)
 
+######################################
+# ROW LEVEL ERRORS
+######################################
+#
+# Errors that are attributed to the file and prevent the
+# rows from being loaded and validated.
+#
 INVALID_GEOM = (10, 'Longitude must be between -180 and 180 and '
                 'latitude must be betwen -90 and 90', True)
 
