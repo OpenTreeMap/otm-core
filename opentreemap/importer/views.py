@@ -365,13 +365,13 @@ def _get_merge_data(row, field_names, row_errors):
     columns_for_merge = [
         {
             'title': trans('Import Value'),
-            'action_title': trans('Create New Species'),
+            'action_title': trans('Create New'),
             'species_id': 'new' if create_species_allowed else ''
         }
     ] + [
         {
-            'title': trans('Species Match') + number_suffix(i),
-            'action_title': trans('Update Species') + number_suffix(i),
+            'title': trans('Match') + number_suffix(i),
+            'action_title': trans('Merge with Match') + number_suffix(i),
             'species_id': diffs['id'][0]
         }
         for i, diffs in enumerate(species_diffs)
