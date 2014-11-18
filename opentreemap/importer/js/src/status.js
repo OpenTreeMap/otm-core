@@ -18,7 +18,7 @@ var dom = {
 
 function init($container) {
     // Define events on the container so we can replace its contents
-    BU.reloadContainerOnClick($container, dom.backLink, dom.commitLink);
+    var containerLoadedStream = BU.reloadContainerOnClick($container, dom.backLink, dom.commitLink);
 
     $container.asEventStream('click', dom.pagingButtons)
         .onValue(reloadPane);
@@ -32,6 +32,10 @@ function init($container) {
     $container.asEventStream('click', dom.mergeButton)
         .flatMap(mergeRow)
         .onValue($container, 'html');
+
+    // Return the containerLoadedStream so importLists.js knows to start
+    // polling for updates
+    return containerLoadedStream;
 }
 
 function reloadPane(e) {

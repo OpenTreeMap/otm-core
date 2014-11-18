@@ -24,35 +24,38 @@ var REFRESH_INTERVAL = 5 * 1000;
 function init(options) {
     var $container = $(dom.container),
         iAmVisibleProperty = options.iAmVisibleProperty,
-        tablesUpdatedBus = new Bacon.Bus();
+        tablesUpdatedBus = new Bacon.Bus(),
 
-    statusView.init($container);
-
-    handleForm($container, dom.treeForm, options.startImportUrl, tablesUpdatedBus);
-    handleForm($container, dom.speciesForm, options.startImportUrl, tablesUpdatedBus);
+        containerUpdateStream = Bacon.mergeAll(
+            handleForm($container, dom.treeForm, options.startImportUrl),
+            handleForm($container, dom.speciesForm, options.startImportUrl),
+            statusView.init($container)
+        );
 
     BU.reloadContainerOnClick($container, dom.actionLink);
 
     // When I become visible, or
+    // when the whole container updates, or
     // when the tables have just been updated and I am visible,
     // wait a bit and
     // trigger a refresh if any imports aren't finished.
     Bacon.mergeAll(
             iAmVisibleProperty.changes().filter(R.eq(true)),
-            tablesUpdatedBus.filter(iAmVisibleProperty))
+            containerUpdateStream,
+            tablesUpdatedBus)
+        .filter(iAmVisibleProperty)
         .throttle(REFRESH_INTERVAL)
         .onValue(updateTablesIfImportsNotFinished, options.refreshImportsUrl, tablesUpdatedBus);
 }
 
-function handleForm($container, formSelector, startImportUrl, tablesUpdatedBus) {
+function handleForm($container, formSelector, startImportUrl) {
     // Define events on the container so we can replace its contents
     $container.asEventStream('change', formSelector + ' ' + dom.fileChooser)
         .onValue(enableImportButton, true);
 
-    $container.asEventStream('submit', formSelector)
+    var importStartStream = $container.asEventStream('submit', formSelector)
         .flatMap(startImport)
-        .doAction($container, 'html')
-        .onValue(tablesUpdatedBus, 'push');
+        .doAction($container, 'html');
 
     function startImport(e) {
         var formData = new FormData(e.target);
@@ -73,6 +76,8 @@ function handleForm($container, formSelector, startImportUrl, tablesUpdatedBus) 
             .find(dom.importButton)
             .prop('disabled', !shouldEnable);
     }
+
+    return importStartStream;
 }
 
 function updateTablesIfImportsNotFinished(url, tablesUpdatedBus) {
