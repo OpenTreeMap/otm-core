@@ -25,8 +25,9 @@ from treemap.models import (Species, Plot, Tree, ITreeCodeOverride,
                             ITreeRegion, User)
 from treemap.tests import (make_admin_user, make_instance, login)
 
-from importer.views import (create_rows_for_event, process_csv, process_status,
+from importer.views import (process_csv, process_status,
                             commit, merge_species)
+from importer.tasks import _create_rows_for_event
 from treemap.udf import UserDefinedFieldDefinition
 
 from importer import errors, fields
@@ -730,7 +731,7 @@ class FileLevelTreeValidationTest(TestCase):
         c = self.write_csv([['header_field1', 'header_fields2',
                              'header_field3']])
 
-        create_rows_for_event(ie, c)
+        _create_rows_for_event(ie, c)
         rslt = ie.validate_main_file()
 
         # No rows added and validation failed
@@ -756,7 +757,7 @@ class FileLevelTreeValidationTest(TestCase):
                             ['5', '5'],
                             ['8', '8']])
 
-        create_rows_for_event(ie, c)
+        _create_rows_for_event(ie, c)
         rslt = ie.validate_main_file()
 
         self.assertFalse(rslt)
@@ -781,7 +782,7 @@ class FileLevelTreeValidationTest(TestCase):
             ['123 Beach St', 'a', 'b', '5', '5'],
             ['222 Main St', 'a', 'b', '8', '8']])
 
-        create_rows_for_event(ie, c)
+        _create_rows_for_event(ie, c)
         rslt = ie.validate_main_file()
 
         self.assertFalse(rslt)
