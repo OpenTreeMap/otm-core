@@ -22,8 +22,7 @@ GENERIC_ERROR = (6, 'An exception was raised while uploading the file', True)
 # ROW LEVEL ERRORS
 ######################################
 #
-# Errors that are attributed to the file and prevent the
-# rows from being loaded and validated.
+# Errors that are attributed to rows
 #
 INVALID_GEOM = (10, 'Longitude must be between -180 and 180 and '
                 'latitude must be betwen -90 and 90', True)
