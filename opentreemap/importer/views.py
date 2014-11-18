@@ -29,26 +29,7 @@ from importer.species import SpeciesImportEvent, SpeciesImportRow
 from importer.tasks import (run_import_event_validation, commit_import_event,
                             get_import_event_model)
 from importer import errors, fields
-
-
-def clean_string(s):
-    s = s.strip()
-    if not isinstance(s, unicode):
-        s = unicode(s, 'utf-8')
-    return s
-
-
-def lowerkeys(h):
-    h2 = {}
-    for (k, v) in h.iteritems():
-        k = k.lower().strip()
-        if k != 'ignore':
-            if isinstance(v, basestring):
-                v = clean_string(v)
-
-            h2[k] = v
-
-    return h2
+from importer.util import lowerkeys
 
 
 def find_similar_species(request, instance):
@@ -569,14 +550,7 @@ def process_csv(request, instance, import_type, **kwargs):
                           **kwargs)
     ie.save()
 
-    try:
-        rows = create_rows_for_event(ie, file_obj)
-        if rows:
-            run_import_event_validation.delay(import_type, ie.pk)
-    except Exception as e:
-        ie.append_error(errors.GENERIC_ERROR, data=[str(e)])
-        ie.status = GenericImportEvent.FAILED_FILE_VERIFICATION
-        ie.save()
+    run_import_event_validation.delay(import_type, ie.pk, file_obj)
 
     return ie.pk
 
@@ -724,40 +698,6 @@ def export_single_tree_import(request, instance, import_event_id):
     response['Content-Disposition'] = 'attachment; filename=trees.csv'
 
     return response
-
-
-@transaction.atomic
-def create_rows_for_event(ie, csvfile):
-    rows = []
-    reader = csv.DictReader(csvfile)
-
-    fieldnames = reader.fieldnames
-    ie.field_order = json.dumps(fieldnames)
-    ie.save()
-
-    idx = 0
-    for row in reader:
-        # TODO: should we even create a row if
-        # we're about to break out? It's not like
-        # the file errors get attached to the row
-        # anyway.
-        rows.append(
-            ie.create_row(
-                data=json.dumps(lowerkeys(row)),
-                import_event=ie, idx=idx))
-
-        # perform file validation with first row
-        if idx == 0:
-            # Break out early if there was an error
-            # with the basic file structure
-            ie.validate_main_file()
-            if ie.has_errors():
-                break
-        idx += 1
-    else:
-        ie.validate_main_file()
-
-    return False if ie.has_errors() else rows
 
 
 def _api_call(verb, template, view_fn):
