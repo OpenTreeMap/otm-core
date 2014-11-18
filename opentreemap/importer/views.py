@@ -252,9 +252,15 @@ def show_import_status(request, instance, import_type, import_event_id):
 def _get_status_panels(ie, instance):
     panels = [_get_status_panel(instance, ie, spec)
               for spec in _get_status_panel_specs(ie)]
+
+    commit_url = reverse('importer:commit',
+                         kwargs={'instance_url_name': instance.url_name,
+                                 'import_type': ie.import_type,
+                                 'import_event_id': ie.pk})
     return {
         'panels': panels,
-        'active_panel_name': panels[0]['name']
+        'active_panel_name': panels[0]['name'],
+        'commit_url': commit_url
     }
 
 
@@ -533,8 +539,7 @@ def solve(request, instance, import_event_id, row_index):
     return context
 
 
-@transaction.commit_manually
-@login_required
+@transaction.atomic
 def commit(request, instance, import_type, import_event_id):
     ie = _get_import_event(instance, import_type, import_event_id)
     ie.status = GenericImportEvent.CREATING
@@ -542,13 +547,9 @@ def commit(request, instance, import_type, import_event_id):
     ie.save()
     ie.rows().update(status=GenericImportRow.WAITING)
 
-    transaction.commit()
-
     commit_import_event.delay(import_type, import_event_id)
 
-    return HttpResponse(
-        json.dumps({'status': 'done'}),
-        content_type='application/json')
+    return list_imports(request, instance)
 
 
 def process_csv(request, instance, import_type, **kwargs):
@@ -782,6 +783,9 @@ show_status_panel_endpoint = _api_call(
 
 solve_endpoint = _api_call(
     'POST', 'importer/partials/status.html', solve)
+
+commit_endpoint = _api_call(
+    'GET', 'importer/partials/imports.html', commit)
 
 show_import_status_endpoint = do(
     admin_instance_request,

@@ -23,5 +23,7 @@
 {% endblock main %}
 
 {% block extra_buttons %}
-<button id="createtrees" class="btn btn-success btn-large">{% trans "Add to Tree Map" %}</button>
+  <a data-action="commit" class="btn btn-success btn-large" href="{{ commit_url }}">
+    {% trans "Add to Tree Map" %}
+  </a>
 {% endblock extra_buttons %}

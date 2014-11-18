@@ -8,7 +8,7 @@ from django.conf.urls import patterns, url
 from importer.views import (
     start_import_endpoint, update_row, export_all_species,
     export_single_species_import, export_single_tree_import, merge_species,
-    commit, update, counts, find_similar_species,
+    commit_endpoint, update, counts, find_similar_species,
     show_import_status_endpoint, list_imports_endpoint,
     show_status_panel_endpoint, refresh_imports_endpoint, solve_endpoint)
 
@@ -31,6 +31,7 @@ urlpatterns = patterns(
         solve_endpoint, name='solve'),
     url(r'^update/(?P<import_event_row_id>\d+)$', update_row,
         name='update_row'),
+    url(r'^commit/%s/$' % _import_api_pattern, commit_endpoint, name='commit'),
 
     url(r'^export/species/all', export_all_species, name='export_all_species'),
     url(r'^export/species/(?P<import_event_id>\d+)$',
@@ -40,7 +41,6 @@ urlpatterns = patterns(
 
     # API
     url(r'^api/merge$', merge_species, name='merge'),
-    url(r'^api/%s/commit$' % _import_api_pattern, commit, name='commit'),
     url(r'^api/%s/update$' % _import_api_pattern, update, name='update'),
     url(r'^api/counts', counts, name='counts'),
     url(r'^api/species/similar', find_similar_species,
