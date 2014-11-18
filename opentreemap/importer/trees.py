@@ -120,7 +120,7 @@ class TreeImportRow(GenericImportRow):
             self.import_event.canopy_height_conversion_factor
         })
 
-        plot_id = data.get(self.model_fields.OPENTREEMAP_ID_NUMBER, None)
+        plot_id = data.get(self.model_fields.OPENTREEMAP_PLOT_ID, None)
 
         # Check for an existing plot, use it if we're not already:
         if plot_id and (self.plot is None or self.plot.pk != plot_id):
