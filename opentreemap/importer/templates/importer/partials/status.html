@@ -5,16 +5,12 @@
     <div class="col-md-12">
       <div>
         <div>
-{#        {% if event.has_errors %}#}
-{#          {% include 'importer/partials/file_level_error.html' with event=event %}#}
-{#        {% else %}#}
           <div class="row">
             <div class="col-md-12">
               <h2>{% trans "Import Status" %}</h2>
               <hr>
               {% block main %}
               {% endblock main %}
-
             </div>
           </div>
 
@@ -25,7 +21,6 @@
               href="{% url 'importer:list_imports' instance_url_name=request.instance.url_name %}">
             {% trans "Back to Uploads" %}
           </a>
-{#        {% endif %}#}
         </div>
       </div>
     </div>

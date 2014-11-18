@@ -92,14 +92,13 @@ class TreeImportRow(GenericImportRow):
         return fields.trees
 
     def commit_row(self):
-        if self.plot:
-            # This row was already committed
-            self.status = TreeImportRow.SUCCESS
-            self.save()
-
         # First validate
         if not self.validate_row():
             return False
+
+        if self.status == TreeImportRow.SUCCESS:
+            # Nothing changed!
+            return True
 
         # Get our data
         data = self.cleaned
@@ -121,9 +120,14 @@ class TreeImportRow(GenericImportRow):
             self.import_event.canopy_height_conversion_factor
         })
 
-        # Initially grab plot from row if it exists
-        plot = self.plot
-        if plot is None:
+        plot_id = data.get(self.model_fields.OPENTREEMAP_ID_NUMBER, None)
+
+        # Check for an existing plot, use it if we're not already:
+        if plot_id and (self.plot is None or self.plot.pk != plot_id):
+            plot = Plot.objects.get(pk=plot_id)
+        elif self.plot is not None:
+            plot = self.plot
+        else:
             plot = Plot(instance=self.import_event.instance)
 
         # Even if TREE_PRESENT is False, a tree can be spawned if there
@@ -132,15 +136,10 @@ class TreeImportRow(GenericImportRow):
 
         # Check for an existing tree:
         tree_edited = False
-        if self.model_fields.OPENTREEMAP_PLOT_ID in data:
-            plot = Plot.objects.get(
-                pk=data[self.model_fields.OPENTREEMAP_PLOT_ID])
-            tree = plot.current_tree()
-        else:
-            if data.get(self.model_fields.TREE_PRESENT, False):
-                tree_edited = True
-                if tree is None:
-                    tree = Tree(instance=plot.instance)
+        if data.get(self.model_fields.TREE_PRESENT, False):
+            tree_edited = True
+            if tree is None:
+                tree = Tree(instance=plot.instance)
 
         self._commit_plot_data(data, plot)
         self._commit_tree_data(data, plot, tree, tree_edited)
