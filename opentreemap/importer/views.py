@@ -664,7 +664,7 @@ def export_single_tree_import(request, instance, import_event_id):
         fields.trees.PLOT_WIDTH,
         fields.trees.PLOT_LENGTH,
         fields.trees.READ_ONLY,
-        fields.trees.OPENTREEMAP_ID_NUMBER,
+        fields.trees.OPENTREEMAP_PLOT_ID,
         fields.trees.TREE_PRESENT,
         fields.trees.GENUS,
         fields.trees.SPECIES,
@@ -672,7 +672,7 @@ def export_single_tree_import(request, instance, import_event_id):
         fields.trees.OTHER_PART_OF_NAME,
         fields.trees.DIAMETER,
         fields.trees.TREE_HEIGHT,
-        fields.trees.ORIG_ID_NUMBER,
+        fields.trees.EXTERNAL_ID_NUMBER,
         fields.trees.CANOPY_HEIGHT,
         fields.trees.DATE_PLANTED,
     )
@@ -694,8 +694,8 @@ def export_single_tree_import(request, instance, import_event_id):
             obj[fields.trees.PLOT_WIDTH] = r.plot.width
             obj[fields.trees.PLOT_LENGTH] = r.plot.length
             obj[fields.trees.READ_ONLY] = r.plot.readonly
-            obj[fields.trees.OPENTREEMAP_ID_NUMBER] = r.plot.pk
-            obj[fields.trees.ORIG_ID_NUMBER] = r.plot.owner_orig_id
+            obj[fields.trees.OPENTREEMAP_PLOT_ID] = r.plot.pk
+            obj[fields.trees.EXTERNAL_ID_NUMBER] = r.plot.owner_orig_id
 
             tree = r.plot.current_tree()
 

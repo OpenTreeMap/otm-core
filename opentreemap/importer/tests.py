@@ -4,14 +4,16 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-
 import tempfile
 import csv
 import json
+import psycopg2
+
 from datetime import date
 from StringIO import StringIO
 
 from django.conf import settings
+from django.db import connection
 from django.test import TestCase
 from django.utils.unittest.case import skip
 from django.http import HttpRequest
@@ -144,6 +146,8 @@ class TreeValidationTest(ValidationTest):
             data=json.dumps(data), import_event=self.ie, idx=1)
 
     def test_udf(self):
+        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
         UserDefinedFieldDefinition.objects.create(
             instance=self.instance,
             model_type='Plot',
@@ -154,14 +158,14 @@ class TreeValidationTest(ValidationTest):
 
         row = {'point x': '16',
                'point y': '20',
-               'Plot: Test choice': 'a'}
+               'plot: test choice': 'a'}
 
         i = self.mkrow(row)
         i.validate_row()
 
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['Plot: Test choice'] = 'z'
+        row['plot: test choice'] = 'z'
 
         i = self.mkrow(row)
         i.validate_row()
@@ -306,7 +310,7 @@ class TreeValidationTest(ValidationTest):
         # silly invalid-int-errors should be caught
         i = self.mkrow({'point x': '16',
                         'point y': '20',
-                        'opentreemap id number': '44b'})
+                        'opentreemap plot id': '44b'})
         r = i.validate_row()
 
         self.assertFalse(r)
@@ -314,7 +318,7 @@ class TreeValidationTest(ValidationTest):
 
         i = self.mkrow({'point x': '25',
                         'point y': '25',
-                        'opentreemap id number': '-22'})
+                        'opentreemap plot id': '-22'})
         r = i.validate_row()
 
         self.assertFalse(r)
@@ -323,7 +327,7 @@ class TreeValidationTest(ValidationTest):
         # With no plots in the system, all ids should fail
         i = self.mkrow({'point x': '25',
                         'point y': '25',
-                        'opentreemap id number': '44'})
+                        'opentreemap plot id': '44'})
         r = i.validate_row()
 
         self.assertFalse(r)
@@ -334,7 +338,7 @@ class TreeValidationTest(ValidationTest):
         # With an existing plot it should be fine
         i = self.mkrow({'point x': '25',
                         'point y': '25',
-                        'opentreemap id number': p.pk})
+                        'opentreemap plot id': p.pk})
         r = i.validate_row()
 
         self.assertNotHasError(i, errors.INVALID_OTM_ID)
@@ -1045,7 +1049,7 @@ class TreeIntegrationTests(IntegrationTests):
         string_too_long = 'a' * 256
 
         csv = """
-        | point x    | point y    | opentreemap id number | date planted |
+        | point x    | point y    | opentreemap plot id | date planted |
         | 25.0000002 | 25.0000002 |                       | 2012-02-18   |
         | 25.1000002 | 25.1000002 | 133                   |              |
         | 25.1000002 | 25.1000002 | -3                    | 2023-FF-33   |
@@ -1063,17 +1067,17 @@ class TreeIntegrationTests(IntegrationTests):
                            [p1.pk])])
         self.assertEqual(ierrors['1'],
                          [(errors.INVALID_OTM_ID[0],
-                           [fields.trees.OPENTREEMAP_ID_NUMBER],
+                           [fields.trees.OPENTREEMAP_PLOT_ID],
                            None)])
         self.assertEqual(ierrors['2'],
                          [(errors.POS_INT_ERROR[0],
-                           [fields.trees.OPENTREEMAP_ID_NUMBER],
+                           [fields.trees.OPENTREEMAP_PLOT_ID],
                            None),
                           (errors.INVALID_DATE[0],
                            [fields.trees.DATE_PLANTED], None)])
         self.assertEqual(ierrors['3'],
                          [(errors.INT_ERROR[0],
-                           [fields.trees.OPENTREEMAP_ID_NUMBER], None),
+                           [fields.trees.OPENTREEMAP_PLOT_ID], None),
                           (errors.INVALID_DATE[0],
                            [fields.trees.DATE_PLANTED], None)])
         self.assertNotIn('4', ierrors)
@@ -1155,6 +1159,39 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(tree.date_planted, dateplanted)
         self.assertEqual(tree.readonly, True)
 
+        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
+        UserDefinedFieldDefinition.objects.create(
+            model_type='Plot',
+            name='Flatness',
+            datatype=json.dumps({'type': 'choice',
+                                 'choices': ['very', 'hardly', 'not']}),
+            iscollection=False,
+            instance=self.instance,
+        )
+
+        UserDefinedFieldDefinition.objects.create(
+            model_type='Tree',
+            name='Cuteness',
+            datatype=json.dumps({'type': 'choice',
+                                 'choices': ['lots', 'not much', 'none']}),
+            iscollection=False,
+            instance=self.instance,
+        )
+
+        csv = """
+        | point x | point y | tree: cuteness | plot: flatness |
+        | 25.00   | 25.00   | not much       | very           |
+        """
+
+        ieid = self.run_through_commit_views(csv)
+        ie = TreeImportEvent.objects.get(pk=ieid)
+        plot = ie.treeimportrow_set.all()[0].plot
+        tree = plot.current_tree()
+
+        self.assertEqual(plot.udfs['Flatness'], 'very')
+        self.assertEqual(tree.udfs['Cuteness'], 'not much')
+
     def test_all_plot_data(self):
         csv = """
         | point x | point y | plot width | plot length | read only |
@@ -1174,7 +1211,7 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(plot.readonly, False)
 
         csv = """
-        | point x | point y | original id number |
+        | point x | point y | external id number |
         | 45.53   | 31.1    | 443                |
         """
 
@@ -1188,7 +1225,7 @@ class TreeIntegrationTests(IntegrationTests):
         p1 = mkPlot(self.instance, self.user)
 
         csv = """
-        | point x | point y | opentreemap id number |
+        | point x | point y | opentreemap plot id |
         | 45.53   | 31.1    | %s                    |
         """ % p1.pk
 

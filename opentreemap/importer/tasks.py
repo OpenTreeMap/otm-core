@@ -5,6 +5,7 @@ from __future__ import division
 
 from celery import task
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 
 from importer.models import GenericImportEvent, GenericImportRow
 from importer.species import SpeciesImportEvent
@@ -51,6 +52,7 @@ def commit_import_event(import_type, import_event_id):
 
 
 @task()
+@transaction.atomic
 def _commit_rows(import_type, import_event_id, i):
     ie = _get_import_event(import_type, import_event_id)
     missing_merges = 0

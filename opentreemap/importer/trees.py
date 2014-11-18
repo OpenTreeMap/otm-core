@@ -41,7 +41,7 @@ class TreeImportEvent(GenericImportEvent):
 
     def get_udf_column_name(self, udf_def):
         # Prefix with model name, e.g. "Density" -> "Tree: Density"
-        return "%s: %s" % (udf_def.model_type, udf_def.name)
+        return "%s: %s" % (udf_def.model_type.lower(), udf_def.name.lower())
 
     def validate_main_file(self):
         def udf_column_names(model_name):
@@ -66,7 +66,7 @@ class TreeImportRow(GenericImportRow):
         'width': fields.trees.PLOT_WIDTH,
         'length': fields.trees.PLOT_LENGTH,
         'readonly': fields.trees.READ_ONLY,
-        'owner_orig_id': fields.trees.ORIG_ID_NUMBER,
+        'owner_orig_id': fields.trees.EXTERNAL_ID_NUMBER,
         'address_street': fields.trees.STREET_ADDRESS,
         'address_city': fields.trees.CITY_ADDRESS,
         'address_zip': fields.trees.POSTAL_CODE
@@ -92,8 +92,8 @@ class TreeImportRow(GenericImportRow):
         return fields.trees
 
     def commit_row(self):
-        # If this row was already commit... abort
         if self.plot:
+            # This row was already committed
             self.status = TreeImportRow.SUCCESS
             self.save()
 
@@ -121,59 +121,79 @@ class TreeImportRow(GenericImportRow):
             self.import_event.canopy_height_conversion_factor
         })
 
-        plot_edited = False
-        tree_edited = False
-
         # Initially grab plot from row if it exists
         plot = self.plot
         if plot is None:
             plot = Plot(instance=self.import_event.instance)
 
-        # Event if TREE_PRESENT is None, a tree
-        # can still be spawned here if there is
-        # any tree data later
+        # Even if TREE_PRESENT is False, a tree can be spawned if there
+        # is tree data later
         tree = plot.current_tree()
 
         # Check for an existing tree:
-        if self.model_fields.OPENTREEMAP_ID_NUMBER in data:
+        tree_edited = False
+        if self.model_fields.OPENTREEMAP_PLOT_ID in data:
             plot = Plot.objects.get(
-                pk=data[self.model_fields.OPENTREEMAP_ID_NUMBER])
+                pk=data[self.model_fields.OPENTREEMAP_PLOT_ID])
             tree = plot.current_tree()
         else:
             if data.get(self.model_fields.TREE_PRESENT, False):
                 tree_edited = True
                 if tree is None:
-                    tree = Tree()
+                    tree = Tree(instance=plot.instance)
 
-        for modelkey, importdatakey in TreeImportRow.PLOT_MAP.iteritems():
-            importdata = data.get(importdatakey, None)
-
-            if importdata:
-                plot_edited = True
-                setattr(plot, modelkey, importdata)
-
-        if plot_edited:
-            plot.save_with_system_user_bypass_auth()
-
-        for modelkey, importdatakey in TreeImportRow.TREE_MAP.iteritems():
-            importdata = data.get(importdatakey, None)
-
-            if importdata:
-                tree_edited = True
-                if tree is None:
-                    tree = Tree()
-                setattr(tree, modelkey, importdata)
-
-        if tree_edited:
-            tree.plot = plot
-            tree.instance = plot.instance
-            tree.save_with_system_user_bypass_auth()
+        self._commit_plot_data(data, plot)
+        self._commit_tree_data(data, plot, tree, tree_edited)
 
         self.plot = plot
         self.status = TreeImportRow.SUCCESS
         self.save()
 
         return True
+
+    def _commit_plot_data(self, data, plot):
+        plot_edited = False
+        for plot_attr, field_name in TreeImportRow.PLOT_MAP.iteritems():
+            value = data.get(field_name, None)
+            if value:
+                plot_edited = True
+                setattr(plot, plot_attr, value)
+
+        ie = self.import_event
+        plot_udf_defs = udf_defs(ie.instance, 'Plot')
+        for udf_def in plot_udf_defs:
+            udf_column_name = ie.get_udf_column_name(udf_def)
+            value = data.get(udf_column_name, None)
+            if value:
+                plot_edited = True
+                plot.udfs[udf_def.name] = value
+
+        if plot_edited:
+            plot.save_with_system_user_bypass_auth()
+
+    def _commit_tree_data(self, data, plot, tree, tree_edited):
+        for tree_attr, field_name in TreeImportRow.TREE_MAP.iteritems():
+            value = data.get(field_name, None)
+            if value:
+                tree_edited = True
+                if tree is None:
+                    tree = Tree(instance=plot.instance)
+                setattr(tree, tree_attr, value)
+
+        ie = self.import_event
+        tree_udf_defs = udf_defs(ie.instance, 'Tree')
+        for udf_def in tree_udf_defs:
+            udf_column_name = ie.get_udf_column_name(udf_def)
+            value = data.get(udf_column_name, None)
+            if value:
+                tree_edited = True
+                if tree is None:
+                    tree = Tree(instance=plot.instance)
+                tree.udfs[udf_def.name] = value
+
+        if tree_edited:
+            tree.plot = plot
+            tree.save_with_system_user_bypass_auth()
 
     def validate_geom(self):
         x = self.cleaned.get(fields.trees.POINT_X, None)
@@ -207,13 +227,13 @@ class TreeImportRow(GenericImportRow):
         return True
 
     def validate_otm_id(self):
-        oid = self.cleaned.get(fields.trees.OPENTREEMAP_ID_NUMBER, None)
+        oid = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
         if oid:
             has_plot = Plot.objects.filter(pk=oid).exists()
 
             if not has_plot:
                 self.append_error(errors.INVALID_OTM_ID,
-                                  fields.trees.OPENTREEMAP_ID_NUMBER)
+                                  fields.trees.OPENTREEMAP_PLOT_ID)
                 return False
 
         return True
@@ -230,7 +250,7 @@ class TreeImportRow(GenericImportRow):
                      .distance(point)\
                      .exclude(pk__in=plot_ids_from_this_import)\
 
-        oid = self.cleaned.get(fields.trees.OPENTREEMAP_ID_NUMBER, None)
+        oid = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
         if oid:
             nearby = nearby.exclude(pk=oid)
 
