@@ -10,7 +10,7 @@ from functools import wraps
 from django.http import HttpResponseBadRequest
 from django.contrib.auth.models import AnonymousUser
 
-from treemap.exceptions import HttpBadRequestException
+from django_tinsel.exceptions import HttpBadRequestException
 
 from api.models import APIAccessCredential
 from api.auth import (create_401unauthorized, get_signature_for_request,

@@ -8,11 +8,11 @@ from django.shortcuts import get_object_or_404
 
 from tasks import async_csv_export, async_users_export
 
-from opentreemap.util import decorate as do
+from django_tinsel.utils import decorate as do
+from django_tinsel.decorators import json_api_call
 
 from treemap.util import get_csv_response, get_json_response
-from treemap.decorators import (json_api_call, instance_request,
-                                requires_feature)
+from treemap.decorators import instance_request, requires_feature
 
 from exporter.models import ExportJob
 from exporter.user import write_users

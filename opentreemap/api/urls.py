@@ -5,7 +5,7 @@ from __future__ import division
 
 from django.conf.urls import patterns, url
 
-from opentreemap.util import route
+from django_tinsel.decorators import route
 
 from api.views import (status_view, version_view, public_instances_endpoint,
                        remove_current_tree_from_plot, plots_endpoint,

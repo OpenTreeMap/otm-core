@@ -7,9 +7,10 @@ from django.utils.translation import ugettext_lazy as trans
 from django.contrib.gis.geos.point import Point
 from django.db import connection
 
+from django_tinsel.decorators import json_api_call
+
 from treemap import ecobackend
 from treemap.models import MapFeature
-from treemap.decorators import json_api_call
 
 WATTS_PER_BTU = 0.29307107
 GAL_PER_CUBIC_M = 264.172052

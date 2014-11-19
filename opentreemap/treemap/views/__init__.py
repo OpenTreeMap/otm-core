@@ -9,14 +9,14 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import etag
 
-from opentreemap.util import route, decorate as do
+from django_tinsel.utils import decorate as do
+from django_tinsel.decorators import (route, json_api_call, render_template,
+                                      string_to_response,
+                                      username_matches_request_user)
 
-from treemap.decorators import (json_api_call, render_template, login_or_401,
-                                return_400_if_validation_errors,
-                                require_http_method, string_to_response,
-                                requires_feature,
+from treemap.decorators import (login_or_401, return_400_if_validation_errors,
+                                require_http_method, requires_feature,
                                 creates_instance_user, instance_request,
-                                username_matches_request_user,
                                 admin_instance_request, json_api_edit)
 
 from treemap.views.user import (forgot_username, upload_user_photo,

@@ -9,11 +9,11 @@ from django.core.paginator import Paginator, EmptyPage
 from django.db import transaction
 from django.core.urlresolvers import reverse
 
-from opentreemap.util import decorate as do
+from django_tinsel.utils import decorate as do
+from django_tinsel.decorators import json_api_call, render_template
 
 from treemap.decorators import (instance_request, admin_instance_request,
-                                require_http_method, json_api_call,
-                                render_template)
+                                require_http_method)
 
 from exporter.decorators import queryset_as_exported_csv
 

@@ -8,21 +8,19 @@ from functools import wraps
 
 from django.utils.translation import ugettext as trans
 from django.core.exceptions import PermissionDenied
-from django.template import RequestContext
-from django.shortcuts import get_object_or_404, render_to_response
 from django.http import (HttpResponse, HttpResponseBadRequest,
-                         HttpResponseRedirect, HttpResponseForbidden)
+                         HttpResponseRedirect)
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 
-from opentreemap.util import decorate as do
+from django_tinsel.utils import decorate as do
+from django_tinsel.decorators import json_api_call
 
 from treemap.util import (LazyEncoder, add_visited_instance,
                           get_instance_or_404, login_redirect)
-from treemap.exceptions import (FeatureNotEnabledException,
-                                HttpBadRequestException)
+from treemap.exceptions import FeatureNotEnabledException
 
 
 def instance_request(view_fn, redirect=True):
@@ -55,28 +53,6 @@ def instance_request(view_fn, redirect=True):
                 return HttpResponse('Unauthorized', status=401)
 
     return wrapper
-
-
-def log(message=None):
-    """Log a message before passing through to the wrapped function.
-
-    This is useful if you want to determine whether wrappers are
-    passing down the pipeline to the functions they wrap, or exiting
-    early, usually with some kind of exception.
-
-    Example:
-    example_view = do(instance_request,
-                      log("instance_request passed"),
-                      json_api_call,
-                      example)
-    """
-    def decorator(view_fn):
-        @wraps(view_fn)
-        def f(*args, **kwargs):
-            print(message)
-            return view_fn(*args, **kwargs)
-        return f
-    return decorator
 
 
 def user_must_be_admin(view_fn):
@@ -147,58 +123,6 @@ def requires_feature(ft):
     return wrapper_function
 
 
-def render_template(template):
-    """
-    takes a template to render to and returns a function that
-    takes an object to render the data for this template.
-
-    If callable_or_dict is callable, it will be called with
-    the request and any additional arguments to produce the
-    template paramaters. This is useful for a view-like function
-    that returns a dict-like object instead of an HttpResponse.
-
-    Otherwise, callable_or_dict is used as the parameters for
-    the rendered response.
-    """
-    def outer_wrapper(callable_or_dict=None, statuscode=None, **kwargs):
-        def wrapper(request, *args, **wrapper_kwargs):
-            if callable(callable_or_dict):
-                params = callable_or_dict(request, *args, **wrapper_kwargs)
-            else:
-                params = callable_or_dict
-
-            # If we want to return some other response
-            # type we can, that simply overrides the default
-            # behavior
-            if params is None or isinstance(params, dict):
-                resp = render_to_response(template, params,
-                                          RequestContext(request), **kwargs)
-            else:
-                resp = params
-
-            if statuscode:
-                resp.status_code = statuscode
-
-            return resp
-
-        return wrapper
-    return outer_wrapper
-
-
-def json_api_call(req_function):
-    """ Wrap a view-like function that returns an object that
-        is convertable from json
-    """
-    @wraps(req_function)
-    def newreq(request, *args, **kwargs):
-        outp = req_function(request, *args, **kwargs)
-        if issubclass(outp.__class__, HttpResponse):
-            return outp
-        else:
-            return '%s' % json.dumps(outp, cls=LazyEncoder)
-    return string_to_response("application/json")(newreq)
-
-
 def json_api_edit(req_function):
     """
     Wraps view function for an AJAX call which modifies data.
@@ -208,33 +132,6 @@ def json_api_edit(req_function):
         json_api_call,
         creates_instance_user,
         req_function)
-
-
-def string_to_response(content_type):
-    """
-    Wrap a view-like function that returns a string and marshalls it into an
-    HttpResponse with the given Content-Type
-    """
-    def outer_wrapper(req_function):
-        @wraps(req_function)
-        def newreq(request, *args, **kwargs):
-            try:
-                outp = req_function(request, *args, **kwargs)
-                if issubclass(outp.__class__, HttpResponse):
-                    response = outp
-                else:
-                    response = HttpResponse()
-                    response.write(outp)
-                    response['Content-length'] = str(len(response.content))
-
-                response['Content-Type'] = content_type
-
-            except HttpBadRequestException, bad_request:
-                response = HttpResponseBadRequest(bad_request.message)
-
-            return response
-        return newreq
-    return outer_wrapper
 
 
 def return_400_if_validation_errors(req):
@@ -270,27 +167,6 @@ def login_or_401(view_fn):
             return view_fn(request, *args, **kwargs)
         else:
             return HttpResponse('Unauthorized', status=401)
-
-    return wrapper
-
-
-def username_matches_request_user(view_fn):
-    """
-    A decorator intended for use on any feature gated in the template by
-    {% userccontent for request.user %}.  Checks if the username matches the
-    request user, and if so replaces username with the actual user object.
-    Returns 404 if the username does not exist, and 403 if it doesn't match.
-    """
-    @wraps(view_fn)
-    def wrapper(request, username, *args, **kwargs):
-        # Delayed import because models imports from util
-        from treemap.models import User
-
-        user = get_object_or_404(User, username=username)
-        if user != request.user:
-            return HttpResponseForbidden()
-        else:
-            return view_fn(request, user, *args, **kwargs)
 
     return wrapper
 

@@ -15,7 +15,8 @@ from django.db import transaction
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
 
-from opentreemap.util import route, decorate as do
+from django_tinsel.utils import decorate as do
+from django_tinsel.decorators import route, json_api_call
 
 from treemap.models import Plot, Tree, User
 from treemap.views import species_list
@@ -24,14 +25,13 @@ from treemap.lib.tree import add_tree_photo_helper
 from treemap.lib.photo import context_dict_for_photo
 from treemap.lib.dates import DATETIME_FORMAT
 
-from treemap.decorators import (json_api_call,
-                                return_400_if_validation_errors,
+from treemap.decorators import (return_400_if_validation_errors,
                                 require_http_method)
 from treemap.decorators import api_instance_request as instance_request
 from treemap.decorators import api_admin_instance_request as \
     admin_instance_request
 from treemap.decorators import creates_instance_user
-from treemap.exceptions import HttpBadRequestException
+from django_tinsel.exceptions import HttpBadRequestException
 from treemap.audit import Audit, approve_or_reject_audit_and_apply
 
 from api.auth import create_401unauthorized

@@ -13,7 +13,7 @@ from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 
-from treemap.exceptions import HttpBadRequestException
+from django_tinsel.exceptions import HttpBadRequestException
 from treemap.lib.object_caches import role_permissions
 from treemap.models import Instance, InstanceUser
 from treemap.units import (get_units_if_convertible, get_digits_if_formattable,

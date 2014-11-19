@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 
-from treemap.exceptions import HttpBadRequestException
+from django_tinsel.exceptions import HttpBadRequestException
 
 from treemap.lib.map_feature import context_dict_for_plot
 from treemap.views.map_feature import update_map_feature
