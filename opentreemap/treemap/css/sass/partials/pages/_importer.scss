@@ -17,7 +17,7 @@
    }
 
    td.warning {
-        background-color: #fdef8d;
+        background-color: #fef4ad;
    }
 
    input {
@@ -27,4 +27,15 @@
    .tab-pane {
        min-height: auto;
    }
+
+   .tab-contents{
+      overflow-x: scroll;
+      border-left: solid 1px #dddddd;
+      border-right: solid 1px #dddddd;
+      border-bottom: solid 1px #dddddd;
+   }
+
+    .btn-info{
+      margin-right: 12px;
+    }
 }
