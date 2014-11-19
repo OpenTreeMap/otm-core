@@ -17,8 +17,9 @@
           {% block extra_buttons %}
           {% endblock extra_buttons %}
 
-          <a class="btn btn-success btn-large" data-action="back"
+          <a class="btn btn-info btn-large pull-left" data-action="back"
               href="{% url 'importer:list_imports' instance_url_name=request.instance.url_name %}">
+              <i class="icon-left-open"></i>
             {% trans "Back to Uploads" %}
           </a>
         </div>
