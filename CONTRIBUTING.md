@@ -38,9 +38,8 @@ fab vagrant test
 
 OpenTreeMap uses functional views rather than class-based views and
 prefers nested calls rather than decorators, to simplify testing and
-composability. Read through [util.py](https://github.com/OpenTreeMap/OTM2/blob/master/opentreemap/opentreemap/util.py)
-file and pay particular attention to the ``decorate`` and ``route``
-functions, which we use as the foundation of our composed view
+composability. Read through [decorators.py](https://github.com/OpenTreeMap/OTM2/blob/master/opentreemap/treemap/decorators.py)
+file, and also the [django-tinsel project](https://github.com/azavea/django-tinsel) and it's `decorate` and `route` functions, which we use as the foundation of our composed view
 functions. For a good example of how these functions are used,
 reference [the treemap views module](https://github.com/OpenTreeMap/OTM2/blob/master/opentreemap/treemap/views/__init__.py)
 

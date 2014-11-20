@@ -5,7 +5,7 @@ from __future__ import division
 
 from django.conf.urls import patterns, url
 
-from opentreemap.util import route
+from django_tinsel.decorators import route
 
 from treemap.views import (boundary_to_geojson_view, index_view, map_view,
                            delete_tree_view, instance_settings_js_view,

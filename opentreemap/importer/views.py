@@ -17,11 +17,12 @@ from django.utils.translation import ugettext as trans
 
 from django.contrib.auth.decorators import login_required
 
-from opentreemap.util import decorate as do
+from django_tinsel.utils import decorate as do
+from django_tinsel.decorators import render_template
 
 from treemap.models import Species, Tree, User
 from treemap.decorators import (admin_instance_request, require_http_method,
-                                render_template, requires_feature)
+                                requires_feature)
 
 from importer.models import GenericImportEvent, GenericImportRow
 from importer.trees import TreeImportEvent, TreeImportRow

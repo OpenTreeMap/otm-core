@@ -4,10 +4,6 @@ from __future__ import unicode_literals
 from __future__ import division
 
 
-class HttpBadRequestException(Exception):
-    pass
-
-
 class InvalidInstanceException(Exception):
     pass
 

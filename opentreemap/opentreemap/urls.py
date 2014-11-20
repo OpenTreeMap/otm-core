@@ -8,7 +8,7 @@ from django.conf import settings
 from django.views.generic import RedirectView
 from django.contrib import admin
 
-from opentreemap.util import route
+from django_tinsel.decorators import route
 
 from treemap.views import (user_view, root_settings_js_view,
                            profile_to_user_view, user_audits_view,

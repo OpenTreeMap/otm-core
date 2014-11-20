@@ -10,10 +10,10 @@ from django.utils.translation import ugettext as trans
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
 
+from django_tinsel.decorators import json_api_call
+
 from omgeo import Geocoder
 from omgeo.places import Viewbox, PlaceQuery
-
-from treemap.decorators import json_api_call
 
 
 geocoder = Geocoder(sources=settings.OMGEO_SETTINGS)
