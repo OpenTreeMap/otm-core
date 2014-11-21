@@ -82,6 +82,17 @@
                     }
                 }
             }
+            @media(max-width: 767px){
+                .input-group {
+                    width: 75px;
+                    input[type="text"] {
+                        width: 55px;
+                    }
+                }
+                input[type="text"] {
+                    width: 85px;
+                }
+            }
         }
         .input-group {
             width: 120px;
