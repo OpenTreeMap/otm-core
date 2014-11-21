@@ -9,16 +9,27 @@
         > h3 {
             margin: 20px 20px 15px;
             font-size: 23px;
+
+            @media(max-width: 768px){
+                padding: 20px 20px 15px;
+                margin: 0;
+            }
         }
 
         .add-step-container {
             position: absolute;
-            overflow: hidden;
+            overflow-x: hidden;
             overflow-y: auto;
             left: 0;
             right: 0;
             bottom: 0;
             top: 60px;
+
+            @media(max-width: 768px){
+                overflow-y: hidden;
+                position: relative;
+                top: 0;
+            }
         }
         .add-step {
             margin: 0;
@@ -29,6 +40,10 @@
             background: white;
             -webkit-transition: .6s ease-in-out left;
             transition: .6s ease-in-out left;
+
+            @media(max-width: 768px){
+                position: relative;
+            }
 
             &.next,
             &.prev {
@@ -72,6 +87,11 @@
                 overflow-y: auto;
                 left: 0;
                 right: 0;
+
+                @media(max-width: 768px){
+                    position: static;
+                    overflow-y: hidden;
+                }
 
                 h3 {
                     margin: 0;
@@ -148,6 +168,10 @@
                 left: 0;
                 right: 0;
 
+                @media(max-width: 768px){
+                    position: relative;
+                }
+
                 .counter {
                     position: absolute;
                     top: 18px;
@@ -173,5 +197,9 @@
         top: 0;
         right: 20px;
         opacity: 0.5;
+
+        @media(max-width: 768px){
+            top: 18px;
+        }
     }
 }

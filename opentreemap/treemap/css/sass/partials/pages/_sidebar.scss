@@ -12,7 +12,7 @@
     @media(max-width: 768px){
         top: 300px;
         width: 100%;
-        min-height: 400px;
+        position: relative;
     }
 
     .popover{
@@ -23,7 +23,7 @@
         overflow: auto;
 
         @media(max-width: 768px){
-            overflow: inherit;
+            overflow: hidden;
         }
     }
     .panel {
