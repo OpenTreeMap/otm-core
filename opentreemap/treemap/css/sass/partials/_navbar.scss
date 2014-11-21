@@ -154,6 +154,14 @@
     .navbar-collapse {
         display: inherit;
     }
+    .navbar-nav .open .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        float: left;
+        background: white;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
+    }
 }
 
 .user-dock {
