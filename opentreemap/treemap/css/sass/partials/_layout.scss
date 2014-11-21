@@ -43,6 +43,10 @@ body {
         @media(min-width: 990px){
             top: 205px;
         }
+
+        @media(max-width: 768px){
+            top: 164px;
+        }
 	}
 }
 
