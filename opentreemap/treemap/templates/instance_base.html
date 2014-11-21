@@ -49,7 +49,13 @@
   {% endif %}
 {% endif %}
 
-<li class="hidden-xs explore-map {% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Map" %}</a></li>
+<li class="explore-map {% block activeexplore %}active{% endblock %}">
+  <a href="{% url 'map' instance_url_name=request.instance.url_name %}">
+    <span class="hidden-xs">{% trans "Explore Map" %}</span>
+    <!-- We hide the logo on mobile, so we show the instance name instead of "Explore Map" to give context about which map you are on -->
+    <span class="visible-xs-inline">{{ request.instance.name }}</span>
+  </a>
+</li>
 
 {% if settings.MODELING_VIEW_NAME %}
   {% if request.instance|feature_enabled:'modeling' %}
