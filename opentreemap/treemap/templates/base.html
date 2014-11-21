@@ -48,7 +48,7 @@
       <!-- Top Nav -->
       <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="collapse navbar-collapse" id="otm-navbar-collapse">
-          <ul class="nav navbar-nav navbar-left">
+          <ul class="pull-left nav navbar-nav navbar-left">
             {# Since the active style changes on a page-by-page basis we use nested blocks below. These nested blocks can then be overriden to change which tab is active. #}
             {% block instancetopnav %}
             {% if last_instance %}
@@ -65,7 +65,7 @@
             {% endif %}
             {% endblock instancetopnav %}
           </ul>
-          <ul class="nav navbar-nav navbar-right">
+          <ul class="pull-right nav navbar-nav navbar-right">
             {% if request.user.is_authenticated %}
               <li class="{% block activeuser %}{% endblock %}">
                 <a href="{% url 'profile' %}">{% trans "My Account" %}

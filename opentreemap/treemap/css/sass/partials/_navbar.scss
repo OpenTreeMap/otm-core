@@ -58,7 +58,7 @@
                     &:before, &:after {
                         content: none;
                     }
-                    
+
                     > li {
                         a {
                             padding: 8px 15px 8px 10px;
@@ -101,7 +101,7 @@
                 border-radius: 4px;
                 top: 6px;
                 position: relative;
-                
+
                 @media (max-width: 979px) {
                     display: none;
                 }
@@ -141,6 +141,18 @@
 @media (max-width: 767px) {
     .navbar {
         margin: 0;
+
+        .nav {
+            display: inline-flex;
+
+            .li {
+                display: inline-block;
+            }
+        }
+    }
+
+    .navbar-collapse {
+        display: inherit;
     }
 }
 
@@ -194,7 +206,7 @@
 
             a {
                 color: white;
-                
+
                 & + span {
                     color: white;
                     font-style: italic;
