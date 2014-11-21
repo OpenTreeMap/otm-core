@@ -49,7 +49,7 @@
   {% endif %}
 {% endif %}
 
-<li class="explore-map {% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Map" %}</a></li>
+<li class="hidden-xs explore-map {% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=request.instance.url_name %}">{% trans "Explore Map" %}</a></li>
 
 {% if settings.MODELING_VIEW_NAME %}
   {% if request.instance|feature_enabled:'modeling' %}
@@ -65,13 +65,13 @@
 {% endif %}
 
 {% if request.instance|feature_enabled:'recent_edits_report' %}
-<li class="{% block activerecentedits %}{% endblock %}">
+<li class="hidden-xs {% block activerecentedits %}{% endblock %}">
   <a href="{% url 'edits' instance_url_name=request.instance.url_name %}">{% trans "View Edits" %}</a>
 </li>
 {% endif %}
 
 {% if settings.MANAGEMENT_VIEW_NAME and last_effective_instance_user.admin %}
-<li class="{% block activemanagement %}{% endblock %}">
+<li class="hidden-xs {% block activemanagement %}{% endblock %}">
   <a href="{% url settings.MANAGEMENT_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Manage" %}</a>
 </li>
 {% endif %}
