@@ -84,10 +84,15 @@
 {% endblock instancetopnav %}
 
 {% block signup %}
-<li>
+<li class="hidden-xs">
   <a href="{% url 'instance_registration_register' instance_url_name=request.instance.url_name %}">{% trans "Sign Up" %}</a>
 </li>
 {% endblock signup %}
+{% block signup_small %}
+<li>
+  <a href="{% url 'instance_registration_register' instance_url_name=request.instance.url_name %}">{% trans "Sign Up" %}</a>
+</li>
+{% endblock signup_small %}
 
 {% block subhead %}
 <div class="subhead">

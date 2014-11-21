@@ -67,7 +67,7 @@
           </ul>
           <ul class="pull-right nav navbar-nav navbar-right">
             {% if request.user.is_authenticated %}
-              <li class="{% block activeuser %}{% endblock %}">
+              <li class="hidden-xs {% block activeuser %}{% endblock %}">
                 <a href="{% url 'profile' %}">{% trans "My Account" %}
                   {% if last_instance %}
                     {% if reputation %}
@@ -76,7 +76,7 @@
                   {% endif %}
                 </a>
               </li>
-              <li><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
+              <li class="hidden-xs"><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
               <li class="user-img">
                 <a href="{% url 'profile' %}">
                 {% if request.user.thumbnail %}
@@ -86,11 +86,39 @@
                 {% endif %}
                 </a>
               </li>
+              <li class="add-menu dropdown visible-xs-inline-block">
+                <a class="dropdown-toggle" data-toggle="dropdown">
+                  <i class="icon-cog"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-pull-left">
+                  <li>
+                    <a href="{% url 'profile' %}">{% trans "My Account" %}
+                      {% if last_instance %}
+                        {% if reputation %}
+                        <span class="reputation">({{ last_effective_instance_user.reputation }} rep)</span>
+                        {% endif %}
+                      {% endif %}
+                    </a>
+                  </li>
+                  <li><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
+                </ul>
+              </li>
             {% else %}
-              <li><a id="login" href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
+              <li class="hidden-xs"><a id="login" href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
               {% block signup %}
-              <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
+              <li class="hidden-xs"><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
               {% endblock signup %}
+              <li class="add-menu dropdown visible-xs-inline-block">
+              <a class="dropdown-toggle" data-toggle="dropdown">
+                  <i class="icon-cog"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-pull-left">
+                  <li><a id="login" href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
+                  {% block signup_small %}
+                  <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
+                  {% endblock signup_small %}
+                </ul>
+              </li>
             {% endif %}
           </ul>
         </div>
