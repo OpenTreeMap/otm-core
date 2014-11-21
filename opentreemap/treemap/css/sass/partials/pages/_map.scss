@@ -28,6 +28,10 @@
     bottom: 0;
     top: 0;
     right: 350px;
+
+    @media(max-width: 768px){
+        right: 0;
+    }
 }
 
 .leaflet-control-container {

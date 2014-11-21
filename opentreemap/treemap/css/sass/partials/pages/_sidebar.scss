@@ -9,12 +9,22 @@
     right: 0;
     bottom: 0;
 
+    @media(max-width: 768px){
+        top: 300px;
+        width: 100%;
+        min-height: 400px;
+    }
+
     .popover{
         left: 18px!important;
     }
     > div {
         height: 100%;
         overflow: auto;
+
+        @media(max-width: 768px){
+            overflow: inherit;
+        }
     }
     .panel {
         border: none;

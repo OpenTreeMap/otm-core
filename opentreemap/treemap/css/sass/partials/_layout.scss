@@ -28,17 +28,17 @@ body {
 }
 
 .content {
-	position: relative;
-	overflow: auto;
-	margin-bottom: 40px;
+    position: relative;
+    overflow: auto;
+    margin-bottom: 40px;
 
-	&.map {
-		position: absolute;
-		overflow: hidden;
-		margin: 0;
-		top: 252px;
-		width: 100%;
-		bottom: 40px;
+    &.map {
+        position: absolute;
+        overflow: hidden;
+        margin: 0;
+        top: 252px;
+        width: 100%;
+        bottom: 40px;
 
         @media(min-width: 990px){
             top: 205px;
@@ -46,6 +46,12 @@ body {
 
         @media(max-width: 768px){
             top: 164px;
+            overflow: auto;
+
+            .map {
+                height: 300px;
+                overflow: auto;
+            }
         }
 	}
 }
