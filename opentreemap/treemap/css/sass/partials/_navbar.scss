@@ -142,17 +142,14 @@
     .navbar {
         margin: 0;
 
-        .nav {
-            display: inline-flex;
 
-            .li {
+        .navbar-collapse {
+            display: inherit;
+
+            .nav > li {
                 display: inline-block;
             }
         }
-    }
-
-    .navbar-collapse {
-        display: inherit;
     }
     .navbar-nav .open .dropdown-menu {
         position: absolute;
