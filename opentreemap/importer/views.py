@@ -709,35 +709,35 @@ def export_single_tree_import(request, instance, import_event_id):
     return response
 
 
-def _api_call(verb, template, view_fn):
+def _api_call(verb, view_fn):
     return do(
         admin_instance_request,
         requires_feature('bulk_upload'),
         require_http_method(verb),
-        render_template(template),
         view_fn)
 
 
-list_imports_endpoint = _api_call(
+def _template_api_call(verb, template, view_fn):
+    templated_view = render_template(template)(view_fn)
+    return _api_call(verb, templated_view)
+
+
+list_imports_endpoint = _template_api_call(
     'GET', 'importer/partials/imports.html', list_imports)
 
-refresh_imports_endpoint = _api_call(
+refresh_imports_endpoint = _template_api_call(
     'GET', 'importer/partials/import_tables.html', list_imports)
 
-start_import_endpoint = _api_call(
+start_import_endpoint = _template_api_call(
     'POST', 'importer/partials/imports.html', start_import)
 
-show_status_panel_endpoint = _api_call(
+show_status_panel_endpoint = _template_api_call(
     'GET', 'importer/partials/status_table.html', show_status_panel)
 
-solve_endpoint = _api_call(
+solve_endpoint = _template_api_call(
     'POST', 'importer/partials/status.html', solve)
 
-commit_endpoint = _api_call(
+commit_endpoint = _template_api_call(
     'GET', 'importer/partials/imports.html', commit)
 
-show_import_status_endpoint = do(
-    admin_instance_request,
-    requires_feature('bulk_upload'),
-    require_http_method('GET'),
-    show_import_status)
+show_import_status_endpoint = _api_call('GET', show_import_status)
