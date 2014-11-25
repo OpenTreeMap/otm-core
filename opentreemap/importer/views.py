@@ -10,7 +10,7 @@ import io
 from django.db import transaction
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, Page
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.translation import ugettext as trans
@@ -289,9 +289,17 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
                    in json.loads(ie.field_order)
                    if f != 'ignore']
 
-    row_data = [_get_row_data(row, field_names, merge_required)
-                for row in query]
-    rows = Paginator(row_data, PAGE_SIZE).page(page_number)
+    class RowPage(Page):
+        def __getitem__(self, *args, **kwargs):
+            page = super(RowPage, self).__getitem__(*args, **kwargs)
+            return _get_row_data(page,  field_names, merge_required)
+
+    class RowPaginator(Paginator):
+        def _get_page(self, *args, **kwargs):
+            return RowPage(*args, **kwargs)
+
+    row_pages = RowPaginator(query, PAGE_SIZE)
+    row_page = row_pages.page(page_number)
 
     paging_url = reverse('importer:status_panel',
                          kwargs={'instance_url_name': instance.url_name,
@@ -303,8 +311,8 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
         'name': panel_spec['name'],
         'title': panel_spec['title'],
         'field_names': field_names,
-        'row_count': len(row_data),
-        'rows': rows,
+        'row_count': row_pages.count,
+        'rows': row_page,
         'paging_url': paging_url,
         'import_event_id': ie.pk
     }
