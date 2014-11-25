@@ -10,7 +10,7 @@ import io
 from django.db import transaction
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, Page
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.translation import ugettext as trans
@@ -289,9 +289,17 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
                    in json.loads(ie.field_order)
                    if f != 'ignore']
 
-    row_data = [_get_row_data(row, field_names, merge_required)
-                for row in query]
-    rows = Paginator(row_data, PAGE_SIZE).page(page_number)
+    class RowPage(Page):
+        def __getitem__(self, *args, **kwargs):
+            page = super(RowPage, self).__getitem__(*args, **kwargs)
+            return _get_row_data(page,  field_names, merge_required)
+
+    class RowPaginator(Paginator):
+        def _get_page(self, *args, **kwargs):
+            return RowPage(*args, **kwargs)
+
+    row_pages = RowPaginator(query, PAGE_SIZE)
+    row_page = row_pages.page(page_number)
 
     paging_url = reverse('importer:status_panel',
                          kwargs={'instance_url_name': instance.url_name,
@@ -303,8 +311,8 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
         'name': panel_spec['name'],
         'title': panel_spec['title'],
         'field_names': field_names,
-        'row_count': len(row_data),
-        'rows': rows,
+        'row_count': row_pages.count,
+        'rows': row_page,
         'paging_url': paging_url,
         'import_event_id': ie.pk
     }
@@ -701,35 +709,35 @@ def export_single_tree_import(request, instance, import_event_id):
     return response
 
 
-def _api_call(verb, template, view_fn):
+def _api_call(verb, view_fn):
     return do(
         admin_instance_request,
         requires_feature('bulk_upload'),
         require_http_method(verb),
-        render_template(template),
         view_fn)
 
 
-list_imports_endpoint = _api_call(
+def _template_api_call(verb, template, view_fn):
+    templated_view = render_template(template)(view_fn)
+    return _api_call(verb, templated_view)
+
+
+list_imports_endpoint = _template_api_call(
     'GET', 'importer/partials/imports.html', list_imports)
 
-refresh_imports_endpoint = _api_call(
+refresh_imports_endpoint = _template_api_call(
     'GET', 'importer/partials/import_tables.html', list_imports)
 
-start_import_endpoint = _api_call(
+start_import_endpoint = _template_api_call(
     'POST', 'importer/partials/imports.html', start_import)
 
-show_status_panel_endpoint = _api_call(
+show_status_panel_endpoint = _template_api_call(
     'GET', 'importer/partials/status_table.html', show_status_panel)
 
-solve_endpoint = _api_call(
+solve_endpoint = _template_api_call(
     'POST', 'importer/partials/status.html', solve)
 
-commit_endpoint = _api_call(
+commit_endpoint = _template_api_call(
     'GET', 'importer/partials/imports.html', commit)
 
-show_import_status_endpoint = do(
-    admin_instance_request,
-    requires_feature('bulk_upload'),
-    require_http_method('GET'),
-    show_import_status)
+show_import_status_endpoint = _api_call('GET', show_import_status)
