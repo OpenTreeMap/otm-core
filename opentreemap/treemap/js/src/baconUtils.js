@@ -173,11 +173,16 @@ exports.triggeredObjectStream = function (obj) {
 exports.reloadContainerOnClick = function ($container /*, selector1, selector2, ... */) {
     var selectors = Array.prototype.slice.call(arguments, 1),
         selector = selectors.join(','),
-        resultStream = $container.asEventStream('click', selector)
-            .doAction('.preventDefault')
-            .map('.target.href')
-            .filter(isDefinedNonEmpty); // ignore empty hrefs
+        htmlLoadedBus = new Bacon.Bus();
 
-    resultStream.onValue($container, 'load');
-    return resultStream;  // in case further handling is desired
+    $container.asEventStream('click', selector)
+        .doAction('.preventDefault')
+        .map('.target.href')
+        .filter(isDefinedNonEmpty) // ignore empty hrefs
+        .onValue(function (url) {
+            $container.load(url, function () {
+                htmlLoadedBus.push();
+            });
+        });
+    return htmlLoadedBus.toEventStream();  // in case further handling is desired
 };
