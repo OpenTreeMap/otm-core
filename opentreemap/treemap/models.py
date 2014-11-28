@@ -495,6 +495,8 @@ class Species(UDFModel, PendingAuditable):
 
     class Meta:
         verbose_name_plural = "Species"
+        unique_together = ('instance', 'common_name', 'genus', 'species',
+                           'cultivar', 'other_part_of_name',)
 
 
 class InstanceUser(Auditable, models.Model):

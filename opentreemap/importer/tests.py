@@ -465,12 +465,16 @@ class ITreeValidationTest(SpeciesValidationTest):
     def test_error_invalid_itree_code(self):
         self._assert_row_has_error({'i-tree code': 'x'},
                                    errors.INVALID_ITREE_CODE)
+
+    def test_error_invalid_itree_code_with_colon_syntax(self):
         self._assert_row_has_error({'i-tree code': 'NoEastXXX:x'},
                                    errors.INVALID_ITREE_CODE)
 
     def test_error_invalid_itree_code_for_region(self):
         self._assert_row_has_error({'i-tree code': 'FRVE'},
                                    errors.ITREE_CODE_NOT_IN_REGION)
+
+    def test_error_invalid_itree_code_for_region_with_colon_syntax(self):
         self._assert_row_has_error({'i-tree code': 'NoEastXXX:FRVE'},
                                    errors.ITREE_CODE_NOT_IN_REGION)
 
