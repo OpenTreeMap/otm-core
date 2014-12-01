@@ -44,7 +44,7 @@ body {
             top: 205px;
         }
 
-        @media(max-width: 768px){
+        @media #{$screen-xs} {
             top: 164px;
             overflow: auto;
 
@@ -53,7 +53,7 @@ body {
                 overflow: auto;
             }
         }
-	}
+    }
 }
 
 .container.contained {

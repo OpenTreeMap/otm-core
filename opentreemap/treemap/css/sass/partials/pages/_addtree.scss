@@ -10,7 +10,7 @@
             margin: 20px 20px 15px;
             font-size: 23px;
 
-            @media(max-width: 768px){
+            @media #{$screen-xs} {
                 padding: 20px 20px 15px;
                 margin: 0;
             }
@@ -25,7 +25,7 @@
             bottom: 0;
             top: 60px;
 
-            @media(max-width: 768px){
+            @media #{$screen-xs} {
                 overflow-y: hidden;
                 position: relative;
                 top: 0;
@@ -41,7 +41,7 @@
             -webkit-transition: .6s ease-in-out left;
             transition: .6s ease-in-out left;
 
-            @media(max-width: 768px){
+            @media #{$screen-xs} {
                 position: relative;
             }
 
@@ -88,7 +88,7 @@
                 left: 0;
                 right: 0;
 
-                @media(max-width: 768px){
+                @media #{$screen-xs} {
                     position: static;
                     overflow-y: hidden;
                 }
@@ -127,7 +127,7 @@
                 .form-search {
                     margin: 0;
                 }
-            
+
                 .geolocate {
                     font-size: 1.2rem;
                     color: $secondary-color;
@@ -145,12 +145,12 @@
                         margin: 0;
                         padding: 0;
                     }
-                    
+
                     .resource-subquestion {
                         padding-left: 15px;
                         border-left: 8px solid #f1f2f2;
                         margin-top: 15px;
-                        
+
                         &.alert {
                             border-left: none;
                         }
@@ -168,7 +168,7 @@
                 left: 0;
                 right: 0;
 
-                @media(max-width: 768px){
+                @media #{$screen-xs} {
                     position: relative;
                 }
 
@@ -198,7 +198,7 @@
         right: 20px;
         opacity: 0.5;
 
-        @media(max-width: 768px){
+        @media #{$screen-xs} {
             top: 18px;
         }
     }

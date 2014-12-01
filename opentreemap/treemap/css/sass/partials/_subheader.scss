@@ -17,7 +17,7 @@
         margin-top: 42px;
     }
 
-    @media(max-width: 767px){
+    @media #{$screen-xs} {
         margin-top: 0;
     }
 
@@ -82,7 +82,7 @@
                     }
                 }
             }
-            @media(max-width: 767px){
+            @media #{$screen-xs} {
                 .input-group {
                     width: 75px;
                     input[type="text"] {

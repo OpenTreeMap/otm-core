@@ -46,7 +46,7 @@
         margin-left: 10px;
         width: 245px;
 
-        @media(max-width: 767px) {
+        @media #{$screen-xs} {
             width: 185px;
         }
 

@@ -9,7 +9,7 @@
     right: 0;
     bottom: 0;
 
-    @media(max-width: 768px){
+    @media #{$screen-xs} {
         top: 300px;
         width: 100%;
         position: relative;
@@ -22,7 +22,7 @@
         height: 100%;
         overflow: auto;
 
-        @media(max-width: 768px){
+        @media #{$screen-xs} {
             overflow: hidden;
         }
     }
