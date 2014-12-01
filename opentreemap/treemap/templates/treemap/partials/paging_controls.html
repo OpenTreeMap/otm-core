@@ -1,27 +1,36 @@
+{% load paging %}
 <div class="row center-block text-center">
     <ul class="pagination">
       {% if paging.has_previous %}
         <li>
+            <a href="{{ url }}&page=1"><i class="icon-to-start"></i></a>
+        </li>
+        <li>
             <a href="{{ url }}&page={{ paging.previous_page_number }}">&laquo;</a>
         </li>
       {% else %}
+      <li class="disabled"><a><i class="icon-to-start"></i></a></li>
         <li class="disabled"><a>&laquo;</a></li>
       {% endif %}
-      {% for page_num in paging.paginator.page_range %}
-        {% if paging.number == page_num %}
-          <li class="active">
-              <a>{{ page_num }} <span class="sr-only">(current)</span></a>
-          </li>
-        {% else %}
-          <li><a href="{{ url }}&page={{ page_num }}">{{ page_num }}</a></li>
-        {% endif %}
+      {% for page_num in paging.paginator.page_range|four_before_page:paging.number %}
+        <li><a href="{{ url }}&page={{ page_num }}">{{ page_num }}</a></li>
+      {% endfor %}
+      <li class="active">
+          <a>{{ paging.number }} <span class="sr-only">(current)</span></a>
+      </li>
+      {% for page_num in paging.paginator.page_range|four_after_page:paging.number %}
+        <li><a href="{{ url }}&page={{ page_num }}">{{ page_num }}</a></li>
       {% endfor %}
       {% if paging.has_next %}
         <li>
             <a href="{{ url }}&page={{ paging.next_page_number }}">&raquo;</a>
         </li>
+        <li>
+          <a href="{{ url }}&page={{ paging.paginator.num_pages }}"><i class="icon-to-end"></i></a>
+        </li>
       {% else %}
         <li class="disabled"><a>&raquo;</a></li>
+        <li class="disabled"><a><i class="icon-to-end"></i></a></li>
       {% endif %}
     </ul>
 </div>

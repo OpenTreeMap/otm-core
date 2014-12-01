@@ -209,8 +209,8 @@ class CommentReviewUITest(CommentTestMixin, TreemapUITestCase):
         self.wait_until_on_page(page_num)
 
     def wait_until_on_page(self, page_num):
-        # The each link is page # + 1, due to the "previous" link
-        page_num = page_num + 1
+        # The each link is page # + 2, due to the "first" and "previous" links
+        page_num = page_num + 2
         self.wait_until_present('.pagination li:nth-child(%s).active'
                                 % page_num)
 

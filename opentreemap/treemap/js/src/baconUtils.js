@@ -177,7 +177,7 @@ exports.reloadContainerOnClick = function ($container /*, selector1, selector2, 
 
     $container.asEventStream('click', selector)
         .doAction('.preventDefault')
-        .map('.target.href')
+        .map('.currentTarget.href')
         .filter(isDefinedNonEmpty) // ignore empty hrefs
         .onValue(function (url) {
             $container.load(url, function () {
