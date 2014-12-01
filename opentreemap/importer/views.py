@@ -735,7 +735,7 @@ show_status_panel_endpoint = _template_api_call(
     'GET', 'importer/partials/status_table.html', show_status_panel)
 
 solve_endpoint = _template_api_call(
-    'POST', 'importer/partials/status.html', solve)
+    'POST', 'importer/partials/row_status.html', solve)
 
 commit_endpoint = _template_api_call(
     'GET', 'importer/partials/imports.html', commit)
