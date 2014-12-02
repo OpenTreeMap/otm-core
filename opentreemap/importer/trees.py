@@ -289,11 +289,12 @@ class TreeImportRow(GenericImportRow):
         other_part = self.datadict.get(fields.trees.OTHER_PART_OF_NAME, '')
 
         if genus != '' or species != '' or cultivar != '':
-            matching_species = Species.objects \
-                .filter(genus__iexact=genus) \
-                .filter(species__iexact=species) \
-                .filter(cultivar__iexact=cultivar) \
-                .filter(other_part_of_name__iexact=other_part)
+            matching_species = Species.objects.filter(
+                instance_id=self.import_event.instance_id,
+                genus__iexact=genus,
+                species__iexact=species,
+                cultivar__iexact=cultivar,
+                other_part_of_name__iexact=other_part)
 
             if len(matching_species) == 1:
                 self.cleaned[fields.trees.SPECIES_OBJECT] = matching_species[0]
