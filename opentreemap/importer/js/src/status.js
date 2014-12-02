@@ -39,7 +39,7 @@ function init($container) {
 }
 
 function reloadPane(e) {
-    var button = e.target,
+    var button = e.currentTarget,
         $pane = $(button).closest(dom.pane);
     e.preventDefault();
     $pane.load(button.href);
