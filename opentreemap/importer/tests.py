@@ -21,18 +21,18 @@ from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
 from api.test_utils import setupTreemapEnv, mkPlot
 
+from treemap.json_field import set_attr_on_json_field
 from treemap.models import (Species, Plot, Tree, ITreeCodeOverride,
                             ITreeRegion, User)
 from treemap.tests import (make_admin_user, make_instance, login)
-
-from importer.views import (process_csv, process_status,
-                            commit, merge_species)
-from importer.tasks import _create_rows_for_event
 from treemap.udf import UserDefinedFieldDefinition
 
 from importer import errors, fields
+from importer.tasks import _create_rows_for_event
 from importer.trees import TreeImportEvent, TreeImportRow
 from importer.species import SpeciesImportEvent, SpeciesImportRow
+from importer.views import (process_csv, process_status,
+                            commit, merge_species, start_import)
 
 
 class MergeTest(TestCase):
@@ -803,6 +803,9 @@ class IntegrationTests(TestCase):
 
         self.user = make_admin_user(self.instance)
 
+    def import_type(self):
+        pass  # Subclass responsibility
+
     def create_csv_stream(self, stuff):
         csvfile = StringIO()
 
@@ -825,24 +828,28 @@ class IntegrationTests(TestCase):
 
         return req
 
-    def run_through_process_views(self, csv):
-        r = self.create_csv_request(csv, name='some name')
-        pk = process_csv(r, self.instance, self.import_type())
+    def _import(self, csv):
+        import_type = self.import_type()
+        request = self.create_csv_request(csv, type=import_type)
 
-        resp = process_status(None, self.instance, self.import_type(), pk)
-        content = json.loads(resp.content)
+        context = start_import(request, self.instance)
+
+        if import_type == TreeImportEvent.import_type:
+            pk = context['active_trees'][0].pk
+        else:
+            pk = context['active_species'][0].pk
+        return pk
+
+    def run_through_process_views(self, csv):
+        pk = self._import(csv)
+        response = process_status(None, self.instance, self.import_type(), pk)
+        content = json.loads(response.content)
         content['pk'] = pk
         return content
 
     def run_through_commit_views(self, csv):
-        r = self.create_csv_request(csv, name='some name')
-        pk = process_csv(r, self.instance, self.import_type())
-
-        req = HttpRequest()
-        req.user = self.user
-        login(self.client, self.user.username)
-
-        commit(req, self.instance, self.import_type(), pk)
+        pk = self._import(csv)
+        commit(None, self.instance, self.import_type(), pk)
         return pk
 
     def extract_errors(self, json):
@@ -888,6 +895,25 @@ class SpeciesIntegrationTests(IntegrationTests):
 
         self.assertEqual(j['status'], 'success')
         self.assertEqual(j['rows'], 2)
+
+    def test_unit_conversion(self):
+        set_attr_on_json_field(
+            self.instance, 'config.value_display.tree.diameter.units', 'cm')
+        set_attr_on_json_field(
+            self.instance, 'config.value_display.tree.height.units', 'm')
+        self.instance.save()
+
+        csv = """
+        | genus   | common name | max diameter | max height |
+        | g1      | wowza       | 100          | 100        |
+        """
+
+        ieid = self.run_through_commit_views(csv)
+        ie = SpeciesImportEvent.objects.get(pk=ieid)
+        species = ie.speciesimportrow_set.all()[0].species
+
+        self.assertEqual(species.max_diameter, 254)  # 100 in = 254 cm
+        self.assertEqual(species.max_height, 30)  # 100 ft = 30.48 m (rounded)
 
 
 class SpeciesExportTests(TestCase):

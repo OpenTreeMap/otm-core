@@ -309,13 +309,9 @@ class GenericImportRow(models.Model):
             return i
 
     def convert_units(self, data, converts):
-        # TODO: Convert using instance's per-field units choice
-        INCHES_TO_DBH_FACTOR = 1.0  # / settings.DBH_TO_INCHES_FACTOR
-
-        # Similar to tree
         for fld, factor in converts.iteritems():
             if fld in data and factor != 1.0:
-                data[fld] = float(data[fld]) * factor * INCHES_TO_DBH_FACTOR
+                data[fld] = float(data[fld]) * factor
 
     def validate_numeric_fields(self):
         def cleanup(fields, fn):

@@ -23,6 +23,7 @@ from django_tinsel.decorators import render_template
 from treemap.models import Species, Tree, User
 from treemap.decorators import (admin_instance_request, require_http_method,
                                 requires_feature)
+from treemap.units import get_conversion_factor
 
 from importer.models import GenericImportEvent, GenericImportRow
 from importer.trees import TreeImportEvent, TreeImportRow
@@ -92,7 +93,7 @@ def start_import(request, instance):
             float(request.REQUEST.get('unit_plot_width', 1.0)),
 
             'diameter_conversion_factor':
-            float(request.REQUEST.get('unit_diameterh', 1.0)),
+            float(request.REQUEST.get('unit_diameter', 1.0)),
 
             'tree_height_conversion_factor':
             float(request.REQUEST.get('unit_tree_height', 1.0)),
@@ -101,8 +102,12 @@ def start_import(request, instance):
             float(request.REQUEST.get('unit_canopy_height', 1.0))
         }
     else:
-        kwargs = {}
-
+        kwargs = {
+            'max_diameter_conversion_factor':
+            get_conversion_factor(instance, 'tree', 'diameter'),
+            'max_tree_height_conversion_factor':
+            get_conversion_factor(instance, 'tree', 'height')
+        }
     process_csv(request, instance, import_type, **kwargs)
 
     return list_imports(request, instance)
