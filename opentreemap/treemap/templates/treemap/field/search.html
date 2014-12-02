@@ -7,10 +7,11 @@
       {% with 'data-class=search data-search-type=MIN id=min'|add:field.id as extra %}
         {% include "treemap/field/inputs.html" %}
       {% endwith %}
-      <span>
+      <span class="hidden-xs">
         {# Translators: This is in-between two date boxes for a range search #}
         {% trans "through" %}
       </span>
+      <span class="visible-xs-inline">&nbsp;</span>
       {% with 'data-class=search data-search-type=MAX id=max'|add:field.id as extra %}
         {% include "treemap/field/inputs.html" %}
       {% endwith %}

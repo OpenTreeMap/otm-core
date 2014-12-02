@@ -9,16 +9,27 @@
         > h3 {
             margin: 20px 20px 15px;
             font-size: 23px;
+
+            @media #{$screen-xs} {
+                padding: 20px 20px 15px;
+                margin: 0;
+            }
         }
 
         .add-step-container {
             position: absolute;
-            overflow: hidden;
+            overflow-x: hidden;
             overflow-y: auto;
             left: 0;
             right: 0;
             bottom: 0;
             top: 60px;
+
+            @media #{$screen-xs} {
+                overflow-y: hidden;
+                position: relative;
+                top: 0;
+            }
         }
         .add-step {
             margin: 0;
@@ -29,6 +40,10 @@
             background: white;
             -webkit-transition: .6s ease-in-out left;
             transition: .6s ease-in-out left;
+
+            @media #{$screen-xs} {
+                position: relative;
+            }
 
             &.next,
             &.prev {
@@ -73,6 +88,11 @@
                 left: 0;
                 right: 0;
 
+                @media #{$screen-xs} {
+                    position: static;
+                    overflow-y: hidden;
+                }
+
                 h3 {
                     margin: 0;
                     line-height: 30px;
@@ -107,7 +127,7 @@
                 .form-search {
                     margin: 0;
                 }
-            
+
                 .geolocate {
                     font-size: 1.2rem;
                     color: $secondary-color;
@@ -125,12 +145,12 @@
                         margin: 0;
                         padding: 0;
                     }
-                    
+
                     .resource-subquestion {
                         padding-left: 15px;
                         border-left: 8px solid #f1f2f2;
                         margin-top: 15px;
-                        
+
                         &.alert {
                             border-left: none;
                         }
@@ -147,6 +167,10 @@
                 bottom: 0;
                 left: 0;
                 right: 0;
+
+                @media #{$screen-xs} {
+                    position: relative;
+                }
 
                 .counter {
                     position: absolute;
@@ -173,5 +197,9 @@
         top: 0;
         right: 20px;
         opacity: 0.5;
+
+        @media #{$screen-xs} {
+            top: 18px;
+        }
     }
 }

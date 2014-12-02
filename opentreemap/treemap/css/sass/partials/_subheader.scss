@@ -17,6 +17,10 @@
         margin-top: 42px;
     }
 
+    @media #{$screen-xs} {
+        margin-top: 0;
+    }
+
     &.expanded {
         -ms-transform: translateY(0);
         -moz-transform: translateY(0);
@@ -76,6 +80,17 @@
                         margin: 0 10px;
                         font-size: 1.4rem;
                     }
+                }
+            }
+            @media #{$screen-xs} {
+                .input-group {
+                    width: 75px;
+                    input[type="text"] {
+                        width: 55px;
+                    }
+                }
+                input[type="text"] {
+                    width: 85px;
                 }
             }
         }

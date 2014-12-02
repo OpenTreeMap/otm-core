@@ -46,6 +46,14 @@
         margin-left: 10px;
         width: 245px;
 
+        @media #{$screen-xs} {
+            width: 185px;
+        }
+
+        @media(max-width: 358px) {
+            display: none;
+        }
+
         label {
             display: block;
             margin-top: -2px;
@@ -53,13 +61,13 @@
 
         .search-field-group {
             position: relative;
-        
+
             input[type="text"] {
                 margin: 0;
                 padding-left: 32px;
                 font-size: 1.2rem;
             }
-            
+
             .twitter-typeahead {
                 display: block !important;
             }
@@ -87,7 +95,7 @@
             -moz-border-radius: 3px;
             -webkit-border-radius: 3px;
             border-radius: 3px;
-        
+
             > li > a {
                 padding: 3px 12px;
             }
