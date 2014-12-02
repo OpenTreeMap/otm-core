@@ -8,6 +8,7 @@ from django.contrib.gis.geos.point import Point
 from django.db import connection
 
 from django_tinsel.decorators import json_api_call
+import itertools
 
 from treemap import ecobackend
 from treemap.models import MapFeature
@@ -419,6 +420,34 @@ benefit_labels = {
     # Translators: 'Air quality improved' is the name of an eco benefit
     BenefitCategory.AIRQUALITY: trans('Air quality improved')
 }
+
+
+_itree_codes_by_region = None
+_all_itree_codes = None
+
+
+def all_itree_codes():
+    _ensure_itree_codes_fetched()
+    return _all_itree_codes
+
+
+def has_itree_code(region_code, itree_code):
+    _ensure_itree_codes_fetched()
+    has = itree_code in _itree_codes_by_region.get(region_code, [])
+    return has
+
+
+def _ensure_itree_codes_fetched():
+    global _itree_codes_by_region, _all_itree_codes
+    if _itree_codes_by_region is None:
+        result, err = ecobackend.json_benefits_call('itree_codes.json', {})
+        if err:
+            raise Exception('Failed to retrieve i-Tree codes from ecoservice')
+
+        _itree_codes_by_region = result['Codes']
+
+        _all_itree_codes = set(
+            itertools.chain(*_itree_codes_by_region.values()))
 
 
 within_itree_regions_view = json_api_call(within_itree_regions)

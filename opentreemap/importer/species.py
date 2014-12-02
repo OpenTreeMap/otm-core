@@ -7,10 +7,10 @@ import itertools
 from django.contrib.gis.db import models
 from django.db import transaction
 
+from treemap.ecobenefits import has_itree_code, all_itree_codes
 from treemap.models import (Species, ITreeCodeOverride, ITreeRegion, User)
 from treemap.species import species_for_scientific_name
-from treemap.species.codes import (has_itree_code, all_itree_region_codes,
-                                   all_itree_codes)
+from treemap.species.codes import all_itree_region_codes
 
 from importer.models import GenericImportEvent, GenericImportRow
 from importer import fields
@@ -31,7 +31,6 @@ class SpeciesImportEvent(GenericImportEvent):
     def __init__(self, *args, **kwargs):
         super(SpeciesImportEvent, self).__init__(*args, **kwargs)
         self.all_region_codes = all_itree_region_codes()
-        self.all_itree_codes = all_itree_codes()
         self.instance_region_codes = self.instance.itree_region_codes()
 
     def create_row(self, *args, **kwargs):
@@ -174,7 +173,7 @@ class SpeciesImportRow(GenericImportRow):
         elif region not in self.import_event.instance_region_codes:
             error = errors.ITREE_REGION_NOT_IN_INSTANCE
 
-        elif code not in self.import_event.all_itree_codes:
+        elif code not in all_itree_codes():
             error = errors.INVALID_ITREE_CODE
 
         elif not has_itree_code(region, code):
@@ -194,7 +193,7 @@ class SpeciesImportRow(GenericImportRow):
 
         else:
             region = self.import_event.instance_region_codes[0]
-            if itree_code not in self.import_event.all_itree_codes:
+            if itree_code not in all_itree_codes():
                 error = errors.INVALID_ITREE_CODE
 
             elif not has_itree_code(region, itree_code):
