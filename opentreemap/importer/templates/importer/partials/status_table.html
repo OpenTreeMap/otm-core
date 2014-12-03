@@ -14,10 +14,11 @@
                 {% for row in panel.rows %}
                     <tr class="js-import-row">
                         {% for field in row.fields %}
-                            <td class="{{ field.css_class }}" {# blank or 'error' or 'warning' #}
-                                data-field-name="{{ field.name }}">
-                                    {{ field.value }}
-                            </td>
+                            {% if field.css_class %}
+                                {% include "importer/partials/resolve_popover.html" %}
+                            {% else %}
+                                <td data-field-name="{{ field.name }}">{{ field.value }}</td>
+                            {% endif %}
                         {% endfor %}
                     </tr>
                     {% if panel.name == 'merge_required' %}

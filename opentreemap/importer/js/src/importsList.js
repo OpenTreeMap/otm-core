@@ -1,3 +1,4 @@
+/*global FormData*/
 "use strict";
 
 var $ = require('jquery'),
@@ -14,7 +15,10 @@ var dom = {
     speciesForm: '#import-species-form',
     fileChooser: 'input[type="file"]',
     importButton: 'button[type="submit"]',
-    actionLink: 'td a',
+    // TODO:  when we figure out what actions we
+    // will support besides viewing status, break
+    // this up into different selectors.
+    viewStatusLink: 'td a',
     spinner: '#importer .spinner',
     importsFinished: 'input[name="imports-finished"]'
 };
@@ -25,14 +29,15 @@ function init(options) {
     var $container = $(dom.container),
         iAmVisibleProperty = options.iAmVisibleProperty,
         tablesUpdatedBus = new Bacon.Bus(),
+        viewStatusStream = BU.reloadContainerOnClick($container, dom.viewStatusLink),
 
         containerUpdateStream = Bacon.mergeAll(
             handleForm($container, dom.treeForm, options.startImportUrl),
             handleForm($container, dom.speciesForm, options.startImportUrl),
-            statusView.init($container)
+            statusView.init($container, viewStatusStream),
+            viewStatusStream
         );
 
-    BU.reloadContainerOnClick($container, dom.actionLink);
 
     // When I become visible, or
     // when the whole container updates, or

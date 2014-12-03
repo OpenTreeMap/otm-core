@@ -2,7 +2,9 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    format = require('util').format,
     Bacon = require('baconjs'),
+    popover = require('treemap/popover'),
     BU = require('treemap/baconUtils');
 
 var dom = {
@@ -16,7 +18,7 @@ var dom = {
     mergeButton: '.js-merge'
 };
 
-function init($container) {
+function init($container, viewStatusStream) {
     // Define events on the container so we can replace its contents
     var containerLoadedStream = BU.reloadContainerOnClick($container, dom.backLink, dom.commitLink);
 
@@ -33,6 +35,14 @@ function init($container) {
         .flatMap(mergeRow)
         .onValue($container, 'html');
 
+    popover.init($container)
+        .map('.currentTarget')
+        .map($)
+        .filter('.is', '.resolver-popover-accept')
+        .onValue(updateRow, $container);
+
+    containerLoadedStream.merge(viewStatusStream).onValue(popover.activateAll);
+
     // Return the containerLoadedStream so importLists.js knows to start
     // polling for updates
     return containerLoadedStream;
@@ -42,7 +52,7 @@ function reloadPane(e) {
     var button = e.currentTarget,
         $pane = $(button).closest(dom.pane);
     e.preventDefault();
-    $pane.load(button.href);
+    $pane.load(button.href, popover.activateAll);
 }
 
 function toggleMergeControls(e) {
@@ -56,6 +66,14 @@ function hideMergeControls(e) {
     $(e.target)
         .closest(dom.mergeControls)
         .hide('fast');
+}
+
+function updateRow($container, $el) {
+    var fieldName = $el.attr('data-field-name'),
+        updatedValue = $el.parent().find(".popover-correction").val(),
+        url = $el.attr('data-url'),
+        data = _.object([fieldName], [updatedValue]);
+    $container.load(url, data, popover.activateAll);
 }
 
 function mergeRow(e) {

@@ -1,0 +1,21 @@
+{% extends "treemap/partials/popover.html" %}
+{% load l10n %}
+
+{% block title %}Field Error{% endblock title %}
+
+{% block content_text %}
+<p>There was an error with this field:</p>
+<p>{{ field.msg }}</p>
+<p>Please provide a new value:</p>
+{% endblock content_text %}
+
+{% block extra_content_input_attributes %}
+value="{{ field.value }}"
+{% endblock extra_content_input_attributes %}
+
+{% block extra_save_classes %}resolver-popover-accept{% endblock extra_save_classes %}
+
+{% block extra_save_attributes %}
+data-url="{% url 'importer:update_row' instance_url_name=request.instance.url_name import_type=panel.import_type row_id=field.row_id %}"
+data-field-name="{{ field.name }}"
+{% endblock extra_save_attributes %}
