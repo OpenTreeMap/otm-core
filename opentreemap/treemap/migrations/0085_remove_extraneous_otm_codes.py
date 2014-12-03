@@ -12,6 +12,10 @@ class Migration(DataMigration):
     # But we have duplicates in our own data -- 6 cases where two OTM codes have the same species info.
     # For those 6 pairs we'll keep one and kill the other.
     # Luckily, no production instance has a tree or i-Tree code override pointing to one of the species we want to kill.
+    #
+    # In 5 of the 6 cases I chose the OTM code which matched the USDA code for the species in question.
+    # In the remaining case I chose THOR rather than PLOR80 because it appeared in 4 i-Tree regions (vs. 1)
+    # and was used in one existing production tree (vs. 0).
 
     def forwards(self, orm):
         pairs = {
