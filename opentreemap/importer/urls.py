@@ -8,7 +8,7 @@ from django.conf.urls import patterns, url
 from importer.views import (
     start_import_endpoint, update_row_endpoint, export_all_species,
     export_single_species_import, export_single_tree_import, merge_species,
-    commit_endpoint, counts, find_similar_species,
+    commit_endpoint, counts,
     show_import_status_endpoint, list_imports_endpoint,
     show_status_panel_endpoint, refresh_imports_endpoint, solve_endpoint)
 
@@ -43,8 +43,6 @@ urlpatterns = patterns(
     # API
     url(r'^api/merge$', merge_species, name='merge'),
     url(r'^api/counts', counts, name='counts'),
-    url(r'^api/species/similar', find_similar_species,
-        name='find_similar_species'),
 )
 
 if not feature_enabled(None, 'bulk_upload'):

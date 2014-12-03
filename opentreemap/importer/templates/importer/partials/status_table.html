@@ -15,7 +15,11 @@
                     <tr class="js-import-row">
                         {% for field in row.fields %}
                             {% if field.css_class %}
-                                {% include "importer/partials/resolve_popover.html" %}
+                                {% if field.custom_resolver.is_species %}
+                                    {% include "importer/partials/species_resolve_popover.html" %}
+                                {% else %}
+                                    {% include "importer/partials/resolve_popover.html" %}
+                                {% endif %}
                             {% else %}
                                 <td data-field-name="{{ field.name }}">{{ field.value }}</td>
                             {% endif %}
