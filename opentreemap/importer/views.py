@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.core.paginator import Paginator, Page
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.utils.translation import ugettext as trans
 
 from django.contrib.auth.decorators import login_required
@@ -29,7 +29,7 @@ from importer.models import GenericImportEvent, GenericImportRow
 from importer.trees import TreeImportEvent, TreeImportRow
 from importer.species import SpeciesImportEvent, SpeciesImportRow
 from importer.tasks import (run_import_event_validation, commit_import_event,
-                            get_import_event_model)
+                            get_import_event_model, get_import_row_model)
 from importer import errors, fields
 from importer.util import lowerkeys
 
@@ -178,49 +178,35 @@ def merge_species(request, instance):
         content_type='application/json')
 
 
-@login_required
-def update(request, instance, import_type, import_event_id):
-    ie = _get_import_event(instance, import_type, import_event_id)
+def update_row(request, instance, import_type, row_id):
+    """Update an importeventrow.
 
-    rowdata = json.loads(request.REQUEST['row'])
-    idx = rowdata['id']
+    Take the import_type and row_id from the URL and use it
+    to retrieve the necessary row object. Then, iterate over
+    the kvs in the json request body and set them on the row.
+    """
+    Clz = get_import_row_model(import_type)
+    row = Clz.objects.get(pk=row_id)
+    ie = row.import_event
 
-    row = ie.rows().get(idx=idx)
     basedata = row.datadict
 
-    for k, v in rowdata.iteritems():
+    for k, v in request.POST.iteritems():
         if k in basedata:
             basedata[k] = v
 
-    # TODO: Validate happens *after* save()?
+    # save the row and then perform validation, because
+    # validation in this case is not the process of determining
+    # if save is allowed, but rather of determining the error status
+    # of the row and its fields so it can be presented correctly to
+    # the user for further action.
     row.datadict = basedata
     row.save()
     row.validate_row()
 
-    return HttpResponse()
-
-
-# TODO: Remove this method
-@login_required
-def update_row(request, instance, import_event_row_id):
-    update_keys = {key.split('update__')[1]
-                   for key
-                   in request.REQUEST.keys()
-                   if key.startswith('update__')}
-
-    row = TreeImportRow.objects.get(pk=import_event_row_id)
-
-    basedata = row.datadict
-
-    for key in update_keys:
-        basedata[key] = request.REQUEST['update__%s' % key]
-
-    row.datadict = basedata
-    row.save()
-    row.validate_row()
-
-    return HttpResponseRedirect(reverse('importer:show_import_status',
-                                        args=(row.import_event.pk,)))
+    context = _get_status_panels(ie, instance)
+    context['active_panel_name'] = 'error'
+    return context
 
 
 def show_import_status(request, instance, import_type, import_event_id):
@@ -319,25 +305,44 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
         'row_count': row_pages.count,
         'rows': row_page,
         'paging_url': paging_url,
-        'import_event_id': ie.pk
+        'import_event_id': ie.pk,
+        'import_type': ie.import_type
     }
 
 
 def _get_row_data(row, field_names, merge_required):
+    """
+    For each field with errors in each row, expand into an object
+    for that field which presents rendering info about its most
+    important (where fatal > warning) error.
+
+    Merge this collection with some default information about fields
+    that do not have any errors to produce complete rendering info
+    for a row.
+    """
     row_errors = row.errors_as_array()
-    error_fields = [e['fields'] for e in row_errors if e['fatal']]
-    error_fields = set(sum(error_fields, []))
-    warning_fields = [e['fields'] for e in row_errors if not e['fatal']]
-    warning_fields = set(sum(warning_fields, []))
 
-    field_data = [
-        _get_field_data(row, field_name, error_fields, warning_fields)
-        for field_name in field_names]
-
-    row_data = {
-        'index': row.idx,
-        'fields': field_data
-    }
+    collected_fields = {}
+    for row_error in row_errors:
+        css_class = 'error' if row_error['fatal'] else 'warning'
+        for field in row_error['fields']:
+            existing = collected_fields.get(field, {})
+            existing_class = existing.get('css_class')
+            if css_class == 'error' or css_class == existing_class:
+                existing['name'] = field
+                existing['value'] = row.datadict[field]
+                existing['msg'] = row_error['msg']
+                existing['css_class'] = css_class
+                existing['row_id'] = row.pk
+                existing['custom_resolver'] = {}
+            collected_fields[field] = existing
+    for field in field_names:
+        if field not in collected_fields:
+            collected_fields[field] = {'name': field,
+                                       'value': row.datadict[field],
+                                       'css_class': ''}
+    fields = [collected_fields[f] for f in field_names]
+    row_data = {'index': row.idx, 'fields': fields}
 
     if merge_required:
         merge_data = _get_merge_data(row, field_names, row_errors)
@@ -426,20 +431,6 @@ def _get_diff_value(dom_name, i, value):
         'id': "%s_%s" % (dom_name, i),
         'value': value,
         'checked': 'checked' if i == 0 else ''
-    }
-
-
-def _get_field_data(row, field_name, error_fields, warning_fields):
-    if field_name in error_fields:
-        css_class = 'error'
-    elif field_name in warning_fields:
-        css_class = 'warning'
-    else:
-        css_class = ''
-    return {
-        'name': field_name,
-        'value': row.datadict[field_name],
-        'css_class': css_class
     }
 
 
@@ -746,3 +737,6 @@ commit_endpoint = _template_api_call(
     'GET', 'importer/partials/imports.html', commit)
 
 show_import_status_endpoint = _api_call('GET', show_import_status)
+
+update_row_endpoint = _template_api_call(
+    'POST', 'importer/partials/row_status.html', update_row)

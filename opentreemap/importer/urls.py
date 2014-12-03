@@ -6,16 +6,17 @@ from __future__ import division
 from django.conf.urls import patterns, url
 
 from importer.views import (
-    start_import_endpoint, update_row, export_all_species,
+    start_import_endpoint, update_row_endpoint, export_all_species,
     export_single_species_import, export_single_tree_import, merge_species,
-    commit_endpoint, update, counts, find_similar_species,
+    commit_endpoint, counts, find_similar_species,
     show_import_status_endpoint, list_imports_endpoint,
     show_status_panel_endpoint, refresh_imports_endpoint, solve_endpoint)
 
 from treemap.plugin import feature_enabled
 
-
-_import_api_pattern = r'(?P<import_type>[a-z]+)/(?P<import_event_id>\d+)'
+_type_pattern = '(?P<import_type>(species|tree))'
+_ie_pattern = '(?P<import_event_id>\d+)'
+_import_api_pattern = _type_pattern + '/' + _ie_pattern
 
 
 urlpatterns = patterns(
@@ -29,8 +30,8 @@ urlpatterns = patterns(
         name='status_panel'),
     url(r'^species/solve(?P<import_event_id>\d+)/(?P<row_index>\d+)/$',
         solve_endpoint, name='solve'),
-    url(r'^update/(?P<import_event_row_id>\d+)$', update_row,
-        name='update_row'),
+    url(r'^update/%s/(?P<row_id>\d+)/$' % _type_pattern,
+        update_row_endpoint, name='update_row'),
     url(r'^commit/%s/$' % _import_api_pattern, commit_endpoint, name='commit'),
 
     url(r'^export/species/all', export_all_species, name='export_all_species'),
@@ -41,7 +42,6 @@ urlpatterns = patterns(
 
     # API
     url(r'^api/merge$', merge_species, name='merge'),
-    url(r'^api/%s/update$' % _import_api_pattern, update, name='update'),
     url(r'^api/counts', counts, name='counts'),
     url(r'^api/species/similar', find_similar_species,
         name='find_similar_species'),

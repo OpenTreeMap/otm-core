@@ -1,0 +1,31 @@
+{% load l10n %}
+
+{# TODO: this should work for more than tds with fields #}
+{# but we should hold off on the conversion in case we #}
+{# never use this for anything else #}
+<td class="{{ field.css_class }}" data-field-name="{{ field.name }}"
+    {# this makes it a popover, tabindex required for cross-browser compat #}
+    data-toggle="popover"
+    data-container="body"
+    tabindex="0"
+    {# our settings #}
+    data-title="{% block title %}{% endblock title %}"
+    data-trigger="manual"
+    data-placement="right"
+    ><span>{{ field.value }}</span>
+  <div class="popover-data" style="display: none;">
+    {% block content %}
+    {% block content_text %}
+    {% endblock content_text %}
+    <input class="popover-correction {% block extra_content_input_classes %}{% endblock %}"
+           {% block extra_content_input_attributes %}
+           {% endblock extra_content_input_attributes %}
+           />
+    {% endblock content %}
+    <button class="btn btn-success popover-accept {% block extra_save_classes %}{% endblock %}"
+            {% block extra_save_attributes %}
+            {% endblock extra_save_attributes %}
+            >Save</button>
+    <button class="btn btn-danger popover-cancel">Cancel</button>
+  </div>
+</td>

@@ -11,8 +11,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 
 from importer.models import GenericImportEvent, GenericImportRow
-from importer.species import SpeciesImportEvent
-from importer.trees import TreeImportEvent
+from importer.species import SpeciesImportEvent, SpeciesImportRow
+from importer.trees import TreeImportEvent, TreeImportRow
 from importer import errors
 from importer.util import lowerkeys
 
@@ -134,6 +134,16 @@ def get_import_event_model(import_type):
         Model = SpeciesImportEvent
     elif import_type == TreeImportEvent.import_type:
         Model = TreeImportEvent
+    else:
+        raise Exception('Invalid import type "%s"' % import_type)
+    return Model
+
+
+def get_import_row_model(import_type):
+    if import_type == SpeciesImportEvent.import_type:
+        Model = SpeciesImportRow
+    elif import_type == TreeImportEvent.import_type:
+        Model = TreeImportRow
     else:
         raise Exception('Invalid import type "%s"' % import_type)
     return Model
