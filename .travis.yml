@@ -13,6 +13,12 @@ env:
 before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
+  # Avoid `spurious errors` caused by ~/.npm permission issues
+  # Does it already exist? Who owns? What permissions?
+  # (https://github.com/travis-ci/travis-ci/issues/2244#issuecomment-55473829)
+  - ls -lah ~/.npm || mkdir ~/.npm
+  # Make sure we own it
+  - sudo chown -R $USER ~/.npm
 
 install:
   - pip install -r travis-requirements.txt
