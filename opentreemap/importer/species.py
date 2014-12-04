@@ -120,12 +120,20 @@ class SpeciesImportRow(GenericImportRow):
         key = fields.species.ITREE_PAIRS
         if key in data:
             row_itree_pairs = data[key]
-            model_itree_pairs = [(species.get_itree_code(region), region)
-                                 for (_, region) in row_itree_pairs]
+            model_itree_pairs = [(region, species.get_itree_code(region))
+                                 for (region, _) in row_itree_pairs]
             if row_itree_pairs != model_itree_pairs:
-                diffs[key] = (model_itree_pairs, row_itree_pairs)
+                diffs[fields.species.ITREE_CODE] = (
+                    self._itree_pairs_to_string(model_itree_pairs),
+                    self._itree_pairs_to_string(row_itree_pairs))
 
         return diffs
+
+    def _itree_pairs_to_string(self, pairs):
+        # [('SoCalCSMA', 'CEL OTHER'), ('InlEmpCLM', 'CEL OTHER')]
+        #     -> "SoCalCSMA:CEL OTHER,InlEmpCLM:CEL OTHER"
+        str = ','.join([':'.join(pair) for pair in pairs])
+        return str
 
     @property
     def model_fields(self):
@@ -219,19 +227,19 @@ class SpeciesImportRow(GenericImportRow):
                 region = region.strip()
                 code = code.strip()
                 error = self.validate_itree_code_and_region(region, code)
-                pairs.append((code, region))
+                pairs.append((region, code))
                 if error:
                     break
 
         else:
             # Field contains a single i-Tree code
             error, region = self.validate_itree_code(itree_code)
-            pairs.append((itree_code, region))
+            pairs.append((region, itree_code))
 
         if error:
             self.append_error(error, fields.species.ITREE_CODE,
-                              {'code': pairs[-1][0],
-                               'region': pairs[-1][1]})
+                              {'region': pairs[-1][0],
+                               'code': pairs[-1][1]})
         else:
             self.cleaned[fields.species.ITREE_PAIRS] = pairs
 
@@ -372,7 +380,7 @@ class SpeciesImportRow(GenericImportRow):
 
         # Make i-Tree code override(s) if necessary
         if fields.species.ITREE_PAIRS in data:
-            for itree_code, region_code in data[fields.species.ITREE_PAIRS]:
+            for region_code, itree_code in data[fields.species.ITREE_PAIRS]:
 
                 if itree_code != species.get_itree_code(region_code):
 

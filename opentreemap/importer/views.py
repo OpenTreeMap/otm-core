@@ -6,6 +6,7 @@ from __future__ import division
 import csv
 import json
 import io
+from copy import copy
 
 from django.db import transaction
 from django.shortcuts import get_object_or_404, render_to_response
@@ -326,16 +327,15 @@ def _get_row_data(row, field_names, merge_required):
     for row_error in row_errors:
         css_class = 'error' if row_error['fatal'] else 'warning'
         for field in row_error['fields']:
-            existing = collected_fields.get(field, {})
-            existing_class = existing.get('css_class')
-            if css_class == 'error' or css_class == existing_class:
-                existing['name'] = field
-                existing['value'] = row.datadict[field]
-                existing['msg'] = row_error['msg']
-                existing['css_class'] = css_class
-                existing['row_id'] = row.pk
-                existing['custom_resolver'] = {}
-            collected_fields[field] = existing
+            field_data = collected_fields.get(field, {})
+            if not field_data or css_class == 'error':
+                field_data['name'] = field
+                field_data['value'] = row.datadict[field]
+                field_data['msg'] = row_error['msg']
+                field_data['css_class'] = css_class
+                field_data['row_id'] = row.pk
+                field_data['custom_resolver'] = {}
+            collected_fields[field] = field_data
     for field in field_names:
         if field not in collected_fields:
             collected_fields[field] = {'name': field,
@@ -401,14 +401,23 @@ def _get_merge_data(row, field_names, row_errors):
     dom_names = ['row_%s_%s' % (row.idx, field_name.replace(' ', '_'))
                  for field_name in merge_names]
 
+    # For the i-Tree code "imported value" display just region/code pairs which
+    # differ from the species, rather than raw import value (which may
+    # have region/code pairs which match the species)
+    row_data = copy(row.datadict)
+    f = fields.species
+    for species_diff in species_diffs:
+        if f.ITREE_CODE in species_diff:
+            row_data[f.ITREE_CODE] = species_diff[f.ITREE_CODE][1]
+
     fields_to_merge = [
         {
             'name': field_name,
             'id': dom_name,
             'values': [
-                _get_diff_value(dom_name, 0, row.datadict[field_name])
+                _get_diff_value(dom_name, 0, row_data[field_name])
             ] + [
-                _get_diff_value(dom_name, i + 1, diffs.get(field_name))
+                _get_diff_value(dom_name, i + 1, diffs[field_name][0])
                 for i, diffs in enumerate(species_diffs)
             ]
         }
@@ -423,9 +432,7 @@ def _get_merge_data(row, field_names, row_errors):
 
 
 def _get_diff_value(dom_name, i, value):
-    if isinstance(value, list):
-        value = value[0]
-    elif not value:
+    if not value:
         value = ''
     return {
         'id': "%s_%s" % (dom_name, i),
