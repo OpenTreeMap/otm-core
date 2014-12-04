@@ -15,7 +15,7 @@ from StringIO import StringIO
 from django.conf import settings
 from django.db import connection
 from django.test import TestCase
-from django.utils.unittest.case import skip
+from django.utils.unittest.case import skip, skipIf
 from django.http import HttpRequest
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
@@ -24,7 +24,8 @@ from api.test_utils import setupTreemapEnv, mkPlot
 from treemap.json_field import set_attr_on_json_field
 from treemap.models import (Species, Plot, Tree, ITreeCodeOverride,
                             ITreeRegion, User)
-from treemap.tests import (make_admin_user, make_instance, login)
+from treemap.tests import (make_admin_user, make_instance, login,
+                           ecoservice_not_running)
 from treemap.udf import UserDefinedFieldDefinition
 
 from importer import errors, fields
@@ -453,6 +454,7 @@ class SpeciesValidationTest(ValidationTest):
         self.assertHasError(row, error)
 
 
+@skipIf(ecoservice_not_running(), 'Need ecoservice to validate i-Tree codes')
 class ITreeValidationTest(SpeciesValidationTest):
     def test_error_invalid_itree_region(self):
         self._assert_row_has_error({'i-tree code': 'foo:ACME'},
@@ -562,6 +564,8 @@ class SpeciesCommitTest(SpeciesValidationTest):
         self.assertEqual('', species[0].otm_code)
 
 
+
+@skipIf(ecoservice_not_running(), 'Need ecoservice to validate i-Tree codes')
 class ITreeCommitTest(SpeciesValidationTest):
     def setUp(self):
         super(ITreeCommitTest, self).setUp()

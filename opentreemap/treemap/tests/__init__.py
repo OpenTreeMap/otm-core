@@ -6,6 +6,7 @@ from __future__ import division
 import logging
 from cStringIO import StringIO
 from optparse import make_option
+import subprocess
 from unittest import TestSuite
 import shutil
 import tempfile
@@ -364,6 +365,10 @@ def media_dir(f):
         with self._media_dir():
             f(self)
     return m
+
+
+def ecoservice_not_running():
+    return subprocess.call(["sudo", "service", "ecoservice", "start"]) != 0
 
 
 class LocalMediaTestCase(OTMTestCase):
