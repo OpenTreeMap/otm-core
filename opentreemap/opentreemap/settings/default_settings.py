@@ -104,7 +104,9 @@ USE_THOUSAND_SEPARATOR = True
 USE_TZ = True
 
 # Path to the Django Project root
-PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
+# Current file is in opentreemap/opentreemap/settings, so go up 3
+PROJECT_ROOT = os.path.abspath(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 # Path to the location of SCSS files, used for on-the-fly compilation to CSS
 SCSS_ROOT = os.path.join(PROJECT_ROOT, 'treemap', 'css', 'sass')

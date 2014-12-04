@@ -6,8 +6,6 @@ from __future__ import division
 import os
 import json
 
-from unittest import skipIf
-
 from django.test.utils import override_settings
 
 from treemap.models import Plot
@@ -129,7 +127,6 @@ class RootUrlTests(UrlTestCase):
         self.assert_404('/users/fake/edits/')
         self.assert_404('/users/%s/edits/?instance_id=0' % username)
 
-    @skipIf('TRAVIS' in os.environ, "This inexplicably fails on Travis CI")
     def test_dynamic_scss(self):
         self.assert_200('/main.css?primary-color=fff')
 
