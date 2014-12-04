@@ -2,7 +2,8 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
-    format = require('util').format,
+    R = require('ramda'),
+    toastr = require('toastr'),
     Bacon = require('baconjs'),
     popover = require('treemap/popover'),
     BU = require('treemap/baconUtils');
@@ -73,7 +74,11 @@ function updateRow($container, $el) {
         updatedValue = $el.parent().find(".popover-correction").val(),
         url = $el.attr('data-url'),
         data = _.object([fieldName], [updatedValue]);
-    $container.load(url, data, popover.activateAll);
+    if (R.every(R.not(_.isEmpty), [fieldName, updatedValue])) {
+        $container.load(url, data, popover.activateAll);
+    } else {
+        toastr.error("Cannot save empty species");
+    }
 }
 
 function mergeRow(e) {
