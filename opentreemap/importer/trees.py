@@ -295,14 +295,23 @@ class TreeImportRow(GenericImportRow):
             return False
 
     def validate_species(self):
-        genus = self.datadict.get(fields.trees.GENUS, '')
-        species = self.datadict.get(fields.trees.SPECIES, '')
-        cultivar = self.datadict.get(fields.trees.CULTIVAR, '')
-        other_part = self.datadict.get(fields.trees.OTHER_PART_OF_NAME, '')
+        fs = fields.trees
+        genus = self.datadict.get(fs.GENUS, '')
+        species = self.datadict.get(fs.SPECIES, '')
+        cultivar = self.datadict.get(fs.CULTIVAR, '')
+        other_part = self.datadict.get(fs.OTHER_PART_OF_NAME, '')
 
         if self._is_pk_int_like(species):
-            species_obj = Species.objects.get(pk=species)
-            self.cleaned[fields.trees.SPECIES_OBJECT] = species_obj
+            matching_species = Species.objects.filter(pk=species)
+            # these round tripped from the server,
+            # so they will always have a match.
+            obj = matching_species[0]
+            newdict = self.datadict
+            newdict.update({fs.GENUS: obj.genus,
+                            fs.SPECIES: obj.species,
+                            fs.CULTIVAR: obj.cultivar,
+                            fs.OTHER_PART_OF_NAME: obj.other_part_of_name})
+            self.datadict = newdict
         elif genus != '' or species != '' or cultivar != '':
             matching_species = Species.objects.filter(
                 instance_id=self.import_event.instance_id,
@@ -310,7 +319,10 @@ class TreeImportRow(GenericImportRow):
                 species__iexact=species,
                 cultivar__iexact=cultivar,
                 other_part_of_name__iexact=other_part)
+        else:
+            matching_species = Species.objects.none()
 
+        if matching_species.exists():
             if len(matching_species) == 1:
                 self.cleaned[fields.trees.SPECIES_OBJECT] = matching_species[0]
             else:
