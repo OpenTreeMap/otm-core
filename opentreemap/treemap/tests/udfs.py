@@ -1080,7 +1080,7 @@ class UdfCRUTestCase(OTMTestCase):
 
 class UdfCreateTest(UdfCRUTestCase):
     def test_create_non_choice_udf(self):
-        body = {'udf.name': 'cool udf',
+        body = {'udf.name': ' cool udf  ',
                 'udf.model': 'Plot',
                 'udf.type': 'string'}
 

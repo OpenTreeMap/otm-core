@@ -549,6 +549,8 @@ class UserDefinedFieldDefinition(models.Model):
                     {'underlying_error': e.message})
 
     def save(self, *args, **kwargs):
+        if self.name is not None:
+            self.name = self.name.strip()
         self.validate()
         super(UserDefinedFieldDefinition, self).save(*args, **kwargs)
 
