@@ -2,6 +2,7 @@ import importlib
 
 from django.test import LiveServerTestCase
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 
 from selenium.common.exceptions import (WebDriverException,
                                         StaleElementReferenceException)
@@ -79,6 +80,8 @@ class UITestCase(LiveServerTestCase):
         self.driver.quit()
         if hasattr(self, 'display'):
             self.display.stop()
+
+        ContentType.objects.clear_cache()
 
         super(UITestCase, self).tearDown()
 
