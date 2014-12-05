@@ -215,7 +215,6 @@ MANAGED_APPS = (
     'treemap',
     'geocode',
     'api',
-    'management',
     'exporter',
     'otm1_migrator',
     'otm_comments',
