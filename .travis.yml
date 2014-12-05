@@ -37,6 +37,7 @@ script:
   - grunt check
   - testem ci -l firefox
   - coverage run --source=. opentreemap/manage.py test
+  - coverage run --source=. opentreemap/manage.py test --live-server-tests --liveserver=localhost:9000-9200
 
 after_success:
   coveralls
