@@ -24,8 +24,8 @@
        width: auto;
    }
 
-   .tab-pane {
-       min-height: auto;
+   .tab-content > .tab-pane {
+       min-height: inherit!important;
    }
 
    .tab-contents{
@@ -37,5 +37,10 @@
 
     .btn-info{
       margin-right: 12px;
+    }
+
+    .no-bullet{
+      list-style-type: none;
+      padding-left: 0!important;
     }
 }
