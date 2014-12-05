@@ -23,7 +23,7 @@ def _set_default_paths(env):
 
 _set_default_paths(env)
 
-def vagrant():
+def vagrant(path='.'):
     """ Configure fabric to use vagrant as a host.
 
     Use the current vagrant directory to gather ssh-config settings
@@ -33,9 +33,14 @@ def vagrant():
 
     EX:
     fab vagrant <command_name>
+
+    Takes an optional path argument, for when the vagrant environment is not the current directory
+    For example, if using the OTM2-vagrant project:
+        fab vagrant:.. <command_name>
     """
     vagrant_ssh_config = {}
-    for l in local('vagrant ssh-config', capture=True).split('\n'):
+    vagrant_cmd = 'cd "%s" && vagrant ssh-config' % path
+    for l in local(vagrant_cmd, capture=True).split('\n'):
         try:
             l = l.strip()
             i = l.index(' ')
