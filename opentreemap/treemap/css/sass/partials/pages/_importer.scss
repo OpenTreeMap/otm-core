@@ -12,6 +12,20 @@
         padding-top: 50px;
     }
 
+  .table{
+    background-color: transparent;
+
+    .no-rows{
+      padding: 8px 12px;
+    }
+  }
+
+  .table-hover{
+    tr{
+      cursor: pointer;
+    }
+  }
+
    td.error {
         background-color: #f2dede;
    }

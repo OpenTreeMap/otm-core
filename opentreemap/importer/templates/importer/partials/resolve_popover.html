@@ -5,14 +5,14 @@
 
 {% block content_text %}
 <p>There was an error with this field:</p>
-<p>{{ field.msg }}</p>
+<ul><li><b>{{ field.msg }}</b></li></ul>
 <p>Please provide a new value:</p>
 {% endblock content_text %}
 
 {% block extra_content_input_attributes %}
 value="{{ field.value }}"
 {% endblock extra_content_input_attributes %}
-
+<br>
 {% block extra_save_classes %}resolver-popover-accept{% endblock extra_save_classes %}
 
 {% block extra_save_attributes %}
