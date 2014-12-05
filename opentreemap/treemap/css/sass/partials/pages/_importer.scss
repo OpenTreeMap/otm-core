@@ -24,8 +24,8 @@
        width: auto;
    }
 
-   .tab-pane {
-       min-height: auto;
+   .tab-content > .tab-pane {
+       min-height: inherit!important;
    }
 
    .tab-contents{

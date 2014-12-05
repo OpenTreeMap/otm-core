@@ -2,28 +2,30 @@
 {% load i18n %}
 
 {% block main %}
-<h4> There were errors reading the file structure: </h4>
+<div class="well">
+  <h4> There were errors reading the file structure: </h4>
 
-{% with errors=ie.errors_as_array %}
-  {% if errors %}
-    <ul class="no-bullet">
-      {% for error in errors %}
-        {% if error.data %}
-          <li>{{ error.msg }}:
-            <ul>
-              {% for item in error.data %}
-                {% if item %}
-                  <li><b>{{ item }}</b></li>
-                {% endif %}
-              {% endfor %}
-            </ul>
-          </li>
-        {% else %}
-          <li>{{ error.msg }}</li>
-        {% endif %}
-      {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
+  {% with errors=ie.errors_as_array %}
+    {% if errors %}
+      <ul class="no-bullet">
+        {% for error in errors %}
+          {% if error.data %}
+            <li>{{ error.msg }}:
+              <ul>
+                {% for item in error.data %}
+                  {% if item %}
+                    <li><b>{{ item }}</b></li>
+                  {% endif %}
+                {% endfor %}
+              </ul>
+            </li>
+          {% else %}
+            <li>{{ error.msg }}</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+</div>
 {% endblock main %}
 
