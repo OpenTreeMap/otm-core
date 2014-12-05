@@ -2,7 +2,7 @@
 
 <tr class='js-merge-controls' style="display: none;">
     <td colspan="{{ panel.field_names|length }}">
-        <table>
+        <table class="table table-condensed">
             <thead>
                 <tr>
                     <th>Field</th>
@@ -13,7 +13,7 @@
             </thead>
             <tbody>
                 {% for field in row.fields_to_merge %}
-                    <tr>
+                    <tr class="danger">
                         <td>{{ field.name }}</td>
                       {% for value in field.values %}
                         <td>
