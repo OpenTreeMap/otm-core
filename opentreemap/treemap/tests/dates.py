@@ -30,7 +30,8 @@ class DatesafeEqTest(OTMTestCase):
 
     def test_tz_naive_neq(self):
         d1 = datetime.now()
-        d2 = datetime(d1.year, d1.month, d1.day, d1.hour - 1)
+        d1 = d1.replace(hour=1)
+        d2 = datetime(d1.year, d1.month, d1.day, 0)
         self.assertFalse(datesafe_eq(d1, d2))
 
     def test_mixed_tz_awareness_eq(self):
@@ -41,7 +42,8 @@ class DatesafeEqTest(OTMTestCase):
 
     def test_mixed_tz_awareness_neq(self):
         d1 = timezone.now()
-        d2 = datetime(d1.year, d1.month, d1.day, d1.hour - 1)
+        d1 = d1.replace(hour=1)
+        d2 = datetime(d1.year, d1.month, d1.day, 0)
         self.assertFalse(datesafe_eq(d1, d2))
 
     def test_non_dates_eq(self):
