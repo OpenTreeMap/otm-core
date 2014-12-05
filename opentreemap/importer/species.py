@@ -132,8 +132,11 @@ class SpeciesImportRow(GenericImportRow):
     def _itree_pairs_to_string(self, pairs):
         # [('SoCalCSMA', 'CEL OTHER'), ('InlEmpCLM', 'CEL OTHER')]
         #     -> "SoCalCSMA:CEL OTHER,InlEmpCLM:CEL OTHER"
-        str = ','.join([':'.join(pair) for pair in pairs])
-        return str
+        if pairs:
+            string = ','.join([':'.join(pair) for pair in pairs])
+            return string
+        else:
+            return ''
 
     @property
     def model_fields(self):
