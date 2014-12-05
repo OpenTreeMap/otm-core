@@ -14,10 +14,10 @@
                 {% for row in panel.rows %}
                     <tr class="js-import-row">
                         {% for field in row.fields %}
-                            {% if field.css_class %}
+                            {% if field.show_resolver %}
                                 {% include "importer/partials/resolve_popover.html" %}
                             {% else %}
-                                <td data-field-name="{{ field.name }}">{{ field.value }}</td>
+                                <td class="{{ field.css_class }}" data-field-name="{{ field.name }}">{{ field.value }}</td>
                             {% endif %}
                         {% endfor %}
                     </tr>
