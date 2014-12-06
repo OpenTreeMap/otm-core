@@ -282,20 +282,47 @@ class TreeImportRow(GenericImportRow):
             fields.trees.TREE_HEIGHT,
             species.max_height, errors.SPECIES_HEIGHT_TOO_HIGH)
 
-    def validate_species(self):
-        genus = self.datadict.get(fields.trees.GENUS, '')
-        species = self.datadict.get(fields.trees.SPECIES, '')
-        cultivar = self.datadict.get(fields.trees.CULTIVAR, '')
-        other_part = self.datadict.get(fields.trees.OTHER_PART_OF_NAME, '')
+    def _is_pk_int_like(self, value):
+        if isinstance(value, basestring):
+            try:
+                int(value)
+            except ValueError:
+                return False
+            return True
+        elif isinstance(value, int):
+            return True
+        else:
+            return False
 
-        if genus != '' or species != '' or cultivar != '':
+    def validate_species(self):
+        fs = fields.trees
+        genus = self.datadict.get(fs.GENUS, '')
+        species = self.datadict.get(fs.SPECIES, '')
+        cultivar = self.datadict.get(fs.CULTIVAR, '')
+        other_part = self.datadict.get(fs.OTHER_PART_OF_NAME, '')
+
+        if self._is_pk_int_like(species):
+            matching_species = Species.objects.filter(pk=species)
+            # these round tripped from the server,
+            # so they will always have a match.
+            obj = matching_species[0]
+            newdict = self.datadict
+            newdict.update({fs.GENUS: obj.genus,
+                            fs.SPECIES: obj.species,
+                            fs.CULTIVAR: obj.cultivar,
+                            fs.OTHER_PART_OF_NAME: obj.other_part_of_name})
+            self.datadict = newdict
+        elif genus != '' or species != '' or cultivar != '':
             matching_species = Species.objects.filter(
                 instance_id=self.import_event.instance_id,
                 genus__iexact=genus,
                 species__iexact=species,
                 cultivar__iexact=cultivar,
                 other_part_of_name__iexact=other_part)
+        else:
+            matching_species = Species.objects.none()
 
+        if matching_species.exists():
             if len(matching_species) == 1:
                 self.cleaned[fields.trees.SPECIES_OBJECT] = matching_species[0]
             else:
