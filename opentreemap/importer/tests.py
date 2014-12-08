@@ -30,8 +30,8 @@ from treemap.udf import UserDefinedFieldDefinition
 
 from importer import errors, fields
 from importer.tasks import _create_rows_for_event
-from importer.trees import TreeImportEvent, TreeImportRow
-from importer.species import SpeciesImportEvent, SpeciesImportRow
+from importer.models.trees import TreeImportEvent, TreeImportRow
+from importer.models.species import SpeciesImportEvent, SpeciesImportRow
 from importer.views import (process_csv, process_status,
                             commit, merge_species, start_import)
 

@@ -11,7 +11,7 @@ from django.contrib.gis.measure import D
 from treemap.models import Species, Plot, Tree
 from treemap.lib.object_caches import udf_defs
 
-from importer.models import GenericImportRow, GenericImportEvent
+from importer.models.base import GenericImportRow, GenericImportEvent
 from importer import fields
 from importer import errors
 
@@ -29,6 +29,9 @@ class TreeImportEvent(GenericImportEvent):
     diameter_conversion_factor = models.FloatField(default=1.0)
     tree_height_conversion_factor = models.FloatField(default=1.0)
     canopy_height_conversion_factor = models.FloatField(default=1.0)
+
+    class Meta:
+        app_label = 'importer'
 
     def create_row(self, *args, **kwargs):
         return TreeImportRow.objects.create(*args, **kwargs)
@@ -86,6 +89,9 @@ class TreeImportRow(GenericImportRow):
 
     # The main import event
     import_event = models.ForeignKey(TreeImportEvent)
+
+    class Meta:
+        app_label = 'importer'
 
     @property
     def model_fields(self):

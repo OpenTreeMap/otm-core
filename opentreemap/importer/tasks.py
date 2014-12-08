@@ -10,9 +10,9 @@ from celery import task
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 
-from importer.models import GenericImportEvent, GenericImportRow
-from importer.species import SpeciesImportEvent, SpeciesImportRow
-from importer.trees import TreeImportEvent, TreeImportRow
+from importer.models.base import GenericImportEvent, GenericImportRow
+from importer.models.species import SpeciesImportEvent, SpeciesImportRow
+from importer.models.trees import TreeImportEvent, TreeImportRow
 from importer import errors
 from importer.util import lowerkeys
 

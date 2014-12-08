@@ -26,9 +26,9 @@ from treemap.decorators import (admin_instance_request, require_http_method,
                                 requires_feature)
 from treemap.units import get_conversion_factor
 
-from importer.models import GenericImportEvent, GenericImportRow
-from importer.trees import TreeImportEvent, TreeImportRow
-from importer.species import SpeciesImportEvent, SpeciesImportRow
+from importer.models.base import GenericImportEvent, GenericImportRow
+from importer.models.trees import TreeImportEvent, TreeImportRow
+from importer.models.species import SpeciesImportEvent, SpeciesImportRow
 from importer.tasks import (run_import_event_validation, commit_import_event,
                             get_import_event_model, get_import_row_model)
 from importer import errors, fields

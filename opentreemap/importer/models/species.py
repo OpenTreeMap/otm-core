@@ -12,7 +12,7 @@ from treemap.models import (Species, ITreeCodeOverride, ITreeRegion, User)
 from treemap.species import species_for_scientific_name
 from treemap.species.codes import all_itree_region_codes
 
-from importer.models import GenericImportEvent, GenericImportRow
+from importer.models.base import GenericImportEvent, GenericImportRow
 from importer import fields
 from importer import errors
 
@@ -27,6 +27,9 @@ class SpeciesImportEvent(GenericImportEvent):
 
     max_diameter_conversion_factor = models.FloatField(default=1.0)
     max_tree_height_conversion_factor = models.FloatField(default=1.0)
+
+    class Meta:
+        app_label = 'importer'
 
     def __init__(self, *args, **kwargs):
         super(SpeciesImportEvent, self).__init__(*args, **kwargs)
@@ -82,6 +85,9 @@ class SpeciesImportRow(GenericImportRow):
     merged = models.BooleanField(default=False)
 
     import_event = models.ForeignKey(SpeciesImportEvent)
+
+    class Meta:
+        app_label = 'importer'
 
     def diff_from_species(self, species):
         """ Compute how this row is different from the given species.
