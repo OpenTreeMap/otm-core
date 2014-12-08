@@ -148,8 +148,6 @@ class TreeImportRow(GenericImportRow):
         self.status = TreeImportRow.SUCCESS
         self.save()
 
-        return True
-
     def _commit_plot_data(self, data, plot):
         plot_edited = False
         for plot_attr, field_name in TreeImportRow.PLOT_MAP.iteritems():
