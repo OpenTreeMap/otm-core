@@ -2,7 +2,6 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
-    format = require('util').format,
     Bacon = require('baconjs'),
     popover = require('treemap/popover'),
     BU = require('treemap/baconUtils');
@@ -15,7 +14,10 @@ var dom = {
     rowInMergeRequiredTable: '#import-panel-merge_required .js-import-row',
     mergeControls: '.js-merge-controls',
     hideMergeControlsButton: '.js-hide',
-    mergeButton: '.js-merge'
+    mergeButton: '.js-merge',
+    resolver: {
+        saveButton: '.resolver-popover-accept'
+    }
 };
 
 function init($container, viewStatusStream) {
@@ -38,7 +40,7 @@ function init($container, viewStatusStream) {
     popover.init($container)
         .map('.currentTarget')
         .map($)
-        .filter('.is', '.resolver-popover-accept')
+        .filter('.is', dom.resolver.saveButton)
         .onValue(updateRow, $container);
 
     containerLoadedStream.merge(viewStatusStream).onValue(popover.activateAll);
