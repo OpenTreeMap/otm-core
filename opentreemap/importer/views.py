@@ -331,10 +331,12 @@ def _get_row_data(row, field_names, merge_required):
             if not field_data or css_class == 'error':
                 field_data['name'] = field
                 field_data['value'] = row.datadict[field]
-                field_data['msg'] = row_error['msg']
                 field_data['css_class'] = css_class
-                field_data['row_id'] = row.pk
-                field_data['custom_resolver'] = {}
+                if row_error['code'] != errors.MERGE_REQUIRED[0]:
+                    field_data['show_resolver'] = True
+                    field_data['msg'] = row_error['msg']
+                    field_data['row_id'] = row.pk
+                    field_data['custom_resolver'] = {}
             collected_fields[field] = field_data
     for field in field_names:
         if field not in collected_fields:
