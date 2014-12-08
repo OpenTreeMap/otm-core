@@ -46,7 +46,7 @@ urlpatterns = patterns(
     url('^features/(?P<feature_id>\d+)/photo/(?P<photo_id>\d+)/'
         '(?P<action>(approve)|(reject))$',
         approve_or_reject_photo_view, name='approve_or_reject_photo'),
-    url(r'^species/$', species_list_view),
+    url(r'^species/$', species_list_view, name="species_list_view"),
     url(r'^map/$', map_view, name='map'),
 
     url(r'^features/(?P<feature_id>\d+)/$',

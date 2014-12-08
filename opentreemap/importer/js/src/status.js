@@ -2,8 +2,10 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    R = require('ramda'),
     Bacon = require('baconjs'),
     popover = require('treemap/popover'),
+    otmTypeahead = require('treemap/otmTypeahead'),
     BU = require('treemap/baconUtils');
 
 var dom = {
@@ -16,9 +18,38 @@ var dom = {
     hideMergeControlsButton: '.js-hide',
     mergeButton: '.js-merge',
     resolver: {
-        saveButton: '.resolver-popover-accept'
+        popupContainer: '.popover-content',
+        saveButton: '.resolver-popover-accept',
+        events: {shown: 'shown.bs.popover'},
+        species: {input: '.species-resolver-typeahead',
+                  hidden: '.species-resolver-typeahead-hidden',
+                  typeaheadRowTemplate: '#species-element-template'}
     }
 };
+
+function initTypeaheads() {
+    // find all species popovers and initialize a typeahead in each one
+    // we can't use the event target because it will be the popupTrigger,
+    // not the popupContainer.
+    _.each($(dom.resolver.popupContainer), function (container) {
+        var $c = $(container),
+            $input = $c.find(dom.resolver.species.input),
+            $hidden = $c.find(dom.resolver.species.hidden);
+
+        // make sure this is a species popover
+        if (R.every(R.not(_.isEmpty), [$input, $hidden])) {
+            otmTypeahead.create({
+                name: "species-resolver",
+                template: dom.resolver.species.typeaheadRowTemplate,
+                url: $input.attr('data-typeahead-url'),
+                input: $input,
+                hidden: $hidden,
+                reverse: "id",
+                forceMatch: true
+            });
+        }
+    });
+}
 
 function init($container, viewStatusStream) {
     // Define events on the container so we can replace its contents
@@ -44,6 +75,7 @@ function init($container, viewStatusStream) {
         .onValue(updateRow, $container);
 
     containerLoadedStream.merge(viewStatusStream).onValue(popover.activateAll);
+    $container.on(dom.resolver.events.shown, initTypeaheads);
 
     // Return the containerLoadedStream so importLists.js knows to start
     // polling for updates
