@@ -3,6 +3,7 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     R = require('ramda'),
+    toastr = require('toastr'),
     Bacon = require('baconjs'),
     popover = require('treemap/popover'),
     otmTypeahead = require('treemap/otmTypeahead'),
@@ -68,11 +69,15 @@ function init($container, viewStatusStream) {
         .flatMap(mergeRow)
         .onValue($container, 'html');
 
-    popover.init($container)
-        .map('.currentTarget')
-        .map($)
-        .filter('.is', dom.resolver.saveButton)
-        .onValue(updateRow, $container);
+    var popoverSaveStream = popover.init($container)
+            .map('.currentTarget')
+            .map($)
+            .filter('.is', dom.resolver.saveButton);
+
+    var isSpeciesPopover = function ($el) { return $el.is('[data-field-name="species"]'); };
+
+    popoverSaveStream.filter(isSpeciesPopover).onValue(updateSpeciesRow, $container);
+    popoverSaveStream.filter(R.not(isSpeciesPopover)).onValue(updateRow, $container);
 
     containerLoadedStream.merge(viewStatusStream).onValue(popover.activateAll);
     $container.on(dom.resolver.events.shown, initTypeaheads);
@@ -103,11 +108,29 @@ function hideMergeControls(e) {
 }
 
 function updateRow($container, $el) {
+    var rowData = getRowData($container, $el);
+    $container.load(rowData.url, rowData.data, popover.activateAll);
+}
+
+function updateSpeciesRow($container, $el) {
+    var rowData = getRowData($container, $el);
+    if (R.every(R.not(_.isEmpty), [rowData.fieldName, rowData.updatedValue])) {
+        $container.load(rowData.url, rowData.data, popover.activateAll);
+    } else {
+        toastr.error("Cannot save empty species");
+    }
+}
+
+function getRowData($container, $el) {
     var fieldName = $el.attr('data-field-name'),
-        updatedValue = $el.parent().find(".popover-correction").val(),
-        url = $el.attr('data-url'),
-        data = _.object([fieldName], [updatedValue]);
-    $container.load(url, data, popover.activateAll);
+        updatedValue = $el.parent().find(".popover-correction").val();
+
+    return {
+        fieldName: fieldName,
+        updatedValue: updatedValue,
+        url: $el.attr('data-url'),
+        data: _.object([fieldName], [updatedValue])
+    };
 }
 
 function mergeRow(e) {
