@@ -92,13 +92,13 @@ class TreeImportRow(GenericImportRow):
         return fields.trees
 
     def commit_row(self):
-        # First validate
-        if not self.validate_row():
-            return False
+        is_valid = self.validate_row()
+
+        if not is_valid:
+            return  # not ready to commit
 
         if self.status == TreeImportRow.SUCCESS:
-            # Nothing changed!
-            return True
+            return  # nothing changed so no need to commit
 
         # Get our data
         data = self.cleaned

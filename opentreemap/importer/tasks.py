@@ -105,17 +105,11 @@ def commit_import_event(import_type, import_event_id):
 @transaction.atomic
 def _commit_rows(import_type, import_event_id, i):
     ie = _get_import_event(import_type, import_event_id)
-    missing_merges = 0
 
     for row in ie.rows()[i:(i + BLOCK_SIZE)]:
-        needs_merge = hasattr(row, 'merged') and not row.merged
-        if row.status != GenericImportRow.SUCCESS and not needs_merge:
-            row.commit_row()
+        row.commit_row()
 
-        if needs_merge:
-            missing_merges += 1
-
-    if _get_waiting_row_count(ie) <= missing_merges:
+    if _get_waiting_row_count(ie) == 0:
         ie.status = GenericImportEvent.FINISHED_CREATING
         ie.save()
 

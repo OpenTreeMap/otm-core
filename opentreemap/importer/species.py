@@ -333,13 +333,13 @@ class SpeciesImportRow(GenericImportRow):
 
     @transaction.atomic
     def commit_row(self):
-        # First validate
-        if not self.validate_row():
-            return False
+        is_valid = self.validate_row()
+
+        if not is_valid or not self.merged:
+            return  # not ready to commit
 
         if self.status == SpeciesImportRow.SUCCESS:
-            # Nothing changed!
-            return True
+            return  # nothing changed so no need to commit
 
         # Get our data
         data = self.cleaned
@@ -397,5 +397,3 @@ class SpeciesImportRow(GenericImportRow):
         self.species = species
         self.status = SpeciesImportRow.SUCCESS
         self.save()
-
-        return True

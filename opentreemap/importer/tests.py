@@ -540,11 +540,22 @@ class SpeciesCommitTest(SpeciesValidationTest):
         row = self._make_and_commit_row({
             'genus': 'Prunus',
             'species': 'americana',
+            'common name': 'American plum',
+            'is native': 'true'})
+        self.assertNotHasError(row, errors.MERGE_REQUIRED)
+        species = Species.objects.filter(otm_code='PRAM')
+        self.assertEqual(1, species.count())
+        self.assertEqual(species[0].is_native, True)
+
+    def test_species_not_updated_if_merge_required(self):
+        row = self._make_and_commit_row({
+            'genus': 'Prunus',
+            'species': 'americana',
             'common name': 'English Horn'})
         self.assertHasError(row, errors.MERGE_REQUIRED)
         species = Species.objects.filter(otm_code='PRAM')
         self.assertEqual(1, species.count())
-        self.assertEqual(species[0].common_name, 'English Horn')
+        self.assertEqual(species[0].common_name, 'American plum')
 
     def test_otm_code_found_for_species_not_in_instance(self):
         self._make_and_commit_row({
@@ -562,7 +573,6 @@ class SpeciesCommitTest(SpeciesValidationTest):
         species = Species.objects.filter(genus='Pluto')
         self.assertEqual(1, species.count())
         self.assertEqual('', species[0].otm_code)
-
 
 
 @skipIf(ecoservice_not_running(), 'Need ecoservice to validate i-Tree codes')
