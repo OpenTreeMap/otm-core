@@ -21,6 +21,7 @@ class GenericImportEvent(models.Model):
         abstract = True
 
     PENDING_VERIFICATION = 1
+    LOADING = 7
     VERIFIYING = 2
     FINISHED_VERIFICATION = 3
     CREATING = 4
@@ -43,10 +44,9 @@ class GenericImportEvent(models.Model):
 
     status = models.IntegerField(default=PENDING_VERIFICATION)
 
-    # When false, this dataset is in 'preview' mode
-    # When true this dataset has been written to the
-    # database
-    commited = models.BooleanField(default=False)
+    @property
+    def row_count(self):
+        return self.rows().count()
 
     @property
     def can_export(self):
@@ -55,6 +55,7 @@ class GenericImportEvent(models.Model):
     def status_summary(self):
         summaries = {
             self.PENDING_VERIFICATION: "Not Yet Started",
+            self.LOADING: "Loading",
             self.VERIFIYING: "Verifying",
             self.FINISHED_VERIFICATION: "Verification Complete",
             self.CREATING: "Creating Trees",
@@ -64,6 +65,9 @@ class GenericImportEvent(models.Model):
 
     def active(self):
         return self.status != GenericImportEvent.FINISHED_CREATING
+
+    def is_loading(self):
+        return self.status == self.LOADING
 
     def is_running(self):
         return (
@@ -124,38 +128,28 @@ class GenericImportEvent(models.Model):
     def rows(self):
         return self.row_set().order_by('idx').all()
 
-    def validate_main_file(self):
+    def legal_and_required_fields(self):
         raise Exception('Abstract Method')
 
-    def _validate_field_names(self, legal_fields, required_fields):
+    def validate_field_names(self, input_fields):
         """
-        Make sure the imported file has rows and valid columns
+        Make sure the imported file has valid columns
         """
         is_valid = True
 
-        rows = self.rows()
-        if rows.count() == 0:
+        legal_fields, required_fields = self.legal_and_required_fields()
+        input_fields = set(input_fields)
+
+        # Extra input fields cause a fatal error
+        extra = input_fields.difference(legal_fields)
+        if len(extra) > 0:
             is_valid = False
-            self.append_error(errors.EMPTY_FILE)
+            self.append_error(errors.UNMATCHED_FIELDS, list(extra))
 
-        else:
-            header = rows[0].data
-            input_fields = set(json.loads(header).keys())
-
-            # Extra input fields cause a fatal error
-            extra = input_fields.difference(legal_fields)
-            if len(extra) > 0:
-                is_valid = False
-                self.append_error(errors.UNMATCHED_FIELDS, list(extra))
-
-            missing_required_fields = required_fields - input_fields
-            for field in missing_required_fields:
-                is_valid = False
-                self.append_error(errors.MISSING_FIELD, data=[field])
-
-        if not is_valid:
-            self.status = self.FAILED_FILE_VERIFICATION
-            self.save()
+        missing_required_fields = required_fields - input_fields
+        for field in missing_required_fields:
+            is_valid = False
+            self.append_error(errors.MISSING_FIELD, data=[field])
 
         return is_valid
 

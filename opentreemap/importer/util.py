@@ -11,10 +11,10 @@ def _clean_string(s):
     return s
 
 
-def lowerkeys(h):
+def clean_row_data(h):
     h2 = {}
     for (k, v) in h.iteritems():
-        k = k.lower().strip()
+        k = clean_field_name(k)
         if k != 'ignore':
             if isinstance(v, basestring):
                 v = _clean_string(v)
@@ -22,3 +22,7 @@ def lowerkeys(h):
             h2[k] = v
 
     return h2
+
+
+def clean_field_name(name):
+    return name.lower().strip()

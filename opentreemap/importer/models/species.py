@@ -36,9 +36,6 @@ class SpeciesImportEvent(GenericImportEvent):
         self.all_region_codes = all_itree_region_codes()
         self.instance_region_codes = self.instance.itree_region_codes()
 
-    def create_row(self, *args, **kwargs):
-        return SpeciesImportRow.objects.create(*args, **kwargs)
-
     def row_set(self):
         return self.speciesimportrow_set
 
@@ -51,10 +48,9 @@ class SpeciesImportEvent(GenericImportEvent):
         else:
             return super(SpeciesImportEvent, self).status_summary()
 
-    def validate_main_file(self):
-        return self._validate_field_names(fields.species.ALL,
-                                          {fields.species.GENUS,
-                                           fields.species.COMMON_NAME})
+    def legal_and_required_fields(self):
+        return (fields.species.ALL,
+                {fields.species.GENUS, fields.species.COMMON_NAME})
 
 
 class SpeciesImportRow(GenericImportRow):

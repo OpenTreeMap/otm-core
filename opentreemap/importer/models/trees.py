@@ -33,9 +33,6 @@ class TreeImportEvent(GenericImportEvent):
     class Meta:
         app_label = 'importer'
 
-    def create_row(self, *args, **kwargs):
-        return TreeImportRow.objects.create(*args, **kwargs)
-
     def row_set(self):
         return self.treeimportrow_set
 
@@ -46,7 +43,7 @@ class TreeImportEvent(GenericImportEvent):
         # Prefix with model name, e.g. "Density" -> "Tree: Density"
         return "%s: %s" % (udf_def.model_type.lower(), udf_def.name.lower())
 
-    def validate_main_file(self):
+    def legal_and_required_fields(self):
         def udf_column_names(model_name):
             return {self.get_udf_column_name(udf_def)
                     for udf_def in udf_defs(self.instance, model_name)}
@@ -56,9 +53,7 @@ class TreeImportEvent(GenericImportEvent):
 
         legal_fields = fields.trees.ALL | plot_udfs | tree_udfs
 
-        return self._validate_field_names(legal_fields,
-                                          {fields.trees.POINT_X,
-                                           fields.trees.POINT_Y})
+        return (legal_fields, {fields.trees.POINT_X, fields.trees.POINT_Y})
 
 
 class TreeImportRow(GenericImportRow):

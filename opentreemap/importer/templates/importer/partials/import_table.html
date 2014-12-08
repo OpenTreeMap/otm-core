@@ -14,9 +14,11 @@
             <td>{{ ie.status_summary }}</td>
             <td>
                 {% if ie.is_finished %}
-                    {{ ie.rows.count }}
+                    {{ ie.row_count }}
+                {% elif ie.is_loading %}
+                    {{ ie.row_count }}
                 {% elif ie.is_running %}
-                    {{ ie.completed_row_count }} / {{ ie.rows.count }}
+                    {{ ie.completed_row_count }} / {{ ie.row_count }}
                 {% endif %}
             </td>
             <td>

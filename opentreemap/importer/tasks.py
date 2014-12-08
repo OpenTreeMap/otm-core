@@ -14,43 +14,54 @@ from importer.models.base import GenericImportEvent, GenericImportRow
 from importer.models.species import SpeciesImportEvent, SpeciesImportRow
 from importer.models.trees import TreeImportEvent, TreeImportRow
 from importer import errors
-from importer.util import lowerkeys
+from importer.util import clean_row_data, clean_field_name
 
 BLOCK_SIZE = 250
 
 
-@transaction.atomic
-def _create_rows_for_event(ie, csvfile):
-    rows = []
-    reader = csv.DictReader(csvfile)
+def _create_rows_for_event(ie, csv_file):
+    # Don't use a transaction for this possibly long-running operation
+    # so we can show progress. Caller does manual cleanup if necessary.
+    reader = csv.DictReader(csv_file)
 
-    fieldnames = reader.fieldnames
-    ie.field_order = json.dumps(fieldnames)
+    field_names = reader.fieldnames
+    ie.field_order = json.dumps(field_names)
     ie.save()
 
-    idx = 0
-    for row in reader:
-        # TODO: should we even create a row if
-        # we're about to break out? It's not like
-        # the file errors get attached to the row
-        # anyway.
-        rows.append(
-            ie.create_row(
-                data=json.dumps(lowerkeys(row)),
-                import_event=ie, idx=idx))
+    field_names = [clean_field_name(f) for f in field_names]
+    file_valid = ie.validate_field_names(field_names)
 
-        # perform file validation with first row
-        if idx == 0:
-            # Break out early if there was an error
-            # with the basic file structure
-            ie.validate_main_file()
-            if ie.has_errors():
-                break
-        idx += 1
+    if file_valid:
+        _create_rows(ie, reader)
+
+        if ie.row_count == 0:
+            file_valid = False
+            ie.append_error(errors.EMPTY_FILE)
+
+    if file_valid:
+        return True
     else:
-        ie.validate_main_file()
+        ie.status = ie.FAILED_FILE_VERIFICATION
+        ie.save()
+        return False
 
-    return False if ie.has_errors() else rows
+
+def _create_rows(ie, reader):
+    RowModel = get_import_row_model(ie.import_type)
+    rows = []
+    idx = 0
+
+    for row in reader:
+        data = json.dumps(clean_row_data(row))
+        rows.append(RowModel(data=data, import_event=ie, idx=idx))
+
+        idx += 1
+        if int(idx / BLOCK_SIZE) * BLOCK_SIZE == idx:
+            RowModel.objects.bulk_create(rows)
+            rows = []
+
+    if rows:
+        RowModel.objects.bulk_create(rows)  # create final partial block
 
 
 @task()
@@ -58,25 +69,27 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
     ie = _get_import_event(import_type, import_event_id)
 
     try:
-        rows = _create_rows_for_event(ie, file_obj)
+        ie.status = GenericImportEvent.LOADING
+        ie.save()
+        success = _create_rows_for_event(ie, file_obj)
     except Exception as e:
         ie.append_error(errors.GENERIC_ERROR, data=[str(e)])
         ie.status = GenericImportEvent.FAILED_FILE_VERIFICATION
         ie.save()
-        rows = None
+        success = False
 
-    if not rows:
+    if not success:
+        try:
+            ie.row_set().delete()
+        except Exception:
+            pass
         return
-
-    filevalid = ie.validate_main_file()
 
     ie.status = GenericImportEvent.VERIFIYING
     ie.save()
 
-    rows = ie.rows()
-    if filevalid:
-        for i in xrange(0, rows.count(), BLOCK_SIZE):
-            _validate_rows.delay(import_type, import_event_id, i)
+    for i in xrange(0, ie.row_count, BLOCK_SIZE):
+        _validate_rows.delay(import_type, import_event_id, i)
 
 
 @task()
@@ -93,12 +106,8 @@ def _validate_rows(import_type, import_event_id, i):
 @task()
 def commit_import_event(import_type, import_event_id):
     ie = _get_import_event(import_type, import_event_id)
-    filevalid = ie.validate_main_file()
-
-    if filevalid:
-        rows = ie.rows()
-        for i in xrange(0, rows.count(), BLOCK_SIZE):
-            _commit_rows.delay(import_type, import_event_id, i)
+    for i in xrange(0, ie.row_count, BLOCK_SIZE):
+        _commit_rows.delay(import_type, import_event_id, i)
 
 
 @task()
