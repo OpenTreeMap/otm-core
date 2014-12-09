@@ -710,7 +710,7 @@ def export_single_tree_import(request, instance, import_event_id):
                 if species:
                     obj[fields.trees.GENUS] = species.genus
                     obj[fields.trees.SPECIES] = species.species
-                    obj[fields.trees.CULTIVAR] = species.cultivar_name
+                    obj[fields.trees.CULTIVAR] = species.cultivar
                     obj[fields.trees.OTHER_PART_OF_NAME] =\
                         species.other_part_of_name
 
