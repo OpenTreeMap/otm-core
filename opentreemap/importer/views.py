@@ -36,16 +36,13 @@ from importer.util import lowerkeys
 
 
 def _find_similar_species(target, instance):
-    species = Species.objects\
-                     .filter(instance=instance)\
-                     .extra(
-                         select={
-                             'l': ("levenshtein(genus || ' ' || species || "
-                                   "' ' || cultivar || ' ' || "
-                                   "other_part_of_name, %s)")
-                         },
-                         select_params=(target,))\
-                     .order_by('l')[0:2]  # Take top 2
+    search_exp = " || ".join(["genus", "' '", "species", "' '",
+                              "cultivar", "' '", "other_part_of_name"])
+    lev_exp = "levenshtein(%s, %%s)" % search_exp
+    species = (Species.objects
+               .filter(instance=instance)
+               .extra(select={'l': lev_exp}, select_params=(target,))
+               .order_by('l')[0:2])  # Take top 2
 
     output = [{fields.trees.GENUS: s.genus,
                fields.trees.SPECIES: s.species,
