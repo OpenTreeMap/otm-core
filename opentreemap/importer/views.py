@@ -86,22 +86,13 @@ def counts(request, instance):
 def start_import(request, instance):
     import_type = request.REQUEST['type']
     if import_type == TreeImportEvent.import_type:
-        kwargs = {
-            'plot_length_conversion_factor':
-            float(request.REQUEST.get('unit_plot_length', 1.0)),
-
-            'plot_width_conversion_factor':
-            float(request.REQUEST.get('unit_plot_width', 1.0)),
-
-            'diameter_conversion_factor':
-            float(request.REQUEST.get('unit_diameter', 1.0)),
-
-            'tree_height_conversion_factor':
-            float(request.REQUEST.get('unit_tree_height', 1.0)),
-
-            'canopy_height_conversion_factor':
-            float(request.REQUEST.get('unit_canopy_height', 1.0))
-        }
+        factors = {'plot_length_conversion_factor': 'unit_plot_length',
+                   'plot_width_conversion_factor': 'unit_plot_width',
+                   'diameter_conversion_factor': 'unit_diameter',
+                   'tree_height_conversion_factor': 'unit_tree_height',
+                   'canopy_height_conversion_factor': 'unit_canopy_height'}
+        kwargs = {k: float(request.REQUEST.get(v, 1.0))
+                  for (k, v) in factors.items()}
     else:
         kwargs = {
             'max_diameter_conversion_factor':
