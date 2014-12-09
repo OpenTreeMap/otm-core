@@ -1,5 +1,18 @@
 // Partial: Navbar
 
+// TODO: Copied from Bootstrap v3.3.1.  Remove when updating Bootstrap
+.visible-xs-inline,.visible-xs-inline-block {
+    display: none !important;
+}
+@media (max-width:767px) {
+    .visible-xs-inline {
+        display: inline !important;
+    }
+    .visible-xs-inline-block {
+        display: inline-block !important;
+    }
+}
+
 .navbar {
     font-size: 1.6rem;
     margin-bottom: 0;
