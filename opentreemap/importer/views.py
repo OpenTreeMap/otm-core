@@ -309,7 +309,7 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
 
 def _add_species_resolver_to_fields(collected_fields, row):
     species_error_fields = ((f, v) for f, v in collected_fields.items()
-                            if f in ('species', 'genus', 'cultivar')
+                            if f in fields.trees.SPECIES_FIELDS
                             and v.get('css_class'))
 
     for field, existing in species_error_fields:

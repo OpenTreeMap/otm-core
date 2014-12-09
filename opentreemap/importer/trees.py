@@ -302,8 +302,7 @@ class TreeImportRow(GenericImportRow):
         other_part = self.datadict.get(fs.OTHER_PART_OF_NAME, '')
 
         def append_species_error(error):
-            self.append_error(error,
-                              (fs.GENUS, fs.SPECIES, fs.CULTIVAR),
+            self.append_error(error, fs.SPECIES_FIELDS,
                               ' '.join([genus, species, cultivar]).strip())
 
         # This is a workaround.
