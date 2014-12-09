@@ -102,6 +102,9 @@ class trees(object):
     CANOPY_HEIGHT = 'canopy height'
     DATE_PLANTED = 'date planted'
 
+    # order matters, so this is a tuple and not a set
+    SPECIES_FIELDS = (GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME)
+
     DATE_FIELDS = {DATE_PLANTED}
 
     STRING_FIELDS = {STREET_ADDRESS, CITY_ADDRESS, POSTAL_CODE, GENUS,

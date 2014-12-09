@@ -2,9 +2,11 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
-    format = require('util').format,
+    R = require('ramda'),
+    toastr = require('toastr'),
     Bacon = require('baconjs'),
     popover = require('treemap/popover'),
+    otmTypeahead = require('treemap/otmTypeahead'),
     BU = require('treemap/baconUtils');
 
 var dom = {
@@ -15,8 +17,40 @@ var dom = {
     rowInMergeRequiredTable: '#import-panel-merge_required .js-import-row',
     mergeControls: '.js-merge-controls',
     hideMergeControlsButton: '.js-hide',
-    mergeButton: '.js-merge'
+    mergeButton: '.js-merge',
+    resolver: {
+        popupContainer: '.popover-content',
+        saveButton: '.resolver-popover-accept',
+        events: {shown: 'shown.bs.popover'},
+        species: {input: '.species-resolver-typeahead',
+                  hidden: '.species-resolver-typeahead-hidden',
+                  typeaheadRowTemplate: '#species-element-template'}
+    }
 };
+
+function initTypeaheads() {
+    // find all species popovers and initialize a typeahead in each one
+    // we can't use the event target because it will be the popupTrigger,
+    // not the popupContainer.
+    _.each($(dom.resolver.popupContainer), function (container) {
+        var $c = $(container),
+            $input = $c.find(dom.resolver.species.input),
+            $hidden = $c.find(dom.resolver.species.hidden);
+
+        // make sure this is a species popover
+        if (R.every(R.not(_.isEmpty), [$input, $hidden])) {
+            otmTypeahead.create({
+                name: "species-resolver",
+                template: dom.resolver.species.typeaheadRowTemplate,
+                url: $input.attr('data-typeahead-url'),
+                input: $input,
+                hidden: $hidden,
+                reverse: "id",
+                forceMatch: true
+            });
+        }
+    });
+}
 
 function init($container, viewStatusStream) {
     // Define events on the container so we can replace its contents
@@ -35,13 +69,18 @@ function init($container, viewStatusStream) {
         .flatMap(mergeRow)
         .onValue($container, 'html');
 
-    popover.init($container)
-        .map('.currentTarget')
-        .map($)
-        .filter('.is', '.resolver-popover-accept')
-        .onValue(updateRow, $container);
+    var popoverSaveStream = popover.init($container)
+            .map('.currentTarget')
+            .map($)
+            .filter('.is', dom.resolver.saveButton);
+
+    var isSpeciesPopover = function ($el) { return $el.is('[data-field-name="species"]'); };
+
+    popoverSaveStream.filter(isSpeciesPopover).onValue(updateSpeciesRow, $container);
+    popoverSaveStream.filter(R.not(isSpeciesPopover)).onValue(updateRow, $container);
 
     containerLoadedStream.merge(viewStatusStream).onValue(popover.activateAll);
+    $container.on(dom.resolver.events.shown, initTypeaheads);
 
     // Return the containerLoadedStream so importLists.js knows to start
     // polling for updates
@@ -69,11 +108,29 @@ function hideMergeControls(e) {
 }
 
 function updateRow($container, $el) {
+    var rowData = getRowData($container, $el);
+    $container.load(rowData.url, rowData.data, popover.activateAll);
+}
+
+function updateSpeciesRow($container, $el) {
+    var rowData = getRowData($container, $el);
+    if (R.every(R.not(_.isEmpty), [rowData.fieldName, rowData.updatedValue])) {
+        $container.load(rowData.url, rowData.data, popover.activateAll);
+    } else {
+        toastr.error("Cannot save empty species");
+    }
+}
+
+function getRowData($container, $el) {
     var fieldName = $el.attr('data-field-name'),
-        updatedValue = $el.parent().find(".popover-correction").val(),
-        url = $el.attr('data-url'),
-        data = _.object([fieldName], [updatedValue]);
-    $container.load(url, data, popover.activateAll);
+        updatedValue = $el.parent().find(".popover-correction").val();
+
+    return {
+        fieldName: fieldName,
+        updatedValue: updatedValue,
+        url: $el.attr('data-url'),
+        data: _.object([fieldName], [updatedValue])
+    };
 }
 
 function mergeRow(e) {

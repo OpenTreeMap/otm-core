@@ -1,0 +1,23 @@
+{% extends "treemap/partials/popover.html" %}
+{% load l10n %}
+
+{% block title %}Could not find matching species{% endblock title %}
+
+{% block content %}
+<p>That species couldn't be found in the database</p>
+<p>Did you mean: "{{ field.custom_resolver.suggestion.display_name }}"?</p>
+<input type="hidden"
+       data-typeahead-hidden="true"
+       class="species-resolver-typeahead-hidden popover-correction"
+       value="{{ field.custom_resolver.suggestion.pk|unlocalize }}"/>
+<input class="popover-correction species-resolver-typeahead"
+       data-typeahead-url="{% url 'species_list_view' instance_url_name=request.instance %}"
+       value="{{ field.custom_resolver.suggestion.display_name }}"/>
+{% endblock content %}
+
+{% block extra_save_classes %}resolver-popover-accept{% endblock extra_save_classes %}
+
+{% block extra_save_attributes %}
+data-url="{% url 'importer:update_row' instance_url_name=request.instance.url_name import_type=panel.import_type row_id=field.row_id %}"
+data-field-name="species"
+{% endblock extra_save_attributes %}

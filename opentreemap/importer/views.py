@@ -35,27 +35,23 @@ from importer import errors, fields
 from importer.util import lowerkeys
 
 
-def find_similar_species(request, instance):
-    target = request.REQUEST['target']
-
-    species = Species.objects\
-                     .filter(instance=instance)\
-                     .extra(
-                         select={
-                             'l': ("levenshtein(genus || ' ' || species || "
-                                   "' ' || cultivar_name || ' ' || "
-                                   "other_part_of_name, %s)")
-                         },
-                         select_params=(target,))\
-                     .order_by('l')[0:2]  # Take top 2
+def _find_similar_species(target, instance):
+    search_exp = " || ".join(["genus", "' '", "species", "' '",
+                              "cultivar", "' '", "other_part_of_name"])
+    lev_exp = "levenshtein(%s, %%s)" % search_exp
+    species = (Species.objects
+               .filter(instance=instance)
+               .extra(select={'l': lev_exp}, select_params=(target,))
+               .order_by('l')[0:2])  # Take top 2
 
     output = [{fields.trees.GENUS: s.genus,
                fields.trees.SPECIES: s.species,
-               fields.trees.CULTIVAR: s.cultivar_name,
+               fields.trees.CULTIVAR: s.cultivar,
                fields.trees.OTHER_PART_OF_NAME: s.other_part_of_name,
+               'display_name': s.display_name,
                'pk': s.pk} for s in species]
 
-    return HttpResponse(json.dumps(output), content_type='application/json')
+    return output
 
 
 def counts(request, instance):
@@ -311,6 +307,21 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
     }
 
 
+def _add_species_resolver_to_fields(collected_fields, row):
+    species_error_fields = ((f, v) for f, v in collected_fields.items()
+                            if f in fields.trees.SPECIES_FIELDS
+                            and v.get('css_class'))
+
+    for field, existing in species_error_fields:
+        species_text = row.datadict.get('genus')
+        if species_text:
+            existing['custom_resolver']['is_species'] = True
+            instance = row.import_event.instance
+            suggesteds = _find_similar_species(species_text, instance)
+            if suggesteds:
+                existing['custom_resolver']['suggestion'] = suggesteds[0]
+
+
 def _get_row_data(row, field_names, merge_required):
     """
     For each field with errors in each row, expand into an object
@@ -330,7 +341,7 @@ def _get_row_data(row, field_names, merge_required):
             field_data = collected_fields.get(field, {})
             if not field_data or css_class == 'error':
                 field_data['name'] = field
-                field_data['value'] = row.datadict[field]
+                field_data['value'] = row.datadict.get(field, '')
                 field_data['css_class'] = css_class
                 if row_error['code'] != errors.MERGE_REQUIRED[0]:
                     field_data['show_resolver'] = True
@@ -343,6 +354,10 @@ def _get_row_data(row, field_names, merge_required):
             collected_fields[field] = {'name': field,
                                        'value': row.datadict[field],
                                        'css_class': ''}
+
+    if row.import_event.import_type == TreeImportEvent.import_type:
+        _add_species_resolver_to_fields(collected_fields, row)
+
     fields = [collected_fields[f] for f in field_names]
     row_data = {'index': row.idx, 'fields': fields}
 
@@ -695,7 +710,7 @@ def export_single_tree_import(request, instance, import_event_id):
                 if species:
                     obj[fields.trees.GENUS] = species.genus
                     obj[fields.trees.SPECIES] = species.species
-                    obj[fields.trees.CULTIVAR] = species.cultivar_name
+                    obj[fields.trees.CULTIVAR] = species.cultivar
                     obj[fields.trees.OTHER_PART_OF_NAME] =\
                         species.other_part_of_name
 

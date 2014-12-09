@@ -1,16 +1,11 @@
 "use strict";
 
 var $ = require('jquery'),
+    R = require('ramda'),
     Bacon = require('baconjs'),
     _ = require('lodash'),
 
     dom = {
-        // popovers live in a detached portion of the DOM
-        // that is not wrapped in any specific div. Here
-        // we abstract over that implementation detail so
-        // that it does not appear that events are carelessly
-        // scoped to body due to programmer error.
-        popupContainer: 'body',
         popupTriggers: '[data-toggle="popover"]',
         popup: {
             outermostElement: 'div.popover',
@@ -28,12 +23,7 @@ var $ = require('jquery'),
 require('bootstrap');
 
 function hideAssociatedPopup(event) {
-    // When this event happens, there is no link back to
-    // the element who owns this popover, so we can't do
-    // a simple thing like:
-    // $(event.currentTarget).owner().popover(actions.hide);
-    // we have to manually hide the popup.
-    $(event.currentTarget).closest(dom.popup.outermostElement).hide();
+    $(event.currentTarget).closest(dom.popupTriggers).popover(actions.hide);
 }
 
 function showPopup (event) {
@@ -42,11 +32,13 @@ function showPopup (event) {
 }
 
 exports.init = function ($container) {
+    // any click inside a popup must stop propagating because it will clash
+    // with the click behavior on its container
+    $container.on('click', dom.popup.outermostElement, R.func('stopPropagation'));
+    $container.on('click', dom.popup.cancelButton, hideAssociatedPopup);
     $container.on('click', dom.popupTriggers, showPopup);
-    $(dom.popupContainer).on('click', dom.popup.cancelButton, hideAssociatedPopup);
 
-    var acceptStream = $(dom.popupContainer)
-            .asEventStream('click', dom.popup.acceptButton);
+    var acceptStream = $container.asEventStream('click', dom.popup.acceptButton);
     acceptStream.onValue(hideAssociatedPopup);
     return acceptStream;
 };
@@ -56,7 +48,9 @@ exports.activateAll = function () {
     _.each($(dom.popupTriggers), function (cell) {
         var $cell = $(cell),
             $data = $cell.find(dom.popup.innerData),
-            data = _.isEmpty($data) ? {} : {content: $data.html(), html: true };
+            data = _.isEmpty($data) ? {} : {content: $data.html(),
+                                            container: cell,
+                                            html: true };
         $cell.popover(data);
     });
 };
