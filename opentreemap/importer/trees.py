@@ -302,8 +302,9 @@ class TreeImportRow(GenericImportRow):
         other_part = self.datadict.get(fs.OTHER_PART_OF_NAME, '')
 
         def append_species_error(error):
-            self.append_error(error, fs.SPECIES_FIELDS,
-                              ' '.join([genus, species, cultivar]).strip())
+            error_fields = [genus, species, cultivar, other_part]
+            error_txt = ' '.join(error_fields).strip()
+            self.append_error(error, fs.SPECIES_FIELDS, error_txt)
 
         # This is a workaround.
         # the row correction workflow that we use is highly abstracted
@@ -325,7 +326,8 @@ class TreeImportRow(GenericImportRow):
                             fs.CULTIVAR: obj.cultivar,
                             fs.OTHER_PART_OF_NAME: obj.other_part_of_name})
             self.datadict = newdict
-        elif genus != '' or species != '' or cultivar != '':
+        elif (genus != '' or species != '' or
+              cultivar != '' or other_part != ''):
             matching_species = Species.objects.filter(
                 instance_id=self.import_event.instance_id,
                 genus__iexact=genus,

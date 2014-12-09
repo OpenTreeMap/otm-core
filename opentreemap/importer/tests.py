@@ -1059,7 +1059,7 @@ class TreeIntegrationTests(IntegrationTests):
 
         gflds = [fields.trees.POINT_X, fields.trees.POINT_Y]
         sflds = [fields.trees.GENUS, fields.trees.SPECIES,
-                 fields.trees.CULTIVAR]
+                 fields.trees.CULTIVAR, fields.trees.OTHER_PART_OF_NAME]
 
         j = self.run_through_process_views(csv)
         ierrors = self.extract_errors(j)
