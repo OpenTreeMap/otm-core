@@ -24,7 +24,7 @@ from django_tinsel.decorators import render_template
 from treemap.models import Species, Tree, User
 from treemap.decorators import (admin_instance_request, require_http_method,
                                 requires_feature)
-from treemap.units import get_conversion_factor
+from treemap.units import (get_conversion_factor, get_value_display_attr)
 
 from importer.models import GenericImportEvent, GenericImportRow
 from importer.trees import TreeImportEvent, TreeImportRow
@@ -121,7 +121,16 @@ def list_imports(request, instance):
     active_events = list(active_trees) + list(active_species)
     imports_finished = all(ie.is_finished() for ie in active_events)
 
-    return {'active_trees': active_trees,
+    instance_units = {k + '_' + v:
+                      get_value_display_attr(instance, k, v, 'units')[1]
+                      for k, v in [('plot', 'width'),
+                                   ('plot', 'length'),
+                                   ('tree', 'height'),
+                                   ('tree', 'diameter'),
+                                   ('tree', 'canopy_height')]}
+
+    return {'importer_instance_units': instance_units,
+            'active_trees': active_trees,
             'finished_trees': finished_trees,
             'active_species': active_species,
             'finished_species': finished_species,
