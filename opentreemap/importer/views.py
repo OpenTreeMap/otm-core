@@ -341,7 +341,7 @@ def _get_row_data(row, field_names, merge_required):
             field_data = collected_fields.get(field, {})
             if not field_data or css_class == 'error':
                 field_data['name'] = field
-                field_data['value'] = row.datadict[field]
+                field_data['value'] = row.datadict.get(field, '')
                 field_data['css_class'] = css_class
                 if row_error['code'] != errors.MERGE_REQUIRED[0]:
                     field_data['show_resolver'] = True
