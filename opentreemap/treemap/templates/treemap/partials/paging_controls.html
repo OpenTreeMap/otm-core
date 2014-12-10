@@ -1,3 +1,5 @@
+{% load l10n %}
+
 {% load paging %}
 <div class="row center-block text-center">
     <ul class="pagination">
@@ -13,20 +15,20 @@
         <li class="disabled"><a>&laquo;</a></li>
       {% endif %}
       {% for page_num in paging.paginator.page_range|four_before_page:paging.number %}
-        <li><a href="{{ url }}&page={{ page_num }}">{{ page_num }}</a></li>
+        <li><a href="{{ url }}&page={{ page_num|unlocalize }}">{{ page_num }}</a></li>
       {% endfor %}
       <li class="active">
           <a>{{ paging.number }} <span class="sr-only">(current)</span></a>
       </li>
       {% for page_num in paging.paginator.page_range|four_after_page:paging.number %}
-        <li><a href="{{ url }}&page={{ page_num }}">{{ page_num }}</a></li>
+        <li><a href="{{ url }}&page={{ page_num|unlocalize }}">{{ page_num }}</a></li>
       {% endfor %}
       {% if paging.has_next %}
         <li>
-            <a href="{{ url }}&page={{ paging.next_page_number }}">&raquo;</a>
+            <a href="{{ url }}&page={{ paging.next_page_number|unlocalize }}">&raquo;</a>
         </li>
         <li>
-          <a href="{{ url }}&page={{ paging.paginator.num_pages }}"><i class="icon-to-end"></i></a>
+          <a href="{{ url }}&page={{ paging.paginator.num_pages|unlocalize }}"><i class="icon-to-end"></i></a>
         </li>
       {% else %}
         <li class="disabled"><a>&raquo;</a></li>
