@@ -159,11 +159,6 @@ class SpeciesImportRow(GenericImportRow):
         cultivar = self.datadict.get(fields.species.CULTIVAR, '')
         other_part = self.datadict.get(fields.species.OTHER_PART_OF_NAME, '')
 
-        self.cleaned[fields.species.GENUS] = genus
-        self.cleaned[fields.species.SPECIES] = species
-        self.cleaned[fields.species.CULTIVAR] = cultivar
-        self.cleaned[fields.species.OTHER_PART_OF_NAME] = other_part
-
         if genus != '' or species != '' or cultivar != '' or other_part != '':
             matching_species = Species.objects.filter(
                 instance_id=self.import_event.instance_id,
@@ -171,6 +166,16 @@ class SpeciesImportRow(GenericImportRow):
                 species__iexact=species,
                 cultivar__iexact=cultivar,
                 other_part_of_name__iexact=other_part)
+
+            if matching_species.count() > 1:
+                # Try using row's common name to disambiguate. Note that it
+                # might not match (and so require a merge) (which is why we
+                # didn't use it above).
+                common_name = self.datadict.get(fields.species.COMMON_NAME, '')
+                match_common_name = matching_species.filter(
+                    common_name__iexact=common_name)
+                if match_common_name.count() == 1:
+                    matching_species = match_common_name
 
             self.cleaned[fields.species.POSSIBLE_MATCHES] \
                 |= {s.pk for s in matching_species}
