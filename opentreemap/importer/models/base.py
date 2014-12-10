@@ -138,18 +138,18 @@ class GenericImportEvent(models.Model):
         is_valid = True
 
         legal_fields, required_fields = self.legal_and_required_fields()
-        input_fields = set(input_fields)
 
         # Extra input fields cause a fatal error
-        extra = input_fields.difference(legal_fields)
+        extra = [field for field in input_fields
+                 if field not in legal_fields]
         if len(extra) > 0:
             is_valid = False
             self.append_error(errors.UNMATCHED_FIELDS, list(extra))
 
-        missing_required_fields = required_fields - input_fields
-        for field in missing_required_fields:
-            is_valid = False
-            self.append_error(errors.MISSING_FIELD, data=[field])
+        for field in required_fields:
+            if field not in input_fields:
+                is_valid = False
+                self.append_error(errors.MISSING_FIELD, data=[field])
 
         return is_valid
 
