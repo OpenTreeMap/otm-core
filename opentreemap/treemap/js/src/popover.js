@@ -11,7 +11,8 @@ var $ = require('jquery'),
             outermostElement: 'div.popover',
             cancelButton: '.popover-cancel',
             acceptButton: '.popover-accept',
-            innerData: '.popover-data'
+            innerData: '.popover-data',
+            input: 'input.popover-correction'
         }
     },
 
@@ -29,6 +30,7 @@ function hideAssociatedPopup(event) {
 function showPopup (event) {
     $(dom.popupTriggers).not(event.currentTarget).popover(actions.hide);
     $(event.currentTarget).popover(actions.show);
+    $(dom.popup.input).focus().select();
 }
 
 exports.init = function ($container) {
