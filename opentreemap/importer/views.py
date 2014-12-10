@@ -434,7 +434,8 @@ def _get_merge_data(row, field_names, row_errors):
             'values': [
                 _get_diff_value(dom_name, 0, row_data[field_name])
             ] + [
-                _get_diff_value(dom_name, i + 1, diffs[field_name][0])
+                _get_diff_value(dom_name, i + 1,
+                                diffs.get(field_name, [''])[0])
                 for i, diffs in enumerate(species_diffs)
             ]
         }
