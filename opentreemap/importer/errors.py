@@ -30,7 +30,8 @@ GEOM_OUT_OF_BOUNDS = (11, 'Geometry must be inside the map bounds', True)
 
 EXCL_ZONE = (12, 'Geometry may not be in an exclusion zone', True)
 
-INVALID_SPECIES = (20, 'Could not find matching species', True)
+INVALID_SPECIES = (20, 'Could not find species with the given '
+                   'scientific name.', True)
 DUPLICATE_SPECIES = (21, 'More than one species matches the given '
                      'scientific name.', True)
 

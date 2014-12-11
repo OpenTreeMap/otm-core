@@ -1,10 +1,10 @@
 {% extends "treemap/partials/popover.html" %}
 {% load l10n %}
 
-{% block title %}Could not find matching species{% endblock title %}
+{% block title %}Species Field Error{% endblock title %}
 
 {% block content %}
-<p>That species couldn't be found in the database</p>
+<p>{{ field.msg }}</p>
 <p>Did you mean: "{{ field.custom_resolver.suggestion.display_name }}"?</p>
 <input type="hidden"
        data-typeahead-hidden="true"

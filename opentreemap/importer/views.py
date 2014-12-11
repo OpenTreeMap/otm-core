@@ -580,7 +580,6 @@ def process_csv(request, instance, import_type, **kwargs):
                           **kwargs)
     ie.save()
 
-    #run_import_event_validation(import_type, ie.pk, file_obj)
     run_import_event_validation.delay(import_type, ie.pk, file_obj)
 
     return ie.pk
