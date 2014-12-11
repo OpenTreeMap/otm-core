@@ -434,7 +434,8 @@ def _get_merge_data(row, field_names, row_errors):
             'values': [
                 _get_diff_value(dom_name, 0, row_data[field_name])
             ] + [
-                _get_diff_value(dom_name, i + 1, diffs[field_name][0])
+                _get_diff_value(dom_name, i + 1,
+                                diffs.get(field_name, [''])[0])
                 for i, diffs in enumerate(species_diffs)
             ]
         }
@@ -579,7 +580,6 @@ def process_csv(request, instance, import_type, **kwargs):
                           **kwargs)
     ie.save()
 
-    #run_import_event_validation(import_type, ie.pk, file_obj)
     run_import_event_validation.delay(import_type, ie.pk, file_obj)
 
     return ie.pk

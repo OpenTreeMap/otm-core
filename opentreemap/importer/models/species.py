@@ -112,8 +112,13 @@ class SpeciesImportRow(GenericImportRow):
             # Note if row_data == False we want row_has_value == True
             row_has_value = row_data is not None and row_data != ''
 
-            if row_has_value and row_data != model_data:
-                diffs[row_key] = (model_data, row_data)
+            if row_has_value:
+                if row_key in fields.species.STRING_FIELDS:
+                    is_different = row_data.lower() != model_data.lower()
+                else:
+                    is_different = row_data != model_data
+                if is_different:
+                    diffs[row_key] = (model_data, row_data)
 
         # Always include the ID (so the client can use it)
         diffs['id'] = (species.pk, None)
@@ -154,11 +159,6 @@ class SpeciesImportRow(GenericImportRow):
         cultivar = self.datadict.get(fields.species.CULTIVAR, '')
         other_part = self.datadict.get(fields.species.OTHER_PART_OF_NAME, '')
 
-        self.cleaned[fields.species.GENUS] = genus
-        self.cleaned[fields.species.SPECIES] = species
-        self.cleaned[fields.species.CULTIVAR] = cultivar
-        self.cleaned[fields.species.OTHER_PART_OF_NAME] = other_part
-
         if genus != '' or species != '' or cultivar != '' or other_part != '':
             matching_species = Species.objects.filter(
                 instance_id=self.import_event.instance_id,
@@ -166,6 +166,16 @@ class SpeciesImportRow(GenericImportRow):
                 species__iexact=species,
                 cultivar__iexact=cultivar,
                 other_part_of_name__iexact=other_part)
+
+            if matching_species.count() > 1:
+                # Try using row's common name to disambiguate. Note that it
+                # might not match (and so require a merge) (which is why we
+                # didn't use it above).
+                common_name = self.datadict.get(fields.species.COMMON_NAME, '')
+                match_common_name = matching_species.filter(
+                    common_name__iexact=common_name)
+                if match_common_name.count() == 1:
+                    matching_species = match_common_name
 
             self.cleaned[fields.species.POSSIBLE_MATCHES] \
                 |= {s.pk for s in matching_species}

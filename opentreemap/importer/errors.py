@@ -13,8 +13,7 @@ from __future__ import division
 # rows from being loaded and validated.
 #
 EMPTY_FILE = (1, 'No rows found', True)
-UNMATCHED_FIELDS = (3, "There were some fields in the "
-                    "file that didn't match the template", False)
+UNMATCHED_FIELDS = (3, "Unrecognized fields in header row", False)
 MISSING_FIELD = (5, 'This field is required', True)
 GENERIC_ERROR = (6, 'An exception was raised while uploading the file', True)
 
@@ -31,9 +30,10 @@ GEOM_OUT_OF_BOUNDS = (11, 'Geometry must be inside the map bounds', True)
 
 EXCL_ZONE = (12, 'Geometry may not be in an exclusion zone', True)
 
-INVALID_SPECIES = (20, 'Could not find matching species', True)
-DUPLICATE_SPECIES = (21, 'More than one species matches the given Genus, '
-                     'Species, Cultivar, Other Part of Name.', True)
+INVALID_SPECIES = (20, 'Could not find species with the given '
+                   'scientific name.', True)
+DUPLICATE_SPECIES = (21, 'More than one species matches the given '
+                     'scientific name.', True)
 
 INVALID_OTM_ID = (30, 'The given Open Tree Map ID does not exist '
                   'in the system. This ID is automatically generated '
