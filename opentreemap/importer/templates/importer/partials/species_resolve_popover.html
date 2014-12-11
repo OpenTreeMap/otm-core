@@ -11,7 +11,7 @@
        class="species-resolver-typeahead-hidden popover-correction"
        value="{{ field.custom_resolver.suggestion.pk|unlocalize }}"/>
 <input class="popover-correction species-resolver-typeahead"
-       data-typeahead-url="{% url 'species_list_view' instance_url_name=request.instance %}"
+       data-typeahead-url="{% url 'species_list_view' instance_url_name=request.instance.url_name %}"
        value="{{ field.custom_resolver.suggestion.display_name }}"/>
 {% endblock content %}
 

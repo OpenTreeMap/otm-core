@@ -11,7 +11,7 @@ from django.contrib.gis.measure import D
 from treemap.models import Species, Plot, Tree
 from treemap.lib.object_caches import udf_defs
 
-from importer.models import GenericImportRow, GenericImportEvent
+from importer.models.base import GenericImportRow, GenericImportEvent
 from importer import fields
 from importer import errors
 
@@ -30,8 +30,8 @@ class TreeImportEvent(GenericImportEvent):
     tree_height_conversion_factor = models.FloatField(default=1.0)
     canopy_height_conversion_factor = models.FloatField(default=1.0)
 
-    def create_row(self, *args, **kwargs):
-        return TreeImportRow.objects.create(*args, **kwargs)
+    class Meta:
+        app_label = 'importer'
 
     def row_set(self):
         return self.treeimportrow_set
@@ -43,7 +43,7 @@ class TreeImportEvent(GenericImportEvent):
         # Prefix with model name, e.g. "Density" -> "Tree: Density"
         return "%s: %s" % (udf_def.model_type.lower(), udf_def.name.lower())
 
-    def validate_main_file(self):
+    def legal_and_required_fields(self):
         def udf_column_names(model_name):
             return {self.get_udf_column_name(udf_def)
                     for udf_def in udf_defs(self.instance, model_name)}
@@ -53,9 +53,7 @@ class TreeImportEvent(GenericImportEvent):
 
         legal_fields = fields.trees.ALL | plot_udfs | tree_udfs
 
-        return self._validate_field_names(legal_fields,
-                                          {fields.trees.POINT_X,
-                                           fields.trees.POINT_Y})
+        return (legal_fields, {fields.trees.POINT_X, fields.trees.POINT_Y})
 
 
 class TreeImportRow(GenericImportRow):
@@ -86,6 +84,9 @@ class TreeImportRow(GenericImportRow):
 
     # The main import event
     import_event = models.ForeignKey(TreeImportEvent)
+
+    class Meta:
+        app_label = 'importer'
 
     @property
     def model_fields(self):
@@ -147,8 +148,6 @@ class TreeImportRow(GenericImportRow):
         self.plot = plot
         self.status = TreeImportRow.SUCCESS
         self.save()
-
-        return True
 
     def _commit_plot_data(self, data, plot):
         plot_edited = False

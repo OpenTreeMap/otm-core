@@ -26,13 +26,13 @@ from treemap.decorators import (admin_instance_request, require_http_method,
                                 requires_feature)
 from treemap.units import get_conversion_factor
 
-from importer.models import GenericImportEvent, GenericImportRow
-from importer.trees import TreeImportEvent, TreeImportRow
-from importer.species import SpeciesImportEvent, SpeciesImportRow
+from importer.models.base import GenericImportEvent, GenericImportRow
+from importer.models.trees import TreeImportEvent, TreeImportRow
+from importer.models.species import SpeciesImportEvent, SpeciesImportRow
 from importer.tasks import (run_import_event_validation, commit_import_event,
                             get_import_event_model, get_import_row_model)
 from importer import errors, fields
-from importer.util import lowerkeys
+from importer.util import clean_row_data
 
 
 def _find_similar_species(target, instance):
@@ -579,6 +579,7 @@ def process_csv(request, instance, import_type, **kwargs):
                           **kwargs)
     ie.save()
 
+    #run_import_event_validation(import_type, ie.pk, file_obj)
     run_import_event_validation.delay(import_type, ie.pk, file_obj)
 
     return ie.pk
@@ -649,7 +650,7 @@ def export_single_species_import(request, instance, import_event_id):
             obj = _build_species_object(r.species, fieldmap,
                                         all_species_fields)
         else:
-            obj = lowerkeys(json.loads(r.data))
+            obj = clean_row_data(json.loads(r.data))
 
         writer.writerow(obj)
 
@@ -720,7 +721,7 @@ def export_single_tree_import(request, instance, import_event_id):
                 obj[fields.trees.DATE_PLANTED] = tree.date_planted
 
         else:
-            obj = lowerkeys(json.loads(r.data))
+            obj = clean_row_data(json.loads(r.data))
 
         writer.writerow(obj)
 

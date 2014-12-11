@@ -12,7 +12,7 @@ from treemap.models import (Species, ITreeCodeOverride, ITreeRegion, User)
 from treemap.species import species_for_scientific_name
 from treemap.species.codes import all_itree_region_codes
 
-from importer.models import GenericImportEvent, GenericImportRow
+from importer.models.base import GenericImportEvent, GenericImportRow
 from importer import fields
 from importer import errors
 
@@ -28,13 +28,13 @@ class SpeciesImportEvent(GenericImportEvent):
     max_diameter_conversion_factor = models.FloatField(default=1.0)
     max_tree_height_conversion_factor = models.FloatField(default=1.0)
 
+    class Meta:
+        app_label = 'importer'
+
     def __init__(self, *args, **kwargs):
         super(SpeciesImportEvent, self).__init__(*args, **kwargs)
         self.all_region_codes = all_itree_region_codes()
         self.instance_region_codes = self.instance.itree_region_codes()
-
-    def create_row(self, *args, **kwargs):
-        return SpeciesImportRow.objects.create(*args, **kwargs)
 
     def row_set(self):
         return self.speciesimportrow_set
@@ -48,10 +48,9 @@ class SpeciesImportEvent(GenericImportEvent):
         else:
             return super(SpeciesImportEvent, self).status_summary()
 
-    def validate_main_file(self):
-        return self._validate_field_names(fields.species.ALL,
-                                          {fields.species.GENUS,
-                                           fields.species.COMMON_NAME})
+    def legal_and_required_fields(self):
+        return (fields.species.ALL,
+                {fields.species.GENUS, fields.species.COMMON_NAME})
 
 
 class SpeciesImportRow(GenericImportRow):
@@ -82,6 +81,9 @@ class SpeciesImportRow(GenericImportRow):
     merged = models.BooleanField(default=False)
 
     import_event = models.ForeignKey(SpeciesImportEvent)
+
+    class Meta:
+        app_label = 'importer'
 
     def diff_from_species(self, species):
         """ Compute how this row is different from the given species.

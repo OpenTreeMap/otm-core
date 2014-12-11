@@ -30,8 +30,8 @@ from treemap.udf import UserDefinedFieldDefinition
 
 from importer import errors, fields
 from importer.tasks import _create_rows_for_event
-from importer.trees import TreeImportEvent, TreeImportRow
-from importer.species import SpeciesImportEvent, SpeciesImportRow
+from importer.models.trees import TreeImportEvent, TreeImportRow
+from importer.models.species import SpeciesImportEvent, SpeciesImportRow
 from importer.views import (process_csv, process_status,
                             commit, merge_species, start_import)
 
@@ -746,11 +746,9 @@ class FileLevelTreeValidationTest(TestCase):
 
         base_rows = TreeImportRow.objects.count()
 
-        c = self.write_csv([['header_field1', 'header_fields2',
-                             'header_field3']])
+        c = self.write_csv([['point x', 'point y']])
 
-        _create_rows_for_event(ie, c)
-        rslt = ie.validate_main_file()
+        rslt = _create_rows_for_event(ie, c)
 
         # No rows added and validation failed
         self.assertEqual(TreeImportRow.objects.count(), base_rows)
@@ -771,12 +769,11 @@ class FileLevelTreeValidationTest(TestCase):
 
         TreeImportRow.objects.count()
 
-        c = self.write_csv([['plot width', 'plot length'],
+        c = self.write_csv([['Plot width', 'Plot length'],
                             ['5', '5'],
                             ['8', '8']])
 
-        _create_rows_for_event(ie, c)
-        rslt = ie.validate_main_file()
+        rslt = _create_rows_for_event(ie, c)
 
         self.assertFalse(rslt)
 
@@ -800,8 +797,7 @@ class FileLevelTreeValidationTest(TestCase):
             ['123 Beach St', 'a', 'b', '5', '5'],
             ['222 Main St', 'a', 'b', '8', '8']])
 
-        _create_rows_for_event(ie, c)
-        rslt = ie.validate_main_file()
+        rslt = _create_rows_for_event(ie, c)
 
         self.assertFalse(rslt)
 

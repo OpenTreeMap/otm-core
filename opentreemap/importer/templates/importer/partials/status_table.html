@@ -1,7 +1,7 @@
 {% load i18n %}
 
 <div  class="tab-contents">
-     <table class="table {% if panel.name == 'merge_required' %}table-hover"{% endif %}>
+     <table class="table{% if panel.name == 'merge_required' %} table-hover{% endif %}">
         <thead>
             <tr>
                 {% for name in panel.field_names %}
