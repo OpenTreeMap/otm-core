@@ -15,22 +15,29 @@
     "ramda": "0.5.x"
   },
   "devDependencies": {
-    "grunt-browserify": "1.2.5",
+    "chai": "~1.8.1",
     "grunt": "0.4.1",
-    "grunt-contrib-watch": "0.6.1",
-    "grunt-shell": "1.1.1",
+    "grunt-browserify": "1.2.5",
+    "grunt-cli": "^0.1.9",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-cssmin": "~0.6.1",
     "grunt-contrib-jshint": "~0.6.0",
     "grunt-contrib-uglify": "~0.2.4",
-    "grunt-sass": "~0.6.1",
-    "grunt-contrib-cssmin": "~0.6.1",
-    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-watch": "0.6.1",
     "grunt-file-creator": "~0.1.1",
+    "grunt-sass": "~0.6.1",
+    "grunt-shell": "1.1.1",
     "mocha": "~1.14.0",
-    "chai": "~1.8.1"
+    "testem": "^0.6.24"
   },
   "repository": {
     "type": "git",
     "url": "git://github.com/azavea/OTM2.git"
+  },
+  "scripts": {
+    "test": "testem ci",
+    "check": "grunt check",
+    "grunt": "grunt"
   },
   "author": "Azavea",
   "license": "GPL3",
