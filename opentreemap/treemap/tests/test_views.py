@@ -48,7 +48,7 @@ from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_plain_user, LocalMediaTestCase, media_dir,
                            make_instance_user, set_invisible_permissions)
 from treemap.tests.base import OTMTestCase
-from treemap.tests.udfs import make_collection_udf
+from treemap.tests.test_udfs import make_collection_udf
 
 
 class InstanceValidationTest(OTMTestCase):

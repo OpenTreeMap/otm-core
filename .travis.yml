@@ -42,7 +42,7 @@ script:
   - flake8 --exclude migrations,opentreemap/settings/local_settings.py,*.pyc opentreemap
   - grunt check
   - testem ci -l firefox
-  - coverage run --source=. opentreemap/manage.py test
+  - cd opentreemap && coverage run --rcfile=../coveragerc --source=. manage.py test
 
 after_success:
   coveralls

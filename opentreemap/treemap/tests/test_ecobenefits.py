@@ -6,8 +6,8 @@ from __future__ import division
 import json
 
 from treemap.models import Plot, Tree, Species, ITreeRegion
-from treemap.tests import (UrlTestCase, make_instance, make_commander_user,
-                           make_request)
+from treemap.tests import make_instance, make_commander_user, make_request
+from treemap.tests.test_urls import UrlTestCase
 
 from treemap import ecobackend
 from treemap.ecobenefits import (TreeBenefitsCalculator,

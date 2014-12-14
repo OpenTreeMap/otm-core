@@ -1,8 +1,16 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 import importlib
+from time import sleep
 
 from django.test import LiveServerTestCase
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+
+from registration.models import RegistrationProfile
 
 from selenium.common.exceptions import (WebDriverException,
                                         StaleElementReferenceException)
@@ -10,8 +18,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 
-from treemap.tests import make_commander_user
-from treemap.models import Instance
+from treemap.tests import make_commander_user, create_mock_system_user
+from treemap.models import Instance, Tree, Plot
 from treemap.lib.object_caches import clear_caches
 from treemap.plugin import setup_for_ui_test
 
@@ -346,7 +354,3 @@ def _get_create_instance():
 
 
 create_instance = _get_create_instance()
-
-from registration_views import *  # NOQA
-from map import *  # NOQA
-from plot_detail import *  # NOQA
