@@ -1,3 +1,5 @@
+{% load i18n %}
+
 <div class="contained topper">
   <div>
     <div class="col-md-12">
@@ -11,14 +13,25 @@
                   <button class="btn btn-info pull-right" type="submit" disabled>Import</button>
                   <h4>Tree Import</h4>
                   <input type="hidden" name="type" value="tree">
-                  <input name="unit_plot_length" value="1" type="hidden">
-                  <input name="unit_plot_width" value="1" type="hidden">
-                  <input name="unit_diameter" value="1" type="hidden">
-                  <input name="unit_tree_height" value="1" type="hidden">
-                  <input name="unit_canopy_height" value="1" type="hidden">
                   <div class="input-group">
                     File to Upload: <input type="file" name="file">
                   </div><!-- /input-group -->
+                  <div id="importer-tree-units" style="display: none;">
+                    {% with u=importer_instance_units %}
+                    {% with pl=u.plot_length pw=u.plot_width td=u.tree_diameter th=u.tree_height tch=u.tree_canopy_height %}
+                    {% blocktrans %}
+                    <h5>Unit Warning</h5>
+                    <p>The following units are used for your tree map.</p>
+                    <p>Please ensure that your file contains measurements of the same unit.</p>
+                    <p>Plot Length: {{ pl }}</p>
+                    <p>Plot Width: {{ pw }}</p>
+                    <p>Tree Diameter: {{ td }}</p>
+                    <p>Tree Height: {{ th }}</p>
+                    <p>Tree Canopy Height: {{ tch }}</p>
+                    {% endblocktrans %}
+                    {% endwith %}
+                    {% endwith %}
+                  </div>
                 </form>
               </div>
             </div>

@@ -24,7 +24,7 @@ from django_tinsel.decorators import render_template
 from treemap.models import Species, Tree, User
 from treemap.decorators import (admin_instance_request, require_http_method,
                                 requires_feature)
-from treemap.units import get_conversion_factor
+from treemap.units import (get_conversion_factor, get_value_display_attr)
 
 from importer.models.base import GenericImportEvent, GenericImportRow
 from importer.models.trees import TreeImportEvent, TreeImportRow
@@ -82,22 +82,13 @@ def counts(request, instance):
 def start_import(request, instance):
     import_type = request.REQUEST['type']
     if import_type == TreeImportEvent.import_type:
-        kwargs = {
-            'plot_length_conversion_factor':
-            float(request.REQUEST.get('unit_plot_length', 1.0)),
-
-            'plot_width_conversion_factor':
-            float(request.REQUEST.get('unit_plot_width', 1.0)),
-
-            'diameter_conversion_factor':
-            float(request.REQUEST.get('unit_diameter', 1.0)),
-
-            'tree_height_conversion_factor':
-            float(request.REQUEST.get('unit_tree_height', 1.0)),
-
-            'canopy_height_conversion_factor':
-            float(request.REQUEST.get('unit_canopy_height', 1.0))
-        }
+        factors = {'plot_length_conversion_factor': 'unit_plot_length',
+                   'plot_width_conversion_factor': 'unit_plot_width',
+                   'diameter_conversion_factor': 'unit_diameter',
+                   'tree_height_conversion_factor': 'unit_tree_height',
+                   'canopy_height_conversion_factor': 'unit_canopy_height'}
+        kwargs = {k: float(request.REQUEST.get(v, 1.0))
+                  for (k, v) in factors.items()}
     else:
         kwargs = {
             'max_diameter_conversion_factor':
@@ -126,7 +117,16 @@ def list_imports(request, instance):
     active_events = list(active_trees) + list(active_species)
     imports_finished = all(ie.is_finished() for ie in active_events)
 
-    return {'active_trees': active_trees,
+    instance_units = {k + '_' + v:
+                      get_value_display_attr(instance, k, v, 'units')[1]
+                      for k, v in [('plot', 'width'),
+                                   ('plot', 'length'),
+                                   ('tree', 'height'),
+                                   ('tree', 'diameter'),
+                                   ('tree', 'canopy_height')]}
+
+    return {'importer_instance_units': instance_units,
+            'active_trees': active_trees,
             'finished_trees': finished_trees,
             'active_species': active_species,
             'finished_species': finished_species,

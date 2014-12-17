@@ -15,6 +15,7 @@ var dom = {
     speciesForm: '#import-species-form',
     fileChooser: 'input[type="file"]',
     importButton: 'button[type="submit"]',
+    unitSection: '#importer-tree-units',
     // TODO:  when we figure out what actions we
     // will support besides viewing status, break
     // this up into different selectors.
@@ -56,7 +57,7 @@ function init(options) {
 function handleForm($container, formSelector, startImportUrl) {
     // Define events on the container so we can replace its contents
     $container.asEventStream('change', formSelector + ' ' + dom.fileChooser)
-        .onValue(enableImportButton, true);
+        .onValue(enableImportUI, true);
 
     var importStartStream = $container.asEventStream('submit', formSelector)
         .flatMap(startImport)
@@ -65,7 +66,7 @@ function handleForm($container, formSelector, startImportUrl) {
     function startImport(e) {
         var formData = new FormData(e.target);
         e.preventDefault();
-        enableImportButton(false);
+        enableImportUI(false);
         $(dom.spinner).show();
         return Bacon.fromPromise($.ajax({
             type: 'POST',
@@ -76,10 +77,17 @@ function handleForm($container, formSelector, startImportUrl) {
         }));
     }
 
-    function enableImportButton(shouldEnable) {
-        $(formSelector)
-            .find(dom.importButton)
-            .prop('disabled', !shouldEnable);
+    function enableImportUI(shouldEnable) {
+        var $importButton = $(formSelector).find(dom.importButton),
+            $unitSection = $(dom.unitSection);
+
+        if (shouldEnable) {
+            $importButton.prop('disabled', false);
+            $unitSection.show();
+        } else {
+            $importButton.prop('disabled', true);
+            $unitSection.hide();
+        }
     }
 
     return importStartStream;
