@@ -99,9 +99,9 @@ def async_csv_export(job_pk, model, query, display_filters):
             values_plot += ['plot__geom__x', 'plot__geom__y']
 
         extra_select = {'plot__geom__x':
-                        'ST_X(treemap_mapfeature.the_geom_webmercator)',
+                        'ST_X(ST_Transform(treemap_mapfeature.the_geom_webmercator, 4326))',
                         'plot__geom__y':
-                        'ST_Y(treemap_mapfeature.the_geom_webmercator)'}
+                        'ST_Y(ST_Transform(treemap_mapfeature.the_geom_webmercator, 4326))'}
 
         extra_select.update(extra_select_tree)
         extra_select.update(extra_select_plot)
