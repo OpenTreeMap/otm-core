@@ -122,6 +122,11 @@ class GenericImportEvent(models.Model):
     def has_errors(self):
         return len(self.errors_as_array()) > 0
 
+    def has_error(self, error):
+        code, msg, fatal = error
+        error_codes = {e['code'] for e in self.errors_as_array()}
+        return code in error_codes
+
     def row_set(self):
         raise Exception('Abstract Method')
 
