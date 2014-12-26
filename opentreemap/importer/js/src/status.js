@@ -54,10 +54,7 @@ function initTypeaheads() {
 
 function init($container, viewStatusStream) {
     // Define events on the container so we can replace its contents
-    var containerLoadedStream = BU.reloadContainerOnClick($container, dom.backLink, dom.commitLink);
-
-    $container.asEventStream('click', dom.pagingButtons)
-        .onValue(reloadPane);
+    var containerLoadedStream = BU.reloadContainerOnClick($container, dom.backLink, dom.commitLink, dom.pagingButtons);
 
     $container.asEventStream('click', dom.rowInMergeRequiredTable)
         .onValue(toggleMergeControls);
@@ -87,12 +84,6 @@ function init($container, viewStatusStream) {
     return containerLoadedStream;
 }
 
-function reloadPane(e) {
-    var button = e.currentTarget,
-        $pane = $(button).closest(dom.pane);
-    e.preventDefault();
-    $pane.load(button.href, popover.activateAll);
-}
 
 function toggleMergeControls(e) {
     $(e.target)

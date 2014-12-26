@@ -8,9 +8,8 @@ from django.conf.urls import patterns, url
 from importer.views import (
     start_import_endpoint, update_row_endpoint, export_all_species,
     export_single_species_import, export_single_tree_import, merge_species,
-    commit_endpoint, counts,
-    show_import_status_endpoint, list_imports_endpoint,
-    show_status_panel_endpoint, refresh_imports_endpoint, solve_endpoint)
+    commit_endpoint, counts, show_import_status_endpoint,
+    list_imports_endpoint, refresh_imports_endpoint, solve_endpoint)
 
 from treemap.plugin import feature_enabled
 
@@ -26,8 +25,6 @@ urlpatterns = patterns(
     url(r'^start_import$', start_import_endpoint, name='start_import'),
     url(r'^status/%s/' % _import_api_pattern, show_import_status_endpoint,
         name='status'),
-    url(r'^status_panel/%s/' % _import_api_pattern, show_status_panel_endpoint,
-        name='status_panel'),
     url(r'^species/solve(?P<import_event_id>\d+)/(?P<row_index>\d+)/$',
         solve_endpoint, name='solve'),
     url(r'^update/%s/(?P<row_id>\d+)/$' % _type_pattern,
