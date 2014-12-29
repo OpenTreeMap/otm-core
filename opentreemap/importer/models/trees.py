@@ -299,6 +299,7 @@ class TreeImportRow(GenericImportRow):
         species = self.datadict.get(fs.SPECIES, '')
         cultivar = self.datadict.get(fs.CULTIVAR, '')
         other_part = self.datadict.get(fs.OTHER_PART_OF_NAME, '')
+        common_name = self.datadict.get(fs.COMMON_NAME, '')
 
         def append_species_error(error):
             error_fields = [genus, species, cultivar, other_part]
@@ -323,7 +324,8 @@ class TreeImportRow(GenericImportRow):
             newdict.update({fs.GENUS: obj.genus,
                             fs.SPECIES: obj.species,
                             fs.CULTIVAR: obj.cultivar,
-                            fs.OTHER_PART_OF_NAME: obj.other_part_of_name})
+                            fs.OTHER_PART_OF_NAME: obj.other_part_of_name,
+                            fs.COMMON_NAME: obj.common_name})
             self.datadict = newdict
         elif (genus != '' or species != '' or
               cultivar != '' or other_part != ''):
@@ -333,6 +335,10 @@ class TreeImportRow(GenericImportRow):
                 species__iexact=species,
                 cultivar__iexact=cultivar,
                 other_part_of_name__iexact=other_part)
+
+            if common_name != '':
+                matching_species = matching_species.filter(
+                    common_name__iexact=common_name)
         else:
             return
 

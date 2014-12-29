@@ -95,6 +95,7 @@ class trees(object):
     SPECIES = 'species'
     CULTIVAR = 'cultivar'
     OTHER_PART_OF_NAME = 'other part of name'
+    COMMON_NAME = 'common name'
 
     # Tree fields
     DIAMETER = 'diameter'
@@ -103,12 +104,14 @@ class trees(object):
     DATE_PLANTED = 'date planted'
 
     # order matters, so this is a tuple and not a set
-    SPECIES_FIELDS = (GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME)
+    SPECIES_FIELDS = (GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME,
+                      COMMON_NAME)
 
     DATE_FIELDS = {DATE_PLANTED}
 
     STRING_FIELDS = {STREET_ADDRESS, CITY_ADDRESS, POSTAL_CODE, GENUS,
-                     SPECIES, CULTIVAR, OTHER_PART_OF_NAME, EXTERNAL_ID_NUMBER}
+                     SPECIES, CULTIVAR, OTHER_PART_OF_NAME, COMMON_NAME,
+                     EXTERNAL_ID_NUMBER}
 
     POS_FLOAT_FIELDS = {PLOT_WIDTH, PLOT_LENGTH, DIAMETER, TREE_HEIGHT,
                         CANOPY_HEIGHT}
@@ -122,4 +125,5 @@ class trees(object):
     ALL = {POINT_X, POINT_Y, PLOT_WIDTH, PLOT_LENGTH, READ_ONLY, TREE_PRESENT,
            STREET_ADDRESS, CITY_ADDRESS, POSTAL_CODE, OPENTREEMAP_PLOT_ID,
            GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME, DIAMETER,
-           EXTERNAL_ID_NUMBER, CANOPY_HEIGHT, DATE_PLANTED, TREE_HEIGHT}
+           EXTERNAL_ID_NUMBER, CANOPY_HEIGHT, DATE_PLANTED, TREE_HEIGHT,
+           COMMON_NAME}
