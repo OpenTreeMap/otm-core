@@ -237,10 +237,17 @@ def _get_status_panels(ie, instance, panel_name, page_number):
                          kwargs={'instance_url_name': instance.url_name,
                                  'import_type': ie.import_type,
                                  'import_event_id': ie.pk})
+
+    cancel_url = reverse('importer:cancel',
+                         kwargs={'instance_url_name': instance.url_name,
+                                 'import_type': ie.import_type,
+                                 'import_event_id': ie.pk})
     return {
         'panels': panels,
         'active_panel_name': panels[0]['name'],
-        'commit_url': commit_url
+        'commit_url': commit_url,
+        'cancel_url': cancel_url,
+        'ie': ie
     }
 
 
@@ -597,6 +604,16 @@ def _build_species_object(species, fieldmap, included_fields):
     return obj
 
 
+@transaction.atomic
+def cancel(request, instance, import_type, import_event_id):
+    ie = _get_import_event(instance, import_type, import_event_id)
+
+    ie.status = GenericImportEvent.CANCELED
+    ie.save()
+
+    return list_imports(request, instance)
+
+
 @login_required
 def export_all_species(request, instance):
     response = HttpResponse(mimetype='text/csv')
@@ -744,6 +761,9 @@ refresh_imports_endpoint = _template_api_call(
 
 start_import_endpoint = _template_api_call(
     'POST', 'importer/partials/imports.html', start_import)
+
+cancel_endpoint = _template_api_call(
+    'GET', 'importer/partials/imports.html', cancel)
 
 solve_endpoint = _template_api_call(
     'POST', 'importer/partials/row_status.html', solve)

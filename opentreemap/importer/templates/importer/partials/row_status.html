@@ -25,7 +25,7 @@
 {% endblock main %}
 
 {% block extra_buttons %}
-    {% if ie.is_finished %}
+    {% if ie.can_add_to_map %}
         <a data-action="commit" class="btn btn-info btn-large" href="{{ commit_url }}">
           <i class="icon-plus-circled"></i>
           {% trans "Add to Tree Map" %}

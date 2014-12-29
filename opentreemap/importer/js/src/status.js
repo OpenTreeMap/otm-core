@@ -11,8 +11,9 @@ var $ = require('jquery'),
 
 var dom = {
     pane: '.tab-pane',
-    backLink: 'a[data-action="back"]',
-    commitLink: 'a[data-action="commit"]',
+    backLink: '[data-action="back"]',
+    cancelLink: '[data-action="cancel"]',
+    commitLink: '[data-action="commit"]',
     pagingButtons: '.pagination li a',
     rowInMergeRequiredTable: '#import-panel-merge_required .js-import-row',
     mergeControls: '.js-merge-controls',
@@ -54,7 +55,7 @@ function initTypeaheads() {
 
 function init($container, viewStatusStream) {
     // Define events on the container so we can replace its contents
-    var containerLoadedStream = BU.reloadContainerOnClick($container, dom.backLink, dom.commitLink, dom.pagingButtons);
+    var containerLoadedStream = BU.reloadContainerOnClick($container, dom.backLink, dom.commitLink, dom.pagingButtons, dom.cancelLink);
 
     $container.asEventStream('click', dom.rowInMergeRequiredTable)
         .onValue(toggleMergeControls);

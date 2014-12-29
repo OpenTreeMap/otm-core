@@ -25,7 +25,32 @@
               <i class="icon-left-open"></i>
             {% trans "Back to Uploads" %}
           </a>
+          {% if ie.can_cancel %}
+            <a class="btn btn-info btn-large pull-right" data-toggle="modal" data-backdrop="false" data-target="#cancel-import">
+              {% trans "Cancel Import" %}
+            </a>
+          {% endif %}
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="cancel-import" tabindex="-1" role="dialog" aria-labelledby="cancel-import-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="cancel-import-label">{% trans "Cancel This Import" %}</h4>
+      </div>
+      <div class="modal-body">
+      {% blocktrans %}
+        Are you sure you want to cancel this import?
+      {% endblocktrans %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "No" %}</button>
+        <a data-action="cancel" href="{{ cancel_url }}" class="btn btn-primary" data-dismiss="modal">{% trans "Yes" %}</a>
       </div>
     </div>
   </div>

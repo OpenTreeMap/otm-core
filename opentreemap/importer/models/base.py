@@ -27,6 +27,7 @@ class GenericImportEvent(models.Model):
     CREATING = 4
     FINISHED_CREATING = 5
     FAILED_FILE_VERIFICATION = 6
+    CANCELED = 7
 
     # Original Name of the file
     file_name = models.CharField(max_length=255)
@@ -60,6 +61,7 @@ class GenericImportEvent(models.Model):
             self.FINISHED_VERIFICATION: "Verification Complete",
             self.CREATING: "Creating Trees",
             self.FAILED_FILE_VERIFICATION: "Invalid File Structure",
+            self.CANCELED: "Canceled",
         }
         return summaries.get(self.status, "Finished")
 
@@ -78,7 +80,16 @@ class GenericImportEvent(models.Model):
         return (
             self.status == self.FINISHED_VERIFICATION or
             self.status == self.FINISHED_CREATING or
-            self.status == self.FAILED_FILE_VERIFICATION)
+            self.status == self.FAILED_FILE_VERIFICATION or
+            self.status == self.CANCELED)
+
+    def can_cancel(self):
+        return self.status == self.LOADING or self.STATUS == self.VERIFIYING
+
+    def can_add_to_map(self):
+        return (
+            self.status == self.FINISHED_VERIFICATION or
+            self.status == self.FINISHED_CREATING)
 
     def row_counts_by_status(self):
         q = self.row_set()\
