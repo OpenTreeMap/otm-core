@@ -45,6 +45,9 @@ class GenericImportEvent(models.Model):
 
     status = models.IntegerField(default=PENDING_VERIFICATION)
 
+    # The id of a running verification task.  Used for canceling imports
+    task_id = models.CharField(max_length=50, default='', blank=True)
+
     @property
     def row_count(self):
         return self.rows().count()

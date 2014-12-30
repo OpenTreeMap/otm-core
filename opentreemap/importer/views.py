@@ -7,6 +7,7 @@ import csv
 import json
 import io
 from copy import copy
+from celery.result import GroupResult
 
 from django.db import transaction
 from django.shortcuts import get_object_or_404, render_to_response
@@ -610,6 +611,10 @@ def cancel(request, instance, import_type, import_event_id):
 
     ie.status = GenericImportEvent.CANCELED
     ie.save()
+
+    # If verifications tasks are still scheduled, we need to revoke them
+    if ie.task_id:
+        GroupResult(ie.task_id).revoke()
 
     return list_imports(request, instance)
 

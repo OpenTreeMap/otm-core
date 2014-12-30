@@ -6,7 +6,7 @@ from __future__ import division
 import csv
 import json
 
-from celery import task
+from celery import task, chord
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 
@@ -88,19 +88,33 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
     ie.status = GenericImportEvent.VERIFIYING
     ie.save()
 
-    for i in xrange(0, ie.row_count, BLOCK_SIZE):
-        _validate_rows.delay(import_type, import_event_id, i)
+    row_set = ie.rows()
+    validation_tasks = (_validate_rows.subtask(row_set[i:(i+BLOCK_SIZE)])
+                        for i in xrange(0, ie.row_count, BLOCK_SIZE))
+
+    final_task = _finalize_validation.si(import_type, import_event_id)
+    res = chord(validation_tasks, final_task).delay()
+
+    ie.task_id = res.id
+    ie.save()
 
 
 @task()
-def _validate_rows(import_type, import_event_id, i):
-    ie = _get_import_event(import_type, import_event_id)
-    for row in ie.rows()[i:(i+BLOCK_SIZE)]:
+def _validate_rows(*rows):
+    for row in rows:
         row.validate_row()
 
+
+@task()
+def _finalize_validation(import_type, import_event_id):
+    ie = _get_import_event(import_type, import_event_id)
+
+    ie.task_id = ''
+    # There shouldn't be any rows left to verify, but it doesn't hurt to check
     if _get_waiting_row_count(ie) == 0:
         ie.status = GenericImportEvent.FINISHED_VERIFICATION
-        ie.save()
+
+    ie.save()
 
 
 @task()
