@@ -25,6 +25,26 @@
         {% endfor %}
       </ul>
     {% endif %}
+    {% if is_missing_field %}
+      <div>
+        {% trans "The CSV must contain all of the following columns:" %}
+        <ul>
+        {% for field in required_fields %}
+          <li>{{ field }}</li>
+        {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+    {% if has_unmatched_field %}
+      <div>
+        {% trans "The CSV may contain only the following columns:" %}
+        <ul>
+        {% for field in legal_fields %}
+          <li>{{ field }}</li>
+        {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
   {% endwith %}
 </div>
 {% endblock main %}

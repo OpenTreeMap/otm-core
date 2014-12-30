@@ -211,7 +211,12 @@ def show_import_status(request, instance, import_type, import_event_id):
 
     if ie.status == GenericImportEvent.FAILED_FILE_VERIFICATION:
         template = 'importer/partials/file_status.html'
-        ctx = {'ie': ie}
+        legal_fields, required_fields = ie.legal_and_required_fields()
+        ctx = {'ie': ie,
+               'legal_fields': sorted(legal_fields),
+               'required_fields': sorted(required_fields),
+               'is_missing_field': ie.has_error(errors.MISSING_FIELD),
+               'has_unmatched_field': ie.has_error(errors.UNMATCHED_FIELDS)}
     else:
         template = 'importer/partials/row_status.html'
         ctx = _get_status_panels(ie, instance)
