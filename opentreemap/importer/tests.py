@@ -1055,7 +1055,8 @@ class TreeIntegrationTests(IntegrationTests):
 
         gflds = [fields.trees.POINT_X, fields.trees.POINT_Y]
         sflds = [fields.trees.GENUS, fields.trees.SPECIES,
-                 fields.trees.CULTIVAR, fields.trees.OTHER_PART_OF_NAME]
+                 fields.trees.CULTIVAR, fields.trees.OTHER_PART_OF_NAME,
+                 fields.trees.COMMON_NAME]
 
         j = self.run_through_process_views(csv)
         ierrors = self.extract_errors(j)
@@ -1298,3 +1299,39 @@ class TreeIntegrationTests(IntegrationTests):
              True,   # Force a tree in this spot (tree present=true)
              True,   # Data, so ignore tree present settings
              True])  # Data, so ignore tree present settings
+
+    def test_common_name_matching(self):
+        apple = Species(instance=self.instance, genus='malus',
+                        common_name='Apple')
+        apple.save_with_system_user_bypass_auth()
+        csv = """
+        | point x | point y | genus | common name |
+        | 45.59   | 31.1    | malus | apple       |
+        | 45.58   | 33.9    | malus | crab apple  |
+        | 45.58   | 33.9    | malus |             |
+        """
+
+        ieid = self.run_through_commit_views(csv)
+        ie = TreeImportEvent.objects.get(pk=ieid)
+        rows = ie.treeimportrow_set.order_by('idx').all()
+        tree1 = rows[0].plot.current_tree()
+        tree3 = rows[2].plot.current_tree()
+
+        self.assertEqual(tree1.species.pk, apple.pk)
+        self.assertIsNone(rows[1].plot)
+        self.assertEqual(tree3.species.pk, apple.pk)
+
+        # If we add a species, there will be more than one match for "malus"
+        crab_apple = Species(instance=self.instance, genus='malus',
+                             common_name='Crab Apple')
+        crab_apple.save_with_system_user_bypass_auth()
+
+        ieid = self.run_through_commit_views(csv)
+        ie = TreeImportEvent.objects.get(pk=ieid)
+        rows = ie.treeimportrow_set.order_by('idx').all()
+        tree1 = rows[0].plot.current_tree()
+        tree2 = rows[1].plot.current_tree()
+
+        self.assertEqual(tree1.species.pk, apple.pk)
+        self.assertEqual(tree2.species.pk, crab_apple.pk)
+        self.assertIsNone(rows[2].plot)
