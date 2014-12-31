@@ -22,11 +22,7 @@
                 {% endif %}
             </td>
             <td>
-                {% if ie.is_finished %}
-                    <a href="{% url 'importer:status' import_type=import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">View</a>
-                {% else %}
-                    <img src="/static/img/spinnerSmall.gif">
-                {% endif %}
+                <a href="{% url 'importer:status' import_type=import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">View</a>
             </td>
         </tr>
     {% endfor %}

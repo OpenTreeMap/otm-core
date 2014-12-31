@@ -2,29 +2,33 @@
 {% load i18n %}
 
 {% block main %}
-<ul class="nav nav-tabs">
-{% for panel in panels %}
-  <li{% if panel.name == active_panel_name %} class="active"{% endif %}>
-    <a href="#import-panel-{{ panel.name }}" data-toggle="tab">
-      {{ panel.title }} ({{ panel.row_count }})
-    </a>
-  </li>
-{% endfor %}
-</ul>
+<div class="col-md-12">
+    <ul class="nav nav-tabs">
+    {% for panel in panels %}
+      <li{% if panel.name == active_panel_name %} class="active"{% endif %}>
+        <a href="#import-panel-{{ panel.name }}" data-toggle="tab">
+          {{ panel.title }} ({{ panel.row_count }})
+        </a>
+      </li>
+    {% endfor %}
+    </ul>
 
-<div class="tab-content">
-{% for panel in panels %}
-  <div class="tab-pane {% if panel.name == active_panel_name %}active{% endif %}"
-       id="import-panel-{{ panel.name }}">
-    {% include "importer/partials/status_table.html" %}
-  </div>
-{% endfor %}
+    <div class="tab-content">
+    {% for panel in panels %}
+      <div class="tab-pane {% if panel.name == active_panel_name %}active{% endif %}"
+          id="import-panel-{{ panel.name }}">
+        {% include "importer/partials/status_table.html" %}
+      </div>
+    {% endfor %}
+    </div>
 </div>
 {% endblock main %}
 
 {% block extra_buttons %}
-  <a data-action="commit" class="btn btn-info btn-large" href="{{ commit_url }}">
-    <i class="icon-plus-circled"></i>
-    {% trans "Add to Tree Map" %}
-  </a>
+    {% if ie.can_add_to_map %}
+        <a data-action="commit" class="btn btn-info btn-large" href="{{ commit_url }}">
+          <i class="icon-plus-circled"></i>
+          {% trans "Add to Tree Map" %}
+        </a>
+    {% endif %}
 {% endblock extra_buttons %}

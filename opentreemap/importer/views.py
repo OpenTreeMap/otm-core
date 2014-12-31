@@ -7,6 +7,7 @@ import csv
 import json
 import io
 from copy import copy
+from celery.result import GroupResult
 
 from django.db import transaction
 from django.shortcuts import get_object_or_404, render_to_response
@@ -219,39 +220,35 @@ def show_import_status(request, instance, import_type, import_event_id):
                'has_unmatched_field': ie.has_error(errors.UNMATCHED_FIELDS)}
     else:
         template = 'importer/partials/row_status.html'
-        ctx = _get_status_panels(ie, instance)
+        panel_name = request.GET.get('panel', 'verified')
+        page_number = int(request.GET.get('page', '1'))
+
+        ctx = _get_status_panels(ie, instance, panel_name, page_number)
 
     return render_to_response(template, ctx, RequestContext(request))
 
 
-def _get_status_panels(ie, instance):
-    panels = [_get_status_panel(instance, ie, spec)
+def _get_status_panels(ie, instance, panel_name, page_number):
+    get_page = lambda spec_name: page_number if spec_name == panel_name else 1
+
+    panels = [_get_status_panel(instance, ie, spec, get_page(spec['name']))
               for spec in _get_status_panel_specs(ie)]
 
     commit_url = reverse('importer:commit',
                          kwargs={'instance_url_name': instance.url_name,
                                  'import_type': ie.import_type,
                                  'import_event_id': ie.pk})
+
+    cancel_url = reverse('importer:cancel',
+                         kwargs={'instance_url_name': instance.url_name,
+                                 'import_type': ie.import_type,
+                                 'import_event_id': ie.pk})
     return {
         'panels': panels,
         'active_panel_name': panels[0]['name'],
-        'commit_url': commit_url
-    }
-
-
-def show_status_panel(request, instance, import_type, import_event_id):
-    panel_name = request.GET.get('panel')
-    page_number = int(request.GET.get('page'))
-
-    ie = _get_import_event(instance, import_type, import_event_id)
-
-    spec = [spec for spec in _get_status_panel_specs(ie)
-            if spec['name'] == panel_name][0]
-
-    panel = _get_status_panel(instance, ie, spec, page_number)
-
-    return {
-        'panel': panel
+        'commit_url': commit_url,
+        'cancel_url': cancel_url,
+        'ie': ie
     }
 
 
@@ -294,7 +291,7 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
     row_pages = RowPaginator(query, PAGE_SIZE)
     row_page = row_pages.page(page_number)
 
-    paging_url = reverse('importer:status_panel',
+    paging_url = reverse('importer:status',
                          kwargs={'instance_url_name': instance.url_name,
                                  'import_type': ie.import_type,
                                  'import_event_id': ie.pk})
@@ -550,8 +547,7 @@ def solve(request, instance, import_event_id, row_index):
 
     row.validate_row()
 
-    context = _get_status_panels(ie, instance)
-    context['active_panel_name'] = 'merge_required'
+    context = _get_status_panels(ie, instance, 'merge_required', 1)
     return context
 
 
@@ -607,6 +603,20 @@ def _build_species_object(species, fieldmap, included_fields):
                 obj[v] = newval.strip()
 
     return obj
+
+
+@transaction.atomic
+def cancel(request, instance, import_type, import_event_id):
+    ie = _get_import_event(instance, import_type, import_event_id)
+
+    ie.status = GenericImportEvent.CANCELED
+    ie.save()
+
+    # If verifications tasks are still scheduled, we need to revoke them
+    if ie.task_id:
+        GroupResult(ie.task_id).revoke()
+
+    return list_imports(request, instance)
 
 
 @login_required
@@ -757,8 +767,8 @@ refresh_imports_endpoint = _template_api_call(
 start_import_endpoint = _template_api_call(
     'POST', 'importer/partials/imports.html', start_import)
 
-show_status_panel_endpoint = _template_api_call(
-    'GET', 'importer/partials/status_table.html', show_status_panel)
+cancel_endpoint = _template_api_call(
+    'GET', 'importer/partials/imports.html', cancel)
 
 solve_endpoint = _template_api_call(
     'POST', 'importer/partials/row_status.html', solve)
