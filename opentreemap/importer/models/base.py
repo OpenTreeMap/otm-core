@@ -87,7 +87,7 @@ class GenericImportEvent(models.Model):
             self.status == self.CANCELED)
 
     def can_cancel(self):
-        return self.status == self.LOADING or self.STATUS == self.VERIFIYING
+        return self.status == self.LOADING or self.status == self.VERIFIYING
 
     def can_add_to_map(self):
         return (
