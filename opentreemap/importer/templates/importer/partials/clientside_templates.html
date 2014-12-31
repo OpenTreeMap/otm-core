@@ -1,3 +1,4 @@
+{% load i18n %}
 <script type="text/template" id="error-template">
   <div class="error-popup popover fade bottom in" style="margin: 0; display: block; width: 200px;">
     <div class="arrow"></div>
@@ -10,12 +11,13 @@
 
 <script type="text/template" id="species-error-content">
   <div>
-    <div>That species couldn't be found in the database.</div>
-    <div>Did you mean: <%= possible %>?</div>
+    <div>{% trans "That species couldn't be found in the database." %}</div>
+    {# Translators: '<%= possible %>' is a template tag and must not be modified. #}
+    <div>{% trans "Did you mean: <%= possible %>?" %}</div>
     <div>
-      <a class="yes btn btn-success btn-small">Yes</a>
-      <a class="moreoptions btn btn-info btn-small">More Options</a>
-      <a class="cancel btn btn-danger btn-small">Cancel</a>
+      <a class="yes btn btn-success btn-small">{% trans "Yes" %}</a>
+      <a class="moreoptions btn btn-info btn-small">{% trans "More Options" %}</a>
+      <a class="cancel btn btn-danger btn-small">{% trans "Cancel" %}</a>
     </div>
   </div>
 </script>
@@ -23,15 +25,15 @@
 <script type="text/template" id="generic-error">
   <div>
     <input type="text" value="<%= value %>" name="<%= field %>">
-    <a class="update btn btn-info btn-small">Update</a>
-    <a class="cancel btn btn-alert btn-small">Cancel</a>
+    <a class="update btn btn-info btn-small">{% trans "Update" %}</a>
+    <a class="cancel btn btn-alert btn-small">{% trans "Cancel" %}</a>
   </div>
 </script>
 
 <script type="text/template" id="species-error-more-content">
-  <div>Find a species by name:</div>
+  <div>{% trans "Find a species by name:" %}</div>
   <div><input class="speciesbyname"></div>
-  <div>Or select from a list:</div>
+  <div>{% trans "Or select from a list:" %}</div>
   <div>
     <select class="specieslist">
       <% _.each(species, function(s,i) { %>
@@ -40,18 +42,18 @@
     </select>
   </div>
   <div>
-    <a class="select btn btn-success btn-small">Select</a>
-    <a class="cancel btn btn-alert btn-small">Cancel</a>
+    <a class="select btn btn-success btn-small">{% trans "Select" %}</a>
+    <a class="cancel btn btn-alert btn-small">{% trans "Cancel" %}</a>
   </div>
 </script>
 
 <script type="text/template" id="merge-template">
-  <h1>Merge Species</h1>
+  <h1>{% trans "Merge Species" %}</h1>
   <div class="mergespecies">
     <table data-row="<%= fields.rowidx %>"
            class="table table-condensed table-striped">
       <tr>
-        <th>Field</th>
+        <th>{% trans "Field" %}</th>
         <% _.each(fields.header, function(f) { %><th><%= f %></th><% }) %>
       </tr>
       <% _.each(field_order, function(fo) {
@@ -68,9 +70,9 @@
       </tr>
       <% }) %>
       <tr><td></td>
-        <td><button data-matches="new">Create New Species</button></td>
+        <td><button data-matches="new">{% trans "Create New Species" %}</button></td>
       <% _.each(fields.keys, function(k) { %>
-        <td><button data-matches="<%= k %>">Merge Species</button></td>
+        <td><button data-matches="<%= k %>">{% trans "Merge Species" %}</button></td>
       <% }); %>
     </table>
   </div>

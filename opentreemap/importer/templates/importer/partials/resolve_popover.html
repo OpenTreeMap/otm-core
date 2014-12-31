@@ -1,12 +1,14 @@
 {% extends "treemap/partials/popover.html" %}
+{% load i18n %}
 {% load l10n %}
 
-{% block title %}Field Error{% endblock title %}
+{% block title %}{% trans "Field Error" %}{% endblock title %}
 
 {% block content_text %}
-<p>There was an error with this field:</p>
+<p>{% trans "There was an error with this field:" %}</p>
+{# these are already translated on the server side: #}
 <ul><li><b>{{ field.msg }}</b></li></ul>
-<p>Please provide a new value:</p>
+<p>{% trans "Please provide a new value:" %}</p>
 {% endblock content_text %}
 
 {% block extra_content_input_attributes %}
