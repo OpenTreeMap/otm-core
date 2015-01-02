@@ -12,6 +12,13 @@ Vagrant.configure("2") do |config|
 
   config.vm.synced_folder ".", "/usr/local/otm/app/"
 
+  if Vagrant::Util::Platform.windows? || Vagrant::Util::Platform.cygwin?
+    config.vm.synced_folder ".", "/usr/local/otm/app/", type: "rsync", rsync__exclude: ["**/node_modules/", "**/.git", "opentreemap/"]
+    config.vm.synced_folder "opentreemap/", "/usr/local/otm/app/opentreemap/"
+  else
+    config.vm.synced_folder ".", "/usr/local/otm/app/"
+  end
+
   config.vm.provision :shell, :path => "scripts/bootstrap.sh"
 
   config.vm.provider :virtualbox do |vb, override|
