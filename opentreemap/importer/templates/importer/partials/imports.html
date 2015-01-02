@@ -10,11 +10,11 @@
               <div class="well">
                 <form id="import-trees-form">
                   {% csrf_token %}
-                  <button class="btn btn-info pull-right" type="submit" disabled>Import</button>
-                  <h4>Tree Import</h4>
+                  <button class="btn btn-info pull-right" type="submit" disabled>{% trans "Import" %}</button>
+                  <h4>{% trans "Tree Import" %}</h4>
                   <input type="hidden" name="type" value="tree">
                   <div class="input-group">
-                    File to Upload: <input type="file" name="file">
+                    {% trans "File to Upload:" %} <input type="file" name="file">
                   </div><!-- /input-group -->
                   <div id="importer-tree-units" style="display: none;">
                     {% with u=importer_instance_units %}
@@ -39,11 +39,11 @@
               <div class="well">
                 <form id="import-species-form">
                   {% csrf_token %}
-                  <button class="btn btn-info pull-right" type="submit" disabled>Import</button>
-                  <h4>Species Import</h4>
+                  <button class="btn btn-info pull-right" type="submit" disabled>{% trans "Import" %}</button>
+                  <h4>{% trans "Species Import" %}</h4>
                   <input type="hidden" name="type" value="species">
                   <div class="input-group">
-                    File to Upload: <input type="file" name="file">
+                    {% trans "File to Upload:" %} <input type="file" name="file">
                   </div><!-- /input-group -->
                 </form>
               </div>
@@ -55,10 +55,10 @@
 <!-- TODO: Uncomment when species exporting is completed -->
 <!--           <div class="row"> -->
 <!--             <div class="col&#45;md&#45;12"> -->
-<!--               <h2 class="top&#45;pad&#45;lg">Export</h2> -->
+<!--               <h2 class="top&#45;pad&#45;lg">{% trans "Export" %}</h2> -->
 <!--               <hr> -->
 <!--               <a href="{% url 'importer:export_all_species' instance_url_name=request.instance.url_name %}" class="btn btn&#45;info"> -->
-<!--                 Export All Species -->
+<!--                 {% trans "Export All Species" %} -->
 <!--                 <i class="icon&#45;forward"></i> -->
 <!--               </a> -->
 <!--             </div> -->

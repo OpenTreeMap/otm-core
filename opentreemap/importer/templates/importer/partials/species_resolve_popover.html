@@ -1,11 +1,14 @@
 {% extends "treemap/partials/popover.html" %}
+{% load i18n %}
 {% load l10n %}
 
-{% block title %}Species Field Error{% endblock title %}
+{% block title %}{% trans "Species Field Error" %}{% endblock title %}
 
 {% block content %}
 <p>{{ field.msg }}</p>
-<p>Did you mean: "{{ field.custom_resolver.suggestion.display_name }}"?</p>
+{% with display_name=field.custom_resolver.suggestion.display_name %}
+<p>{% blocktrans %}Did you mean: "{{ display_name }}"?{% endblocktrans %}</p>
+{% endwith %}
 <input type="hidden"
        data-typeahead-hidden="true"
        class="species-resolver-typeahead-hidden popover-correction"

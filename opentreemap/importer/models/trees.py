@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
+from django.utils.translation import ugettext as trans
 
 from treemap.models import Species, Plot, Tree
 from treemap.lib.object_caches import udf_defs
@@ -37,7 +38,7 @@ class TreeImportEvent(GenericImportEvent):
         return self.treeimportrow_set
 
     def __unicode__(self):
-        return u"Tree Import #%s" % self.pk
+        return trans('Tree Import #%s') % self.pk
 
     def get_udf_column_name(self, udf_def):
         # Prefix with model name, e.g. "Density" -> "Tree: Density"

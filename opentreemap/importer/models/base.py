@@ -9,6 +9,7 @@ from datetime import datetime
 from django.db.models import Count
 from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
+from django.utils.translation import ugettext as trans
 
 from treemap.models import User, Instance
 
@@ -113,7 +114,7 @@ class GenericImportEvent(models.Model):
         code, msg, fatal = err
 
         if data and not isinstance(data, list):
-            raise ValidationError("For this class, data must be a list")
+            raise ValidationError(trans("For this class, data must be a list"))
 
         if self.errors is None or self.errors == '':
             self.errors = '[]'

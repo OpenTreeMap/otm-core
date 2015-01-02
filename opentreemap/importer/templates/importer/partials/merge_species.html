@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load l10n %}
 
 <tr class='js-merge-controls' style="display: none;">
@@ -5,7 +6,7 @@
         <table class="table table-condensed">
             <thead>
                 <tr>
-                    <th>Field</th>
+                    <th>{% trans "Field" %}</th>
                   {% for column in row.columns_for_merge %}
                     <th>{{ column.title }}</th>
                   {% endfor %}
@@ -29,7 +30,7 @@
                 {% endfor %}
                 <tr>
                     <td>
-                      <button class="btn btn-sm js-hide">Hide</button>
+                      <button class="btn btn-sm js-hide">{% trans "Hide" %}</button>
                     </td>
                   {% for column in row.columns_for_merge %}
                     <td>
