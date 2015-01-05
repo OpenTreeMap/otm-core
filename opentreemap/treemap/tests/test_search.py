@@ -19,7 +19,7 @@ from django.contrib.gis.measure import Distance
 from treemap.tests import (make_instance, make_commander_user,
                            make_simple_polygon, set_write_permissions)
 from treemap.tests.base import OTMTestCase
-from treemap.tests.udfs import make_collection_udf
+from treemap.tests.test_udfs import make_collection_udf
 from treemap.models import (Tree, Plot, Boundary, Species)
 from treemap.udf import UserDefinedFieldDefinition
 from treemap import search

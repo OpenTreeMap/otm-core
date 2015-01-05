@@ -204,7 +204,7 @@ def uitest(test_filter="", coverage=False):
     require('site_path')
     require('venv_path')
 
-    _manage('test --live-server-tests --liveserver=localhost:9000-9200 %s'
+    _manage("test -p 'uitest*.py' --liveserver=localhost:9000-9200 %s"
             % test_filter,
             coverage=coverage)
 

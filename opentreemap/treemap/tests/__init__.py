@@ -5,15 +5,14 @@ from __future__ import division
 
 import logging
 from cStringIO import StringIO
-from optparse import make_option
 import subprocess
-from unittest import TestSuite
 import shutil
 import tempfile
+import os
+import json
 
-from django.test import LiveServerTestCase
 from django.test.client import RequestFactory
-from django.test.simple import DjangoTestSuiteRunner
+from django.test.runner import DiscoverRunner
 from django.conf import settings
 from django.db.models import Max
 from django.template import Template, RequestContext
@@ -23,7 +22,8 @@ from django.conf.urls import patterns
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.contrib.auth.models import AnonymousUser
 
-from treemap.models import User, InstanceUser
+from treemap.models import (User, InstanceUser, Boundary, FieldPermission,
+                            Role, Instance)
 from treemap.audit import Authorizable, add_default_permissions
 from treemap.util import leaf_subclasses
 from treemap.tests.base import OTMTestCase
@@ -31,37 +31,11 @@ from treemap.tests.base import OTMTestCase
 from djcelery.contrib.test_runner import CeleryTestSuiteRunner
 
 
-class OTM2TestRunner(CeleryTestSuiteRunner, DjangoTestSuiteRunner):
-
-    option_list = (
-        make_option('--live-server-tests',
-                    help="Run the live server tests (selenium tests)",
-                    action='store_const',
-                    dest='live_server_tests',
-                    const=True,
-                    default=False),
-    )
-
-    def __init__(self, *args, **kwargs):
-        self.live_server_tests = kwargs.get('live_server_tests', False)
-        return super(OTM2TestRunner, self).__init__(*args, **kwargs)
+class OTM2TestRunner(CeleryTestSuiteRunner, DiscoverRunner):
 
     def run_tests(self, *args, **kwargs):
         logging.disable(logging.CRITICAL)
         return super(OTM2TestRunner, self).run_tests(*args, **kwargs)
-
-    def build_suite(self, test_labels, *args, **kwargs):
-        test_labels = test_labels or settings.MANAGED_APPS
-        base_suite = super(OTM2TestRunner, self).build_suite(test_labels,
-                                                             *args,
-                                                             **kwargs)
-
-        if self.live_server_tests:
-            return TestSuite([test for test in base_suite
-                              if isinstance(test, LiveServerTestCase)])
-        else:
-            return TestSuite([test for test in base_suite
-                              if not isinstance(test, LiveServerTestCase)])
 
     def setup_databases(self, *args, **kwargs):
         # We want to load a system user, but until the test database is created
@@ -471,26 +445,3 @@ class MockSession():
             return self._dict[name]
         else:
             return default
-
-
-from templatetags import *    # NOQA
-from udfs import *            # NOQA
-from audit import *           # NOQA
-from auth import *            # NOQA
-from models import *          # NOQA
-from search import *          # NOQA
-from urls import *            # NOQA
-from views import *           # NOQA
-from util import *            # NOQA
-from middleware import *      # NOQA
-from json_field import *      # NOQA
-from units import *           # NOQA
-from management import *      # NOQA
-from ecobenefits import *     # NOQA
-from ui import *              # NOQA
-from object_caches import *   # NOQA
-from perms import *           # NOQA
-from species import *         # NOQA
-from map_feature import *     # NOQA
-from instance import *        # NOQA
-from dates import *           # NOQA

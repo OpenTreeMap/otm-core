@@ -12,11 +12,6 @@ from registration.models import RegistrationProfile
 from treemap.tests.ui import UITestCase
 from treemap.tests import make_user, create_mock_system_user
 
-# Testing requirements:
-# apt-get install firefox
-# pip install -r requirements.txt
-# pip install -r test-requirements.txt
-
 
 class LoginLogoutTest(UITestCase):
     def setUp(self):

@@ -8,7 +8,7 @@ import json
 
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.lib.dates import DATETIME_FORMAT
-from treemap.tests.views import LocalMediaTestCase, media_dir
+from treemap.tests.test_views import LocalMediaTestCase, media_dir
 from treemap.tests import (make_instance, make_commander_user, make_request,
                            set_write_permissions, make_commander_role)
 from treemap.tests.base import OTMTestCase
