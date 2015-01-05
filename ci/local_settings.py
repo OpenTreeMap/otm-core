@@ -4,7 +4,7 @@ MEDIA_ROOT = '/tmp/otm/media'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'travis',
+        'NAME': 'ci',
         'USER': 'postgres',
         'PASSWORD': '',
         'HOST': 'localhost',

@@ -1,0 +1,33 @@
+machine:
+  environment:
+    DJANGO_SETTINGS_MODULE: opentreemap.settings
+
+dependencies:
+  pre:
+    - pip install -r travis-requirements.txt
+
+checkout:
+  post:
+    - cp ci/local_settings.py opentreemap/opentreemap/settings/local_settings.py
+    - mkdir -p /tmp/otm/static
+    - mkdir -p /tmp/otm/media
+
+database:
+  post:
+    - psql -c "CREATE EXTENSION hstore;" -U postgres -d template1
+    - psql -c "CREATE DATABASE ci;" -U postgres
+    - psql -c "CREATE EXTENSION postgis;" -U postgres -d ci
+    - python opentreemap/manage.py syncdb --noinput
+    - python opentreemap/manage.py migrate --noinput
+    - npm run grunt
+    - python opentreemap/manage.py collectstatic --noinput
+
+test:
+  override:
+    - flake8 --exclude migrations,opentreemap/settings/local_settings.py,*.pyc opentreemap
+    - npm run check
+    - npm run test
+    - cd opentreemap && case $CIRCLE_NODE_INDEX in 0) coverage run --source=. --rcfile=../.coveragerc manage.py test ;; 1) coverage run --source=. --rcfile=../.coveragerc manage.py test -p 'uitest*.py' ;; esac:
+        parallel: true
+  post:
+    - cd opentreemap && coverage html -d $CIRCLE_ARTIFACTS/python-coverage
