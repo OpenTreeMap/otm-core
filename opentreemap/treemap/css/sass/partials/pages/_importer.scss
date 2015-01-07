@@ -1,16 +1,31 @@
 #importer{
 
-    h1{
-        margin-top: 8px;
-    }
+  h1{
+    margin-top: 8px;
+  }
 
-    .top-pad-sm{
-        padding-top: 14px;
-    }
+  .top-pad-sm{
+    padding-top: 14px;
+  }
 
-   .top-pad-lg{
-        padding-top: 50px;
+ .top-pad-lg{
+    padding-top: 50px;
+  }
+
+  .well{
+
+    .instructions{
+      border-top: solid 1px $well-color;
+      margin-top: 8px;
+      padding-top: 8px;
+
+      p{
+        margin: 0!important;
+        color: $subtext-color;
+        font-style: italic;
+      }
     }
+  }
 
   .table{
     background-color: transparent;
@@ -21,42 +36,43 @@
   }
 
   .table-hover{
+
     tr{
       cursor: pointer;
     }
   }
 
-   td.error {
-        background-color: #f2dede;
-        position: relative;
-   }
+  td.error {
+    background-color: #f2dede;
+    position: relative;
+  }
 
-   td.warning {
-        background-color: #fef4ad;
-        position: relative;
-   }
+  td.warning {
+    background-color: #fef4ad;
+    position: relative;
+  }
 
-   input {
-       width: auto;
-   }
+  input {
+    width: auto;
+  }
 
-   .tab-content > .tab-pane {
-       min-height: inherit!important;
-   }
+  .tab-content > .tab-pane {
+    min-height: inherit!important;
+  }
 
-   .tab-contents{
-      overflow-x: scroll;
-      border-left: solid 1px #dddddd;
-      border-right: solid 1px #dddddd;
-      border-bottom: solid 1px #dddddd;
-   }
+  .tab-contents{
+    overflow-x: scroll;
+    border-left: solid 1px #dddddd;
+    border-right: solid 1px #dddddd;
+    border-bottom: solid 1px #dddddd;
+  }
 
-    .btn-info{
-      margin-right: 12px;
-    }
+  .btn-info{
+    margin-right: 12px;
+  }
 
-    .no-bullet{
-      list-style-type: none;
-      padding-left: 0!important;
-    }
+  .no-bullet{
+    list-style-type: none;
+    padding-left: 0!important;
+  }
 }
