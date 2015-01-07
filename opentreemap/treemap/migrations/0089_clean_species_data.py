@@ -8,12 +8,14 @@ class Migration(DataMigration):
 
     def forwards(self, orm):
         willows = orm.species.objects.filter(common_name='Willow  ')
-        print('Updating %s Willows' % willows.count())
-        willows.update(common_name='Willow')
+        if willows.exists():
+            print('Updating %s Willows' % willows.count())
+            willows.update(common_name='Willow')
 
         horses = orm.species.objects.filter(common_name="Red horsechestnut 'Stafford '")
-        print('Updating %s Red horsechestnuts' % horses.count())
-        horses.update(common_name="Red horsechestnut 'Stafford'")
+        if horses.exists():
+            print('Updating %s Red horsechestnuts' % horses.count())
+            horses.update(common_name="Red horsechestnut 'Stafford'")
 
     def backwards(self, orm):
         print('Whitespace removed by this migration cannot be restored.')
