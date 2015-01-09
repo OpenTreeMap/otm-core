@@ -202,7 +202,9 @@ def update_row(request, instance, import_type, row_id):
     row.save()
     row.validate_row()
 
-    context = _get_status_panels(ie, instance)
+    panel_name = request.GET.get('panel', 'verified')
+    page_number = int(request.GET.get('page', '1'))
+    context = _get_status_panels(ie, instance, panel_name, page_number)
     context['active_panel_name'] = 'error'
     return context
 
