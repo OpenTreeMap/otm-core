@@ -120,26 +120,31 @@ class GenericImportEvent(models.Model):
             self.errors = '[]'
 
         self.errors = json.dumps(
-            self.errors_as_array() + [
+            self._errors_as_array() + [
                 {'code': code,
-                 'msg': msg,
                  'data': data,
                  'fatal': fatal}])
 
         return self
 
-    def errors_as_array(self):
+    def _errors_as_array(self):
         if self.errors is None or self.errors == '':
             return []
         else:
             return json.loads(self.errors)
 
+    def errors_array_with_messages(self):
+        errs = self._errors_as_array()
+        for error in errs:
+            error['msg'] = errors.get_message(error['code'])
+        return errs
+
     def has_errors(self):
-        return len(self.errors_as_array()) > 0
+        return len(self._errors_as_array()) > 0
 
     def has_error(self, error):
         code, msg, fatal = error
-        error_codes = {e['code'] for e in self.errors_as_array()}
+        error_codes = {e['code'] for e in self._errors_as_array()}
         return code in error_codes
 
     def row_set(self):
@@ -224,20 +229,31 @@ class GenericImportRow(models.Model):
         self.jsondata = v
         self.data = json.dumps(self.jsondata)
 
-    def errors_as_array(self):
+    def _errors_as_array(self):
         if self.errors is None or self.errors == '':
             return []
         else:
             return json.loads(self.errors)
 
+    def errors_array_with_messages(self):
+        errs = self._errors_as_array()
+        for error in errs:
+            error['msg'] = errors.get_message(error['code'])
+        return errs
+
+    def errors_array_without_merge_errors(self):
+        errs = [e for e in self._errors_as_array()
+                if e['code'] != errors.MERGE_REQUIRED[0]]
+        return errs
+
     def has_errors(self):
-        return len(self.errors_as_array()) > 0
+        return len(self._errors_as_array()) > 0
 
     def get_fields_with_error(self):
         data = {}
         datadict = self.datadict
 
-        for e in self.errors_as_array():
+        for e in self._errors_as_array():
             for field in e['fields']:
                 data[field] = datadict[field]
 
@@ -266,7 +282,6 @@ class GenericImportRow(models.Model):
             json.loads(self.errors) + [
                 {'code': code,
                  'fields': fields,
-                 'msg': msg,
                  'data': data,
                  'fatal': fatal}])
 

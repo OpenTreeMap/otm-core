@@ -724,7 +724,7 @@ class SpeciesStatusValidationTest(SpeciesValidationTest):
         })
 
 
-class FileLevelTreeValidationTest(TestCase):
+class FileLevelTreeValidationTest(ValidationTest):
     def write_csv(self, stuff):
         t = tempfile.NamedTemporaryFile()
 
@@ -754,13 +754,10 @@ class FileLevelTreeValidationTest(TestCase):
         self.assertEqual(TreeImportRow.objects.count(), base_rows)
         self.assertFalse(rslt)
 
-        ierrors = json.loads(ie.errors)
-
         # The only error is a bad file error
+        ierrors = json.loads(ie.errors)
         self.assertTrue(len(ierrors), 1)
-        etpl = (ierrors[0]['code'], ierrors[0]['msg'], True)
-
-        self.assertEqual(etpl, errors.EMPTY_FILE)
+        self.assertHasError(ie, errors.EMPTY_FILE)
 
     def test_missing_point_field(self):
         ie = TreeImportEvent(file_name='file', owner=self.user,
@@ -778,12 +775,8 @@ class FileLevelTreeValidationTest(TestCase):
         self.assertFalse(rslt)
 
         ierrors = json.loads(ie.errors)
-
-        # Should be x/y point error
         self.assertTrue(len(ierrors), 1)
-        etpl = (ierrors[0]['code'], ierrors[0]['msg'], True)
-
-        self.assertEqual(etpl, errors.MISSING_FIELD)
+        self.assertHasError(ie, errors.MISSING_FIELD)
 
     def test_unknown_field(self):
         ie = TreeImportEvent(file_name='file', owner=self.user,
@@ -802,12 +795,8 @@ class FileLevelTreeValidationTest(TestCase):
         self.assertFalse(rslt)
 
         ierrors = json.loads(ie.errors)
-
-        # Should be x/y point error
         self.assertTrue(len(ierrors), 1)
-        etpl = (ierrors[0]['code'], ierrors[0]['msg'], False)
-
-        self.assertEqual(etpl, errors.UNMATCHED_FIELDS)
+        self.assertHasError(ie, errors.UNMATCHED_FIELDS)
         self.assertEqual(set(ierrors[0]['data']), set(['name', 'age']))
 
 

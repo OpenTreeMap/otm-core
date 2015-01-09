@@ -334,7 +334,7 @@ def _get_row_data(row, field_names, merge_required):
     that do not have any errors to produce complete rendering info
     for a row.
     """
-    row_errors = row.errors_as_array()
+    row_errors = row.errors_array_with_messages()
 
     collected_fields = {}
     for row_error in row_errors:
@@ -531,11 +531,8 @@ def solve(request, instance, import_event_id, row_index):
     target_species = request.GET['species']
 
     # Strip off merge errors
-    ierrors = [e for e in row.errors_as_array()
-               if e['code'] != errors.MERGE_REQUIRED[0]]
-
     #TODO: Json handling is terrible.
-    row.errors = json.dumps(ierrors)
+    row.errors = json.dumps(row.errors_array_without_merge_errors())
     row.datadict.update(data)
 
     if target_species != 'new':
