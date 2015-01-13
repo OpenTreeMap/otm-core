@@ -6,9 +6,6 @@
 
 {% block content %}
 <p>{{ field.msg }}</p>
-{% with display_name=field.custom_resolver.suggestion.display_name %}
-<p>{% blocktrans %}Did you mean: "{{ display_name }}"?{% endblocktrans %}</p>
-{% endwith %}
 <input type="hidden"
        data-typeahead-hidden="true"
        class="species-resolver-typeahead-hidden popover-correction"
@@ -16,6 +13,8 @@
 <input class="popover-correction species-resolver-typeahead"
        data-typeahead-url="{% url 'species_list_view' instance_url_name=request.instance.url_name %}"
        value="{{ field.custom_resolver.suggestion.display_name }}"/>
+<p style="font-size:1.1rem;line-height:1.4rem;">
+    {% trans 'Click "Save" to accept the suggested species, or click in the text box to select from the species list. Use the species import tool to add new species to your map.' %}</p>
 {% endblock content %}
 
 {% block extra_save_classes %}resolver-popover-accept{% endblock extra_save_classes %}
