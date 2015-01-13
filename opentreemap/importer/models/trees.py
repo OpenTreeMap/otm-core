@@ -64,7 +64,8 @@ class TreeImportRow(GenericImportRow):
         'geom': fields.trees.POINT,
         'width': fields.trees.PLOT_WIDTH,
         'length': fields.trees.PLOT_LENGTH,
-        'readonly': fields.trees.READ_ONLY,
+        # TODO: READONLY restore when implemented
+        # 'readonly': fields.trees.READ_ONLY,
         'owner_orig_id': fields.trees.EXTERNAL_ID_NUMBER,
         'address_street': fields.trees.STREET_ADDRESS,
         'address_city': fields.trees.CITY_ADDRESS,
@@ -77,7 +78,8 @@ class TreeImportRow(GenericImportRow):
         'canopy_height': fields.trees.CANOPY_HEIGHT,
         'species': fields.trees.SPECIES_OBJECT,
         'date_planted': fields.trees.DATE_PLANTED,
-        'readonly': fields.trees.READ_ONLY
+        # TODO: READONLY restore when implemented
+        # 'readonly': fields.trees.READ_ONLY
     }
 
     # plot that was created from this row
