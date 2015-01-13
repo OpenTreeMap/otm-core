@@ -681,7 +681,8 @@ def export_single_tree_import(request, instance, import_event_id):
         fields.trees.POINT_Y,
         fields.trees.PLOT_WIDTH,
         fields.trees.PLOT_LENGTH,
-        fields.trees.READ_ONLY,
+        # TODO: READONLY restore when implemented
+        # fields.trees.READ_ONLY,
         fields.trees.OPENTREEMAP_PLOT_ID,
         fields.trees.TREE_PRESENT,
         fields.trees.GENUS,
@@ -711,7 +712,8 @@ def export_single_tree_import(request, instance, import_event_id):
 
             obj[fields.trees.PLOT_WIDTH] = r.plot.width
             obj[fields.trees.PLOT_LENGTH] = r.plot.length
-            obj[fields.trees.READ_ONLY] = r.plot.readonly
+            # TODO: READONLY restore when implemented
+            # obj[fields.trees.READ_ONLY] = r.plot.readonly
             obj[fields.trees.OPENTREEMAP_PLOT_ID] = r.plot.pk
             obj[fields.trees.EXTERNAL_ID_NUMBER] = r.plot.owner_orig_id
 

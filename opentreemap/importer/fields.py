@@ -84,7 +84,9 @@ class trees(object):
     PLOT_WIDTH = 'plot width'
     PLOT_LENGTH = 'plot length'
 
-    READ_ONLY = 'read only'
+    # TODO: READONLY restore when implemented
+    # READ_ONLY = 'read only'
+
     OPENTREEMAP_PLOT_ID = 'opentreemap plot id'
     EXTERNAL_ID_NUMBER = 'external id number'
 
@@ -120,9 +122,11 @@ class trees(object):
 
     POS_INT_FIELDS = {OPENTREEMAP_PLOT_ID}
 
-    BOOLEAN_FIELDS = {READ_ONLY, TREE_PRESENT}
+    # TODO: READONLY restore when implemented
+    BOOLEAN_FIELDS = {TREE_PRESENT}
 
-    ALL = {POINT_X, POINT_Y, PLOT_WIDTH, PLOT_LENGTH, READ_ONLY, TREE_PRESENT,
+    # TODO: READONLY restore when implemented
+    ALL = {POINT_X, POINT_Y, PLOT_WIDTH, PLOT_LENGTH, TREE_PRESENT,
            STREET_ADDRESS, CITY_ADDRESS, POSTAL_CODE, OPENTREEMAP_PLOT_ID,
            GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME, DIAMETER,
            EXTERNAL_ID_NUMBER, CANOPY_HEIGHT, DATE_PLANTED, TREE_HEIGHT,

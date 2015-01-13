@@ -1031,15 +1031,26 @@ class TreeIntegrationTests(IntegrationTests):
                        cultivar='', max_diameter=50.0, max_height=100.0)
         s1_g.save_with_system_user_bypass_auth()
 
+        # TODO: READONLY restore when implemented
+        # csv = """
+        # | point x | point y | diameter | read only | genus | tree height |
+        # | -34.2   | 24.2    | q12      | true      |       |             |
+        # | 323     | 23.2    | 14       | falseo    |       |             |
+        # | 32.1    | 22.4    | 15       | true      |       |             |
+        # | 33.2    | 19.1    | 32       | true      |       |             |
+        # | 33.2    | q19.1   | -33.3    | true      | gfail |             |
+        # | 32.1    | 12.1    |          | false     | g1    | 200         |
+        # | 32.1    | 12.1    | 300      | false     | g1    |             |
+        # """
         csv = """
-        | point x | point y | diameter | read only | genus | tree height |
-        | -34.2   | 24.2    | q12      | true      |       |             |
-        | 323     | 23.2    | 14       | falseo    |       |             |
-        | 32.1    | 22.4    | 15       | true      |       |             |
-        | 33.2    | 19.1    | 32       | true      |       |             |
-        | 33.2    | q19.1   | -33.3    | true      | gfail |             |
-        | 32.1    | 12.1    |          | false     | g1    | 200         |
-        | 32.1    | 12.1    | 300      | false     | g1    |             |
+        | point x | point y | diameter | genus | tree height |
+        | -34.2   | 24.2    | q12      |       |             |
+        | 323     | 23.2    | 14       |       |             |
+        | 32.1    | 22.4    | 15       |       |             |
+        | 33.2    | 19.1    | 32       |       |             |
+        | 33.2    | q19.1   | -33.3    | gfail |             |
+        | 32.1    | 12.1    |          | g1    | 200         |
+        | 32.1    | 12.1    | 300      | g1    |             |
         """
 
         gflds = [fields.trees.POINT_X, fields.trees.POINT_Y]
@@ -1053,10 +1064,15 @@ class TreeIntegrationTests(IntegrationTests):
                          [(errors.FLOAT_ERROR[0],
                            [fields.trees.DIAMETER], None)])
 
+        # TODO: READONLY restore when implemented
+        # self.assertEqual(ierrors['1'],
+        #                  [(errors.BOOL_ERROR[0],
+        #                    [fields.trees.READ_ONLY], None),
+        #                   (errors.INVALID_GEOM[0], gflds, None)])
         self.assertEqual(ierrors['1'],
-                         [(errors.BOOL_ERROR[0],
-                           [fields.trees.READ_ONLY], None),
-                          (errors.INVALID_GEOM[0], gflds, None)])
+                         [(errors.INVALID_GEOM[0], gflds, None)])
+
+
         self.assertNotIn('2', ierrors)
         self.assertNotIn('3', ierrors)
         self.assertEqual(ierrors['4'],
@@ -1176,9 +1192,14 @@ class TreeIntegrationTests(IntegrationTests):
 
         self.assertEqual(tree2.species.pk, s1_gsc.pk)
 
+        # TODO: READONLY restore when implemented
+        # csv = """
+        # | point x | point y | date planted | read only |
+        # | 25.00   | 25.00   | 2012-02-03   | true      |
+        # """
         csv = """
-        | point x | point y | date planted | read only |
-        | 25.00   | 25.00   | 2012-02-03   | true      |
+        | point x | point y | date planted |
+        | 25.00   | 25.00   | 2012-02-03   |
         """
 
         ieid = self.run_through_commit_views(csv)
@@ -1188,7 +1209,8 @@ class TreeIntegrationTests(IntegrationTests):
         dateplanted = date(2012, 2, 3)
 
         self.assertEqual(tree.date_planted, dateplanted)
-        self.assertEqual(tree.readonly, True)
+        # TODO: READONLY restore when implemented
+        # self.assertEqual(tree.readonly, True)
 
         psycopg2.extras.register_hstore(connection.cursor(), globally=True)
 
@@ -1224,9 +1246,14 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(tree.udfs['Cuteness'], 'not much')
 
     def test_all_plot_data(self):
+        # TODO: READONLY restore when implemented
+        # csv = """
+        # | point x | point y | plot width | plot length | read only |
+        # | 45.53   | 31.1    | 19.2       | 13          | false     |
+        # """
         csv = """
-        | point x | point y | plot width | plot length | read only |
-        | 45.53   | 31.1    | 19.2       | 13          | false     |
+        | point x | point y | plot width | plot length |
+        | 45.53   | 31.1    | 19.2       | 13          |
         """
 
         ieid = self.run_through_commit_views(csv)
@@ -1239,7 +1266,8 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(int(plot_geom.y*100), 3109)
         self.assertEqual(plot.width, 19.2)
         self.assertEqual(plot.length, 13)
-        self.assertEqual(plot.readonly, False)
+        # TODO: READONLY restore when implemented
+        # self.assertEqual(plot.readonly, False)
 
         csv = """
         | point x | point y | external id number |
