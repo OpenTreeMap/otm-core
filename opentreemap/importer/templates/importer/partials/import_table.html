@@ -2,7 +2,7 @@
 <table class="table table-hover">
     <thead>
         <tr>
-            <th>{% trans "Import Event" %}</th>
+            <th>{% trans "Uploaded Date" %}</th>
             <th>{% trans "Status" %}</th>
             <th>{% trans "Rows" %}</th>
             <th>{% trans "View" %}</th>
@@ -11,7 +11,7 @@
     <tbody>
     {% for ie in things %}
         <tr>
-            <td>{{ ie }}</td>
+            <td>{{ ie.created }}</td>
             <td>{{ ie.status_summary }}</td>
             <td>
                 {% if ie.is_finished %}
@@ -29,4 +29,3 @@
     {% endfor %}
     </tbody>
 </table>
-
