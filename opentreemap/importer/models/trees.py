@@ -229,8 +229,11 @@ class TreeImportRow(GenericImportRow):
 
     def validate_otm_id(self):
         oid = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
+
         if oid:
-            has_plot = Plot.objects.filter(pk=oid).exists()
+            has_plot = Plot.objects \
+                .filter(pk=oid, instance=self.import_event.instance) \
+                .exists()
 
             if not has_plot:
                 self.append_error(errors.INVALID_OTM_ID,
