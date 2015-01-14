@@ -247,7 +247,7 @@ def _get_status_panels(ie, instance, panel_name, page_number):
                                  'import_event_id': ie.pk})
     return {
         'panels': panels,
-        'active_panel_name': panels[0]['name'],
+        'active_panel_name': panel_name,
         'commit_url': commit_url,
         'cancel_url': cancel_url,
         'ie': ie
