@@ -44,8 +44,8 @@ GEOM_OUT_OF_BOUNDS = e(
 
 EXCL_ZONE = e(12, trans('Geometry may not be in an exclusion zone'), True)
 
-INVALID_SPECIES = e(20, trans('Could not find species with the given '
-                              'scientific name.'), True)
+INVALID_SPECIES = e(20, trans('Could not find this scientific name on the '
+                              'master species list.'), True)
 DUPLICATE_SPECIES = e(21, trans('More than one species matches the given '
                                 'scientific name.'), True)
 
