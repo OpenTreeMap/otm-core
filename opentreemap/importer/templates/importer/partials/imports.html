@@ -14,7 +14,7 @@
                   <h4>{% trans "Tree Import" %}</h4>
                   <input type="hidden" name="type" value="tree">
                   <div class="input-group">
-                    {% trans "File to Upload:" %} <input type="file" name="file">
+                    {% trans "CSV to Upload:" %} <input type="file" name="file" accept="text/csv,.csv">
                   </div><!-- /input-group -->
                   <div id="importer-tree-units" style="display: none;">
                     {% with u=importer_instance_units %}
@@ -49,7 +49,7 @@
                   <h4>{% trans "Species Import" %}</h4>
                   <input type="hidden" name="type" value="species">
                   <div class="input-group">
-                    {% trans "File to Upload:" %} <input type="file" name="file">
+                    {% trans "CSV to Upload:" %} <input type="file" name="file" accept="text/csv,.csv">
                   </div><!-- /input-group -->
                 </form>
                 <div class="instructions">
