@@ -134,19 +134,22 @@ class TreeImportRow(GenericImportRow):
         else:
             plot = Plot(instance=self.import_event.instance)
 
-        # Even if TREE_PRESENT is False, a tree can be spawned if there
-        # is tree data later
-        tree = plot.current_tree()
+        self._commit_plot_data(data, plot)
 
-        # Check for an existing tree:
+        # TREE_PRESENT handling:
+        #   If True, create a tree
+        #   If False, don't create a tree
+        #   If empty or missing, create a tree if a tree field is specified
+        tree = plot.current_tree()
         tree_edited = False
-        if data.get(self.model_fields.TREE_PRESENT, False):
+        tree_present = data.get(self.model_fields.TREE_PRESENT, None)
+        if tree_present:
             tree_edited = True
             if tree is None:
                 tree = Tree(instance=plot.instance)
 
-        self._commit_plot_data(data, plot)
-        self._commit_tree_data(data, plot, tree, tree_edited)
+        if tree_present or tree_present is None:
+            self._commit_tree_data(data, plot, tree, tree_edited)
 
         self.plot = plot
         self.status = TreeImportRow.SUCCESS
