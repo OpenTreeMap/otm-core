@@ -501,7 +501,6 @@ class SpeciesCommitTest(SpeciesValidationTest):
             'cultivar': 'the cultivar',
             'other part of name': 'the other',
             'is native': 'True',
-            'gender': 'the gender',
             'flowering period': 'summer',
             'fruit or nut period': 'fall',
             'fall conspicuous': 'True',
@@ -532,7 +531,6 @@ class SpeciesCommitTest(SpeciesValidationTest):
         self.assertEqual(s.has_wildlife_value, True)
         self.assertEqual(s.max_diameter, 10)
         self.assertEqual(s.max_height, 91)
-        self.assertEqual(s.gender, 'the gender')
         self.assertEqual(s.fact_sheet_url, 'the fact sheet url')
         self.assertEqual(s.plant_guide_url, 'the plant guide url')
 

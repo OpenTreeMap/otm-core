@@ -63,7 +63,6 @@ class SpeciesImportRow(GenericImportRow):
         'other_part_of_name': fields.species.OTHER_PART_OF_NAME,
         'common_name': fields.species.COMMON_NAME,
         'is_native': fields.species.IS_NATIVE,
-        'gender': fields.species.GENDER,
         'flowering_period': fields.species.FLOWERING_PERIOD,
         'fruit_or_nut_period': fields.species.FRUIT_OR_NUT_PERIOD,
         'fall_conspicuous': fields.species.FALL_CONSPICUOUS,
