@@ -263,6 +263,8 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
     PAGE_SIZE = 10
     status = panel_spec['status']
     merge_required = panel_spec['name'] == 'merge_required'
+    show_warnings = panel_spec['name'] != 'success'
+
     if merge_required:
         query = ie.rows() \
             .filter(merged=False) \
@@ -283,8 +285,9 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
 
     class RowPage(Page):
         def __getitem__(self, *args, **kwargs):
-            page = super(RowPage, self).__getitem__(*args, **kwargs)
-            return _get_row_data(page,  field_names, merge_required)
+            row = super(RowPage, self).__getitem__(*args, **kwargs)
+            return _get_row_data(
+                row, field_names, merge_required, show_warnings)
 
     class RowPaginator(Paginator):
         def _get_page(self, *args, **kwargs):
@@ -326,7 +329,7 @@ def _add_species_resolver_to_fields(collected_fields, row):
                 existing['custom_resolver']['suggestion'] = suggesteds[0]
 
 
-def _get_row_data(row, field_names, merge_required):
+def _get_row_data(row, field_names, merge_required, show_warnings):
     """
     For each field with errors in each row, expand into an object
     for that field which presents rendering info about its most
@@ -340,19 +343,26 @@ def _get_row_data(row, field_names, merge_required):
 
     collected_fields = {}
     for row_error in row_errors:
-        css_class = 'error' if row_error['fatal'] else 'warning'
-        for field in row_error['fields']:
-            field_data = collected_fields.get(field, {})
-            if not field_data or css_class == 'error':
-                field_data['name'] = field
-                field_data['value'] = row.datadict.get(field, '')
-                field_data['css_class'] = css_class
-                if row_error['code'] != errors.MERGE_REQUIRED[0]:
-                    field_data['show_resolver'] = True
-                    field_data['msg'] = row_error['msg']
-                    field_data['row_id'] = row.pk
-                    field_data['custom_resolver'] = {}
-            collected_fields[field] = field_data
+        if row_error['fatal']:
+            css_class = 'error'
+        elif show_warnings:
+            css_class = 'warning'
+        else:
+            css_class = None
+        if css_class:
+            for field in row_error['fields']:
+                field_data = collected_fields.get(field, {})
+                if not field_data or css_class == 'error':
+                    field_data['name'] = field
+                    field_data['value'] = row.datadict.get(field, '')
+                    field_data['css_class'] = css_class
+                    if row_error['code'] != errors.MERGE_REQUIRED[0]:
+                        field_data['show_resolver'] = True
+                        field_data['msg'] = row_error['msg']
+                        field_data['row_id'] = row.pk
+                        field_data['custom_resolver'] = {}
+                        field_data['help_text'] = _get_help_text(row_error)
+                collected_fields[field] = field_data
     for field in field_names:
         if field not in collected_fields:
             collected_fields[field] = {'name': field,
@@ -376,6 +386,14 @@ def _get_row_data(row, field_names, merge_required):
         row_data['species_id'] = row.species.pk
 
     return row_data
+
+
+def _get_help_text(row_error):
+    help_text = None
+    if errors.is_itree_error_code(row_error['code']):
+        help_text = trans('Please consult the OpenTreeMap Species Import '
+                          'Guide for information on resolving this error.')
+    return help_text
 
 
 def _get_merge_data(row, field_names, row_errors):

@@ -21,3 +21,9 @@ value="{{ field.value }}"
 data-url="{% url 'importer:update_row' instance_url_name=request.instance.url_name import_type=panel.import_type row_id=field.row_id %}"
 data-field-name="{{ field.name }}"
 {% endblock extra_save_attributes %}
+
+{% block help_text %}
+{% if field.help_text %}
+<p class="help_text">{{ field.help_text }}</p>
+{% endif %}
+{% endblock help_text %}

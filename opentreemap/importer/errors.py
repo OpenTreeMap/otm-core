@@ -17,6 +17,9 @@ def get_message(code):
     return _messages_by_code[code]
 
 
+def is_itree_error_code(code):
+    return 60 <= code <= 69
+
 ######################################
 # FILE LEVEL ERRORS
 ######################################
