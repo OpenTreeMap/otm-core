@@ -1298,10 +1298,10 @@ class TreeIntegrationTests(IntegrationTests):
     def test_tree_present_works_as_expected(self):
         csv = """
         | point x | point y | tree present | diameter |
-        | 45.53   | 31.1    | false        |          |
+        | 45.53   | 31.1    | false        | 23       |
         | 45.63   | 32.1    | true         |          |
-        | 45.73   | 33.1    | true         | 23       |
-        | 45.93   | 33.1    | false        | 23       |
+        | 45.73   | 33.1    |              | 23       |
+        | 45.93   | 33.1    |              |          |
         """
 
         ieid = self.run_through_commit_views(csv)
@@ -1312,10 +1312,10 @@ class TreeIntegrationTests(IntegrationTests):
 
         self.assertEqual(
             tests,
-            [False,  # No tree data and tree present is false
-             True,   # Force a tree in this spot (tree present=true)
-             True,   # Data, so ignore tree present settings
-             True])  # Data, so ignore tree present settings
+            [False,  # tp=False means no tree even if data present
+             True,   # tp=True means tree even if no data present
+             True,   # tp missing means tree when data present
+             False]) # tp missing means no tree when no data present
 
     def test_common_name_matching(self):
         apple = Species(instance=self.instance, genus='malus',
