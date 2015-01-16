@@ -11,8 +11,6 @@ from importer.views import (
     commit_endpoint, counts, show_import_status_endpoint, cancel_endpoint,
     list_imports_endpoint, refresh_imports_endpoint, solve_endpoint)
 
-from treemap.plugin import feature_enabled
-
 _type_pattern = '(?P<import_type>(species|tree))'
 _ie_pattern = '(?P<import_event_id>\d+)'
 _import_api_pattern = _type_pattern + '/' + _ie_pattern
@@ -42,6 +40,3 @@ urlpatterns = patterns(
     url(r'^api/merge$', merge_species, name='merge'),
     url(r'^api/counts', counts, name='counts'),
 )
-
-if not feature_enabled(None, 'bulk_upload'):
-    urlpatterns = patterns('')
