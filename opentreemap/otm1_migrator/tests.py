@@ -170,7 +170,7 @@ class MigrationCommandTests(LocalMediaTestCase):
         "fruit_period": null,
         "resource": [32],
         "v_multiple_trunks": null,
-        "gender": "",
+        "gender": "female",
         "bloom_period": null,
         "genus": "Eucalyptus"}}
         """
@@ -224,7 +224,6 @@ class MigrationCommandTests(LocalMediaTestCase):
         self.assertEqual(species.genus, 'Eucalyptus')
         self.assertEqual(species.species, 'viminalis')
         self.assertEqual(species.cultivar, '')
-        self.assertEqual(species.gender, '')
         self.assertEqual(species.common_name, "Basket willow")
         self.assertEqual(species.is_native, False)
         self.assertEqual(species.flowering_period, '')
