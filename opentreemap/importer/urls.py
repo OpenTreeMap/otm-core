@@ -5,11 +5,7 @@ from __future__ import division
 
 from django.conf.urls import patterns, url
 
-from importer.views import (
-    start_import_endpoint, update_row_endpoint, export_all_species,
-    export_single_species_import, export_single_tree_import, merge_species,
-    commit_endpoint, counts, show_import_status_endpoint, cancel_endpoint,
-    list_imports_endpoint, refresh_imports_endpoint, solve_endpoint)
+from importer import routes
 
 _type_pattern = '(?P<import_type>(species|tree))'
 _ie_pattern = '(?P<import_event_id>\d+)'
@@ -18,25 +14,27 @@ _import_api_pattern = _type_pattern + '/' + _ie_pattern
 
 urlpatterns = patterns(
     '',
-    url(r'^$', list_imports_endpoint, name='list_imports'),
-    url(r'^refresh$', refresh_imports_endpoint, name='refresh_imports'),
-    url(r'^start_import$', start_import_endpoint, name='start_import'),
-    url(r'^status/%s/' % _import_api_pattern, show_import_status_endpoint,
+    url(r'^$', routes.list_imports, name='list_imports'),
+    url(r'^refresh$', routes.refresh_imports, name='refresh_imports'),
+    url(r'^start_import$', routes.start_import, name='start_import'),
+    url(r'^status/%s/' % _import_api_pattern, routes.show_import_status,
         name='status'),
-    url(r'^cancel/%s/$' % _import_api_pattern, cancel_endpoint, name='cancel'),
+    url(r'^cancel/%s/$' % _import_api_pattern, routes.cancel, name='cancel'),
     url(r'^species/solve(?P<import_event_id>\d+)/(?P<row_index>\d+)/$',
-        solve_endpoint, name='solve'),
+        routes.solve, name='solve'),
     url(r'^update/%s/(?P<row_id>\d+)/$' % _type_pattern,
-        update_row_endpoint, name='update_row'),
-    url(r'^commit/%s/$' % _import_api_pattern, commit_endpoint, name='commit'),
+        routes.update_row, name='update_row'),
+    url(r'^commit/%s/$' % _import_api_pattern, routes.commit, name='commit'),
 
-    url(r'^export/species/all', export_all_species, name='export_all_species'),
+    url(r'^export/species/all', routes.export_all_species,
+        name='export_all_species'),
     url(r'^export/species/(?P<import_event_id>\d+)$',
-        export_single_species_import, name='export_single_species_import'),
-    url(r'^export/tree/(?P<import_event_id>\d+)$', export_single_tree_import,
+        routes.export_single_species_import,
+        name='export_single_species_import'),
+    url(r'^export/tree/(?P<import_event_id>\d+)$',
+        routes.export_single_tree_import,
         name='export_single_tree_import'),
 
     # API
-    url(r'^api/merge$', merge_species, name='merge'),
-    url(r'^api/counts', counts, name='counts'),
+    url(r'^api/merge$', routes.merge_species, name='merge'),
 )

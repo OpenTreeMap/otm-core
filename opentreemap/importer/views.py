@@ -19,12 +19,7 @@ from django.utils.translation import ugettext as trans
 
 from django.contrib.auth.decorators import login_required
 
-from django_tinsel.utils import decorate as do
-from django_tinsel.decorators import render_template
-
 from treemap.models import Species, Tree, User
-from treemap.decorators import (admin_instance_request, require_http_method,
-                                requires_feature)
 from treemap.units import (get_conversion_factor, get_value_display_attr)
 
 from importer.models.base import GenericImportEvent, GenericImportRow
@@ -53,31 +48,6 @@ def _find_similar_species(target, instance):
                'pk': s.pk} for s in species]
 
     return output
-
-
-def counts(request, instance):
-    active_trees = TreeImportEvent\
-        .objects\
-        .filter(instance=instance)\
-        .order_by('id')\
-        .exclude(status=GenericImportEvent.FINISHED_CREATING)\
-        .exclude(status=GenericImportEvent.FINISHED_VERIFICATION)\
-        .exclude(status=GenericImportEvent.FAILED_FILE_VERIFICATION)
-
-    active_species = SpeciesImportEvent\
-        .objects\
-        .filter(instance=instance)\
-        .order_by('id')\
-        .exclude(status=GenericImportEvent.FINISHED_CREATING)\
-        .exclude(status=GenericImportEvent.FINISHED_VERIFICATION)\
-        .exclude(status=GenericImportEvent.FAILED_FILE_VERIFICATION)
-
-    output = {}
-    output['trees'] = {t.pk: t.row_counts_by_status() for t in active_trees}
-    output['species'] = {s.pk: s.row_counts_by_status()
-                         for s in active_species}
-
-    return HttpResponse(json.dumps(output), content_type='application/json')
 
 
 def start_import(request, instance):
@@ -135,13 +105,8 @@ def list_imports(request, instance):
             }
 
 
-@login_required
 @transaction.atomic
 def merge_species(request, instance):
-    # TODO: We don't set User.is_staff, probably should use a decorator anyways
-    if not request.user.is_staff:
-        raise Exception("Must be admin")
-
     species_to_delete_id = request.REQUEST['species_to_delete']
     species_to_replace_with_id = request.REQUEST['species_to_replace_with']
 
@@ -762,40 +727,3 @@ def export_single_tree_import(request, instance, import_event_id):
     response['Content-Disposition'] = 'attachment; filename=trees.csv'
 
     return response
-
-
-def _api_call(verb, view_fn):
-    return do(
-        admin_instance_request,
-        requires_feature('bulk_upload'),
-        require_http_method(verb),
-        view_fn)
-
-
-def _template_api_call(verb, template, view_fn):
-    templated_view = render_template(template)(view_fn)
-    return _api_call(verb, templated_view)
-
-
-list_imports_endpoint = _template_api_call(
-    'GET', 'importer/partials/imports.html', list_imports)
-
-refresh_imports_endpoint = _template_api_call(
-    'GET', 'importer/partials/import_tables.html', list_imports)
-
-start_import_endpoint = _template_api_call(
-    'POST', 'importer/partials/imports.html', start_import)
-
-cancel_endpoint = _template_api_call(
-    'GET', 'importer/partials/imports.html', cancel)
-
-solve_endpoint = _template_api_call(
-    'POST', 'importer/partials/row_status.html', solve)
-
-commit_endpoint = _template_api_call(
-    'GET', 'importer/partials/imports.html', commit)
-
-show_import_status_endpoint = _api_call('GET', show_import_status)
-
-update_row_endpoint = _template_api_call(
-    'POST', 'importer/partials/row_status.html', update_row)
