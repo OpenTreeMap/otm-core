@@ -12,7 +12,6 @@ class species(object):
     OTHER_PART_OF_NAME = 'other part of name'
     COMMON_NAME = 'common name'
     IS_NATIVE = 'is native'
-    GENDER = 'gender'
     FLOWERING_PERIOD = 'flowering period'
     FRUIT_OR_NUT_PERIOD = 'fruit or nut period'
     FALL_CONSPICUOUS = 'fall conspicuous'
@@ -42,9 +41,10 @@ class species(object):
 
     DATE_FIELDS = set()
 
-    STRING_FIELDS = {GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME, COMMON_NAME,
-                     ITREE_CODE, GENDER, FLOWERING_PERIOD,
-                     FRUIT_OR_NUT_PERIOD, FACT_SHEET_URL, PLANT_GUIDE_URL}
+    STRING_FIELDS = {GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME,
+                     COMMON_NAME, ITREE_CODE, FLOWERING_PERIOD,
+                     FRUIT_OR_NUT_PERIOD, FACT_SHEET_URL,
+                     PLANT_GUIDE_URL}
 
     POS_FLOAT_FIELDS = {MAX_DIAMETER, MAX_HEIGHT}
 

@@ -433,7 +433,6 @@ class Species(UDFModel, PendingAuditable):
 
     ### From original OTM (some renamed) ###
     is_native = models.NullBooleanField()
-    gender = models.CharField(max_length=50, blank=True)
     flowering_period = models.CharField(max_length=255, blank=True)
     fruit_or_nut_period = models.CharField(max_length=255, blank=True)
     fall_conspicuous = models.NullBooleanField()
