@@ -144,10 +144,12 @@ function getMergeData($button) {
         data = {};
 
     _.each(_.zip(mergeFieldNames, radioGroupNames),
-        function(fieldName, radioGroupName) {
-            var value = $mergeControls
-                .find("input:radio[name='" + radioGroupName + "']:checked")
-                .val();
+        function(pair) {
+            var fieldName = pair[0],
+                radioGroupName= pair[1],
+                value = $mergeControls
+                    .find("input:radio[name='" + radioGroupName + "']:checked")
+                    .val();
             data[fieldName] = value;
         });
     return data;
