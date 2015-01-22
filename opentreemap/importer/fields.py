@@ -25,9 +25,7 @@ class species(object):
 
     # Other import and/or export fields
     ID = 'database id of species'
-    SCIENTIFIC_NAME = 'scientific name'
     ITREE_CODE = 'i-tree code'
-    TREE_COUNT = 'number of trees in database'
 
     # This is a pseudo field which is filled in
     # when a matching species is found, but before
@@ -55,8 +53,12 @@ class species(object):
     BOOLEAN_FIELDS = {IS_NATIVE, FALL_CONSPICUOUS, PALATABLE_HUMAN,
                       FLOWER_CONSPICUOUS, HAS_WILDLIFE_VALUE}
 
-    ALL = DATE_FIELDS | STRING_FIELDS | POS_FLOAT_FIELDS | \
-        FLOAT_FIELDS | POS_INT_FIELDS | BOOLEAN_FIELDS
+    # Note: this is a tuple and not a set so it will be ordered in exports
+    ALL = (GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME, COMMON_NAME,
+           ITREE_CODE, FLOWERING_PERIOD, FRUIT_OR_NUT_PERIOD, IS_NATIVE,
+           FALL_CONSPICUOUS, PALATABLE_HUMAN, FLOWER_CONSPICUOUS,
+           HAS_WILDLIFE_VALUE, FACT_SHEET_URL, PLANT_GUIDE_URL, MAX_DIAMETER,
+           MAX_HEIGHT)
 
     PLOT_CHOICES = set()
 
@@ -93,11 +95,11 @@ class trees(object):
     TREE_PRESENT = 'tree present'
 
     # Tree Fields (species matching)
-    GENUS = 'genus'
-    SPECIES = 'species'
-    CULTIVAR = 'cultivar'
-    OTHER_PART_OF_NAME = 'other part of name'
-    COMMON_NAME = 'common name'
+    GENUS = species.GENUS
+    SPECIES = species.SPECIES
+    CULTIVAR = species.CULTIVAR
+    OTHER_PART_OF_NAME = species.OTHER_PART_OF_NAME
+    COMMON_NAME = species.COMMON_NAME
 
     # Tree fields
     DIAMETER = 'diameter'
@@ -126,8 +128,8 @@ class trees(object):
     BOOLEAN_FIELDS = {TREE_PRESENT}
 
     # TODO: READONLY restore when implemented
-    ALL = {POINT_X, POINT_Y, PLOT_WIDTH, PLOT_LENGTH, TREE_PRESENT,
-           STREET_ADDRESS, CITY_ADDRESS, POSTAL_CODE, OPENTREEMAP_PLOT_ID,
-           GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME, DIAMETER,
-           EXTERNAL_ID_NUMBER, CANOPY_HEIGHT, DATE_PLANTED, TREE_HEIGHT,
-           COMMON_NAME}
+    # Note: this is a tuple and not a set so it will be ordered in exports
+    ALL = (POINT_X, POINT_Y, PLOT_WIDTH, PLOT_LENGTH, OPENTREEMAP_PLOT_ID,
+           TREE_PRESENT, GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME,
+           COMMON_NAME, STREET_ADDRESS, CITY_ADDRESS, POSTAL_CODE, DIAMETER,
+           TREE_HEIGHT, EXTERNAL_ID_NUMBER, CANOPY_HEIGHT, DATE_PLANTED)

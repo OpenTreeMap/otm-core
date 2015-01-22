@@ -6,6 +6,7 @@
             <th>{% trans "Status" %}</th>
             <th>{% trans "Rows" %}</th>
             <th>{% trans "View" %}</th>
+            <th>{% trans "Export" %}</th>
         </tr>
     </thead>
     <tbody>
@@ -23,7 +24,16 @@
                 {% endif %}
             </td>
             <td>
-                <a href="{% url 'importer:status' import_type=import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">View</a>
+              <a href="{% url 'importer:status' import_type=import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">
+                {%trans "View" %}
+              </a>
+            </td>
+            <td>
+              {% if ie.can_export %}
+              <a href="javascript:" data-export-start-url="{% url 'importer:export_single_import' import_type=import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">
+                {% trans "Export" %}
+              </a>
+              {% endif %}
             </td>
         </tr>
     {% endfor %}

@@ -53,10 +53,6 @@ class GenericImportEvent(models.Model):
     def row_count(self):
         return self.rows().count()
 
-    @property
-    def can_export(self):
-        return self.status != self.FAILED_FILE_VERIFICATION
-
     def status_summary(self):
         summaries = {
             self.PENDING_VERIFICATION: "Not Yet Started",
@@ -86,6 +82,10 @@ class GenericImportEvent(models.Model):
             self.status == self.FINISHED_CREATING or
             self.status == self.FAILED_FILE_VERIFICATION or
             self.status == self.CANCELED)
+
+    def can_export(self):
+        return (not self.is_running()
+                and self.status != self.FAILED_FILE_VERIFICATION)
 
     def can_cancel(self):
         return self.status == self.LOADING or self.status == self.VERIFIYING

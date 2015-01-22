@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import csv
 import json
 import io
 from copy import copy
@@ -17,18 +16,19 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.utils.translation import ugettext as trans
 
-from django.contrib.auth.decorators import login_required
-
 from treemap.models import Species, Tree, User
 from treemap.units import (get_conversion_factor, get_value_display_attr)
+
+from exporter.decorators import task_output_as_csv
 
 from importer.models.base import GenericImportEvent, GenericImportRow
 from importer.models.trees import TreeImportEvent, TreeImportRow
 from importer.models.species import SpeciesImportEvent, SpeciesImportRow
 from importer.tasks import (run_import_event_validation, commit_import_event,
-                            get_import_event_model, get_import_row_model)
+                            get_import_event_model, get_import_row_model,
+                            get_all_species_export, get_species_export,
+                            get_tree_export)
 from importer import errors, fields
-from importer.util import clean_row_data
 
 
 def _find_similar_species(target, instance):
@@ -568,25 +568,6 @@ def process_csv(request, instance, import_type, **kwargs):
     return ie.pk
 
 
-all_species_fields = fields.species.ALL
-
-
-def _build_species_object(species, fieldmap, included_fields):
-    obj = {}
-
-    for k, v in fieldmap.iteritems():
-        if v in included_fields:
-            val = getattr(species, k)
-            if not val is None:
-                if isinstance(val, unicode):
-                    newval = val.encode("utf-8")
-                else:
-                    newval = str(val)
-                obj[v] = newval.strip()
-
-    return obj
-
-
 @transaction.atomic
 def cancel(request, instance, import_type, import_event_id):
     ie = _get_import_event(instance, import_type, import_event_id)
@@ -601,129 +582,17 @@ def cancel(request, instance, import_type, import_event_id):
     return list_imports(request, instance)
 
 
-@login_required
+@task_output_as_csv
 def export_all_species(request, instance):
-    response = HttpResponse(mimetype='text/csv')
+    return ("all_species.csv", get_all_species_export, (instance.pk,),
+            fields.species.ALL)
 
-    # Maps [attr on species model] -> field name
-    fieldmap = SpeciesImportRow.SPECIES_MAP
 
-    include_extra_fields = request.GET.get('include_extra_fields', False)
+@task_output_as_csv
+def export_single_import(request, instance, import_type, import_event_id):
+    ie = _get_import_event(instance, import_type, import_event_id)
 
-    if include_extra_fields:
-        extra_fields = (fields.species.ID,
-                        fields.species.TREE_COUNT)
+    if import_type == 'species':
+        return "species.csv", get_species_export, (ie.pk,), fields.species.ALL
     else:
-        extra_fields = tuple()
-
-    included_fields = all_species_fields + extra_fields
-
-    writer = csv.DictWriter(response, included_fields)
-    writer.writeheader()
-
-    for s in Species.objects.filter(instance=instance):
-        obj = _build_species_object(s, fieldmap, included_fields)
-        writer.writerow(obj)
-
-    response['Content-Disposition'] = 'attachment; filename=species.csv'
-
-    return response
-
-
-@login_required
-def export_single_species_import(request, instance, import_event_id):
-    fieldmap = SpeciesImportRow.SPECIES_MAP
-
-    ie = get_object_or_404(SpeciesImportEvent, instance=instance,
-                           pk=import_event_id)
-
-    response = HttpResponse(mimetype='text/csv')
-
-    writer = csv.DictWriter(response, all_species_fields)
-    writer.writeheader()
-
-    for r in ie.rows():
-        if r.species:
-            obj = _build_species_object(r.species, fieldmap,
-                                        all_species_fields)
-        else:
-            obj = clean_row_data(json.loads(r.data))
-
-        writer.writerow(obj)
-
-    response['Content-Disposition'] = 'attachment; filename=species.csv'
-
-    return response
-
-
-@login_required
-def export_single_tree_import(request, instance, import_event_id):
-    # TODO: Why doesn't this use fields.trees.ALL?
-    all_fields = (
-        fields.trees.POINT_X,
-        fields.trees.POINT_Y,
-        fields.trees.PLOT_WIDTH,
-        fields.trees.PLOT_LENGTH,
-        # TODO: READONLY restore when implemented
-        # fields.trees.READ_ONLY,
-        fields.trees.OPENTREEMAP_PLOT_ID,
-        fields.trees.TREE_PRESENT,
-        fields.trees.GENUS,
-        fields.trees.SPECIES,
-        fields.trees.CULTIVAR,
-        fields.trees.OTHER_PART_OF_NAME,
-        fields.trees.DIAMETER,
-        fields.trees.TREE_HEIGHT,
-        fields.trees.EXTERNAL_ID_NUMBER,
-        fields.trees.CANOPY_HEIGHT,
-        fields.trees.DATE_PLANTED,
-    )
-
-    ie = get_object_or_404(TreeImportEvent, instance=instance,
-                           pk=import_event_id)
-
-    response = HttpResponse(mimetype='text/csv')
-
-    writer = csv.DictWriter(response, all_fields)
-    writer.writeheader()
-
-    for r in ie.rows():
-        if r.plot:
-            obj = {}
-            obj[fields.trees.POINT_X] = r.plot.geometry.x
-            obj[fields.trees.POINT_Y] = r.plot.geometry.y
-
-            obj[fields.trees.PLOT_WIDTH] = r.plot.width
-            obj[fields.trees.PLOT_LENGTH] = r.plot.length
-            # TODO: READONLY restore when implemented
-            # obj[fields.trees.READ_ONLY] = r.plot.readonly
-            obj[fields.trees.OPENTREEMAP_PLOT_ID] = r.plot.pk
-            obj[fields.trees.EXTERNAL_ID_NUMBER] = r.plot.owner_orig_id
-
-            tree = r.plot.current_tree()
-
-            obj[fields.trees.TREE_PRESENT] = tree is not None
-
-            if tree:
-                species = tree.species
-
-                if species:
-                    obj[fields.trees.GENUS] = species.genus
-                    obj[fields.trees.SPECIES] = species.species
-                    obj[fields.trees.CULTIVAR] = species.cultivar
-                    obj[fields.trees.OTHER_PART_OF_NAME] =\
-                        species.other_part_of_name
-
-                obj[fields.trees.DIAMETER] = tree.dbh
-                obj[fields.trees.TREE_HEIGHT] = tree.height
-                obj[fields.trees.CANOPY_HEIGHT] = tree.canopy_height
-                obj[fields.trees.DATE_PLANTED] = tree.date_planted
-
-        else:
-            obj = clean_row_data(json.loads(r.data))
-
-        writer.writerow(obj)
-
-    response['Content-Disposition'] = 'attachment; filename=trees.csv'
-
-    return response
+        return "tree.csv", get_tree_export, (ie.pk,), ie.ordered_legal_fields()

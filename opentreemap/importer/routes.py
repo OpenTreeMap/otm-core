@@ -50,10 +50,7 @@ update_row = _template_api_call(
 
 export_all_species = _api_call('GET', json_api_call(views.export_all_species))
 
-export_single_species_import = _api_call(
-    'GET', json_api_call(views.export_single_species_import))
-
-export_single_tree_import = _api_call(
-    'GET', json_api_call(views.export_single_tree_import))
+export_single_import = _api_call(
+    'GET', json_api_call(views.export_single_import))
 
 merge_species = _api_call('POST', views.merge_species)

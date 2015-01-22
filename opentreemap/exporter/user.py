@@ -12,10 +12,11 @@ from contextlib import contextmanager
 
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.templatetags.l10n import localize
 
 from treemap.lib.dates import DATETIME_FORMAT
 from treemap.models import User, Audit
+
+from exporter.util import sanitize_unicode_record
 
 
 def write_users(data_format, *args, **kwargs):
@@ -102,25 +103,7 @@ def _user_as_dict(user, instance):
         modeldata.update({'last_edit_%s' % k: v
                           for (k, v) in last_edit.dict().iteritems()})
 
-    return _sanitize_unicode_record(modeldata)
-
-
-# https://github.com/azavea/django-queryset-csv/blob/
-# master/djqscsv/djqscsv.py#L123
-def _sanitize_unicode_record(record):
-
-    def _sanitize_value(value):
-        if isinstance(val, unicode):
-            return value.encode("utf-8")
-        else:
-            return localize(value)
-
-    obj = {}
-    for key, val in record.iteritems():
-        if val:
-            obj[_sanitize_value(key)] = _sanitize_value(val)
-
-    return obj
+    return sanitize_unicode_record(modeldata)
 
 
 @contextmanager

@@ -28,12 +28,8 @@ urlpatterns = patterns(
 
     url(r'^export/species/all', routes.export_all_species,
         name='export_all_species'),
-    url(r'^export/species/(?P<import_event_id>\d+)$',
-        routes.export_single_species_import,
-        name='export_single_species_import'),
-    url(r'^export/tree/(?P<import_event_id>\d+)$',
-        routes.export_single_tree_import,
-        name='export_single_tree_import'),
+    url(r'^export/%s/$' % _import_api_pattern, routes.export_single_import,
+        name='export_single_import'),
 
     # API
     url(r'^api/merge$', routes.merge_species, name='merge'),
