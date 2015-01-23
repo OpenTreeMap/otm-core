@@ -139,8 +139,9 @@ class SpeciesImportRow(GenericImportRow):
     def _itree_pairs_to_string(self, pairs):
         # [('SoCalCSMA', 'CEL OTHER'), ('InlEmpCLM', 'CEL OTHER')]
         #     -> "SoCalCSMA:CEL OTHER,InlEmpCLM:CEL OTHER"
+        # [('SoCalCSMA', None)] -> ''
         if pairs:
-            string = ','.join([':'.join(pair) for pair in pairs])
+            string = ','.join([':'.join(pair) for pair in pairs if all(pair)])
             return string
         else:
             return ''

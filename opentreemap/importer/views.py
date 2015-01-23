@@ -554,6 +554,7 @@ def solve(request, instance, import_event_id, row_index):
     #TODO: Json handling is terrible.
     row.errors = json.dumps(row.errors_array_without_merge_errors())
     row.datadict.update(data)
+    row.datadict = row.datadict  # invoke setter to update row.data
 
     if target_species != 'new':
         row.species = get_object_or_404(Species, instance=instance,
