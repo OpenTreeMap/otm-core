@@ -264,9 +264,12 @@ class TreeImportRow(GenericImportRow):
         nearby = nearby.order_by('distance')[:5]
 
         if len(nearby) > 0:
-            self.append_error(errors.NEARBY_TREES,
-                              (fields.trees.POINT_X, fields.trees.POINT_Y),
-                              [p.pk for p in nearby])
+            flds = (fields.trees.POINT_X, fields.trees.POINT_Y)
+            if nearby[0].distance.m < 0.001:
+                self.append_error(errors.DUPLICATE_TREE, flds)
+            else:
+                self.append_error(errors.NEARBY_TREES, flds,
+                                  [p.pk for p in nearby])
             return False
         else:
             return True

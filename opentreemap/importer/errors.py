@@ -83,7 +83,9 @@ INSTANCE_HAS_MULTIPLE_ITREE_REGIONS = e(
 MERGE_REQUIRED = e(71, trans('This row must be merged'), False)
 
 NEARBY_TREES = e(
-    1050, trans('There are already trees very close to this one'), False)
+    1050, trans('There are already trees within ten feet of this one'), False)
+DUPLICATE_TREE = e(
+    1051, trans('There is already a tree at the specified location'), True)
 
 SPECIES_DBH_TOO_HIGH = e(1060,
                          trans('The diameter is too large for this species'),
