@@ -26,8 +26,7 @@ from importer.models.trees import TreeImportEvent, TreeImportRow
 from importer.models.species import SpeciesImportEvent, SpeciesImportRow
 from importer.tasks import (run_import_event_validation, commit_import_event,
                             get_import_event_model, get_import_row_model,
-                            get_all_species_export, get_species_export,
-                            get_tree_export)
+                            get_all_species_export, get_import_export)
 from importer import errors, fields
 
 
@@ -592,7 +591,9 @@ def export_all_species(request, instance):
 def export_single_import(request, instance, import_type, import_event_id):
     ie = _get_import_event(instance, import_type, import_event_id)
 
-    if import_type == 'species':
-        return "species.csv", get_species_export, (ie.pk,), fields.species.ALL
+    if import_type == SpeciesImportEvent.import_type:
+        filename, csv_fields = "species.csv", fields.species.ALL
     else:
-        return "tree.csv", get_tree_export, (ie.pk,), ie.ordered_legal_fields()
+        filename, csv_fields = "trees.csv", ie.ordered_legal_fields()
+
+    return filename, get_import_export, (import_type, ie.pk,), csv_fields

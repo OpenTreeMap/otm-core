@@ -60,23 +60,6 @@ class TreeImportEvent(GenericImportEvent):
 
         return (legal_fields, {fields.trees.POINT_X, fields.trees.POINT_Y})
 
-    def _udf_map(self, model_name):
-        return {
-            udf_def.canonical_name: self.get_udf_column_name(udf_def)
-            for udf_def in udf_defs(self.instance, model_name)
-            if not udf_def.iscollection
-        }
-
-    def plot_map(self):
-        field_map = TreeImportRow.PLOT_MAP.copy()
-
-        return field_map.update(self._udf_map('Plot'))
-
-    def tree_map(self):
-        field_map = TreeImportRow.TREE_MAP.copy()
-
-        return field_map.update(self._udf_map('Tree'))
-
 
 class TreeImportRow(GenericImportRow):
     WARNING = 2

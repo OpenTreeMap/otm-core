@@ -174,21 +174,17 @@ def _get_waiting_row_count(ie):
              .count()
 
 
-def _get_export_builder(fieldmap, all_fields):
-    def builder(model):
-        model_dict = model.as_dict()
-        obj = {}
+def _species_export_builder(model):
+    model_dict = model.as_dict()
+    obj = {}
 
-        for k, v in fieldmap.iteritems():
-            if v in all_fields:
-                if k in model_dict:
-                    val = model_dict[k]
-                    if not val is None:
-                        obj[v] = val
-        return obj
-    return builder
-_species_export_builder = _get_export_builder(SpeciesImportRow.SPECIES_MAP,
-                                              fields.species.ALL)
+    for k, v in SpeciesImportRow.SPECIES_MAP:
+        if v in fields.species.ALL:
+            if k in model_dict:
+                val = model_dict[k]
+                if not val is None:
+                    obj[v] = val
+    return obj
 
 
 @task
@@ -198,43 +194,7 @@ def get_all_species_export(instance_id):
 
 
 @task
-def get_species_export(import_event_id):
-    ie = SpeciesImportEvent.objects.get(pk=import_event_id)
+def get_import_export(import_type, import_event_id):
+    ie = _get_import_event(import_type, import_event_id)
 
-    def builder(row):
-        if row.species:
-            return _species_export_builder(row.species)
-        else:
-            return clean_row_data(json.loads(row.data))
-
-    return [builder(row) for row in ie.rows()]
-
-
-@task
-def get_tree_export(import_event_id):
-    ie = TreeImportEvent.objects.get(pk=import_event_id)
-
-    all_tree_fields, _ = ie.legal_and_required_fields()
-    tree_export_builder = _get_export_builder(ie.tree_map(), fields.trees.ALL)
-    plot_export_builder = _get_export_builder(ie.plot_map(), fields.trees.ALL)
-    species_export_builder = _get_export_builder(SpeciesImportRow.SPECIES_MAP,
-                                                 fields.trees.SPECIES_FIELDS)
-
-    def builder(row):
-        if row.plot:
-            obj = plot_export_builder(row.plot)
-            tree = row.plot.current_tree()
-
-            obj[fields.trees.TREE_PRESENT] = tree is not None
-
-            if tree:
-                if tree.species:
-                    obj.update(species_export_builder(tree.species))
-
-                obj.update(tree_export_builder(tree))
-        else:
-            obj = clean_row_data(json.loads(row.data))
-
-        return obj
-
-    return [builder(row) for row in ie.rows()]
+    return [clean_row_data(json.loads(row.data)) for row in ie.rows()]
