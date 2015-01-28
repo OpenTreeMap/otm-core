@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import csv
 from celery import task
 from tempfile import TemporaryFile
 
@@ -16,6 +17,7 @@ from djqscsv import write_csv, generate_filename
 from exporter.models import ExportJob
 
 from exporter.user import write_users
+from exporter.util import sanitize_unicode_record
 
 
 def extra_select_and_values_for_model(
@@ -141,4 +143,19 @@ def simple_async_csv(job_pk, qs):
     file_obj = TemporaryFile()
     write_csv(qs, file_obj)
     job.complete_with(generate_filename(qs), File(file_obj))
+    job.save()
+
+
+@task
+def custom_async_csv(csv_rows, job_pk, filename, fields):
+    job = ExportJob.objects.get(pk=job_pk)
+
+    csv_obj = TemporaryFile()
+
+    writer = csv.DictWriter(csv_obj, fields)
+    writer.writeheader()
+    for row in csv_rows:
+        writer.writerow(sanitize_unicode_record(row))
+
+    job.complete_with(filename, File(csv_obj))
     job.save()

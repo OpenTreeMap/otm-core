@@ -44,15 +44,19 @@ class TreeImportEvent(GenericImportEvent):
         # Prefix with model name, e.g. "Density" -> "Tree: Density"
         return "%s: %s" % (udf_def.model_type.lower(), udf_def.name.lower())
 
-    def legal_and_required_fields(self):
+    def ordered_legal_fields(self):
         def udf_column_names(model_name):
-            return {self.get_udf_column_name(udf_def)
-                    for udf_def in udf_defs(self.instance, model_name)}
+            return tuple(self.get_udf_column_name(udf_def)
+                         for udf_def in udf_defs(self.instance, model_name)
+                         if not udf_def.iscollection)
 
         plot_udfs = udf_column_names('Plot')
         tree_udfs = udf_column_names('Tree')
 
-        legal_fields = fields.trees.ALL | plot_udfs | tree_udfs
+        return fields.trees.ALL + plot_udfs + tree_udfs
+
+    def legal_and_required_fields(self):
+        legal_fields = set(self.ordered_legal_fields())
 
         return (legal_fields, {fields.trees.POINT_X, fields.trees.POINT_Y})
 

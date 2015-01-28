@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import csv
 import json
 import io
 from copy import copy
@@ -17,23 +16,18 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.utils.translation import ugettext as trans
 
-from django.contrib.auth.decorators import login_required
-
-from django_tinsel.utils import decorate as do
-from django_tinsel.decorators import render_template
-
 from treemap.models import Species, Tree, User
-from treemap.decorators import (admin_instance_request, require_http_method,
-                                requires_feature)
 from treemap.units import (get_conversion_factor, get_value_display_attr)
+
+from exporter.decorators import task_output_as_csv
 
 from importer.models.base import GenericImportEvent, GenericImportRow
 from importer.models.trees import TreeImportEvent, TreeImportRow
 from importer.models.species import SpeciesImportEvent, SpeciesImportRow
 from importer.tasks import (run_import_event_validation, commit_import_event,
-                            get_import_event_model, get_import_row_model)
+                            get_import_event_model, get_import_row_model,
+                            get_all_species_export, get_import_export)
 from importer import errors, fields
-from importer.util import clean_row_data
 
 
 def _find_similar_species(target, instance):
@@ -53,31 +47,6 @@ def _find_similar_species(target, instance):
                'pk': s.pk} for s in species]
 
     return output
-
-
-def counts(request, instance):
-    active_trees = TreeImportEvent\
-        .objects\
-        .filter(instance=instance)\
-        .order_by('id')\
-        .exclude(status=GenericImportEvent.FINISHED_CREATING)\
-        .exclude(status=GenericImportEvent.FINISHED_VERIFICATION)\
-        .exclude(status=GenericImportEvent.FAILED_FILE_VERIFICATION)
-
-    active_species = SpeciesImportEvent\
-        .objects\
-        .filter(instance=instance)\
-        .order_by('id')\
-        .exclude(status=GenericImportEvent.FINISHED_CREATING)\
-        .exclude(status=GenericImportEvent.FINISHED_VERIFICATION)\
-        .exclude(status=GenericImportEvent.FAILED_FILE_VERIFICATION)
-
-    output = {}
-    output['trees'] = {t.pk: t.row_counts_by_status() for t in active_trees}
-    output['species'] = {s.pk: s.row_counts_by_status()
-                         for s in active_species}
-
-    return HttpResponse(json.dumps(output), content_type='application/json')
 
 
 def start_import(request, instance):
@@ -135,13 +104,8 @@ def list_imports(request, instance):
             }
 
 
-@login_required
 @transaction.atomic
 def merge_species(request, instance):
-    # TODO: We don't set User.is_staff, probably should use a decorator anyways
-    if not request.user.is_staff:
-        raise Exception("Must be admin")
-
     species_to_delete_id = request.REQUEST['species_to_delete']
     species_to_replace_with_id = request.REQUEST['species_to_replace_with']
 
@@ -604,25 +568,6 @@ def process_csv(request, instance, import_type, **kwargs):
     return ie.pk
 
 
-all_species_fields = fields.species.ALL
-
-
-def _build_species_object(species, fieldmap, included_fields):
-    obj = {}
-
-    for k, v in fieldmap.iteritems():
-        if v in included_fields:
-            val = getattr(species, k)
-            if not val is None:
-                if isinstance(val, unicode):
-                    newval = val.encode("utf-8")
-                else:
-                    newval = str(val)
-                obj[v] = newval.strip()
-
-    return obj
-
-
 @transaction.atomic
 def cancel(request, instance, import_type, import_event_id):
     ie = _get_import_event(instance, import_type, import_event_id)
@@ -637,166 +582,19 @@ def cancel(request, instance, import_type, import_event_id):
     return list_imports(request, instance)
 
 
-@login_required
+@task_output_as_csv
 def export_all_species(request, instance):
-    response = HttpResponse(mimetype='text/csv')
+    return ("all_species.csv", get_all_species_export, (instance.pk,),
+            fields.species.ALL)
 
-    # Maps [attr on species model] -> field name
-    fieldmap = SpeciesImportRow.SPECIES_MAP
 
-    include_extra_fields = request.GET.get('include_extra_fields', False)
+@task_output_as_csv
+def export_single_import(request, instance, import_type, import_event_id):
+    ie = _get_import_event(instance, import_type, import_event_id)
 
-    if include_extra_fields:
-        extra_fields = (fields.species.ID,
-                        fields.species.TREE_COUNT)
+    if import_type == SpeciesImportEvent.import_type:
+        filename, csv_fields = "species.csv", fields.species.ALL
     else:
-        extra_fields = tuple()
+        filename, csv_fields = "trees.csv", ie.ordered_legal_fields()
 
-    included_fields = all_species_fields + extra_fields
-
-    writer = csv.DictWriter(response, included_fields)
-    writer.writeheader()
-
-    for s in Species.objects.filter(instance=instance):
-        obj = _build_species_object(s, fieldmap, included_fields)
-        writer.writerow(obj)
-
-    response['Content-Disposition'] = 'attachment; filename=species.csv'
-
-    return response
-
-
-@login_required
-def export_single_species_import(request, instance, import_event_id):
-    fieldmap = SpeciesImportRow.SPECIES_MAP
-
-    ie = get_object_or_404(SpeciesImportEvent, instance=instance,
-                           pk=import_event_id)
-
-    response = HttpResponse(mimetype='text/csv')
-
-    writer = csv.DictWriter(response, all_species_fields)
-    writer.writeheader()
-
-    for r in ie.rows():
-        if r.species:
-            obj = _build_species_object(r.species, fieldmap,
-                                        all_species_fields)
-        else:
-            obj = clean_row_data(json.loads(r.data))
-
-        writer.writerow(obj)
-
-    response['Content-Disposition'] = 'attachment; filename=species.csv'
-
-    return response
-
-
-@login_required
-def export_single_tree_import(request, instance, import_event_id):
-    # TODO: Why doesn't this use fields.trees.ALL?
-    all_fields = (
-        fields.trees.POINT_X,
-        fields.trees.POINT_Y,
-        fields.trees.PLOT_WIDTH,
-        fields.trees.PLOT_LENGTH,
-        # TODO: READONLY restore when implemented
-        # fields.trees.READ_ONLY,
-        fields.trees.OPENTREEMAP_PLOT_ID,
-        fields.trees.TREE_PRESENT,
-        fields.trees.GENUS,
-        fields.trees.SPECIES,
-        fields.trees.CULTIVAR,
-        fields.trees.OTHER_PART_OF_NAME,
-        fields.trees.DIAMETER,
-        fields.trees.TREE_HEIGHT,
-        fields.trees.EXTERNAL_ID_NUMBER,
-        fields.trees.CANOPY_HEIGHT,
-        fields.trees.DATE_PLANTED,
-    )
-
-    ie = get_object_or_404(TreeImportEvent, instance=instance,
-                           pk=import_event_id)
-
-    response = HttpResponse(mimetype='text/csv')
-
-    writer = csv.DictWriter(response, all_fields)
-    writer.writeheader()
-
-    for r in ie.rows():
-        if r.plot:
-            obj = {}
-            obj[fields.trees.POINT_X] = r.plot.geometry.x
-            obj[fields.trees.POINT_Y] = r.plot.geometry.y
-
-            obj[fields.trees.PLOT_WIDTH] = r.plot.width
-            obj[fields.trees.PLOT_LENGTH] = r.plot.length
-            # TODO: READONLY restore when implemented
-            # obj[fields.trees.READ_ONLY] = r.plot.readonly
-            obj[fields.trees.OPENTREEMAP_PLOT_ID] = r.plot.pk
-            obj[fields.trees.EXTERNAL_ID_NUMBER] = r.plot.owner_orig_id
-
-            tree = r.plot.current_tree()
-
-            obj[fields.trees.TREE_PRESENT] = tree is not None
-
-            if tree:
-                species = tree.species
-
-                if species:
-                    obj[fields.trees.GENUS] = species.genus
-                    obj[fields.trees.SPECIES] = species.species
-                    obj[fields.trees.CULTIVAR] = species.cultivar
-                    obj[fields.trees.OTHER_PART_OF_NAME] =\
-                        species.other_part_of_name
-
-                obj[fields.trees.DIAMETER] = tree.dbh
-                obj[fields.trees.TREE_HEIGHT] = tree.height
-                obj[fields.trees.CANOPY_HEIGHT] = tree.canopy_height
-                obj[fields.trees.DATE_PLANTED] = tree.date_planted
-
-        else:
-            obj = clean_row_data(json.loads(r.data))
-
-        writer.writerow(obj)
-
-    response['Content-Disposition'] = 'attachment; filename=trees.csv'
-
-    return response
-
-
-def _api_call(verb, view_fn):
-    return do(
-        admin_instance_request,
-        requires_feature('bulk_upload'),
-        require_http_method(verb),
-        view_fn)
-
-
-def _template_api_call(verb, template, view_fn):
-    templated_view = render_template(template)(view_fn)
-    return _api_call(verb, templated_view)
-
-
-list_imports_endpoint = _template_api_call(
-    'GET', 'importer/partials/imports.html', list_imports)
-
-refresh_imports_endpoint = _template_api_call(
-    'GET', 'importer/partials/import_tables.html', list_imports)
-
-start_import_endpoint = _template_api_call(
-    'POST', 'importer/partials/imports.html', start_import)
-
-cancel_endpoint = _template_api_call(
-    'GET', 'importer/partials/imports.html', cancel)
-
-solve_endpoint = _template_api_call(
-    'POST', 'importer/partials/row_status.html', solve)
-
-commit_endpoint = _template_api_call(
-    'GET', 'importer/partials/imports.html', commit)
-
-show_import_status_endpoint = _api_call('GET', show_import_status)
-
-update_row_endpoint = _template_api_call(
-    'POST', 'importer/partials/row_status.html', update_row)
+    return filename, get_import_export, (import_type, ie.pk,), csv_fields

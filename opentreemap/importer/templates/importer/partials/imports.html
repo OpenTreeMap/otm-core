@@ -64,18 +64,16 @@
 
           {% include 'importer/partials/import_tables.html' %}
 
-<!-- TODO: Uncomment when species exporting is completed -->
-<!--           <div class="row"> -->
-<!--             <div class="col&#45;md&#45;12"> -->
-<!--               <h2 class="top&#45;pad&#45;lg">{% trans "Export" %}</h2> -->
-<!--               <hr> -->
-<!--               <a href="{% url 'importer:export_all_species' instance_url_name=request.instance.url_name %}" class="btn btn&#45;info"> -->
-<!--                 {% trans "Export All Species" %} -->
-<!--                 <i class="icon&#45;forward"></i> -->
-<!--               </a> -->
-<!--             </div> -->
-<!--           </div> -->
-
+          <div class="row">
+            <div class="col-md-12">
+              <h2 class="top-pad-lg">{% trans "Export" %}</h2>
+              <hr>
+              <a href="javascript:" data-export-start-url="{% url 'importer:export_all_species' instance_url_name=request.instance.url_name %}" class="btn btn-info">
+                {% trans "Export All Species" %}
+                <i class="icon-forward"></i>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
