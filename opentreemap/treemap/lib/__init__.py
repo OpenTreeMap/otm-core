@@ -18,12 +18,14 @@ def format_benefits(instance, benefits, basis):
         currency_symbol = instance.eco_benefits_conversion.currency_symbol
 
     # FYI: this mutates the underlying benefit dictionaries
+    total_currency = 0
     for benefit_group in benefits.values():
         for key, benefit in benefit_group.iteritems():
             if benefit['currency'] is not None:
                 # TODO: Use i18n/l10n to format currency
                 benefit['currency_saved'] = currency_symbol + number_format(
                     benefit['currency'], decimal_pos=0)
+                total_currency += benefit['currency']
 
             unit_key = benefit.get('unit-name')
 
@@ -37,6 +39,7 @@ def format_benefits(instance, benefits, basis):
 
     # Add total and percent to basis
     rslt = {'benefits': benefits,
+            'benefits_total_currency': total_currency,
             'currency_symbol': currency_symbol,
             'basis': basis}
 
