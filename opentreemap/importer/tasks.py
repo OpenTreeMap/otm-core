@@ -178,7 +178,7 @@ def _species_export_builder(model):
     model_dict = model.as_dict()
     obj = {}
 
-    for k, v in SpeciesImportRow.SPECIES_MAP:
+    for k, v in SpeciesImportRow.SPECIES_MAP.iteritems():
         if v in fields.species.ALL:
             if k in model_dict:
                 val = model_dict[k]

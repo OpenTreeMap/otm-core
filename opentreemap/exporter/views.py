@@ -112,5 +112,4 @@ begin_export_endpoint = do(
 check_export_endpoint = do(
     json_api_call,
     instance_request,
-    requires_feature('exports'),
     check_export)
