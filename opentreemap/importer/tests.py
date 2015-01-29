@@ -225,6 +225,12 @@ class TreeValidationTest(ValidationTest):
         n1 = {p.pk for p in [p1, p2, p3]}
         n2 = {p4.pk}
 
+        i = self.mkrow({'point x': '25.0000001',
+                        'point y': '25.0000001'})
+        i.validate_row()
+
+        self.assertHasError(i, errors.DUPLICATE_TREE)
+
         i = self.mkrow({'point x': '25.00000025',
                         'point y': '25.00000025'})
         i.validate_row()
@@ -1232,7 +1238,7 @@ class TreeIntegrationTests(IntegrationTests):
 
         csv = """
         | point x | point y | tree: cuteness | plot: flatness |
-        | 25.00   | 25.00   | not much       | very           |
+        | 26.00   | 26.00   | not much       | very           |
         """
 
         ieid = self.run_through_commit_views(csv)
@@ -1268,15 +1274,16 @@ class TreeIntegrationTests(IntegrationTests):
         # self.assertEqual(plot.readonly, False)
 
         csv = """
-        | point x | point y | external id number |
-        | 45.53   | 31.1    | 443                |
-        """
+        | point x | point y | external id number | opentreemap plot id |
+        | 45.53   | 31.1    | 443                | %s                  |
+        """ % plot.id
 
         ieid = self.run_through_commit_views(csv)
         ie = TreeImportEvent.objects.get(pk=ieid)
-        plot = ie.treeimportrow_set.all()[0].plot
+        plot2 = ie.treeimportrow_set.all()[0].plot
 
-        self.assertEqual(plot.owner_orig_id, '443')
+        self.assertEqual(plot2.id, plot.id, '443')
+        self.assertEqual(plot2.owner_orig_id, '443')
 
     def test_override_with_opentreemap_id(self):
         p1 = mkPlot(self.instance, self.user)
@@ -1337,6 +1344,12 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(tree3.species.pk, apple.pk)
 
         # If we add a species, there will be more than one match for "malus"
+        csv = """
+        | point x | point y | genus | common name |
+        | 45.49   | 31.1    | malus | apple       |
+        | 45.48   | 33.9    | malus | crab apple  |
+        | 45.48   | 33.9    | malus |             |
+        """
         crab_apple = Species(instance=self.instance, genus='malus',
                              common_name='Crab Apple')
         crab_apple.save_with_system_user_bypass_auth()
