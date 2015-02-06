@@ -14,7 +14,7 @@ from django.utils.translation import ugettext as trans
 
 from registration.models import RegistrationProfile
 
-from treemap.views import upload_user_photo
+from treemap.views.user import upload_user_photo
 from treemap.models import User
 
 
