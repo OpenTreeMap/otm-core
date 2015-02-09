@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    toastr = require('toastr'),
     inlineEditForm = require('treemap/inlineEditForm'),
     MapManager = require('treemap/MapManager'),
     BU = require('treemap/baconUtils'),
@@ -17,7 +18,12 @@ var $ = require('jquery'),
         require('treemap/reverseGeocodeStreamAndUpdateAddressesOnForm'),
     streetView = require('treemap/streetView'),
     History = require('history'),
-    alerts = require('treemap/alerts');
+    alerts = require('treemap/alerts'),
+
+    dom = {
+        favoriteLink: '#favorite-link',
+        favoriteIcon: '#favorite-star'
+    };
 
 exports.init = function(options) {
     var $ecoBenefits = $(options.ecoBenefits),
@@ -148,6 +154,39 @@ exports.init = function(options) {
             .map(BU.getValueForKey('plot.geom'))
             .filter(BU.isDefined)
             .onValue(panorama.update);
+    }
+
+    var $favoriteLink = $(dom.favoriteLink),
+        $favoriteIcon = $(dom.favoriteIcon);
+
+    if (options.config.loggedIn) {
+        $favoriteLink.on('click', function(e) {
+            var wasFavorited = $favoriteLink.attr('data-is-favorited') === 'True',
+                url = $favoriteLink.attr(wasFavorited ? 'data-unfavorite-url' : 'data-favorite-url');
+
+            $.ajax({
+                dataType: "json",
+                url: url,
+                type: 'POST'
+            })
+            .done(function(response) {
+                // Flip classes and is-favorited attribute if request succeeded
+                if (wasFavorited) {
+                    $favoriteIcon.addClass('icon-star-empty');
+                    $favoriteIcon.removeClass('icon-star');
+                    $favoriteLink.attr('data-is-favorited', 'False');
+                } else {
+                    $favoriteIcon.removeClass('icon-star-empty');
+                    $favoriteIcon.addClass('icon-star');
+                    $favoriteLink.attr('data-is-favorited', 'True');
+                }
+            })
+            .fail(function() {
+                toastr.error('Could not save your favorite');
+            });
+
+            e.preventDefault();
+        });
     }
 
     return {

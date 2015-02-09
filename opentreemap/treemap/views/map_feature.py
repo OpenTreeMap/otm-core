@@ -19,7 +19,7 @@ from opentreemap.util import dotted_split
 
 from treemap.units import Convertible
 from treemap.models import (Tree, Species, Instance, MapFeature,
-                            MapFeaturePhoto)
+                            MapFeaturePhoto, Favorite)
 from treemap.util import (package_field_errors, to_object_name)
 
 from treemap.images import get_image_from_request
@@ -291,3 +291,17 @@ def map_feature_popup(request, instance, feature_id):
     feature = get_map_feature_or_404(feature_id, instance)
     context = context_dict_for_map_feature(request, feature)
     return context
+
+
+def favorite_map_feature(request, instance, feature_id):
+    feature = get_map_feature_or_404(feature_id, instance)
+    Favorite.objects.get_or_create(user=request.user, map_feature=feature)
+
+    return {'success': True}
+
+
+def unfavorite_map_feature(request, instance, feature_id):
+    feature = get_map_feature_or_404(feature_id, instance)
+    Favorite.objects.filter(user=request.user, map_feature=feature).delete()
+
+    return {'success': True}
