@@ -71,7 +71,7 @@ def async_csv_export(job_pk, model, query, display_filters):
                       filter(instance=instance))
 
         extra_select, values = extra_select_and_values_for_model(
-            instance, job, 'treemap_species', 'species')
+            instance, job, 'treemap_species', 'Species')
         ordered_fields = values + extra_select.keys()
         limited_qs = initial_qs.extra(select=extra_select)\
                                .values(*ordered_fields)
