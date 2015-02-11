@@ -28,18 +28,19 @@ from treemap.audit import (Audit, approve_or_reject_audit_and_apply,
                            FieldPermission, add_default_permissions)
 from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, StaticPage, ITreeRegion)
-from treemap.views import (species_list, boundary_to_geojson, plot_detail,
-                           boundary_autocomplete, edits, user_audits,
-                           root_settings_js_view, instance_settings_js_view,
-                           compile_scss, approve_or_reject_photo,
-                           upload_user_photo, static_page, instance_user_view,
-                           delete_map_feature, delete_tree, user,
-                           forgot_username, update_user)
+from treemap.routes import (root_settings_js, instance_settings_js,
+                            instance_user_page)
 from treemap.lib.tree import add_tree_photo_helper
 from treemap.lib.user import get_user_instances
-from treemap.views.misc import public_instances_geojson
-from treemap.views.map_feature import (update_map_feature,
-                                       rotate_map_feature_photo)
+from treemap.views.misc import (public_instances_geojson, species_list,
+                                boundary_autocomplete, boundary_to_geojson,
+                                edits, compile_scss, static_page)
+from treemap.views.map_feature import (update_map_feature, delete_map_feature,
+                                       rotate_map_feature_photo, plot_detail)
+from treemap.views.user import (user_audits, upload_user_photo, update_user,
+                                forgot_username, user)
+from treemap.views.photo import approve_or_reject_photo
+from treemap.views.tree import delete_tree
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
@@ -1624,7 +1625,7 @@ class InstanceUserViewTests(ViewTestCase):
         self.commander = make_user(username="commander", password='pw')
 
     def test_get_by_username_redirects(self):
-        res = instance_user_view(make_request(),
+        res = instance_user_page(make_request(),
                                  self.instance.url_name,
                                  self.commander.username)
         expected_url = '/users/%s/?instance_id=%d' %\
@@ -1637,7 +1638,7 @@ class InstanceUserViewTests(ViewTestCase):
 
     def test_get_with_invalid_username_redirects(self):
         test_username = 'no_way_username'
-        res = instance_user_view(make_request(),
+        res = instance_user_page(make_request(),
                                  self.instance.url_name,
                                  test_username)
         expected_url = '/users/%s/?instance_id=%d' %\
@@ -1666,7 +1667,7 @@ class SettingsJsViewTests(ViewTestCase):
         self.user = make_commander_user(self.instance)
         self.req = make_request(user=self.user)
         self.req.session = MockSession()
-        self.get_response = lambda: root_settings_js_view(self.req)
+        self.get_response = lambda: root_settings_js(self.req)
 
     @override_settings(TILE_HOST=None)
     def test_none_tile_hosts_omits_tilehosts_setting(self):
@@ -1688,7 +1689,7 @@ class InstanceSettingsJsViewTests(SettingsJsViewTests):
     """
     def setUp(self):
         super(InstanceSettingsJsViewTests, self).setUp()
-        self.get_response = lambda: instance_settings_js_view(
+        self.get_response = lambda: instance_settings_js(
             self.req, self.instance.url_name)
 
 

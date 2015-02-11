@@ -16,7 +16,7 @@ from treemap.ecobenefits import (TreeBenefitsCalculator,
                                  _combine_grouped_benefits)
 
 from treemap.ecobenefits import BenefitCategory
-from treemap.views import search_tree_benefits
+from treemap.views.tree import search_tree_benefits
 
 
 class EcoTest(UrlTestCase):

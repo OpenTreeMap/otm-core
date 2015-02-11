@@ -8,14 +8,7 @@ from django.conf import settings
 from django.views.generic import RedirectView
 from django.contrib import admin
 
-from django_tinsel.decorators import route
-
-from treemap.views import (user_view, root_settings_js_view,
-                           profile_to_user_view, user_audits_view,
-                           instance_not_available_view, update_user_view,
-                           unsupported_view, landing_view, scss_view,
-                           upload_user_photo_view, forgot_username_view,
-                           instances_geojson_view)
+from treemap import routes
 from treemap.instance import URL_NAME_PATTERN
 from treemap.urls import USERNAME_PATTERN
 from treemap.ecobenefits import within_itree_regions_view
@@ -43,33 +36,33 @@ urlpatterns = patterns(
         url='/static/img/favicon.png', permanent=False)),
     url('^comments/', include('django.contrib.comments.urls')),
     url(r'^', include('geocode.urls')),
-    url(r'^$', landing_view),
-    url(r'^config/settings.js$', root_settings_js_view),
+    url(r'^$', routes.landing_page),
+    url(r'^config/settings.js$', routes.root_settings_js),
     url(r'^users/%s/$' % USERNAME_PATTERN,
-        route(GET=user_view, PUT=update_user_view), name='user'),
+        routes.user, name='user'),
     url(r'^users/%s/edits/$' % USERNAME_PATTERN,
-        user_audits_view, name='user_audits'),
+        routes.user_audits, name='user_audits'),
     url(r'^users/%s/photo/$' % USERNAME_PATTERN,
-        upload_user_photo_view, name='user_photo'),
+        routes.upload_user_photo, name='user_photo'),
     url(r'^api/v(?P<version>\d+)/', include('api.urls')),
     # The profile view is handled specially by redirecting to
     # the page of the currently logged in user
-    url(r'^accounts/profile/$', profile_to_user_view, name='profile'),
+    url(r'^accounts/profile/$', routes.profile_to_user_page, name='profile'),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout',
         {'next_page': '/'}),
-    url(r'^accounts/forgot-username/$', forgot_username_view,
+    url(r'^accounts/forgot-username/$', routes.forgot_username,
         name='forgot_username'),
     url(r'^accounts/', include('registration_backend.urls')),
     # Create a redirect view for setting the session language preference
     # https://docs.djangoproject.com/en/1.0/topics/i18n/#the-set-language-redirect-view  # NOQA
     url(r'^i18n/', include('django.conf.urls.i18n')),
-    url(r'^not-available$', instance_not_available_view,
+    url(r'^not-available$', routes.instance_not_available,
         name='instance_not_available'),
-    url(r'^unsupported$', unsupported_view, name='unsupported'),
-    url(r'^main\.css$', scss_view, name='scss'),
+    url(r'^unsupported$', routes.unsupported_page, name='unsupported'),
+    url(r'^main\.css$', routes.compile_scss, name='scss'),
     url(r'^eco/benefit/within_itree_regions/$', within_itree_regions_view,
         name='within_itree_regions'),
-    url(r'^instances/$', instances_geojson_view),
+    url(r'^instances/$', routes.instances_geojson),
     url(instance_pattern + r'/accounts/register/$',
         RegistrationView.as_view(),
        name='instance_registration_register'),
@@ -86,9 +79,10 @@ if settings.USE_JS_I18N:
         'packages': settings.I18N_APPS,
     }
 
-    urlpatterns = patterns('', url(r'^jsi18n/$',
-                           'django.views.i18n.javascript_catalog',
-                           js_i18n_info_dict)) + urlpatterns
+    urlpatterns = patterns(
+        '', url(r'^jsi18n/$', 'django.views.i18n.javascript_catalog',
+                js_i18n_info_dict)
+    ) + urlpatterns
 
 if settings.EXTRA_URLS:
     for (url_pattern, url_module) in settings.EXTRA_URLS:
@@ -99,7 +93,7 @@ if settings.DEBUG:
     urlpatterns = patterns(
         '', url(r'^admin/', include(admin.site.urls))) + urlpatterns
 
-handler404 = 'treemap.views.error_404_view'
-handler500 = 'treemap.views.error_500_view'
+handler404 = 'treemap.routes.error_404_page'
+handler500 = 'treemap.routes.error_500_page'
 # Not hooked up yet
-handler503 = 'treemap.views.error_503_view'
+handler503 = 'treemap.routes.error_503_page'
