@@ -12,6 +12,8 @@ from treemap.lib.object_caches import permissions
 
 from treemap.search import Filter
 from treemap.models import Species, Tree
+from treemap.util import safe_get_model_class
+from treemap.audit import model_hasattr, FieldPermission
 
 from djqscsv import write_csv, generate_filename
 from exporter.models import ExportJob
@@ -31,6 +33,7 @@ def extra_select_and_values_for_model(
 
     extra_select = {}
     prefixed_names = []
+    dummy_instance = safe_get_model_class(model)()
 
     for perm in perms:
         field_name = perm.field_name
@@ -39,6 +42,13 @@ def extra_select_and_values_for_model(
         if field_name.startswith('udf:'):
             name = field_name[4:]
             extra_select[prefixed_name] = "%s.udfs->'%s'" % (table, name)
+        else:
+            if not model_hasattr(dummy_instance, field_name):
+                # Exception will be raised downstream if you look for
+                # a field on a model that no longer exists but still
+                # has a stale permission record. Here we check for that
+                # case and don't include the field if it does not exist.
+                continue
 
         prefixed_names.append(prefixed_name)
 
