@@ -35,7 +35,8 @@ def extra_select_and_values_for_model(
     prefixed_names = []
     dummy_instance = safe_get_model_class(model)()
 
-    for perm in perms:
+    for perm in (perm for perm in perms
+                 if perm.permission_level >= FieldPermission.READ_ONLY):
         field_name = perm.field_name
         prefixed_name = prefix + field_name
 
