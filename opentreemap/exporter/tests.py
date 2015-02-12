@@ -39,10 +39,13 @@ class AsyncCSVTestCase(LocalMediaTestCase):
         csvreader = csv.reader(csv_file, delimiter=b",")
         rows = list(csvreader)
 
+        # strip the BOM out
+        rows[0][0] = rows[0][0][3:]
+
         self.assertTrue(len(rows) > 1)
         for (header, value) in headers_and_values.iteritems():
-            self.assertEqual(value,
-                             rows[row_index][rows[0].index(header)])
+            target_column = rows[0].index(header)
+            self.assertEqual(value, rows[row_index][target_column])
 
     def assertTaskProducesCSV(self, user, model, assert_fields_and_values):
         self._assertTaskProducesCSVBase(user, model, assert_fields_and_values)

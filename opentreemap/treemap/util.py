@@ -44,7 +44,8 @@ def safe_get_model_class(model_string):
     elif MapFeature.has_subclass(model_string):
         return MapFeature.get_subclass(model_string)
     else:
-        raise ValidationError(trans('invalid model type'))
+        raise ValidationError(
+            trans('invalid model type: "%s"') % model_string)
 
 
 def add_visited_instance(request, instance):

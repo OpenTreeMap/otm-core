@@ -12,6 +12,8 @@ from treemap.lib.object_caches import permissions
 
 from treemap.search import Filter
 from treemap.models import Species, Tree
+from treemap.util import safe_get_model_class
+from treemap.audit import model_hasattr, FieldPermission
 
 from djqscsv import write_csv, generate_filename
 from exporter.models import ExportJob
@@ -31,14 +33,23 @@ def extra_select_and_values_for_model(
 
     extra_select = {}
     prefixed_names = []
+    dummy_instance = safe_get_model_class(model)()
 
-    for perm in perms:
+    for perm in (perm for perm in perms
+                 if perm.permission_level >= FieldPermission.READ_ONLY):
         field_name = perm.field_name
         prefixed_name = prefix + field_name
 
         if field_name.startswith('udf:'):
             name = field_name[4:]
             extra_select[prefixed_name] = "%s.udfs->'%s'" % (table, name)
+        else:
+            if not model_hasattr(dummy_instance, field_name):
+                # Exception will be raised downstream if you look for
+                # a field on a model that no longer exists but still
+                # has a stale permission record. Here we check for that
+                # case and don't include the field if it does not exist.
+                continue
 
         prefixed_names.append(prefixed_name)
 
@@ -71,7 +82,7 @@ def async_csv_export(job_pk, model, query, display_filters):
                       filter(instance=instance))
 
         extra_select, values = extra_select_and_values_for_model(
-            instance, job, 'treemap_species', 'species')
+            instance, job, 'treemap_species', 'Species')
         ordered_fields = values + extra_select.keys()
         limited_qs = initial_qs.extra(select=extra_select)\
                                .values(*ordered_fields)
