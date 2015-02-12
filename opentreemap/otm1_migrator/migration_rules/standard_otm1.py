@@ -1,6 +1,5 @@
-from treemap.models import (User, Plot, Tree, Species,
-                            Audit, TreePhoto, Boundary,
-                            TreeFavorite)
+from treemap.models import (User, Plot, Tree, Species, Audit, TreePhoto,
+                            Boundary, Favorite)
 
 from otm_comments.models import EnhancedThreadedComment
 from registration.models import RegistrationProfile
@@ -210,11 +209,13 @@ MIGRATION_RULES = {
     },
     'treefavorite': {
         'command_line_flag': '-o',
-        'model_class': TreeFavorite,
+        'model_class': Favorite,
         'dependencies': {'user': 'user',
                          'tree': 'tree'},
         'renamed_fields': {'date_created': 'created'},
-        'common_fields': {'user', 'tree'}
+        'common_fields': {'user', 'tree'},
+        # We favorite Plots, not Trees in OTM2. This is handled in the save
+        'removed_fields': {'tree'},
     }
 }
 
