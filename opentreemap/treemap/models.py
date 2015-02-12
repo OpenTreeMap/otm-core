@@ -840,13 +840,13 @@ class Tree(Convertible, UDFModel, PendingAuditable):
         super(Tree, self).delete_with_user(user, *args, **kwargs)
 
 
-class TreeFavorite(models.Model):
+class Favorite(models.Model):
     user = models.ForeignKey(User)
-    tree = models.ForeignKey(Tree)
+    map_feature = models.ForeignKey(MapFeature)
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'tree',)
+        unique_together = ('user', 'map_feature',)
 
 
 class MapFeaturePhoto(models.Model, PendingAuditable):

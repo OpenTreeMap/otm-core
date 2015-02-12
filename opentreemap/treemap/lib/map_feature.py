@@ -12,7 +12,7 @@ from django.db.models import Q
 
 from treemap.audit import Audit
 from treemap.ecobackend import ECOBENEFIT_ERRORS
-from treemap.models import Tree, MapFeature, User
+from treemap.models import Tree, MapFeature, User, Favorite
 
 from treemap.lib import format_benefits
 from treemap.lib.photo import context_dict_for_photo
@@ -281,6 +281,10 @@ def context_dict_for_map_feature(request, feature):
     user = request.user
     if user and user.is_authenticated():
         feature.mask_unauthorized_fields(user)
+        favorited = Favorite.objects \
+            .filter(map_feature=feature, user=user).exists()
+    else:
+        favorited = False
 
     feature.convert_to_display_units()
 
@@ -303,6 +307,7 @@ def context_dict_for_map_feature(request, feature):
         'address_full': feature.address_full,
         'upload_photo_endpoint': None,
         'photos': None,
+        'favorited': favorited
     }
 
     _add_eco_benefits_to_context_dict(instance, feature, context)

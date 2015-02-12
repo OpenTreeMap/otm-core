@@ -61,7 +61,21 @@
     <div class="col-md-9">
       <div class="detail-header">
         <button class="btn share hidden">Share</button>
-        <h2 class="common-name" id="map-feature-title">{{ title }} <i id="favorite-star" class="icon-star-empty hidden"></i></h2>
+        <h2 class="common-name" id="map-feature-title">
+          {{ title }}
+          <a id="favorite-link"
+            data-href="{{ request.get_full_path }}"
+            data-is-favorited="{{ favorited }}"
+            data-always-enable="{{ request.user.is_authenticated }}"
+            data-favorite-url="{% url 'favorite_map_feature' instance_url_name=request.instance.url_name feature_id=feature.id %}"
+            data-unfavorite-url="{% url 'unfavorite_map_feature' instance_url_name=request.instance.url_name feature_id=feature.id %}">
+            {% if favorited %}
+              <i id="favorite-star" class="icon-star"></i>
+            {% else %}
+              <i id="favorite-star" class="icon-star-empty"></i>
+            {% endif %}
+          </a>
+        </h2>
         <h4 class="address" id="map-feature-address">{{ feature.address_full }}</h4>
       </div>
       <div class="row">

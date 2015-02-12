@@ -5,6 +5,7 @@ from __future__ import division
 
 import os
 import pytz
+from exceptions import NotImplementedError
 
 from django.db.transaction import atomic
 from django.contrib.contenttypes.models import ContentType
@@ -228,6 +229,13 @@ def save_audit(migration_rules, migration_event, relic_ids,
 @atomic
 def save_treefavorite(migration_rules, migration_event, fav_dict,
                       fav_obj, instance, **kwargs):
+    raise NotImplementedError(
+        'TreeFavorite to Favorite conversion has not been implemented yet!')
+# TODO: The following code is likely to work, but has not been tested at all.
+#     fav_obj.map_feature_id = (Tree
+#                               .objects
+#                               .values_list('plot__id', flat=True)
+#                               .get(pk=fav_dict.tree_id))
     fav_obj.save()
     fav_obj.created = inflate_date(fav_dict['fields']['date_created'])
     fav_obj.save()
@@ -236,7 +244,7 @@ def save_treefavorite(migration_rules, migration_event, fav_dict,
         instance=instance,
         migration_event=migration_event,
         otm1_model_id=fav_dict['pk'],
-        otm2_model_name='treefavorite',
+        otm2_model_name='favorite',
         otm2_model_id=fav_obj.pk)
 
     return fav_obj

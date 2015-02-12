@@ -149,6 +149,18 @@ add_map_feature_photo = add_map_feature_photo_do(
 rotate_map_feature_photo = add_map_feature_photo_do(
     feature_views.rotate_map_feature_photo)
 
+favorite_map_feature = do(
+    instance_request,
+    require_http_method('POST'),
+    json_api_edit,
+    feature_views.favorite_map_feature)
+
+unfavorite_map_feature = do(
+    instance_request,
+    require_http_method('POST'),
+    json_api_edit,
+    feature_views.unfavorite_map_feature)
+
 
 #####################################
 # plot
