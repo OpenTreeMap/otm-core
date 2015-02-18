@@ -155,8 +155,8 @@ def get_map_feature_or_404(feature_id, instance, type=None):
         InstanceMapFeature = instance.scope_model(MapFeature)
         feature = get_object_or_404(InstanceMapFeature, pk=feature_id)
 
-        # Return the concrete subtype, not the general MapFeature
-        return feature.cast()
+        # Return the concrete subtype (e.g. Plot), not a general MapFeature
+        return feature.cast_to_subtype()
 
 
 def context_dict_for_plot(request, plot, edit=False, tree_id=None):
@@ -277,12 +277,12 @@ def context_dict_for_resource(request, resource):
 
 
 def title_for_map_feature(feature):
-    if feature.is_plot:
-        if type(feature) == MapFeature:
-            tree = feature.plot.current_tree()
-        else:
-            tree = feature.current_tree()
+    # Cast allows the map feature subclass to handle generating
+    # the display name
+    feature = feature.cast_to_subtype()
 
+    if feature.is_plot:
+        tree = feature.current_tree()
         if tree:
             if tree.species:
                 title = tree.species.common_name
@@ -291,7 +291,7 @@ def title_for_map_feature(feature):
         else:
             title = trans("Empty Planting Site")
     else:
-        title = feature.cast().display_name
+        title = feature.display_name
 
     return title
 

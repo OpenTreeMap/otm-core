@@ -134,3 +134,28 @@
         overflow: visible;
     }
 }
+
+#favorites {
+    ol {
+        list-style-type: none;
+    }
+
+    img {
+        float: left;
+        width: 50px;
+        height: 50px;
+        border-radius: 9px;
+        margin-right: 10px;
+    }
+
+    .no-photo {
+        float: left;
+        width: 50px;
+        height: 50px;
+        border-radius: 9px;
+        margin-right: 10px;
+        border-color: #dddddd;
+        border-style: solid;
+        border-width: 1px;
+    }
+}
