@@ -661,6 +661,12 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
         return hashlib.md5(string_to_hash).hexdigest()
 
+    def cast(self):
+        """
+        Return the concrete subclass instance.
+        """
+        return getattr(self, self.feature_type.lower())
+
     def __unicode__(self):
         x = self.geom.x if self.geom else "?"
         y = self.geom.y if self.geom else "?"
