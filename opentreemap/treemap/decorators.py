@@ -19,7 +19,8 @@ from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import json_api_call
 
 from treemap.util import (LazyEncoder, add_visited_instance,
-                          get_instance_or_404, login_redirect)
+                          get_instance_or_404, login_redirect,
+                          can_read_as_super_admin)
 from treemap.exceptions import FeatureNotEnabledException
 
 
@@ -62,8 +63,9 @@ def user_must_be_admin(view_fn):
 
         if user.is_authenticated():
             user_instance = user.get_instance_user(instance)
+            is_admin = user_instance and user_instance.admin
 
-            if user_instance and user_instance.admin:
+            if is_admin or can_read_as_super_admin(request):
                 return view_fn(request, instance, *args, **kwargs)
 
         raise PermissionDenied
