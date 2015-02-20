@@ -189,6 +189,10 @@ exports.init = function(options) {
         });
     }
 
+    $(options.share.toggle).click(function () {
+        $(options.share.container).toggle(300);
+    });
+
     return {
         inlineEditForm: form
     };

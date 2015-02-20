@@ -5,8 +5,10 @@ from __future__ import division
 
 import datetime
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
+from django.utils.formats import number_format
 from django.utils.translation import ugettext as trans
 from django.db.models import Q
 
@@ -233,6 +235,8 @@ def context_dict_for_plot(request, plot, edit=False, tree_id=None):
 
     _add_audits_to_context(audits, context)
 
+    _add_share_context(context, request, photos)
+
     return context
 
 
@@ -267,6 +271,8 @@ def context_dict_for_resource(request, resource):
     audits = _map_feature_audits(request.user, request.instance, resource)
 
     _add_audits_to_context(audits, context)
+
+    _add_share_context(context, request, photos)
 
     return context
 
@@ -307,9 +313,41 @@ def context_dict_for_map_feature(request, feature):
         'address_full': feature.address_full,
         'upload_photo_endpoint': None,
         'photos': None,
+        'share': None,
         'favorited': favorited
     }
 
     _add_eco_benefits_to_context_dict(instance, feature, context)
 
     return context
+
+
+def _add_share_context(context, request, photos):
+    if len(photos) > 0:
+        photo_url = photos[0].thumbnail.url
+    elif context.get('has_tree'):
+        photo_url = settings.STATIC_URL + "img/tree.png"
+    else:
+        photo_url = settings.STATIC_URL + "img/otmLogo126.png"
+    photo_url = request.build_absolute_uri(photo_url)
+
+    title = trans("%s on %s") % (context['title'], request.instance.name)
+
+    if context.get('benefits_total_currency', 0) > 0:
+        description = trans("This %s saves %s%s per year.") % (
+            context['title'],
+            context['currency_symbol'],
+            number_format(context['benefits_total_currency'], decimal_pos=0)
+        )
+    else:
+        description = trans("This %s is mapped on %s.") % (
+            context['title'],
+            request.instance.name,
+        )
+
+    context['share'] = {
+        'url': request.build_absolute_uri(),
+        'title': title,
+        'description': description,
+        'image': photo_url,
+    }
