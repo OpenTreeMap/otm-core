@@ -5,7 +5,7 @@
         {% if favorite.photo %}
             <img src="{{ favorite.photo }}" />
         {% else %}
-            <div class="no-photo"></div>
+            <div class="no-photo"><i class="icon-star"></i></div>
         {% endif %}
         <h4 class="common-name">{{ favorite.title }}</h4>
         <h5>{{favorite.address}}{% if favorite.address %} &mdash; {% endif %}{{favorite.instance.name}}</h5>
