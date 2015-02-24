@@ -170,8 +170,11 @@ class ExportSpeciesTaskTest(AsyncCSVTestCase):
 class UserExportsTestCase(OTMTestCase):
 
     def assertUserJSON(self, data, expectations):
-        for key, value in expectations.items():
-            self.assertEqual(data[key], value)
+        for key, expectation in expectations.items():
+            value = data[key]
+            self.assertEqual(expectation, value,
+                             "failure for key '%s': expected '%s', found '%s'"
+                             % (key, expectation, value))
 
     def setUp(self):
         self.instance = make_instance()

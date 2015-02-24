@@ -199,3 +199,10 @@ def get_json_response(filename):
     response['Content-Disposition'] = 'attachment; filename=%s;' % filename
     response['Cache-Control'] = 'no-cache'
     return response
+
+
+def can_read_as_super_admin(request):
+    if not hasattr(request.user, 'is_super_admin'):
+        return False
+    else:
+        return request.user.is_super_admin() and request.method == 'GET'
