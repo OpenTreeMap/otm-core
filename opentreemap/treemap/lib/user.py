@@ -114,7 +114,9 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
     query_vars = {k: v for (k, v) in query_vars.iteritems() if k != 'page'}
     next_page = None
     prev_page = None
-    if audits.count() == page_size:
+    # We are using len(audits) instead of audits.count() because we
+    # have already realized the queryset at this point
+    if len(audits) == page_size:
         query_vars['page'] = page + 1
         next_page = "?" + urllib.urlencode(query_vars)
     if page > 0:
