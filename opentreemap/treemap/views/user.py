@@ -18,7 +18,7 @@ from opentreemap.util import json_from_request, dotted_split
 from treemap.decorators import get_instance_or_404
 from treemap.images import save_image_from_request
 from treemap.util import package_field_errors
-from treemap.models import User, Favorite
+from treemap.models import User, Favorite, MapFeaturePhoto
 from treemap.util import get_filterable_audit_models
 from treemap.lib.user import get_audits, get_user_instances, get_audits_params
 from treemap.lib.map_feature import title_for_map_feature
@@ -147,12 +147,18 @@ def forgot_username(request):
 
 
 def _small_feature_photo_url(feature):
-    if hasattr(feature, 'photos'):
-        photos = feature.photos()
-        if len(photos) > 0:
-            return settings.MEDIA_URL + str(photos[0].thumbnail)
+    feature = feature.cast_to_subtype()
+    if feature.is_plot:
+        tree = feature.current_tree()
+        if tree:
+            photos = tree.photos()
         else:
-            return None
+            photos = MapFeaturePhoto.objects.none()
+    else:
+        photos = feature.photos()
+
+    if len(photos) > 0:
+        return photos[0].thumbnail.url
     else:
         return None
 
