@@ -109,11 +109,15 @@ active
                 <div class="tab-pane" id="favorites">
                     <h3>Favorites</h3>
                     <ol class="favorites-list">
-                        {% for favorite in favorites %}
-                            <li>
-                                {% include 'treemap/partials/user_favorite.html' %}
-                            </li>
-                        {% endfor %}
+                        {% if favorites %}
+                            {% for favorite in favorites %}
+                                <li>
+                                    {% include 'treemap/partials/user_favorite.html' %}
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <h4>{% trans "You have not starred any favorites yet." %}</h4>
+                        {% endif %}
                     </ol>
                 </div>
                 <div class="tab-pane" id="edits">
