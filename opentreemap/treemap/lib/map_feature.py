@@ -155,9 +155,8 @@ def get_map_feature_or_404(feature_id, instance, type=None):
         InstanceMapFeature = instance.scope_model(MapFeature)
         feature = get_object_or_404(InstanceMapFeature, pk=feature_id)
 
-        # Use feature_type to get the appropriate object, e.g. feature.plot
-        feature = getattr(feature, feature.feature_type.lower())
-        return feature
+        # Return the concrete subtype (e.g. Plot), not a general MapFeature
+        return feature.cast_to_subtype()
 
 
 def context_dict_for_plot(request, plot, edit=False, tree_id=None):
@@ -277,6 +276,26 @@ def context_dict_for_resource(request, resource):
     return context
 
 
+def title_for_map_feature(feature):
+    # Cast allows the map feature subclass to handle generating
+    # the display name
+    feature = feature.cast_to_subtype()
+
+    if feature.is_plot:
+        tree = feature.current_tree()
+        if tree:
+            if tree.species:
+                title = tree.species.common_name
+            else:
+                title = trans("Missing Species")
+        else:
+            title = trans("Empty Planting Site")
+    else:
+        title = feature.display_name
+
+    return title
+
+
 def context_dict_for_map_feature(request, feature):
     instance = request.instance
     if instance.pk != feature.instance_id:
@@ -294,22 +313,10 @@ def context_dict_for_map_feature(request, feature):
 
     feature.convert_to_display_units()
 
-    if feature.is_plot:
-        tree = feature.current_tree()
-        if tree:
-            if tree.species:
-                title = tree.species.common_name
-            else:
-                title = trans("Missing Species")
-        else:
-            title = trans("Empty Planting Site")
-    else:
-        title = feature.display_name
-
     context = {
         'feature': feature,
         'feature_type': feature.feature_type,
-        'title': title,
+        'title': title_for_map_feature(feature),
         'address_full': feature.address_full,
         'upload_photo_endpoint': None,
         'photos': None,

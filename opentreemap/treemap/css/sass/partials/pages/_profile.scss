@@ -134,3 +134,47 @@
         overflow: visible;
     }
 }
+
+#favorites {
+    ol {
+        list-style-type: none;
+        -webkit-padding-start: 0;
+
+        li{
+            border-top: solid 1px #ddd;
+            padding: 8px;
+
+            &:hover{
+                background-color: #f5f5f5;
+            }
+        }
+    }
+
+    img {
+        float: left;
+        width: 50px;
+        height: 50px;
+        border-radius: 9px;
+        margin-right: 10px;
+    }
+
+    .no-photo {
+        float: left;
+        width: 50px;
+        height: 50px;
+        border-radius: 9px;
+        margin-right: 10px;
+        border-color: #dddddd;
+        border-style: solid;
+        border-width: 1px;
+        background-color: #f1f2f2;
+
+        i{
+            font-size: 18px;
+            line-height: 48px;
+            display: block;
+            text-align: center;
+            opacity: 0.3;
+        }
+    }
+}

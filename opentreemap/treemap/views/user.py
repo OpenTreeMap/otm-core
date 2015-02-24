@@ -18,9 +18,10 @@ from opentreemap.util import json_from_request, dotted_split
 from treemap.decorators import get_instance_or_404
 from treemap.images import save_image_from_request
 from treemap.util import package_field_errors
-from treemap.models import User
+from treemap.models import User, Favorite
 from treemap.util import get_filterable_audit_models
 from treemap.lib.user import get_audits, get_user_instances, get_audits_params
+from treemap.lib.map_feature import title_for_map_feature
 
 USER_PROFILE_FIELDS = collections.OrderedDict([
     ('first_name',
@@ -145,6 +146,17 @@ def forgot_username(request):
     return {'email': user_email}
 
 
+def _small_feature_photo_url(feature):
+    if hasattr(feature, 'photos'):
+        photos = feature.photos()
+        if len(photos) > 0:
+            return settings.MEDIA_URL + str(photos[0].thumbnail)
+        else:
+            return None
+    else:
+        return None
+
+
 def user(request, username):
     user = get_object_or_404(User, username=username)
     instance_id = request.GET.get('instance_id', None)
@@ -159,6 +171,15 @@ def user(request, username):
                             user, models, 0, should_count=True)
 
     reputation = user.get_reputation(instance) if instance else None
+
+    favorites_qs = Favorite.objects.filter(user=user).order_by('-created')
+    favorites = [{
+        'map_feature': f.map_feature,
+        'title': title_for_map_feature(f.map_feature),
+        'instance': f.map_feature.instance,
+        'address': f.map_feature.address_full,
+        'photo': _small_feature_photo_url(f.map_feature)
+    } for f in favorites_qs]
 
     public_fields = []
     private_fields = []
@@ -179,4 +200,5 @@ def user(request, username):
             'audits': audit_dict['audits'],
             'next_page': audit_dict['next_page'],
             'public_fields': public_fields,
-            'private_fields': private_fields}
+            'private_fields': private_fields,
+            'favorites': favorites}
