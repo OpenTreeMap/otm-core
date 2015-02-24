@@ -99,7 +99,7 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
               .select_related('instance')
               .exclude(udf_bookkeeping_fields)
               .exclude(user=User.system_user())
-              .order_by('-created', 'id'))
+              .order_by('-created'))
 
     if user:
         audits = audits.filter(user=user)
