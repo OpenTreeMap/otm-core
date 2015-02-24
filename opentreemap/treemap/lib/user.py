@@ -12,6 +12,13 @@ from treemap.models import Plot, Tree, Instance, MapFeature, InstanceUser, User
 from treemap.util import get_filterable_audit_models
 
 
+def _instance_ids_edited_by(user):
+    return Audit.objects.filter(user=user)\
+                        .values_list('instance_id', flat=True)\
+                        .exclude(instance_id=None)\
+                        .distinct()
+
+
 def get_audits(logged_in_user, instance, query_vars, user, models,
                model_id, page=0, page_size=20, exclude_pending=True,
                should_count=False):
@@ -26,8 +33,11 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
     # If we didn't specify an instance we only want to
     # show audits where the user has permission
     else:
-        instances = Instance.objects.filter(
-            user_accessible_instance_filter(logged_in_user))
+        instances = Instance.objects\
+                            .filter(pk__in=_instance_ids_edited_by(user))\
+                            .filter(user_accessible_instance_filter(
+                                logged_in_user))\
+                            .distinct()
 
     if not instances.exists():
         # Force no results
