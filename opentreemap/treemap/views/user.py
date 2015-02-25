@@ -199,6 +199,7 @@ def user(request, username):
             private_fields.append(field_tuple)
 
     return {'user': user,
+            'its_me': user.id == request.user.id,
             'reputation': reputation,
             'instance_id': instance_id,
             'instances': get_user_instances(request.user, user, instance),
