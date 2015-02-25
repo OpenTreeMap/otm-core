@@ -116,7 +116,11 @@ active
                                 </li>
                             {% endfor %}
                         {% else %}
-                            <h4>{% trans "You have not starred any favorites yet." %}</h4>
+                            {% if its_me %}
+                                <h4>{% trans "You have not starred any favorites yet." %}</h4>
+                            {% else %}
+                                <h4>{% trans "This person has not starred any favorites yet." %}</h4>
+                            {% endif %}
                         {% endif %}
                     </ol>
                 </div>
