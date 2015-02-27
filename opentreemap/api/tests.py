@@ -1773,3 +1773,17 @@ class PasswordResetTest(OTMTestCase):
         response = post_json(url % (API_PFX, self.jim.email),
                              {}, self.client, None)
         self.assertEquals(response.status_code, 200)
+
+
+class SpeciesListTest(OTMTestCase):
+    def setUp(self):
+        self.instance = setupTreemapEnv()
+        self.user = User.objects.get(username="jim")
+
+    def test_species_list_endpoint(self):
+        response = get_signed(
+            self.client,
+            "%s/instance/%s/species" % (API_PFX,
+                                        self.instance.url_name),
+            user=self.user)
+        self.assertEqual(response.status_code, 200)
