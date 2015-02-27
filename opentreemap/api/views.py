@@ -19,7 +19,7 @@ from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import route, json_api_call
 
 from treemap.models import Plot, Tree, User
-from treemap.routes import species_list
+from treemap.views.misc import species_list
 from treemap.lib.map_feature import context_dict_for_plot
 from treemap.lib.tree import add_tree_photo_helper
 from treemap.lib.photo import context_dict_for_photo
