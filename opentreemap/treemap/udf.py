@@ -33,6 +33,13 @@ from treemap.lib.dates import (parse_date_string_with_or_without_time,
                                DATETIME_FORMAT)
 from treemap.util import safe_get_model_class, to_object_name
 
+# Allow anything except certain known problem characters.
+# NOTE: Make sure to keep the validation error associated with this up-to-date
+# '%' in general makes the Django ORM error out.
+# '__' is also problematic for the Django ORM
+# '.' is fine for the ORM, but made the template system unhappy.
+_UDF_NAME_REGEX = re.compile(r'^[^_%.]+$')
+
 
 def safe_get_udf_model_class(model_string):
     """
@@ -459,6 +466,11 @@ class UserDefinedFieldDefinition(models.Model):
         if not self.name:
             raise ValidationError(
                 {'name': [trans('name cannot be blank')]})
+
+        if not _UDF_NAME_REGEX.match(self.name):
+            raise ValidationError(
+                {'name': [trans("A field name may not contain percent (%), "
+                                "period (.) or underscore (_) characters.")]})
 
         existing_objects = UserDefinedFieldDefinition\
             .objects\
