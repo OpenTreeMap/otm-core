@@ -5,6 +5,7 @@ from __future__ import division
 
 import re
 
+from django.db import connection
 from django.utils.formats import number_format
 
 from treemap.units import get_units, get_display_value
@@ -53,3 +54,11 @@ def get_function_by_path(fn_path):
     mod = __import__(modulepath, fromlist=[fcn])
 
     return getattr(mod, fcn)
+
+
+def execute_sql(sql):
+    cursor = connection.cursor()
+    try:
+        cursor.execute(sql)
+    finally:
+        cursor.close()
