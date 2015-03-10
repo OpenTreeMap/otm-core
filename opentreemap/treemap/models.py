@@ -534,6 +534,15 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
     readonly = models.BooleanField(default=False)
 
+    # Although this can be retrieved with a MAX() query on the audit
+    # table, we store a "cached" value here to keep filtering easy and
+    # efficient.
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    # Tells the permission system that if any other field is writable,
+    # updated_at is also writable
+    joint_writable = {'updated_at'}
+
     objects = GeoHStoreUDFManager()
 
     area_field_name = None  # subclass responsibility
@@ -564,12 +573,25 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     def is_plot(self):
         return getattr(self, 'feature_type', None) == 'Plot'
 
+    def update_updated_at(self):
+        """Changing a child object of a map feature (tree, photo,
+        etc.) demands that we update the updated_at field on the
+        parent map_feature, however there is likely code throughout
+        the application that saves updates to a child object without
+        calling save on the parent MapFeature. This method intended to
+        by called in the save method of those child objects."""
+        self.updated_at = timezone.now()
+        MapFeature.objects.filter(pk=self.pk).update(
+            updated_at=self.updated_at)
+
     def save_with_user(self, user, *args, **kwargs):
         self.full_clean_with_user(user)
 
         if self._is_generic:
             raise Exception(
                 'Never save a MapFeature -- only save a MapFeature subclass')
+
+        self.updated_at = timezone.now()
         super(MapFeature, self).save_with_user(user, *args, **kwargs)
 
     def clean(self):
@@ -810,6 +832,7 @@ class Tree(Convertible, UDFModel, PendingAuditable):
 
     def save_with_user(self, user, *args, **kwargs):
         self.full_clean_with_user(user)
+        self.plot.update_updated_at()
         super(Tree, self).save_with_user(user, *args, **kwargs)
 
     @property
@@ -844,6 +867,7 @@ class Tree(Convertible, UDFModel, PendingAuditable):
         photos = self.photos()
         for photo in photos:
             photo.delete_with_user(user)
+        self.plot.update_updated_at()
         super(Tree, self).delete_with_user(user, *args, **kwargs)
 
 
@@ -918,12 +942,14 @@ class MapFeaturePhoto(models.Model, PendingAuditable):
         if self.pk is None:
             self.created_at = timezone.now()
 
+        self.map_feature.update_updated_at()
         super(MapFeaturePhoto, self).save_with_user(*args, **kwargs)
 
     def delete_with_user(self, *args, **kwargs):
         thumb = self.thumbnail
         image = self.image
 
+        self.map_feature.update_updated_at()
         super(MapFeaturePhoto, self).delete_with_user(*args, **kwargs)
 
         thumb.delete(False)

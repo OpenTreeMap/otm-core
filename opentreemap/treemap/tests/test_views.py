@@ -191,6 +191,27 @@ class TreePhotoTestCase(LocalMediaTestCase):
         self.image = self.load_resource('tree1.gif')
 
 
+class TreePhotoAffectsPlotUpdatedAtTestCase(TreePhotoTestCase):
+    def setUp(self):
+        super(TreePhotoAffectsPlotUpdatedAtTestCase, self).setUp()
+        self.initial_updated = self.plot.updated_at
+
+    def test_add_photo_sets_updated(self):
+        self.tree.add_photo(self.image, self.user)
+        self.assertGreater(self.plot.updated_at, self.initial_updated)
+
+    def test_delete_photo_sets_updated(self):
+        self.tree.add_photo(self.image, self.user)
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+        self.initial_updated = self.plot.updated_at
+
+        photo = self.plot.current_tree().photos()[0]
+        photo.delete_with_user(self.user)
+
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+        self.assertGreater(self.plot.updated_at, self.initial_updated)
+
+
 class TreePhotoRotationTest(TreePhotoTestCase):
     def setUp(self):
         super(TreePhotoRotationTest, self).setUp()

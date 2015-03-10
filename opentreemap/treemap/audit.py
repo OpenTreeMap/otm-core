@@ -469,7 +469,10 @@ class Dictable(object):
 
 class UserTrackable(Dictable):
     def __init__(self, *args, **kwargs):
-        self._do_not_track = set(['instance'])
+        # updated_at is "metadata" and it does not make sense to
+        # redundantly track when it changes, assign reputation for
+        # editing it, etc.
+        self._do_not_track = set(['instance', 'updated_at'])
         super(UserTrackable, self).__init__(*args, **kwargs)
         self.populate_previous_state()
 
@@ -715,7 +718,19 @@ class Authorizable(UserTrackable):
         else:
             perm_set = {perm.field_name for perm in perms
                         if perm.allows_writes}
-        return perm_set
+
+        # If any field on any model is writable in any capacity, read
+        # a class property to get the set of field names that are also
+        # writable.
+        can_write_anything = bool({perm.field_name for perm
+                                   in permissions(user, self.instance)
+                                   if perm.allows_writes})
+        if can_write_anything:
+            joint_writable_set = getattr(type(self), 'joint_writable', set())
+        else:
+            joint_writable_set = set()
+
+        return perm_set.union(joint_writable_set)
 
     def user_can_delete(self, user):
         """

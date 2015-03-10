@@ -73,3 +73,44 @@ class PlotHashTestCase(OTMTestCase):
         self.assertEqual(self.final_plot_hash,
                          self.final_map_feature_hash,
                          same_hash_msg)
+
+
+class UpdatedAtTest(OTMTestCase):
+
+    def setUp(self):
+        self.point = Point(-8515941.0, 4953519.0)
+        self.instance = make_instance(point=self.point)
+        self.user = make_commander_user(self.instance)
+        self.plot = Plot(geom=self.point, instance=self.instance)
+        self.plot.save_with_user(self.user)
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+        self.initial_updated = self.plot.updated_at
+
+    def test_update_sets_updated(self):
+        self.plot.width = 22
+        self.plot.save_with_user(self.user)
+        self.assertGreater(self.plot.updated_at, self.initial_updated)
+
+    def test_add_tree_sets_updated(self):
+        tree = Tree(diameter=10, plot=self.plot, instance=self.instance)
+        tree.save_with_user(self.user)
+        self.assertGreater(self.plot.updated_at, self.initial_updated)
+
+    def test_update_tree_sets_updated(self):
+        tree = Tree(diameter=10, plot=self.plot, instance=self.instance)
+        tree.save_with_user(self.user)
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+        self.inital_updated = self.plot.updated_at
+
+        tree.height = 22
+        tree.save_with_user(self.user)
+        self.assertGreater(self.plot.updated_at, self.initial_updated)
+
+    def test_delete_tree_sets_updated(self):
+        tree = Tree(diameter=10, plot=self.plot, instance=self.instance)
+        tree.save_with_user(self.user)
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+        self.inital_updated = self.plot.updated_at
+
+        tree.delete_with_user(self.user)
+        self.assertGreater(self.plot.updated_at, self.initial_updated)
