@@ -696,6 +696,31 @@ class UDFDefTest(OTMTestCase):
               'default': 'anything'}],
             iscollection=True)
 
+    def test_invalid_names(self):
+        with self.assertRaises(ValidationError):
+            UserDefinedFieldDefinition.objects.create(
+                instance=self.instance,
+                model_type='Plot',
+                datatype=json.dumps({'type': 'string'}),
+                iscollection=False,
+                name='%')
+
+        with self.assertRaises(ValidationError):
+            UserDefinedFieldDefinition.objects.create(
+                instance=self.instance,
+                model_type='Tree',
+                datatype=json.dumps({'type': 'string'}),
+                iscollection=False,
+                name='.')
+
+        with self.assertRaises(ValidationError):
+            UserDefinedFieldDefinition.objects.create(
+                instance=self.instance,
+                model_type='Plot',
+                datatype=json.dumps({'type': 'string'}),
+                iscollection=False,
+                name='__contains')
+
 
 class ScalarUDFTest(OTMTestCase):
 

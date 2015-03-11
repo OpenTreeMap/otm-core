@@ -662,23 +662,23 @@ class PendingInsertTest(OTMTestCase):
             datatype=json.dumps({'type': 'choice',
                                  'choices': ['1', '2', '3']}),
             iscollection=False,
-            name='times_climbed')
+            name='times climbed')
 
         set_write_permissions(self.instance, self.commander_user,
-                              'Plot', ['udf:times_climbed'])
+                              'Plot', ['udf:times climbed'])
 
         FieldPermission.objects.create(
             model_name='Plot',
-            field_name='udf:times_climbed',
+            field_name='udf:times climbed',
             permission_level=FieldPermission.WRITE_WITH_AUDIT,
             role=self.pending_user.get_instance_user(self.instance).role,
             instance=self.instance)
 
         initial_plot = Plot(geom=self.p1, instance=self.instance)
-        initial_plot.udfs['times_climbed'] = '2'
+        initial_plot.udfs['times climbed'] = '2'
         initial_plot.save_with_user(self.pending_user)
 
-        udf_audit = Audit.objects.get(model='Plot', field='udf:times_climbed',
+        udf_audit = Audit.objects.get(model='Plot', field='udf:times climbed',
                                       model_id=initial_plot.pk)
         approve_or_reject_audit_and_apply(udf_audit, self.commander_user,
                                           approved=True)
@@ -704,7 +704,7 @@ class PendingInsertTest(OTMTestCase):
         self.assertEqual(new_plot.pk, initial_plot.pk)
         self.assertEqual(new_plot.readonly, False)
         self.assertEqual(new_plot.geom, self.p1)
-        self.assertEqual(new_plot.udfs['times_climbed'], '2')
+        self.assertEqual(new_plot.udfs['times climbed'], '2')
 
     def test_lots_of_trees_and_plots(self):
         """

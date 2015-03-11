@@ -26,8 +26,12 @@ register = template.Library()
 # Used to check that the identifier follows the format model.field or
 # model.udf:field name, can't be done in the grammar as it can't be checked
 # until looked up in the context
+#
+# We are being a little looser with our restrictions on UDF names here than
+# we are in the UDFD validation methods.  This regex is a sanity check, so it
+# is not essential that we are 100% accurate here
 _identifier_regex = re.compile(
-    r"^[a-zA-Z_.\-]+(?:udf\:[\w '\._-]+|[a-zA-Z0-9_\-]+)$")
+    r"^[a-zA-Z_.\-]+(?:udf\:.+|[a-zA-Z0-9_\-]+)$")
 
 FIELD_MAPPINGS = {
     'IntegerField': 'int',
