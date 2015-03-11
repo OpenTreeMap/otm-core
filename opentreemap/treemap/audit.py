@@ -701,7 +701,7 @@ class Authorizable(UserTrackable):
 
         self._has_been_masked = False
 
-    def _get_perms_set(self, user, direct_only=False):
+    def _get_writeable_perms_set(self, user, direct_only=False):
 
         if not self.instance:
             raise AuthorizeException(trans(
@@ -744,7 +744,8 @@ class Authorizable(UserTrackable):
             return True
         else:
             #TODO: This isn't checking for UDFs... should it?
-            return self._get_perms_set(user) >= set(self.tracked_fields)
+            writeable_perms = self._get_writeable_perms_set(user)
+            return writeable_perms >= set(self.tracked_fields)
 
     def user_can_create(self, user, direct_only=False):
         """
@@ -757,7 +758,7 @@ class Authorizable(UserTrackable):
         """
         can_create = True
 
-        perm_set = self._get_perms_set(user, direct_only)
+        perm_set = self._get_writeable_perms_set(user, direct_only)
 
         for field in self._fields_required_for_create():
             if field.name not in perm_set:
@@ -840,7 +841,7 @@ class Authorizable(UserTrackable):
         self._assert_not_masked()
 
         if self.pk is not None:
-            writable_perms = self._get_perms_set(user)
+            writable_perms = self._get_writeable_perms_set(user)
             for field in self._updated_fields():
                 if field not in writable_perms:
                     raise AuthorizeException("Can't edit field %s on %s" %
