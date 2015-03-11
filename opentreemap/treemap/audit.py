@@ -719,6 +719,9 @@ class Authorizable(UserTrackable):
             perm_set = {perm.field_name for perm in perms
                         if perm.allows_writes}
 
+        return perm_set.union(self._get_joint_writeable_fields(user))
+
+    def _get_joint_writeable_fields(self, user):
         # If any field on any model is writable in any capacity, read
         # a class property to get the set of field names that are also
         # writable.
@@ -726,11 +729,9 @@ class Authorizable(UserTrackable):
                                    in permissions(user, self.instance)
                                    if perm.allows_writes})
         if can_write_anything:
-            joint_writable_set = getattr(type(self), 'joint_writable', set())
+            return getattr(type(self), 'joint_writable', set())
         else:
-            joint_writable_set = set()
-
-        return perm_set.union(joint_writable_set)
+            return set()
 
     def user_can_delete(self, user):
         """
@@ -811,14 +812,20 @@ class Authorizable(UserTrackable):
 
     def visible_fields(self, user):
         perms = self._perms_for_user(user)
-        return [perm.field_name for perm in perms if perm.allows_reads]
+        always_readable = getattr(type(self), 'joint_writable', set())
+
+        return always_readable | \
+            {perm.field_name for perm in perms if perm.allows_reads}
 
     def field_is_visible(self, user, field):
         return field in self.visible_fields(user)
 
     def editable_fields(self, user):
         perms = self._perms_for_user(user)
-        return [perm.field_name for perm in perms if perm.allows_writes]
+        always_writeable = self._get_joint_writeable_fields(user)
+
+        return always_writeable | \
+            {perm.field_name for perm in perms if perm.allows_writes}
 
     def field_is_editable(self, user, field):
         return field in self.editable_fields(user)
