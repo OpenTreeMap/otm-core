@@ -743,7 +743,6 @@ class Authorizable(UserTrackable):
         if is_admin:
             return True
         else:
-            #TODO: This isn't checking for UDFs... should it?
             writeable_perms = self._get_writeable_perms_set(user)
             return writeable_perms >= set(self.tracked_fields)
 
