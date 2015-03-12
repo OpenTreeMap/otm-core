@@ -16,6 +16,7 @@ from urllib import urlencode
 from copy import deepcopy
 
 from treemap.species import SPECIES
+from treemap.species.codes import ITREE_REGIONS
 from treemap.json_field import JSONField
 from treemap.lib.object_caches import udf_defs
 from treemap.species.codes import (species_codes_for_regions,
@@ -414,13 +415,21 @@ class Instance(models.Model):
 
         return region_codes
 
-    def has_itree_region(self):
+    def itree_regions(self):
         from treemap.models import ITreeRegion  # prevent circular import
-        intersecting_regions = (ITreeRegion
-                                .objects
-                                .filter(geometry__intersects=self.bounds))
+        if self.itree_region_default:
+            codes = [self.itree_region_default]
+        else:
+            codes = (ITreeRegion
+                     .objects
+                     .filter(geometry__intersects=self.bounds)
+                     .values_list('code', flat=True))
 
-        return bool(self.itree_region_default) or intersecting_regions.exists()
+        return [(code, ITREE_REGIONS.get(code, {}).get('name'))
+                for code in codes]
+
+    def has_itree_region(self):
+        return bool(self.itree_regions())
 
     def is_accessible_by(self, user):
         try:
