@@ -1828,6 +1828,7 @@ class UserInstancesViewTests(OTMTestCase):
         self.assertEquals(list(instances), [self.b_public])
 
 
+@override_settings(VIEWABLE_INSTANCES_FUNCTION=None)
 class InstanceListTest(OTMTestCase):
     def setUp(self):
         self.i1 = make_instance()
