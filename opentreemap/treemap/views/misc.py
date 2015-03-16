@@ -16,8 +16,9 @@ from django.shortcuts import get_object_or_404
 
 from treemap.models import User, Species, StaticPage, MapFeature, Instance
 
-from treemap.lib.user import get_audits, get_audits_params
+from treemap.plugin import get_viewable_instances_filter
 
+from treemap.lib.user import get_audits, get_audits_params
 from treemap.lib import COLOR_RE
 
 
@@ -206,6 +207,7 @@ def public_instances_geojson(request):
     # But it is horribly slow due to too many group bys
     instances = (Instance.objects
                  .filter(is_public=True)
+                 .filter(get_viewable_instances_filter())
                  .extra(select={
                      'tree_count': tree_query,
                      'plot_count': plot_query
