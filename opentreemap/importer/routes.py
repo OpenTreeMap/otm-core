@@ -6,8 +6,7 @@ from __future__ import division
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import render_template, json_api_call
 
-from treemap.decorators import (admin_instance_request, require_http_method,
-                                requires_feature)
+from treemap.decorators import admin_instance_request, require_http_method
 
 from importer import views
 
@@ -15,7 +14,6 @@ from importer import views
 def _api_call(verb, view_fn):
     return do(
         admin_instance_request,
-        requires_feature('bulk_upload'),
         require_http_method(verb),
         view_fn)
 

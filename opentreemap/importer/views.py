@@ -16,8 +16,9 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.utils.translation import ugettext as trans
 
-from treemap.models import Species, Tree, User
+from treemap.models import Species, Tree, User, MapFeature
 from treemap.units import (get_conversion_factor, get_value_display_attr)
+from treemap.plugin import get_tree_limit
 
 from exporter.decorators import task_output_as_csv
 
@@ -194,6 +195,30 @@ def show_import_status(request, instance, import_type, import_event_id):
     return render_to_response(template, ctx, RequestContext(request))
 
 
+def _get_tree_limit_context(ie):
+
+    if ie.import_type == 'species':
+        return {}
+
+    tier_tree_limit = get_tree_limit(ie.instance)
+
+    if tier_tree_limit is None:
+        return {}
+
+    tree_count = MapFeature.objects.filter(instance=ie.instance).count()
+    remaining_tree_limit = tier_tree_limit - tree_count
+    verified_count = ie.rows().filter(status=TreeImportRow.VERIFIED).count()
+
+    tree_limit_exceeded = remaining_tree_limit - verified_count < 0
+
+    return {
+        'tier_tree_limit': tier_tree_limit,
+        'tree_count': tree_count,
+        'remaining_tree_limit': remaining_tree_limit,
+        'tree_limit_exceeded': tree_limit_exceeded,
+    }
+
+
 def _get_status_panels(ie, instance, panel_name, page_number):
     get_page = lambda spec_name: page_number if spec_name == panel_name else 1
 
@@ -209,13 +234,17 @@ def _get_status_panels(ie, instance, panel_name, page_number):
                          kwargs={'instance_url_name': instance.url_name,
                                  'import_type': ie.import_type,
                                  'import_event_id': ie.pk})
-    return {
+
+    ctx = {
         'panels': panels,
         'active_panel_name': panel_name,
         'commit_url': commit_url,
         'cancel_url': cancel_url,
-        'ie': ie
+        'ie': ie,
     }
+
+    ctx.update(_get_tree_limit_context(ie))
+    return ctx
 
 
 def _get_import_event(instance, import_type, import_event_id):
@@ -536,6 +565,10 @@ def solve(request, instance, import_event_id, row_index):
 @transaction.atomic
 def commit(request, instance, import_type, import_event_id):
     ie = _get_import_event(instance, import_type, import_event_id)
+
+    if _get_tree_limit_context(ie).get('tree_limit_exceeded'):
+        raise Exception(trans("tree limit exceeded"))
+
     ie.status = GenericImportEvent.CREATING
 
     ie.save()
