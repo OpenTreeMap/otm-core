@@ -261,7 +261,8 @@ class Instance(models.Model):
         fields = {
             'standard': [
                 {'identifier': 'tree.diameter', 'search_type': 'RANGE'},
-                {'identifier': 'tree.date_planted', 'search_type': 'RANGE'}
+                {'identifier': 'tree.date_planted', 'search_type': 'RANGE'},
+                {'identifier': 'mapFeature.updated_at', 'search_type': 'RANGE'}
             ],
             'display': [
                 {'model': 'Tree', 'label': 'Show trees'},
