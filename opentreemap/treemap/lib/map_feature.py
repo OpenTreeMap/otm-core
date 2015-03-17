@@ -14,10 +14,12 @@ from django.db.models import Q
 
 from treemap.audit import Audit
 from treemap.ecobackend import ECOBENEFIT_ERRORS
+from treemap.lib import execute_sql
 from treemap.models import Tree, MapFeature, User, Favorite
 
 from treemap.lib import format_benefits
 from treemap.lib.photo import context_dict_for_photo
+from treemap.util import leaf_subclasses
 
 
 def _map_feature_audits(user, instance, feature, filters=None,
@@ -358,3 +360,68 @@ def _add_share_context(context, request, photos):
         'description': description,
         'image': photo_url,
     }
+
+
+def set_map_feature_updated_at():
+    models = [Model.map_feature_type for Model in
+              leaf_subclasses(MapFeature)]
+    if not models:
+        raise Exception("Could not find any map_feature subclasses")
+
+    models_in = "('%s')" % "','".join(models)
+
+    # For a baseline, pull the most recent change to the MapFeature itself.
+    # This depends on the fact that all the MapFeature subclasses share the
+    # same id pool and ids do not overlap.
+    # NOTE: This MUST be run first. Additional update queries compare
+    # dates against the updated_at values set by this statement.
+    execute_sql("""
+UPDATE treemap_mapfeature
+SET updated_at = a.updated_at
+FROM (
+  SELECT model_id as id, MAX(created) AS updated_at
+  FROM treemap_audit
+  WHERE treemap_audit.model IN %s
+  GROUP BY model_id
+) a
+    WHERE a.id = treemap_mapfeature.id;""" % models_in)
+
+    # If the tree associated with a MapFeature has been updated more
+    # recently than the MapFeature, copy the tree's most recent
+    # update date to the MapFeature
+    execute_sql("""
+UPDATE treemap_mapfeature
+SET updated_at = GREATEST(treemap_mapfeature.updated_at, b.updated_at)
+FROM (
+  SELECT plot_id as id, a.updated_at
+  FROM treemap_tree
+  JOIN (
+    SELECT model_id as tree_id, MAX(created) AS updated_at
+    FROM treemap_audit
+    WHERE treemap_audit.model = 'Tree'
+    GROUP BY model_id
+  ) a
+  ON a.tree_id = treemap_tree.id
+) b
+WHERE b.id = treemap_mapfeature.id;""")
+
+    # If a photo associated with a Tree or MapFeature has been updated more
+    # recently than the MapFeature, copy the photo's most recent
+    # update date to the MapFeature. TreePhoto is a subclass of
+    # MapFeaturePhoto so they share the same id range.
+    execute_sql("""
+UPDATE treemap_mapfeature
+SET updated_at = GREATEST(treemap_mapfeature.updated_at, b.updated_at)
+FROM (
+  SELECT map_feature_id as id, a.updated_at
+  FROM treemap_mapfeaturephoto
+  JOIN (
+    SELECT model_id as photo_id, MAX(created) AS updated_at
+    FROM treemap_audit
+    WHERE treemap_audit.model in ('TreePhoto', 'MapFeaturePhoto')
+    GROUP BY model_id
+  ) a
+  ON a.photo_id = treemap_mapfeaturephoto.id
+) b
+WHERE b.id = treemap_mapfeature.id;
+""")
