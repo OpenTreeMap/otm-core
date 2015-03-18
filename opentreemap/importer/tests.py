@@ -15,6 +15,7 @@ from StringIO import StringIO
 from django.conf import settings
 from django.db import connection
 from django.test import TestCase
+from django.test.utils import override_settings
 from django.utils.unittest.case import skip, skipIf
 from django.http import HttpRequest
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
@@ -804,6 +805,7 @@ class FileLevelTreeValidationTest(ValidationTest):
         self.assertEqual(set(ierrors[0]['data']), set(['name', 'age']))
 
 
+@override_settings(TREE_LIMIT_FUNCTION=None)
 class IntegrationTests(TestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
