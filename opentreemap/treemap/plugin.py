@@ -91,3 +91,7 @@ get_mobile_instances_filter = get_plugin_function('MOBILE_INSTANCES_FUNCTION',
 
 get_viewable_instances_filter = get_plugin_function(
     'VIEWABLE_INSTANCES_FUNCTION', lambda: Q())
+
+
+get_tree_limit = get_plugin_function('TREE_LIMIT_FUNCTION',
+                                     lambda instance: None)

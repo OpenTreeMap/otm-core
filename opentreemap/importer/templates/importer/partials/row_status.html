@@ -25,7 +25,11 @@
 {% endblock main %}
 
 {% block extra_buttons %}
-    {% if ie.can_add_to_map %}
+    {% if tree_limit_exceeded %}
+        <div class="alert alert-danger">
+          Your tree map currently contains {{ tree_count }} trees. This data upload will cause your tree map to exceed the {{ tier_tree_limit }} number of trees allowed in your subscription level. Please upgrade to a larger subscription plan or upload {{ remaining_tree_limit }} or fewer trees.
+        </div>
+    {% elif ie.can_add_to_map %}
         <a data-action="commit" class="btn btn-info btn-large" href="{{ commit_url }}">
           <i class="icon-plus-circled"></i>
           {% trans "Add to Tree Map" %}
