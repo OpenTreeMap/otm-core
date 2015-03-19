@@ -538,7 +538,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     # table, we store a "cached" value here to keep filtering easy and
     # efficient.
     updated_at = models.DateTimeField(default=timezone.now,
-                                      help_text=trans("Updated On"))
+                                      help_text=trans("Last Updated"))
 
     # Tells the permission system that if any other field is writable,
     # updated_at is also writable
