@@ -45,6 +45,18 @@ module.exports = function(config, commentContainerSelector) {
         $('#id_comment').focus();
     });
 
+    $container.on('change keyup paste', 'textarea', function (e) {
+        var $textarea = $(e.currentTarget),
+            $form = $textarea.closest('form'),
+            $submit = $form.find('input[type="submit"]');
+
+        if ($textarea.val().trim() === "") {
+            $submit.prop('disabled', true);
+        } else {
+            $submit.prop('disabled', false);
+        }
+    });
+
     // The default comment form is not part of the page by default
     addMainForm();
     flagging();
