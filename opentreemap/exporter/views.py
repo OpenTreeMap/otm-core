@@ -14,6 +14,8 @@ from django_tinsel.decorators import json_api_call
 from treemap.util import get_csv_response, get_json_response
 from treemap.decorators import instance_request, requires_feature
 
+from exporter import EXPORTS_NOT_ENABLED_CONTEXT
+from exporter.lib import export_enabled_for
 from exporter.models import ExportJob
 from exporter.user import write_users
 
@@ -59,6 +61,9 @@ def begin_export_users(request, instance, data_format):
     if not request.user.is_authenticated():
         raise Http404()
 
+    if not export_enabled_for(instance, request.user):
+        return EXPORTS_NOT_ENABLED_CONTEXT
+
     job = ExportJob.objects.create(
         instance=instance,
         user=request.user,
@@ -70,6 +75,9 @@ def begin_export_users(request, instance, data_format):
 
 
 def begin_export(request, instance, model):
+    if not export_enabled_for(instance, request.user):
+        return EXPORTS_NOT_ENABLED_CONTEXT
+
     query = request.GET.get('q', None)
     display_filters = request.GET.get('show', None)
 

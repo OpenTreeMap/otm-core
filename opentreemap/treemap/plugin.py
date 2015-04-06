@@ -13,6 +13,7 @@ from treemap.lib import get_function_by_path
 
 # For use in tests, as basic functions to use in override_settings
 always_false = lambda *args, **kwargs: False
+always_true = lambda *args, **kwargs: True
 
 
 #

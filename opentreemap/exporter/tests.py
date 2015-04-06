@@ -10,17 +10,21 @@ from treemap.udf import UserDefinedFieldDefinition
 from treemap.lib.dates import DATETIME_FORMAT
 from treemap.tests.test_views import LocalMediaTestCase, media_dir
 from treemap.tests import (make_instance, make_commander_user, make_request,
-                           set_write_permissions, make_commander_role)
+                           set_write_permissions, make_commander_role,
+                           make_admin_user)
 from treemap.tests.base import OTMTestCase
 from treemap.models import Species, Plot, Tree, User, InstanceUser
 from treemap.audit import Audit, add_default_permissions
 
 from exporter.models import ExportJob
 from exporter import tasks
+from exporter.lib import export_enabled_for
 from exporter.views import begin_export, check_export, users_json, users_csv
 
+from django.test.utils import override_settings
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import AnonymousUser
 import datetime
 
 
@@ -134,6 +138,7 @@ class ExportTreeTaskTest(AsyncCSVTestCase):
                                 'plot__udf:Test choice': 'a'})
 
     @media_dir
+    @override_settings(FEATURE_BACKEND_FUNCTION=None)
     def test_export_view_permission_failure(self):
         request = make_request(user=self.unprivileged_user)
         begin_ctx = begin_export(request, self.instance, 'tree')
@@ -143,6 +148,7 @@ class ExportTreeTaskTest(AsyncCSVTestCase):
                          'User has no permissions on this model')
 
     @media_dir
+    @override_settings(FEATURE_BACKEND_FUNCTION=None)
     def test_psuedo_async_tree_export(self):
         self.assertPsuedoAsyncTaskWorks('tree', self.user, 'diameter', '2.0',
                                         '.*tree_export(_\d+)?\.csv')
@@ -162,6 +168,7 @@ class ExportSpeciesTaskTest(AsyncCSVTestCase):
             self.user, 'species', {'common name': 'foo'})
 
     @media_dir
+    @override_settings(FEATURE_BACKEND_FUNCTION=None)
     def test_psuedo_async_species_export(self):
         self.assertPsuedoAsyncTaskWorks('species', self.user, 'common name',
                                         'foo', '.*species_export(_\d+)?\.csv')
@@ -371,3 +378,45 @@ class UserExportsTest(UserExportsTestCase):
     def test_min_edit_date_validation(self):
         with self.assertRaises(ValidationError):
             users_json(make_request({"minEditDate": "fsdafsa"}), self.instance)
+
+
+class ExportEnabledTestCase(OTMTestCase):
+
+    _export_enabled = 'treemap.plugin.always_true'
+    _export_disabled = 'treemap.plugin.always_false'
+
+    def setUp(self):
+        super(ExportEnabledTestCase, self).setUp()
+        self.instance = make_instance()
+        self.admin = make_admin_user(self.instance)
+        # "commander" is an instance user, but not an admin
+        self.non_admin = make_commander_user(self.instance)
+
+    def assert_admin_can_export(self, b):
+        self.assertEqual(b, export_enabled_for(self.instance, self.admin))
+
+    def assert_user_can_export(self, b):
+        self.assertEqual(b, export_enabled_for(self.instance, self.non_admin))
+
+    def assert_anonymous_can_export(self, b):
+        self.assertEqual(b, export_enabled_for(self.instance, AnonymousUser()))
+
+    @override_settings(FEATURE_BACKEND_FUNCTION=_export_disabled)
+    def test_export_disabled_for_all_when_feature_disabled(self):
+        self.assert_user_can_export(False)
+        self.assert_admin_can_export(False)
+        self.assert_anonymous_can_export(False)
+
+    @override_settings(FEATURE_BACKEND_FUNCTION=_export_enabled)
+    def test_export_enabled_for_all_by_default(self):
+        self.assert_user_can_export(True)
+        self.assert_admin_can_export(True)
+        self.assert_anonymous_can_export(True)
+
+    @override_settings(FEATURE_BACKEND_FUNCTION=_export_enabled)
+    def test_export_disabled_for_non_admins(self):
+        self.instance.non_admins_can_export = False
+        self.instance.save()
+        self.assert_user_can_export(False)
+        self.assert_admin_can_export(True)
+        self.assert_anonymous_can_export(False)
