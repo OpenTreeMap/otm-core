@@ -248,6 +248,8 @@ class Instance(models.Model):
     mobile_api_fields = _make_config_property('mobile_api_fields',
                                               DEFAULT_MOBILE_API_FIELDS)
 
+    non_admins_can_export = models.BooleanField(default=True)
+
     @property
     def advanced_search_fields(self):
         # TODO pull from the config once users have a way to set search fields
