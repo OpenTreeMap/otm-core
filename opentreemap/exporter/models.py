@@ -12,12 +12,14 @@ from treemap.instance import Instance
 
 
 class ExportJob(models.Model):
+    UNCAUGHT_EXCEPTION_ERROR = -1
     PENDING = 0
     EMPTY_QUERYSET_ERROR = 1
     MODEL_PERMISSION_ERROR = 2
     COMPLETE = 3
 
     STATUS_STRINGS = {
+        UNCAUGHT_EXCEPTION_ERROR: 'UNCAUGHT_EXCEPTION_ERROR',
         PENDING: 'PENDING',
         EMPTY_QUERYSET_ERROR: 'EMPTY_QUERYSET_ERROR',
         MODEL_PERMISSION_ERROR: 'MODEL_PERMISSION_ERROR',
@@ -25,6 +27,7 @@ class ExportJob(models.Model):
     }
 
     STATUS_CHOICES = {
+        UNCAUGHT_EXCEPTION_ERROR: 'Something went wrong with your export.',
         PENDING: 'Pending',
         EMPTY_QUERYSET_ERROR: 'Query returned no results',
         MODEL_PERMISSION_ERROR: 'User has no permissions on this model',
@@ -58,3 +61,6 @@ class ExportJob(models.Model):
     def complete_with(self, filename, file_obj):
         self.outfile.save(filename, file_obj)
         self.status = self.COMPLETE
+
+    def fail(self):
+        self.status = self.UNCAUGHT_EXCEPTION_ERROR

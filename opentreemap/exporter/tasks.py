@@ -4,6 +4,9 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import csv
+
+from contextlib import contextmanager
+from functools import wraps
 from celery import task
 from tempfile import TemporaryFile
 
@@ -20,6 +23,25 @@ from exporter.models import ExportJob
 
 from exporter.user import write_users
 from exporter.util import sanitize_unicode_record
+
+
+@contextmanager
+def _job_transaction_manager(job_pk):
+    job = ExportJob.objects.get(pk=job_pk)
+    try:
+        yield job
+    except:
+        job.fail()
+        job.save()
+        raise
+
+
+def _job_transaction(fn):
+    @wraps(fn)
+    def wrapper(job_pk, *args, **kwargs):
+        with _job_transaction_manager(job_pk) as job:
+            return fn(job, *args, **kwargs)
+    return wrapper
 
 
 def extra_select_and_values_for_model(
@@ -57,8 +79,8 @@ def extra_select_and_values_for_model(
 
 
 @task
-def async_users_export(job_pk, data_format):
-    job = ExportJob.objects.get(pk=job_pk)
+@_job_transaction
+def async_users_export(job, data_format):
     instance = job.instance
 
     if data_format == 'csv':
@@ -73,8 +95,8 @@ def async_users_export(job_pk, data_format):
 
 
 @task
-def async_csv_export(job_pk, model, query, display_filters):
-    job = ExportJob.objects.get(pk=job_pk)
+@_job_transaction
+def async_csv_export(job, model, query, display_filters):
     instance = job.instance
 
     if model == 'species':
@@ -148,9 +170,8 @@ def async_csv_export(job_pk, model, query, display_filters):
 
 
 @task
-def simple_async_csv(job_pk, qs):
-    job = ExportJob.objects.get(pk=job_pk)
-
+@_job_transaction
+def simple_async_csv(job, qs):
     file_obj = TemporaryFile()
     write_csv(qs, file_obj)
     job.complete_with(generate_filename(qs), File(file_obj))
@@ -159,14 +180,13 @@ def simple_async_csv(job_pk, qs):
 
 @task
 def custom_async_csv(csv_rows, job_pk, filename, fields):
-    job = ExportJob.objects.get(pk=job_pk)
+    with _job_transaction_manager(job_pk) as job:
+        csv_obj = TemporaryFile()
 
-    csv_obj = TemporaryFile()
+        writer = csv.DictWriter(csv_obj, fields)
+        writer.writeheader()
+        for row in csv_rows:
+            writer.writerow(sanitize_unicode_record(row))
 
-    writer = csv.DictWriter(csv_obj, fields)
-    writer.writeheader()
-    for row in csv_rows:
-        writer.writerow(sanitize_unicode_record(row))
-
-    job.complete_with(filename, File(csv_obj))
-    job.save()
+        job.complete_with(filename, File(csv_obj))
+        job.save()
