@@ -28,7 +28,7 @@ class GenericImportEvent(models.Model):
     CREATING = 4
     FINISHED_CREATING = 5
     FAILED_FILE_VERIFICATION = 6
-    CANCELED = 7
+    CANCELED = 8
 
     # Original Name of the file
     file_name = models.CharField(max_length=255)
