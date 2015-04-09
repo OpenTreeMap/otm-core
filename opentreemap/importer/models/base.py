@@ -23,12 +23,14 @@ class GenericImportEvent(models.Model):
 
     PENDING_VERIFICATION = 1
     LOADING = 7
+    PREPARING_VERIFICATION = 9
     VERIFIYING = 2
     FINISHED_VERIFICATION = 3
     CREATING = 4
     FINISHED_CREATING = 5
     FAILED_FILE_VERIFICATION = 6
     CANCELED = 8
+    VERIFICATION_ERROR = 10
 
     # Original Name of the file
     file_name = models.CharField(max_length=255)
@@ -57,11 +59,13 @@ class GenericImportEvent(models.Model):
         summaries = {
             self.PENDING_VERIFICATION: "Not Yet Started",
             self.LOADING: "Loading",
+            self.PREPARING_VERIFICATION: "Preparing Verification",
             self.VERIFIYING: "Verifying",
             self.FINISHED_VERIFICATION: "Verification Complete",
             self.CREATING: "Creating Trees",
             self.FAILED_FILE_VERIFICATION: "Invalid File Structure",
             self.CANCELED: "Canceled",
+            self.VERIFICATION_ERROR: "Verification Error",
         }
         return summaries.get(self.status, "Finished")
 
@@ -81,11 +85,13 @@ class GenericImportEvent(models.Model):
             self.status == self.FINISHED_VERIFICATION or
             self.status == self.FINISHED_CREATING or
             self.status == self.FAILED_FILE_VERIFICATION or
-            self.status == self.CANCELED)
+            self.status == self.CANCELED or
+            self.status == self.VERIFICATION_ERROR)
 
     def can_export(self):
         return (not self.is_running()
-                and self.status != self.FAILED_FILE_VERIFICATION)
+                and self.status != self.FAILED_FILE_VERIFICATION
+                and self.status != self.VERIFICATION_ERROR)
 
     def can_cancel(self):
         return self.status == self.LOADING or self.status == self.VERIFIYING
