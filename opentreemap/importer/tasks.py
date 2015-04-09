@@ -87,18 +87,30 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
             pass
         return
 
-    ie.status = GenericImportEvent.VERIFIYING
+    ie.status = GenericImportEvent.PREPARING_VERIFICATION
     ie.save()
 
-    row_set = ie.rows()
-    validation_tasks = (_validate_rows.subtask(row_set[i:(i+BLOCK_SIZE)])
-                        for i in xrange(0, ie.row_count, BLOCK_SIZE))
+    try:
+        row_set = ie.rows()
+        validation_tasks = (_validate_rows.subtask(row_set[i:(i+BLOCK_SIZE)])
+                            for i in xrange(0, ie.row_count, BLOCK_SIZE))
 
-    final_task = _finalize_validation.si(import_type, import_event_id)
-    res = chord(validation_tasks, final_task).delay()
+        final_task = _finalize_validation.si(import_type, import_event_id)
+        res = chord(validation_tasks, final_task).delay()
 
-    ie.task_id = res.id
-    ie.save()
+        ie.status = GenericImportEvent.VERIFIYING
+        ie.task_id = res.id
+        ie.save()
+    except Exception as e:
+        ie.status = GenericImportEvent.VERIFICATION_ERROR
+        ie.save()
+        try:
+            ie.append_error(errors.GENERIC_ERROR, data=[str(e)])
+            ie.save()
+            ie.row_set().delete()
+        except Exception:
+            pass
+        return
 
 
 @task()
