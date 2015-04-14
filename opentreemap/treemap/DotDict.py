@@ -1,7 +1,12 @@
+from copy import deepcopy
+
+
 class DotDict(dict):
     """
     Dictionary class supporting keys like "a.b.c" for nested dictionaries
-    From http://stackoverflow.com/questions/3797957 (RM added get())
+    From http://stackoverflow.com/questions/3797957
+     - RM added get()
+     - MVM added __deepcopy__()
 
     Supports get() with a dotted key and a default, e.g.
         config.get('fruit.apple.type', 'delicious')
@@ -72,6 +77,9 @@ class DotDict(dict):
 
     def __setstate__(self, d):
         self.__dict__ = d
+
+    def __deepcopy__(self, memo):
+        return DotDict(deepcopy(dict(self), memo))
 
     __setattr__ = __setitem__
     __getattr__ = __getitem__
