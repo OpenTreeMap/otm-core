@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
+from copy import deepcopy
+
 from django.conf import settings
 from django.db.models import F
 
@@ -125,13 +131,19 @@ class _InstanceAdjuncts:
         if not self._permissions:
             self._load_permissions()
         perms = self._permissions.get((role_id, model_name))
-        return perms if perms else []
+
+        # We must always deepcopy the cached items before returning them,
+        # to prevent inadvertent modifcations to the cached items
+        return deepcopy(perms) if perms else []
 
     def udf_defs(self, model_name):
         if not self._udf_defs:
             self._load_udf_defs()
         defs = self._udf_defs.get(model_name)
-        return defs if defs else []
+
+        # We must always deepcopy the cached items before returning them,
+        # to prevent inadvertent modifcations to the cached items
+        return deepcopy(defs) if defs else []
 
     def _load_roles(self):
         from treemap.models import InstanceUser
