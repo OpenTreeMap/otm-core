@@ -21,14 +21,14 @@ function elementToValue(el) {
     return $(el).data('value');
 }
 
-function zeroToEmptyString(n) {
-    return n === 0 ? '' : n;
-}
-
 function textToFloat(t) {
     var f = parseFloat(t);
 
-    return isNaN(f) ? 0 : f;
+    return isValidNumber(f) ? f : 0;
+}
+
+function isValidNumber(num) {
+    return _.isNumber(num) && !isNaN(num);
 }
 
 function diameterToCircumference(diameter) {
@@ -40,12 +40,18 @@ function circumferenceToDiameter(circumference) {
 }
 
 function toFixed(value, $parentForm) {
+    if (! _.isNumber(value)) {
+        return value;
+    }
     var $field = $parentForm.find(_diameterFieldSelector).first(),
         digits = $field.data('digits');
     return value.toFixed(digits);
 }
 
 function calculateDiameterFromMultiple(diameters) {
+    if (diameters.length === 0) {
+        return '';
+    }
     // this formula is a shortcut for:
     // 1) calculate area of each diameter
     // 2) add the areas together
@@ -94,7 +100,7 @@ function updateTotalDiameter ($parentForm) {
         $totalField = $parentForm.find(_totalFieldSelector),
         $totalReference = $parentForm.find(_totalReferenceSelector),
         diameterValues = _.map($diameterFields, elementToValue),
-        validValues = _.reject(diameterValues, isNaN),
+        validValues = _.filter(diameterValues, isValidNumber),
         totalDiameter = calculateDiameterFromMultiple(validValues);
 
     $totalReference.html(toFixed(totalDiameter, $parentForm));
@@ -141,9 +147,19 @@ function updateRowValues ($parentForm, event) {
             _circumferenceSelector : _diameterSelector;
 
     if (isDiameter || isCircumference) {
-        var value = textToFloat(eventToText(event)),
-            otherValue = conversionFn(value),
-            otherValueDisplay = zeroToEmptyString(toFixed(otherValue, $parentForm));
+        var textValue = eventToText(event),
+            value, otherValue, otherValueDisplay;
+
+        if (textValue.trim() === '') {
+            value = '';
+            otherValue = '';
+            otherValueDisplay = '';
+        } else {
+            value = textToFloat(textValue);
+            otherValue = conversionFn(value);
+            otherValueDisplay = toFixed(otherValue, $parentForm);
+        }
+
         $eventTarget
             .data('value', value)
             .closest('tr')
