@@ -274,7 +274,7 @@ def remove_current_tree_from_plot(request, instance, plot_id):
 def add_photo(request, instance, plot_id):
     treephoto, _ = add_tree_photo_helper(request, instance, plot_id)
 
-    return context_dict_for_photo(treephoto)
+    return context_dict_for_photo(request, treephoto)
 
 
 # Note that API requests going to private instances require

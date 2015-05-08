@@ -1,0 +1,36 @@
+{% extends "instance_base.html" %}
+{% load threadedcomments_tags %}
+{% load instance_config %}
+{% load i18n %}
+{% load l10n %}
+
+{% block head_extra %}
+{# Facebook & Google+ scrape these properties for their share dialogs #}
+<meta property="og:url" content="{{ photo.absolute_detail_url }}" />
+<meta property="og:title" content="{% trans "Map Feature Photo" %}" />
+<meta property="og:description" content="{% trans "Photo uploaded on" %} {{ photo.raw.created_at|date:request.instance.short_date_format }}" />
+<meta property="og:image" content="{{ photo.absolute_image }}" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="{{ request.instance.name }}" />
+{% endblock head_extra %}
+
+{% block subhead_exports %}
+{# Exporting is not available from the photo detail page #}
+{% endblock subhead_exports %}
+
+{% block content %}
+<div class="image-background"></div>
+<div class="container contained">
+  <div class="row">
+    <h2>{% trans "Photo uploaded on" %} {{ photo.raw.created_at|date:request.instance.short_date_format }}</h2>
+    <a href="{% url 'map_feature_detail' instance_url_name=request.instance.url_name feature_id=photo.raw.map_feature_id %}">{% trans "View more details on the detail page" %}</a>
+  </div>
+  <hr>
+  <div class="row">
+      <img src="{{ photo.image }}"/>
+  </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+{% endblock scripts %}

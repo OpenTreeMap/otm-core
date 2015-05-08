@@ -49,6 +49,8 @@ urlpatterns = patterns(
         routes.add_map_feature_photo, name='add_photo_to_map_feature'),
     url(r'^features/(?P<feature_id>\d+)/detail$',
         routes.map_feature_accordion, name='map_feature_accordion'),
+    url('^features/(?P<feature_id>\d+)/photo/(?P<photo_id>\d+)/detail$',
+        routes.map_feature_photo_detail, name='map_feature_photo_detail'),
     url('^features/(?P<feature_id>\d+)/photo/(?P<photo_id>\d+)$',
         routes.rotate_map_feature_photo, name='rotate_photo'),
     url(r'^features/(?P<feature_id>\d+)/favorite$',

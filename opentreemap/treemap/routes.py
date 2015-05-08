@@ -149,6 +149,12 @@ add_map_feature_photo = add_map_feature_photo_do(
 rotate_map_feature_photo = add_map_feature_photo_do(
     feature_views.rotate_map_feature_photo)
 
+map_feature_photo_detail = do(
+    instance_request,
+    require_http_method('GET'),
+    render_template('treemap/map_feature_photo_detail.html'),
+    feature_views.map_feature_photo_detail)
+
 favorite_map_feature = do(
     instance_request,
     require_http_method('POST'),

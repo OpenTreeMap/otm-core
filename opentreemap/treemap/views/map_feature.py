@@ -65,7 +65,8 @@ def get_photo_context_and_errors(fn):
             error = '; '.join(e.messages)
         feature = get_map_feature_or_404(feature_id, instance)
         photos = feature.photos()
-        return {'photos': map(context_dict_for_photo, photos),
+        return {'photos': [context_dict_for_photo(request, photo)
+                           for photo in photos],
                 'error': error}
 
     return wrapper
@@ -90,6 +91,13 @@ def map_feature_detail(request, instance, feature_id, render=False):
 
 def render_map_feature_detail(*args, **kwargs):
     return map_feature_detail(*args, render=True, **kwargs)
+
+
+def map_feature_photo_detail(request, instance, feature_id, photo_id):
+    photo = get_object_or_404(MapFeaturePhoto,
+                              pk=photo_id,
+                              map_feature=feature_id)
+    return {'photo': context_dict_for_photo(request, photo)}
 
 
 def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
