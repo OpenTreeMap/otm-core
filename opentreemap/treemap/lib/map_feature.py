@@ -22,6 +22,10 @@ from treemap.lib.photo import context_dict_for_photo
 from treemap.util import leaf_subclasses
 
 
+def _photo_upload_share_text(feature, has_tree=False):
+    return trans("I added a photo of this %s!") % feature.display_name.lower()
+
+
 def _map_feature_audits(user, instance, feature, filters=None,
                         cudf_filters=None):
     if filters is None:
@@ -185,7 +189,8 @@ def context_dict_for_plot(request, plot, edit=False, tree_id=None):
         photos = tree.photos()
         # can't send a regular photo qs because the API will
         # serialize this to JSON, which is not supported for qs
-        context['photos'] = map(context_dict_for_photo, photos)
+        context['photos'] = [context_dict_for_photo(request, photo)
+                             for photo in photos]
     else:
         photos = []
 
@@ -232,6 +237,9 @@ def context_dict_for_plot(request, plot, edit=False, tree_id=None):
     # Give an empty tree when there is none in order to show tree fields easily
     context['tree'] = tree or Tree(plot=plot, instance=instance)
 
+    context['photo_upload_share_text'] = _photo_upload_share_text(
+        plot, tree is not None)
+
     audits = _plot_audits(user, instance, plot)
 
     _add_audits_to_context(audits, context)
@@ -250,7 +258,8 @@ def context_dict_for_resource(request, resource):
     completed_progress_items = 2
 
     photos = resource.photos()
-    context['photos'] = map(context_dict_for_photo, photos)
+    context['photos'] = [context_dict_for_photo(request, photo)
+                         for photo in photos]
 
     has_photos = len(photos) > 0
 
@@ -323,7 +332,8 @@ def context_dict_for_map_feature(request, feature):
         'upload_photo_endpoint': None,
         'photos': None,
         'share': None,
-        'favorited': favorited
+        'favorited': favorited,
+        'photo_upload_share_text': _photo_upload_share_text(feature),
     }
 
     _add_eco_benefits_to_context_dict(instance, feature, context)

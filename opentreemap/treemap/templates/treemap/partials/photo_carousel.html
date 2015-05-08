@@ -7,6 +7,13 @@
   <div class="item {{ forloop.first|yesno:"active," }}">
     <a data-toggle="modal" href="#photo-lightbox"
         data-photo-src="{{ photo.image }}"
+        {% if forloop.first %}
+        {# this is the *actual* photo for the map feature and will be
+           used by the sharing code when a new upload takes place #}
+        data-map-feature-photo-detail-absolute-url="{{ photo.absolute_detail_url }}"
+        data-map-feature-photo-image-absolute-url="{{ photo.absolute_image }}"
+        data-map-feature-photo-thumbnail="{{ photo.thumbnail }}"
+        {% endif %}
         data-endpoint="{% url 'rotate_photo' instance_url_name=request.instance.url_name feature_id=photo.map_feature photo_id=photo.id %}">
       <img src="{{ photo.thumbnail }}" alt="">
     </a>
