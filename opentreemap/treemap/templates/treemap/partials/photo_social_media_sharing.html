@@ -1,0 +1,32 @@
+{% load i18n %}
+
+<div id="social-media-sharing-photo-upload-modal" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h2>{% trans "Photo Added!" %}</h2>
+      </div>
+      <div class="modal-body" data-class="share-links">
+        <p>{% trans "Would you like to share this photo?" %}</p>
+        <img id="social-media-sharing-photo-upload-preview"/>
+        <a data-class="facebook"
+           data-url-template="http://www.facebook.com/sharer/sharer.php?u=<%= photoDetailUrl %>"
+           target="_blank"><img src="/static/img/facebook_32.png"></a>
+        <a data-class="twitter"
+           data-url-template="http://twitter.com/share?&text={{ photo_upload_share_text }}&url=<%= photoDetailUrl %>"
+           target="_blank"><img src="/static/img/twitter_32.png"></a>
+        <a data-class="google"
+           data-url-template="https://plus.google.com/share?url=<%= photoDetailUrl %>"
+           target="_blank"><img src="/static/img/googleplus_32.png"></a>
+        <a data-class="pinterest"
+           data-url-template="https://www.pinterest.com/pin/create/button/?&media=<%= photoUrl %>&description={{ photo_upload_share_text }}&url=<%= photoDetailUrl %>"
+           target="_blank"><img src="/static/img/pinterest_32.png"></a>
+      </div>
+      <div class="modal-footer">
+        <label class="pull-left"><input data-class="social-media-sharing-dont-show-again" type="checkbox"/>{% trans "Don't show me again" %}</label>
+        <a href="#" class="btn" data-dismiss="modal">{% trans "No Thanks" %}</a>
+      </div>
+    </div>
+  </div>
+</div>

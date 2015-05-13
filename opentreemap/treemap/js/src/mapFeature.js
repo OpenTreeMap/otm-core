@@ -14,6 +14,7 @@ var $ = require('jquery'),
     statePrompter = require('treemap/statePrompter'),
     csrf = require('treemap/csrf'),
     imageUploadPanel = require('treemap/imageUploadPanel'),
+    socialMediaSharing = require('treemap/socialMediaSharing'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
         require('treemap/reverseGeocodeStreamAndUpdateAddressesOnForm'),
     streetView = require('treemap/streetView'),
@@ -189,9 +190,8 @@ exports.init = function(options) {
         });
     }
 
-    $(options.share.toggle).click(function () {
-        $(options.share.container).toggle(300);
-    });
+    socialMediaSharing.init(
+        _.extend(options, {imageFinishedStream: imageFinishedStream}));
 
     return {
         inlineEditForm: form

@@ -66,7 +66,7 @@ module.exports.init = function(options) {
             }
 
             if (callback) {
-                callback(new Bacon.Next(e));
+                callback(new Bacon.Next({event: e, data: data}));
             }
         },
         fail: function (e, data) {

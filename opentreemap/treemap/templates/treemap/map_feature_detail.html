@@ -20,6 +20,7 @@
 
 {% block content %}
 {% include "treemap/partials/upload_image.html" with panel_id="add-photo-modal" title="Add a Photo" %}
+{% include "treemap/partials/photo_social_media_sharing.html" %}
 
 {# Modal for viewing and rotating photos, used by imageUploadPanel.js #}
 <div id="photo-lightbox" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">

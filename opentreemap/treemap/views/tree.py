@@ -41,7 +41,8 @@ def add_tree_photo(request, instance, feature_id, tree_id=None):
             photos = []
         # TODO: Better display error messages in the view
         error = '; '.join(e.messages)
-    return {'photos': map(context_dict_for_photo, photos),
+    return {'photos': [context_dict_for_photo(request, photo)
+                       for photo in photos],
             'error': error}
 
 
