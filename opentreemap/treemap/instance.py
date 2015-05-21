@@ -12,6 +12,7 @@ from django.utils.translation import ugettext_lazy as trans
 import hashlib
 import json
 from urllib import urlencode
+import re
 
 from copy import deepcopy
 
@@ -69,6 +70,41 @@ DEFAULT_PLOT_STEWARDSHIP_CHOICES = [
 # if we come to support more udfcs, we can add them here.
 UDFC_MODELS = ['Tree', 'Plot']
 UDFC_NAMES = ['Stewardship', 'Alerts']
+
+API_FIELD_ERRORS = {
+    'no_field_groups': trans('Must be a non-empty list'),
+
+    'group_has_no_header': trans(
+        'Every mobile field group must have a non-empty header'),
+
+    'group_has_no_keys': trans(
+        'All mobile field groups must have either a "field_keys" or '
+        '"collection_udf_keys" containing a non-empty list'),
+
+    'group_has_both_keys': trans(
+        'Mobile field groups cannot contain both "field_keys" and '
+        '"collection_udf_keys" properties'),
+
+    'group_has_no_sort_key': trans(
+        'Collection field groups must have a non-empty "sort_key" property '
+        'defined'),
+
+    'group_has_missing_cudf': trans(
+        'Collection field groups can only contain existing custom collection '
+        'fields'),
+
+    'group_has_invalid_sort_key': trans(
+        'The "sort_key" property of a collection field group must be the name '
+        'of a field on present on every collection field in the group'),
+
+    'duplicate_fields': trans('Fields cannot be specified more than once'),
+
+    'invalid_field': trans('The specified field "%(field)s" is invalid'),
+
+    'missing_field': trans(
+        'Normal field groups may only contain existing fields. If you specify '
+        'a custom field, it cannot be a collection field'),
+}
 
 
 def reserved_name_validator(name):
@@ -474,6 +510,93 @@ class Instance(models.Model):
             dummy_role = dummy_roles[0]
 
         self.default_role = dummy_role
+
+    def clean(self):
+        # We need to work around a bit of a chicken/egg problem here
+        # The default API fields reference Stewardship, but the Stewardship
+        # UDFs won't exist when the instance is first created.
+        # To work around this, we only validate when there is something in the
+        # 'config' object, which ignores the default api fields
+        if 'mobile_api_fields' in self.config:
+            self._validate_mobile_api_fields()
+
+    def _validate_mobile_api_fields(self):
+        # Validate that:
+        # 1) overall structure is correct
+        # 2) each individual group has a header and collection or normal fields
+        # 3) Collection UDF groups only contain collection UDFs
+        # 4) Collection UDF groups have a 'sort_key', which is present on all
+        #    fields for that group
+        # 5) no field is referenced more than once
+        # 6) all fields referenced exist
+
+        # delayed import to avoid circular references
+        from treemap.models import Plot, Tree
+
+        def _truthy_of_type(item, types):
+            return item and isinstance(item, types)
+
+        field_groups = self.mobile_api_fields
+        errors = set()
+
+        scalar_udfs = {udef.full_name: udef for udef in udf_defs(self)
+                       if not udef.iscollection}
+        collection_udfs = {udef.full_name: udef for udef in udf_defs(self)
+                           if udef.iscollection}
+
+        if not _truthy_of_type(field_groups, (list, tuple)):
+            raise ValidationError(
+                {'mobile_api_fields': [API_FIELD_ERRORS['no_field_groups']]})
+
+        for group in field_groups:
+            if not _truthy_of_type(group.get('header'), basestring):
+                errors.add(API_FIELD_ERRORS['group_has_no_header'])
+
+            if ((not _truthy_of_type(group.get('collection_udf_keys'), list)
+                 and not _truthy_of_type(group.get('field_keys'), list))):
+                errors.add(API_FIELD_ERRORS['group_has_no_keys'])
+
+            elif 'collection_udf_keys' in group and 'field_keys' in group:
+                errors.add(API_FIELD_ERRORS['group_has_both_keys'])
+
+            if 'collection_udf_keys' in group:
+                sort_key = group.get('sort_key')
+                if not sort_key:
+                    errors.add(API_FIELD_ERRORS['group_has_no_sort_key'])
+
+                for key in group['collection_udf_keys']:
+                    udef = collection_udfs.get(key)
+                    if udef is None:
+                        errors.add(API_FIELD_ERRORS['group_has_missing_cudf'])
+                    elif sort_key not in udef.datatype_by_field:
+                        errors.add(
+                            API_FIELD_ERRORS['group_has_invalid_sort_key'])
+
+        scalar_fields = [key for group in field_groups
+                         for key in group.get('field_keys', [])]
+        collection_fields = [key for group in field_groups
+                             for key in group.get('collection_udf_keys', [])]
+
+        all_fields = scalar_fields + collection_fields
+
+        if len(all_fields) != len(set(all_fields)):
+            errors.add(API_FIELD_ERRORS['duplicate_fields'])
+
+        for field in scalar_fields:
+            if not re.match(r'(?:plot|tree)[.].*', field):
+                errors.add(
+                    API_FIELD_ERRORS['invalid_field'] % {'field': field})
+                continue
+
+            model_name, name = field.split('.', 1)  # maxsplit of 1
+            Model = Plot if model_name == 'plot' else Tree
+            standard_fields = Model._meta.get_all_field_names()
+
+            if ((name not in standard_fields and field not in scalar_udfs)):
+                errors.add(API_FIELD_ERRORS['missing_field'])
+
+        if errors:
+            raise ValidationError({'mobile_api_fields': errors})
 
     def save(self, *args, **kwargs):
         self.full_clean()
