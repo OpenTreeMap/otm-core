@@ -606,6 +606,10 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
                     % {'model': self.display_name}]
             })
 
+    def delete_with_user(self, user, *args, **kwargs):
+        self.instance.update_geo_rev()
+        super(MapFeature, self).delete_with_user(user, *args, **kwargs)
+
     def photos(self):
         return self.mapfeaturephoto_set.order_by('-created_at')
 

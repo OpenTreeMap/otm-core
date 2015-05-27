@@ -15,7 +15,7 @@ from django_tinsel.exceptions import HttpBadRequestException
 from treemap.lib.map_feature import context_dict_for_plot
 from treemap.views.map_feature import update_map_feature
 
-from treemap.models import Plot, Instance
+from treemap.models import Plot
 
 
 def plots_closest_to_point(request, instance, lat, lng):
@@ -92,9 +92,7 @@ def update_or_create_plot(request, instance, plot_id=None):
 
     context_dict = context_dict_for_plot(request, plot)
 
-    # Fetch the latest instance version to get an updated geo rev hash
-    # so that clients will know if a tile refresh is required
-    instance = Instance.objects.get(pk=instance.pk)
-    context_dict["geoRevHash"] = instance.geo_rev_hash
+    # Add geo rev hash so clients will know if a tile refresh is required
+    context_dict["geoRevHash"] = plot.instance.geo_rev_hash
 
     return context_dict

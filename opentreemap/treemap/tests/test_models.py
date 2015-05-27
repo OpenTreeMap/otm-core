@@ -2,7 +2,6 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
-from contextlib import contextmanager
 
 from django.test.utils import override_settings
 from django.contrib.gis.geos import Point, MultiPolygon
@@ -15,7 +14,6 @@ from treemap.tests import (make_instance, make_commander_user,
                            make_user_with_default_role, make_user,
                            make_simple_boundary)
 from treemap.tests.base import OTMTestCase
-from treemap.views.map_feature import update_map_feature
 
 
 class HashModelTest(OTMTestCase):
@@ -71,55 +69,6 @@ class HashModelTest(OTMTestCase):
         h2 = plot.hash
 
         self.assertNotEqual(h1, h2, "Hashes should change")
-
-
-class GeoRevIncr(OTMTestCase):
-    def setUp(self):
-        self.instance = make_instance()
-        self.user = make_commander_user(self.instance)
-        self.plot = Plot(geom=Point(0, 0), instance=self.instance)
-        self.plot.save_with_user(self.user)
-
-    def _hash_and_rev(self):
-        i = Instance.objects.get(pk=self.instance.pk)
-        return [i.geo_rev_hash, i.geo_rev]
-
-    @contextmanager
-    def _assert_updates_geo_rev(self, update_expected=True):
-        rev1h, rev1 = self._hash_and_rev()
-
-        yield
-
-        rev2h, rev2 = self._hash_and_rev()
-        if update_expected:
-            self.assertNotEqual(rev1h, rev2h)
-            self.assertEqual(rev1 + 1, rev2)
-        else:
-            self.assertEqual(rev1h, rev2h)
-            self.assertEqual(rev1, rev2)
-
-    def test_create(self):
-        with self._assert_updates_geo_rev():
-            plot = Plot(instance=self.instance)
-            request_dict = {'plot.geom': {'x': 0, 'y': 0}}
-            update_map_feature(request_dict, self.user, plot)
-            plot.save_with_user(self.user)
-
-    def test_move(self):
-        with self._assert_updates_geo_rev():
-            request_dict = {'plot.geom': {'x': 5, 'y': 5}}
-            update_map_feature(request_dict, self.user, self.plot)
-            self.plot.save_with_user(self.user)
-
-    def test_update_without_move(self):
-        with self._assert_updates_geo_rev(False):
-            request_dict = {'plot.address_zip': '19119'}
-            update_map_feature(request_dict, self.user, self.plot)
-            self.plot.save_with_user(self.user)
-
-    def test_delete(self):
-        with self._assert_updates_geo_rev():
-            self.plot.delete_with_user(self.user)
 
 
 class SpeciesModelTests(OTMTestCase):

@@ -442,6 +442,10 @@ class Instance(models.Model):
 
         return names
 
+    def update_geo_rev(self):
+        self.geo_rev += 1
+        self.save()
+
     def itree_region_codes(self):
         from treemap.models import ITreeRegion
 

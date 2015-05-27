@@ -18,7 +18,7 @@ from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from opentreemap.util import dotted_split
 
 from treemap.units import Convertible
-from treemap.models import (Tree, Species, Instance, MapFeature,
+from treemap.models import (Tree, Species, MapFeature,
                             MapFeaturePhoto, Favorite)
 from treemap.util import (package_field_errors, to_object_name)
 
@@ -31,21 +31,17 @@ from treemap.lib.map_feature import (get_map_feature_or_404,
                                      context_dict_for_map_feature)
 
 
-def _request_to_update_map_feature(request, instance, feature):
+def _request_to_update_map_feature(request, feature):
     request_dict = json.loads(request.body)
     feature, tree = update_map_feature(request_dict, request.user, feature)
 
-    # We need to reload the instance here since a new georev
-    # may have been set
-    instance = Instance.objects.get(pk=instance.pk)
-
     return {
         'ok': True,
-        'geoRevHash': instance.geo_rev_hash,
+        'geoRevHash': feature.instance.geo_rev_hash,
         'featureId': feature.id,
         'treeId': tree.id if tree else None,
         'feature': context_dict_for_map_feature(request, feature),
-        'enabled': instance.feature_enabled('add_plot'),
+        'enabled': feature.instance.feature_enabled('add_plot'),
     }
 
 
@@ -115,12 +111,12 @@ def render_map_feature_add(request, instance, type):
 
 def add_map_feature(request, instance, type='Plot'):
     feature = MapFeature.create(type, instance)
-    return _request_to_update_map_feature(request, instance, feature)
+    return _request_to_update_map_feature(request, feature)
 
 
 def update_map_feature_detail(request, instance, feature_id, type='Plot'):
     feature = get_map_feature_or_404(feature_id, instance, type)
-    return _request_to_update_map_feature(request, instance, feature)
+    return _request_to_update_map_feature(request, feature)
 
 
 def delete_map_feature(request, instance, feature_id, type='Plot'):
@@ -196,6 +192,8 @@ def update_map_feature(request_dict, user, feature):
         except ValidationError as e:
             return package_field_errors(thing._model_name, e)
 
+    old_location = feature.geom
+
     tree = None
 
     for (identifier, value) in request_dict.iteritems():
@@ -251,8 +249,8 @@ def update_map_feature(request_dict, user, feature):
             errors['mapFeature.geom'] = errors[feature.geom_field_name]
         raise ValidationError(errors)
 
-    # Refresh feature.instance in case geo_rev_hash was updated
-    feature.instance = Instance.objects.get(id=feature.instance.id)
+    if old_location is None or not feature.geom.equals_exact(old_location):
+        feature.instance.update_geo_rev()
 
     return feature, tree
 
