@@ -25,6 +25,7 @@ from api.test_utils import setupTreemapEnv, mkPlot
 from treemap.json_field import set_attr_on_json_field
 from treemap.models import (Species, Plot, Tree, ITreeCodeOverride,
                             ITreeRegion, User)
+from treemap.instance import Instance
 from treemap.tests import (make_admin_user, make_instance, login,
                            ecoservice_not_running)
 from treemap.udf import UserDefinedFieldDefinition
@@ -1005,6 +1006,22 @@ class TreeIntegrationTests(IntegrationTests):
         # FP math is annoying, some systems the following is 271, others 272
         self.assertIn(int(p2_geom.y*10), [271, 272])
         self.assertEqual(plot2.current_tree().diameter, 14)
+
+    def test_geo_rev_updated(self):
+        csv = """
+        | point x | point y | diameter |
+        | 34.2    | 29.2    | 12       |
+        | 19.2    | 27.2    | 14       |
+        | 13.2    | 77.2    | 16       |
+        """
+        rev1 = self.instance.geo_rev
+
+        self.run_through_commit_views(csv)
+
+        self.instance = Instance.objects.get(pk=self.instance.pk)
+        rev2 = self.instance.geo_rev
+
+        self.assertEqual(rev1 + 1, rev2)
 
     def test_bad_structure(self):
         # Point Y -> PointY, expecting two errors

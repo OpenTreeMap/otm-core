@@ -134,8 +134,13 @@ def _finalize_validation(import_type, import_event_id):
 @task()
 def commit_import_event(import_type, import_event_id):
     ie = _get_import_event(import_type, import_event_id)
-    for i in xrange(0, ie.row_count, BLOCK_SIZE):
-        _commit_rows.delay(import_type, import_event_id, i)
+
+    commit_tasks = [_commit_rows.s(import_type, import_event_id, i)
+                    for i in xrange(0, ie.row_count, BLOCK_SIZE)]
+
+    finalize_task = _finalize_commit.si(import_type, import_event_id)
+
+    chord(commit_tasks, finalize_task).delay()
 
 
 @task()
@@ -146,9 +151,16 @@ def _commit_rows(import_type, import_event_id, i):
     for row in ie.rows()[i:(i + BLOCK_SIZE)]:
         row.commit_row()
 
-    if _get_waiting_row_count(ie) == 0:
-        ie.status = GenericImportEvent.FINISHED_CREATING
-        ie.save()
+
+@task()
+def _finalize_commit(import_type, import_event_id):
+    ie = _get_import_event(import_type, import_event_id)
+
+    ie.status = GenericImportEvent.FINISHED_CREATING
+    ie.save()
+
+    if import_type == TreeImportEvent.import_type:
+        ie.instance.update_geo_rev()
 
 
 def _get_import_event(import_type, import_event_id):
