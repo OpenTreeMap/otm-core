@@ -281,7 +281,7 @@ def _parse_within_radius_value(predicate_value, field=None):
 
 def _parse_in_boundary(boundary_id, field=None):
     boundary = Boundary.objects.get(pk=boundary_id)
-    return {'__contained': boundary.geom}
+    return {'__within': boundary.geom}
 
 
 def _parse_isnull_hstore(value, field):
