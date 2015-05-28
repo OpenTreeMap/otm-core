@@ -7,6 +7,7 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import RegexValidator
 from django.conf import settings
+from django.db.models import F
 from django.utils.translation import ugettext_lazy as trans
 
 import hashlib
@@ -443,8 +444,13 @@ class Instance(models.Model):
         return names
 
     def update_geo_rev(self):
-        self.geo_rev += 1
-        self.save()
+        qs = Instance.objects.filter(pk=self.id)
+
+        # Use SQL increment in case self.geo_rev is stale
+        qs.update(geo_rev=F('geo_rev') + 1)
+
+        # Fetch updated value so callers will have it
+        self.geo_rev = qs[0].geo_rev
 
     def itree_region_codes(self):
         from treemap.models import ITreeRegion
