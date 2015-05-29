@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import csv
 import json
 
 from celery import task, chord
@@ -16,7 +15,8 @@ from importer.models.base import GenericImportEvent, GenericImportRow
 from importer.models.species import SpeciesImportEvent, SpeciesImportRow
 from importer.models.trees import TreeImportEvent, TreeImportRow
 from importer import errors, fields
-from importer.util import clean_row_data, clean_field_name
+from importer.util import (clean_row_data, clean_field_name,
+                           utf8_file_to_csv_dictreader)
 
 BLOCK_SIZE = 250
 
@@ -24,7 +24,7 @@ BLOCK_SIZE = 250
 def _create_rows_for_event(ie, csv_file):
     # Don't use a transaction for this possibly long-running operation
     # so we can show progress. Caller does manual cleanup if necessary.
-    reader = csv.DictReader(csv_file)
+    reader = utf8_file_to_csv_dictreader(csv_file)
 
     field_names = reader.fieldnames
     ie.field_order = json.dumps(field_names)
