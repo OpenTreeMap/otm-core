@@ -350,19 +350,25 @@ def _add_share_context(context, request, photos):
         photo_url = settings.STATIC_URL + "img/otmLogo126.png"
     photo_url = request.build_absolute_uri(photo_url)
 
-    title = _("%s on %s") % (context['title'], request.instance.name)
+    title = _("%(feature)s on %(treemap)s") % {
+        'feature': context['title'],
+        'treemap': request.instance.name
+    }
 
     if context.get('benefits_total_currency', 0) > 0:
-        description = _("This %s saves %s%s per year.") % (
-            context['title'],
-            context['currency_symbol'],
-            number_format(context['benefits_total_currency'], decimal_pos=0)
-        )
+        description = \
+            _("This %(feature)s saves %(currency)s%(amount)s per year.") \
+            % {
+                'feature': context['title'],
+                'currency': context['currency_symbol'],
+                'amount': number_format(context['benefits_total_currency'],
+                                        decimal_pos=0)
+            }
     else:
-        description = _("This %s is mapped on %s.") % (
-            context['title'],
-            request.instance.name,
-        )
+        description = _("This %(feature)s is mapped on %(treemap)s") % {
+            'feature': context['title'],
+            'treemap': request.instance.name
+        }
 
     context['share'] = {
         'url': request.build_absolute_uri(),
