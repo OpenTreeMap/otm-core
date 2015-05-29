@@ -188,7 +188,7 @@ class FilterParserTests(OTMTestCase):
 
         inparams = search._parse_dict_value({'IN_BOUNDARY': b.pk})
         self.assertEqual(inparams,
-                         {'__contained': b.geom})
+                         {'__within': b.geom})
 
     def test_constraints_in(self):
         inparams = search._parse_dict_value({'IN': [1, 2, 3]})

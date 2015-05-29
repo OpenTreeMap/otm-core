@@ -70,7 +70,7 @@ def make_simple_polygon(n=1):
 
     p1 will be closer to the origin.
     """
-    return Polygon(((n, n), (n, n + 1), (n + 1, n + 1), (n, n)))
+    return Polygon(((n, n), (n, n + 1), (n + 1, n + 1), (n + 1, n), (n, n)))
 
 
 def _set_permissions(instance, role, permissions):
