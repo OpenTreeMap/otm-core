@@ -108,6 +108,7 @@ function init(config, mapManager, triggerSearchBus) {
             activateBrowseTreesMode(true);
         }
     });
+    form.saveOkStream.onValue(triggerSearchBus.push);
 
     plotMarker.init(config, mapManager.map);
 
