@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import RegexValidator
 from django.conf import settings
 from django.db.models import F
-from django.utils.translation import ugettext_lazy as trans
+from django.utils.translation import ugettext_lazy as _
 
 import hashlib
 import json
@@ -45,12 +45,12 @@ DEFAULT_MOBILE_SEARCH_FIELDS = {
 }
 
 DEFAULT_MOBILE_API_FIELDS = [
-    {'header': trans('Tree Information'),
+    {'header': _('Tree Information'),
      'field_keys': ['tree.species', 'tree.diameter',
                     'tree.height', 'tree.date_planted']},
-    {'header': trans('Planting Site Information'),
+    {'header': _('Planting Site Information'),
      'field_keys': ['plot.width', 'plot.length']},
-    {'header': trans('Stewardship'),
+    {'header': _('Stewardship'),
      'collection_udf_keys': ['plot.udf:Stewardship', 'tree.udf:Stewardship'],
      'sort_key': 'Date'}
 ]
@@ -68,36 +68,36 @@ DEFAULT_PLOT_STEWARDSHIP_CHOICES = [
     'Filled with Herbaceous Plantings']
 
 API_FIELD_ERRORS = {
-    'no_field_groups': trans('Must be a non-empty list'),
+    'no_field_groups': _('Must be a non-empty list'),
 
-    'group_has_no_header': trans(
+    'group_has_no_header': _(
         'Every mobile field group must have a non-empty header'),
 
-    'group_has_no_keys': trans(
+    'group_has_no_keys': _(
         'All mobile field groups must have either a "field_keys" or '
         '"collection_udf_keys" containing a non-empty list'),
 
-    'group_has_both_keys': trans(
+    'group_has_both_keys': _(
         'Mobile field groups cannot contain both "field_keys" and '
         '"collection_udf_keys" properties'),
 
-    'group_has_no_sort_key': trans(
+    'group_has_no_sort_key': _(
         'Collection field groups must have a non-empty "sort_key" property '
         'defined'),
 
-    'group_has_missing_cudf': trans(
+    'group_has_missing_cudf': _(
         'Collection field groups can only contain existing custom collection '
         'fields'),
 
-    'group_has_invalid_sort_key': trans(
+    'group_has_invalid_sort_key': _(
         'The "sort_key" property of a collection field group must be the name '
         'of a field on present on every collection field in the group'),
 
-    'duplicate_fields': trans('Fields cannot be specified more than once'),
+    'duplicate_fields': _('Fields cannot be specified more than once'),
 
-    'invalid_field': trans('The specified field "%(field)s" is invalid'),
+    'invalid_field': _('The specified field "%(field)s" is invalid'),
 
-    'missing_field': trans(
+    'missing_field': _(
         'Normal field groups may only contain existing fields. If you specify '
         'a custom field, it cannot be a collection field'),
 }
@@ -106,8 +106,8 @@ API_FIELD_ERRORS = {
 def reserved_name_validator(name):
     if name.lower() in [
             r.lower() for r in settings.RESERVED_INSTANCE_URL_NAMES]:
-        raise ValidationError(trans('%(instancename)s is a reserved name and '
-                                    'cannot be used') % {'instancename': name})
+        raise ValidationError(_('%(instancename)s is a reserved name and '
+                                'cannot be used') % {'instancename': name})
 
 
 def create_stewardship_udfs(instance):
@@ -172,9 +172,9 @@ class Instance(models.Model):
             reserved_name_validator,
             RegexValidator(
                 r'^%s$' % URL_NAME_PATTERN,
-                trans('Must start with a letter and may only contain '
-                      'letters, numbers, or dashes ("-")'),
-                trans('Invalid URL name'))
+                _('Must start with a letter and may only contain '
+                  'letters, numbers, or dashes ("-")'),
+                _('Invalid URL name'))
         ])
 
     """

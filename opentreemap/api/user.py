@@ -10,7 +10,7 @@ from io import BytesIO
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 
 from registration.models import RegistrationProfile
 
@@ -65,7 +65,7 @@ def update_user(request, user_id):
     for field in ALL_FIELDS:
         if field in data:
             if field in REQ_FIELDS and not field:
-                errors[field] = [trans('This field cannot be empty')]
+                errors[field] = [_('This field cannot be empty')]
             else:
                 if field == 'password':
                     user.set_password(data[field])
@@ -86,11 +86,11 @@ def create_user(request):
     errors = {}
     for field in REQ_FIELDS:
         if field not in data:
-            errors[field] = [trans('This field is required')]
+            errors[field] = [_('This field is required')]
 
     for inputfield in data:
         if inputfield not in ALL_FIELDS:
-            errors[inputfield] = [trans('Unrecognized field')]
+            errors[inputfield] = [_('Unrecognized field')]
 
     if errors:
         raise ValidationError(errors)
@@ -99,11 +99,11 @@ def create_user(request):
     dup_email = User.objects.filter(email=data['email'])
 
     if dup_username.exists():
-        return _conflict_response(trans('Username is already in use'))
+        return _conflict_response(_('Username is already in use'))
     if dup_email.exists():
         # BE WARNED - The iOS application relies on this error message string.
         # If you change this you WILL NEED TO ALTER CODE THERE AS WELL.
-        return _conflict_response(trans('Email is already in use'))
+        return _conflict_response(_('Email is already in use'))
 
     user = User(**data)
 

@@ -2,7 +2,7 @@ import json
 
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 
 from treemap.audit import Role, FieldPermission
 from treemap.udf import (UserDefinedFieldDefinition)
@@ -48,12 +48,12 @@ def udf_create(params, instance):
     if udfs.exists():
         raise ValidationError(
             {'udf.name':
-             [trans("A user defined field with name "
-                    "'%(udf_name)s' already exists") % {'udf_name': name}]})
+             [_("A user defined field with name "
+                "'%(udf_name)s' already exists") % {'udf_name': name}]})
 
     if model_type not in ['Tree', 'Plot']:
         raise ValidationError(
-            {'udf.model': [trans('Invalid model')]})
+            {'udf.model': [_('Invalid model')]})
 
     udf = UserDefinedFieldDefinition(
         name=name,

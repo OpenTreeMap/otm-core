@@ -6,7 +6,7 @@ from __future__ import division
 import math
 
 from django.http import HttpResponse, Http404
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 from django.db import transaction
 
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
@@ -117,9 +117,9 @@ def approve_or_reject_photo(
     approved = action == 'approve'
 
     if approved:
-        msg = trans('Approved')
+        msg = _('Approved')
     else:
-        msg = trans('Rejected')
+        msg = _('Rejected')
 
     resp = HttpResponse(msg)
 

@@ -654,7 +654,7 @@ class PlotUpdateTest(OTMTestCase):
         update = {'plot.geom': {'x': 4, 'y': 9},
                   'plot.readonly': False}
 
-        created_plot, _ = update_map_feature(update, self.user, plot)
+        created_plot, __ = update_map_feature(update, self.user, plot)
 
         created_plot_update = Plot.objects.get(pk=created_plot.pk)
         self.assertIsNotNone(created_plot_update, created_plot_update.pk)
@@ -671,7 +671,7 @@ class PlotUpdateTest(OTMTestCase):
                   'plot.readonly': False,
                   'tree.readonly': False}
 
-        created_plot, _ = update_map_feature(update, self.user, plot)
+        created_plot, __ = update_map_feature(update, self.user, plot)
 
         created_plot_update = Plot.objects.get(pk=created_plot.pk)
         self.assertIsNotNone(created_plot_update, created_plot_update.pk)
@@ -750,7 +750,7 @@ class PlotUpdateTest(OTMTestCase):
                   'plot.width': 25,
                   'plot.udf:Test choice': 'b'}
 
-        rslt, _ = update_map_feature(update, self.user, self.plot)
+        rslt, __ = update_map_feature(update, self.user, self.plot)
 
         self.assertEqual(rslt.pk, self.plot.pk)
 
@@ -882,7 +882,7 @@ class PlotViewTest(PlotViewTestCase):
 
         audit_groups = details['recent_activity']
 
-        _, _, audit_list = audit_groups[0]
+        __, _, audit_list = audit_groups[0]
         audit = audit_list[0]
 
         self.assertEqual(audit.model, 'Plot')
@@ -903,7 +903,7 @@ class PlotViewTest(PlotViewTestCase):
         self.assertIn('recent_activity', details)
 
         audit_groups = details['recent_activity']
-        _, _, audit_list = audit_groups[0]
+        __, _, audit_list = audit_groups[0]
         readonly_audit = audit_list[0]
         insert_audit = audit_list[1]
 
@@ -957,7 +957,7 @@ class PlotViewTest(PlotViewTestCase):
 
         audit_groups = details['recent_activity']
 
-        _, _, audit_list = audit_groups[0]
+        __, _, audit_list = audit_groups[0]
         audit = audit_list[0]
 
         self.assertEqual(audit.model, 'Plot')

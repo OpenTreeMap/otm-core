@@ -6,7 +6,7 @@ from __future__ import division
 import json
 from functools import wraps
 
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 from django.core.exceptions import PermissionDenied
 from django.http import (HttpResponse, HttpResponseBadRequest,
                          HttpResponseRedirect)
@@ -145,7 +145,7 @@ def return_400_if_validation_errors(req):
         except ValidationError as e:
             if hasattr(e, 'message_dict'):
                 message_dict['fieldErrors'] = e.message_dict
-                message_dict['globalErrors'] = [trans(
+                message_dict['globalErrors'] = [_(
                     'One or more of the specified values are invalid.')]
             else:
                 message_dict['globalErrors'] = e.messages

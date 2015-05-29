@@ -7,7 +7,7 @@ from functools import partial
 from numbers import Number
 
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as trans
+from django.utils.translation import ugettext_lazy as _
 from django.utils.formats import number_format
 
 from treemap.json_field import get_attr_from_json_field
@@ -51,21 +51,21 @@ class Convertible(object):
 
 
 _unit_names = {
-    "in": trans("inches"),
-    "ft": trans("feet"),
-    "cm": trans("centimeters"),
-    "m": trans("meters"),
-    "lbs/year": trans("pounds per year"),
-    "kg/year": trans("kilograms per year"),
-    "lbs": trans("pounds"),
-    "kg": trans("kilograms"),
-    "kwh/year": trans("kilowatt-hours per year"),
-    "gal": trans("gallons"),
-    "gal/year": trans("gallons per year"),
-    "L": trans("liters"),
-    "L/year": trans("liters per year"),
-    "sq_ft": trans("feet²"),
-    "sq_m": trans("meters²")
+    "in": _("inches"),
+    "ft": _("feet"),
+    "cm": _("centimeters"),
+    "m": _("meters"),
+    "lbs/year": _("pounds per year"),
+    "kg/year": _("kilograms per year"),
+    "lbs": _("pounds"),
+    "kg": _("kilograms"),
+    "kwh/year": _("kilowatt-hours per year"),
+    "gal": _("gallons"),
+    "gal/year": _("gallons per year"),
+    "L": _("liters"),
+    "L/year": _("liters per year"),
+    "sq_ft": _("feet²"),
+    "sq_m": _("meters²")
 }
 
 _unit_conversions = {
@@ -138,13 +138,13 @@ def get_digits_if_formattable(instance, category_name, value_name):
 
 
 def get_units(instance, category_name, value_name):
-    _, units = get_value_display_attr(
+    __, units = get_value_display_attr(
         instance, category_name, value_name, 'units')
     return units
 
 
 def get_digits(instance, category_name, value_name):
-    _, digits = get_value_display_attr(
+    __, digits = get_value_display_attr(
         instance, category_name, value_name, 'digits')
     return digits
 

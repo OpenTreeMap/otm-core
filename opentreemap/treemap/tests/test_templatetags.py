@@ -33,7 +33,7 @@ class UserCanReadTagTest(OTMTestCase):
         self.role = Role(name='role', instance=self.instance, rep_thresh=0)
         self.role.save()
 
-        self.user_perm, _ = FieldPermission.objects.get_or_create(
+        self.user_perm, __ = FieldPermission.objects.get_or_create(
             model_name='Plot', field_name='width',
             permission_level=FieldPermission.NONE,
             role=self.role, instance=self.instance)
@@ -47,7 +47,7 @@ class UserCanReadTagTest(OTMTestCase):
                          rep_thresh=0)
         inst_role.save()
 
-        self.inst_perm, _ = FieldPermission.objects.get_or_create(
+        self.inst_perm, __ = FieldPermission.objects.get_or_create(
             model_name='Plot', field_name='width',
             permission_level=FieldPermission.NONE,
             role=inst_role, instance=self.instance)
@@ -118,7 +118,7 @@ class UserCanReadTagTest(OTMTestCase):
             iscollection=False,
             name='Test choice')
 
-        udf_perm, _ = FieldPermission.objects.get_or_create(
+        udf_perm, __ = FieldPermission.objects.get_or_create(
             model_name='Plot', field_name='udf:Test choice',
             permission_level=FieldPermission.NONE,
             role=self.role, instance=self.instance)
@@ -324,12 +324,12 @@ class InlineFieldTagTests(OTMTestCase):
             iscollection=False,
             name='Test choice')
 
-        udf_perm, _ = FieldPermission.objects.get_or_create(
+        udf_perm, __ = FieldPermission.objects.get_or_create(
             model_name='Plot', field_name='udf:Test choice',
             permission_level=FieldPermission.READ_ONLY,
             role=self.role, instance=self.instance)
         udf_perm.save()
-        udf_write_perm, _ = FieldPermission.objects.get_or_create(
+        udf_write_perm, __ = FieldPermission.objects.get_or_create(
             model_name='Plot', field_name='udf:Test choice',
             permission_level=FieldPermission.WRITE_DIRECTLY,
             role=self.udf_role, instance=self.instance)

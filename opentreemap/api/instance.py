@@ -141,7 +141,7 @@ def instance_info(request, instance):
             else:
                 model_inst = safe_get_model_class(fp.model_name)(
                     instance=instance)
-                data_type, _, choices = field_type_label_choices(
+                data_type, __, choices = field_type_label_choices(
                     model_inst, fp.field_name, fp.display_field_name)
 
             digits = get_digits_if_formattable(

@@ -8,7 +8,7 @@ import collections
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
@@ -25,28 +25,28 @@ from treemap.lib.map_feature import title_for_map_feature
 
 USER_PROFILE_FIELDS = collections.OrderedDict([
     ('first_name',
-     {'label': trans('First Name'),
+     {'label': _('First Name'),
       'identifier': 'user.first_name',
       'visibility': 'public'}),
     ('last_name',
-     {'label': trans('Last Name'),
+     {'label': _('Last Name'),
       'identifier': 'user.last_name',
       'visibility': 'public'}),
     ('organization',
-     {'label': trans('Organization'),
+     {'label': _('Organization'),
       'identifier': 'user.organization',
       'visibility': 'public'}),
     ('make_info_public',
-     {'label': trans('Make Info Visible'),
+     {'label': _('Make Info Visible'),
       'identifier': 'user.make_info_public',
       'visibility': 'private',
       'template': "treemap/field/make_info_public_div.html"}),
     ('email',
-     {'label': trans('Email'),
+     {'label': _('Email'),
       'identifier': 'user.email',
       'visibility': 'private'}),
     ('allow_email_contact',
-     {'label': trans('Email Updates'),
+     {'label': _('Email Updates'),
       'identifier': 'user.allow_email_contact',
       'visibility': 'private',
       'template': "treemap/field/email_subscription_div.html"})
@@ -124,7 +124,7 @@ def forgot_username(request):
     user_email = request.REQUEST['email']
     if not user_email:
         raise ValidationError({
-            'user.email': [trans('Email field is required')]
+            'user.email': [_('Email field is required')]
         })
 
     users = User.objects.filter(email=user_email)
@@ -136,7 +136,7 @@ def forgot_username(request):
         password_reset_url = request.build_absolute_uri(
             reverse('auth_password_reset'))
 
-        subject = trans('Account Recovery')
+        subject = _('Account Recovery')
         body = render_to_string('treemap/partials/forgot_username_email.txt',
                                 {'user': user,
                                  'password_url': password_reset_url})

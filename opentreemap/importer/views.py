@@ -14,7 +14,7 @@ from django.template import RequestContext
 from django.core.paginator import Paginator, Page
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 
 from treemap.models import Species, Tree, User, MapFeature
 from treemap.units import (get_conversion_factor, get_value_display_attr)
@@ -384,8 +384,8 @@ def _get_row_data(row, field_names, merge_required, show_warnings):
 def _get_help_text(row_error):
     help_text = None
     if errors.is_itree_error_code(row_error['code']):
-        help_text = trans('Please consult the OpenTreeMap Species Import '
-                          'Guide for information on resolving this error.')
+        help_text = _('Please consult the OpenTreeMap Species Import '
+                      'Guide for information on resolving this error.')
     return help_text
 
 
@@ -415,14 +415,14 @@ def _get_merge_data(row, field_names, row_errors):
 
     columns_for_merge = [
         {
-            'title': trans('Import Value'),
-            'action_title': trans('Create New'),
+            'title': _('Import Value'),
+            'action_title': _('Create New'),
             'species_id': 'new' if create_species_allowed else ''
         }
     ] + [
         {
-            'title': trans('Match') + number_suffix(i),
-            'action_title': trans('Merge with Match') + number_suffix(i),
+            'title': _('Match') + number_suffix(i),
+            'action_title': _('Merge with Match') + number_suffix(i),
             'species_id': diffs['id'][0]
         }
         for i, diffs in enumerate(species_diffs)
@@ -478,31 +478,31 @@ def _get_status_panel_specs(ie):
     verified_panel = {
         'name': 'verified',
         'status': GenericImportRow.VERIFIED,
-        'title': trans('Ready to Add')
+        'title': _('Ready to Add')
     }
     error_panel = {
         'name': 'error',
         'status': GenericImportRow.ERROR,
-        'title': trans('Errors')
+        'title': _('Errors')
     }
     success_panel = {
         'name': 'success',
         'status': GenericImportRow.SUCCESS,
-        'title': trans('Successfully Added')
+        'title': _('Successfully Added')
     }
 
     if isinstance(ie, TreeImportEvent):
         warning_panel = {
             'name': 'warning',
             'status': TreeImportRow.WARNING,
-            'title': trans('Warnings')
+            'title': _('Warnings')
         }
         panels = [verified_panel, error_panel, warning_panel, success_panel]
     else:
         merge_required_panel = {
             'name': 'merge_required',
             'status': None,
-            'title': trans('Merge Required')
+            'title': _('Merge Required')
         }
         panels = [
             verified_panel, merge_required_panel, error_panel, success_panel]
@@ -567,7 +567,7 @@ def commit(request, instance, import_type, import_event_id):
     ie = _get_import_event(instance, import_type, import_event_id)
 
     if _get_tree_limit_context(ie).get('tree_limit_exceeded'):
-        raise Exception(trans("tree limit exceeded"))
+        raise Exception(_("tree limit exceeded"))
 
     ie.status = GenericImportEvent.CREATING
 

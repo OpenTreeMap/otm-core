@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.utils.translation import ugettext_lazy as trans
+from django.utils.translation import ugettext_lazy as _
 from django.contrib.gis.geos.point import Point
 from django.db import connection
 
@@ -410,15 +410,15 @@ def within_itree_regions(request):
 
 benefit_labels = {
     # Translators: 'Energy conserved' is the name of an eco benefit
-    BenefitCategory.ENERGY:     trans('Energy conserved'),
+    BenefitCategory.ENERGY:     _('Energy conserved'),
     # Translators: 'Stormwater filtered' is the name of an eco benefit
-    BenefitCategory.STORMWATER: trans('Stormwater filtered'),
+    BenefitCategory.STORMWATER: _('Stormwater filtered'),
     # Translators: 'Carbon dioxide removed' is the name of an eco benefit
-    BenefitCategory.CO2:        trans('Carbon dioxide removed'),
+    BenefitCategory.CO2:        _('Carbon dioxide removed'),
     # Translators: 'Carbon dioxide stored' is the name of an eco benefit
-    BenefitCategory.CO2STORAGE: trans('Carbon dioxide stored to date'),
+    BenefitCategory.CO2STORAGE: _('Carbon dioxide stored to date'),
     # Translators: 'Air quality improved' is the name of an eco benefit
-    BenefitCategory.AIRQUALITY: trans('Air quality improved')
+    BenefitCategory.AIRQUALITY: _('Air quality improved')
 }
 
 

@@ -31,7 +31,7 @@ def format_benefits(instance, benefits, basis):
             unit_key = benefit.get('unit-name')
 
             if unit_key:
-                _, value = get_display_value(
+                __, value = get_display_value(
                     instance, unit_key, key, benefit['value'])
 
                 benefit['name'] = key

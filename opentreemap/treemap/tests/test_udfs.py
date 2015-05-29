@@ -381,7 +381,7 @@ class UDFAuditTest(OTMTestCase):
         self.assertEqual(len(pending), 0)
 
         role = self.commander_user.get_role(self.instance)
-        fp, _ = FieldPermission.objects.get_or_create(
+        fp, __ = FieldPermission.objects.get_or_create(
             model_name='Plot', field_name='udf:Test unauth',
             permission_level=FieldPermission.WRITE_WITH_AUDIT,
             role=role, instance=self.instance)
@@ -418,7 +418,7 @@ class UDFAuditTest(OTMTestCase):
         self.assertEqual(len(pending), 0)
 
         role = self.commander_user.get_role(self.instance)
-        fp, _ = FieldPermission.objects.get_or_create(
+        fp, __ = FieldPermission.objects.get_or_create(
             model_name='Plot', field_name='udf:Test collection',
             permission_level=FieldPermission.WRITE_WITH_AUDIT,
             role=role, instance=self.instance)
@@ -434,7 +434,7 @@ class UDFAuditTest(OTMTestCase):
         self.assertEqual(len(pending), 0)
 
         role = self.commander_user.get_role(self.instance)
-        fp, _ = FieldPermission.objects.get_or_create(
+        fp, __ = FieldPermission.objects.get_or_create(
             model_name='Plot', field_name='udf:Test collection',
             permission_level=FieldPermission.WRITE_WITH_AUDIT,
             role=role, instance=self.instance)

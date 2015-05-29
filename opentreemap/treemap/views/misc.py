@@ -7,7 +7,7 @@ import string
 import re
 import sass
 
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -69,7 +69,7 @@ def get_map_view_context(request, instance):
                         for type in instance.map_feature_types]
     return {
         'fields_for_add_tree': [
-            (trans('Tree Height'), 'Tree.height')
+            (_('Tree Height'), 'Tree.height')
         ],
         'resource_classes': resource_classes[1:]
     }

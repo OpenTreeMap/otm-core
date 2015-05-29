@@ -6,7 +6,7 @@ from __future__ import division
 import json
 
 from django.http import HttpResponse
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
 
@@ -35,9 +35,9 @@ def _no_results_response(address, inregion=False):
     response.status_code = 404
 
     if inregion:
-        err = trans("No results found in the area for %(address)s")
+        err = _("No results found in the area for %(address)s")
     else:
-        err = trans("No results found for %(address)s")
+        err = _("No results found for %(address)s")
 
     content = {'error': err % {'address': address}}
 

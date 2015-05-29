@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.formats import number_format
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 from django.db.models import Q
 
 from treemap.audit import Audit
@@ -23,7 +23,7 @@ from treemap.util import leaf_subclasses
 
 
 def _photo_upload_share_text(feature, has_tree=False):
-    return trans("I added a photo of this %s!") % feature.display_name.lower()
+    return _("I added a photo of this %s!") % feature.display_name.lower()
 
 
 def _map_feature_audits(user, instance, feature, filters=None,
@@ -214,13 +214,13 @@ def context_dict_for_plot(request, plot, edit=False, tree_id=None):
 
     context['progress_messages'] = []
     if not tree:
-        context['progress_messages'].append(trans('Add a tree'))
+        context['progress_messages'].append(_('Add a tree'))
     if not has_tree_diameter:
-        context['progress_messages'].append(trans('Add the diameter'))
+        context['progress_messages'].append(_('Add the diameter'))
     if not has_tree_species_with_code:
-        context['progress_messages'].append(trans('Add the species'))
+        context['progress_messages'].append(_('Add the species'))
     if not has_photo:
-        context['progress_messages'].append(trans('Add a photo'))
+        context['progress_messages'].append(_('Add a photo'))
 
     url_kwargs = {'instance_url_name': instance.url_name,
                   'feature_id': plot.pk}
@@ -276,7 +276,7 @@ def context_dict_for_resource(request, resource):
 
     context['progress_messages'] = []
     if not has_photos:
-        context['progress_messages'].append(trans('Add a photo'))
+        context['progress_messages'].append(_('Add a photo'))
 
     audits = _map_feature_audits(request.user, request.instance, resource)
 
@@ -298,9 +298,9 @@ def title_for_map_feature(feature):
             if tree.species:
                 title = tree.species.common_name
             else:
-                title = trans("Missing Species")
+                title = _("Missing Species")
         else:
-            title = trans("Empty Planting Site")
+            title = _("Empty Planting Site")
     else:
         title = feature.display_name
 
@@ -350,16 +350,16 @@ def _add_share_context(context, request, photos):
         photo_url = settings.STATIC_URL + "img/otmLogo126.png"
     photo_url = request.build_absolute_uri(photo_url)
 
-    title = trans("%s on %s") % (context['title'], request.instance.name)
+    title = _("%s on %s") % (context['title'], request.instance.name)
 
     if context.get('benefits_total_currency', 0) > 0:
-        description = trans("This %s saves %s%s per year.") % (
+        description = _("This %s saves %s%s per year.") % (
             context['title'],
             context['currency_symbol'],
             number_format(context['benefits_total_currency'], decimal_pos=0)
         )
     else:
-        description = trans("This %s is mapped on %s.") % (
+        description = _("This %s is mapped on %s.") % (
             context['title'],
             request.instance.name,
         )
