@@ -40,6 +40,11 @@ from treemap.util import safe_get_model_class, to_object_name
 # '.' is fine for the ORM, but made the template system unhappy.
 _UDF_NAME_REGEX = re.compile(r'^[^_%.]+$')
 
+# Used for collection UDF search on the web
+# if we come to support more udfcs, we can add them here.
+UDFC_MODELS = ('Tree', 'Plot')
+UDFC_NAMES = ('Stewardship', 'Alerts')
+
 
 def safe_get_udf_model_class(model_string):
     """
