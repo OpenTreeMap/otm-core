@@ -105,4 +105,5 @@ class Command(InstanceDataCommand):
                 tree.save_with_user(user)
                 ct += 1
 
+        instance.update_geo_rev()
         self.stdout.write("Created %s trees and %s plots" % (ct, cp))

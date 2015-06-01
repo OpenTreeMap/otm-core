@@ -71,57 +71,6 @@ class HashModelTest(OTMTestCase):
         self.assertNotEqual(h1, h2, "Hashes should change")
 
 
-class GeoRevIncr(OTMTestCase):
-    def setUp(self):
-        self.p1 = Point(0, 0)
-        self.p2 = Point(5, 5)
-        self.instance = make_instance()
-        self.user = make_commander_user(self.instance)
-
-    def hash_and_rev(self):
-        i = Instance.objects.get(pk=self.instance.pk)
-        return [i.geo_rev_hash, i.geo_rev]
-
-    def test_changing_geometry_updates_counter(self):
-        rev1h, rev1 = self.hash_and_rev()
-
-        # Create
-        plot1 = Plot(geom=self.p1, instance=self.instance)
-
-        plot1.save_with_user(self.user)
-
-        rev2h, rev2 = self.hash_and_rev()
-
-        self.assertNotEqual(rev1h, rev2h)
-        self.assertEqual(rev1 + 1, rev2)
-
-        plot2 = Plot(geom=self.p2, instance=self.instance)
-
-        plot2.save_with_user(self.user)
-
-        rev3h, rev3 = self.hash_and_rev()
-
-        self.assertNotEqual(rev2h, rev3h)
-        self.assertEqual(rev2 + 1, rev3)
-
-        # Update
-        plot2.geom = self.p1
-        plot2.save_with_user(self.user)
-
-        rev4h, rev4 = self.hash_and_rev()
-
-        self.assertNotEqual(rev3h, rev4h)
-        self.assertEqual(rev3 + 1, rev4)
-
-        # Delete
-        plot2.delete_with_user(self.user)
-
-        rev5h, rev5 = self.hash_and_rev()
-
-        self.assertNotEqual(rev4h, rev5h)
-        self.assertEqual(rev4 + 1, rev5)
-
-
 class SpeciesModelTests(OTMTestCase):
     def test_scientific_name_genus(self):
         s = Species(genus='Ulmus')
