@@ -38,10 +38,10 @@ fab vagrant test
 
 OpenTreeMap uses functional views rather than class-based views and
 prefers nested calls rather than decorators, to simplify testing and
-composability. Read through [decorators.py](https://github.com/OpenTreeMap/OTM2/blob/master/opentreemap/treemap/decorators.py)
+composability. Read through [decorators.py](https://github.com/OpenTreeMap/otm-core/blob/master/opentreemap/treemap/decorators.py)
 file, and also the [django-tinsel project](https://github.com/azavea/django-tinsel) and it's `decorate` and `route` functions, which we use as the foundation of our composed view
 functions. For a good example of how these functions are used,
-reference [the treemap views module](https://github.com/OpenTreeMap/OTM2/blob/master/opentreemap/treemap/views/__init__.py)
+reference [the treemap views module](https://github.com/OpenTreeMap/otm-core/blob/master/opentreemap/treemap/views/__init__.py)
 
 ### Templates
 
@@ -70,7 +70,7 @@ fab vagrant static:dev_mode=True
 
 We use [Bacon.js](http://baconjs.github.io/) to manage events in the
 browser. Please reference the existing modules in the
-[src](https://github.com/OpenTreeMap/OTM2/tree/master/opentreemap/treemap/js/src)
+[src](https://github.com/OpenTreeMap/otm-core/tree/master/opentreemap/treemap/js/src)
 directory for examples of how we use stream processing rather than
 directly attaching callbacks to DOM events.
 
@@ -78,9 +78,9 @@ directly attaching callbacks to DOM events.
 
 We have built a [mocha](http://visionmedia.github.io/mocha/)-based
 unit test setup for our Javascript. The
-[html test harness](https://github.com/OpenTreeMap/OTM2/blob/master/opentreemap/treemap/js/test/test.html)
+[html test harness](https://github.com/OpenTreeMap/otm-core/blob/master/opentreemap/treemap/js/test/test.html)
 handles finding and executing tests from any of the modules in the
-[test directory](https://github.com/OpenTreeMap/OTM2/tree/master/opentreemap/treemap/js/test).
+[test directory](https://github.com/OpenTreeMap/otm-core/tree/master/opentreemap/treemap/js/test).
 Individual tests are just functions exported from a module in the test
 directory. You can open ``test.html`` to run the tests on demand, or
 use [testem](https://github.com/airportyh/testem) to run the test

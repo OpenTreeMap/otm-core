@@ -56,7 +56,7 @@ class AsyncCSVTestCase(LocalMediaTestCase):
 
         # run the test again without a user
         # catches original version of:
-        # https://github.com/OpenTreeMap/OTM2/issues/1384
+        # https://github.com/OpenTreeMap/otm-core/issues/1384
         # "initial_qs referenced before assignment"
         add_default_permissions(self.instance,
                                 [self.instance.default_role])
