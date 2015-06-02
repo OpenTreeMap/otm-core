@@ -67,11 +67,6 @@ DEFAULT_PLOT_STEWARDSHIP_CHOICES = [
     'Changed to Remove a Guard',
     'Filled with Herbaceous Plantings']
 
-# Used for collection UDF search on the web
-# if we come to support more udfcs, we can add them here.
-UDFC_MODELS = ['Tree', 'Plot']
-UDFC_NAMES = ['Stewardship', 'Alerts']
-
 API_FIELD_ERRORS = {
     'no_field_groups': trans('Must be a non-empty list'),
 
@@ -351,6 +346,7 @@ class Instance(models.Model):
         return fields
 
     def _get_udfc_search_fields(self):
+        from treemap.udf import UDFC_MODELS, UDFC_NAMES
         from treemap.util import to_object_name
 
         empty_udfc = {to_object_name(n_k):

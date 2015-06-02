@@ -17,12 +17,17 @@ from treemap.search import Filter
 from treemap.models import Species, Tree
 from treemap.util import safe_get_model_class
 from treemap.audit import model_hasattr, FieldPermission
+from treemap.udf import UserDefinedCollectionValue, UDFC_NAMES
+
+from treemap.lib.object_caches import udf_defs
 
 from djqscsv import write_csv, generate_filename
 from exporter.models import ExportJob
 
 from exporter.user import write_users
 from exporter.util import sanitize_unicode_record
+
+_UDFC_FIELDS = tuple(['udf:' + name for name in UDFC_NAMES])
 
 
 @contextmanager
@@ -62,7 +67,30 @@ def extra_select_and_values_for_model(
         field_name = perm.field_name
         prefixed_name = prefix + field_name
 
-        if field_name.startswith('udf:'):
+        if field_name in _UDFC_FIELDS:
+
+            field_definition_id = None
+            for udfd in udf_defs(instance, model):
+                if udfd.iscollection and udfd.name == field_name[4:]:
+                    field_definition_id = udfd.id
+
+            if field_definition_id is None:
+                continue
+
+            extra_select[prefixed_name] = (
+                """
+                WITH formatted_data AS (
+                    SELECT concat('(', data, ')') as fdata
+                    FROM %s
+                    WHERE field_definition_id = %s and model_id = %s.id
+                )
+
+                SELECT array_to_string(array_agg(fdata), ', ', '*')
+                FROM formatted_data
+                """
+                % (UserDefinedCollectionValue._meta.db_table,
+                   field_definition_id, table))
+        elif field_name.startswith('udf:'):
             name = field_name[4:]
             extra_select[prefixed_name] = "%s.udfs->'%s'" % (table, name)
         else:
