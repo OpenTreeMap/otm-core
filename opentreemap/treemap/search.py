@@ -405,7 +405,7 @@ _parse_udf_dict_value = partial(_parse_dict_value_for_mapping,
 
 def _parse_predicate_pair(key, value, mapping):
     model, search_key = _parse_predicate_key(key, mapping)
-    __, _, field = key.partition('.')
+    __, __, field = key.partition('.')
 
     if _is_udf(model) and type(value) == dict:
         preds = _parse_udf_dict_value(value, field)
@@ -421,7 +421,7 @@ def _parse_predicate_pair(key, value, mapping):
     # If the model being searched is a collection UDF, we do an in clause on a
     # subquery because we can't easily join to UserDefinedCollectionValue
     if _is_udf(model):
-        __, _, udf_def_pk = model.split(':')
+        __, __, udf_def_pk = model.split(':')
         subquery = UserDefinedCollectionValue.objects\
             .filter(**query)\
             .filter(field_definition=udf_def_pk)\

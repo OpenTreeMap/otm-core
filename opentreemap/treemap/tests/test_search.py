@@ -567,7 +567,7 @@ class SearchTests(OTMTestCase):
                 {'plot.udf:Test string': {'LIKE': 'baz'}}))
 
     def test_udf_direct_search(self):
-        __, _, p3 = self._setup_udfs()
+        __, __, p3 = self._setup_udfs()
 
         self.assertEqual(
             {p3},

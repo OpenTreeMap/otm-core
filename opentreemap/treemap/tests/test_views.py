@@ -882,7 +882,7 @@ class PlotViewTest(PlotViewTestCase):
 
         audit_groups = details['recent_activity']
 
-        __, _, audit_list = audit_groups[0]
+        __, __, audit_list = audit_groups[0]
         audit = audit_list[0]
 
         self.assertEqual(audit.model, 'Plot')
@@ -903,7 +903,7 @@ class PlotViewTest(PlotViewTestCase):
         self.assertIn('recent_activity', details)
 
         audit_groups = details['recent_activity']
-        __, _, audit_list = audit_groups[0]
+        __, __, audit_list = audit_groups[0]
         readonly_audit = audit_list[0]
         insert_audit = audit_list[1]
 
@@ -957,7 +957,7 @@ class PlotViewTest(PlotViewTestCase):
 
         audit_groups = details['recent_activity']
 
-        __, _, audit_list = audit_groups[0]
+        __, __, audit_list = audit_groups[0]
         audit = audit_list[0]
 
         self.assertEqual(audit.model, 'Plot')

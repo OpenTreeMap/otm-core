@@ -239,7 +239,7 @@ class BenefitCurrencyConversion(Dictable, models.Model):
 #
 # # dynamically modify User.email to be unique, instead of
 # # inheriting and overriding AbstractBaseUser and PermissionMixin
-# email_field, __, _, __ = User._meta.get_field_by_name('email')
+# email_field, __, __, __ = User._meta.get_field_by_name('email')
 # email_field._unique = True
 #
 # TODO: Fix this abstraction, and/or prune out parts of this class that
@@ -909,7 +909,7 @@ class MapFeaturePhoto(models.Model, PendingAuditable):
         if thing is None:
             return None
 
-        field, __, _, __ = MapFeaturePhoto._meta.get_field_by_name(field)
+        field, __, __, __ = MapFeaturePhoto._meta.get_field_by_name(field)
 
         saved_rep = field.pre_save(self, thing)
         return str(saved_rep)
