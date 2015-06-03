@@ -6,7 +6,9 @@ var $ = require('jquery'),
     U = require('treemap/utility'),
     BU = require('treemap/baconUtils'),
     makeLayerFilterable = require('treemap/makeLayerFilterable'),
-    urlState = require('treemap/urlState');
+    urlState = require('treemap/urlState'),
+
+    _ZOOM_OPTIONS = {maxZoom: 21};
 
 // Leaflet extensions
 require('utfgrid');
@@ -148,28 +150,26 @@ function getBasemapLayers(config) {
             'Hybrid': makeBingLayer('AerialWithLabels')
         };
     } else if (config.instance.basemap.type === 'tms') {
-        layers = [L.tileLayer(config.instance.basemap.data, { maxZoom: 20 })];
+        layers = [L.tileLayer(config.instance.basemap.data, _ZOOM_OPTIONS)];
     } else {
-        return {'Streets': new L.Google('ROADMAP', { maxZoom: 20 }),
-                'Hybrid': new L.Google('HYBRID', { maxZoom: 20 }),
-                'Satellite': new L.Google('SATELLITE', { maxZoom: 20 })};
+        return {'Streets': new L.Google('ROADMAP', _ZOOM_OPTIONS),
+                'Hybrid': new L.Google('HYBRID', _ZOOM_OPTIONS),
+                'Satellite': new L.Google('SATELLITE', _ZOOM_OPTIONS)};
     }
     return layers;
 }
 
 function createPlotTileLayer(config) {
     var url = getPlotLayerURL(config, 'png'),
-        layer = L.tileLayer(url, { maxZoom: 20 });
+        layer = L.tileLayer(url, _ZOOM_OPTIONS);
     makeLayerFilterable(layer, url, config);
     return layer;
 }
 
 function createPlotUTFLayer(config) {
     var layer, url = getPlotLayerURL(config, 'grid.json'),
-        options = {
-            resolution: 4,
-            maxZoom: 20
-        };
+        options = _.extend({resolution: 4}, _ZOOM_OPTIONS);
+
     // Need to use JSONP on on browsers that do not support CORS (IE9)
     // Only applies to plot layer because only UtfGrid is using XmlHttpRequest
     // for cross-site requests
@@ -214,9 +214,7 @@ function getBoundsLayerURL(config, extension) {
 }
 
 function createBoundsTileLayer(config) {
-    return L.tileLayer(
-        getBoundsLayerURL(config, 'png'),
-        { maxZoom: 20 });
+    return L.tileLayer(getBoundsLayerURL(config, 'png'), _ZOOM_OPTIONS);
 }
 
 function deserializeZoomLatLngAndSetOnMap(mapManager, state) {
