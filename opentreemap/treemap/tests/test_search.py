@@ -479,17 +479,17 @@ class SearchTests(OTMTestCase):
 
         psycopg2.extras.register_hstore(connection.cursor(), globally=True)
 
-        p1, _ = self.create_tree_and_plot(
+        p1, __ = self.create_tree_and_plot(
             plotudfs={'Test string': 'testing foo',
                       'Test date': datetime(2010, 1, 9)},
             treeudfs={'Test float': 9.2})
 
-        p2, _ = self.create_tree_and_plot(
+        p2, __ = self.create_tree_and_plot(
             plotudfs={'Test string': 'testing baz or fish',
                       'Test date': datetime(2012, 1, 9)},
             treeudfs={'Test float': 12.0})
 
-        p3, _ = self.create_tree_and_plot(
+        p3, __ = self.create_tree_and_plot(
             plotudfs={'Test string': 'baz',
                       'Test date': datetime(2014, 1, 9)},
             treeudfs={'Test float': 2.2})
@@ -507,7 +507,7 @@ class SearchTests(OTMTestCase):
         set_write_permissions(self.instance, self.commander, 'Tree',
                               [self.treestew.canonical_name])
 
-        p1, _ = self.create_tree_and_plot(
+        p1, __ = self.create_tree_and_plot(
             plotudfs={self.plotstew.name:
                       [{'action': 'water', 'date': "2013-08-06 00:00:00"},
                        {'action': 'prune', 'date': "2013-09-15 00:00:00"}]},
@@ -515,13 +515,13 @@ class SearchTests(OTMTestCase):
                       [{'action': 'water', 'date': "2013-05-15 00:00:00"},
                        {'action': 'water', 'date': None}]})
 
-        p2, _ = self.create_tree_and_plot(
+        p2, __ = self.create_tree_and_plot(
             plotudfs={self.plotstew.name: [
                 {'action': 'water', 'date': "2014-11-26 00:00:00"}]},
             treeudfs={self.treestew.name: [
                 {'action': 'prune', 'date': "2014-06-23 00:00:00"}]})
 
-        p3, _ = self.create_tree_and_plot(
+        p3, __ = self.create_tree_and_plot(
             plotudfs={self.plotstew.name: [
                 {'action': 'water', 'date': "2015-08-05 00:00:00"},
                 {'action': 'prune', 'date': "2015-04-13 00:00:00"}]},
@@ -546,7 +546,7 @@ class SearchTests(OTMTestCase):
                 {'tree.udf:Test float': {'MAX': 10.0}}))
 
     def test_udf_date_search(self):
-        p1, p2, _ = self._setup_udfs()
+        p1, p2, __ = self._setup_udfs()
 
         self.assertEqual(
             {p1, p2},
@@ -567,7 +567,7 @@ class SearchTests(OTMTestCase):
                 {'plot.udf:Test string': {'LIKE': 'baz'}}))
 
     def test_udf_direct_search(self):
-        _, _, p3 = self._setup_udfs()
+        __, __, p3 = self._setup_udfs()
 
         self.assertEqual(
             {p3},
@@ -890,7 +890,7 @@ class SearchTests(OTMTestCase):
                  {'MIN': "2015-01-01 00:00:00"}}))
 
     def test_cudf_is_search(self):
-        p1, _, p3 = self._setup_collection_udfs()
+        p1, __, p3 = self._setup_collection_udfs()
 
         self.assertEqual(
             {p1, p3},
@@ -898,7 +898,7 @@ class SearchTests(OTMTestCase):
                 {'udf:plot:%s.action' % self.plotstew.pk: {'IS': 'prune'}}))
 
     def test_cudf_compound_search_passes_date(self):
-        p1, _, p3 = self._setup_collection_udfs()
+        p1, __, p3 = self._setup_collection_udfs()
 
         self.assertEqual(
             {p1},
@@ -908,7 +908,7 @@ class SearchTests(OTMTestCase):
                  {'MAX': '2014-05-01 00:00:00'}}))
 
     def test_cudf_compound_search_fails_nondate(self):
-        p1, _, p3 = self._setup_collection_udfs()
+        p1, __, p3 = self._setup_collection_udfs()
 
         with self.assertRaises(search.ParseException):
             self._execute_and_process_filter(
@@ -916,7 +916,7 @@ class SearchTests(OTMTestCase):
                  'udf:plot:%s.date' % self.plotstew.pk: {'MAX': 2}})
 
     def test_cudf_date_min_bound_succeeds(self):
-        p1, _, _ = self._setup_collection_udfs()
+        p1, __, __ = self._setup_collection_udfs()
         self.assertIn(p1,
                       self._execute_and_process_filter(
                           {'udf:plot:%s.action' % self.plotstew.pk:

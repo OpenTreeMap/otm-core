@@ -10,7 +10,7 @@ from django import template
 from django.template.loader import get_template
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import dateformat
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 from django.conf import settings
 
 from opentreemap.util import dotted_split
@@ -370,7 +370,7 @@ class AbstractNode(template.Node):
             if units != '':
                 display_val += (' %s' % units)
         elif data_type == 'bool':
-            display_val = trans('Yes') if field_value else trans('No')
+            display_val = _('Yes') if field_value else _('No')
         else:
             display_val = unicode(field_value)
 
@@ -397,7 +397,7 @@ class FieldNode(AbstractNode):
 
 
 class CreateNode(AbstractNode):
-    def get_model(self, _, object_name, instance=None):
+    def get_model(self, __, object_name, instance=None):
         Model = safe_get_model_class(to_model_name(object_name))
 
         if instance and hasattr(Model, 'instance'):
@@ -407,7 +407,7 @@ class CreateNode(AbstractNode):
 
 
 class SearchNode(CreateNode):
-    def __init__(self, _, identifier, user, template, instance):
+    def __init__(self, __, identifier, user, template, instance):
         super(SearchNode, self).__init__(None, None, user, template, instance)
         self.json = identifier
 

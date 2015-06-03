@@ -10,7 +10,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 
 from django.forms.models import model_to_dict
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 from django.utils.dateformat import format as dformat
 from django.dispatch import receiver
 from django.db.models import OneToOneField
@@ -704,7 +704,7 @@ class Authorizable(UserTrackable):
     def _get_writeable_perms_set(self, user, direct_only=False):
 
         if not self.instance:
-            raise AuthorizeException(trans(
+            raise AuthorizeException(_(
                 "Cannot retrieve permissions for this object because "
                 "it does not have an instance associated with it."))
 
@@ -1000,23 +1000,23 @@ class Auditable(UserTrackable):
     def action_format_string_for_audit(clz, audit):
         if audit.field == 'id' or audit.field is None:
             lang = {
-                Audit.Type.Insert: trans('created a %(model)s'),
-                Audit.Type.Update: trans('updated the %(model)s'),
-                Audit.Type.Delete: trans('deleted the %(model)s'),
-                Audit.Type.PendingApprove: trans('approved an '
-                                                 'edit to the %(model)s'),
-                Audit.Type.PendingReject: trans('rejected an '
-                                                'edit to the %(model)s')
+                Audit.Type.Insert: _('created a %(model)s'),
+                Audit.Type.Update: _('updated the %(model)s'),
+                Audit.Type.Delete: _('deleted the %(model)s'),
+                Audit.Type.PendingApprove: _('approved an '
+                                             'edit to the %(model)s'),
+                Audit.Type.PendingReject: _('rejected an '
+                                            'edit to the %(model)s')
             }
         else:
             lang = {
-                Audit.Type.Insert: trans('set %(field)s to %(value)s'),
-                Audit.Type.Update: trans('set %(field)s to %(value)s'),
-                Audit.Type.Delete: trans('deleted %(field)s'),
-                Audit.Type.PendingApprove: trans('approved setting '
-                                                 '%(field)s to %(value)s'),
-                Audit.Type.PendingReject: trans('rejecting setting '
-                                                '%(field)s to %(value)s')
+                Audit.Type.Insert: _('set %(field)s to %(value)s'),
+                Audit.Type.Update: _('set %(field)s to %(value)s'),
+                Audit.Type.Delete: _('deleted %(field)s'),
+                Audit.Type.PendingApprove: _('approved setting '
+                                             '%(field)s to %(value)s'),
+                Audit.Type.PendingReject: _('rejecting setting '
+                                            '%(field)s to %(value)s')
             }
         return lang[audit.action]
 
@@ -1075,7 +1075,7 @@ class _PendingAuditable(Auditable):
 
         # Before saving we need to restore any pending values to their
         # previous state
-        for pending_field, (old_val, _) in pending_updates.iteritems():
+        for pending_field, (old_val, __) in pending_updates.iteritems():
             try:
                 self.apply_change(pending_field, old_val)
             except ValueError:
@@ -1208,13 +1208,13 @@ class Audit(models.Model):
         ReviewReject = 7
 
     TYPES = {
-        Type.Insert: trans('Create'),
-        Type.Delete: trans('Delete'),
-        Type.Update: trans('Update'),
-        Type.PendingApprove: trans('Approved Pending Edit'),
-        Type.PendingReject: trans('Reject Pending Edit'),
-        Type.ReviewReject: trans('Rejected Edit'),
-        Type.ReviewApprove: trans('Approved Edit')
+        Type.Insert: _('Create'),
+        Type.Delete: _('Delete'),
+        Type.Update: _('Update'),
+        Type.PendingApprove: _('Approved Pending Edit'),
+        Type.PendingReject: _('Reject Pending Edit'),
+        Type.ReviewReject: _('Rejected Edit'),
+        Type.ReviewApprove: _('Approved Edit')
     }
 
     def _deserialize_value(self, value):
@@ -1299,7 +1299,7 @@ class Audit(models.Model):
             value = dformat(value, settings.SHORT_DATE_FORMAT)
 
         if is_convertible_or_formattable(model_name, self.field):
-            _, value = get_display_value(
+            __, value = get_display_value(
                 self.instance, model_name, self.field, value)
             if value and is_convertible(model_name, self.field):
                 units = get_unit_name(get_units(self.instance,
@@ -1366,7 +1366,7 @@ class Audit(models.Model):
         if hasattr(cls, 'display_name'):
             model_display_name = cls.display_name
         else:
-            model_display_name = trans(self.model)
+            model_display_name = _(self.model)
 
         return format_string % {'field': self.field_display_name,
                                 'model': model_display_name.lower(),

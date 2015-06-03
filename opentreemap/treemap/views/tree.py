@@ -7,7 +7,7 @@ import hashlib
 
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.http import HttpResponseRedirect
@@ -31,7 +31,8 @@ def tree_detail(request, instance, feature_id, tree_id):
 def add_tree_photo(request, instance, feature_id, tree_id=None):
     error = None
     try:
-        _, tree = add_tree_photo_helper(request, instance, feature_id, tree_id)
+        __, tree = add_tree_photo_helper(
+            request, instance, feature_id, tree_id)
         photos = tree.photos()
     except ValidationError as e:
         trees = Tree.objects.filter(pk=tree_id)
@@ -84,7 +85,7 @@ def search_tree_benefits(request, instance):
     benefits.get('plot', {})['totals'] = {
         'value': None,
         'currency': total_currency_saved,
-        'label': trans('Total annual benefits')
+        'label': _('Total annual benefits')
     }
 
     formatted = format_benefits(instance, benefits, basis)

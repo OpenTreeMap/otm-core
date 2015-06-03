@@ -15,7 +15,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.conf import settings
 from django.core.exceptions import ValidationError, MultipleObjectsReturned
-from django.utils.translation import ugettext_lazy as trans
+from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.files import ImageFieldFile
 from django.contrib.gis.geos import Point
 
@@ -45,7 +45,7 @@ def safe_get_model_class(model_string):
         return MapFeature.get_subclass(model_string)
     else:
         raise ValidationError(
-            trans('invalid model type: "%s"') % model_string)
+            _('invalid model type: "%s"') % model_string)
 
 
 def add_visited_instance(request, instance):

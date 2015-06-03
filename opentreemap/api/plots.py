@@ -88,7 +88,7 @@ def update_or_create_plot(request, instance, plot_id=None):
     else:
         plot = Plot(instance=instance)
 
-    plot, _ = update_map_feature(data, request.user, plot)
+    plot, __ = update_map_feature(data, request.user, plot)
 
     context_dict = context_dict_for_plot(request, plot)
 

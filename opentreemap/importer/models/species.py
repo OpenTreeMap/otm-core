@@ -6,7 +6,7 @@ from __future__ import division
 import itertools
 from django.contrib.gis.db import models
 from django.db import transaction
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 
 from treemap.ecobenefits import has_itree_code, all_itree_codes
 from treemap.models import (Species, ITreeCodeOverride, ITreeRegion, User)
@@ -41,7 +41,7 @@ class SpeciesImportEvent(GenericImportEvent):
         return self.speciesimportrow_set
 
     def __unicode__(self):
-        return trans('Species Import #%s') % self.pk
+        return _('Species Import #%s') % self.pk
 
     def status_summary(self):
         if self.status == GenericImportEvent.CREATING:
@@ -128,7 +128,7 @@ class SpeciesImportRow(GenericImportRow):
         if key in data:
             row_itree_pairs = data[key]
             model_itree_pairs = [(region, species.get_itree_code(region))
-                                 for (region, _) in row_itree_pairs]
+                                 for (region, __) in row_itree_pairs]
             if row_itree_pairs != model_itree_pairs:
                 diffs[fields.species.ITREE_CODE] = (
                     self._itree_pairs_to_string(model_itree_pairs),

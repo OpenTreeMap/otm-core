@@ -5,7 +5,7 @@ from __future__ import division
 
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from django.utils.translation import ugettext_lazy as trans
+from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 
@@ -35,8 +35,8 @@ class RegistrationForm(DefaultRegistrationForm):
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
 
-        self.fields['email'].label = trans('Email')
-        self.fields['password2'].label = trans('Confirm Password')
+        self.fields['email'].label = _('Email')
+        self.fields['password2'].label = _('Confirm Password')
 
         for field_name, field in self.fields.items():
             if not isinstance(field, forms.BooleanField):
@@ -50,28 +50,27 @@ class RegistrationForm(DefaultRegistrationForm):
     first_name = forms.CharField(
         max_length=100,
         required=False,
-        label=trans('First name'))
+        label=_('First name'))
 
     last_name = forms.CharField(
         max_length=100,
         required=False,
-        label=trans('Last name'))
+        label=_('Last name'))
 
     organization = forms.CharField(
         max_length=100,
         required=False,
-        label=trans('Organization'))
+        label=_('Organization'))
 
     make_info_public = forms.BooleanField(
         required=False,
-        label=trans("Display my first name, last name, and organization "
-                    "on my publicly visible user profile page."))
+        label=_("Display my first name, last name, and organization "
+                "on my publicly visible user profile page."))
 
     allow_email_contact = forms.BooleanField(
         required=False,
-        label=trans('I wish to receive occasional email '
-                    'updates from the tree maps to which '
-                    'I contribute.'))
+        label=_('I wish to receive occasional email '
+                'updates from the tree maps to which I contribute.'))
 
 
 class RegistrationView(DefaultRegistrationView):

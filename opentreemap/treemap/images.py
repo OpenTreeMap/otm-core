@@ -10,7 +10,7 @@ from cStringIO import StringIO
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as trans
+from django.utils.translation import ugettext_lazy as _
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 
@@ -56,7 +56,7 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None,
     file_size = image_data.tell()
 
     if file_size > settings.MAXIMUM_IMAGE_SIZE:
-        raise ValidationError(trans('The uploaded image is too large'))
+        raise ValidationError(_('The uploaded image is too large'))
 
     image_data.seek(0)
 
@@ -64,7 +64,7 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None,
         image = Image.open(image_data)
         image.verify()
     except IOError:
-        raise ValidationError(trans('Invalid image'))
+        raise ValidationError(_('Invalid image'))
 
     try:
         # http://pillow.readthedocs.org/en/latest/_modules/PIL/Image.html#Image.verify  # NOQA
@@ -97,7 +97,7 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None,
 
         return image_file, thumb_file
     except:
-        raise ValidationError(trans('Image upload issue'))
+        raise ValidationError(_('Image upload issue'))
 
 
 def get_image_from_request(request):

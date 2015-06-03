@@ -8,7 +8,7 @@ import copy
 import re
 
 from django.core.exceptions import ValidationError, FieldError
-from django.utils.translation import ugettext_lazy as trans
+from django.utils.translation import ugettext_lazy as _
 from django.contrib.gis.db import models
 from django.db import transaction
 from django.db.models import Q
@@ -61,8 +61,7 @@ def safe_get_udf_model_class(model_string):
 
     # It must have be a UDF subclass
     if not isinstance(model_class(), UDFModel):
-        raise ValidationError(trans('invalid model type - must subclass '
-                                    'UDFModel'))
+        raise ValidationError(_('invalid model type - must subclass UDFModel'))
 
     return model_class
 
@@ -131,13 +130,13 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
     def action_format_string_for_audit(cls, audit):
         if audit.field == 'id' or audit.field is None:
             lang = {
-                Audit.Type.Insert: trans('created a %(model)s entry'),
-                Audit.Type.Update: trans('updated the %(model)s entry'),
-                Audit.Type.Delete: trans('deleted the %(model)s entry'),
-                Audit.Type.PendingApprove: trans('approved an edit '
-                                                 'to the %(model)s entry'),
-                Audit.Type.PendingReject: trans('rejected an '
-                                                'edit to the %(model)s entry')
+                Audit.Type.Insert: _('created a %(model)s entry'),
+                Audit.Type.Update: _('updated the %(model)s entry'),
+                Audit.Type.Delete: _('deleted the %(model)s entry'),
+                Audit.Type.PendingApprove: _('approved an edit '
+                                             'to the %(model)s entry'),
+                Audit.Type.PendingReject: _('rejected an '
+                                            'edit to the %(model)s entry')
             }
             return lang[audit.action]
         return Auditable.action_format_string_for_audit(audit)
@@ -235,7 +234,7 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
         if field_perm.permission_level == FieldPermission.WRITE_WITH_AUDIT:
             model_id = _reserve_model_id(UserDefinedCollectionValue)
             pending = True
-            for field, (oldval, _) in updated_fields.iteritems():
+            for field, (oldval, __) in updated_fields.iteritems():
                 self.apply_change(field, oldval)
         else:
             pending = False
@@ -332,12 +331,12 @@ class UserDefinedFieldDefinition(models.Model):
             self, datatype, old_choice_value, new_choice_value):
         if datatype['type'] != 'choice':
             raise ValidationError(
-                {'datatype': [trans("can't change choices "
-                                    "on a non-choice field")]})
+                {'datatype': [_("can't change choices "
+                                "on a non-choice field")]})
 
         if old_choice_value not in datatype['choices']:
             raise ValidationError(
-                {'datatype': [trans("choice '%(choice)s' not found") % {
+                {'datatype': [_("choice '%(choice)s' not found") % {
                     'choice': old_choice_value}]})
 
         choices = datatype['choices']
@@ -389,7 +388,7 @@ class UserDefinedFieldDefinition(models.Model):
         if self.iscollection:
             if name is None:
                 raise ValidationError({
-                    'name': [trans('Name is required for collection fields')]})
+                    'name': [_('Name is required for collection fields')]})
 
             datatypes = {d['name']: d for d in self.datatype_dict}
             datatypes[name]['choices'].append(new_choice_value)
@@ -399,7 +398,7 @@ class UserDefinedFieldDefinition(models.Model):
         else:
             if name is not None:
                 raise ValidationError({
-                    'name': [trans(
+                    'name': [_(
                         'Name is allowed only for collection fields')]})
 
             datatype = self.datatype_dict
@@ -416,7 +415,7 @@ class UserDefinedFieldDefinition(models.Model):
         if self.iscollection:
             if name is None:
                 raise ValidationError({
-                    'name': [trans('Name is required for collection fields')]})
+                    'name': [_('Name is required for collection fields')]})
 
             datatypes = {info['name']: info for info in datatype}
             datatype = self._validate_and_update_choice(
@@ -452,7 +451,7 @@ class UserDefinedFieldDefinition(models.Model):
         else:
             if name is not None:
                 raise ValidationError({
-                    'name': [trans(
+                    'name': [_(
                         'Name is allowed only for collection fields')]})
 
             self._update_choice_scalar(old_choice_value, new_choice_value)
@@ -466,16 +465,16 @@ class UserDefinedFieldDefinition(models.Model):
 
         if self.name in field_names:
             raise ValidationError(
-                {'name': [trans('cannot use fields that already '
-                                'exist on the model')]})
+                {'name': [_('cannot use fields that already '
+                            'exist on the model')]})
         if not self.name:
             raise ValidationError(
-                {'name': [trans('name cannot be blank')]})
+                {'name': [_('name cannot be blank')]})
 
         if not _UDF_NAME_REGEX.match(self.name):
             raise ValidationError(
-                {'name': [trans("A field name may not contain percent (%), "
-                                "period (.) or underscore (_) characters.")]})
+                {'name': [_("A field name may not contain percent (%), "
+                            "period (.) or underscore (_) characters.")]})
 
         existing_objects = UserDefinedFieldDefinition\
             .objects\
@@ -487,8 +486,8 @@ class UserDefinedFieldDefinition(models.Model):
                 pk=self.pk)
 
         if existing_objects.count() != 0:
-            raise ValidationError(trans('a field already exists on this model '
-                                        'with that name'))
+            raise ValidationError(_('a field already exists on this model '
+                                    'with that name'))
 
         datatype = self.datatype_dict
 
@@ -503,7 +502,7 @@ class UserDefinedFieldDefinition(models.Model):
                         errors['datatype'] = e.messages
 
                     if not datatype.get('name', None):
-                        errors['name'] = [trans('Name must not be empty')]
+                        errors['name'] = [_('Name must not be empty')]
 
                 names = {datatype.get('name') for datatype in datatypes}
 
@@ -512,12 +511,12 @@ class UserDefinedFieldDefinition(models.Model):
                         errors['name'] = []
 
                     errors['name'].append(
-                        trans('Names must not be duplicates'))
+                        _('Names must not be duplicates'))
 
                 if 'id' in names:
                     if 'name' not in errors:
                         errors['name'] = []
-                    errors['name'].append(trans('Id is an invalid name'))
+                    errors['name'].append(_('Id is an invalid name'))
             else:
                 errors['datatype'] = ['Must provide a list with a collection']
 
@@ -533,29 +532,29 @@ class UserDefinedFieldDefinition(models.Model):
 
     def _validate_single_datatype(self, datatype):
         if 'type' not in datatype:
-            raise ValidationError(trans('type required data type definition'))
+            raise ValidationError(_('type required data type definition'))
 
         if datatype['type'] not in ['float', 'int', 'string',
                                     'user', 'choice', 'date']:
-            raise ValidationError(trans('invalid datatype'))
+            raise ValidationError(_('invalid datatype'))
 
         if datatype['type'] == 'choice':
             choices = datatype.get('choices', None)
 
             if choices is None:
-                raise ValidationError(trans('missing choices key for key'))
+                raise ValidationError(_('missing choices key for key'))
 
             for choice in choices:
                 if not isinstance(choice, basestring):
-                    raise ValidationError(trans('Choice must be a string'))
+                    raise ValidationError(_('Choice must be a string'))
                 if choice is None or choice == '':
-                    raise ValidationError(trans('empty choice not allowed'))
+                    raise ValidationError(_('empty choice not allowed'))
 
             if len(choices) == 0:
-                raise ValidationError(trans('empty choice list'))
+                raise ValidationError(_('empty choice list'))
 
             if len(choices) != len(set(choices)):
-                raise ValidationError(trans('duplicate choices'))
+                raise ValidationError(_('duplicate choices'))
 
         if 'default' in datatype:
             try:
@@ -665,8 +664,8 @@ class UserDefinedFieldDefinition(models.Model):
             try:
                 return float(value)
             except ValueError:
-                raise ValidationError(trans('%(fieldname)s '
-                                            'must be a real number') %
+                raise ValidationError(_('%(fieldname)s '
+                                        'must be a real number') %
                                       {'fieldname': self.name})
         elif datatype == 'int':
             try:
@@ -675,8 +674,7 @@ class UserDefinedFieldDefinition(models.Model):
 
                 return int(value)
             except ValueError:
-                raise ValidationError(trans('%(fieldname)s '
-                                            'must be an integer') %
+                raise ValidationError(_('%(fieldname)s must be an integer') %
                                       {'fieldname': self.name})
         elif datatype == 'user':
             if isinstance(value, User):
@@ -685,14 +683,12 @@ class UserDefinedFieldDefinition(models.Model):
             try:
                 pk = int(value)
             except ValueError:
-                raise ValidationError(trans('%(fieldname)s '
-                                            'must be an integer') %
+                raise ValidationError(_('%(fieldname)s must be an integer') %
                                       {'fieldname': self.name})
             try:
                 return User.objects.get(pk=pk)
             except User.DoesNotExist:
-                raise ValidationError(trans('%(fieldname)s '
-                                            'user not found') %
+                raise ValidationError(_('%(fieldname)s user not found') %
                                       {'fieldname': self.name})
 
         elif datatype == 'date':
@@ -702,8 +698,7 @@ class UserDefinedFieldDefinition(models.Model):
                 return value
             else:
                 raise ValidationError(
-                    trans('Invalid choice (%(given)s). '
-                          'Expecting %(allowed)s') %
+                    _('Invalid choice (%(given)s). Expecting %(allowed)s') %
                     {'given': value,
                      'allowed': ', '.join(datatype_dict['choices'])})
         else:
@@ -1174,7 +1169,7 @@ class UDFModel(UserTrackable, models.Model):
                 except ValidationError as e:
                     errors['udf:%s' % key] = e.messages
             else:
-                errors['udf:%s' % key] = [trans(
+                errors['udf:%s' % key] = [_(
                     'Invalid user defined field name')]
 
         # Clean collection values, but only if they were loaded
@@ -1190,7 +1185,7 @@ class UDFModel(UserTrackable, models.Model):
                     except ValidationError as e:
                         errors.update(e.message_dict)
                 else:
-                    errors['udf:%s' % collection_field_name] = [trans(
+                    errors['udf:%s' % collection_field_name] = [_(
                         'Invalid user defined field name')]
 
         if errors:

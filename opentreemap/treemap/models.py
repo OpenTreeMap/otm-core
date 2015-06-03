@@ -18,7 +18,7 @@ from django.contrib.gis.measure import D
 from django.db import IntegrityError, transaction
 from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as trans
+from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import (UserManager, AbstractBaseUser,
                                         PermissionsMixin)
 
@@ -40,13 +40,11 @@ def _action_format_string_for_location(action):
     same action format string for a field value that should be displayed
     as a location"""
     lang = {
-        Audit.Type.Insert: trans('set the location'),
-        Audit.Type.Update: trans('updated the location'),
-        Audit.Type.Delete: trans('deleted the location'),
-        Audit.Type.PendingApprove: trans('approved an '
-                                         'edit of the location'),
-        Audit.Type.PendingReject: trans('rejected an '
-                                        'edit of the location')
+        Audit.Type.Insert: _('set the location'),
+        Audit.Type.Update: _('updated the location'),
+        Audit.Type.Delete: _('deleted the location'),
+        Audit.Type.PendingApprove: _('approved an edit of the location'),
+        Audit.Type.PendingReject: _('rejected an edit of the location')
     }
     return lang[action]
 
@@ -55,17 +53,15 @@ def _action_format_string_for_readonly(action, readonly):
     """A helper that allows multiple auditable models to return the
     the state of a readonly boolean"""
     if readonly:
-        value = trans("read only")
+        value = _("read only")
     else:
-        value = trans("editable")
+        value = _("editable")
     lang = {
-        Audit.Type.Insert: trans('made the tree %(value)s'),
-        Audit.Type.Update: trans('made the tree %(value)s'),
-        Audit.Type.Delete: trans('made the tree %(value)s'),
-        Audit.Type.PendingApprove: trans('approved making the tree '
-                                         '%(value)s'),
-        Audit.Type.PendingReject: trans('approved making the tree '
-                                        '%(value)s')
+        Audit.Type.Insert: _('made the tree %(value)s'),
+        Audit.Type.Update: _('made the tree %(value)s'),
+        Audit.Type.Delete: _('made the tree %(value)s'),
+        Audit.Type.PendingApprove: _('approved making the tree %(value)s'),
+        Audit.Type.PendingReject: _('approved making the tree %(value)s')
     }
     return lang[action] % {'value': value}
 
@@ -99,7 +95,7 @@ class StaticPage(models.Model):
 
             static_page = StaticPage(
                 instance=instance, name=page_name,
-                content=trans('There is no content for this page yet.'))
+                content=_('There is no content for this page yet.'))
         return static_page
 
     @staticmethod
@@ -149,7 +145,7 @@ class BenefitCurrencyConversion(Dictable, models.Model):
         errors = {}
 
         if len(self.currency_symbol) > 4:
-            errors['currency_symbol'] = trans(
+            errors['currency_symbol'] = _(
                 'Symbol is too long')
 
         positive_fields = ['electricity_kwh_to_currency',
@@ -167,7 +163,7 @@ class BenefitCurrencyConversion(Dictable, models.Model):
             try:
                 value = float(value or '')
                 if value < 0:
-                    errors[field] = [trans('Values must be not be negative')]
+                    errors[field] = [_('Values must be not be negative')]
             except ValueError:
                 pass
 
@@ -243,7 +239,7 @@ class BenefitCurrencyConversion(Dictable, models.Model):
 #
 # # dynamically modify User.email to be unique, instead of
 # # inheriting and overriding AbstractBaseUser and PermissionMixin
-# email_field, _, _, _ = User._meta.get_field_by_name('email')
+# email_field, __, __, __ = User._meta.get_field_by_name('email')
 # email_field._unique = True
 #
 # TODO: Fix this abstraction, and/or prune out parts of this class that
@@ -259,25 +255,25 @@ class AbstractUniqueEmailUser(AbstractBaseUser, PermissionsMixin):
     Username, password and email are required. Other fields are optional.
     """
     username = models.CharField(
-        trans('username'), max_length=30, unique=True,
-        help_text=trans(
+        _('username'), max_length=30, unique=True,
+        help_text=_(
             'Required. 30 characters or fewer. Letters, numbers and '
             '@/./+/-/_ characters'),
         validators=[
             validators.RegexValidator(
                 re.compile('^[\w.@+-]+$'),
-                trans('Enter a valid username.'), 'invalid')
+                _('Enter a valid username.'), 'invalid')
         ])
-    email = models.EmailField(trans('email address'), blank=True, unique=True)
+    email = models.EmailField(_('email address'), blank=True, unique=True)
     is_staff = models.BooleanField(
-        trans('staff status'), default=False,
-        help_text=trans('Designates whether the user can log into this admin '
-                        'site.'))
+        _('staff status'), default=False,
+        help_text=_('Designates whether the user can log into this admin '
+                    'site.'))
     is_active = models.BooleanField(
-        trans('active'), default=True,
-        help_text=trans('Designates whether this user should be treated as '
-                        'active. Unselect this instead of deleting accounts.'))
-    date_joined = models.DateTimeField(trans('date joined'),
+        _('active'), default=True,
+        help_text=_('Designates whether this user should be treated as '
+                    'active. Unselect this instead of deleting accounts.'))
+    date_joined = models.DateTimeField(_('date joined'),
                                        default=timezone.now)
 
     objects = UserManager()
@@ -286,8 +282,8 @@ class AbstractUniqueEmailUser(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['email']
 
     class Meta:
-        verbose_name = trans('user')
-        verbose_name_plural = trans('users')
+        verbose_name = _('user')
+        verbose_name_plural = _('users')
         abstract = True
 
     def get_full_name(self):
@@ -314,9 +310,9 @@ class User(AbstractUniqueEmailUser, Auditable):
     photo = models.ImageField(upload_to='users', null=True, blank=True)
     thumbnail = models.ImageField(upload_to='users', null=True, blank=True)
     first_name = models.CharField(
-        trans('first name'), max_length=30, default='', blank=True)
+        _('first name'), max_length=30, default='', blank=True)
     last_name = models.CharField(
-        trans('last name'), max_length=30, default='', blank=True)
+        _('last name'), max_length=30, default='', blank=True)
     organization = models.CharField(max_length=255, default='', blank=True)
 
     make_info_public = models.BooleanField(default=False)
@@ -403,7 +399,7 @@ class User(AbstractUniqueEmailUser, Auditable):
 
     def clean(self):
         if re.search('\\s', self.username):
-            raise ValidationError(trans('Cannot have spaces in a username'))
+            raise ValidationError(_('Cannot have spaces in a username'))
 
     def save_with_user(self, user, *args, **kwargs):
         self.full_clean()
@@ -538,7 +534,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     # table, we store a "cached" value here to keep filtering easy and
     # efficient.
     updated_at = models.DateTimeField(default=timezone.now,
-                                      help_text=trans("Last Updated"))
+                                      help_text=_("Last Updated"))
 
     # Tells the permission system that if any other field is writable,
     # updated_at is also writable
@@ -601,7 +597,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         if not self.instance.bounds.contains(self.geom):
             raise ValidationError({
                 "geom": [
-                    trans(
+                    _(
                         "%(model)ss must be created inside the map boundaries")
                     % {'model': self.display_name}]
             })
@@ -710,9 +706,9 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 # authorizable and auditable, thus needs to be inherited first
 class Plot(MapFeature):
     width = models.FloatField(null=True, blank=True,
-                              help_text=trans("Plot Width"))
+                              help_text=_("Plot Width"))
     length = models.FloatField(null=True, blank=True,
-                               help_text=trans("Plot Length"))
+                               help_text=_("Plot Length"))
 
     owner_orig_id = models.CharField(max_length=255, null=True, blank=True)
 
@@ -761,13 +757,13 @@ class Plot(MapFeature):
 
     def delete_with_user(self, user, cascade=False, *args, **kwargs):
         if self.current_tree() and cascade is False:
-            raise ValidationError(trans(
+            raise ValidationError(_(
                 "Cannot delete plot with existing trees."))
         super(Plot, self).delete_with_user(user, *args, **kwargs)
 
     @classproperty
     def display_name(cls):
-        return trans('Planting Site')
+        return _('Planting Site')
 
 
 # UDFModel overrides implementations of methods in
@@ -783,15 +779,15 @@ class Tree(Convertible, UDFModel, PendingAuditable):
 
     readonly = models.BooleanField(default=False)
     diameter = models.FloatField(null=True, blank=True,
-                                 help_text=trans("Tree Diameter"))
+                                 help_text=_("Tree Diameter"))
     height = models.FloatField(null=True, blank=True,
-                               help_text=trans("Tree Height"))
+                               help_text=_("Tree Height"))
     canopy_height = models.FloatField(null=True, blank=True,
-                                      help_text=trans("Canopy Height"))
+                                      help_text=_("Canopy Height"))
     date_planted = models.DateField(null=True, blank=True,
-                                    help_text=trans("Date Planted"))
+                                    help_text=_("Date Planted"))
     date_removed = models.DateField(null=True, blank=True,
-                                    help_text=trans("Date Removed"))
+                                    help_text=_("Date Removed"))
 
     objects = GeoHStoreUDFManager()
 
@@ -913,7 +909,7 @@ class MapFeaturePhoto(models.Model, PendingAuditable):
         if thing is None:
             return None
 
-        field, _, _, _ = MapFeaturePhoto._meta.get_field_by_name(field)
+        field, __, __, __ = MapFeaturePhoto._meta.get_field_by_name(field)
 
         saved_rep = field.pre_save(self, thing)
         return str(saved_rep)

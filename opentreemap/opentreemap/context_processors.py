@@ -5,7 +5,7 @@ from __future__ import division
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
-from django.utils.translation import ugettext as trans
+from django.utils.translation import ugettext as _
 
 from treemap.util import get_last_visited_instance
 from treemap.models import InstanceUser
@@ -52,8 +52,8 @@ def global_settings(request):
 
 
 REPLACEABLE_TERMS = {
-    'Resource': trans('Resource'),
-    'Resources': trans('Resources'),
+    'Resource': _('Resource'),
+    'Resources': _('Resources'),
     }
 
 

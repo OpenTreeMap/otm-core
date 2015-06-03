@@ -43,13 +43,13 @@ class InternetExplorerRedirectMiddlewareTests(OTMTestCase):
         self.assertEquals(expected_url, response["Location"])
 
     def test_detects_ie(self):
-        req, _ = self._request_with_agent(USER_AGENT_STRINGS.IE_7)
+        req, __ = self._request_with_agent(USER_AGENT_STRINGS.IE_7)
         self.assertTrue(req.from_ie,
                         'Expected the middleware to set "from_ie" '
                         'to True for an IE connection string')
 
     def test_does_not_detect_ie(self):
-        req, _ = self._request_with_agent(USER_AGENT_STRINGS.FIREFOX_22)
+        req, __ = self._request_with_agent(USER_AGENT_STRINGS.FIREFOX_22)
         self.assertFalse(req.from_ie,
                          'Expected the middleware to set "from_ie" '
                          'to False for a Firefox user agent string')

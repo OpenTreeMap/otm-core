@@ -197,7 +197,7 @@ class Command(InstanceDataCommand):
 
         if options['instance']:
             # initialize system_user??
-            instance, _ = self.setup_env(*args, **options)
+            instance, __ = self.setup_env(*args, **options)
         else:
             migration_event.status = MigrationEvent.FAILURE
             migration_event.save()
