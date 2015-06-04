@@ -151,6 +151,9 @@ def _commit_rows(import_type, import_event_id, i):
     for row in ie.rows()[i:(i + BLOCK_SIZE)]:
         row.commit_row()
 
+    if import_type == TreeImportEvent.import_type:
+        ie.instance.update_geo_rev()
+
 
 @task()
 def _finalize_commit(import_type, import_event_id):
@@ -158,9 +161,6 @@ def _finalize_commit(import_type, import_event_id):
 
     ie.status = GenericImportEvent.FINISHED_CREATING
     ie.save()
-
-    if import_type == TreeImportEvent.import_type:
-        ie.instance.update_geo_rev()
 
 
 def _get_import_event(import_type, import_event_id):
