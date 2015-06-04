@@ -46,9 +46,11 @@ DEFAULT_MOBILE_SEARCH_FIELDS = {
 
 DEFAULT_MOBILE_API_FIELDS = [
     {'header': _('Tree Information'),
+     'model': 'tree',
      'field_keys': ['tree.species', 'tree.diameter',
                     'tree.height', 'tree.date_planted']},
     {'header': _('Planting Site Information'),
+     'model': 'plot',
      'field_keys': ['plot.width', 'plot.length']},
     {'header': _('Stewardship'),
      'collection_udf_keys': ['plot.udf:Stewardship', 'tree.udf:Stewardship'],
@@ -94,6 +96,14 @@ API_FIELD_ERRORS = {
         'of a field on present on every collection field in the group'),
 
     'duplicate_fields': _('Fields cannot be specified more than once'),
+
+    'group_missing_model': _(
+        'Normal field groups need a model property of either "tree" or "plot"'
+    ),
+
+    'group_invalid_model': _(
+        'Normal field groups can only have keys that match their "model"'
+    ),
 
     'invalid_field': _('The specified field "%(field)s" is invalid'),
 
@@ -599,8 +609,8 @@ class Instance(models.Model):
             if not _truthy_of_type(group.get('header'), basestring):
                 errors.add(API_FIELD_ERRORS['group_has_no_header'])
 
-            if ((not _truthy_of_type(group.get('collection_udf_keys'), list)
-                 and not _truthy_of_type(group.get('field_keys'), list))):
+            if ((not isinstance(group.get('collection_udf_keys'), list)
+                 and not isinstance(group.get('field_keys'), list))):
                 errors.add(API_FIELD_ERRORS['group_has_no_keys'])
 
             elif 'collection_udf_keys' in group and 'field_keys' in group:
@@ -618,6 +628,13 @@ class Instance(models.Model):
                     elif sort_key not in udef.datatype_by_field:
                         errors.add(
                             API_FIELD_ERRORS['group_has_invalid_sort_key'])
+            elif 'field_keys' in group:
+                if group.get('model') not in {'tree', 'plot'}:
+                    errors.add(API_FIELD_ERRORS['group_missing_model'])
+                else:
+                    for key in group['field_keys']:
+                        if not key.startswith(group['model']):
+                            errors.add(API_FIELD_ERRORS['group_invalid_model'])
 
         scalar_fields = [key for group in field_groups
                          for key in group.get('field_keys', [])]
