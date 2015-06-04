@@ -2,9 +2,11 @@ from django import template
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
 
+from opentreemap.util import dotted_split
+
 from treemap.models import MapFeature, Tree, TreePhoto, MapFeaturePhoto, Audit
 from treemap.udf import UserDefinedCollectionValue
-from treemap.util import get_filterable_audit_models
+from treemap.util import get_filterable_audit_models, to_model_name
 
 register = template.Library()
 
@@ -123,3 +125,13 @@ def tabindex(value, index):
     """
     value.field.widget.attrs['tabindex'] = index
     return value
+
+
+@register.filter
+def identifier_model_name(identifier):
+    """
+    Takes an identifier like "model.field" and returns the model's display name
+    """
+    object_name, __ = dotted_split(identifier, 2, maxsplit=1)
+
+    return display_name(to_model_name(object_name))
