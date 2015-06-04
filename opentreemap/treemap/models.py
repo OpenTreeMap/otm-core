@@ -527,9 +527,12 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     instance = models.ForeignKey(Instance)
     geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
 
-    address_street = models.CharField(max_length=255, blank=True, null=True)
-    address_city = models.CharField(max_length=255, blank=True, null=True)
-    address_zip = models.CharField(max_length=30, blank=True, null=True)
+    address_street = models.CharField(max_length=255, blank=True, null=True,
+                                      help_text=_("Address"))
+    address_city = models.CharField(max_length=255, blank=True, null=True,
+                                    help_text=_("City"))
+    address_zip = models.CharField(max_length=30, blank=True, null=True,
+                                   help_text=_("Postal Code"))
 
     readonly = models.BooleanField(default=False)
 
@@ -778,7 +781,8 @@ class Tree(Convertible, UDFModel, PendingAuditable):
     instance = models.ForeignKey(Instance)
 
     plot = models.ForeignKey(Plot)
-    species = models.ForeignKey(Species, null=True, blank=True)
+    species = models.ForeignKey(Species, null=True, blank=True,
+                                help_text=_("Species"))
 
     readonly = models.BooleanField(default=False)
     diameter = models.FloatField(null=True, blank=True,
