@@ -96,10 +96,14 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
                             for i in xrange(0, ie.row_count, BLOCK_SIZE))
 
         final_task = _finalize_validation.si(import_type, import_event_id)
-        res = chord(validation_tasks, final_task).delay()
+
+        async_result = chord(validation_tasks, final_task).delay()
+        group_result = async_result.parent
+        if group_result:  # Has value None when run in unit tests
+            group_result.save()
+            ie.task_id = group_result.id
 
         ie.status = GenericImportEvent.VERIFIYING
-        ie.task_id = res.id
         ie.save()
     except Exception as e:
         ie.status = GenericImportEvent.VERIFICATION_ERROR
