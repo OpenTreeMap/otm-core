@@ -15,12 +15,15 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    format = require('util').format,
 
     enablePermAttr = 'data-always-enable',
     disabledTitleAttr = 'data-disabled-title',
     redirectUrlAttr = 'data-redirect-url',
     hrefAttr = 'data-href',
     enablePermSelector = '[' + enablePermAttr + ']',
+    disabledButtonWrapperAttrPair = 'data-class="disabled-button-wrapper"',
+    disabledButtonWrapperSelector = '[' + disabledButtonWrapperAttrPair + ']',
     config;
 
 function removeActionableDataAttributes($el) {
@@ -52,9 +55,15 @@ function fullyEnable($el, href) {
 }
 
 function fullyDisable($el, disabledTitle) {
+    var wrapperTemplate =
+            '<label ' + disabledButtonWrapperAttrPair +
+            ' title="%s"></label>';
+
     $el.off('click');
     removeActionableDataAttributes($el);
-    if (disabledTitle) { $el.attr('title', disabledTitle); }
+    if (disabledTitle && !$el.parent().is(disabledButtonWrapperSelector)) {
+        $el.wrap(format(wrapperTemplate, disabledTitle));
+    }
 }
 
 exports.run = function (options) {
