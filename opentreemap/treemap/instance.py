@@ -9,6 +9,7 @@ from django.core.validators import RegexValidator
 from django.conf import settings
 from django.db.models import F
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_noop
 
 import hashlib
 import json
@@ -45,14 +46,14 @@ DEFAULT_MOBILE_SEARCH_FIELDS = {
 }
 
 DEFAULT_MOBILE_API_FIELDS = [
-    {'header': _('Tree Information'),
+    {'header': ugettext_noop('Tree Information'),
      'model': 'tree',
      'field_keys': ['tree.species', 'tree.diameter',
                     'tree.height', 'tree.date_planted']},
-    {'header': _('Planting Site Information'),
+    {'header': ugettext_noop('Planting Site Information'),
      'model': 'plot',
      'field_keys': ['plot.width', 'plot.length']},
-    {'header': _('Stewardship'),
+    {'header': ugettext_noop('Stewardship'),
      'collection_udf_keys': ['plot.udf:Stewardship', 'tree.udf:Stewardship'],
      'sort_key': 'Date'}
 ]

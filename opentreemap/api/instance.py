@@ -12,6 +12,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
+from django.utils.translation import ugettext as _
 
 from django_tinsel.exceptions import HttpBadRequestException
 from treemap.lib.object_caches import role_permissions
@@ -183,6 +184,9 @@ def instance_info(request, instance):
     mobile_api_fields = copy.deepcopy(instance.mobile_api_fields)
 
     for field_group in mobile_api_fields:
+        # Field group headers are stored in English, and translated when they
+        # are sent out to the client
+        field_group['header'] = _(field_group['header'])
         key = get_key_for_group(field_group)
         if key:
             field_group[key] = [field for field in field_group[key]
