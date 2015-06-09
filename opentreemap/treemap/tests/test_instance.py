@@ -4,11 +4,10 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
-from copy import deepcopy
 from django.contrib.gis.geos import MultiPolygon, Polygon
-from unittest import skip
 
 from django.core.exceptions import ValidationError
+from django.utils.encoding import force_text
 
 from treemap.instance import (
     add_species_to_instance, DEFAULT_MOBILE_API_FIELDS, API_FIELD_ERRORS,
@@ -99,14 +98,8 @@ class InstanceMobileApiFieldsTests(OTMTestCase):
             iscollection=False,
             name='Man Units')
 
-    @skip("Skipping until mobile api field validation is re-enabled")
     def test_default_api_fields(self):
-        # If the default fields fail validation, that's very bad
-        fields = deepcopy(DEFAULT_MOBILE_API_FIELDS)
-        for group in fields:
-            group['header'] = str(group['header'])  # coerce lazy translations
-
-        self.instance.mobile_api_fields = fields
+        self.instance.mobile_api_fields = DEFAULT_MOBILE_API_FIELDS
         self.instance.save()
 
     def assert_raises_code(self, msg, fields):
@@ -116,9 +109,9 @@ class InstanceMobileApiFieldsTests(OTMTestCase):
 
         val_err = m.exception
         self.assertIn('mobile_api_fields', val_err.message_dict)
-        self.assertIn(msg, val_err.message_dict['mobile_api_fields'])
+        self.assertIn(force_text(msg),
+                      val_err.message_dict['mobile_api_fields'])
 
-    @skip("Skipping until mobile api field validation is re-enabled")
     def test_basic_errors(self):
         self.assert_raises_code(API_FIELD_ERRORS['no_field_groups'], [])
         self.assert_raises_code(API_FIELD_ERRORS['no_field_groups'], {})
@@ -134,18 +127,15 @@ class InstanceMobileApiFieldsTests(OTMTestCase):
             {'header': 'Trees'}
         ])
         self.assert_raises_code(API_FIELD_ERRORS['group_has_no_keys'], [
-            {'header': 'Trees', 'field_keys': []}
-        ])
-        self.assert_raises_code(API_FIELD_ERRORS['group_has_no_keys'], [
-            {'header': 'Trees', 'collection_udf_keys': []}
+            {'header': 'Trees', 'collection_udf_keys': None}
         ])
 
         self.assert_raises_code(API_FIELD_ERRORS['group_has_both_keys'], [
-            {'header': 'Trees', 'field_keys': ['plot.width', 'plot.length'],
+            {'header': 'Trees',
+             'field_keys': ['plot.width', 'plot.length'],
              'collection_udf_keys': ['plot.udf:Stewardship']}
         ])
 
-    @skip("Skipping until mobile api field validation is re-enabled")
     def test_collection_udf_errors(self):
         self.assert_raises_code(API_FIELD_ERRORS['group_has_no_sort_key'], [
             {'header': 'Trees', 'sort_key': '',
@@ -188,38 +178,45 @@ class InstanceMobileApiFieldsTests(OTMTestCase):
             ]
         )
 
-    @skip("Skipping until mobile api field validation is re-enabled")
     def test_standard_errors(self):
         self.assert_raises_code(API_FIELD_ERRORS['duplicate_fields'], [
-            {'header': 'Fields', 'field_keys': ['tree.udf:Man Units',
-                                                'tree.height']},
-            {'header': 'Other things', 'field_keys': ['plot.width',
-                                                      'tree.height']}
+            {'header': 'Best Fields', 'model': 'tree',
+             'field_keys': ['tree.udf:Man Units', 'tree.height']},
+            {'header': 'Other Fields', 'model': 'tree',
+             'field_keys': ['tree.date_planted', 'tree.height']}
         ])
         self.assert_raises_code(API_FIELD_ERRORS['duplicate_fields'], [
             {'header': 'Fields', 'sort_key': 'Date',
              'collection_udf_keys': [
-                 'tree.udf:Stewardship', 'tree.udf:Stewardship']},
+                 'tree.udf:Stewardship', 'plot.udf:Stewardship']},
             {'header': 'Other fields', 'sort_key': 'Date',
-             'collection_udf_keys': [
-                 'tree.udf:Caring', 'tree.udf:Stewardship']}
+             'collection_udf_keys': ['tree.udf:Stewardship']}
         ])
 
         self.assert_raises_code(
-            API_FIELD_ERRORS['invalid_field'] % {'field': 'hydrant.valves'},
+            API_FIELD_ERRORS['group_missing_model'],
             [{'header': 'Trees', 'field_keys': ['hydrant.valves']}]
         )
         self.assert_raises_code(
-            API_FIELD_ERRORS['invalid_field'] % {'field': 'length'},
-            [{'header': 'Trees', 'field_keys': ['length']}]
+            API_FIELD_ERRORS['group_missing_model'],
+            [{'header': 'Stuff', 'model': 'hydrant',
+              'field_keys': ['hydrant.valves']}]
+        )
+
+        self.assert_raises_code(
+            API_FIELD_ERRORS['group_invalid_model'],
+            [{'header': 'Trees', 'model': 'tree', 'field_keys': ['length']}]
         )
 
         self.assert_raises_code(API_FIELD_ERRORS['missing_field'], [
-            {'header': 'Trees', 'field_keys': ['tree.udf:Stewardship']}
+            {'header': 'Trees', 'model': 'tree',
+             'field_keys': ['tree.udf:Stewardship']}
         ])
         self.assert_raises_code(API_FIELD_ERRORS['missing_field'], [
-            {'header': 'Trees', 'field_keys': ['plot.udf:Not a field']}
+            {'header': 'Trees', 'model': 'plot',
+             'field_keys': ['plot.udf:Not a field']}
         ])
         self.assert_raises_code(API_FIELD_ERRORS['missing_field'], [
-            {'header': 'Trees', 'field_keys': ['plot.doesnotexist']}
+            {'header': 'Trees', 'model': 'plot',
+             'field_keys': ['plot.doesnotexist']}
         ])

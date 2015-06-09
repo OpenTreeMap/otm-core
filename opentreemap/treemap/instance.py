@@ -14,7 +14,6 @@ from django.utils.translation import ugettext_noop
 import hashlib
 import json
 from urllib import urlencode
-import re
 
 from copy import deepcopy
 
@@ -105,8 +104,6 @@ API_FIELD_ERRORS = {
     'group_invalid_model': _(
         'Normal field groups can only have keys that match their "model"'
     ),
-
-    'invalid_field': _('The specified field "%(field)s" is invalid'),
 
     'missing_field': _(
         'Normal field groups may only contain existing fields. If you specify '
@@ -572,11 +569,8 @@ class Instance(models.Model):
         # UDFs won't exist when the instance is first created.
         # To work around this, we only validate when there is something in the
         # 'config' object, which ignores the default api fields
-        # TODO: We have bad data in various envs that fails validation
-        #       Uncomment this after adding a data migration to clean it up
-        # if 'mobile_api_fields' in self.config:
-        #     self._validate_mobile_api_fields()
-        pass
+        if 'mobile_api_fields' in self.config:
+            self._validate_mobile_api_fields()
 
     def _validate_mobile_api_fields(self):
         # Validate that:
@@ -617,7 +611,7 @@ class Instance(models.Model):
             elif 'collection_udf_keys' in group and 'field_keys' in group:
                 errors.add(API_FIELD_ERRORS['group_has_both_keys'])
 
-            if 'collection_udf_keys' in group:
+            if isinstance(group.get('collection_udf_keys'), list):
                 sort_key = group.get('sort_key')
                 if not sort_key:
                     errors.add(API_FIELD_ERRORS['group_has_no_sort_key'])
@@ -629,13 +623,16 @@ class Instance(models.Model):
                     elif sort_key not in udef.datatype_by_field:
                         errors.add(
                             API_FIELD_ERRORS['group_has_invalid_sort_key'])
-            elif 'field_keys' in group:
+            elif isinstance(group.get('field_keys'), list):
                 if group.get('model') not in {'tree', 'plot'}:
                     errors.add(API_FIELD_ERRORS['group_missing_model'])
                 else:
                     for key in group['field_keys']:
                         if not key.startswith(group['model']):
                             errors.add(API_FIELD_ERRORS['group_invalid_model'])
+
+        if errors:
+            raise ValidationError({'mobile_api_fields': errors})
 
         scalar_fields = [key for group in field_groups
                          for key in group.get('field_keys', [])]
@@ -648,11 +645,6 @@ class Instance(models.Model):
             errors.add(API_FIELD_ERRORS['duplicate_fields'])
 
         for field in scalar_fields:
-            if not re.match(r'(?:plot|tree)[.].*', field):
-                errors.add(
-                    API_FIELD_ERRORS['invalid_field'] % {'field': field})
-                continue
-
             model_name, name = field.split('.', 1)  # maxsplit of 1
             Model = Plot if model_name == 'plot' else Tree
             standard_fields = Model._meta.get_all_field_names()
