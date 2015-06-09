@@ -166,7 +166,8 @@ class ModelUnicodeTests(OTMTestCase):
 
     def test_field_permission_model(self):
         self.assertEqual(unicode(self.field_permission),
-                         'Tree.readonly - Test Role (%s)' % self.role.pk)
+                         'Tree.readonly - Test Role (%s) - Read Only'
+                         % self.role.pk)
 
     def test_audit_model(self):
         self.assertEqual(

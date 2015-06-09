@@ -609,7 +609,10 @@ class FieldPermission(models.Model):
         unique_together = ('model_name', 'field_name', 'role', 'instance')
 
     def __unicode__(self):
-        return "%s.%s - %s" % (self.model_name, self.field_name, self.role)
+        return "%s.%s - %s - %s" % (self.model_name,
+                                    self.field_name,
+                                    self.role,
+                                    self.choices[self.permission_level][1])
 
     @property
     def allows_reads(self):
