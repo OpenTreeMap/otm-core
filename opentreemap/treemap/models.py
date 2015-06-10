@@ -442,6 +442,9 @@ class Species(UDFModel, PendingAuditable):
     max_diameter = models.IntegerField(default=200)
     max_height = models.IntegerField(default=800)
 
+    updated_at = models.DateTimeField(null=True,  # TODO: remove null=True
+        auto_now=True, editable=False, db_index=True)
+
     objects = GeoHStoreUDFManager()
 
     @property
@@ -1014,6 +1017,9 @@ class Boundary(models.Model):
     name = models.CharField(max_length=255)
     category = models.CharField(max_length=255)
     sort_order = models.IntegerField()
+
+    updated_at = models.DateTimeField(null=True,  # TODO: remove null=True
+        auto_now=True, editable=False, db_index=True)
 
     objects = models.GeoManager()
 
