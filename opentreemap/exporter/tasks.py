@@ -7,6 +7,7 @@ import csv
 
 from contextlib import contextmanager
 from functools import wraps
+from collections import OrderedDict
 from celery import task
 from tempfile import TemporaryFile
 
@@ -49,8 +50,9 @@ def _job_transaction(fn):
     return wrapper
 
 
-def extra_select_and_values_for_model(
-        instance, job, table, model, prefix=None):
+def values_for_model(
+        instance, job, table, model,
+        select, select_params, prefix=None):
     if prefix:
         prefix += '__'
     else:
@@ -58,7 +60,6 @@ def extra_select_and_values_for_model(
 
     perms = permissions(job.user, instance, model)
 
-    extra_select = {}
     prefixed_names = []
     dummy_instance = safe_get_model_class(model)()
 
@@ -77,7 +78,7 @@ def extra_select_and_values_for_model(
             if field_definition_id is None:
                 continue
 
-            extra_select[prefixed_name] = (
+            select[prefixed_name] = (
                 """
                 WITH formatted_data AS (
                     SELECT concat('(', data, ')') as fdata
@@ -92,7 +93,8 @@ def extra_select_and_values_for_model(
                    field_definition_id, table))
         elif field_name.startswith('udf:'):
             name = field_name[4:]
-            extra_select[prefixed_name] = "%s.udfs->'%s'" % (table, name)
+            select[prefixed_name] = "{0}.udfs->%s".format(table)
+            select_params.append(name)
         else:
             if not model_hasattr(dummy_instance, field_name):
                 # Exception will be raised downstream if you look for
@@ -103,7 +105,7 @@ def extra_select_and_values_for_model(
 
         prefixed_names.append(prefixed_name)
 
-    return (extra_select, prefixed_names)
+    return prefixed_names
 
 
 @task
@@ -127,15 +129,18 @@ def async_users_export(job, data_format):
 def async_csv_export(job, model, query, display_filters):
     instance = job.instance
 
+    select = OrderedDict()
+    select_params = []
     if model == 'species':
         initial_qs = (Species.objects.
                       filter(instance=instance))
-
-        extra_select, values = extra_select_and_values_for_model(
-            instance, job, 'treemap_species', 'Species')
-        ordered_fields = values + extra_select.keys()
-        limited_qs = initial_qs.extra(select=extra_select)\
-                               .values(*ordered_fields)
+        values = values_for_model(instance, job, 'treemap_species',
+                                  'Species', select, select_params)
+        ordered_fields = values + select.keys()
+        limited_qs = (initial_qs
+                      .extra(select=select,
+                             select_params=select_params)
+                      .values(*ordered_fields))
     else:
         # model == 'tree'
 
@@ -148,13 +153,16 @@ def async_csv_export(job, model, query, display_filters):
         initial_qs = Filter(query, display_filters, instance)\
             .get_objects(Tree)
 
-        extra_select_tree, values_tree = extra_select_and_values_for_model(
-            instance, job, 'treemap_tree', 'Tree')
-        extra_select_plot, values_plot = extra_select_and_values_for_model(
+        values_tree = values_for_model(
+            instance, job, 'treemap_tree', 'Tree',
+            select, select_params)
+        values_plot = values_for_model(
             instance, job, 'treemap_mapfeature', 'Plot',
+            select, select_params,
             prefix='plot')
-        extra_select_sp, values_sp = extra_select_and_values_for_model(
+        values_sp = values_for_model(
             instance, job, 'treemap_species', 'Species',
+            select, select_params,
             prefix='species')
 
         if 'plot__geom' in values_plot:
@@ -162,22 +170,18 @@ def async_csv_export(job, model, query, display_filters):
             values_plot += ['plot__geom__x', 'plot__geom__y']
 
         get_ll = 'ST_Transform(treemap_mapfeature.the_geom_webmercator, 4326)'
-        extra_select = {'plot__geom__x':
-                        'ST_X(%s)' % get_ll,
-                        'plot__geom__y':
-                        'ST_Y(%s)' % get_ll}
+        select['plot__geom__x'] = 'ST_X(%s)' % get_ll
+        select['plot__geom__y'] = 'ST_Y(%s)' % get_ll
 
-        extra_select.update(extra_select_tree)
-        extra_select.update(extra_select_plot)
-        extra_select.update(extra_select_sp)
-
-        ordered_fields = (sorted(values_tree) +
-                          sorted(values_plot) +
-                          sorted(values_sp))
+        ordered_fields = (sorted(values_tree)
+                          + sorted(values_plot)
+                          + sorted(values_sp))
 
         if ordered_fields:
-            limited_qs = initial_qs.extra(select=extra_select)\
-                                   .values(*ordered_fields)
+            limited_qs = (initial_qs
+                          .extra(select=select,
+                                 select_params=select_params)
+                          .values(*ordered_fields))
         else:
             limited_qs = initial_qs.none()
 

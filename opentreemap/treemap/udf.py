@@ -35,10 +35,12 @@ from treemap.util import safe_get_model_class, to_object_name
 
 # Allow anything except certain known problem characters.
 # NOTE: Make sure to keep the validation error associated with this up-to-date
-# '%' in general makes the Django ORM error out.
-# '__' is also problematic for the Django ORM
-# '.' is fine for the ORM, but made the template system unhappy.
-_UDF_NAME_REGEX = re.compile(r'^[^_%.]+$')
+# * '%' in general makes the Django ORM error out.
+# * '__' is also problematic for the Django ORM
+# * '.' is fine for the ORM, but made the template system unhappy.
+# * '"' makes the ORM error out when building 'AS' clauses and wrapping
+#   them with quotes.
+_UDF_NAME_REGEX = re.compile(r'^[^_"%.]+$')
 
 # Used for collection UDF search on the web
 # if we come to support more udfcs, we can add them here.
@@ -473,8 +475,9 @@ class UserDefinedFieldDefinition(models.Model):
 
         if not _UDF_NAME_REGEX.match(self.name):
             raise ValidationError(
-                {'name': [_("A field name may not contain percent (%), "
-                            "period (.) or underscore (_) characters.")]})
+                {'name': [_('A field name may not contain percent (%), '
+                            'period (.), underscore (_), or quote (") '
+                            'characters.')]})
 
         existing_objects = UserDefinedFieldDefinition\
             .objects\
