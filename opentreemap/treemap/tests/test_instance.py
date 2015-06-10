@@ -5,6 +5,7 @@ from __future__ import division
 
 import json
 from copy import deepcopy
+from django.contrib.gis.geos import MultiPolygon, Polygon
 
 from django.core.exceptions import ValidationError
 
@@ -12,7 +13,7 @@ from treemap.instance import (
     add_species_to_instance, DEFAULT_MOBILE_API_FIELDS, API_FIELD_ERRORS,
     create_stewardship_udfs
 )
-from treemap.models import ITreeRegion
+from treemap.models import ITreeRegion, Species, Boundary
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.species import SPECIES
 from treemap.species.codes import species_codes_for_regions
@@ -44,6 +45,29 @@ class AddSpeciesToInstanceTests(OTMTestCase):
         add_species_to_instance(instance)
         self.assertEqual(len(SPECIES), len(instance.species_set.all()))
 
+
+class ThumbprintTests(OTMTestCase):
+    def test_species_thumbprint(self):
+        instance = make_instance()
+        add_species_to_instance(instance)
+        thumbprint1 = instance.species_thumbprint
+        s = Species.objects.get(instance=instance, common_name='Afghan pine')
+        s.common_name = 'Afghan pony'
+        s.save_with_system_user_bypass_auth()
+        thumbprint2 = instance.species_thumbprint
+        self.assertNotEqual(thumbprint1, thumbprint2)
+
+    def test_boundary_thumbprint(self):
+        g = MultiPolygon(Polygon(((0, 0), (1, 0), (1, 1), (0, 1), (0, 0))))
+        b = Boundary.objects.create(
+            name='n', category='c', sort_order=4, geom=g)
+        b.save()
+        instance = make_instance()
+        thumbprint1 = instance.boundary_thumbprint
+        b.name='n1'
+        b.save()
+        thumbprint2 = instance.boundary_thumbprint
+        self.assertNotEqual(thumbprint1, thumbprint2)
 
 class InstanceMobileApiFieldsTests(OTMTestCase):
     def setUp(self):

@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load instance_config %}
+{% load species_thumbprint %}
 
 <input type="hidden"
        data-typeahead-hidden
@@ -11,6 +12,7 @@
        id="{{ field.label }}-typeahead"
        class="form-control" 
        placeholder="Common or scientific name"
+       data-thumbprint="{{ request|species_thumbprint }}"
        value="{{ field.value.display_name }}"/>
 <input type="hidden"
        value="{{ field.value.id }}"
