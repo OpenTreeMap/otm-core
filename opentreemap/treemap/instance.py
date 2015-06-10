@@ -439,6 +439,47 @@ class Instance(models.Model):
 
         return names
 
+    @property
+    def species_thumbprint(self):
+        # Species autocomplete data lives in browser local storage.
+        # It must be invalidated when a different instance is loaded,
+        # or when the current instance's species are updated.
+        #
+        # To get a unique thumbprint across instances and species updates
+        # we use the instance's latest species update time if available,
+        # and otherwise its url name.
+        from treemap.models import Species
+        thumbprint = None
+        my_species = Species.objects \
+            .filter(instance_id=self.id) \
+            .exclude(updated_at=None) \
+            .order_by('-updated_at')
+        try:
+            thumbprint = my_species[0].updated_at
+        except IndexError:
+            pass
+        return thumbprint or self.url_name
+
+    @property
+    def boundary_thumbprint(self):
+        # Boundary autocomplete data lives in browser local storage.
+        # It must be invalidated when a different instance is loaded,
+        # or when the current instance's species are updated.
+        #
+        # To get a unique thumbprint across instances and boundary updates
+        # we use the latest boundary update time if available,
+        # and otherwise the instance's url name.
+        from treemap.models import Boundary
+        thumbprint = None
+        my_boundaries = Boundary.objects \
+            .exclude(updated_at=None) \
+            .order_by('-updated_at')
+        try:
+            thumbprint = my_boundaries[0].updated_at
+        except IndexError:
+            pass
+        return thumbprint or self.url_name
+
     def update_geo_rev(self):
         qs = Instance.objects.filter(pk=self.id)
 

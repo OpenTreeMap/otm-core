@@ -70,7 +70,12 @@ var create = exports.create = function(options) {
             name: options.name, // Used for caching
             prefetch: {
                 url: options.url,
-                ttl: 0 // TODO: Use high TTL and set thumbprint
+                // Store in browser local storage with key e.g. 'species'.
+                // Not using instance (e.g. 'boston/species') so data from
+                // multiple instances doesn't exceed storage limit.
+                cacheKey: options.name,
+                // Cache buster, must be changed when data changes.
+                thumbprint: $input.data('thumbprint')
             },
             limit: 3000,
             datumTokenizer: function(datum) {
