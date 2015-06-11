@@ -5,7 +5,12 @@
   <label>{% trans "Search by Location" %}</label>
   <div class="search-field-group">
     <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
-    <input type="text" data-class="search" id="boundary-typeahead" class="form-control" placeholder="Address, City, State"/>
+    <input type="text"
+           data-class="search"
+           id="boundary-typeahead"
+           class="form-control"
+           placeholder="Address, City, State"
+           data-thumbprint="{{ request.instance.boundary_thumbprint }}"/>
     <input name="mapFeature.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />
   </div>
 </div>
