@@ -22,7 +22,7 @@ from treemap.lib.object_caches import role_permissions
 from treemap.lib.udf import udf_create
 
 from treemap.udf import UserDefinedFieldDefinition
-from treemap.models import (Plot, User)
+from treemap.models import Instance, Plot, User
 from treemap.audit import (AuthorizeException, FieldPermission, Role,
                            approve_or_reject_audit_and_apply,
                            approve_or_reject_audits_and_apply)
@@ -1082,6 +1082,68 @@ class UdfDeleteTest(OTMTestCase):
         self.assertTrue(qs.exists())
         udf_def.delete()
         self.assertFalse(qs.exists())
+
+    def test_delete_udf_deletes_mobile_api_field(self):
+        udf_def = UserDefinedFieldDefinition(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'string'}),
+            iscollection=False,
+            name='Test string')
+        udf_def.save()
+
+        self.instance.mobile_api_fields = [
+            {'header': 'fields', 'model': 'plot',
+             'field_keys': ['plot.udf:Test string']}]
+        self.instance.save()
+
+        udf_def.delete()
+
+        updated_instance = Instance.objects.get(pk=self.instance.pk)
+        self.assertEquals(
+            0, len(updated_instance.mobile_api_fields[0]['field_keys']))
+
+    def test_delete_cudf_deletes_mobile_api_field_group(self):
+        tree_udf_def = UserDefinedFieldDefinition(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps([{'name': 'pick',
+                                  'type': 'choice',
+                                  'choices': ['a', 'b', 'c']},
+                                 {'type': 'int',
+                                  'name': 'height'}]),
+            iscollection=True,
+            name='Choices')
+        tree_udf_def.save()
+        plot_udf_def = UserDefinedFieldDefinition(
+            instance=self.instance,
+            model_type='Tree',
+            datatype=json.dumps([{'name': 'pick',
+                                  'type': 'choice',
+                                  'choices': ['1', '2', '3']},
+                                 {'type': 'int',
+                                  'name': 'times'}]),
+            iscollection=True,
+            name='Choices')
+        plot_udf_def.save()
+
+        self.instance.mobile_api_fields = [
+            {'header': 'plot', 'model': 'plot', 'field_keys': ['plot.width']},
+            {'header': 'Choices', 'sort_key': 'pick',
+             'collection_udf_keys': ['plot.udf:Choices', 'tree.udf:Choices']}
+        ]
+        self.instance.save()
+
+        tree_udf_def.delete()
+
+        updated_instance = Instance.objects.get(pk=self.instance.pk)
+        self.assertEquals(1, len(
+            updated_instance.mobile_api_fields[1]['collection_udf_keys']))
+
+        plot_udf_def.delete()
+
+        updated_instance = Instance.objects.get(pk=self.instance.pk)
+        self.assertEquals(1, len(updated_instance.mobile_api_fields))
 
 
 class UdfCRUTestCase(OTMTestCase):
