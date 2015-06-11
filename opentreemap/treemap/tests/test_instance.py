@@ -6,6 +6,7 @@ from __future__ import division
 import json
 from copy import deepcopy
 from django.contrib.gis.geos import MultiPolygon, Polygon
+from unittest import skip
 
 from django.core.exceptions import ValidationError
 
@@ -98,6 +99,7 @@ class InstanceMobileApiFieldsTests(OTMTestCase):
             iscollection=False,
             name='Man Units')
 
+    @skip("Skipping until mobile api field validation is re-enabled")
     def test_default_api_fields(self):
         # If the default fields fail validation, that's very bad
         fields = deepcopy(DEFAULT_MOBILE_API_FIELDS)
@@ -116,6 +118,7 @@ class InstanceMobileApiFieldsTests(OTMTestCase):
         self.assertIn('mobile_api_fields', val_err.message_dict)
         self.assertIn(msg, val_err.message_dict['mobile_api_fields'])
 
+    @skip("Skipping until mobile api field validation is re-enabled")
     def test_basic_errors(self):
         self.assert_raises_code(API_FIELD_ERRORS['no_field_groups'], [])
         self.assert_raises_code(API_FIELD_ERRORS['no_field_groups'], {})
@@ -142,6 +145,7 @@ class InstanceMobileApiFieldsTests(OTMTestCase):
              'collection_udf_keys': ['plot.udf:Stewardship']}
         ])
 
+    @skip("Skipping until mobile api field validation is re-enabled")
     def test_collection_udf_errors(self):
         self.assert_raises_code(API_FIELD_ERRORS['group_has_no_sort_key'], [
             {'header': 'Trees', 'sort_key': '',
@@ -184,6 +188,7 @@ class InstanceMobileApiFieldsTests(OTMTestCase):
             ]
         )
 
+    @skip("Skipping until mobile api field validation is re-enabled")
     def test_standard_errors(self):
         self.assert_raises_code(API_FIELD_ERRORS['duplicate_fields'], [
             {'header': 'Fields', 'field_keys': ['tree.udf:Man Units',

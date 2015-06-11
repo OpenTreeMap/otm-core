@@ -561,8 +561,11 @@ class Instance(models.Model):
         # UDFs won't exist when the instance is first created.
         # To work around this, we only validate when there is something in the
         # 'config' object, which ignores the default api fields
-        if 'mobile_api_fields' in self.config:
-            self._validate_mobile_api_fields()
+        # TODO: We have bad data in various envs that fails validation
+        #       Uncomment this after adding a data migration to clean it up
+        # if 'mobile_api_fields' in self.config:
+        #     self._validate_mobile_api_fields()
+        pass
 
     def _validate_mobile_api_fields(self):
         # Validate that:
