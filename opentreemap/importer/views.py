@@ -610,7 +610,7 @@ def cancel(request, instance, import_type, import_event_id):
 
     # If verifications tasks are still scheduled, we need to revoke them
     if ie.task_id:
-        GroupResult(ie.task_id).revoke()
+        GroupResult.restore(ie.task_id).revoke()
 
     return list_imports(request, instance)
 
