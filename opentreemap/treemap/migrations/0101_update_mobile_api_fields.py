@@ -5,14 +5,19 @@ from south.v2 import DataMigration
 from django.db import models
 
 from opentreemap.util import dotted_split
+from treemap.util import to_object_name
 
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        # Fixes a bug from a old data migration, and adds a new field
+        # Fixes a bug from a old data migration, removes unknown field_keys
+        # from existing configs, and adds a new field
         #
         # Migration 0083 incorrectly added a 'field_keys' property to every
         # field group, even on collection UDF groups, which we remove
+        #
+        # We were not changing the mobile_api_field config when deleting or
+        # renaming UDFs, so we remove UDF fields that no longer exist
         #
         # We added a 'model' property to the mobile field groups for
         # standard (not cudf) groups
@@ -20,6 +25,9 @@ class Migration(DataMigration):
         # the first key in a group
         for instance in orm.Instance.objects.all():
             if 'mobile_api_fields' in instance.config:
+                udfs = orm.UserDefinedFieldDefinition.objects.filter(instance=instance)
+                udf_names = [to_object_name(udf.model_type) + '.udf:' + udf.name for udf in udfs]
+
                 for group in instance.config['mobile_api_fields']:
                     if 'field_keys' in group and 'collection_udf_keys' in group:
                         del group['field_keys']
@@ -27,6 +35,12 @@ class Migration(DataMigration):
                     if group.get('field_keys') and 'model' not in group:
                         object_name, __ = dotted_split(group['field_keys'][0], 2, maxsplit=1)
                         group['model'] = object_name
+
+                    for key in group.get('field_keys', []):
+                        if ((key.startswith('plot.udf:') or key.startswith('tree.udf:') and
+                             key not in udf_names)):
+                            group['field_keys'].remove(key)
+                            print("Removing unrecognized field %s from %s" % (key, instance.name))
 
                 print("Updating mobile api fields for %s" % instance.name)
                 instance.save()
