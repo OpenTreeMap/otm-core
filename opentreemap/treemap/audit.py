@@ -22,7 +22,7 @@ from django.conf import settings
 
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name)
-from treemap.util import all_subclasses
+from treemap.util import all_subclasses, leaf_subclasses
 from treemap.lib.object_caches import (permissions, role_permissions,
                                        invalidate_adjuncts, udf_defs)
 from treemap.lib.dates import datesafe_eq
@@ -140,13 +140,15 @@ def approve_or_reject_audits_and_apply(audits, user, approved):
 
 def add_default_permissions(instance, roles=None, models=None):
     # Audit is imported into models, so models can't be imported up top
-    from treemap.models import MapFeature
+    from treemap.models import MapFeaturePhoto
     if roles is None:
         roles = Role.objects.filter(instance=instance)
     if models is None:
-        # MapFeature is "Authorizable", but it is effectively abstract
-        # Only it's subclasses should have permissions added
-        models = all_subclasses(Authorizable) - {MapFeature, PendingAuditable}
+        # We need permissions only on those subclasses of Authorizable
+        # which we instantiate. Those are the leaf nodes of the
+        # subclass tree, plus MapFeaturePhoto (which has subclass
+        # TreePhoto).
+        models = leaf_subclasses(Authorizable) | {MapFeaturePhoto}
 
     for role in roles:
         _add_default_permissions(models, role, instance)

@@ -36,6 +36,7 @@ _identifier_regex = re.compile(
 FIELD_MAPPINGS = {
     'IntegerField': 'int',
     'ForeignKey': 'int',
+    'OneToOneField': 'int',
     'AutoField': 'int',
     'FloatField': 'float',
     'TextField': 'long_string',
@@ -46,10 +47,11 @@ FIELD_MAPPINGS = {
     'NullBooleanField': 'bool',
     'FileField': 'string',
     'PointField': 'point',
-    'MultiPolygonField': 'multipolygon'
+    'MultiPolygonField': 'multipolygon',
+    'PolygonField': 'polygon',
 }
 
-VALID_FIELD_KEYS = ','.join([k for k, v in FIELD_MAPPINGS.iteritems()])
+VALID_FIELD_KEYS = ','.join(FIELD_MAPPINGS.keys())
 
 
 class Variable(Grammar):
