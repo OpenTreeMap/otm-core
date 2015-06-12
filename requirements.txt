@@ -25,4 +25,4 @@ django-apptemplates==0.0.1
 django-queryset-csv>=0.3.0
 python-dateutil==2.2
 pytz==2014.7
-django-tinsel==0.1.0
+django-tinsel==0.1.1

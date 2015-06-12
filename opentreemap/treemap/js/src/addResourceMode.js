@@ -52,6 +52,7 @@ function init(options) {
             type = $option.val(),
             typeName = $option.next().text().trim(),
             areaFieldName = $option.data('area-field-name'),
+            skipDetailForm = $option.data('skip-detail-form') == 'True',
             addFeatureUrl = config.instance.url + 'features/' + type + '/';
         if (type) {
             manager.setAddFeatureUrl(addFeatureUrl);
@@ -61,7 +62,8 @@ function init(options) {
             $summaryHead.text(typeName);
 
             var hasAreaStep = !!areaFieldName;
-            activateAreaStep(hasAreaStep);
+            activateStep(STEP_OUTLINE_AREA, hasAreaStep);
+            activateStep(STEP_DETAILS, !skipDetailForm);
             if (hasAreaStep) {
                 var objectName = type.slice(0, 1).toLowerCase() + type.slice(1);
                 areaFieldIdentifier = objectName + '.' + areaFieldName;
@@ -70,24 +72,26 @@ function init(options) {
             }
             removeAreaPolygon(); // in case user backed up and changed type
 
-            $.ajax({
-                url: config.instance.url + "features/" + type + '/',
-                type: 'GET',
-                dataType: 'html',
-                success: onResourceFormLoaded
-            });
+            if (!skipDetailForm) {
+                $.ajax({
+                    url: config.instance.url + "features/" + type + '/',
+                    type: 'GET',
+                    dataType: 'html',
+                    success: onResourceFormLoaded
+                });
+            }
         }
     }
 
-    function activateAreaStep(hasAreaStep) {
+    function activateStep(step, shouldActivate) {
         var stepCount = manager.stepControls.maxStepNumber + 1;
-        if (!hasAreaStep) {
+        if (!shouldActivate) {
             stepCount--;
         }
         $footerStepCounts.each(function () {
             $(this).text(stepCount);
         });
-        manager.stepControls.activateStep(STEP_OUTLINE_AREA, hasAreaStep);
+        manager.stepControls.activateStep(step, shouldActivate);
     }
 
     function onResourceFormLoaded(html) {

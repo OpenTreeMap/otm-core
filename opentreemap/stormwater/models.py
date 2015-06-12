@@ -9,6 +9,9 @@ from treemap.models import MapFeature
 
 
 class PolygonalMapFeature(MapFeature):
+    area_field_name = 'polygon'
+    skip_detail_form = True
+
     polygon = models.MultiPolygonField(srid=3857)
 
 

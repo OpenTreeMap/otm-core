@@ -18,6 +18,7 @@
                            value="{{ cls.feature_type }}"
                            id="resourceType{{ cls.feature_type }}"
                            data-area-field-name="{{ cls.area_field_name|default_if_none:"" }}"
+                           data-skip-detail-form="{{ cls.skip_detail_form|default:"False" }}"
                     /><label for="resourceType{{ cls.feature_type }}">
                         {{ cls.display_name }}
                     </label>
@@ -27,10 +28,19 @@
         </div>
         {% include "treemap/partials/step_set_location.html" with feature_name=term.resource %}
         <div class="add-step">
+          {% if cls.area_field_name == 'roof_geometry' %}
             <div class="add-step-header">{% trans "Indicate Nearby Roof Area" %}</div>
             <div class="add-step-content">
-                <div class="alert alert-info">Move the dots on the blue polygon to define the borders of the roof area that will drain into your {{ term.resource }}.</div>
+                <div class="alert alert-info">Move the dots on the blue polygon to define the borders of the roof area that will drain into your {{ term.resource }}.
+                </div>
             </div>
+          {% else %}
+            <div class="add-step-header">{% trans "Indicate Polygon Area" %}</div>
+            <div class="add-step-content">
+                <div class="alert alert-info">Move the dots on the blue polygon to define the borders of your {{ term.resource }}.
+                </div>
+            </div>
+          {% endif %}
             {% include 'treemap/partials/step_controls.html' %}
         </div>
         <div class="add-step">

@@ -15,10 +15,10 @@ from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 
-from django_tinsel.utils import decorate as do
+from django_tinsel.utils import LazyEncoder, decorate as do
 from django_tinsel.decorators import json_api_call
 
-from treemap.util import (LazyEncoder, add_visited_instance,
+from treemap.util import (add_visited_instance,
                           get_instance_or_404, login_redirect,
                           can_read_as_super_admin)
 from treemap.exceptions import FeatureNotEnabledException
