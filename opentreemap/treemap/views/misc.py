@@ -14,12 +14,15 @@ from django.core.exceptions import ValidationError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 
+from stormwater.models import PolygonalMapFeature
+
 from treemap.models import User, Species, StaticPage, MapFeature, Instance
 
 from treemap.plugin import get_viewable_instances_filter
 
 from treemap.lib.user import get_audits, get_audits_params
 from treemap.lib import COLOR_RE
+from treemap.util import leaf_subclasses
 
 
 _SCSS_VAR_NAME_RE = re.compile('^[_a-zA-Z][-_a-zA-Z0-9]*$')
@@ -67,12 +70,22 @@ def index(request, instance):
 def get_map_view_context(request, instance):
     resource_classes = [MapFeature.get_subclass(type)
                         for type in instance.map_feature_types]
-    return {
+    context = {
         'fields_for_add_tree': [
             (_('Tree Height'), 'Tree.height')
         ],
-        'resource_classes': resource_classes[1:]
+        'resource_classes': resource_classes[1:],
     }
+    add_map_info_to_context(context, instance)
+    return context
+
+
+def add_map_info_to_context(context, instance):
+    all_polygon_types = {c.map_feature_type
+                         for c in leaf_subclasses(PolygonalMapFeature)}
+    my_polygon_types = set(instance.map_feature_types) & all_polygon_types
+    context['has_polygons'] = len(my_polygon_types) > 0
+    context['has_boundaries'] = instance.boundaries.exists()
 
 
 def static_page(request, instance, page):

@@ -206,7 +206,10 @@
 
         <!-- Maps -->
         <div class="col-md-4">
-          <div id="map" class="map-small"></div>
+          <div id="map" class="map-small"
+               data-has-boundaries="False"
+               data-has-polygons="{{ has_polygons }}">
+          </div>
           <button
              disabled="disabled"
              data-always-enable="{{ last_effective_instance_user|geom_is_writable:feature.feature_type }}"

@@ -25,16 +25,15 @@ MapManager.prototype = {
 
     createTreeMap: function (options) {
         var config = options.config,
+            hasPolygons = getDomMapBool('has-polygons', options.domId),
+            hasBoundaries = getDomMapBool('has-boundaries', options.domId),
             plotLayer = createPlotTileLayer(config),
             allPlotsLayer = createPlotTileLayer(config),
-            boundariesLayer = createBoundariesTileLayer(config),
             utfLayer = createPlotUTFLayer(config);
-
         this._config = config;
         this._plotLayer = plotLayer;
         this._allPlotsLayer = allPlotsLayer;
         this._utfLayer = utfLayer;
-
         allPlotsLayer.setOpacity(0.3);
 
         options.centerWM = options.centerWM || config.instance.center;
@@ -47,10 +46,23 @@ MapManager.prototype = {
             map.addLayer(plotLayer);
             map.addLayer(utfLayer);
             map.utfEvents = BU.leafletEventStream(utfLayer, 'click');
+
+            if (hasPolygons) {
+                var polygonLayer = createPolygonTileLayer(config),
+                    allPolygonsLayer = createPolygonTileLayer(config);
+                this._hasPolygons = hasPolygons;
+                this._polygonLayer = polygonLayer;
+                this._allPolygonsLayer = allPolygonsLayer;
+                allPolygonsLayer.setOpacity(0.3);
+                map.addLayer(polygonLayer);
+            }
         }
 
-        map.addLayer(boundariesLayer);
-        this.layersControl.addOverlay(boundariesLayer, 'Boundaries');
+        if (hasBoundaries) {
+            var boundariesLayer = createBoundariesTileLayer(config);
+            map.addLayer(boundariesLayer);
+            this.layersControl.addOverlay(boundariesLayer, 'Boundaries');
+        }
 
         if (options.trackZoomLatLng) {
             map.on("moveend", _.partial(serializeZoomLatLngFromMap, map));
@@ -96,8 +108,13 @@ MapManager.prototype = {
             var pngUrl = getPlotLayerURL(this._config, 'png');
             this._plotLayer.setUnfilteredUrl(pngUrl);
             this._allPlotsLayer.setUnfilteredUrl(pngUrl);
-
             this._utfLayer.setUrl(getPlotLayerURL(this._config, 'grid.json'));
+
+            if (this._hasPolygons) {
+                pngUrl = getPolygonLayerURL(this._config, 'png');
+                this._polygonLayer.setUnfilteredUrl(pngUrl);
+                this._allPolygonsLayer.setUnfilteredUrl(pngUrl);
+            }
         }
     },
 
@@ -106,9 +123,15 @@ MapManager.prototype = {
 
         if (!this._allPlotsLayer.map) {
             this.map.addLayer(this._allPlotsLayer);
+            if (this._hasPolygons) {
+                this.map.addLayer(this._allPolygonsLayer);
+            }
         }
         if (_.isEmpty(filter)) {
             this.map.removeLayer(this._allPlotsLayer);
+            if (this._hasPolygons) {
+                this.map.removeLayer(this._allPolygonsLayer);
+            }
         }
     },
 
@@ -168,6 +191,14 @@ function createPlotTileLayer(config) {
     return layer;
 }
 
+function createPolygonTileLayer(config) {
+    var url = getPlotLayerURL(config, 'png'),
+        options = _.extend({}, MAX_ZOOM_OPTION, MIN_ZOOM_OPTION),
+        layer = L.tileLayer(getPolygonLayerURL(config, 'png'), options);
+    makeLayerFilterable(layer, url, config);
+    return layer;
+}
+
 function createPlotUTFLayer(config) {
     var layer, url = getPlotLayerURL(config, 'grid.json'),
         options = _.extend({resolution: 4}, MAX_ZOOM_OPTION);
@@ -208,6 +239,10 @@ function getPlotLayerURL(config, extension) {
     return getLayerURL(config, 'treemap_mapfeature', extension);
 }
 
+function getPolygonLayerURL(config, extension) {
+    return getLayerURL(config, 'stormwater_polygonalmapfeature', extension);
+}
+
 function getLayerURL(config, layer, extension) {
     var host = config.tileHost || '';
     return host + '/tile/' +
@@ -226,6 +261,17 @@ function serializeZoomLatLngFromMap(map) {
     var zoom = map.getZoom(),
         center = map.getCenter();
     urlState.setZoomLatLng(zoom, center);
+}
+
+function getDomMapBool(dataAttName, domId) {
+    return (getDomMapAttribute(dataAttName, domId) == 'True');
+}
+
+function getDomMapAttribute(dataAttName, domId) {
+    domId = domId || 'map';
+    var $map = $('#' + domId),
+        value = $map.data(dataAttName);
+    return value;
 }
 
 module.exports = MapManager;
