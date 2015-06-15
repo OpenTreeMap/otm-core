@@ -204,17 +204,16 @@ function createBoundariesTileLayer(config) {
     return L.tileLayer(url, options);
 }
 
-// Leaflet uses {s} to indicate subdomains
+function getPlotLayerURL(config, extension) {
+    return getLayerURL(config, 'treemap_mapfeature', extension);
+}
+
 function getLayerURL(config, layer, extension) {
     var host = config.tileHost || '';
     return host + '/tile/' +
         config.instance.rev +
         '/database/otm/table/' + layer + '/{z}/{x}/{y}.' +
         extension + '?instance_id=' + config.instance.id;
-}
-
-function getPlotLayerURL(config, extension) {
-    return getLayerURL(config, 'treemap_mapfeature', extension);
 }
 
 function deserializeZoomLatLngAndSetOnMap(mapManager, state) {
