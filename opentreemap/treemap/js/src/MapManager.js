@@ -198,6 +198,12 @@ function createPlotUTFLayer(config) {
     return layer;
 }
 
+function createBoundariesTileLayer(config) {
+    var url = getLayerURL(config, 'treemap_boundary', 'png'),
+        options = _.extend({}, MAX_ZOOM_OPTION, MIN_ZOOM_OPTION);
+    return L.tileLayer(url, options);
+}
+
 // Leaflet uses {s} to indicate subdomains
 function getLayerURL(config, layer, extension) {
     var host = config.tileHost || '';
@@ -209,15 +215,6 @@ function getLayerURL(config, layer, extension) {
 
 function getPlotLayerURL(config, extension) {
     return getLayerURL(config, 'treemap_mapfeature', extension);
-}
-
-function getBoundariesLayerURL(config, extension) {
-    return getLayerURL(config, 'treemap_boundary', extension);
-}
-
-function createBoundariesTileLayer(config) {
-    var options = _.extend({}, MAX_ZOOM_OPTION, MIN_ZOOM_OPTION);
-    return L.tileLayer(getBoundariesLayerURL(config, 'png'), options);
 }
 
 function deserializeZoomLatLngAndSetOnMap(mapManager, state) {
