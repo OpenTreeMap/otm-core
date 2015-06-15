@@ -8,7 +8,7 @@ var $ = require('jquery'),
     makeLayerFilterable = require('treemap/makeLayerFilterable'),
     urlState = require('treemap/urlState'),
 
-    _ZOOM_OPTIONS = {maxZoom: 21};
+    MAX_ZOOM_OPTION = {maxZoom: 21};
 
 // Leaflet extensions
 require('utfgrid');
@@ -150,25 +150,25 @@ function getBasemapLayers(config) {
             'Hybrid': makeBingLayer('AerialWithLabels')
         };
     } else if (config.instance.basemap.type === 'tms') {
-        layers = [L.tileLayer(config.instance.basemap.data, _ZOOM_OPTIONS)];
+        layers = [L.tileLayer(config.instance.basemap.data, MAX_ZOOM_OPTION)];
     } else {
-        return {'Streets': new L.Google('ROADMAP', _ZOOM_OPTIONS),
-                'Hybrid': new L.Google('HYBRID', _ZOOM_OPTIONS),
-                'Satellite': new L.Google('SATELLITE', _ZOOM_OPTIONS)};
+        return {'Streets': new L.Google('ROADMAP', MAX_ZOOM_OPTION),
+                'Hybrid': new L.Google('HYBRID', MAX_ZOOM_OPTION),
+                'Satellite': new L.Google('SATELLITE', MAX_ZOOM_OPTION)};
     }
     return layers;
 }
 
 function createPlotTileLayer(config) {
     var url = getPlotLayerURL(config, 'png'),
-        layer = L.tileLayer(url, _ZOOM_OPTIONS);
+        layer = L.tileLayer(url, MAX_ZOOM_OPTION);
     makeLayerFilterable(layer, url, config);
     return layer;
 }
 
 function createPlotUTFLayer(config) {
     var layer, url = getPlotLayerURL(config, 'grid.json'),
-        options = _.extend({resolution: 4}, _ZOOM_OPTIONS);
+        options = _.extend({resolution: 4}, MAX_ZOOM_OPTION);
 
     // Need to use JSONP on on browsers that do not support CORS (IE9)
     // Only applies to plot layer because only UtfGrid is using XmlHttpRequest
@@ -214,7 +214,7 @@ function getBoundariesLayerURL(config, extension) {
 }
 
 function createBoundariesTileLayer(config) {
-    return L.tileLayer(getBoundariesLayerURL(config, 'png'), _ZOOM_OPTIONS);
+    return L.tileLayer(getBoundariesLayerURL(config, 'png'), MAX_ZOOM_OPTION);
 }
 
 function deserializeZoomLatLngAndSetOnMap(mapManager, state) {
