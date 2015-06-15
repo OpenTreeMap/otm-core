@@ -8,7 +8,9 @@ var $ = require('jquery'),
     makeLayerFilterable = require('treemap/makeLayerFilterable'),
     urlState = require('treemap/urlState'),
 
-    MAX_ZOOM_OPTION = {maxZoom: 21};
+    MAX_ZOOM_OPTION = {maxZoom: 21},
+    // Min zoom level for detail layers
+    MIN_ZOOM_OPTION = {minZoom: 15};
 
 // Leaflet extensions
 require('utfgrid');
@@ -214,7 +216,8 @@ function getBoundariesLayerURL(config, extension) {
 }
 
 function createBoundariesTileLayer(config) {
-    return L.tileLayer(getBoundariesLayerURL(config, 'png'), MAX_ZOOM_OPTION);
+    var options = _.extend({}, MAX_ZOOM_OPTION, MIN_ZOOM_OPTION);
+    return L.tileLayer(getBoundariesLayerURL(config, 'png'), options);
 }
 
 function deserializeZoomLatLngAndSetOnMap(mapManager, state) {
