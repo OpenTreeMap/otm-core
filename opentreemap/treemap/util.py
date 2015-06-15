@@ -9,15 +9,11 @@ from collections import OrderedDict
 from urlparse import urlparse
 from django.shortcuts import get_object_or_404, resolve_url
 from django.http import HttpResponse
-from django.utils.encoding import force_str, force_text
-from django.utils.functional import Promise
-from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.encoding import force_str
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.conf import settings
 from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.utils.translation import ugettext_lazy as _
-from django.db.models.fields.files import ImageFieldFile
-from django.contrib.gis.geos import Point
 
 from opentreemap.util import dict_pop
 from treemap.instance import Instance
@@ -125,31 +121,6 @@ def package_field_errors(model_name, validation_error):
             for (field, msgs) in validation_error.message_dict.iteritems()}
 
     return dict
-
-
-# https://docs.djangoproject.com/en/dev/topics/serialization/#id2
-class LazyEncoder(DjangoJSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Promise):
-            return force_text(obj)
-        elif hasattr(obj, 'dict'):
-            return obj.dict()
-        elif isinstance(obj, set):
-            return list(obj)
-        elif hasattr(obj, 'as_dict'):
-            return obj.as_dict()
-        elif isinstance(obj, Point):
-            srid = 4326
-            obj.transform(srid)
-            return {'x': obj.x, 'y': obj.y, 'srid': srid}
-        # TODO: Handle S3
-        elif isinstance(obj, ImageFieldFile):
-            if obj:
-                return obj.url
-            else:
-                return None
-        else:
-            return super(LazyEncoder, self).default(obj)
 
 
 def all_subclasses(cls):

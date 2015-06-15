@@ -48,7 +48,6 @@ FIELD_MAPPINGS = {
     'FileField': 'string',
     'PointField': 'point',
     'MultiPolygonField': 'multipolygon',
-    'PolygonField': 'polygon',
 }
 
 VALID_FIELD_KEYS = ','.join(FIELD_MAPPINGS.keys())
