@@ -25,7 +25,7 @@ MapManager.prototype = {
         var config = options.config,
             plotLayer = createPlotTileLayer(config),
             allPlotsLayer = createPlotTileLayer(config),
-            boundsLayer = createBoundsTileLayer(config),
+            boundariesLayer = createBoundariesTileLayer(config),
             utfLayer = createPlotUTFLayer(config);
 
         this._config = config;
@@ -47,8 +47,8 @@ MapManager.prototype = {
             map.utfEvents = BU.leafletEventStream(utfLayer, 'click');
         }
 
-        map.addLayer(boundsLayer);
-        this.layersControl.addOverlay(boundsLayer, 'Boundaries');
+        map.addLayer(boundariesLayer);
+        this.layersControl.addOverlay(boundariesLayer, 'Boundaries');
 
         if (options.trackZoomLatLng) {
             map.on("moveend", _.partial(serializeZoomLatLngFromMap, map));
@@ -209,12 +209,12 @@ function getPlotLayerURL(config, extension) {
     return getLayerURL(config, 'treemap_mapfeature', extension);
 }
 
-function getBoundsLayerURL(config, extension) {
+function getBoundariesLayerURL(config, extension) {
     return getLayerURL(config, 'treemap_boundary', extension);
 }
 
-function createBoundsTileLayer(config) {
-    return L.tileLayer(getBoundsLayerURL(config, 'png'), _ZOOM_OPTIONS);
+function createBoundariesTileLayer(config) {
+    return L.tileLayer(getBoundariesLayerURL(config, 'png'), _ZOOM_OPTIONS);
 }
 
 function deserializeZoomLatLngAndSetOnMap(mapManager, state) {
