@@ -253,7 +253,7 @@ exports.init = function(options) {
         },
 
         showValidationErrorsInline = function (errors) {
-            $(validationFields).each(function() {
+            $(validationFields).not(globalErrorSection).each(function() {
                 $(this).html('');
             });
             _.each(errors, function (errorList, fieldName) {
