@@ -8,7 +8,9 @@ var $ = require('jquery'),
     makeLayerFilterable = require('treemap/makeLayerFilterable'),
     urlState = require('treemap/urlState'),
 
-    _ZOOM_OPTIONS = {maxZoom: 21};
+    MAX_ZOOM_OPTION = {maxZoom: 21},
+    // Min zoom level for detail layers
+    MIN_ZOOM_OPTION = {minZoom: 15};
 
 // Leaflet extensions
 require('utfgrid');
@@ -23,16 +25,15 @@ MapManager.prototype = {
 
     createTreeMap: function (options) {
         var config = options.config,
+            hasPolygons = getDomMapBool('has-polygons', options.domId),
+            hasBoundaries = getDomMapBool('has-boundaries', options.domId),
             plotLayer = createPlotTileLayer(config),
             allPlotsLayer = createPlotTileLayer(config),
-            boundsLayer = createBoundsTileLayer(config),
             utfLayer = createPlotUTFLayer(config);
-
         this._config = config;
         this._plotLayer = plotLayer;
         this._allPlotsLayer = allPlotsLayer;
         this._utfLayer = utfLayer;
-
         allPlotsLayer.setOpacity(0.3);
 
         options.centerWM = options.centerWM || config.instance.center;
@@ -45,10 +46,23 @@ MapManager.prototype = {
             map.addLayer(plotLayer);
             map.addLayer(utfLayer);
             map.utfEvents = BU.leafletEventStream(utfLayer, 'click');
+
+            if (hasPolygons) {
+                var polygonLayer = createPolygonTileLayer(config),
+                    allPolygonsLayer = createPolygonTileLayer(config);
+                this._hasPolygons = hasPolygons;
+                this._polygonLayer = polygonLayer;
+                this._allPolygonsLayer = allPolygonsLayer;
+                allPolygonsLayer.setOpacity(0.3);
+                map.addLayer(polygonLayer);
+            }
         }
 
-        map.addLayer(boundsLayer);
-        this.layersControl.addOverlay(boundsLayer, 'Boundaries');
+        if (hasBoundaries) {
+            var boundariesLayer = createBoundariesTileLayer(config);
+            map.addLayer(boundariesLayer);
+            this.layersControl.addOverlay(boundariesLayer, 'Boundaries');
+        }
 
         if (options.trackZoomLatLng) {
             map.on("moveend", _.partial(serializeZoomLatLngFromMap, map));
@@ -94,8 +108,13 @@ MapManager.prototype = {
             var pngUrl = getPlotLayerURL(this._config, 'png');
             this._plotLayer.setUnfilteredUrl(pngUrl);
             this._allPlotsLayer.setUnfilteredUrl(pngUrl);
-
             this._utfLayer.setUrl(getPlotLayerURL(this._config, 'grid.json'));
+
+            if (this._hasPolygons) {
+                pngUrl = getPolygonLayerURL(this._config, 'png');
+                this._polygonLayer.setUnfilteredUrl(pngUrl);
+                this._allPolygonsLayer.setUnfilteredUrl(pngUrl);
+            }
         }
     },
 
@@ -104,9 +123,15 @@ MapManager.prototype = {
 
         if (!this._allPlotsLayer.map) {
             this.map.addLayer(this._allPlotsLayer);
+            if (this._hasPolygons) {
+                this.map.addLayer(this._allPolygonsLayer);
+            }
         }
         if (_.isEmpty(filter)) {
             this.map.removeLayer(this._allPlotsLayer);
+            if (this._hasPolygons) {
+                this.map.removeLayer(this._allPolygonsLayer);
+            }
         }
     },
 
@@ -150,25 +175,33 @@ function getBasemapLayers(config) {
             'Hybrid': makeBingLayer('AerialWithLabels')
         };
     } else if (config.instance.basemap.type === 'tms') {
-        layers = [L.tileLayer(config.instance.basemap.data, _ZOOM_OPTIONS)];
+        layers = [L.tileLayer(config.instance.basemap.data, MAX_ZOOM_OPTION)];
     } else {
-        return {'Streets': new L.Google('ROADMAP', _ZOOM_OPTIONS),
-                'Hybrid': new L.Google('HYBRID', _ZOOM_OPTIONS),
-                'Satellite': new L.Google('SATELLITE', _ZOOM_OPTIONS)};
+        return {'Streets': new L.Google('ROADMAP', MAX_ZOOM_OPTION),
+                'Hybrid': new L.Google('HYBRID', MAX_ZOOM_OPTION),
+                'Satellite': new L.Google('SATELLITE', MAX_ZOOM_OPTION)};
     }
     return layers;
 }
 
 function createPlotTileLayer(config) {
     var url = getPlotLayerURL(config, 'png'),
-        layer = L.tileLayer(url, _ZOOM_OPTIONS);
+        layer = L.tileLayer(url, MAX_ZOOM_OPTION);
+    makeLayerFilterable(layer, url, config);
+    return layer;
+}
+
+function createPolygonTileLayer(config) {
+    var url = getPolygonLayerURL(config, 'png'),
+        options = _.extend({}, MAX_ZOOM_OPTION, MIN_ZOOM_OPTION),
+        layer = L.tileLayer(url, options);
     makeLayerFilterable(layer, url, config);
     return layer;
 }
 
 function createPlotUTFLayer(config) {
     var layer, url = getPlotLayerURL(config, 'grid.json'),
-        options = _.extend({resolution: 4}, _ZOOM_OPTIONS);
+        options = _.extend({resolution: 4}, MAX_ZOOM_OPTION);
 
     // Need to use JSONP on on browsers that do not support CORS (IE9)
     // Only applies to plot layer because only UtfGrid is using XmlHttpRequest
@@ -196,25 +229,26 @@ function createPlotUTFLayer(config) {
     return layer;
 }
 
-// Leaflet uses {s} to indicate subdomains
-function getLayerURL(config, layer, extension) {
-    var host = config.tileHost || '';
-    return host + '/tile/' +
-        config.instance.rev +
-        '/database/otm/table/' + layer + '/{z}/{x}/{y}.' +
-        extension + '?instance_id=' + config.instance.id;
+function createBoundariesTileLayer(config) {
+    var url = getLayerURL(config, 'treemap_boundary', 'png'),
+        options = _.extend({}, MAX_ZOOM_OPTION, MIN_ZOOM_OPTION);
+    return L.tileLayer(url, options);
 }
 
 function getPlotLayerURL(config, extension) {
     return getLayerURL(config, 'treemap_mapfeature', extension);
 }
 
-function getBoundsLayerURL(config, extension) {
-    return getLayerURL(config, 'treemap_boundary', extension);
+function getPolygonLayerURL(config, extension) {
+    return getLayerURL(config, 'stormwater_polygonalmapfeature', extension);
 }
 
-function createBoundsTileLayer(config) {
-    return L.tileLayer(getBoundsLayerURL(config, 'png'), _ZOOM_OPTIONS);
+function getLayerURL(config, layer, extension) {
+    var host = config.tileHost || '';
+    return host + '/tile/' +
+        config.instance.rev +
+        '/database/otm/table/' + layer + '/{z}/{x}/{y}.' +
+        extension + '?instance_id=' + config.instance.id;
 }
 
 function deserializeZoomLatLngAndSetOnMap(mapManager, state) {
@@ -227,6 +261,17 @@ function serializeZoomLatLngFromMap(map) {
     var zoom = map.getZoom(),
         center = map.getCenter();
     urlState.setZoomLatLng(zoom, center);
+}
+
+function getDomMapBool(dataAttName, domId) {
+    return (getDomMapAttribute(dataAttName, domId) == 'True');
+}
+
+function getDomMapAttribute(dataAttName, domId) {
+    domId = domId || 'map';
+    var $map = $('#' + domId),
+        value = $map.data(dataAttName);
+    return value;
 }
 
 module.exports = MapManager;

@@ -29,6 +29,7 @@ from treemap.lib.map_feature import (get_map_feature_or_404,
                                      context_dict_for_plot,
                                      context_dict_for_resource,
                                      context_dict_for_map_feature)
+from treemap.views.misc import add_map_info_to_context
 
 
 def _request_to_update_map_feature(request, feature):
@@ -74,6 +75,7 @@ def map_feature_detail(request, instance, feature_id, render=False):
     ctx_fn = (context_dict_for_plot if feature.is_plot
               else context_dict_for_resource)
     context = ctx_fn(request, feature)
+    add_map_info_to_context(context, instance)
 
     if render:
         if feature.is_plot:
