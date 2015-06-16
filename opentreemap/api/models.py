@@ -26,6 +26,9 @@ class APIAccessCredential(models.Model):
 
     enabled = models.BooleanField(default=True)
 
+    def __unicode__(self):
+        return self.access_key
+
     @classmethod
     def create(clz, user=None):
         secret_key = base64.urlsafe_b64encode(os.urandom(64))
