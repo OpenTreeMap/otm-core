@@ -192,9 +192,9 @@ function createPlotTileLayer(config) {
 }
 
 function createPolygonTileLayer(config) {
-    var url = getPlotLayerURL(config, 'png'),
+    var url = getPolygonLayerURL(config, 'png'),
         options = _.extend({}, MAX_ZOOM_OPTION, MIN_ZOOM_OPTION),
-        layer = L.tileLayer(getPolygonLayerURL(config, 'png'), options);
+        layer = L.tileLayer(url, options);
     makeLayerFilterable(layer, url, config);
     return layer;
 }
