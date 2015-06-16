@@ -165,4 +165,69 @@
             margin-left: 1px;
         }
     }
+
+}
+
+// .field-group and .field-row-container are not nested under anything, because they are
+// cloned by dragula when dragging and would lose their styling otherwise
+.field-group {
+    margin-bottom: 10px;
+    border-bottom: 1px solid #CCC;
+
+    &.edit {
+        border: 1px dashed #DDD;
+
+        .field-row {
+            border: 1px dashed #DDD;
+        }
+    }
+    > ul {
+        &.enabled-fields .field-row {
+            background-color: #EEE;
+        }
+        > li {
+            margin: 0.5rem;
+        }
+    }
+    .group-header {
+        background-color: #CCC;
+        padding: 3px;
+
+        .group-controls {
+            display: inline-block;
+            border-right: 1px solid #BBB;
+        }
+    }
+    .disabled-fields .field-controls {
+        display: none !important;
+    }
+    .handle {
+        cursor: move;
+    }
+}
+.field-controls,.group-controls {
+    i {
+        opacity: 0.8;
+        font-size: 1.2rem;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+}
+
+.field-row-container {
+    list-style-type: none;
+    clear: right;
+
+    .field-row {
+        padding: 0.5rem 1.5rem;
+
+        .field-controls {
+            display: inline-block;
+        }
+        input {
+            width: auto;
+        }
+    }
 }

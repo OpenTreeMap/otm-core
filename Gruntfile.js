@@ -254,7 +254,8 @@ module.exports = function(grunt) {
                       'treemap/css/vendor/fontello.css',
                       'treemap/css/vendor/toastr.css',
                       'treemap/css/vendor/leaflet.css',
-                      'treemap/css/vendor/leaflet.draw.css'],
+                      'treemap/css/vendor/leaflet.draw.css',
+                      'treemap/css/vendor/dragula.css'],
                 dest: 'treemap/static/css/vendor.css'
             }
         },

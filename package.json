@@ -6,11 +6,12 @@
   },
   "dependencies": {
     "baconjs": "~0.6",
-    "lodash": "2.4.x",
-    "mustache": "~0.7.2",
-    "moment": "~2.2.1",
     "console-browserify": "~1.0.1",
+    "dragula": "^1.6.1",
     "leaflet-pip": "~0.1.1",
+    "lodash": "2.4.x",
+    "moment": "~2.2.1",
+    "mustache": "~0.7.2",
     "numeral": "1.5.3",
     "ramda": "0.5.x"
   },

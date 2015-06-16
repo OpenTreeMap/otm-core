@@ -160,16 +160,12 @@ def _add_default_permissions(models, role, instance):
     Make an entry for every tracked field of given models, as well as UDFs of
     given instance.
     """
-    from udf import UserDefinedFieldDefinition
-
     perms = []
     for Model in models:
         mobj = Model(instance=instance)
 
         model_name = mobj._model_name
-        udfs = [udf.canonical_name for udf in
-                UserDefinedFieldDefinition.objects.filter(
-                    instance=instance, model_type=model_name)]
+        udfs = [udf.canonical_name for udf in udf_defs(instance, model_name)]
 
         model_fields = set(mobj.tracked_fields + udfs)
 

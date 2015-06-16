@@ -230,8 +230,8 @@ def _resolve_variable(variable, context):
 
 
 def _is_udf(model, udf_field_name):
-            return (hasattr(model, 'udf_field_names') and
-                    udf_field_name in model.udf_field_names)
+    return (hasattr(model, 'udf_field_names') and
+            udf_field_name in model.udf_field_names)
 
 
 def _udf_dict(model, field_name):
