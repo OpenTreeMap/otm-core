@@ -44,7 +44,7 @@ DEFAULT_MOBILE_SEARCH_FIELDS = {
                  'label': 'Missing Photo'}]
 }
 
-DEFAULT_MOBILE_API_FIELDS = [
+DEFAULT_MOBILE_API_FIELDS = (
     {'header': ugettext_noop('Tree Information'),
      'model': 'tree',
      'field_keys': ['tree.species', 'tree.diameter',
@@ -55,7 +55,7 @@ DEFAULT_MOBILE_API_FIELDS = [
     {'header': ugettext_noop('Stewardship'),
      'collection_udf_keys': ['plot.udf:Stewardship', 'tree.udf:Stewardship'],
      'sort_key': 'Date'}
-]
+)
 
 DEFAULT_TREE_STEWARDSHIP_CHOICES = [
     'Watered',

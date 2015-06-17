@@ -584,17 +584,18 @@ class UserDefinedFieldDefinition(models.Model):
                          .filter(model='udf:%s' % self.pk)\
                          .delete()
 
-            for group in self.instance.mobile_api_fields:
-                if self.full_name in group.get('collection_udf_keys', []):
-                    # If this is the only collection UDF with this name,
-                    # we remove the entire group, since there would be no
-                    # eligible items to go *in* the group after deletion
-                    if len([udf for udf in udf_defs(self.instance)
-                            if udf.name == self.name]) == 1:
-                        self.instance.mobile_api_fields.remove(group)
-                    # Otherwise, just remove this UDF from the group
-                    else:
-                        group['collection_udf_keys'].remove(self.full_name)
+            if 'mobile_api_fields' in self.instance.config:
+                for group in self.instance.mobile_api_fields:
+                    if self.full_name in group.get('collection_udf_keys', []):
+                        # If this is the only collection UDF with this name,
+                        # we remove the entire group, since there would be no
+                        # eligible items to go *in* the group after deletion
+                        if len([udf for udf in udf_defs(self.instance)
+                                if udf.name == self.name]) == 1:
+                            self.instance.mobile_api_fields.remove(group)
+                        # Otherwise, just remove this UDF from the group
+                        else:
+                            group['collection_udf_keys'].remove(self.full_name)
                     self.instance.save()
         else:
             Model = safe_get_udf_model_class(self.model_type)
@@ -614,10 +615,13 @@ class UserDefinedFieldDefinition(models.Model):
                          .filter(field=self.canonical_name)\
                          .delete()
 
-            for group in self.instance.mobile_api_fields:
-                if self.full_name in group.get('field_keys', []):
-                    group['field_keys'].remove(self.full_name)
-                    self.instance.save()
+            # If there is no mobile_api_field in the config, that means the
+            # instance is using the default, which should not mutate
+            if 'mobile_api_fields' in self.instance.config:
+                for group in self.instance.mobile_api_fields:
+                    if self.full_name in group.get('field_keys', []):
+                        group['field_keys'].remove(self.full_name)
+                        self.instance.save()
 
         # remove field permissions for this udf
         FieldPermission.objects.filter(
