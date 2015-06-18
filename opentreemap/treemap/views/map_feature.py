@@ -81,7 +81,8 @@ def map_feature_detail(request, instance, feature_id, render=False):
         if feature.is_plot:
             template = 'treemap/plot_detail.html'
         else:
-            template = 'map_features/%s_detail.html' % feature.feature_type
+            app = feature.__module__.split('.')[0]
+            template = '%s/%s_detail.html' % (app, feature.feature_type)
         return render_to_response(template, context, RequestContext(request))
     else:
         return context

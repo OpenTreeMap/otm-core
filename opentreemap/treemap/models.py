@@ -695,7 +695,11 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         Return the concrete subclass instance. For example, if self is
         a MapFeature with subtype Plot, return self.plot
         """
-        return getattr(self, self.feature_type.lower())
+        ft = self.feature_type
+        if hasattr(self, ft.lower()):
+            return getattr(self, ft.lower())
+        else:
+            return getattr(self.polygonalmapfeature, ft.lower())
 
     def __unicode__(self):
         x = self.geom.x if self.geom else "?"
