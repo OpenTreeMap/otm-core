@@ -105,7 +105,8 @@ def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
 
 def render_map_feature_add(request, instance, type):
     if type in instance.map_feature_types[1:]:
-        template = 'map_features/%s_add.html' % type
+        app = MapFeature.get_subclass(type).__module__.split('.')[0]
+        template = '%s/%s_add.html' % (app, type)
         return render_to_response(template, None, RequestContext(request))
     else:
         raise Http404('Instance does not support feature type ' + type)

@@ -72,14 +72,12 @@ function init(options) {
             }
             removeAreaPolygon(); // in case user backed up and changed type
 
-            if (!skipDetailForm) {
-                $.ajax({
-                    url: config.instance.url + "features/" + type + '/',
-                    type: 'GET',
-                    dataType: 'html',
-                    success: onResourceFormLoaded
-                });
-            }
+            $.ajax({
+                url: config.instance.url + "features/" + type + '/',
+                type: 'GET',
+                dataType: 'html',
+                success: onResourceFormLoaded
+            });
         }
     }
 
