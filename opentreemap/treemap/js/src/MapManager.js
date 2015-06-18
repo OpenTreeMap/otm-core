@@ -121,6 +121,10 @@ MapManager.prototype = {
     setFilter: function (filter) {
         this._plotLayer.setFilter(filter);
 
+        if (this._hasPolygons) {
+            this._polygonLayer.setFilter(filter);
+        }
+
         if (!this._allPlotsLayer.map) {
             this.map.addLayer(this._allPlotsLayer);
             if (this._hasPolygons) {
