@@ -356,7 +356,12 @@
                 width: inherit;
                 padding: 0px;
             }
+
+            label{
+                float: right;
+            }
         }
+
         .exportBtn {
             margin-left: 10px;
             margin-top: -2px;

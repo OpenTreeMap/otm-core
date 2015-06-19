@@ -138,6 +138,22 @@
     }
 }
 
+//Patch for label wrapping disabled buttons
+.navbar-inverse{
+    .navbar-nav{
+        li{
+            label{
+                padding: 10px 0;
+
+                a{
+                    color: #9d9d9d;
+                    font-weight: normal;
+                }
+            }
+        }
+    }
+}
+
 @media (max-width: 767px) {
     .navbar {
         margin: 0;
