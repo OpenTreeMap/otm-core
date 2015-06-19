@@ -9,14 +9,14 @@ TODO
 ## Instance
 
 A single installation of OpenTreeMap supports an unlimited number of
-"maps." To avoid confusion with actual map displayed on the explore
-page, the term "instance" is used internally, and in the API.
+"maps." To avoid confusion with actual maps displayed on the explore
+page the term "instance" is used internally, and in the API.
 
 ## Plot
 
 OpenTreeMap tracks the site at which a tree is planted separately from
 the tree itself. For street trees, it is not uncommon for a damaged
-tree to be removed, and a new tree added in its place. The web
+tree to be removed and a new tree added in its place. The web
 application uses the more general "planting site" to refer to the
 location where trees are planted. Internally, and in the API, "plot"
 is used to refer to these locations.
@@ -39,7 +39,7 @@ shared or stored in an easily accessible location.
 ## user (optional)
 
 If an API key is assigned to a specific user, requests using that API
-key will only have access to data accessibly by the assigned user. If
+key will only have access to data accessible by the assigned user. If
 an API key is not assigned to a user, the basic authentication passed
 with the request is used to control access to resources.
 
@@ -47,7 +47,7 @@ with the request is used to control access to resources.
 
 ## Signing requests
 
-The current version of the OpenTreeMap API requires requests be signed using a keyed-hash
+The current version of the OpenTreeMap API requires that requests be signed using a keyed-hash
 message authentication code (HMAC).
 
 References:
@@ -946,10 +946,10 @@ TODO
 
 ## Get nearby plots
 
-Gets the plots instances closest to the specified location,
+Gets the plots closest to the specified location,
 sorted in ascending order by distance.
 
-The location should be specified as lattitue,longitude (e.g. `-75.123,39.727`)
+The location should be specified as latitude,longitude (e.g. `-75.123,39.727`)
 
 Definition:
 
@@ -979,7 +979,7 @@ Each plot returned will have the same schema as [``GET /api/{version}/instance/{
 
 # Get all species
 
-Get all the species defined for the specified instance.
+Get all tree species defined for the specified instance.
 
 Definition:
 
