@@ -1,8 +1,8 @@
 ![OTM2 open source logo](https://opentreemap.github.io/images/logo@2x.png)
 
-[![Code Health](https://landscape.io/github/OpenTreeMap/otm-core/master/landscape.png)](https://landscape.io/github/OpenTreeMap/OTM2/master)
-[![Build Status](https://travis-ci.org/OpenTreeMap/otm-core.svg?branch=master)](https://travis-ci.org/OpenTreeMap/OTM2)
-[![Coverage Status](https://coveralls.io/repos/OpenTreeMap/otm-core/badge.png)](https://coveralls.io/r/OpenTreeMap/OTM2)
+[![Code Health](https://landscape.io/github/OpenTreeMap/otm-core/master/landscape.png)](https://landscape.io/github/OpenTreeMap/otm-core/master)
+[![Build Status](https://travis-ci.org/OpenTreeMap/otm-core.svg?branch=master)](https://travis-ci.org/OpenTreeMap/otm-core)
+[![Coverage Status](https://coveralls.io/repos/OpenTreeMap/otm-core/badge.png)](https://coveralls.io/r/OpenTreeMap/otm-core)
 
 #OpenTreeMap 2
 
