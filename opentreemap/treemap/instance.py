@@ -57,18 +57,6 @@ DEFAULT_MOBILE_API_FIELDS = (
      'sort_key': 'Date'}
 )
 
-DEFAULT_TREE_STEWARDSHIP_CHOICES = [
-    'Watered',
-    'Pruned',
-    'Mulched, Had Compost Added, or Soil Amended',
-    'Cleared of Trash or Debris']
-
-DEFAULT_PLOT_STEWARDSHIP_CHOICES = [
-    'Enlarged',
-    'Changed to Include a Guard',
-    'Changed to Remove a Guard',
-    'Filled with Herbaceous Plantings']
-
 API_FIELD_ERRORS = {
     'no_field_groups': _('Must be a non-empty list'),
 
@@ -118,26 +106,23 @@ def reserved_name_validator(name):
                                 'cannot be used') % {'instancename': name})
 
 
+def create_udfc(instance, model, udfc_name):
+    from treemap.udf import UserDefinedFieldDefinition
+    from treemap.util import safe_get_model_class
+
+    clz = safe_get_model_class(model)
+    udfc, __ = UserDefinedFieldDefinition.objects.get_or_create(
+        instance_id=instance.pk,
+        model_type=model,
+        datatype=json.dumps(clz.collection_udf_defaults[udfc_name]),
+        iscollection=True,
+        name=udfc_name)
+    return udfc
+
+
 def create_stewardship_udfs(instance):
-    from treemap.udf import UserDefinedFieldDefinition  # Circular import
-
-    def create_udf(model, choices):
-        return UserDefinedFieldDefinition.objects.create(
-            instance_id=instance.pk,
-            model_type=model,
-            datatype=json.dumps([
-                {'type': 'choice',
-                 'choices': choices,
-                 'name': 'Action'},
-                {'type': 'date',
-                 'name': 'Date'}]),
-            iscollection=True,
-            name='Stewardship')
-
-    opts = (('Plot', DEFAULT_PLOT_STEWARDSHIP_CHOICES),
-            ('Tree', DEFAULT_TREE_STEWARDSHIP_CHOICES))
-
-    return [create_udf(model, choices) for model, choices in opts]
+    return [create_udfc(instance, model, 'Stewardship')
+            for model in ('Plot', 'Tree')]
 
 
 def add_species_to_instance(instance):
