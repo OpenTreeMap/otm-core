@@ -60,13 +60,10 @@
 
 {% if settings.MODELING_VIEW_NAME %}
   {% if request.instance|feature_enabled:'modeling' %}
-    <li class="dropdown {% block activemodeling %}{% endblock %}">
-      <a class="dropdown-toggle" data-toggle="dropdown">{% trans "Plan" %}</a>
-      <ul class="modeling dropdown-menu">
-        <li><a href="{% url settings.MODELING_VIEW_NAME instance_url_name=request.instance.url_name %}?m=prioritization" class="switch-prioritization-tab">{% trans "Prioritize Planting Sites" %}</a></li>
-        <li><a href="{% url settings.MODELING_VIEW_NAME instance_url_name=request.instance.url_name %}?m=scenarios" class="switch-scenarios-tab">{% trans "Model Urban Forest Scenarios" %}</a></li>
-        <li><a href="">{% trans "Saved Simulations" %}</a></li>
-      </ul>
+    <li class="{% block activemodeling %}{% endblock %}">
+      <a href="{% url settings.MODELING_VIEW_NAME instance_url_name=request.instance.url_name %}">
+        <span class="hidden-xs">{% trans "Plan" %}</span>
+      </a>
     </li>
   {% endif %}
 {% endif %}
