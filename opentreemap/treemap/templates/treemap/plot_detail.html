@@ -52,8 +52,8 @@
   {# Render collection UDF fields for the Tree #}
   {% if tree %}
     {% for udf in tree.collection_udfs %}
-      {% with values=tree.udfs|get:udf.name %}
-          {% include "treemap/partials/collectionudf.html" with udf=udf model=tree values=values %}
+      {% with values=tree.udfs|get:udf.name title_prefix=udf.model_type|display_name %}
+          {% include "treemap/partials/collectionudf.html" with udf=udf title_prefix=title_prefix model=tree values=values %}
         {% endwith %}
     {% endfor %}
   {% endif %}
@@ -86,8 +86,8 @@
 
 {# Render collection UDF fields for the Plot  #}
 {% for udf in plot.collection_udfs %}
-  {% with values=plot.udfs|get:udf.name %}
-    {% include "treemap/partials/collectionudf.html" with udf=udf model=plot values=values %}
+  {% with values=plot.udfs|get:udf.name title_prefix=udf.model_type|display_name %}
+    {% include "treemap/partials/collectionudf.html" with udf=udf title_prefix=title_prefix model=plot values=values %}
   {% endwith %}
 {% endfor %}
 

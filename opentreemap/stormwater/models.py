@@ -16,4 +16,14 @@ class PolygonalMapFeature(MapFeature):
 
 
 class Bioswale(PolygonalMapFeature):
-    pass
+    collection_udf_defaults = {
+        'Stewardship': [
+            {'name': 'Action',
+             'choices': ['Watered',
+                         'Pruned',
+                         'Mulched, Had Compost Added, or Soil Amended',
+                         'Cleared of Trash or Debris'],
+             'type': 'choice'},
+            {'type': 'date',
+             'name': 'Date'}],
+    }

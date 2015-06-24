@@ -724,6 +724,18 @@ class Plot(MapFeature):
 
     objects = GeoHStoreUDFManager()
 
+    collection_udf_defaults = {
+        'Stewardship': [
+            {'name': 'Action',
+             'choices': ['Enlarged',
+                         'Changed to Include a Guard',
+                         'Changed to Remove a Guard',
+                         'Filled with Herbaceous Plantings'],
+             'type': 'choice'},
+            {'type': 'date',
+             'name': 'Date'}],
+    }
+
     @classproperty
     def benefits(cls):
         from treemap.ecobenefits import TreeBenefitsCalculator
@@ -801,6 +813,20 @@ class Tree(Convertible, UDFModel, PendingAuditable):
                                     help_text=_("Date Removed"))
 
     objects = GeoHStoreUDFManager()
+
+    _stewardship_choices = ['Watered',
+                            'Pruned',
+                            'Mulched, Had Compost Added, or Soil Amended',
+                            'Cleared of Trash or Debris']
+
+    collection_udf_defaults = {
+        'Stewardship': [
+            {'name': 'Action',
+             'choices': _stewardship_choices,
+             'type': 'choice'},
+            {'type': 'date',
+             'name': 'Date'}],
+    }
 
     def __unicode__(self):
         diameter_chunk = ("Diameter: %s, " % self.diameter

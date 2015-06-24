@@ -4,6 +4,7 @@
 {% load auth_extras %}
 {% load form_extras %}
 {% load udf %}
+{% load util %}
 
 {% block page_title %} | {% trans "Rain Garden" %} {{ feature.pk }}{% endblock %}
 
@@ -26,6 +27,12 @@
     {% endfor %}
   </tbody>
 </table>
+
+{% for udf in feature.collection_udfs %}
+    {% with values=feature.udfs|get:udf.name %}
+        {% include "treemap/partials/collectionudf.html" with udf=udf model=feature values=values %}
+    {% endwith %}
+{% endfor %}
 
 <!-- Ecosystem Benefits -->
 <div id="ecobenefits">
