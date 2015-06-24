@@ -35,8 +35,8 @@ class PlotEditTest(PlotDetailUITestCase):
         plot_width_field.clear()
         plot_width_field.send_keys('5')
 
-        self.click('#save-edit-plot')
-        self.wait_until_visible('#edit-plot')
+        self.click('#save-edit-map-feature')
+        self.wait_until_visible('#edit-map-feature')
 
         plot = Plot.objects.get(pk=plot.pk)
 

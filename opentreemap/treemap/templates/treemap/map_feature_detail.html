@@ -103,13 +103,15 @@
         <div class="col-md-8">
 {% if feature.is_plot %}
           <p>
-            <button id="edit-plot"
+            <button id="edit-map-feature"
                     data-class="display"
                     disabled="disabled"
                     data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
                     data-href="{{ request.get_full_path }}"
                     data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
                     class="btn btn-sm btn-info">{% trans "Edit" %}</button>
+            <button id="save-edit-map-feature" data-class="edit" class="btn btn-sm btn-primary" style="display: none;">{% trans "Save" %}</button>
+            <button id="cancel-edit-map-feature" data-class="edit" class="btn btn-sm" style="display: none;">{% trans "Cancel" %}</button>
             <button id="delete-plot-or-tree"
                     data-class="display"
                     disabled="disabled"
@@ -122,8 +124,6 @@
                     data-href="{{ request.get_full_path }}"
                     data-disabled-title="{% trans "Deleting of trees is not available to all users" %}"
                     class="btn btn-sm btn-danger">{% trans "Delete" %}</button>
-            <button id="save-edit-plot" data-class="edit" class="btn btn-sm btn-primary" style="display: none;">{% trans "Save" %}</button>
-            <button id="cancel-edit-plot" data-class="edit" class="btn btn-sm" style="display: none;">{% trans "Cancel" %}</button>
           </p>
 
           <!-- Alerts -->
@@ -143,7 +143,7 @@
 {% endif %}
 
           <!-- Map Feature Details -->
-          <form id="plot-form">
+          <form id="map-feature-form">
 
             {# There isn't a field to show "inline" errors for geom fields, so just show it up top #}
             <div class="alert alert-warning" data-class="error" data-field="mapFeature.geom" style="display: none;"></div>
@@ -263,12 +263,12 @@ var mapFeatureOptions = {
     deleteConfirmationBox: '#delete-confirmation-box',
     featureId: {{ feature.id }},
     sidebar: '#sidebar',
-    form: '#plot-form',
+    form: '#map-feature-form',
     inlineEditForm: {
-        form: '#plot-form',
-        edit: '#edit-plot',
-        save: '#save-edit-plot',
-        cancel: '#cancel-edit-plot',
+        form: '#map-feature-form',
+        edit: '#edit-map-feature',
+        save: '#save-edit-map-feature',
+        cancel: '#cancel-edit-map-feature',
         displayFields: '[data-class="display"]',
         editFields: '[data-class="edit"]',
         validationFields: '[data-class="error"]'

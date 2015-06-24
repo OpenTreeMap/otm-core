@@ -41,7 +41,7 @@ exports.init = function(options) {
 
     $('[data-date-format]').datepicker();
 
-    diameterCalculator({ formSelector: '#plot-form',
+    diameterCalculator({ formSelector: '#map-feature-form',
                          cancelStream: form.cancelStream,
                          saveOkStream: form.saveOkStream });
 
