@@ -9,6 +9,32 @@
                 max-height: 68px;
             }
         }
+
+        .action-block {
+            height: 78px;
+            padding: 10px 14px;
+
+            border-left: black;
+            border-left-width: 1px;
+            border-left-style: solid;
+
+            margin-left: 10px;
+
+            .visibility {
+                font-size: 1.0rem;
+                font-weight: bold;
+                padding: 10px
+            }
+
+            .actions {
+                margin: 10px 0 0 0;
+            }
+
+            .private {
+                color: lighten($main-text-color, 70%);
+            }
+        }
+
         .search-block-wrapper {
             margin-top: -5px;
 
