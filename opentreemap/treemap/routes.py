@@ -129,13 +129,13 @@ map_feature_detail = do(
 map_feature_accordion = do(
     instance_request,
     render_template('treemap/partials/map_feature_accordion.html'),
-    feature_views.map_feature_detail)
+    feature_views.context_map_feature_detail)
 
 get_map_feature_sidebar = do(
     instance_request,
     etag(feature_views.map_feature_hash),
     render_template('treemap/partials/sidebar.html'),
-    feature_views.map_feature_detail)
+    feature_views.context_map_feature_detail)
 
 map_feature_popup = do(
     instance_request,
@@ -167,17 +167,16 @@ unfavorite_map_feature = do(
     json_api_edit,
     feature_views.unfavorite_map_feature)
 
+edit_map_feature_detail = do(
+    login_required,
+    instance_request,
+    creates_instance_user,
+    feature_views.render_map_feature_detail)
+
 
 #####################################
 # plot
 #####################################
-
-edit_plot_detail = do(
-    login_required,
-    instance_request,
-    creates_instance_user,
-    render_template('treemap/plot_detail.html'),
-    feature_views.plot_detail)
 
 get_plot_eco = do(
     instance_request,

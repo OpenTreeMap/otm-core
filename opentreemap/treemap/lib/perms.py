@@ -180,6 +180,13 @@ def plot_is_creatable(role_related_obj):
                         predicate=all)
 
 
+def map_feature_is_writable(role_related_obj, model_obj, field=None):
+    return _allows_perm(role_related_obj,
+                        model_obj.__class__.__name__,
+                        perm_attr=ALLOWS_WRITES,
+                        predicate=any, field=field)
+
+
 def plot_is_writable(role_related_obj, field=None):
     return _allows_perm(role_related_obj, 'Plot',
                         perm_attr=ALLOWS_WRITES,

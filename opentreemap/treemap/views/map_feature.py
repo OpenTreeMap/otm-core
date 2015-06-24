@@ -69,12 +69,13 @@ def get_photo_context_and_errors(fn):
     return wrapper
 
 
-def map_feature_detail(request, instance, feature_id, render=False):
+def map_feature_detail(request, instance, feature_id,
+                       render=False, edit=False):
     feature = get_map_feature_or_404(feature_id, instance)
 
     ctx_fn = (context_dict_for_plot if feature.is_plot
               else context_dict_for_resource)
-    context = ctx_fn(request, feature)
+    context = ctx_fn(request, feature, edit=edit)
     add_map_info_to_context(context, instance)
 
     if render:
@@ -83,13 +84,20 @@ def map_feature_detail(request, instance, feature_id, render=False):
         else:
             app = feature.__module__.split('.')[0]
             template = '%s/%s_detail.html' % (app, feature.feature_type)
-        return render_to_response(template, context, RequestContext(request))
+        return render_to_response(template, context,
+                                  RequestContext(request))
     else:
         return context
 
 
-def render_map_feature_detail(*args, **kwargs):
-    return map_feature_detail(*args, render=True, **kwargs)
+def render_map_feature_detail(request, instance, feature_id, **kwargs):
+    return map_feature_detail(request, instance, feature_id, render=True,
+                              **kwargs)
+
+
+def context_map_feature_detail(request, instance, feature_id, **kwargs):
+    return map_feature_detail(request, instance, feature_id, render=False,
+                              **kwargs)
 
 
 def map_feature_photo_detail(request, instance, feature_id, photo_id):
@@ -101,7 +109,7 @@ def map_feature_photo_detail(request, instance, feature_id, photo_id):
 
 def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
     feature = get_map_feature_or_404(feature_id, instance, 'Plot')
-    return context_dict_for_plot(request, feature, edit, tree_id)
+    return context_dict_for_plot(request, feature, edit=edit, tree_id=tree_id)
 
 
 def render_map_feature_add(request, instance, type):
@@ -118,8 +126,8 @@ def add_map_feature(request, instance, type='Plot'):
     return _request_to_update_map_feature(request, feature)
 
 
-def update_map_feature_detail(request, instance, feature_id, type='Plot'):
-    feature = get_map_feature_or_404(feature_id, instance, type)
+def update_map_feature_detail(request, instance, feature_id):
+    feature = get_map_feature_or_404(feature_id, instance)
     return _request_to_update_map_feature(request, feature)
 
 
@@ -212,7 +220,7 @@ def update_map_feature(request_dict, user, feature):
                            if fdef.iscollection]
 
         if ((field in tree_udfc_names and
-             feature.current_tree() is None and
+             feature.safe_get_current_tree() is None and
              value == [])):
             continue
         elif object_name in feature_object_names:
@@ -220,7 +228,7 @@ def update_map_feature(request_dict, user, feature):
         elif object_name == 'tree' and feature.feature_type == 'Plot':
             # Get the tree or spawn a new one if needed
             tree = (tree or
-                    feature.current_tree() or
+                    feature.safe_get_current_tree() or
                     Tree(instance=feature.instance))
 
             # We always edit in display units

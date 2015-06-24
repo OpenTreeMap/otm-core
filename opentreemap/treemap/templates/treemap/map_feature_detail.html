@@ -101,17 +101,23 @@
       </div>
       <div class="row">
         <div class="col-md-8">
-{% if feature.is_plot %}
+{% if feature.is_plot or feature.is_editable %}
           <p>
             <button id="edit-map-feature"
                     data-class="display"
                     disabled="disabled"
-                    data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+                    data-always-enable="{{ last_effective_instance_user|map_feature_is_writable:feature }}"
                     data-href="{{ request.get_full_path }}"
+                    {% if feature.is_plot %}
                     data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
+                    {% else %}
+                    {# TODO: what kind of text do want to put here? Do we want to put this on the model? #}
+                    data-disabled-title="{% trans "Editing of the resource's details is not available to all users" %}"
+                    {% endif %}
                     class="btn btn-sm btn-info">{% trans "Edit" %}</button>
             <button id="save-edit-map-feature" data-class="edit" class="btn btn-sm btn-primary" style="display: none;">{% trans "Save" %}</button>
             <button id="cancel-edit-map-feature" data-class="edit" class="btn btn-sm" style="display: none;">{% trans "Cancel" %}</button>
+{% if feature.is_plot %}
             <button id="delete-plot-or-tree"
                     data-class="display"
                     disabled="disabled"
@@ -124,8 +130,10 @@
                     data-href="{{ request.get_full_path }}"
                     data-disabled-title="{% trans "Deleting of trees is not available to all users" %}"
                     class="btn btn-sm btn-danger">{% trans "Delete" %}</button>
+{% endif %}
           </p>
 
+{% if feature.is_plot %}
           <!-- Alerts -->
           <div id="delete-confirmation-box" data-class="delete" class="alert alert-danger" style="display: none;">
             <p id="delete-tree-warning" style="display: none;">
@@ -140,6 +148,7 @@
             <button id="delete-cancel" class="btn btm-small">{% trans "Cancel" %}</button>
           </div>
           <hr>
+{% endif %}
 {% endif %}
 
           <!-- Map Feature Details -->
@@ -210,6 +219,7 @@
                data-has-boundaries="False"
                data-has-polygons="{{ has_polygons }}">
           </div>
+          {% if feature.is_plot %}
           <button
              disabled="disabled"
              data-always-enable="{{ last_effective_instance_user|geom_is_writable:feature.feature_type }}"
@@ -219,6 +229,7 @@
              id="edit-location"
              class="btn btn-block btn-sm btn-otmsecondary">{% trans "Move Location" %}</button>
           <button class="btn btn-block btn-sm btn-alert" style="display:none" id="cancel-edit-location">{% trans "Cancel Move Location" %}</button>
+          {% endif %}
           <br>
           <div id="street-view" class="street-view-small" style="display: none;"></div>
         </div>
