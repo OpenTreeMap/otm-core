@@ -27,6 +27,12 @@
     }
 }
 
+.toolbar-wrapper {
+    position: absolute;
+    top: 60px;
+    display: inline-block;
+}
+
 .search-wrapper {
     position: absolute;
     right: 15px;
