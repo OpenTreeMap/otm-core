@@ -55,6 +55,9 @@ MapManager.prototype = {
                 this._allPolygonsLayer = allPolygonsLayer;
                 allPolygonsLayer.setOpacity(0.3);
                 map.addLayer(polygonLayer);
+
+                fixZoomLayerSwitch(map, polygonLayer);
+                fixZoomLayerSwitch(map, allPolygonsLayer);
             }
         }
 
@@ -62,6 +65,8 @@ MapManager.prototype = {
             var boundariesLayer = createBoundariesTileLayer(config);
             map.addLayer(boundariesLayer);
             this.layersControl.addOverlay(boundariesLayer, 'Boundaries');
+
+            fixZoomLayerSwitch(map, boundariesLayer);
         }
 
         if (options.trackZoomLatLng) {
@@ -276,6 +281,16 @@ function getDomMapAttribute(dataAttName, domId) {
     var $map = $('#' + domId),
         value = $map.data(dataAttName);
     return value;
+}
+
+// Work around https://github.com/Leaflet/Leaflet/issues/1905
+function fixZoomLayerSwitch(map, layer) {
+    map.on('zoomend', function(e) {
+        var zoom = map.getZoom();
+        if (zoom < MIN_ZOOM_OPTION.minZoom) {
+            layer._clearBgBuffer();
+        }
+    });
 }
 
 module.exports = MapManager;
