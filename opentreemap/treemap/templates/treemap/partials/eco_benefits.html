@@ -44,7 +44,7 @@
   {% localize on %}
   <span id="tree-count">{{ basis.plot.n_total }}</span> {{ tree_count_label }}
   <span id="planting-site-count">{{ basis.plot.n_plots }}</span> {{ plot_count_label }}
-  {% if request.instance.supports_resources and benefits.resource %}
+  {% if request.instance.supports_resources and basis.resource %}
     {% with resource_count=basis.resource.n_total %}
       <span id="resource-count">{{ resource_count }}</span>
       {% if resource_count == 1 %}
