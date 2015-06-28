@@ -7,7 +7,7 @@ var $ = require('jquery'),
     otmTypeahead = require('treemap/otmTypeahead'),
     FH = require('treemap/fieldHelpers'),
     diameterCalculator = require('treemap/diameterCalculator'),
-    plotUdf = require('treemap/plotUdf'),
+    mapFeatureUdf = require('treemap/mapFeatureUdf'),
     plotAddTree = require('treemap/plotAddTree'),
     moment = require('moment');
 
@@ -41,11 +41,11 @@ exports.init = function(options) {
 
     $('[data-date-format]').datepicker();
 
-    diameterCalculator({ formSelector: '#plot-form',
+    diameterCalculator({ formSelector: '#map-feature-form',
                          cancelStream: form.cancelStream,
                          saveOkStream: form.saveOkStream });
 
-    plotUdf.init(form);
+    mapFeatureUdf.init(form);
 
     newTreeIdStream.onValue(initializeTreeIdSection);
     newTitleStream.onValue($('#map-feature-title'), 'html');

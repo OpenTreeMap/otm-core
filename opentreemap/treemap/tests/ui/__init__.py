@@ -324,7 +324,7 @@ class TreemapUITestCase(UITestCase):
             self.wait_until_visible('#sidebar-browse-trees')
         elif whenDone == 'edit':
             # Wait for "save" button on "plot detail" page
-            self.wait_until_visible('#save-edit-plot', 30)
+            self.wait_until_visible('#save-edit-map-feature', 30)
         else:
             # Wait for "Add Tree" step 1
             self.wait_until_visible('#sidebar-add-tree .form-search')

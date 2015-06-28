@@ -14,6 +14,11 @@ class PolygonalMapFeature(MapFeature):
 
     polygon = models.MultiPolygonField(srid=3857)
 
+    @property
+    def is_editable(self):
+        # this is a holdover until we can support editing for all resources
+        return True
+
 
 class Bioswale(PolygonalMapFeature):
     collection_udf_defaults = {

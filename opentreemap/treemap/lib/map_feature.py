@@ -7,6 +7,7 @@ import datetime
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from django.utils.formats import number_format
 from django.utils.translation import ugettext as _
@@ -165,11 +166,8 @@ def get_map_feature_or_404(feature_id, instance, type=None):
         return feature.cast_to_subtype()
 
 
-def context_dict_for_plot(request, plot, edit=False, tree_id=None):
-    context = context_dict_for_map_feature(request, plot)
-
-    if edit:
-        context['editmode'] = edit
+def context_dict_for_plot(request, plot, tree_id=None, **kwargs):
+    context = context_dict_for_map_feature(request, plot, **kwargs)
 
     instance = request.instance
     user = request.user
@@ -249,8 +247,8 @@ def context_dict_for_plot(request, plot, edit=False, tree_id=None):
     return context
 
 
-def context_dict_for_resource(request, resource):
-    context = context_dict_for_map_feature(request, resource)
+def context_dict_for_resource(request, resource, **kwargs):
+    context = context_dict_for_map_feature(request, resource, **kwargs)
     instance = request.instance
 
     # Give them 2 for adding the resource and answering its questions
@@ -307,7 +305,16 @@ def title_for_map_feature(feature):
     return title
 
 
-def context_dict_for_map_feature(request, feature):
+def context_dict_for_map_feature(request, feature, edit=False):
+    context = {}
+
+    if edit:
+        if feature.is_plot or getattr(feature, 'is_editable', False):
+            context['editmode'] = edit
+        else:
+            raise PermissionDenied("Cannot edit '%s' objects"
+                                   % feature.feature_type)
+
     instance = request.instance
     if instance.pk != feature.instance_id:
         raise Exception("Invalid instance, does not match map feature")
@@ -324,7 +331,7 @@ def context_dict_for_map_feature(request, feature):
 
     feature.convert_to_display_units()
 
-    context = {
+    context.update({
         'feature': feature,
         'feature_type': feature.feature_type,
         'title': title_for_map_feature(feature),
@@ -334,7 +341,7 @@ def context_dict_for_map_feature(request, feature):
         'share': None,
         'favorited': favorited,
         'photo_upload_share_text': _photo_upload_share_text(feature),
-    }
+    })
 
     _add_eco_benefits_to_context_dict(instance, feature, context)
 

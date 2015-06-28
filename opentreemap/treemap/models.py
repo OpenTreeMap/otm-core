@@ -701,6 +701,12 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         else:
             return getattr(self.polygonalmapfeature, ft.lower())
 
+    def safe_get_current_tree(self):
+        if hasattr(self, 'current_tree'):
+            return self.current_tree()
+        else:
+            return None
+
     def __unicode__(self):
         x = self.geom.x if self.geom else "?"
         y = self.geom.y if self.geom else "?"

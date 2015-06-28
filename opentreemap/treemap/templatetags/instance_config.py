@@ -46,6 +46,7 @@ def instance_config(instance, field):
 
 udf_write_level = register.filter(perms.udf_write_level)
 geom_is_writable = register.filter(perms.geom_is_writable)
+mapfeature_is_writable = register.filter(perms.map_feature_is_writable)
 plot_is_writable = register.filter(perms.plot_is_writable)
 is_deletable = register.filter(perms.is_deletable)
 is_read_or_write = register.filter(perms.is_read_or_write)
