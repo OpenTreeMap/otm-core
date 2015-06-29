@@ -18,7 +18,7 @@ from treemap.search import Filter
 from treemap.models import Species, Tree
 from treemap.util import safe_get_model_class
 from treemap.audit import model_hasattr, FieldPermission
-from treemap.udf import UserDefinedCollectionValue, UDFC_NAMES
+from treemap.udf import UserDefinedCollectionValue
 
 from treemap.lib.object_caches import udf_defs
 
@@ -27,8 +27,6 @@ from exporter.models import ExportJob
 
 from exporter.user import write_users
 from exporter.util import sanitize_unicode_record
-
-_UDFC_FIELDS = tuple(['udf:' + name for name in UDFC_NAMES])
 
 
 @contextmanager
@@ -61,14 +59,15 @@ def values_for_model(
     perms = permissions(job.user, instance, model)
 
     prefixed_names = []
-    dummy_instance = safe_get_model_class(model)()
+    model_class = safe_get_model_class(model)
+    dummy_instance = model_class()
 
     for perm in (perm for perm in perms
                  if perm.permission_level >= FieldPermission.READ_ONLY):
         field_name = perm.field_name
         prefixed_name = prefix + field_name
 
-        if field_name in _UDFC_FIELDS:
+        if field_name in getattr(model_class, 'collection_udf_settings', {}):
 
             field_definition_id = None
             for udfd in udf_defs(instance, model):

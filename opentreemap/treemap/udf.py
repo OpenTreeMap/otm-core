@@ -33,6 +33,9 @@ from treemap.lib.dates import (parse_date_string_with_or_without_time,
                                DATETIME_FORMAT)
 from treemap.util import safe_get_model_class, to_object_name
 
+from treemap.decorators import classproperty
+
+
 # Allow anything except certain known problem characters.
 # NOTE: Make sure to keep the validation error associated with this up-to-date
 # * '%' in general makes the Django ORM error out.
@@ -41,11 +44,6 @@ from treemap.util import safe_get_model_class, to_object_name
 # * '"' makes the ORM error out when building 'AS' clauses and wrapping
 #   them with quotes.
 _UDF_NAME_REGEX = re.compile(r'^[^_"%.]+$')
-
-# Used for collection UDF search on the web
-# if we come to support more udfcs, we can add them here.
-UDFC_MODELS = ('Tree', 'Plot')
-UDFC_NAMES = ('Stewardship', 'Alerts')
 
 
 def safe_get_udf_model_class(model_string):
@@ -1007,6 +1005,14 @@ class UDFModel(UserTrackable, models.Model):
 
         all_audits = udf_collection_audits | regular_audits
         return Audit.objects.filter(all_audits).order_by('created')
+
+    def search_slug(self):
+        return to_object_name(self.__class__.__name__)
+
+    @classproperty
+    def search_display_name(self):
+        raise NotImplementedError('Please override "%s" on all models'
+                                  'used in udfc searches' % __name__)
 
     def collection_udfs_audit_ids(self):
         return self.static_collection_udfs_audit_ids(

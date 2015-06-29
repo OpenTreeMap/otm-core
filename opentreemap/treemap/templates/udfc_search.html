@@ -2,73 +2,43 @@
 {% load instance_config %}
 
 {# these with statements are rough, but it makes the markup easier to read #}
-{% with stewardship=advanced_search_fields.udfc.stewardship %}
-{% with alerts=advanced_search_fields.udfc.alerts %}
-{% if stewardship or alerts %}
-
-{% with t_stew_allowed=last_effective_instance_user|udf_write_level:stewardship.tree.udfd|is_read_or_write %}
-{% with p_stew_allowed=last_effective_instance_user|udf_write_level:stewardship.plot.udfd|is_read_or_write %}
-
-{% with t_alerts_allowed=last_effective_instance_user|udf_write_level:alerts.tree.udfd|is_read_or_write %}
-{% with p_alerts_allowed=last_effective_instance_user|udf_write_level:alerts.plot.udfd|is_read_or_write %}
-
-{% if t_stew_allowed or p_stew_allowed or t_alerts_allowed or p_alerts_allowed %}
+{% with udfc_search_data=request.instance|get_udfc_search_fields:request.user %}
+{% with udfc=udfc_search_data.udfc %}
+{% if udfc %}
 
 <div class="udfc-search clearfix hidden-xs">
   <span>{% trans "I am looking for" %}</span>
   <label class="udfc-label">
     <select id="udfc-search-model">
       <option data-class="udfc-placeholder" selected />
-      {% if t_stew_allowed or t_alerts_allowed %}
-      {% if stewardship.tree.fields or alerts.tree.fields %}
-      <option data-model="tree">{% trans "trees" %}</option>
-      {% endif %}
-      {% endif %}
-      {% if p_stew_allowed or p_alerts_allowed %}
-      {% if stewardship.plot.fields or alerts.plot.fields %}
-      <option data-model="plot">{% trans "planting sites" %}</option>
-      {% endif %}
-      {% endif %}
+      {% for model in udfc_search_data.models %}
+      <option data-model="{{ model.search_slug }}">{{ model.search_display_name }}</option>
+      {% endfor %}
     </select>
   </label>
 
   <label class="udfc-label">
     <select id="udfc-search-type">
       <option data-class="udfc-placeholder" selected />
-      {% if stewardship %}
-      {% if t_stew_allowed or p_stew_allowed %}
-      <option data-type="stewardship"
-              data-plot-udfd-id="{{ stewardship.plot.udfd.pk }}"
-              data-tree-udfd-id="{{ stewardship.tree.udfd.pk }}"
-              data-date-field-key="Date"
-              data-action-field-key="Action"
-              >{% trans "that have been" %}</option>
-      {% endif %}
-      {% endif %}
-
-      {% if alerts %}
-      {% if t_alerts_allowed or p_alerts_allowed %}
-      <option data-type="alerts"
-              data-plot-udfd-id="{{ alerts.plot.udfd.pk }}"
-              data-tree-udfd-id="{{ alerts.tree.udfd.pk }}"
-              data-date-field-key="Date Noticed"
-              data-action-field-key="Action Needed"
-              >{% trans "with open alerts for" %}</option>
-      {% endif %}
-      {% endif %}
+      {% for udfd_name, udfd_data in udfc.items %}
+      <option data-type="{{ udfd_name }}"
+              {% for model_name, model_data in udfd_data.models.items %}
+              data-{{ model_name }}-udfd-id="{{ model_data.udfd.pk }}"
+              {% endfor %}
+              data-date-field-key="{{ udfd_data.range_field_key }}"
+              data-action-field-key="{{ udfd_data.action_field_key }}"
+              >{{ udfd_data.action_verb }}</option>
+      {% endfor %}
     </select>
   </label>
 
-
   <div id="udfc-extra-clauses" style="display: none">
-    {% if alerts %}
-    {% if t_alerts_allowed or p_alerts_allowed %}
+    {% if alerts in udfc %}
     <input id="alerts-resolved"
            data-type="alerts"
            data-field="Status"
            data-search-type="IS"
            value="Unresolved"/>
-    {% endif %}
     {% endif %}
   </div>
 
@@ -76,29 +46,13 @@
   <label class="udfc-label">
     <select id="udfc-search-action" data-search-type="IS">
       <option data-class="udfc-placeholder" selected />
-      {% if t_stew_allowed %}
-      {% for action in stewardship.tree.fields %}
-      <option data-model="tree" data-type="stewardship">{{ action }}</option>
+      {% for udfd_name, udfd_data in udfc.items %}
+      {% for model_name, model_data in udfd_data.models.items %}
+      {% for action in model_data.fields %}
+      <option data-model="{{ model_name }}" data-type="{{ udfd_name }}">{{ action }}</option>
       {% endfor %}
-      {% endif %}
-
-      {% if t_alerts_allowed %}
-      {% for action in alerts.tree.fields %}
-      <option data-model="tree" data-type="alerts">{{ action }}</option>
       {% endfor %}
-      {% endif %}
-
-      {% if p_stew_allowed %}
-      {% for action in stewardship.plot.fields %}
-      <option data-model="plot" data-type="stewardship">{{ action }}</option>
       {% endfor %}
-      {% endif %}
-
-      {% if p_alerts_allowed %}
-      {% for action in alerts.plot.fields %}
-      <option data-model="plot" data-type="alerts">{{ action }}</option>
-      {% endfor %}
-      {% endif %}
     </select>
   </label>
 
@@ -114,12 +68,6 @@
          />
 
 </div>
-{% endif %}
-{% endwith %}
-{% endwith %}
-{% endwith %}
-{% endwith %}
-
 {% endif %}
 
 {% endwith %}

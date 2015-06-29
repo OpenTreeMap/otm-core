@@ -31,6 +31,7 @@ var nameTemplate = _.template('udf:<%= modelName %>:<%= udfFieldDefId %>.<%= fie
             stateModifiers: {
                 type: getOptionAttr('data-type'),
                 plotUdfFieldDefId: getOptionAttr('data-plot-udfd-id'),
+                bioswaleUdfFieldDefId: getOptionAttr('data-bioswale-udfd-id'),
                 treeUdfFieldDefId: getOptionAttr('data-tree-udfd-id'),
                 actionFieldKey: getOptionAttr('data-action-field-key'),
                 dateFieldKey: getOptionAttr('data-date-field-key'),
@@ -72,6 +73,7 @@ function makeNameAttribute (state, fieldKey) {
         udfFieldDefId = state[state.modelName + 'UdfFieldDefId'],
         requiredFields = [modelName,
                           state.plotUdfFieldDefId,
+                          state.bioswaleUdfFieldDefId,
                           state.treeUdfFieldDefId,
                           state.actionFieldKey,
                           state.dateFieldKey,
@@ -213,8 +215,9 @@ function applyFilterObjectToDom(bus, filterObject) {
         .find('option')
         .filter('[data-' + cleanModelName + '-udfd-id="' + udfFieldDefId + '"]');
 
-    state.treeUdfFieldDefId = $typeEl.attr('data-tree-udfd-id');
     state.plotUdfFieldDefId = $typeEl.attr('data-plot-udfd-id');
+    state.bioswaleUdfFieldDefId = $typeEl.attr('data-bioswale-udfd-id');
+    state.treeUdfFieldDefId = $typeEl.attr('data-tree-udfd-id');
     state.dateFieldKey = $typeEl.attr('data-date-field-key');
     state.actionFieldKey = $typeEl.attr('data-action-field-key');
     state.type = $typeEl.attr('data-type');
