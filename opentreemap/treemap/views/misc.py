@@ -6,13 +6,15 @@ from __future__ import division
 import string
 import re
 import sass
+import json
 
 from django.utils.translation import ugettext as _
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render_to_response
+from django.template import RequestContext
 
 from stormwater.models import PolygonalMapFeature
 
@@ -227,3 +229,29 @@ def public_instances_geojson(request):
                  }))
 
     return [instance_geojson(instance) for instance in instances]
+
+
+def error_page(status_code):
+    template = '%s.html' % status_code
+
+    def inner_fn(request):
+        reasons = {
+            404: _('URL or resource not found'),
+            500: _('An unhandled error occured'),
+            503: _('Resource is temporarily unavailable')
+        }
+
+        # API requests with an unhandled error should return JSON, not HTML
+        if ((request.path.startswith('/api/') or
+             'application/json' in request.META.get('HTTP_ACCEPT', ''))):
+            response = HttpResponse(json.dumps(
+                {'status': 'Failure', 'reason': reasons[status_code]}),
+                content_type='application/json')
+        else:
+            response = render_to_response(
+                template, context_instance=RequestContext(request))
+
+        response.status_code = status_code
+        return response
+
+    return inner_fn

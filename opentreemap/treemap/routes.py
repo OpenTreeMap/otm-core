@@ -67,9 +67,9 @@ instances_geojson = do(
     json_api_call,
     misc_views.public_instances_geojson)
 
-error_404_page = render_template('404.html')(statuscode=404)
-error_500_page = render_template('500.html')(statuscode=500)
-error_503_page = render_template('503.html')(statuscode=503)
+error_404_page = misc_views.error_page(status_code=404)
+error_500_page = misc_views.error_page(status_code=500)
+error_503_page = misc_views.error_page(status_code=503)
 
 #####################################
 # utility views
