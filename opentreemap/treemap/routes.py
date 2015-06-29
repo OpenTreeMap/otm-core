@@ -7,8 +7,6 @@ from functools import partial
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import etag
-
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import (route, json_api_call, render_template,
                                       string_to_response,
@@ -17,7 +15,7 @@ from django_tinsel.decorators import (route, json_api_call, render_template,
 from treemap.decorators import (login_or_401, return_400_if_validation_errors,
                                 require_http_method, requires_feature,
                                 creates_instance_user, instance_request,
-                                admin_instance_request, json_api_edit)
+                                admin_instance_request, json_api_edit, etag)
 
 import treemap.views.user as user_views
 import treemap.views.photo as photo_views

@@ -6,13 +6,15 @@ from __future__ import division
 import json
 from functools import wraps
 
+from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.core.exceptions import PermissionDenied
 from django.http import (HttpResponse, HttpResponseBadRequest,
                          HttpResponseRedirect)
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import (require_http_methods,
+                                          etag as django_etag)
 from django.contrib.auth.decorators import login_required
 
 from django_tinsel.utils import LazyEncoder, decorate as do
@@ -193,6 +195,20 @@ def creates_instance_user(view_fn):
         return view_fn(request, instance, *args, **kwargs)
 
     return wrapper
+
+
+def identity(view_fn):
+    @wraps(view_fn)
+    def wrapper(*args, **kwargs):
+        return view_fn(*args, **kwargs)
+    return wrapper
+
+
+def etag(*args, **kwargs):
+    if settings.ENABLE_ETAG_CACHING is True or settings.DEBUG is False:
+        return django_etag(*args, **kwargs)
+    else:
+        return identity
 
 
 class classproperty(property):
