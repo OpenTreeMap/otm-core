@@ -238,7 +238,6 @@ UNMANAGED_APPS = (
     'django.contrib.humanize',
     'django_hstore',
     'djcelery',
-    'south',
 )
 
 I18N_APPS = (

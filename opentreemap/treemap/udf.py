@@ -931,9 +931,6 @@ class _UDFProxy(UDFField):
     def to_python(self, value):
         return value
 
-from south.modelsinspector import add_introspection_rules
-add_introspection_rules([], ["^treemap\.udf\.UDFField"])
-
 
 class UDFModelBase(ModelBase):
 

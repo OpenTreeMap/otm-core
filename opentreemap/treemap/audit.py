@@ -1188,11 +1188,6 @@ class Audit(models.Model):
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     updated = models.DateTimeField(auto_now=True, db_index=True)
 
-    # TODO: this does nothing because south manages this app
-    # and we're still on 0.7.x, which doesn't support index_together
-    # after an upgrade to south 0.8.x or, more likely, to django 1.7,
-    # this will be kept in sync with database versioning. For now,
-    # it is manually managed using migration 0081.
     class Meta:
         index_together = [
             ['instance', 'user', 'updated']
