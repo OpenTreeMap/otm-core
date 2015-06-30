@@ -17,11 +17,11 @@ from django.db.models.base import ModelBase
 from django.db.models.sql.constants import ORDER_PATTERN
 from django.db.models.signals import post_save, post_delete
 
-from django.contrib.gis.db.models.sql.query import GeoQuery
+from django.db.models.sql.query import Query
 
 from django_hstore.fields import DictionaryField, HStoreDict
 from django_hstore.managers import HStoreManager, HStoreGeoManager
-from django_hstore.query import HStoreGeoQuerySet, HStoreGeoWhereNode
+from django_hstore.query import HStoreGeoQuerySet, HStoreWhereNode
 
 from treemap.instance import Instance
 from treemap.audit import (UserTrackable, Audit, UserTrackingException,
@@ -1248,7 +1248,7 @@ def _is_scalar_udf(lvalue):
     return isinstance(lvalue.col, tuple) and lvalue.col[0] == 'udf'
 
 
-class UDFWhereNode(HStoreGeoWhereNode):
+class UDFWhereNode(HStoreWhereNode):
     """
     This class allows us to write the where clauses for a
     query that looks something like:
@@ -1316,13 +1316,14 @@ class UDFWhereNode(HStoreGeoWhereNode):
 UDF_ORDER_PATTERN = re.compile(r'(-?)([a-zA-Z]+)\.udf\:(.+)$')
 
 
-class UDFQuery(GeoQuery):
+class UDFQuery(Query):
     """
     UDF Query encapsulates query compilation changes. In particular,
     it injects UDFWhereNode as the default WhereNode type (which can
     not be overwritten)
-    NOTE: This class *must* inherit from GeoQuery, not HstoreGeoQuery
-          HStoreGeoQuery will overwrite our WhereNode with it's own
+    TODO: Is this true?
+    NOTE: This class *must* inherit from Query, not HstoreQuery
+          HStoreQuery will overwrite our WhereNode with it's own
     """
 
     def __init__(self, model):
@@ -1396,9 +1397,9 @@ class UDFQuerySet(HStoreGeoQuerySet):
     This class exists mainly to provide an injection point
     for UDFQuery
     """
-    def __init__(self, model=None, query=None, using=None):
+    def __init__(self, model=None, query=None, using=None, hints=None):
         super(UDFQuerySet, self).__init__(
-            model=model, query=query, using=using)
+            model=model, query=query, using=using, hints=hints)
         self.query = query or UDFQuery(model)
 
 

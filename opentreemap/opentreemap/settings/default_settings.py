@@ -225,7 +225,7 @@ MANAGED_APPS = (
 
 UNMANAGED_APPS = (
     'threadedcomments',
-    'django.contrib.comments',
+    'django_comments',
     'registration',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -266,6 +266,10 @@ RESERVED_INSTANCE_URL_NAMES = (
 # that period, the account will remain permanently inactive and
 # may be deleted by maintenance scripts provided in django-registration.
 ACCOUNT_ACTIVATION_DAYS = 7
+
+# Django-registration-redux sends HTML emails by default as of version 1.2
+# Disabling them for now until we add some new email templates
+REGISTRATION_EMAIL_HTML = False
 
 #
 # Units and decimal digits for fields and eco values
