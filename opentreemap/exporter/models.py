@@ -29,7 +29,7 @@ class ExportJob(models.Model):
     STATUS_CHOICES = {
         UNCAUGHT_EXCEPTION_ERROR: 'Something went wrong with your export.',
         PENDING: 'Pending',
-        EMPTY_QUERYSET_ERROR: 'Query returned no results',
+        EMPTY_QUERYSET_ERROR: 'Query returned no trees or planting sites.',
         MODEL_PERMISSION_ERROR: 'User has no permissions on this model',
         COMPLETE: 'Ready',
     }
