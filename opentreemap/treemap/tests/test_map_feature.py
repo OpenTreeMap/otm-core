@@ -4,10 +4,9 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from contextlib import contextmanager
+from unittest.case import skip
 
 from django.contrib.gis.geos import Point
-
-from django.utils.unittest.case import skip
 
 from treemap.models import (Tree, Plot, MapFeature)
 from treemap.instance import Instance

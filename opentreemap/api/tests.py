@@ -12,13 +12,13 @@ import os
 import json
 import base64
 import datetime
+from unittest.case import skip
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 from django.test.utils import override_settings
 from django.test.client import Client, RequestFactory, ClientHandler
 from django.http import HttpRequest
-from django.utils.unittest.case import skip
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse

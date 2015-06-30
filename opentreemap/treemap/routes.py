@@ -78,7 +78,7 @@ error_503_page = misc_views.error_page(status_code=503)
 root_settings_js = render_template('treemap/settings.js')(
     {'BING_API_KEY':
      settings.BING_API_KEY},
-    mimetype='application/javascript')
+    content_type='application/javascript')
 
 instance_settings_js = instance_request(root_settings_js)
 

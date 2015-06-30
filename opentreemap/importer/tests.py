@@ -11,12 +11,12 @@ import psycopg2
 
 from datetime import date
 from StringIO import StringIO
+from unittest.case import skip, skipIf
 
 from django.conf import settings
 from django.db import connection
 from django.test import TestCase
 from django.test.utils import override_settings
-from django.utils.unittest.case import skip, skipIf
 from django.http import HttpRequest
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
