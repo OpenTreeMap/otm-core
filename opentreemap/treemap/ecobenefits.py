@@ -80,6 +80,21 @@ class BenefitCalculator(object):
         return {}
 
 
+class CountOnlyBenefitCalculator(BenefitCalculator):
+    def __init__(self, clz):
+        self.clz = clz
+
+    def benefits_for_filter(self, instance, item_filter):
+        features = item_filter.get_objects(self.clz)
+        return ({},
+                {'resource':
+                 {'n_objects_used': 0,
+                  'n_objects_discarded': features.count()}})
+
+    def benefits_for_object(self, instance, obj):
+        return {}, {}, None
+
+
 class TreeBenefitsCalculator(BenefitCalculator):
     def _make_sql_from_query(self, query):
         sql, params = query.sql_with_params()

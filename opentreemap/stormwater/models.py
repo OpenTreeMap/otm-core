@@ -5,7 +5,9 @@ from __future__ import division
 
 from django.contrib.gis.db import models
 
-from treemap.models import MapFeature
+from treemap.decorators import classproperty
+from treemap.models import MapFeature, GeoHStoreUDFManager
+from treemap.ecobenefits import CountOnlyBenefitCalculator
 
 
 class PolygonalMapFeature(MapFeature):
@@ -14,13 +16,21 @@ class PolygonalMapFeature(MapFeature):
 
     polygon = models.MultiPolygonField(srid=3857)
 
+    objects = GeoHStoreUDFManager()
+
     @property
     def is_editable(self):
         # this is a holdover until we can support editing for all resources
         return True
 
+    @classproperty
+    def benefits(cls):
+        return CountOnlyBenefitCalculator(cls)
+
 
 class Bioswale(PolygonalMapFeature):
+    objects = GeoHStoreUDFManager()
+
     collection_udf_defaults = {
         'Stewardship': [
             {'name': 'Action',
