@@ -44,6 +44,12 @@ def instance_config(instance, field):
     else:
         return None
 
+
+@register.filter
+def get_udfc_search_fields(instance, user):
+    return instance.get_udfc_search_fields(user)
+
+
 udf_write_level = register.filter(perms.udf_write_level)
 geom_is_writable = register.filter(perms.geom_is_writable)
 mapfeature_is_writable = register.filter(perms.map_feature_is_writable)

@@ -369,17 +369,4 @@ class InstanceTest(OTMTestCase):
     def test_advanced_search_fields(self):
         instance = make_instance()
         self.assertEqual(instance.advanced_search_fields,
-                         {'standard': [], 'missing': [],
-                          'display': [], 'udfc': {
-                              'alerts': {
-                                  'plot': {'fields': [],
-                                           'udfd': None},
-                                  'tree': {'fields': [],
-                                           'udfd': None}},
-                              'stewardship': {
-                                  'plot':
-                                  {'fields': [],
-                                   'udfd': None},
-                                  'tree':
-                                  {'fields': [],
-                                   'udfd': None}}}})
+                         {'standard': [], 'missing': [], 'display': []})

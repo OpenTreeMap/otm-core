@@ -27,6 +27,7 @@ class ParseException (Exception):
 
 
 DEFAULT_MAPPING = {'plot': '',
+                   'bioswale': '',
                    'tree': 'tree__',
                    'species': 'tree__species__',
                    'treePhoto': 'tree__treephoto__',
@@ -34,6 +35,7 @@ DEFAULT_MAPPING = {'plot': '',
                    'mapFeature': ''}
 
 TREE_MAPPING = {'plot': 'plot__',
+                'bioswale': 'bioswale__',
                 'tree': '',
                 'species': 'species__',
                 'treePhoto': 'treephoto__',

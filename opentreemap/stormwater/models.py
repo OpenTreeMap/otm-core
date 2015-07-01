@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib.gis.db import models
+from django.utils.translation import ugettext_lazy as _
 
 from treemap.decorators import classproperty
 from treemap.models import MapFeature, GeoHStoreUDFManager
@@ -31,14 +32,23 @@ class PolygonalMapFeature(MapFeature):
 class Bioswale(PolygonalMapFeature):
     objects = GeoHStoreUDFManager()
 
-    collection_udf_defaults = {
-        'Stewardship': [
-            {'name': 'Action',
-             'choices': ['Watered',
-                         'Pruned',
-                         'Mulched, Had Compost Added, or Soil Amended',
-                         'Cleared of Trash or Debris'],
-             'type': 'choice'},
-            {'type': 'date',
-             'name': 'Date'}],
+    collection_udf_settings = {
+        'Stewardship': {
+            'range_field_key': 'Date',
+            'action_field_key': 'Action',
+            'action_verb': 'that have been',
+            'defaults': [
+                {'name': 'Action',
+                 'choices': ['Watered',
+                             'Pruned',
+                             'Mulched, Had Compost Added, or Soil Amended',
+                             'Cleared of Trash or Debris'],
+                 'type': 'choice'},
+                {'type': 'date',
+                 'name': 'Date'}],
+        }
     }
+
+    @classproperty
+    def search_display_name(cls):
+        return _('bioswales')

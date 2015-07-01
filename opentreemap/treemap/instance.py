@@ -15,8 +15,7 @@ import hashlib
 import json
 from urllib import urlencode
 
-from copy import deepcopy
-
+from treemap.DotDict import DotDict
 from treemap.species import SPECIES
 from treemap.species.codes import ITREE_REGIONS
 from treemap.json_field import JSONField
@@ -114,7 +113,8 @@ def create_udfc(instance, model, udfc_name):
     udfc, __ = UserDefinedFieldDefinition.objects.get_or_create(
         instance_id=instance.pk,
         model_type=model,
-        datatype=json.dumps(clz.collection_udf_defaults[udfc_name]),
+        datatype=json.dumps(clz.collection_udf_settings[udfc_name]
+                            .get('defaults')),
         iscollection=True,
         name=udfc_name)
     return udfc
@@ -280,8 +280,7 @@ class Instance(models.Model):
         # TODO pull from the config once users have a way to set search fields
 
         if not self.feature_enabled('advanced_search_filters'):
-            return {'standard': [], 'missing': [], 'display': [],
-                    'udfc': self._get_udfc_search_fields()}
+            return {'standard': [], 'missing': [], 'display': []}
 
         from treemap.models import MapFeature  # prevent circular import
 
@@ -334,36 +333,43 @@ class Instance(models.Model):
                 field['id'] = "%s_%s" % (field.get('identifier', ''), num)
                 num += 1
 
-        fields['udfc'] = self._get_udfc_search_fields()
-
         return fields
 
-    def _get_udfc_search_fields(self):
-        from treemap.udf import UDFC_MODELS, UDFC_NAMES
-        from treemap.util import to_object_name
+    def get_udfc_search_fields(self, user):
+        from treemap.models import InstanceUser
+        from treemap.udf import UDFModel
+        from treemap.util import to_object_name, leaf_subclasses
+        from treemap.lib.perms import udf_write_level, READ, WRITE
 
-        empty_udfc = {to_object_name(n_k):
-                      {to_object_name(m_k): {'fields': [], 'udfd': None}
-                       for m_k in UDFC_MODELS}
-                      for n_k in UDFC_NAMES}
+        try:
+            iu = self.instanceuser_set.get(user__pk=user.pk)
+        except InstanceUser.DoesNotExist:
+            iu = None
 
-        udfds = []
-        for model_name in UDFC_MODELS:
-            for udfd in udf_defs(self, model_name):
-                if udfd.name in UDFC_NAMES:
-                    udfds.append(udfd)
+        data = DotDict({'models': set(), 'udfc': {}})
+        for clz in (leaf_subclasses(UDFModel)):
+            model_name = clz.__name__
+            items = (
+                (k, v) for k, v
+                in getattr(clz, 'collection_udf_settings', {}).iteritems())
+            for k, v in items:
+                udfds = (u for u in udf_defs(self, model_name) if u.name == k)
+                for udfd in udfds:
+                    if udf_write_level(iu, udfd) in (READ, WRITE):
+                        nest_path = ('udfc.%s.models.%s' %
+                                     (to_object_name(k),
+                                      to_object_name(model_name)))
+                        data[nest_path] = {
+                            'udfd': udfd,
+                            'fields': udfd.datatype_dict[0]['choices']
+                        }
+                        p = 'udfc.%s.' % to_object_name(k)
+                        data[p + 'action_verb'] = v['action_verb']
+                        data[p + 'range_field_key'] = v['range_field_key']
+                        data[p + 'action_field_key'] = v['action_field_key']
+                        data['models'] |= {clz}
 
-        udfc = deepcopy(empty_udfc)
-
-        for udfd in udfds:
-            udfd_info = {
-                'udfd': udfd,
-                'fields': udfd.datatype_dict[0]['choices']
-            }
-            name_dict = udfc[to_object_name(udfd.name)]
-            name_dict[to_object_name(udfd.model_type)] = udfd_info
-
-        return udfc
+        return data
 
     @property
     def supports_resources(self):

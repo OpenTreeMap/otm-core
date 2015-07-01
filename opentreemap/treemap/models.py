@@ -730,16 +730,26 @@ class Plot(MapFeature):
 
     objects = GeoHStoreUDFManager()
 
-    collection_udf_defaults = {
-        'Stewardship': [
-            {'name': 'Action',
-             'choices': ['Enlarged',
-                         'Changed to Include a Guard',
-                         'Changed to Remove a Guard',
-                         'Filled with Herbaceous Plantings'],
-             'type': 'choice'},
-            {'type': 'date',
-             'name': 'Date'}],
+    collection_udf_settings = {
+        'Stewardship': {
+            'range_field_key': 'Date',
+            'action_field_key': 'Action',
+            'action_verb': _('that have been'),
+            'defaults': [
+                {'name': 'Action',
+                 'choices': ['Enlarged',
+                             'Changed to Include a Guard',
+                             'Changed to Remove a Guard',
+                             'Filled with Herbaceous Plantings'],
+                 'type': 'choice'},
+                {'type': 'date',
+                 'name': 'Date'}],
+        },
+        'Alerts': {
+            'range_field_key': 'Date Noticed',
+            'action_field_key': 'Action Needed',
+            'action_verb': _('with open alerts for'),
+        }
     }
 
     @classproperty
@@ -793,6 +803,10 @@ class Plot(MapFeature):
     def display_name(cls):
         return _('Planting Site')
 
+    @classproperty
+    def search_display_name(cls):
+        return _('planting sites')
+
 
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
@@ -825,13 +839,23 @@ class Tree(Convertible, UDFModel, PendingAuditable):
                             'Mulched, Had Compost Added, or Soil Amended',
                             'Cleared of Trash or Debris']
 
-    collection_udf_defaults = {
-        'Stewardship': [
-            {'name': 'Action',
-             'choices': _stewardship_choices,
-             'type': 'choice'},
-            {'type': 'date',
-             'name': 'Date'}],
+    collection_udf_settings = {
+        'Stewardship': {
+            'range_field_key': 'Date',
+            'action_field_key': 'Action',
+            'action_verb': 'that have been',
+            'defaults': [
+                {'name': 'Action',
+                 'choices': _stewardship_choices,
+                 'type': 'choice'},
+                {'type': 'date',
+                 'name': 'Date'}],
+        },
+        'Alerts': {
+            'range_field_key': 'Date Noticed',
+            'action_field_key': 'Action Needed',
+            'action_verb': _('with open alerts for'),
+        }
     }
 
     def __unicode__(self):
@@ -840,6 +864,10 @@ class Tree(Convertible, UDFModel, PendingAuditable):
         species_chunk = ("Species: %s - " % self.species
                          if self.species else "")
         return "%s%s" % (diameter_chunk, species_chunk)
+
+    @classproperty
+    def search_display_name(cls):
+        return _('trees')
 
     def dict(self):
         props = self.as_dict()
