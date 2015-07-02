@@ -20,7 +20,7 @@ from treemap.models import Tree, MapFeature, User, Favorite
 
 from treemap.lib import format_benefits
 from treemap.lib.photo import context_dict_for_photo
-from treemap.util import leaf_subclasses
+from treemap.util import leaf_models_of_class
 
 
 def _photo_upload_share_text(feature, has_tree=False):
@@ -387,7 +387,7 @@ def _add_share_context(context, request, photos):
 
 def set_map_feature_updated_at():
     models = [Model.map_feature_type for Model in
-              leaf_subclasses(MapFeature)]
+              leaf_models_of_class(MapFeature)]
     if not models:
         raise Exception("Could not find any map_feature subclasses")
 

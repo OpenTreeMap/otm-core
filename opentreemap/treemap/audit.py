@@ -22,7 +22,7 @@ from django.conf import settings
 
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name)
-from treemap.util import all_subclasses, leaf_subclasses
+from treemap.util import all_models_of_class, leaf_models_of_class
 from treemap.lib.object_caches import (permissions, role_permissions,
                                        invalidate_adjuncts, udf_defs)
 from treemap.lib.dates import datesafe_eq
@@ -51,7 +51,7 @@ def get_id_sequence_name(model_class):
     """
     if isinstance(model_class._meta.pk, OneToOneField):
         # Model uses multi-table inheritance (probably a MapFeature subclass)
-        model_class = model_class._meta.pk.related.parent_model
+        model_class = model_class._meta.get_parent_list()[-1]
 
     table_name = model_class._meta.db_table
     pk_field = model_class._meta.pk
@@ -148,7 +148,7 @@ def add_default_permissions(instance, roles=None, models=None):
         # which we instantiate. Those are the leaf nodes of the
         # subclass tree, plus MapFeaturePhoto (which has subclass
         # TreePhoto).
-        models = leaf_subclasses(Authorizable) | {MapFeaturePhoto}
+        models = leaf_models_of_class(Authorizable) | {MapFeaturePhoto}
 
     for role in roles:
         _add_default_permissions(models, role, instance)
@@ -1463,7 +1463,7 @@ def _get_model_class(class_dict, cls, model_name):
 
     if not class_dict:
         # One-time load of class dictionary
-        for c in all_subclasses(cls):
+        for c in all_models_of_class(cls):
             class_dict[c.__name__] = c
 
     return class_dict[model_name]
