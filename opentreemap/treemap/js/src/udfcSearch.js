@@ -68,13 +68,9 @@ var nameTemplate = _.template('udf:<%= modelName %>:<%= udfFieldDefId %>.<%= fie
         .value();
 
 function makeNameAttribute (state, fieldKey) {
-
     var modelName = state.modelName,
         udfFieldDefId = state[state.modelName + 'UdfFieldDefId'],
         requiredFields = [modelName,
-                          state.plotUdfFieldDefId,
-                          state.bioswaleUdfFieldDefId,
-                          state.treeUdfFieldDefId,
                           state.actionFieldKey,
                           state.dateFieldKey,
                           udfFieldDefId],
