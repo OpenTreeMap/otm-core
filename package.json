@@ -7,7 +7,7 @@
   "dependencies": {
     "baconjs": "~0.6",
     "console-browserify": "~1.0.1",
-    "dragula": "^1.6.1",
+    "dragula": "^2.0.2",
     "leaflet-pip": "~0.1.1",
     "lodash": "2.4.x",
     "moment": "~2.2.1",
