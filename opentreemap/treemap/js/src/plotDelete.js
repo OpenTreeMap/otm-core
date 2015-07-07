@@ -6,10 +6,11 @@ var $ = require('jquery'),
 
 exports.init = function(options) {
     var config = options.config,
-        $delete = $(options.delete),
-        $deleteConfirm = $(options.deleteConfirm),
-        $deleteCancel = $(options.deleteCancel),
-        $deleteConfirmationBox = $(options.deleteConfirmationBox),
+        controls = options.deleteControls,
+        $delete = $(controls.delete),
+        $deleteConfirm = $(controls.deleteConfirm),
+        $deleteCancel = $(controls.deleteCancel),
+        $deleteConfirmationBox = $(controls.deleteConfirmationBox),
         plotId = $('div[data-field="plot.id"]').attr('data-value'),
 
         // tree id is the sole datapoint used to determine the state

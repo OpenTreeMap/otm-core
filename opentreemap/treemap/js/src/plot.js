@@ -6,6 +6,7 @@ var $ = require('jquery'),
     format = require('util').format,
     otmTypeahead = require('treemap/otmTypeahead'),
     FH = require('treemap/fieldHelpers'),
+    mapFeatureDelete = require('treemap/plotDelete'),
     diameterCalculator = require('treemap/diameterCalculator'),
     mapFeatureUdf = require('treemap/mapFeatureUdf'),
     plotAddTree = require('treemap/plotAddTree'),
@@ -29,6 +30,8 @@ exports.init = function(options) {
                                         '.responseData.feature.title'),
         newAddressStream = excludeNullMap(form.saveOkStream,
                                           '.responseData.feature.address_full');
+
+    mapFeatureDelete.init(options);
 
     function initializeTreeIdSection (id) {
         var $section = $(options.treeIdColumn);

@@ -74,7 +74,10 @@
           ecoBenefits: '#ecobenefits',
           featureId: {{ feature.id }},
           inlineEditForm: mapFeatureOptions.inlineEditForm,
-          form: mapFeature.inlineEditForm
+          form: mapFeature.inlineEditForm,
+          deleteControls: mapFeatureOptions.deleteControls,
+          config: mapFeatureOptions.config
+
       });
 })(require, otm.settings, mapFeatureOptions);
 {% endlocalize %}
