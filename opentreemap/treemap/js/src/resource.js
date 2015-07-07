@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    mapFeatureDelete = require('treemap/plotDelete'),
+    mapFeatureDelete = require('treemap/mapFeatureDelete'),
     mapFeatureUdf = require('treemap/mapFeatureUdf');
 
 // Placed onto the jquery object
