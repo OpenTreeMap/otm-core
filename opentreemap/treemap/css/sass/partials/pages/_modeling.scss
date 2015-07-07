@@ -78,7 +78,7 @@
         height: 40px;
 
         .view-priorities-button.active {
-            font-weight: bold;
+            background-color: deeppink;
         }
 
         #scenario-buttons {
@@ -87,7 +87,7 @@
             border-left: 1px solid gray;
 
             .active {
-                font-weight: bold;
+                background-color: deeppink;
             }
         }
     }
