@@ -3,7 +3,12 @@
 // Manage view/edit modes for plot location.
 // In edit mode, user can change the plot location by dragging the marker.
 
-var $ = require('jquery');
+var $ = require('jquery'),
+    _ = require('lodash');
+
+exports.none = function() {
+    return {onSaveBefore: _.noop};
+};
 
 exports.init = function(options) {
     var mapManager = options.mapManager,

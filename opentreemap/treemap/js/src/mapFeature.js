@@ -49,13 +49,15 @@ exports.init = function(options) {
         $(window).asEventStream('popstate')
             .map(function() { return U.getLastUrlSegment() === 'edit'; }));
 
+    var currentPlotMover;
+
     var form = inlineEditForm.init(
             _.extend(options.inlineEditForm,
                      { config: options.config,
                        updateUrl: detailUrl,
-                       onSaveBefore: onSaveBefore,
                        shouldBeInEditModeStream: shouldBeInEditModeStream,
-                       errorCallback: alerts.makeErrorCallback(options.config)
+                       errorCallback: alerts.makeErrorCallback(options.config),
+                       onSaveBefore: function (data) { currentPlotMover.onSaveBefore(data); }
                      }));
 
     var deleter = plotDelete.init({
@@ -113,20 +115,23 @@ exports.init = function(options) {
         zoom: mapManager.ZOOM_PLOT
     });
 
-    plotMarker.init(options.config, mapManager.map);
-    plotMarker.useTreeIcon(options.useTreeIcon);
+    if (options.hidePointMarker) {
+        currentPlotMover = plotMover.none();
+    } else {
+        plotMarker.init(options.config, mapManager.map);
+        plotMarker.useTreeIcon(options.useTreeIcon);
+        currentPlotMover = plotMover.init({
+            mapManager: mapManager,
+            plotMarker: plotMarker,
+            inlineEditForm: form,
+            editLocationButton: options.location.edit,
+            cancelEditLocationButton: options.location.cancel,
+            location: options.location.point
+        });
 
-    reverseGeocodeStreamAndUpdateAddressesOnForm(
-        options.config, plotMarker.moveStream, options.form);
-
-    var currentPlotMover = plotMover.init({
-        mapManager: mapManager,
-        plotMarker: plotMarker,
-        inlineEditForm: form,
-        editLocationButton: options.location.edit,
-        cancelEditLocationButton: options.location.cancel,
-        location: options.location.point
-    });
+        reverseGeocodeStreamAndUpdateAddressesOnForm(
+            options.config, plotMarker.moveStream, options.form);
+    }
 
     var detailUrlPrefix = U.removeLastUrlSegment(detailUrl),
         clickedIdStream = mapManager.map.utfEvents
@@ -137,10 +142,6 @@ exports.init = function(options) {
         .filter(BU.not, options.featureId)
         .map(_.partialRight(U.appendSegmentToUrl, detailUrlPrefix, false))
         .onValue(_.bind(window.location.assign, window.location));
-
-    function onSaveBefore(data) {
-        currentPlotMover.onSaveBefore(data);
-    }
 
     if (options.config.instance.basemap.type === 'google') {
         var $streetViewContainer = $(options.streetView);
