@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    U = require('treemap/utility'),
     R = require('ramda'),
     format = require('util').format,
     otmTypeahead = require('treemap/otmTypeahead'),
@@ -29,9 +30,52 @@ exports.init = function(options) {
         newTitleStream = excludeNullMap(form.saveOkStream,
                                         '.responseData.feature.title'),
         newAddressStream = excludeNullMap(form.saveOkStream,
-                                          '.responseData.feature.address_full');
+                                          '.responseData.feature.address_full'),
 
-    mapFeatureDelete.init(options);
+        getPlotUrlFromTreeUrl = _.compose(U.removeLastUrlSegment,
+                                          U.removeLastUrlSegment);
+
+
+    // tree id is the sole datapoint used to determine the state
+    // of the plot to be acted upon.
+    // this *must be calculated dynamically* to handle the case
+    // in which a tree is added and then deleted without a
+    // page refresh in between.
+    // this information is used for:
+    // * deciding which warning message to show
+    // * The url to post a delete verb to
+    // * the url to redirect to
+    function getTreeId() {
+        return $(options.treeIdColumn).attr('data-tree-id');
+    }
+
+    function getUrls() {
+        var deleteUrl = document.URL,
+            afterDeleteUrl = options.config.instance.mapUrl,
+            currentlyOnTreeUrl = _.contains(U.getUrlSegments(document.URL), "trees");
+
+        if (getTreeId() !== '' && currentlyOnTreeUrl) {
+            afterDeleteUrl = getPlotUrlFromTreeUrl(document.URL);
+        } else if (getTreeId() !== '') {
+            deleteUrl = 'trees/' + getTreeId() + '/';
+            afterDeleteUrl = document.URL;
+        }
+        return {deleteUrl: deleteUrl,
+                afterDeleteUrl: afterDeleteUrl};
+    }
+
+    mapFeatureDelete.init(_.extend({}, options, {
+        getUrls: getUrls,
+        resetUIState: function() {
+            if (getTreeId() === '') {
+                $('#delete-plot-warning').show();
+                $('#delete-tree-warning').hide();
+            } else {
+                $('#delete-tree-warning').show();
+                $('#delete-plot-warning').hide();
+            }
+        }
+    }));
 
     function initializeTreeIdSection (id) {
         var $section = $(options.treeIdColumn);

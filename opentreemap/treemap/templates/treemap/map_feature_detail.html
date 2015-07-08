@@ -117,38 +117,28 @@
                     class="btn btn-sm btn-info">{% trans "Edit" %}</button>
             <button id="save-edit-map-feature" data-class="edit" class="btn btn-sm btn-primary" style="display: none;">{% trans "Save" %}</button>
             <button id="cancel-edit-map-feature" data-class="edit" class="btn btn-sm" style="display: none;">{% trans "Cancel" %}</button>
-{% if feature.is_plot %}
-            <button id="delete-plot-or-tree"
+            <button id="delete-object"
                     data-class="display"
                     disabled="disabled"
                     {% if has_tree %}
                     {# TODO: this will not work quite right when a user adds a tree without refreshing #}
                     data-always-enable="{{ last_effective_instance_user|is_deletable:tree }}"
                     {% else %}
-                    data-always-enable="{{ last_effective_instance_user|is_deletable:plot }}"
+                    data-always-enable="{{ last_effective_instance_user|map_feature_is_deletable:feature }}"
                     {% endif %}
                     data-href="{{ request.get_full_path }}"
                     data-disabled-title="{% trans "Deleting of trees is not available to all users" %}"
                     class="btn btn-sm btn-danger">{% trans "Delete" %}</button>
-{% endif %}
           </p>
 
-{% if feature.is_plot %}
           <!-- Alerts -->
           <div id="delete-confirmation-box" data-class="delete" class="alert alert-danger" style="display: none;">
-            <p id="delete-tree-warning" style="display: none;">
-              <strong>{% trans "Warning!" %}</strong>
-              {% trans "You are about to delete this tree. Do you want to continue?" %}
-            </p>
-            <p id="delete-plot-warning" style="display: none;">
-              <strong>{% trans "Warning!" %}</strong>
-              {% trans "You are about to delete this planting site. Once deleted, it will not be possible to view the details of this planting site or the trees it has contained in the past. Are you sure you want to continue?" %}
-            </p>
+            {% block delete_confirmation_text %}
+            {% endblock %}
             <button id="delete-confirm" class="btn btm-small btn-danger">{% trans "Confirm Deletion" %}</button>
             <button id="delete-cancel" class="btn btm-small">{% trans "Cancel" %}</button>
           </div>
           <hr>
-{% endif %}
 {% endif %}
 
           <!-- Map Feature Details -->
@@ -270,7 +260,7 @@ var mapFeatureOptions = {
     startInEditMode: {% if editmode %}true{% else %}false{% endif %},
     hidePointMarker: {% if feature.polygon %}true{% else %}false{% endif %},
     deleteControls: {
-        delete: '#delete-plot-or-tree',
+        delete: '#delete-object',
         deleteConfirm: '#delete-confirm',
         deleteCancel: '#delete-cancel',
         deleteConfirmationBox: '#delete-confirmation-box',

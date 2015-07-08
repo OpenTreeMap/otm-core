@@ -56,6 +56,18 @@
 
 {% endblock subclass_details %}
 
+
+{% block delete_confirmation_text %}
+<p>
+  <strong>{% trans "Warning!" %}</strong>
+  {% with resource=term.resource %}
+  {% blocktrans %}
+  You are about to delete this {{ resource }}. Do you want to continue?
+  {% endblocktrans %}
+  {% endwith %}
+</p>
+{% endblock delete_confirmation_text %}
+
 {% block scripts %}
 
 {{ block.super }}

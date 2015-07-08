@@ -187,6 +187,13 @@ def map_feature_is_writable(role_related_obj, model_obj, field=None):
                         predicate=any, field=field)
 
 
+def map_feature_is_deletable(role_related_obj, model_obj):
+    return _allows_perm(role_related_obj,
+                        model_obj.__class__.__name__,
+                        perm_attr=ALLOWS_WRITES,
+                        predicate=all)
+
+
 def plot_is_writable(role_related_obj, field=None):
     return _allows_perm(role_related_obj, 'Plot',
                         perm_attr=ALLOWS_WRITES,
