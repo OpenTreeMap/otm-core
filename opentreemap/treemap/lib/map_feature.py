@@ -377,8 +377,12 @@ def _add_share_context(context, request, photos):
             'treemap': request.instance.name
         }
 
+    url = reverse('map_feature_detail',
+                  kwargs={'instance_url_name': request.instance.url_name,
+                          'feature_id': context['feature'].pk})
+
     context['share'] = {
-        'url': request.build_absolute_uri(),
+        'url': request.build_absolute_uri(url),
         'title': title,
         'description': description,
         'image': photo_url,
