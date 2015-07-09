@@ -432,8 +432,7 @@
     top: 0;
     bottom: 0;
     z-index: 999;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
     -webkit-overflow-scrolling: touch;
     transition: .5s ease transform;
 
@@ -442,8 +441,8 @@
     }
 
     .close {
-        position: fixed;
-        right: 30px;
+        position: absolute;
+        right: -80px;
         margin-top: -30px;
         opacity: .6;
         background: $main-text-color;
@@ -452,6 +451,10 @@
         transition: .2s ease-in-out opacity;
         &:hover {
             opacity: 1;
+        }
+        @media #{$screen-xs} {
+            right: 20px;
+            margin-top: -50px;
         }
     }
 
@@ -463,17 +466,19 @@
         bottom: 0;
         background: #fff;
         opacity: .75;
+        z-index: 1;
     }
 
     .plans-content {
         display: block;
         width: 80%;
-        min-width: 400px;
+        min-width: 340px;
         margin: 100px auto 30px;
         background: #fff;
         border-radius: 10px;
         box-shadow: 0 1px 5px rgba(0, 0, 0, .25);
         position: relative;
+        z-index: 1;
     }
 
     .plans-header {
@@ -513,6 +518,8 @@
 
     .plans-body {
         padding: 30px 30px 15px;   
+        max-height: 55vh;
+        overflow: auto;
     }
 
     table {
