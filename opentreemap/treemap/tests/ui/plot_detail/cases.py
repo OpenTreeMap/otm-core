@@ -20,7 +20,7 @@ class PlotDetailUITestCase(TreemapUITestCase):
         self.assertEqual(Plot.objects.count(), 1)
 
     def _select_elements(self):
-        self.delete_begin = self.find_id('delete-plot-or-tree')
+        self.delete_begin = self.find_id('delete-object')
         self.delete_confirm = self.find_id('delete-confirm')
         self.delete_cancel = self.find_id('delete-cancel')
         self.begin_add_tree = self.find_id('begin-add-tree')

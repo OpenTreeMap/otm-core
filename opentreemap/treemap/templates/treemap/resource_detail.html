@@ -56,6 +56,18 @@
 
 {% endblock subclass_details %}
 
+
+{% block delete_confirmation_text %}
+<p>
+  <strong>{% trans "Warning!" %}</strong>
+  {% with resource=term.resource %}
+  {% blocktrans %}
+  You are about to delete this {{ resource }}. Do you want to continue?
+  {% endblocktrans %}
+  {% endwith %}
+</p>
+{% endblock delete_confirmation_text %}
+
 {% block scripts %}
 
 {{ block.super }}
@@ -74,7 +86,10 @@
           ecoBenefits: '#ecobenefits',
           featureId: {{ feature.id }},
           inlineEditForm: mapFeatureOptions.inlineEditForm,
-          form: mapFeature.inlineEditForm
+          form: mapFeature.inlineEditForm,
+          deleteControls: mapFeatureOptions.deleteControls,
+          config: mapFeatureOptions.config
+
       });
 })(require, otm.settings, mapFeatureOptions);
 {% endlocalize %}

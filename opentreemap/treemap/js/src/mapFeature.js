@@ -9,7 +9,6 @@ var $ = require('jquery'),
     Bacon = require('baconjs'),
     U = require('treemap/utility'),
     plotMover = require('treemap/plotMover'),
-    plotDelete = require('treemap/plotDelete'),
     plotMarker = require('treemap/plotMarker'),
     statePrompter = require('treemap/statePrompter'),
     csrf = require('treemap/csrf'),
@@ -59,15 +58,6 @@ exports.init = function(options) {
                        errorCallback: alerts.makeErrorCallback(options.config),
                        onSaveBefore: function (data) { currentPlotMover.onSaveBefore(data); }
                      }));
-
-    var deleter = plotDelete.init({
-        config: options.config,
-        delete: options.delete,
-        deleteConfirm: options.deleteConfirm,
-        deleteCancel: options.deleteCancel,
-        deleteConfirmationBox: options.deleteConfirmationBox,
-        treeIdColumn: options.treeIdColumn
-    });
 
     if (options.config.instance.supportsEcobenefits) {
         var updateEcoUrl = U.appendSegmentToUrl('eco', detailUrl);

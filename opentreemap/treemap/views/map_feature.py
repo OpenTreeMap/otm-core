@@ -131,8 +131,8 @@ def update_map_feature_detail(request, instance, feature_id):
     return _request_to_update_map_feature(request, feature)
 
 
-def delete_map_feature(request, instance, feature_id, type='Plot'):
-    feature = get_map_feature_or_404(feature_id, instance, type)
+def delete_map_feature(request, instance, feature_id):
+    feature = get_map_feature_or_404(feature_id, instance)
     try:
         feature.delete_with_user(request.user)
         return {'ok': True}

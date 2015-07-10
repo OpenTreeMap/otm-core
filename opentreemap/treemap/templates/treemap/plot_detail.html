@@ -110,6 +110,18 @@
 
 {% endblock subclass_details %}
 
+{% block delete_confirmation_text %}
+<p id="delete-tree-warning" style="display: none;">
+  <strong>{% trans "Warning!" %}</strong>
+  {% trans "You are about to delete this tree. Do you want to continue?" %}
+</p>
+<p id="delete-plot-warning" style="display: none;">
+  <strong>{% trans "Warning!" %}</strong>
+  {% trans "You are about to delete this planting site. Once deleted, it will not be possible to view the details of this planting site or the trees it has contained in the past. Are you sure you want to continue?" %}
+</p>
+{% endblock %}
+
+
 {% block scripts %}
 
 {{ block.super }}
@@ -135,6 +147,8 @@
           addTreeControls: '#add-tree-controls',
           treeSection: '#tree-details',
           inlineEditForm: mapFeatureOptions.inlineEditForm,
+          deleteControls: mapFeatureOptions.deleteControls,
+          config: mapFeatureOptions.config,
           form: mapFeature.inlineEditForm,
           typeaheads: [{
               name: "species",
