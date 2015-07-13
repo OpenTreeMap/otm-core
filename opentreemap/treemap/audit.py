@@ -10,7 +10,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 
 from django.forms.models import model_to_dict
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.utils.dateformat import format as dformat
 from django.dispatch import receiver
 from django.db.models import OneToOneField
@@ -22,7 +22,7 @@ from django.conf import settings
 
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name)
-from treemap.util import all_subclasses, leaf_subclasses
+from treemap.util import all_models_of_class, leaf_models_of_class
 from treemap.lib.object_caches import (permissions, role_permissions,
                                        invalidate_adjuncts, udf_defs)
 from treemap.lib.dates import datesafe_eq
@@ -51,7 +51,7 @@ def get_id_sequence_name(model_class):
     """
     if isinstance(model_class._meta.pk, OneToOneField):
         # Model uses multi-table inheritance (probably a MapFeature subclass)
-        model_class = model_class._meta.pk.related.parent_model
+        model_class = model_class._meta.get_parent_list()[-1]
 
     table_name = model_class._meta.db_table
     pk_field = model_class._meta.pk
@@ -148,7 +148,7 @@ def add_default_permissions(instance, roles=None, models=None):
         # which we instantiate. Those are the leaf nodes of the
         # subclass tree, plus MapFeaturePhoto (which has subclass
         # TreePhoto).
-        models = leaf_subclasses(Authorizable) | {MapFeaturePhoto}
+        models = leaf_models_of_class(Authorizable) | {MapFeaturePhoto}
 
     for role in roles:
         _add_default_permissions(models, role, instance)
@@ -1188,11 +1188,6 @@ class Audit(models.Model):
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     updated = models.DateTimeField(auto_now=True, db_index=True)
 
-    # TODO: this does nothing because south manages this app
-    # and we're still on 0.7.x, which doesn't support index_together
-    # after an upgrade to south 0.8.x or, more likely, to django 1.7,
-    # this will be kept in sync with database versioning. For now,
-    # it is manually managed using migration 0081.
     class Meta:
         index_together = [
             ['instance', 'user', 'updated']
@@ -1468,7 +1463,7 @@ def _get_model_class(class_dict, cls, model_name):
 
     if not class_dict:
         # One-time load of class dictionary
-        for c in all_subclasses(cls):
+        for c in all_models_of_class(cls):
             class_dict[c.__name__] = c
 
     return class_dict[model_name]

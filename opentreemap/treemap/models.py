@@ -26,7 +26,7 @@ from treemap.species.codes import ITREE_REGIONS, get_itree_code
 from treemap.audit import Auditable, Role, Dictable, Audit, PendingAuditable
 # Import this even though it's not referenced, so Django can find it
 from treemap.audit import FieldPermission  # NOQA
-from treemap.util import leaf_subclasses, to_object_name
+from treemap.util import leaf_models_of_class, to_object_name
 from treemap.decorators import classproperty
 from treemap.images import save_uploaded_image
 from treemap.units import Convertible
@@ -636,7 +636,8 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
     @classmethod
     def subclass_dict(cls):
-        return {C.map_feature_type: C for C in leaf_subclasses(MapFeature)}
+        return {C.map_feature_type: C
+                for C in leaf_models_of_class(MapFeature)}
 
     @classmethod
     def has_subclass(cls, type):

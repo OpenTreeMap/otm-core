@@ -109,8 +109,9 @@ class InstanceMobileApiFieldsTests(OTMTestCase):
 
         val_err = m.exception
         self.assertIn('mobile_api_fields', val_err.message_dict)
-        self.assertIn(force_text(msg),
-                      val_err.message_dict['mobile_api_fields'])
+        messages = {force_text(e) for e
+                    in val_err.message_dict['mobile_api_fields']}
+        self.assertIn(force_text(msg), messages)
 
     def test_basic_errors(self):
         self.assert_raises_code(API_FIELD_ERRORS['no_field_groups'], [])

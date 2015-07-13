@@ -45,9 +45,7 @@ def setupTreemapEnv():
         from django.template import loader
         from django.http import HttpResponse
 
-        httpresponse_kwargs = {'mimetype': kwargs.pop('mimetype', None)}
-        hr = HttpResponse(
-            loader.render_to_string(*args, **kwargs), **httpresponse_kwargs)
+        hr = HttpResponse(loader.render_to_string(*args, **kwargs))
 
         if hasattr(args[1], 'dicts'):
             hr.request_context = args[1].dicts

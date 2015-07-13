@@ -1,8 +1,6 @@
 from django.contrib.gis.db import models
 from django.utils.six import with_metaclass
 
-from south.modelsinspector import add_introspection_rules
-
 import json
 
 from opentreemap.util import dotted_split
@@ -26,7 +24,9 @@ class JSONField(with_metaclass(models.SubfieldBase, models.TextField)):
             return super(JSONField, self).get_prep_lookup(lookup_type, value)
         raise TypeError("JSONField doesn't support lookups")
 
-add_introspection_rules([], ["^treemap\.json_field\.JSONField"])
+    def value_to_string(self, obj):
+        value = self._get_val_from_obj(obj)
+        return self.get_prep_value(value)
 
 
 def is_json_field_reference(field_path):

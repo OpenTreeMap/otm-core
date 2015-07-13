@@ -23,7 +23,7 @@ from otm1_migrator.migration_rules.standard_otm1 import MIGRATION_RULES
 class MigrationCommandTests(LocalMediaTestCase):
     def setUp(self):
         super(MigrationCommandTests, self).setUp()
-        self.migration_event = MigrationEvent()
+        self.migration_event = MigrationEvent.objects.create()
         self.migration_rules = MIGRATION_RULES
         self.instance = make_instance()
         self.commander = make_commander_user(self.instance)

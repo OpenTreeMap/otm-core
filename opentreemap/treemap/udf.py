@@ -14,14 +14,15 @@ from django.db import transaction
 from django.db.models import Q
 from django.db.models.fields.subclassing import Creator
 from django.db.models.base import ModelBase
+from django.db.models.lookups import Lookup
 from django.db.models.sql.constants import ORDER_PATTERN
 from django.db.models.signals import post_save, post_delete
 
-from django.contrib.gis.db.models.sql.query import GeoQuery
+from django.db.models.sql.query import Query
 
 from django_hstore.fields import DictionaryField, HStoreDict
 from django_hstore.managers import HStoreManager, HStoreGeoManager
-from django_hstore.query import HStoreGeoQuerySet, HStoreGeoWhereNode
+from django_hstore.query import HStoreGeoQuerySet
 
 from treemap.instance import Instance
 from treemap.audit import (UserTrackable, Audit, UserTrackingException,
@@ -931,9 +932,6 @@ class _UDFProxy(UDFField):
     def to_python(self, value):
         return value
 
-from south.modelsinspector import add_introspection_rules
-add_introspection_rules([], ["^treemap\.udf\.UDFField"])
-
 
 class UDFModelBase(ModelBase):
 
@@ -1244,12 +1242,49 @@ def quotesingle(string):
     return string.replace("'", "''")
 
 
-def _is_scalar_udf(lvalue):
-    return isinstance(lvalue.col, tuple) and lvalue.col[0] == 'udf'
+UDF_LOOKUP_PATTERN = re.compile(r'(.*?__)?udf\:(.+?)(__[a-zA-z]+)?$')
+UDF_ORDER_PATTERN = re.compile(r'(-?)([a-zA-Z]+)\.udf\:(.+)$')
 
 
-class UDFWhereNode(HStoreGeoWhereNode):
+class UDFBaseContains(Lookup):
+    def as_postgresql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+
+        op = 'LIKE' if self.lookup_name == 'udf_contains' else 'ILIKE'
+
+        if len(rhs_params) == 1 and isinstance(rhs_params[0], dict):
+            param = rhs_params[0]
+            param_keys = list(param.keys())
+            conditions = []
+
+            # Need to wrap every value in percents, since Django isn't
+            # doing it for us
+            values = ['%' + val + '%' for val in param.values()]
+
+            for key in param_keys:
+                conditions.append(
+                    '%s->\'%s\' %s %%s' % (lhs, quotesingle(key), op))
+
+            return (" AND ".join(conditions), values)
+
+        raise ValueError('invalid value')
+
+
+@UDFField.register_lookup
+class UDFContains(UDFBaseContains):
+    lookup_name = 'udf_contains'
+
+
+@UDFField.register_lookup
+class UDFIContains(UDFBaseContains):
+    lookup_name = 'udf_icontains'
+
+
+class UDFQuery(Query):
     """
+    UDF Query encapsulates query compilation changes.
+
     This class allows us to write the where clauses for a
     query that looks something like:
 
@@ -1261,72 +1296,41 @@ class UDFWhereNode(HStoreGeoWhereNode):
     This will allow django-hstore to transform it into SQL similar to:
 
     ("treemap_plot"."udfs"->'Plant Date')::timestamp = '2000-01-02'::timestamp
+
+    Insert text 'bout contains/icontains
+
+    TODO: Is this true?
+    NOTE: This class *must* inherit from Query, not HstoreQuery
+          HStoreQuery will overwrite our WhereNode with it's own
     """
+    def build_filter(self, filter_expr, *args, **kwargs):
+        arg, value = filter_expr
+        match = UDF_LOOKUP_PATTERN.match(arg)
 
-    def add(self, child, *args, **kwargs):
-        """
-        Converts the 'udf:Field Name' syntax to the syntax expected by
-        django-hstore. e.g. filter(**{'udf:Field Name__gt': 17}) will be
-        converted into filter(udfs__gt={'Field Name': 17})
-        """
-        if not isinstance(child, tuple):
-            return super(UDFWhereNode, self).add(child, *args, **kwargs)
-        lvalue, lookup, param = child
+        if match:
+            model, udf_name, lookup = match.groups()
 
-        # contains and icontains are handled below in make_atom
-        if _is_scalar_udf(lvalue) and lookup not in ('contains', 'icontains'):
+            if model is None:
+                model = ''
+
+            # For contains searches on UDFs we need to switch to our custom
+            # lookup class, because django-hstore defines contains as subset
+            #
             # For exact searches on scalar UDFs, we actually want contains,
             # because we don't care about other UDF values
-            if lookup == 'exact':
-                lookup = 'contains'
-            hstore_key = lvalue.col[1]
-            lvalue.col = 'udfs'
+            if lookup == '__contains':
+                lookup = '__udf_contains'
+            elif lookup == '__icontains':
+                lookup = '__udf_icontains'
+            elif lookup is None or lookup == '__exact':
+                lookup = '__contains'
+
+            arg = model + 'udfs' + lookup
             wrapped_param = {}
-            wrapped_param[hstore_key] = param
+            wrapped_param[udf_name] = value
 
-            child = (lvalue, lookup, wrapped_param)
-
-        return super(UDFWhereNode, self).add(child, *args, **kwargs)
-
-    def make_atom(self, child, qn, connection):
-        """
-        django-hstore overloads contains to mean an *exact* search for subsets
-        of key value pairs.  Because of this, to make our udf:field Name syntax
-        work we have to handle generating SQL for contains and icontains here,
-        instead of modifying the query and delegating it to django-hstore
-        """
-        if not isinstance(child, tuple):
-            return super(UDFWhereNode, self).make_atom(child, qn, connection)
-
-        lvalue, lookup, value_annot, value = child
-
-        if _is_scalar_udf(lvalue) and lookup in ('contains', 'icontains'):
-            hstore_key = lvalue.col[1]
-            lvalue.col = 'udfs'
-
-            lvalue, params = lvalue.process(lookup, value, connection)
-            field = self.sql_for_columns(lvalue, qn, connection)
-
-            op = 'LIKE' if lookup == 'contains' else 'ILIKE'
-            sql = '(%s->\'%s\') %s %%s' % (field, hstore_key, op)
-            return (sql, params)
-
-        return super(UDFWhereNode, self).make_atom(child, qn, connection)
-
-UDF_ORDER_PATTERN = re.compile(r'(-?)([a-zA-Z]+)\.udf\:(.+)$')
-
-
-class UDFQuery(GeoQuery):
-    """
-    UDF Query encapsulates query compilation changes. In particular,
-    it injects UDFWhereNode as the default WhereNode type (which can
-    not be overwritten)
-    NOTE: This class *must* inherit from GeoQuery, not HstoreGeoQuery
-          HStoreGeoQuery will overwrite our WhereNode with it's own
-    """
-
-    def __init__(self, model):
-        super(UDFQuery, self).__init__(model, UDFWhereNode)
+            filter_expr = (arg, wrapped_param)
+        return super(UDFQuery, self).build_filter(filter_expr, *args, **kwargs)
 
     def process_as_udf(self, field):
         """
@@ -1396,9 +1400,9 @@ class UDFQuerySet(HStoreGeoQuerySet):
     This class exists mainly to provide an injection point
     for UDFQuery
     """
-    def __init__(self, model=None, query=None, using=None):
+    def __init__(self, model=None, query=None, using=None, hints=None):
         super(UDFQuerySet, self).__init__(
-            model=model, query=query, using=using)
+            model=model, query=query, using=using, hints=hints)
         self.query = query or UDFQuery(model)
 
 

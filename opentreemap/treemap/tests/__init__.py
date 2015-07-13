@@ -25,7 +25,7 @@ from django.contrib.auth.models import AnonymousUser
 from treemap.models import (User, InstanceUser, Boundary, FieldPermission,
                             Role, Instance)
 from treemap.audit import Authorizable, add_default_permissions
-from treemap.util import leaf_subclasses
+from treemap.util import leaf_models_of_class
 from treemap.tests.base import OTMTestCase
 
 from djcelery.contrib.test_runner import CeleryTestSuiteRunner
@@ -102,7 +102,7 @@ def _make_permissions(field_permission):
             (Model._meta.object_name, field_name, field_permission)
             for field_name in Model().tracked_fields)
 
-    models = leaf_subclasses(Authorizable)
+    models = leaf_models_of_class(Authorizable)
 
     model_permissions = [make_model_perms(Model) for Model in models]
     permissions = sum(model_permissions, ())  # flatten
@@ -268,12 +268,6 @@ def make_instance(name=None, is_public=False, url_name=None, point=None,
                         is_public=is_public, url_name=url_name)
 
     instance.seed_with_dummy_default_role()
-
-    # promote the dummy role to a real role
-    # instead of creating another unprivileged role.
-    # callers should add roles/permissions as needed.
-    instance.default_role.instance = instance
-    instance.default_role.save()
 
     d = edge_length / 2
     square = Polygon(((p1.x - d, p1.y - d),

@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.utils.unittest.case import skip
+from unittest.case import skip
 
 from treemap.models import Tree
 

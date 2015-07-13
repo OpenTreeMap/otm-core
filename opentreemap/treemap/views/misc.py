@@ -24,7 +24,7 @@ from treemap.plugin import get_viewable_instances_filter
 
 from treemap.lib.user import get_audits, get_audits_params
 from treemap.lib import COLOR_RE
-from treemap.util import leaf_subclasses
+from treemap.util import leaf_models_of_class
 
 
 _SCSS_VAR_NAME_RE = re.compile('^[_a-zA-Z][-_a-zA-Z0-9]*$')
@@ -84,7 +84,7 @@ def get_map_view_context(request, instance):
 
 def add_map_info_to_context(context, instance):
     all_polygon_types = {c.map_feature_type
-                         for c in leaf_subclasses(PolygonalMapFeature)}
+                         for c in leaf_models_of_class(PolygonalMapFeature)}
     my_polygon_types = set(instance.map_feature_types) & all_polygon_types
     context['has_polygons'] = len(my_polygon_types) > 0
     context['has_boundaries'] = instance.boundaries.exists()

@@ -206,7 +206,7 @@ class CommentUITest(CommentTestMixin, TreemapUITestCase):
 
         sleep(3)
         comment_obj = EnhancedThreadedComment.objects.get(
-            object_pk=self.plot.pk, content_type__name='plot')
+            object_pk=self.plot.pk, content_type__model='plot')
         self.assertEqual(comment_obj.comment, comment_text)
         self.assertCommentText(comment_obj.pk, comment_text)
 

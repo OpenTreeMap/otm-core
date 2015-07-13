@@ -7,6 +7,8 @@ import datetime
 from collections import OrderedDict
 
 from urlparse import urlparse
+
+from django.apps import apps
 from django.shortcuts import get_object_or_404, resolve_url
 from django.http import HttpResponse
 from django.utils.encoding import force_str
@@ -123,15 +125,23 @@ def package_field_errors(model_name, validation_error):
     return dict
 
 
-def all_subclasses(cls):
-    """Return all subclasses of given class"""
+def _all_subclasses(cls):
     subclasses = set(cls.__subclasses__())
-    return subclasses | {clz for s in subclasses for clz in all_subclasses(s)}
+    return subclasses | {clz for s in subclasses for clz in _all_subclasses(s)}
 
 
-def leaf_subclasses(cls):
-    """Return all leaf subclasses of given class"""
-    all = all_subclasses(cls)
+def all_models_of_class(cls):
+    """Return all Django models which are subclasses of given class"""
+    # During unit tests many of the subclasses we see will be historical models
+    # created by the migration system
+    # We only look at subclasses of real Django models in order to exclude them
+    all_models = set(apps.get_models())
+    return all_models & _all_subclasses(cls)
+
+
+def leaf_models_of_class(cls):
+    """Return all Django models which are leaf subclasses of given class"""
+    all = all_models_of_class(cls)
     leaves = {s for s in all if not s.__subclasses__()}
     return leaves
 
@@ -148,7 +158,7 @@ def to_model_name(object_name):
 
 def get_filterable_audit_models():
     from treemap.models import MapFeature
-    map_features = [c.__name__ for c in leaf_subclasses(MapFeature)]
+    map_features = [c.__name__ for c in leaf_models_of_class(MapFeature)]
     models = map_features + ['Tree']
 
     return {model.lower(): model for model in models}

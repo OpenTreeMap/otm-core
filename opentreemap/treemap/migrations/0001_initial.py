@@ -1,324 +1,431 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import re
+import django.contrib.gis.db.models.fields
+import django_hstore.fields
+import treemap.json_field
+import treemap.instance
+import django.contrib.auth.models
+import treemap.audit
+import django.utils.timezone
+from django.conf import settings
+import treemap.udf
+import django.core.validators
+import treemap.units
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'Audit'
-        db.create_table(u'treemap_audit', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('model', self.gf('django.db.models.fields.CharField')(max_length=255, null=True)),
-            ('model_id', self.gf('django.db.models.fields.IntegerField')(null=True)),
-            ('instance', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.Instance'])),
-            ('field', self.gf('django.db.models.fields.CharField')(max_length=255, null=True)),
-            ('previous_value', self.gf('django.db.models.fields.CharField')(max_length=255, null=True)),
-            ('current_value', self.gf('django.db.models.fields.CharField')(max_length=255, null=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.User'])),
-            ('action', self.gf('django.db.models.fields.IntegerField')()),
-            ('requires_auth', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('ref_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.Audit'], null=True)),
-            ('created', self.gf('django.db.models.fields.DateField')(auto_now_add=True, blank=True)),
-            ('updated', self.gf('django.db.models.fields.DateField')(auto_now=True, blank=True)),
-        ))
-        db.send_create_signal(u'treemap', ['Audit'])
+    dependencies = [
+        ('auth', '0006_require_contenttypes_0002'),
+    ]
 
-        # Adding model 'User'
-        db.create_table(u'treemap_user', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('password', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('last_login', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('is_superuser', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('username', self.gf('django.db.models.fields.CharField')(unique=True, max_length=30)),
-            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=30, blank=True)),
-            ('last_name', self.gf('django.db.models.fields.CharField')(max_length=30, blank=True)),
-            ('email', self.gf('django.db.models.fields.EmailField')(max_length=75, blank=True)),
-            ('is_staff', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('is_active', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('date_joined', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-        ))
-        db.send_create_signal(u'treemap', ['User'])
-
-        # Adding M2M table for field groups on 'User'
-        db.create_table(u'treemap_user_groups', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('user', models.ForeignKey(orm[u'treemap.user'], null=False)),
-            ('group', models.ForeignKey(orm[u'auth.group'], null=False))
-        ))
-        db.create_unique(u'treemap_user_groups', ['user_id', 'group_id'])
-
-        # Adding M2M table for field user_permissions on 'User'
-        db.create_table(u'treemap_user_user_permissions', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('user', models.ForeignKey(orm[u'treemap.user'], null=False)),
-            ('permission', models.ForeignKey(orm[u'auth.permission'], null=False))
-        ))
-        db.create_unique(u'treemap_user_user_permissions', ['user_id', 'permission_id'])
-
-        # Adding model 'Instance'
-        db.create_table(u'treemap_instance', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('geo_rev', self.gf('django.db.models.fields.IntegerField')(default=1)),
-            ('center', self.gf('django.contrib.gis.db.models.fields.PointField')(srid=3857)),
-        ))
-        db.send_create_signal(u'treemap', ['Instance'])
-
-        # Adding model 'Species'
-        db.create_table(u'treemap_species', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('symbol', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('genus', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('species', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('cultivar_name', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('gender', self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True)),
-            ('common_name', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('native_status', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('bloom_period', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('fruit_period', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('fall_conspicuous', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('flower_conspicuous', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('palatable_human', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('wildlife_value', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('fact_sheet', self.gf('django.db.models.fields.URLField')(max_length=255, null=True, blank=True)),
-            ('plant_guide', self.gf('django.db.models.fields.URLField')(max_length=255, null=True, blank=True)),
-            ('max_dbh', self.gf('django.db.models.fields.IntegerField')(default=200)),
-            ('max_height', self.gf('django.db.models.fields.IntegerField')(default=800)),
-        ))
-        db.send_create_signal(u'treemap', ['Species'])
-
-        # Adding model 'InstanceSpecies'
-        db.create_table(u'treemap_instancespecies', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('instance', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.Instance'])),
-            ('species', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.Species'])),
-            ('common_name', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-        ))
-        db.send_create_signal(u'treemap', ['InstanceSpecies'])
-
-        # Adding model 'ImportEvent'
-        db.create_table(u'treemap_importevent', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('imported_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.User'])),
-            ('imported_on', self.gf('django.db.models.fields.DateField')(auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal(u'treemap', ['ImportEvent'])
-
-        # Adding model 'Plot'
-        db.create_table(u'treemap_plot', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('instance', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.Instance'])),
-            ('geom', self.gf('django.contrib.gis.db.models.fields.PointField')(srid=3857, db_column='the_geom_webmercator')),
-            ('width', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
-            ('length', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
-            ('address_street', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
-            ('address_city', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
-            ('address_zip', self.gf('django.db.models.fields.CharField')(max_length=30, null=True, blank=True)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.User'])),
-            ('import_event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.ImportEvent'], null=True, blank=True)),
-            ('owner_orig_id', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
-            ('readonly', self.gf('django.db.models.fields.BooleanField')(default=False)),
-        ))
-        db.send_create_signal(u'treemap', ['Plot'])
-
-        # Adding model 'Tree'
-        db.create_table(u'treemap_tree', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('instance', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.Instance'])),
-            ('plot', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.Plot'])),
-            ('species', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.Species'], null=True, blank=True)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.User'])),
-            ('import_event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['treemap.ImportEvent'], null=True, blank=True)),
-            ('readonly', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('diameter', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
-            ('height', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
-            ('canopy_height', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
-            ('date_planted', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
-            ('date_removed', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
-        ))
-        db.send_create_signal(u'treemap', ['Tree'])
-
-        # Adding model 'BoundaryZones'
-        db.create_table(u'treemap_boundaryzones', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('geom', self.gf('django.contrib.gis.db.models.fields.MultiPolygonField')(srid=3857)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('category', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('sort_order', self.gf('django.db.models.fields.IntegerField')()),
-        ))
-        db.send_create_signal(u'treemap', ['BoundaryZones'])
-
-
-    def backwards(self, orm):
-        # Deleting model 'Audit'
-        db.delete_table(u'treemap_audit')
-
-        # Deleting model 'User'
-        db.delete_table(u'treemap_user')
-
-        # Removing M2M table for field groups on 'User'
-        db.delete_table('treemap_user_groups')
-
-        # Removing M2M table for field user_permissions on 'User'
-        db.delete_table('treemap_user_user_permissions')
-
-        # Deleting model 'Instance'
-        db.delete_table(u'treemap_instance')
-
-        # Deleting model 'Species'
-        db.delete_table(u'treemap_species')
-
-        # Deleting model 'InstanceSpecies'
-        db.delete_table(u'treemap_instancespecies')
-
-        # Deleting model 'ImportEvent'
-        db.delete_table(u'treemap_importevent')
-
-        # Deleting model 'Plot'
-        db.delete_table(u'treemap_plot')
-
-        # Deleting model 'Tree'
-        db.delete_table(u'treemap_tree')
-
-        # Deleting model 'BoundaryZones'
-        db.delete_table(u'treemap_boundaryzones')
-
-
-    models = {
-        u'auth.group': {
-            'Meta': {'object_name': 'Group'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '80'}),
-            'permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
-        },
-        u'auth.permission': {
-            'Meta': {'ordering': "(u'content_type__app_label', u'content_type__model', u'codename')", 'unique_together': "((u'content_type', u'codename'),)", 'object_name': 'Permission'},
-            'codename': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contenttypes.ContentType']"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        u'contenttypes.contenttype': {
-            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
-            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        u'treemap.audit': {
-            'Meta': {'object_name': 'Audit'},
-            'action': ('django.db.models.fields.IntegerField', [], {}),
-            'created': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'current_value': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
-            'field': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'instance': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Instance']"}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
-            'model_id': ('django.db.models.fields.IntegerField', [], {'null': 'True'}),
-            'previous_value': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
-            'ref_id': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Audit']", 'null': 'True'}),
-            'requires_auth': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'updated': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.User']"})
-        },
-        u'treemap.boundaryzones': {
-            'Meta': {'object_name': 'BoundaryZones'},
-            'category': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'geom': ('django.contrib.gis.db.models.fields.MultiPolygonField', [], {'srid': '3857'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'sort_order': ('django.db.models.fields.IntegerField', [], {})
-        },
-        u'treemap.importevent': {
-            'Meta': {'object_name': 'ImportEvent'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'imported_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.User']"}),
-            'imported_on': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'blank': 'True'})
-        },
-        u'treemap.instance': {
-            'Meta': {'object_name': 'Instance'},
-            'center': ('django.contrib.gis.db.models.fields.PointField', [], {'srid': '3857'}),
-            'geo_rev': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'})
-        },
-        u'treemap.instancespecies': {
-            'Meta': {'object_name': 'InstanceSpecies'},
-            'common_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'instance': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Instance']"}),
-            'species': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Species']"})
-        },
-        u'treemap.plot': {
-            'Meta': {'object_name': 'Plot'},
-            'address_city': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
-            'address_street': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
-            'address_zip': ('django.db.models.fields.CharField', [], {'max_length': '30', 'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.User']"}),
-            'geom': ('django.contrib.gis.db.models.fields.PointField', [], {'srid': '3857', 'db_column': "'the_geom_webmercator'"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'import_event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.ImportEvent']", 'null': 'True', 'blank': 'True'}),
-            'length': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
-            'instance': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Instance']"}),
-            'owner_orig_id': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
-            'readonly': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'width': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'})
-        },
-        u'treemap.species': {
-            'Meta': {'object_name': 'Species'},
-            'bloom_period': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'common_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'cultivar_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'fact_sheet': ('django.db.models.fields.URLField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'fall_conspicuous': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'flower_conspicuous': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'fruit_period': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'gender': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
-            'genus': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'max_dbh': ('django.db.models.fields.IntegerField', [], {'default': '200'}),
-            'max_height': ('django.db.models.fields.IntegerField', [], {'default': '800'}),
-            'native_status': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'palatable_human': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'plant_guide': ('django.db.models.fields.URLField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'species': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'symbol': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'wildlife_value': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'})
-        },
-        u'treemap.tree': {
-            'Meta': {'object_name': 'Tree'},
-            'canopy_height': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.User']"}),
-            'date_planted': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
-            'date_removed': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
-            'diameter': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
-            'height': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'import_event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.ImportEvent']", 'null': 'True', 'blank': 'True'}),
-            'instance': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Instance']"}),
-            'plot': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Plot']"}),
-            'readonly': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'species': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['treemap.Species']", 'null': 'True', 'blank': 'True'})
-        },
-        u'treemap.user': {
-            'Meta': {'object_name': 'User'},
-            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
-        }
-    }
-
-    complete_apps = ['treemap']
+    operations = [
+        migrations.CreateModel(
+            name='User',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('password', models.CharField(max_length=128, verbose_name='password')),
+                ('last_login', models.DateTimeField(null=True, verbose_name='last login', blank=True)),
+                ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status')),
+                ('username', models.CharField(help_text='Required. 30 characters or fewer. Letters, numbers and @/./+/-/_ characters', unique=True, max_length=30, verbose_name='username', validators=[django.core.validators.RegexValidator(re.compile('^[\\w.@+-]+$'), 'Enter a valid username.', 'invalid')])),
+                ('email', models.EmailField(unique=True, max_length=254, verbose_name='email address', blank=True)),
+                ('is_staff', models.BooleanField(default=False, help_text='Designates whether the user can log into this admin site.', verbose_name='staff status')),
+                ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')),
+                ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
+                ('photo', models.ImageField(null=True, upload_to='users', blank=True)),
+                ('thumbnail', models.ImageField(null=True, upload_to='users', blank=True)),
+                ('first_name', models.CharField(default='', max_length=30, verbose_name='first name', blank=True)),
+                ('last_name', models.CharField(default='', max_length=30, verbose_name='last name', blank=True)),
+                ('organization', models.CharField(default='', max_length=255, blank=True)),
+                ('make_info_public', models.BooleanField(default=False)),
+                ('allow_email_contact', models.BooleanField(default=False)),
+                ('groups', models.ManyToManyField(related_query_name='user', related_name='user_set', to='auth.Group', blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', verbose_name='groups')),
+                ('user_permissions', models.ManyToManyField(related_query_name='user', related_name='user_set', to='auth.Permission', blank=True, help_text='Specific permissions for this user.', verbose_name='user permissions')),
+            ],
+            options={
+                'abstract': False,
+                'verbose_name': 'user',
+                'verbose_name_plural': 'users',
+            },
+            bases=(models.Model, treemap.audit.Auditable),
+            managers=[
+                ('objects', django.contrib.auth.models.UserManager()),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Audit',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('model', models.CharField(max_length=255, null=True, db_index=True)),
+                ('model_id', models.IntegerField(null=True, db_index=True)),
+                ('field', models.CharField(max_length=255, null=True)),
+                ('previous_value', models.TextField(null=True)),
+                ('current_value', models.TextField(null=True, db_index=True)),
+                ('action', models.IntegerField()),
+                ('requires_auth', models.BooleanField(default=False)),
+                ('created', models.DateTimeField(auto_now_add=True, db_index=True)),
+                ('updated', models.DateTimeField(auto_now=True, db_index=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='BenefitCurrencyConversion',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('currency_symbol', models.CharField(max_length=5)),
+                ('electricity_kwh_to_currency', models.FloatField()),
+                ('natural_gas_kbtu_to_currency', models.FloatField()),
+                ('h20_gal_to_currency', models.FloatField()),
+                ('co2_lb_to_currency', models.FloatField()),
+                ('o3_lb_to_currency', models.FloatField()),
+                ('nox_lb_to_currency', models.FloatField()),
+                ('pm10_lb_to_currency', models.FloatField()),
+                ('sox_lb_to_currency', models.FloatField()),
+                ('voc_lb_to_currency', models.FloatField()),
+            ],
+            bases=(treemap.audit.Dictable, models.Model),
+        ),
+        migrations.CreateModel(
+            name='Boundary',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('geom', django.contrib.gis.db.models.fields.MultiPolygonField(srid=3857, db_column='the_geom_webmercator')),
+                ('name', models.CharField(max_length=255)),
+                ('category', models.CharField(max_length=255)),
+                ('sort_order', models.IntegerField()),
+                ('updated_at', models.DateTimeField(db_index=True, auto_now=True, null=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Favorite',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='FieldPermission',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('model_name', models.CharField(max_length=255)),
+                ('field_name', models.CharField(max_length=255)),
+                ('permission_level', models.IntegerField(default=0, choices=[(0, 'None'), (1, 'Read Only'), (2, 'Write with Audit'), (3, 'Write Directly')])),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Instance',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=255)),
+                ('url_name', models.CharField(unique=True, max_length=255, validators=[treemap.instance.reserved_name_validator, django.core.validators.RegexValidator('^[a-zA-Z]+[a-zA-Z0-9\\-]*$', 'Must start with a letter and may only contain letters, numbers, or dashes ("-")', 'Invalid URL name')])),
+                ('basemap_type', models.CharField(default='google', max_length=255, choices=[('google', 'Google'), ('bing', 'Bing'), ('tms', 'Tile Map Service')])),
+                ('basemap_data', models.CharField(max_length=255, null=True, blank=True)),
+                ('geo_rev', models.IntegerField(default=1)),
+                ('bounds', django.contrib.gis.db.models.fields.MultiPolygonField(srid=3857)),
+                ('center_override', django.contrib.gis.db.models.fields.PointField(srid=3857, null=True, blank=True)),
+                ('config', treemap.json_field.JSONField(blank=True)),
+                ('is_public', models.BooleanField(default=False)),
+                ('logo', models.ImageField(null=True, upload_to='logos', blank=True)),
+                ('itree_region_default', models.CharField(blank=True, max_length=20, null=True, choices=[(b'TpIntWBOI', b'Temperate Interior West'), (b'NoEastXXX', b'Northeast'), (b'CaNCCoJBK', b'Northern California Coast'), (b'InterWABQ', b'Interior West'), (b'InlEmpCLM', b'Inland Empire'), (b'LoMidWXXX', b'Lower Midwest'), (b'MidWstMSP', b'Midwest'), (b'NMtnPrFNL', b'North'), (b'PacfNWLOG', b'Pacific Northwest'), (b'PiedmtCLT', b'South'), (b'SoCalCSMA', b'Southern California Coast'), (b'GulfCoCHS', b'Coastal Plain'), (b'SWDsrtGDL', b'Southwest Desert'), (b'InlValMOD', b'Inland Valleys'), (b'CenFlaXXX', b'Central Florida'), (b'TropicPacXXX', b'Tropical')])),
+                ('adjuncts_timestamp', models.BigIntegerField(default=0)),
+                ('non_admins_can_export', models.BooleanField(default=True)),
+                ('boundaries', models.ManyToManyField(to='treemap.Boundary', null=True, blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='InstanceUser',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('reputation', models.IntegerField(default=0)),
+                ('admin', models.BooleanField(default=False)),
+                ('instance', models.ForeignKey(to='treemap.Instance')),
+            ],
+            bases=(treemap.audit.Auditable, models.Model),
+        ),
+        migrations.CreateModel(
+            name='ITreeCodeOverride',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('itree_code', models.CharField(max_length=100)),
+            ],
+            bases=(models.Model, treemap.audit.Auditable),
+        ),
+        migrations.CreateModel(
+            name='ITreeRegion',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('code', models.CharField(unique=True, max_length=40)),
+                ('geometry', django.contrib.gis.db.models.fields.MultiPolygonField(srid=3857)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='MapFeature',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('udfs', treemap.udf.UDFField(db_index=True, blank=True)),
+                ('geom', django.contrib.gis.db.models.fields.PointField(srid=3857, db_column='the_geom_webmercator')),
+                ('address_street', models.CharField(help_text='Address', max_length=255, null=True, blank=True)),
+                ('address_city', models.CharField(help_text='City', max_length=255, null=True, blank=True)),
+                ('address_zip', models.CharField(help_text='Postal Code', max_length=30, null=True, blank=True)),
+                ('readonly', models.BooleanField(default=False)),
+                ('updated_at', models.DateTimeField(default=django.utils.timezone.now, help_text='Last Updated')),
+                ('feature_type', models.CharField(max_length=255)),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=(treemap.units.Convertible, treemap.audit.PendingAuditable, treemap.audit.UserTrackable, models.Model),
+        ),
+        migrations.CreateModel(
+            name='MapFeaturePhoto',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('image', models.ImageField(upload_to='trees/%Y/%m/%d', editable=False)),
+                ('thumbnail', models.ImageField(upload_to='trees_thumbs/%Y/%m/%d', editable=False)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+            ],
+            bases=(models.Model, treemap.audit.PendingAuditable),
+        ),
+        migrations.CreateModel(
+            name='ReputationMetric',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('model_name', models.CharField(max_length=255)),
+                ('action', models.CharField(max_length=255)),
+                ('direct_write_score', models.IntegerField(null=True, blank=True)),
+                ('approval_score', models.IntegerField(null=True, blank=True)),
+                ('denial_score', models.IntegerField(null=True, blank=True)),
+                ('instance', models.ForeignKey(to='treemap.Instance')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Role',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=255)),
+                ('default_permission', models.IntegerField(default=0, choices=[(0, 'None'), (1, 'Read Only'), (2, 'Write with Audit'), (3, 'Write Directly')])),
+                ('rep_thresh', models.IntegerField()),
+                ('instance', models.ForeignKey(blank=True, to='treemap.Instance', null=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Species',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('udfs', treemap.udf.UDFField(db_index=True, blank=True)),
+                ('otm_code', models.CharField(max_length=255)),
+                ('common_name', models.CharField(max_length=255)),
+                ('genus', models.CharField(max_length=255)),
+                ('species', models.CharField(max_length=255, blank=True)),
+                ('cultivar', models.CharField(max_length=255, blank=True)),
+                ('other_part_of_name', models.CharField(max_length=255, blank=True)),
+                ('is_native', models.NullBooleanField()),
+                ('flowering_period', models.CharField(max_length=255, blank=True)),
+                ('fruit_or_nut_period', models.CharField(max_length=255, blank=True)),
+                ('fall_conspicuous', models.NullBooleanField()),
+                ('flower_conspicuous', models.NullBooleanField()),
+                ('palatable_human', models.NullBooleanField()),
+                ('has_wildlife_value', models.NullBooleanField()),
+                ('fact_sheet_url', models.URLField(max_length=255, blank=True)),
+                ('plant_guide_url', models.URLField(max_length=255, blank=True)),
+                ('max_diameter', models.IntegerField(default=200)),
+                ('max_height', models.IntegerField(default=800)),
+                ('updated_at', models.DateTimeField(db_index=True, auto_now=True, null=True)),
+                ('instance', models.ForeignKey(to='treemap.Instance')),
+            ],
+            options={
+                'verbose_name_plural': 'Species',
+            },
+            bases=(treemap.audit.PendingAuditable, treemap.audit.UserTrackable, models.Model),
+        ),
+        migrations.CreateModel(
+            name='StaticPage',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=100)),
+                ('content', models.TextField()),
+                ('instance', models.ForeignKey(to='treemap.Instance')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Tree',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('udfs', treemap.udf.UDFField(db_index=True, blank=True)),
+                ('readonly', models.BooleanField(default=False)),
+                ('diameter', models.FloatField(help_text='Tree Diameter', null=True, blank=True)),
+                ('height', models.FloatField(help_text='Tree Height', null=True, blank=True)),
+                ('canopy_height', models.FloatField(help_text='Canopy Height', null=True, blank=True)),
+                ('date_planted', models.DateField(help_text='Date Planted', null=True, blank=True)),
+                ('date_removed', models.DateField(help_text='Date Removed', null=True, blank=True)),
+                ('instance', models.ForeignKey(to='treemap.Instance')),
+                ('species', models.ForeignKey(blank=True, to='treemap.Species', help_text='Species', null=True)),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=(treemap.units.Convertible, treemap.audit.PendingAuditable, treemap.audit.UserTrackable, models.Model),
+        ),
+        migrations.CreateModel(
+            name='UserDefinedCollectionValue',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('model_id', models.IntegerField()),
+                ('data', django_hstore.fields.DictionaryField()),
+            ],
+            bases=(treemap.audit.UserTrackable, models.Model),
+        ),
+        migrations.CreateModel(
+            name='UserDefinedFieldDefinition',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('model_type', models.CharField(max_length=255)),
+                ('datatype', models.TextField()),
+                ('iscollection', models.BooleanField()),
+                ('name', models.CharField(max_length=255)),
+                ('instance', models.ForeignKey(to='treemap.Instance')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Plot',
+            fields=[
+                ('mapfeature_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='treemap.MapFeature')),
+                ('width', models.FloatField(help_text='Plot Width', null=True, blank=True)),
+                ('length', models.FloatField(help_text='Plot Length', null=True, blank=True)),
+                ('owner_orig_id', models.CharField(max_length=255, null=True, blank=True)),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=('treemap.mapfeature',),
+        ),
+        migrations.CreateModel(
+            name='TreePhoto',
+            fields=[
+                ('mapfeaturephoto_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='treemap.MapFeaturePhoto')),
+                ('tree', models.ForeignKey(to='treemap.Tree')),
+            ],
+            bases=('treemap.mapfeaturephoto',),
+        ),
+        migrations.AddField(
+            model_name='userdefinedcollectionvalue',
+            name='field_definition',
+            field=models.ForeignKey(to='treemap.UserDefinedFieldDefinition'),
+        ),
+        migrations.AddField(
+            model_name='mapfeaturephoto',
+            name='instance',
+            field=models.ForeignKey(to='treemap.Instance'),
+        ),
+        migrations.AddField(
+            model_name='mapfeaturephoto',
+            name='map_feature',
+            field=models.ForeignKey(to='treemap.MapFeature'),
+        ),
+        migrations.AddField(
+            model_name='mapfeature',
+            name='instance',
+            field=models.ForeignKey(to='treemap.Instance'),
+        ),
+        migrations.AddField(
+            model_name='itreecodeoverride',
+            name='instance_species',
+            field=models.ForeignKey(to='treemap.Species'),
+        ),
+        migrations.AddField(
+            model_name='itreecodeoverride',
+            name='region',
+            field=models.ForeignKey(to='treemap.ITreeRegion'),
+        ),
+        migrations.AddField(
+            model_name='instanceuser',
+            name='role',
+            field=models.ForeignKey(to='treemap.Role'),
+        ),
+        migrations.AddField(
+            model_name='instanceuser',
+            name='user',
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='instance',
+            name='default_role',
+            field=models.ForeignKey(related_name='default_role', to='treemap.Role'),
+        ),
+        migrations.AddField(
+            model_name='instance',
+            name='eco_benefits_conversion',
+            field=models.ForeignKey(blank=True, to='treemap.BenefitCurrencyConversion', null=True),
+        ),
+        migrations.AddField(
+            model_name='instance',
+            name='users',
+            field=models.ManyToManyField(to=settings.AUTH_USER_MODEL, null=True, through='treemap.InstanceUser', blank=True),
+        ),
+        migrations.AddField(
+            model_name='fieldpermission',
+            name='instance',
+            field=models.ForeignKey(to='treemap.Instance'),
+        ),
+        migrations.AddField(
+            model_name='fieldpermission',
+            name='role',
+            field=models.ForeignKey(to='treemap.Role'),
+        ),
+        migrations.AddField(
+            model_name='favorite',
+            name='map_feature',
+            field=models.ForeignKey(to='treemap.MapFeature'),
+        ),
+        migrations.AddField(
+            model_name='favorite',
+            name='user',
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='audit',
+            name='instance',
+            field=models.ForeignKey(blank=True, to='treemap.Instance', null=True),
+        ),
+        migrations.AddField(
+            model_name='audit',
+            name='ref',
+            field=models.ForeignKey(to='treemap.Audit', null=True),
+        ),
+        migrations.AddField(
+            model_name='audit',
+            name='user',
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='tree',
+            name='plot',
+            field=models.ForeignKey(to='treemap.Plot'),
+        ),
+        migrations.AlterUniqueTogether(
+            name='species',
+            unique_together=set([('instance', 'common_name', 'genus', 'species', 'cultivar', 'other_part_of_name')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='itreecodeoverride',
+            unique_together=set([('instance_species', 'region')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='instanceuser',
+            unique_together=set([('instance', 'user')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='fieldpermission',
+            unique_together=set([('model_name', 'field_name', 'role', 'instance')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='favorite',
+            unique_together=set([('user', 'map_feature')]),
+        ),
+        migrations.AlterIndexTogether(
+            name='audit',
+            index_together=set([('instance', 'user', 'updated')]),
+        ),
+    ]

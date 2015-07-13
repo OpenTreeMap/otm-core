@@ -338,7 +338,7 @@ class Instance(models.Model):
     def get_udfc_search_fields(self, user):
         from treemap.models import InstanceUser
         from treemap.udf import UDFModel
-        from treemap.util import to_object_name, leaf_subclasses
+        from treemap.util import to_object_name, leaf_models_of_class
         from treemap.lib.perms import udf_write_level, READ, WRITE
 
         try:
@@ -347,7 +347,7 @@ class Instance(models.Model):
             iu = None
 
         data = DotDict({'models': set(), 'udfc': {}})
-        for clz in (leaf_subclasses(UDFModel)):
+        for clz in (leaf_models_of_class(UDFModel)):
             model_name = clz.__name__
             items = (
                 (k, v) for k, v
@@ -623,7 +623,7 @@ class Instance(models.Model):
                             errors.add(API_FIELD_ERRORS['group_invalid_model'])
 
         if errors:
-            raise ValidationError({'mobile_api_fields': errors})
+            raise ValidationError({'mobile_api_fields': list(errors)})
 
         scalar_fields = [key for group in field_groups
                          for key in group.get('field_keys', [])]
@@ -644,7 +644,7 @@ class Instance(models.Model):
                 errors.add(API_FIELD_ERRORS['missing_field'])
 
         if errors:
-            raise ValidationError({'mobile_api_fields': errors})
+            raise ValidationError({'mobile_api_fields': list(errors)})
 
     def save(self, *args, **kwargs):
         self.full_clean()

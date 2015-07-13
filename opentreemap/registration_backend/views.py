@@ -97,7 +97,7 @@ class RegistrationView(DefaultRegistrationView):
             return (url, [], {})
         return super(RegistrationView, self).get_success_url(request, new_user)
 
-    def register(self, request, **cleaned_data):
+    def register(self, request, form):
         """
         Register a new user account, inactive user account with the specified
         username, email, and password.
@@ -118,6 +118,8 @@ class RegistrationView(DefaultRegistrationView):
         the new ``User`` as the keyword argument ``user`` and the
         class of this backend as the sender.
         """
+        cleaned_data = form.cleaned_data
+
         username = cleaned_data['username']
         email = cleaned_data['email']
         password = cleaned_data['password1']
@@ -132,7 +134,8 @@ class RegistrationView(DefaultRegistrationView):
             request, username, email, password)
 
         user = RegistrationProfile.objects.create_inactive_user(
-            username, email, password, site, send_email=should_email)
+            site, send_email=should_email, username=username,
+            email=email, password=password)
 
         user.first_name = cleaned_data.get('first_name', '')
         user.last_name = cleaned_data.get('last_name', '')
