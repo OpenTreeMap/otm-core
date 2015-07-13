@@ -20,7 +20,7 @@ from treemap.models import Tree, MapFeature, User, Favorite
 
 from treemap.lib import format_benefits
 from treemap.lib.photo import context_dict_for_photo
-from treemap.util import leaf_models_of_class
+from treemap.util import leaf_models_of_class, to_object_name
 
 
 def _photo_upload_share_text(feature, has_tree=False):
@@ -281,6 +281,15 @@ def context_dict_for_resource(request, resource, **kwargs):
     _add_audits_to_context(audits, context)
 
     _add_share_context(context, request, photos)
+
+    object_name_alias = to_object_name(context['feature'].__class__.__name__)
+    # some features that were originally written to support plot and tree
+    # have grown to support other resource types, but they expect a context
+    # entry for their type, not just for 'feature'.
+    # For example:
+    # * Plot detail expects 'plot' and 'tree'
+    # * Foo detail would expect 'foo'
+    context[object_name_alias] = context['feature']
 
     return context
 

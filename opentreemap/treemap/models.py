@@ -730,6 +730,7 @@ class Plot(MapFeature):
     owner_orig_id = models.CharField(max_length=255, null=True, blank=True)
 
     objects = GeoHStoreUDFManager()
+    is_editable = True
 
     collection_udf_settings = {
         'Stewardship': {
@@ -869,6 +870,10 @@ class Tree(Convertible, UDFModel, PendingAuditable):
     @classproperty
     def search_display_name(cls):
         return _('trees')
+
+    @classproperty
+    def display_name(cls):
+        return _('Tree')
 
     def dict(self):
         props = self.as_dict()

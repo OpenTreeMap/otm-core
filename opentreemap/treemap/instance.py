@@ -371,6 +371,17 @@ class Instance(models.Model):
 
         return data
 
+    def editable_udf_models(self):
+        from treemap.models import Tree, Plot
+        from treemap.udf import UDFModel
+        from treemap.util import leaf_models_of_class
+        models = {clz for clz in leaf_models_of_class(UDFModel)
+                  if clz.__name__ in self.map_feature_types
+                  and getattr(clz, 'is_editable', False)}
+        if Plot in models:
+            models |= {Tree}
+        return models
+
     @property
     def supports_resources(self):
         """
