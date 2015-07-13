@@ -1059,14 +1059,14 @@ class UDFModel(UserTrackable, models.Model):
 
     @property
     def scalar_udf_names_and_fields(self):
-        model_name = self.__class__.__name__.lower()
+        model_name = to_object_name(self.__class__.__name__)
         return [(field.name, model_name + ".udf:" + field.name)
                 for field in self.get_user_defined_fields()
                 if not field.iscollection]
 
     @property
     def collection_udf_names_and_fields(self):
-        model_name = self.__class__.__name__.lower()
+        model_name = to_object_name(self.__class__.__name__)
         return [(field.name, model_name + ".udf:" + field.name)
                 for field in self.collection_udfs]
 
