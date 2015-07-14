@@ -17,6 +17,7 @@ page the term "instance" is used internally, and in the API.
 OpenTreeMap tracks the site at which a tree is planted separately from
 the tree itself. For street trees, it is not uncommon for a damaged
 tree to be removed and a new tree added in its place. The web
+
 application uses the more general "planting site" to refer to the
 location where trees are planted. Internally, and in the API, "plot"
 is used to refer to these locations.
@@ -57,6 +58,17 @@ References:
   - [The Python implementation used by OpenTreeMap to validate signatures](https://docs.python.org/2/library/hmac.html)
   - [The Amazon Web Service implementation, on which the OTM Implementation is based]( http://docs.aws.amazon.com/AmazonSimpleDB/latest/DeveloperGuide/HMACAuth.html)
   - [A technical description of HMAC on Wikipeida](https://en.wikipedia.org/wiki/Hash-based_message_authentication_code)
+
+# Common Request Parameters
+
+All endpoints take the following request parameters (see individual endpoints for examples):
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`version` | string | yes | URL segment | API version string (e.g. `v3`)
+`access_key` | string | yes | query string | API access key
+`timestamp` | datetime | yes | query string | Date and time of request, in ISO 8601 format
+`signature` | string | yes | query string | Keyed-hash message authentication code
 
 # Users
 
@@ -113,6 +125,26 @@ Definition:
 PUT /api/{version}/user/{user_id}/
 ```
 
+Request Parameters:
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`user_id` | integer | yes | URL segment | ID of user to update
+*(fields)* | JSON | yes | body | Fields to update, see next table
+
+User profile fields:
+
+Name | Data Type | Required | Default | Description
+---- | --------- | -------- | ------- | -----------
+`username` | string | yes |  | User's username
+`password` | string | yes |  | User's password
+`email` | string | yes |  | User's email address
+`first_name` | string | no | "" | User's first name
+`last_name` | string | no | "" | User's last name
+`organization` | string | no | "" | User's organization
+`make_info_public` | boolean | no | false | Should profile information be visible to other users?
+`allow_email_contact` | boolean | no | false | Is this user subscribed to OpenTreeMap email updates?
+
 Example Request:
 
 ```
@@ -139,6 +171,13 @@ Definition:
 PUT /api/{version}/user/{user_id}/photo/
 ```
 
+Request Parameters:
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`user_id` | integer | yes | URL segment | ID of user to update
+*(none)* | image | yes | body | image data
+
 Example Request:
 
 TODO
@@ -158,6 +197,12 @@ Definition:
 ```
 POST /api/{version}/send-password-reset-email/
 ```
+
+Request Parameters:
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`email` | string | yes | body or query string | Email address of account for password reset 
 
 Example Request:
 
@@ -193,6 +238,14 @@ Definition:
 ```
 GET /api/{version}/locations/{lat,lng}/instances/?max={max}
 ```
+
+Request Parameters:
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`lat,lng` | comma-separated floats | yes | URL segment | Location (latitude, longitude) for instance search
+`max` | integer | yes | query string | Maximum number of instances to return (1-500)
+`distance` | integer | yes | query string | Return instances within this distance (in meters) of given location
 
 Example Request:
 
@@ -311,6 +364,12 @@ Definition:
 ```
 GET /api/{version}/instance/{instance_url_name}/
 ```
+
+Request Parameters:
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`instance_url_name` | string | yes | URL segment | Short name of instance
 
 Example Request:
 
@@ -479,8 +538,52 @@ the plot is located.
 Definition:
 
 ```
-POST /api/{version}/{instance_url_name}/plots/
+POST /api/{version}/{`instance_url_name`}/plots/
 ```
+
+Request Parameters:
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`instance_url_name` | string | yes | URL segment | Short name of instance
+`plot` | JSON | yes | body | Plot fields to update, see table below
+`tree` | JSON | yes | body | Tree fields to update, see table below
+
+<a name="plot-fields"></a>
+Plot fields:
+
+Name | Data Type | Required | Default | Description
+---- | --------- | -------- | ------- | -----------
+`geom` | JSON | yes | | Plot location
+`geom.srid` | integer | no | 3857 | SRID of coordinate system (e.g. 3857 for Web Mercator, 4326 for lat/long)
+`geom.x` | float | yes | | X coordinate of location (in SRID-specific units)
+`geom.y` | float | yes | | Y coordinate of location (in SRID-specific units)
+`length` | float | no | null | Length of plot bed (in instance-specific units)
+`width` | float | no | null | Width of plot bed (in instance-specific units)
+`address_street` | string | no | "" | Number and street of nearest address
+`address_city` | string | no | "" | City name
+`address_zip` | string | no | "" | Postal code
+`owner_orig_id` | string | no | "" | ID of plot in an external system
+`udf:Stewardship` | JSON | no | [] | List of stewardship actions
+`udf:Stewardship.Action` | string | yes | | Action performed, from instance-specific choices
+`udf:Stewardship.Date` | date | yes | | Date performed (YYYY-MM-DD)
+`udf:<customFieldName>` | *(varies)* | no | | Instance-specific custom field 
+
+<a name="tree-fields"></a>
+Tree fields:
+
+Name | Data Type | Required | Default | Description
+---- | --------- | -------- | ------- | -----------
+`species` | integer | no | null | Internal ID of this tree's species
+`diameter` | float | no | null | Tree diameter at breast height (instance-specific units)
+`height` | float | no | null | Tree height (in instance-specific units)
+`canopy_height` | float | no | null | Canopy height (in instance-specific units)
+`date_planted` | date | no | null | Date tree planted (YYYY-MM-DD)
+`date_removed` | date | no | null | Date tree removed (YYYY-MM-DD) 
+`udf:Stewardship` | JSON | no | [ ] | List of stewardship actions
+`udf:Stewardship.Action` | string | yes | | Action performed, from instance-specific choices
+`udf:Stewardship.Date` | date | yes | | Date performed (YYYY-MM-DD)
+`udf:<customFieldName>` | *(varies)* | no | | Instance-specific custom field 
 
 Example Request:
 
@@ -662,15 +765,22 @@ Example Response:
 ```
 
 <a name="get-a-plot-and-the-current-tree"></a>
-## Get a plot and the current tree
+## Get a plot and its current tree
 
-Get a plot and the tree planted in the plot.
+Get data for a plot and the tree planted in the plot.
 
 Definition:
 
 ```
-GET /api/{version}/instance/{instance_url_name}/plots/{plot_id}/
+GET /api/{version}/instance/{`instance_url_name`}/plots/{plot_id}/
 ```
+
+Request Parameters:
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`instance_url_name` | string | yes | URL segment | Short name of instance
+`plot_id` | integer | yes | URL segment | ID of desired plot
 
 Example Request:
 
@@ -855,15 +965,25 @@ Example Response:
 ## Update a plot and/or tree
 
 Update an existing plot and/or tree. The `PUT` verb is used for this
-request, but this endpoint behaves more like a `PATCH` request. You
+request, but this endpoint behaves more like a `PATCH` request in that
+omitted fields will not be modified. You
 can update a single field value by passing a single JSON-encoded
 key-value pair.
 
 Definition:
 
 ```
-PUT /api/{version}/instance/{instance_url_name}/plots/{plot_id}/
+PUT /api/{version}/instance/{`instance_url_name`}/plots/{plot_id}/
 ```
+
+Request Parameters:
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`instance_url_name` | string | yes | URL segment | Short name of instance
+`plot_id` | integer | yes | URL segment | ID of plot to update
+`plot` | JSON | no | body | [Plot fields to update](#plot-fields)
+`tree` | JSON | no | body | [Tree fields to update](#tree-fields)
 
 Example Request:
 
@@ -877,17 +997,24 @@ curl -H "Content-Type: application/json"\
 
 Example Response:
 
-The response will be the same as [``GET /api/{version}/instance/{instance_url_name}/plots/{plot_id}/``](#get-a-plot-and-the-current-tree)
+The response will be the same as [``GET /api/{version}/instance/{`instance_url_name`}/plots/{plot_id}/``](#get-a-plot-and-the-current-tree)
 
 ## Delete a plot
 
-Delete an existing plot.
+Delete an existing plot, and its tree (if present).
 
 Definition:
 
 ```
-DELETE /api/{version}/instance/{instance_url_name}/plots/{plot_id}/
+DELETE /api/{version}/instance/{`instance_url_name`}/plots/{plot_id}/
 ```
+
+Request Parameters:
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`instance_url_name` | string | yes | URL segment | Short name of instance
+`plot_id` | integer | yes | URL segment | ID of plot to delete
 
 Example Request:
 
@@ -910,8 +1037,15 @@ Delete an existing tree, but leave the plot in which it is planted.
 Definition:
 
 ```
-DELETE /api/{version}/instance/{instance_url_name}/plots/{plot_id}/tree/
+DELETE /api/{version}/instance/{`instance_url_name`}/plots/{plot_id}/tree/
 ```
+
+Request Parameters:
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`instance_url_name` | string | yes | URL segment | Short name of instance
+`plot_id` | integer | yes | URL segment | ID of plot whose tree should be deleted
 
 Example Request:
 
@@ -933,8 +1067,16 @@ Example Response:
 Definition:
 
 ```
-POST /api/{version}/instance/{instance_url_name}/plots/{plot_id}/tree/photo/
+POST /api/{version}/instance/{`instance_url_name`}/plots/{plot_id}/tree/photo/
 ```
+
+Request Parameters:
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`instance_url_name` | string | yes | URL segment | Short name of instance
+`plot_id` | integer | yes | URL segment | ID of plot whose tree has been photographed
+*(none)* | image | yes | body | image data
 
 Example Request:
 
@@ -954,8 +1096,16 @@ The location should be specified as latitude,longitude (e.g. `-75.123,39.727`)
 Definition:
 
 ```
-GET /api/{version}/instance/{instance_url_name}/location/{lat,lng}/plots/?max_plots={max_plots}
+GET /api/{version}/instance/{`instance_url_name`}/location/{lat,lng}/plots/?max_plots={max_plots}
 ```
+
+Request Parameters:
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`instance_url_name` | string | yes | URL segment | Short name of instance
+`lat,lng` | comma-separated floats | yes | URL segment | Location (latitude, longitude) for plot search
+`max_plots` | integer | yes | query string | Maximum number of plots to return (1-500)
 
 Example Request:
 
@@ -972,7 +1122,7 @@ Example Response:
 ]
 ```
 
-Each plot returned will have the same schema as [``GET /api/{version}/instance/{instance_url_name}/plots/{plot_id}/``](#get-a-plot-and-the-current-tree)
+Each plot returned will have the same schema as [``GET /api/{version}/instance/{`instance_url_name`}/plots/{plot_id}/``](#get-a-plot-and-the-current-tree)
 
 
 # Species
@@ -984,8 +1134,14 @@ Get all tree species defined for the specified instance.
 Definition:
 
 ```
-GET /api/{version}/instance/{instance_url_name}/species/
+GET /api/{version}/instance/{`instance_url_name`}/species/
 ```
+
+Request Parameters:
+
+Name | Data Type | Required | Passed In | Description
+---- | --------- | -------- | --------- | -----------
+`instance_url_name` | string | yes | URL segment | Short name of instance
 
 Example Request:
 
