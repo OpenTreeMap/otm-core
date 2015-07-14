@@ -74,8 +74,8 @@ GET /api/{version}/user/
 Example Request:
 
 ```
-curl "https://opentreemap.org/api/v3/user?access_key=AN_ACCESS_KEY&timestamp=2015-06-16T17%3A59%3A37&signature=Ybtw...="
-  -u "auser:apassword"
+curl -u "auser:apassword"\
+     "https://opentreemap.org/api/v3/user?access_key=AN_ACCESS_KEY&timestamp=2015-06-16T17%3A59%3A37&signature=Ybtw...="
 ```
 
 Example Response:
@@ -119,7 +119,7 @@ Example Request:
 curl -H "Content-Type: application/json"\
      -X PUT\
      -d '{"password": "a_new_password"}'\
-     -u "auser:apassword"
+     -u "auser:apassword"\
      "https://opentreemap.org/api/v3/user/1/?access_key=AN_ACCESS_KEY&timestamp=2015-06-16T17%3A59%3A37&signature=Ybtw...="
 ```
 
@@ -197,7 +197,7 @@ GET /api/{version}/locations/{lat,lng}/instances/?max={max}
 Example Request:
 
 ```
-curl https://opentreemap.org/api/v3/locations/39.727,-75.123/instances/instances?max=5&distance=320000.0&access_key=AN_ACCESS_KEY&timestamp=2015-06-16T19%3A48%3A05&signature=ybtw..."
+curl "https://opentreemap.org/api/v3/locations/39.727,-75.123/instances/instances?max=5&distance=320000.0&access_key=AN_ACCESS_KEY&timestamp=2015-06-16T19%3A48%3A05&signature=ybtw..."
 ```
 
 Example Response:
@@ -309,7 +309,7 @@ Get the full details of an instance.
 Definition:
 
 ```
-GET /api/{version}/instance/{instance_url_name}
+GET /api/{version}/instance/{instance_url_name}/
 ```
 
 Example Request:
@@ -675,7 +675,7 @@ GET /api/{version}/instance/{instance_url_name}/plots/{plot_id}/
 Example Request:
 
 ```
-curl "https://opentreemap.org/api/v3/instance/myinstance/plots/1?access_key=AN_ACCESS_KEY&timestamp=2015-06-16T19%3A48%3A05&signature=ybtw..."
+curl "https://opentreemap.org/api/v3/instance/myinstance/plots/1/?access_key=AN_ACCESS_KEY&timestamp=2015-06-16T19%3A48%3A05&signature=ybtw..."
 ```
 
 Example Response:
