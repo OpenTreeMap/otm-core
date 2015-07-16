@@ -17,3 +17,8 @@ class UdfGenericCreateTest(UdfCRUTestCase):
                 'udf.type': 'string'}
 
         udf_create(body, self.instance)
+
+        # teardown, for the sake of other tests that look at map_feature_types
+        self.instance.map_feature_types = [
+            t for t in self.instance.map_feature_types if t != 'Bioswale']
+        self.instance.save()
