@@ -2,7 +2,10 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    R = require('ramda'),
     L = require('leaflet'),
+    Bacon = require('baconjs'),
+    format = require('util').format,
     U = require('treemap/utility'),
     BU = require('treemap/baconUtils'),
     makeLayerFilterable = require('treemap/makeLayerFilterable'),
@@ -45,7 +48,7 @@ MapManager.prototype = {
         } else {
             map.addLayer(plotLayer);
             map.addLayer(utfLayer);
-            map.utfEvents = BU.leafletEventStream(utfLayer, 'click');
+            var baseUtfEventStream = BU.leafletEventStream(utfLayer, 'click');
 
             if (hasPolygons) {
                 var polygonLayer = createPolygonTileLayer(config),
@@ -58,6 +61,34 @@ MapManager.prototype = {
 
                 fixZoomLayerSwitch(map, polygonLayer);
                 fixZoomLayerSwitch(map, allPolygonsLayer);
+
+                // When a map has polygons, we check to see if a utf event was
+                // for a dot, and if not, and if the map is zoomed in enough to
+                // see polygons, we make an AJAX call to see if there
+                // is a polygon in that location.
+                var shouldCheckForPolygon = function(e) {
+                        return map.getZoom() >= MIN_ZOOM_OPTION.minZoom && e.data === null;
+                    },
+                    plotUtfEventStream = baseUtfEventStream.filter(R.not(shouldCheckForPolygon)),
+                    emptyUtfEventStream = baseUtfEventStream.filter(shouldCheckForPolygon),
+
+                    polygonDataStream = emptyUtfEventStream.map(function(e) {
+                        var lat = e.latlng.lat,
+                            lng = e.latlng.lng,
+                            // The distance parameter changes as a function of zoom
+                            // halving with every zoom level.  I arrived at 20
+                            // meters at zoom level 15 through trial and error
+                            dist = 20 / Math.pow(2, map.getZoom() - MIN_ZOOM_OPTION.minZoom);
+
+                        return config.instance.polygonForPointUrl + format('?lng=%d&lat=%d&distance=%d', lng, lat, dist);
+                    }).flatMap(BU.getJsonFromUrl);
+
+                map.utfEvents = Bacon.mergeAll(
+                    plotUtfEventStream,
+                    polygonDataStream
+                );
+            } else {
+                map.utfEvents = baseUtfEventStream;
             }
         }
 
