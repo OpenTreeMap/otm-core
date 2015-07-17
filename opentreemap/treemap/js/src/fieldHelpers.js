@@ -76,6 +76,13 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
             displayValue = getDisplayValue(type, item.name),
             $field = getSerializableField($editFields, item.name);
 
+        if (type === 'multichoice') {
+            var base = result[item.name] || [];
+            base.push(item.value);
+            result[item.name] = base;
+            return;
+        }
+
         if (item.value === displayValue) {
             return;  // Don't serialize unchanged values
         }
@@ -99,6 +106,8 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
             result[item.name] = item.value;
         }
     });
+    // TODO: probably need something here to find empty multiselects just
+    // like with checkboxes
     $form.find('[name][type="checkbox"]').not('[disabled]').each(function(i, elem) {
         if (elem.checked !== getDisplayValue('bool', elem.name)) {
             result[elem.name] = elem.checked;

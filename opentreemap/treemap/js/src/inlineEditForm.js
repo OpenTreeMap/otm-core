@@ -122,6 +122,9 @@ exports.init = function(options) {
                     }
                     else if ($input.is('[data-date-format]')) {
                         FH.applyDateToDatepicker($input, value);
+                    } else if ($input.is('select[multiple]')) {
+                        value = JSON.parse(value);
+                        $input.val(value);
                     } else {
                         $input.val(value);
                     }
@@ -163,14 +166,15 @@ exports.init = function(options) {
                             value = $input.is(':checked') ? "True" : "False";
                         } else if ($input.is('[data-date-format]')) {
                             value = FH.getTimestampFromDatepicker($input);
+                        } else if ($input.is('select[multiple]')) {
+                            value = JSON.stringify($input.val());
                         } else {
                             value = $input.val();
                         }
 
                         $(display).attr('data-value', value);
                         displayValue = value;
-
-                        if ($input.is('select')) {
+                        if ($input.is('select') && !$input.is('[multiple]')) {
                             // Use dropdown text (not value) as display value
                             displayValue = $input.find('option:selected').text();
                         } else if ($input.is('[type="checkbox"]')) {
