@@ -732,8 +732,9 @@ class Plot(MapFeature):
     objects = GeoHStoreUDFManager()
     is_editable = True
 
-    collection_udf_settings = {
+    udf_settings = {
         'Stewardship': {
+            'iscollection': True,
             'range_field_key': 'Date',
             'action_field_key': 'Action',
             'action_verb': _('that have been'),
@@ -748,6 +749,7 @@ class Plot(MapFeature):
                  'name': 'Date'}],
         },
         'Alerts': {
+            'iscollection': True,
             'range_field_key': 'Date Noticed',
             'action_field_key': 'Action Needed',
             'action_verb': _('with open alerts for'),
@@ -841,8 +843,9 @@ class Tree(Convertible, UDFModel, PendingAuditable):
                             'Mulched, Had Compost Added, or Soil Amended',
                             'Cleared of Trash or Debris']
 
-    collection_udf_settings = {
+    udf_settings = {
         'Stewardship': {
+            'iscollection': True,
             'range_field_key': 'Date',
             'action_field_key': 'Action',
             'action_verb': 'that have been',
@@ -854,6 +857,7 @@ class Tree(Convertible, UDFModel, PendingAuditable):
                  'name': 'Date'}],
         },
         'Alerts': {
+            'iscollection': True,
             'range_field_key': 'Date Noticed',
             'action_field_key': 'Action Needed',
             'action_verb': _('with open alerts for'),
