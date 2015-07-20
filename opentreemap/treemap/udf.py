@@ -552,9 +552,6 @@ class UserDefinedFieldDefinition(models.Model):
                 if choice is None or choice == '':
                     raise ValidationError(_('empty choice not allowed'))
 
-            if len(choices) == 0:
-                raise ValidationError(_('empty choice list'))
-
             if len(choices) != len(set(choices)):
                 raise ValidationError(_('duplicate choices'))
 

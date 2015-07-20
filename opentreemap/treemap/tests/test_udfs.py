@@ -8,6 +8,8 @@ from random import shuffle
 from datetime import datetime
 import psycopg2
 
+from unittest.case import skip
+
 from django.db import connection
 from django.db.models import Q
 from django.core.exceptions import ValidationError
@@ -546,12 +548,19 @@ class UDFDefTest(OTMTestCase):
             {'type': 'float',
              'description': 'this is a float field'})
 
-    def test_choices_not_empty_or_missing(self):
+    def test_choices_not_missing(self):
         self.assertRaises(
             ValidationError,
             self._create_and_save_with_datatype,
             {'type': 'choice'})
 
+        self._create_and_save_with_datatype(
+            {'type': 'choice',
+             'choices': ['a choice', 'another']})
+
+    @skip("skipping for as long as we need to support default udfs "
+          "with no universal choice list")
+    def test_choices_not_empty(self):
         self.assertRaises(
             ValidationError,
             self._create_and_save_with_datatype,
