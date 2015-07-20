@@ -21,7 +21,6 @@ from treemap.util import package_field_errors
 from treemap.models import User, Favorite, MapFeaturePhoto
 from treemap.util import get_filterable_audit_models
 from treemap.lib.user import get_audits, get_user_instances, get_audits_params
-from treemap.lib.map_feature import title_for_map_feature
 
 USER_PROFILE_FIELDS = collections.OrderedDict([
     ('first_name',
@@ -181,7 +180,7 @@ def user(request, username):
     favorites_qs = Favorite.objects.filter(user=user).order_by('-created')
     favorites = [{
         'map_feature': f.map_feature,
-        'title': title_for_map_feature(f.map_feature),
+        'title': f.map_feature.title(),
         'instance': f.map_feature.instance,
         'address': f.map_feature.address_full,
         'photo': _small_feature_photo_url(f.map_feature)

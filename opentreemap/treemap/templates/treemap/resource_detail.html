@@ -54,6 +54,31 @@
 {% endif %}
 {% endwith %}
 
+<h3>{% trans "Associated Trees" %}</h3>
+{% with plots=feature.contained_plots %}
+{% if plots %}
+    <table class="table table-hover">
+        <tbody>
+        {% for plot in plots %}
+        <tr>
+            <td>
+                <a href="{% url 'map_feature_detail' instance_url_name=request.instance.url_name feature_id=plot.pk %}">
+                    {{ plot.title }}
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <div class="well">
+    {% blocktrans with resource=term.Resource %}
+        This {{ resource }} does not contain any trees.
+    {% endblocktrans %}
+    </div>
+{% endif %}
+{% endwith %}
+
 {% endblock subclass_details %}
 
 

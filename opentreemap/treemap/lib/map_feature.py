@@ -294,26 +294,6 @@ def context_dict_for_resource(request, resource, **kwargs):
     return context
 
 
-def title_for_map_feature(feature):
-    # Cast allows the map feature subclass to handle generating
-    # the display name
-    feature = feature.cast_to_subtype()
-
-    if feature.is_plot:
-        tree = feature.current_tree()
-        if tree:
-            if tree.species:
-                title = tree.species.common_name
-            else:
-                title = _("Missing Species")
-        else:
-            title = _("Empty Planting Site")
-    else:
-        title = feature.display_name
-
-    return title
-
-
 def context_dict_for_map_feature(request, feature, edit=False):
     context = {}
 
@@ -343,7 +323,7 @@ def context_dict_for_map_feature(request, feature, edit=False):
     context.update({
         'feature': feature,
         'feature_type': feature.feature_type,
-        'title': title_for_map_feature(feature),
+        'title': feature.title(),
         'address_full': feature.address_full,
         'upload_photo_endpoint': None,
         'photos': None,
