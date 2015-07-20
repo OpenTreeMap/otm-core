@@ -13,19 +13,19 @@
 <h3>{{ term.Resource }} {% trans "Information" %}</h3>
 
 <table class="table table-hover">
-  <tbody>
+    <tbody>
     <tr>
-      <td>{{ term.Resource }} {% trans "number" %}</td>
-      <td>{{ feature.pk|unlocalize }}</td>
+        <td>{{ term.Resource }} {% trans "number" %}</td>
+        <td>{{ feature.pk|unlocalize }}</td>
     </tr>
 
     {% block resource_details %}
     {% endblock resource_details %}
 
     {% for label, udf in feature.scalar_udf_names_and_fields %}
-      {% field label from udf for request.user withtemplate "treemap/field/tr.html" %}
+        {% field label from udf for request.user withtemplate "treemap/field/tr.html" %}
     {% endfor %}
-  </tbody>
+    </tbody>
 </table>
 
 {% for udf in feature.collection_udfs %}
@@ -35,36 +35,34 @@
 {% endfor %}
 
 <!-- Ecosystem Benefits -->
-<div id="ecobenefits">
-<h3>{{ term.Resource }} {% trans "Ecosystem Services" %}</h3>
 {% with stormbenefits=benefits.resource %}
 {% if stormbenefits %}
-<table class="table table-hover">
-  <tbody>
-    {% for key, benefit in stormbenefits.items %}
-    <tr>
-      <td>{{ benefit.label }}</td>
-      <td>{{ benefit.value }} {{ benefit.unit}}</td>
-      <td>{{ benefit.currency_saved }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+    <div id="ecobenefits">
+        <h3>{{ term.Resource }} {% trans "Ecosystem Services" %}</h3>
+        <table class="table table-hover">
+            <tbody>
+            {% for key, benefit in stormbenefits.items %}
+            <tr>
+                <td>{{ benefit.label }}</td>
+                <td>{{ benefit.value }} {{ benefit.unit}}</td>
+                <td>{{ benefit.currency_saved }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endif %}
 {% endwith %}
-</div>
 
 {% endblock subclass_details %}
 
 
 {% block delete_confirmation_text %}
 <p>
-  <strong>{% trans "Warning!" %}</strong>
-  {% with resource=term.resource %}
-  {% blocktrans %}
-  You are about to delete this {{ resource }}. Do you want to continue?
-  {% endblocktrans %}
-  {% endwith %}
+    <strong>{% trans "Warning!" %}</strong>
+    {% blocktrans with resource=term.resource %}
+    You are about to delete this {{ resource }}. Do you want to continue?
+    {% endblocktrans %}
 </p>
 {% endblock delete_confirmation_text %}
 
