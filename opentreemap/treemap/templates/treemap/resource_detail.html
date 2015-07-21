@@ -63,7 +63,14 @@
         <tr>
             <td>
                 <a href="{% url 'map_feature_detail' instance_url_name=request.instance.url_name feature_id=plot.pk %}">
+                {% with tree=plot.current_tree %}
+                {% if plot.current_tree %}
                     {{ plot.title }}
+                    {% field from "tree.diameter" for request.user withtemplate "treemap/field/resource_tree.html" %}
+                {% else %}
+                    {{ plot.title }}
+                {% endif %}
+                {% endwith %}
                 </a>
             </td>
         </tr>
