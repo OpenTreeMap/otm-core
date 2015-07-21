@@ -56,7 +56,8 @@ exports.init = function(options) {
                        updateUrl: detailUrl,
                        shouldBeInEditModeStream: shouldBeInEditModeStream,
                        errorCallback: alerts.makeErrorCallback(options.config),
-                       onSaveBefore: function (data) { currentPlotMover.onSaveBefore(data); }
+                       onSaveBefore: function (data) { currentPlotMover.onSaveBefore(data); },
+                       onSaveAfter: function (data) { currentPlotMover.onSaveAfter(data); }
                      }));
 
     if (options.config.instance.supportsEcobenefits) {

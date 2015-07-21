@@ -36,12 +36,15 @@ def _request_to_update_map_feature(request, feature):
     request_dict = json.loads(request.body)
     feature, tree = update_map_feature(request_dict, request.user, feature)
 
+    ctx_fn = (context_dict_for_plot if feature.is_plot
+              else context_dict_for_map_feature)
+
     return {
         'ok': True,
         'geoRevHash': feature.instance.geo_rev_hash,
         'featureId': feature.id,
         'treeId': tree.id if tree else None,
-        'feature': context_dict_for_map_feature(request, feature),
+        'feature': ctx_fn(request, feature),
         'enabled': feature.instance.feature_enabled('add_plot'),
     }
 

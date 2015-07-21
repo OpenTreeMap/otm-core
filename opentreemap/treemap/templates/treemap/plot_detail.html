@@ -49,6 +49,7 @@
     </tbody>
   </table>
 
+  {% if not containing_polygonalmapfeature %}
   {# Render collection UDF fields for the Tree #}
   {% if tree %}
     {% for udf in tree.collection_udfs %}
@@ -57,10 +58,21 @@
         {% endwith %}
     {% endfor %}
   {% endif %}
+  {% endif %}
 </div>
 
+<h3>{% trans "Planting Site Information" %}</h3>
+{% if containing_polygonalmapfeature %}
+<div class="well" id="containing-polygonalmapfeature">
+  {% with pmf_id=containing_polygonalmapfeature.pk|unlocalize %}
+  {% url 'map_feature_detail' instance_url_name=request.instance.url_name feature_id=pmf_id as polygonal_url %}
+  {% blocktrans with display_name=containing_polygonalmapfeature.display_name %}
+  This tree is part of <a href="{{ polygonal_url }}">{{ display_name }} #{{ pmf_id }}.</a> For stewardship actions, please <a href="{{ polygonal_url }}">go to the {{ display_name }} detail page.</a>
+  {% endblocktrans %}
+  {% endwith %}
+</div>
+{% else %}
 <table class="table table-hover">
-  <h3>{% trans "Planting Site Information" %}</h3>
   <tbody>
     {% trans "Width" as width %}
     {% field width from "plot.width" for request.user withtemplate "treemap/field/tr.html" %}
@@ -90,6 +102,8 @@
     {% include "treemap/partials/collectionudf.html" with udf=udf title_prefix=title_prefix model=plot values=values %}
   {% endwith %}
 {% endfor %}
+
+{% endif %}
 
 <!-- Ecosystem Benefits -->
 <div id="ecobenefits">

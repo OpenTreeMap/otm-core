@@ -59,3 +59,7 @@ class Bioswale(PolygonalMapFeature):
     @classproperty
     def search_display_name(cls):
         return _('bioswales')
+
+    @classproperty
+    def display_name(cls):
+        return _('Bioswale')
