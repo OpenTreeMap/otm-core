@@ -143,6 +143,7 @@ def add_default_permissions(instance, roles=None, models=None):
     from treemap.models import MapFeaturePhoto
     if roles is None:
         roles = Role.objects.filter(instance=instance)
+
     if models is None:
         # We need permissions only on those subclasses of Authorizable
         # which we instantiate. Those are the leaf nodes of the
@@ -186,7 +187,14 @@ def _add_default_permissions(models, role, instance):
         perms = [FieldPermission(**perm) for perm in perms]
         for perm in perms:
             perm.permission_level = role.default_permission
+
         FieldPermission.objects.bulk_create(perms)
+        # Because we use bulk_create, we must manually trigger the save signal
+        # invalidate_adjuncts would get passed a FieldPermission object if we
+        # called save directly, but it doesn't use it for anything other than
+        # to get the associated instance, which is the same here for all perms,
+        # so just passing it the first FieldPermission should be fine
+        invalidate_adjuncts(instance=perms[0])
 
 
 def approve_or_reject_existing_edit(audit, user, approved):
