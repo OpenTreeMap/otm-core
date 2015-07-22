@@ -197,6 +197,9 @@
     </script>
     {% endverbatim %}
 
+    {% block endbody %}
+    {% endblock endbody %}
+
     {% block scripts %}
     {% endblock scripts %}
 
@@ -209,9 +212,6 @@
           require("treemap/export").run({ config: otm.settings });
       })(require);
     </script>
-
-    {% block endbody %}
-    {% endblock endbody %}
 
   </body>
 </html>

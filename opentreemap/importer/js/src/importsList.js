@@ -28,7 +28,6 @@ var REFRESH_INTERVAL = 5 * 1000;
 
 function init(options) {
     var $container = $(dom.container),
-        iAmVisibleProperty = options.iAmVisibleProperty,
         tablesUpdatedBus = new Bacon.Bus(),
         viewStatusStream = BU.reloadContainerOnClick($container, dom.viewStatusLink),
 
@@ -40,16 +39,13 @@ function init(options) {
         );
 
 
-    // When I become visible, or
-    // when the whole container updates, or
-    // when the tables have just been updated and I am visible,
+    // When the whole container updates, or
+    // when the tables have just been updated,
     // wait a bit and
     // trigger a refresh if any imports aren't finished.
     Bacon.mergeAll(
-            iAmVisibleProperty.changes().filter(R.eq(true)),
             containerUpdateStream,
             tablesUpdatedBus)
-        .filter(iAmVisibleProperty)
         .throttle(REFRESH_INTERVAL)
         .onValue(updateTablesIfImportsNotFinished, options.refreshImportsUrl, tablesUpdatedBus);
 }
