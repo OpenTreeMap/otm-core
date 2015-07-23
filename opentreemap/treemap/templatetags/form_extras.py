@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import json
 import re
 from modgrammar import Grammar, OPTIONAL, G, WORD, OR, ParseError
 
@@ -313,7 +314,7 @@ class AbstractNode(template.Node):
         object_name = to_object_name(model_name_or_object_name)
         identifier = "%s.%s" % (object_name, field_name)
 
-        def _field_value(model, field_name):
+        def _field_value(model, field_name, data_type):
             udf_field_name = field_name.replace('udf:', '')
             if field_name in model._meta.get_all_field_names():
                 try:
@@ -322,6 +323,8 @@ class AbstractNode(template.Node):
                     val = None
             elif _is_udf(model, udf_field_name):
                 val = model.udfs[udf_field_name]
+                if data_type == 'multichoice':
+                    val = json.dumps(val)
             else:
                 raise ValueError('Could not find field: %s' % field_name)
 
@@ -333,9 +336,9 @@ class AbstractNode(template.Node):
             is_visible = is_editable = True
             data_type = "string"
         else:
-            field_value = _field_value(model, field_name)
             data_type, label, choices = field_type_label_choices(
                 model, field_name, label)
+            field_value = _field_value(model, field_name, data_type)
 
             if user is not None and hasattr(model, 'field_is_visible'):
                 is_visible = model.field_is_visible(user, field_name)
@@ -372,6 +375,8 @@ class AbstractNode(template.Node):
                 display_val += (' %s' % units)
         elif data_type == 'bool':
             display_val = _('Yes') if field_value else _('No')
+        # elif data_type == 'multichoice':
+        #     display_val = field_value
         else:
             display_val = unicode(field_value)
 

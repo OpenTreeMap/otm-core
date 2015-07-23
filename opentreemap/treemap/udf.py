@@ -537,7 +537,8 @@ class UserDefinedFieldDefinition(models.Model):
             raise ValidationError(_('type required data type definition'))
 
         if datatype['type'] not in ['float', 'int', 'string',
-                                    'user', 'choice', 'date']:
+                                    'user', 'choice', 'date',
+                                    'multichoice']:
             raise ValidationError(_('invalid datatype'))
 
         if datatype['type'] == 'choice':
@@ -655,6 +656,8 @@ class UserDefinedFieldDefinition(models.Model):
         if self.datatype_dict['type'] == 'user':
             if hasattr(value, 'pk'):
                 value = str(value.pk)
+        elif self.datatype_dict['type'] == 'multichoice':
+            value = json.dumps(value)
 
         if value:
             return str(value)
@@ -725,6 +728,9 @@ class UserDefinedFieldDefinition(models.Model):
                     _('Invalid choice (%(given)s). Expecting %(allowed)s') %
                     {'given': value,
                      'allowed': ', '.join(datatype_dict['choices'])})
+        elif datatype == 'multichoice':
+            # TODO handle exceptions
+            return json.loads(value)
         else:
             return value
 
@@ -1112,10 +1118,12 @@ class UDFModel(UserTrackable, models.Model):
 
         base_model_dict = super(UDFModel, self).as_dict(*args, **kwargs)
 
-        for field in self.udf_field_names:
+        for field_obj in self.get_user_defined_fields():
+            field = field_obj.name
             value = self.udfs[field]
 
-            if isinstance(value, list):
+            # TODO: maybe kill isinstance?
+            if isinstance(value, list) and field_obj.iscollection:
                 # For colllection UDFs, we need to format each subvalue inside
                 # each dictionary
                 value = [{k: _format_value(val)

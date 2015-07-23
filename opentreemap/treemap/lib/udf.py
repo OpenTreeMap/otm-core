@@ -86,7 +86,7 @@ def _parse_params(params):
 
     datatype = {'type': udf_type}
 
-    if udf_type == 'choice':
+    if udf_type in ('choice', 'multichoice'):
         datatype['choices'] = params.get('udf.choices', None)
 
     datatype = json.dumps(datatype)

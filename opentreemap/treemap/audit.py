@@ -1190,6 +1190,14 @@ class Audit(models.Model):
     An audit that is "PendingApproved/Rejected" cannot be be
     "ReviewApproved/Rejected"
     """
+
+    def __init__(self, *args, **kwargs):
+        super(Audit, self).__init__(*args, **kwargs)
+        if isinstance(self.previous_value, list):
+            self.previous_value = json.dumps(self.previous_value)
+        if isinstance(self.current_value, list):
+            self.current_value = json.dumps(self.current_value)
+
     requires_auth = models.BooleanField(default=False)
     ref = models.ForeignKey('Audit', null=True)
 
