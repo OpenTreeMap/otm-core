@@ -1,8 +1,10 @@
 #modeling {
+    overflow: hidden;
 
     .header {
-        height: 145px;
-        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+        height: 135px;
+        border-bottom: 1px solid #ddd;
+        padding-top: 55px;
 
         .logo {
             img {
@@ -10,14 +12,20 @@
             }
         }
 
+        .toolbar-wrapper {
+            top: 50px;
+        }
+
+        .search-wrapper {
+            top: 55px;
+        }
+
         .action-block {
             height: 78px;
             padding: 10px 14px;
-
-            border-left: black;
+            border-left: #ddd;
             border-left-width: 1px;
             border-left-style: solid;
-
             margin-left: 10px;
 
             .visibility {
@@ -75,31 +83,95 @@
     }
 
     #view-switcher {
-        height: 40px;
+        padding-top: 5px;
+        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+        position: relative;
+        z-index: 998;
 
-        .view-priorities-button.active {
-            background-color: deeppink;
+        .btn {
+            border: none;
+            color: $subtext-color;
+            font-weight: 600;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+
+            &.active {
+                color: #fff;
+                background-color: $primary-color;
+            }
+
+            &:focus {
+                outline: none;
+            }
+        }
+
+        #scenario-dropdown {
+            position: absolute;
+            z-index: 998;
+            top: 0;
+            right: 0;
+
+            > .btn {
+                padding: 9px 13px;
+                border-radius: 0;
+                border-left: 2px solid #ddd;
+            }
+        }
+
+        > .view-priorities-button {
+            margin-left: 15px;
+            float: left;
+            position: relative;
+            z-index: 1;
+            margin-right: 15px;
+
+            &:after {
+                content: '';
+                display: block;
+                height: 38px;
+                border-right: 2px solid #ddd;
+                position: absolute;
+                right: -8px;
+                top: -5px;
+            }
+
+            &:focus {
+                outline: none;
+            }
         }
 
         #scenario-buttons {
-            display: inline;
-            padding-left: 5px;
-            border-left: 1px solid gray;
+            padding-left: 10px;
+            position: relative;
+            white-space: nowrap;
 
-            .active {
-                background-color: deeppink;
+            > .btn-group.js-scenario {
+                display: inline-block;
+                border: 1px solid #ddd;
+                border-bottom: none;
+                border-radius: 5px 5px 0 0;
+
+                .btn {
+                    background: transparent;
+                }
+
+                &.active .btn {
+                    color: $primary-color;
+                    background-color: #fff;
+                }
             }
         }
     }
 
     .content.map {
-        top: 185px;
+        top: 173px;
         bottom: 0;
 
         .sidebar {
             right: auto;
             left: 0;
             border: none;
+            bottom: 30px;
 
             .templates {
                 height: 50px;
@@ -289,6 +361,30 @@
                         font-weight: 700;
                         color: $subtext-color;
                         margin: 0;
+                    }
+                }
+            }
+
+            .scenario-trees-total {
+                position: absolute;
+                bottom: 56px;
+                right: 16px;
+                background: white;
+                padding: 7px 12px 8px;
+                font-size: 1.4rem;
+                border-radius: 6px;
+                box-shadow: 0 1px 7px rgba(0, 0, 0, 0.4);
+
+                p {
+                    color: darken($subtext-color, 10%);
+                    margin: 5px;
+                    font-weight: 600;
+                    font-size: 13px;
+
+                    span {
+                        color: $primary-color;
+                        float: right;
+                        margin-left: 20px;
                     }
                 }
             }

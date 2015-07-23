@@ -23,86 +23,93 @@
 <div id="modeling" class="wrapper">
     <!-- Top Nav -->
     <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="collapse navbar-collapse" id="otm-navbar-collapse">
-          <ul class="nav navbar-nav navbar-left">
-              <li class="add-menu dropdown">
-                  <a class="dropdown-toggle" data-toggle="dropdown"><i class="icon-plus-circled"></i></a>
-                  <ul class="dropdown-menu">
-                      <li><a>Add a Tree</a></li>
-                      <li><a>Add a Resource</a></li>
-                  </ul>
+      <div class="navbar-collapse" id="otm-navbar-collapse">
+        <ul class="pull-left nav navbar-nav navbar-left">  
+          <li class="add-menu dropdown" data-feature="add_plot">
+            <label data-class="disabled-button-wrapper" title="Adding trees is not available to all users"><a class="dropdown-toggle" data-toggle="dropdown" data-always-enable="true" data-disabled-title="Adding trees is not available to all users" disabled="disabled">
+              <i class="icon-plus-circled"></i>
+            </a></label>
+            <ul class="dropdown-menu">
+              <li>
+                <a data-href="#" data-always-enable="True" data-action="addtree" href="#">Add a Tree</a>
               </li>
-              <li><a>Explore Trees</a></li>
-              <li class="dropdown active">
-                  <a class="dropdown-toggle" data-toggle="dropdown">Plan</a>
-                  <ul class="dropdown-menu">
-                      <li><a>Explore & Model Trees</a></li>
-                      <li><a>Urban Forests Scenarios</a></li>
-                      <li><a>Saved Simulations</a></li>
-                  </ul>
+              <li>
+                <a data-href="#" data-always-enable="True" data-action="addresource" href="#">Add a Watershed Solution</a>
               </li>
-              <li><a>View Edits</a></li>
-          </ul>
-          <ul class="nav navbar-nav navbar-right">
-              <li class="dropdown">
-                  <a class="dropdown-toggle" data-toggle="dropdown">My Tree Map</a>
-                  <ul class="dropdown-menu">
-                      <li><a><i class="icon-cog"></i> Customize Tree Map</a></li>
-                      <li><a><i class="icon-thumbs-up"></i> Moderate</a></li>
-                  </ul>
+            </ul>
+          </li>
+          <li class="explore-map ">
+            <a href="#">
+              <span class="hidden-xs">Explore Map</span>
+              <span class="visible-xs-inline">TreeMapLA</span>
+            </a>
+          </li>
+          <li class="active">
+            <a href="#">
+              <span class="hidden-xs">Plan</span>
+            </a>
+          </li>
+          <li class="hidden-xs ">
+            <a href="#">View Edits</a>
+          </li>
+        </ul>
+        <ul class="pull-right nav navbar-nav navbar-right">
+          <li class="hidden-xs ">
+            <a href="#">My Account</a>
+          </li>
+          <li class="hidden-xs">
+            <a href="#">Logout</a>
+          </li>
+          <li class="user-img">
+            <a href="#">
+              <img src="/static/img/profile.png">
+            </a>
+          </li>
+          <li class="add-menu dropdown visible-xs-inline-block">
+            <a class="dropdown-toggle" data-toggle="dropdown">
+              <i class="icon-cog"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-pull-left">
+              <li>
+                <a href="#">My Account
+                </a>
               </li>
-              <li><a>My Account</a></li>
-              <li class="user-img">
-                <a><img src="static/img/profile.png"></a>
+              <li>
+                <a href="#">Logout</a>
               </li>
-          </ul>
-        </div>
-    </div>
-
-    <!-- NEW! User Dock, showing quick information about "My Profile" -->
-    <div class="user-dock">
-        <div class="row">
-            <div class="col-sm-1">
-                <a><img src="static/img/profile.png" class="user-img" style="max-width: 100%;"></a>
-            </div>
-            <div class="col-sm-3">
-                <h2>administrator</h2>
-                <h4>Administrative User</h4>
-                <a class="btn btn-primary">Edit Profile</a>
-                <a class="btn">Logout</a>
-            </div>
-            <div class="col-sm-4">
-                <label>My Tree Maps <a class="pull-right">View All Maps</a></label>
-                <ul>
-                    <li><a>testmap</a> <span>Owner</span></li>
-                    <li><a>testmap</a> <span>User</span></li>
-                    <li><a>testmap</a> <span>User</span></li>
-                </ul>
-            </div>
-            <div class="col-sm-4">
-                <label>My Recent Contributions <a class="pull-right">View All Edits</a></label>
-                <ul>
-                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
-                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
-                    <li>Updated <a>species</a> on <a>plot 226234</a></li>
-                </ul>
-            </div>
-        </div>
+            </ul>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <!-- Logo and Search -->
     <div class="header">
-        <div class="logo">
+        <div class="logo hidden-xs">
           <a href=""><img id="site-logo" src="static/img/logo.png" alt="OpenTreeMap"></a>
+        </div>
+
+        <div class="toolbar-wrapper">         
+            <div id="toolbar" style="float: left">
+                <div class="action-block">
+                    <h4 style="display: inline;"><span id="model-name">Untitled plan</span></h4>
+                        <span class="visibility private" id="model-visibility">
+                            <i class="icon-eye"></i>
+                            <span id="model-visibility-text">PRIVATE</span>
+                        </span>
+                    <div class="actions">
+                      <span><a href="#" class="open"><i class="icon-folder"></i> Open Plan</a></span>
+                      <!-- TODO: Fix functionality for create new link-->
+                      <span><a class="create-plan" href="#"><i class="icon-doc"></i> Create new plan</a></span>
+                      <span><a href="#" class="edit"><i class="icon-cog"></i> Edit</a></span>
+                      <span><a href="#" class="save"><i class="icon-floppy"></i> Save</a></span>
+                      <span><a href="#" class="save-as"><i class="icon-floppy"></i> Save as</a></span>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="search-wrapper">
             <div class="search-block-wrapper">
-
-                <div class="search-block search-block-large">
-                    <h4>Unnamed scenario <a href="#" data-toggle="modal" data-target="#saveModel"><i class="icon-floppy"></i></a></h4>
-                    <h6>Save your scenario or <a href="#">start a new one</a></h6>
-                </div>
-
                 <div class="search-block">
                     <label>Search by Location</label>
                     <div class="search-field-group">
@@ -115,28 +122,85 @@
             </div>
         </div>
     </div>
+    <!-- end header -->
+
+    <!-- View Switcher -->
+    <div id="view-switcher">
+      <div id="scenario-dropdown" class="btn-group pull-right">
+        <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="icon-menu"></i>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a href="#" class="view-priorities-button">Priorities</a>
+          </li>
+          <li>
+            <a href="#" class="js-view-scenario" data-id="1">Scenario 1</a>
+          </li>
+          <li>
+            <a href="#" class="js-view-scenario" data-id="2">Scenario 2 </a>
+          </li>
+        </ul>
+      </div>
+      <button class="btn view-priorities-button">Priorities</button>
+      <div id="scenario-buttons">
+        <button class="btn add-scenario">+ Add scenario</button>
+        <div class="btn-group js-scenario active">
+          <a href="#" class="btn js-view-scenario" data-id="1">Scenario 1</a>
+          <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="caret"></span>
+          </button>
+            <ul class="dropdown-menu">
+              <li><a href="#" data-id="1" class="js-rename-scenario">Rename</a></li>
+              <li><a href="#" data-id="1" class="js-duplicate-scenario">Duplicate</a></li>
+              <li><a href="#" data-id="1" class="js-delete-scenario">Delete</a></li>
+            </ul>
+        </div>
+        <div class="btn-group js-scenario">
+          <a href="#" class="btn js-view-scenario" data-id="1">Scenario 2</a>
+          <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="caret"></span>
+          </button>
+            <ul class="dropdown-menu">
+              <li><a href="#" data-id="1" class="js-rename-scenario">Rename</a></li>
+              <li><a href="#" data-id="1" class="js-duplicate-scenario">Duplicate</a></li>
+              <li><a href="#" data-id="1" class="js-delete-scenario">Delete</a></li>
+            </ul>
+        </div>
+      </div>
+    </div>
+    <!-- End View Switcher -->
 
     <!-- CONTENT!! -->
     <div class="content map">
         <div class="sidebar" id="sidebar-scenarios">
             <div class="sidebar-inner">
-                <h3>Add trees &amp; distributions</h3>
-                <div class="add-step-container">
-                    <div class="add-step active">
-                        <div class="add-step-content">
-                            <div class="content-header">1 Individual Tree <a href="#" class="pull-right">+ Add Tree</a></div>
+                <h3 role="button" data-toggle="collapse" href="#plant-trees-container" aria-expanded="false" aria-controls="plant-trees-container">Plant some trees</h3>
+                <div id="plant-trees-container" class="collapse in">
+                    <div class="sidebar-container">
+                        <div id="single-tree-header" class="content-header">
+                            Individual trees
+                            <a href="#" class="pull-right add-tree">+ Add Tree</a>
+                        </div>
+                        <p id="no-trees" class="content-empty text-muted hidden">
+                            <strong>No trees added, yet!</strong><br>
+                            Start by <a href="#" class="add-tree">adding an individual tree</a>, then add species and diameter information.
+                            
+                        </p>
+                        <div id="single-tree-container">
                             <div class="content-row">
                                 <div class="row">
                                     <div class="col-sm-6">
-                                        <label>Species <em>(1 tree)</em></label>
-                                        <select class="form-control">
-                                            <option>American Maple</option>
+                                        <label>Species <em class="tree-count">(1
+                                            tree)</em></label>     
+                                        <select class="form-control species">
+                                            <option>American elm</option>
                                         </select>
                                     </div>
                                     <div class="col-sm-3">
-                                        <label>dBh</label>
+                                        <label>Diameter</label>
                                         <div class="input-group">
-                                            <input class="form-control" type="text" value="2">
+                                            <input class="form-control diameter" type="text" value="10">
                                             <span class="input-group-addon">in</span>
                                         </div>
                                     </div>
@@ -146,51 +210,281 @@
                                     </div>
                                 </div>
                             </div>
-                            <p class="content-empty text-muted text-center hidden"><em>
-                                No trees added, yet.<br>
-                                <a href="#">Add a tree</a>
-                            </em></p>
-                            <div class="content-header">3 Trees Distributions <a href="#" class="pull-right">+ Add Distribution</a></div>
-                            <div class="content-row">
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <label>Species</label>
-                                        <select class="form-control">
-                                            <option>American Maple</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-sm-3">
-                                        <label>dBh</label>
-                                        <div class="input-group">
-                                            <input class="form-control" type="text" value="2">
-                                            <span class="input-group-addon">in</span>
+                        </div>
+
+                        <!-- tree distributions -->
+                        <div id="distributions-header" class="content-header">
+                            Tree distributions
+                            <a href="#" class="pull-right add-distribution">+ Add Distribution</a>
+                        </div>
+                        <div id="distributions-container">
+                            <div id="distribution-rows">
+                                <div class="content-row" data-uid="0">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <label>Species</label> 
+                                            <select class="form-control species">
+                                                <option>American elm</option>
+                                            </select>
                                         </div>
-                                    </div>
-                                    <div class="col-sm-2">
-                                        <label>Trees</label>
-                                        <input class="form-control" type="text" value="2">
-                                    </div>
-                                    <div class="col-sm-1">
-                                        <a href="#" class="remove"><i class="icon-cancel-circled"></i></a>
+                                        <div class="col-sm-3">
+                                            <label>Diameter</label>
+                                            <div class="input-group">
+                                                <input class="form-control diameter" type="text" value="10">
+                                                <span class="input-group-addon">in</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <label>Trees</label>
+                                            <input class="form-control quantity" type="text" value="1">
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <a href="#" class="remove"><i class="icon-cancel-circled"></i></a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <p class="content-empty text-muted text-center hidden"><em>
-                                No distributions added, yet.<br>
-                                <a href="#">Add a distribution</a>
-                            </em></p>
+                            <div id="distribution-land-use" class="">
+                                <div class="content-row collapsible-header">
+                                    <a href="#">
+                                        Land Use for Distributions
+                                        <i class="icon-angle-right notch-collapsed pull-right"></i>
+                                        <i class="icon-angle-down notch-expanded hidden pull-right"></i>
+                                    </a>
+                                </div>
+                                <div class="rows collapsible-body hidden">
+                                    <div class="row controls">
+                                        <div class="col-sm-12">
+                                            <a href="#" class="reset">Reset</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="distribution-redraw-area" class="">
+                                <div class="content-row collapsible-header">
+                                    <a href="#">
+                                        Redefine Distribution Area
+                                        <i class="icon-angle-right notch-collapsed pull-right"></i>
+                                        <i class="icon-angle-down notch-expanded hidden pull-right"></i>
+                                    </a>
+                                </div>
+                                <div class="collapsible-body hidden">
+                                    <p class="content-empty text-muted">
+                                        <strong>Not happy with this area?</strong><br>
+                                        You can <a href="#" class="edit-area">edit the area</a>, or <a href="#" class="draw-area">draw a new area</a>, or <a href="#" class="select-area">select a new area</a>. Don't worry though, your distributions and other configurations will stay the same.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="add-step-footer">
-                            <span class="counter"><strong>Step 1</strong> of X</span>
-                            <ul class="pager">
-                                <li class="previous disabled"><a href="#">&laquo; Back</a></li>
-                                <li class="next"><a href="#">Next &raquo;</a></li>
-                            </ul>
-                            <div class="calculate">
-                                <a href="#" class="btn btn-lg btn-primary btn-block">Calculate Scenario</a>
+                        <p id="no-distributions" class="content-empty text-muted hidden">
+                            <strong>No distributions added, yet!</strong>
+                            <br>
+                            You'll need to <a href="#" class="draw-area">draw an area</a> or <a href="#" class="select-area">select an area</a> in which to add your distributions.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Tree Mortality Rate -->
+                <h3 role="button" data-toggle="collapse" href="#tree-mortality-container" aria-expanded="false" aria-controls="tree-mortality-container" class="collapsed">Tree Mortality Rate</h3>
+                <div id="tree-mortality-container" class="collapse">
+                    <div class="sidebar-container">
+                        <div class="content-row">
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <div class="form-group">
+                                        <label>Default Mortality Rate</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" value="5">
+                                            <div class="input-group-addon">% mortality per year</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <a class="more-options collapsed" role="button" data-toggle="collapse" href="#more-options-container" aria-expanded="false" aria-controls="more-options-container">Options</a>
+                                </div>
+                            </div>
+
+                            <div class="row collapse" id="more-options-container">
+                                <hr>
+                                <div class="more-options-content" id="land-use">
+                                    <div class="row">                  
+                                        <div class="col-sm-8">
+                                            <label>Forest</label>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control">
+                                                <div class="input-group-addon">%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">                  
+                                        <div class="col-sm-8">
+                                            <label>Urban Open</label>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control">
+                                                <div class="input-group-addon">%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">                  
+                                        <div class="col-sm-8">
+                                            <label>Low-Medium Density Residential</label>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control">
+                                                <div class="input-group-addon">%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">                  
+                                        <div class="col-sm-8">
+                                            <label>High Density Residential</label>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control">
+                                                <div class="input-group-addon">%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">                  
+                                        <div class="col-sm-8">
+                                            <label>Transportation</label>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control">
+                                                <div class="input-group-addon">%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">                  
+                                        <div class="col-sm-8">
+                                            <label>Commercial/Industrial</label>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control">
+                                                <div class="input-group-addon">%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">                  
+                                        <div class="col-sm-8">
+                                            <label>Institutional</label>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control">
+                                                <div class="input-group-addon">%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                        <div class="row">                   <div class="col-sm-8">
+                                            <label>Barren</label>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control">
+                                                <div class="input-group-addon">%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Replanting & Growth Rate -->
+                <h3 role="button" data-toggle="collapse" href="#replanting-growth-container" aria-expanded="false" aria-controls="replanting-growth-container" class="collapsed">Replanting &amp; Growth Rate</h3>
+                <div id="replanting-growth-container" class="collapse">
+                    <div class="sidebar-container">
+                        <div class="content-row">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <label>Automatic Replanting</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <div class="form-group">
+                                        <input type="checkbox" id="auto-replanting"><label for="auto-replanting">
+                                            Automatic replanting for
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <input class="form-control" type="number" value="2">
+                                        <div class="input-group-addon">years</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Canopy Forecast/Coverage -->
+                <h3 role="button" data-toggle="collapse" href="#canopy-forecast-container" aria-expanded="false" aria-controls="canopy-forecast-container" class="collapsed">Canopy Forecast/Coverage</h3>
+                <div id="canopy-forecast-container" class="collapse">
+                    <div class="sidebar-container">
+                        <div class="content-row">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label>Settlement Pattern</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <select class="form-control">
+                                        <option selected>Urban Residential</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <label>Current Canopy Cover</label>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <input class="form-control" type="number" disabled value="9.36">
+                                        <div class="input-group-addon">%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <label>Natural Regeneration Rate</label>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <input class="form-control" type="number" value="14">
+                                        <div class="input-group-addon">%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <label>Canopy Cover Target</label>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <input class="form-control" type="number" value="20">
+                                        <div class="input-group-addon">%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="calculate">
+                    <a href="#" class="btn btn-primary btn-block">Calculate Scenario</a>
                 </div>
             </div>
         </div>
@@ -210,6 +504,10 @@
                     <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="100" />
                     <small class="pull-left">0%</small><small class="pull-right">100%</small>
                 </div>
+            </div>
+            <div class="scenario-trees-total">
+              <p>Individual Trees <span>2 Trees</span></p>
+              <p>Tree Distributions <span>2 Trees</span></p>
             </div>
         </div>
     </div>
@@ -232,7 +530,20 @@
         </div>
     </div>
 </div>
-    
+
+<footer>
+  <div class="footer-inner">
+    <ul class="list-inline pull-left">
+      <li><a target="_blank" href="#">Tree ID</a></li>
+      <li><a href="#">Resources</a></li>
+      <li><a href="#">FAQ</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Partners</a></li>
+      <li><a href="#">WatershedSolutions</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+  </div>
+</footer>
 <!-- 
 
     NOTES
@@ -244,6 +555,8 @@
 <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
 <script src="js/bootstrap-slider.js"></script>
+<script src="static/js/treemap.js"></script>
+
 <script>
     // Just adds dropdowns to navbar, user-dock
     $('.dropdown-toggle').dropdown();
