@@ -691,6 +691,43 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
         return hashlib.md5(string_to_hash).hexdigest()
 
+    def title(self):
+        # Cast allows the map feature subclass to handle generating
+        # the display name
+        feature = self.cast_to_subtype()
+
+        if feature.is_plot:
+            tree = feature.current_tree()
+            if tree:
+                if tree.species:
+                    title = tree.species.common_name
+                else:
+                    title = _("Missing Species")
+            else:
+                title = _("Empty Planting Site")
+        else:
+            title = feature.display_name
+
+        return title
+
+    def contained_plots(self):
+        if self.area_field_name is not None:
+            plots = Plot.objects \
+                .filter(geom__within=getattr(self, self.area_field_name)) \
+                .prefetch_related('tree_set', 'tree_set__species')
+
+            def key_sort(plot):
+                tree = plot.current_tree()
+                if tree is None:
+                    return (0, None)
+                if tree.species is None:
+                    return (1, None)
+                return (2, tree.species.common_name)
+
+            return sorted(plots, key=key_sort)
+
+        return None
+
     def cast_to_subtype(self):
         """
         Return the concrete subclass instance. For example, if self is

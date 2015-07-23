@@ -1,0 +1,7 @@
+{% load l10n %}
+{% load i18n %}
+{% if field.is_visible and field.value != None %}
+    &mdash; {{ field.display_value|unlocalize }}
+{% elif field.is_visible %}
+    &mdash; {% trans "No diameter" %}
+{% endif %}
