@@ -22,6 +22,8 @@ from treemap.lib import format_benefits
 from treemap.lib.photo import context_dict_for_photo
 from treemap.util import leaf_models_of_class, to_object_name
 
+from stormwater.models import PolygonalMapFeature
+
 
 def _photo_upload_share_text(feature, has_tree=False):
     return _("I added a photo of this %s!") % feature.display_name.lower()
@@ -237,6 +239,11 @@ def context_dict_for_plot(request, plot, tree_id=None, **kwargs):
 
     context['photo_upload_share_text'] = _photo_upload_share_text(
         plot, tree is not None)
+
+    pmfs = PolygonalMapFeature.objects.filter(polygon__contains=plot.geom)
+
+    if pmfs:
+        context['containing_polygonalmapfeature'] = pmfs[0].cast_to_subtype()
 
     audits = _plot_audits(user, instance, plot)
 

@@ -50,6 +50,7 @@ exports.init = function(options) {
         validationFields = options.validationFields,
         errorCallback = options.errorCallback || $.noop,
         onSaveBefore = options.onSaveBefore || _.identity,
+        onSaveAfter = options.onSaveAfter || _.identity,
         editStream = $edit.asEventStream('click').map('edit:start'),
         saveStream = (options.saveStream || $save.asEventStream('click')).map('save:start'),
         externalCancelStream = BU.triggeredObjectStream('cancel'),
@@ -232,12 +233,14 @@ exports.init = function(options) {
         },
 
         update = function(data) {
-            return Bacon.fromPromise($.ajax({
+            var stream = Bacon.fromPromise($.ajax({
                 url: updateUrl,
                 type: 'PUT',
                 contentType: "application/json",
                 data: JSON.stringify(data)
             }));
+            stream.onValue(onSaveAfter);
+            return stream;
         },
 
         showGlobalErrors = function (errors) {

@@ -7,7 +7,7 @@ var $ = require('jquery'),
     _ = require('lodash');
 
 exports.none = function() {
-    return {onSaveBefore: _.noop};
+    return {onSaveBefore: _.noop, onSaveAfter: _.noop};
 };
 
 exports.init = function(options) {
@@ -60,6 +60,14 @@ exports.init = function(options) {
         }
     }
 
+    function onSaveAfter(data) {
+        var wasInPmf = $('#containing-polygonalmapfeature').length > 0,
+            isNowInPmf = data.feature.containing_polygonalmapfeature;
+        if (plotMarker.wasMoved() && (wasInPmf || isNowInPmf)) {
+            window.location.reload();
+        }
+    }
+
     inlineEditForm
         .saveOkStream
         .map('.responseData.geoRevHash')
@@ -71,6 +79,7 @@ exports.init = function(options) {
         });
 
     return {
-        onSaveBefore: onSaveBefore
+        onSaveBefore: onSaveBefore,
+        onSaveAfter: onSaveAfter
     };
 };
