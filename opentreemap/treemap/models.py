@@ -785,6 +785,10 @@ class Plot(MapFeature):
                  'name': 'Date'}],
         },
         'Alerts': {
+            'warning_message': _(
+                "Marking a planting site with an alert does not serve as a "
+                "way to report problems with that site. If you have any "
+                "emergency concerns, please contact your city directly."),
             'range_field_key': 'Date Noticed',
             'action_field_key': 'Action Needed',
             'action_verb': _('with open alerts for'),
@@ -891,6 +895,10 @@ class Tree(Convertible, UDFModel, PendingAuditable):
                  'name': 'Date'}],
         },
         'Alerts': {
+            'warning_message': _(
+                "Marking a tree with an alert does not serve as a way to "
+                "report problems with a tree. If you have any emergency "
+                "tree concerns, please contact your city directly."),
             'range_field_key': 'Date Noticed',
             'action_field_key': 'Action Needed',
             'action_verb': _('with open alerts for'),

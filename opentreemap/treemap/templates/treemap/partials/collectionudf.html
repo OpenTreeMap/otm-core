@@ -44,6 +44,9 @@
     {% endfor %}
     <tr class="placeholder" style="{{ values|yesno:"display: none;," }}"><td>{% trans "No entries yet!" %}</td>
   </table>
+  <p class="text-muted">
+    <em>{{ udf.model_config.warning_message }}</em>
+  </p>
 </div>
 {% endif %}
 {% endwith %}
