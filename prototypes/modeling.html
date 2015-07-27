@@ -92,17 +92,31 @@
 
     <!-- Logo and Search -->
     <div class="header">
-        <div class="logo">
+        <div class="logo hidden-xs">
           <a href=""><img id="site-logo" src="static/img/logo.png" alt="OpenTreeMap"></a>
+        </div>
+
+        <div class="toolbar-wrapper">         
+            <div id="toolbar" style="float: left">
+                <div class="action-block">
+                    <h4 style="display: inline;"><span id="model-name">Untitled plan</span></h4>
+                        <span class="visibility private" id="model-visibility">
+                            <i class="icon-eye"></i>
+                            <span id="model-visibility-text">PRIVATE</span>
+                        </span>
+                    <div class="actions">
+                      <span><a href="#" class="open"><i class="icon-folder"></i> Open Plan</a></span>
+                      <!-- TODO: Fix functionality for create new link-->
+                      <span><a class="create-plan" href="#"><i class="icon-doc"></i> Create new plan</a></span>
+                      <span><a href="#" class="edit"><i class="icon-cog"></i> Edit</a></span>
+                      <span><a href="#" class="save"><i class="icon-floppy"></i> Save</a></span>
+                      <span><a href="#" class="save-as"><i class="icon-floppy"></i> Save as</a></span>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="search-wrapper">
             <div class="search-block-wrapper">
-
-                <div class="search-block search-block-large">
-                    <h4>Unnamed model <a href="#" data-toggle="modal" data-target="#saveModel"><i class="icon-floppy"></i></a></h4>
-                    <h6>Save your model or <a href="#">start a new one</a></h6>
-                </div>
-
                 <div class="search-block">
                     <label>Search by Location</label>
                     <div class="search-field-group">
@@ -115,31 +129,58 @@
             </div>
         </div>
     </div>
+    <!-- end header -->
+    
+    <!-- View Switcher -->
+    <div id="view-switcher">
+      <div id="scenario-dropdown" class="btn-group pull-right">
+        <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="icon-menu"></i>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a href="#" class="view-priorities-button">Priorities</a>
+          </li>
+          <li>
+            <a href="#" class="js-view-scenario" data-id="1">Scenario 1</a>
+          </li>
+          <li>
+            <a href="#" class="js-view-scenario" data-id="2">Scenario 2 </a>
+          </li>
+        </ul>
+      </div>
+      <button class="btn view-priorities-button active">Priorities</button>
+      <div id="scenario-buttons">
+        <button class="btn add-scenario">+ Add scenario</button>
+        <div class="btn-group js-scenario">
+          <a href="#" class="btn js-view-scenario" data-id="1">Scenario 1</a>
+          <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="caret"></span>
+          </button>
+            <ul class="dropdown-menu">
+              <li><a href="#" data-id="1" class="js-rename-scenario">Rename</a></li>
+              <li><a href="#" data-id="1" class="js-duplicate-scenario">Duplicate</a></li>
+              <li><a href="#" data-id="1" class="js-delete-scenario">Delete</a></li>
+            </ul>
+        </div>
+        <div class="btn-group js-scenario">
+          <a href="#" class="btn js-view-scenario" data-id="1">Scenario 2</a>
+          <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="caret"></span>
+          </button>
+            <ul class="dropdown-menu">
+              <li><a href="#" data-id="1" class="js-rename-scenario">Rename</a></li>
+              <li><a href="#" data-id="1" class="js-duplicate-scenario">Duplicate</a></li>
+              <li><a href="#" data-id="1" class="js-delete-scenario">Delete</a></li>
+            </ul>
+        </div>
+      </div>
+    </div>
+    <!-- End View Switcher -->
 
     <!-- CONTENT!! -->
     <div class="content map">
-        <div class="sidebar">
-            <div class="templates">
-                <label>Templates</label>
-                <label class="custom-select">
-                    <select>
-                        <option selected>Custom Model</option>
-                        <option>&nbsp;</option>
-                        <option>Scientific Models</option>
-                        <option>---</option>
-                        <option>Model</option>
-                        <option>Model</option>
-                        <option>Model</option>
-                        <option>&nbsp;</option>
-                        <option>My Models</option>
-                        <option>---</option>
-                        <option>Model</option>
-                        <option>Model</option>
-                        <option>Model</option>
-                        <option>Model</option>
-                    </select>
-                </label>
-            </div>
+        <div class="sidebar" id="sidebar-prioritization">
             <div class="panel-group" id="accordion">
                 <div class="panel panel-default">
                     <div class="panel-heading">
@@ -152,6 +193,36 @@
                     <div id="layers" class="panel-collapse collapse in">
                         <div class="panel-body">
                             <div class="panel-group" id="accordion-inner">
+                                <div class="panel panel-default layer-group">
+                                    <div class="panel-heading">
+                                        <h4 class="panel-title">
+                                            <a data-toggle="collapse" href="#land-cover" class="collapsed">Land Cover</a>
+                                            <div class="row">
+                                                <div class="col-sm-9 col-sm-offset-1">
+                                                    <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="0" />
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <div class="layer-value">0</div>
+                                                </div>
+                                            </div>
+                                        </h4>
+                                    </div>
+                                    <div id="land-cover" class="panel-collapse collapse">
+                                        <div class="panel-body">
+                                            <div class="layer">
+                                                <h4>nlcd_la_wm_ext</h4>
+                                                <div class="row">
+                                                    <div class="col-sm-10">
+                                                        <input class="slider" type="text" value="0" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="0" />
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <div class="layer-value">0</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="panel panel-default layer-group">
                                     <div class="panel-heading">
                                         <h4 class="panel-title">
@@ -282,61 +353,94 @@
                     </div>
                     <div id="masks" class="panel-collapse collapse">
                         <div class="panel-body">
-                            <div class="mask-header">Tree Canopy</div>
-                            <div class="mask-row">
-                                <input checked="checked" type="checkbox" id="_1" data-search-display="Tree">
-                                <label for="_1">Show trees</label>
+                            <div class="mask-header collapsed" data-toggle="collapse" data-target="#collapse-tree-canopy">Tree Canopy</div>
+                            <div class="collapse" id="collapse-tree-canopy">
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_1" data-search-display="Tree">
+                                    <label for="_1">Show trees</label>
+                                </div>
                             </div>
-                            <div class="mask-header">Surfaces and Land Type</div>
-                            <div class="mask-row">
-                                <input checked="checked" type="checkbox" id="_2" data-search-display="Tree">
-                                <label for="_2">Pervious Surface</label>
+                            <div class="mask-header collapsed" data-toggle="collapse" data-target="#collapse-surface-type">Surfaces and Land Type</div>
+                            <div class="collapse" id="collapse-surface-type">
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_2" data-search-display="Tree">
+                                    <label for="_2">Pervious Surface</label>
+                                </div>
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_3" data-search-display="Tree">
+                                    <label for="_3">Protected Land</label>
+                                </div>
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_4" data-search-display="Tree">
+                                    <label for="_4">Street Casings</label>
+                                </div>
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_5" data-search-display="Tree">
+                                    <label for="_5">Roads and Paved Surfaces</label>
+                                </div>
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_6" data-search-display="Tree">
+                                    <label for="_6">Shrubbery</label>
+                                </div>
                             </div>
-                            <div class="mask-row">
-                                <input checked="checked" type="checkbox" id="_3" data-search-display="Tree">
-                                <label for="_3">Protected Land</label>
+                            <div class="mask-header collapsed" data-toggle="collapse" data-target="#collapse-land-use">Land Use</div>
+                            <div class="collapse" id="collapse-land-use">
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_7" data-search-display="Tree">
+                                    <label for="_7">Residential (high)</label>
+                                </div>
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_8" data-search-display="Tree">
+                                    <label for="_8">Residential (low/medium)</label>
+                                </div>
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_9" data-search-display="Tree">
+                                    <label for="_9">Civil</label>
+                                </div>
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_10" data-search-display="Tree">
+                                    <label for="_10">Amusement/Parks</label>
+                                </div>
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_11" data-search-display="Tree">
+                                    <label for="_11">Industrial</label>
+                                </div>
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_12" data-search-display="Tree">
+                                    <label for="_12">Commercial</label>
+                                </div>
                             </div>
-                            <div class="mask-row">
-                                <input checked="checked" type="checkbox" id="_4" data-search-display="Tree">
-                                <label for="_4">Street Casings</label>
+                            <div class="mask-header collapsed" data-toggle="collapse" data-target="#collapse-county">County</div>
+                            <div class="collapse" id="collapse-county">
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_13" data-search-display="Tree">
+                                    <label for="_13">Los Angeles County</label>
+                                </div>
                             </div>
-                            <div class="mask-row">
-                                <input checked="checked" type="checkbox" id="_5" data-search-display="Tree">
-                                <label for="_5">Roads and Paved Surfaces</label>
+                            <div class="mask-header collapsed" data-toggle="collapse" data-target="#collapse-city">City</div>
+                            <div class="collapse" id="collapse-city">
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_14" data-search-display="Tree">
+                                    <label for="_14">Los Angeles</label>
+                                </div>
                             </div>
-                            <div class="mask-row">
-                                <input checked="checked" type="checkbox" id="_6" data-search-display="Tree">
-                                <label for="_6">Shrubbery</label>
-                            </div>
-                            <div class="mask-header">Land Use</div>
-                            <div class="mask-row">
-                                <input checked="checked" type="checkbox" id="_7" data-search-display="Tree">
-                                <label for="_7">Residential (high)</label>
-                            </div>
-                            <div class="mask-row">
-                                <input checked="checked" type="checkbox" id="_8" data-search-display="Tree">
-                                <label for="_8">Residential (low/medium)</label>
-                            </div>
-                            <div class="mask-row">
-                                <input checked="checked" type="checkbox" id="_9" data-search-display="Tree">
-                                <label for="_9">Civil</label>
-                            </div>
-                            <div class="mask-row">
-                                <input checked="checked" type="checkbox" id="_10" data-search-display="Tree">
-                                <label for="_10">Amusement/Parks</label>
-                            </div>
-                            <div class="mask-row">
-                                <input checked="checked" type="checkbox" id="_11" data-search-display="Tree">
-                                <label for="_11">Industrial</label>
-                            </div>
-                            <div class="mask-row">
-                                <input checked="checked" type="checkbox" id="_12" data-search-display="Tree">
-                                <label for="_12">Commercial</label>
-                            </div>
-                            <div class="mask-header">Boundaries</div>
-                            <div class="mask-row">
-                                <input checked="checked" type="checkbox" id="_13" data-search-display="Tree">
-                                <label for="_13">City Council Districts</label>
+                            <div class="mask-header collapsed" data-toggle="collapse" data-target="#collapse-neighborhood">Neighborhood</div>
+                            <div class="collapse" id="collapse-neighborhood">
+                                <div class="mask-row">
+                                    <div class="search-block">
+                                        <label>Add a specific neighborhood</label>
+                                        <div class="search-field-group">
+                                            <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
+                                            <input type="text" data-class="search" id="boundary-typeahead" placeholder="Neighborhood">
+                                            <input name="plot.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mask-row">
+                                    <input checked="checked" type="checkbox" id="_15" data-search-display="Tree">
+                                    <label for="_15">Alondra Park</label>
+                                    <span class="remove-mask"><i class="icon-cancel"></i></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -393,6 +497,20 @@
         </div>
     </div>
 </div>
+
+<footer>
+  <div class="footer-inner">
+    <ul class="list-inline pull-left">
+      <li><a target="_blank" href="#">Tree ID</a></li>
+      <li><a href="#">Resources</a></li>
+      <li><a href="#">FAQ</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Partners</a></li>
+      <li><a href="#">WatershedSolutions</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+  </div>
+</footer>
     
 <!-- 
 
@@ -405,6 +523,7 @@
 <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
 <script src="js/bootstrap-slider.js"></script>
+
 <script>
     // Just adds dropdowns to navbar, user-dock
     $('.dropdown-toggle').dropdown();
@@ -418,7 +537,6 @@
     }).on('slide', function(e) {
         $(this).closest('.row').find('.layer-value').text(e.value);
     });
-    $('#newModel').modal('show');
 </script>
 </body>
 </html>
