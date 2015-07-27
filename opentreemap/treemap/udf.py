@@ -623,10 +623,12 @@ class UserDefinedFieldDefinition(models.Model):
                         self.instance.save()
 
         # remove field permissions for this udf
-        FieldPermission.objects.filter(
-            model_name=self.model_type,
-            field_name=self.canonical_name,
-            instance=self.instance).delete()
+        perms = FieldPermission.objects.filter(model_name=self.model_type,
+                                               field_name=self.canonical_name,
+                                               instance=self.instance)
+        # iterating instead of doing a bulk delete in order to trigger signals
+        for perm in perms:
+            perm.delete()
 
         super(UserDefinedFieldDefinition, self).delete(*args, **kwargs)
 
