@@ -22,7 +22,8 @@ from django.conf import settings
 
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name)
-from treemap.util import all_models_of_class, leaf_models_of_class
+from treemap.util import (all_models_of_class, leaf_models_of_class,
+                          to_object_name)
 from treemap.lib.object_caches import (permissions, role_permissions,
                                        invalidate_adjuncts, udf_defs)
 from treemap.lib.dates import datesafe_eq
@@ -603,12 +604,10 @@ class FieldPermission(models.Model):
     WRITE_WITH_AUDIT = 2
     WRITE_DIRECTLY = 3
     choices = (
-        # reserving zero in case we want
-        # to create a "null-permission" later
-        (NONE, "None"),
-        (READ_ONLY, "Read Only"),
-        (WRITE_WITH_AUDIT, "Write with Audit"),
-        (WRITE_DIRECTLY, "Write Directly"))
+        (NONE, _("Invisible")),
+        (READ_ONLY, _("Read Only")),
+        (WRITE_WITH_AUDIT, _("Pending Write Access")),
+        (WRITE_DIRECTLY, _("Full Write Access")))
     permission_level = models.IntegerField(choices=choices, default=NONE)
 
     class Meta:
@@ -636,6 +635,10 @@ class FieldPermission(models.Model):
             base_name = self.field_name
 
         return base_name.replace('_', ' ').title()
+
+    @property
+    def full_name(self):
+        return "{}.{}".format(to_object_name(self.model_name), self.field_name)
 
     def clean(self):
         try:
