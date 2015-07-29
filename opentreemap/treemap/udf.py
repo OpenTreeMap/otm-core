@@ -350,6 +350,14 @@ class UserDefinedFieldDefinition(models.Model):
         datatype['choices'] = choices
         return datatype
 
+    @property
+    def model_config(self):
+        Model = safe_get_udf_model_class(self.model_type)
+        # in another branch, this is being renamed to
+        # 'udf_settings' and it will make sense that this
+        # method exists for all udfds, not just collections.
+        return getattr(Model, 'collection_udf_settings', {}).get(self.name, {})
+
     def _update_choice_scalar(self, old_choice_value, new_choice_value):
         datatype = self._validate_and_update_choice(
             self.datatype_dict, old_choice_value, new_choice_value)
