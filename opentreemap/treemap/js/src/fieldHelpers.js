@@ -10,6 +10,12 @@ var $ = require('jquery'),
 var DATETIME_FORMAT = exports.DATETIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
 var DATE_FORMAT = exports.DATE_FORMAT = "YYYY-MM-DD";
 
+var multiChoiceDisplayTemplate = _.template('<table><tbody>' +
+                                            '<% _.each(rows, function(row) { ' +
+                                            '%><tr><td><%= row %></td></tr>' +
+                                            '<% }); %>' +
+                                            '</tbody></table>');
+
 var getField = exports.getField = function ($fields, name) {
     return $fields.filter(format('[data-field="%s"]', name));
 };
@@ -73,10 +79,23 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
     };
 
     var result = {};
+
+    // initialize results with an empty list for all multiselects
+    // so that a value is sent every time for all multiselects
+    $form.find('select[name][multiple]').each(function(i, elem) {
+        result[elem.name] = [];
+    });
+
     _.each($form.serializeArray(), function(item) {
         var type = getField($editFields, item.name).attr('data-type'),
             displayValue = getDisplayValue(type, item.name),
             $field = getSerializableField($editFields, item.name);
+
+        if (type === 'multichoice') {
+            // always serialize and send multichoice values
+            result[item.name].push(item.value);
+            return;
+        }
 
         if (item.value === displayValue) {
             return;  // Don't serialize unchanged values
@@ -107,4 +126,12 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
         }
     });
     return result;
+};
+
+exports.renderMultiChoices = function($container) {
+    $container.each(function (__, el) {
+        var $el = $(el),
+            value = JSON.parse($(el).attr('data-value'));
+        $(el).html(multiChoiceDisplayTemplate({rows: value}));
+    });
 };

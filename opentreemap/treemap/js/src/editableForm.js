@@ -59,6 +59,9 @@ exports.init = function(options) {
                     }
                     else if ($input.is('[data-date-format]')) {
                         FH.applyDateToDatepicker($input, value);
+                    } else if ($input.is('select[multiple]')) {
+                        $input.val(JSON.parse(value));
+                        $input.multiselect('refresh');
                     } else {
                         $input.val(value);
                     }
@@ -100,6 +103,8 @@ exports.init = function(options) {
                             value = $input.is(':checked') ? "True" : "False";
                         } else if ($input.is('[data-date-format]')) {
                             value = FH.getTimestampFromDatepicker($input);
+                        } else if ($input.is('select[multiple]')) {
+                            value = JSON.stringify($input.val());
                         } else {
                             value = $input.val();
                         }
@@ -107,7 +112,10 @@ exports.init = function(options) {
                         $(display).attr('data-value', value);
                         displayValue = value;
 
-                        if ($input.is('select')) {
+                        if ($input.is('select[multiple]')) {
+                            FH.renderMultiChoices($(display));
+                            return;
+                        } else if ($input.is('select')) {
                             // Use dropdown text (not value) as display value
                             displayValue = $input.find('option:selected').text();
                         } else if ($input.is('[type="checkbox"]')) {
@@ -162,6 +170,8 @@ exports.init = function(options) {
 
     $(editFields).find('select[multiple]').multiselect({enableFiltering: true,
                                                         filterBehavior: 'value'});
+
+    FH.renderMultiChoices($(displayFields).filter('[data-type="multichoice"]'));
 
     return {
         displayValuesToFormFields: displayValuesToFormFields,
