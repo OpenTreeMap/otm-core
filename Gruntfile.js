@@ -196,6 +196,11 @@ module.exports = function(grunt) {
                             exports: null,
                             depends: { jquery: 'jQuery', bootstrap: 'bootstrap' }
                         },
+                        "bootstrap-multiselect": {
+                            path: './treemap/js/shim/bootstrap-multiselect.js',
+                            exports: null,
+                            depends: { jquery: 'jQuery', bootstrap: 'bootstrap' }
+                        },
                         "bootstrap-slider": {
                             path: './treemap/js/shim/bootstrap-slider.js',
                             exports: null,
@@ -251,6 +256,7 @@ module.exports = function(grunt) {
                       'treemap/css/vendor/bootstrap-lightbox.css',
                       'treemap/css/vendor/bootstrap-slider.css',
                       'treemap/css/vendor/datepicker.css',
+                      'treemap/css/vendor/bootstrap-multiselect.css',
                       'treemap/css/vendor/fontello.css',
                       'treemap/css/vendor/toastr.css',
                       'treemap/css/vendor/leaflet.css',

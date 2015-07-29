@@ -7,6 +7,7 @@ var $ = require('jquery'),
 
 // Placed onto the jquery object
 require('bootstrap-datepicker');
+require('bootstrap-multiselect');
 
 // Boolean fields values are provided as "True" and "False"
 // from the server-side template tags as well as in this module.
@@ -158,6 +159,9 @@ exports.init = function(options) {
         };
 
     $(editFields).find("input[data-date-format]").datepicker();
+
+    $(editFields).find('select[multiple]').multiselect({enableFiltering: true,
+                                                        filterBehavior: 'value'});
 
     return {
         displayValuesToFormFields: displayValuesToFormFields,
