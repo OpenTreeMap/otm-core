@@ -16,7 +16,9 @@ var getField = exports.getField = function ($fields, name) {
 var getSerializableField = exports.getSerializableField = function ($fields, name) {
     // takes a jQuery collection of edit fields and returns the
     // actual input or select field that will be serialized
-    return getField($fields, name).find('[name="' + name + '"]');
+    var $subfields = getField($fields, name),
+        selector = '[name="' + name + '"]';
+    return $subfields.find(selector).add($subfields.filter(selector));
 };
 
 var excludeButtons = exports.excludeButtons = function (selector) {

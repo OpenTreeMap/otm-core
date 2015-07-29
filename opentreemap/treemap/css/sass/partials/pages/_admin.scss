@@ -166,6 +166,50 @@
         }
     }
 
+    .role-table-fixed {
+        width: 25%;
+        float: left;
+        clear: left;
+        border-right: 1px solid #EEE;
+        margin-bottom: 10px;
+
+        td {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+    }
+
+    .role-table {
+        table-layout: fixed;
+        tr {
+            height: 50px;
+            border-bottom: 1px solid #EEE;
+
+            th {
+                background: #DDD;
+                padding: 10px;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+            }
+            td {
+                padding: 10px;
+            }
+        }
+    }
+
+    .role-table-scroll {
+        width: 75%;
+        float: left;
+        overflow-x: scroll;
+        margin-bottom: 10px;
+
+        th {
+            min-width: 200px;
+            max-width: 200px;
+        }
+    }
 }
 
 // .field-group and .field-row-container are not nested under anything, because they are
