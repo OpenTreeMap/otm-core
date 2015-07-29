@@ -552,9 +552,6 @@ class UserDefinedFieldDefinition(models.Model):
                 if choice is None or choice == '':
                     raise ValidationError(_('empty choice not allowed'))
 
-            if len(choices) == 0:
-                raise ValidationError(_('empty choice list'))
-
             if len(choices) != len(set(choices)):
                 raise ValidationError(_('duplicate choices'))
 
@@ -1098,6 +1095,13 @@ class UDFModel(UserTrackable, models.Model):
             return ['udf:%s' % udf.pk for udf in self.collection_udfs
                     if udf.canonical_name in visible_fields]
         return self.collection_udfs_audit_names()
+
+    @classproperty
+    def collection_udf_settings(cls):
+        return {
+            k: v for k, v in
+            getattr(cls, 'udf_settings', {}).items()
+            if v.get('iscollection')}
 
     @property
     def tracked_fields(self):

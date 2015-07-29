@@ -67,7 +67,7 @@ def values_for_model(
         field_name = perm.field_name
         prefixed_name = prefix + field_name
 
-        if field_name in getattr(model_class, 'collection_udf_settings', {}):
+        if field_name in model_class.collection_udf_settings.items():
 
             field_definition_id = None
             for udfd in udf_defs(instance, model):
