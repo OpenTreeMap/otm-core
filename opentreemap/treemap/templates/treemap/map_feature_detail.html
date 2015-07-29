@@ -123,11 +123,16 @@
                     {% if has_tree %}
                     {# TODO: this will not work quite right when a user adds a tree without refreshing #}
                     data-always-enable="{{ last_effective_instance_user|is_deletable:tree }}"
+                    data-disabled-title="{% trans "Deleting of trees is not available to all users" %}"
                     {% else %}
                     data-always-enable="{{ last_effective_instance_user|map_feature_is_deletable:feature }}"
+                    {% if feature.is_plot %}
+                    data-disabled-title="{% trans "Deleting of planting sites is not available to all users" %}"
+                    {% else %}
+                    data-disabled-title="{% blocktrans with resources=term.resources %}Deleting of {{ resources }} is not available to all users{% endblocktrans %}"
+                    {% endif %}
                     {% endif %}
                     data-href="{{ request.get_full_path }}"
-                    data-disabled-title="{% trans "Deleting of trees is not available to all users" %}"
                     class="btn btn-sm btn-danger">{% trans "Delete" %}</button>
           </p>
 
