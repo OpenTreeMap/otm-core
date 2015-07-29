@@ -33,6 +33,14 @@ class Bioswale(PolygonalMapFeature):
     objects = GeoHStoreUDFManager()
 
     udf_settings = {
+        # # TODO: uncomment when choices are known
+        # 'Perennial Plants': {
+        #     'iscollection': False,
+        #     'defaults': {
+        #         'type': 'multichoice',
+        #         'choices': [],
+        #     }
+        # },
         'Stewardship': {
             'iscollection': True,
             'range_field_key': 'Date',
