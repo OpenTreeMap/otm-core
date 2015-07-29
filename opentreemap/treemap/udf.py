@@ -1099,6 +1099,13 @@ class UDFModel(UserTrackable, models.Model):
                     if udf.canonical_name in visible_fields]
         return self.collection_udfs_audit_names()
 
+    @classproperty
+    def collection_udf_settings(cls):
+        return {
+            k: v for k, v in
+            getattr(cls, 'udf_settings', {}).items()
+            if v.get('iscollection')}
+
     @property
     def tracked_fields(self):
         return super(UDFModel, self).tracked_fields + \

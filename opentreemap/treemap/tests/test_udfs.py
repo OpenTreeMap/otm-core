@@ -546,12 +546,17 @@ class UDFDefTest(OTMTestCase):
             {'type': 'float',
              'description': 'this is a float field'})
 
-    def test_choices_not_empty_or_missing(self):
+    def test_choices_not_missing(self):
         self.assertRaises(
             ValidationError,
             self._create_and_save_with_datatype,
             {'type': 'choice'})
 
+        self._create_and_save_with_datatype(
+            {'type': 'choice',
+             'choices': ['a choice', 'another']})
+
+    def test_choices_not_empty(self):
         self.assertRaises(
             ValidationError,
             self._create_and_save_with_datatype,

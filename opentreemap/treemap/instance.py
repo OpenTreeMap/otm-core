@@ -105,23 +105,23 @@ def reserved_name_validator(name):
                                 'cannot be used') % {'instancename': name})
 
 
-def create_udfc(instance, model, udfc_name):
+def create_udf(instance, model, udfc_name):
     from treemap.udf import UserDefinedFieldDefinition
     from treemap.util import safe_get_model_class
 
     clz = safe_get_model_class(model)
+    udfc_settings = clz.udf_settings[udfc_name]
     udfc, __ = UserDefinedFieldDefinition.objects.get_or_create(
         instance_id=instance.pk,
         model_type=model,
-        datatype=json.dumps(clz.collection_udf_settings[udfc_name]
-                            .get('defaults')),
-        iscollection=True,
+        iscollection=udfc_settings.get('iscollection'),
+        datatype=json.dumps(udfc_settings.get('defaults')),
         name=udfc_name)
     return udfc
 
 
 def create_stewardship_udfs(instance):
-    return [create_udfc(instance, model, 'Stewardship')
+    return [create_udf(instance, model, 'Stewardship')
             for model in ('Plot', 'Tree')]
 
 
@@ -349,10 +349,7 @@ class Instance(models.Model):
         data = DotDict({'models': set(), 'udfc': {}})
         for clz in (leaf_models_of_class(UDFModel)):
             model_name = clz.__name__
-            items = (
-                (k, v) for k, v
-                in getattr(clz, 'collection_udf_settings', {}).iteritems())
-            for k, v in items:
+            for k, v in clz.collection_udf_settings.items():
                 udfds = (u for u in udf_defs(self, model_name) if u.name == k)
                 for udfd in udfds:
                     if udf_write_level(iu, udfd) in (READ, WRITE):
