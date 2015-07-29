@@ -769,8 +769,9 @@ class Plot(MapFeature):
     objects = GeoHStoreUDFManager()
     is_editable = True
 
-    collection_udf_settings = {
+    udf_settings = {
         'Stewardship': {
+            'iscollection': True,
             'range_field_key': 'Date',
             'action_field_key': 'Action',
             'action_verb': _('that have been'),
@@ -785,6 +786,11 @@ class Plot(MapFeature):
                  'name': 'Date'}],
         },
         'Alerts': {
+            'iscollection': True,
+            'warning_message': _(
+                "Marking a planting site with an alert does not serve as a "
+                "way to report problems with that site. If you have any "
+                "emergency concerns, please contact your city directly."),
             'range_field_key': 'Date Noticed',
             'action_field_key': 'Action Needed',
             'action_verb': _('with open alerts for'),
@@ -878,8 +884,9 @@ class Tree(Convertible, UDFModel, PendingAuditable):
                             'Mulched, Had Compost Added, or Soil Amended',
                             'Cleared of Trash or Debris']
 
-    collection_udf_settings = {
+    udf_settings = {
         'Stewardship': {
+            'iscollection': True,
             'range_field_key': 'Date',
             'action_field_key': 'Action',
             'action_verb': 'that have been',
@@ -891,6 +898,11 @@ class Tree(Convertible, UDFModel, PendingAuditable):
                  'name': 'Date'}],
         },
         'Alerts': {
+            'iscollection': True,
+            'warning_message': _(
+                "Marking a tree with an alert does not serve as a way to "
+                "report problems with a tree. If you have any emergency "
+                "tree concerns, please contact your city directly."),
             'range_field_key': 'Date Noticed',
             'action_field_key': 'Action Needed',
             'action_verb': _('with open alerts for'),

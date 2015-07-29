@@ -350,6 +350,11 @@ class UserDefinedFieldDefinition(models.Model):
         datatype['choices'] = choices
         return datatype
 
+    @property
+    def model_config(self):
+        Model = safe_get_udf_model_class(self.model_type)
+        return getattr(Model, 'udf_settings', {}).get(self.name, {})
+
     def _update_choice_scalar(self, old_choice_value, new_choice_value):
         datatype = self._validate_and_update_choice(
             self.datatype_dict, old_choice_value, new_choice_value)
@@ -1098,6 +1103,13 @@ class UDFModel(UserTrackable, models.Model):
             return ['udf:%s' % udf.pk for udf in self.collection_udfs
                     if udf.canonical_name in visible_fields]
         return self.collection_udfs_audit_names()
+
+    @classproperty
+    def collection_udf_settings(cls):
+        return {
+            k: v for k, v in
+            getattr(cls, 'udf_settings', {}).items()
+            if v.get('iscollection')}
 
     @property
     def tracked_fields(self):
