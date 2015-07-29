@@ -193,13 +193,19 @@
             {% endif %}
           </div>
 
-          {% if feature.is_plot %}
           <div id="comment_disclaimer">
             <p class="text-muted">
-              <em>The comment system does not serve as a way to report problems with a tree.</em>
+              <em>
+                {% if feature.is_plot %}
+                {% trans "The comment system does not serve as a way to report problems with a tree." %}
+                {% else %}
+                {% blocktrans with resource=term.resource %}
+                The comment system does not serve as a way to report problems with a {{ resource }}.
+                {% endblocktrans %}
+                {% endif %}
+              </em>
             </p>
           </div>
-          {% endif %}
 
         </div>
 
