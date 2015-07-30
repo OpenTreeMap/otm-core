@@ -3,10 +3,37 @@
 .management {
     min-height: 650px;
 
+    &.slim {
+        .tab-list {
+            width: 25px;
+
+            .full-section {
+                height: 22px;
+                width: 0%;
+                overflow: hidden;
+            }
+        }
+        .tab-content {
+            width: calc(100% - 30px);
+        }
+    }
+    .tab-list {
+        width: 26%;
+    }
+
+    .tab-content {
+        width: 74%;
+        overflow: hidden;
+
+        > .tab-pane {
+            min-height: 650px;
+        }
+    }
+
     .nav.nav-list {
         margin-top: 115px;
 
-        li {
+        tr {
             padding: 0;
 
             &.nav-header {
@@ -25,7 +52,7 @@
             }
             a {
                 font-weight: 400;
-                padding: 5px 15px;
+                padding: 0;
             }
         }
     }
@@ -74,14 +101,6 @@
         margin-bottom: 20px;
         top: 4px;
         position: relative;
-    }
-
-    .tab-content {
-        overflow: hidden;
-
-        > .tab-pane {
-            min-height: 650px;
-        }
     }
 
     #instances {
