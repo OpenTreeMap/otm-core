@@ -2,12 +2,16 @@
 {% load dateformat %}
 {% if field.choices %}
     <select name="{{ field.identifier }}" {{ extra|default_if_none:"" }}
+            {% if field.data_type == 'multichoice' %}multiple="multiple"{% endif %}
             class="{{ class|default_if_none:"" }} form-control">
         {% for option in field.choices %}
             <option value="{{ option.value }}"
-              {% ifequal option.value field.value %}selected="selected"{% endifequal %}>
-                {{option.display_value}}
-            </option>
+                    {% if field.data_type == 'multichoice' %}
+                    {% if option.value in field.value %}selected="selected"{% endif %}
+                    {% else %}
+                    {% ifequal option.value field.value %}selected="selected"{% endifequal %}
+                    {% endif %}
+                    >{{option.display_value}}</option>
         {% endfor %}
     </select>
 {% elif field.data_type == 'bool' or field.search_type == 'ISNULL' %}

@@ -330,7 +330,7 @@ class UserDefinedFieldDefinition(models.Model):
 
     def _validate_and_update_choice(
             self, datatype, old_choice_value, new_choice_value):
-        if datatype['type'] != 'choice':
+        if datatype['type'] not in ('choice', 'multichoice'):
             raise ValidationError(
                 {'datatype': [_("can't change choices "
                                 "on a non-choice field")]})
@@ -356,18 +356,34 @@ class UserDefinedFieldDefinition(models.Model):
         return getattr(Model, 'udf_settings', {}).get(self.name, {})
 
     def _update_choice_scalar(self, old_choice_value, new_choice_value):
+        Model = safe_get_udf_model_class(self.model_type)
+
+        if self.datatype_dict['type'] == 'choice':
+            for model in Model.objects\
+                              .filter(**{self.canonical_name:
+                                         old_choice_value}):
+                model.udfs[self.name] = new_choice_value
+                model.save_base()
+
+        else:
+            udf_filter = {'instance': self.instance,
+                          # grab anything with that key
+                          'udfs__contains': [self.name]}
+            models = Model.objects.filter(**udf_filter)
+
+            for model in models:
+                newval = self._list_replace_or_remove(
+                    model.udfs[self.name],
+                    old_choice_value,
+                    new_choice_value)
+                model.udfs[self.name] = newval
+                model.save_base()
+
         datatype = self._validate_and_update_choice(
             self.datatype_dict, old_choice_value, new_choice_value)
 
         self.datatype = json.dumps(datatype)
         self.save()
-
-        Model = safe_get_udf_model_class(self.model_type)
-        for model in Model.objects\
-                          .filter(**{'udf:%s' % self.name:
-                                     old_choice_value}):
-            model.udfs[self.name] = new_choice_value
-            model.save_base()
 
         audits = Audit.objects.filter(
             model=self.model_type,
@@ -380,15 +396,35 @@ class UserDefinedFieldDefinition(models.Model):
     def _update_choices_on_audits(
             self, audits, old_choice_value, new_choice_value):
 
-        cval_audits = audits.filter(current_value=old_choice_value)
-        pval_audits = audits.filter(previous_value=old_choice_value)
-
-        if new_choice_value is None:
-            cval_audits.delete()
-            pval_audits.delete()
+        if self.iscollection or self.datatype_dict['type'] == 'choice':
+            cval_audits = audits.filter(current_value=old_choice_value)
+            pval_audits = audits.filter(previous_value=old_choice_value)
+            if new_choice_value is None:
+                cval_audits.delete()
+                pval_audits.delete()
+            else:
+                cval_audits.update(current_value=new_choice_value)
+                pval_audits.update(previous_value=new_choice_value)
         else:
-            cval_audits.update(current_value=new_choice_value)
-            pval_audits.update(previous_value=new_choice_value)
+            for audit in audits.filter(field=self.canonical_name,
+                                       model=self.model_type):
+                audit.current_value = json.dumps(
+                    self._list_replace_or_remove(
+                        json.loads(audit.current_value or '[]'),
+                        old_choice_value,
+                        new_choice_value))
+                audit.previous_value = json.dumps(
+                    self._list_replace_or_remove(
+                        json.loads(audit.previous_value or '[]'),
+                        old_choice_value,
+                        new_choice_value))
+                audit.save()
+
+    def _list_replace_or_remove(self, l, old, new):
+        return filter(
+            None,
+            [(new if choice == old else choice)
+             for choice in l])
 
     def add_choice(self, new_choice_value, name=None):
         if self.iscollection:
@@ -542,7 +578,8 @@ class UserDefinedFieldDefinition(models.Model):
             raise ValidationError(_('type required data type definition'))
 
         if datatype['type'] not in ['float', 'int', 'string',
-                                    'user', 'choice', 'date']:
+                                    'user', 'choice', 'date',
+                                    'multichoice']:
             raise ValidationError(_('invalid datatype'))
 
         if datatype['type'] == 'choice':
@@ -662,6 +699,8 @@ class UserDefinedFieldDefinition(models.Model):
         if self.datatype_dict['type'] == 'user':
             if hasattr(value, 'pk'):
                 value = str(value.pk)
+        elif self.datatype_dict['type'] == 'multichoice':
+            value = json.dumps(value)
 
         if value:
             return str(value)
@@ -724,14 +763,21 @@ class UserDefinedFieldDefinition(models.Model):
 
         elif datatype == 'date':
             return parse_date_string_with_or_without_time(value)
-        elif datatype == 'choice':
-            if value in datatype_dict['choices']:
+        elif 'choices' in datatype_dict:
+            def _validate(val):
+                if val not in datatype_dict['choices']:
+                    raise ValidationError(
+                        _('Invalid choice (%(given)s). Expecting %(allowed)s')
+                        % {'given': val,
+                           'allowed': ', '.join(datatype_dict['choices'])})
+
+            if datatype == 'choice':
+                _validate(value)
                 return value
             else:
-                raise ValidationError(
-                    _('Invalid choice (%(given)s). Expecting %(allowed)s') %
-                    {'given': value,
-                     'allowed': ', '.join(datatype_dict['choices'])})
+                values = json.loads(value)
+                map(_validate, values)
+                return values
         else:
             return value
 
@@ -881,7 +927,6 @@ class UDFDictionary(HStoreDict):
             self.collection_fields[key] = copy.deepcopy(val)
         else:
             val = udf.reverse_clean(val)
-
             super(UDFDictionary, self).__setitem__(key, val)
 
 
@@ -1126,10 +1171,11 @@ class UDFModel(UserTrackable, models.Model):
 
         base_model_dict = super(UDFModel, self).as_dict(*args, **kwargs)
 
-        for field in self.udf_field_names:
+        for field_obj in self.get_user_defined_fields():
+            field = field_obj.name
             value = self.udfs[field]
 
-            if isinstance(value, list):
+            if field_obj.iscollection:
                 # For colllection UDFs, we need to format each subvalue inside
                 # each dictionary
                 value = [{k: _format_value(val)

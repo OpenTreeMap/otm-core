@@ -745,6 +745,7 @@ class ScalarUDFTest(OTMTestCase):
 
         addl_fields = ['udf:Test %s' % ttype for ttype in allowed_types]
         addl_fields.append('udf:Test choice')
+        addl_fields.append('udf:Test multichoice')
 
         self.commander_user = make_commander_user(self.instance)
         set_write_permissions(self.instance, self.commander_user,
@@ -760,6 +761,14 @@ class ScalarUDFTest(OTMTestCase):
                                  'choices': ['a', 'b', 'c']}),
             iscollection=False,
             name='Test choice')
+
+        self.multichoice_udfd = UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'multichoice',
+                                 'choices': ['a', 'b', 'c']}),
+            iscollection=False,
+            name='Test multichoice')
 
         self.plot = Plot(geom=self.p, instance=self.instance)
         self.plot.save_with_user(self.commander_user)
@@ -834,6 +843,68 @@ class ScalarUDFTest(OTMTestCase):
         self.assertEqual(
             set(choice.datatype_dict['choices']),
             {'b', 'c'})
+
+    def test_delete_multichoice_value(self):
+        self.plot.udfs['Test multichoice'] = ['a']
+        self.plot.save_with_user(self.commander_user)
+
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+        audit = self.plot.audits().get(field='udf:Test multichoice')
+
+        self.assertEqual(
+            self.plot.udfs['Test multichoice'], ['a'])
+        self.assertEqual(
+            json.loads(audit.current_value), ['a'])
+
+        self.multichoice_udfd.delete_choice('a')
+
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+        audit = self.plot.audits().filter(field='udf:Test multichoice')
+
+        self.assertEqual(self.plot.udfs['Test multichoice'], [])
+        self.assertEqual(json.loads(audit[0].current_value), [])
+
+        choice = UserDefinedFieldDefinition.objects.get(
+            pk=self.multichoice_udfd.pk)
+
+        self.assertEqual(
+            set(choice.datatype_dict['choices']),
+            {'b', 'c'})
+
+    def test_update_multichoice_value(self):
+        # setup plot and requery
+        self.plot.udfs['Test multichoice'] = ['a']
+        self.plot.save_with_user(self.commander_user)
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+
+        self.multichoice_udfd.update_choice('a', 'weird \\\\\\1a2chars')
+
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+        audit = self.plot.audits().get(field='udf:Test multichoice')
+
+        self.assertEqual(
+            self.plot.udfs['Test multichoice'], ['weird \\\\\\1a2chars'])
+        self.assertEqual(json.loads(audit.current_value),
+                         ['weird \\\\\\1a2chars'])
+
+        choice = UserDefinedFieldDefinition.objects.get(
+            pk=self.multichoice_udfd.pk)
+
+        self.assertEqual(
+            set(choice.datatype_dict['choices']),
+            {'weird \\\\\\1a2chars', 'b', 'c'})
+
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+        self.multichoice_udfd.update_choice('b', 'd')
+        self.assertEqual(
+            self.plot.udfs['Test multichoice'], ['weird \\\\\\1a2chars'])
+
+        choice = UserDefinedFieldDefinition.objects.get(
+            pk=self.multichoice_udfd.pk)
+
+        self.assertEqual(
+            set(choice.datatype_dict['choices']),
+            {'weird \\\\\\1a2chars', 'd', 'c'})
 
     def test_update_choice_value(self):
         self.plot.udfs['Test choice'] = 'a'

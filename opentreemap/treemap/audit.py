@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import json
 import hashlib
 from functools import partial
 from datetime import datetime
@@ -1193,6 +1194,21 @@ class Audit(models.Model):
     An audit that is "PendingApproved/Rejected" cannot be be
     "ReviewApproved/Rejected"
     """
+
+    def __init__(self, *args, **kwargs):
+        super(Audit, self).__init__(*args, **kwargs)
+        # attempting to store a list in a text field will produce a
+        # printed representation of a python object, which cannot be
+        # safely deserialized (without using eval). For audits on
+        # multichoice udfs, we need to store JSON in order to be able
+        # to work with these values. Since the audit object doesn't
+        # carry a direct reference to the udfd in question, it should
+        # be sufficient to just inspect the type and encode lists.
+        if isinstance(self.previous_value, list):
+            self.previous_value = json.dumps(self.previous_value)
+        if isinstance(self.current_value, list):
+            self.current_value = json.dumps(self.current_value)
+
     requires_auth = models.BooleanField(default=False)
     ref = models.ForeignKey('Audit', null=True)
 
