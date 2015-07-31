@@ -13,6 +13,7 @@
             color: white;
             position: relative;
             cursor: pointer;
+            text-transform: capitalize;
 
             &:before {
                 content: counter(steps) ". ";
@@ -191,6 +192,7 @@
         position: fixed;
         width: 350px;
         bottom: 40px;
+        left: 0;
         background-color: #fff;
         box-shadow: 0 -6px 0 rgba(0, 0, 0, 0.15);
         z-index: 10;
