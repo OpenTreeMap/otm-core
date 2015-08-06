@@ -33,14 +33,19 @@ class Bioswale(PolygonalMapFeature):
     objects = GeoHStoreUDFManager()
 
     udf_settings = {
-        # # TODO: uncomment when choices are known
-        # 'Perennial Plants': {
-        #     'iscollection': False,
-        #     'defaults': {
-        #         'type': 'multichoice',
-        #         'choices': [],
-        #     }
-        # },
+        'Perennial Plants': {
+            'iscollection': False,
+            'defaults': {
+                'type': 'multichoice',
+                'choices': [
+                    "Black-eyed Susan - Rudbeckia hirta",
+                    "Daylily - Hemerocallis",
+                    "Lobelia - Lobelia",
+                    "Sedge - Carex",
+                    "Switchgrass - Panicum virgatum",
+                ],
+            }
+        },
         'Stewardship': {
             'iscollection': True,
             'range_field_key': 'Date',
