@@ -4,6 +4,7 @@ $base-font-family               : 'Open Sans', 'Roboto', 'Helvetica Neue', Helve
 $base-font-size                 : 62.5%;
 
 // Colors
+$paper                          : #ffffff;
 $primary-color                  : #8baa3d !default; // OTM Green color
 $secondary-color                : #56abb2 !default; // OTM Teal color
 $success-color                  : #add142; // OTM Lime Green color
@@ -28,6 +29,12 @@ $button-inverse                 : #231f20;
 
 // Background Image
 $background-image               : url('/static/img/default-background.jpg') !default; // Standard tree background
+
+//Management
+$body-management                : #f1f4f9;
+$dark-primary                   : #3d404f;
+$dark-secondary                 : #55555e;
+
 
 // Media Queries
 $screen-xs			 : "(max-width: 767px)";
