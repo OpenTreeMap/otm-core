@@ -168,8 +168,10 @@ exports.init = function(options) {
 
     $(editFields).find("input[data-date-format]").datepicker();
 
-    $(editFields).find('select[multiple]').multiselect({enableFiltering: true,
-                                                        filterBehavior: 'value'});
+    $(editFields).find('select[multiple]').multiselect(
+        {enableFiltering: true,
+         enableCaseInsensitiveFiltering: true,
+         filterBehavior: 'value'});
 
     FH.renderMultiChoices($(displayFields).filter('[data-type="multichoice"]'));
 
