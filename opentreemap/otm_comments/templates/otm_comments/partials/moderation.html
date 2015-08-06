@@ -2,75 +2,84 @@
 {% load sort %}
 
 <div class="page-header">
-  <h1>Moderate Comments
-    <div class="btn-group">
-      <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-toggle="dropdown">
-        {{ comments_filter }} <span class="caret"></span>
-      </button>
-      <ul data-comments-filter class="dropdown-menu" role="menu">
-        {% if comments_filter == 'Active' %}
-        <li class="active"><a>Active</a></li>
-        {% else %}
-        <li><a href="{{ comments_url_for_filter }}&archived=False&removed=None">Active</a></li>
-        {% endif %}
-        {% if comments_filter == 'Hidden' %}
-        <li class="active"><a>Hidden</a></li>
-        {% else %}
-        <li><a href="{{ comments_url_for_filter }}&archived=None&removed=True">Hidden</a></li>
-        {% endif %}
-        {% if comments_filter == 'Archived' %}
-        <li class="active"><a>Archived</a></li>
-        {% else %}
-        <li><a href="{{ comments_url_for_filter }}&archived=True&removed=None">Archived</a></li>
-        {% endif %}
-      </ul>
-    </div>
-    <button type="button" class="btn btn-sm" data-export-start-url="{% url 'comments-csv' request.instance.url_name %}?{{ comments_params }}"><i class="icon-export"></i>Export All</button>
-  </h1>
+  <div class="col-md-2">
+      <i class="icon-menu" id="toggle-sidebar"></i>
+  </div>
+  <div class="col-md-6 text-center">
+    <h1>Moderate Comments</h1>
+  </div>
+  <div class="col-md-4 text-right">
+      <div class="btn-group">
+        <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-toggle="dropdown">
+          {{ comments_filter }} <span class="caret"></span>
+        </button>
+        <ul data-comments-filter class="dropdown-menu" role="menu">
+          {% if comments_filter == 'Active' %}
+          <li class="active"><a>Active</a></li>
+          {% else %}
+          <li><a href="{{ comments_url_for_filter }}&archived=False&removed=None">Active</a></li>
+          {% endif %}
+          {% if comments_filter == 'Hidden' %}
+          <li class="active"><a>Hidden</a></li>
+          {% else %}
+          <li><a href="{{ comments_url_for_filter }}&archived=None&removed=True">Hidden</a></li>
+          {% endif %}
+          {% if comments_filter == 'Archived' %}
+          <li class="active"><a>Archived</a></li>
+          {% else %}
+          <li><a href="{{ comments_url_for_filter }}&archived=True&removed=None">Archived</a></li>
+          {% endif %}
+        </ul>
+      </div>
+      <button type="button" class="btn btn-sm" data-export-start-url="{% url 'comments-csv' request.instance.url_name %}?{{ comments_params }}"><i class="icon-export"></i>Export All</button>
+  </div>
 </div> <!--END OF PAGE HEADER -->
-<div class="comments" data-comments-params="{{ comments_params }}">
-  <div class="row comment-table">
-    <div class="col-lg-12">
-      <table class="table table-hover">
-        <thead>
-          <tr data-comments-sort>
-            <th class="selector">
-              <div class="btn-group">
-                <input type="checkbox" data-comment-toggle-all>
-                <button data-comment-batch-dropdown type="button" class="btn dropdown-toggle" data-toggle="dropdown"><i class="icon-down-dir"></i></button>
-                <ul class="dropdown-menu" role="menu" data-comment-batch>
-                  <li><a href="{% url 'hide-comments' request.instance.url_name %}">Hide</a></li>
-                  <li><a href="{% url 'show-comments' request.instance.url_name %}">Unhide</a></li>
-                  <li><a href="{% url 'archive-comments' request.instance.url_name %}">Archive</a></li>
-                  <li><a href="{% url 'unarchive-comments' request.instance.url_name %}">Unarchive</a></li>
-                  <li><a href="{% url 'hide-comment-flags' request.instance.url_name %}">Unflag</a></li>
-                </ul>
-              </div>
-            </th>
-            <th>
-              <a href="{{ comments_url_for_sort }}&sort={{ 'id'|reverse_if_current:comments_sort }}">ID</a>
-            </th>
-            <th>
-              <a href="{{ comments_url_for_sort }}&sort={{ 'visible_flag_count'|reverse_if_current:comments_sort }}">Flag</a>
-            </th>
-            <th>
-              <a href="{{ comments_url_for_sort }}&sort={{ 'user__username'|reverse_if_current:comments_sort }}">Comment</a>
-            </th>
-            <th class="actions">Actions</th>
-            <th class="date">
-              <a href="{{ comments_url_for_sort }}&sort={{ 'submit_date'|reverse_if_current:comments_sort }}">Date</a>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for comment in comments %}
-          {% include 'otm_comments/partials/moderation_row.html' %}
-        {% endfor %}
-        </tbody>
-      </table> <!--END OF TABLE -->
-    </div> <!--END OF TABLE COL-12 SECTION -->
-  </div> <!--END OF COMMENT TABLE -->
 
-  {% include 'treemap/partials/paging_controls.html' with paging=comments url=comments_url_for_pagination %}
+<div class="content">
+  <div class="comments" data-comments-params="{{ comments_params }}">
+    <div class="row comment-table">
+      <div class="col-lg-12">
+        <table class="table table-hover">
+          <thead>
+            <tr data-comments-sort>
+              <th class="selector">
+                <div class="btn-group">
+                  <input type="checkbox" data-comment-toggle-all>
+                  <button data-comment-batch-dropdown type="button" class="btn dropdown-toggle" data-toggle="dropdown"><i class="icon-down-dir"></i></button>
+                  <ul class="dropdown-menu" role="menu" data-comment-batch>
+                    <li><a href="{% url 'hide-comments' request.instance.url_name %}">Hide</a></li>
+                    <li><a href="{% url 'show-comments' request.instance.url_name %}">Unhide</a></li>
+                    <li><a href="{% url 'archive-comments' request.instance.url_name %}">Archive</a></li>
+                    <li><a href="{% url 'unarchive-comments' request.instance.url_name %}">Unarchive</a></li>
+                    <li><a href="{% url 'hide-comment-flags' request.instance.url_name %}">Unflag</a></li>
+                  </ul>
+                </div>
+              </th>
+              <th>
+                <a href="{{ comments_url_for_sort }}&sort={{ 'id'|reverse_if_current:comments_sort }}">ID</a>
+              </th>
+              <th>
+                <a href="{{ comments_url_for_sort }}&sort={{ 'visible_flag_count'|reverse_if_current:comments_sort }}">Flag</a>
+              </th>
+              <th>
+                <a href="{{ comments_url_for_sort }}&sort={{ 'user__username'|reverse_if_current:comments_sort }}">Comment</a>
+              </th>
+              <th class="actions">Actions</th>
+              <th class="date">
+                <a href="{{ comments_url_for_sort }}&sort={{ 'submit_date'|reverse_if_current:comments_sort }}">Date</a>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for comment in comments %}
+            {% include 'otm_comments/partials/moderation_row.html' %}
+          {% endfor %}
+          </tbody>
+        </table> <!--END OF TABLE -->
+      </div> <!--END OF TABLE COL-12 SECTION -->
+    </div> <!--END OF COMMENT TABLE -->
 
-</div> <!--END OF COMMENT AREA -->
+    {% include 'treemap/partials/paging_controls.html' with paging=comments url=comments_url_for_pagination %}
+
+  </div> <!--END OF COMMENT AREA -->
+</div>
