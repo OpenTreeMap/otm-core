@@ -19,6 +19,10 @@ class PolygonalMapFeature(MapFeature):
 
     objects = GeoHStoreUDFManager()
 
+    def __init__(self, *args, **kwargs):
+        super(MapFeature, self).__init__(*args, **kwargs)
+        self._do_not_track.add('polygonalmapfeature_ptr')
+
     @property
     def is_editable(self):
         # this is a holdover until we can support editing for all resources
