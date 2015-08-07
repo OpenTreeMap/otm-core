@@ -1319,6 +1319,10 @@ class Audit(models.Model):
                 value = value.area
         elif isinstance(value, datetime):
             value = dformat(value, settings.SHORT_DATE_FORMAT)
+        elif isinstance(value, list):
+            # Translators: 'none' in this case refers to clearing the
+            # list. Should be a human-friendly translation of 'null'
+            value = '(%s)' % ', '.join(value) if value else _('none')
 
         if is_convertible_or_formattable(model_name, self.field):
             __, value = get_display_value(
