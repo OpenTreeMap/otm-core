@@ -25,9 +25,15 @@ module.exports = {
                 })
                 .map(function (e) {
                     return $(e.target).index();
-                });
+                }),
+            doneClickedStream = $nextButtons.last()
+                .asEventStream('click')
+                .filter(isEnabled);
 
         stepChangeStartStream.onValue(showStep);
+        doneClickedStream.onValue(function () {
+            enableNext(maxStepNumber, false); // prevent double-submit
+        });
 
         function isEnabled(e) {
             return !$(e.target).closest('li').hasClass('disabled');
@@ -60,6 +66,10 @@ module.exports = {
                 for (i = maxStepNumber; i > stepNumber; i--) {
                     $steps.eq(i).addClass('next');
                 }
+            }
+            if (stepNumber === maxStepNumber) {
+                // Enable "Done" button (possibly disabled by an earlier click)
+                enableNext(maxStepNumber, true);
             }
         }
 
@@ -98,7 +108,7 @@ module.exports = {
             maxStepNumber: maxStepNumber,
             stepChangeStartStream: stepChangeStartStream,
             stepChangeCompleteStream: stepChangeCompleteStream,
-            allDoneStream: $nextButtons.last().asEventStream('click'),
+            allDoneStream: doneClickedStream,
             showStep: showStep,
             activateStep: activateStep,
             enableNext: enableNext,
