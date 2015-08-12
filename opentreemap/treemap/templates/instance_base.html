@@ -20,21 +20,20 @@
 {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
   {% if request.instance.supports_resources %}
     <li class="add-menu dropdown" data-feature="add_plot">
-      <a class="dropdown-toggle" data-toggle="dropdown"
-         data-always-enable="true"
-         data-disabled-title='{% trans "Adding trees is not available to all users" %}'
-         disabled='disabled'>
+      <a class="dropdown-toggle" data-toggle="dropdown">
         <i class="icon-plus-circled"></i>
       </a>
       <ul class="dropdown-menu">
         <li>
           <a data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
-             data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+             data-always-enable="{{ last_effective_instance_user|plot_is_creatable }}"
+             data-disabled-title='{% trans "Adding trees is not available to all users" %}'
              data-action='addtree'>{% trans "Add a Tree" %}</a>
         </li>
         <li>
           <a data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource"
-             data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+             data-always-enable="{{ last_effective_instance_user|any_resource_is_creatable }}"
+             data-disabled-title='{% blocktrans with resources=term.Resources %}Adding {{ resources }} is not available to all users{% endblocktrans %}'
              data-action='addresource'>{% trans "Add a" %} {{ term.Resource }}</a>
         </li>
       </ul>
@@ -42,7 +41,7 @@
   {% else %}
     <li data-feature="add_plot">
       <a data-action='addtree'
-         data-always-enable='{{ last_effective_instance_user|plot_is_writable }}'
+         data-always-enable='{{ last_effective_instance_user|plot_is_creatable }}'
          data-disabled-title='{% trans "Adding trees is not available to all users" %}'
          data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
          disabled='disabled'>{% trans "Add a Tree" %}</a>
@@ -143,8 +142,7 @@
         {% if request.instance.supports_resources %}
         <a class="btn btn-primary addBtn"
            data-action='addresource'
-           data-feature="add_plot"
-           data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+           data-always-enable="{{ last_effective_instance_user|any_resource_is_creatable }}"
            data-disabled-title=
              "{% blocktrans with resources=terms.resources %}Adding {{ resources }} is not available to all users {% endblocktrans %}"
            data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource"
@@ -153,7 +151,7 @@
       <a class="btn btn-primary addBtn"
          data-action='addtree'
          data-feature="add_plot"
-         data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+         data-always-enable="{{ last_effective_instance_user|plot_is_creatable }}"
          data-disabled-title="{% trans "Adding trees is not available to all users" %}"
          data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
          disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>

@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib.gis.db.models import Field
-from treemap.models import InstanceUser, Role
+from treemap.models import InstanceUser, Role, Plot, MapFeature
 
 """
 Tools to assist in resolving permissions, specifically when the type of
@@ -61,33 +61,9 @@ def _allows_perm(role_related_obj, model_name,
     not exactly connected to permissions, it's convenient to check this here
     as well.
     """
-    if isinstance(role_related_obj, InstanceUser):
-        if _invalid_instanceuser(role_related_obj):
-            # TODO: in udf_write_level below, we do
-            # this same check, but instead of returning
-            # false, we go forward by assigning role
-            # to be the default role for the given instance.
-            # here, we won't always have instance in scope,
-            # but we should consider factoring udf_write_level
-            # into this method and optionally taking an instance
-            # so that one can go forward with the default role.
-            return False
-        else:
-            role = role_related_obj.role
-    elif isinstance(role_related_obj, type(None)):
-        # almost certainly this is being called with
-        # last_effective_instance_user without checking
-        # first if it is None. Since we haven't received
-        # the instance along with it, we can't resolve
-        # the default role, so perms must be blocked entirely.
-        # this is not so bad, because this block is mostly
-        # to prevent 500 errors.
+    role = _get_role_from_related_object(role_related_obj)
+    if role is None:
         return False
-    elif isinstance(role_related_obj, Role):
-        role = role_related_obj
-    else:
-        raise NotImplementedError("Please provide a condition for '%s'"
-                                  % type(role_related_obj))
 
     if feature_name and not role.instance.feature_enabled(feature_name):
         return False
@@ -121,6 +97,36 @@ def _allows_perm(role_related_obj, model_name,
         return False
     else:
         return predicate(perm_attrs)
+
+
+def _get_role_from_related_object(role_related_obj):
+    if isinstance(role_related_obj, InstanceUser):
+        if _invalid_instanceuser(role_related_obj):
+            # TODO: in udf_write_level below, we do
+            # this same check, but instead of returning
+            # None, we go forward by assigning role
+            # to be the default role for the given instance.
+            # here, we won't always have instance in scope,
+            # but we should consider factoring udf_write_level
+            # into this method and optionally taking an instance
+            # so that one can go forward with the default role.
+            return None
+        else:
+            return role_related_obj.role
+    elif isinstance(role_related_obj, type(None)):
+        # almost certainly this is being called with
+        # last_effective_instance_user without checking
+        # first if it is None. Since we haven't received
+        # the instance along with it, we can't resolve
+        # the default role, so perms must be blocked entirely.
+        # this is not so bad, because this block is mostly
+        # to prevent 500 errors.
+        return None
+    elif isinstance(role_related_obj, Role):
+        return role_related_obj
+    else:
+        raise NotImplementedError("Please provide a condition for '%s'"
+                                  % type(role_related_obj))
 
 
 def _invalid_instanceuser(instanceuser):
@@ -172,11 +178,17 @@ def udf_write_level(instanceuser, udf):
 
 
 def plot_is_creatable(role_related_obj):
-    from treemap.models import Plot
     return _allows_perm(role_related_obj, 'Plot',
                         perm_attr=ALLOWS_WRITES,
                         fields=Plot()._fields_required_for_create(),
                         feature_name='add_plot',
+                        predicate=all)
+
+
+def map_feature_is_creatable(role_related_obj, Model):
+    return _allows_perm(role_related_obj, Model.__name__,
+                        perm_attr=ALLOWS_WRITES,
+                        fields=Model()._fields_required_for_create(),
                         predicate=all)
 
 
@@ -198,6 +210,18 @@ def plot_is_writable(role_related_obj, field=None):
     return _allows_perm(role_related_obj, 'Plot',
                         perm_attr=ALLOWS_WRITES,
                         predicate=any, field=field)
+
+
+def any_resource_is_creatable(role_related_obj):
+    role = _get_role_from_related_object(role_related_obj)
+    if role is None:
+        return False
+
+    map_features = {MapFeature.get_subclass(m)
+                    for m in role.instance.map_feature_types}
+    resources = map_features - {Plot}
+
+    return any(map_feature_is_creatable(role, Model) for Model in resources)
 
 
 def geom_is_writable(instanceuser, model_name):
