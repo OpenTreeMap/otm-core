@@ -548,7 +548,9 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
     objects = GeoHStoreUDFManager()
 
-    area_field_name = None  # subclass responsibility
+    # subclass responsibilities
+    area_field_name = None
+    is_editable = None
 
     # When querying MapFeatures (as opposed to querying a subclass like Plot),
     # we get a heterogenous collection (some Plots, some RainBarrels, etc.).
