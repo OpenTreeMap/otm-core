@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    toastr = require('toastr'),
     FH = require('treemap/fieldHelpers'),
     U = require('treemap/utility'),
     Bacon = require('baconjs'),
@@ -337,6 +338,9 @@ function init(options) {
             });
             // Show the first step that had an error
             stepControls.showStep(_.min(errorSteps));
+        } else {
+            toastr.error('Failed to add feature');
+            stepControls.enableNext(stepControls.maxStepNumber, true);
         }
     }
 
