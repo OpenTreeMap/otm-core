@@ -56,7 +56,7 @@
               {% if last_instance|feature_enabled:'add_plot' and last_effective_instance_user %}
               <li data-feature="add_plot">
                 <a data-class='add-tree'
-                   data-always-enable='{{ last_effective_instance_user|plot_is_writable }}'
+                   data-always-enable='{{ last_effective_instance_user|plot_is_creatable }}'
                    data-disabled-title='{% trans "Adding trees is not available to all users" %}'
                    data-href="{% url 'map' instance_url_name=last_instance.url_name %}?m=addTree"
                    disabled='disabled'>{% trans "Add a Tree" %}</a>
