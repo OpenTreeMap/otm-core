@@ -60,4 +60,5 @@ is_read_or_write = register.filter(perms.is_read_or_write)
 treephoto_is_writable = register.filter(perms.treephoto_is_writable)
 mapfeaturephoto_is_writable = register.filter(
     perms.mapfeaturephoto_is_writable)
+any_resource_is_creatable = register.filter(perms.any_resource_is_creatable)
 plot_is_creatable = register.filter(perms.plot_is_creatable)
