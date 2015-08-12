@@ -20,10 +20,7 @@
 {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
   {% if request.instance.supports_resources %}
     <li class="add-menu dropdown" data-feature="add_plot">
-      <a class="dropdown-toggle" data-toggle="dropdown"
-         data-always-enable="true"
-         data-disabled-title='{% trans "Adding trees is not available to all users" %}'
-         disabled='disabled'>
+      <a class="dropdown-toggle" data-toggle="dropdown">
         <i class="icon-plus-circled"></i>
       </a>
       <ul class="dropdown-menu">
