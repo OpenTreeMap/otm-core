@@ -51,7 +51,7 @@ class BenefitCalculator(object):
     In addition, values in a given group will be shown together.
 
     lookup-value-for-unit is used to format the units for display and
-    is opitional.
+    is optional.
 
     The basis dictionary provides info about what went into
     the calculation. It has the following schema:
@@ -117,7 +117,7 @@ class TreeBenefitsCalculator(BenefitCalculator):
             basis = {'plot':
                      {'n_objects_used': 0,
                       'n_objects_discarded': n_total_trees}}
-            empty_rslt = self._compute_currency_and_transform_units(
+            empty_rslt = compute_currency_and_transform_units(
                 instance, {})
             return (empty_rslt, basis)
 
@@ -189,7 +189,7 @@ class TreeBenefitsCalculator(BenefitCalculator):
             for key in benefits:
                 benefits[key] /= percent
 
-        rslt = self._compute_currency_and_transform_units(instance, benefits)
+        rslt = compute_currency_and_transform_units(instance, benefits)
 
         basis = {'plot':
                  {'n_objects_used': n_computed_trees,
@@ -227,7 +227,7 @@ class TreeBenefitsCalculator(BenefitCalculator):
                     rslt = {'error': err}
                     error = err
                 else:
-                    benefits = self._compute_currency_and_transform_units(
+                    benefits = compute_currency_and_transform_units(
                         instance, rawb['Benefits'])
 
                     rslt = benefits
@@ -241,81 +241,82 @@ class TreeBenefitsCalculator(BenefitCalculator):
 
         return (rslt, basis, error)
 
-    def _compute_currency_and_transform_units(self, instance, benefits):
 
-        hydrofactors = ['hydro_interception']
+def compute_currency_and_transform_units(instance, benefits):
 
-        aqfactors = ['aq_ozone_dep', 'aq_nox_dep', 'aq_nox_avoided',
-                     'aq_pm10_dep', 'aq_sox_dep', 'aq_sox_avoided',
-                     'aq_voc_avoided', 'aq_pm10_avoided', 'bvoc']
+    hydrofactors = ['hydro_interception']
 
-        co2factors = ['co2_sequestered', 'co2_avoided']
-        co2storagefactors = ['co2_storage']
+    aqfactors = ['aq_ozone_dep', 'aq_nox_dep', 'aq_nox_avoided',
+                 'aq_pm10_dep', 'aq_sox_dep', 'aq_sox_avoided',
+                 'aq_voc_avoided', 'aq_pm10_avoided', 'bvoc']
 
-        energyfactor = ['natural_gas', 'electricity']
+    co2factors = ['co2_sequestered', 'co2_avoided']
+    co2storagefactors = ['co2_storage']
 
-        # TODO:
-        # eco.py converts from kg -> lbs to use the
-        # itree defaults currency conversions but it looks like
-        # we are pulling from the speadsheets are in kgs... we
-        # need to verify units
-        groups = {
-            BenefitCategory.AIRQUALITY: ('lbs/year', aqfactors),
-            BenefitCategory.CO2: ('lbs/year', co2factors),
-            BenefitCategory.CO2STORAGE: ('lbs', co2storagefactors),
-            BenefitCategory.STORMWATER: ('gal', hydrofactors),
-            BenefitCategory.ENERGY: ('kwh', energyfactor)
-        }
+    energyfactor = ['natural_gas', 'electricity']
 
-        # currency conversions are in lbs, so do this calc first
-        # same with hydro
-        for benefit in aqfactors + co2factors:
-            if benefit in benefits:
-                benefits[benefit] *= LBS_PER_KG
+    # TODO:
+    # eco.py converts from kg -> lbs to use the
+    # itree defaults currency conversions but it looks like
+    # we are pulling from the speadsheets are in kgs... we
+    # need to verify units
+    groups = {
+        BenefitCategory.AIRQUALITY: ('lbs/year', aqfactors),
+        BenefitCategory.CO2: ('lbs/year', co2factors),
+        BenefitCategory.CO2STORAGE: ('lbs', co2storagefactors),
+        BenefitCategory.STORMWATER: ('gal', hydrofactors),
+        BenefitCategory.ENERGY: ('kwh', energyfactor)
+    }
 
-        if 'hydro_interception' in benefits:
-            benefits['hydro_interception'] *= GAL_PER_CUBIC_M
+    # currency conversions are in lbs, so do this calc first
+    # same with hydro
+    for benefit in aqfactors + co2factors:
+        if benefit in benefits:
+            benefits[benefit] *= LBS_PER_KG
 
-        factor_conversions = instance.factor_conversions
+    if 'hydro_interception' in benefits:
+        benefits['hydro_interception'] *= GAL_PER_CUBIC_M
 
-        for benefit in benefits:
-            value = benefits.get(benefit, 0)
+    factor_conversions = instance.factor_conversions
 
-            if factor_conversions and value and benefit in factor_conversions:
-                currency = factor_conversions[benefit] * value
-            else:
-                currency = 0.0
+    for benefit in benefits:
+        value = benefits.get(benefit, 0)
 
-            benefits[benefit] = (value, currency)
+        if factor_conversions and value and benefit in factor_conversions:
+            currency = factor_conversions[benefit] * value
+        else:
+            currency = 0.0
 
-        if 'natural_gas' in benefits:
-            # currency conversions are in kbtus, so do this after
-            # currency conversion
-            nat_gas_kbtu, nat_gas_cur = benefits['natural_gas']
-            nat_gas_kwh = nat_gas_kbtu * WATTS_PER_BTU
-            benefits['natural_gas'] = (nat_gas_kwh, nat_gas_cur)
+        benefits[benefit] = (value, currency)
 
-        rslt = {}
+    if 'natural_gas' in benefits:
+        # currency conversions are in kbtus, so do this after
+        # currency conversion
+        nat_gas_kbtu, nat_gas_cur = benefits['natural_gas']
+        nat_gas_kwh = nat_gas_kbtu * WATTS_PER_BTU
+        benefits['natural_gas'] = (nat_gas_kwh, nat_gas_cur)
 
-        for group, (unit, keys) in groups.iteritems():
-            valuetotal = currencytotal = 0
+    rslt = {}
 
-            for key in keys:
-                value, currency = benefits.get(key, (0, 0))
+    for group, (unit, keys) in groups.iteritems():
+        valuetotal = currencytotal = 0
 
-                valuetotal += value
-                currencytotal += currency
+        for key in keys:
+            value, currency = benefits.get(key, (0, 0))
 
-            if currencytotal == 0:
-                currencytotal = None
+            valuetotal += value
+            currencytotal += currency
 
-            rslt[group] = {'value': valuetotal,
-                           'currency': currencytotal,
-                           'unit': unit,
-                           'unit-name': 'eco',
-                           'label': benefit_labels[group]}
+        if currencytotal == 0:
+            currencytotal = None
 
-        return {'plot': rslt}
+        rslt[group] = {'value': valuetotal,
+                       'currency': currencytotal,
+                       'unit': unit,
+                       'unit-name': 'eco',
+                       'label': benefit_labels[group]}
+
+    return {'plot': rslt}
 
 
 #TODO: Does this helper exist?
