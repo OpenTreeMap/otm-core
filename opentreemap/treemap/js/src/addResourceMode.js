@@ -26,6 +26,7 @@ function init(options) {
         $form = U.$find(options.formSelector, $sidebar),
         $summaryHead = U.$find('.summaryHead', $sidebar),
         $summarySubhead = U.$find('.summarySubhead', $sidebar),
+        $continueLink = $('#addresource-viewdetails'),
         mapManager = options.mapManager,
         plotMarker = options.plotMarker,
         areaFieldIdentifier,
@@ -53,6 +54,7 @@ function init(options) {
             typeName = $option.next().text().trim(),
             areaFieldName = $option.data('area-field-name'),
             skipDetailForm = $option.data('skip-detail-form') == 'True',
+            enableContinueEditing = $option.data('is-editable') == 'True',
             addFeatureUrl = config.instance.url + 'features/' + type + '/';
         if (type) {
             manager.setAddFeatureUrl(addFeatureUrl);
@@ -71,6 +73,13 @@ function init(options) {
                 areaFieldIdentifier = null;
             }
             removeAreaPolygon(); // in case user backed up and changed type
+            if (enableContinueEditing) {
+                $continueLink.removeClass('disabled');
+                $continueLink.prop('disabled', false);
+            } else {
+                $continueLink.addClass('disabled');
+                $continueLink.prop('disabled', true);
+            }
 
             $.ajax({
                 url: config.instance.url + "features/" + type + '/',
