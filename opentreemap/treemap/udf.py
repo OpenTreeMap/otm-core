@@ -6,6 +6,7 @@ from __future__ import division
 import json
 import copy
 import re
+from datetime import date, datetime
 
 from django.core.exceptions import ValidationError, FieldError
 from django.utils.translation import ugettext_lazy as _
@@ -762,6 +763,9 @@ class UserDefinedFieldDefinition(models.Model):
                                       {'fieldname': self.name})
 
         elif datatype == 'date':
+            if isinstance(value, (date, datetime)):
+                return value
+
             return parse_date_string_with_or_without_time(value)
         elif 'choices' in datatype_dict:
             def _validate(val):
@@ -922,7 +926,7 @@ class UDFDictionary(HStoreDict):
         udf = self._get_udf_or_error(key)
 
         if udf.iscollection:
-            self.instance.dirty_collection_udfs = True
+            self.instance.dirty_collection_udfs[key] = True
             # HStoreDict cleans values in-place, so we need to do a deep-copy
             self.collection_fields[key] = copy.deepcopy(val)
         else:
@@ -1031,7 +1035,7 @@ class UDFModel(UserTrackable, models.Model):
                                for udfd in self.collection_udfs}
         self.populate_previous_state()
 
-        self.dirty_collection_udfs = False
+        self.dirty_collection_udfs = {}
 
     def fields_were_updated(self):
         normal_fields = super(UDFModel, self).fields_were_updated()
@@ -1205,39 +1209,40 @@ class UDFModel(UserTrackable, models.Model):
                   for field in self.get_user_defined_fields()}
 
         for field_name, values in collection_values.iteritems():
-            field = fields[field_name]
+            if self.dirty_collection_udfs.get(field_name):
+                field = fields[field_name]
 
-            ids_specified = []
-            for value_dict in values:
-                if 'id' in value_dict:
-                    id = value_dict['id']
-                    del value_dict['id']
+                ids_specified = []
+                for value_dict in values:
+                    if 'id' in value_dict:
+                        id = value_dict['id']
+                        del value_dict['id']
 
-                    udcv = UserDefinedCollectionValue.objects.get(
-                        pk=id,
-                        field_definition=field,
-                        model_id=self.pk)
-                else:
-                    udcv = UserDefinedCollectionValue(
-                        field_definition=field,
-                        model_id=self.pk)
+                        udcv = UserDefinedCollectionValue.objects.get(
+                            pk=id,
+                            field_definition=field,
+                            model_id=self.pk)
+                    else:
+                        udcv = UserDefinedCollectionValue(
+                            field_definition=field,
+                            model_id=self.pk)
 
-                if udcv.data != value_dict:
-                    udcv.data = value_dict
-                    udcv.save_with_user(user)
+                    if udcv.data != value_dict:
+                        udcv.data = value_dict
+                        udcv.save_with_user(user)
 
-                ids_specified.append(udcv.pk)
+                    ids_specified.append(udcv.pk)
 
-            # Delete all values that weren't presented here
-            field.userdefinedcollectionvalue_set\
-                 .filter(model_id=self.pk)\
-                 .exclude(id__in=ids_specified)\
-                 .delete()
+                # Delete all values that weren't presented here
+                field.userdefinedcollectionvalue_set\
+                    .filter(model_id=self.pk)\
+                    .exclude(id__in=ids_specified)\
+                    .delete()
 
         # We need to reload collection UDFs in order to have their IDs set
         self.udfs.force_reload_of_collection_fields()
 
-        self.dirty_collection_udfs = False
+        self.dirty_collection_udfs = {}
 
     def clean_udfs(self):
         scalar_fields = {field.name: field
