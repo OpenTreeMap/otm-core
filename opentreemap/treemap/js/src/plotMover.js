@@ -4,21 +4,16 @@
 // In edit mode, user can change the plot location by dragging the marker.
 
 var $ = require('jquery'),
-    _ = require('lodash');
+    _ = require('lodash'),
+    polylineEditor = require('treemap/polylineEditor'),
+    format = require('util').format;
 
-exports.none = function() {
-    return {onSaveBefore: _.noop, onSaveAfter: _.noop};
-};
+require('leafletEditablePolyline');
 
-exports.init = function(options) {
-    var mapManager = options.mapManager,
-        plotMarker = options.plotMarker,
-        inlineEditForm = options.inlineEditForm,
+function init(obj, options) {
+    var inlineEditForm = options.inlineEditForm,
         $editLocationButton = $(options.editLocationButton),
-        $cancelEditLocationButton = $(options.cancelEditLocationButton),
-        location = options.location;
-
-    plotMarker.place(location);
+        $cancelEditLocationButton = $(options.cancelEditLocationButton);
 
     inlineEditForm.inEditModeProperty.onValue(function (inEditMode) {
         // Form is changing to edit mode or display mode
@@ -26,60 +21,131 @@ exports.init = function(options) {
             $editLocationButton.show();
         } else { // in display mode
             $editLocationButton.hide();
-            plotMarker.disableMoving();
+            obj.disable();
         }
         $cancelEditLocationButton.hide();
     });
 
     inlineEditForm.cancelStream.onValue(function () {
-        // User clicked the inlineEditForm's "Cancel" button (distinct from the
-        // "Cancel Tree Move" button managed by this module). Restore plot location.
-        plotMarker.place(location);
+        obj.onCancel();
     });
 
     $editLocationButton.click(function () {
-        // User clicked the "Move Tree" button
+        // User clicked the "Move Location" button
         $editLocationButton.hide();
         $cancelEditLocationButton.show();
-        plotMarker.enableMoving();
+        obj.enable();
     });
 
     $cancelEditLocationButton.click(function () {
-        // User clicked the "Cancel Tree Move" button
+        // User clicked the "Cancel Move Location" button
         $editLocationButton.show();
         $cancelEditLocationButton.hide();
-        plotMarker.disableMoving();
-        plotMarker.place(location);  // Restore plot location
+        obj.onCancel();
+        obj.disable();
     });
-
-    function onSaveBefore(data) {
-        // Form is about to save its data
-        if (plotMarker.wasMoved()) {
-            // Add plot location to data object
-            data['plot.geom'] = plotMarker.getLocation();
-        }
-    }
-
-    function onSaveAfter(data) {
-        var wasInPmf = $('#containing-polygonalmapfeature').length > 0,
-            isNowInPmf = data.feature.containing_polygonalmapfeature;
-        if (plotMarker.wasMoved() && (wasInPmf || isNowInPmf)) {
-            window.location.reload();
-        }
-    }
 
     inlineEditForm
         .saveOkStream
         .map('.responseData.geoRevHash')
         .onValue(function (georev) {
-            // Form successfully saved its data. Update cached plot location.
-            location = plotMarker.getLocation();
             // Refresh the map if needed
-            mapManager.updateGeoRevHash(georev);
+            options.mapManager.updateGeoRevHash(georev);
         });
+}
 
-    return {
-        onSaveBefore: onSaveBefore,
-        onSaveAfter: onSaveAfter
+var base = exports.base = function () {
+    var obj = {
+        onSaveBefore: _.noop,
+        onSaveAfter: _.noop,
+        onCancel: _.noop,
+        enable: _.noop,
+        disable: _.noop
     };
+
+    return obj;
+};
+
+exports.plotMover = function(options) {
+    var obj = _.extend(base(), {
+        onSaveBefore: function (data) {
+            if (this.plotMarker.wasMoved()) {
+                // Add plot location to data object
+                data['plot.geom'] = this.plotMarker.getLocation();
+            }
+        },
+
+        onSaveAfter: function (data) {
+            var wasInPmf = $('#containing-polygonalmapfeature').length > 0,
+                isNowInPmf = data.feature.containing_polygonalmapfeature;
+            if (this.plotMarker.wasMoved() && (wasInPmf || isNowInPmf)) {
+                window.location.reload();
+            } else {
+                // Form successfully saved its data. Update cached location.
+                this.location = this.plotMarker.getLocation();
+            }
+        },
+
+        onCancel: function () {
+            // User clicked the inlineEditForm's "Cancel" button (distinct from the
+            // "Cancel Tree Move" button managed by this module). Restore plot location.
+            this.plotMarker.place(this.location);
+        },
+
+        disable: function () {
+            this.plotMarker.disableMoving();
+        },
+        enable: function () {
+            this.plotMarker.enableMoving();
+        }
+    });
+
+    init(obj, options);
+    obj.location = options.location.point;
+    obj.plotMarker = options.plotMarker;
+    obj.plotMarker.place(obj.location);
+    return obj;
+};
+
+
+exports.polygonMover = function (options) {
+    var obj = _.extend(base(), {
+
+        onSaveBefore: function (data) {
+            var points = this.editor.getPoints();
+            if (!_.isNull(points)) {
+                data[format('%s.polygon', options.resourceType)] = {polygon: points};
+            }
+        },
+
+        onSaveAfter: function (data) {
+            var didContainPlots = $('#contained-plots').length > 0,
+                nowContainsPlots = data.feature.contained_plots.length > 0,
+                points;
+            if (this.editor.hasMoved(this.location) &&
+                (didContainPlots || nowContainsPlots)) {
+                window.location.reload();
+            } else {
+                points = this.editor.getPoints();
+                if (!_.isNull(points)) {
+                    this.location = this.editor.getPoints();
+                }
+                this.editor.removeAreaPolygon();
+            }
+        },
+
+        disable: function () {
+            this.editor.removeAreaPolygon();
+        },
+
+        enable: function () {
+            this.editor.enableAreaPolygon({points: this.location});
+        }
+    });
+
+    obj.editor = polylineEditor({config: options.config,
+                                 mapManager: options.mapManager});
+    obj.location = options.location.polygon;
+    init(obj, options);
+    return obj;
 };

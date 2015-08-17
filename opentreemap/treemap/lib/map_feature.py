@@ -298,6 +298,9 @@ def context_dict_for_resource(request, resource, **kwargs):
     # * Foo detail would expect 'foo'
     context[object_name_alias] = context['feature']
 
+    if isinstance(resource, PolygonalMapFeature):
+        context['contained_plots'] = resource.contained_plots()
+
     return context
 
 

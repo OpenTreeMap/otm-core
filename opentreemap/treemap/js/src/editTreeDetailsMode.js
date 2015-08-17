@@ -41,13 +41,13 @@ function onClick(e) {
 function activate() {
     otmTypeahead.bulkCreate(typeaheads);
 
-    currentPlotMover = plotMover.init({
+    currentPlotMover = plotMover.plotMover({
         mapManager: mapManager,
         plotMarker: plotMarker,
         inlineEditForm: inlineEditForm,
         editLocationButton: '#edit-plot-location',
         cancelEditLocationButton: '#cancel-edit-plot-location',
-        location: plotMarker.getLocation()
+        location: {point: plotMarker.getLocation()}
     });
 
     calculator = diameterCalculator({

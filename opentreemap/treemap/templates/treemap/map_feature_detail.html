@@ -3,6 +3,7 @@
 {% load instance_config %}
 {% load i18n %}
 {% load l10n %}
+{% load util %}
 
 {% block head_extra %}
 {# Facebook & Google+ scrape these properties for their share dialogs #}
@@ -220,7 +221,7 @@
                data-has-boundaries="False"
                data-has-polygons="{{ has_polygons }}">
           </div>
-          {% if feature.is_plot %}
+          {% if feature.is_editable %}
           <button
              disabled="disabled"
              data-always-enable="{{ last_effective_instance_user|geom_is_writable:feature.feature_type }}"
@@ -269,7 +270,7 @@
 var mapFeatureOptions = {
     config: otm.settings,
     startInEditMode: {% if editmode %}true{% else %}false{% endif %},
-    hidePointMarker: {% if feature.polygon %}true{% else %}false{% endif %},
+    isEditablePolygon: {% if feature.polygon and feature.is_editable %}true{% else %}false{% endif %},
     deleteControls: {
         delete: '#delete-object',
         deleteConfirm: '#delete-confirm',
@@ -297,6 +298,7 @@ var mapFeatureOptions = {
     location: {
         edit: '#edit-location',
         cancel: '#cancel-edit-location',
+        polygon: {{ feature.polygon|lat_lng_coordinates_json|safe }},
         point: {
             x: {{ feature.geom.x }},
             y: {{ feature.geom.y }}

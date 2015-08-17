@@ -37,7 +37,7 @@ def _request_to_update_map_feature(request, feature):
     feature, tree = update_map_feature(request_dict, request.user, feature)
 
     ctx_fn = (context_dict_for_plot if feature.is_plot
-              else context_dict_for_map_feature)
+              else context_dict_for_resource)
 
     return {
         'ok': True,

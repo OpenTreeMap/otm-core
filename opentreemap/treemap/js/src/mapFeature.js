@@ -48,7 +48,7 @@ exports.init = function(options) {
         $(window).asEventStream('popstate')
             .map(function() { return U.getLastUrlSegment() === 'edit'; }));
 
-    var currentPlotMover;
+    var currentMover;
 
     var form = inlineEditForm.init(
             _.extend(options.inlineEditForm,
@@ -56,8 +56,8 @@ exports.init = function(options) {
                        updateUrl: detailUrl,
                        shouldBeInEditModeStream: shouldBeInEditModeStream,
                        errorCallback: alerts.makeErrorCallback(options.config),
-                       onSaveBefore: function (data) { currentPlotMover.onSaveBefore(data); },
-                       onSaveAfter: function (data) { currentPlotMover.onSaveAfter(data); }
+                       onSaveBefore: function (data) { currentMover.onSaveBefore(data); },
+                       onSaveAfter: function (data) { currentMover.onSaveAfter(data); }
                      }));
 
     if (options.config.instance.supportsEcobenefits) {
@@ -106,22 +106,25 @@ exports.init = function(options) {
         zoom: mapManager.ZOOM_PLOT
     });
 
-    if (options.hidePointMarker) {
-        currentPlotMover = plotMover.none();
+    var moverOptions = {
+        mapManager: mapManager,
+        inlineEditForm: form,
+        editLocationButton: options.location.edit,
+        cancelEditLocationButton: options.location.cancel,
+        location: options.location,
+        config: options.config,
+        resourceType: options.resourceType
+    };
+
+    if (options.isEditablePolygon) {
+        currentMover = plotMover.polygonMover(moverOptions);
     } else {
         plotMarker.init(options.config, mapManager.map);
         plotMarker.useTreeIcon(options.useTreeIcon);
-        currentPlotMover = plotMover.init({
-            mapManager: mapManager,
-            plotMarker: plotMarker,
-            inlineEditForm: form,
-            editLocationButton: options.location.edit,
-            cancelEditLocationButton: options.location.cancel,
-            location: options.location.point
-        });
-
         reverseGeocodeStreamAndUpdateAddressesOnForm(
             options.config, plotMarker.moveStream, options.form);
+        moverOptions.plotMarker = plotMarker;
+        currentMover = plotMover.plotMover(moverOptions);
     }
 
     var detailUrlPrefix = U.removeLastUrlSegment(detailUrl),
