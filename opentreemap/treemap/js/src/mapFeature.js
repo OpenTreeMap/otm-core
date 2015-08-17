@@ -8,7 +8,7 @@ var $ = require('jquery'),
     BU = require('treemap/baconUtils'),
     Bacon = require('baconjs'),
     U = require('treemap/utility'),
-    plotMover = require('treemap/plotMover'),
+    geometryMover = require('treemap/geometryMover'),
     plotMarker = require('treemap/plotMarker'),
     statePrompter = require('treemap/statePrompter'),
     csrf = require('treemap/csrf'),
@@ -117,14 +117,14 @@ exports.init = function(options) {
     };
 
     if (options.isEditablePolygon) {
-        currentMover = plotMover.polygonMover(moverOptions);
+        currentMover = geometryMover.polygonMover(moverOptions);
     } else {
         plotMarker.init(options.config, mapManager.map);
         plotMarker.useTreeIcon(options.useTreeIcon);
         reverseGeocodeStreamAndUpdateAddressesOnForm(
             options.config, plotMarker.moveStream, options.form);
         moverOptions.plotMarker = plotMarker;
-        currentMover = plotMover.plotMover(moverOptions);
+        currentMover = geometryMover.plotMover(moverOptions);
     }
 
     var detailUrlPrefix = U.removeLastUrlSegment(detailUrl),

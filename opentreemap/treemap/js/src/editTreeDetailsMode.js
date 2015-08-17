@@ -5,7 +5,7 @@ var $ = require('jquery'),
     L = require('leaflet'),
     toastr = require('toastr'),
     otmTypeahead = require('treemap/otmTypeahead'),
-    plotMover = require('treemap/plotMover'),
+    geometryMover = require('treemap/geometryMover'),
     diameterCalculator = require('treemap/diameterCalculator'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
         require('treemap/reverseGeocodeStreamAndUpdateAddressesOnForm');
@@ -41,7 +41,7 @@ function onClick(e) {
 function activate() {
     otmTypeahead.bulkCreate(typeaheads);
 
-    currentPlotMover = plotMover.plotMover({
+    currentPlotMover = geometryMover.plotMover({
         mapManager: mapManager,
         plotMarker: plotMarker,
         inlineEditForm: inlineEditForm,
