@@ -442,3 +442,4 @@ class SearchNode(CreateNode):
 register.tag('field', inline_edit_tag('field', FieldNode))
 register.tag('create', inline_edit_tag('create', CreateNode))
 register.tag('search', inline_edit_tag('search', SearchNode))
+register.filter('to_object_name', to_object_name)

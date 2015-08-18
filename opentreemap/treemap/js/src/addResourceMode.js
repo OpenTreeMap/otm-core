@@ -4,9 +4,8 @@ var $ = require('jquery'),
     _ = require('lodash'),
     L = require('leaflet'),
     U = require('treemap/utility'),
-    addMapFeature = require('treemap/addMapFeature');
-
-require('leafletEditablePolyline');
+    addMapFeature = require('treemap/addMapFeature'),
+    polylineEditor = require('treemap/polylineEditor');
 
 var activateMode = _.identity,
     deactivateMode = _.identity,
@@ -30,7 +29,7 @@ function init(options) {
         mapManager = options.mapManager,
         plotMarker = options.plotMarker,
         areaFieldIdentifier,
-        areaPolygon;
+        editor = polylineEditor(options);
 
     $resourceType.on('change', onResourceTypeChosen);
 
@@ -44,7 +43,7 @@ function init(options) {
     };
 
     deactivateMode = function () {
-        removeAreaPolygon();
+        editor.removeAreaPolygon();
         manager.deactivate();
     };
 
@@ -72,7 +71,7 @@ function init(options) {
             } else {
                 areaFieldIdentifier = null;
             }
-            removeAreaPolygon(); // in case user backed up and changed type
+            editor.removeAreaPolygon(); // in case user backed up and changed type
             if (enableContinueEditing) {
                 $continueLink.removeClass('disabled');
                 $continueLink.prop('disabled', false);
@@ -116,7 +115,7 @@ function init(options) {
         $resourceType.prop('checked', false);
         manager.stepControls.enableNext(STEP_CHOOSE_TYPE, false);
         plotMarker.hide();
-        removeAreaPolygon();
+        editor.removeAreaPolygon();
         hideSubquestions();
     }
 
@@ -137,59 +136,12 @@ function init(options) {
         }
 
         if (stepNumber === STEP_OUTLINE_AREA) {
-            enableAreaPolygon();
+            editor.enableAreaPolygon({plotMarker: plotMarker});
         } else {
-            disableAreaPolygon();
+            editor.disableAreaPolygon();
         }
     });
 
-    function initAreaPolygon() {
-        var p1 = plotMarker.getLatLng(),
-            p2 = U.offsetLatLngByMeters(p1, -20, -20),
-            points = [
-                [p1.lat, p1.lng],
-                [p2.lat, p1.lng],
-                [p2.lat, p2.lng],
-                [p1.lat, p2.lng]
-            ],
-            pointIcon = L.icon({
-                iconUrl: config.staticUrl + 'img/polygon-point.png',
-                iconSize: [11, 11],
-                iconAnchor: [6, 6]
-            }),
-            newPointIcon = L.icon({
-                iconUrl: config.staticUrl + 'img/polygon-point-new.png',
-                iconSize: [11, 11],
-                iconAnchor: [6, 6]
-            });
-        areaPolygon = L.Polyline.PolylineEditor(points, {
-            pointIcon: pointIcon,
-            newPointIcon: newPointIcon,
-            pointZIndexOffset: 1000
-        });
-        areaPolygon.addTo(mapManager.map);
-    }
-
-    function removeAreaPolygon() {
-        if (areaPolygon) {
-            disableAreaPolygon();
-            mapManager.map.removeLayer(areaPolygon);
-            areaPolygon = null;
-        }
-    }
-
-    function enableAreaPolygon() {
-        if (!areaPolygon) {
-            initAreaPolygon();
-        }
-        mapManager.map.setEditablePolylinesEnabled(true);
-    }
-
-    function disableAreaPolygon() {
-        if (areaPolygon) {
-            mapManager.map.setEditablePolylinesEnabled(false);
-        }
-    }
 
     function onQuestionAnswered(e) {
         var $radioButton = $(e.target),
@@ -218,12 +170,7 @@ function init(options) {
 
     function onSaveBefore(formData) {
         if (areaFieldIdentifier) {
-            var points = _.map(areaPolygon.getPoints(), function (point) {
-                var latLng = point.getLatLng();
-                return [latLng.lng, latLng.lat];
-            });
-            points.push(points[0]);
-            formData[areaFieldIdentifier] = {polygon: points};
+            formData[areaFieldIdentifier] = {polygon: editor.getPoints()};
         }
     }
 }

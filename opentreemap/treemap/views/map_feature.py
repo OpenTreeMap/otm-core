@@ -37,7 +37,7 @@ def _request_to_update_map_feature(request, feature):
     feature, tree = update_map_feature(request_dict, request.user, feature)
 
     ctx_fn = (context_dict_for_plot if feature.is_plot
-              else context_dict_for_map_feature)
+              else context_dict_for_resource)
 
     return {
         'ok': True,
@@ -164,6 +164,7 @@ def update_map_feature(request_dict, user, feature):
         feature.convert_to_display_units()
 
     def set_attr_on_model(model, attr, val):
+        rev_update = False
         field_classname = \
             model._meta.get_field_by_name(attr)[0].__class__.__name__
 
@@ -175,6 +176,7 @@ def update_map_feature(request_dict, user, feature):
             srid = val.get('srid', 4326)
             val = MultiPolygon(Polygon(val['polygon'], srid=srid), srid=srid)
             val.transform(3857)
+            rev_update = True
 
         if attr == 'mapfeature_ptr':
             if model.mapfeature_ptr_id != value:
@@ -196,6 +198,7 @@ def update_map_feature(request_dict, user, feature):
             model.apply_change(attr, val)
         else:
             raise Exception('Malformed request - invalid field %s' % attr)
+        return rev_update
 
     def save_and_return_errors(thing, user):
         try:
@@ -211,6 +214,7 @@ def update_map_feature(request_dict, user, feature):
 
     tree = None
 
+    should_update_rev = False
     for (identifier, value) in request_dict.iteritems():
         split_template = 'Malformed request - invalid field %s'
         object_name, field = dotted_split(identifier, 2,
@@ -247,7 +251,8 @@ def update_map_feature(request_dict, user, feature):
             raise Exception(
                 'Malformed request - invalid model %s' % object_name)
 
-        set_attr_on_model(model, field, value)
+        has_rev_update = set_attr_on_model(model, field, value)
+        should_update_rev = should_update_rev or has_rev_update
 
     errors = {}
 
@@ -264,7 +269,9 @@ def update_map_feature(request_dict, user, feature):
             errors['mapFeature.geom'] = errors[feature.geom_field_name]
         raise ValidationError(errors)
 
-    if old_location is None or not feature.geom.equals_exact(old_location):
+    if ((old_location is None or
+         not feature.geom.equals_exact(old_location) or
+         should_update_rev)):
         feature.instance.update_geo_rev()
 
     return feature, tree

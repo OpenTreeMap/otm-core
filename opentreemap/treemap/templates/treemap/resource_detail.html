@@ -55,9 +55,9 @@
 {% endwith %}
 
 <h3>{% trans "Associated Trees" %}</h3>
-{% with plots=feature.contained_plots %}
+{% with plots=contained_plots %}
 {% if plots %}
-    <table class="table table-hover">
+    <table class="table table-hover" id="contained-plots">
         <tbody>
         {% for plot in plots %}
         <tr>
@@ -110,6 +110,7 @@
 
       // mapFeatureOptions is defined in a script block of the super-template
       mapFeatureOptions.useTreeIcon = false;
+      mapFeatureOptions.resourceType = "{{ feature.map_feature_type|to_object_name }}";
       var mapFeature = mapFeatureModule.init(mapFeatureOptions);
 
       resource.init({

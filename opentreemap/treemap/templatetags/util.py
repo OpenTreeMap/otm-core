@@ -2,6 +2,8 @@ from django import template
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
 
+import json
+
 from opentreemap.util import dotted_split
 
 from treemap.models import MapFeature, Tree, TreePhoto, MapFeaturePhoto, Audit
@@ -135,3 +137,11 @@ def identifier_model_name(identifier):
     object_name, __ = dotted_split(identifier, 2, maxsplit=1)
 
     return display_name(to_model_name(object_name))
+
+
+@register.filter
+def lat_lng_coordinates_json(geom):
+    if not geom:
+        return "''"
+    else:
+        return json.dumps(geom.transform(4326, clone=True).tuple[0][0])
