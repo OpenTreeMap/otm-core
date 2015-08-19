@@ -16,6 +16,9 @@
                     <input type="radio"
                            name="addResourceType"
                            value="{{ cls.feature_type }}"
+                           {% if only_one_resource_class %}
+                           checked="checked"
+                           {% endif %}
                            id="resourceType{{ cls.feature_type }}"
                            data-area-field-name="{{ cls.area_field_name|default_if_none:"" }}"
                            data-is-editable="{{ cls.is_editable|default_if_none:"False" }}"
