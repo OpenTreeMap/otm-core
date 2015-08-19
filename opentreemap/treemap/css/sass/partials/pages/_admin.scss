@@ -1,7 +1,7 @@
 // Partial: Admin
-#management{
+#management {
 
-    .management-container{
+    .management-container {
         display: block;
         position: absolute;
         top: 48px;
@@ -11,37 +11,75 @@
         overflow: hidden;
         background-color: $body-management!important;
 
-        @media(min-width: 768px){
+        @media(min-width: 768px) {
             top: 44px;
         }
 
-        .management-sidebar{
+        .management-sidebar {
             position: absolute;
             top: 0;
             left: 0;
             bottom: 0;
             background-color: $dark-primary;
+            overflow: hidden;
             width: 250px;
+            transition: width 500ms ease-in-out;
 
-            .map-switcher{
+            td:first-child {
+                min-width: 47px;
+            }
+            td:not(:first-child) {
+                width: 200px;
+                transition: width 500ms ease-in-out;
+            }
 
+            .full-section {
+                overflow: hidden;
+            }
+
+            .map-switcher {
+                background-color: $secondary-color;
+                height: 49px;
+                width: 100%;
+
+                .brand-icon-container {
+                    width: 47px;
+
+                    .brand-icon {
+                        border-radius: 50%;
+                        width: 30px;
+                        height: 30px;
+                        padding: 4px;
+                        margin-left: 6px;
+                        background-color: $primary-color;
+
+                        i {
+                            color: $paper;
+                        }
+                    }
+                }
+
+                .brand {
+                    color: $paper;
+                }
             }
 
             .nav.nav-list {
                 width: 100%;
 
-                ul{
+                ul {
                     padding-left: 16px;
 
 
-                    li.active  a{
+                    li.active  a {
                         color: $paper;
                     }
 
-                    li a{
+                    li a {
                         padding: 10px 0 0 0;
+                        white-space: nowrap;
 
-                        &:hover{
+                        &:hover {
                             background-color: transparent;
                             color: $paper;
                         }
@@ -50,17 +88,37 @@
 
                 tr {
                     padding: 10px 0;
-                    cursor: pointer;
                     display: block;
                     width: 100%;
+                    position: relative;
 
-                    &:hover{
+                    td:first-child {
+                        vertical-align: top;
+                    }
+
+                    .section-title {
+                        cursor: pointer;
+                        width: 100%;
+                        display: block;
+                        padding: 0;
+                        margin-top: 4px;
+                        white-space: nowrap;
+
+                        i {
+                            position: absolute;
+                            right: 5px;
+                        }
+                    }
+
+                    &:hover {
                         background-color: rgba(255,255,255,.1);
+                        i.link-icon, a.section-title {
+                            color: $paper;
+                        }
                     }
 
                     &.active {
-                        a {
-                            background: rgba(255,255,255,.1);
+                        i.link-icon, a.section-title {
                             color: $paper;
                         }
                     }
@@ -70,13 +128,9 @@
                         font-size: 1.3rem;
                         padding: 12px 0;
                         color: rgba(255,255,255,.6);
-
-                        &:hover{
-                            color: $paper;
-                        }
                     }
 
-                    i{
+                    i {
                         color: rgba(255,255,255,.5);
                         padding: 0 12px;
                     }
@@ -84,14 +138,15 @@
             }
         }
 
-        .management-content{
+        .management-content {
             position: absolute;
             top: 0;
             left: 250px;
             bottom: 0;
             right: 0;
+            transition: left 500ms ease-in-out;
 
-            .page-header{
+            .page-header {
                 background-color: $dark-secondary;
                 position: absolute;
                 top: 0;
@@ -102,11 +157,11 @@
                 color: $paper;
                 line-height: 50px;
 
-                #toggle-sidebar{
+                #toggle-sidebar {
                     cursor: pointer;
                 }
 
-                h1{
+                h1 {
                     display: inline-block;
                     margin: 0 auto;
                     width: 100%;
@@ -115,7 +170,7 @@
                 }
             }
 
-            .content{
+            .content {
                 position: absolute;
                 top: 50px;
                 left: 0;
@@ -137,130 +192,17 @@
             .full-section {
                 height: 22px;
                 width: 0%;
-                overflow: hidden;
+                transition: width 500ms ease-in-out;
             }
         }
         .management-content {
             left: 50px;
+            transition: left 500ms ease-in-out;
         }
 
-        .management-sidebar{
+        .management-sidebar {
             width: 50px;
-        }
-    }
-}
-
-.management {
-    min-height: 650px;
-
-    .alert{
-        padding: 15px;
-        margin-top: 42px;
-    }
-
-    .form-horizontal {
-        .control-label {
-            float: left;
-            width: 190px;
-            padding-top: 5px;
-            text-align: left;
-            padding-right: 10px;
-            position: relative;
-            top: 4px;
-        }
-    }
-
-    .table {
-        select {
-            margin: 0;
-        }
-    }
-
-    .field-view {
-        margin-bottom: 20px;
-        top: 4px;
-        position: relative;
-    }
-
-    #instances {
-        table {
-            > tbody {
-                > tr {
-                    > td:first-child, th:first-child {
-                        max-width: 140px;
-                        overflow:hidden;
-                        white-space:nowrap;
-                        text-overflow:ellipsis;
-                    }
-                }
-            }
-        }
-    }
-
-    input {
-        width: 50%;
-        margin-bottom: 8px;
-    }
-
-    textarea {
-        width: 80%;
-        height: 20em;
-    }
-
-    .messages,
-    .text-danger {
-        &:empty {
-            display: none !important;
-        }
-
-        > ul,
-        > p {
-            margin: 0;
-        }
-    }
-    .well {
-        .well-header {
-            margin: 0 0 20px;
-            height: auto;
-            padding-bottom: 9px;
-            border-bottom: 1px solid #DDD;
-        }
-        h4 {
-            color: #333;
-            font-size: 1.75rem;
-            font-weight: 500;
-            margin: 0 0 10px 0;
-
-            > .btn {
-                margin-left: 6px;
-            }
-        }
-        .choice-title {
-            label {
-                margin-top: 2px;
-            }
-        }
-        .choice-options {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #DDD;
-        }
-    }
-
-    #photo-review-container {
-        .thumbnail img {
-            width: 100%;
-            height: auto;
-
-            @media (min-width: 992px){
-                height: 240px;
-            }
-        }
-    }
-
-    #payment-form{
-        select{
-            margin-left: 1px;
+            transition: width 500ms ease-in-out;
         }
     }
 
@@ -308,6 +250,114 @@
             max-width: 200px;
         }
     }
+
+    .messages,
+    .text-danger {
+        &:empty {
+            display: none !important;
+        }
+
+        > ul,
+        > p {
+            margin: 0;
+        }
+    }
+
+    #photo-review-container {
+        .photo-review-item {
+            float: left;
+            position: relative;
+            min-height: 1px;
+            padding-right: 15px;
+            padding-left: 15px;
+
+            .thumbnail img {
+                width: 240px;
+                height: 240px;
+            }
+        }
+    }
+
+    .alert{
+        padding: 15px;
+        margin-top: 42px;
+    }
+
+    .field-view {
+        margin-bottom: 20px;
+        top: 4px;
+        position: relative;
+    }
+
+    #payment-form{
+        select{
+            margin-left: 1px;
+        }
+    }
+
+    .well {
+        .well-header {
+            margin: 0 0 20px;
+            height: auto;
+            padding-bottom: 9px;
+            border-bottom: 1px solid #DDD;
+        }
+        h4 {
+            color: #333;
+            font-size: 1.75rem;
+            font-weight: 500;
+            margin: 0 0 10px 0;
+
+            > .btn {
+                margin-left: 6px;
+            }
+        }
+        .choice-title {
+            label {
+                margin-top: 2px;
+            }
+        }
+        .choice-options {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #DDD;
+        }
+    }
+}
+
+.management {
+    min-height: 650px;
+
+    .table {
+        select {
+            margin: 0;
+        }
+    }
+
+    #instances {
+        table {
+            > tbody {
+                > tr {
+                    > td:first-child, th:first-child {
+                        max-width: 140px;
+                        overflow:hidden;
+                        white-space:nowrap;
+                        text-overflow:ellipsis;
+                    }
+                }
+            }
+        }
+    }
+
+    input {
+        width: 50%;
+        margin-bottom: 8px;
+    }
+
+    textarea {
+        width: 80%;
+        height: 20em;
+    }
 }
 
 // .field-group and .field-row-container are not nested under anything, because they are
@@ -316,16 +366,27 @@
     margin-bottom: 10px;
     border-bottom: 1px solid #CCC;
 
+    > label {
+        color: $secondary-color;
+        font-size: 1.4rem;
+    }
+
     &.edit {
         border: 1px dashed #DDD;
+        background-color: $paper;
 
         .field-row {
             border: 1px dashed #DDD;
         }
+        .enabled-fields .field-row {
+            background-color: #F7F3DF;
+        }
     }
     > ul {
-        &.enabled-fields .field-row {
-            background-color: #EEE;
+        .field-row {
+            background-color: $paper;
+            border-radius: 5px;
+            color: #424242;
         }
         > li {
             margin: 0.5rem;
@@ -338,6 +399,8 @@
         .group-controls {
             display: inline-block;
             border-right: 1px solid #BBB;
+            margin-right: 10px;
+            padding: 5px;
         }
     }
     .disabled-fields .field-controls {
