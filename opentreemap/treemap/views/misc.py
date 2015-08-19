@@ -24,6 +24,7 @@ from treemap.plugin import get_viewable_instances_filter
 
 from treemap.lib.user import get_audits, get_audits_params
 from treemap.lib import COLOR_RE
+from treemap.lib.perms import map_feature_is_creatable
 from treemap.util import leaf_models_of_class
 
 
@@ -70,13 +71,22 @@ def index(request, instance):
 
 
 def get_map_view_context(request, instance):
-    resource_classes = [MapFeature.get_subclass(type)
-                        for type in instance.map_feature_types]
+    if request.user and not request.user.is_anonymous():
+        iuser = request.user.get_instance_user(instance)
+        resource_names = [mfn for mfn in instance.map_feature_types
+                          if mfn != 'Plot']
+        resource_classes = [resource for resource in
+                            map(MapFeature.get_subclass, resource_names)
+                            if map_feature_is_creatable(iuser, resource)]
+    else:
+        resource_classes = []
+
     context = {
         'fields_for_add_tree': [
             (_('Tree Height'), 'Tree.height')
         ],
-        'resource_classes': resource_classes[1:],
+        'resource_classes': resource_classes,
+        'only_one_resource_class': len(resource_classes) == 1,
     }
     add_map_info_to_context(context, instance)
     return context
