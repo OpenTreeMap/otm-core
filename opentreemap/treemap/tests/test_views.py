@@ -1754,10 +1754,9 @@ class DeleteViewTests(ViewTestCase):
         Tree(plot=plot, instance=self.instance,
              diameter=10).save_with_user(self.user)
 
-        raw_response = delete_map_feature(self.request, self.instance, plot.pk)
+        with self.assertRaises(ValidationError):
+            delete_map_feature(self.request, self.instance, plot.pk)
 
-        self.assertEqual(raw_response,
-                         "Cannot delete plot with existing trees.")
         self.assertEqual(Plot.objects.count(), 1)
 
     def test_delete_plot_view_success(self):
