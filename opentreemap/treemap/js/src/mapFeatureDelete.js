@@ -1,6 +1,7 @@
 "use strict";
 
-var $ = require('jquery');
+var $ = require('jquery'),
+    toastr = require('toastr');
 
 exports.init = function(options) {
     var config = options.config,
@@ -29,6 +30,9 @@ exports.init = function(options) {
             type: 'DELETE',
             success: function () {
                 window.location = urls.afterDeleteUrl;
+            },
+            error: function () {
+                toastr.error("Cannot delete");
             }
         });
     });
