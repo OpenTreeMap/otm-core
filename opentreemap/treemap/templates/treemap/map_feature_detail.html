@@ -102,8 +102,8 @@
       </div>
       <div class="row">
         <div class="col-md-8">
-{% if feature.is_plot or feature.is_editable %}
           <p>
+{% if feature.is_plot or feature.is_editable %}
             <button id="edit-map-feature"
                     data-class="display"
                     disabled="disabled"
@@ -118,6 +118,7 @@
                     class="btn btn-sm btn-info">{% trans "Edit" %}</button>
             <button id="save-edit-map-feature" data-class="edit" class="btn btn-sm btn-primary" style="display: none;">{% trans "Save" %}</button>
             <button id="cancel-edit-map-feature" data-class="edit" class="btn btn-sm" style="display: none;">{% trans "Cancel" %}</button>
+{% endif %}
             <button id="delete-object"
                     data-class="display"
                     disabled="disabled"
@@ -145,7 +146,6 @@
             <button id="delete-cancel" class="btn btm-small">{% trans "Cancel" %}</button>
           </div>
           <hr>
-{% endif %}
 
           <!-- Map Feature Details -->
           <form id="map-feature-form">
