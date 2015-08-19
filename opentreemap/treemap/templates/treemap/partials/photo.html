@@ -2,7 +2,7 @@
 {% load util %}
 
 {% if photo %}
-<div class="col-md-4" data-total-pages="{{ total_pages }}" data-photo>
+<div class="photo-review-item" data-total-pages="{{ total_pages }}" data-photo>
     <a class="thumbnail" href="{{ photo.image.url }}">
       <img data-id="{{ photo.pk }}" src="{{ photo.thumbnail.url }}">
     </a>
