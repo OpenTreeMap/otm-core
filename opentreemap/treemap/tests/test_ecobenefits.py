@@ -91,10 +91,10 @@ class EcoTest(UrlTestCase):
 
         self.assert_benefit_value(bens, BenefitCategory.ENERGY, 'kwh', 1896)
         self.assert_benefit_value(bens, BenefitCategory.AIRQUALITY,
-                                  'lbs/year', 6)
+                                  'lbs', 6)
         self.assert_benefit_value(bens, BenefitCategory.STORMWATER,
                                   'gal', 3185)
-        self.assert_benefit_value(bens, BenefitCategory.CO2, 'lbs/year', 563)
+        self.assert_benefit_value(bens, BenefitCategory.CO2, 'lbs', 563)
         self.assert_benefit_value(bens, BenefitCategory.CO2STORAGE,
                                   'lbs', 6575)
 

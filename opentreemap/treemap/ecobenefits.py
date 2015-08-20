@@ -261,8 +261,8 @@ def compute_currency_and_transform_units(instance, benefits):
     # we are pulling from the speadsheets are in kgs... we
     # need to verify units
     groups = {
-        BenefitCategory.AIRQUALITY: ('lbs/year', aqfactors),
-        BenefitCategory.CO2: ('lbs/year', co2factors),
+        BenefitCategory.AIRQUALITY: ('lbs', aqfactors),
+        BenefitCategory.CO2: ('lbs', co2factors),
         BenefitCategory.CO2STORAGE: ('lbs', co2storagefactors),
         BenefitCategory.STORMWATER: ('gal', hydrofactors),
         BenefitCategory.ENERGY: ('kwh', energyfactor)
