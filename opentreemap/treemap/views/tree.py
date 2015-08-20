@@ -88,7 +88,7 @@ def search_tree_benefits(request, instance):
         'label': _('Total annual benefits')
     }
 
-    formatted = format_benefits(instance, benefits, basis)
+    formatted = format_benefits(instance, benefits, basis, digits=0)
     formatted['hide_summary'] = hide_summary
 
     formatted['tree_count_label'] = (

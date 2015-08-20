@@ -187,17 +187,18 @@ def get_converted_value(instance, category_name, value_name, value):
         return value
 
 
-def get_display_value(instance, category_name, value_name, value):
+def get_display_value(instance, category_name, value_name, value, digits=None):
     if not isinstance(value, Number):
         return value, value
 
     converted_value = get_converted_value(
         instance, category_name, value_name, value)
 
-    if is_formattable(category_name, value_name):
-        digits = int(get_digits(instance, category_name, value_name))
-    else:
-        digits = 1
+    if digits is None:
+        if is_formattable(category_name, value_name):
+            digits = int(get_digits(instance, category_name, value_name))
+        else:
+            digits = 1
 
     rounded_value = round(converted_value, digits)
 
