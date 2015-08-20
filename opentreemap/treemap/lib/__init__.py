@@ -13,7 +13,7 @@ from treemap.units import get_units, get_display_value
 COLOR_RE = re.compile(r'^(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$')
 
 
-def format_benefits(instance, benefits, basis):
+def format_benefits(instance, benefits, basis, digits=None):
     currency_symbol = ''
     if instance.eco_benefits_conversion:
         currency_symbol = instance.eco_benefits_conversion.currency_symbol
@@ -32,7 +32,7 @@ def format_benefits(instance, benefits, basis):
 
             if unit_key:
                 __, value = get_display_value(
-                    instance, unit_key, key, benefit['value'])
+                    instance, unit_key, key, benefit['value'], digits)
 
                 benefit['name'] = key
                 benefit['value'] = value
