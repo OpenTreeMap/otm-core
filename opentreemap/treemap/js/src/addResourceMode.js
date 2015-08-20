@@ -29,7 +29,8 @@ function init(options) {
         mapManager = options.mapManager,
         plotMarker = options.plotMarker,
         areaFieldIdentifier,
-        editor = polylineEditor(options);
+        editor = polylineEditor(options),
+        onlyOneResourceType = $resourceType.length === 1;
 
     $resourceType.on('change', onResourceTypeChosen);
 
@@ -112,11 +113,15 @@ function init(options) {
     }
 
     function initSteps() {
-        $resourceType.prop('checked', false);
-        manager.stepControls.enableNext(STEP_CHOOSE_TYPE, false);
         plotMarker.hide();
         editor.removeAreaPolygon();
         hideSubquestions();
+        if (onlyOneResourceType) {
+            onResourceTypeChosen();
+        } else {
+            $resourceType.prop('checked', false);
+            manager.stepControls.enableNext(STEP_CHOOSE_TYPE, false);
+        }
     }
 
     function hideSubquestions() {
