@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     Bacon = require('baconjs'),
+    R = require('ramda'),
     _ = require('lodash'),
     format = require('util').format,
     M = require('treemap/BaconModels'),
@@ -30,9 +31,7 @@ var nameTemplate = _.template('udf:<%= modelName %>:<%= udfFieldDefId %>.<%= fie
             reset: _.partial(resetSelectWidget, 'type', 'data-type'),
             stateModifiers: {
                 type: getOptionAttr('data-type'),
-                plotUdfFieldDefId: getOptionAttr('data-plot-udfd-id'),
-                bioswaleUdfFieldDefId: getOptionAttr('data-bioswale-udfd-id'),
-                treeUdfFieldDefId: getOptionAttr('data-tree-udfd-id'),
+                udfFieldDefIds: getOptionAttr('data-udfd-ids'),
                 actionFieldKey: getOptionAttr('data-action-field-key'),
                 dateFieldKey: getOptionAttr('data-date-field-key'),
                 action: null
@@ -69,19 +68,25 @@ var nameTemplate = _.template('udf:<%= modelName %>:<%= udfFieldDefId %>.<%= fie
 
 function makeNameAttribute (state, fieldKey) {
     var modelName = state.modelName,
-        udfFieldDefId = state[state.modelName + 'UdfFieldDefId'],
         requiredFields = [modelName,
                           state.actionFieldKey,
                           state.dateFieldKey,
-                          udfFieldDefId],
-        validators = [_.isUndefined, _.isNull],
-        isInvalid = function (val) { return _.any(_.flatten(juxt(validators)(val))); },
-        nameAttribute = _.any(requiredFields, isInvalid) ? '' :
-            nameTemplate({modelName: modelName,
-                          udfFieldDefId: udfFieldDefId,
-                          fieldKey: fieldKey});
+                          state.udfFieldDefIds],
+        udfFieldDefId;
 
-    return nameAttribute;
+    if (_.any(requiredFields, R.or(_.isUndefined, _.isNull))) {
+        return '';
+    }
+
+    udfFieldDefId = JSON.parse(state.udfFieldDefIds)[modelName];
+
+    if (_.isUndefined(udfFieldDefId)) {
+        return '';
+    }
+
+    return nameTemplate({modelName: modelName,
+                      udfFieldDefId: udfFieldDefId,
+                      fieldKey: fieldKey});
 }
 
 
@@ -208,12 +213,13 @@ function applyFilterObjectToDom(bus, filterObject) {
     state.modelName = cleanModelName;
 
     var $typeEl = $(widgets.type.selector)
-        .find('option')
-        .filter('[data-' + cleanModelName + '-udfd-id="' + udfFieldDefId + '"]');
+            .find('option[data-udfd-ids]')
+            .filter(function (__, el) {
+                var id = JSON.parse($(el).attr('data-udfd-ids'))[cleanModelName];
+                return id == udfFieldDefId;
+            });
 
-    state.plotUdfFieldDefId = $typeEl.attr('data-plot-udfd-id');
-    state.bioswaleUdfFieldDefId = $typeEl.attr('data-bioswale-udfd-id');
-    state.treeUdfFieldDefId = $typeEl.attr('data-tree-udfd-id');
+    state.udfFieldDefIds = $typeEl.attr('data-udfd-ids');
     state.dateFieldKey = $typeEl.attr('data-date-field-key');
     state.actionFieldKey = $typeEl.attr('data-action-field-key');
     state.type = $typeEl.attr('data-type');

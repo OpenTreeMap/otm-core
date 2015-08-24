@@ -353,10 +353,15 @@ class Instance(models.Model):
                 udfds = (u for u in udf_defs(self, model_name) if u.name == k)
                 for udfd in udfds:
                     if udf_write_level(iu, udfd) in (READ, WRITE):
-                        nest_path = ('udfc.%s.models.%s' %
-                                     (to_object_name(k),
-                                      to_object_name(model_name)))
-                        data[nest_path] = {
+                        _base_nest_path = 'udfc.%s.' % (to_object_name(k))
+                        ids_nest_path = ('%sids.%s'
+                                         % (_base_nest_path,
+                                            to_object_name(model_name)))
+                        models_nest_path = ('%smodels.%s' %
+                                            (_base_nest_path,
+                                             to_object_name(model_name)))
+                        data[ids_nest_path] = udfd.pk
+                        data[models_nest_path] = {
                             'udfd': udfd,
                             'fields': udfd.datatype_dict[0]['choices']
                         }
