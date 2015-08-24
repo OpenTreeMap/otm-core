@@ -82,3 +82,31 @@ class Bioswale(PolygonalMapFeature):
     @classproperty
     def display_name(cls):
         return _('Bioswale')
+
+
+class RainGarden(PolygonalMapFeature):
+    objects = GeoHStoreUDFManager()
+
+    udf_settings = {
+        'Perennial Plants': {
+            'iscollection': False,
+            'defaults': {
+                'type': 'multichoice',
+                'choices': [
+                    "Black-eyed Susan - Rudbeckia hirta",
+                    "Daylily - Hemerocallis",
+                    "Lobelia - Lobelia",
+                    "Sedge - Carex",
+                    "Switchgrass - Panicum virgatum",
+                ],
+            },
+        },
+    }
+
+    @classproperty
+    def search_display_name(cls):
+        return _('rain gardens')
+
+    @classproperty
+    def display_name(cls):
+        return _('Rain Garden')

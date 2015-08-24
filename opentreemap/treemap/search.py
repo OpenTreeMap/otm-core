@@ -32,6 +32,7 @@ class ModelParseException(ParseException):
 
 DEFAULT_MAPPING = {'plot': '',
                    'bioswale': '',
+                   'rainGarden': '',
                    'tree': 'tree__',
                    'species': 'tree__species__',
                    'treePhoto': 'tree__treephoto__',
