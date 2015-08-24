@@ -26,6 +26,10 @@ class ParseException (Exception):
         self.message = message
 
 
+class ModelParseException(ParseException):
+    pass
+
+
 DEFAULT_MAPPING = {'plot': '',
                    'bioswale': '',
                    'tree': 'tree__',
@@ -35,7 +39,6 @@ DEFAULT_MAPPING = {'plot': '',
                    'mapFeature': ''}
 
 TREE_MAPPING = {'plot': 'plot__',
-                'bioswale': 'bioswale__',
                 'tree': '',
                 'species': 'species__',
                 'treePhoto': 'treephoto__',
@@ -203,7 +206,7 @@ def _parse_predicate_key(key, mapping):
         mapping_model = model
 
     if mapping_model not in mapping:
-        raise ParseException(
+        raise ModelParseException(
             'Valid models are: %s or a collection UDF, not "%s"' %
             (mapping.keys(), model))
 
@@ -406,7 +409,16 @@ _parse_udf_dict_value = partial(_parse_dict_value_for_mapping,
 
 
 def _parse_predicate_pair(key, value, mapping):
-    model, search_key = _parse_predicate_key(key, mapping)
+    try:
+        model, search_key = _parse_predicate_key(key, mapping)
+    except ModelParseException:
+        # currently, the only case in which a key for another model
+        # may be sent to a model search is when udfs are sent to
+        # tree search. therefore we should only allow those to pass.
+        if _is_udf(key):
+            return FilterContext()
+        else:
+            raise
     __, __, field = key.partition('.')
 
     if _is_udf(model) and type(value) == dict:
