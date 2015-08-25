@@ -25,6 +25,7 @@ class ParseException (Exception):
         super(Exception, self).__init__(message)
         self.message = message
 
+
 class ModelParseException(ParseException):
     pass
 
