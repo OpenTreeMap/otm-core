@@ -26,8 +26,13 @@ class ParseException (Exception):
         self.message = message
 
 
+class ModelParseException(ParseException):
+    pass
+
+
 DEFAULT_MAPPING = {'plot': '',
                    'bioswale': '',
+                   'rainGarden': '',
                    'tree': 'tree__',
                    'species': 'tree__species__',
                    'treePhoto': 'tree__treephoto__',
@@ -35,7 +40,6 @@ DEFAULT_MAPPING = {'plot': '',
                    'mapFeature': ''}
 
 TREE_MAPPING = {'plot': 'plot__',
-                'bioswale': 'bioswale__',
                 'tree': '',
                 'species': 'species__',
                 'treePhoto': 'treephoto__',
@@ -203,7 +207,7 @@ def _parse_predicate_key(key, mapping):
         mapping_model = model
 
     if mapping_model not in mapping:
-        raise ParseException(
+        raise ModelParseException(
             'Valid models are: %s or a collection UDF, not "%s"' %
             (mapping.keys(), model))
 
@@ -406,7 +410,10 @@ _parse_udf_dict_value = partial(_parse_dict_value_for_mapping,
 
 
 def _parse_predicate_pair(key, value, mapping):
-    model, search_key = _parse_predicate_key(key, mapping)
+    try:
+        model, search_key = _parse_predicate_key(key, mapping)
+    except ModelParseException:
+        return FilterContext()
     __, __, field = key.partition('.')
 
     if _is_udf(model) and type(value) == dict:

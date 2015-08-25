@@ -22,9 +22,7 @@
       <option data-class="udfc-placeholder" selected />
       {% for udfd_name, udfd_data in udfc.items %}
       <option data-type="{{ udfd_name }}"
-              {% for model_name, model_data in udfd_data.models.items %}
-              data-{{ model_name }}-udfd-id="{{ model_data.udfd.pk }}"
-              {% endfor %}
+              data-udfd-ids="{{ udfd_data.ids|as_json }}"
               data-date-field-key="{{ udfd_data.range_field_key }}"
               data-action-field-key="{{ udfd_data.action_field_key }}"
               >{{ udfd_data.action_verb }}</option>

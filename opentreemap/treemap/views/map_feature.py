@@ -8,7 +8,8 @@ import hashlib
 from functools import wraps
 
 from django.http import Http404
-from django.template import RequestContext
+from django.template import RequestContext, TemplateDoesNotExist
+from django.template.loader import get_template
 from django.shortcuts import get_object_or_404, render_to_response
 from django.core.exceptions import ValidationError
 from django.conf import settings
@@ -87,7 +88,11 @@ def map_feature_detail(request, instance, feature_id,
             template = 'treemap/plot_detail.html'
         else:
             app = feature.__module__.split('.')[0]
-            template = '%s/%s_detail.html' % (app, feature.feature_type)
+            try:
+                template = '%s/%s_detail.html' % (app, feature.feature_type)
+                get_template(template)
+            except TemplateDoesNotExist:
+                template = 'treemap/resource_detail.html'
         return render_to_response(template, context,
                                   RequestContext(request))
     else:
@@ -119,8 +124,14 @@ def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
 def render_map_feature_add(request, instance, type):
     if type in instance.map_feature_types[1:]:
         app = MapFeature.get_subclass(type).__module__.split('.')[0]
-        template = '%s/%s_add.html' % (app, type)
-        return render_to_response(template, None, RequestContext(request))
+        try:
+            template = '%s/%s_add.html' % (app, type)
+            ctx = None
+            get_template(template)
+        except:
+            template = 'treemap/partials/hidden_address.html'
+            ctx = {'object_name': to_object_name(type)}
+        return render_to_response(template, ctx, RequestContext(request))
     else:
         raise Http404('Instance does not support feature type ' + type)
 
