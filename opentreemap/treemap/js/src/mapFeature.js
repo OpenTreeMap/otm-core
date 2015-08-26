@@ -5,6 +5,7 @@ var $ = require('jquery'),
     toastr = require('toastr'),
     inlineEditForm = require('treemap/inlineEditForm'),
     MapManager = require('treemap/MapManager'),
+    R = require('ramda'),
     BU = require('treemap/baconUtils'),
     Bacon = require('baconjs'),
     U = require('treemap/utility'),
@@ -135,6 +136,7 @@ exports.init = function(options) {
     clickedIdStream
         .filter(BU.not, options.featureId)
         .map(_.partialRight(U.appendSegmentToUrl, detailUrlPrefix, false))
+        .filter(R.not(currentMover.isEnabled))
         .onValue(_.bind(window.location.assign, window.location));
 
     if (options.config.instance.basemap.type === 'google') {

@@ -54,20 +54,37 @@ function init(obj, options) {
         });
 }
 
-var base = exports.base = function () {
-    var obj = {
-        onSaveBefore: _.noop,
-        onSaveAfter: _.noop,
-        onCancel: _.noop,
-        enable: _.noop,
-        disable: _.noop
+function extendBase(overrides) {
+    var _isEnabled = false,
+        obj = _.extend({
+            onSaveBefore: _.noop,
+            onSaveAfter: _.noop,
+            onCancel: _.noop,
+            enable: _.noop,
+            disable: _.noop,
+            isEnabled: function () {
+                return _isEnabled;
+            }
+        }, overrides);
+
+    var enable = _.bind(obj.enable, obj),
+        disable = _.bind(obj.disable, obj);
+
+    obj.enable = function () {
+        enable();
+        _isEnabled = true;
+    };
+
+    obj.disable = function () {
+        disable();
+        _isEnabled = false;
     };
 
     return obj;
-};
+}
 
 exports.plotMover = function(options) {
-    var obj = _.extend(base(), {
+    var obj = extendBase({
         onSaveBefore: function (data) {
             if (this.plotMarker.wasMoved()) {
                 // Add plot location to data object
@@ -109,7 +126,7 @@ exports.plotMover = function(options) {
 
 
 exports.polygonMover = function (options) {
-    var obj = _.extend(base(), {
+    var obj = extendBase({
 
         onSaveBefore: function (data) {
             var points = this.editor.getPoints();
