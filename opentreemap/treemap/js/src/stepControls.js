@@ -105,6 +105,7 @@ module.exports = {
         }
 
         return {
+            initialMaxStepNumber: maxStepNumber,
             maxStepNumber: maxStepNumber,
             stepChangeStartStream: stepChangeStartStream,
             stepChangeCompleteStream: stepChangeCompleteStream,
