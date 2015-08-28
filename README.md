@@ -11,7 +11,7 @@
 Join the user mailing list and let us know: 
 http://groups.google.com/group/opentreemap-user
 
-Or, try the IRC channel at #opentreemap on freenode.net.
+Or, try our Gitter channel: [![Join the chat at https://gitter.im/OpenTreeMap/otm-core](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenTreeMap/otm-core?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ##Installation
 
