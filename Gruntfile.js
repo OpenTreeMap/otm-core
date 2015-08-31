@@ -24,7 +24,7 @@ module.exports = function(grunt) {
     grunt.registerTask('check', ['jshint']);
     grunt.registerTask('js', debug ? ['browserify', 'file-creator'] : ['browserify', 'uglify']);
     grunt.registerTask('css', debug ? ['sass', 'concat'] : ['sass', 'concat', 'cssmin']);
-    grunt.registerTask('default', ['js', 'css']);
+    grunt.registerTask('default', ['js', 'css', 'shell:collect_static']);
 
     /*
      * Maps all src/*.js files by their Django app name.
@@ -90,23 +90,16 @@ module.exports = function(grunt) {
         watch: {
             js: {
                 files: getAliasFiles(getRegularAliases()),
-                tasks: noLint ? ['shell:collect_static'] : ['check', 'shell:collect_static']
+                tasks: ['js', 'shell:collect_static']
             },
             css: {
                 files: 'treemap/css/sass/**/*.scss',
-                tasks: ['shell:collect_static']
-            },
-            lint: {
-                files: [].concat(
-                    getAliasFiles(getSrcAliases()),
-                    getAliasFiles(getTestAliases())
-                ),
-                tasks: ['check']
+                tasks: ['css', 'shell:collect_static']
             }
         },
         shell: {
             collect_static: {
-                command: 'fab vagrant static' + (debug ? ':dev_mode=True' : '')
+                command: 'python manage.py collectstatic --noinput'
             }
         },
         browserify: {
