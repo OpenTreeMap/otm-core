@@ -18,7 +18,7 @@ from django_tinsel.exceptions import HttpBadRequestException
 from treemap.lib.object_caches import role_permissions
 from treemap.models import Instance, InstanceUser
 from treemap.units import (get_units_if_convertible, get_digits_if_formattable,
-                           get_conversion_factor)
+                           storage_to_instance_units_factor)
 from treemap.util import safe_get_model_class
 from treemap.templatetags.form_extras import field_type_label_choices
 from treemap.json_field import is_json_field_reference
@@ -154,7 +154,7 @@ def instance_info(request, instance):
             factor = 1.0
 
             try:
-                factor = get_conversion_factor(
+                factor = storage_to_instance_units_factor(
                     instance, model, fp.field_name)
             except KeyError:
                 pass

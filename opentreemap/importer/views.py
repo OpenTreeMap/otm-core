@@ -17,7 +17,8 @@ from django.http import HttpResponse
 from django.utils.translation import ugettext as _
 
 from treemap.models import Species, Tree, User, MapFeature
-from treemap.units import (get_conversion_factor, get_value_display_attr)
+from treemap.units import (storage_to_instance_units_factor,
+                           get_value_display_attr)
 from treemap.plugin import get_tree_limit
 
 from exporter.decorators import task_output_as_csv
@@ -63,9 +64,9 @@ def start_import(request, instance):
     else:
         kwargs = {
             'max_diameter_conversion_factor':
-            get_conversion_factor(instance, 'tree', 'diameter'),
+            storage_to_instance_units_factor(instance, 'tree', 'diameter'),
             'max_tree_height_conversion_factor':
-            get_conversion_factor(instance, 'tree', 'height')
+            storage_to_instance_units_factor(instance, 'tree', 'height')
         }
     process_csv(request, instance, import_type, **kwargs)
 
