@@ -54,6 +54,7 @@
 {% endif %}
 {% endwith %}
 
+{% if feature.area_field_name %}
 <h3>{% trans "Associated Trees" %}</h3>
 {% with plots=contained_plots %}
 {% if plots %}
@@ -85,6 +86,7 @@
     </div>
 {% endif %}
 {% endwith %}
+{% endif %}
 
 {% endblock subclass_details %}
 
