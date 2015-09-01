@@ -59,8 +59,13 @@ class Variable(Grammar):
                | WORD(b"a-zA-Z_", b"a-zA-Z0-9_."))
 
 
+class Label(Grammar):
+    grammar = (G(b'_("', WORD(b'^"'), b'")') | G(b"_('", WORD(b"^'"), b"')")
+               | Variable)
+
+
 class InlineEditGrammar(Grammar):
-    grammar = (OR(G(OR(b"field", b"create"), OPTIONAL(Variable)), b"search"),
+    grammar = (OR(G(OR(b"field", b"create"), OPTIONAL(Label)), b"search"),
                b"from", Variable, OPTIONAL(b"for", Variable),
                OPTIONAL(b"in", Variable), b"withtemplate", Variable)
     grammar_whitespace = True
