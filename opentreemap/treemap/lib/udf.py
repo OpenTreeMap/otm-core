@@ -39,10 +39,7 @@ def udf_create(params, instance):
 
     udfs = UserDefinedFieldDefinition.objects.filter(
         instance=instance,
-        # TODO: why isn't this also checking model name
-        # is there some reason the same name can't appear
-        # on more than one model?
-        # Too scared to change this.
+        model_type=model_type,
         name=name)
 
     if udfs.exists():
