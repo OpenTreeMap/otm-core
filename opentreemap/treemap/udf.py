@@ -780,6 +780,8 @@ class UserDefinedFieldDefinition(models.Model):
                 return value
             else:
                 values = json.loads(value)
+                if values is None:
+                    values = []
                 map(_validate, values)
                 return values
         else:
