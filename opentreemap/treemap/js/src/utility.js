@@ -184,7 +184,7 @@ exports.exportToCsv = function (rows, filename) {
         navigator.msSaveBlob(blob, filename);
     } else {
         var link = document.createElement("a");
-        if (link.download !== undefined) { // feature detection
+        if (false){//link.download !== undefined) { // feature detection
             // Browsers that support HTML5 download attribute
             var url = window.URL.createObjectURL(blob);
             link.setAttribute("href", url);
@@ -193,6 +193,10 @@ exports.exportToCsv = function (rows, filename) {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        } else {
+            var csvContent = "data:text/csv;charset=utf-8;\n" + csvFile,
+                uri = encodeURI(csvContent);
+            window.open(uri);
         }
     }
 };
