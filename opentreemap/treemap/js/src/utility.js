@@ -184,7 +184,7 @@ exports.exportToCsv = function (rows, filename) {
         navigator.msSaveBlob(blob, filename);
     } else {
         var link = document.createElement("a");
-        if (false){//link.download !== undefined) { // feature detection
+        if (link.download !== undefined) { // feature detection
             // Browsers that support HTML5 download attribute
             var url = window.URL.createObjectURL(blob);
             link.setAttribute("href", url);
