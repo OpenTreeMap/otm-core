@@ -315,6 +315,9 @@ class UserDefinedFieldDefinition(models.Model):
     """
     name = models.CharField(max_length=255)
 
+    class Meta:
+        unique_together = ('instance', 'model_type', 'name')
+
     def __unicode__(self):
         return ('%s.%s%s' %
                 (self.model_type, self.name,
@@ -583,7 +586,7 @@ class UserDefinedFieldDefinition(models.Model):
                                     'multichoice']:
             raise ValidationError(_('invalid datatype'))
 
-        if datatype['type'] == 'choice':
+        if datatype['type'] in ('choice', 'multichoice'):
             choices = datatype.get('choices', None)
 
             if choices is None:
