@@ -30,10 +30,10 @@ import treemap.lib.perms as perms_lib
 
 def transform_instance_info_response(instance_view_fn):
     """
-    Collection UDFs were added to the API in version 3
+    Removes some information from the instance info response for older APIs
 
-    They need to be removed in older versions of the API, to support clients
-    which can not render collection UDFs
+    v3 - Collection UDFs added
+    v4 - Multiselect fields added
     """
     @wraps(instance_view_fn)
     def wrapper(request, *args, **kwargs):
@@ -44,6 +44,24 @@ def transform_instance_info_response(instance_view_fn):
                 [field_group for field_group
                  in instance_info_dict['field_key_groups']
                  if 'collection_udf_keys' not in field_group]
+
+        if request.api_version < 4:
+            multichoice_fields = {
+                field for field, info
+                in instance_info_dict['fields'].iteritems()
+                if info['data_type'] == 'multichoice'}
+
+            # Remove multichoice fields from perms
+            instance_info_dict['fields'] = {
+                field: info for field, info
+                in instance_info_dict['fields'].iteritems()
+                if field not in multichoice_fields}
+
+            # Remove multichoice fields from field groups
+            for group in instance_info_dict['field_key_groups']:
+                if 'field_keys' in group:
+                    group['field_keys'] = [key for key in group['field_keys']
+                                           if key not in multichoice_fields]
 
         return instance_info_dict
 

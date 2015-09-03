@@ -24,7 +24,8 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.core.files import File
 
-from treemap.models import Species, Plot, Tree, User
+from treemap.lib.udf import udf_create
+from treemap.models import Species, Plot, Tree, User, FieldPermission
 from treemap.instance import create_stewardship_udfs
 from treemap.audit import ReputationMetric, Audit
 from treemap.tests import (make_user, make_request, set_invisible_permissions,
@@ -1050,6 +1051,54 @@ class UpdatePlotAndTree(OTMTestCase):
         self.assertEqual(new_tree.udfs['Stewardship'][0]['id'],
                          response_json['tree']['udf:Stewardship'][0]['id'])
 
+    def _create_multichoice(self):
+        udf = udf_create({'udf.name': 'multi', 'udf.model': 'Plot',
+                          'udf.type': 'multichoice',
+                          'udf.choices': ['a', 'b', 'c']},
+                         self.instance)
+        udf_perm = FieldPermission.objects.get(
+            model_name='Plot',
+            field_name=udf.canonical_name,
+            role=self.user.get_role(self.instance),
+            instance=self.instance)
+        udf_perm.permission_level = FieldPermission.WRITE_DIRECTLY
+        udf_perm.save()
+
+    def test_update_multichoice_v3(self):
+        self._create_multichoice()
+        test_plot = mkPlot(self.instance, self.user)
+        test_plot.udfs['multi'] = None
+        test_plot.save_with_user(self.user)
+
+        updated_values = {'plot': {
+            'geom': {'y': 0, 'x': 0, 'srid': 4326}, 'udf:multi': None}
+        }
+
+        response = put_json("/api/v3/instance/%s/plots/%d" %
+                            (self.instance.url_name, test_plot.pk),
+                            updated_values, self.client, self.user)
+
+        self.assertEqual(200, response.status_code)
+
+        response_json = loads(response.content)
+        self.assertEqual([], response_json['plot']['udf:multi'])
+
+        test_plot.udfs['multi'] = ['b', 'c']
+        test_plot.save_with_user(self.user)
+
+        updated_values = {'plot': {
+            'geom': {'y': 0, 'x': 0, 'srid': 4326}, 'udf:multi': ['b', 'c']}
+        }
+
+        response = put_json("/api/v3/instance/%s/plots/%d" %
+                            (self.instance.url_name, test_plot.pk),
+                            updated_values, self.client, self.user)
+
+        self.assertEqual(200, response.status_code)
+
+        response_json = loads(response.content)
+        self.assertEqual(['b', 'c'], response_json['plot']['udf:multi'])
+
 
 class Instance(LocalMediaTestCase):
     test_png_name = '2by2.png'
@@ -1064,12 +1113,37 @@ class Instance(LocalMediaTestCase):
         create_stewardship_udfs(self.instance)
 
         self.user = make_commander_user(instance=self.instance)
+        udf = udf_create({'udf.name': 'multi', 'udf.model': 'Plot',
+                          'udf.type': 'multichoice',
+                          'udf.choices': ['a', 'b', 'c']},
+                         self.instance)
+        udf_perm = FieldPermission.objects.get(
+            model_name='Plot',
+            field_name=udf.canonical_name,
+            role=self.user.get_role(self.instance),
+            instance=self.instance)
+        udf_perm.permission_level = FieldPermission.WRITE_DIRECTLY
+        udf_perm.save()
 
         self.expected_scss_variables = {
             'primary-color': '123456',
             'secondary-color': '987654'
         }
         self.instance.config['scss_variables'] = self.expected_scss_variables
+        self.instance.mobile_api_fields = [
+            {'header': 'Tree Information',
+             'model': 'tree',
+             'field_keys': ['tree.species', 'tree.diameter',
+                            'tree.height', 'tree.date_planted']},
+            {'header': 'Planting Site Information',
+             'model': 'plot',
+             'field_keys': ['plot.width', 'plot.length', 'plot.udf:multi']},
+            {'header': 'Stewardship',
+             'collection_udf_keys': ['plot.udf:Stewardship',
+                                     'tree.udf:Stewardship'],
+             'sort_key': 'Date'}
+        ]
+        self.instance.save()
         self.instance.logo.save(Instance.test_png_name,
                                 File(open(Instance.test_png_path, 'r')))
 
@@ -1143,6 +1217,25 @@ class Instance(LocalMediaTestCase):
 
         for field_group in info_dict['field_key_groups']:
             self.assertNotIn('collection_udf_keys', field_group)
+
+    def test_multichoice_fields_v4(self):
+        request = sign_request_as_user(make_request(user=self.user), self.user)
+
+        response = instance_info_endpoint(request, 4, self.instance.url_name)
+        info_dict = json.loads(response.content)
+        self.assertIn('plot.udf:multi', info_dict['fields'].keys())
+        self.assertTrue(any('plot.udf:multi' in group.get('field_keys', [])
+                            for group in info_dict['field_key_groups']))
+
+    def test_multichoice_removed_in_v3(self):
+        request = sign_request_as_user(make_request(user=self.user), self.user)
+
+        response = instance_info_endpoint(request, 3, self.instance.url_name)
+        info_dict = json.loads(response.content)
+
+        self.assertNotIn('plot.udf:multi', info_dict['fields'].keys())
+        self.assertFalse(any('plot.udf:multi' in group.get('field_keys', [])
+                             for group in info_dict['field_key_groups']))
 
 
 @override_settings(NEARBY_INSTANCE_RADIUS=2)
