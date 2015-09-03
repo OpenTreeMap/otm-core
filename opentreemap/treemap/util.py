@@ -147,12 +147,20 @@ def leaf_models_of_class(cls):
 
 
 def to_object_name(model_name):
-    """BenefitCurrencyConversion -> benefitCurrencyConversion"""
+    """BenefitCurrencyConversion -> benefitCurrencyConversion
+
+    works idempotently, eg:
+    benefitCurrencyConversion -> benefitCurrencyConversion
+    """
     return model_name[0].lower() + model_name[1:]
 
 
 def to_model_name(object_name):
-    """benefitCurrencyConversion -> BenefitCurrencyConversion"""
+    """benefitCurrencyConversion -> BenefitCurrencyConversion
+
+    works idempotently, eg:
+    BenefitCurrencyConversion -> BenefitCurrencyConversion
+    """
     return object_name[0].upper() + object_name[1:]
 
 

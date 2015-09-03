@@ -21,7 +21,11 @@ class Convertible(object):
         super(Convertible, self).__init__(*args, **kwargs)
 
     def _mutate_convertable_fields(self, f):
-        model = self._meta.object_name.lower()
+        from treemap.util import to_object_name
+        # note that `to_object_name` is a helper function we use
+        # for lowerCamelCase, but `._meta.object_name` is a django
+        # internal that is represented as UpperCamelCase.
+        model = to_object_name(self._meta.object_name)
         for field in self._meta.get_all_field_names():
             if self.instance and is_convertible(model, field):
                 value = getattr(self, field)
