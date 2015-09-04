@@ -58,6 +58,7 @@ function init(options) {
             addFeatureUrl = config.instance.url + 'features/' + type + '/';
         if (type) {
             manager.setAddFeatureUrl(addFeatureUrl);
+            manager.stepControls.maxStepNumber = manager.stepControls.initialMaxStepNumber;
             manager.stepControls.enableNext(STEP_CHOOSE_TYPE, true);
             manager.stepControls.enableNext(STEP_OUTLINE_AREA, true);
             manager.stepControls.enableNext(STEP_DETAILS, false);
@@ -91,12 +92,11 @@ function init(options) {
     }
 
     function activateStep(step, shouldActivate) {
-        var stepCount = manager.stepControls.maxStepNumber + 1;
         if (!shouldActivate) {
-            stepCount--;
+            manager.stepControls.maxStepNumber--;
         }
         $footerStepCounts.each(function () {
-            $(this).text(stepCount);
+            $(this).text(manager.stepControls.maxStepNumber + 1);
         });
         manager.stepControls.activateStep(step, shouldActivate);
     }

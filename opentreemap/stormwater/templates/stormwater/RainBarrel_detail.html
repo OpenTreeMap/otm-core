@@ -1,0 +1,8 @@
+{% extends "treemap/resource_detail.html" %}
+{% load i18n %}
+{% load l10n %}
+{% load form_extras %}
+
+{% block resource_details %}
+{% field _("Capacity") from "rainBarrel.capacity" for request.user withtemplate "treemap/field/tr.html" %}
+{% endblock resource_details %}

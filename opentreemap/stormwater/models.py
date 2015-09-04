@@ -110,3 +110,21 @@ class RainGarden(PolygonalMapFeature):
     @classproperty
     def display_name(cls):
         return _('Rain Garden')
+
+
+class RainBarrel(MapFeature):
+    objects = GeoHStoreUDFManager()
+    capacity = models.FloatField(help_text=_("Capacity"))
+
+    @classproperty
+    def search_display_name(cls):
+        return _('rain barrels')
+
+    @classproperty
+    def display_name(cls):
+        return _('Rain Barrel')
+
+    @property
+    def is_editable(self):
+        # this is a holdover until we can support editing for all resources
+        return True
