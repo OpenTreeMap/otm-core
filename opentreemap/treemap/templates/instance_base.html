@@ -18,7 +18,7 @@
 
 {% block instancetopnav %}
 {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
-  {% if request.instance.supports_resources %}
+  {% if request.instance.has_resources %}
     <li class="add-menu dropdown" data-feature="add_plot">
       <a class="dropdown-toggle" data-toggle="dropdown">
         <i class="icon-plus-circled"></i>
@@ -139,7 +139,7 @@
     </div>
     <div class="half">
       {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
-        {% if request.instance.supports_resources %}
+        {% if request.instance.has_resources %}
         <a class="btn btn-primary addBtn"
            data-action='addresource'
            data-always-enable="{{ last_effective_instance_user|any_resource_is_creatable }}"

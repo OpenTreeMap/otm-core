@@ -385,7 +385,7 @@ class Instance(models.Model):
         return models
 
     @property
-    def supports_resources(self):
+    def has_resources(self):
         """
         Determine whether this instance has multiple map feature
         types (plots + "resources") or not.

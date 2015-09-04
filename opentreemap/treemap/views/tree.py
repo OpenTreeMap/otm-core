@@ -95,7 +95,7 @@ def search_tree_benefits(request, instance):
         'tree,' if basis['plot']['n_total'] == 1 else 'trees,')
     formatted['plot_count_label'] = (
         'planting site' if basis['plot']['n_plots'] == 1 else 'planting sites')
-    if instance.supports_resources and 'resource' in basis:
+    if instance.has_resources and 'resource' in basis:
         formatted['plot_count_label'] += ','
 
     return formatted
