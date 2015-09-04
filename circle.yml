@@ -17,7 +17,6 @@ database:
     - psql -c "CREATE EXTENSION hstore;" -U postgres -d template1
     - psql -c "CREATE DATABASE ci;" -U postgres
     - psql -c "CREATE EXTENSION postgis;" -U postgres -d ci
-    - python opentreemap/manage.py syncdb --noinput
     - python opentreemap/manage.py migrate --noinput
     - npm run grunt
     - python opentreemap/manage.py collectstatic --noinput
