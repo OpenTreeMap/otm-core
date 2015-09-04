@@ -1,0 +1,11 @@
+{% extends "treemap/resource_add.html" %}
+{% load i18n %}
+{% load l10n %}
+{% load form_extras %}
+
+{% block resource_add_details %}
+<div class="resource-question">
+  {% trans "How much water does the tank hold?" as capacity %}
+  {% create capacity from "RainBarrel.capacity" in request.instance withtemplate "treemap/field/div.html" %}
+</div>
+{% endblock resource_add_details %}

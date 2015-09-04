@@ -294,7 +294,10 @@ DISPLAY_DEFAULTS = {
         'co2':        {'units': 'lbs/year', 'digits': 1},
         'co2storage': {'units': 'lbs', 'digits': 1},
         'airquality': {'units': 'lbs/year', 'digits': 1}
-    }
+    },
+    'rainBarrel': {
+        'capacity': {'units': 'gal', 'digits': 1}
+    },
 }
 
 # Time in ms for two clicks to be considered a double-click in some scenarios
