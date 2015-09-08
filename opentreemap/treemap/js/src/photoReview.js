@@ -36,20 +36,23 @@ exports.init = function(options) {
         return !!$container.find('.pagination li:last-child [data-page]').attr('data-page');
     }
 
-    $container.on('click', '.action', function(e) {
-        e.preventDefault();
-        var $photo = $(this).closest('[data-photo]');
+    var photoUpdateStream = $container.asEventStream('click', '.action')
+        .doAction('.preventDefault')
+        .flatMap(function(e) {
+            var $elem = $(e.currentTarget),
+                $photo = $elem.closest('[data-photo]'),
+                stream = BU.jsonRequest('POST', $elem.attr('href'))();
 
-        var stream = BU.jsonRequest('POST', $(this).attr('href'))();
+            stream.onValue(function() {
+                $photo.remove();
+            });
 
-        stream.onValue(function() {
-            $photo.remove();
+            return stream;
         });
-        stream.onError(showErrorMessage);
 
+    photoUpdateStream.onValue(function() {
         if (nextPageExists()) {
-            stream
-                .flatMap(getReviewMarkupForNextPhoto)
+            getReviewMarkupForNextPhoto()
                 .map($)
                 .onValue($container.find('[data-photo-container]'), 'append');
         }
@@ -84,4 +87,6 @@ exports.init = function(options) {
     }
 
     createPageUpdateStream(initialPageStream);
+
+    return photoUpdateStream;
 };

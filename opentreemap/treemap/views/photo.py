@@ -17,7 +17,6 @@ from treemap.models import MapFeaturePhoto
 _PHOTO_PAGE_SIZE = 12
 
 
-
 def photo_audits(instance):
     unverified_actions = {Audit.Type.Insert,
                           Audit.Type.Delete,
