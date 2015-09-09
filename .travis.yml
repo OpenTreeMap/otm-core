@@ -23,7 +23,6 @@ before_install:
 install:
   - pip install -r travis-requirements.txt
   - npm install
-  - npm install -g testem
 
 before_script:
   - cp ci/local_settings.py opentreemap/opentreemap/settings/local_settings.py
@@ -34,12 +33,10 @@ before_script:
   - mkdir -p /tmp/otm/static
   - mkdir -p /tmp/otm/media
   - npm run grunt
-  - python opentreemap/manage.py collectstatic --noinput
 
 script:
   - flake8 --exclude migrations,opentreemap/settings/local_settings.py,*.pyc opentreemap
   - npm run check
-  - testem ci -l Firefox
   - cd opentreemap && coverage run --rcfile=../coveragerc --source=. manage.py test
 
 after_success:
