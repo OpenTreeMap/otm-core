@@ -29,7 +29,7 @@ def global_settings(request):
     if hasattr(request, 'instance') and request.instance.logo:
         logo_url = request.instance.logo.url
     else:
-        logo_url = settings.STATIC_URL + "img/logo-beta.png"
+        logo_url = settings.STATIC_URL + "img/logo.png"
 
     try:
         comment_file_path = finders.find('version.txt')
