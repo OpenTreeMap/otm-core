@@ -77,12 +77,19 @@ module.exports = function(options) {
     BU.reloadContainerOnClick(
         $container, dom.pagingButtons, dom.filterButtons, dom.columnHeaders);
 
-    actionResultStream.onValues(_.bind($container.load, $container));
-
     toggleAllEventStream
         .map($container, 'find', '[data-batch-action-checkbox]')
         .onValue(function($elems) {
             var checked = $container.find('[data-comment-toggle-all]').is(':checked');
             $elems.prop('checked', checked);
         });
+
+    var containerUpdatedStream = actionResultStream.flatMap(function(req) {
+        var promise = $.post(req[0], req[1], function(html) {
+            $container.html(html);
+        });
+        return Bacon.fromPromise(promise);
+    });
+
+    return containerUpdatedStream;
 };

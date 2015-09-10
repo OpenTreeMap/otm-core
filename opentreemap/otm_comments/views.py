@@ -21,11 +21,11 @@ from otm_comments.models import (EnhancedThreadedComment,
                                  EnhancedThreadedCommentFlag)
 
 
-def _comments_params(request):
+def _comments_params(params):
     # The default view shows all unarchived comments
-    is_archived = request.GET.get('archived', 'False')
-    is_removed = request.GET.get('removed', 'None')
-    sort = request.GET.get('sort', '-submit_date')
+    is_archived = params.get('archived', 'False')
+    is_removed = params.get('removed', 'None')
+    sort = params.get('sort', '-submit_date')
 
     is_archived = None if is_archived == 'None' else (is_archived == 'True')
     is_removed = None if is_removed == 'None' else (is_removed == 'True')
@@ -33,8 +33,8 @@ def _comments_params(request):
     return (is_archived, is_removed, sort)
 
 
-def _comments(request, instance):
-    (is_archived, is_removed, sort) = _comments_params(request)
+def get_comments(params, instance):
+    (is_archived, is_removed, sort) = _comments_params(params)
 
     # Note: we tried .prefetch_related('content_object')
     # but it gives comment.content_object = None  (Django 1.6)
@@ -58,11 +58,11 @@ def _comments(request, instance):
 
 
 def comment_moderation(request, instance):
-    (is_archived, is_removed, sort) = _comments_params(request)
+    (is_archived, is_removed, sort) = _comments_params(request.GET)
     page_number = int(request.GET.get('page', '1'))
     page_size = int(request.GET.get('size', '5'))
 
-    comments = _comments(request, instance)
+    comments = get_comments(request.GET, instance)
     paginator = Paginator(comments, page_size)
 
     try:
@@ -110,7 +110,7 @@ def comment_moderation(request, instance):
 
 
 def comments_csv(request, instance):
-    comments = _comments(request, instance)
+    comments = get_comments(request.GET, instance)
     return comments.values(
         'id',
         'user__username',

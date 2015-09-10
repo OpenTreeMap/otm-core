@@ -67,6 +67,21 @@
             .nav.nav-list {
                 width: 100%;
 
+                .label-notification {
+                    background-color: $secondary-color;
+                    border-radius: 9px;
+                    display: inline-block;
+                    vertical-align: middle;
+                    margin-top: -3px;
+
+                    &:empty {
+                        display: none;
+                    }
+                    &.role-label {
+                        background-color: #D8C161;
+                    }
+                }
+
                 ul {
                     padding-left: 16px;
 
@@ -83,6 +98,10 @@
                             background-color: transparent;
                             color: $paper;
                         }
+
+                        .label-notification {
+                            position: static;
+                        }
                     }
                 }
 
@@ -91,6 +110,19 @@
                     display: block;
                     width: 100%;
                     position: relative;
+
+                    &:hover {
+                        background-color: rgba(255,255,255,.1);
+                        i.link-icon, a.section-title {
+                            color: $paper;
+                        }
+                    }
+
+                    &.active {
+                        i.link-icon, a.section-title {
+                            color: $paper;
+                        }
+                    }
 
                     td:first-child {
                         vertical-align: top;
@@ -110,19 +142,6 @@
                         }
                     }
 
-                    &:hover {
-                        background-color: rgba(255,255,255,.1);
-                        i.link-icon, a.section-title {
-                            color: $paper;
-                        }
-                    }
-
-                    &.active {
-                        i.link-icon, a.section-title {
-                            color: $paper;
-                        }
-                    }
-
                     a {
                         font-weight: 400;
                         font-size: 1.3rem;
@@ -133,6 +152,12 @@
                     i {
                         color: rgba(255,255,255,.5);
                         padding: 0 12px;
+                    }
+
+                    .label-notification {
+                        position: absolute;
+                        left: 18px;
+                        top: 28px;
                     }
                 }
             }
@@ -226,6 +251,9 @@
             height: 50px;
             border-bottom: 1px solid #EEE;
 
+            &.active {
+                background-color: #F7F3DF;
+            }
             th {
                 background: #DDD;
                 padding: 10px;
@@ -245,6 +273,9 @@
         overflow-x: scroll;
         margin-bottom: 10px;
 
+        .role-table {
+            min-width: 100%;
+        }
         th {
             min-width: 200px;
             max-width: 200px;
@@ -281,6 +312,9 @@
     .alert{
         padding: 15px;
         margin-top: 42px;
+        .role-fields-alert {
+            line-height: 40px;
+        }
     }
 
     .field-view {

@@ -17,7 +17,7 @@ from treemap.models import MapFeaturePhoto
 _PHOTO_PAGE_SIZE = 12
 
 
-def _photo_audits(instance):
+def photo_audits(instance):
     unverified_actions = {Audit.Type.Insert,
                           Audit.Type.Delete,
                           Audit.Type.Update}
@@ -51,7 +51,7 @@ def _process_page_number(request, total):
 
 
 def next_photo(request, instance):
-    audits = _photo_audits(instance)
+    audits = photo_audits(instance)
 
     total = audits.count()
     page, total_pages, startidx, endidx = _process_page_number(request, total)
@@ -78,7 +78,7 @@ def next_photo(request, instance):
 
 
 def photo_review(request, instance):
-    audits = _photo_audits(instance)
+    audits = photo_audits(instance)
 
     total = audits.count()
     page, total_pages, startidx, endidx = _process_page_number(request, total)
