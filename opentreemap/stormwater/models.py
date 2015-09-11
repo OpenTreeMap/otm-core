@@ -101,6 +101,28 @@ class RainGarden(PolygonalMapFeature):
                 ],
             },
         },
+        'Stewardship': {
+            'iscollection': True,
+            'range_field_key': 'Date',
+            'action_field_key': 'Action',
+            'action_verb': 'that have been',
+            'defaults': [
+                {'name': 'Action',
+                 'choices': [
+                     'Removed litter',
+                     'Removed weeds',
+                     'Pruned plants',
+                     'Pruned trees',
+                     'Watered bioswale',
+                     'Removed sediments',
+                     'Redistributed gravel',
+                     'Redistributed soil',
+                     'Aerated soil',
+                 ],
+                 'type': 'choice'},
+                {'type': 'date',
+                 'name': 'Date'}],
+        },
     }
 
     @classproperty
