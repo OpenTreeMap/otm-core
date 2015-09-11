@@ -91,5 +91,8 @@ module.exports = function(options) {
         return Bacon.fromPromise(promise);
     });
 
+    // We need an onValue to force evaluation of the lazy stream
+    containerUpdatedStream.onValue($.noop);
+
     return containerUpdatedStream;
 };
