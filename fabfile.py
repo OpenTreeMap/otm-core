@@ -147,7 +147,7 @@ def bundle(dev_mode=False, skip_npm=False):
     """ Update npm and bundle javascript """
     if not skip_npm:
         local('npm install')
-    local('grunt --no-color %s' % ("--dev" if dev_mode else ""))
+    local('grunt js css --no-color %s' % ("--dev" if dev_mode else ""))
 
 def static(dev_mode=False):
     """ Collect static files and bundle javascript. """
