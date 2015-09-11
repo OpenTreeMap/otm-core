@@ -23,7 +23,9 @@ from django.conf import settings
 
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name)
-from treemap.util import all_models_of_class, leaf_models_of_class
+from treemap.util import (all_models_of_class, leaf_models_of_class,
+                          to_object_name)
+
 from treemap.lib.object_caches import (permissions, role_permissions,
                                        invalidate_adjuncts, udf_defs)
 from treemap.lib.dates import datesafe_eq
@@ -1309,7 +1311,6 @@ class Audit(models.Model):
         return field_modified_value
 
     def _unit_format(self, value):
-        model_name = self.model.lower()
 
         if isinstance(value, GEOSGeometry):
             if value.geom_type == 'Point':
@@ -1322,6 +1323,8 @@ class Audit(models.Model):
             # Translators: 'none' in this case refers to clearing the
             # list. Should be a human-friendly translation of 'null'
             value = '(%s)' % ', '.join(value) if value else _('none')
+
+        model_name = to_object_name(self.model)
 
         if is_convertible_or_formattable(model_name, self.field):
             __, value = get_display_value(
