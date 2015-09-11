@@ -17,7 +17,7 @@ from api.auth import (create_401unauthorized, get_signature_for_request,
                       parse_user_from_request)
 
 SIG_TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%S'
-API_VERSIONS = {2, 3}
+API_VERSIONS = {2, 3, 4}
 
 
 def check_signature_and_require_login(view_f):
