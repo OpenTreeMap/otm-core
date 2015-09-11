@@ -1,4 +1,4 @@
 -r requirements.txt
 -r test-requirements.txt
 
-coveralls==0.4.4
+coveralls==0.5
