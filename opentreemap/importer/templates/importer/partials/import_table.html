@@ -10,7 +10,7 @@
         </tr>
     </thead>
     <tbody>
-    {% for ie in things %}
+    {% for ie in table.rows %}
         <tr>
             <td>{{ ie.created }}</td>
             <td>{{ ie.status_summary }}</td>
@@ -24,13 +24,14 @@
                 {% endif %}
             </td>
             <td>
-              <a href="{% url 'importer:status' import_type=import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">
+              <a class="js-view"
+                 href="{% url 'importer:status' import_type=ie.import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">
                 {%trans "View" %}
               </a>
             </td>
             <td>
               {% if ie.can_export %}
-              <a href="javascript:" data-export-start-url="{% url 'importer:export_single_import' import_type=import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">
+              <a href="javascript:" data-export-start-url="{% url 'importer:export_single_import' import_type=ie.import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">
                 {% trans "Export" %}
               </a>
               {% endif %}
@@ -39,3 +40,11 @@
     {% endfor %}
     </tbody>
 </table>
+
+{% if table.rows.paginator.count > table.rows.paginator.per_page %}
+    {% url 'importer:get_import_table' instance_url_name=request.instance.url_name table_name=table.name as url_for_paging %}
+    {% include 'treemap/partials/paging_controls.html' with paging=table.rows url=url_for_paging %}
+{% endif %}
+
+
+<input type="hidden" name="{{ table.name }}-has-pending" value="{{ table.has_pending }}">

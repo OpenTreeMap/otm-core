@@ -843,11 +843,7 @@ class IntegrationTests(TestCase):
         request = self.create_csv_request(csv, type=import_type)
 
         context = start_import(request, self.instance)
-
-        if import_type == TreeImportEvent.import_type:
-            pk = context['active_trees'][0].pk
-        else:
-            pk = context['active_species'][0].pk
+        pk = context['table']['rows'][0].pk
         return pk
 
     def run_through_process_views(self, csv):

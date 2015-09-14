@@ -11,15 +11,14 @@ var $ = require('jquery'),
 var dom = {
     container: '#importer',
     tablesContainer: '#import-tables',
+    tableContainer: '.import-table',
     treeForm: '#import-trees-form',
     speciesForm: '#import-species-form',
     fileChooser: 'input[type="file"]',
     importButton: 'button[type="submit"]',
     unitSection: '#importer-tree-units',
-    // TODO:  when we figure out what actions we
-    // will support besides viewing status, break
-    // this up into different selectors.
-    viewStatusLink: 'td a',
+    pagingButtons: '.import-table .pagination li a',
+    viewStatusLink: '.js-view',
     spinner: '#importer .spinner',
     importsFinished: 'input[name="imports-finished"]'
 };
@@ -28,7 +27,7 @@ var REFRESH_INTERVAL = 5 * 1000;
 
 function init(options) {
     var $container = $(dom.container),
-        tablesUpdatedBus = new Bacon.Bus(),
+        tableUpdatedBus = new Bacon.Bus(),
         viewStatusStream = BU.reloadContainerOnClick($container, dom.viewStatusLink),
 
         containerUpdateStream = Bacon.mergeAll(
@@ -38,16 +37,24 @@ function init(options) {
             viewStatusStream
         );
 
+    $container.asEventStream('click', dom.pagingButtons)
+        .doAction('.preventDefault')
+        .onValue(function (e) {
+            var button = e.currentTarget,
+                url = button.href,
+                $tableContainer = $(button).closest(dom.tableContainer);
+            $tableContainer.load(url);
+        });
 
-    // When the whole container updates, or
-    // when the tables have just been updated,
+    // When the whole container is refreshed, or
+    // when a table is refreshed,
     // wait a bit and
     // trigger a refresh if any imports aren't finished.
     Bacon.mergeAll(
             containerUpdateStream,
-            tablesUpdatedBus)
+            tableUpdatedBus)
         .throttle(REFRESH_INTERVAL)
-        .onValue(updateTablesIfImportsNotFinished, options.refreshImportsUrl, tablesUpdatedBus);
+        .onValue(updateTablesIfImportsNotFinished, options.refreshImportsUrl, tableUpdatedBus);
 }
 
 function handleForm($container, formSelector, startImportUrl) {
