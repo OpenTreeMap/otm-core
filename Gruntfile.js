@@ -24,7 +24,8 @@ module.exports = function(grunt) {
     grunt.registerTask('check', ['jshint']);
     grunt.registerTask('js', debug ? ['browserify', 'file-creator'] : ['browserify', 'uglify']);
     grunt.registerTask('css', debug ? ['sass', 'concat'] : ['sass', 'concat', 'cssmin']);
-    grunt.registerTask('default', ['js', 'css', 'shell:collect_static']);
+    grunt.registerTask('build', ['js', 'css']);
+    grunt.registerTask('default', ['build', 'shell:collect_static']);
 
     /*
      * Maps all src/*.js files by their Django app name.

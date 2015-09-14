@@ -30,7 +30,7 @@
     "grunt-sass": "~0.6.1",
     "grunt-shell": "1.1.1",
     "mocha": "~1.14.0",
-    "testem": "^0.6.24"
+    "testem": "^0.9.2"
   },
   "repository": {
     "type": "git",
@@ -39,7 +39,8 @@
   "scripts": {
     "test": "testem ci",
     "check": "grunt check",
-    "grunt": "grunt"
+    "grunt": "grunt",
+    "grunt-dev-build": "grunt build --dev"
   },
   "author": "Azavea",
   "license": "GPL3",
