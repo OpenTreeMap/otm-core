@@ -79,7 +79,9 @@ function handleForm($container, formSelector, startImportUrl) {
 
         if (shouldEnable) {
             $importButton.prop('disabled', false);
-            $unitSection.show();
+            if (formSelector === dom.treeForm) {
+                $unitSection.show();
+            }
         } else {
             $importButton.prop('disabled', true);
             $unitSection.hide();
