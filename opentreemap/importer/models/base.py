@@ -101,16 +101,11 @@ class GenericImportEvent(models.Model):
             self.status == self.FINISHED_VERIFICATION or
             self.status == self.FINISHED_CREATING)
 
-    def row_counts_by_status(self):
-        q = self.row_set()\
-                .values('status')\
-                .annotate(Count('status'))
-
-        return {r['status']: r['status__count'] for r in q}
-
-    def completed_row_count(self):
-        n_left = self.row_counts_by_status().get(GenericImportRow.WAITING, 0)
-        return self.row_set().count() - n_left
+    def completed_row_summary(self):
+        waiting = self.row_set().filter(status=GenericImportRow.WAITING)
+        row_count = self.row_count
+        n_complete = row_count - waiting.count()
+        return '{:,} / {:,}'.format(n_complete, row_count)
 
     def update_status(self):
         """ Update the status field based on current row statuses """
