@@ -6,7 +6,7 @@ from __future__ import division
 from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
-from django.contrib.gis.measure import D
+from django.db import connection
 from django.utils.translation import ugettext as _
 
 from treemap.models import Species, Plot, Tree
@@ -250,30 +250,59 @@ class TreeImportRow(GenericImportRow):
         return True
 
     def validate_proximity(self, point):
-        plot_ids_from_this_import = TreeImportRow.objects\
-            .filter(import_event=self.import_event)\
-            .filter(plot__isnull=False)\
-            .values_list('plot__pk', flat=True)
+        """Return False if the point is within 10ft of an existing
+        plot, excluding plots that are part of the same import event.
 
-        nearby = Plot.objects\
-                     .filter(instance=self.import_event.instance)\
-                     .filter(geom__distance_lte=(point, D(ft=10.0)))\
-                     .distance(point)\
-                     .exclude(pk__in=plot_ids_from_this_import)\
+        This is written with as a raw SQL query to take advantage of
+        the PostGIS <-> operator which provides indexed nearest
+        neighbor searching.
 
-        oid = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
-        if oid:
-            nearby = nearby.exclude(pk=oid)
+        The `AND NOT IN` clause skips plots created by the same import
+        event, assuming that your import file is correct, even though
+        trees are close together.
 
-        nearby = nearby.order_by('distance')[:5]
+        `LIMIT 2` because we may be updating an existing plot, in
+        which case the nearest plot will be the plot itself, and we
+        will skip over it looking for the next nearest plot.
+        """
+        sql = ('SELECT id, '
+               '  ST_Distance(the_geom_webmercator, '
+               '              ST_SetSRID(ST_MakePoint(%(x)s, %(y)s), '
+               '                         %(srid)s)) '
+               '  AS distance '
+               'FROM treemap_mapfeature '
+               'WHERE instance_id = %(instance_id)s '
+               'AND NOT id IN ( '
+               '  SELECT plot_id '
+               '  FROM importer_treeimportrow tir '
+               '  WHERE tir.import_event_id = %(event_id)s '
+               '  AND tir.plot_id IS NOT NULL) '
+               'ORDER BY the_geom_webmercator <-> '
+               '  ST_SetSRID(ST_MakePoint(%(x)s, %(y)s), %(srid)s) '
+               'LIMIT 2;')
 
-        if len(nearby) > 0:
+        nearby = []
+        with connection.cursor() as c:
+            c.execute(sql, {'instance_id': self.import_event.instance.id,
+                            'event_id': self.import_event.id,
+                            'x': point.x,
+                            'y': point.y,
+                            'srid': point.srid})
+            nearby = c.fetchall()
+
+        existing_plot_id = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID,
+                                            None)
+        if existing_plot_id:
+            # `p` is a tuple of (id, distance)
+            nearby = [p for p in nearby if p[0] != existing_plot_id]
+
+        if len(nearby) > 0 and nearby[0][1] < 3.048:  # 10ft in meters
             flds = (fields.trees.POINT_X, fields.trees.POINT_Y)
-            if nearby[0].distance.m < 0.001:
+            if nearby[0][1] < 0.001:
                 self.append_error(errors.DUPLICATE_TREE, flds)
             else:
                 self.append_error(errors.NEARBY_TREES, flds,
-                                  [p.pk for p in nearby])
+                                  [row[0] for row in nearby])
             return False
         else:
             return True
