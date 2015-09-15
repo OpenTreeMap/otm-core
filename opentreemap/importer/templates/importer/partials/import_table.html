@@ -1,4 +1,7 @@
 {% load i18n %}
+{% if not table.rows %}
+    <div class="no-import-events">{% trans "(None)" %}</div>
+{% else %}
 <table class="table table-hover">
     <thead>
         <tr>
@@ -46,5 +49,6 @@
     {% include 'treemap/partials/paging_controls.html' with paging=table.rows url=url_for_paging %}
 {% endif %}
 
+{% endif %}
 
 <input type="hidden" name="{{ table.name }}-has-pending" value="{{ table.has_pending }}">
