@@ -59,9 +59,9 @@
 
 {% if settings.MODELING_VIEW_NAME %}
   {% if request.instance|feature_enabled:'modeling' %}
-    <li class="{% block activemodeling %}{% endblock %}">
+    <li class="{% block activemodeling %}{% endblock %} hidden-xs">
       <a href="{% url settings.MODELING_VIEW_NAME instance_url_name=request.instance.url_name %}">
-        <span class="hidden-xs">{% trans "Plan" %}</span>
+        <span>{% trans "Plan" %}</span>
       </a>
     </li>
   {% endif %}
