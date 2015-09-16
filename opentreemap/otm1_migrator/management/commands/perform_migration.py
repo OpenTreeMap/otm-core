@@ -50,6 +50,10 @@ def save_objects(migration_rules, model_name, model_dicts, relic_ids,
                      if dict['pk'] not in model_key_map)
 
     for model_dict in dicts_to_save:
+        if model_name != model_dict["model"].split(".")[1]:
+            continue
+        #if "treekey" in model_dict["model"] or "favorite" in model_dict["model"]:
+        #    continue
         dependencies = (migration_rules
                         .get(model_name, {})
                         .get('dependencies', {})
@@ -61,7 +65,7 @@ def save_objects(migration_rules, model_name, model_dicts, relic_ids,
         # their corresponding otm2 pks
         if dependencies:
             for name, field in dependencies:
-                old_id = model_dict['fields'][field]
+                old_id = model_dict['fields'].get(field,{})
                 if old_id:
                     old_id_to_new_id = relic_ids[name]
                     try:
