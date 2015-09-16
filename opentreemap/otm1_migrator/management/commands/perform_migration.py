@@ -50,10 +50,9 @@ def save_objects(migration_rules, model_name, model_dicts, relic_ids,
                      if dict['pk'] not in model_key_map)
 
     for model_dict in dicts_to_save:
+        # short-circuit if the dict isn't a `model_name` record
         if model_name != model_dict["model"].split(".")[1]:
             continue
-        #if "treekey" in model_dict["model"] or "favorite" in model_dict["model"]:
-        #    continue
         dependencies = (migration_rules
                         .get(model_name, {})
                         .get('dependencies', {})
