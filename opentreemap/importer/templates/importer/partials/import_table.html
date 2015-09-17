@@ -45,10 +45,10 @@
 </table>
 
 {% if table.rows.paginator.count > table.rows.paginator.per_page %}
-    {% url 'importer:get_import_table' instance_url_name=request.instance.url_name table_name=table.name as url_for_paging %}
-    {% include 'treemap/partials/paging_controls.html' with paging=table.rows url=url_for_paging %}
+    {% include 'treemap/partials/paging_controls.html' with paging=table.rows url=table.paging_url %}
 {% endif %}
 
 {% endif %}
 
-<input type="hidden" id="{{ table.name }}-has-pending" value="{{ table.has_pending }}">
+<input type="hidden" class="has-pending-imports" value="{{ table.has_pending }}">
+<input type="hidden" class="refresh-url" value="{{ table.refresh_url }}">

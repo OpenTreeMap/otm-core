@@ -141,6 +141,9 @@ def _get_table_context(instance, table_name, page_number):
     paginator = Paginator(rows, _EVENT_TABLE_PAGE_SIZE)
     rows = paginator.page(min(page_number, paginator.num_pages))
     has_pending = any(not ie.is_finished() for ie in rows)
+    paging_url = reverse('importer:get_import_table',
+                         args=(instance.url_name, table_name))
+    refresh_url = paging_url + '?page=%s' % page_number
 
     return {
         'name': table_name,
@@ -148,6 +151,8 @@ def _get_table_context(instance, table_name, page_number):
         'page_size': _EVENT_TABLE_PAGE_SIZE,
         'rows': rows,
         'has_pending': has_pending,
+        'paging_url': paging_url,
+        'refresh_url': refresh_url,
     }
 
 

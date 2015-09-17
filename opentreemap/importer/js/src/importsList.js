@@ -19,8 +19,9 @@ var dom = {
     unitSection: '#importer-tree-units',
     activeTreesTable: '#activeTrees',
     activeSpeciesTable: '#activeSpecies',
-    activeTreesPending: '#activeTrees-has-pending',
-    activeSpeciesPending: '#activeSpecies-has-pending',
+    hasPendingImports: '.has-pending-imports',
+    tableRefreshUrl: ' .refresh-url',
+    pagingContainer: '.import-table .pagination',
     pagingButtons: '.import-table .pagination li a',
     viewStatusLink: '.js-view',
     spinner: '#importer .spinner',
@@ -33,12 +34,10 @@ function init(options) {
     var $container = $(dom.container),
         tableRefreshedBus = new Bacon.Bus(),
         viewStatusStream = BU.reloadContainerOnClick($container, dom.viewStatusLink),
-
         refreshNeededStream = Bacon.mergeAll(
             handleForm($container, dom.treeForm, options.startImportUrl, dom.activeTreesTable),
             handleForm($container, dom.speciesForm, options.startImportUrl, dom.activeSpeciesTable),
             statusView.init($container, viewStatusStream),
-            viewStatusStream,
             tableRefreshedBus
         );
 
@@ -48,14 +47,16 @@ function init(options) {
         .onValue(function (e) {
             var button = e.currentTarget,
                 url = button.href,
-                $tableContainer = $(button).closest(dom.tableContainer);
-            $tableContainer.load(url);
+                $table = $(button).closest(dom.tableContainer);
+            $table.load(url, function () {
+                refreshTableIfNeeded($table, tableRefreshedBus);
+            });
         });
 
     // Trigger a refresh if there are pending imports
     refreshNeededStream
         .throttle(REFRESH_INTERVAL)
-        .onValue(updateTablesIfImportsPending, options, tableRefreshedBus);
+        .onValue(refreshTablesIfImportsPending, tableRefreshedBus);
 }
 
 function handleForm($container, formSelector, startImportUrl, tableSelector) {
@@ -102,22 +103,40 @@ function handleForm($container, formSelector, startImportUrl, tableSelector) {
     return importStartStream;
 }
 
-function updateTablesIfImportsPending(options, tableRefreshedBus) {
-    updateIfPending(dom.activeTreesTable, dom.activeTreesPending, options.refreshTreeImportsUrl);
-    updateIfPending(dom.activeSpeciesTable, dom.activeSpeciesPending, options.refreshSpeciesImportsUrl);
+function refreshTablesIfImportsPending(tableRefreshedBus) {
+    refreshIfPending($(dom.activeTreesTable));
+    refreshIfPending($(dom.activeSpeciesTable));
 
-    function updateIfPending(table, pending, url) {
-        // If the table has pending imports, reload it
-        // and push to the "tableRefreshedBus" so we'll be called again.
-        if ($(pending).val() === 'True') {
-            $(table).load(url,
-                function (response, status, xhr) {
-                    if (status !== "error") {
-                        tableRefreshedBus.push();
-                    }
-                });
+    function refreshIfPending($table) {
+        if (needsRefresh($table)) {
+            // Table's active page has pending imports, so refetch
+            var url = getRefreshUrl($table);
+            $.ajax(url).done(function (html) {
+                var refreshUrl = getRefreshUrl($table);
+                if (url === refreshUrl) {
+                    // Page we fetched is still visible, so update it
+                    $table.html(html);
+                }
+                refreshTableIfNeeded($table, tableRefreshedBus);
+            });
         }
     }
+
+    function getRefreshUrl($table) {
+        return $table.find(dom.tableRefreshUrl).val();
+    }
+}
+
+function refreshTableIfNeeded($table, tableRefreshedBus) {
+    if (needsRefresh($table)) {
+        // Page has pending imports, so make sure we're called again
+        tableRefreshedBus.push();
+    }
+}
+
+function needsRefresh($table) {
+    var hasPending = $table.find(dom.hasPendingImports).val();
+    return (hasPending === "True");
 }
 
 module.exports = {init: init};

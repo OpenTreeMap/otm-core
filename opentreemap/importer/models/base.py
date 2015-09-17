@@ -6,7 +6,6 @@ from __future__ import division
 import json
 from datetime import datetime
 
-from django.db.models import Count
 from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext as _
