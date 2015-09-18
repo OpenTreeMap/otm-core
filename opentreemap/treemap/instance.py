@@ -7,6 +7,7 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import RegexValidator
 from django.conf import settings
+from django.db import transaction
 from django.db.models import F
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ugettext_noop
@@ -488,6 +489,28 @@ class Instance(models.Model):
         except IndexError:
             pass
         return "%s_%s" % (self.url_name, thumbprint)
+
+    @transaction.atomic
+    def add_map_feature_types(self, types):
+        from treemap.models import MapFeature  # prevent circular import
+        from treemap.audit import add_default_permissions
+
+        classes = [MapFeature.get_subclass(type) for type in types]
+
+        dups = set(types) & set(self.map_feature_types)
+        if len(dups) > 0:
+            raise ValidationError('Map feature types already added: %s' % dups)
+
+        self.map_feature_types = list(self.map_feature_types) + list(types)
+        self.save()
+
+        for type, clz in zip(types, classes):
+            settings = (getattr(clz, 'udf_settings', {}))
+            for udfc_name, udfc_settings in settings.items():
+                if udfc_settings.get('defaults'):
+                    create_udf(self, type, udfc_name)
+
+        add_default_permissions(self, models=classes)
 
     def update_geo_rev(self):
         qs = Instance.objects.filter(pk=self.id)
