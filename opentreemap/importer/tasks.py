@@ -166,6 +166,9 @@ def _finalize_commit(import_type, import_event_id):
     if import_type == TreeImportEvent.import_type:
         ie.instance.update_geo_rev()
 
+    # A species import could change a species' i-Tree region, affecting eco
+    ie.instance.update_eco_rev()
+
 
 def _get_import_event(import_type, import_event_id):
     Model = get_import_event_model(import_type)

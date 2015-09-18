@@ -5,6 +5,9 @@ from __future__ import division
 
 import json
 
+from django.core.cache import cache
+from django.test import override_settings
+
 from treemap.models import Plot, Tree, Species, ITreeRegion
 from treemap.tests import make_instance, make_commander_user, make_request
 from treemap.tests.test_urls import UrlTestCase
@@ -13,10 +16,10 @@ from treemap import ecobackend
 from treemap.ecobenefits import (TreeBenefitsCalculator,
                                  _combine_benefit_basis,
                                  _annotate_basis_with_extra_stats,
-                                 _combine_grouped_benefits)
-
-from treemap.ecobenefits import BenefitCategory
+                                 _combine_grouped_benefits, BenefitCategory)
 from treemap.views.tree import search_tree_benefits
+from treemap.search import Filter
+from treemap.ecocache import cache_benefits, get_cached_benefits
 
 
 class EcoTest(UrlTestCase):
@@ -326,3 +329,24 @@ class EcoTest(UrlTestCase):
         _annotate_basis_with_extra_stats(basis)
 
         self.assertEqual(basis, target)
+
+
+@override_settings(USE_ECO_CACHE=True)
+class EcoCacheTest(UrlTestCase):
+    def setUp(self):
+        self.instance = make_instance()
+        self.benefits = 'some benefits'
+        self.filter = Filter('', '', self.instance)
+        cache_benefits(self.instance, self.filter, self.benefits)
+
+    def tearDown(self):
+        cache.clear()
+
+    def test_benefits_are_cached(self):
+        benefits = get_cached_benefits(self.instance, self.filter)
+        self.assertEqual(benefits, self.benefits)
+
+    def test_updating_eco_rev_busts_cache(self):
+        self.instance.update_eco_rev()
+        benefits = get_cached_benefits(self.instance, self.filter)
+        self.assertEqual(benefits, None)

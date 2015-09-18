@@ -612,6 +612,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
     def delete_with_user(self, user, *args, **kwargs):
         self.instance.update_geo_rev()
+        self.instance.update_eco_rev()
         super(MapFeature, self).delete_with_user(user, *args, **kwargs)
 
     def photos(self):

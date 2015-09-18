@@ -9,6 +9,7 @@ _test_settings = {
 
     # Without this we'd need to invalidate the cache before every test.
     'USE_OBJECT_CACHES': False,
+    'USE_ECO_CACHE': False,
 }
 
 
