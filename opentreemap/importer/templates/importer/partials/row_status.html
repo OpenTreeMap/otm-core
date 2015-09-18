@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block main %}
-<div class="col-md-12">
+<div class="col-md-12 import-status">
     <ul class="nav nav-tabs">
     {% for panel in panels %}
       <li{% if panel.name == active_panel_name %} class="active"{% endif %}>

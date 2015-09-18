@@ -1,42 +1,22 @@
 {% load i18n %}
+<div class="row">
+    <div class="col-md-12">
+        <img src="/static/img/spinner.gif" class="spinner pull-right" style="display:none;">
+        <h2>{% trans "Imports" %}</h2>
+        <hr>
+    </div>
+</div>
+
 <div id="import-tables">
-  <div class="row">
-    <div class="col-md-12">
-      <img src="/static/img/spinner.gif" class="spinner pull-right" style="display:none;">
-      <h2>{% trans "Imports" %}</h2>
-      <hr>
-
-      <h4>{% trans "Active Tree Imports" %}</h4>
-      {% include 'importer/partials/import_table.html' with things=active_trees import_type="tree" %}
-    </div>
-  </div>
-
-  <br>
-
-  <div class="row">
-    <div class="col-md-12">
-      <h4>{% trans "Finished Tree Imports" %}</h4>
-      {% include 'importer/partials/import_table.html' with things=finished_trees import_type="tree" %}
-    </div>
-  </div>
-
-  <br>
-
-  <div class="row">
-    <div class="col-md-12">
-      <h4>{% trans "Active Species Imports" %}</h4>
-      {% include 'importer/partials/import_table.html' with things=active_species import_type="species" %}
-    </div>
-  </div>
-
-  <br>
-
-  <div class="row">
-    <div class="col-md-12">
-      <h4>{% trans "Finished Species Imports" %}</h4>
-      {% include 'importer/partials/import_table.html' with things=finished_species import_type="species" %}
-    </div>
-  </div>
-
-  <input type="hidden" name="imports-finished" value="{{ imports_finished }}">
+    {% for table in tables %}
+        <div class="row">
+            <div class="col-md-12">
+                <h4>{{ table.title }}</h4>
+                <div id="{{ table.name }}" class="import-table">
+                    {% include 'importer/partials/import_table.html'%}
+                </div>
+            </div>
+        </div>
+        <br>
+    {% endfor %}
 </div>

@@ -15,8 +15,9 @@ _import_api_pattern = _type_pattern + '/' + _ie_pattern
 urlpatterns = patterns(
     '',
     url(r'^$', routes.list_imports, name='list_imports'),
-    url(r'^refresh$', routes.refresh_imports, name='refresh_imports'),
-    url(r'^start_import$', routes.start_import, name='start_import'),
+    url(r'^table/(?P<table_name>\w+)/$', routes.get_import_table,
+        name='get_import_table'),
+    url(r'^start_import/$', routes.start_import, name='start_import'),
     url(r'^status/%s/' % _import_api_pattern, routes.show_import_status,
         name='status'),
     url(r'^cancel/%s/$' % _import_api_pattern, routes.cancel, name='cancel'),

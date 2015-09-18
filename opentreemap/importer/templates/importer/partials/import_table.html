@@ -1,4 +1,7 @@
 {% load i18n %}
+{% if not table.rows %}
+    <div class="no-import-events">{% trans "(None)" %}</div>
+{% else %}
 <table class="table table-hover">
     <thead>
         <tr>
@@ -10,7 +13,7 @@
         </tr>
     </thead>
     <tbody>
-    {% for ie in things %}
+    {% for ie in table.rows %}
         <tr>
             <td>{{ ie.created }}</td>
             <td>{{ ie.status_summary }}</td>
@@ -20,17 +23,18 @@
                 {% elif ie.is_loading %}
                     {{ ie.row_count }}
                 {% elif ie.is_running %}
-                    {{ ie.completed_row_count }} / {{ ie.row_count }}
+                    {{ ie.completed_row_summary }}
                 {% endif %}
             </td>
             <td>
-              <a href="{% url 'importer:status' import_type=import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">
+              <a class="js-view"
+                 href="{% url 'importer:status' import_type=ie.import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">
                 {%trans "View" %}
               </a>
             </td>
             <td>
               {% if ie.can_export %}
-              <a href="javascript:" data-export-start-url="{% url 'importer:export_single_import' import_type=import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">
+              <a href="javascript:" data-export-start-url="{% url 'importer:export_single_import' import_type=ie.import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">
                 {% trans "Export" %}
               </a>
               {% endif %}
@@ -39,3 +43,12 @@
     {% endfor %}
     </tbody>
 </table>
+
+{% if table.rows.paginator.count > table.rows.paginator.per_page %}
+    {% include 'treemap/partials/paging_controls.html' with paging=table.rows url=table.paging_url %}
+{% endif %}
+
+{% endif %}
+
+<input type="hidden" class="has-pending-imports" value="{{ table.has_pending }}">
+<input type="hidden" class="refresh-url" value="{{ table.refresh_url }}">

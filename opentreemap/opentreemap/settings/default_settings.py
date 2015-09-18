@@ -240,6 +240,7 @@ UNMANAGED_APPS = (
     'django.contrib.humanize',
     'django_hstore',
     'djcelery',
+    'url_tools',
 )
 
 I18N_APPS = (
