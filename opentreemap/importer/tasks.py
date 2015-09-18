@@ -7,6 +7,7 @@ import json
 
 from celery import task, chord
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
 from django.db import transaction
 
 from treemap.models import Species
@@ -17,8 +18,6 @@ from importer.models.trees import TreeImportEvent, TreeImportRow
 from importer import errors, fields
 from importer.util import (clean_row_data, clean_field_name,
                            utf8_file_to_csv_dictreader)
-
-BLOCK_SIZE = 250
 
 
 def _create_rows_for_event(ie, csv_file):
@@ -58,7 +57,8 @@ def _create_rows(ie, reader):
         rows.append(RowModel(data=data, import_event=ie, idx=idx))
 
         idx += 1
-        if int(idx / BLOCK_SIZE) * BLOCK_SIZE == idx:
+        if ((int(idx / settings.IMPORT_BATCH_SIZE) *
+             settings.IMPORT_BATCH_SIZE == idx)):
             RowModel.objects.bulk_create(rows)
             rows = []
 
@@ -92,8 +92,9 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
 
     try:
         row_set = ie.rows()
-        validation_tasks = (_validate_rows.subtask(row_set[i:(i+BLOCK_SIZE)])
-                            for i in xrange(0, ie.row_count, BLOCK_SIZE))
+        validation_tasks = (
+            _validate_rows.subtask(row_set[i:(i+settings.IMPORT_BATCH_SIZE)])
+            for i in xrange(0, ie.row_count, settings.IMPORT_BATCH_SIZE))
 
         final_task = _finalize_validation.si(import_type, import_event_id)
 
@@ -139,20 +140,21 @@ def _finalize_validation(import_type, import_event_id):
 def commit_import_event(import_type, import_event_id):
     ie = _get_import_event(import_type, import_event_id)
 
-    commit_tasks = [_commit_rows.s(import_type, import_event_id, i)
-                    for i in xrange(0, ie.row_count, BLOCK_SIZE)]
+    commit_tasks = [
+        _commit_rows.s(import_type, import_event_id, i)
+        for i in xrange(0, ie.row_count, settings.IMPORT_BATCH_SIZE)]
 
     finalize_task = _finalize_commit.si(import_type, import_event_id)
 
     chord(commit_tasks, finalize_task).delay()
 
 
-@task()
+@task(rate_limit=settings.IMPORT_COMMIT_RATE_LIMIT)
 @transaction.atomic
 def _commit_rows(import_type, import_event_id, i):
     ie = _get_import_event(import_type, import_event_id)
 
-    for row in ie.rows()[i:(i + BLOCK_SIZE)]:
+    for row in ie.rows()[i:(i + settings.IMPORT_BATCH_SIZE)]:
         row.commit_row()
 
 
