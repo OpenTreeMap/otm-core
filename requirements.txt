@@ -2,7 +2,7 @@ boto==2.38.0
 django-storages==1.1.8
 Django==1.8.4
 Pillow==2.9.0
-argparse==1.3.0
+argparse==1.4.0
 gunicorn==19.3.0
 psycopg2==2.6.1
 django-hstore==1.4.0
@@ -25,3 +25,4 @@ django-queryset-csv>=0.3.0
 python-dateutil==2.4.2
 pytz==2015.4
 django-tinsel==0.1.1
+django-url-tools==0.0.8
