@@ -131,7 +131,7 @@
                     {% if feature.is_plot %}
                     data-disabled-title="{% trans "Deleting of planting sites is not available to all users" %}"
                     {% else %}
-                    data-disabled-title="{% blocktrans with resources=term.resources %}Deleting of {{ resources }} is not available to all users{% endblocktrans %}"
+                    data-disabled-title="{% blocktrans with resources=term.Resource.plural.lower %}Deleting of {{ resources }} is not available to all users{% endblocktrans %}"
                     {% endif %}
                     {% endif %}
                     data-href="{{ request.get_full_path }}"
@@ -205,7 +205,7 @@
                 {% if feature.is_plot %}
                 {% trans "The comment system does not serve as a way to report problems with a tree." %}
                 {% else %}
-                {% blocktrans with resource=term.resource %}
+                {% blocktrans with resource=term.Resource.singular.lower %}
                 The comment system does not serve as a way to report problems with a {{ resource }}.
                 {% endblocktrans %}
                 {% endif %}
