@@ -26,7 +26,8 @@ from stormwater.models import PolygonalMapFeature
 
 
 def _photo_upload_share_text(feature, has_tree=False):
-    return _("I added a photo of this %s!") % feature.display_name.lower()
+    return (_("I added a photo of this %s!") %
+            feature.terminology(feature.instance)['singular'].lower())
 
 
 def _map_feature_audits(user, instance, feature, filters=None,

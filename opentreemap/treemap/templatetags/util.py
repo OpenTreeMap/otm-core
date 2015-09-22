@@ -92,6 +92,11 @@ def audit_detail_link(audit):
 
 
 @register.filter
+def terminology(model, instance):
+    return model.terminology(instance)
+
+
+@register.filter
 def display_name(audit_or_model_or_name):
     if isinstance(audit_or_model_or_name, (Audit, basestring)):
         if isinstance(audit_or_model_or_name, Audit):

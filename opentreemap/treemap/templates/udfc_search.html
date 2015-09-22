@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load instance_config %}
+{% load util %}
 
 {# these with statements are rough, but it makes the markup easier to read #}
 {% with udfc_search_data=request.instance|get_udfc_search_fields:request.user %}
@@ -12,7 +13,9 @@
     <select id="udfc-search-model">
       <option data-class="udfc-placeholder" selected />
       {% for model in udfc_search_data.models %}
-      <option data-model="{{ model.search_slug }}">{{ model.search_display_name }}</option>
+      {% with terminology=model|terminology:request.instance %}
+      <option data-model="{{ model.search_slug }}">{{ terminology.plural.lower }}</option>
+      {% endwith %}
       {% endfor %}
     </select>
   </label>

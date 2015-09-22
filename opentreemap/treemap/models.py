@@ -607,7 +607,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
                 "geom": [
                     _(
                         "%(model)ss must be created inside the map boundaries")
-                    % {'model': self.display_name}]
+                    % {'model': self.terminology(self.instance)['singular']}]
             })
 
     def delete_with_user(self, user, *args, **kwargs):
@@ -631,11 +631,6 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         # (But note that the value gets stored in the database, so should not
         # be changed for a subclass once objects have been saved.)
         return cls.__name__
-
-    @classproperty
-    def display_name(cls):
-        # Subclasses should override with something useful
-        return cls.map_feature_type
 
     @classmethod
     def subclass_dict(cls):
@@ -709,7 +704,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             else:
                 title = _("Empty Planting Site")
         else:
-            title = feature.display_name
+            title = feature.terminology(self.instance)['singular']
 
         return title
 
@@ -754,6 +749,10 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         address = self.address_street or "Address Unknown"
         text = "%s (%s, %s) %s" % (self.feature_type, x, y, address)
         return text
+
+    @classproperty
+    def _terminology(cls):
+        return {'singular': cls.__name__}
 
 
 #TODO:
@@ -851,10 +850,6 @@ class Plot(MapFeature):
     def display_name(cls):
         return _('Planting Site')
 
-    @classproperty
-    def search_display_name(cls):
-        return _('planting sites')
-
 
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
@@ -919,13 +914,7 @@ class Tree(Convertible, UDFModel, PendingAuditable):
                          if self.species else "")
         return "%s%s" % (diameter_chunk, species_chunk)
 
-    @classproperty
-    def search_display_name(cls):
-        return _('trees')
-
-    @classproperty
-    def display_name(cls):
-        return _('Tree')
+    _terminology = {'singular': _('Tree')}
 
     def dict(self):
         props = self.as_dict()

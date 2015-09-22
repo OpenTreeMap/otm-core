@@ -1,5 +1,6 @@
 {% load form_extras %}
 {% load i18n %}
+{% load util %}
 
 {% with nsteps=5 %}
 <div class="sidebar-inner">
@@ -24,7 +25,9 @@
                            data-is-editable="{{ cls.is_editable|default_if_none:"False" }}"
                            data-skip-detail-form="{{ cls.skip_detail_form|default:"False" }}"
                     /><label for="resourceType{{ cls.feature_type }}">
-                        {{ cls.display_name }}
+                      {% with terminology=cls|terminology:request.instance %}
+                        {{ terminology.singular }}
+                      {% endwith %}
                     </label>
                 {% endfor %}
             </div>

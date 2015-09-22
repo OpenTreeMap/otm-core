@@ -66,7 +66,7 @@
 <div class="well" id="containing-polygonalmapfeature">
   {% with pmf_id=containing_polygonalmapfeature.pk|unlocalize %}
   {% url 'map_feature_detail' instance_url_name=request.instance.url_name feature_id=pmf_id as polygonal_url %}
-  {% blocktrans with display_name=containing_polygonalmapfeature.display_name %}
+  {% blocktrans with display_name=containing_polygonalmapfeature.terminology.singular %}
   This tree is part of <a href="{{ polygonal_url }}">{{ display_name }} #{{ pmf_id }}.</a> For stewardship actions, please <a href="{{ polygonal_url }}">go to the {{ display_name }} detail page.</a>
   {% endblocktrans %}
   {% endwith %}
