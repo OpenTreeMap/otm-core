@@ -201,19 +201,19 @@ def _get_tree_limit_context(ie):
     if ie.import_type == 'species':
         return {}
 
-    tier_tree_limit = get_tree_limit(ie.instance)
+    tree_limit = get_tree_limit(ie.instance)
 
-    if tier_tree_limit is None:
+    if tree_limit is None:
         return {}
 
     tree_count = MapFeature.objects.filter(instance=ie.instance).count()
-    remaining_tree_limit = tier_tree_limit - tree_count
+    remaining_tree_limit = tree_limit - tree_count
     verified_count = ie.rows().filter(status=TreeImportRow.VERIFIED).count()
 
     tree_limit_exceeded = remaining_tree_limit - verified_count < 0
 
     return {
-        'tier_tree_limit': tier_tree_limit,
+        'tree_limit': tree_limit,
         'tree_count': tree_count,
         'remaining_tree_limit': remaining_tree_limit,
         'tree_limit_exceeded': tree_limit_exceeded,
