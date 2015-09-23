@@ -75,13 +75,10 @@ class Bioswale(PolygonalMapFeature):
         }
     }
 
-    @classproperty
-    def search_display_name(cls):
-        return _('bioswales')
-
-    @classproperty
-    def display_name(cls):
-        return _('Bioswale')
+    _terminology = {
+        'singular': _('Bioswale'),
+        'plural': _('Bioswales'),
+    }
 
 
 class RainGarden(PolygonalMapFeature):
@@ -125,26 +122,20 @@ class RainGarden(PolygonalMapFeature):
         },
     }
 
-    @classproperty
-    def search_display_name(cls):
-        return _('rain gardens')
-
-    @classproperty
-    def display_name(cls):
-        return _('Rain Garden')
+    _terminology = {
+        'singular': _('Rain Garden'),
+        'plural': _('Rain Gardens'),
+    }
 
 
 class RainBarrel(MapFeature):
     objects = GeoHStoreUDFManager()
     capacity = models.FloatField(help_text=_("Capacity"))
 
-    @classproperty
-    def search_display_name(cls):
-        return _('rain barrels')
-
-    @classproperty
-    def display_name(cls):
-        return _('Rain Barrel')
+    _terminology = {
+        'singular': _('Rain Barrel'),
+        'plural': _('Rain Barrels'),
+    }
 
     @property
     def is_editable(self):

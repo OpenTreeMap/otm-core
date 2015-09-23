@@ -1391,10 +1391,7 @@ class Audit(models.Model):
 
         format_string = cls.action_format_string_for_audit(self)
 
-        if hasattr(cls, 'display_name'):
-            model_display_name = cls.display_name
-        else:
-            model_display_name = _(self.model)
+        model_display_name = cls.terminology(self.instance)['singular']
 
         return format_string % {'field': self.field_display_name,
                                 'model': model_display_name.lower(),

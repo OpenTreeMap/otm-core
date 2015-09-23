@@ -6,16 +6,16 @@
 {% load udf %}
 {% load util %}
 
-{% block page_title %} | {{ feature.display_name }} {{ feature.pk }}{% endblock %}
+{% block page_title %} | {{ feature.terminology.singular }} {{ feature.pk }}{% endblock %}
 
 {% block subclass_details %}
 
-<h3>{{ term.Resource }} {% trans "Information" %}</h3>
+<h3>{{ term.Resource.singular }} {% trans "Information" %}</h3>
 
 <table class="table table-hover">
     <tbody>
     <tr>
-        <td>{{ term.Resource }} {% trans "number" %}</td>
+        <td>{{ term.Resource.singular }} {% trans "number" %}</td>
         <td>{{ feature.pk|unlocalize }}</td>
     </tr>
 
@@ -38,7 +38,7 @@
 {% with stormbenefits=benefits.resource %}
 {% if stormbenefits %}
     <div id="ecobenefits">
-        <h3>{{ term.Resource }} {% trans "Ecosystem Services" %}</h3>
+        <h3>{{ term.Resource.singular }} {% trans "Ecosystem Services" %}</h3>
         <table class="table table-hover">
             <tbody>
             {% for key, benefit in stormbenefits.items %}
@@ -80,7 +80,7 @@
     </table>
 {% else %}
     <div class="well">
-    {% blocktrans with resource=term.Resource %}
+    {% blocktrans with resource=term.Resource.singular %}
         This {{ resource }} does not contain any trees.
     {% endblocktrans %}
     </div>
@@ -94,7 +94,7 @@
 {% block delete_confirmation_text %}
 <p>
     <strong>{% trans "Warning!" %}</strong>
-    {% blocktrans with resource=term.resource %}
+    {% blocktrans with resource=term.resource.singular.lower %}
     You are about to delete this {{ resource }}. Do you want to continue?
     {% endblocktrans %}
 </p>
