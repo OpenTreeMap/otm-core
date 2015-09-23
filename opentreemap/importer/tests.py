@@ -1010,14 +1010,15 @@ class TreeIntegrationTests(IntegrationTests):
         | 19.2    | 27.2    | 14       |
         | 13.2    | 77.2    | 16       |
         """
-        rev1 = self.instance.geo_rev
+        geo_rev = self.instance.geo_rev
+        eco_rev = self.instance.eco_rev
 
         self.run_through_commit_views(csv)
 
         self.instance = Instance.objects.get(pk=self.instance.pk)
-        rev2 = self.instance.geo_rev
 
-        self.assertEqual(rev1 + 1, rev2)
+        self.assertEqual(geo_rev + 1, self.instance.geo_rev)
+        self.assertEqual(eco_rev + 1, self.instance.eco_rev)
 
     def test_bad_structure(self):
         # Point Y -> PointY, expecting two errors

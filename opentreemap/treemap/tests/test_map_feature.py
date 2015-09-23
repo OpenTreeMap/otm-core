@@ -8,60 +8,119 @@ from unittest.case import skip
 
 from django.contrib.gis.geos import Point
 
-from treemap.models import (Tree, Plot, MapFeature)
+from treemap.models import (Tree, Plot, MapFeature, Species)
 from treemap.instance import Instance
 from treemap.tests import (make_instance, make_commander_user)
 from treemap.tests.base import OTMTestCase
 from treemap.views.map_feature import update_map_feature
 
+from stormwater.models import Bioswale
 
-class GeoRevIncr(OTMTestCase):
+
+class GeoAndEcoRevIncr(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.user = make_commander_user(self.instance)
         self.plot = Plot(geom=Point(0, 0), instance=self.instance)
         self.plot.save_with_user(self.user)
 
-    def _hash_and_rev(self):
+    def _hash_and_revs(self):
         i = Instance.objects.get(pk=self.instance.pk)
-        return [i.geo_rev_hash, i.geo_rev]
+        return [i.geo_rev_hash, i.geo_rev, i.eco_rev]
 
     @contextmanager
-    def _assert_updates_geo_rev(self, update_expected=True):
-        rev1h, rev1 = self._hash_and_rev()
+    def _assert_updates_geo_and_eco_rev(self, update_expected=True):
+        geo_rev1h, geo_rev1, eco_rev1 = self._hash_and_revs()
 
         yield
 
-        rev2h, rev2 = self._hash_and_rev()
-        if update_expected:
-            self.assertNotEqual(rev1h, rev2h)
-            self.assertEqual(rev1 + 1, rev2)
-        else:
-            self.assertEqual(rev1h, rev2h)
-            self.assertEqual(rev1, rev2)
+        geo_rev2h, geo_rev2, eco_rev2 = self._hash_and_revs()
 
-    def test_create(self):
-        with self._assert_updates_geo_rev():
+        if update_expected:
+            self.assertNotEqual(geo_rev1h, geo_rev2h)
+            self.assertEqual(geo_rev1 + 1, geo_rev2)
+            self.assertEqual(eco_rev1 + 1, eco_rev2)
+        else:
+            self.assertEqual(geo_rev1h, geo_rev2h)
+            self.assertEqual(geo_rev1, geo_rev2)
+            self.assertEqual(eco_rev1, eco_rev2)
+
+    def test_create_plot(self):
+        with self._assert_updates_geo_and_eco_rev():
             plot = Plot(instance=self.instance)
             request_dict = {'plot.geom': {'x': 0, 'y': 0}}
             update_map_feature(request_dict, self.user, plot)
-            plot.save_with_user(self.user)
+
+    def test_create_bioswale(self):
+        self.instance.add_map_feature_types(['Bioswale'])
+        with self._assert_updates_geo_and_eco_rev():
+            bioswale = Bioswale(instance=self.instance)
+            request_dict = {
+                'plot.geom': {'x': 0, 'y': 0},
+                'bioswale.polygon': {'polygon': [
+                    [0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]}
+            }
+            update_map_feature(request_dict, self.user, bioswale)
+
+        with self._assert_updates_geo_and_eco_rev():
+            request_dict = {
+                'bioswale.polygon': {'polygon': [
+                    [0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]}}
+            update_map_feature(request_dict, self.user, bioswale)
 
     def test_move(self):
-        with self._assert_updates_geo_rev():
+        with self._assert_updates_geo_and_eco_rev():
             request_dict = {'plot.geom': {'x': 5, 'y': 5}}
             update_map_feature(request_dict, self.user, self.plot)
-            self.plot.save_with_user(self.user)
 
     def test_update_without_move(self):
-        with self._assert_updates_geo_rev(False):
+        with self._assert_updates_geo_and_eco_rev(False):
             request_dict = {'plot.address_zip': '19119'}
             update_map_feature(request_dict, self.user, self.plot)
-            self.plot.save_with_user(self.user)
 
     def test_delete(self):
-        with self._assert_updates_geo_rev():
+        with self._assert_updates_geo_and_eco_rev():
             self.plot.delete_with_user(self.user)
+
+
+class EcoRevIncr(OTMTestCase):
+    def setUp(self):
+        self.instance = make_instance()
+        self.user = make_commander_user(self.instance)
+        self.plot = Plot(geom=Point(0, 0), instance=self.instance)
+        self.plot.save_with_user(self.user)
+
+    def _get_eco_rev(self):
+        i = Instance.objects.get(pk=self.instance.pk)
+        return i.eco_rev
+
+    @contextmanager
+    def _assert_updates_eco_rev(self, update_expected=True):
+        rev1 = self._get_eco_rev()
+
+        yield
+
+        rev2 = self._get_eco_rev()
+        if update_expected:
+            self.assertEqual(rev1 + 1, rev2)
+        else:
+            self.assertEqual(rev1, rev2)
+
+    def test_update_diameter(self):
+        with self._assert_updates_eco_rev(True):
+            tree = Tree(instance=self.instance, plot=self.plot, diameter=3)
+            tree.save_with_user(self.user)
+            request_dict = {'tree.diameter': '5'}
+            update_map_feature(request_dict, self.user, self.plot)
+
+    def test_update_species(self):
+        with self._assert_updates_eco_rev(True):
+            tree = Tree(instance=self.instance, plot=self.plot)
+            tree.save_with_user(self.user)
+            species = Species(common_name='foo', instance=self.instance)
+            species.save_with_user(self.user)
+            request_dict = {'tree.species': species.pk}
+            update_map_feature(request_dict, self.user, self.plot)
 
 
 class PlotHashTestCase(OTMTestCase):

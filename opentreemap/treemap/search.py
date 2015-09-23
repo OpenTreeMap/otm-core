@@ -55,6 +55,7 @@ MAP_FEATURE_RELATED_NAMES = {'mapFeature', 'mapFeaturePhoto'}
 class Filter(object):
     def __init__(self, filterstr, displaystr, instance):
         self.filterstr = filterstr
+        self.displaystr = displaystr
         self.display_filter = loads(displaystr) if displaystr else None
         self.instance = instance
 

@@ -260,6 +260,23 @@ RESERVED_INSTANCE_URL_NAMES = (
     'admin'
 )
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            # Faster if we ever use fancy operations like LRANGE
+            'PARSER_CLASS': 'redis.connection.HiredisParser',
+            # Helps avoid a death spiral if connections can't happen
+            'SOCKET_TIMEOUT': 3,
+        }
+    }
+}
+
+# Don't throw exceptions if Redis is down.
+DJANGO_REDIS_IGNORE_EXCEPTIONS = True
+
 # From the django-registration quickstart
 # https://django-registration.readthedocs.org/en/latest/quickstart.html
 #
@@ -313,5 +330,6 @@ IE_VERSION_MINIMUM = 9 if DEBUG else 10
 IE_VERSION_UNSUPPORTED_REDIRECT_PATH = '/unsupported'
 
 USE_OBJECT_CACHES = True
+USE_ECO_CACHE = True
 
 BING_API_KEY = None
