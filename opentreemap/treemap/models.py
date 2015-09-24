@@ -606,8 +606,8 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             raise ValidationError({
                 "geom": [
                     _(
-                        "%(model)ss must be created inside the map boundaries")
-                    % {'model': self.terminology(self.instance)['singular']}]
+                        "%(model)s must be created inside the map boundaries")
+                    % {'model': self.terminology(self.instance)['plural']}]
             })
 
     def delete_with_user(self, user, *args, **kwargs):
@@ -771,6 +771,9 @@ class Plot(MapFeature):
     objects = GeoHStoreUDFManager()
     is_editable = True
 
+    _terminology = {'singular': _('Planting Site'),
+                    'plural': _('Planting Sites')}
+
     udf_settings = {
         'Stewardship': {
             'iscollection': True,
@@ -846,10 +849,6 @@ class Plot(MapFeature):
                 "Cannot delete plot with existing trees."))
         super(Plot, self).delete_with_user(user, *args, **kwargs)
 
-    @classproperty
-    def display_name(cls):
-        return _('Planting Site')
-
 
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
@@ -914,7 +913,7 @@ class Tree(Convertible, UDFModel, PendingAuditable):
                          if self.species else "")
         return "%s%s" % (diameter_chunk, species_chunk)
 
-    _terminology = {'singular': _('Tree')}
+    _terminology = {'singular': _('Tree'), 'plural': _('Trees')}
 
     def dict(self):
         props = self.as_dict()
