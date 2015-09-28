@@ -754,8 +754,13 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     def _terminology(cls):
         return {'singular': cls.__name__}
 
+    @classproperty
+    def benefits(cls):
+        from treemap.ecobenefits import CountOnlyBenefitCalculator
+        return CountOnlyBenefitCalculator(cls)
 
-#TODO:
+
+# TODO:
 # Exclusion Zones
 # Proximity validation
 # UDFModel overrides implementations of methods in
