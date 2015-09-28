@@ -17,6 +17,7 @@ from treemap.models import Plot, Tree
 from treemap.audit import Audit
 from treemap.ecobenefits import get_benefits_for_filter
 from treemap.ecobenefits import BenefitCategory
+from treemap.ecocache import get_cached_plot_count
 from treemap.lib import format_benefits
 from treemap.lib.tree import add_tree_photo_helper
 from treemap.lib.photo import context_dict_for_photo
@@ -63,7 +64,8 @@ def search_tree_benefits(request, instance):
     hide_summary = hide_summary_text.lower() == 'true'
 
     filter = Filter(filter_str, display_str, instance)
-    total_plots = filter.get_object_count(Plot)
+    total_plots = get_cached_plot_count(
+            filter, lambda: filter.get_object_count(Plot))
 
     benefits, basis = get_benefits_for_filter(filter)
 
