@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
-from unittest import skip
 
 from django.core.cache import cache
 from django.test import override_settings
@@ -332,7 +331,6 @@ class EcoTest(UrlTestCase):
         self.assertEqual(basis, target)
 
 
-@skip("until we straighten out our cache back end strategy")
 @override_settings(USE_ECO_CACHE=True)
 class EcoCacheTest(UrlTestCase):
     def setUp(self):
