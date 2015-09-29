@@ -1,6 +1,6 @@
 boto==2.11.0
 django-storages==1.1.8
-Django==1.8.2
+Django==1.8.4
 Pillow==2.3.1
 argparse==1.2.1
 gunicorn==19.3.0
