@@ -65,7 +65,7 @@ def search_tree_benefits(request, instance):
 
     filter = Filter(filter_str, display_str, instance)
     total_plots = get_cached_plot_count(
-            filter, lambda: filter.get_object_count(Plot))
+        filter, lambda: filter.get_object_count(Plot))
 
     benefits, basis = get_benefits_for_filter(filter)
 

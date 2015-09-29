@@ -29,12 +29,13 @@ def get_cached_plot_count(filter, compute_value):
 
 def _get_or_compute(prefix, version, filter, compute_value):
     if not settings.USE_ECO_CACHE:
-        return None
-    key = _get_key(prefix, version, filter)
-    value = cache.get(key)
-    if not value:
         value = compute_value()
-        cache.set(key, value, _TIMEOUT)
+    else:
+        key = _get_key(prefix, version, filter)
+        value = cache.get(key)
+        if not value:
+            value = compute_value()
+            cache.set(key, value, _TIMEOUT)
     return value
 
 
