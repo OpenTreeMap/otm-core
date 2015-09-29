@@ -84,6 +84,12 @@ def force_obj_to_pk(obj):
     bar = Tree.objects.all()[0].pk
     assert(foo != bar)
     assert(force_obj_to_pk(foo) == force_obj_to_pk(bar))
+
+    Note that this function was written to deal with an insidious issue found
+    in django at the time of writing: sometimes `model.value_from_object` is
+    and integer and sometimes it is the related object itself and it was not
+    apparent after a source audit how to deduce what this value actually is
+    at a given point in a model's lifecycle.
     """
     if obj is None:
         return None
