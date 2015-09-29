@@ -7,32 +7,43 @@ import hashlib
 from django.conf import settings
 from django.core.cache import cache
 
-# Cache the results of tree ecobenefit summary searches.
-# Cache key is eco/trees/<url_name>/<eco_rev>/<filter_string>/<display_string>
+# Cache the results of plot counts and tree ecobenefit summary searches.
+# Plot key is count/plots/<url_name>/<geo_rev>/<filter_hash>
+# Eco key is eco/trees/<url_name>/<eco_rev>/<filter_hash>
 
 # Entries will be neither numerous nor large, so let them live for a month
-TIMEOUT = 60 * 60 * 24 * 30
+_TIMEOUT = 60 * 60 * 24 * 30
 
 
-def get_cached_benefits(instance, filter):
-    if settings.USE_ECO_CACHE:
-        key = _get_key(instance, filter)
-        benefits = cache.get(key)
-        return benefits
+def get_cached_tree_benefits(filter, compute_value):
+    prefix = 'eco/trees'
+    version = filter.instance.eco_rev
+    return _get_or_compute(prefix, version, filter, compute_value)
+
+
+def get_cached_plot_count(filter, compute_value):
+    prefix = 'count/plots'
+    version = filter.instance.geo_rev
+    return _get_or_compute(prefix, version, filter, compute_value)
+
+
+def _get_or_compute(prefix, version, filter, compute_value):
+    if not settings.USE_ECO_CACHE:
+        value = compute_value()
     else:
-        return None
+        key = _get_key(prefix, version, filter)
+        value = cache.get(key)
+        if not value:
+            value = compute_value()
+            cache.set(key, value, _TIMEOUT)
+    return value
 
 
-def cache_benefits(instance, filter, benefits):
-    if settings.USE_ECO_CACHE:
-        key = _get_key(instance, filter)
-        cache.set(key, benefits, TIMEOUT)
-
-
-def _get_key(instance, filter):
+def _get_key(prefix, version, filter):
     filter_key = '%s/%s' % (filter.filterstr, filter.displaystr)
     filter_hash = hashlib.md5(filter_key).hexdigest()
-    key = "eco/trees/%s/%s/%s" % (instance.url_name,
-                                  instance.eco_rev,
-                                  filter_hash)
+    key = "%s/%s/%s/%s" % (prefix,
+                           filter.instance.url_name,
+                           version,
+                           filter_hash)
     return key
