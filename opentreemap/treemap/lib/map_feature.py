@@ -78,9 +78,6 @@ def _map_feature_audits(user, instance, feature, filters=None,
 def _add_eco_benefits_to_context_dict(instance, feature, context):
     FeatureClass = feature.__class__
 
-    if not hasattr(FeatureClass, 'benefits'):
-        return
-
     benefits, basis, error = FeatureClass.benefits\
                                          .benefits_for_object(
                                              instance, feature)
