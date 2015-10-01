@@ -18,7 +18,9 @@ var dom = {
     importButton: 'button[type="submit"]',
     unitSection: '#importer-tree-units',
     activeTreesTable: '#activeTrees',
+    finishedTreesTable: '#finishedTrees',
     activeSpeciesTable: '#activeSpecies',
+    finishedSpeciesTable: '#finishedSpecies',
     hasPendingImports: '.has-pending-imports',
     tableRefreshUrl: ' .refresh-url',
     pagingContainer: '.import-table .pagination',
@@ -28,7 +30,13 @@ var dom = {
     importsFinished: 'input[name="imports-finished"]'
 };
 
-var REFRESH_INTERVAL = 5 * 1000;
+
+var REFRESH_INTERVAL = 5 * 1000,
+    LINKED_TABLES =  {
+        'activeTrees': dom.finishedTreesTable,
+        'activeSpecies': dom.finishedSpeciesTable
+    };
+
 
 function init(options) {
     var $container = $(dom.container),
@@ -108,26 +116,35 @@ function refreshTablesIfImportsPending(tableRefreshedBus) {
     refreshIfPending($(dom.activeSpeciesTable));
 
     function refreshIfPending($table) {
+        var tableId = $table.attr('id');
         if (needsRefresh($table)) {
             // Table's active page has pending imports, so refetch
-            var url = getRefreshUrl($table);
-            $.ajax(url).done(function (html) {
-                var refreshUrl = getRefreshUrl($table);
-                if (url === refreshUrl) {
-                    // Page we fetched is still visible, so update it
-                    $table.html(html);
-                }
-                refreshTableIfNeeded($table, tableRefreshedBus);
-            });
+            refreshTable($table);
+            if (LINKED_TABLES[tableId]) {
+                refreshTable($(LINKED_TABLES[tableId]));
+            }
         }
     }
 
     function getRefreshUrl($table) {
         return $table.find(dom.tableRefreshUrl).val();
     }
+
+    function refreshTable($table) {
+        var url = getRefreshUrl($table);
+        $.ajax(url).done(function (html) {
+            var refreshUrl = getRefreshUrl($table);
+            if (url === refreshUrl) {
+                // Page we fetched is still visible, so update it
+                $table.html(html);
+            }
+            refreshTableIfNeeded($table, tableRefreshedBus);
+        });
+    }
 }
 
 function refreshTableIfNeeded($table, tableRefreshedBus) {
+    var tableId = $table.attr('id');
     if (needsRefresh($table)) {
         // Page has pending imports, so make sure we're called again
         tableRefreshedBus.push();
