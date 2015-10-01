@@ -106,4 +106,5 @@ class Command(InstanceDataCommand):
                 ct += 1
 
         instance.update_geo_rev()
+        instance.update_eco_rev()
         self.stdout.write("Created %s trees and %s plots" % (ct, cp))

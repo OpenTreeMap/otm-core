@@ -33,8 +33,8 @@
         <li>
           <a data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource"
              data-always-enable="{{ last_effective_instance_user|any_resource_is_creatable }}"
-             data-disabled-title='{% blocktrans with resources=term.Resources %}Adding {{ resources }} is not available to all users{% endblocktrans %}'
-             data-action='addresource'>{% trans "Add a" %} {{ term.Resource }}</a>
+             data-disabled-title='{% blocktrans with resources=term.Resource.plural %}Adding {{ resources }} is not available to all users{% endblocktrans %}'
+             data-action='addresource'>{% trans "Add a" %} {{ term.Resource.singular }}</a>
         </li>
       </ul>
     </li>
@@ -59,9 +59,9 @@
 
 {% if settings.MODELING_VIEW_NAME %}
   {% if request.instance|feature_enabled:'modeling' %}
-    <li class="{% block activemodeling %}{% endblock %}">
+    <li class="{% block activemodeling %}{% endblock %} hidden-xs">
       <a href="{% url settings.MODELING_VIEW_NAME instance_url_name=request.instance.url_name %}">
-        <span class="hidden-xs">{% trans "Plan" %}</span>
+        <span>{% trans "Plan" %}</span>
       </a>
     </li>
   {% endif %}
@@ -144,9 +144,9 @@
            data-action='addresource'
            data-always-enable="{{ last_effective_instance_user|any_resource_is_creatable }}"
            data-disabled-title=
-             "{% blocktrans with resources=terms.resources %}Adding {{ resources }} is not available to all users {% endblocktrans %}"
+             "{% blocktrans with resources=term.Resource.plural.lower %}Adding {{ resources }} is not available to all users {% endblocktrans %}"
            data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource"
-           disabled="disabled"><i class="icon-plus"></i> {% trans "Add a" %} {{ term.Resource }}</a>
+           disabled="disabled"><i class="icon-plus"></i> {% trans "Add a" %} {{ term.Resource.singular }}</a>
         {% endif %}
       <a class="btn btn-primary addBtn"
          data-action='addtree'

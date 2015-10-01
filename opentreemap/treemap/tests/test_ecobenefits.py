@@ -5,6 +5,9 @@ from __future__ import division
 
 import json
 
+from django.core.cache import cache
+from django.test import override_settings
+
 from treemap.models import Plot, Tree, Species, ITreeRegion
 from treemap.tests import make_instance, make_commander_user, make_request
 from treemap.tests.test_urls import UrlTestCase
@@ -13,10 +16,10 @@ from treemap import ecobackend
 from treemap.ecobenefits import (TreeBenefitsCalculator,
                                  _combine_benefit_basis,
                                  _annotate_basis_with_extra_stats,
-                                 _combine_grouped_benefits)
-
-from treemap.ecobenefits import BenefitCategory
+                                 _combine_grouped_benefits, BenefitCategory)
 from treemap.views.tree import search_tree_benefits
+from treemap.search import Filter
+from treemap.ecocache import get_cached_tree_benefits, get_cached_plot_count
 
 
 class EcoTest(UrlTestCase):
@@ -326,3 +329,37 @@ class EcoTest(UrlTestCase):
         _annotate_basis_with_extra_stats(basis)
 
         self.assertEqual(basis, target)
+
+
+@override_settings(USE_ECO_CACHE=True)
+class EcoCacheTest(UrlTestCase):
+    def setUp(self):
+        instance = make_instance()
+        self.benefits = 'some benefits'
+        self.count = 5
+        self.filter = Filter('', '', instance)
+
+    def tearDown(self):
+        cache.clear()
+
+    def test_benefits_are_cached(self):
+        get_cached_tree_benefits(self.filter, lambda: self.benefits)
+        benefits = get_cached_tree_benefits(self.filter, lambda: 'others')
+        self.assertEqual(benefits, self.benefits)
+
+    def test_updating_eco_rev_busts_benefit_cache(self):
+        get_cached_tree_benefits(self.filter, lambda: self.benefits)
+        self.filter.instance.update_eco_rev()
+        benefits = get_cached_tree_benefits(self.filter, lambda: 'others')
+        self.assertEqual(benefits, 'others')
+
+    def test_count_is_cached(self):
+        get_cached_plot_count(self.filter, lambda: self.count)
+        count = get_cached_plot_count(self.filter, lambda: 17)
+        self.assertEqual(count, self.count)
+
+    def test_updating_geo_rev_busts_count_cache(self):
+        get_cached_plot_count(self.filter, lambda: self.count)
+        self.filter.instance.update_geo_rev()
+        count = get_cached_plot_count(self.filter, lambda: 17)
+        self.assertEqual(count, 17)

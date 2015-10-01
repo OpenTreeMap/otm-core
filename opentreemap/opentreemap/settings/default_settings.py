@@ -240,6 +240,7 @@ UNMANAGED_APPS = (
     'django.contrib.humanize',
     'django_hstore',
     'djcelery',
+    'url_tools',
 )
 
 I18N_APPS = (
@@ -305,6 +306,12 @@ DISPLAY_DEFAULTS = {
 # Time in ms for two clicks to be considered a double-click in some scenarios
 DOUBLE_CLICK_INTERVAL = 300
 
+# The number of plots to import per task
+IMPORT_BATCH_SIZE = 85
+
+# The rate limit for how frequently batches of imports can happen per worker
+IMPORT_COMMIT_RATE_LIMIT = "1/m"
+
 # We have... issues on IE9 right now
 # Disable it on production, but enable it in Debug mode
 IE_VERSION_MINIMUM = 9 if DEBUG else 10
@@ -312,5 +319,6 @@ IE_VERSION_MINIMUM = 9 if DEBUG else 10
 IE_VERSION_UNSUPPORTED_REDIRECT_PATH = '/unsupported'
 
 USE_OBJECT_CACHES = True
+USE_ECO_CACHE = False
 
 BING_API_KEY = None

@@ -11,6 +11,7 @@ from django_tinsel.decorators import json_api_call
 import itertools
 
 from treemap import ecobackend
+from treemap.ecocache import get_cached_tree_benefits
 from treemap.models import MapFeature
 
 WATTS_PER_BTU = 0.29307107
@@ -102,8 +103,13 @@ class TreeBenefitsCalculator(BenefitCalculator):
         return cursor.mogrify(sql, params)
 
     def benefits_for_filter(self, instance, item_filter):
+        return get_cached_tree_benefits(
+            item_filter, lambda: self._get_benefits(item_filter))
+
+    def _get_benefits(self, item_filter):
         from treemap.models import Tree
 
+        instance = item_filter.instance
         trees = item_filter.get_objects(Tree)
         n_total_trees = trees.count()
 
@@ -402,7 +408,7 @@ def get_benefits_for_filter(filter):
     benefits, basis = {}, {}
 
     for C in MapFeature.subclass_dict().values():
-        if not hasattr(C, 'benefits') or C.__name__ not in allowed_types:
+        if C.__name__ not in allowed_types:
             continue
 
         ft_benefit_groups, ft_basis = _benefits_for_class(C, filter)

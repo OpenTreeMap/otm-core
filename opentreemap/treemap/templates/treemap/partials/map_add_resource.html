@@ -1,17 +1,18 @@
 {% load form_extras %}
 {% load i18n %}
+{% load util %}
 
 {% with nsteps=5 %}
 <div class="sidebar-inner">
     <a href="javascript:;" class="close cancelBtn small">×</a>
-    <h3>{% trans "Add a" %} {{ term.Resource }}</h3>
+    <h3>{% trans "Add a" %} {{ term.Resource.singular }}</h3>
     <div class="add-step-container" id="add-resource-container">
         <div class="add-step active">
             <div class="add-step-header">
-              {% blocktrans with Resource=terms.Resource%} Select {{ Resource }} Type {% endblocktrans %}
+              {% blocktrans with Resource=terms.Resource.singular %} Select {{ Resource }} Type {% endblocktrans %}
             </div>
             <div class="add-step-content">
-                <label>{{ term.Resource }} {% trans "Type" %}</label>
+                <label>{{ term.Resource.singular }} {% trans "Type" %}</label>
                 {% for cls in resource_classes %} </br>
                     <input type="radio"
                            name="addResourceType"
@@ -24,31 +25,33 @@
                            data-is-editable="{{ cls.is_editable|default_if_none:"False" }}"
                            data-skip-detail-form="{{ cls.skip_detail_form|default:"False" }}"
                     /><label for="resourceType{{ cls.feature_type }}">
-                        {{ cls.display_name }}
+                      {% with terminology=cls|terminology:request.instance %}
+                        {{ terminology.singular }}
+                      {% endwith %}
                     </label>
                 {% endfor %}
             </div>
             {% include 'treemap/partials/step_controls.html' with first=True %}
         </div>
-        {% include "treemap/partials/step_set_location.html" with feature_name=term.resource %}
+        {% include "treemap/partials/step_set_location.html" with feature_name=term.Resource.singular.lower %}
         <div class="add-step">
           {% if cls.area_field_name == 'roof_geometry' %}
             <div class="add-step-header">{% trans "Indicate Nearby Roof Area" %}</div>
             <div class="add-step-content">
-                <div class="alert alert-info">Move the dots on the blue polygon to define the borders of the roof area that will drain into your {{ term.resource }}.
+                <div class="alert alert-info">Move the dots on the blue polygon to define the borders of the roof area that will drain into your {{ term.Resource.singular.lower }}.
                 </div>
             </div>
           {% else %}
             <div class="add-step-header">{% trans "Indicate Polygon Area" %}</div>
             <div class="add-step-content">
-                <div class="alert alert-info">Move the dots on the blue polygon to define the borders of your {{ term.resource }}.
+                <div class="alert alert-info">Move the dots on the blue polygon to define the borders of your {{ term.Resource.singular.lower }}.
                 </div>
             </div>
           {% endif %}
             {% include 'treemap/partials/step_controls.html' %}
         </div>
         <div class="add-step">
-            <div class="add-step-header">{% trans "About this" %} {{ term.Resource }}</div>
+            <div class="add-step-header">{% trans "About this" %} {{ term.Resource.singular }}</div>
             <div class="add-step-content">
                 <form id="add-resource-form" onsubmit="return false;">
                   {# Added dynamically when resource type is chosen #}
@@ -57,21 +60,21 @@
             {% include 'treemap/partials/step_controls.html' %}
         </div>
         <div class="add-step">
-            <div class="add-step-header">{% trans "Finalize this" %} {{ term.Resource }}</div>
+            <div class="add-step-header">{% trans "Finalize this" %} {{ term.Resource.singular }}</div>
             <div class="add-step-content">
                 <h3 class="summaryHead"></h3>
-                <h6 class="summarySubhead">{{ term.Resource }}</h6>
+                <h6 class="summarySubhead">{{ term.Resource.singular }}</h6>
                 <h4 class="summaryAddress"></h4>
                 <h6>Nearby Address</h6>
                 <hr/>
                 <span>
                     <input type="radio" name="addResourceOptions" value="new" id="addresource-addnew" /><label for="addresource-addnew">
-                        {% trans "Add another" %} {{ term.resource }}
+                        {% trans "Add another" %} {{ term.Resource.singular.lower }}
                     </label>
                 </span>
                 <span>
                     <input type="radio" name="addResourceOptions" value="edit" id="addresource-viewdetails" disabled class="disabled"/><label for="addresource-viewdetails">
-                        {% trans "Continue editing this" %} {{ term.resource }}
+                        {% trans "Continue editing this" %} {{ term.Resource.singular.lower }}
                     </label>
                 </span>
                 <span>

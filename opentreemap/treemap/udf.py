@@ -1068,11 +1068,6 @@ class UDFModel(UserTrackable, models.Model):
     def search_slug(self):
         return to_object_name(self.__class__.__name__)
 
-    @classproperty
-    def search_display_name(self):
-        raise NotImplementedError('Please override "%s" on all models'
-                                  'used in udfc searches' % __name__)
-
     def collection_udfs_audit_ids(self):
         return self.static_collection_udfs_audit_ids(
             (self.instance,), (self.pk,), self.collection_udfs_audit_names())

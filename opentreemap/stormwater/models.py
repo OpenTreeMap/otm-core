@@ -75,13 +75,10 @@ class Bioswale(PolygonalMapFeature):
         }
     }
 
-    @classproperty
-    def search_display_name(cls):
-        return _('bioswales')
-
-    @classproperty
-    def display_name(cls):
-        return _('Bioswale')
+    _terminology = {
+        'singular': _('Bioswale'),
+        'plural': _('Bioswales'),
+    }
 
 
 class RainGarden(PolygonalMapFeature):
@@ -101,28 +98,48 @@ class RainGarden(PolygonalMapFeature):
                 ],
             },
         },
+        'Stewardship': {
+            'iscollection': True,
+            'range_field_key': 'Date',
+            'action_field_key': 'Action',
+            'action_verb': 'that have been',
+            'defaults': [
+                {'name': 'Action',
+                 'choices': [
+                     'Removed litter',
+                     'Removed weeds',
+                     'Pruned plants',
+                     'Pruned trees',
+                     'Watered bioswale',
+                     'Removed sediments',
+                     'Redistributed gravel',
+                     'Redistributed soil',
+                     'Aerated soil',
+                 ],
+                 'type': 'choice'},
+                {'type': 'date',
+                 'name': 'Date'}],
+        },
     }
 
-    @classproperty
-    def search_display_name(cls):
-        return _('rain gardens')
-
-    @classproperty
-    def display_name(cls):
-        return _('Rain Garden')
+    _terminology = {
+        'singular': _('Rain Garden'),
+        'plural': _('Rain Gardens'),
+    }
 
 
 class RainBarrel(MapFeature):
     objects = GeoHStoreUDFManager()
     capacity = models.FloatField(help_text=_("Capacity"))
 
-    @classproperty
-    def search_display_name(cls):
-        return _('rain barrels')
+    _terminology = {
+        'singular': _('Rain Barrel'),
+        'plural': _('Rain Barrels'),
+    }
 
     @classproperty
-    def display_name(cls):
-        return _('Rain Barrel')
+    def benefits(cls):
+        return CountOnlyBenefitCalculator(cls)
 
     @property
     def is_editable(self):

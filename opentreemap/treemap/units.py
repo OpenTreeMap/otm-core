@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import copy
+
 from functools import partial
 from numbers import Number
 
@@ -19,6 +21,15 @@ class Convertible(object):
     def __init__(self, *args, **kwargs):
         self.unit_status = 'db'
         super(Convertible, self).__init__(*args, **kwargs)
+
+    @classmethod
+    def terminology(cls, instance=None):
+        terms = copy.copy(cls._terminology)
+        if instance:
+            terms.update(instance.config
+                         .get('terms', {})
+                         .get(cls.__name__, {}))
+        return terms
 
     def _mutate_convertable_fields(self, f):
         from treemap.util import to_object_name

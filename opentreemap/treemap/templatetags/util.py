@@ -6,7 +6,8 @@ import json
 
 from opentreemap.util import dotted_split
 
-from treemap.models import MapFeature, Tree, TreePhoto, MapFeaturePhoto, Audit
+from treemap.models import (MapFeature, Tree, TreePhoto,
+                            MapFeaturePhoto, Audit, Plot)
 from treemap.udf import UserDefinedCollectionValue
 from treemap.util import get_filterable_audit_models, to_model_name
 
@@ -92,6 +93,11 @@ def audit_detail_link(audit):
 
 
 @register.filter
+def terminology(model, instance):
+    return model.terminology(instance)
+
+
+@register.filter
 def display_name(audit_or_model_or_name):
     if isinstance(audit_or_model_or_name, (Audit, basestring)):
         if isinstance(audit_or_model_or_name, Audit):
@@ -107,8 +113,13 @@ def display_name(audit_or_model_or_name):
     else:
         name = audit_or_model_or_name.__class__.__name__
 
+    # TODO: this should really call `.terminology()` with an instance arg
+    # to actually support instance-overrideable plot terminology.
+    # I am deferring this fix because this feature is not planned asnd it's
+    # non-trivial to put instance in scope here, which is required for
+    # getting terminology
     if name.lower() == 'plot':
-        return 'Planting Site'
+        return Plot.terminology()['singular']
     else:
         return name
 

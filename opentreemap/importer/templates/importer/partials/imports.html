@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load staticfiles %}
 
 <div class="contained topper">
   <div>
@@ -35,8 +36,8 @@
                 </form>
                 <div class="instructions">
                   <p>Need help formatting your CSV?  We have formatting
-                     <a href="https://www.opentreemap.org/wp-content/uploads/2015/01/OpenTreeMap_Tree_Import_Guide.pdf" target="_blank">instructions</a>
-                     and a <a href="https://www.opentreemap.org/wp-content/uploads/2015/01/OpenTreeMap_Tree_Import_Template.csv" target="_blank">template</a> to use.
+                     <a href="{% static 'OpenTreeMap_Tree_Import_Guide.pdf' %}" target="_blank">instructions</a>
+                     and a <a href="{% static 'OpenTreeMap_Tree_Import_Template.csv' %}" target="_blank">template</a> to use.
                   </p>
                 </div>
               </div>
@@ -54,8 +55,8 @@
                 </form>
                 <div class="instructions">
                   <p>Need help formatting your CSV?  We have formatting
-                     <a href="https://www.opentreemap.org/wp-content/uploads/2015/02/OpenTreeMap_Species_Import_Guide.pdf" target="_blank">instructions</a>
-                     and a <a href="https://www.opentreemap.org/wp-content/uploads/2015/01/OpenTreeMap_Species_Import_Template.csv" target="_blank">template</a> to use.
+                     <a href="{% static 'OpenTreeMap_Species_Import_Guide.pdf' %}" target="_blank">instructions</a>
+                     and a <a href="{% static 'OpenTreeMap_Species_Import_Template.csv' %}" target="_blank">template</a> to use.
                   </p>
                 </div>
               </div>

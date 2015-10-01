@@ -7,6 +7,7 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import RegexValidator
 from django.conf import settings
+from django.db import transaction
 from django.db.models import F
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ugettext_noop
@@ -185,22 +186,25 @@ class Instance(models.Model):
     basemap_data = models.CharField(max_length=255, null=True, blank=True)
 
     """
-    The current database revision for the instance
-
-    This revision is used to determine if tiles should be cached.
-    In particular, the revision has *no* effect on the actual
-    data.
-
-    Generally we make tile requests like:
-    http://tileserver/tile/{layer}/{rev}/{Z}/{Y}/{X}
-
-    There is a database trigger that updates the
-    revision whenever an edit to a geometry field is made
-    so you don't have to worry about it.
-
-    You should *not* edit this field.
+    The "geometry revision" is a monotonically increasing counter,
+    incremented whenever a map feature is modified in a way that would
+    affect rendered tiles. Its (hashed) value is part of all tile URLs, so
+    that repeated requests for the same tile may benefit from caching.
+    When e.g. a tree is added/moved/deleted the geo_rev is incremented,
+    and previously-cached tiles are no longer requested.
     """
     geo_rev = models.IntegerField(default=1)
+
+    """
+    The "ecobenefit revision" is a monotonically increasing counter,
+    incremented whenever a tree is modified in a way that would
+    affect ecobenefit summaries. Its value is part of cache keys for
+    ecobenefit summaries, so that repeated requests for the same trees
+    are fetched from the cache. When e.g. a tree is added or its diameter
+    updated the eco_rev is incremented, and previously-cached summaries
+    are no longer requested.
+    """
+    eco_rev = models.IntegerField(default=1, null=True, blank=True)
 
     eco_benefits_conversion = models.ForeignKey(
         'BenefitCurrencyConversion', null=True, blank=True)
@@ -313,10 +317,7 @@ class Instance(models.Model):
 
         def make_display_filter(feature_name):
             Feature = MapFeature.get_subclass(feature_name)
-            if hasattr(Feature, 'display_name_plural'):
-                plural = Feature.display_name_plural
-            else:
-                plural = Feature.display_name + 's'
+            plural = Feature.terminology(self)['plural']
             return {
                 'label': 'Show %s' % plural.lower(),
                 'model': feature_name
@@ -489,14 +490,43 @@ class Instance(models.Model):
             pass
         return "%s_%s" % (self.url_name, thumbprint)
 
-    def update_geo_rev(self):
-        qs = Instance.objects.filter(pk=self.id)
+    @transaction.atomic
+    def add_map_feature_types(self, types):
+        from treemap.models import MapFeature  # prevent circular import
+        from treemap.audit import add_default_permissions
 
+        classes = [MapFeature.get_subclass(type) for type in types]
+
+        dups = set(types) & set(self.map_feature_types)
+        if len(dups) > 0:
+            raise ValidationError('Map feature types already added: %s' % dups)
+
+        self.map_feature_types = list(self.map_feature_types) + list(types)
+        self.save()
+
+        for type, clz in zip(types, classes):
+            settings = (getattr(clz, 'udf_settings', {}))
+            for udfc_name, udfc_settings in settings.items():
+                if udfc_settings.get('defaults'):
+                    create_udf(self, type, udfc_name)
+
+        add_default_permissions(self, models=classes)
+
+    def update_geo_rev(self):
         # Use SQL increment in case self.geo_rev is stale
+        qs = Instance.objects.filter(pk=self.id)
         qs.update(geo_rev=F('geo_rev') + 1)
 
         # Fetch updated value so callers will have it
         self.geo_rev = qs[0].geo_rev
+
+    def update_eco_rev(instance):
+        # Use SQL increment in case self.eco_rev is stale
+        qs = Instance.objects.filter(pk=instance.id)
+        qs.update(eco_rev=F('eco_rev') + 1)
+
+        # Fetch updated value so callers will have it
+        instance.eco_rev = qs[0].eco_rev
 
     def itree_region_codes(self):
         from treemap.models import ITreeRegion

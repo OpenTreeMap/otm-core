@@ -31,6 +31,11 @@ from importer.tasks import (run_import_event_validation, commit_import_event,
                             get_all_species_export, get_import_export)
 from importer import errors, fields
 
+TABLE_ACTIVE_TREES = 'activeTrees'
+TABLE_FINISHED_TREES = 'finishedTrees'
+TABLE_ACTIVE_SPECIES = 'activeSpecies'
+TABLE_FINISHED_SPECIES = 'finishedSpecies'
+
 
 def _find_similar_species(target, instance):
     search_exp = " || ".join(["genus", "' '", "species", "' '",
@@ -54,6 +59,7 @@ def _find_similar_species(target, instance):
 def start_import(request, instance):
     import_type = request.REQUEST['type']
     if import_type == TreeImportEvent.import_type:
+        table = TABLE_ACTIVE_TREES
         factors = {'plot_length_conversion_factor': 'unit_plot_length',
                    'plot_width_conversion_factor': 'unit_plot_width',
                    'diameter_conversion_factor': 'unit_diameter',
@@ -62,6 +68,7 @@ def start_import(request, instance):
         kwargs = {k: float(request.REQUEST.get(v, 1.0))
                   for (k, v) in factors.items()}
     else:
+        table = TABLE_ACTIVE_SPECIES
         kwargs = {
             'max_diameter_conversion_factor':
             storage_to_instance_units_factor(instance, 'tree', 'diameter'),
@@ -70,24 +77,15 @@ def start_import(request, instance):
         }
     process_csv(request, instance, import_type, **kwargs)
 
-    return list_imports(request, instance)
+    return get_import_table(request, instance, table)
 
 
 def list_imports(request, instance):
-    finished = GenericImportEvent.FINISHED_CREATING
+    table_names = [TABLE_ACTIVE_TREES, TABLE_FINISHED_TREES,
+                   TABLE_ACTIVE_SPECIES, TABLE_FINISHED_SPECIES]
 
-    trees = TreeImportEvent.objects.filter(instance=instance).order_by('id')
-    active_trees = trees.exclude(status=finished)
-    finished_trees = trees.filter(status=finished)
-
-    species = SpeciesImportEvent.objects\
-        .filter(instance=instance)\
-        .order_by('id')
-    active_species = species.exclude(status=finished)
-    finished_species = species.filter(status=finished)
-
-    active_events = list(active_trees) + list(active_species)
-    imports_finished = all(ie.is_finished() for ie in active_events)
+    tables = [_get_table_context(instance, table_name, 1)
+              for table_name in table_names]
 
     instance_units = {k + '_' + v:
                       get_value_display_attr(instance, k, v, 'units')[1]
@@ -96,14 +94,66 @@ def list_imports(request, instance):
                                    ('tree', 'height'),
                                    ('tree', 'diameter'),
                                    ('tree', 'canopy_height')]}
+    return {
+        'tables': tables,
+        'importer_instance_units': instance_units,
+        }
 
-    return {'importer_instance_units': instance_units,
-            'active_trees': active_trees,
-            'finished_trees': finished_trees,
-            'active_species': active_species,
-            'finished_species': finished_species,
-            'imports_finished': imports_finished
-            }
+
+def get_import_table(request, instance, table_name):
+    page_number = int(request.GET.get('page', '1'))
+    return {
+        'table': _get_table_context(instance, table_name, page_number)
+    }
+
+
+_EVENT_TABLE_PAGE_SIZE = 5
+
+
+def _get_table_context(instance, table_name, page_number):
+    trees = TreeImportEvent.objects\
+        .filter(instance=instance)\
+        .order_by('-created')
+    species = SpeciesImportEvent.objects\
+        .filter(instance=instance)\
+        .order_by('-created')
+    finished = GenericImportEvent.FINISHED_CREATING
+
+    if table_name == TABLE_ACTIVE_TREES:
+        title = _('Active Tree Imports')
+        rows = trees.exclude(status=finished)
+
+    elif table_name == TABLE_FINISHED_TREES:
+        title = _('Finished Tree Imports')
+        rows = trees.filter(status=finished)
+
+    elif table_name == TABLE_ACTIVE_SPECIES:
+        title = _('Active Species Imports')
+        rows = species.exclude(status=finished)
+
+    elif table_name == TABLE_FINISHED_SPECIES:
+        title = _('Finished Species Imports')
+        rows = species.filter(status=finished)
+
+    else:
+        raise Exception('Unexpected import table name: %s' % table_name)
+
+    paginator = Paginator(rows, _EVENT_TABLE_PAGE_SIZE)
+    rows = paginator.page(min(page_number, paginator.num_pages))
+    has_pending = any(not ie.is_finished() for ie in rows)
+    paging_url = reverse('importer:get_import_table',
+                         args=(instance.url_name, table_name))
+    refresh_url = paging_url + '?page=%s' % page_number
+
+    return {
+        'name': table_name,
+        'title': title,
+        'page_size': _EVENT_TABLE_PAGE_SIZE,
+        'rows': rows,
+        'has_pending': has_pending,
+        'paging_url': paging_url,
+        'refresh_url': refresh_url,
+    }
 
 
 @transaction.atomic

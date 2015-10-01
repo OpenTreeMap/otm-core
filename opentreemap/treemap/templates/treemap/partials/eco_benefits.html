@@ -17,7 +17,7 @@
 
     {% with resource_benefits=benefits.resource %}
       {% if not hide_summary and request.instance.has_resources and resource_benefits %}
-        <div class="benefit-value-title">{{ term.Resource }} {% trans "Benefits" %}</div>
+        <div class="benefit-value-title">{{ term.Resource.singular }} {% trans "Benefits" %}</div>
       {% endif %}
       {% include "treemap/partials/benefit_value_row.html" with benefit=resource_benefits.runoff_reduced icon='tint' %}
       {% include "treemap/partials/benefit_value_row.html" with benefit=resource_benefits.usage_reduced icon='tint' %}
@@ -29,7 +29,7 @@
         {% blocktrans with used=plot_basis.n_objects_used total=plot_basis.n_total %}
         Based on {{ used }} out of {{ total }} total trees{% endblocktrans %}{% if not has_resources %}.{% endif %}
         {% if has_resources %}
-          {% blocktrans with used=resource_basis.n_objects_used total=resource_basis.n_total resources=term.resources%}
+          {% blocktrans with used=resource_basis.n_objects_used total=resource_basis.n_total resources=term.Resource.plural.lower %}
             and {{ used }} out of {{ total }} total {{ resources }}.
           {% endblocktrans %}
         {% endif %}
@@ -48,9 +48,9 @@
     {% with resource_count=basis.resource.n_total %}
       <span id="resource-count">{{ resource_count }}</span>
       {% if resource_count == 1 %}
-        {{ term.resource }}
+        {{ term.Resource.singular.lower }}
       {% else %}
-        {{ term.resources }}
+        {{ term.Resource.plural.lower }}
       {% endif %}
     {% endwith %}
   {% endif %}

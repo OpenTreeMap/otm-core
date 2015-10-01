@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load l10n %}
 {% load util %}
+{% load form_extras %}
 {% load instance_config %}
 
 {% with perm_level=last_effective_instance_user|udf_write_level:udf %}
@@ -14,7 +15,7 @@
   <table class="table table-hover"
          {% if perm_level == "write" %}
          data-udf-id="{{ udf.pk|unlocalize }}"
-         data-udf-name="{{ udf.model_type.lower }}.{{ udf.canonical_name }}"
+         data-udf-name="{{ udf.model_type|to_object_name }}.{{ udf.canonical_name }}"
          {% endif %}
          >
     <tr class="headerrow"

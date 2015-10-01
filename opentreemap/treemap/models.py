@@ -606,12 +606,13 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             raise ValidationError({
                 "geom": [
                     _(
-                        "%(model)ss must be created inside the map boundaries")
-                    % {'model': self.display_name}]
+                        "%(model)s must be created inside the map boundaries")
+                    % {'model': self.terminology(self.instance)['plural']}]
             })
 
     def delete_with_user(self, user, *args, **kwargs):
         self.instance.update_geo_rev()
+        self.instance.update_eco_rev()
         super(MapFeature, self).delete_with_user(user, *args, **kwargs)
 
     def photos(self):
@@ -630,11 +631,6 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         # (But note that the value gets stored in the database, so should not
         # be changed for a subclass once objects have been saved.)
         return cls.__name__
-
-    @classproperty
-    def display_name(cls):
-        # Subclasses should override with something useful
-        return cls.map_feature_type
 
     @classmethod
     def subclass_dict(cls):
@@ -708,7 +704,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             else:
                 title = _("Empty Planting Site")
         else:
-            title = feature.display_name
+            title = feature.terminology(self.instance)['singular']
 
         return title
 
@@ -754,8 +750,17 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         text = "%s (%s, %s) %s" % (self.feature_type, x, y, address)
         return text
 
+    @classproperty
+    def _terminology(cls):
+        return {'singular': cls.__name__}
 
-#TODO:
+    @classproperty
+    def benefits(cls):
+        from treemap.ecobenefits import CountOnlyBenefitCalculator
+        return CountOnlyBenefitCalculator(cls)
+
+
+# TODO:
 # Exclusion Zones
 # Proximity validation
 # UDFModel overrides implementations of methods in
@@ -770,6 +775,9 @@ class Plot(MapFeature):
 
     objects = GeoHStoreUDFManager()
     is_editable = True
+
+    _terminology = {'singular': _('Planting Site'),
+                    'plural': _('Planting Sites')}
 
     udf_settings = {
         'Stewardship': {
@@ -846,14 +854,6 @@ class Plot(MapFeature):
                 "Cannot delete plot with existing trees."))
         super(Plot, self).delete_with_user(user, *args, **kwargs)
 
-    @classproperty
-    def display_name(cls):
-        return _('Planting Site')
-
-    @classproperty
-    def search_display_name(cls):
-        return _('planting sites')
-
 
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
@@ -918,13 +918,7 @@ class Tree(Convertible, UDFModel, PendingAuditable):
                          if self.species else "")
         return "%s%s" % (diameter_chunk, species_chunk)
 
-    @classproperty
-    def search_display_name(cls):
-        return _('trees')
-
-    @classproperty
-    def display_name(cls):
-        return _('Tree')
+    _terminology = {'singular': _('Tree'), 'plural': _('Trees')}
 
     def dict(self):
         props = self.as_dict()

@@ -14,7 +14,7 @@ var dom = {
     backLink: '[data-action="back"]',
     cancelLink: '[data-action="cancel"]',
     commitLink: '[data-action="commit"]',
-    pagingButtons: '.pagination li a',
+    pagingButtons: '.import-status .pagination li a',
     rowInMergeRequiredTable: '#import-panel-merge_required .js-import-row',
     mergeControls: '.js-merge-controls',
     hideMergeControlsButton: '.js-hide',
