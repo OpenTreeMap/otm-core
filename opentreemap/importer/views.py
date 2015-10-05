@@ -138,9 +138,14 @@ def _get_table_context(instance, table_name, page_number):
     else:
         raise Exception('Unexpected import table name: %s' % table_name)
 
+    # Get has_pending before filtering by page so that completing an
+    # import on a non-visible page will still trigger a refresh of the
+    # finished table
+    has_pending = any(not ie.is_finished() for ie in rows)
+
     paginator = Paginator(rows, _EVENT_TABLE_PAGE_SIZE)
     rows = paginator.page(min(page_number, paginator.num_pages))
-    has_pending = any(not ie.is_finished() for ie in rows)
+
     paging_url = reverse('importer:get_import_table',
                          args=(instance.url_name, table_name))
     refresh_url = paging_url + '?page=%s' % page_number
