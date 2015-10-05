@@ -10,8 +10,6 @@ USER_ACTIVATION_FUNCTION = None
 UITEST_CREATE_INSTANCE_FUNCTION = 'treemap.tests.make_instance'
 UITEST_SETUP_FUNCTION = None
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 # This email is shown in various contact/error pages
 # throughout the site
 SUPPORT_EMAIL_ADDRESS = 'support@yoursite.com'
