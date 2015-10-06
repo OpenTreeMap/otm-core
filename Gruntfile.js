@@ -100,7 +100,7 @@ module.exports = function(grunt) {
         },
         shell: {
             collect_static: {
-                command: 'python manage.py collectstatic --noinput'
+                command: 'python manage.py collectstatic --noinput -c'
             }
         },
         browserify: {
