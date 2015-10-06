@@ -86,8 +86,8 @@ should_send_user_activation = get_plugin_function(
 setup_for_ui_test = get_plugin_function('UITEST_SETUP_FUNCTION', lambda: None)
 
 
-get_mobile_instances_filter = get_plugin_function('MOBILE_INSTANCES_FUNCTION',
-                                                  lambda: Q())
+get_viewable_instances_filter = get_plugin_function(
+    'VIEWABLE_INSTANCES_FUNCTION', lambda: Q())
 
 
 get_viewable_instances_filter = get_plugin_function(

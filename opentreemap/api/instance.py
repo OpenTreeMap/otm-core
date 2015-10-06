@@ -22,7 +22,7 @@ from treemap.units import (get_units_if_convertible, get_digits_if_formattable,
 from treemap.util import safe_get_model_class
 from treemap.templatetags.form_extras import field_type_label_choices
 from treemap.json_field import is_json_field_reference
-from treemap.plugin import get_mobile_instances_filter
+from treemap.plugin import get_viewable_instances_filter
 from treemap.ecobenefits import BenefitCategory
 
 import treemap.lib.perms as perms_lib
@@ -104,7 +104,7 @@ def instances_closest_to_point(request, lat, lng):
             'The distance parameter must be a number')
 
     instances = Instance.objects \
-                        .filter(get_mobile_instances_filter()) \
+                        .filter(get_viewable_instances_filter()) \
                         .distance(point) \
                         .order_by('distance')
 
@@ -241,7 +241,7 @@ def instance_info(request, instance):
 def public_instances(request):
     return _contextify_instances(Instance.objects
                                  .filter(is_public=True)
-                                 .filter(get_mobile_instances_filter()))
+                                 .filter(get_viewable_instances_filter()))
 
 
 def _contextify_instances(instances):
