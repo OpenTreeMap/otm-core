@@ -334,10 +334,10 @@ class EcoTest(UrlTestCase):
 @override_settings(USE_ECO_CACHE=True)
 class EcoCacheTest(UrlTestCase):
     def setUp(self):
-        instance = make_instance()
+        self.instance = make_instance()
+        self.user = make_commander_user(self.instance)
         self.benefits = 'some benefits'
-        self.count = 5
-        self.filter = Filter('', '', instance)
+        self.filter = Filter('', '', self.instance)
 
     def tearDown(self):
         cache.clear()
@@ -354,12 +354,23 @@ class EcoCacheTest(UrlTestCase):
         self.assertEqual(benefits, 'others')
 
     def test_count_is_cached(self):
-        get_cached_plot_count(self.filter, lambda: self.count)
-        count = get_cached_plot_count(self.filter, lambda: 17)
-        self.assertEqual(count, self.count)
+        count = get_cached_plot_count(self.filter)
+        self.assertEqual(0, count)
+
+        # We save with the old
+        plot = Plot(geom=self.instance.center, instance=self.instance)
+        plot.save_with_user(self.user)
+
+        count = get_cached_plot_count(self.filter)
+        self.assertEqual(0, count)
 
     def test_updating_geo_rev_busts_count_cache(self):
-        get_cached_plot_count(self.filter, lambda: self.count)
+        count = get_cached_plot_count(self.filter)
+        self.assertEqual(0, count)
+
+        plot = Plot(geom=self.instance.center, instance=self.instance)
+        plot.save_with_user(self.user)
         self.filter.instance.update_geo_rev()
-        count = get_cached_plot_count(self.filter, lambda: 17)
-        self.assertEqual(count, 17)
+
+        count = get_cached_plot_count(self.filter)
+        self.assertEqual(1, count)
