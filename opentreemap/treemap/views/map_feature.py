@@ -7,7 +7,6 @@ import json
 import hashlib
 from functools import wraps
 
-from django.http import Http404
 from django.template import RequestContext, TemplateDoesNotExist
 from django.template.loader import get_template
 from django.shortcuts import get_object_or_404, render_to_response
@@ -28,6 +27,7 @@ from treemap.images import get_image_from_request
 from treemap.lib.photo import context_dict_for_photo
 from treemap.lib.object_caches import udf_defs
 from treemap.lib.map_feature import (get_map_feature_or_404,
+                                     raise_non_instance_404,
                                      context_dict_for_plot,
                                      context_dict_for_resource,
                                      context_dict_for_map_feature)
@@ -111,9 +111,9 @@ def context_map_feature_detail(request, instance, feature_id, **kwargs):
 
 
 def map_feature_photo_detail(request, instance, feature_id, photo_id):
-    photo = get_object_or_404(MapFeaturePhoto,
-                              pk=photo_id,
-                              map_feature=feature_id)
+    feature = get_map_feature_or_404(feature_id, instance)
+    photo = get_object_or_404(MapFeaturePhoto, pk=photo_id,
+                              map_feature=feature)
     return {'photo': context_dict_for_photo(request, photo)}
 
 
@@ -134,11 +134,13 @@ def render_map_feature_add(request, instance, type):
                                   {'object_name': to_object_name(type)},
                                   RequestContext(request))
     else:
-        raise Http404('Instance does not support feature type ' + type)
+        raise_non_instance_404(type)
 
 
 def add_map_feature(request, instance, type='Plot'):
-    feature = MapFeature.create(type, instance)
+    if type not in instance.map_feature_types:
+        raise_non_instance_404(type)
+    feature = MapFeature.get_subclass(type)(instance=instance)
     return _request_to_update_map_feature(request, feature)
 
 
@@ -301,14 +303,12 @@ def map_feature_hash(request, instance, feature_id, edit=False, tree_id=None):
     this function is wrapped around views that can take
     tree_id as an argument
     """
-
-    InstanceMapFeature = instance.scope_model(MapFeature)
-    base = get_object_or_404(InstanceMapFeature, pk=feature_id).hash
+    feature = get_map_feature_or_404(feature_id, instance)
 
     if request.user:
         pk = request.user.pk or ''
 
-    return hashlib.md5(base + ':' + str(pk)).hexdigest()
+    return hashlib.md5(feature.hash + ':' + str(pk)).hexdigest()
 
 
 @get_photo_context_and_errors
@@ -323,7 +323,10 @@ def rotate_map_feature_photo(request, instance, feature_id, photo_id):
         raise ValidationError('"degrees" must be a multiple of 90°')
 
     degrees = int(orientation)
-    mf_photo = get_object_or_404(MapFeaturePhoto, pk=photo_id)
+    feature = get_map_feature_or_404(feature_id, instance)
+    mf_photo = get_object_or_404(MapFeaturePhoto,
+                                 pk=photo_id,
+                                 map_feature=feature)
 
     image_data = mf_photo.image.read(settings.MAXIMUM_IMAGE_SIZE)
     mf_photo.set_image(image_data, degrees_to_rotate=degrees)

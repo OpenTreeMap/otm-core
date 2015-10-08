@@ -38,7 +38,10 @@ def get_comments(params, instance):
 
     # Note: we tried .prefetch_related('content_object')
     # but it gives comment.content_object = None  (Django 1.6)
+
+    types = {t.lower() for t in instance.map_feature_types}
     comments = EnhancedThreadedComment.objects \
+        .filter(content_type__model__in=types) \
         .filter(instance=instance) \
         .extra(select={
             'visible_flag_count': 'SELECT COUNT(*) ' +

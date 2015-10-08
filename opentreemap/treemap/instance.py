@@ -347,8 +347,10 @@ class Instance(models.Model):
             iu = None
 
         data = DotDict({'models': set(), 'udfc': {}})
-        for clz in (leaf_models_of_class(UDFModel)):
+        for clz in leaf_models_of_class(UDFModel):
             model_name = clz.__name__
+            if model_name not in ['Tree'] + self.map_feature_types:
+                continue
             for k, v in clz.collection_udf_settings.items():
                 udfds = (u for u in udf_defs(self, model_name) if u.name == k)
                 for udfd in udfds:

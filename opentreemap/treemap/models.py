@@ -648,13 +648,6 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         except KeyError as e:
             raise ValidationError('Map feature type %s not found' % e)
 
-    @classmethod
-    def create(cls, type, instance):
-        """
-        Create a map feature with the given type string (e.g. 'Plot')
-        """
-        return cls.get_subclass(type)(instance=instance)
-
     @property
     def address_full(self):
         components = []
