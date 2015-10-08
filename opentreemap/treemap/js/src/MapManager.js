@@ -6,6 +6,7 @@ var $ = require('jquery'),
     L = require('leaflet'),
     Bacon = require('baconjs'),
     format = require('util').format,
+    urlLib = require('url'),
     U = require('treemap/utility'),
     BU = require('treemap/baconUtils'),
     makeLayerFilterable = require('treemap/makeLayerFilterable'),
@@ -284,11 +285,13 @@ function getPolygonLayerURL(config, extension) {
 }
 
 function getLayerURL(config, layer, extension) {
-    var host = config.tileHost || '';
-    return host + '/tile/' +
-        config.instance.rev +
-        '/database/otm/table/' + layer + '/{z}/{x}/{y}.' +
-        extension + '?instance_id=' + config.instance.id;
+    return format(
+        '%s/tile/%s/database/otm/table/%s/{z}/{x}/{y}.%s%s',
+        config.tileHost, config.instance.rev, layer, extension,
+        urlLib.format({query: {
+            'instance_id': config.instance.id,
+            'restrict': JSON.stringify(config.instance.mapFeatureTypes)
+        }}));
 }
 
 function deserializeZoomLatLngAndSetOnMap(mapManager, state) {
