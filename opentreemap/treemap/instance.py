@@ -573,6 +573,12 @@ class Instance(models.Model):
         except ObjectDoesNotExist:
             return False
 
+    def plot_count(self):
+        from treemap.ecocache import get_cached_plot_count
+        from treemap.search import Filter
+        all_plots_filter = Filter('', '', self)
+        return get_cached_plot_count(all_plots_filter)
+
     def scope_model(self, model):
         qs = model.objects.filter(instance=self)
         return qs

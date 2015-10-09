@@ -7,58 +7,58 @@
     border-radius: 6px;
     margin-top: 5px;
 
-	.nav {
-		margin-bottom: 0;
+    .nav {
+        margin-bottom: 0;
 
-		li {
-			a {
-				padding: 0 0 9px;
+        li {
+            a {
+                padding: 0 0 9px;
                 margin: 0 0 5px -2px;
                 font-weight: 700;
                 width: 95px;
                 font-size: 1.2rem;
                 text-align: left;
-				border-radius: 0;
-				color: lighten($subtext-color, 15%);
-				border-bottom: 6px solid white;
+                border-radius: 0;
+                color: lighten($subtext-color, 15%);
+                border-bottom: 6px solid white;
 
-				&:hover,
-				&:focus {
-					background-color: transparent;
-					color: $subtext-color;
-					border-bottom: 6px solid lighten($primary-color, 25%);
-				}
+                &:hover,
+                &:focus {
+                    background-color: transparent;
+                    color: $subtext-color;
+                    border-bottom: 6px solid lighten($primary-color, 25%);
+                }
 
-				&.error-on-tab {
-					border-bottom: 6px solid lighten($alert-color, 15%) !important;
+                &.error-on-tab {
+                    border-bottom: 6px solid lighten($alert-color, 15%) !important;
                     color: $alert-color !important;
-				}
-			}
-			&.active {
-				a,
-				a:hover,
-				a:focus {
-					background-color: transparent;
-					color: $main-text-color;
-					border-bottom: 6px solid $primary-color;
-				}
-			}
-		}
-	}
+                }
+            }
+            &.active {
+                a,
+                a:hover,
+                a:focus {
+                    background-color: transparent;
+                    color: $main-text-color;
+                    border-bottom: 6px solid $primary-color;
+                }
+            }
+        }
+    }
 }
 
 .create-map-header {
-	clear: both;
-	border-bottom: 1px solid #F1f2f2;
-	padding: 0 25px 10px;
+    clear: both;
+    border-bottom: 1px solid #F1f2f2;
+    padding: 0 25px 10px;
     margin: 0 -25px;
 
-	h2 {
-		margin-bottom: 5px;
-	}
+    h2 {
+        margin-bottom: 5px;
+    }
 }
 .create-map-body {
-	margin: 20px 0;
+    margin: 20px 0;
     position: relative;
     min-height: 525px;
 
@@ -100,188 +100,77 @@
     }
 }
 .create-instance-footer {
-	padding-top: 15px;
-	border-top: 1px solid #f1f2f2;
-	margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #f1f2f2;
+    margin-top: 20px;
 
-	.btn {
-		margin-bottom: 5px;
-	}
-	small {
-		clear: both;
-		display: block;
-		font-size: 1.2rem;
-		color: $subtext-color;
-	}
+    .btn {
+        margin-bottom: 5px;
+    }
+    small {
+        clear: both;
+        display: block;
+        font-size: 1.2rem;
+        color: $subtext-color;
+    }
 }
 
 #pricing-summary {
-	position: relative;
-	top: 20px;
-	left: 60px;
+    position: relative;
+    top: 20px;
+    left: 60px;
 
-	h5 {
-		padding-bottom: 8px;
-		border-bottom: 1px solid lighten($subtext-color, 35%);
-	}
-	dl {
-		margin: 5px 0 16px;
+    h5 {
+        padding-bottom: 8px;
+        border-bottom: 1px solid lighten($subtext-color, 35%);
+    }
+    dl {
+        margin: 5px 0 16px;
 
-		dt {
-			font-weight: 700;
-			font-size: 1.2rem;
-			margin-bottom: 2px;
-		}
-		dd {
-			margin-left: 0;
-			font-weight: 300;
-		}
-	}
+        dt {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+        }
+        dd {
+            margin-left: 0;
+            font-weight: 300;
+        }
+    }
 }
 
 #price-table {
-	margin: 0 15px;
-	text-align: center;
+    margin: 0 15px;
 
-	[class*="span"] {
-		margin-left: 0;
-	}
-
-	h1, h2, h3, h4, h5, h6 {
-		margin-top: 12px;
-		margin-bottom: 1px;
-	}
-    h3 {
-        margin-top: 8px;
-        margin-bottom: 5px;
+    otm-pricing-overview {
+        right: 0;
+        top: 0;
     }
-	hr {
-		margin: 40px 0;
-	}
-
-	.plan-details {
-		&.plan-selected {
-			.price-body {
-				background-color: lighten($light-gray-color, 3%);
-            }
-		}
-	}
-
-	.price-level {
-		padding: 0;
-		width: 25%;
-
-		&:first-child .price-body {
-			border-left: solid 1px $light-gray-color;
-		}
-
-		h6 {
-			margin-top: -2px;
-			text-transform: uppercase;
-			color: $subtext-color;
-            margin-bottom: 8px;
-		}
-
-		.price-body {
-			border-color: $light-gray-color;
-			border-width: 1px 1px 1px 0;
-			border-style: solid;
-		}
-		.price-header {
-			height: 215px;
-			padding-top: 15px;
-
-			h4 {
-                margin-top: 15px;
-				font-weight: 700;
-
-				&.aspen {
-					color: #ADD142;
-				}
-				&.maple {
-					color: #598139;
-				}
-				&.oak {
-					color: #598139;
-				}
-				&.sycamore {
-					color: #54823c;
-				}
-			}
-			h6 {
-				text-transform: none;
-				width: 75%;
-				margin: 6px auto 12px;
-				line-height: 1.6rem;
-			}
-			img {
-				width: 114px;
-			}
-		}
-		.price-aspect {
-			&:last-child {
-				border-bottom: 0;
-			}
-			border-bottom: 1px solid $light-gray-color;
-			padding: 6px 20px;
-			text-align: center;
-
-			.per-month {
-				font-size: 1.2rem;
-				vertical-align: text-top;
-				line-height: 3.2rem;
-				color: $subtext-color;
-			}
-
-			&.select-plan {
-                min-height: 150px;
-
-				.label {
-					padding: 6px 12px;
-					margin-top: 6px;
-					margin-bottom: 12px;
-					border-radius: 0;
-				}
-				.btn-select-plan {
-					margin-bottom: 14px;
-				}
-                h2 {
-                    margin-bottom: 10px;
-                    margin-top: 4px;
-                }
-				h6 {
-					text-transform: none;
-                    margin-bottom: 12px;
-				}
-			}
-		}
-	}
-
 }
 
 #temporarily-disabled {
-	background: white;
-	background: rgba(255,255,255,.75);
-	width: 98%;
-	height: 715px;
-	position: absolute;
-	z-index: 99;
-	top: 110px;
+    background: white;
+    background: rgba(255,255,255,.75);
+    width: 98%;
+    height: 715px;
+    position: absolute;
+    z-index: 99;
+    top: 110px;
 
-	h3 {
-		text-align: center;
-		margin: 150px auto 0;
-		padding: 20px;
-		background: white;
-		background: rgba(255,255,255,.5);
-		display: block;
-		width: 85%;
-	}
-	.btn {
-		margin: 0 auto;
-		width: 250px;
-		padding: 22px 25px 25px;
-		font-size: 2.8rem;
-		display: block;
-	}
+    h3 {
+        text-align: center;
+        margin: 150px auto 0;
+        padding: 20px;
+        background: white;
+        background: rgba(255,255,255,.5);
+        display: block;
+        width: 85%;
+    }
+    .btn {
+        margin: 0 auto;
+        width: 250px;
+        padding: 22px 25px 25px;
+        font-size: 2.8rem;
+        display: block;
+    }
 }
