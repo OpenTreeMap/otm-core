@@ -220,10 +220,9 @@ class Instance(models.Model):
 
     default_role = models.ForeignKey('Role', related_name='default_role')
 
-    users = models.ManyToManyField('User', through='InstanceUser',
-                                   null=True, blank=True)
+    users = models.ManyToManyField('User', through='InstanceUser')
 
-    boundaries = models.ManyToManyField('Boundary', null=True, blank=True)
+    boundaries = models.ManyToManyField('Boundary')
 
     """
     Config contains a bunch of config variables for a given instance
