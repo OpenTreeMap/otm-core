@@ -1,0 +1,14 @@
+{% load i18n %}
+
+<div class="col-xs-4 text-right">
+    <img class="spinner" src="{{ STATIC_URL }}img/spinner.gif" style="display: none;">
+    <button data-class="display" class="btn btn-info editBtn">
+        {% trans "Edit" %}
+    </button>
+    <button data-class="edit" class="btn btn-primary saveBtn" style="display: none;">
+        {% trans "Save" %}
+    </button>
+    <button data-class="edit" class="btn cancelBtn" style="display: none;">
+        {% trans "Cancel" %}
+    </button>
+</div>
