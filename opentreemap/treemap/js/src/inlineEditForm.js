@@ -6,7 +6,6 @@ var $ = require('jquery'),
     BU = require('treemap/baconUtils'),
     U = require('treemap/utility'),
     _ = require('lodash'),
-    moment = require('moment'),
     FH = require('treemap/fieldHelpers'),
     console = require('console-browserify'),
     editableForm = require('treemap/editableForm'),
@@ -16,19 +15,32 @@ var $ = require('jquery'),
 
 exports.init = function(options) {
     var updateUrl = options.updateUrl,
-        form = options.form,
-        $edit = $(options.edit),
-        $save = $(options.save),
-        $cancel = $(options.cancel),
-        displayFields = options.displayFields,
-        editFields = options.editFields,
+        section = options.section || 'body',
+        form = options.form || section + ' form',
+        $section = $(section),
+        $edit = options.edit ? $(options.edit) : $section.find('.editBtn'),
+        $save = options.save ? $(options.save) : $section.find('.saveBtn'),
+        $cancel = options.cancel ? $(options.cancel) : $section.find('.cancelBtn'),
+        $spinner = options.spinner ? $(options.spinner) : $section.find('.spinner'),
+        displayFields = options.displayFields || section + ' [data-class="display"]',
+        editFields = options.editFields || section + ' [data-class="edit"]',
+        validationFields = options.validationFields || section + ' [data-class="error"]',
         globalErrorSection = options.globalErrorSection,
-        validationFields = options.validationFields,
         errorCallback = options.errorCallback || $.noop,
         onSaveBefore = options.onSaveBefore || _.identity,
         onSaveAfter = options.onSaveAfter || _.identity,
+
+        showSavePending = function (saveIsPending) {
+            $spinner.toggle(saveIsPending);
+            $save.prop('disabled', saveIsPending);
+            $cancel.prop('disabled', saveIsPending);
+        },
+
         editStream = $edit.asEventStream('click').map(editableForm.editStartAction),
-        saveStream = (options.saveStream || $save.asEventStream('click')).map('save:start'),
+        saveStream = $save
+            .asEventStream('click')
+            .doAction(showSavePending, true)
+            .map('save:start'),
         externalCancelStream = BU.triggeredObjectStream('cancel'),
         cancelStream = $cancel.asEventStream('click').map('cancel'),
         actionStream = new Bacon.Bus(),
@@ -166,6 +178,7 @@ exports.init = function(options) {
         responseErrorStream = responseStream
             .errors()
             .mapError(function (e) {
+                showSavePending(false);
                 var result = ('responseJSON' in e) ? e.responseJSON : {};
                 if ('error' in result) {
                     U.warnDeprecatedErrorMessage(result);
@@ -181,6 +194,7 @@ exports.init = function(options) {
             }),
 
         saveOkStream = responseStream.map(function(responseData) {
+            showSavePending(false);
             return {
                 formData: getDataToSave(),
                 responseData: responseData
