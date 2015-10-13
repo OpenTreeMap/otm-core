@@ -210,6 +210,21 @@ def update_row(request, instance, import_type, row_id):
 
     basedata = row.datadict
 
+    # Minor workaround for updating species columns in tree imports
+    # The client sends up a species_id field, which does not match any of the
+    # columns in the ImportRow. If it is present, we look up the species in the
+    # DB and fill in the appropriate species fields in the ImportRow
+    if 'species_id' in request.POST:
+        # this round tripped from the server, so it should always have a match.
+        species = Species.objects.get(pk=request.POST['species_id'])
+        basedata.update({
+            fields.trees.GENUS: species.genus,
+            fields.trees.SPECIES: species.species,
+            fields.trees.CULTIVAR: species.cultivar,
+            fields.trees.OTHER_PART_OF_NAME: species.other_part_of_name,
+            fields.trees.COMMON_NAME: species.common_name
+        })
+
     for k, v in request.POST.iteritems():
         if k in basedata:
             basedata[k] = v

@@ -305,18 +305,6 @@ class TreeImportRow(GenericImportRow):
             fields.trees.TREE_HEIGHT,
             species.max_height, errors.SPECIES_HEIGHT_TOO_HIGH)
 
-    def _is_pk_int_like(self, value):
-        if isinstance(value, basestring):
-            try:
-                int(value)
-            except ValueError:
-                return False
-            return True
-        elif isinstance(value, int):
-            return True
-        else:
-            return False
-
     def validate_species(self):
         fs = fields.trees
         genus = self.datadict.get(fs.GENUS, '')
@@ -330,29 +318,7 @@ class TreeImportRow(GenericImportRow):
             error_txt = ' '.join(error_fields).strip()
             self.append_error(error, fs.SPECIES_FIELDS, error_txt)
 
-        # This is a workaround.
-        # the row correction workflow that we use is highly abstracted
-        # to work with arbitrary key value pairs that correspond to a
-        # field in a row of either (tree/species) import type. However,
-        # when correcting species via a popover/typeahead, we are
-        # actually choosing a PK that is a combination of a number of
-        # fields. Due to this mismatch, there's no convenient place
-        # further upstream to unpack these replacement values from the
-        # primary key.
-        if self._is_pk_int_like(species):
-            matching_species = Species.objects.filter(pk=species)
-            # these round tripped from the server,
-            # so they will always have a match.
-            obj = matching_species[0]
-            newdict = self.datadict
-            newdict.update({fs.GENUS: obj.genus,
-                            fs.SPECIES: obj.species,
-                            fs.CULTIVAR: obj.cultivar,
-                            fs.OTHER_PART_OF_NAME: obj.other_part_of_name,
-                            fs.COMMON_NAME: obj.common_name})
-            self.datadict = newdict
-        elif (genus != '' or species != '' or
-              cultivar != '' or other_part != ''):
+        if genus != '' or species != '' or cultivar != '' or other_part != '':
             matching_species = Species.objects.filter(
                 instance_id=self.import_event.instance_id,
                 genus__iexact=genus,
