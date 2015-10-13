@@ -37,8 +37,7 @@ exports.init = function(options) {
         },
 
         editStream = $edit.asEventStream('click').map(editableForm.editStartAction),
-        saveStream = $save
-            .asEventStream('click')
+        saveStream = (options.saveStream || $save.asEventStream('click'))
             .doAction(showSavePending, true)
             .map('save:start'),
         externalCancelStream = BU.triggeredObjectStream('cancel'),
