@@ -8,8 +8,10 @@ import urllib
 from django.db.models import Q
 
 from treemap.audit import Audit, Authorizable, get_auditable_class
-from treemap.models import Plot, Tree, Instance, MapFeature, InstanceUser, User
+from treemap.models import Instance, MapFeature, InstanceUser, User
 from treemap.util import get_filterable_audit_models
+from treemap.lib.object_caches import udf_defs
+from treemap.udf import UDFModel
 
 
 def _instance_ids_edited_by(user):
@@ -57,37 +59,39 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
     if map_feature_models.intersection(models):
         model_filter = model_filter | Q(model='MapFeaturePhoto', field='image')
 
-    if logged_in_user == user:
-        # The logged-in user can see all their own edits
-        model_filter = model_filter | \
-            Q(model__in=models) | Q(model__startswith='udf:')
-    else:
-        # Filter other users' edits by their visibility to the logged-in user
-        for inst in instances:
-            for model in models:
+    for inst in instances:
+        eligible_models = ({'Tree', 'TreePhoto', 'MapFeaturePhoto'} |
+                           set(inst.map_feature_types)) & set(models)
+
+        if logged_in_user == user:
+            eligible_udfs = {'udf:%s' % udf.id for udf in udf_defs(inst)
+                             if udf.model_type in eligible_models
+                             and udf.iscollection}
+
+            # The logged-in user can see all their own edits
+            model_filter = model_filter | Q(
+                instance=inst, model__in=(eligible_models | eligible_udfs))
+
+        else:
+            # Filter other users' edits by their visibility to the
+            # logged-in user
+            for model in eligible_models:
                 ModelClass = get_auditable_class(model)
+                fake_model = ModelClass(instance=inst)
                 if issubclass(ModelClass, Authorizable):
-                    fake_model = ModelClass(instance=inst)
                     visible_fields = fake_model.visible_fields(logged_in_user)
                     model_filter = model_filter |\
                         Q(model=model, field__in=visible_fields, instance=inst)
                 else:
                     model_filter = model_filter | Q(model=model, instance=inst)
 
-                # Add UDF collections related to model
-                if model == 'Tree':
-                    fake_model = Tree(instance=inst)
-                elif model == 'Plot':
-                    fake_model = Plot(instance=inst)
-                else:
-                    continue
+                if issubclass(ModelClass, UDFModel):
+                    model_collection_udfs_audit_names = (
+                        fake_model.visible_collection_udfs_audit_names(
+                            logged_in_user))
 
-                model_collection_udfs_audit_names =\
-                    fake_model.visible_collection_udfs_audit_names(
-                        logged_in_user)
-
-                model_filter = model_filter |\
-                    Q(model__in=model_collection_udfs_audit_names)
+                    model_filter = model_filter | (
+                        Q(model__in=model_collection_udfs_audit_names))
 
     udf_bookkeeping_fields = Q(
         model__startswith='udf:',

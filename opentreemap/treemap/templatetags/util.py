@@ -11,6 +11,7 @@ from treemap.models import (MapFeature, Tree, TreePhoto,
 from treemap.udf import UserDefinedCollectionValue
 from treemap.util import get_filterable_audit_models, to_model_name
 
+
 register = template.Library()
 
 
