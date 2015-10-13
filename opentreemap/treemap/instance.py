@@ -106,7 +106,7 @@ def reserved_name_validator(name):
                                 'cannot be used') % {'instancename': name})
 
 
-def create_udf(instance, model, udfc_name):
+def get_or_create_udf(instance, model, udfc_name):
     from treemap.udf import UserDefinedFieldDefinition
     from treemap.util import safe_get_model_class
 
@@ -122,7 +122,7 @@ def create_udf(instance, model, udfc_name):
 
 
 def create_stewardship_udfs(instance):
-    return [create_udf(instance, model, 'Stewardship')
+    return [get_or_create_udf(instance, model, 'Stewardship')
             for model in ('Plot', 'Tree')]
 
 
@@ -492,6 +492,13 @@ class Instance(models.Model):
         return "%s_%s" % (self.url_name, thumbprint)
 
     @transaction.atomic
+    def remove_map_feature_types(self, class_names):
+        remaining_types = [class_name for class_name in self.map_feature_types
+                           if class_name not in class_names]
+        self.map_feature_types = remaining_types
+        self.save()
+
+    @transaction.atomic
     def add_map_feature_types(self, types):
         from treemap.models import MapFeature  # prevent circular import
         from treemap.audit import add_default_permissions
@@ -509,7 +516,7 @@ class Instance(models.Model):
             settings = (getattr(clz, 'udf_settings', {}))
             for udfc_name, udfc_settings in settings.items():
                 if udfc_settings.get('defaults'):
-                    create_udf(self, type, udfc_name)
+                    get_or_create_udf(self, type, udfc_name)
 
         add_default_permissions(self, models=classes)
 
