@@ -8,6 +8,7 @@ import datetime
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.formats import number_format
 from django.utils.translation import ugettext as _
@@ -152,8 +153,14 @@ def _add_audits_to_context(audits, context):
         context['latest_update'] = None
 
 
+def raise_non_instance_404(class_name):
+    raise Http404('Instance does not support feature type %s' % class_name)
+
+
 def get_map_feature_or_404(feature_id, instance, type=None):
     if type:
+        if type not in instance.map_feature_types:
+            raise_non_instance_404(type)
         MapFeatureSubclass = MapFeature.get_subclass(type)
         InstanceMapFeature = instance.scope_model(MapFeatureSubclass)
         return get_object_or_404(InstanceMapFeature, pk=feature_id)
@@ -163,7 +170,11 @@ def get_map_feature_or_404(feature_id, instance, type=None):
         feature = get_object_or_404(InstanceMapFeature, pk=feature_id)
 
         # Return the concrete subtype (e.g. Plot), not a general MapFeature
-        return feature.cast_to_subtype()
+        typed_feature = feature.cast_to_subtype()
+        class_name = typed_feature.__class__.__name__
+        if class_name not in instance.map_feature_types:
+            raise_non_instance_404(class_name)
+        return typed_feature
 
 
 def context_dict_for_plot(request, plot, tree_id=None, **kwargs):
