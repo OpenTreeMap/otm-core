@@ -272,6 +272,7 @@ exports.init = function(options) {
         inEditModeProperty: inEditModeProperty,
         showGlobalErrors: showGlobalErrors,
         showValidationErrorsInline: showValidationErrorsInline,
+        getDataToSave: getDataToSave,
         setUpdateUrl: function (url) { updateUrl = url; }
     };
 };
