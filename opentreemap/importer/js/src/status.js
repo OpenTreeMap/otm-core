@@ -107,7 +107,7 @@ function updateRow($container, $el) {
 function updateSpeciesRow($container, $el) {
     var rowData = getRowData($container, $el);
     if (R.every(R.not(_.isEmpty), [rowData.fieldName, rowData.updatedValue])) {
-        $container.load(rowData.url, rowData.data, popover.activateAll);
+        $container.load(rowData.url, {species_id: rowData.updatedValue}, popover.activateAll);
     } else {
         toastr.error("Cannot save empty species");
     }
