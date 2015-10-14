@@ -142,6 +142,7 @@ exports.init = function(options) {
 
             if ($globalErrorSection.length > 0) {
                 $globalErrorSection.html(errors.join(','));
+                $globalErrorSection.show();
             } else {
                 console.log('Global error returned from server, ' +
                             'but no dom element bound from client.',
@@ -158,6 +159,7 @@ exports.init = function(options) {
 
                 if ($field.length > 0) {
                     $field.html(errorList.join(','));
+                    $field.show();
                 } else {
                     console.log('Field error returned from server, ' +
                                 'but no dom element bound from client.',
@@ -268,6 +270,8 @@ exports.init = function(options) {
         saveOkStream: saveOkStream,
         cancelStream: cancelStream,
         inEditModeProperty: inEditModeProperty,
+        showGlobalErrors: showGlobalErrors,
+        showValidationErrorsInline: showValidationErrorsInline,
         setUpdateUrl: function (url) { updateUrl = url; }
     };
 };
