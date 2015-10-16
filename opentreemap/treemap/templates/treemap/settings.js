@@ -68,6 +68,7 @@ otm.settings.doubleClickInterval = '{{ settings.DOUBLE_CLICK_INTERVAL }}';
         'polygonForPointUrl': "{% url 'polygon_for_point' instance_url_name=last_instance.url_name %}",
         'addTreeUrl': "{% url 'map' instance_url_name=last_instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}",
         'name': '{{ request.instance.name }}',
+        'mapFeatureTypes': {{ request.instance.map_feature_types|as_json|safe }},
         'rev': '{{ request.instance.geo_rev_hash }}',
         'center': {
             'x': '{{ request.instance.center.x }}',
