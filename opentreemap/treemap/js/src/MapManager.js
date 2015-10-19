@@ -287,7 +287,7 @@ function getPolygonLayerURL(config, extension) {
 function getLayerURL(config, layer, extension) {
     return format(
         '%s/tile/%s/database/otm/table/%s/{z}/{x}/{y}.%s%s',
-        config.tileHost, config.instance.rev, layer, extension,
+        config.tileHost || '', config.instance.rev, layer, extension,
         urlLib.format({query: {
             'instance_id': config.instance.id,
             'restrict': JSON.stringify(config.instance.mapFeatureTypes)
