@@ -163,28 +163,30 @@ class MapTest(TreemapUITestCase):
 
         ui_test_urls.testing_id = tree.plot.pk
 
-        # Reload the page
-        self.go_to_map_page()
+        with self.settings(TILE_HOST=self.live_server_url):
 
-        # Click on the tree we added
-        self.click_point_on_map(20, 20)
+            # Reload the page
+            self.go_to_map_page()
 
-        self.click_when_visible('#quick-edit-button')
-        self.wait_until_visible('#save-details-button')
+            # Click on the tree we added
+            self.click_point_on_map(20, 20)
 
-        diameter = self.driver.find_element_by_css_selector(
-            'input[data-class="diameter-input"]')
+            self.click_when_visible('#quick-edit-button')
+            self.wait_until_visible('#save-details-button')
 
-        diameter.clear()
-        diameter.send_keys('32.0')
+            diameter = self.driver.find_element_by_css_selector(
+                'input[data-class="diameter-input"]')
 
-        self.click('#save-details-button')
-        self.wait_until_visible('#quick-edit-button')
+            diameter.clear()
+            diameter.send_keys('32.0')
 
-        # Reload tree
-        tree = Tree.objects.get(pk=tree.pk)
+            self.click('#save-details-button')
+            self.wait_until_visible('#quick-edit-button')
 
-        self.assertEqual(tree.diameter, 32.0)
+            # Reload tree
+            tree = Tree.objects.get(pk=tree.pk)
+
+            self.assertEqual(tree.diameter, 32.0)
 
 
 class ModeChangeTest(TreemapUITestCase):
@@ -209,35 +211,37 @@ class ModeChangeTest(TreemapUITestCase):
 
     def test_locked_add_tree_in_edit_mode(self):
 
-        self.login_and_go_to_map_page()
-        self.start_add_tree(20, 20)
-        self.add_tree_done()
+        with self.settings(TILE_HOST=self.live_server_url):
+            self.login_and_go_to_map_page()
 
-        plot = self.instance_plots().order_by('-id')[0]
-        ui_test_urls.testing_id = plot.pk
+            self.start_add_tree(20, 20)
+            self.add_tree_done()
 
-        # Reload the page
-        self.go_to_map_page()
+            plot = self.instance_plots().order_by('-id')[0]
+            ui_test_urls.testing_id = plot.pk
 
-        # Click on the tree we added
-        self.click_point_on_map(20, 20)
+            # Reload the page
+            self.go_to_map_page()
 
-        # enter edit mode, which should lock
-        self.click_when_visible('#quick-edit-button')
+            # Click on the tree we added
+            self.click_point_on_map(20, 20)
 
-        expected_alert_text = ("You have begun entering data. "
-                               "Any unsaved changes will be lost. "
-                               "Are you sure you want to continue?")
+            # enter edit mode, which should lock
+            self.click_when_visible('#quick-edit-button')
 
-        self.click_add_tree()
-        alert = self.driver.switch_to_alert()
-        self.assertEqual(alert.text, expected_alert_text)
-        alert.dismiss()
-        self.assertFalse(self.driver.current_url.endswith('addTree'))
+            expected_alert_text = ("You have begun entering data. "
+                                   "Any unsaved changes will be lost. "
+                                   "Are you sure you want to continue?")
 
-        self.click_add_tree()
-        alert = self.driver.switch_to_alert()
-        self.assertEqual(alert.text, expected_alert_text)
+            self.click_add_tree()
+            alert = self.driver.switch_to_alert()
+            self.assertEqual(alert.text, expected_alert_text)
+            alert.dismiss()
+            self.assertFalse(self.driver.current_url.endswith('addTree'))
 
-        alert.accept()
-        self.assertTrue(self.driver.current_url.endswith('addTree'))
+            self.click_add_tree()
+            alert = self.driver.switch_to_alert()
+            self.assertEqual(alert.text, expected_alert_text)
+
+            alert.accept()
+            self.assertTrue(self.driver.current_url.endswith('addTree'))
