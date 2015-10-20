@@ -73,6 +73,7 @@
                     display: inline-block;
                     vertical-align: middle;
                     margin-top: -3px;
+                    padding: .3em .6em;
 
                     &:empty {
                         display: none;
@@ -256,7 +257,8 @@
             border-bottom: 1px solid #EEE;
 
             &.active {
-                background-color: #F7F3DF;
+                background-color: $warning-color;
+                background-color: rgba($warning-color, .75);
             }
             th {
                 background: #DDD;
