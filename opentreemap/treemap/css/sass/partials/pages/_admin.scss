@@ -475,11 +475,8 @@
 }
 
 .active-modules .field-row:not(.active-module) {
-    display: none;
-}
-
-.inactive-modules {
-    .field-row.active-module,.module-added {
+    opacity: 0.5;
+    .module-added {
         display: none;
     }
 }
