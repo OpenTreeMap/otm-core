@@ -697,7 +697,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             else:
                 title = _("Empty Planting Site")
         else:
-            title = feature.terminology(self.instance)['singular']
+            title = feature.display_name(self.instance)
 
         return title
 
@@ -996,7 +996,7 @@ class Favorite(models.Model):
         unique_together = ('user', 'map_feature',)
 
 
-class MapFeaturePhoto(models.Model, PendingAuditable):
+class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
     map_feature = models.ForeignKey(MapFeature)
 
     image = models.ImageField(
@@ -1006,6 +1006,8 @@ class MapFeaturePhoto(models.Model, PendingAuditable):
 
     created_at = models.DateTimeField(auto_now_add=True)
     instance = models.ForeignKey(Instance)
+
+    _terminology = {'singular': _('Photo'), 'plural': _('Photos')}
 
     def __init__(self, *args, **kwargs):
         super(MapFeaturePhoto, self).__init__(*args, **kwargs)

@@ -31,6 +31,10 @@ class Convertible(object):
                          .get(cls.__name__, {}))
         return terms
 
+    @classmethod
+    def display_name(cls, instance):
+        return cls.terminology(instance)['singular']
+
     def _mutate_convertable_fields(self, f):
         from treemap.util import to_object_name
         # note that `to_object_name` is a helper function we use

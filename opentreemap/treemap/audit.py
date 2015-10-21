@@ -22,7 +22,8 @@ from django.db import IntegrityError, connection, transaction
 from django.conf import settings
 
 from treemap.units import (is_convertible, is_convertible_or_formattable,
-                           get_display_value, get_units, get_unit_name)
+                           get_display_value, get_units, get_unit_name,
+                           Convertible)
 from treemap.util import (all_models_of_class, leaf_models_of_class,
                           to_object_name)
 
@@ -1391,11 +1392,18 @@ class Audit(models.Model):
 
         format_string = cls.action_format_string_for_audit(self)
 
-        model_display_name = cls.terminology(self.instance)['singular']
+        model_display_name = self.model_display_name()
 
         return format_string % {'field': self.field_display_name,
                                 'model': model_display_name.lower(),
                                 'value': self.current_display_value}
+
+    def model_display_name(self):
+        cls = get_auditable_class(self.model)
+        if issubclass(cls, Convertible):
+            return cls.display_name(self.instance)
+        else:
+            return cls.__name__
 
     def dict(self):
         return {'model': self.model,
