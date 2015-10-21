@@ -53,6 +53,9 @@ MAP_FEATURE_RELATED_NAMES = {'mapFeature', 'mapFeaturePhoto'}
 
 
 class Filter(object):
+    def __repr__(self):
+        return "(%s, %s)" % (self.filterstr, self.displaystr)
+
     def __init__(self, filterstr, displaystr, instance):
         self.filterstr = filterstr
         self.displaystr = displaystr
