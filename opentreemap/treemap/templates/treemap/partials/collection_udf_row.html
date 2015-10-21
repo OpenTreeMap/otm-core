@@ -1,8 +1,9 @@
 {% load util %}
+{% load l10n %}
 
 <tr
    {% if perm_level == "write" %}
-   data-value-id="{{ value.pk }}"
+   data-value-id="{{ value.pk|unlocalize }}"
    {% endif %}
    >
   {% for field in udf.datatype_dict %}

@@ -1,10 +1,11 @@
 {% load i18n %}
+{% load l10n %}
 {% load util %}
 
 {% if photo %}
-<div class="photo-review-item" data-total-pages="{{ total_pages }}" data-photo>
+<div class="photo-review-item" data-total-pages="{{ total_pages|unlocalize }}" data-photo>
     <a class="thumbnail" href="{{ photo.image.url }}">
-      <img data-id="{{ photo.pk }}" src="{{ photo.thumbnail.url }}">
+      <img data-id="{{ photo.pk|unlocalize }}" src="{{ photo.thumbnail.url }}">
     </a>
     <div class="btn-group">
         <a class="action btn btn-sm" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="approve" %}">{% trans "Approve" %}</a>

@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load l10n %}
 {% load instance_config %}
 {% load species_thumbprint %}
 
@@ -6,7 +7,7 @@
        data-typeahead-hidden
        id="{{ field.label }}-hidden"
        name="{{ field.identifier }}"
-       value="{{ field.value.id }}"/>
+       value="{{ field.value.id|unlocalize }}"/>
 <input type="text"
        data-typeahead-input="{{ field.identifier }}"
        id="{{ field.label }}-typeahead"
@@ -15,7 +16,7 @@
        data-thumbprint="{{ request|species_thumbprint }}"
        value="{{ field.value.display_name }}"/>
 <input type="hidden"
-       value="{{ field.value.id }}"
+       value="{{ field.value.id|unlocalize }}"
        data-typeahead-restore="{{ field.identifier }}"
        data-datum="id" />
 <p>
