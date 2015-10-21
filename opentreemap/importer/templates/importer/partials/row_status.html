@@ -27,7 +27,10 @@
 {% block extra_buttons %}
     {% if tree_limit_exceeded %}
         <div class="alert alert-danger">
-          Your tree map currently contains {{ tree_count }} trees. This data upload will cause your tree map to exceed the {{ tree_limit }} number of trees allowed in your subscription level. Please upgrade to a larger subscription plan or upload {{ remaining_tree_limit }} or fewer trees.
+        {# TODO: Link to the plan page #}
+        {% blocktrans %}
+        Your tree map currently contains {{ tree_count }} trees. This data upload will cause your tree map to exceed the {{ tree_limit }} number of trees included in your plan. Please add more trees to your plan or upload {{ remaining_tree_limit }} or fewer trees.
+        {% endblocktrans %}
         </div>
     {% elif ie.can_add_to_map %}
         <a data-action="commit" class="btn btn-info btn-large" href="{{ commit_url }}">
