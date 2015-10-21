@@ -6,10 +6,11 @@ import json
 
 from opentreemap.util import dotted_split
 
-from treemap.models import (MapFeature, Tree, TreePhoto,
-                            MapFeaturePhoto, Audit, Plot)
+from treemap.models import MapFeature, Tree, TreePhoto, MapFeaturePhoto, Audit
 from treemap.udf import UserDefinedCollectionValue
-from treemap.util import get_filterable_audit_models, to_model_name
+from treemap.util import (get_filterable_audit_models, to_model_name,
+                          safe_get_model_class)
+from treemap.units import Convertible
 
 
 register = template.Library()
@@ -99,7 +100,8 @@ def terminology(model, instance):
 
 
 @register.filter
-def display_name(audit_or_model_or_name):
+def display_name(audit_or_model_or_name, instance=None):
+    audit = None
     if isinstance(audit_or_model_or_name, (Audit, basestring)):
         if isinstance(audit_or_model_or_name, Audit):
             audit = audit_or_model_or_name
@@ -109,18 +111,18 @@ def display_name(audit_or_model_or_name):
             name = audit_or_model_or_name
             extra_args = []
         if name.startswith('udf:'):
-            name = (UserDefinedCollectionValue
-                    .get_display_model_name(name, *extra_args))
+            return UserDefinedCollectionValue.get_display_model_name(
+                name, *extra_args)
     else:
         name = audit_or_model_or_name.__class__.__name__
 
-    # TODO: this should really call `.terminology()` with an instance arg
-    # to actually support instance-overrideable plot terminology.
-    # I am deferring this fix because this feature is not planned asnd it's
-    # non-trivial to put instance in scope here, which is required for
-    # getting terminology
-    if name.lower() == 'plot':
-        return Plot.terminology()['singular']
+    if audit:
+        return audit.model_display_name()
+
+    cls = safe_get_model_class(name)
+    if issubclass(cls, Convertible):
+        # Sometimes instance will be None here, so we'll use the default name
+        return cls.display_name(instance)
     else:
         return name
 
