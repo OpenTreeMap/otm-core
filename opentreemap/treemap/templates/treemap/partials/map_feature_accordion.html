@@ -1,8 +1,9 @@
 {% load i18n %}
+{% load l10n %}
 {% load auth_extras %}
 {% load form_extras %}
 
-<form id="details-form" data-location-x="{{ plot.geom.x }}" data-location-y="{{ plot.geom.y }}"
+<form id="details-form" data-location-x="{{ plot.geom.x|unlocalize }}" data-location-y="{{ plot.geom.y|unlocalize }}"
       data-map-feature-type="{% if feature.is_plot %}plot{% else %}resource{% endif %}">
 
     {% if feature.is_plot %}

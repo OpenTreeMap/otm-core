@@ -117,7 +117,7 @@
 
       resource.init({
           ecoBenefits: '#ecobenefits',
-          featureId: {{ feature.id }},
+          featureId: {{ feature.id|unlocalize }},
           inlineEditForm: mapFeatureOptions.inlineEditForm,
           form: mapFeature.inlineEditForm,
           deleteControls: mapFeatureOptions.deleteControls,

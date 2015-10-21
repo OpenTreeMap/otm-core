@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load l10n %}
 {% load util %}
 
 <table id="recent-user-edits" class="table table-hover table-bordered table-condensed">
@@ -13,7 +14,7 @@
     </thead>
     <tbody>
         {% for audit in audits %}
-        <tr data-id="{{audit.id}}">
+        <tr data-id="{{ audit.id|unlocalize }}">
             <td>{{ audit.display_action }}</td>
             <td>{{ audit|display_name }}</td>
             <td>{{ audit.field_display_name }}</td>
