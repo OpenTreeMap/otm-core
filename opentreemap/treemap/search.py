@@ -422,7 +422,7 @@ def _parse_predicate_pair(key, value, mapping):
         # may be sent to a model search is when udfs are sent to
         # tree search. therefore we should only allow those to pass.
         if _is_udf(key):
-            return FilterContext()
+            return FilterContext(id__in=[])
         else:
             raise
     __, __, field = key.partition('.')
