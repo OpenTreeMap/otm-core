@@ -53,6 +53,9 @@ MAP_FEATURE_RELATED_NAMES = {'mapFeature', 'mapFeaturePhoto'}
 
 
 class Filter(object):
+    def __repr__(self):
+        return "(%s, %s)" % (self.filterstr, self.displaystr)
+
     def __init__(self, filterstr, displaystr, instance):
         self.filterstr = filterstr
         self.displaystr = displaystr
@@ -419,7 +422,7 @@ def _parse_predicate_pair(key, value, mapping):
         # may be sent to a model search is when udfs are sent to
         # tree search. therefore we should only allow those to pass.
         if _is_udf(key):
-            return FilterContext()
+            return FilterContext(id__in=[])
         else:
             raise
     __, __, field = key.partition('.')
