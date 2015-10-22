@@ -118,6 +118,8 @@ def search_hash(request, instance):
     else:
         eco_str = 'none'
 
-    string_to_hash = audit_id_str + ":" + eco_str
+    map_features = ','.join(instance.map_feature_types)
+
+    string_to_hash = audit_id_str + ":" + eco_str + ":" + map_features
 
     return hashlib.md5(string_to_hash).hexdigest()
