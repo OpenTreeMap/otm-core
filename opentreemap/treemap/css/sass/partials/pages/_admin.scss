@@ -209,6 +209,14 @@
                 overflow-y: auto;
                 padding: 16px;
                 margin-bottom: 40px;
+
+                &:after {
+                    content: '';
+                    position: relative;
+                    display: block;
+                    width: 100%;
+                    height: 16px;
+                }
             }
         }
     }
