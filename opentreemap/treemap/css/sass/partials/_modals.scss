@@ -1,0 +1,46 @@
+.modal.modal-warning {
+
+	.modal-content {
+		border: 2px solid #f0ad4e;
+	}
+
+	.modal-header {
+		background: #f0ad4e;
+		color: $paper;
+	}
+
+	.modal-footer {
+		background: lighten(#f0ad4e, 30%);
+	}
+}
+
+
+.modal.modal-danger {
+
+	.modal-content {
+		border: 2px solid #df4425;
+	}
+
+	.modal-header {
+		background: #df4425;
+		color: $paper;
+	}
+
+	.modal-footer {
+		background: lighten(#df4425, 40%);
+	}
+}
+
+
+.modal.modal-warning,
+.modal.modal-danger {
+
+	ul {
+		margin-top: 10px;
+	}
+
+	~ .modal-backdrop {
+	  background: $dark-secondary;
+	  opacity: 0.8;
+	}
+}
