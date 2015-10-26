@@ -163,7 +163,7 @@ class MapTest(TreemapUITestCase):
 
         ui_test_urls.testing_id = tree.plot.pk
 
-        with self.settings(TILE_HOST=self.live_server_url):
+        with self.settings(TILER_HOST=self.live_server_url):
 
             # Reload the page
             self.go_to_map_page()
@@ -211,7 +211,7 @@ class ModeChangeTest(TreemapUITestCase):
 
     def test_locked_add_tree_in_edit_mode(self):
 
-        with self.settings(TILE_HOST=self.live_server_url):
+        with self.settings(TILER_HOST=self.live_server_url):
             self.login_and_go_to_map_page()
 
             self.start_add_tree(20, 20)

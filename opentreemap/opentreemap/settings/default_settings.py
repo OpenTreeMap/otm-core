@@ -66,7 +66,7 @@ OMGEO_SETTINGS = [[
     'omgeo.services.EsriWGS', {}
 ]]
 
-# Set TILE_HOST to None if the tiler is running on the same host
+# Set TILER_HOST to None if the tiler is running on the same host
 # as this app. Otherwise, provide a Leaflet url template as described
 # at http://leafletjs.com/reference.html#url-template
 #
@@ -74,7 +74,7 @@ OMGEO_SETTINGS = [[
 #
 #   //host/tile/
 #
-TILE_HOST = None
+TILER_HOST = None
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
