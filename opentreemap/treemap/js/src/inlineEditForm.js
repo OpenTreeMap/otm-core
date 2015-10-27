@@ -219,7 +219,9 @@ exports.init = function(options) {
 
         inEditModeProperty = actionStream.map(function (event) {
             return _.contains(eventsLandingInEditMode, event);
-        }).toProperty(),
+        })
+            .toProperty()
+            .skipDuplicates(),
 
         saveOKFormDataStream = saveOkStream.map('.formData'),
 
