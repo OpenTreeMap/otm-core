@@ -17,8 +17,8 @@ otm.settings.urls = {
     'displayQueryArgumentName': 'show'
 }
 
-{% if not settings.TILE_HOST = None %}
-    otm.settings.tileHost = "{{ settings.TILE_HOST }}";
+{% if not settings.TILER_HOST = None %}
+    otm.settings.tilerHost = "{{ settings.TILER_HOST }}";
 {% endif %}
 
 {% if request.user.is_authenticated %}

@@ -1690,14 +1690,14 @@ class SettingsJsViewTests(ViewTestCase):
         self.req.session = MockSession()
         self.get_response = lambda: root_settings_js(self.req)
 
-    @override_settings(TILE_HOST=None)
-    def test_none_tile_hosts_omits_tilehosts_setting(self):
-        self.assertNotInResponse('otm.settings.tileHosts',
+    @override_settings(TILER_HOST=None)
+    def test_none_tiler_hosts_omits_tilerhosts_setting(self):
+        self.assertNotInResponse('otm.settings.tilerHosts',
                                  self.get_response())
 
-    @override_settings(TILE_HOST='{s}.a')
-    def test_single_tile_host_in_tilehosts_setting(self):
-        self.assertInResponse('otm.settings.tileHost = "{s}.a";',
+    @override_settings(TILER_HOST='{s}.a')
+    def test_single_tiler_host_in_tilerhosts_setting(self):
+        self.assertInResponse('otm.settings.tilerHost = "{s}.a";',
                               self.get_response())
 
 
