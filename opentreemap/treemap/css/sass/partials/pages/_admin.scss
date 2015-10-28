@@ -207,8 +207,16 @@
                 right: 0;
                 bottom: 0;
                 overflow-y: auto;
-                padding: 16px;
+                padding: 16px 16px 0;
                 margin-bottom: 40px;
+
+                &:after {
+                    content: '';
+                    position: relative;
+                    display: block;
+                    width: 100%;
+                    height: 16px;
+                }
             }
         }
     }
