@@ -72,6 +72,20 @@
             }
         }
     }
+
+    .multiselect.dropdown-toggle {
+        max-width: 270px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: left;
+        padding-right: 24px;
+
+        > b.caret {
+            position: absolute;
+            right: 12px;
+            top: 15px;
+        }
+    }
 }
 
 .map-small,
