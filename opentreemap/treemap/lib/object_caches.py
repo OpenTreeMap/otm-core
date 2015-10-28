@@ -69,6 +69,7 @@ def increment_adjuncts_timestamp(instance):
     from treemap.models import Instance
     Instance.objects.filter(pk=instance.id)\
                     .update(adjuncts_timestamp=F('adjuncts_timestamp') + 1)
+    instance.refresh_from_db()
 
 
 # ------------------------------------------------------------------------
