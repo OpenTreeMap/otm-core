@@ -704,6 +704,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     def contained_plots(self):
         if self.area_field_name is not None:
             plots = Plot.objects \
+                .filter(instance=self.instance) \
                 .filter(geom__within=getattr(self, self.area_field_name)) \
                 .prefetch_related('tree_set', 'tree_set__species')
 
