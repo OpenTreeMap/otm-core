@@ -1,5 +1,5 @@
 // Fonts
-@import url(//fonts.googleapis.com/css?family=Open+Sans:300,400,700|Roboto:100,400,700);
+@import url(//fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Roboto:100,400,700);
 $base-font-family               : 'Open Sans', 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 $base-font-size                 : 62.5%;
 
@@ -34,6 +34,7 @@ $background-image               : url('/static/img/default-background.jpg') !def
 $body-management                : #f1f4f9;
 $dark-primary                   : #3d404f;
 $dark-secondary                 : #55555e;
+$table-gray                     : #DFE2E8;
 
 
 // Media Queries

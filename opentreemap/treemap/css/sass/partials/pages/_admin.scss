@@ -261,22 +261,22 @@
     .role-table {
         table-layout: fixed;
         tr {
-            height: 50px;
-            border-bottom: 1px solid #EEE;
+            //height: 50px;
+            //border-bottom: 1px solid #EEE;
 
             &.active {
                 background-color: $warning-color;
                 background-color: rgba($warning-color, .75);
             }
             th {
-                background: #DDD;
-                padding: 10px;
+            //    background: #DDD;
+            //    padding: 10px;
                 white-space: nowrap;
                 text-overflow: ellipsis;
                 overflow: hidden;
             }
             td {
-                padding: 10px;
+            //    padding: 10px;
             }
         }
     }
@@ -289,10 +289,33 @@
 
         .role-table {
             min-width: 100%;
+            width: auto !important;
         }
         th {
             min-width: 200px;
             max-width: 200px;
+        }
+    }
+
+    .admin-table {
+        th {
+            background: $table-gray;
+            text-transform: uppercase;
+            padding: 20px 10px 20px 15px;
+            font-size: 1.3rem;
+        }
+
+        tr {
+            background-color: $paper;
+
+            &:hover {
+                background-color: $light-gray-color;
+            }
+        }
+
+        td {
+            padding: 12px 10px 12px 15px;
+            vertical-align: middle;
         }
     }
 
@@ -334,6 +357,7 @@
         margin-bottom: 20px;
         top: 4px;
         position: relative;
+        color: $subtext-color;
     }
 
     #payment-form{
@@ -368,6 +392,31 @@
             margin-bottom: 15px;
             padding-bottom: 15px;
             border-bottom: 1px solid #DDD;
+        }
+    }
+
+    label {
+        color: $navbar-color;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .management-header {
+        color: darken($secondary-color, 5%);
+        font-size: 1.6rem;
+        font-weight: 400;
+        text-transform: uppercase;
+        margin-top: 30px;
+
+        &:first-of-type {
+            margin-top: 0;
+        }
+    }
+
+    .form-horizontal {
+
+        > .form-group:last-of-type {
+            margin-bottom: 0;
         }
     }
 }
