@@ -261,22 +261,16 @@
     .role-table {
         table-layout: fixed;
         tr {
-            //height: 50px;
-            //border-bottom: 1px solid #EEE;
 
             &.active {
                 background-color: $warning-color;
                 background-color: rgba($warning-color, .75);
             }
+            
             th {
-            //    background: #DDD;
-            //    padding: 10px;
                 white-space: nowrap;
                 text-overflow: ellipsis;
                 overflow: hidden;
-            }
-            td {
-            //    padding: 10px;
             }
         }
     }
