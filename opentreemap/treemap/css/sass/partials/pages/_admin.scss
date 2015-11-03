@@ -310,15 +310,29 @@
 
     #photo-review-container {
         .photo-review-item {
-            float: left;
-            position: relative;
             min-height: 1px;
             padding-right: 15px;
             padding-left: 15px;
 
-            .thumbnail img {
-                width: 240px;
-                height: 240px;
+            .thumbnail {
+                display: inline-block;
+                margin-bottom: 0;
+                width: 150px;
+                height: 150px;
+                position: relative;
+
+                img {
+                    width: auto;
+                    height: auto;
+                    max-width: 140px;
+                    max-height: 140px;
+                    margin: auto;
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    top: 0;
+                    bottom: 0;
+                }
             }
         }
     }
