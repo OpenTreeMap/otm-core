@@ -200,3 +200,9 @@ exports.exportToCsv = function (rows, filename) {
         }
     }
 };
+
+exports.modalsFocusOnFirstInputWhenShown = function () {
+    $('.modal').on('shown.bs.modal', function() {
+        $(this).find('input').first().focus().select();
+    });
+};
