@@ -31,7 +31,7 @@ exports.init = function(options) {
             return stream;
         });
 
-    BU.reloadContainerOnClick($container, dom.pagingButtons);
+    BU.reloadContainerOnClickAndRecordUrl($container, dom.pagingButtons);
 
     return photoUpdateStream;
 };

@@ -74,7 +74,7 @@ module.exports = function(options) {
         $text.toggleClass('less');
     });
 
-    BU.reloadContainerOnClick(
+    BU.reloadContainerOnClickAndRecordUrl(
         $container, dom.pagingButtons, dom.filterButtons, dom.columnHeaders);
 
     toggleAllEventStream
