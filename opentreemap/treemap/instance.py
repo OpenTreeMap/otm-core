@@ -387,6 +387,12 @@ class Instance(models.Model):
         return models
 
     @property
+    def collection_udfs(self):
+        from treemap.udf import UserDefinedFieldDefinition
+        return UserDefinedFieldDefinition.objects.filter(
+            instance=self, iscollection=True)
+
+    @property
     def has_resources(self):
         """
         Determine whether this instance has multiple map feature

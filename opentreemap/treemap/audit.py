@@ -675,9 +675,8 @@ post_delete.connect(invalidate_adjuncts, sender=FieldPermission)
 
 class Role(models.Model):
     # special role names, used in the app
-    ADMINISTRATOR = 'administrator'
-    EDITOR = 'editor'
-    PUBLIC = 'public'
+    DEFAULT_ROLE_NAMES = ('administrator', 'editor', 'public')
+    ADMINISTRATOR, EDITOR, PUBLIC = DEFAULT_ROLE_NAMES
 
     name = models.CharField(max_length=255)
     instance = models.ForeignKey('Instance', null=True, blank=True)
