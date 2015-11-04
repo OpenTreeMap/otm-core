@@ -257,13 +257,8 @@ photo_review_partial = do(
     render_template('treemap/partials/photo_review.html'),
     photo_views.photo_review)
 
-next_photo = do(
-    require_http_method("GET"),
-    admin_instance_request,
-    render_template('treemap/partials/photo.html'),
-    photo_views.next_photo)
-
 approve_or_reject_photo = do(
     require_http_method("POST"),
     admin_instance_request,
+    render_template('treemap/partials/photo_review.html'),
     photo_views.approve_or_reject_photo)

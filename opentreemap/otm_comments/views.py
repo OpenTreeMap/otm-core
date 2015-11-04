@@ -7,10 +7,11 @@ from functools import partial
 
 from django.core.paginator import Paginator, EmptyPage
 from django.db import transaction
-from django.core.urlresolvers import reverse
 
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import json_api_call, render_template
+
+from opentreemap.util import UrlParams
 
 from treemap.decorators import (instance_request, admin_instance_request,
                                 require_http_method)
@@ -74,20 +75,15 @@ def comment_moderation(request, instance):
         # If the page number is out of bounds, return the last page
         paged_comments = paginator.page(paginator.num_pages)
 
-    comments_url = reverse('comment_moderation', args=(instance.url_name,))
+    urlizer = UrlParams('comment_moderation', instance.url_name,
+                        archived=is_archived, sort=sort, removed=is_removed,
+                        page=paged_comments.number)
 
-    params = {'archived': is_archived, 'sort': sort, 'removed': is_removed,
-              'page': paged_comments.number}
+    comments_url_for_pagination = urlizer.url('archived', 'removed', 'sort')
+    comments_url_for_sort = urlizer.url('archived', 'removed')
+    comments_url_for_filter = urlizer.url('sort')
 
-    def urlize(*keys):
-        return '&'.join(['%s=%s' % (key, params[key]) for key in keys])
-
-    url = comments_url + '?'
-    comments_url_for_pagination = url + urlize('archived', 'removed', 'sort')
-    comments_url_for_sort = url + urlize('archived', 'removed')
-    comments_url_for_filter = url + urlize('sort')
-
-    full_params = urlize('archived', 'removed', 'sort', 'page')
+    full_params = urlizer.params('archived', 'removed', 'sort', 'page')
 
     comments_filter = 'Active'
     if is_archived is None and is_removed:

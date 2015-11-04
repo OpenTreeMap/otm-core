@@ -12,8 +12,8 @@
         </a>
     </td>
     <td>
-        <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="approve" %}">{% trans "Approve" %}</a> |
-        <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="reject" %}">{% trans "Reject" %}</a> |
+        <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="approve" %}?{{ full_params }}">{% trans "Approve" %}</a> |
+        <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="reject" %}?{{ full_params }}">{% trans "Reject" %}</a> |
         <a href="{{ photo|detail_link }}">{% trans "View Detail" %}</a>
     </td>
     <td>{{ photo.created_at|naturaltime }}</td>

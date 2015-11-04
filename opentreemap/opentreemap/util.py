@@ -5,6 +5,8 @@ from __future__ import division
 
 import json
 
+from django.core.urlresolvers import reverse
+
 
 def json_from_request(request):
     body = request.body
@@ -99,3 +101,15 @@ def force_obj_to_pk(obj):
         return obj.id
     else:
         return obj
+
+
+class UrlParams(object):
+    def __init__(self, url_name, *url_args, **params):
+        self._url = reverse(url_name, args=url_args) + '?'
+        self._params = params
+
+    def params(self, *keys):
+        return '&'.join(['%s=%s' % (key, self._params[key]) for key in keys])
+
+    def url(self, *keys):
+        return self._url + self.params(*keys)
