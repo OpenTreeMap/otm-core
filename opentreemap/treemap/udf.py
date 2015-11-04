@@ -454,6 +454,17 @@ class UserDefinedFieldDefinition(models.Model):
             self.save()
 
     @transaction.atomic
+    def replace_collection_field_choices(self, field_name, new_choices):
+        datatypes = {d['name']: d for d in self.datatype_dict}
+        field = datatypes[field_name]
+        for choice in field['choices']:
+            if choice not in new_choices:
+                self.delete_choice(choice, field_name)
+        field['choices'] = new_choices
+        self.datatype = json.dumps(datatypes.values())
+        self.save()
+
+    @transaction.atomic
     def update_choice(
             self, old_choice_value, new_choice_value, name=None):
         datatype = self.datatype_dict
