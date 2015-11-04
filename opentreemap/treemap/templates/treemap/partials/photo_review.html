@@ -15,8 +15,8 @@
                     <th class="actions">
                         {% trans "Actions" %}
                     </th>
-                    <th>
-                        <a href="">{% trans "Date" %}</a>
+                    <th data-photo-sort>
+                        <a href="{{ url_for_sort }}&sort={{ 'created_at'|reverse_if_current:sort_order }}">{% trans "Date" %}</a>
                     </th>
                 </tr>
             </thead>

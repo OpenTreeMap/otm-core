@@ -11,7 +11,8 @@ var csrf = require('treemap/csrf');
 $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
 var dom = {
-    pagingButtons: '.pagination li a'
+    pagingButtons: '.pagination li a',
+    sortHeader: '[data-photo-sort] a'
 };
 
 exports.init = function(options) {
@@ -31,7 +32,7 @@ exports.init = function(options) {
             return stream;
         });
 
-    BU.reloadContainerOnClickAndRecordUrl($container, dom.pagingButtons);
+    BU.reloadContainerOnClickAndRecordUrl($container, dom.pagingButtons, dom.sortHeader);
 
     return photoUpdateStream;
 };

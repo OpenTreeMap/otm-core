@@ -17,7 +17,7 @@ from treemap.models import MapFeaturePhoto
 _PHOTO_PAGE_SIZE = 5
 
 
-def get_photos(instance):
+def get_photos(instance, sort_order='-created_at'):
     unverified_actions = {Audit.Type.Insert,
                           Audit.Type.Delete,
                           Audit.Type.Update}
@@ -31,17 +31,20 @@ def get_photos(instance):
             action__in=unverified_actions) \
         .values_list('model_id', flat=True)
 
-    photos = MapFeaturePhoto.objects.filter(
-        instance=instance,
-        id__in=audit_model_ids,
-        map_feature__feature_type__in=instance.map_feature_types)
+    photos = MapFeaturePhoto.objects \
+        .filter(
+            instance=instance,
+            id__in=audit_model_ids,
+            map_feature__feature_type__in=instance.map_feature_types) \
+        .order_by(sort_order)
 
     return photos
 
 
 def photo_review(request, instance):
-    photos = get_photos(instance)
     page_number = int(request.REQUEST.get('page', '1'))
+    sort_order = request.REQUEST.get('sort', '-created_at')
+    photos = get_photos(instance, sort_order)
 
     paginator = Paginator(photos, _PHOTO_PAGE_SIZE)
 
@@ -51,12 +54,15 @@ def photo_review(request, instance):
         # If the page number is out of bounds, return the last page
         paged_photos = paginator.page(paginator.num_pages)
 
-    urlizer = UrlParams('photo_review', instance.url_name, page=page_number)
+    urlizer = UrlParams('photo_review', instance.url_name,
+                        page=page_number, sort=sort_order)
 
     return {
         'photos': paged_photos,
-        'url_for_pagination': urlizer.url(),
-        'full_params': urlizer.params('page')
+        'sort_order': sort_order,
+        'url_for_pagination': urlizer.url('sort'),
+        'url_for_sort': urlizer.url(),
+        'full_params': urlizer.params('page', 'sort')
     }
 
 
