@@ -29,7 +29,7 @@ function init(options) {
     plotMarker = options.plotMarker;
 
     inlineEditForm.inEditModeProperty.onValue(function (inEditMode) {
-        $(dom.ecoBenefits).toggle(!inEditMode)
+        $(dom.ecoBenefits).toggle(!inEditMode);
     });
 
     var markerMoveStream = plotMarker.moveStream.filter(options.inMyMode);
