@@ -67,9 +67,8 @@ function fullyDisable($el, disabledTitle) {
 }
 
 exports.run = function (options) {
-    var $elements = $(enablePermSelector);
-
-    config = options.config;
+    var $elements = $(enablePermSelector),
+        loggedIn = options && options.config ? options.config.loggedIn : true;
 
     _.each($elements, function(element) {
         var $element = $(element),
@@ -79,7 +78,7 @@ exports.run = function (options) {
 
         if (hasPerm === 'True') {
             fullyEnable($element, href);
-        } else if (!config.loggedIn) {
+        } else if (!loggedIn) {
             makeRedirectToLogin($element, href);
         } else {
             fullyDisable($element, disabledTitle);
