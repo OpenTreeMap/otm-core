@@ -1,22 +1,33 @@
 {% load i18n %}
+{% load sort %}
 
-{# JS stuffs the next photo into [data-photo-container], so it should be the container around each photo.html #}
-<div class="row" data-photo-container>
-  {% for photo in photos %}
-  {% include "treemap/partials/photo.html" %}
-  {% endfor %}
+<div class="row comment-table">
+    <div class="col-lg-12">
+        <table class="table table-hover admin-table">
+            <thead>
+                <tr>
+                    <th>
+                        {% trans "Id" %}
+                    </th>
+                    <th>
+                        {% trans "Photo" %}
+                    </th>
+                    <th class="actions">
+                        {% trans "Actions" %}
+                    </th>
+                    <th data-photo-sort>
+                        <a href="{{ url_for_sort }}&sort={{ 'created_at'|reverse_if_current:sort_order }}">{% trans "Date" %}</a>
+                    </th>
+                </tr>
+            </thead>
+            {# JS stuffs the next photo into [data-photo-container], so it should be the container around each photo.html #}
+            <tbody data-photo-container>
+              {% for photo in photos %}
+              {% include "treemap/partials/photo.html" %}
+              {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<div class="text-center">
-<ul class="pagination pagination-sm">
-    <li class="{% if not prev_page %}disabled{% endif %}">
-        <a data-page="{{ prev_page|default_if_none:"" }}">&laquo;</a>
-    </li>
-    {% for page in pages %}
-    <li class="{% if cur_page == page %}active{% endif %}"><a data-page="{{ page }}">{{ page }}</a></li>
-    {% endfor %}
-    <li class="{% if not next_page %}disabled{% endif %}">
-        <a data-page="{{ next_page|default_if_none:""}}">&raquo;</a>
-    </li>
-</ul>
-</div>
+{% include 'treemap/partials/paging_controls.html' with paging=photos url=url_for_pagination %}

@@ -26,7 +26,6 @@ urlpatterns = patterns(
     url(r'^photo_review_full/$', routes.photo_review),
     url(r'^photo_review/$', routes.photo_review_partial,
         name='photo_review'),
-    url(r'^photo_review/next$', routes.next_photo, name='photo_review_next'),
     url('^features/(?P<feature_id>\d+)/photo/(?P<photo_id>\d+)/'
         '(?P<action>(approve)|(reject))$',
         routes.approve_or_reject_photo, name='approve_or_reject_photo'),

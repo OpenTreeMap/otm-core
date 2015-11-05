@@ -1,16 +1,21 @@
 {% load i18n %}
 {% load l10n %}
 {% load util %}
+{% load humanize %}
 
 {% if photo %}
-<div class="photo-review-item" data-total-pages="{{ total_pages|unlocalize }}" data-photo>
-    <a class="thumbnail" href="{{ photo.image.url }}">
-      <img data-id="{{ photo.pk|unlocalize }}" src="{{ photo.thumbnail.url }}">
-    </a>
-    <div class="btn-group">
-        <a class="action btn btn-sm" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="approve" %}">{% trans "Approve" %}</a>
-        <a class="action btn btn-sm" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="reject" %}">{% trans "Reject" %}</a>
-        <a class="btn btn-sm" href="{{ photo|detail_link }}">{% trans "View Detail" %}</a>
-    </div>
-</div>
+<tr class="photo-review-item" data-total-pages="{{ total_pages|unlocalize }}" data-photo>
+    <td>{{ photo.pk }}</td>
+    <td>
+        <a class="thumbnail" href="{{ photo.image.url }}">
+          <img data-id="{{ photo.pk|unlocalize }}" src="{{ photo.thumbnail.url }}">
+        </a>
+    </td>
+    <td>
+        <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="approve" %}?{{ full_params }}">{% trans "Approve" %}</a> |
+        <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="reject" %}?{{ full_params }}">{% trans "Reject" %}</a> |
+        <a href="{{ photo|detail_link }}">{% trans "View Detail" %}</a>
+    </td>
+    <td>{{ photo.created_at|naturaltime }}</td>
+</tr>
 {% endif %}
