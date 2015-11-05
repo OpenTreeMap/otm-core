@@ -10,9 +10,12 @@ var $ = require('jquery'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
         require('treemap/reverseGeocodeStreamAndUpdateAddressesOnForm');
 
+var dom = {
+    form: '#details-form',
+    ecoBenefits: '.benefit-values'
+};
 
-var formSelector = '#details-form',
-    mapManager,
+var mapManager,
     inlineEditForm,
     typeaheads,
     plotMarker,
@@ -25,9 +28,13 @@ function init(options) {
     typeaheads = options.typeaheads;
     plotMarker = options.plotMarker;
 
+    inlineEditForm.inEditModeProperty.onValue(function (inEditMode) {
+        $(dom.ecoBenefits).toggle(!inEditMode);
+    });
+
     var markerMoveStream = plotMarker.moveStream.filter(options.inMyMode);
     reverseGeocodeStreamAndUpdateAddressesOnForm(
-        options.config, markerMoveStream, formSelector);
+        options.config, markerMoveStream, dom.form);
 }
 
 function onClick(e) { 
@@ -51,7 +58,7 @@ function activate() {
     });
 
     calculator = diameterCalculator({
-        formSelector: formSelector,
+        formSelector: dom.form,
         cancelStream: inlineEditForm.cancelStream,
         saveOkStream: inlineEditForm.saveOkStream
     });
