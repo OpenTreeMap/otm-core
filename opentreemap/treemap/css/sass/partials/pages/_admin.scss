@@ -261,22 +261,16 @@
     .role-table {
         table-layout: fixed;
         tr {
-            height: 50px;
-            border-bottom: 1px solid #EEE;
 
             &.active {
                 background-color: $warning-color;
                 background-color: rgba($warning-color, .75);
             }
+            
             th {
-                background: #DDD;
-                padding: 10px;
                 white-space: nowrap;
                 text-overflow: ellipsis;
                 overflow: hidden;
-            }
-            td {
-                padding: 10px;
             }
         }
     }
@@ -289,10 +283,69 @@
 
         .role-table {
             min-width: 100%;
+            width: auto !important;
         }
         th {
             min-width: 200px;
             max-width: 200px;
+        }
+    }
+
+    .admin-table {
+        th {
+            background: $table-gray;
+            text-transform: uppercase;
+            padding: 20px 10px 20px 15px;
+            font-size: 1.3rem;
+
+            > a {
+                color: darken($primary-color, 5%);
+                text-decoration: none;
+
+                &:after {
+                    content: '\e9e8';
+                    font-family: "fontello";
+                    font-style: normal;
+                    font-weight: normal;
+                    display: inline-block;
+                    text-decoration: inherit;
+                    width: 1em;
+                    margin-right: .2em;
+                    text-align: center;
+                    font-variant: normal;
+                    text-transform: none;
+                    line-height: 1em;
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;
+                }
+            }
+
+            .dropdown-menu {
+                text-transform: none;
+            }
+        }
+
+        tr {
+            background-color: $paper;
+
+            &:hover {
+                background-color: $light-gray-color;
+            }
+        }
+
+        td {
+            padding: 12px 10px 12px 15px;
+            vertical-align: middle;
+        }
+
+        select {
+            margin: -2px 0;
+        }
+
+        .field-view {
+            color: inherit;
+            margin: inherit;
+            top: inherit;
         }
     }
 
@@ -348,6 +401,7 @@
         margin-bottom: 20px;
         top: 4px;
         position: relative;
+        color: $subtext-color;
     }
 
     #payment-form{
@@ -382,6 +436,31 @@
             margin-bottom: 15px;
             padding-bottom: 15px;
             border-bottom: 1px solid #DDD;
+        }
+    }
+
+    label:not(.checkbox) {
+        color: $navbar-color;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .management-header {
+        color: darken($secondary-color, 5%);
+        font-size: 1.6rem;
+        font-weight: 400;
+        text-transform: uppercase;
+        margin-top: 30px;
+
+        &:first-of-type {
+            margin-top: 0;
+        }
+    }
+
+    .form-horizontal {
+
+        > .form-group:last-of-type {
+            margin-bottom: 0;
         }
     }
 }
@@ -476,7 +555,7 @@
     background-color: $paper;
     border-radius: 5px;
     color: #424242;
-    padding: 0.5rem 1.5rem;
+    padding: 1rem 1.5rem;
     margin: 0.5rem;
 
     .field-controls {
@@ -484,6 +563,10 @@
     }
     input {
         width: auto;
+    }
+
+    label.checkbox {
+        margin: 0;   
     }
 }
 
