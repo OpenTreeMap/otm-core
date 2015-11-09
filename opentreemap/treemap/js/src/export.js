@@ -34,7 +34,11 @@ var $ = require('jquery'),
 ////////////////////////////////////////
 
 function getQueryStringObject () {
-    return {q: url.parse(window.location.href, true).query.q || '' };
+    var query = url.parse(window.location.href, true).query;
+    return {
+        q: query.q || '',
+        show: query.show || ''
+    };
 }
 
 function isComplete (resp) { return resp.status === 'COMPLETE'; }
