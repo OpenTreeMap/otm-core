@@ -67,8 +67,11 @@ def increment_adjuncts_timestamp(instance):
     # Don't call save(), to avoid storing possibly-stale data in "instance".
     # Use a SQL increment, to prevent race conditions between servers.
     from treemap.models import Instance
-    Instance.objects.filter(pk=instance.id)\
-                    .update(adjuncts_timestamp=F('adjuncts_timestamp') + 1)
+    qs = Instance.objects.filter(pk=instance.id)
+    qs.update(adjuncts_timestamp=F('adjuncts_timestamp') + 1)
+
+    # Update timestamp from DB to prevent saving stale timestamps
+    instance.adjuncts_timestamp = qs[0].adjuncts_timestamp
 
 
 # ------------------------------------------------------------------------
