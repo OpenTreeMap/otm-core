@@ -558,6 +558,9 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
     feature_type = models.CharField(max_length=255)
 
+    hide_at_zoom = models.IntegerField(
+        null=True, blank=True, default=None, db_index=True)
+
     def __init__(self, *args, **kwargs):
         super(MapFeature, self).__init__(*args, **kwargs)
         if self.feature_type == '':
