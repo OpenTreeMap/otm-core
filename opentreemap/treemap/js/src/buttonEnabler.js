@@ -33,9 +33,9 @@ function removeActionableDataAttributes($el) {
     $el.removeAttr('data-action');
 }
 
-function makeRedirectToLogin($el, href) {
+function makeRedirectToLogin(loginUrl, $el, href) {
 
-    var fullHref = config.loginUrl + href;
+    var fullHref = loginUrl + href;
 
     $el.attr('disabled', false);
     removeActionableDataAttributes($el);
@@ -68,7 +68,7 @@ function fullyDisable($el, disabledTitle) {
 
 exports.run = function (options) {
     var $elements = $(enablePermSelector),
-        loggedIn = options && options.config ? options.config.loggedIn : true;
+        config = options.config;
 
     _.each($elements, function(element) {
         var $element = $(element),
@@ -78,8 +78,8 @@ exports.run = function (options) {
 
         if (hasPerm === 'True') {
             fullyEnable($element, href);
-        } else if (!loggedIn) {
-            makeRedirectToLogin($element, href);
+        } else if (!config.loggedIn) {
+            makeRedirectToLogin(config.loginUrl, $element, href);
         } else {
             fullyDisable($element, disabledTitle);
         }
