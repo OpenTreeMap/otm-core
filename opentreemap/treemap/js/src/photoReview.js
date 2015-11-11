@@ -12,7 +12,8 @@ $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
 var dom = {
     pagingButtons: '.pagination li a',
-    sortHeader: '[data-photo-sort] a'
+    sortHeader: '[data-photo-sort] a',
+    filterButton: '[data-photo-filter] a',
 };
 
 exports.init = function(options) {
@@ -32,7 +33,7 @@ exports.init = function(options) {
             return stream;
         });
 
-    BU.reloadContainerOnClickAndRecordUrl($container, dom.pagingButtons, dom.sortHeader);
+    BU.reloadContainerOnClickAndRecordUrl($container, dom.pagingButtons, dom.sortHeader, dom.filterButton);
 
     return photoUpdateStream;
 };

@@ -17,7 +17,7 @@ from treemap.models import MapFeaturePhoto
 _PHOTO_PAGE_SIZE = 5
 
 
-def get_photos(instance, sort_order='-created_at'):
+def get_photos(instance, sort_order='-created_at', is_archived=False):
     unverified_actions = {Audit.Type.Insert,
                           Audit.Type.Delete,
                           Audit.Type.Update}
@@ -27,7 +27,7 @@ def get_photos(instance, sort_order='-created_at'):
             instance=instance,
             model__in=['TreePhoto', 'MapFeaturePhoto'],
             field='image',
-            ref__isnull=True,
+            ref__isnull=not is_archived,
             action__in=unverified_actions) \
         .values_list('model_id', flat=True)
 
@@ -44,8 +44,9 @@ def get_photos(instance, sort_order='-created_at'):
 def photo_review(request, instance):
     page_number = int(request.REQUEST.get('page', '1'))
     sort_order = request.REQUEST.get('sort', '-created_at')
-    photos = get_photos(instance, sort_order)
+    is_archived = request.REQUEST.get('archived', 'False') == 'True'
 
+    photos = get_photos(instance, sort_order, is_archived)
     paginator = Paginator(photos, _PHOTO_PAGE_SIZE)
 
     try:
@@ -54,15 +55,17 @@ def photo_review(request, instance):
         # If the page number is out of bounds, return the last page
         paged_photos = paginator.page(paginator.num_pages)
 
-    urlizer = UrlParams('photo_review', instance.url_name,
-                        page=page_number, sort=sort_order)
+    urlizer = UrlParams('photo_review', instance.url_name, page=page_number,
+                        sort=sort_order, archived=is_archived)
 
     return {
         'photos': paged_photos,
         'sort_order': sort_order,
-        'url_for_pagination': urlizer.url('sort'),
-        'url_for_sort': urlizer.url(),
-        'full_params': urlizer.params('page', 'sort')
+        'is_archived': is_archived,
+        'url_for_pagination': urlizer.url('sort', 'archived'),
+        'url_for_filter': urlizer.url('sort'),
+        'url_for_sort': urlizer.url('archived'),
+        'full_params': urlizer.params('page', 'sort', 'archived')
     }
 
 
