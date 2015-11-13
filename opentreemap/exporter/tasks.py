@@ -15,7 +15,7 @@ from django.core.files import File
 from treemap.lib.object_caches import permissions
 
 from treemap.search import Filter
-from treemap.models import Species, Tree
+from treemap.models import Species, Plot
 from treemap.util import safe_get_model_class
 from treemap.audit import model_hasattr, FieldPermission
 from treemap.udf import UserDefinedCollectionValue
@@ -130,6 +130,7 @@ def async_csv_export(job, model, query, display_filters):
 
     select = OrderedDict()
     select_params = []
+    field_header_map = {}
     if model == 'species':
         initial_qs = (Species.objects.
                       filter(instance=instance))
@@ -150,27 +151,27 @@ def async_csv_export(job, model, query, display_filters):
         # get the plots for the provided
         # query and turn them into a tree queryset
         initial_qs = Filter(query, display_filters, instance)\
-            .get_objects(Tree)
+            .get_objects(Plot)
 
         values_tree = values_for_model(
             instance, job, 'treemap_tree', 'Tree',
-            select, select_params)
+            select, select_params,
+            prefix='tree')
         values_plot = values_for_model(
             instance, job, 'treemap_mapfeature', 'Plot',
-            select, select_params,
-            prefix='plot')
+            select, select_params)
         values_sp = values_for_model(
             instance, job, 'treemap_species', 'Species',
             select, select_params,
-            prefix='species')
+            prefix='tree__species')
 
-        if 'plot__geom' in values_plot:
-            values_plot = [f for f in values_plot if f != 'plot__geom']
-            values_plot += ['plot__geom__x', 'plot__geom__y']
+        if 'geom' in values_plot:
+            values_plot = [f for f in values_plot if f != 'geom']
+            values_plot += ['geom__x', 'geom__y']
 
         get_ll = 'ST_Transform(treemap_mapfeature.the_geom_webmercator, 4326)'
-        select['plot__geom__x'] = 'ST_X(%s)' % get_ll
-        select['plot__geom__y'] = 'ST_Y(%s)' % get_ll
+        select['geom__x'] = 'ST_X(%s)' % get_ll
+        select['geom__y'] = 'ST_Y(%s)' % get_ll
 
         ordered_fields = (sorted(values_tree)
                           + sorted(values_plot)
@@ -181,6 +182,7 @@ def async_csv_export(job, model, query, display_filters):
                           .extra(select=select,
                                  select_params=select_params)
                           .values(*ordered_fields))
+            field_header_map = _csv_field_header_map(ordered_fields)
         else:
             limited_qs = initial_qs.none()
 
@@ -194,10 +196,27 @@ def async_csv_export(job, model, query, display_filters):
         job.status = ExportJob.MODEL_PERMISSION_ERROR
     else:
         csv_file = TemporaryFile()
-        write_csv(limited_qs, csv_file, field_order=ordered_fields)
-        job.complete_with(generate_filename(limited_qs), File(csv_file))
+        write_csv(limited_qs, csv_file,
+                  field_order=ordered_fields,
+                  field_header_map=field_header_map)
+        filename = generate_filename(limited_qs).replace('plot', 'tree')
+        job.complete_with(filename, File(csv_file))
 
     job.save()
+
+
+def _csv_field_header_map(field_names):
+    # Our query uses plot-centric field names but our csv wants tree-centric
+    # header names. So convert e.g. "tree__canopy_height" -> "canopy_height"
+    # and "width" -> "plot__width".
+    map = {}
+    for name in field_names:
+        if name.startswith('tree__'):
+            header = name[6:]
+        else:
+            header = 'plot__%s' % name
+        map[name] = header
+    return map
 
 
 @task
