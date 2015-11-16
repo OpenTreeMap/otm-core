@@ -251,7 +251,8 @@ def _udf_dict(model, field_name):
                 raise Exception("Datatype for field %s not found" % field_name)
 
 
-def field_type_label_choices(model, field_name, label):
+def field_type_label_choices(model, field_name, label,
+                             treat_multichoice_as_choice=False):
     choices = None
     udf_field_name = field_name.replace('udf:', '')
     if not _is_udf(model, udf_field_name):
@@ -273,11 +274,18 @@ def field_type_label_choices(model, field_name, label):
         field_type = udf_dict['type']
         label = label if label else udf_field_name
         if 'choices' in udf_dict:
-            # multichoices don't make use of a blank placeholder
-            initial = [''] if field_type == 'choice' else []
-            values = initial + udf_dict['choices']
             choices = [{'value': value, 'display_value': value}
-                       for value in values]
+                       for value in udf_dict['choices']]
+            if field_type == 'multichoice' and treat_multichoice_as_choice:
+                field_type = 'choice'
+                # Choices will be used to search multichoice values (stored as
+                # JSON) using a LIKE query. Add quotes around the choice values
+                # so e.g. a search for "car" will match "car" but not "carp".
+                for choice in choices:
+                    choice['value'] = '"%s"' % choice['value']
+            if field_type == 'choice':
+                # choice fields get a blank option but multichoice fields don't
+                choices.insert(0, {'value': "", 'display_value': ""})
 
     return field_type, label, choices
 
@@ -300,6 +308,11 @@ class AbstractNode(template.Node):
     # Overriden in SearchNode
     def get_additional_context(self, field, *args):
         return field
+
+    # Overriden in SearchNode
+    @property
+    def treat_multichoice_as_choice(self):
+        return False
 
     def render(self, context):
         label, identifier = self.resolve_label_and_identifier(context)
@@ -347,7 +360,7 @@ class AbstractNode(template.Node):
             data_type = "string"
         else:
             data_type, label, choices = field_type_label_choices(
-                model, field_name, label)
+                model, field_name, label, self.treat_multichoice_as_choice)
             field_value = _field_value(model, field_name, data_type)
 
             if user is not None and hasattr(model, 'field_is_visible'):
@@ -443,6 +456,11 @@ class SearchNode(CreateNode):
         field.update({k: v for k, v in self.search_json.items()
                       if v is not None and k != 'identifier'})
         return field
+
+    @property
+    def treat_multichoice_as_choice(self):
+        # We only support searching for one value in a multichoice field
+        return True
 
 register.tag('field', inline_edit_tag('field', FieldNode))
 register.tag('create', inline_edit_tag('create', CreateNode))
