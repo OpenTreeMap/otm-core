@@ -107,9 +107,9 @@ function applyFilterObjectToDom(search) {
             $domElem.trigger('restore', value);
         } else if ($domElem.is('[data-date-format]')) {
             FH.applyDateToDatepicker($domElem, value);
-        } else if($domElem.is(':checkbox')) {
+        } else if ($domElem.is(':checkbox')) {
             $domElem.prop('checked', boolToText(value) === $domElem.val());
-        } else if ($domElem.is('input')) {
+        } else if ($domElem.is('input,select')) {
             $domElem.val(value || '');
         }
     });
