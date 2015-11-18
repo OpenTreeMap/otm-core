@@ -104,29 +104,13 @@ class TreeBenefitsCalculator(BenefitCalculator):
 
     def benefits_for_filter(self, instance, item_filter):
         return get_cached_tree_benefits(
-            item_filter, lambda: self._get_benefits(item_filter))
+            item_filter, lambda: self._get_benefits_summary(item_filter))
 
-    def _get_benefits(self, item_filter):
-        from treemap.models import Tree
+    def full_benefits_for_filter(self, instance, item_filter):
+        return get_cached_tree_benefits(
+            item_filter, lambda: self._get_full_benefits(item_filter))
 
-        instance = item_filter.instance
-        trees = item_filter.get_objects(Tree)
-        n_total_trees = trees.count()
-
-        if not instance.has_itree_region():
-            basis = {'plot':
-                     {'n_objects_used': 0,
-                      'n_objects_discarded': n_total_trees}}
-            return ({}, basis)
-
-        if n_total_trees == 0:
-            basis = {'plot':
-                     {'n_objects_used': 0,
-                      'n_objects_discarded': n_total_trees}}
-            empty_rslt = compute_currency_and_transform_units(
-                instance, {})
-            return (empty_rslt, basis)
-
+    def _get_benefits(self, instance, trees):
         # When calculating benefits we can skip region information
         # if there is only one intersecting region or if the
         # instance forces a region on us
@@ -138,12 +122,12 @@ class TreeBenefitsCalculator(BenefitCalculator):
 
         # We want to do a values query that returns the info that
         # we need for an eco calculation:
-        # diameter, species id and species code
+        # id, diameter, species id and species code
         #
         # The species id is used to find potential overrides
-        values = ('diameter',
-                  'species__pk',
-                  'species__otm_code',)
+        # The tree id is not used for the main summary endpoint, but it is used
+        # for exporting of ecobenefits
+        values = ('id', 'diameter', 'species__pk', 'species__otm_code',)
 
         # If there isn't a single region we need to
         # include geometry information
@@ -172,9 +156,32 @@ class TreeBenefitsCalculator(BenefitCalculator):
 
             query = query.replace(targetGeomField, xyGeomFields, 1)
 
-        params = {'query': query,
-                  'instance_id': instance.pk,
-                  'region': region_code or ""}
+        return {'query': query,
+                'instance_id': instance.pk,
+                'region': region_code or ""}
+
+    def _get_benefits_summary(self, item_filter):
+        from treemap.models import Tree
+
+        instance = item_filter.instance
+        trees = item_filter.get_objects(Tree)
+        n_total_trees = trees.count()
+
+        if not instance.has_itree_region():
+            basis = {'plot':
+                     {'n_objects_used': 0,
+                      'n_objects_discarded': n_total_trees}}
+            return ({}, basis)
+
+        if n_total_trees == 0:
+            basis = {'plot':
+                     {'n_objects_used': 0,
+                      'n_objects_discarded': n_total_trees}}
+            empty_rslt = compute_currency_and_transform_units(
+                instance, {})
+            return (empty_rslt, basis)
+
+        params = self._get_benefits(instance, trees)
 
         rawb, err = ecobackend.json_benefits_call(
             'eco_summary.json', params.iteritems(), post=True)
@@ -202,6 +209,31 @@ class TreeBenefitsCalculator(BenefitCalculator):
                   'n_objects_discarded': n_total_trees - n_computed_trees}}
 
         return (rslt, basis)
+
+    def _get_full_benefits(self, item_filter):
+        from treemap.models import Tree
+
+        instance = item_filter.instance
+        trees = item_filter.get_objects(Tree)
+
+        if not instance.has_itree_region() or not trees.exists():
+            return {}
+
+        params = self._get_benefits(instance, trees)
+
+        rawb, err = ecobackend.json_benefits_call(
+            'eco_full.json', params.iteritems(), post=True)
+
+        if err:
+            raise Exception(err)
+
+        all_benefits = rawb['Benefits']
+
+        transformed_benefits = {
+            tree_id: compute_currency_and_transform_units(instance, benefits)
+            for tree_id, benefits in all_benefits.iteritems()}
+
+        return transformed_benefits
 
     def benefits_for_object(self, instance, plot):
         tree = plot.current_tree()
