@@ -757,8 +757,6 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 # TODO:
 # Exclusion Zones
 # Proximity validation
-# UDFModel overrides implementations of methods in
-# authorizable and auditable, thus needs to be inherited first
 class Plot(MapFeature):
     width = models.FloatField(null=True, blank=True,
                               help_text=_("Plot Width"))
