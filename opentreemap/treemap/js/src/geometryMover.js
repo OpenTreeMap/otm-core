@@ -47,10 +47,10 @@ function init(obj, options) {
 
     inlineEditForm
         .saveOkStream
-        .map('.responseData.geoRevHash')
-        .onValue(function (georev) {
+        .map('.responseData')
+        .onValue(function (responseData) {
             // Refresh the map if needed
-            options.mapManager.updateGeoRevHash(georev);
+            options.mapManager.updateRevHashes(responseData);
         });
 }
 

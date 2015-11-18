@@ -45,6 +45,7 @@ def _request_to_update_map_feature(request, feature):
     return {
         'ok': True,
         'geoRevHash': feature.instance.geo_rev_hash,
+        'universalRevHash': feature.instance.universal_rev_hash,
         'featureId': feature.id,
         'treeId': tree.id if tree else None,
         'feature': ctx_fn(request, feature),
@@ -224,8 +225,7 @@ def update_map_feature(request_dict, user, feature):
 
     tree = None
 
-    should_update_geo_rev = False
-    should_update_eco_rev = False
+    rev_updates = ['universal_rev']
     for (identifier, value) in request_dict.iteritems():
         split_template = 'Malformed request - invalid field %s'
         object_name, field = dotted_split(identifier, 2,
@@ -266,10 +266,10 @@ def update_map_feature(request_dict, user, feature):
 
         field_class = model._meta.get_field_by_name(field)[0]
         if isinstance(field_class, GeometryField):
-            should_update_geo_rev = True
-            should_update_eco_rev = True
+            rev_updates.append('geo_rev')
+            rev_updates.append('eco_rev')
         elif identifier in ['tree.species', 'tree.diameter']:
-            should_update_eco_rev = True
+            rev_updates.append('eco_rev')
 
     errors = {}
 
@@ -286,10 +286,7 @@ def update_map_feature(request_dict, user, feature):
             errors['mapFeature.geom'] = errors[feature.geom_field_name]
         raise ValidationError(errors)
 
-    if should_update_geo_rev:
-        feature.instance.update_geo_rev()
-    if should_update_eco_rev:
-        feature.instance.update_eco_rev()
+    feature.instance.update_revs(*rev_updates)
 
     return feature, tree
 

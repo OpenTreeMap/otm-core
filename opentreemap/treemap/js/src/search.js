@@ -32,6 +32,10 @@ var displayListIsEmpty = exports.displayListIsEmpty = function(displayList) {
     return _.isUndefined(displayList) || _.isNull(displayList);
 };
 
+var isEmpty = exports.isEmpty = function(obj) {
+    return filterObjectIsEmpty(obj.filter) && displayListIsEmpty(obj.display);
+};
+
 var makeQueryStringFromFilters = exports.makeQueryStringFromFilters = function(config, filters) {
     var query = {};
     if ( ! filterObjectIsEmpty(filters.filter)) {

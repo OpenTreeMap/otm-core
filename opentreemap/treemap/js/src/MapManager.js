@@ -9,12 +9,12 @@ var $ = require('jquery'),
     urlLib = require('url'),
     U = require('treemap/utility'),
     BU = require('treemap/baconUtils'),
-    makeLayerFilterable = require('treemap/makeLayerFilterable'),
     urlState = require('treemap/urlState'),
 
-    MAX_ZOOM_OPTION = {maxZoom: 21},
-    // Min zoom level for detail layers
-    MIN_ZOOM_OPTION = {minZoom: 15};
+    layersLib = require('treemap/layers'),
+
+    MIN_ZOOM_OPTION = layersLib.MIN_ZOOM_OPTION,
+    MAX_ZOOM_OPTION = layersLib.MAX_ZOOM_OPTION;
 
 // Leaflet extensions
 require('utfgrid');
@@ -31,9 +31,9 @@ MapManager.prototype = {
         var config = options.config,
             hasPolygons = getDomMapBool('has-polygons', options.domId),
             hasBoundaries = getDomMapBool('has-boundaries', options.domId),
-            plotLayer = createPlotTileLayer(config),
-            allPlotsLayer = createPlotTileLayer(config),
-            utfLayer = createPlotUTFLayer(config);
+            plotLayer = layersLib.createPlotTileLayer(config),
+            allPlotsLayer = layersLib.createPlotTileLayer(config),
+            utfLayer = layersLib.createPlotUTFLayer(config);
         this._config = config;
         this._plotLayer = plotLayer;
         this._allPlotsLayer = allPlotsLayer;
@@ -52,8 +52,8 @@ MapManager.prototype = {
             var baseUtfEventStream = BU.leafletEventStream(utfLayer, 'click');
 
             if (hasPolygons) {
-                var polygonLayer = createPolygonTileLayer(config),
-                    allPolygonsLayer = createPolygonTileLayer(config);
+                var polygonLayer = layersLib.createPolygonTileLayer(config),
+                    allPolygonsLayer = layersLib.createPolygonTileLayer(config);
                 this._hasPolygons = hasPolygons;
                 this._polygonLayer = polygonLayer;
                 this._allPolygonsLayer = allPolygonsLayer;
@@ -94,7 +94,7 @@ MapManager.prototype = {
         }
 
         if (hasBoundaries) {
-            var boundariesLayer = createBoundariesTileLayer(config);
+            var boundariesLayer = layersLib.createBoundariesTileLayer(config);
             map.addLayer(boundariesLayer);
             this.layersControl.addOverlay(boundariesLayer, 'Boundaries');
 
@@ -138,20 +138,14 @@ MapManager.prototype = {
         return map;
     },
 
-    updateGeoRevHash: function (geoRevHash) {
-        if (geoRevHash !== this._config.instance.rev) {
-            this._config.instance.rev = geoRevHash;
+    updateRevHashes: function (response) {
+        this._utfLayer.setHashes(response);
+        this._plotLayer.setHashes(response);
+        this._allPlotsLayer.setHashes(response);
 
-            var pngUrl = getPlotLayerURL(this._config, 'png');
-            this._plotLayer.setUnfilteredUrl(pngUrl);
-            this._allPlotsLayer.setUnfilteredUrl(pngUrl);
-            this._utfLayer.setUrl(getPlotLayerURL(this._config, 'grid.json'));
-
-            if (this._hasPolygons) {
-                pngUrl = getPolygonLayerURL(this._config, 'png');
-                this._polygonLayer.setUnfilteredUrl(pngUrl);
-                this._allPolygonsLayer.setUnfilteredUrl(pngUrl);
-            }
+        if (this._hasPolygons) {
+            this._polygonLayer.setHashes(response);
+            this._allPolygonsLayer.setHashes(response);
         }
     },
 
@@ -223,75 +217,6 @@ function getBasemapLayers(config) {
                 'Satellite': new L.Google('SATELLITE', MAX_ZOOM_OPTION)};
     }
     return layers;
-}
-
-function createPlotTileLayer(config) {
-    var url = getPlotLayerURL(config, 'png'),
-        layer = L.tileLayer(url, MAX_ZOOM_OPTION);
-    makeLayerFilterable(layer, url, config);
-    return layer;
-}
-
-function createPolygonTileLayer(config) {
-    var url = getPolygonLayerURL(config, 'png'),
-        options = _.extend({}, MAX_ZOOM_OPTION, MIN_ZOOM_OPTION),
-        layer = L.tileLayer(url, options);
-    makeLayerFilterable(layer, url, config);
-    return layer;
-}
-
-function createPlotUTFLayer(config) {
-    var layer, url = getPlotLayerURL(config, 'grid.json'),
-        options = _.extend({resolution: 4}, MAX_ZOOM_OPTION);
-
-    // Need to use JSONP on on browsers that do not support CORS (IE9)
-    // Only applies to plot layer because only UtfGrid is using XmlHttpRequest
-    // for cross-site requests
-    if (!$.support.cors) {
-        url += '&callback={cb}';
-        options.useJsonP = true;
-    } else {
-        options.useJsonP = false;
-    }
-
-    layer = new L.UtfGrid(url, options);
-
-    layer.setUrl = function(url) {
-        // Poke some internals
-        // Update the url
-        layer._url = url;
-        // bust the cache
-        layer._cache = {};
-
-        // Trigger update
-        layer._update();
-    };
-
-    return layer;
-}
-
-function createBoundariesTileLayer(config) {
-    var url = getLayerURL(config, 'treemap_boundary', 'png'),
-        options = _.extend({}, MAX_ZOOM_OPTION, MIN_ZOOM_OPTION);
-    return L.tileLayer(url, options);
-}
-
-function getPlotLayerURL(config, extension) {
-    return getLayerURL(config, 'treemap_mapfeature', extension);
-}
-
-function getPolygonLayerURL(config, extension) {
-    return getLayerURL(config, 'stormwater_polygonalmapfeature', extension);
-}
-
-function getLayerURL(config, layer, extension) {
-    return format(
-        '%s/tile/%s/table/%s/{z}/{x}/{y}.%s%s',
-        config.tileHost || '', config.instance.rev, layer, extension,
-        urlLib.format({query: {
-            'instance_id': config.instance.id,
-            'restrict': JSON.stringify(config.instance.mapFeatureTypes)
-        }}));
 }
 
 function deserializeZoomLatLngAndSetOnMap(mapManager, state) {

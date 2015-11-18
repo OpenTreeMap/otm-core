@@ -279,7 +279,7 @@ function init(options) {
 
     function onAddFeatureSuccess(result) {
         // Feature was saved. Update map if appropriate.
-        mapManager.updateGeoRevHash(result.geoRevHash);
+        mapManager.updateRevHashes(result);
         var option = U.$find('input[name="' + addFeatureRadioOptions + '"]:checked', $sidebar).val();
 
         if (!result.enabled) {
