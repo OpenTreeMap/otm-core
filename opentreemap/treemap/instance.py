@@ -112,12 +112,17 @@ def get_or_create_udf(instance, model, udfc_name):
 
     clz = safe_get_model_class(model)
     udfc_settings = clz.udf_settings[udfc_name]
-    udfc, __ = UserDefinedFieldDefinition.objects.get_or_create(
-        instance_id=instance.pk,
-        model_type=model,
-        iscollection=udfc_settings.get('iscollection'),
-        datatype=json.dumps(udfc_settings.get('defaults')),
-        name=udfc_name)
+    kwargs = {
+        'instance_id': instance.pk,
+        'model_type': model,
+        'iscollection': udfc_settings.get('iscollection'),
+        'name': udfc_name,
+    }
+    try:
+        udfc = UserDefinedFieldDefinition.objects.get(**kwargs)
+    except UserDefinedFieldDefinition.DoesNotExist:
+        kwargs['datatype'] = json.dumps(udfc_settings.get('defaults'))
+        udfc = UserDefinedFieldDefinition.objects.create(**kwargs)
     return udfc
 
 
