@@ -611,8 +611,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             })
 
     def delete_with_user(self, user, *args, **kwargs):
-        self.instance.update_geo_rev()
-        self.instance.update_eco_rev()
+        self.instance.update_revs('geo_rev', 'eco_rev', 'universal_rev')
         super(MapFeature, self).delete_with_user(user, *args, **kwargs)
 
     def photos(self):
@@ -985,6 +984,7 @@ class Tree(Convertible, UDFModel, PendingAuditable):
         for photo in photos:
             photo.delete_with_user(user)
         self.plot.update_updated_at()
+        self.instance.update_universal_rev()
         super(Tree, self).delete_with_user(user, *args, **kwargs)
 
 

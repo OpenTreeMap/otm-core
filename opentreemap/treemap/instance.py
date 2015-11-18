@@ -186,24 +186,28 @@ class Instance(models.Model):
     basemap_data = models.CharField(max_length=255, null=True, blank=True)
 
     """
-    The "geometry revision" is a monotonically increasing counter,
-    incremented whenever a map feature is modified in a way that would
-    affect rendered tiles. Its (hashed) value is part of all tile URLs, so
-    that repeated requests for the same tile may benefit from caching.
-    When e.g. a tree is added/moved/deleted the geo_rev is incremented,
-    and previously-cached tiles are no longer requested.
+    Revision fields are monotonically increasing counters, each
+    incremented under differing conditions, all used to invalidate one
+    of multiple caching layers, so that repeated requests for the same
+    data may benefit from caching. Their respective values are part of
+    all tile URLs and ecobenefit summaries.
+
+    The "universal revision" is incremented whenever instance values that
+    affect aggregates are changed *in any way*. When using a search filter,
+    any field of MapFeature and Tree is a trigger for cache invalidation.
+    Its value is part of all search tile URLs and search ecobenefit summary
+    cache keys.
+
+    The "geometry revision" is incremented whenever a map feature is
+    modified in a way that would affect rendered tiles for non-search
+    map rendering. Its value is part of all non-search tile URLs.
+
+    The "ecobenefit revision" is incremented whenever a tree is
+    modified in a way that would affect ecobenefit calculations.
+    Its value is part of cache keys for non-search ecobenefit summaries.
     """
     geo_rev = models.IntegerField(default=1)
-
-    """
-    The "ecobenefit revision" is a monotonically increasing counter,
-    incremented whenever a tree is modified in a way that would
-    affect ecobenefit summaries. Its value is part of cache keys for
-    ecobenefit summaries, so that repeated requests for the same trees
-    are fetched from the cache. When e.g. a tree is added or its diameter
-    updated the eco_rev is incremented, and previously-cached summaries
-    are no longer requested.
-    """
+    universal_rev = models.IntegerField(default=1, null=True, blank=True)
     eco_rev = models.IntegerField(default=1, null=True, blank=True)
 
     eco_benefits_conversion = models.ForeignKey(
@@ -424,6 +428,10 @@ class Instance(models.Model):
         return hashlib.md5(str(self.geo_rev)).hexdigest()
 
     @property
+    def universal_rev_hash(self):
+        return hashlib.md5(str(self.universal_rev)).hexdigest()
+
+    @property
     def center_lat_lng(self):
         return self.center.transform(4326, clone=True)
 
@@ -527,20 +535,22 @@ class Instance(models.Model):
         add_default_permissions(self, models=classes)
 
     def update_geo_rev(self):
-        # Use SQL increment in case self.geo_rev is stale
+        self.update_revs('geo_rev')
+
+    def update_eco_rev(self):
+        self.update_revs('eco_rev')
+
+    def update_universal_rev(self):
+        self.update_revs('universal_rev')
+
+    def update_revs(self, *attrs):
+        # Use SQL increment in case a value in attrs is stale
         qs = Instance.objects.filter(pk=self.id)
-        qs.update(geo_rev=F('geo_rev') + 1)
+        qs.update(**{attr: F(attr) + 1 for attr in attrs})
 
         # Fetch updated value so callers will have it
-        self.geo_rev = qs[0].geo_rev
-
-    def update_eco_rev(instance):
-        # Use SQL increment in case self.eco_rev is stale
-        qs = Instance.objects.filter(pk=instance.id)
-        qs.update(eco_rev=F('eco_rev') + 1)
-
-        # Fetch updated value so callers will have it
-        instance.eco_rev = qs[0].eco_rev
+        for attr in attrs:
+            setattr(self, attr, getattr(qs[0], attr))
 
     def itree_region_codes(self):
         from treemap.models import ITreeRegion
