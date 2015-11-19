@@ -544,8 +544,10 @@ class UserDefinedFieldDefinition(models.Model):
                 pk=self.pk)
 
         if existing_objects.count() != 0:
-            raise ValidationError(_('a field already exists on this model '
-                                    'with that name'))
+            template = _("a field already exists on model '%(model_type)s' "
+                         "with name '%(name)s'")
+            raise ValidationError(template % {'model_type': model_type,
+                                              'name': self.name})
 
         datatype = self.datatype_dict
 

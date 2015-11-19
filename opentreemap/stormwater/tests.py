@@ -5,8 +5,10 @@ from __future__ import division
 
 from treemap.lib.udf import udf_create
 from treemap.tests.test_udfs import UdfCRUTestCase
+from django.test.utils import override_settings
 
 
+@override_settings(FEATURE_BACKEND_FUNCTION=None)
 class UdfGenericCreateTest(UdfCRUTestCase):
     def test_non_treemap_model(self):
         self.instance.map_feature_types += ['Bioswale']

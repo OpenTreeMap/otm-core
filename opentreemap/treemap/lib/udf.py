@@ -46,12 +46,15 @@ def udf_create(params, instance):
         raise ValidationError(
             {'udf.name':
              [_("A user defined field with name "
-                "'%(udf_name)s' already exists") % {'udf_name': name}]})
+                "'%(udf_name)s' already exists on "
+                "model '%(model_type)s'") % {'udf_name': name,
+                                             'model_type': model_type}]})
 
     if model_type not in {cls.__name__ for cls
-                          in instance.editable_udf_models()}:
+                          in instance.editable_udf_models()['all']}:
         raise ValidationError(
-            {'udf.model': [_('Invalid model')]})
+            {'udf.model': [_("Invalid model '%(model_type)s'")
+                           % {'model_type': model_type}]})
 
     udf = UserDefinedFieldDefinition(
         name=name,

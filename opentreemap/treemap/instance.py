@@ -112,12 +112,17 @@ def get_or_create_udf(instance, model, udfc_name):
 
     clz = safe_get_model_class(model)
     udfc_settings = clz.udf_settings[udfc_name]
-    udfc, __ = UserDefinedFieldDefinition.objects.get_or_create(
-        instance_id=instance.pk,
-        model_type=model,
-        iscollection=udfc_settings.get('iscollection'),
-        datatype=json.dumps(udfc_settings.get('defaults')),
-        name=udfc_name)
+    kwargs = {
+        'instance_id': instance.pk,
+        'model_type': model,
+        'iscollection': udfc_settings.get('iscollection'),
+        'name': udfc_name,
+    }
+    try:
+        udfc = UserDefinedFieldDefinition.objects.get(**kwargs)
+    except UserDefinedFieldDefinition.DoesNotExist:
+        kwargs['datatype'] = json.dumps(udfc_settings.get('defaults'))
+        udfc = UserDefinedFieldDefinition.objects.create(**kwargs)
     return udfc
 
 
@@ -380,15 +385,21 @@ class Instance(models.Model):
         return data
 
     def editable_udf_models(self):
+        from treemap.plugin import feature_enabled
         from treemap.models import Tree, Plot
         from treemap.udf import UDFModel
         from treemap.util import leaf_models_of_class
-        models = {clz for clz in leaf_models_of_class(UDFModel)
-                  if clz.__name__ in self.map_feature_types
-                  and getattr(clz, 'is_editable', False)}
-        if Plot in models:
-            models |= {Tree}
-        return models
+        gsi_enabled = feature_enabled(self, 'green_infrastructure')
+
+        core_models = {Tree, Plot}
+        gsi_models = {clz for clz in leaf_models_of_class(UDFModel)
+                      if gsi_enabled
+                      and clz.__name__ in self.map_feature_types
+                      and getattr(clz, 'is_editable', False)
+                      and clz not in core_models}
+        all_models = core_models | gsi_models
+
+        return {'core': core_models, 'gsi': gsi_models, 'all': all_models}
 
     @property
     def collection_udfs(self):
