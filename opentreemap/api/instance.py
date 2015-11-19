@@ -46,6 +46,10 @@ def transform_instance_info_response(instance_view_fn):
                  if 'collection_udf_keys' not in field_group]
 
         if request.api_version < 4:
+            instance_info_dict['geoRevHash'] = (
+                instance_info_dict['universalRevHash'])
+            del instance_info_dict['universalRevHash']
+
             multichoice_fields = {
                 field for field, info
                 in instance_info_dict['fields'].iteritems()
@@ -261,6 +265,7 @@ def _instance_info_dict(instance):
     extent_radius = p1.distance(p2) / 2
 
     info = {'geoRevHash': instance.geo_rev_hash,
+            'universalRevHash': instance.universal_rev_hash,
             'id': instance.pk,
             'url': instance.url_name,
             'name': instance.name,

@@ -165,11 +165,13 @@ def _finalize_commit(import_type, import_event_id):
     ie.status = GenericImportEvent.FINISHED_CREATING
     ie.save()
 
+    # A species import could change a species' i-Tree region,
+    # affecting eco
+    rev_updates = ['eco_rev', 'universal_rev']
     if import_type == TreeImportEvent.import_type:
-        ie.instance.update_geo_rev()
+        rev_updates.append('geo_rev')
 
-    # A species import could change a species' i-Tree region, affecting eco
-    ie.instance.update_eco_rev()
+    ie.instance.update_revs(*rev_updates)
 
 
 def _get_import_event(import_type, import_event_id):

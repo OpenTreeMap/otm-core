@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
+from functools import wraps
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
@@ -16,6 +17,18 @@ from treemap.lib.map_feature import context_dict_for_plot
 from treemap.views.map_feature import update_map_feature
 
 from treemap.models import Plot
+
+
+def transform_plot_update_dict(plot_update_fn):
+    @wraps(plot_update_fn)
+    def wrapper(request, *args, **kwargs):
+        plot_dict = plot_update_fn(request, *args, **kwargs)
+
+        if request.api_version < 4:
+            plot_dict['geoRevHash'] = plot_dict['universalRevHash']
+            del plot_dict['universalRevHash']
+        return plot_dict
+    return wrapper
 
 
 def plots_closest_to_point(request, instance, lat, lng):
@@ -94,5 +107,6 @@ def update_or_create_plot(request, instance, plot_id=None):
 
     # Add geo rev hash so clients will know if a tile refresh is required
     context_dict["geoRevHash"] = plot.instance.geo_rev_hash
+    context_dict["universalRevHash"] = plot.instance.universal_rev_hash
 
     return context_dict
