@@ -66,7 +66,10 @@ class AsyncCSVTestCase(LocalMediaTestCase):
                                    assert_fields_and_values):
         job = ExportJob(instance=self.instance, user=user)
         job.save()
-        tasks.async_csv_export(job.pk, model, '', '')
+        if model == 'species':
+            tasks.async_species_csv_export(job.pk)
+        else:
+            tasks.async_plot_csv_export(job.pk, '', '')
 
         # Refresh model with outfile
         job = ExportJob.objects.get(pk=job.pk)
