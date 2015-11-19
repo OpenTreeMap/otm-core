@@ -39,7 +39,8 @@ from api.decorators import (check_signature, check_signature_and_require_login,
                             login_required, set_api_version)
 from api.instance import (instance_info, instances_closest_to_point,
                           public_instances, transform_instance_info_response)
-from api.plots import plots_closest_to_point, get_plot, update_or_create_plot
+from api.plots import (plots_closest_to_point, get_plot, update_or_create_plot,
+                       transform_plot_update_dict)
 from api.user import (user_info, create_user, update_user,
                       update_profile_photo, transform_user_request,
                       transform_user_response)
@@ -306,6 +307,7 @@ plots_endpoint = instance_api_do(
           POST=do(
               login_required,
               creates_instance_user,
+              transform_plot_update_dict,
               update_or_create_plot)))
 
 
