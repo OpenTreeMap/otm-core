@@ -17,6 +17,7 @@ from treemap.search import Filter
 from treemap.models import Species, Plot
 from treemap.util import safe_get_model_class
 from treemap.audit import model_hasattr, FieldPermission
+from treemap.ecobenefits import TreeBenefitsCalculator, BenefitCategory
 from treemap.lib.object_caches import udf_defs, permissions
 from treemap.udf import UserDefinedCollectionValue
 
@@ -174,6 +175,9 @@ def async_plot_csv_export(job, query, display_filters):
     search_filter = Filter(query, display_filters, instance)
     initial_qs = search_filter.get_objects(Plot)
 
+    benefits = TreeBenefitsCalculator().full_benefits_for_filter(
+        instance, search_filter)
+
     values_tree = values_for_model(
         instance, job, 'treemap_tree', 'Tree',
         select, select_params,
@@ -203,6 +207,8 @@ def async_plot_csv_export(job, query, display_filters):
                       .extra(select=select,
                              select_params=select_params)
                       .values(*ordered_fields))
+
+        ordered_fields += list(BenefitCategory.GROUPS)
         field_header_map = _csv_field_header_map(ordered_fields)
     else:
         limited_qs = initial_qs.none()
@@ -217,9 +223,19 @@ def async_plot_csv_export(job, query, display_filters):
         job.status = ExportJob.MODEL_PERMISSION_ERROR
     else:
         csv_file = TemporaryFile()
-        write_csv(limited_qs, csv_file,
-                  field_order=ordered_fields,
-                  field_header_map=field_header_map)
+
+        writer = csv.DictWriter(csv_file, ordered_fields)
+        writer.writerow(field_header_map)
+        for row in limited_qs:
+            tree_pk = str(row["tree__id"])
+            if tree_pk in benefits:
+                tree_benefits = {
+                    factor: prop['value']
+                    for factor, prop in benefits[tree_pk]['plot'].iteritems()}
+                row.update(tree_benefits)
+
+            writer.writerow(sanitize_unicode_record(row))
+
         filename = generate_filename(limited_qs).replace('plot', 'tree')
         job.complete_with(filename, File(csv_file))
 
@@ -234,6 +250,8 @@ def _csv_field_header_map(field_names):
     for name in field_names:
         if name.startswith('tree__'):
             header = name[6:]
+        elif name in BenefitCategory.GROUPS:
+            header = name
         else:
             header = 'plot__%s' % name
         map[name] = header
