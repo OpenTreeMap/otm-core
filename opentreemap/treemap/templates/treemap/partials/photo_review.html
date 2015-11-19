@@ -1,33 +1,89 @@
 {% load i18n %}
 {% load sort %}
 
-<div class="row comment-table">
-    <div class="col-lg-12">
-        <table class="table table-hover admin-table">
-            <thead>
-                <tr>
-                    <th>
-                        {% trans "Id" %}
-                    </th>
-                    <th>
-                        {% trans "Photo" %}
-                    </th>
-                    <th class="actions">
-                        {% trans "Actions" %}
-                    </th>
-                    <th data-photo-sort>
-                        <a href="{{ url_for_sort }}&sort={{ 'created_at'|reverse_if_current:sort_order }}">{% trans "Date" %}</a>
-                    </th>
-                </tr>
-            </thead>
-            {# JS stuffs the next photo into [data-photo-container], so it should be the container around each photo.html #}
-            <tbody data-photo-container>
-              {% for photo in photos %}
-              {% include "treemap/partials/photo.html" %}
-              {% endfor %}
-            </tbody>
-        </table>
+<div class="page-header">
+    <div class="col-xs-2">
+        <i class="icon-menu" id="toggle-sidebar"></i>
+    </div>
+    <div class="col-xs-6 text-center">
+        <h1>{% trans "Photos" %}</h1>
+    </div>
+    <div class="col-xs-4 text-right">
+        <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-toggle="dropdown">
+                {% if is_archived %}
+                    {% trans "Archived" %}
+                {% else %}
+                    {% trans "Active" %}
+                {% endif %}
+                <span class="caret"></span>
+            </button>
+            <ul data-photo-filter class="dropdown-menu dropdown-menu-right" role="menu">
+                {% if not is_archived %}
+                <li class="active"><a>{% trans "Active" %}</a></li>
+                {% else %}
+                <li><a href="{{ url_for_filter }}&amp;archived=False">{% trans "Active" %}</a></li>
+                {% endif %}
+                {% if is_archived %}
+                <li class="active"><a>{% trans "Archived" %}</a></li>
+                {% else %}
+                <li><a href="{{ url_for_filter }}&amp;archived=True">{% trans "Archived" %}</a></li>
+                {% endif %}
+            </ul>
+        </div>
     </div>
 </div>
 
-{% include 'treemap/partials/paging_controls.html' with paging=photos url=url_for_pagination %}
+<div class="content">
+    <div id="photo-review-container">
+        <div class="row comment-table">
+            <div class="col-lg-12">
+                <table class="table table-hover admin-table">
+                    <thead>
+                        <tr>
+                            {% if not is_archived %}
+                            <th class="selector">
+                                <div class="btn-group">
+                                    <input type="checkbox" data-toggle-all>
+                                    <button type="button" class="btn dropdown-toggle" data-toggle="dropdown"><i class="icon-down-dir"></i></button>
+                                    <ul class="dropdown-menu" role="menu" data-batch-action>
+                                        <li>
+                                            <a href="{% url "approve_or_reject_photos" instance_url_name=request.instance.url_name action="approve" %}?{{ full_params }}">
+                                                {% trans "Archive" %}
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="{% url "approve_or_reject_photos" instance_url_name=request.instance.url_name action="reject" %}?{{ full_params }}">
+                                                {% trans "Delete" %}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </th>
+                            {% endif %}
+                            <th>
+                                {% trans "Id" %}
+                            </th>
+                            <th>
+                                {% trans "Photo" %}
+                            </th>
+                            <th class="actions">
+                                {% trans "Actions" %}
+                            </th>
+                            <th data-photo-sort>
+                                <a href="{{ url_for_sort }}&amp;sort={{ 'created_at'|reverse_if_current:sort_order }}">{% trans "Date" %}</a>
+                            </th>
+                        </tr>
+                    </thead>
+                    {# JS stuffs the next photo into [data-photo-container], so it should be the container around each photo.html #}
+                    <tbody data-photo-container>
+                    {% for photo in photos %}
+                    {% include "treemap/partials/photo.html" %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% include 'treemap/partials/paging_controls.html' with paging=photos url=url_for_pagination %}
+    </div>
+</div>

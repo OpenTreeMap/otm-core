@@ -4,16 +4,23 @@
 {% load humanize %}
 
 {% if photo %}
-<tr class="photo-review-item" data-total-pages="{{ total_pages|unlocalize }}" data-photo>
+<tr class="photo-review-item" data-id="{{ photo.pk|unlocalize }}">
+    {% if not is_archived %}
+    <td>
+      <input data-batch-action-checkbox type="checkbox" />
+    </td>
+    {% endif %}
     <td>{{ photo.pk }}</td>
     <td>
         <a class="thumbnail" href="{{ photo.image.url }}">
-          <img data-id="{{ photo.pk|unlocalize }}" src="{{ photo.thumbnail.url }}">
+          <img src="{{ photo.thumbnail.url }}">
         </a>
     </td>
-    <td>
-        <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="approve" %}?{{ full_params }}">{% trans "Approve" %}</a> |
-        <a class="action" href="{% url "approve_or_reject_photo" instance_url_name=request.instance.url_name feature_id=photo.map_feature.pk photo_id=photo.pk action="reject" %}?{{ full_params }}">{% trans "Reject" %}</a> |
+    <td data-single-action>
+        {% if not is_archived %}
+        <a class="action" href="{% url "approve_or_reject_photos" instance_url_name=request.instance.url_name action="approve" %}?{{ full_params }}">{% trans "Archive" %}</a> |
+        <a class="action" href="{% url "approve_or_reject_photos" instance_url_name=request.instance.url_name action="reject" %}?{{ full_params }}">{% trans "Delete" %}</a> |
+        {% endif %}
         <a href="{{ photo|detail_link }}">{% trans "View Detail" %}</a>
     </td>
     <td>{{ photo.created_at|naturaltime }}</td>

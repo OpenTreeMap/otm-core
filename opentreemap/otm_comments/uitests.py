@@ -156,7 +156,7 @@ class CommentReviewUITest(CommentTestMixin, TreemapUITestCase):
         for checkbox in checkboxes:
             self.assertFalse(checkbox.is_selected())
 
-        batch_checkbox = self.find('[data-comment-toggle-all]')
+        batch_checkbox = self.find('[data-toggle-all]')
         batch_checkbox.click()
 
         for checkbox in checkboxes:
@@ -167,7 +167,7 @@ class CommentReviewUITest(CommentTestMixin, TreemapUITestCase):
         # Open the batch action dropdown
         self.click('[data-comment-batch-dropdown]')
 
-        self.find('[data-comment-batch]') \
+        self.find('[data-batch-action]') \
             .find_element_by_link_text('Archive') \
             .click()
 

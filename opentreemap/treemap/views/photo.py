@@ -7,7 +7,7 @@ from django.core.paginator import Paginator, EmptyPage
 from django.db import transaction
 from django.http import Http404
 
-from opentreemap.util import UrlParams
+from opentreemap.util import UrlParams, get_ids_from_request
 
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
@@ -17,7 +17,7 @@ from treemap.models import MapFeaturePhoto
 _PHOTO_PAGE_SIZE = 5
 
 
-def get_photos(instance, sort_order='-created_at'):
+def get_photos(instance, sort_order='-created_at', is_archived=False):
     unverified_actions = {Audit.Type.Insert,
                           Audit.Type.Delete,
                           Audit.Type.Update}
@@ -27,7 +27,7 @@ def get_photos(instance, sort_order='-created_at'):
             instance=instance,
             model__in=['TreePhoto', 'MapFeaturePhoto'],
             field='image',
-            ref__isnull=True,
+            ref__isnull=not is_archived,
             action__in=unverified_actions) \
         .values_list('model_id', flat=True)
 
@@ -44,8 +44,9 @@ def get_photos(instance, sort_order='-created_at'):
 def photo_review(request, instance):
     page_number = int(request.REQUEST.get('page', '1'))
     sort_order = request.REQUEST.get('sort', '-created_at')
-    photos = get_photos(instance, sort_order)
+    is_archived = request.REQUEST.get('archived', 'False') == 'True'
 
+    photos = get_photos(instance, sort_order, is_archived)
     paginator = Paginator(photos, _PHOTO_PAGE_SIZE)
 
     try:
@@ -54,61 +55,64 @@ def photo_review(request, instance):
         # If the page number is out of bounds, return the last page
         paged_photos = paginator.page(paginator.num_pages)
 
-    urlizer = UrlParams('photo_review', instance.url_name,
-                        page=page_number, sort=sort_order)
+    urlizer = UrlParams('photo_review', instance.url_name, page=page_number,
+                        sort=sort_order, archived=is_archived)
 
     return {
         'photos': paged_photos,
         'sort_order': sort_order,
-        'url_for_pagination': urlizer.url('sort'),
-        'url_for_sort': urlizer.url(),
-        'full_params': urlizer.params('page', 'sort')
+        'is_archived': is_archived,
+        'url_for_pagination': urlizer.url('sort', 'archived'),
+        'url_for_filter': urlizer.url('sort'),
+        'url_for_sort': urlizer.url('archived'),
+        'full_params': urlizer.params('page', 'sort', 'archived')
     }
 
 
 @transaction.atomic
-def approve_or_reject_photo(
-        request, instance, feature_id, photo_id, action):
-
+def approve_or_reject_photos(request, instance, action):
     approved = action == 'approve'
 
-    try:
-        photo = (MapFeaturePhoto.objects
-                 .select_related('treephoto')
-                 .get(pk=photo_id))
+    photo_ids = get_ids_from_request(request)
+
+    for photo_id in photo_ids:
         try:
-            photo = photo.treephoto
+            photo = (MapFeaturePhoto.objects
+                     .select_related('treephoto')
+                     .get(pk=photo_id))
+            try:
+                photo = photo.treephoto
+            except MapFeaturePhoto.DoesNotExist:
+                pass  # There is no tree photo, so use the superclass
         except MapFeaturePhoto.DoesNotExist:
-            pass  # There is no tree photo, so use the superclass
-    except MapFeaturePhoto.DoesNotExist:
-        # This may be a pending tree. Let's see if there
-        # are pending audits
-        pending_audits = Audit.objects\
-            .filter(instance=instance)\
-            .filter(model__in=['TreePhoto', 'MapFeaturePhoto'])\
-            .filter(model_id=photo_id)\
-            .filter(requires_auth=True)
+            # This may be a pending tree. Let's see if there
+            # are pending audits
+            pending_audits = Audit.objects\
+                .filter(instance=instance)\
+                .filter(model__in=['TreePhoto', 'MapFeaturePhoto'])\
+                .filter(model_id=photo_id)\
+                .filter(requires_auth=True)
 
-        if len(pending_audits) > 0:
-            # Process as pending and quit
-            approve_or_reject_audits_and_apply(
-                pending_audits, request.user, approved)
+            if len(pending_audits) > 0:
+                # Process as pending and quit
+                approve_or_reject_audits_and_apply(
+                    pending_audits, request.user, approved)
 
-            return photo_review(request, instance)
-        else:
-            # Error - no pending or regular
-            raise Http404('Photo Not Found')
+                return photo_review(request, instance)
+            else:
+                # Error - no pending or regular
+                raise Http404('Photo Not Found')
 
-    # Handle the id audit first
-    all_audits = []
-    for audit in photo.audits():
-        if audit.field == 'id':
-            all_audits = [audit] + all_audits
-        else:
-            all_audits.append(audit)
+        # Handle the id audit first
+        all_audits = []
+        for audit in photo.audits():
+            if audit.field == 'id':
+                all_audits = [audit] + all_audits
+            else:
+                all_audits.append(audit)
 
-    for audit in all_audits:
-        approve_or_reject_existing_edit(
-            audit, request.user, approved)
+        for audit in all_audits:
+            approve_or_reject_existing_edit(
+                audit, request.user, approved)
 
     return photo_review(request, instance)

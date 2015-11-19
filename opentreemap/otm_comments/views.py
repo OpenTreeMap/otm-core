@@ -11,7 +11,7 @@ from django.db import transaction
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import json_api_call, render_template
 
-from opentreemap.util import UrlParams
+from opentreemap.util import UrlParams, get_ids_from_request
 
 from treemap.decorators import (instance_request, admin_instance_request,
                                 require_http_method)
@@ -91,7 +91,7 @@ def comment_moderation(request, instance):
     elif is_archived and is_removed is None:
         comments_filter = 'Archived'
 
-    checked_comments = _get_comment_ids(request)
+    checked_comments = get_ids_from_request(request)
     if len(checked_comments) == 1:
         # Don't check the box for non-batch requests
         checked_comments = []
@@ -121,14 +121,6 @@ def comments_csv(request, instance):
     )
 
 
-def _get_comment_ids(request):
-    comment_ids_string = request.POST.get('comment-ids', None)
-    if comment_ids_string:
-        return [int(id) for id in comment_ids_string.split(',')]
-    else:
-        return []
-
-
 @transaction.atomic
 def flag(request, instance, comment_id):
     comment = EnhancedThreadedComment.objects.get(pk=comment_id,
@@ -156,7 +148,7 @@ def unflag(request, instance, comment_id):
 
 @transaction.atomic
 def hide_flags(request, instance):
-    comment_ids = _get_comment_ids(request)
+    comment_ids = get_ids_from_request(request)
     EnhancedThreadedCommentFlag.objects.filter(comment__id__in=comment_ids,
                                                comment__instance=instance)\
         .update(hidden=True)
@@ -164,7 +156,7 @@ def hide_flags(request, instance):
 
 
 def _set_prop_on_comments(request, instance, prop_name, prop_value):
-    comment_ids = _get_comment_ids(request)
+    comment_ids = get_ids_from_request(request)
     comments = EnhancedThreadedComment.objects.filter(
         pk__in=comment_ids, instance=instance)
 
