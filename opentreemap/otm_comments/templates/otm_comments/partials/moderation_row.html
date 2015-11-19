@@ -3,7 +3,7 @@
 {% load humanize %}
 {% load util %}
 
-<tr data-comment-id="{{ comment.id|unlocalize }}">
+<tr data-id="{{ comment.id|unlocalize }}">
     <td>
       <input data-batch-action-checkbox type="checkbox"
              {% if comment.id in comment_ids %}checked="checked"{% endif %} />
@@ -33,22 +33,22 @@
       {% endwith %}
     </td>
     {% spaceless %}
-    <td data-comment-single-action>
+    <td data-single-action>
       {# Moderators don't see flag, only unflag.  The "|" is inside the if for that reason #}
       {% if comment.visible_flag_count > 0 %}
-      <a href="{% url 'hide-comment-flags' request.instance.url_name %}">Unflag</a>
+      <a href="{% url 'hide-comment-flags' request.instance.url_name %}?{{ comments_params }}">Unflag</a>
       |
       {% endif %}
       {% if comment.is_removed %}
-      <a href="{% url 'show-comments' request.instance.url_name %}">Unhide</a>
+      <a href="{% url 'show-comments' request.instance.url_name %}?{{ comments_params }}">Unhide</a>
       {% else %}
-      <a href="{% url 'hide-comments' request.instance.url_name %}">Hide</a>
+      <a href="{% url 'hide-comments' request.instance.url_name %}?{{ comments_params }}">Hide</a>
       {% endif %}
       |
       {% if comment.is_archived %}
-      <a href="{% url 'unarchive-comments' request.instance.url_name %}">Unarchive</a>
+      <a href="{% url 'unarchive-comments' request.instance.url_name %}?{{ comments_params }}">Unarchive</a>
       {% else %}
-      <a href="{% url 'archive-comments' request.instance.url_name %}">Archive</a>
+      <a href="{% url 'archive-comments' request.instance.url_name %}?{{ comments_params }}">Archive</a>
       {% endif %}
     </td>
     {% endspaceless %}

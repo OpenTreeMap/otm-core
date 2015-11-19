@@ -36,36 +36,36 @@
 </div> <!--END OF PAGE HEADER -->
 
 <div class="content">
-  <div class="comments" data-comments-params="{{ comments_params }}">
+  <div class="comments">
     <div class="row comment-table">
       <div class="col-lg-12">
         <table class="table admin-table">
           <thead>
-            <tr data-comments-sort>
+            <tr>
               <th class="selector">
                 <div class="btn-group">
-                  <input type="checkbox" data-comment-toggle-all>
+                  <input type="checkbox" data-toggle-all>
                   <button data-comment-batch-dropdown type="button" class="btn dropdown-toggle" data-toggle="dropdown"><i class="icon-down-dir"></i></button>
-                  <ul class="dropdown-menu" role="menu" data-comment-batch>
-                    <li><a href="{% url 'hide-comments' request.instance.url_name %}">Hide</a></li>
-                    <li><a href="{% url 'show-comments' request.instance.url_name %}">Unhide</a></li>
-                    <li><a href="{% url 'archive-comments' request.instance.url_name %}">Archive</a></li>
-                    <li><a href="{% url 'unarchive-comments' request.instance.url_name %}">Unarchive</a></li>
-                    <li><a href="{% url 'hide-comment-flags' request.instance.url_name %}">Unflag</a></li>
+                  <ul class="dropdown-menu" role="menu" data-batch-action>
+                    <li><a href="{% url 'hide-comments' request.instance.url_name %}?{{ comments_params }}">Hide</a></li>
+                    <li><a href="{% url 'show-comments' request.instance.url_name %}?{{ comments_params }}">Unhide</a></li>
+                    <li><a href="{% url 'archive-comments' request.instance.url_name %}?{{ comments_params }}">Archive</a></li>
+                    <li><a href="{% url 'unarchive-comments' request.instance.url_name %}?{{ comments_params }}">Unarchive</a></li>
+                    <li><a href="{% url 'hide-comment-flags' request.instance.url_name %}?{{ comments_params }}">Unflag</a></li>
                   </ul>
                 </div>
               </th>
-              <th>
+              <th data-comments-sort>
                 <a href="{{ comments_url_for_sort }}&sort={{ 'id'|reverse_if_current:comments_sort }}">ID</a>
               </th>
-              <th>
+              <th data-comments-sort>
                 <a href="{{ comments_url_for_sort }}&sort={{ 'visible_flag_count'|reverse_if_current:comments_sort }}">Flag</a>
               </th>
-              <th>
+              <th data-comments-sort>
                 <a href="{{ comments_url_for_sort }}&sort={{ 'user__username'|reverse_if_current:comments_sort }}">Comment</a>
               </th>
               <th class="actions">Actions</th>
-              <th class="date">
+              <th class="date" data-comments-sort>
                 <a href="{{ comments_url_for_sort }}&sort={{ 'submit_date'|reverse_if_current:comments_sort }}">Date</a>
               </th>
             </tr>

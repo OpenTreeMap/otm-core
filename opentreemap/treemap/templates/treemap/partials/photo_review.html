@@ -22,12 +22,12 @@
                 {% if not is_archived %}
                 <li class="active"><a>{% trans "Active" %}</a></li>
                 {% else %}
-                <li><a href="{{ url_for_filter }}&archived=False">{% trans "Active" %}</a></li>
+                <li><a href="{{ url_for_filter }}&amp;archived=False">{% trans "Active" %}</a></li>
                 {% endif %}
                 {% if is_archived %}
                 <li class="active"><a>{% trans "Archived" %}</a></li>
                 {% else %}
-                <li><a href="{{ url_for_filter }}&archived=True">{% trans "Archived" %}</a></li>
+                <li><a href="{{ url_for_filter }}&amp;archived=True">{% trans "Archived" %}</a></li>
                 {% endif %}
             </ul>
         </div>
@@ -41,6 +41,26 @@
                 <table class="table table-hover admin-table">
                     <thead>
                         <tr>
+                            {% if not is_archived %}
+                            <th class="selector">
+                                <div class="btn-group">
+                                    <input type="checkbox" data-toggle-all>
+                                    <button type="button" class="btn dropdown-toggle" data-toggle="dropdown"><i class="icon-down-dir"></i></button>
+                                    <ul class="dropdown-menu" role="menu" data-batch-action>
+                                        <li>
+                                            <a href="{% url "approve_or_reject_photos" instance_url_name=request.instance.url_name action="approve" %}?{{ full_params }}">
+                                                {% trans "Archive" %}
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="{% url "approve_or_reject_photos" instance_url_name=request.instance.url_name action="reject" %}?{{ full_params }}">
+                                                {% trans "Delete" %}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </th>
+                            {% endif %}
                             <th>
                                 {% trans "Id" %}
                             </th>
@@ -51,7 +71,7 @@
                                 {% trans "Actions" %}
                             </th>
                             <th data-photo-sort>
-                                <a href="{{ url_for_sort }}&sort={{ 'created_at'|reverse_if_current:sort_order }}">{% trans "Date" %}</a>
+                                <a href="{{ url_for_sort }}&amp;sort={{ 'created_at'|reverse_if_current:sort_order }}">{% trans "Date" %}</a>
                             </th>
                         </tr>
                     </thead>

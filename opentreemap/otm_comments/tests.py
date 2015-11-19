@@ -155,7 +155,7 @@ class CommentReviewTest(CommentTestCase):
 
 
 def _comment_ids_to_params(*args):
-    return {'comment-ids': ','.join(str(arg) for arg in args)}
+    return {'ids': ','.join(str(arg) for arg in args)}
 
 
 def make_post_request(user, params=None):
