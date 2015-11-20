@@ -15,23 +15,23 @@
         </button>
         <ul data-comments-filter class="dropdown-menu" role="menu">
           {% if comments_filter == 'Active' %}
-          <li class="active"><a>Active</a></li>
+          <li class="active"><a>{% trans "Active" %}</a></li>
           {% else %}
-          <li><a href="{{ comments_url_for_filter }}&archived=False&removed=None">Active</a></li>
+          <li><a href="{{ comments_url_for_filter }}&archived=False&removed=None">{% trans "Active" %}</a></li>
           {% endif %}
           {% if comments_filter == 'Hidden' %}
-          <li class="active"><a>Hidden</a></li>
+          <li class="active"><a>{% trans "Hidden" %}</a></li>
           {% else %}
-          <li><a href="{{ comments_url_for_filter }}&archived=None&removed=True">Hidden</a></li>
+          <li><a href="{{ comments_url_for_filter }}&archived=None&removed=True">{% trans "Hidden" %}</a></li>
           {% endif %}
           {% if comments_filter == 'Archived' %}
-          <li class="active"><a>Archived</a></li>
+          <li class="active"><a>{% trans "Archived" %}</a></li>
           {% else %}
-          <li><a href="{{ comments_url_for_filter }}&archived=True&removed=None">Archived</a></li>
+          <li><a href="{{ comments_url_for_filter }}&archived=True&removed=None">{% trans "Archived" %}</a></li>
           {% endif %}
         </ul>
       </div>
-      <button type="button" class="btn btn-sm" data-export-start-url="{% url 'comments-csv' request.instance.url_name %}?{{ comments_params }}"><i class="icon-export"></i>Export All</button>
+      <button type="button" class="btn btn-sm" data-export-start-url="{% url 'comments-csv' request.instance.url_name %}?{{ comments_params }}"><i class="icon-export"></i>{% trans "Export All" %}</button>
   </div>
 </div> <!--END OF PAGE HEADER -->
 
@@ -47,26 +47,26 @@
                   <input type="checkbox" data-toggle-all>
                   <button data-comment-batch-dropdown type="button" class="btn dropdown-toggle" data-toggle="dropdown"><i class="icon-down-dir"></i></button>
                   <ul class="dropdown-menu" role="menu" data-batch-action>
-                    <li><a href="{% url 'hide-comments' request.instance.url_name %}?{{ comments_params }}">Hide</a></li>
-                    <li><a href="{% url 'show-comments' request.instance.url_name %}?{{ comments_params }}">Unhide</a></li>
-                    <li><a href="{% url 'archive-comments' request.instance.url_name %}?{{ comments_params }}">Archive</a></li>
-                    <li><a href="{% url 'unarchive-comments' request.instance.url_name %}?{{ comments_params }}">Unarchive</a></li>
-                    <li><a href="{% url 'hide-comment-flags' request.instance.url_name %}?{{ comments_params }}">Unflag</a></li>
+                    <li><a href="{% url 'hide-comments' request.instance.url_name %}?{{ comments_params }}">{% trans "Hide" %}</a></li>
+                    <li><a href="{% url 'show-comments' request.instance.url_name %}?{{ comments_params }}">{% trans "Unhide" %}</a></li>
+                    <li><a href="{% url 'archive-comments' request.instance.url_name %}?{{ comments_params }}">{% trans "Archive" %}</a></li>
+                    <li><a href="{% url 'unarchive-comments' request.instance.url_name %}?{{ comments_params }}">{% trans "Unarchive" %}</a></li>
+                    <li><a href="{% url 'hide-comment-flags' request.instance.url_name %}?{{ comments_params }}">{% trans "Unflag" %}</a></li>
                   </ul>
                 </div>
               </th>
               <th data-comments-sort>
-                <a href="{{ comments_url_for_sort }}&sort={{ 'id'|reverse_if_current:comments_sort }}">ID</a>
+                <a href="{{ comments_url_for_sort }}&sort={{ 'id'|reverse_if_current:comments_sort }}">{% trans "ID" %}</a>
               </th>
               <th data-comments-sort>
-                <a href="{{ comments_url_for_sort }}&sort={{ 'visible_flag_count'|reverse_if_current:comments_sort }}">Flag</a>
+                <a href="{{ comments_url_for_sort }}&sort={{ 'visible_flag_count'|reverse_if_current:comments_sort }}">{% trans "Flag" %}</a>
               </th>
               <th data-comments-sort>
-                <a href="{{ comments_url_for_sort }}&sort={{ 'user__username'|reverse_if_current:comments_sort }}">Comment</a>
+                <a href="{{ comments_url_for_sort }}&sort={{ 'user__username'|reverse_if_current:comments_sort }}">{% trans "Comment" %}</a>
               </th>
-              <th class="actions">Actions</th>
+              <th class="actions">{% trans "Actions" %}</th>
               <th class="date" data-comments-sort>
-                <a href="{{ comments_url_for_sort }}&sort={{ 'submit_date'|reverse_if_current:comments_sort }}">Date</a>
+                <a href="{{ comments_url_for_sort }}&sort={{ 'submit_date'|reverse_if_current:comments_sort }}">{% trans "Date" %}</a>
               </th>
             </tr>
           </thead>
