@@ -36,6 +36,7 @@
 </div> <!--END OF PAGE HEADER -->
 
 <div class="content">
+  {% if comments %}
   <div class="comments">
     <div class="row comment-table">
       <div class="col-lg-12">
@@ -81,5 +82,10 @@
 
     {% include 'treemap/partials/paging_controls.html' with paging=comments url=comments_url_for_pagination %}
 
+    {% else %}
+    <div class="alert alert-info">
+      {% blocktrans %}There are no {{ comments_filter_trans }} comments.{% endblocktrans %}
+    </div>
+    {% endif %}
   </div> <!--END OF COMMENT AREA -->
 </div>

@@ -6,6 +6,7 @@ from __future__ import division
 from django.core.paginator import Paginator, EmptyPage
 from django.db import transaction
 from django.http import Http404
+from django.utils.translation import ugettext as _
 
 from opentreemap.util import UrlParams, get_ids_from_request
 
@@ -62,6 +63,9 @@ def photo_review(request, instance):
         'photos': paged_photos,
         'sort_order': sort_order,
         'is_archived': is_archived,
+        'is_archived_text': _("Archived") if is_archived else _("Active"),
+        'is_archived_text_lower': (_("archived") if is_archived
+                                   else _("active")),
         'url_for_pagination': urlizer.url('sort', 'archived'),
         'url_for_filter': urlizer.url('sort'),
         'url_for_sort': urlizer.url('archived'),

@@ -7,6 +7,7 @@ from functools import partial
 
 from django.core.paginator import Paginator, EmptyPage
 from django.db import transaction
+from django.utils.translation import ugettext as _
 
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import json_api_call, render_template
@@ -85,11 +86,11 @@ def comment_moderation(request, instance):
 
     full_params = urlizer.params('archived', 'removed', 'sort', 'page')
 
-    comments_filter = 'Active'
+    comments_filter = ('Active', _('active'))
     if is_archived is None and is_removed:
-        comments_filter = 'Hidden'
+        comments_filter = ('Hidden', _('hidden'))
     elif is_archived and is_removed is None:
-        comments_filter = 'Archived'
+        comments_filter = ('Archived', _('archived'))
 
     checked_comments = get_ids_from_request(request)
     if len(checked_comments) == 1:
@@ -98,7 +99,8 @@ def comment_moderation(request, instance):
 
     return {
         'comments': paged_comments,
-        'comments_filter': comments_filter,
+        'comments_filter': comments_filter[0],
+        'comments_filter_trans': comments_filter[1],
         'comments_url_for_pagination': comments_url_for_pagination,
         'comments_url_for_sort': comments_url_for_sort,
         'comments_url_for_filter': comments_url_for_filter,
