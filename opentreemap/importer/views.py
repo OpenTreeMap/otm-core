@@ -21,14 +21,14 @@ from treemap.units import (storage_to_instance_units_factor,
                            get_value_display_attr)
 from treemap.plugin import get_tree_limit
 
-from exporter.decorators import task_output_as_csv
+from exporter.decorators import task_output_as_csv, queryset_as_exported_csv
 
 from importer.models.base import GenericImportEvent, GenericImportRow
 from importer.models.trees import TreeImportEvent, TreeImportRow
 from importer.models.species import SpeciesImportEvent, SpeciesImportRow
 from importer.tasks import (run_import_event_validation, commit_import_event,
                             get_import_event_model, get_import_row_model,
-                            get_all_species_export, get_import_export)
+                            get_import_export)
 from importer import errors, fields
 
 TABLE_ACTIVE_TREES = 'activeTrees'
@@ -686,10 +686,11 @@ def cancel(request, instance, import_type, import_event_id):
     return list_imports(request, instance)
 
 
-@task_output_as_csv
+@queryset_as_exported_csv
 def export_all_species(request, instance):
-    return ("all_species.csv", get_all_species_export, (instance.pk,),
-            fields.species.ALL)
+    fields = SpeciesImportRow.SPECIES_MAP.keys()
+    fields.remove('id')
+    return Species.objects.filter(instance_id=instance.id).values(*fields)
 
 
 @task_output_as_csv

@@ -4,6 +4,9 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import itertools
+
+from collections import OrderedDict
+
 from django.contrib.gis.db import models
 from django.db import transaction
 from django.utils.translation import ugettext as _
@@ -56,25 +59,25 @@ class SpeciesImportEvent(GenericImportEvent):
 
 class SpeciesImportRow(GenericImportRow):
 
-    SPECIES_MAP = {
-        'genus': fields.species.GENUS,
-        'species': fields.species.SPECIES,
-        'cultivar': fields.species.CULTIVAR,
-        'other_part_of_name': fields.species.OTHER_PART_OF_NAME,
-        'common_name': fields.species.COMMON_NAME,
-        'is_native': fields.species.IS_NATIVE,
-        'flowering_period': fields.species.FLOWERING_PERIOD,
-        'fruit_or_nut_period': fields.species.FRUIT_OR_NUT_PERIOD,
-        'fall_conspicuous': fields.species.FALL_CONSPICUOUS,
-        'flower_conspicuous': fields.species.FLOWER_CONSPICUOUS,
-        'palatable_human': fields.species.PALATABLE_HUMAN,
-        'has_wildlife_value': fields.species.HAS_WILDLIFE_VALUE,
-        'fact_sheet_url': fields.species.FACT_SHEET_URL,
-        'plant_guide_url': fields.species.PLANT_GUIDE_URL,
-        'max_diameter': fields.species.MAX_DIAMETER,
-        'max_height': fields.species.MAX_HEIGHT,
-        'id': fields.species.ID
-    }
+    SPECIES_MAP = OrderedDict((
+        ('genus', fields.species.GENUS),
+        ('species', fields.species.SPECIES),
+        ('cultivar', fields.species.CULTIVAR),
+        ('other_part_of_name', fields.species.OTHER_PART_OF_NAME),
+        ('common_name', fields.species.COMMON_NAME),
+        ('is_native', fields.species.IS_NATIVE),
+        ('flowering_period', fields.species.FLOWERING_PERIOD),
+        ('fruit_or_nut_period', fields.species.FRUIT_OR_NUT_PERIOD),
+        ('fall_conspicuous', fields.species.FALL_CONSPICUOUS),
+        ('flower_conspicuous', fields.species.FLOWER_CONSPICUOUS),
+        ('palatable_human', fields.species.PALATABLE_HUMAN),
+        ('has_wildlife_value', fields.species.HAS_WILDLIFE_VALUE),
+        ('fact_sheet_url', fields.species.FACT_SHEET_URL),
+        ('plant_guide_url', fields.species.PLANT_GUIDE_URL),
+        ('max_diameter', fields.species.MAX_DIAMETER),
+        ('max_height', fields.species.MAX_HEIGHT),
+        ('id', fields.species.ID)
+    ))
 
     # Species reference
     species = models.ForeignKey(Species, null=True, blank=True)

@@ -10,12 +10,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.db import transaction
 
-from treemap.models import Species
-
 from importer.models.base import GenericImportEvent, GenericImportRow
 from importer.models.species import SpeciesImportEvent, SpeciesImportRow
 from importer.models.trees import TreeImportEvent, TreeImportRow
-from importer import errors, fields
+from importer import errors
 from importer.util import (clean_row_data, clean_field_name,
                            utf8_file_to_csv_dictreader)
 
@@ -207,25 +205,6 @@ def _get_waiting_row_count(ie):
     return ie.rows()\
              .filter(status=GenericImportRow.WAITING)\
              .count()
-
-
-def _species_export_builder(model):
-    model_dict = model.as_dict()
-    obj = {}
-
-    for k, v in SpeciesImportRow.SPECIES_MAP.iteritems():
-        if v in fields.species.ALL:
-            if k in model_dict:
-                val = model_dict[k]
-                if not val is None:
-                    obj[v] = val
-    return obj
-
-
-@task
-def get_all_species_export(instance_id):
-    return [_species_export_builder(species) for species
-            in Species.objects.filter(instance_id=instance_id)]
 
 
 @task
