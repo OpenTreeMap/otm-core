@@ -548,7 +548,7 @@ class InlineFieldTagTests(OTMTestCase):
     def test_labelless_sets_label_to_default(self):
         self.assert_plot_length_context_value(
             self.observer, 'field.label',
-            Plot._meta.get_field('length').help_text,
+            Plot._meta.get_field('length').verbose_name,
             self._form_template_labelless_with_request_user_for)
 
     def test_labelless_sets_identifier(self):
@@ -591,7 +591,7 @@ class InlineFieldTagTests(OTMTestCase):
     def test_search_gets_default_label_when_none_given(self):
         self.assert_search_context_value(
             self.observer, 'field.label',
-            unicode(Plot._meta.get_field('length').help_text),
+            unicode(Plot._meta.get_field('length').verbose_name),
             {'identifier': 'Plot.length', 'label': None})
 
     def test_search_fields_get_added_only_for_valid_json_matches(self):
