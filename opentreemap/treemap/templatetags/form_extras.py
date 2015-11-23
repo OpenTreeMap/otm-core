@@ -16,7 +16,7 @@ from django.conf import settings
 
 from opentreemap.util import dotted_split
 
-from treemap.util import safe_get_model_class, to_object_name, to_model_name
+from treemap.util import get_model_for_instance, to_object_name
 from treemap.json_field import (is_json_field_reference,
                                 get_attr_from_json_field)
 from treemap.units import (get_digits_if_formattable, get_units_if_convertible,
@@ -276,14 +276,7 @@ def field_type_label_choices(model, field_name, label,
         if 'choices' in udf_dict:
             choices = [{'value': value, 'display_value': value}
                        for value in udf_dict['choices']]
-            if field_type == 'multichoice' and treat_multichoice_as_choice:
-                field_type = 'choice'
-                # Choices will be used to search multichoice values (stored as
-                # JSON) using a LIKE query. Add quotes around the choice values
-                # so e.g. a search for "car" will match "car" but not "carp".
-                for choice in choices:
-                    choice['value'] = '"%s"' % choice['value']
-            if field_type == 'choice':
+            if field_type == 'choice' or treat_multichoice_as_choice:
                 # choice fields get a blank option but multichoice fields don't
                 choices.insert(0, {'value': "", 'display_value': ""})
 
@@ -416,7 +409,7 @@ class AbstractNode(template.Node):
             'data_type': data_type,
             'is_visible': is_visible,
             'is_editable': is_editable,
-            'choices': choices
+            'choices': choices,
         }
         self.get_additional_context(context['field'])
 
@@ -430,12 +423,7 @@ class FieldNode(AbstractNode):
 
 class CreateNode(AbstractNode):
     def get_model(self, __, object_name, instance=None):
-        Model = safe_get_model_class(to_model_name(object_name))
-
-        if instance and hasattr(Model, 'instance'):
-            return Model(instance=instance)
-        else:
-            return Model()
+        return get_model_for_instance(object_name, instance)
 
 
 class SearchNode(CreateNode):
@@ -455,6 +443,24 @@ class SearchNode(CreateNode):
         # update endpoints, so we shouldn't overwrite it :(
         field.update({k: v for k, v in self.search_json.items()
                       if v is not None and k != 'identifier'})
+
+        data_type = field['data_type']
+        if 'search_type' not in field:
+            if data_type in {'int', 'float', 'date', 'datetime'}:
+                field['search_type'] = 'RANGE'
+            elif data_type in {'long_string', 'string', 'multichoice'}:
+                field['search_type'] = 'LIKE'
+            else:
+                field['search_type'] = 'IS'
+
+        if data_type == 'multichoice':
+            field['data_type'] = 'choice'
+            # Choices will be used to search multichoice values (stored as
+            # JSON) using a LIKE query. Add quotes around the choice values
+            # so e.g. a search for "car" will match "car" but not "carp".
+            for choice in field['choices']:
+                choice['value'] = '"%s"' % choice['value']
+
         return field
 
     @property

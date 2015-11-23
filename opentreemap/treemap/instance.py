@@ -12,6 +12,7 @@ from django.db.models import F
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ugettext_noop
 
+import copy
 import hashlib
 import json
 from urllib import urlencode
@@ -42,6 +43,19 @@ DEFAULT_MOBILE_SEARCH_FIELDS = {
                  'label': 'Missing Diameter'},
                 {'identifier': 'mapFeaturePhoto.id',
                  'label': 'Missing Photo'}]
+}
+
+DEFAULT_SEARCH_FIELDS = {
+    'standard': [
+        {'identifier': 'tree.diameter'},
+        {'identifier': 'tree.date_planted'},
+        {'identifier': 'mapFeature.updated_at'}
+    ],
+    'missing': [
+        {'identifier': 'species.id'},
+        {'identifier': 'tree.diameter'},
+        {'identifier': 'mapFeaturePhoto.id'}
+    ],
 }
 
 DEFAULT_MOBILE_API_FIELDS = (
@@ -285,55 +299,51 @@ class Instance(models.Model):
     mobile_api_fields = _make_config_property('mobile_api_fields',
                                               DEFAULT_MOBILE_API_FIELDS)
 
+    search_config = _make_config_property('search_config',
+                                          DEFAULT_SEARCH_FIELDS)
+
     non_admins_can_export = models.BooleanField(default=True)
 
     @property
     def advanced_search_fields(self):
-        # TODO pull from the config once users have a way to set search fields
+        from treemap.util import get_model_for_instance
+        from treemap.templatetags.form_extras import field_type_label_choices
+        from treemap.models import Tree, MapFeature  # prevent circular import
 
-        if not self.feature_enabled('advanced_search_filters'):
-            return {'standard': [], 'missing': [], 'display': []}
-
-        from treemap.models import MapFeature  # prevent circular import
-
-        fields = {
-            'standard': [
-                {'identifier': 'tree.diameter', 'search_type': 'RANGE'},
-                {'identifier': 'tree.date_planted', 'search_type': 'RANGE'},
-                {'identifier': 'mapFeature.updated_at', 'search_type': 'RANGE'}
-            ],
-            'display': [
-                {'model': 'Tree', 'label': 'Show trees'},
-                {'model': 'EmptyPlot',
-                 'label': 'Show empty planting sites'}
-            ],
-            'missing': [
-                {'identifier': 'species.id',
-                 'label': 'Show missing species',
-                 'search_type': 'ISNULL',
-                 'value': 'true'},
-                {'identifier': 'tree.diameter',
-                 'label': 'Show missing trunk diameter',
-                 'search_type': 'ISNULL',
-                 'value': 'true'},
-                {'identifier': 'mapFeaturePhoto.id',
-                 'label': 'Show missing photos',
-                 'search_type': 'ISNULL',
-                 'value': 'true'}
-            ],
-        }
+        fields = copy.deepcopy(self.search_config)
 
         def make_display_filter(feature_name):
-            Feature = MapFeature.get_subclass(feature_name)
+            if feature_name == 'Tree':
+                Feature = Tree
+            else:
+                Feature = MapFeature.get_subclass(feature_name)
+
             plural = Feature.terminology(self)['plural']
             return {
-                'label': 'Show %s' % plural.lower(),
+                'label': _('Show %(models)s') % {'models': plural.lower()},
                 'model': feature_name
             }
 
+        for field_info in fields['missing']:
+            model_name, field_name = field_info['identifier'].split('.', 2)
+            model = get_model_for_instance(model_name, self)
+
+            if field_name == 'id':
+                if hasattr(model, 'terminology'):
+                    label = model.terminology(self)['plural']
+                else:
+                    label = model._meta.verbose_name_plural
+            else:
+                __, label, __ = field_type_label_choices(model, field_name, '')
+
+            field_info['label'] = _('Show missing %(field)s') % {
+                'field': label.lower()}
+            field_info['search_type'] = 'ISNULL'
+            field_info['value'] = 'true'
+
+        fields['display'] = [make_display_filter('Tree')]
         fields['display'] += [make_display_filter(feature_name)
-                              for feature_name in self.map_feature_types
-                              if feature_name != 'Plot']
+                              for feature_name in self.map_feature_types]
 
         # It makes styling easier if every field has an identifier
         num = 0
