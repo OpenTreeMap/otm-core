@@ -131,7 +131,7 @@ class RainGarden(PolygonalMapFeature):
 class RainBarrel(MapFeature):
     objects = GeoHStoreUDFManager()
     capacity = models.FloatField(
-        help_text=_("Capacity"),
+        verbose_name=_("Capacity"),
         error_messages={'invalid': _("Please enter a number.")})
 
     _terminology = {

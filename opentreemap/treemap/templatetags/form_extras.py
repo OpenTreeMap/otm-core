@@ -145,8 +145,8 @@ def inline_edit_tag(tag, Node):
     {% field "First" from "user.first_name" withtemplate "template.html" %}
 
     For simple use cases, the label can be omitted, in which case the
-    translated help_text property (for Django fields) or the name (for UDFs) of
-    the underlying field is provided as the label.
+    translated verbose_name property (for Django fields) or the name (for UDFs)
+    of the underlying field is provided as the label.
 
     {% field from "user.first_name" withtemplate "template.html" %}
     {% field from "user.first_name" for user withtemplate "template.html" %}
@@ -264,7 +264,7 @@ def field_type_label_choices(model, field_name, label,
             raise Exception('This template tag only supports %s not %s'
                             % (VALID_FIELD_KEYS,
                                field_type))
-        label = label if label else field.help_text
+        label = label if label else field.verbose_name
         choices = [{'value': choice[0], 'display_value': choice[1]}
                    for choice in field.choices]
         if choices and field.null:

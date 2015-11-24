@@ -528,11 +528,11 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
 
     address_street = models.CharField(max_length=255, blank=True, null=True,
-                                      help_text=_("Address"))
+                                      verbose_name=_("Address"))
     address_city = models.CharField(max_length=255, blank=True, null=True,
-                                    help_text=_("City"))
+                                    verbose_name=_("City"))
     address_zip = models.CharField(max_length=30, blank=True, null=True,
-                                   help_text=_("Postal Code"))
+                                   verbose_name=_("Postal Code"))
 
     readonly = models.BooleanField(default=False)
 
@@ -540,7 +540,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     # table, we store a "cached" value here to keep filtering easy and
     # efficient.
     updated_at = models.DateTimeField(default=timezone.now,
-                                      help_text=_("Last Updated"))
+                                      verbose_name=_("Last Updated"))
 
     # Tells the permission system that if any other field is writable,
     # updated_at is also writable
@@ -760,9 +760,9 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 # authorizable and auditable, thus needs to be inherited first
 class Plot(MapFeature):
     width = models.FloatField(null=True, blank=True,
-                              help_text=_("Plot Width"))
+                              verbose_name=_("Planting Site Width"))
     length = models.FloatField(null=True, blank=True,
-                               help_text=_("Plot Length"))
+                               verbose_name=_("Planting Site Length"))
 
     owner_orig_id = models.CharField(max_length=255, null=True, blank=True)
 
@@ -858,19 +858,19 @@ class Tree(Convertible, UDFModel, PendingAuditable):
 
     plot = models.ForeignKey(Plot)
     species = models.ForeignKey(Species, null=True, blank=True,
-                                help_text=_("Species"))
+                                verbose_name=_("Species"))
 
     readonly = models.BooleanField(default=False)
     diameter = models.FloatField(null=True, blank=True,
-                                 help_text=_("Tree Diameter"))
+                                 verbose_name=_("Tree Diameter"))
     height = models.FloatField(null=True, blank=True,
-                               help_text=_("Tree Height"))
+                               verbose_name=_("Tree Height"))
     canopy_height = models.FloatField(null=True, blank=True,
-                                      help_text=_("Canopy Height"))
+                                      verbose_name=_("Canopy Height"))
     date_planted = models.DateField(null=True, blank=True,
-                                    help_text=_("Date Planted"))
+                                    verbose_name=_("Date Planted"))
     date_removed = models.DateField(null=True, blank=True,
-                                    help_text=_("Date Removed"))
+                                    verbose_name=_("Date Removed"))
 
     objects = GeoHStoreUDFManager()
 
