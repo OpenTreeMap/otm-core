@@ -229,10 +229,23 @@ def _parse_value(value):
     if type(value) is list:
         return [_parse_value(v) for v in value]
 
+    # warning: order matters here, because datetimes
+    # can actually actually parse into float values.
     try:
         return datetime.strptime(value, DATETIME_FORMAT)
     except (ValueError, TypeError):
-        return value
+        # We have do this because it is possible for postgres
+        # to interpret numeric search values as integers when
+        # they are actually being compared to hstore values stored
+        # as floats. Since django-hstore will cast the LHS to the
+        # type of the RHS, it fail to parse a string representation
+        # of a float into an integer.
+        #
+        # TODO: submit a fix to django-hstore to handle this.
+        try:
+            return float(value)
+        except ValueError:
+            return value
 
 
 def _parse_min_max_value_fn(operator):
@@ -266,9 +279,12 @@ def _parse_min_max_value_fn(operator):
             if isinstance(value, datetime):
                 date_value = value.date().isoformat()
                 inner_value = {field: date_value}
+            elif isinstance(value, float):
+                inner_value = {field: value}
             else:
-                raise ParseException("Cannot perform min/max comparisons on "
-                                     "non-date hstore fields at this time.")
+                raise ParseException(
+                    "Cannot perform min/max comparisons on "
+                    "non-date/numeric hstore fields at this time.")
         else:
             inner_value = value
 
