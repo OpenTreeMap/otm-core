@@ -135,7 +135,7 @@ class RegistrationView(DefaultRegistrationView):
 
         user = RegistrationProfile.objects.create_inactive_user(
             site, send_email=should_email, username=username,
-            email=email, password=password)
+            email=email, password=password, request=request)
 
         user.first_name = cleaned_data.get('first_name', '')
         user.last_name = cleaned_data.get('last_name', '')
