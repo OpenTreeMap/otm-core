@@ -11,11 +11,7 @@
     <div class="col-xs-4 text-right">
         <div class="btn-group">
             <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-toggle="dropdown">
-                {% if is_archived %}
-                    {% trans "Archived" %}
-                {% else %}
-                    {% trans "Active" %}
-                {% endif %}
+                {{ is_archived_text }}
                 <span class="caret"></span>
             </button>
             <ul data-photo-filter class="dropdown-menu dropdown-menu-right" role="menu">
@@ -36,6 +32,7 @@
 
 <div class="content">
     <div id="photo-review-container">
+      {% if photos %}
         <div class="row comment-table">
             <div class="col-lg-12">
                 <table class="table table-hover admin-table">
@@ -85,5 +82,8 @@
             </div>
         </div>
         {% include 'treemap/partials/paging_controls.html' with paging=photos url=url_for_pagination %}
+        {% else %}
+        <div class="alert alert-info">{% blocktrans %}There are no {{ is_archived_text_lower }} photos.{% endblocktrans%}</div>
+        {% endif %}
     </div>
 </div>
