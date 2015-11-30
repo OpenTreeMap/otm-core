@@ -5,7 +5,11 @@ Hello,
 Thank you for creating a tree map account and joining our community. To activate your account, please click on the link below or copy and paste it into your web browser. The link is only valid for {{ expiration_days }} days.
 
 {% endblocktrans %}
-{{ site.domain }}{% url 'registration_activate' activation_key %}
+{% if request.is_secure %}
+https://{{ site.domain }}{% url 'registration_activate' activation_key %}
+{% else %}
+http://{{ site.domain }}{% url 'registration_activate' activation_key %}
+{% endif %}
 {% blocktrans %}
 
 You can use your OpenTreeMap account to sign in to the tree map you registered on as well as any other map in the OpenTreeMap system. We hope you enjoy exploring the urban forest!
