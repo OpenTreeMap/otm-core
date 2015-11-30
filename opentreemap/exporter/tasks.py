@@ -12,15 +12,14 @@ from celery import task
 from tempfile import TemporaryFile
 
 from django.core.files import File
-from treemap.lib.object_caches import permissions
 
 from treemap.search import Filter
 from treemap.models import Species, Plot
 from treemap.util import safe_get_model_class
 from treemap.audit import model_hasattr, FieldPermission
+from treemap.ecobenefits import TreeBenefitsCalculator, BenefitCategory
+from treemap.lib.object_caches import udf_defs, permissions
 from treemap.udf import UserDefinedCollectionValue
-
-from treemap.lib.object_caches import udf_defs
 
 from djqscsv import write_csv, generate_filename
 from exporter.models import ExportJob
@@ -125,66 +124,20 @@ def async_users_export(job, data_format):
 
 @task
 @_job_transaction
-def async_csv_export(job, model, query, display_filters):
+def async_species_csv_export(job):
     instance = job.instance
 
     select = OrderedDict()
     select_params = []
-    field_header_map = {}
-    if model == 'species':
-        initial_qs = (Species.objects.
-                      filter(instance=instance))
-        values = values_for_model(instance, job, 'treemap_species',
-                                  'Species', select, select_params)
-        ordered_fields = values + select.keys()
-        limited_qs = (initial_qs
-                      .extra(select=select,
-                             select_params=select_params)
-                      .values(*ordered_fields))
-    else:
-        # model == 'tree'
 
-        # TODO: if an anonymous job with the given query has been
-        # done since the last update to the audit records table,
-        # just return that job
-
-        # get the plots for the provided
-        # query and turn them into a tree queryset
-        initial_qs = Filter(query, display_filters, instance)\
-            .get_objects(Plot)
-
-        values_tree = values_for_model(
-            instance, job, 'treemap_tree', 'Tree',
-            select, select_params,
-            prefix='tree')
-        values_plot = values_for_model(
-            instance, job, 'treemap_mapfeature', 'Plot',
-            select, select_params)
-        values_sp = values_for_model(
-            instance, job, 'treemap_species', 'Species',
-            select, select_params,
-            prefix='tree__species')
-
-        if 'geom' in values_plot:
-            values_plot = [f for f in values_plot if f != 'geom']
-            values_plot += ['geom__x', 'geom__y']
-
-        get_ll = 'ST_Transform(treemap_mapfeature.the_geom_webmercator, 4326)'
-        select['geom__x'] = 'ST_X(%s)' % get_ll
-        select['geom__y'] = 'ST_Y(%s)' % get_ll
-
-        ordered_fields = (sorted(values_tree)
-                          + sorted(values_plot)
-                          + sorted(values_sp))
-
-        if ordered_fields:
-            limited_qs = (initial_qs
-                          .extra(select=select,
-                                 select_params=select_params)
-                          .values(*ordered_fields))
-            field_header_map = _csv_field_header_map(ordered_fields)
-        else:
-            limited_qs = initial_qs.none()
+    initial_qs = Species.objects.filter(instance=instance)
+    values = values_for_model(instance, job, 'treemap_species',
+                              'Species', select, select_params)
+    ordered_fields = values + select.keys()
+    limited_qs = (initial_qs
+                  .extra(select=select,
+                         select_params=select_params)
+                  .values(*ordered_fields))
 
     if not initial_qs.exists():
         job.status = ExportJob.EMPTY_QUERYSET_ERROR
@@ -197,8 +150,92 @@ def async_csv_export(job, model, query, display_filters):
     else:
         csv_file = TemporaryFile()
         write_csv(limited_qs, csv_file,
-                  field_order=ordered_fields,
-                  field_header_map=field_header_map)
+                  field_order=ordered_fields)
+        filename = generate_filename(limited_qs).replace('plot', 'tree')
+        job.complete_with(filename, File(csv_file))
+
+    job.save()
+
+
+@task
+@_job_transaction
+def async_plot_csv_export(job, query, display_filters):
+    instance = job.instance
+
+    select = OrderedDict()
+    select_params = []
+
+    field_header_map = {}
+    # TODO: if an anonymous job with the given query has been
+    # done since the last update to the audit records table,
+    # just return that job
+
+    # get the plots for the provided
+    # query and turn them into a tree queryset
+    search_filter = Filter(query, display_filters, instance)
+    initial_qs = search_filter.get_objects(Plot)
+
+    benefits = TreeBenefitsCalculator().full_benefits_for_filter(
+        instance, search_filter)
+
+    values_tree = values_for_model(
+        instance, job, 'treemap_tree', 'Tree',
+        select, select_params,
+        prefix='tree')
+    values_plot = values_for_model(
+        instance, job, 'treemap_mapfeature', 'Plot',
+        select, select_params)
+    values_sp = values_for_model(
+        instance, job, 'treemap_species', 'Species',
+        select, select_params,
+        prefix='tree__species')
+
+    if 'geom' in values_plot:
+        values_plot = [f for f in values_plot if f != 'geom']
+        values_plot += ['geom__x', 'geom__y']
+
+    get_ll = 'ST_Transform(treemap_mapfeature.the_geom_webmercator, 4326)'
+    select['geom__x'] = 'ST_X(%s)' % get_ll
+    select['geom__y'] = 'ST_Y(%s)' % get_ll
+
+    ordered_fields = (sorted(values_tree)
+                      + sorted(values_plot)
+                      + sorted(values_sp))
+
+    if ordered_fields:
+        limited_qs = (initial_qs
+                      .extra(select=select,
+                             select_params=select_params)
+                      .values(*ordered_fields))
+
+        ordered_fields += list(BenefitCategory.GROUPS)
+        field_header_map = _csv_field_header_map(ordered_fields)
+    else:
+        limited_qs = initial_qs.none()
+
+    if not initial_qs.exists():
+        job.status = ExportJob.EMPTY_QUERYSET_ERROR
+
+    # if the initial queryset was not empty but the limited queryset
+    # is empty, it means that there were no fields which the user
+    # was allowed to export.
+    elif not limited_qs.exists():
+        job.status = ExportJob.MODEL_PERMISSION_ERROR
+    else:
+        csv_file = TemporaryFile()
+
+        writer = csv.DictWriter(csv_file, ordered_fields)
+        writer.writerow(field_header_map)
+        for row in limited_qs:
+            tree_pk = str(row["tree__id"])
+            if tree_pk in benefits:
+                tree_benefits = {
+                    factor: prop['value']
+                    for factor, prop in benefits[tree_pk]['plot'].iteritems()}
+                row.update(tree_benefits)
+
+            writer.writerow(sanitize_unicode_record(row))
+
         filename = generate_filename(limited_qs).replace('plot', 'tree')
         job.complete_with(filename, File(csv_file))
 
@@ -213,6 +250,8 @@ def _csv_field_header_map(field_names):
     for name in field_names:
         if name.startswith('tree__'):
             header = name[6:]
+        elif name in BenefitCategory.GROUPS:
+            header = name
         else:
             header = 'plot__%s' % name
         map[name] = header

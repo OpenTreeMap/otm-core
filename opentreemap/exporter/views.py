@@ -6,8 +6,6 @@ from __future__ import division
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 
-from tasks import async_csv_export, async_users_export
-
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import json_api_call
 
@@ -18,6 +16,9 @@ from exporter import EXPORTS_NOT_ENABLED_CONTEXT
 from exporter.lib import export_enabled_for
 from exporter.models import ExportJob
 from exporter.user import write_users
+from exporter.tasks import (async_species_csv_export, async_plot_csv_export,
+                            async_users_export)
+
 
 ############################################
 # synchronous exports
@@ -78,9 +79,6 @@ def begin_export(request, instance, model):
     if not export_enabled_for(instance, request.user):
         return EXPORTS_NOT_ENABLED_CONTEXT
 
-    query = request.GET.get('q', None)
-    display_filters = request.GET.get('show', None)
-
     job = ExportJob(instance=instance,
                     description='csv export of %s' % model)
 
@@ -88,7 +86,12 @@ def begin_export(request, instance, model):
         job.user = request.user
     job.save()
 
-    async_csv_export.delay(job.pk, model, query, display_filters)
+    if model == 'species':
+        async_species_csv_export.delay(job.pk)
+    else:
+        query = request.GET.get('q', None)
+        display_filters = request.GET.get('show', None)
+        async_plot_csv_export.delay(job.pk, query, display_filters)
 
     return {'start_status': 'OK', 'job_id': job.pk}
 
