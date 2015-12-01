@@ -241,14 +241,13 @@ def _is_udf(model, udf_field_name):
 
 
 def _udf_dict(model, field_name):
-            matches = [field.datatype_dict
-                       for field
-                       in model.get_user_defined_fields()
-                       if field.name == field_name.replace('udf:', '')]
-            if matches:
-                return matches[0]
-            else:
-                raise Exception("Datatype for field %s not found" % field_name)
+    matches = [field.datatype_dict
+               for field in model.get_user_defined_fields()
+               if field.name == field_name.replace('udf:', '')]
+    if matches:
+        return matches[0]
+    else:
+        raise Exception("Datatype for field %s not found" % field_name)
 
 
 def field_type_label_choices(model, field_name, label,
