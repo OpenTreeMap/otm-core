@@ -91,8 +91,8 @@ class FilterParserTests(OTMTestCase):
     def test_key_parser_plots_with_tree_map(self):
         # Plots searches on tree go require a prefix
         match = search._parse_predicate_key('plot.width',
-                                            mapping=search.TREE_MAPPING)
-        self.assertEqual(match, ('plot', 'plot__width'))
+                                            mapping=search.DEFAULT_MAPPING)
+        self.assertEqual(match, ('plot', 'width'))
 
     def test_udf_fields_look_good(self):
         match = search._parse_predicate_key('plot.udf:The 1st Planter',
@@ -108,20 +108,20 @@ class FilterParserTests(OTMTestCase):
     def test_key_parser_trees_with_tree_map(self):
         # Tree searches on tree go directly to the field
         match = search._parse_predicate_key('tree.dbh',
-                                            mapping=search.TREE_MAPPING)
-        self.assertEqual(match, ('tree', 'dbh'))
+                                            mapping=search.DEFAULT_MAPPING)
+        self.assertEqual(match, ('tree', 'tree__dbh'))
 
     def test_key_parser_tree_collection_udf(self):
         # UDF searches go on the specified model's id
         match = search._parse_predicate_key('udf:tree:52.action',
-                                            mapping=search.TREE_MAPPING)
-        self.assertEqual(match, ('udf:tree:52', 'id'))
+                                            mapping=search.DEFAULT_MAPPING)
+        self.assertEqual(match, ('udf:tree:52', 'tree__id'))
 
     def test_key_parser_plot_collection_udf(self):
         # UDF searches go on the specified model's id
         match = search._parse_predicate_key('udf:plot:52.action',
-                                            mapping=search.TREE_MAPPING)
-        self.assertEqual(match, ('udf:plot:52', 'plot__id'))
+                                            mapping=search.DEFAULT_MAPPING)
+        self.assertEqual(match, ('udf:plot:52', 'id'))
 
     def test_key_parser_invalid_model(self):
         # Invalid models should raise an exception
@@ -316,11 +316,11 @@ class FilterParserTests(OTMTestCase):
                       'EXCLUSIVE': False}},
              'tree.height':
              9},
-            mapping=search.TREE_MAPPING)
+            mapping=search.DEFAULT_MAPPING)
 
-        p1 = ('AND', {('plot__width__lte', 9),
-                      ('plot__width__gte', 5),
-                      ('height', 9)})
+        p1 = ('AND', {('width__lte', 9),
+                      ('width__gte', 5),
+                      ('tree__height', 9)})
 
         self.assertEqual(self.destructure_query_set(pred),
                          p1)

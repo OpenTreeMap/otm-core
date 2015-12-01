@@ -40,13 +40,6 @@ DEFAULT_MAPPING = {'plot': '',
                    'mapFeaturePhoto': 'mapfeaturephoto__',
                    'mapFeature': ''}
 
-TREE_MAPPING = {'plot': 'plot__',
-                'tree': '',
-                'species': 'species__',
-                'treePhoto': 'treephoto__',
-                'mapFeaturePhoto': 'treephoto__',
-                'mapFeature': 'plot__'}
-
 PLOT_RELATED_MODELS = {Plot, Tree, Species, TreePhoto}
 
 MAP_FEATURE_RELATED_NAMES = {'mapFeature', 'mapFeaturePhoto'}
@@ -66,23 +59,13 @@ class Filter(object):
         # Filter out invalid models
         model_name = ModelClass.__name__
 
-        # This is a special case when we're doing 'tree-centric'
-        # searches for eco benefits. Trees essentially count
-        # as plots for the purposes of pruning
-        if model_name == 'Tree':
-            model_name = 'Plot'
-
         if not _model_in_display_filters(model_name, self.display_filter):
             return ModelClass.objects.none()
 
-        if ModelClass == Tree:
-            mapping = TREE_MAPPING
-        else:
-            mapping = DEFAULT_MAPPING
-
-        q = create_filter(self.instance, self.filterstr, mapping)
+        q = create_filter(self.instance, self.filterstr, DEFAULT_MAPPING)
         if model_name == 'Plot':
-            q = _apply_tree_display_filter(q, self.display_filter, mapping)
+            q = _apply_tree_display_filter(q, self.display_filter,
+                                           DEFAULT_MAPPING)
 
         models = q.basekeys
 

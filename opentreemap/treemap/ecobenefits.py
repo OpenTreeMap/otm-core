@@ -107,10 +107,11 @@ class TreeBenefitsCalculator(BenefitCalculator):
             item_filter, lambda: self._get_benefits(item_filter))
 
     def _get_benefits(self, item_filter):
-        from treemap.models import Tree
+        from treemap.models import Plot, Tree
 
         instance = item_filter.instance
-        trees = item_filter.get_objects(Tree)
+        plots = item_filter.get_objects(Plot)
+        trees = Tree.objects.filter(plot__in=plots)
         n_total_trees = trees.count()
 
         if not instance.has_itree_region():
