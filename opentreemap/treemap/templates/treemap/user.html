@@ -35,8 +35,8 @@ active
         <div class="col-md-3">
             <div class="account-info">
                 <div class="user-photo-container">
-                    {% if user.thumbnail %}
-                      <img class="user-photo" id="user-photo" src="{{ user.thumbnail.url }}">
+                    {% if user.photo %}
+                      <img class="user-photo" id="user-photo" src="{{ user.photo.url }}">
                     {% else %}
                       <img class="user-photo" id="user-photo" src="{{STATIC_URL}}img/profile.png">
                     {% endif %}
