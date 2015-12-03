@@ -46,6 +46,15 @@ def safe_get_model_class(model_string):
             _('invalid model type: "%s"') % model_string)
 
 
+def get_model_for_instance(object_name, instance=None):
+    Model = safe_get_model_class(to_model_name(object_name))
+
+    if instance and hasattr(Model, 'instance'):
+        return Model(instance=instance)
+    else:
+        return Model()
+
+
 def add_visited_instance(request, instance):
     if not (hasattr(request, 'session') and request.session):
         return

@@ -365,8 +365,46 @@ class InstanceTest(OTMTestCase):
 
         self.assertEqual(instance.has_itree_region(), True)
 
-    @override_settings(FEATURE_BACKEND_FUNCTION='treemap.plugin.always_false')
-    def test_advanced_search_fields(self):
-        instance = make_instance()
-        self.assertEqual(instance.advanced_search_fields,
-                         {'standard': [], 'missing': [], 'display': []})
+
+class InstanceAdvancedSearch(OTMTestCase):
+    def setUp(self):
+        self.instance = make_instance()
+
+    def assert_search_present(self, **groups):
+        search = self.instance.advanced_search_fields
+        for group_name, field in groups.iteritems():
+            self.assertIn(group_name, search)
+            search_group = search[group_name]
+
+            field_info = search_group[0]
+            if 'label' in field_info:
+                field_info['label'] = unicode(field_info['label'])
+            del field_info['id']
+
+            self.assertEquals(field_info, field)
+
+    def test_missing_filters(self):
+        self.instance.search_config = {
+            'standard': [],
+            'missing': [{'identifier': 'mapFeaturePhoto.id'}]
+        }
+        self.assert_search_present(
+            missing={
+                'label': 'Show missing photos',
+                'identifier': 'mapFeaturePhoto.id',
+                'search_type': 'ISNULL',
+                'value': 'true'
+            }
+        )
+        self.instance.search_config = {
+            'standard': [],
+            'missing': [{'identifier': 'tree.id'}]
+        }
+        self.assert_search_present(
+            missing={
+                'label': 'Show missing trees',
+                'identifier': 'tree.id',
+                'search_type': 'ISNULL',
+                'value': 'true'
+            }
+        )
