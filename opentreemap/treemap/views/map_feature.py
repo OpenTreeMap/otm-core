@@ -17,6 +17,8 @@ from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from django.contrib.gis.db.models import GeometryField
 
 from opentreemap.util import dotted_split
+from treemap.lib.hide_at_zoom import (update_hide_at_zoom_after_move,
+                                      update_hide_at_zoom_after_delete)
 
 from treemap.units import Convertible
 from treemap.models import (Tree, Species, MapFeature,
@@ -156,6 +158,7 @@ def delete_map_feature(request, instance, feature_id):
                                     feature):
         raise ValidationError("map feature not deletable")
     feature.delete_with_user(request.user)
+    update_hide_at_zoom_after_delete(feature)
     return {'ok': True}
 
 
@@ -226,6 +229,7 @@ def update_map_feature(request_dict, user, feature):
     tree = None
 
     rev_updates = ['universal_rev']
+    old_geom = feature.geom
     for (identifier, value) in request_dict.iteritems():
         split_template = 'Malformed request - invalid field %s'
         object_name, field = dotted_split(identifier, 2,
@@ -285,6 +289,9 @@ def update_map_feature(request_dict, user, feature):
         if feature.geom_field_name in errors:
             errors['mapFeature.geom'] = errors[feature.geom_field_name]
         raise ValidationError(errors)
+
+    if old_geom is not None and feature.geom != old_geom:
+        update_hide_at_zoom_after_move(feature, user, old_geom)
 
     feature.instance.update_revs(*rev_updates)
 
