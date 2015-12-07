@@ -248,6 +248,7 @@ I18N_APPS = (
 )
 
 RESERVED_INSTANCE_URL_NAMES = (
+    'css',
     'geocode',
     'config',
     'users',
