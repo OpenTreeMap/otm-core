@@ -782,7 +782,13 @@ class UserDefinedFieldDefinition(models.Model):
             if isinstance(value, (date, datetime)):
                 return value
 
-            return parse_date_string_with_or_without_time(value)
+            try:
+                return parse_date_string_with_or_without_time(value)
+            except ValueError:
+                raise ValidationError(_('%(fieldname)s must be formatted as '
+                                        'YYYY-MM-DD') %
+                                      {'fieldname': self.name})
+
         elif 'choices' in datatype_dict:
             def _validate(val):
                 if val not in datatype_dict['choices']:
@@ -794,10 +800,19 @@ class UserDefinedFieldDefinition(models.Model):
             if datatype == 'choice':
                 _validate(value)
                 return value
-            else:
-                values = json.loads(value)
+            else:  # 'multichoice'
+                try:
+                    values = json.loads(value)
+                except ValueError:
+                    raise ValidationError(
+                        _('%(fieldname)s must be valid JSON') %
+                        {'fieldname': self.name})
                 if values is None:
                     values = []
+                if isinstance(values, basestring):
+                    # A single string is valid JSON. Wrap as a list for
+                    # consistency
+                    values = [values]
                 map(_validate, values)
                 return values
         else:
