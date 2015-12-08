@@ -5,7 +5,7 @@ from __future__ import division
 
 import json
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point, Polygon
 from django.utils.translation import ugettext as _
@@ -332,26 +332,26 @@ class TreeImportRow(GenericImportRow):
             self.append_error(error, fs.SPECIES_FIELDS, error_txt)
 
         if genus != '' or species != '' or cultivar != '' or other_part != '':
-            matching_species = Species.objects.filter(
-                instance_id=self.import_event.instance_id,
-                genus__iexact=genus,
-                species__iexact=species,
-                cultivar__iexact=cultivar,
-                other_part_of_name__iexact=other_part)
+            kwargs = {
+                'instance_id': self.import_event.instance_id,
+                'genus__iexact': genus,
+                'species__iexact': species,
+                'cultivar__iexact': cultivar,
+                'other_part_of_name__iexact': other_part,
+            }
 
             if common_name != '':
-                matching_species = matching_species.filter(
-                    common_name__iexact=common_name)
+                kwargs['common_name__iexact'] = common_name
         else:
             return
 
-        if matching_species.exists():
-            if len(matching_species) == 1:
-                self.cleaned[fields.trees.SPECIES_OBJECT] = matching_species[0]
-            else:
-                append_species_error(errors.DUPLICATE_SPECIES)
-        else:
+        try:
+            matching_species = Species.objects.get(**kwargs)
+            self.cleaned[fields.trees.SPECIES_OBJECT] = matching_species
+        except Species.DoesNotExist:
             append_species_error(errors.INVALID_SPECIES)
+        except MultipleObjectsReturned:
+            append_species_error(errors.DUPLICATE_SPECIES)
 
     def validate_user_defined_fields(self):
         ie = self.import_event
