@@ -43,5 +43,9 @@ def _guess_dialect_and_reset_read_pointer(f):
 
 def utf8_file_to_csv_dictreader(f):
     dialect = _guess_dialect_and_reset_read_pointer(f)
+    # csv.Sniffer does not automatically detect when a file uses the
+    # CSV standard "" to escape a double quote. Excel and LibreOffice
+    # use this escape by default when saving as CSV.
+    dialect.doublequote = True
     return csv.DictReader(_as_utf8(f),
                           dialect=dialect)

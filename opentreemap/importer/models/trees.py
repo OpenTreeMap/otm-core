@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import json
+
 from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point, Polygon
@@ -158,6 +160,15 @@ class TreeImportRow(GenericImportRow):
         self.status = TreeImportRow.SUCCESS
         self.save()
 
+    def _import_value_to_udf_value(self, udf_def, value):
+        if udf_def.datatype_dict['type'] == 'multichoice':
+            # multichoice fields are represented in the import file as
+            # a string, but the `udfs` attribute on the model expects
+            # an actual list.
+            return json.loads(value)
+        else:
+            return value
+
     def _commit_plot_data(self, data, plot):
         plot_edited = False
         for plot_attr, field_name in TreeImportRow.PLOT_MAP.iteritems():
@@ -173,7 +184,8 @@ class TreeImportRow(GenericImportRow):
             value = data.get(udf_column_name, None)
             if value:
                 plot_edited = True
-                plot.udfs[udf_def.name] = value
+                plot.udfs[udf_def.name] = self._import_value_to_udf_value(
+                    udf_def, value)
 
         if plot_edited:
             plot.save_with_system_user_bypass_auth()
@@ -196,7 +208,8 @@ class TreeImportRow(GenericImportRow):
                 tree_edited = True
                 if tree is None:
                     tree = Tree(instance=plot.instance)
-                tree.udfs[udf_def.name] = value
+                tree.udfs[udf_def.name] = \
+                    self._import_value_to_udf_value(udf_def, value)
 
         if tree_edited:
             tree.plot = plot
