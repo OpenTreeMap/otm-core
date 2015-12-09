@@ -544,7 +544,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
     # Tells the permission system that if any other field is writable,
     # updated_at is also writable
-    joint_writable = {'updated_at'}
+    joint_writable = {'updated_at', 'hide_at_zoom'}
 
     objects = GeoHStoreUDFManager()
 
@@ -558,12 +558,16 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
     feature_type = models.CharField(max_length=255)
 
+    hide_at_zoom = models.IntegerField(
+        null=True, blank=True, default=None, db_index=True)
+
     def __init__(self, *args, **kwargs):
         super(MapFeature, self).__init__(*args, **kwargs)
         if self.feature_type == '':
             self.feature_type = self.map_feature_type
         self._do_not_track.add('feature_type')
         self._do_not_track.add('mapfeature_ptr')
+        self._do_not_track.add('hide_at_zoom')
         self.populate_previous_state()
 
     @property
