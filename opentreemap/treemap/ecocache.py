@@ -23,13 +23,13 @@ from treemap.models import Plot
 _TIMEOUT = 60 * 60 * 24 * 30
 
 
-def get_cached_tree_benefits(filter, compute_value):
-    prefix = 'eco/trees'
+def get_cached_benefits(class_name, filter, compute_value):
+    prefix = 'eco/%s' % class_name
     return _get_or_compute(prefix, filter, compute_value)
 
 
 def get_cached_plot_count(filter):
-    prefix = 'count/plots'
+    prefix = 'count/Plot'
     compute_value = lambda: filter.get_object_count(Plot)
 
     return _get_or_compute(prefix, filter, compute_value)
@@ -49,13 +49,23 @@ def _get_or_compute(prefix, filter, compute_value):
 
 def _get_key(prefix, filter):
     if filter and (filter.filterstr or filter.displaystr):
+        # Example of why eco_rev is insufficient when a filter is active:
+        # You filter for only trees taller than 30 ft. We compute and cache
+        # benefits for your 25 tall trees. Now you update the height field of
+        # a tree from 28 to 32 ft. That doesn't change the eco_rev, so we
+        # incorrectly display the cached value instead of recomputing eco
+        # for your now 26 tall trees. Your update does change the
+        # universal_rev however, so using that in the cache key solves the
+        # problem.
         version = filter.instance.universal_rev
-    elif prefix == 'eco/trees':
+    elif prefix == 'eco/Plot':
         version = filter.instance.eco_rev
-    elif prefix == 'count/plots':
+    elif prefix == 'count/Plot':
         version = filter.instance.geo_rev
     else:
-        raise ValueError()
+        # We are computing benefits for features other than trees
+        version = filter.instance.universal_rev
+
     filter_key = '%s/%s' % (filter.filterstr, filter.displaystr)
     filter_hash = hashlib.md5(filter_key).hexdigest()
     key = "%s/%s/%s/%s" % (prefix,
