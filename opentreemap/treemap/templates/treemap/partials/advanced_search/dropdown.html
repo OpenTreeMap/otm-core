@@ -1,0 +1,22 @@
+{% load form_extras %}
+
+{% if fields %}
+    <div class="dropdown" style="display:inline-block">
+        <button id="adv-search-category-{{ category }}"
+                class="btn btn-default dropdown-toggle"
+                type="button" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+            {% block title %}
+                {{ title }}
+            {% endblock %}
+            <span class="caret"></span>
+        </button>
+        <div class="dropdown-menu{% if not align_left %} dropdown-menu-right{% endif %}"
+                aria-labelledby="adv-search-category-{{ category }}"
+                {% block dropdown_attrs %}{% endblock %}>
+            {% block dropdown_content %}
+                {% include 'treemap/partials/advanced_search/fields.html' %}
+            {% endblock %}
+        </div>
+    </div>
+{% endif %}

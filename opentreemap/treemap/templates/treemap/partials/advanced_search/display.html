@@ -1,0 +1,26 @@
+{% extends "treemap/partials/advanced_search/dropdown.html" %}
+{% load form_extras %}
+{% load i18n %}
+
+{% block title %}
+    {% trans "Display" %}
+{% endblock %}
+
+{% block dropdown_attrs %}
+    data-search-type="IN"
+    data-search-identifier="mapFeature.feature_type"
+{% endblock %}
+
+{% block dropdown_content %}
+    {% for field in fields %}
+        <span>
+            <input checked="checked"
+                 type="checkbox"
+                 id="{{ field.id }}"
+                 data-search-display="{{ field.model }}" />
+            <label for="{{ field.id }}">
+                {{ field.label }}
+            </label>
+        </span>
+    {% endfor %}
+{% endblock %}

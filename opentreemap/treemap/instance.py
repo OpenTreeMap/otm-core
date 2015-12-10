@@ -46,9 +46,7 @@ DEFAULT_MOBILE_SEARCH_FIELDS = {
 }
 
 DEFAULT_SEARCH_FIELDS = {
-    'standard': [
-        {'identifier': 'tree.diameter'},
-        {'identifier': 'tree.date_planted'},
+    'general': [
         {'identifier': 'mapFeature.updated_at'}
     ],
     'missing': [
@@ -56,6 +54,10 @@ DEFAULT_SEARCH_FIELDS = {
         {'identifier': 'tree.diameter'},
         {'identifier': 'mapFeaturePhoto.id'}
     ],
+    'Tree': [
+        {'identifier': 'tree.diameter'},
+        {'identifier': 'tree.date_planted'},
+    ]
 }
 
 DEFAULT_MOBILE_API_FIELDS = (
@@ -311,18 +313,26 @@ class Instance(models.Model):
         from treemap.models import Tree, MapFeature  # prevent circular import
 
         fields = copy.deepcopy(self.search_config)
+        if isinstance(fields, DotDict):
+            # We'll use the "fields" dictionary in a template where silent
+            # failure is convenient. But a DotDict dereference doesn't fail
+            # silently (maybe because it gives a KeyError instead of an
+            # AttributeError), so convert to a dict.
+            fields = dict(fields)
 
         def make_display_filter(feature_name):
-            if feature_name == 'Tree':
-                Feature = Tree
-            else:
-                Feature = MapFeature.get_subclass(feature_name)
-
-            plural = Feature.terminology(self)['plural']
+            plural = get_plural_feature_name(feature_name)
             return {
                 'label': _('Show %(models)s') % {'models': plural.lower()},
                 'model': feature_name
             }
+
+        def get_plural_feature_name(feature_name):
+            if feature_name == 'Tree':
+                Feature = Tree
+            else:
+                Feature = MapFeature.get_subclass(feature_name)
+            return Feature.terminology(self)['plural']
 
         for field_info in fields['missing']:
             model_name, field_name = field_info['identifier'].split('.', 2)
@@ -351,6 +361,18 @@ class Instance(models.Model):
             for field in filters:
                 field['id'] = "%s_%s" % (field.get('identifier', ''), num)
                 num += 1
+
+        more = []
+        for feature_name in sorted(self.map_feature_types):
+            if feature_name in fields and feature_name != 'Plot':
+                filters = fields.pop(feature_name)
+                if len(filters) > 0:
+                    more.append({
+                        'name': feature_name,
+                        'title': get_plural_feature_name(feature_name),
+                        'fields': filters
+                    })
+        fields['more'] = more
 
         return fields
 
