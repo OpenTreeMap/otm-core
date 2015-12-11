@@ -80,7 +80,7 @@ exports.createPlotUTFLayer = function (config) {
 function getUrlMaker(config, table, extension) {
     return function revToUrl(rev) {
         return format(
-            '%s/tile/%s/table/%s/{z}/{x}/{y}.%s%s',
+            '%s/tile/%s/database/otm/table/%s/{z}/{x}/{y}.%s%s',
             config.tileHost || '', rev, table, extension,
             urlLib.format({query: {
                 'instance_id': config.instance.id,
