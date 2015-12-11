@@ -67,33 +67,33 @@ def values_for_model(
         field_name = perm.field_name
         prefixed_name = prefix + field_name
 
-        if field_name in model_class.collection_udf_settings.items():
-
-            field_definition_id = None
-            for udfd in udf_defs(instance, model):
-                if udfd.iscollection and udfd.name == field_name[4:]:
-                    field_definition_id = udfd.id
-
-            if field_definition_id is None:
-                continue
-
-            select[prefixed_name] = (
-                """
-                WITH formatted_data AS (
-                    SELECT concat('(', data, ')') as fdata
-                    FROM %s
-                    WHERE field_definition_id = %s and model_id = %s.id
-                )
-
-                SELECT array_to_string(array_agg(fdata), ', ', '*')
-                FROM formatted_data
-                """
-                % (UserDefinedCollectionValue._meta.db_table,
-                   field_definition_id, table))
-        elif field_name.startswith('udf:'):
+        if field_name.startswith('udf:'):
             name = field_name[4:]
-            select[prefixed_name] = "{0}.udfs->%s".format(table)
-            select_params.append(name)
+            if name in model_class.collection_udf_settings.keys():
+                field_definition_id = None
+                for udfd in udf_defs(instance, model):
+                    if udfd.iscollection and udfd.name == name:
+                        field_definition_id = udfd.id
+
+                if field_definition_id is None:
+                    continue
+
+                select[prefixed_name] = (
+                    """
+                    WITH formatted_data AS (
+                        SELECT concat('(', data, ')') as fdata
+                        FROM %s
+                        WHERE field_definition_id = %s and model_id = %s.id
+                    )
+
+                    SELECT array_to_string(array_agg(fdata), ', ', '*')
+                    FROM formatted_data
+                    """
+                    % (UserDefinedCollectionValue._meta.db_table,
+                       field_definition_id, table))
+            else:
+                select[prefixed_name] = "{0}.udfs->%s".format(table)
+                select_params.append(name)
         else:
             if not model_hasattr(dummy_instance, field_name):
                 # Exception will be raised downstream if you look for
