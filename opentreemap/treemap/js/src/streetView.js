@@ -32,7 +32,8 @@ exports.create = function(options) {
                 if (panorama === null) {
                     panorama = new google.maps.StreetViewPanorama(div, {
                         position:pos,
-                        addressControl: showAddress
+                        addressControl: showAddress,
+                        panControl: false,
                     });
                 } else {
                     panorama.setPosition(pos);
