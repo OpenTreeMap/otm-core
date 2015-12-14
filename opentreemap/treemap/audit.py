@@ -1268,11 +1268,14 @@ class Audit(models.Model):
                 udfd_pk = int(self.model[4:])
                 udf_def = next((udfd for udfd in udfds if udfd.pk == udfd_pk),
                                None)
-                datatype = udf_def.datatype_by_field[field_name]
+                if udf_def is not None:
+                    datatype = udf_def.datatype_by_field[field_name]
             else:
                 udf_def = next((udfd for udfd in udfds
-                                if udfd.name == field_name), None)
-                datatype = udf_def.datatype_dict
+                                if udfd.name == field_name
+                                and udfd.model_type == self.model), None)
+                if udf_def is not None:
+                    datatype = udf_def.datatype_dict
             if udf_def is not None:
                 return udf_def.clean_value(value, datatype)
             else:
