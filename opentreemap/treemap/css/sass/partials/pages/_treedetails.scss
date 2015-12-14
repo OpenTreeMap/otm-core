@@ -98,10 +98,14 @@
     border-radius: 9px;
 }
 
-// Needed because bootstrap breaks street view on firefox
-// by setting max-width: 100% on all <img> tags
-.street-view-small img {
-    max-width: none;
+.street-view-small {
+    height: 440px;
+
+    // Needed because bootstrap breaks street view on firefox
+    // by setting max-width: 100% on all <img> tags
+    .street-view-small img {
+        max-width: none;
+    }
 }
 
 #sidebar {
