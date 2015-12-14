@@ -1,11 +1,15 @@
+{% extends "treemap/partials/advanced_search/dropdown.html" %}
 {% load i18n %}
 {% load instance_config %}
 {% load util %}
 
-{# these with statements are rough, but it makes the markup easier to read #}
-{% with udfc_search_data=request.instance|get_udfc_search_fields:request.user %}
-{% with udfc=udfc_search_data.udfc %}
-{% if udfc %}
+{% block title %}
+    {% trans "Tree Care" %}
+{% endblock %}
+
+{% block dropdown_content %}
+
+{# Note: "udfc_search_data" and "udfc" are defined in the template that includes this one. #}
 
 <div class="udfc-search clearfix hidden-xs">
   <span>{% trans "I am looking for" %}</span>
@@ -69,7 +73,5 @@
          />
 
 </div>
-{% endif %}
 
-{% endwith %}
-{% endwith %}
+{% endblock %}

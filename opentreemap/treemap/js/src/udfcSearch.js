@@ -6,7 +6,6 @@ var $ = require('jquery'),
     _ = require('lodash'),
     format = require('util').format,
     M = require('treemap/BaconModels'),
-    juxt = require('treemap/utility').juxt,
     moment = require('moment'),
     getOptionAttr = M.getOptionAttr,
     getVal = M.getVal,
@@ -28,7 +27,7 @@ var nameTemplate = _.template('udf:<%= modelName %>:<%= udfFieldDefId %>.<%= fie
         },
         type: {
             selector: '#udfc-search-type',
-            reset: _.partial(resetSelectWidget, 'type', 'data-type'),
+            reset: _.partial(resetType, 'type', 'data-type'),
             stateModifiers: {
                 type: getOptionAttr('data-type'),
                 udfFieldDefIds: getOptionAttr('data-udfd-ids'),
@@ -94,6 +93,7 @@ function resetSelectWidget(widgetName, optionKey, state) {
     var stateVal = state[widgetName],
         $option,
         val;
+
     if (!_.isNull(stateVal)) {
         $option = $(widgets[widgetName].selector)
             .find('option')
@@ -105,10 +105,22 @@ function resetSelectWidget(widgetName, optionKey, state) {
     $(widgets[widgetName].selector).val(val);
 }
 
+function resetType(widgetName, optionKey, state) {
+    resetSelectWidget(widgetName, optionKey, state);
+    var $el = $(widgets.type.selector),
+        shouldEnable = !_.isNull(state.modelName);
+    enableDropdown($el, shouldEnable);
+}
+
+function enableDropdown($el, shouldEnable) {
+    $el.prop('disabled', shouldEnable ? false : 'disabled');
+}
+
 function resetAction(state) {
     var $el = $(widgets.action.selector),
         $currentOptions = $el.find('option').not('[data-class="udfc-placeholder"]'),
         $allOptions = $el.data('options'),
+        shouldEnable = !_.isNull(state.modelName) && !_.isNull(state.type),
         modelSelector,
         typeSelector;
 
@@ -120,7 +132,7 @@ function resetAction(state) {
     }
 
     $currentOptions.remove();
-    if (!_.isNull(state.modelName) && !_.isNull(state.type)) {
+    if (shouldEnable) {
         modelSelector = format('[data-model="%s"]', state.modelName);
         typeSelector = format('[data-type="%s"]', state.type);
 
@@ -130,6 +142,7 @@ function resetAction(state) {
             .filter(typeSelector)
             .appendTo($el);
     }
+    enableDropdown($el, shouldEnable);
 
     $el = $(widgets.action.selector);
     if (!_.isNull(state.action)) {
@@ -138,7 +151,6 @@ function resetAction(state) {
         $el.val('');
     }
     $el.attr('name', makeNameAttribute(state, state.actionFieldKey));
-
 }
 
 function resetDateBox(widgetName, state) {

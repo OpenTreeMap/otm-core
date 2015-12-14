@@ -64,7 +64,11 @@ exports.getVal = function ($el) { return $el.val(); };
 
 exports.getOptionAttr = function (attr) {
     return function ($el) {
-        return $el.find('option:selected').attr(attr);
+        var value = $el.find('option:selected').attr(attr);
+        if (_.isUndefined(value)) {
+            value = null;
+        }
+        return value;
     };
 };
 
