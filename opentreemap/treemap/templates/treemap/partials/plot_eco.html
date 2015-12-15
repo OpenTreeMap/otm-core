@@ -1,32 +1,30 @@
 {% load i18n %}
 
-{% if invalid_eco_pair %}
 <div>
-  {% blocktrans %}
-  <p>Ecosystem benefits cannot be calculated for this species of tree in this location.</p>
-  <p>The tree's location falls within a climate region that does not support benefit calculations for this species.</p>
-  {% endblocktrans %}
+  {% if invalid_eco_pair %}
+      {% blocktrans %}
+      <p>Ecosystem benefits cannot be calculated for this species of tree in this location.</p>
+      <p>The tree's location falls within a climate region that does not support benefit calculations for this species.</p>
+      {% endblocktrans %}
+  {% elif unknown_ecobenefit_error %}
+      {% blocktrans %}
+      <!-- TODO: When the ecoservice returns structured errors, replace this with real conditions -->
+      <!-- Or, maybe always leave this to avoid 500s -->
+      <p>We were unable to calculate ecosystem benefits for this tree.</p>
+      {% endblocktrans %}
+  {% elif not benefits.plot %}
+      <p>{% trans "Add the diameter of the tree and select a species to calculate the yearly ecosystem services." %}</p>
+  {% endif %}
 </div>
-{% elif unknown_ecobenefit_error %}
-  {% blocktrans %}
-  <!-- TODO: When the ecoservice returns structured errors, replace this with real conditions -->
-  <!-- Or, maybe always leave this to avoid 500s -->
-  <p>We were unable to calculate ecosystem benefits for this tree.</p>
-  {% endblocktrans %}
-{% elif benefits.plot %}
+
 <table class="table table-hover">
   <tbody>
     {% for key, benefit in benefits.plot.items %}
-    <tr>
-      <td>{{ benefit.label }}</td>
-      <td>{{ benefit.value }} {{ benefit.unit}}</td>
-      <td>{{ benefit.currency_saved }}</td>
-    </tr>
+      <tr>
+        <td>{{ benefit.label }}</td>
+        <td>{{ benefit.value }} {{ benefit.unit}}</td>
+        <td>{{ benefit.currency_saved }}</td>
+      </tr>
     {% endfor %}
   </tbody>
 </table>
-{% else %}
-<div>
-  <p>{% trans "Add the diameter of the tree and select a species to calculate the yearly ecosystem services." %}</p>
-</div>
-{% endif %}
