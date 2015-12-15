@@ -15,6 +15,11 @@ from treemap.audit import add_default_permissions
 class InstanceDataCommand(BaseCommand):
 
     option_list = BaseCommand.option_list + (
+        make_option('--instance-url-name',
+                    action='store',
+                    type='string',
+                    dest='instance_url_name',
+                    help='Specify the instance to add trees to'),
         make_option('-i', '--instance',
                     action='store',
                     type='int',
@@ -33,7 +38,13 @@ class InstanceDataCommand(BaseCommand):
 
     def setup_env(self, *args, **options):
         """ Create some seed data """
-        instance = Instance.objects.get(pk=options['instance'])
+        if options['instance']:
+            instance = Instance.objects.get(pk=options['instance'])
+        elif options['instance_url_name']:
+            instance = Instance.objects.get(
+                url_name=options['instance_url_name'])
+        else:
+            raise Exception("must provide instance")
 
         try:
             user = User.system_user()
