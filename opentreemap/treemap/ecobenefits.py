@@ -127,9 +127,9 @@ class TreeBenefitsCalculator(BenefitCalculator):
         # When calculating benefits we can skip region information
         # if there is only one intersecting region or if the
         # instance forces a region on us
-        region_codes = instance.itree_region_codes()
-        if len(region_codes) == 1:
-            region_code = region_codes[0]
+        regions = instance.itree_regions()
+        if len(regions) == 1:
+            region_code = regions[0].code
         else:
             region_code = None
 
@@ -214,12 +214,12 @@ class TreeBenefitsCalculator(BenefitCalculator):
             rslt = None
             error = 'MISSING_SPECIES'
         else:
-            region = tree.itree_region
+            region_code = plot.itree_region.code
 
-            if region:
+            if region_code:
                 params = {'otmcode': tree.species.otm_code,
                           'diameter': tree.diameter,
-                          'region': region,
+                          'region': region_code,
                           'instanceid': instance.pk,
                           'speciesid': tree.species.pk}
 

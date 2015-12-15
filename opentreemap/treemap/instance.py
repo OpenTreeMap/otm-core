@@ -19,7 +19,6 @@ from urllib import urlencode
 
 from treemap.DotDict import DotDict
 from treemap.species import SPECIES
-from treemap.species.codes import ITREE_REGIONS
 from treemap.json_field import JSONField
 from treemap.lib.object_caches import udf_defs
 from treemap.species.codes import (species_codes_for_regions,
@@ -148,7 +147,7 @@ def create_stewardship_udfs(instance):
 def add_species_to_instance(instance):
     from treemap.models import Species
 
-    region_codes = instance.itree_region_codes()
+    region_codes = [itr.code for itr in instance.itree_regions()]
     if region_codes:
         # Add species from all of the instance's i-Tree regions
         species_codes = species_codes_for_regions(region_codes)
@@ -573,30 +572,16 @@ class Instance(models.Model):
         for attr in attrs:
             setattr(self, attr, getattr(qs[0], attr))
 
-    def itree_region_codes(self):
-        from treemap.models import ITreeRegion
+    def itree_regions(self, **extra_query):
+        from treemap.models import ITreeRegion, ITreeRegionInMemory
+
+        query = {'geometry__intersects': self.bounds}
+        query.update(extra_query)
 
         if self.itree_region_default:
-            region_codes = [self.itree_region_default]
+            return [ITreeRegionInMemory(self.itree_region_default)]
         else:
-            region_codes = ITreeRegion.objects \
-                .filter(geometry__intersects=self.bounds) \
-                .values_list('code', flat=True)
-
-        return region_codes
-
-    def itree_regions(self):
-        from treemap.models import ITreeRegion  # prevent circular import
-        if self.itree_region_default:
-            codes = [self.itree_region_default]
-        else:
-            codes = (ITreeRegion
-                     .objects
-                     .filter(geometry__intersects=self.bounds)
-                     .values_list('code', flat=True))
-
-        return [(code, ITREE_REGIONS.get(code, {}).get('name'))
-                for code in codes]
+            return ITreeRegion.objects.filter(**query)
 
     def has_itree_region(self):
         return bool(self.itree_regions())
