@@ -26,5 +26,15 @@
         <td>{{ benefit.currency_saved }}</td>
       </tr>
     {% endfor %}
+    {% if last_effective_instance_user.admin or request.user.is_super_admin %}
+      <tr style="font-style: italic">
+        <td>i-Tree region</td><td>{{ plot.itree_region }}</td><td></td>
+      </tr>
+      {% if invalid_eco_pair or benefits.plot %}
+      <tr style="font-style: italic">
+        <td>i-Tree code</td><td>{{ tree.itree_code }}</td><td></td>
+      </tr>
+      {% endif %}
+    {% endif %}
   </tbody>
 </table>
