@@ -93,7 +93,6 @@
 
 {% block subhead %}
 <div class="subhead">
-  {% with advanced_search_fields=request.instance.advanced_search_fields %}
   {% if request.instance|feature_enabled:'advanced_search_filters' %}
   <div class="advanced-search">
     {# Define udfc variables here so we can hide the dropdown when empty #}
@@ -156,7 +155,6 @@
       {% endif %}
     </div>
   </div>
-  {% endwith %}
 </div>
 {% endblock subhead %}
 

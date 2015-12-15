@@ -302,7 +302,6 @@ class InlineFieldTagTests(OTMTestCase):
 
     def setUp(self):
         self.instance = make_instance()
-        self.instance.config['advanced_search_fields'] = {}
         self.instance.save()
         self.role = Role(name='role', instance=self.instance, rep_thresh=0)
         self.role.save()

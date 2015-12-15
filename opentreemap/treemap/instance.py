@@ -250,10 +250,10 @@ class Instance(models.Model):
     boundaries = models.ManyToManyField('Boundary')
 
     """
-    Config contains a bunch of config variables for a given instance
-    these can be accessed via per-config properties such as
-    `advanced_search_fields`. Note that it is a DotDict, and so supports
-    get() with a dotted key and a default, e.g.
+    Config contains a bunch of configuration variables for a given instance,
+    which can be accessed via properties such as `map_feature_types`.
+    Note that it is a DotDict, and so supports get() with a dotted key and a
+    default, e.g.
         instance.config.get('fruit.apple.type', 'delicious')
     as well as creating dotted keys when no keys in the path exist yet, e.g.
         instance.config = DotDict({})
@@ -306,19 +306,10 @@ class Instance(models.Model):
 
     non_admins_can_export = models.BooleanField(default=True)
 
-    @property
-    def advanced_search_fields(self):
+    def advanced_search_fields(self, user):
         from treemap.util import get_model_for_instance
         from treemap.templatetags.form_extras import field_type_label_choices
         from treemap.models import Tree, MapFeature  # prevent circular import
-
-        fields = copy.deepcopy(self.search_config)
-        if isinstance(fields, DotDict):
-            # We'll use the "fields" dictionary in a template where silent
-            # failure is convenient. But a DotDict dereference doesn't fail
-            # silently (maybe because it gives a KeyError instead of an
-            # AttributeError), so convert to a dict.
-            fields = dict(fields)
 
         def make_display_filter(feature_name):
             plural = get_plural_feature_name(feature_name)
@@ -334,9 +325,25 @@ class Instance(models.Model):
                 Feature = MapFeature.get_subclass(feature_name)
             return Feature.terminology(self)['plural']
 
-        for field_info in fields['missing']:
+        def parse_field_info(field_info):
             model_name, field_name = field_info['identifier'].split('.', 2)
             model = get_model_for_instance(model_name, self)
+            return model, field_name
+
+        def get_visible_fields(fields, user):
+            visible_fields = []
+            for field in fields:
+                model, field_name = parse_field_info(field)
+                if model.field_is_visible(user, field_name):
+                    visible_fields.append(field)
+            return visible_fields
+
+        fields = copy.deepcopy(self.search_config)
+        fields = {model: get_visible_fields(fields, user)
+                  for model, fields in fields.iteritems()}
+
+        for field_info in fields.get('missing', []):
+            model, field_name = parse_field_info(field_info)
 
             if field_name == 'id':
                 if hasattr(model, 'terminology'):
@@ -355,10 +362,10 @@ class Instance(models.Model):
         fields['display'] += [make_display_filter(feature_name)
                               for feature_name in self.map_feature_types]
 
-        # It makes styling easier if every field has an identifier
         num = 0
         for filters in fields.itervalues():
             for field in filters:
+                # It makes styling easier if every field has an identifier
                 field['id'] = "%s_%s" % (field.get('identifier', ''), num)
                 num += 1
 
@@ -366,6 +373,8 @@ class Instance(models.Model):
         for feature_name in sorted(self.map_feature_types):
             if feature_name in fields and feature_name != 'Plot':
                 filters = fields.pop(feature_name)
+                filters = get_visible_fields(filters, user)
+
                 if len(filters) > 0:
                     more.append({
                         'name': feature_name,
