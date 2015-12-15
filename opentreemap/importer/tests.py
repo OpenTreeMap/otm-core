@@ -133,7 +133,7 @@ class ValidationTest(TestCase):
                     return e['fields']
 
 
-class TreeValidationTest(ValidationTest):
+class TreeValidationTestBase(ValidationTest):
     def setUp(self):
         center_point = Point(25, 25, srid=4326)
         center_point.transform(3857)
@@ -149,33 +149,8 @@ class TreeValidationTest(ValidationTest):
         return TreeImportRow.objects.create(
             data=json.dumps(data), import_event=self.ie, idx=1)
 
-    def test_udf(self):
-        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
 
-        UserDefinedFieldDefinition.objects.create(
-            instance=self.instance,
-            model_type='Plot',
-            datatype=json.dumps({'type': 'choice',
-                                 'choices': ['a', 'b', 'c']}),
-            iscollection=False,
-            name='Test choice')
-
-        row = {'point x': '16',
-               'point y': '20',
-               'plot: test choice': 'a'}
-
-        i = self.mkrow(row)
-        i.validate_row()
-
-        self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
-
-        row['plot: test choice'] = 'z'
-
-        i = self.mkrow(row)
-        i.validate_row()
-
-        self.assertHasError(i, errors.INVALID_UDF_VALUE)
-
+class TreeValidationTest(TreeValidationTestBase):
     def test_species_diameter_and_height(self):
         s1_gsc = Species(instance=self.instance, genus='g1', species='s1',
                          cultivar='c1', max_height=30, max_diameter=19)
@@ -399,6 +374,101 @@ class TreeValidationTest(ValidationTest):
         self.assertNotHasError(i, errors.GEOM_OUT_OF_BOUNDS)
         self.assertNotHasError(i, errors.INVALID_GEOM)
         self.assertNotHasError(i, errors.FLOAT_ERROR)
+
+
+class TreeUdfValidationTest(TreeValidationTestBase):
+    def setupClass(self):
+        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
+    def test_date_udf(self):
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'date'}),
+            iscollection=False,
+            name='Test date')
+
+        row = {'point x': '16',
+               'point y': '20',
+               'plot: test date': '2015-12-08'}
+        i = self.mkrow(row)
+        i.validate_row()
+        self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
+
+        row['plot: test date'] = '12/8/15'
+        i = self.mkrow(row)
+        i.validate_row()
+        self.assertHasError(i, errors.INVALID_UDF_VALUE,
+                            data="[u'Test date must be formatted as YYYY-MM-DD']")
+
+    def test_choice_udf(self):
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'choice',
+                             'choices': ['a', 'b', 'c']}),
+            iscollection=False,
+            name='Test choice')
+
+        row = {'point x': '16',
+           'point y': '20',
+           'plot: test choice': 'a'}
+
+        i = self.mkrow(row)
+        i.validate_row()
+
+        self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
+
+        row['plot: test choice'] = 'z'
+
+        i = self.mkrow(row)
+        i.validate_row()
+
+        self.assertHasError(i, errors.INVALID_UDF_VALUE)
+
+    def test_multichoice_udf(self):
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'multichoice',
+                             'choices': ['a', 'b', 'c']}),
+            iscollection=False,
+            name='Test multichoice')
+
+        ## VALID
+
+        row = {'point x': '16',
+               'point y': '20',
+               'plot: test multichoice': '["a"]'}
+        i = self.mkrow(row)
+        i.validate_row()
+        self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
+
+        row['plot: test multichoice'] = '"a"'
+        i = self.mkrow(row)
+        i.validate_row()
+        self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
+
+        row['plot: test multichoice'] = '["a","b"]'
+        i = self.mkrow(row)
+        i.validate_row()
+        self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
+
+        ## INVALID
+
+        # This is an error because the JSON parser requires that
+        # strings be wrapped with double quotes.
+        row['plot: test multichoice'] = 'a'
+        i = self.mkrow(row)
+        i.validate_row()
+        self.assertHasError(i, errors.INVALID_UDF_VALUE,
+                            data="[u'Test multichoice must be valid JSON']")
+
+        row['plot: test multichoice'] = '"a","b"'
+        i = self.mkrow(row)
+        i.validate_row()
+        self.assertHasError(i, errors.INVALID_UDF_VALUE,
+                            data="[u'Test multichoice must be valid JSON']")
 
 
 class SpeciesValidationTest(ValidationTest):
