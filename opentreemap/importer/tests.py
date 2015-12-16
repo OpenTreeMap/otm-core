@@ -656,9 +656,12 @@ class ITreeCommitTest(SpeciesValidationTest):
     def setUp(self):
         super(ITreeCommitTest, self).setUp()
         self._make_los_angeles_instance()
-        self._add_species([
-            {"otm_code": "ABCO", "common_name": "White fir", "genus": "Abies", "species": "concolor"},
-            ])
+        self._add_species([{
+            "genus": "Abies",
+            "species": "concolor",
+            "common_name": "White fir",
+            "otm_code": "ABCO",
+        }])
 
     def _make_itree_code_override(self, region_code, itree_code):
         species = Species.objects.get(instance=self.instance, otm_code='ABCO')
@@ -682,16 +685,20 @@ class ITreeCommitTest(SpeciesValidationTest):
             'common name': 'White fir',
             'i-tree code': itree_string})
 
+        if expected_override_code:
+            self.assertHasError(row, errors.MERGE_REQUIRED)
+            row.merged = True
+            row.commit_row()
+        else:
+            self.assertEqual(row.errors, '')
+
         # Verify expected overrides
         overrides = ITreeCodeOverride.objects.filter(
             instance_species=row.species)
         self.assertEqual(expected_override_count, overrides.count())
 
         if expected_override_code:
-            self.assertHasError(row, errors.MERGE_REQUIRED)
             self.assertEqual(expected_override_code, overrides[0].itree_code)
-        else:
-            self.assertEqual(row.errors, '')
 
         return row
 
@@ -700,6 +707,9 @@ class ITreeCommitTest(SpeciesValidationTest):
         row = self._assert_overrides(itree_pair, expected_override_count,
                                      expected_override_code)
         self._assert_correct_itree_code(itree_pair, row)
+
+    # Note -- for OTM code ABCO (White fir), the default i-Tree code
+    # in region NMtnPrFNL is PIPU
 
     def test_match_of_default_makes_no_override(self):
         self._assert_itree_and_overrides('NMtnPrFNL:PIPU', 0)

@@ -336,8 +336,13 @@ def media_dir(f):
 
 
 def ecoservice_not_running():
-    return subprocess.call(
-        ["sudo", "service", settings.ECOSERVICE_NAME, "start"]) != 0
+    """Returns True if the ecoservice is not running"""
+    try:
+        status = subprocess.check_output(
+            ["sudo", "service", settings.ECOSERVICE_NAME, "status"])
+        return status.find('start/running') < 0
+    except subprocess.CalledProcessError:
+        return True
 
 
 class LocalMediaTestCase(OTMTestCase):
