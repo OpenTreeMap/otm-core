@@ -1,0 +1,19 @@
+{% extends "treemap/partials/advanced_search/dropdown.html" %}
+{% load form_extras %}
+{% load i18n %}
+
+{% block title %}
+    {% trans "More" %}
+{% endblock %}
+
+{% block dropdown_content %}
+    <div class="search-group">
+        {% for group in fields %}
+            {% with feature=group.name title=group.title fields=group.fields show_title=True %}
+                {% if group.fields %}
+                    {% include 'treemap/partials/advanced_search/fields.html' %}
+                {% endif %}
+            {% endwith %}
+        {% endfor %}
+    </div>
+{% endblock %}

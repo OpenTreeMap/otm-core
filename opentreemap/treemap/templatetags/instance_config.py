@@ -48,6 +48,11 @@ def instance_config(instance, field):
 
 
 @register.filter
+def get_advanced_search_fields(instance, user):
+    return instance.advanced_search_fields(user)
+
+
+@register.filter
 def get_udfc_search_fields(instance, user):
     return instance.get_udfc_search_fields(user)
 

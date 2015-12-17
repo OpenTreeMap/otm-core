@@ -11,6 +11,7 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     Bacon = require('baconjs'),
+    R = require('ramda'),
     otmTypeahead = require('treemap/otmTypeahead'),
     U = require('treemap/utility'),
     geocoder = require('treemap/geocoder'),
@@ -20,6 +21,21 @@ var $ = require('jquery'),
     BU = require('treemap/baconUtils'),
     MapManager = require('treemap/MapManager'),
     mapManager = new MapManager();
+
+var dom = {
+    subheader: '.subhead',
+    advanced: '.advanced-search',
+    advancedToggle: '#search-advanced',
+    categoryDropdown: '.advanced-search .dropdown',
+    categoryToggle: '.advanced-search .dropdown-toggle',
+    categoryOpenToggle: '.advanced-search .dropdown.open .dropdown-toggle',
+    categoryDisplayToggle: '.advanced-search #adv-search-category-display',
+    categoryContent: '.advanced-search .dropdown-menu',
+    fieldGroup: '.field-group',
+    fieldsDisabledMessage: '.fields-disabled-message',
+    datePickerTextBox: '[data-date-format]',
+    datePicker: '.datepicker'
+};
 
 // Placed onto the jquery object
 require('bootstrap-datepicker');
@@ -57,8 +73,8 @@ function redirectToSearchPage(config, filters, wmCoords) {
 }
 
 function initSearchUi(config, searchStream) {
-    var $advancedToggle = $("#search-advanced"),
-        $subheader = $(".subhead");
+    var $advancedToggle = $(dom.advancedToggle),
+        $subheader = $(dom.subheader);
     otmTypeahead.create({
         name: "species",
         url: config.instance.url + "species/",
@@ -80,14 +96,43 @@ function initSearchUi(config, searchStream) {
         sortKeys: ['sortOrder', 'value']
     });
 
-    // hide advanced search dropdown when search is executed
+    // Keep dropdowns open when controls in them are clicked
+    $(dom.categoryContent).on('click', stopPropagation);
+    $(dom.datePickerTextBox).datepicker()
+        .on('show', function(e) {
+            $(dom.datePicker).on('click', stopPropagation);
+        })
+        .on('hide', function(e) {
+            $(dom.datePicker).off('click', stopPropagation);
+        });
+    function stopPropagation(e) {
+        e.stopPropagation();
+    }
+
+    // Without this, datepickers don't close when you click on the map
+    $(dom.categoryDropdown).on('hide.bs.dropdown', function () {
+        $(dom.datePickerTextBox).datepicker('hide');
+    });
+
+    // Enable/disable field groups when closing the "Display" dropdown
+    $(dom.categoryDisplayToggle)
+        .closest(dom.categoryDropdown)
+        .on('hide.bs.dropdown', function () {
+            updateDisabledFieldGroups(Search.buildSearch());
+        });
+
+    // Update UI when search executed
     searchStream.onValue(function () {
+        // Close open categories (in case search was triggered by hitting "enter")
+        $(dom.categoryOpenToggle).dropdown('toggle');
+        
         if ($advancedToggle.hasClass('active')) {
             $advancedToggle.removeClass('active').blur();
         }
         if ($subheader.hasClass('expanded')) {
             $subheader.removeClass('expanded');
         }
+        updateUi(Search.buildSearch());
     });
 
     $advancedToggle.on("click", function() {
@@ -95,6 +140,69 @@ function initSearchUi(config, searchStream) {
         $subheader.toggleClass('expanded');
     });
     $subheader.find("input[data-date-format]").datepicker();
+}
+
+function updateUi(search) {
+    updateActiveSearchIndicators(search);
+    updateDisabledFieldGroups(search);
+}
+
+function updateActiveSearchIndicators(search) {
+    var activeCategories = _(search.filter)
+        .map(getFilterCategory)
+        .unique()
+        .filter() // remove "false" (category with a filter that isn't displayed)
+        .value();
+
+    function getFilterCategory(filter, key) {
+        if (_.has(filter, 'ISNULL')) {
+            return 'missing';
+        } else {
+            var featureName = key.split('.')[0],
+                featureCategories = ['tree', 'plot', 'mapFeature'],
+                displayedFeatures = _.map(search.display, R.toLower);
+            if (_.contains(featureCategories, featureName)) {
+                if (!hasDisplayFilters(search) || _.contains(displayedFeatures, featureName)) {
+                    return featureName;
+                } else {
+                    return false; // feature filter is disabled by display filter
+                }
+            } else {
+                return 'more';
+            }
+        }
+    }
+
+    if (hasDisplayFilters(search)) {
+        activeCategories.push('display');
+    }
+
+    $(dom.advancedToggle).toggleClass('filter-active', activeCategories.length > 0);
+
+    $(dom.categoryToggle).removeClass('filter-active');
+
+    _.each(activeCategories, function (category) {
+        $('#adv-search-category-' + category).addClass('filter-active');
+    });
+}
+
+function hasDisplayFilters(search) {
+    return _.isArray(search.display);
+}
+
+function updateDisabledFieldGroups(search) {
+    if (hasDisplayFilters(search)) {
+        $(dom.fieldGroup).addClass('disabled');
+        $(dom.fieldsDisabledMessage).show();
+        _.each(search.display, function (featureName) {
+            var $group = $('#search-fields-' + featureName);
+            $group.removeClass('disabled');
+            $group.find(dom.fieldsDisabledMessage).hide();
+        });
+    } else {
+        $(dom.fieldGroup).removeClass('disabled');
+        $(dom.fieldsDisabledMessage).hide();
+    }
 }
 
 module.exports = exports = {
@@ -162,6 +270,7 @@ module.exports = exports = {
             applySearchToDom: function (search) {
                 Search.applySearchToDom(search);
                 uSearch.applyFilterObjectToDom(search);
+                updateUi(search);
             }
         };
     }

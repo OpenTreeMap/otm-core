@@ -45,9 +45,7 @@ DEFAULT_MOBILE_SEARCH_FIELDS = {
 }
 
 DEFAULT_SEARCH_FIELDS = {
-    'standard': [
-        {'identifier': 'tree.diameter'},
-        {'identifier': 'tree.date_planted'},
+    'general': [
         {'identifier': 'mapFeature.updated_at'}
     ],
     'missing': [
@@ -55,6 +53,10 @@ DEFAULT_SEARCH_FIELDS = {
         {'identifier': 'tree.diameter'},
         {'identifier': 'mapFeaturePhoto.id'}
     ],
+    'Tree': [
+        {'identifier': 'tree.diameter'},
+        {'identifier': 'tree.date_planted'},
+    ]
 }
 
 DEFAULT_MOBILE_API_FIELDS = (
@@ -247,10 +249,10 @@ class Instance(models.Model):
     boundaries = models.ManyToManyField('Boundary')
 
     """
-    Config contains a bunch of config variables for a given instance
-    these can be accessed via per-config properties such as
-    `advanced_search_fields`. Note that it is a DotDict, and so supports
-    get() with a dotted key and a default, e.g.
+    Config contains a bunch of configuration variables for a given instance,
+    which can be accessed via properties such as `map_feature_types`.
+    Note that it is a DotDict, and so supports get() with a dotted key and a
+    default, e.g.
         instance.config.get('fruit.apple.type', 'delicious')
     as well as creating dotted keys when no keys in the path exist yet, e.g.
         instance.config = DotDict({})
@@ -303,29 +305,44 @@ class Instance(models.Model):
 
     non_admins_can_export = models.BooleanField(default=True)
 
-    @property
-    def advanced_search_fields(self):
+    def advanced_search_fields(self, user):
         from treemap.util import get_model_for_instance
         from treemap.templatetags.form_extras import field_type_label_choices
         from treemap.models import Tree, MapFeature  # prevent circular import
 
-        fields = copy.deepcopy(self.search_config)
-
         def make_display_filter(feature_name):
-            if feature_name == 'Tree':
-                Feature = Tree
-            else:
-                Feature = MapFeature.get_subclass(feature_name)
-
-            plural = Feature.terminology(self)['plural']
+            plural = get_plural_feature_name(feature_name)
             return {
                 'label': _('Show %(models)s') % {'models': plural.lower()},
                 'model': feature_name
             }
 
-        for field_info in fields['missing']:
+        def get_plural_feature_name(feature_name):
+            if feature_name == 'Tree':
+                Feature = Tree
+            else:
+                Feature = MapFeature.get_subclass(feature_name)
+            return Feature.terminology(self)['plural']
+
+        def parse_field_info(field_info):
             model_name, field_name = field_info['identifier'].split('.', 2)
             model = get_model_for_instance(model_name, self)
+            return model, field_name
+
+        def get_visible_fields(fields, user):
+            visible_fields = []
+            for field in fields:
+                model, field_name = parse_field_info(field)
+                if model.field_is_visible(user, field_name):
+                    visible_fields.append(field)
+            return visible_fields
+
+        fields = copy.deepcopy(self.search_config)
+        fields = {model: get_visible_fields(fields, user)
+                  for model, fields in fields.iteritems()}
+
+        for field_info in fields.get('missing', []):
+            model, field_name = parse_field_info(field_info)
 
             if field_name == 'id':
                 if hasattr(model, 'terminology'):
@@ -344,12 +361,26 @@ class Instance(models.Model):
         fields['display'] += [make_display_filter(feature_name)
                               for feature_name in self.map_feature_types]
 
-        # It makes styling easier if every field has an identifier
         num = 0
         for filters in fields.itervalues():
             for field in filters:
+                # It makes styling easier if every field has an identifier
                 field['id'] = "%s_%s" % (field.get('identifier', ''), num)
                 num += 1
+
+        more = []
+        for feature_name in sorted(self.map_feature_types):
+            if feature_name in fields and feature_name != 'Plot':
+                filters = fields.pop(feature_name)
+                filters = get_visible_fields(filters, user)
+
+                if len(filters) > 0:
+                    more.append({
+                        'name': feature_name,
+                        'title': get_plural_feature_name(feature_name),
+                        'fields': filters
+                    })
+        fields['more'] = more
 
         return fields
 

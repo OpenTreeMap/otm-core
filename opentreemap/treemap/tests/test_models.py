@@ -369,9 +369,10 @@ class InstanceTest(OTMTestCase):
 class InstanceAdvancedSearch(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
+        self.user = make_commander_user(self.instance)
 
     def assert_search_present(self, **groups):
-        search = self.instance.advanced_search_fields
+        search = self.instance.advanced_search_fields(self.user)
         for group_name, field in groups.iteritems():
             self.assertIn(group_name, search)
             search_group = search[group_name]
@@ -379,13 +380,18 @@ class InstanceAdvancedSearch(OTMTestCase):
             field_info = search_group[0]
             if 'label' in field_info:
                 field_info['label'] = unicode(field_info['label'])
-            del field_info['id']
+            if 'id' in field_info:
+                del field_info['id']
 
             self.assertEquals(field_info, field)
 
+    def assert_search_absent(self, group_name):
+        search = self.instance.advanced_search_fields(self.user)
+        present = group_name in search and len(search[group_name]) > 0
+        self.assertFalse(present)
+
     def test_missing_filters(self):
         self.instance.search_config = {
-            'standard': [],
             'missing': [{'identifier': 'mapFeaturePhoto.id'}]
         }
         self.assert_search_present(
@@ -397,7 +403,6 @@ class InstanceAdvancedSearch(OTMTestCase):
             }
         )
         self.instance.search_config = {
-            'standard': [],
             'missing': [{'identifier': 'tree.id'}]
         }
         self.assert_search_present(
@@ -408,3 +413,22 @@ class InstanceAdvancedSearch(OTMTestCase):
                 'value': 'true'
             }
         )
+
+    def test_section_empty_when_field_not_visible(self):
+        perm = FieldPermission.objects.filter(role__name='commander',
+                                              model_name='Tree',
+                                              field_name='diameter')
+        self.assertEqual(perm.count(), 1)
+        perm.update(permission_level=0)
+
+        self.instance.search_config = {
+            'Tree': [{'identifier': 'tree.diameter'}],
+        }
+        self.assert_search_absent('Tree')
+
+    def test_more_section_empty_when_only_tree_and_plot_fields(self):
+        self.instance.search_config = {
+            'Tree': [{'identifier': 'tree.diameter'}],
+            'Plot': [{'identifier': 'plot.length'}]
+        }
+        self.assert_search_absent('more')

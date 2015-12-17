@@ -93,36 +93,33 @@
 
 {% block subhead %}
 <div class="subhead">
-  {% with advanced_search_fields=request.instance.advanced_search_fields %}
   {% if request.instance|feature_enabled:'advanced_search_filters' %}
   <div class="advanced-search">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-6">
-          <h4>{% trans "Detail Filters" %}</h4>
-          {% for json in request.instance.advanced_search_fields.standard %}
-            {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
-          {% endfor %}
-        </div>
-        <div class="col-md-3" id="display-filters" data-search-type="IN"
-            data-search-identifier="mapFeature.feature_type">
-          <h4>{% trans "Display Filters" %}</h4>
-          {% for field in request.instance.advanced_search_fields.display %}
-            {% include "treemap/partials/display_filters.html" %}
-          {% endfor %}
-        </div>
-        <div class="col-md-3" id="missing-data">
-          <h4>{% trans "Missing Data" %}</h4>
-          {% for json in request.instance.advanced_search_fields.missing %}
-            {% search from json for request.user in request.instance withtemplate "treemap/field/search.html" %}
-          {% endfor %}
-        </div>
-      </div>
+    {# Define udfc variables here so we can hide the dropdown when empty #}
+    {% with udfc_search_data=request.instance|get_udfc_search_fields:request.user %}
+      {% with udfc=udfc_search_data.udfc %}
+        {% if udfc %}
+          {% include "treemap/partials/advanced_search/tree_care.html" with name='tree_care' align_left=1 fields=1 %}
+        {% else %}
+          &nbsp; {# Otherwise following dropdowns are cut off #}
+        {% endif %}
+      {% endwith %}
+    {% endwith %}
+    <div class="pull-right">
+      {% with fields=request.instance|get_advanced_search_fields:request.user %}
+        {% trans "General" as title %}
+        {% include "treemap/partials/advanced_search/dropdown.html" with fields=fields.general category='mapFeature' %}
+        {% include "treemap/partials/advanced_search/display.html" with fields=fields.display category='display' %}
+        {% trans "Trees" as title %}
+        {% include "treemap/partials/advanced_search/dropdown.html" with fields=fields.Tree category='tree' feature='Tree' %}
+        {% trans "Planting Sites" as title %}
+        {% include "treemap/partials/advanced_search/dropdown.html" with fields=fields.Plot category='plot' feature='Plot'%}
+        {% include "treemap/partials/advanced_search/missing.html" with fields=fields.missing category='missing' %}
+        {% include "treemap/partials/advanced_search/more.html" with fields=fields.more category='more' %}
+      {% endwith %}
     </div>
   </div>
   {% endif %}
-
-  {% include "udfc_search.html" %}
 
   <div class="stats-bar hidden-xs">
     <div class="half">
@@ -158,7 +155,6 @@
       {% endif %}
     </div>
   </div>
-  {% endwith %}
 </div>
 {% endblock subhead %}
 

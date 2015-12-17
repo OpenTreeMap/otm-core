@@ -1,0 +1,18 @@
+{% load form_extras %}
+{% load i18n %}
+
+<div {% if feature %}class="field-group" id="search-fields-{{ feature }}{% endif %}">
+    {% if feature %}
+        <div class="field-group-message fields-disabled-message">
+            {{ title }} {% trans "disabled in Display" %}
+        </div>
+    {% endif %}
+
+    {% if show_title %}
+        <div class="search-fields-title">{{ title }}</div>
+    {% endif %}
+
+    {% for field in fields %}
+        {% search from field for request.user in request.instance withtemplate "treemap/field/search.html" %}
+    {% endfor %}
+</div>

@@ -37,6 +37,20 @@
             border-top: 1px solid lighten($primary-color, 15%);
         }
 
+        .dropdown-toggle.filter-active {
+            font-weight: bold;
+        }
+
+        .field-group.disabled {
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        .field-group-message {
+            font-weight: bold;
+            font-style: italic;
+        }
+
         form {
             margin: 0 0 10px;
         }
@@ -124,67 +138,9 @@
             }
         }
 
-        .slider-row {
-            margin-bottom: 8px;
-
-            &.disabled {
-                opacity: 0.4;
-            }
-
-            span {
-                font-size: 1.0rem;
-                font-weight: 500;
-                opacity: 0.5;
-                min-width: 20px;
-                display: inline-block;
-
-                &.slider-label {
-                    width: 120px;
-                    font-weight: 600;
-                    font-size: 1.3rem;
-                    opacity: 1;
-                    margin: 0;
-                    display: inline-block;
-
-                    & + span {
-                        text-align: right;
-                        margin-right: 16px;
-                    }
-                }
-            }
-            .slider {
-
-                & + span {
-                    margin-left: 16px;
-                }
-                .slider-selection {
-                    background: lighten($secondary-color, 15%);
-                }
-                .slider-handle {
-                    background: $secondary-color;
-                    margin-left: -6px;
-                    margin-top: -3px;
-                    width: 16px;
-                    height: 16px;
-                    opacity: 1;
-
-                    &:hover {
-                        background: darken($secondary-color, 10%);
-                    }
-                }
-                .tooltip {
-                    display: none;
-
-                    &.in {
-                        display: block;
-                    }
-                }
-            }
-        }
-
         @include checkboxes;
     }
-    > .udfc-search {
+    .udfc-search {
         min-height: 50px;
         padding: 0 8px;
         background: lighten($primary-color, 15%);
