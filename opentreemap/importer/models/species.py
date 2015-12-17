@@ -38,7 +38,8 @@ class SpeciesImportEvent(GenericImportEvent):
     def __init__(self, *args, **kwargs):
         super(SpeciesImportEvent, self).__init__(*args, **kwargs)
         self.all_region_codes = all_itree_region_codes()
-        self.instance_region_codes = self.instance.itree_region_codes()
+        self.instance_region_codes = [itr.code for itr
+                                      in self.instance.itree_regions()]
 
     def row_set(self):
         return self.speciesimportrow_set

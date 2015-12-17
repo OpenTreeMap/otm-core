@@ -474,9 +474,9 @@ class Species(UDFModel, PendingAuditable):
 
     def get_itree_code(self, region_code=None):
         if not region_code:
-            region_codes = self.instance.itree_region_codes()
-            if len(region_codes) == 1:
-                region_code = region_codes[0]
+            regions = self.instance.itree_regions()
+            if len(regions) == 1:
+                region_code = regions[0].code
             else:
                 return None
         override = ITreeCodeOverride.objects.filter(
@@ -756,6 +756,14 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         from treemap.ecobenefits import CountOnlyBenefitCalculator
         return CountOnlyBenefitCalculator(cls)
 
+    @property
+    def itree_region(self):
+        regions = self.instance.itree_regions(geometry__contains=self.geom)
+        if regions:
+            return regions[0]
+        else:
+            return ITreeRegionInMemory(None)
+
 
 # TODO:
 # Exclusion Zones
@@ -927,19 +935,8 @@ class Tree(Convertible, UDFModel, PendingAuditable):
         return self.treephoto_set.order_by('-created_at')
 
     @property
-    def itree_region(self):
-        if self.instance.itree_region_default:
-            region = self.instance.itree_region_default
-        else:
-            regions = ITreeRegion.objects\
-                                 .filter(geometry__contains=self.plot.geom)
-
-            if len(regions) > 0:
-                region = regions[0].code
-            else:
-                region = None
-
-        return region
+    def itree_code(self):
+        return self.species.get_itree_code(self.plot.itree_region.code)
 
     ##########################
     # tree validation
@@ -1146,7 +1143,27 @@ class Boundary(models.Model):
         return self.name
 
 
-class ITreeRegion(models.Model):
+class ITreeRegionAbstract(object):
+    def __unicode__(self):
+        "printed representation, used in templates"
+        return "%s (%s)" % (self.code,
+                            ITREE_REGIONS.get(self.code, {}).get('name'))
+
+
+class ITreeRegionInMemory(ITreeRegionAbstract):
+    """
+    class for in-memory itree region objects
+
+    since we store an itree default code as a charfield and not a
+    foreign key on instance, it is helpful to be able to inflate it
+    into an ITreeRegion-like object and use it with the same interface
+    as objects that come out of the database.
+    """
+    def __init__(self, code):
+        self.code = code
+
+
+class ITreeRegion(ITreeRegionAbstract, models.Model):
     code = models.CharField(max_length=40, unique=True)
     geometry = models.MultiPolygonField(srid=3857)
 

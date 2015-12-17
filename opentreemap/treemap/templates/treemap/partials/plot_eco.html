@@ -1,32 +1,40 @@
 {% load i18n %}
 
-{% if invalid_eco_pair %}
 <div>
-  {% blocktrans %}
-  <p>Ecosystem benefits cannot be calculated for this species of tree in this location.</p>
-  <p>The tree's location falls within a climate region that does not support benefit calculations for this species.</p>
-  {% endblocktrans %}
+  {% if invalid_eco_pair %}
+      {% blocktrans %}
+      <p>Ecosystem benefits cannot be calculated for this species of tree in this location.</p>
+      <p>The tree's location falls within a climate region that does not support benefit calculations for this species.</p>
+      {% endblocktrans %}
+  {% elif unknown_ecobenefit_error %}
+      {% blocktrans %}
+      <!-- TODO: When the ecoservice returns structured errors, replace this with real conditions -->
+      <!-- Or, maybe always leave this to avoid 500s -->
+      <p>We were unable to calculate ecosystem benefits for this tree.</p>
+      {% endblocktrans %}
+  {% elif not benefits.plot %}
+      <p>{% trans "Add the diameter of the tree and select a species to calculate the yearly ecosystem services." %}</p>
+  {% endif %}
 </div>
-{% elif unknown_ecobenefit_error %}
-  {% blocktrans %}
-  <!-- TODO: When the ecoservice returns structured errors, replace this with real conditions -->
-  <!-- Or, maybe always leave this to avoid 500s -->
-  <p>We were unable to calculate ecosystem benefits for this tree.</p>
-  {% endblocktrans %}
-{% elif benefits.plot %}
+
 <table class="table table-hover">
   <tbody>
     {% for key, benefit in benefits.plot.items %}
-    <tr>
-      <td>{{ benefit.label }}</td>
-      <td>{{ benefit.value }} {{ benefit.unit}}</td>
-      <td>{{ benefit.currency_saved }}</td>
-    </tr>
+      <tr>
+        <td>{{ benefit.label }}</td>
+        <td>{{ benefit.value }} {{ benefit.unit}}</td>
+        <td>{{ benefit.currency_saved }}</td>
+      </tr>
     {% endfor %}
+    {% if last_effective_instance_user.admin or request.user.is_super_admin %}
+      <tr style="font-style: italic">
+        <td>i-Tree region</td><td>{{ plot.itree_region }}</td><td></td>
+      </tr>
+      {% if invalid_eco_pair or benefits.plot %}
+      <tr style="font-style: italic">
+        <td>i-Tree code</td><td>{{ tree.itree_code }}</td><td></td>
+      </tr>
+      {% endif %}
+    {% endif %}
   </tbody>
 </table>
-{% else %}
-<div>
-  <p>{% trans "Add the diameter of the tree and select a species to calculate the yearly ecosystem services." %}</p>
-</div>
-{% endif %}
