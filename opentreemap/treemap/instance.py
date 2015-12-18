@@ -311,7 +311,12 @@ class Instance(models.Model):
         from treemap.models import Tree, MapFeature  # prevent circular import
 
         def make_display_filter(feature_name):
-            plural = get_plural_feature_name(feature_name)
+            if feature_name == 'Plot':
+                plural = _('empty planting sites')
+                feature_name = 'EmptyPlot'
+            else:
+                plural = get_plural_feature_name(feature_name)
+
             return {
                 'label': _('Show %(models)s') % {'models': plural.lower()},
                 'model': feature_name
@@ -357,9 +362,11 @@ class Instance(models.Model):
             field_info['search_type'] = 'ISNULL'
             field_info['value'] = 'true'
 
-        fields['display'] = [make_display_filter('Tree')]
-        fields['display'] += [make_display_filter(feature_name)
-                              for feature_name in self.map_feature_types]
+        fields['display'] = [make_display_filter('Tree'),
+                             make_display_filter('Plot')]
+        fields['display'] += [
+            make_display_filter(feature)
+            for feature in sorted(self.map_feature_types) if feature != 'Plot']
 
         num = 0
         for filters in fields.itervalues():
