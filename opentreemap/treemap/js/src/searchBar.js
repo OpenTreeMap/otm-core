@@ -167,6 +167,8 @@ function updateActiveSearchIndicators(search) {
                 } else {
                     return false; // feature filter is disabled by display filter
                 }
+            } else if (featureName.startsWith('udf:')) {
+                return 'stewardship';
             } else {
                 return 'more';
             }
