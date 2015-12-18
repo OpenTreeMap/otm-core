@@ -194,9 +194,20 @@ function hasDisplayFilters(search) {
 
 function updateDisabledFieldGroups(search) {
     if (hasDisplayFilters(search)) {
+        var fieldGroupsToEnable = _.clone(search.display);
+        if (_.contains(search.display, 'Plot')) {
+            // Showing trees & empty plots; enable both tree & plot fields
+            fieldGroupsToEnable.push('Tree');
+        } else if (_.contains(search.display, 'Tree')) {
+            // Showing trees & not empty plots; enable both tree & plot fields
+            fieldGroupsToEnable.push('Plot');
+        } else if (_.contains(search.display, 'EmptyPlot')) {
+            // Showing empty plots & not trees; enable just plot fields
+            _(fieldGroupsToEnable).pull('EmptyPlot').push('Plot');
+        }
         $(dom.fieldGroup).addClass('disabled');
         $(dom.fieldsDisabledMessage).show();
-        _.each(search.display, function (featureName) {
+        _.each(fieldGroupsToEnable, function (featureName) {
             var $group = $('#search-fields-' + featureName);
             $group.removeClass('disabled');
             $group.find(dom.fieldsDisabledMessage).hide();
