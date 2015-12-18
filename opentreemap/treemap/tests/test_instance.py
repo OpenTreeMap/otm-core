@@ -9,11 +9,9 @@ from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
 
-from treemap.instance import (
-    add_species_to_instance, DEFAULT_MOBILE_API_FIELDS, API_FIELD_ERRORS,
-    create_stewardship_udfs
-)
+from treemap.instance import (add_species_to_instance, create_stewardship_udfs)
 from treemap.models import ITreeRegion, Species, Boundary
+from treemap.search_fields import API_FIELD_ERRORS, DEFAULT_MOBILE_API_FIELDS
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.species import SPECIES
 from treemap.species.codes import species_codes_for_regions
