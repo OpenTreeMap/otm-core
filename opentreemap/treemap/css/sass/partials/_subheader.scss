@@ -4,182 +4,113 @@
     position: absolute;
     z-index: 99;
     width: 100%;
-    border-top: 1px solid lighten($primary-color, 35%);
-    -ms-transform: translateY(-100%);
-    -moz-transform: translateY(-100%);
-    -webkit-transform: translateY(-100%);
-    transform: translateY(-100%);
+    border-top: 1px solid lighten($primary-color, 15%);
     transition: all 400ms cubic-bezier(0, 0, 0.1, 1);
-    margin-top: 90px;
-    box-shadow: 0 6px 0 rgba(0,0,0,.15);
-
-    @media(min-width: 990px){
-        margin-top: 42px;
-    }
-
-    @media #{$screen-xs} {
-        margin-top: 0;
-    }
 
     &.expanded {
-        -ms-transform: translateY(0);
-        -moz-transform: translateY(0);
-        -webkit-transform: translateY(0);
-        transform: translateY(0);
-        margin-top: 0;
+        > .advanced-search {
+            transform: translate(0);
+            box-shadow: 0 6px 0 rgba(0,0,0,.15);
+            transition-delay: .1s;
+
+            + .stats-bar {
+                transform: translate(0,-101%);
+            }
+        }
     }
 
     > .advanced-search {
-        padding: 20px;
-        background: lighten($primary-color, 45%);
+        background: lighten($primary-color, 15%);
+        position: absolute;
+        transform: translate(0,-110%);
+        width: 100%;
+        z-index: 11;
+        transition: .2s ease-in-out transform;
 
         + .stats-bar {
-            border-top: 1px solid lighten($primary-color, 15%);
+            position: absolute;
+            width: 100%;
+            box-shadow: 0 6px 0 rgba(0,0,0,.15);
+            transition: .2s ease-in-out transform;
         }
 
         .dropdown-toggle.filter-active {
             font-weight: bold;
+            color: #fff;
+
+            &:before {
+                content: '';
+                display: block;
+                position: absolute;
+                width: 6px;
+                height: 6px;
+                background: $secondary-color;
+                border-radius: 100%;
+                left: 3px;
+                top: 50%;
+                transform: translate(0, -50%);
+            }
         }
 
         .field-group.disabled {
-            pointer-events: none;
-            opacity: 0.4;
+
+            label, input, select, textarea, span {
+                pointer-events: none;
+                opacity: 0.4;
+            }
+
+            .search-fields-title {
+                display: none;
+            }
         }
 
         .field-group-message {
-            font-weight: bold;
+            font-weight: 600;
             font-style: italic;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+            min-width: 300px;
         }
 
         form {
             margin: 0 0 10px;
         }
 
-        .search-range {
-            margin-bottom: 8px;
-            clear: both;
-
-            > * {
-                float: left;
-            }
-            > label {
-                display: inline-block;
-                width: 120px;
-                font-size: 1.4rem;
-                font-weight: 700;
-                position: relative;
-            }
-
-            @media #{$screen-lg} {
-                label {
-                    top: 8px;
-                }
-            }
-            @media #{$screen-ltlg} {
-                label {
-                    width: auto;
-                    display: block;
-                }
-            }
-            @media #{$screen-sm} {
-                .input-group {
-                    input[type="text"] {
-                        width: 55px;
-                    }
-                }
-                input[type="text"] {
-                    width: 92px;
-
-                    & + span {
-                        margin: 0 10px;
-                        font-size: 1.4rem;
-                    }
-                }
-            }
-            @media #{$screen-xs} {
-                .input-group {
-                    width: 75px;
-                    input[type="text"] {
-                        width: 55px;
-                    }
-                }
-                input[type="text"] {
-                    width: 85px;
-                }
-            }
-        }
-        .input-group {
-            width: 120px;
-
-            input[type="text"] {
-                width: 89px;
-
-                & + span {
-                    margin: 0 0 0 -1px;
-                    top: 0;
-                }
-            }
-
-            & + span {
-                margin: 0 10px;
-                font-size: 1.4rem;
-                top: 6px;
-                position: relative;
-            }
-        }
-        input[type="text"] {
-            width: 127px;
-
-            & + span {
-                margin: 0 10px;
-                font-size: 1.4rem;
-                top: 6px;
-                position: relative;
-            }
-        }
-
         @include checkboxes;
+
+        input[type="checkbox"] + label {
+            color: lighten($primary-color, 45%);
+            font-size: 1.4rem;
+            font-weight: 400;
+        }
     }
+
+    // Tree Care Styling
     .udfc-search {
-        min-height: 50px;
-        padding: 0 8px;
-        background: lighten($primary-color, 15%);
+        min-width: 940px;
 
-        &.disabled {
-            span {
-                opacity: 0.4;
-            }
-            .udfc-label,
-            .udfc-selector {
-                opacity: 0.4;
-                cursor: default;
-                background: $primary-color;
-
-                &:hover {
-                    background: $primary-color;
-
-                    &:after {
-                        opacity: 0.5;
-                    }
-                }
-            }
+        @media #{$screen-sm} {
+            min-width: 600px;
         }
 
-        > * {
-            float: left;
+        @media #{$screen-xs} {
+            min-width: 350px;
+        }
+
+        > span, 
+        > label, 
+        > input {
+            display: inline-block;
+            float: none;
+            vertical-align: middle;
         }
 
         span {
-            padding: 14px 15px;
-            color: white;
-            font-weight: 500;
-            font-size: 1.4rem;
-            display: inline-block;
+            color: lighten($primary-color, 45%);
         }
+
         .udfc-label {
             position: relative;
-            display: inline-block;
-            margin: 0 5px 0;
             overflow: hidden;
             width: 160px;
 
@@ -192,97 +123,70 @@
                 pointer-events: none;
                 color: white;
                 right: 13px;
-                top: 17px;
+                top: 7px;
             }
             &:hover {
-                select {
-                    background: darken($primary-color, 5%);
-                    cursor: pointer;
-                }
-
                 &:after {
                     opacity: 1;
                 }
             }
-
-            select {
-                background: $primary-color;
-                display: inline-block;
-                margin: 0;
-                padding: 15px 33px 15px 15px;
-                font-weight: 500;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-                cursor: pointer;
-                border: none;
-                outline: none;
-                color: white;
-                height: auto;
-                line-height: 2.0rem;
-                font-size: 1.4rem;
-                border-radius: 0;
-                width: 175px;
-                text-indent: 0.01px;
-                text-overflow: '';
-                font-family: $base-font-family;
-
-
-                option {
-                    color: black;
-                    background: white;
-
-                    @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
-                        color: white;
-                        background: transparent;
-                    }
-                }
-            }
-            select::-ms-expand {
-                display: none;
-            }
         }
+        select, 
         input.udfc-selector {
             background: $primary-color;
-            display: inline-block;
-            margin: 0;
-            padding: 15px 15px 14px 15px;
+            padding: 8px 33px 3px 15px;
             font-weight: 500;
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
-            cursor: pointer;
             border: none;
+            border-bottom: 1px dashed lighten($primary-color, 45%);
             outline: none;
             color: white;
-            height: auto;
-            line-height: 2.0rem;
             font-size: 1.4rem;
             border-radius: 0;
-            width: 110px;
-            font-family: $base-font-family;
+            cursor: pointer;
+            margin: 0 5px;
 
             &:hover {
                 background: darken($primary-color, 5%);
-                cursor: pointer;
+                border-color: #fff;
+            }
 
-                &:after {
-                    opacity: 1;
+            &[disabled] {
+                opacity: .5;
+                cursor: default;
+
+                &:hover {
+                    background: $primary-color;
+                    border-color: 1px dashed lighten($primary-color, 45%);
                 }
             }
-            &:after {
-                content: '\25BC';
-                font-size: 1.0rem;
-                margin-left: 12px;
-                position: absolute;
-                opacity: 0.5;
-                pointer-events: none;
-                color: white;
-                right: 10px;
-                top: 12px;
+        }
+        
+        input.udfc-selector {
+            width: 110px;
+        }
+
+        select {
+            width: 100%;
+
+            option {
+                color: black;
+                background: white;
+
+                @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+                    color: white;
+                    background: transparent;
+                }
             }
         }
+
+        select::-ms-expand {
+            display: none;
+        }
     }
+
     > .stats-bar {
         padding: 10px 15px 10px;
         border-left: 8px solid $primary-color;
@@ -337,9 +241,121 @@
     }
 }
 
+.advanced-search {
+
+    .dropdown {
+        display: inline-block;
+    }
+    
+
+    // Dropdown Toggles
+    .dropdown-toggle {
+        background: none;
+        border: none;
+        border-radius: 0;
+        color: lighten($primary-color, 45%);
+        padding: 18px 12px;
+
+        &:hover, &.hover,
+        &:focus, &.focus,
+        &:active, &.active {
+            background: $primary-color;
+            color: #fff;
+        }
+    }
+
+    .open > .dropdown-toggle {
+        background: $primary-color;
+        color: #fff;
+
+        &:hover, &.hover,
+        &:focus, &.focus,
+        &:active, &.active {
+            background: $primary-color;
+            color: #fff;
+        }
+    }
+
+    // Dropdown Popups
+    .dropdown-menu {
+        border-radius: 0;
+        margin: 0;
+        border: none;
+        padding: 15px;
+        background: $primary-color;
+        color: lighten($primary-color, 45%);
+        min-width: 300px;
+        max-height: 350px;
+        overflow: auto;
+    }
+
+    .field-group {
+        border-bottom: none;
+    }
+
+    // Labels
+    label {
+        color: lighten($primary-color, 45%);
+        font-size: 1.4rem;
+    }
+
+    // Search Range
+    .search-range {
+        margin-bottom: 15px;
+        clear: both;
+
+        > label {
+            display: block;
+        }
+
+        > .input-group,
+        > input {
+            float: left;
+            width: 35%;
+
+            @media #{$screen-xs} {
+                width: 45%;
+            }
+        }
+        
+        > span {
+            float: left;
+            margin: 6px 0;
+            font-size: 1.3rem;
+            width: 30%;
+            text-align: center;
+
+            @media #{$screen-xs} {
+                width: 10%;
+            }
+        }
+    }
+
+    .field-group + .field-group {
+        padding-top: 10px;
+        border-top: 1px solid lighten($primary-color, 15%);
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .search-fields-title {
+        display: block;
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+}
+
 #missing-data,
 #display-filters {
     span {
         display: block;
     }
+}
+
+
+#search-fields-Tree {
+    min-width: 340px;
 }

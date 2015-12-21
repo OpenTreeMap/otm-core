@@ -11,19 +11,19 @@
         {# Translators: This is in-between two date boxes for a range search #}
         {% trans "through" %}
       </span>
-      <span class="visible-xs-inline">&nbsp;</span>
+      <span class="visible-xs-inline">-</span>
       {% with 'data-class=search data-search-type=MAX id=max'|add:field.id as extra %}
         {% include "treemap/field/inputs.html" %}
       {% endwith %}
     </div>
   {% else %}
-    <span>
+    <div class="form-group">
     {% with 'data-class=search data-search-type='|add:field.search_type|add:' id='|add:field.id as extra %}
       {% include "treemap/field/inputs.html" %}
     {% endwith %}
       <label for="{{ field.id }}">
         {{ field.label }}
       </label>
-    </span>
+    </div>
   {% endif %}
 {% endif %}
