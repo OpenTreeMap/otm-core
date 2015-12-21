@@ -99,7 +99,7 @@
     {% with udfc_search_data=request.instance|get_udfc_search_fields:request.user %}
       {% with udfc=udfc_search_data.udfc %}
         {% if udfc %}
-          {% include "treemap/partials/advanced_search/tree_care.html" with name='tree_care' align_left=1 fields=1 %}
+          {% include "treemap/partials/advanced_search/tree_care.html" with category='stewardship' align_left=1 fields=1 %}
         {% else %}
           &nbsp; {# Otherwise following dropdowns are cut off #}
         {% endif %}
