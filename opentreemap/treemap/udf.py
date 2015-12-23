@@ -370,7 +370,7 @@ class UserDefinedFieldDefinition(models.Model):
                 model.udfs[self.name] = new_choice_value
                 model.save_base()
 
-        else:
+        else:  # multichoice
             udf_filter = {'instance': self.instance,
                           # grab anything with that key
                           'udfs__contains': [self.name]}
@@ -426,10 +426,13 @@ class UserDefinedFieldDefinition(models.Model):
                 audit.save()
 
     def _list_replace_or_remove(self, l, old, new):
-        return filter(
+        if l is None:
+            return None
+        new_l = filter(
             None,
             [(new if choice == old else choice)
              for choice in l])
+        return new_l or None
 
     def add_choice(self, new_choice_value, name=None):
         if self.iscollection:
@@ -718,8 +721,10 @@ class UserDefinedFieldDefinition(models.Model):
             if hasattr(value, 'pk'):
                 value = str(value.pk)
         elif self.datatype_dict['type'] == 'multichoice':
-            value = json.dumps(value)
-
+            if value and len(value) > 0:
+                value = json.dumps(value)
+            else:
+                value = None  # so "missing data" searches will work
         if value:
             return str(value)
         else:
@@ -808,8 +813,6 @@ class UserDefinedFieldDefinition(models.Model):
                     raise ValidationError(
                         _('%(fieldname)s must be valid JSON') %
                         {'fieldname': self.name})
-                if values is None:
-                    values = []
                 if isinstance(values, basestring):
                     # A single string is valid JSON. Wrap as a list for
                     # consistency
