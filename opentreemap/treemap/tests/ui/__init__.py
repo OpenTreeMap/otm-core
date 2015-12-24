@@ -57,13 +57,16 @@ def patch_broken_pipe_error():
 # output about "broken pipe" errors. Muzzle it.
 patch_broken_pipe_error()
 
+DISPLAY_WIDTH = 1280
+DISPLAY_HEIGHT = 1024
+
 
 class UITestCase(LiveServerTestCase):
     def use_xvfb(self):
         from pyvirtualdisplay import Display
         self.display = Display('xvfb',
                                visible=1,
-                               size=(1280, 1024))
+                               size=(DISPLAY_WIDTH, DISPLAY_HEIGHT))
         self.display.start()
         self.driver = WebDriver()
 
@@ -76,6 +79,8 @@ class UITestCase(LiveServerTestCase):
 
         if ui_is_not_available:
             self.use_xvfb()
+
+        self.driver.set_window_size(DISPLAY_WIDTH, DISPLAY_HEIGHT)
 
         self.driver.implicitly_wait(10)
 
