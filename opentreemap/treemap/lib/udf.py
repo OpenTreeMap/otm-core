@@ -23,6 +23,7 @@ def udf_exists(params, instance):
     """
     data = _parse_params(params)
 
+    # TODO: should use caching (udf_defs)
     udfs = UserDefinedFieldDefinition.objects.filter(
         instance=instance,
         model_type=data['model_type'],

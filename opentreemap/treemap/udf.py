@@ -118,6 +118,7 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
                 # udf:<pk of UserDefinedFieldDefinition>
                 pk = int(audit_name[4:])
                 if not instance:
+                    # TODO: should use caching (udf_defs)
                     udf_def = UserDefinedFieldDefinition.objects.get(pk=pk)
                     return udf_def.name
                 else:

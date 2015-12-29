@@ -415,6 +415,7 @@ def _verify_user_can_apply_audit(audit, user):
     from udf import UserDefinedFieldDefinition
 
     if audit.model.startswith('udf:'):
+        # TODO: should use caching (udf_defs)
         udf = UserDefinedFieldDefinition.objects.get(pk=audit.model[4:])
         field = 'udf:%s' % udf.name
         model = udf.model_type
