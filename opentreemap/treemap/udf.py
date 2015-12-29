@@ -907,38 +907,16 @@ class UDFDictionary(HStoreDict):
 
         return self._collection_fields
 
-    @property
-    def fields(self):
-        # Django loads fields in the order they're defined on a given
-        # class. For instance,
-        #
-        # class A(models.Model):
-        #   a = models.IntField()
-        #   b = models.IntField()
-        #
-        # Will first load 'a', create the attribute dictionary, add it
-        # to the object and continue.
-        #
-        # Since UDFModel specifies the UDFField first, no other fields
-        # are available on the subclassed object (Plot, Tree, etc) in
-        # the constructor
-        #
-        # The solution is to simply cache the instance and grab the data
-        # in a lazy way
-        if self._fields is None:
-            self._fields = self.instance.get_user_defined_fields()
-
-        return self._fields
-
     def _get_udf_or_error(self, key):
-        for field in self.fields:
+        for field in self.instance.get_user_defined_fields():
             if field.name == key:
                 return field
 
         raise KeyError("Couldn't find UDF for field '%s'" % key)
 
     def __contains__(self, key):
-        return key in [field.name for field in self.fields]
+        return key in [field.name for field
+                       in self.instance.get_user_defined_fields()]
 
     def __getitem__(self, key):
         udf = self._get_udf_or_error(key)
@@ -1242,18 +1220,16 @@ class UDFModel(UserTrackable, models.Model):
 
                 ids_specified = []
                 for value_dict in values:
+                    kwargs = {'field_definition': field,
+                              'model_id': self.pk}
                     if 'id' in value_dict:
                         id = value_dict['id']
                         del value_dict['id']
 
-                        udcv = UserDefinedCollectionValue.objects.get(
-                            pk=id,
-                            field_definition=field,
-                            model_id=self.pk)
+                        kwargs['pk'] = id
+                        udcv = UserDefinedCollectionValue.objects.get(**kwargs)
                     else:
-                        udcv = UserDefinedCollectionValue(
-                            field_definition=field,
-                            model_id=self.pk)
+                        udcv = UserDefinedCollectionValue(**kwargs)
 
                     if udcv.data != value_dict:
                         udcv.data = value_dict
