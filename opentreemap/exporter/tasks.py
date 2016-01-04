@@ -56,15 +56,13 @@ def values_for_model(
     else:
         prefix = ''
 
-    perms = permissions(job.user, instance, model)
-
     prefixed_names = []
     model_class = safe_get_model_class(model)
     dummy_instance = model_class()
 
-    for perm in (perm for perm in perms
-                 if perm.permission_level >= FieldPermission.READ_ONLY):
-        field_name = perm.field_name
+    for field_name in (perm.field_name for perm
+                       in permissions(job.user, instance, model)
+                       if perm.permission_level >= FieldPermission.READ_ONLY):
         prefixed_name = prefix + field_name
 
         if field_name.startswith('udf:'):

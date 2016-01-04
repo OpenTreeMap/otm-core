@@ -27,7 +27,7 @@ from treemap.units import (is_convertible, is_convertible_or_formattable,
 from treemap.util import (all_models_of_class, leaf_models_of_class,
                           to_object_name)
 
-from treemap.lib.object_caches import (permissions, role_permissions,
+from treemap.lib.object_caches import (permissions,
                                        invalidate_adjuncts, udf_defs)
 from treemap.lib.dates import datesafe_eq
 
@@ -415,6 +415,7 @@ def _verify_user_can_apply_audit(audit, user):
     from udf import UserDefinedFieldDefinition
 
     if audit.model.startswith('udf:'):
+        # TODO: should use caching (udf_defs)
         udf = UserDefinedFieldDefinition.objects.get(pk=audit.model[4:])
         field = 'udf:%s' % udf.name
         model = udf.model_type
@@ -684,17 +685,6 @@ class Role(models.Model):
                                              default=FieldPermission.NONE)
     rep_thresh = models.IntegerField()
 
-    @property
-    def tree_permissions(self):
-        return self.model_permissions('Tree')
-
-    @property
-    def plot_permissions(self):
-        return self.model_permissions('Plot')
-
-    def model_permissions(self, model_name):
-        return role_permissions(self, self.instance, model_name)
-
     def __unicode__(self):
         return '%s (%s)' % (self.name, self.pk)
 
@@ -808,9 +798,9 @@ class Authorizable(UserTrackable):
         return fields_to_audit
 
     def mask_unauthorized_fields(self, user):
-        perms = permissions(user, self.instance, self._model_name)
         readable_fields = {perm.field_name for perm
-                           in perms
+                           in permissions(user, self.instance,
+                                          self._model_name)
                            if perm.allows_reads}
 
         fields = set(self.get_previous_state().keys())
@@ -854,9 +844,8 @@ class Authorizable(UserTrackable):
         self._assert_not_masked()
 
         if self.pk is not None:
-            writable_perms = self._get_writeable_perms_set(user)
             for field in self._updated_fields():
-                if field not in writable_perms:
+                if field not in self._get_writeable_perms_set(user):
                     raise AuthorizeException("Can't edit field %s on %s" %
                                             (field, self._model_name))
 

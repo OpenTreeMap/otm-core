@@ -2,6 +2,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from treemap.lib.object_caches import role_permissions
+
 from django.contrib.gis.db.models import Field
 from treemap.models import InstanceUser, Role, Plot, MapFeature
 
@@ -68,7 +70,8 @@ def _allows_perm(role_related_obj, model_name,
     if feature_name and not role.instance.feature_enabled(feature_name):
         return False
 
-    perms = {perm for perm in role.model_permissions(model_name)}
+    perms = {perm for perm in
+             role_permissions(role, role.instance, model_name)}
 
     # process args
     if field and fields:
