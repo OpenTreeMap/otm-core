@@ -60,6 +60,9 @@ class CommentReviewUITest(CommentTestMixin, TreemapUITestCase):
     def go_to_page(self, page_num):
         page = str(page_num)
         page_link = self.find('.pagination').find_element_by_link_text(page)
+
+        self.driver.execute_script("return arguments[0].scrollIntoView();",
+                                   page_link)
         page_link.click()
 
         self.wait_until_on_page(page_num)
