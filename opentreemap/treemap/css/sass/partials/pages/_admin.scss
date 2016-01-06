@@ -262,9 +262,14 @@
         table-layout: fixed;
         tr {
 
-            &.active {
+            &.active,
+            &.active:hover {
                 background-color: $warning-color;
                 background-color: rgba($warning-color, .75);
+
+                > td {
+                    background: none;
+                }
             }
             
             th {
