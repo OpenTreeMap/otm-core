@@ -1,14 +1,14 @@
 boto==2.38.0
 django-storages==1.1.8
-Django==1.8.6
-Pillow==3.0.0
+Django==1.9.1
+Pillow==3.1.0
 argparse==1.4.0
-gunicorn==19.3.0
+gunicorn==19.4.5
 psycopg2==2.6.1
-django-hstore==1.4.0
+django-hstore==1.4.1
 wsgiref==0.1.2
 pep8==1.6.2
-flake8==2.5.0
+flake8==2.5.1
 python-omgeo==1.7.2
 django-registration-redux==1.2
 modgrammar-py2==0.9.2
@@ -18,7 +18,7 @@ django-celery-with-redis==3.0
 git+https://github.com/dahlia/libsass-python.git@4aa8fd3c2cef8c1
 # Django comments are no longer bundled with django in
 # 1.6 so we include them here
-django-contrib-comments==1.6.1
+django-contrib-comments==1.6.2
 django-threadedcomments==1.0.1
 django-apptemplates==1.0
 django-queryset-csv>=0.3.2
