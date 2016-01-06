@@ -128,11 +128,13 @@
     }
 
     .btn-default {
-        border: none;
+
         &:hover, 
         &:focus, 
         &:active, &.active {
             box-shadow: none;
+            background: darken($button-default, 5%);
+            border-color: darken($button-default, 15%);
         }
     }
 }
