@@ -36,16 +36,16 @@ body {
         position: absolute;
         overflow: hidden;
         margin: 0;
-        top: 252px;
+        top: 244px;
         width: 100%;
         bottom: 40px;
 
         @media(min-width: 990px){
-            top: 205px;
+            top: 196px;
         }
 
         @media #{$screen-xs} {
-            top: 164px;
+            top: 154px;
             overflow: auto;
 
             .map {

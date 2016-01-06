@@ -2,7 +2,7 @@
 
 .header {
     padding: 59px 15px 15px;
-    height: 163px;
+    height: 153px;
     background: #fff;
     position: relative;
     z-index: 100;
@@ -44,10 +44,7 @@
     display: inline-block;
 
     .search-block {
-        padding: 12px 14px 16px;
-        background: $light-gray-color;
-        border: 1px solid $well-color;
-        border-radius: 6px;
+        padding: 12px 0;
         float: left;
         margin-left: 10px;
         width: 245px;
@@ -117,16 +114,28 @@
     min-width: 100px;
 
     #perform-search {
-        margin-bottom: 7px;
-        padding: 12px 0;
+        margin-top: 2px;
+        padding: 5px 0;
     }
 
     #search-advanced.filter-active {
         font-weight: bold;
+        color: $secondary-color;
     }
 
     .btn-group {
         width: 100%;
+    }
+
+    .btn-default {
+
+        &:hover, 
+        &:focus, 
+        &:active, &.active {
+            box-shadow: none;
+            background: darken($button-default, 5%);
+            border-color: darken($button-default, 15%);
+        }
     }
 }
 
