@@ -4,8 +4,12 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
+import logging
+
+from rollbar.logger import RollbarHandler
 
 from django.core.urlresolvers import reverse
+from django.conf import settings
 
 
 def json_from_request(request):
@@ -121,3 +125,10 @@ class UrlParams(object):
 
     def url(self, *keys):
         return self._url + self.params(*keys)
+
+
+def add_rollbar_handler(logger):
+    if settings.ROLLBAR_ACCESS_TOKEN is not None:
+        rollbar_handler = RollbarHandler()
+        rollbar_handler.setLevel(logging.WARNING)
+        logger.addHandler(rollbar_handler)
