@@ -7,13 +7,17 @@ import urllib2
 import urllib
 import json
 import re
+import sys
 
 from django.conf import settings
 from django.contrib.gis.db.backends.postgis.adapter import PostGISAdapter
 from django.contrib.gis.geos import GEOSGeometry
 
+from opentreemap.util import add_rollbar_handler
+
 import logging
 logger = logging.getLogger(__name__)
+add_rollbar_handler(logger)
 
 
 # A system for handling unstructured text errors from the ecoservice
@@ -112,4 +116,5 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
         else:
             return general_unhandled_struct
     except urllib2.URLError:
+        logger.error("Error connecting to ecoservice", exc_info=sys.exc_info())
         return general_unhandled_struct

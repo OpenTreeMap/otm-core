@@ -179,6 +179,18 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
+# Settings for Rollbar exception reporting service
+ROLLBAR_ACCESS_TOKEN = os.environ.get('ROLLBAR_SERVER_SIDE_ACCESS_TOKEN', None)
+STACK_TYPE = os.environ.get('OTM_STACK_TYPE', 'Unknown')
+if ROLLBAR_ACCESS_TOKEN is not None:
+    ROLLBAR = {
+        'access_token': ROLLBAR_ACCESS_TOKEN,
+        'environment': STACK_TYPE,
+        'root': PROJECT_ROOT
+    }
+    MIDDLEWARE_CLASSES += (
+        'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',)
+
 ROOT_URLCONF = 'opentreemap.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
