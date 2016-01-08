@@ -1,6 +1,15 @@
 {% load l10n %}
 {% load dateformat %}
-{% if field.choices %}
+{% if field.data_type == 'bool' or field.search_type == 'ISNULL' %}
+    <input name="{{ field.identifier }}"
+          {% if field.value %}
+           checked="checked"
+          {% endif %}
+           type="checkbox"
+           class="{{ class|default_if_none:"" }}"
+           value="{{ field.value }}"
+           {{ extra|default:"" }} />
+{% elif field.choices %}
     <select name="{{ field.identifier }}" {{ extra|default_if_none:"" }}
             {% if field.data_type == 'multichoice' %}multiple="multiple"{% endif %}
             class="{{ class|default_if_none:"" }} form-control">
@@ -14,15 +23,6 @@
                     >{{option.display_value}}</option>
         {% endfor %}
     </select>
-{% elif field.data_type == 'bool' or field.search_type == 'ISNULL' %}
-    <input name="{{ field.identifier }}"
-          {% if field.value %}
-           checked="checked"
-          {% endif %}
-           type="checkbox"
-           class="{{ class|default_if_none:"" }}"
-           value="{{ field.value }}"
-           {{ extra|default:"" }} />
 {% elif field.data_type == 'date' or field.data_type == 'datetime' %}
     <input name="{{ field.identifier }}"
            type="text"

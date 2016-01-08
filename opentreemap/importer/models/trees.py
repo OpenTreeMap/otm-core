@@ -165,7 +165,10 @@ class TreeImportRow(GenericImportRow):
             # multichoice fields are represented in the import file as
             # a string, but the `udfs` attribute on the model expects
             # an actual list.
-            return json.loads(value)
+            if value:
+                return json.loads(value)
+            else:
+                return None
         else:
             return value
 

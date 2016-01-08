@@ -1081,7 +1081,7 @@ class UpdatePlotAndTree(OTMTestCase):
         self.assertEqual(200, response.status_code)
 
         response_json = loads(response.content)
-        self.assertEqual([], response_json['plot']['udf:multi'])
+        self.assertEqual(None, response_json['plot']['udf:multi'])
 
         test_plot.udfs['multi'] = ['b', 'c']
         test_plot.save_with_user(self.user)
