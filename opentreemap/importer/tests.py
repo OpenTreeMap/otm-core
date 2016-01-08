@@ -454,6 +454,16 @@ class TreeUdfValidationTest(TreeValidationTestBase):
         i.validate_row()
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
+        row['plot: test multichoice'] = None
+        i = self.mkrow(row)
+        i.validate_row()
+        self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
+
+        row['plot: test multichoice'] = '[]'
+        i = self.mkrow(row)
+        i.validate_row()
+        self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
+
         ## INVALID
 
         # This is an error because the JSON parser requires that

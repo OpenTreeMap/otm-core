@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ugettext_noop
 
@@ -100,8 +101,6 @@ API_FIELD_ERRORS = {
 
 
 def advanced_search_fields(instance, user):
-    from treemap.util import get_model_for_instance
-    from treemap.templatetags.form_extras import field_type_label_choices
     from treemap.models import Tree, MapFeature  # prevent circular import
 
     def make_display_filter(feature_name):
@@ -123,36 +122,22 @@ def advanced_search_fields(instance, user):
             Feature = MapFeature.get_subclass(feature_name)
         return Feature.terminology(instance)['plural']
 
-    def parse_field_info(field_info):
-        model_name, field_name = field_info['identifier'].split('.', 2)
-        model = get_model_for_instance(model_name, instance)
-        return model, field_name
-
-    def get_visible_fields(fields, user):
+    def get_visible_fields(field_infos, user):
         visible_fields = []
-        for field in fields:
-            model, field_name = parse_field_info(field)
+        for field_info in field_infos:
+            model, field_name = _parse_field_info(instance, field_info)
             if model.field_is_visible(user, field_name):
-                visible_fields.append(field)
+                visible_fields.append(field_info)
         return visible_fields
 
     fields = copy.deepcopy(instance.search_config)
-    fields = {model: get_visible_fields(fields, user)
-              for model, fields in fields.iteritems()}
+    fields = {category: get_visible_fields(field_infos, user)
+              for category, field_infos in fields.iteritems()}
 
     for field_info in fields.get('missing', []):
-        model, field_name = parse_field_info(field_info)
-
-        if field_name == 'id':
-            if hasattr(model, 'terminology'):
-                label = model.terminology(instance)['plural']
-            else:
-                label = model._meta.verbose_name_plural
-        else:
-            __, label, __ = field_type_label_choices(model, field_name, '')
-
-        field_info['label'] = _('Show missing %(field)s') % {
-            'field': label.lower()}
+        label = get_missing_data_search_field_label(instance, field_info)
+        field_info['label'] = \
+            _('Show missing %(field)s') % {'field': label.lower()}
         field_info['search_type'] = 'ISNULL'
         field_info['value'] = 'true'
 
@@ -166,7 +151,9 @@ def advanced_search_fields(instance, user):
     for filters in fields.itervalues():
         for field in filters:
             # It makes styling easier if every field has an identifier
-            field['id'] = "%s_%s" % (field.get('identifier', ''), num)
+            id = "%s_%s" % (field.get('identifier', ''), num)
+            id = id.replace(' ', '_')
+            field['id'] = id
             num += 1
 
     more = []
@@ -184,6 +171,39 @@ def advanced_search_fields(instance, user):
     fields['more'] = more
 
     return fields
+
+
+def get_missing_data_search_field_label(instance, field_info):
+    """
+    Searches for missing data are controlled by fields, and those fields
+    need labels. Two wrinkles: 1) Fields like species.id and mapFeaturePhoto.id
+    need special handling. 2) Fields from all models are shown in the
+    "Missing Data" category, so prefix the field name with the model name.
+    """
+    from treemap.templatetags.form_extras import field_type_label_choices
+    Model, field_name = _parse_field_info(instance, field_info)
+    if field_name == 'id':
+        if hasattr(Model, 'terminology'):
+            label = Model.terminology(instance)['plural']
+        else:
+            label = Model._meta.verbose_name_plural
+    else:
+        __, label, __ = field_type_label_choices(Model, field_name, '')
+        if hasattr(Model, 'terminology'):
+            prefix = force_text(Model.terminology(instance)['singular'])
+        else:
+            prefix = force_text(Model._meta.verbose_name)
+        label = force_text(label)
+        if not label.startswith(prefix):
+            label = "%s %s" % (prefix, label)
+    return label
+
+
+def _parse_field_info(instance, field_info):
+    from treemap.util import get_model_for_instance
+    model_name, field_name = field_info['identifier'].split('.', 2)
+    Model = get_model_for_instance(model_name, instance)
+    return Model, field_name
 
 
 def get_udfc_search_fields(instance, user):

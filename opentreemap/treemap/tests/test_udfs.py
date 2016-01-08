@@ -861,8 +861,8 @@ class ScalarUDFTest(OTMTestCase):
         self.plot = Plot.objects.get(pk=self.plot.pk)
         audit = self.plot.audits().filter(field='udf:Test multichoice')
 
-        self.assertEqual(self.plot.udfs['Test multichoice'], [])
-        self.assertEqual(json.loads(audit[0].current_value), [])
+        self.assertEqual(self.plot.udfs['Test multichoice'], None)
+        self.assertEqual(json.loads(audit[0].current_value), None)
 
         choice = UserDefinedFieldDefinition.objects.get(
             pk=self.multichoice_udfd.pk)
