@@ -359,9 +359,19 @@ class Instance(models.Model):
         return "%s_%s" % (self.url_name, thumbprint)
 
     @transaction.atomic
-    def remove_map_feature_types(self, class_names):
-        remaining_types = [class_name for class_name in self.map_feature_types
-                           if class_name not in class_names]
+    def remove_map_feature_types(self, remove=None, keep=None):
+        from treemap.util import to_object_name
+        if keep and remove:
+            raise Exception('Invalid use of remove_map_features API: '
+                            'pass arguments "keep" or "remove" but not both')
+        elif keep:
+            remaining_types = [name for name in self.map_feature_types
+                               if name in keep]
+        else:
+            remaining_types = [class_name for class_name
+                               in self.map_feature_types
+                               if class_name not in remove]
+
         self.map_feature_types = remaining_types
         self.save()
 
