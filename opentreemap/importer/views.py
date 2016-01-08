@@ -615,7 +615,7 @@ def solve(request, instance, import_event_id, row_index):
     target_species = request.GET['species']
 
     # Strip off merge errors
-    #TODO: Json handling is terrible.
+    # TODO: Json handling is terrible.
     row.errors = json.dumps(row.errors_array_without_merge_errors())
     row.datadict.update(data)
     row.datadict = row.datadict  # invoke setter to update row.data
@@ -681,7 +681,11 @@ def cancel(request, instance, import_type, import_event_id):
 
     # If verifications tasks are still scheduled, we need to revoke them
     if ie.task_id:
-        GroupResult.restore(ie.task_id).revoke()
+        result = GroupResult.restore(ie.task_id)
+        if result:
+            result.revoke()
+
+    # If we couldn't get the task, it is already effectively cancelled
 
     return list_imports(request, instance)
 
