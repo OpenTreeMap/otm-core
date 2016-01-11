@@ -677,13 +677,24 @@ class UserDefinedFieldDefinition(models.Model):
                          .filter(field=self.canonical_name)\
                          .delete()
 
+            save_instance = False
             # If there is no mobile_api_field in the config, that means the
             # instance is using the default, which should not mutate
             if 'mobile_api_fields' in self.instance.config:
                 for group in self.instance.mobile_api_fields:
                     if self.full_name in group.get('field_keys', []):
                         group['field_keys'].remove(self.full_name)
-                        self.instance.save()
+                        save_instance = True
+
+            for key in (self.model_type, 'missing'):
+                if key in self.instance.search_config:
+                    self.instance.search_config[key] = [
+                        o for o in self.instance.search_config[key]
+                        if o.get('identifier') != self.full_name]
+                    save_instance = True
+
+            if save_instance:
+                self.instance.save()
 
         # remove field permissions for this udf
         perms = FieldPermission.objects.filter(model_name=self.model_type,

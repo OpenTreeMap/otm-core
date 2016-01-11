@@ -359,9 +359,32 @@ class Instance(models.Model):
         return "%s_%s" % (self.url_name, thumbprint)
 
     @transaction.atomic
-    def remove_map_feature_types(self, class_names):
-        remaining_types = [class_name for class_name in self.map_feature_types
-                           if class_name not in class_names]
+    def remove_map_feature_types(self, remove=None, keep=None):
+        from treemap.util import to_object_name
+        if keep and remove:
+            raise Exception('Invalid use of remove_map_features API: '
+                            'pass arguments "keep" or "remove" but not both')
+        elif keep:
+            remaining_types = [name for name in self.map_feature_types
+                               if name in keep]
+        else:
+            remaining_types = [class_name for class_name
+                               in self.map_feature_types
+                               if class_name not in remove]
+
+        for class_name in self.map_feature_types:
+            if class_name not in remaining_types:
+                if class_name in self.search_config:
+                    del self.search_config[class_name]
+                if 'missing' in self.search_config:
+                    self.search_config['missing'] = [
+                        o for o in self.search_config['missing']
+                        if not o.get('identifier', '').startswith(
+                            to_object_name(class_name))]
+                # TODO: delete from mobile_api_fields
+                # non-plot mobile_api_fields are not currently
+                # supported, but when they are added, they should
+                # also be removed here.
         self.map_feature_types = remaining_types
         self.save()
 
