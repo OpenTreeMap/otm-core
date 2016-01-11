@@ -155,13 +155,20 @@ function updateActiveSearchIndicators(search) {
         .value();
 
     function getFilterCategory(filter, key) {
+        var moreSearchFeatureBlacklist;
+
         if (_.has(filter, 'ISNULL')) {
             return 'missing';
         } else {
             var featureName = key.split('.')[0],
                 featureCategories = ['tree', 'plot', 'mapFeature'],
+                simpleSearchKeys = ['species.id', 'mapFeature.geom'],
                 displayedFeatures = _.map(search.display, R.toLower);
-            if (_.contains(featureCategories, featureName)) {
+            if (_.contains(simpleSearchKeys, key)) {
+                // do not add filter categories for search fields that are not
+                // part of the advanced search.
+                return false;
+            } else if (_.contains(featureCategories, featureName)) {
                 if (!hasDisplayFilters(search) || _.contains(displayedFeatures, featureName)) {
                     return featureName;
                 } else {
@@ -170,7 +177,16 @@ function updateActiveSearchIndicators(search) {
             } else if (featureName.startsWith('udf:')) {
                 return 'stewardship';
             } else {
-                return 'more';
+                moreSearchFeatureBlacklist = _.union(featureCategories, ['species']);
+                if (!_.contains(moreSearchFeatureBlacklist, featureName)) {
+                    // as a safeguard, check that this feature is not a feature
+                    // that is known to never be found in the 'more' list. This
+                    // prevents future features from accidentally ending up with
+                    // the 'more' category.
+                    return 'more';
+                } else {
+                    return false;
+                }
             }
         }
     }
