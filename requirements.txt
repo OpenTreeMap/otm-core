@@ -21,7 +21,7 @@ git+https://github.com/dahlia/libsass-python.git@4aa8fd3c2cef8c1
 django-contrib-comments==1.6.2
 django-threadedcomments==1.0.1
 django-apptemplates==1.0
-django-queryset-csv>=0.3.2
+django-queryset-csv==0.3.2
 python-dateutil==2.2
 pytz==2014.7
 django-tinsel==0.1.1
