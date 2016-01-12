@@ -18,7 +18,7 @@ django-celery-with-redis==3.0
 git+https://github.com/dahlia/libsass-python.git@4aa8fd3c2cef8c1
 # Django comments are no longer bundled with django in
 # 1.6 so we include them here
-django-contrib-comments==1.6.1
+django-contrib-comments==1.6.2
 django-threadedcomments==1.0b1
 django-apptemplates==0.0.1
 django-queryset-csv>=0.3.2
