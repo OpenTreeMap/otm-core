@@ -66,7 +66,11 @@ module.exports.init = function(options) {
             }
 
             if (callback) {
-                callback(new Bacon.Next({event: e, data: data}));
+                // Downstream users will be opening modals, which leads to
+                // style errors if that is done before a modal closes
+                $panel.one('hidden.bs.modal', function() {
+                    callback(new Bacon.Next({event: e, data: data}));
+                });
             }
         },
         fail: function (e, data) {
