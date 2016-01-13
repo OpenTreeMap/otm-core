@@ -65,3 +65,8 @@
         line-height: 1.6rem;
     }
 }
+
+// Hides error bubbles when there is no error message
+.alert:empty {
+    display: none !important;
+}
