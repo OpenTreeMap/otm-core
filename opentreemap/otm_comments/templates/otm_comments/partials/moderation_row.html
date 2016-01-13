@@ -36,19 +36,19 @@
     <td data-single-action>
       {# Moderators don't see flag, only unflag.  The "|" is inside the if for that reason #}
       {% if comment.visible_flag_count > 0 %}
-      <a href="{% url 'hide-comment-flags' request.instance.url_name %}?{{ comments_params }}">Unflag</a>
+      <a class="action" href="{% url 'hide-comment-flags' request.instance.url_name %}?{{ comments_params }}">Unflag</a>
       |
       {% endif %}
       {% if comment.is_removed %}
-      <a href="{% url 'show-comments' request.instance.url_name %}?{{ comments_params }}">Unhide</a>
+      <a class="action" href="{% url 'show-comments' request.instance.url_name %}?{{ comments_params }}">Unhide</a>
       {% else %}
-      <a href="{% url 'hide-comments' request.instance.url_name %}?{{ comments_params }}">Hide</a>
+      <a class="action" href="{% url 'hide-comments' request.instance.url_name %}?{{ comments_params }}">Hide</a>
       {% endif %}
       |
       {% if comment.is_archived %}
-      <a href="{% url 'unarchive-comments' request.instance.url_name %}?{{ comments_params }}">Unarchive</a>
+      <a class="action" href="{% url 'unarchive-comments' request.instance.url_name %}?{{ comments_params }}">Unarchive</a>
       {% else %}
-      <a href="{% url 'archive-comments' request.instance.url_name %}?{{ comments_params }}">Archive</a>
+      <a class="action" href="{% url 'archive-comments' request.instance.url_name %}?{{ comments_params }}">Archive</a>
       {% endif %}
     </td>
     {% endspaceless %}
