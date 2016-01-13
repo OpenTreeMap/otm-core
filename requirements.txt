@@ -6,8 +6,8 @@ gunicorn==19.4.5
 psycopg2==2.6.1
 django-hstore==1.4.1
 wsgiref==0.1.2
-pep8==1.4.6
-flake8==2.0
+pep8==1.4.6 # rq.filter: ==1.4.6
+flake8==2.0 # rq.filter: ==2.0
 python-omgeo==1.7.2
 django-registration-redux==1.2
 # Modgrammar-py2 has a 0.9.2 release on PyPi, but no artifacts for the release
