@@ -415,6 +415,10 @@ class Species(UDFModel, PendingAuditable):
     """
     http://plants.usda.gov/adv_search.html
     """
+
+    DEFAULT_MAX_DIAMETER = 200
+    DEFAULT_MAX_HEIGHT = 800
+
     ### Base required info
     instance = models.ForeignKey(Instance)
     # ``otm_code`` is the key used to link this instance
@@ -439,8 +443,8 @@ class Species(UDFModel, PendingAuditable):
     plant_guide_url = models.URLField(max_length=255, blank=True)
 
     ### Used for validation
-    max_diameter = models.IntegerField(default=200)
-    max_height = models.IntegerField(default=800)
+    max_diameter = models.IntegerField(default=DEFAULT_MAX_DIAMETER)
+    max_height = models.IntegerField(default=DEFAULT_MAX_HEIGHT)
 
     updated_at = models.DateTimeField(  # TODO: remove null=True
         null=True, auto_now=True, editable=False, db_index=True)
@@ -765,12 +769,39 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             return ITreeRegionInMemory(None)
 
 
+class ValidationMixin(object):
+    def validate_positive_nullable_float_field(self, field_name,
+                                               max_value=None):
+        if getattr(self, field_name) is not None:
+            pretty_field_name = field_name.replace('_', ' ')
+            try:
+                # The value could be a string at this point so we
+                # cast to make sure that we are comparing two numeric
+                # values
+                new_value = float(getattr(self, field_name))
+            except ValueError:
+                raise ValidationError({field_name: [
+                    _('The %(field_name)s must be a decimal number' %
+                      {'field_name': pretty_field_name})]})
+
+            if new_value <= 0:
+                raise ValidationError({field_name: [
+                    _('The %(field_name)s must be greater than zero' %
+                      {'field_name': pretty_field_name})]})
+
+            if max_value is not None:
+                if new_value > max_value:
+                    raise ValidationError({field_name: [
+                        _('The %(field_name)s is too large' %
+                          {'field_name': pretty_field_name})]})
+
+
 # TODO:
 # Exclusion Zones
 # Proximity validation
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
-class Plot(MapFeature):
+class Plot(MapFeature, ValidationMixin):
     width = models.FloatField(null=True, blank=True,
                               verbose_name=_("Planting Site Width"))
     length = models.FloatField(null=True, blank=True,
@@ -853,6 +884,17 @@ class Plot(MapFeature):
         else:
             return None
 
+    def save_with_user(self, user, *args, **kwargs):
+        self.full_clean_with_user(user)
+
+        # These validations must be done after the field values have
+        # been converted to database units but `convert_to_database_units`
+        # calls `clean`, so these validations cannot be part of `clean`.
+        self.validate_positive_nullable_float_field('width')
+        self.validate_positive_nullable_float_field('length')
+
+        super(Plot, self).save_with_user(user, *args, **kwargs)
+
     def delete_with_user(self, user, cascade=False, *args, **kwargs):
         if self.current_tree() and cascade is False:
             raise ValidationError(_(
@@ -862,7 +904,7 @@ class Plot(MapFeature):
 
 # UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
-class Tree(Convertible, UDFModel, PendingAuditable):
+class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
     """
     Represents a single tree, belonging to an instance
     """
@@ -942,6 +984,23 @@ class Tree(Convertible, UDFModel, PendingAuditable):
     # tree validation
     ##########################
 
+    def validate_diameter(self):
+        if self.species:
+            max_value = self.species.max_diameter
+        else:
+            max_value = Species.DEFAULT_MAX_DIAMETER
+        self.validate_positive_nullable_float_field('diameter', max_value)
+
+    def validate_height(self):
+        if self.species:
+            max_value = self.species.max_height
+        else:
+            max_value = Species.DEFAULT_MAX_HEIGHT
+        self.validate_positive_nullable_float_field('height', max_value)
+
+    def validate_canopy_height(self):
+        self.validate_positive_nullable_float_field('canopy_height')
+
     def clean(self):
         super(Tree, self).clean()
         if self.plot and self.plot.instance != self.instance:
@@ -949,6 +1008,14 @@ class Tree(Convertible, UDFModel, PendingAuditable):
 
     def save_with_user(self, user, *args, **kwargs):
         self.full_clean_with_user(user)
+
+        # These validations must be done after the field values have
+        # been converted to database units but `convert_to_database_units`
+        # calls `clean`, so these validations cannot be part of `clean`.
+        self.validate_diameter()
+        self.validate_height()
+        self.validate_canopy_height()
+
         self.plot.update_updated_at()
         super(Tree, self).save_with_user(user, *args, **kwargs)
 

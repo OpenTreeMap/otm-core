@@ -249,6 +249,83 @@ class PlotTest(OTMTestCase):
         self.assertEqual('1234 market st, boomtown, 12345',
                          self.plot.address_full)
 
+    def test_negative_length_fails_validation(self):
+        self.plot.length = '-1'
+        with self.assertRaises(ValidationError) as cm:
+            self.plot.save_with_user(self.user)
+        self.assertValidationErrorDictContainsKey(cm.exception, 'length')
+
+    def test_negative_width_fails_validation(self):
+        self.plot.width = '-1'
+        with self.assertRaises(ValidationError) as cm:
+            self.plot.save_with_user(self.user)
+        self.assertValidationErrorDictContainsKey(cm.exception, 'width')
+
+
+class TreeTest(OTMTestCase):
+    def setUp(self):
+        self.p = Point(-7615441.0, 5953519.0)
+
+        self.instance = make_instance(point=self.p)
+        self.user = make_commander_user(self.instance)
+
+        self.plot = Plot(geom=self.instance.center, instance=self.instance)
+        self.plot.save_with_user(self.user)
+        self.tree = Tree(plot=self.plot, instance=self.instance)
+
+    def test_negative_diameter_fails_validation(self):
+        self.tree.diameter = '-1'
+        with self.assertRaises(ValidationError) as cm:
+            self.tree.save_with_user(self.user)
+        self.assertValidationErrorDictContainsKey(cm.exception, 'diameter')
+
+    def test_too_large_diameter_fails_validation(self):
+        self.tree.diameter = str(Species.DEFAULT_MAX_DIAMETER + 1)
+        with self.assertRaises(ValidationError) as cm:
+            self.tree.save_with_user(self.user)
+        self.assertValidationErrorDictContainsKey(cm.exception, 'diameter')
+
+    def test_diameter_too_large_for_species_fails_validation(self):
+        max_diameter = 1
+        s = Species(genus='Ulmus', species='rubra', cultivar='Columella',
+                    instance=self.instance, max_diameter=max_diameter)
+        s.save_with_user(self.user)
+        self.tree.species = s
+        self.tree.diameter = str(max_diameter + 1)
+        with self.assertRaises(ValidationError) as cm:
+            self.tree.save_with_user(self.user)
+        self.assertValidationErrorDictContainsKey(cm.exception, 'diameter')
+
+    def test_negative_height_fails_validation(self):
+        self.tree.height = '-1'
+        with self.assertRaises(ValidationError) as cm:
+            self.tree.save_with_user(self.user)
+        self.assertValidationErrorDictContainsKey(cm.exception, 'height')
+
+    def test_too_large_height_fails_validation(self):
+        self.tree.height = Species.DEFAULT_MAX_HEIGHT + 1
+        with self.assertRaises(ValidationError) as cm:
+            self.tree.save_with_user(self.user)
+        self.assertValidationErrorDictContainsKey(cm.exception, 'height')
+
+    def test_height_too_large_for_species_fails_validation(self):
+        max_height = 1
+        s = Species(genus='Ulmus', species='rubra', cultivar='Columella',
+                    instance=self.instance, max_height=max_height)
+        s.save_with_user(self.user)
+        self.tree.species = s
+        self.tree.height = str(max_height + 1)
+        with self.assertRaises(ValidationError) as cm:
+            self.tree.save_with_user(self.user)
+        self.assertValidationErrorDictContainsKey(cm.exception, 'height')
+
+    def test_negative_canopy_height_fails_validation(self):
+        self.tree.canopy_height = -1
+        with self.assertRaises(ValidationError) as cm:
+            self.tree.save_with_user(self.user)
+        self.assertValidationErrorDictContainsKey(cm.exception,
+                                                  'canopy_height')
+
 
 class InstanceUserModelTest(OTMTestCase):
     def setUp(self):
