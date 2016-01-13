@@ -204,10 +204,6 @@ module.exports = function(grunt) {
                         jscolor: {
                             path: './treemap/js/shim/jscolor.js',
                             exports: null
-                        },
-                        history: {
-                            path: './treemap/js/shim/native.history.js',
-                            exports: 'History'
                         }
                     },
                     debug: debug
