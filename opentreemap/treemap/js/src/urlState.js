@@ -22,7 +22,7 @@ function HistoryApi() {
         window.onpopstate = callback;
     }
     function getState() {
-        return history.getState();
+        return history.state;
     }
     function pushState(state, title, url) {
         history.pushState(state, title, url);
