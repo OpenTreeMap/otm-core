@@ -67,7 +67,9 @@ var create = exports.create = function(options) {
         sorter = _.isArray(options.sortKeys) ? getSortFunction(options.sortKeys) : undefined,
 
         engine = new Bloodhound({
-            name: options.name, // Used for caching
+            identify: function(datum) {
+                return datum.id;
+            },
             prefetch: {
                 url: options.url,
                 // Store in browser local storage with key e.g. 'species'.
@@ -77,7 +79,6 @@ var create = exports.create = function(options) {
                 // Cache buster, must be changed when data changes.
                 thumbprint: $input.data('thumbprint')
             },
-            limit: 3000,
             datumTokenizer: function(datum) {
                 return datum.tokens;
             },
@@ -91,15 +92,11 @@ var create = exports.create = function(options) {
             if (!key) {
                 setTypeahead($typeahead, query);
             } else if (query && query.length !== 0) {
-                engine.get('', function(datums) {
-                    var data = _.filter(datums, function(datum) {
-                            return datum[key] == query;
-                        });
+                var data = engine.get([query]);
 
-                    if (data.length > 0) {
-                        setTypeahead($typeahead, data[0].value);
-                    }
-                });
+                if (data.length > 0) {
+                    setTypeahead($typeahead, data[0].value);
+                }
             } else {
                 setTypeahead($typeahead, '');
             }
@@ -107,20 +104,27 @@ var create = exports.create = function(options) {
 
         setTypeahead = function($typeahead, val) {
             $typeahead.typeahead('val', val);
-            $typeahead.typeahead('close');
         };
 
 
     $input.typeahead({
         minLength: options.minLength || 0
     }, {
-        source: engine.ttAdapter(),
+        limit: 3000,
+        source: function(query, sync, async) {
+            if (query === '') {
+                sync(engine.all());
+            } else {
+                engine.search(query, sync, async);
+            }
+        },
+        display: 'value',
         templates: {
             suggestion: template
         },
     });
 
-    var selectStream = $input.asEventStream('typeahead:selected typeahead:autocompleted',
+    var selectStream = $input.asEventStream('typeahead:select typeahead:autocomplet',
                                             function(e, datum) { return datum; }),
 
         backspaceOrDeleteStream = $input.asEventStream('keyup')
@@ -136,7 +140,7 @@ var create = exports.create = function(options) {
 
     if (options.forceMatch) {
         $input.on('blur', function() {
-            if ($input.find('.tt-dropdown-menu').is(':visible')) return;
+            if ($input.typeahead('isOpen')) return;
 
             if ($input.data('datum') === undefined) {
                 setTypeahead($input, '');
@@ -175,11 +179,17 @@ var create = exports.create = function(options) {
     }
 
     if (options.button) {
+        // typeahead('open') will not show suggestions unless they have already
+        // been rendered once by focusing on the text box. Doing a quick focus
+        // then blur on page load means we can later call it on button click
+        $input.focus();
+        $input.blur();
+
         var isOpen = false;
-        $input.on('typeahead:opened', function() {
+        $input.on('typeahead:open', function() {
             isOpen = true;
         });
-        $input.on('typeahead:closed', function() {
+        $input.on('typeahead:close', function() {
             isOpen = false;
             $openButton.removeClass('active');
         });
