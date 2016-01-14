@@ -12,7 +12,7 @@ $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 module.exports = function(container) {
     var $container = $(container),
 
-        singleActionStream = $container.asEventStream('click', '[data-single-action] a'),
+        singleActionStream = $container.asEventStream('click', '[data-single-action] a.action'),
         batchActionStream = $container.asEventStream('click', '[data-batch-action] a'),
         toggleAllEventStream = $container.asEventStream('click', '[data-toggle-all]'),
 
