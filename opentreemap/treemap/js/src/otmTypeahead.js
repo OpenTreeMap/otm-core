@@ -66,7 +66,58 @@ var create = exports.create = function(options) {
         reverse = options.reverse,
         sorter = _.isArray(options.sortKeys) ? getSortFunction(options.sortKeys) : undefined,
 
-        engine = new Bloodhound({
+        setTypeaheadAfterDataLoaded = function($typeahead, key, query) {
+            if (!key) {
+                setTypeahead($typeahead, query);
+            } else if (query && query.length !== 0) {
+                var data = prefetchEngine.get([query]);
+
+                if (data.length > 0) {
+                    setTypeahead($typeahead, data[0].value);
+                }
+            } else {
+                setTypeahead($typeahead, '');
+            }
+        },
+
+        setTypeahead = function($typeahead, val) {
+            $typeahead.typeahead('val', val);
+        },
+
+        prefetchEngine,
+        geocoderEngine,
+
+        typeaheadOptions = {
+            minLength: options.minLength || 0
+        },
+        prefetchOptions = {
+            limit: 3000,
+            source: function(query, sync, async) {
+                if (query === '') {
+                    sync(prefetchEngine.all());
+                } else {
+                    prefetchEngine.search(query, sync, async);
+                }
+            },
+            display: 'value',
+            templates: {
+                suggestion: template
+            },
+        },
+        geocoderOptions = {
+            limit: 10,
+            source: function (query, sync, async) {
+                if (query === '') {
+                    sync([]);
+                } else {
+                    geocoderEngine.search(query, sync, async);
+                }
+            },
+            display: 'text'
+        };
+
+    if (options.url) {
+        prefetchEngine = new Bloodhound({
             identify: function(datum) {
                 return datum.id;
             },
@@ -84,47 +135,47 @@ var create = exports.create = function(options) {
             },
             queryTokenizer: Bloodhound.tokenizers.nonword,
             sorter: sorter
-        }),
+        });
+    }
 
-        enginePromise = engine.initialize(),
+    if (options.geocoder) {
+        var url = 'https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/suggest?f=json';
 
-        setTypeaheadAfterDataLoaded = function($typeahead, key, query) {
-            if (!key) {
-                setTypeahead($typeahead, query);
-            } else if (query && query.length !== 0) {
-                var data = engine.get([query]);
+        geocoderEngine = new Bloodhound({
+            identify: function(datum) {
+                return datum.magicKey;
+            },
+            queryTokenizer: Bloodhound.tokenizers.nonword,
+            datumTokenizer: Bloodhound.tokenizers.obj.whitespace('text'),
+            remote: {
+                url: url,
+                transform: function(response) {
+                    return response.suggestions;
+                },
+                prepare: function(query, settings) {
+                    if (options.geocoderBbox) {
+                        // wkid 102100 == webmercator
+                        var searchExtent = _.extend({spatialReference:{wkid:102100}}, options.geocoderBbox);
+                        settings.url += '&searchExtent=' + JSON.stringify(searchExtent);
+                    }
 
-                if (data.length > 0) {
-                    setTypeahead($typeahead, data[0].value);
+                    settings = _.extend({crossDomain: true}, settings);
+                    settings.url += '&text=' + query;
+                    return settings;
                 }
-            } else {
-                setTypeahead($typeahead, '');
             }
-        },
+        });
+    }
 
-        setTypeahead = function($typeahead, val) {
-            $typeahead.typeahead('val', val);
-        };
+    if (prefetchEngine && geocoderEngine) {
+        $input.typeahead(typeaheadOptions, prefetchOptions, geocoderOptions);
+    } else if (prefetchEngine) {
+        $input.typeahead(typeaheadOptions, prefetchOptions);
+    } else {
+        $input.typeahead(typeaheadOptions, geocoderOptions);
+    }
 
-
-    $input.typeahead({
-        minLength: options.minLength || 0
-    }, {
-        limit: 3000,
-        source: function(query, sync, async) {
-            if (query === '') {
-                sync(engine.all());
-            } else {
-                engine.search(query, sync, async);
-            }
-        },
-        display: 'value',
-        templates: {
-            suggestion: template
-        },
-    });
-
-    var selectStream = $input.asEventStream('typeahead:select typeahead:autocomplet',
+    var selectStream = $input.asEventStream('typeahead:select typeahead:autocomplete',
                                             function(e, datum) { return datum; }),
 
         backspaceOrDeleteStream = $input.asEventStream('keyup')
@@ -154,7 +205,8 @@ var create = exports.create = function(options) {
         .merge(idStream.map(""))
         .onValue($input, 'attr', 'data-unmatched');
 
-    if (options.hidden) {
+    if (options.hidden && options.url) {
+        var enginePromise = prefetchEngine.initialize();
         idStream.onValue($hidden_input, "val");
 
         enginePromise.done(function() {

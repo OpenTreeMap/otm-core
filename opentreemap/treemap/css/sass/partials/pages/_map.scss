@@ -160,10 +160,32 @@
     }
 }
 
+// fix typeaheads in input-groups
+.input-group {
+    .twitter-typeahead {
+        width: 100%;
+        float: left;
+        &:first-child {
+            border-left-radius: 4px;
+            width: 100%;
+        }
+        &:last-child {
+            border-right-radius: 4px;
+            width: 100%;
+        }
+    }
+}
+
+// fix typeaheads in form-inline
+.input-group .twitter-typeahead {
+    float: left;
+    margin-right: 4px;
+}
+
 .tt-menu {
     margin-top: 10px;
     padding: 0;
-    width: 221px;
+    width: 100%;
     font-size: 1.2rem;
     position: relative;
     border: 1px solid $well-color;
