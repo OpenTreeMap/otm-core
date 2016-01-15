@@ -231,12 +231,15 @@ class TreePhotoRotationTest(TreePhotoTestCase):
         self.assertEqual(1, len(context['photos']))
         self.assertEqual(old_photo.pk, context['photos'][0]['id'])
 
-        self.assertEqual(
-            (old_photo.image.width, old_photo.image.height),
-            (rotated_photo.image.height, rotated_photo.image.width))
-        self.assertEqual(
-            (old_photo.thumbnail.width, old_photo.thumbnail.height),
-            (rotated_photo.thumbnail.height, rotated_photo.thumbnail.width))
+        self.assertAlmostEqual(old_photo.image.width,
+                               rotated_photo.image.height, delta=1)
+        self.assertAlmostEqual(old_photo.image.height,
+                               rotated_photo.image.width, delta=1)
+
+        self.assertAlmostEqual(old_photo.thumbnail.width,
+                               rotated_photo.thumbnail.height, delta=1),
+        self.assertAlmostEqual(old_photo.thumbnail.height,
+                               rotated_photo.thumbnail.width, delta=1)
 
 
 class ApproveOrRejectPhotoTest(TreePhotoTestCase):

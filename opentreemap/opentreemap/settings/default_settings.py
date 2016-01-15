@@ -109,11 +109,11 @@ USE_TZ = True
 
 # Path to the Django Project root
 # Current file is in opentreemap/opentreemap/settings, so go up 3
-PROJECT_ROOT = os.path.abspath(
+BASE_DIR = os.path.abspath(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 # Path to the location of SCSS files, used for on-the-fly compilation to CSS
-SCSS_ROOT = os.path.join(PROJECT_ROOT, 'treemap', 'css', 'sass')
+SCSS_ROOT = os.path.join(BASE_DIR, 'treemap', 'css', 'sass')
 
 # Entry point .scss file for on-the-fly compilation to CSS
 SCSS_ENTRY = 'main'
@@ -186,7 +186,7 @@ if ROLLBAR_ACCESS_TOKEN is not None:
     ROLLBAR = {
         'access_token': ROLLBAR_ACCESS_TOKEN,
         'environment': STACK_TYPE,
-        'root': PROJECT_ROOT
+        'root': BASE_DIR
     }
     MIDDLEWARE_CLASSES += (
         'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',)

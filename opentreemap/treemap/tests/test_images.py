@@ -18,5 +18,5 @@ class SaveImageTest(LocalMediaTestCase):
 
         expected_width, expected_height = Image.open(sideways_file).size
         actual_width, actual_height = Image.open(img_file).size
-        self.assertEquals(expected_width, actual_height)
-        self.assertEquals(expected_height, actual_width)
+        self.assertAlmostEqual(expected_width, actual_height, delta=1)
+        self.assertAlmostEqual(expected_height, actual_width, delta=1)
