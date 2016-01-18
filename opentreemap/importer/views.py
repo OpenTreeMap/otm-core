@@ -633,17 +633,17 @@ def solve(request, instance, import_event_id, row_index):
     return context
 
 
-@transaction.atomic
 def commit(request, instance, import_type, import_event_id):
-    ie = _get_import_event(instance, import_type, import_event_id)
+    with transaction.atomic():
+        ie = _get_import_event(instance, import_type, import_event_id)
 
-    if _get_tree_limit_context(ie).get('tree_limit_exceeded'):
-        raise Exception(_("tree limit exceeded"))
+        if _get_tree_limit_context(ie).get('tree_limit_exceeded'):
+            raise Exception(_("tree limit exceeded"))
 
-    ie.status = GenericImportEvent.CREATING
+        ie.status = GenericImportEvent.CREATING
 
-    ie.save()
-    ie.rows().update(status=GenericImportRow.WAITING)
+        ie.save()
+        ie.rows().update(status=GenericImportRow.WAITING)
 
     commit_import_event.delay(import_type, import_event_id)
 
