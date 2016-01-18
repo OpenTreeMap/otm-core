@@ -68,9 +68,6 @@ class GenericImportEvent(models.Model):
         }
         return summaries.get(self.status, "Finished")
 
-    def active(self):
-        return self.status != GenericImportEvent.FINISHED_CREATING
-
     def is_loading(self):
         return self.status == self.LOADING
 
