@@ -1,0 +1,14 @@
+<div class="btn-group">
+    <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-toggle="dropdown">
+        {{ filter.selected_option.label }} <span class="caret"></span>
+    </button>
+    <ul {{ filter.container_attr }} class="dropdown-menu dropdown-menu-right" role="menu">
+        {% for option in filter.options %}
+            {% if option.selected %}
+                <li class="active"><a>{{ option.label }}</a></li>
+            {% else %}
+                <li><a href="{{ option.url }}">{{ option.label }}</a></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</div>

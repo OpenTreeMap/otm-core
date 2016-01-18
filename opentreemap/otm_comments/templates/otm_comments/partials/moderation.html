@@ -9,28 +9,7 @@
       <h1>{% trans "Comments" %}</h1>
   </div>
   <div class="col-xs-4 text-right">
-      <div class="btn-group">
-        <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-toggle="dropdown">
-          {{ comments_filter }} <span class="caret"></span>
-        </button>
-        <ul data-comments-filter class="dropdown-menu" role="menu">
-          {% if comments_filter == 'Active' %}
-          <li class="active"><a>{% trans "Active" %}</a></li>
-          {% else %}
-          <li><a href="{{ comments_url_for_filter }}&archived=False&removed=None">{% trans "Active" %}</a></li>
-          {% endif %}
-          {% if comments_filter == 'Hidden' %}
-          <li class="active"><a>{% trans "Hidden" %}</a></li>
-          {% else %}
-          <li><a href="{{ comments_url_for_filter }}&archived=None&removed=True">{% trans "Hidden" %}</a></li>
-          {% endif %}
-          {% if comments_filter == 'Archived' %}
-          <li class="active"><a>{% trans "Archived" %}</a></li>
-          {% else %}
-          <li><a href="{{ comments_url_for_filter }}&archived=True&removed=None">{% trans "Archived" %}</a></li>
-          {% endif %}
-        </ul>
-      </div>
+      {% include 'treemap/partials/filter_dropdown.html' with filter=comments_filter %}
       <button type="button" class="btn btn-sm" data-export-start-url="{% url 'comments-csv' request.instance.url_name %}?{{ comments_params }}"><i class="icon-export"></i>{% trans "Export All" %}</button>
   </div>
 </div> <!--END OF PAGE HEADER -->
@@ -84,7 +63,9 @@
 
     {% else %}
     <div class="alert alert-info">
-      {% blocktrans %}There are no {{ comments_filter_trans }} comments.{% endblocktrans %}
+      {% blocktrans with comments_filter.selected_option.label_lower as filtered %}
+          There are no {{ filtered }} comments.
+      {% endblocktrans %}
     </div>
     {% endif %}
   </div> <!--END OF COMMENT AREA -->

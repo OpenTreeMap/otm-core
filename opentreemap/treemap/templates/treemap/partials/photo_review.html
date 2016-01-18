@@ -9,24 +9,7 @@
         <h1>{% trans "Photos" %}</h1>
     </div>
     <div class="col-xs-4 text-right">
-        <div class="btn-group">
-            <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-toggle="dropdown">
-                {{ is_archived_text }}
-                <span class="caret"></span>
-            </button>
-            <ul data-photo-filter class="dropdown-menu dropdown-menu-right" role="menu">
-                {% if not is_archived %}
-                <li class="active"><a>{% trans "Active" %}</a></li>
-                {% else %}
-                <li><a href="{{ url_for_filter }}&amp;archived=False">{% trans "Active" %}</a></li>
-                {% endif %}
-                {% if is_archived %}
-                <li class="active"><a>{% trans "Archived" %}</a></li>
-                {% else %}
-                <li><a href="{{ url_for_filter }}&amp;archived=True">{% trans "Archived" %}</a></li>
-                {% endif %}
-            </ul>
-        </div>
+        {% include 'treemap/partials/filter_dropdown.html' with filter=archived_filter %}
     </div>
 </div>
 
@@ -83,7 +66,11 @@
         </div>
         {% include 'treemap/partials/paging_controls.html' with paging=photos url=url_for_pagination %}
         {% else %}
-        <div class="alert alert-info">{% blocktrans %}There are no {{ is_archived_text_lower }} photos.{% endblocktrans%}</div>
+            <div class="alert alert-info">
+                {% blocktrans with archived_filter.selected_option.label_lower as filtered %}
+                    There are no {{ filtered }} photos.
+                {% endblocktrans %}
+            </div>
         {% endif %}
     </div>
 </div>
