@@ -12,10 +12,11 @@ from django.utils.translation import ugettext as _
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import json_api_call, render_template
 
-from opentreemap.util import UrlParams, get_ids_from_request
+from opentreemap.util import get_ids_from_request
 
 from treemap.decorators import (instance_request, admin_instance_request,
                                 require_http_method)
+from treemap.lib.page_of_items import UrlParams, make_filter_context
 
 from exporter.decorators import queryset_as_exported_csv
 
@@ -82,28 +83,28 @@ def comment_moderation(request, instance):
 
     comments_url_for_pagination = urlizer.url('archived', 'removed', 'sort')
     comments_url_for_sort = urlizer.url('archived', 'removed')
-    comments_url_for_filter = urlizer.url('sort')
 
     full_params = urlizer.params('archived', 'removed', 'sort', 'page')
-
-    comments_filter = ('Active', _('active'))
-    if is_archived is None and is_removed:
-        comments_filter = ('Hidden', _('hidden'))
-    elif is_archived and is_removed is None:
-        comments_filter = ('Archived', _('archived'))
 
     checked_comments = get_ids_from_request(request)
     if len(checked_comments) == 1:
         # Don't check the box for non-batch requests
         checked_comments = []
 
+    filter_value = dict(archived=is_archived, removed=is_removed)
+
+    filter_context = make_filter_context(urlizer, filter_value, [
+        (_('Active'), _('active'), dict(archived=False, removed=None)),
+        (_('Hidden'), _('hidden'), dict(archived=None, removed=True)),
+        (_('Archived'), _('archived'), dict(archived=True, removed=None)),
+    ])
+    filter_context['container_attr'] = 'data-comments-filter'
+
     return {
         'comments': paged_comments,
-        'comments_filter': comments_filter[0],
-        'comments_filter_trans': comments_filter[1],
+        'comments_filter': filter_context,
         'comments_url_for_pagination': comments_url_for_pagination,
         'comments_url_for_sort': comments_url_for_sort,
-        'comments_url_for_filter': comments_url_for_filter,
         'comments_params': full_params,
         'comments_sort': sort,
         'comment_ids': checked_comments

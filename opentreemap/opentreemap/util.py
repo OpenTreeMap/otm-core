@@ -8,7 +8,6 @@ import logging
 
 from rollbar.logger import RollbarHandler
 
-from django.core.urlresolvers import reverse
 from django.conf import settings
 
 
@@ -113,18 +112,6 @@ def get_ids_from_request(request):
         return [int(id) for id in ids_string.split(',')]
     else:
         return []
-
-
-class UrlParams(object):
-    def __init__(self, url_name, *url_args, **params):
-        self._url = reverse(url_name, args=url_args) + '?'
-        self._params = params
-
-    def params(self, *keys):
-        return '&'.join(['%s=%s' % (key, self._params[key]) for key in keys])
-
-    def url(self, *keys):
-        return self._url + self.params(*keys)
 
 
 def add_rollbar_handler(logger):
