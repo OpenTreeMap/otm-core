@@ -26,6 +26,7 @@ from treemap.templatetags.form_extras import field_type_label_choices
 from treemap.json_field import is_json_field_reference
 from treemap.plugin import get_viewable_instances_filter
 from treemap.ecobenefits import BenefitCategory
+from treemap.search_fields import mobile_search_fields
 
 import treemap.lib.perms as perms_lib
 
@@ -231,7 +232,7 @@ def instance_info(request, instance):
     info = _instance_info_dict(instance)
     info['fields'] = perms
     info['field_key_groups'] = readable_mobile_api_fields
-    info['search'] = instance.mobile_search_fields
+    info['search'] = mobile_search_fields(instance)
     info['date_format'] = _unicode_dateformat(instance.date_format)
     info['short_date_format'] = _unicode_dateformat(instance.short_date_format)
 

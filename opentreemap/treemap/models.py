@@ -432,12 +432,12 @@ class Species(UDFModel, PendingAuditable):
     other_part_of_name = models.CharField(max_length=255, blank=True)
 
     ### From original OTM (some renamed) ###
-    is_native = models.NullBooleanField()
+    is_native = models.NullBooleanField(verbose_name='Native to Region')
     flowering_period = models.CharField(max_length=255, blank=True)
     fruit_or_nut_period = models.CharField(max_length=255, blank=True)
     fall_conspicuous = models.NullBooleanField()
     flower_conspicuous = models.NullBooleanField()
-    palatable_human = models.NullBooleanField()
+    palatable_human = models.NullBooleanField(verbose_name='Edible')
     has_wildlife_value = models.NullBooleanField()
     fact_sheet_url = models.URLField(max_length=255, blank=True)
     plant_guide_url = models.URLField(max_length=255, blank=True)
@@ -496,6 +496,7 @@ class Species(UDFModel, PendingAuditable):
         return self.display_name
 
     class Meta:
+        verbose_name = "Species"
         verbose_name_plural = "Species"
         unique_together = ('instance', 'common_name', 'genus', 'species',
                            'cultivar', 'other_part_of_name',)
