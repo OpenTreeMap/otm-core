@@ -20,11 +20,16 @@ from treemap.models import Plot
 
 
 def transform_plot_update_dict(plot_update_fn):
+    """
+    Removes some information from the plot response for older APIs
+
+    v5 - universalRev added
+    """
     @wraps(plot_update_fn)
     def wrapper(request, *args, **kwargs):
         plot_dict = plot_update_fn(request, *args, **kwargs)
 
-        if request.api_version < 4:
+        if request.api_version < 5:
             plot_dict['geoRevHash'] = plot_dict['universalRevHash']
             del plot_dict['universalRevHash']
         return plot_dict

@@ -34,6 +34,7 @@ def transform_instance_info_response(instance_view_fn):
 
     v3 - Collection UDFs added
     v4 - Multiselect fields added
+    v5 - universalRev added
     """
     @wraps(instance_view_fn)
     def wrapper(request, *args, **kwargs):
@@ -46,10 +47,6 @@ def transform_instance_info_response(instance_view_fn):
                  if 'collection_udf_keys' not in field_group]
 
         if request.api_version < 4:
-            instance_info_dict['geoRevHash'] = (
-                instance_info_dict['universalRevHash'])
-            del instance_info_dict['universalRevHash']
-
             multichoice_fields = {
                 field for field, info
                 in instance_info_dict['fields'].iteritems()
@@ -66,6 +63,11 @@ def transform_instance_info_response(instance_view_fn):
                 if 'field_keys' in group:
                     group['field_keys'] = [key for key in group['field_keys']
                                            if key not in multichoice_fields]
+
+        if request.api_version < 5:
+            instance_info_dict['geoRevHash'] = (
+                instance_info_dict['universalRevHash'])
+            del instance_info_dict['universalRevHash']
 
         return instance_info_dict
 
