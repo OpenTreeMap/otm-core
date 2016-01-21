@@ -737,7 +737,7 @@ class UserDefinedFieldDefinition(models.Model):
             else:
                 value = None  # so "missing data" searches will work
         if value:
-            return str(value)
+            return value if isinstance(value, unicode) else str(value)
         else:
             return None
 
