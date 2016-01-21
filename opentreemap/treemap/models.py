@@ -507,6 +507,11 @@ class InstanceUser(Auditable, models.Model):
     role = models.ForeignKey(Role)
     reputation = models.IntegerField(default=0)
     admin = models.BooleanField(default=False)
+    last_seen = models.DateField(null=True, blank=True)
+
+    def __init__(self, *args, **kwargs):
+        super(InstanceUser, self).__init__(*args, **kwargs)
+        self._do_not_track.add('last_seen')
 
     class Meta:
         unique_together = ('instance', 'user',)

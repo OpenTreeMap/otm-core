@@ -377,12 +377,10 @@ class AbstractNode(template.Node):
 
         if field_value is None:
             display_val = None
-        elif data_type == 'date' and model.instance:
-            display_val = dateformat.format(field_value,
-                                            model.instance.short_date_format)
-        elif data_type == 'date':
-            display_val = dateformat.format(field_value,
-                                            settings.SHORT_DATE_FORMAT)
+        elif data_type in ['date', 'datetime']:
+            fmt = (model.instance.short_date_format if model.instance
+                   else settings.SHORT_DATE_FORMAT)
+            display_val = dateformat.format(field_value, fmt)
         elif is_convertible_or_formattable(object_name, field_name):
             display_val = format_value(
                 model.instance, object_name, field_name, field_value)
