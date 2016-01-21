@@ -100,7 +100,10 @@ class TreeBenefitsCalculator(BenefitCalculator):
     def _make_sql_from_query(self, query):
         sql, params = query.sql_with_params()
         cursor = connection.cursor()
-        return cursor.mogrify(sql, params)
+        # Returning a unicode SQL string ensures that any string
+        # replacements done to query string will not raise
+        # UnicodeDecodeError
+        return unicode(cursor.mogrify(sql, params), 'utf-8')
 
     def benefits_for_filter(self, instance, item_filter):
         from treemap.models import Plot, Tree
