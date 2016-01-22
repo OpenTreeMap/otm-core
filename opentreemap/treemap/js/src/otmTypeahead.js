@@ -66,8 +66,61 @@ var create = exports.create = function(options) {
         reverse = options.reverse,
         sorter = _.isArray(options.sortKeys) ? getSortFunction(options.sortKeys) : undefined,
 
-        engine = new Bloodhound({
-            name: options.name, // Used for caching
+        setTypeaheadAfterDataLoaded = function($typeahead, key, query) {
+            if (!key) {
+                setTypeahead($typeahead, query);
+            } else if (query && query.length !== 0) {
+                var data = prefetchEngine.get([query]);
+
+                if (data.length > 0) {
+                    setTypeahead($typeahead, data[0].value);
+                }
+            } else {
+                setTypeahead($typeahead, '');
+            }
+        },
+
+        setTypeahead = function($typeahead, val) {
+            $typeahead.typeahead('val', val);
+        },
+
+        prefetchEngine,
+        geocoderEngine,
+
+        typeaheadOptions = {
+            minLength: options.minLength || 0
+        },
+        prefetchOptions = {
+            limit: 3000,
+            source: function(query, sync, async) {
+                if (query === '') {
+                    sync(prefetchEngine.all());
+                } else {
+                    prefetchEngine.search(query, sync, async);
+                }
+            },
+            display: 'value',
+            templates: {
+                suggestion: template
+            },
+        },
+        geocoderOptions = {
+            limit: 10,
+            source: function (query, sync, async) {
+                if (query === '') {
+                    sync([]);
+                } else {
+                    geocoderEngine.search(query, sync, async);
+                }
+            },
+            display: 'text'
+        };
+
+    if (options.url) {
+        prefetchEngine = new Bloodhound({
+            identify: function(datum) {
+                return datum.id;
+            },
             prefetch: {
                 url: options.url,
                 // Store in browser local storage with key e.g. 'species'.
@@ -77,50 +130,52 @@ var create = exports.create = function(options) {
                 // Cache buster, must be changed when data changes.
                 thumbprint: $input.data('thumbprint')
             },
-            limit: 3000,
             datumTokenizer: function(datum) {
                 return datum.tokens;
             },
             queryTokenizer: Bloodhound.tokenizers.nonword,
             sorter: sorter
-        }),
+        });
+    }
 
-        enginePromise = engine.initialize(),
+    if (options.geocoder) {
+        var url = 'https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/suggest?f=json';
 
-        setTypeaheadAfterDataLoaded = function($typeahead, key, query) {
-            if (!key) {
-                setTypeahead($typeahead, query);
-            } else if (query && query.length !== 0) {
-                engine.get('', function(datums) {
-                    var data = _.filter(datums, function(datum) {
-                            return datum[key] == query;
-                        });
-
-                    if (data.length > 0) {
-                        setTypeahead($typeahead, data[0].value);
+        geocoderEngine = new Bloodhound({
+            identify: function(datum) {
+                return datum.magicKey;
+            },
+            queryTokenizer: Bloodhound.tokenizers.nonword,
+            datumTokenizer: Bloodhound.tokenizers.obj.whitespace('text'),
+            remote: {
+                url: url,
+                transform: function(response) {
+                    return response.suggestions;
+                },
+                prepare: function(query, settings) {
+                    if (options.geocoderBbox) {
+                        // wkid 102100 == webmercator
+                        var searchExtent = _.extend({spatialReference:{wkid:102100}}, options.geocoderBbox);
+                        settings.url += '&searchExtent=' + JSON.stringify(searchExtent);
                     }
-                });
-            } else {
-                setTypeahead($typeahead, '');
+
+                    settings = _.extend({crossDomain: true}, settings);
+                    settings.url += '&text=' + query;
+                    return settings;
+                }
             }
-        },
+        });
+    }
 
-        setTypeahead = function($typeahead, val) {
-            $typeahead.typeahead('val', val);
-            $typeahead.typeahead('close');
-        };
+    if (prefetchEngine && geocoderEngine) {
+        $input.typeahead(typeaheadOptions, prefetchOptions, geocoderOptions);
+    } else if (prefetchEngine) {
+        $input.typeahead(typeaheadOptions, prefetchOptions);
+    } else {
+        $input.typeahead(typeaheadOptions, geocoderOptions);
+    }
 
-
-    $input.typeahead({
-        minLength: options.minLength || 0
-    }, {
-        source: engine.ttAdapter(),
-        templates: {
-            suggestion: template
-        },
-    });
-
-    var selectStream = $input.asEventStream('typeahead:selected typeahead:autocompleted',
+    var selectStream = $input.asEventStream('typeahead:select typeahead:autocomplete',
                                             function(e, datum) { return datum; }),
 
         backspaceOrDeleteStream = $input.asEventStream('keyup')
@@ -136,7 +191,7 @@ var create = exports.create = function(options) {
 
     if (options.forceMatch) {
         $input.on('blur', function() {
-            if ($input.find('.tt-dropdown-menu').is(':visible')) return;
+            if ($input.typeahead('isOpen')) return;
 
             if ($input.data('datum') === undefined) {
                 setTypeahead($input, '');
@@ -150,7 +205,8 @@ var create = exports.create = function(options) {
         .merge(idStream.map(""))
         .onValue($input, 'attr', 'data-unmatched');
 
-    if (options.hidden) {
+    if (options.hidden && options.url) {
+        var enginePromise = prefetchEngine.initialize();
         idStream.onValue($hidden_input, "val");
 
         enginePromise.done(function() {
@@ -175,11 +231,17 @@ var create = exports.create = function(options) {
     }
 
     if (options.button) {
+        // typeahead('open') will not show suggestions unless they have already
+        // been rendered once by focusing on the text box. Doing a quick focus
+        // then blur on page load means we can later call it on button click
+        $input.focus();
+        $input.blur();
+
         var isOpen = false;
-        $input.on('typeahead:opened', function() {
+        $input.on('typeahead:open', function() {
             isOpen = true;
         });
-        $input.on('typeahead:closed', function() {
+        $input.on('typeahead:close', function() {
             isOpen = false;
             $openButton.removeClass('active');
         });

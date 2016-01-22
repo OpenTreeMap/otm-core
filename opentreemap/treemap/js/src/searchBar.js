@@ -56,8 +56,8 @@ var showGeocodeError = function (e) {
     }
 };
 
-var unmatchedBoundarySearchValue = function() {
-    return $('#boundary-typeahead').attr('data-unmatched');
+var getSearchDatum = function() {
+    return otmTypeahead.getDatum($('#boundary-typeahead'));
 };
 
 function redirectToSearchPage(config, filters, wmCoords) {
@@ -93,7 +93,9 @@ function initSearchUi(config, searchStream) {
         hidden: "#boundary",
         button: "#boundary-toggle",
         reverse: "id",
-        sortKeys: ['sortOrder', 'value']
+        sortKeys: ['sortOrder', 'value'],
+        geocoder: true,
+        geocoderBbox: config.instance.extent
     });
 
     // Keep dropdowns open when controls in them are clicked
@@ -125,7 +127,7 @@ function initSearchUi(config, searchStream) {
     searchStream.onValue(function () {
         // Close open categories (in case search was triggered by hitting "enter")
         $(dom.categoryOpenToggle).dropdown('toggle');
-        
+
         if ($advancedToggle.hasClass('active')) {
             $advancedToggle.removeClass('active').blur();
         }
@@ -262,13 +264,15 @@ module.exports = exports = {
             }),
             resetStream = $("#search-reset").asEventStream("click"),
             filtersStream = searchStream
-                .map(unmatchedBoundarySearchValue)
-                .filter(BU.isUndefinedOrEmpty)
+                .filter(function() {
+                    var datum = getSearchDatum();
+                    return !(datum && datum.magicKey);
+                })
                 .map(Search.buildSearch),
             uSearch = udfcSearch.init(resetStream),
 
             geocoderInstance = geocoder(config),
-            geocodeCandidateStream = searchStream.map(unmatchedBoundarySearchValue).filter(BU.isDefinedNonEmpty),
+            geocodeCandidateStream = searchStream.map(getSearchDatum).filter('.magicKey'),
             geocodeResponseStream = geocoderInstance.geocodeStream(geocodeCandidateStream),
             geocodedLocationStream = geocoderUi(
                 {
@@ -281,7 +285,6 @@ module.exports = exports = {
 
         geocodeResponseStream.onError(showGeocodeError);
         initSearchUi(config, searchStream);
-
 
         return {
             // a stream events corresponding to clicks on the reset button.

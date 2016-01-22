@@ -11,7 +11,8 @@ var $ = require('jquery'),
         require('treemap/reverseGeocodeStreamAndUpdateAddressesOnForm'),
     geocoder = require('treemap/geocoder'),
     geocoderUi = require('treemap/geocoderUi'),
-    enterOrClickEventStream = require('treemap/baconUtils').enterOrClickEventStream;
+    enterOrClickEventStream = require('treemap/baconUtils').enterOrClickEventStream,
+    otmTypeahead = require('treemap/otmTypeahead');
 
 function init(options) {
     var config = options.config,
@@ -94,15 +95,21 @@ function init(options) {
         }
     });
 
+    otmTypeahead.create({
+        input: addressInput,
+        geocoder: true,
+        geocoderBbox: config.instance.extent
+    });
+
     // Handle setting initial position via address search
     var searchTriggerStream = enterOrClickEventStream({
             inputs: addressInput,
             button: '.geocode'
         }),
-        addressStream = searchTriggerStream.map(function () {
-            return $(addressInput).val();
-        }),
-        geocodeResponseStream = gcoder.geocodeStream(addressStream),
+        geocodeCandidateStream = searchTriggerStream.map(function() {
+            return otmTypeahead.getDatum($addressInput);
+        }).filter('.magicKey'),
+        geocodeResponseStream = gcoder.geocodeStream(geocodeCandidateStream),
         cleanupLocationFeedbackStream = Bacon.mergeAll([
             searchTriggerStream,
             geolocateStream,
