@@ -109,8 +109,12 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
         try:
             ie.append_error(errors.GENERIC_ERROR, data=[str(e)])
             ie.save()
-            ie.row_set().delete()
+            # I don't think this ever worked in the past.
+            # TODO: delete?
+            ie.rows().delete()
         except Exception:
+            # This has shown to swallow real exceptions in development.
+            # TODO: At the very least, we should add logging.
             pass
         return
 
@@ -130,6 +134,9 @@ def _finalize_validation(import_type, import_event_id):
     # There shouldn't be any rows left to verify, but it doesn't hurt to check
     if _get_waiting_row_count(ie) == 0:
         ie.status = GenericImportEvent.FINISHED_VERIFICATION
+    else:
+        # TODO: if we're going to check, we should probably raise
+        pass
 
     ie.mark_finished_and_save()
 
