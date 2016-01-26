@@ -5,8 +5,9 @@ from __future__ import division
 
 import json
 import io
+
 from copy import copy
-from celery.result import GroupResult
+from celery.result import GroupResult, AsyncResult
 
 from django.db import transaction
 from django.db.models import Q
@@ -85,6 +86,7 @@ def list_imports(request, instance):
     table_names = [TABLE_ACTIVE_TREES, TABLE_FINISHED_TREES,
                    TABLE_ACTIVE_SPECIES, TABLE_FINISHED_SPECIES]
 
+    _cleanup_tables(instance)
     tables = [_get_table_context(instance, table_name, 1)
               for table_name in table_names]
 
@@ -103,12 +105,32 @@ def list_imports(request, instance):
 
 def get_import_table(request, instance, table_name):
     page_number = int(request.GET.get('page', '1'))
+    _cleanup_tables(instance)
     return {
         'table': _get_table_context(instance, table_name, page_number)
     }
 
 
 _EVENT_TABLE_PAGE_SIZE = 5
+
+
+def _cleanup_tables(instance):
+    q = Q(instance=instance, is_lost=False)
+    ievents = (list(TreeImportEvent.objects.filter(q)) +
+               list(SpeciesImportEvent.objects.filter(q)))
+
+    for ie in ievents:
+        mark_lost = False
+        if ie.has_not_been_processed_recently():
+            mark_lost = True
+        elif ie.task_id != '' and ie.is_running():
+            result = AsyncResult(ie.task_id)
+            if not result or result.failed():
+                mark_lost = True
+
+        if mark_lost:
+            ie.is_lost = True
+            ie.mark_finished_and_save()
 
 
 def _get_table_context(instance, table_name, page_number):
