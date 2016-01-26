@@ -89,10 +89,9 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
     ie.save()
 
     try:
-        row_set = ie.rows()
-        validation_tasks = (
-            _validate_rows.subtask(row_set[i:(i+settings.IMPORT_BATCH_SIZE)])
-            for i in xrange(0, ie.row_count, settings.IMPORT_BATCH_SIZE))
+        validation_tasks = []
+        for i in xrange(0, ie.row_count, settings.IMPORT_BATCH_SIZE):
+            validation_tasks.append(_validate_rows.s(import_type, ie.id, i))
 
         final_task = _finalize_validation.si(import_type, import_event_id)
 
@@ -117,7 +116,9 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
 
 
 @task()
-def _validate_rows(*rows):
+def _validate_rows(import_type, import_event_id, start_row_id):
+    ie = _get_import_event(import_type, import_event_id)
+    rows = ie.rows()[start_row_id:(start_row_id+settings.IMPORT_BATCH_SIZE)]
     for row in rows:
         row.validate_row()
 
