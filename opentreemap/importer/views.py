@@ -9,6 +9,7 @@ from copy import copy
 from celery.result import GroupResult
 
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.core.paginator import Paginator, Page
@@ -117,23 +118,26 @@ def _get_table_context(instance, table_name, page_number):
     species = SpeciesImportEvent.objects\
         .filter(instance=instance)\
         .order_by('-created')
-    finished = GenericImportEvent.FINISHED_CREATING
+    inactive_q = Q(is_lost=True) | Q(
+        status__in={
+            GenericImportEvent.FINISHED_CREATING,
+            GenericImportEvent.FAILED_FILE_VERIFICATION})
 
     if table_name == TABLE_ACTIVE_TREES:
         title = _('Active Tree Imports')
-        rows = trees.exclude(status=finished)
+        rows = trees.exclude(inactive_q)
 
     elif table_name == TABLE_FINISHED_TREES:
         title = _('Finished Tree Imports')
-        rows = trees.filter(status=finished)
+        rows = trees.filter(inactive_q)
 
     elif table_name == TABLE_ACTIVE_SPECIES:
         title = _('Active Species Imports')
-        rows = species.exclude(status=finished)
+        rows = species.exclude(inactive_q)
 
     elif table_name == TABLE_FINISHED_SPECIES:
         title = _('Finished Species Imports')
-        rows = species.filter(status=finished)
+        rows = species.filter(inactive_q)
 
     else:
         raise Exception('Unexpected import table name: %s' % table_name)

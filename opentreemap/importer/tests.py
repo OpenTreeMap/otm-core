@@ -932,19 +932,23 @@ class IntegrationTests(TestCase):
         import_type = self.import_type()
         request = self.create_csv_request(csv, type=import_type)
 
-        context = start_import(request, self.instance)
-        pk = context['table']['rows'][0].pk
-        return pk
+        return start_import(request, self.instance)
+
+    def attempt_process_views_and_assert_empty(self, csv):
+        ctx = self._import(csv)
+        self.assertFalse(ctx['table']['rows'])
 
     def run_through_process_views(self, csv):
-        pk = self._import(csv)
+        context = self._import(csv)
+        pk = context['table']['rows'][0].pk
         response = process_status(None, self.instance, self.import_type(), pk)
         content = json.loads(response.content)
         content['pk'] = pk
         return content
 
     def run_through_commit_views(self, csv):
-        pk = self._import(csv)
+        context = self._import(csv)
+        pk = context['table']['rows'][0].pk
         commit(None, self.instance, self.import_type(), pk)
         return pk
 
@@ -973,12 +977,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         | f1     | ns11      | 12       |
         | f2     | ns12      | 14       |
         """
-
-        j = self.run_through_process_views(csv)
-        self.assertEqual(len(j['errors']), 3)
-        self.assertEqual({e['code'] for e in j['errors']},
-                         {errors.MISSING_FIELD[0],
-                          errors.UNMATCHED_FIELDS[0]})
+        self.attempt_process_views_and_assert_empty(csv)
 
     def test_noerror_load(self):
         csv = """
@@ -1118,12 +1117,7 @@ class TreeIntegrationTests(IntegrationTests):
         | 34.2    | 24.2   | 12       |
         | 19.2    | 23.2   | 14       |
         """
-
-        j = self.run_through_process_views(csv)
-        self.assertEqual(len(j['errors']), 2)
-        self.assertEqual({e['code'] for e in j['errors']},
-                         {errors.MISSING_FIELD[0],
-                          errors.UNMATCHED_FIELDS[0]})
+        self.attempt_process_views_and_assert_empty(csv)
 
     def test_unknown_udf(self):
         csv = """
@@ -1132,10 +1126,7 @@ class TreeIntegrationTests(IntegrationTests):
         | 19.2    | 23.2    | 14       | td2           |
         """
 
-        j = self.run_through_process_views(csv)
-        self.assertEqual(len(j['errors']), 1)
-        self.assertEqual({e['code'] for e in j['errors']},
-                         {errors.UNMATCHED_FIELDS[0]})
+        self.attempt_process_views_and_assert_empty(csv)
 
     def test_faulty_data1(self):
         s1_g = Species(instance=self.instance, genus='g1', species='',
