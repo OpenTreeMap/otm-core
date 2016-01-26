@@ -192,7 +192,7 @@ class GenericImportRow(models.Model):
     data = models.TextField()
 
     # Row index from original file
-    idx = models.IntegerField()
+    idx = models.IntegerField(db_index=True)
 
     finished = models.BooleanField(default=False)
 
