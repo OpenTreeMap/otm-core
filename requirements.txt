@@ -1,4 +1,4 @@
-boto==2.38.0
+boto==2.39.0
 django-storages==1.1.8
 Django==1.8.8  # rq.filter: >=1.8,<1.9
 Pillow==3.1.0
@@ -21,7 +21,7 @@ git+https://github.com/dahlia/libsass-python.git@4aa8fd3c2cef8c1
 django-contrib-comments==1.6.2
 django-threadedcomments==1.0.1
 django-apptemplates==1.0
-django-queryset-csv==0.3.2
+django-queryset-csv==0.3.3
 python-dateutil==2.4.2
 pytz==2015.7
 django-tinsel==0.1.1
