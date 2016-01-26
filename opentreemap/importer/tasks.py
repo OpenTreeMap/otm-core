@@ -41,7 +41,7 @@ def _create_rows_for_event(ie, csv_file):
         return True
     else:
         ie.status = ie.FAILED_FILE_VERIFICATION
-        ie.save()
+        ie.mark_finished_and_save()
         return False
 
 
@@ -70,12 +70,12 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
 
     try:
         ie.status = GenericImportEvent.LOADING
-        ie.save()
+        ie.update_progress_timestamp_and_save()
         success = _create_rows_for_event(ie, file_obj)
     except Exception as e:
         ie.append_error(errors.GENERIC_ERROR, data=[str(e)])
         ie.status = GenericImportEvent.FAILED_FILE_VERIFICATION
-        ie.save()
+        ie.mark_finished_and_save()
         success = False
 
     if not success:
@@ -86,7 +86,7 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
         return
 
     ie.status = GenericImportEvent.PREPARING_VERIFICATION
-    ie.save()
+    ie.update_progress_timestamp_and_save()
 
     try:
         validation_tasks = []
@@ -102,10 +102,10 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
             ie.task_id = group_result.id
 
         ie.status = GenericImportEvent.VERIFIYING
-        ie.save()
+        ie.update_progress_timestamp_and_save()
     except Exception as e:
         ie.status = GenericImportEvent.VERIFICATION_ERROR
-        ie.save()
+        ie.mark_finished_and_save()
         try:
             ie.append_error(errors.GENERIC_ERROR, data=[str(e)])
             ie.save()
@@ -127,12 +127,11 @@ def _validate_rows(import_type, import_event_id, start_row_id):
 def _finalize_validation(import_type, import_event_id):
     ie = _get_import_event(import_type, import_event_id)
 
-    ie.task_id = ''
     # There shouldn't be any rows left to verify, but it doesn't hurt to check
     if _get_waiting_row_count(ie) == 0:
         ie.status = GenericImportEvent.FINISHED_VERIFICATION
 
-    ie.save()
+    ie.mark_finished_and_save()
 
 
 @task()
@@ -145,7 +144,10 @@ def commit_import_event(import_type, import_event_id):
 
     finalize_task = _finalize_commit.si(import_type, import_event_id)
 
-    chord(commit_tasks, finalize_task).delay()
+    async_result = chord(commit_tasks, finalize_task).delay()
+    if async_result:
+        ie.task_id = async_result.id
+        ie.save()
 
 
 @task(rate_limit=settings.IMPORT_COMMIT_RATE_LIMIT)
@@ -162,7 +164,7 @@ def _finalize_commit(import_type, import_event_id):
     ie = _get_import_event(import_type, import_event_id)
 
     ie.status = GenericImportEvent.FINISHED_CREATING
-    ie.save()
+    ie.mark_finished_and_save()
 
     # A species import could change a species' i-Tree region,
     # affecting eco

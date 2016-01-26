@@ -642,7 +642,7 @@ def commit(request, instance, import_type, import_event_id):
 
         ie.status = GenericImportEvent.CREATING
 
-        ie.save()
+        ie.update_progress_timestamp_and_save()
         ie.rows().update(status=GenericImportRow.WAITING)
 
     commit_import_event.delay(import_type, import_event_id)
@@ -677,7 +677,7 @@ def cancel(request, instance, import_type, import_event_id):
     ie = _get_import_event(instance, import_type, import_event_id)
 
     ie.status = GenericImportEvent.CANCELED
-    ie.save()
+    ie.mark_finished_and_save()
 
     # If verifications tasks are still scheduled, we need to revoke them
     if ie.task_id:
