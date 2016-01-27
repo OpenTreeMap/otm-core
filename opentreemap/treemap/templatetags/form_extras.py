@@ -393,6 +393,10 @@ class AbstractNode(template.Node):
             # there's no meaningful intermediate value to send
             # without rendering the same markup server-side.
             display_val = None
+        elif choices:
+            display_vals = [choice['display_value'] for choice in choices
+                            if choice['value'] == field_value]
+            display_val = display_vals[0] if display_vals else field_value
         else:
             display_val = unicode(field_value)
 
