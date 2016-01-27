@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.core.paginator import Paginator, Page
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.utils.translation import ugettext as _
 
 from treemap.models import Species, Tree, User, MapFeature
@@ -77,6 +77,10 @@ def start_import(request, instance):
             'max_tree_height_conversion_factor':
             storage_to_instance_units_factor(instance, 'tree', 'height')
         }
+
+    if not getattr(request, 'FILES'):
+        return HttpResponseBadRequest("No attachment received")
+
     process_csv(request, instance, import_type, **kwargs)
 
     return get_import_table(request, instance, table)
