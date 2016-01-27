@@ -1237,6 +1237,34 @@ class Instance(LocalMediaTestCase):
         self.assertFalse(any('plot.udf:multi' in group.get('field_keys', [])
                              for group in info_dict['field_key_groups']))
 
+    def _get_search_ids(self, info_dict):
+        return [field['identifier']
+                for field in info_dict['search']['standard']]
+
+    def test_search_fields_v4(self):
+        self.instance.mobile_search_fields = {
+            'standard': [{'identifier': 'plot.udf:multi'}],
+            'missing': []
+        }
+        self.instance.save()
+        request = sign_request_as_user(make_request(user=self.user), self.user)
+
+        response = instance_info_endpoint(request, 4, self.instance.url_name)
+        info_dict = json.loads(response.content)
+        self.assertIn('plot.udf:multi', self._get_search_ids(info_dict))
+
+    def test_search_removed_in_v3(self):
+        self.instance.mobile_search_fields = {
+            'standard': [{'identifier': 'plot.udf:multi'}],
+            'missing': []
+        }
+        self.instance.save()
+        request = sign_request_as_user(make_request(user=self.user), self.user)
+
+        response = instance_info_endpoint(request, 3, self.instance.url_name)
+        info_dict = json.loads(response.content)
+        self.assertNotIn('plot.udf:multi', self._get_search_ids(info_dict))
+
 
 @override_settings(NEARBY_INSTANCE_RADIUS=2)
 @override_settings(FEATURE_BACKEND_FUNCTION=None)
