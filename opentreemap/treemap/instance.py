@@ -89,6 +89,15 @@ def add_species_to_instance(instance):
     Species.objects.bulk_create(instance_species_list)
 
 
+class InstanceBounds(models.Model):
+    """ Center of the map when loading the instance """
+    geom = models.MultiPolygonField(srid=3857)
+    objects = models.GeoManager()
+
+    def __str__(self):
+        return "instance_id: %s" % self.instance.id
+
+
 class Instance(models.Model):
     """
     Each "Tree Map" is a single instance
@@ -150,6 +159,9 @@ class Instance(models.Model):
 
     """ Center of the map when loading the instance """
     bounds = models.MultiPolygonField(srid=3857)
+    bounds_obj = models.OneToOneField(InstanceBounds,
+                                      on_delete=models.CASCADE,
+                                      null=True, blank=True)
 
     """
     Override the center location (which is, by default,
