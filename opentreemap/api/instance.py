@@ -5,6 +5,8 @@ from __future__ import division
 
 import json
 import copy
+
+from operator import itemgetter
 from functools import wraps
 
 from django.db.models import Q
@@ -110,20 +112,28 @@ def instances_closest_to_point(request, lat, lng):
             'The distance parameter must be a number')
 
     instances = Instance.objects \
-                        .filter(get_viewable_instances_filter()) \
-                        .distance(point) \
-                        .order_by('distance')
-
-    nearby_predicate = Q(bounds__distance_lte=(point, D(m=distance)))
+                        .filter(get_viewable_instances_filter())
     personal_predicate = Q(pk__in=user_instance_ids)
 
+    def get_annotated_contexts(instances):
+        results = []
+        for instance in instances:
+            instance_info = _instance_info_dict(instance)
+            d = D(m=point.distance(instance.bounds_obj.geom)).km
+            instance_info['distance'] = d
+            results.append(instance_info)
+        return sorted(results, key=itemgetter('distance'))
+
     return {
-        'nearby': _contextify_instances(instances
-                                        .filter(is_public=True)
-                                        .filter(nearby_predicate)
-                                        .exclude(personal_predicate)
-                                        [0:max_instances]),
-        'personal': _contextify_instances(instances.filter(personal_predicate))
+        'nearby': get_annotated_contexts(
+            instances
+            .filter(is_public=True)
+            .filter(bounds_obj__geom__distance_lte=(
+                point, D(m=distance)))
+            .exclude(personal_predicate)
+            [0:max_instances]),
+        'personal': get_annotated_contexts(
+            instances.filter(personal_predicate))
     }
 
 
@@ -257,7 +267,7 @@ def _contextify_instances(instances):
 def _instance_info_dict(instance):
     center = instance.center
     center.transform(4326)
-    bounds = instance.bounds
+    bounds = instance.bounds_obj.geom
     bounds.transform(4326)
     extent = bounds.extent
     p1 = Point(float(extent[0]), float(extent[1]), srid=4326)
@@ -280,9 +290,6 @@ def _instance_info_dict(instance):
             'extent_radius': extent_radius,
             'eco': _instance_eco_dict(instance)
             }
-
-    if hasattr(instance, 'distance'):
-        info['distance'] = instance.distance.km
 
     return info
 

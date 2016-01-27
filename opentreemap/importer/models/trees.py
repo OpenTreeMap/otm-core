@@ -240,7 +240,7 @@ class TreeImportRow(GenericImportRow):
         p = Point(x, y, srid=4326)
         p.transform(3857)
 
-        if self.import_event.instance.bounds.contains(p):
+        if self.import_event.instance.bounds_obj.geom.contains(p):
             self.cleaned[fields.trees.POINT] = p
         else:
             self.append_error(errors.GEOM_OUT_OF_BOUNDS,

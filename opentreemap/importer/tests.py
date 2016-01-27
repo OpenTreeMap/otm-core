@@ -25,7 +25,7 @@ from api.test_utils import setupTreemapEnv, mkPlot
 from treemap.json_field import set_attr_on_json_field
 from treemap.models import (Species, Plot, Tree, ITreeCodeOverride,
                             ITreeRegion, User)
-from treemap.instance import Instance
+from treemap.instance import Instance, InstanceBounds
 from treemap.tests import (make_admin_user, make_instance, login,
                            ecoservice_not_running)
 from treemap.udf import UserDefinedFieldDefinition
@@ -1049,7 +1049,8 @@ class TreeIntegrationTests(IntegrationTests):
                           (6000000, 6000000),
                           (6000000, -6000000),
                           (-6000000, -6000000)))
-        self.instance.bounds = MultiPolygon(square)
+        self.instance.bounds_obj = InstanceBounds.objects.create(
+            geom=MultiPolygon(square))
         self.instance.save()
 
         settings.DBH_TO_INCHES_FACTOR = 1.0
