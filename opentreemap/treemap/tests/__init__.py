@@ -23,7 +23,8 @@ from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.contrib.auth.models import AnonymousUser
 
 from treemap.models import (User, InstanceUser, Boundary, FieldPermission,
-                            Role, Instance)
+                            Role)
+from treemap.instance import Instance, InstanceBounds
 from treemap.audit import Authorizable, add_default_permissions
 from treemap.util import leaf_models_of_class
 from treemap.tests.base import OTMTestCase
@@ -275,7 +276,8 @@ def make_instance(name=None, is_public=False, url_name=None, point=None,
                       (p1.x + d, p1.y + d),
                       (p1.x + d, p1.y - d),
                       (p1.x - d, p1.y - d)))
-    instance.bounds = MultiPolygon((square,))
+    instance.bounds_obj = InstanceBounds.objects.create(
+        geom=MultiPolygon((square,)))
     instance.save()
 
     new_role = Role.objects.create(

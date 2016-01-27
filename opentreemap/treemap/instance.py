@@ -158,7 +158,6 @@ class Instance(models.Model):
         'BenefitCurrencyConversion', null=True, blank=True)
 
     """ Center of the map when loading the instance """
-    bounds = models.MultiPolygonField(srid=3857)
     bounds_obj = models.OneToOneField(InstanceBounds,
                                       on_delete=models.CASCADE,
                                       null=True, blank=True)
@@ -272,7 +271,7 @@ class Instance(models.Model):
 
     @property
     def extent_as_json(self):
-        boundary = self.bounds.boundary
+        boundary = self.bounds_obj.geom.boundary
         xmin, ymin, xmax, ymax = boundary.extent
 
         return json.dumps({'xmin': xmin, 'ymin': ymin,
@@ -280,13 +279,13 @@ class Instance(models.Model):
 
     @property
     def bounds_as_geojson(self):
-        boundary = self.bounds
+        boundary = self.bounds_obj.geom
         boundary.transform(4326)
         return boundary.json
 
     @property
     def center(self):
-        return self.center_override or self.bounds.centroid
+        return self.center_override or self.bounds_obj.geom.centroid
 
     @property
     def geo_rev_hash(self):
@@ -443,7 +442,7 @@ class Instance(models.Model):
     def itree_regions(self, **extra_query):
         from treemap.models import ITreeRegion, ITreeRegionInMemory
 
-        query = {'geometry__intersects': self.bounds}
+        query = {'geometry__intersects': self.bounds_obj.geom}
         query.update(extra_query)
 
         if self.itree_region_default:

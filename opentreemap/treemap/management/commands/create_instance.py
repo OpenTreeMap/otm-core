@@ -11,7 +11,8 @@ from django.db import transaction
 
 from django.contrib.gis.geos import MultiPolygon, Polygon, GEOSGeometry, Point
 
-from treemap.instance import (Instance, create_stewardship_udfs,
+from treemap.instance import (Instance, InstanceBounds,
+                              create_stewardship_udfs,
                               add_species_to_instance)
 from treemap.models import (Boundary, InstanceUser, User,
                             BenefitCurrencyConversion)
@@ -93,7 +94,7 @@ class Command(BaseCommand):
         instance = Instance(
             config={},
             name=name,
-            bounds=bounds,
+            bounds_obj=InstanceBounds.objects.create(geom=bounds),
             is_public=True,
             url_name=url_name)
 
