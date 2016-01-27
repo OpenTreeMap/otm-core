@@ -4,11 +4,12 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext as _
+from django.utils.timezone import now
 
 from treemap.models import User, Instance
 
@@ -47,6 +48,10 @@ class GenericImportEvent(models.Model):
 
     status = models.IntegerField(default=PENDING_VERIFICATION)
 
+    last_processed_at = models.DateTimeField(null=True, blank=True)
+    # TODO: convert to regular BooleanField after a release
+    is_lost = models.NullBooleanField(default=False)
+
     # The id of a running verification task.  Used for canceling imports
     task_id = models.CharField(max_length=50, default='', blank=True)
 
@@ -55,6 +60,10 @@ class GenericImportEvent(models.Model):
         return self.rows().count()
 
     def status_summary(self):
+        t = "Unknown Error While %s" if self.is_lost else "%s"
+        return t % self.status_description()
+
+    def status_description(self):
         summaries = {
             self.PENDING_VERIFICATION: "Not Yet Started",
             self.LOADING: "Loading",
@@ -67,9 +76,6 @@ class GenericImportEvent(models.Model):
             self.VERIFICATION_ERROR: "Verification Error",
         }
         return summaries.get(self.status, "Finished")
-
-    def active(self):
-        return self.status != GenericImportEvent.FINISHED_CREATING
 
     def is_loading(self):
         return self.status == self.LOADING
@@ -177,6 +183,19 @@ class GenericImportEvent(models.Model):
                 self.append_error(errors.MISSING_FIELD, data=[field])
 
         return is_valid
+
+    def mark_finished_and_save(self):
+        self.task_id = ''
+        self.last_processed_at = None
+        self.save()
+
+    def update_progress_timestamp_and_save(self):
+        self.last_processed_at = now()
+        self.save()
+
+    def has_not_been_processed_recently(self):
+        thirty_ago = now() - timedelta(minutes=30)
+        return self.last_processed_at and self.last_processed_at < thirty_ago
 
 
 class GenericImportRow(models.Model):
