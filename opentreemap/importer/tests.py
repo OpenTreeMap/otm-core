@@ -27,7 +27,7 @@ from treemap.models import (Species, Plot, Tree, ITreeCodeOverride,
                             ITreeRegion, User)
 from treemap.instance import Instance, InstanceBounds
 from treemap.tests import (make_admin_user, make_instance, login,
-                           ecoservice_not_running)
+                           ecoservice_not_running, make_request)
 from treemap.udf import UserDefinedFieldDefinition
 
 from importer import errors, fields
