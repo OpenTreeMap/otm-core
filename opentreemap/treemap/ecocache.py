@@ -67,7 +67,7 @@ def _get_key(prefix, filter):
         version = filter.instance.universal_rev
 
     filter_key = '%s/%s' % (filter.filterstr, filter.displaystr)
-    # Explecitly calling `encode()` ensures that the presence of a
+    # Explicitly calling `encode()` ensures that the presence of a
     # unicode symbol in the filter string will not raise a
     # UnicodeEncodeError exception when calling `md5()`
     filter_hash = hashlib.md5(filter_key.encode('utf-8')).hexdigest()
