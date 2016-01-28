@@ -17,7 +17,7 @@ from django.conf import settings
 from django.db import connection
 from django.test import TestCase
 from django.test.utils import override_settings
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponseBadRequest
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
 from api.test_utils import setupTreemapEnv, mkPlot
@@ -1230,6 +1230,13 @@ class TreeIntegrationTests(IntegrationTests):
                           (errors.INVALID_DATE[0],
                            [fields.trees.DATE_PLANTED], None)])
         self.assertNotIn('4', ierrors)
+
+    def test_no_files(self):
+        req = make_request({'type': TreeImportEvent.import_type})
+        response = start_import(req, self.instance)
+
+        self.assertTrue(isinstance(response, HttpResponseBadRequest))
+
 
     def test_unit_changes(self):
         csv = """
