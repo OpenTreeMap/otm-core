@@ -602,3 +602,11 @@
     text-align: center;
     border-radius: 4px;
 }
+
+// In order to fix the spacing issue on billing plan modal
+#modal-preview {
+
+    label + p {
+        margin-top: -3px;
+    }
+}
