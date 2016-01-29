@@ -733,11 +733,11 @@ class UserDefinedFieldDefinition(models.Model):
                 value = str(value.pk)
         elif self.datatype_dict['type'] == 'multichoice':
             if value and len(value) > 0:
-                value = json.dumps(value)
+                value = json.dumps(value, ensure_ascii=False)
             else:
                 value = None  # so "missing data" searches will work
         if value:
-            return str(value)
+            return value if isinstance(value, unicode) else str(value)
         else:
             return None
 
