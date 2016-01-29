@@ -17,8 +17,8 @@ class UrlParams(object):
     def url(self, *keys, **overrides):
         params = self._params
         if overrides:
-            keys += tuple(overrides.keys())
             params = dict(params.items() + overrides.items())
+            keys = params.keys()
         return self._url + self._param_string(keys, params)
 
     @staticmethod
