@@ -119,7 +119,7 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
         return
 
 
-@task(rate_limit=settings.IMPORT_VALIDATION_RATE_LIMIT)
+@task()
 def _validate_rows(import_type, import_event_id, start_row_id):
     ie = _get_import_event(import_type, import_event_id)
     rows = ie.rows()[start_row_id:(start_row_id+settings.IMPORT_BATCH_SIZE)]
