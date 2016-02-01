@@ -14,8 +14,8 @@ var $ = require('jquery'),
     R = require('ramda'),
     otmTypeahead = require('treemap/otmTypeahead'),
     U = require('treemap/utility'),
-    geocoder = require('treemap/geocoder'),
-    geocoderUi = require('treemap/geocoderUi'),
+    geocoderInvokeUi = require('treemap/geocoderInvokeUi'),
+    geocoderResultsUi = require('treemap/geocoderResultsUi'),
     Search = require('treemap/search'),
     udfcSearch = require('treemap/udfcSearch'),
     BU = require('treemap/baconUtils'),
@@ -271,10 +271,12 @@ module.exports = exports = {
                 .map(Search.buildSearch),
             uSearch = udfcSearch.init(resetStream),
 
-            geocoderInstance = geocoder(config),
-            geocodeCandidateStream = searchStream.map(getSearchDatum).filter('.magicKey'),
-            geocodeResponseStream = geocoderInstance.geocodeStream(geocodeCandidateStream),
-            geocodedLocationStream = geocoderUi(
+            geocodeResponseStream = geocoderInvokeUi({
+                config: config,
+                searchTriggerStream: searchStream,
+                addressInput: '#boundary-typeahead'
+            }),
+            geocodedLocationStream = geocoderResultsUi(
                 {
                     geocodeResponseStream: geocodeResponseStream,
                     cancelGeocodeSuggestionStream: resetStream,
