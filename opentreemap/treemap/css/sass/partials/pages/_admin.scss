@@ -182,6 +182,7 @@
                 margin: 0;
                 color: $paper;
                 line-height: 50px;
+                border-bottom-color: #83848B;
 
                 #toggle-sidebar {
                     cursor: pointer;
@@ -466,6 +467,23 @@
 
         > .form-group:last-of-type {
             margin-bottom: 0;
+        }
+    }
+
+    .management-nav {
+        margin: -16px;
+        margin-bottom: 16px;
+        padding-left: 16px;
+        padding-top: 4px;
+        background-color: #65656d;
+
+        li > a {
+            color: #fff;
+            border-bottom: none;
+        }
+        li.active > a, li:hover > a {
+            color: #555;
+            background-color: #f1f4f9;
         }
     }
 }

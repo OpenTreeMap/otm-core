@@ -1,4 +1,4 @@
- # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
@@ -250,7 +250,7 @@ def _udf_dict(model, field_name):
         raise Exception("Datatype for field %s not found" % field_name)
 
 
-def field_type_label_choices(model, field_name, label,
+def field_type_label_choices(model, field_name, label=None,
                              treat_multichoice_as_choice=False):
     choices = None
     udf_field_name = field_name.replace('udf:', '')

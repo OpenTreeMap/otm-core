@@ -8,26 +8,22 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ugettext_noop
 
 import copy
+import re
 
 from treemap.DotDict import DotDict
 from treemap.lib.object_caches import udf_defs
 
 DEFAULT_MOBILE_SEARCH_FIELDS = {
-    'standard': [{'search_type': 'SPECIES',
-                  'identifier': 'species.id',
-                  'label': 'Species'},
-                 {'search_type': 'RANGE',
-                  'identifier': 'tree.diameter',
-                  'label': 'Diameter'},
-                 {'search_type': 'RANGE',
-                  'identifier': 'tree.height',
-                  'label': 'Height'}],
-    'missing': [{'identifier': 'species.id',
-                 'label': 'Missing Species'},
-                {'identifier': 'tree.diameter',
-                 'label': 'Missing Diameter'},
-                {'identifier': 'mapFeaturePhoto.id',
-                 'label': 'Missing Photo'}]
+    'standard': [
+        {'identifier': 'species.id'},
+        {'identifier': 'tree.diameter'},
+        {'identifier': 'tree.height'}
+    ],
+    'missing': [
+        {'identifier': 'species.id'},
+        {'identifier': 'tree.diameter'},
+        {'identifier': 'mapFeaturePhoto.id'}
+    ]
 }
 
 DEFAULT_SEARCH_FIELDS = {
@@ -100,6 +96,9 @@ API_FIELD_ERRORS = {
 }
 
 
+ALERT_IDENTIFIER_PATTERN = re.compile(r'udf:(tree|plot):(\d+)\..+')
+
+
 def advanced_search_fields(instance, user):
     from treemap.models import Tree, MapFeature  # prevent circular import
 
@@ -135,9 +134,7 @@ def advanced_search_fields(instance, user):
               for category, field_infos in fields.iteritems()}
 
     for field_info in fields.get('missing', []):
-        label = get_missing_data_search_field_label(instance, field_info)
-        field_info['label'] = \
-            _('Show missing %(field)s') % {'field': label.lower()}
+        _set_missing_search_label(instance, field_info)
         field_info['search_type'] = 'ISNULL'
         field_info['value'] = 'true'
 
@@ -173,7 +170,58 @@ def advanced_search_fields(instance, user):
     return fields
 
 
-def get_missing_data_search_field_label(instance, field_info):
+def mobile_search_fields(instance):
+    from treemap.templatetags.form_extras import field_type_label_choices
+
+    search_fields = copy.deepcopy(instance.mobile_search_fields)
+    for field in search_fields['standard']:
+        identifier = field['identifier']
+        alert_info = get_alert_field_info(identifier, instance)
+        if alert_info is not None:
+            field.update(alert_info)
+            continue
+
+        Model, field_name = _parse_field_info(instance, field)
+        set_search_field_label(instance, field)
+        field_type, __, choices = field_type_label_choices(
+            Model, field_name, treat_multichoice_as_choice=True)
+
+        if identifier == 'species.id':
+            field['search_type'] = 'SPECIES'
+        elif field_type in {'int', 'float'}:
+            field['search_type'] = 'RANGE'
+        elif field_type in {'date', 'datetime'}:
+            field['search_type'] = 'DATERANGE'
+        elif field_type == 'string':
+            field['search_type'] = 'STRING'
+        elif field_type == 'bool':
+            field['search_type'] = 'BOOL'
+        elif field_type == 'choice':
+            field['search_type'] = 'CHOICE'
+        elif field_type == 'multichoice':
+            field['search_type'] = 'MULTICHOICE'
+
+        if choices:
+            field['choices'] = choices
+
+    for field in search_fields['missing']:
+        _set_missing_search_label(instance, field)
+
+    return search_fields
+
+
+def _set_missing_search_label(instance, field_info):
+    label = get_search_field_label(instance, field_info)
+    field_info['label'] = _('Show Missing %(field)s') % {'field': label}
+
+
+def set_search_field_label(instance, field_info):
+    if 'label' not in field_info:
+        field_info['label'] = get_search_field_label(instance, field_info)
+    return field_info
+
+
+def get_search_field_label(instance, field_info):
     """
     Searches for missing data are controlled by fields, and those fields
     need labels. Two wrinkles: 1) Fields like species.id and mapFeaturePhoto.id
@@ -245,3 +293,20 @@ def get_udfc_search_fields(instance, user):
                     data['models'] |= {clz}
 
     return data
+
+
+def get_alert_field_info(identifier, instance):
+    from treemap.util import get_model_for_instance
+    alert_match = ALERT_IDENTIFIER_PATTERN.match(identifier)
+    if alert_match:
+        model_name, pk = alert_match.groups()
+        Model = get_model_for_instance(model_name, instance)
+        udf_def = next(udf for udf in udf_defs(instance) if udf.pk == int(pk))
+        display_name = force_text(Model.terminology(instance)['singular'])
+        return {
+            'identifier': identifier,
+            'search_type': 'DEFAULT',
+            'default_identifier': udf_def.full_name,
+            'label': 'Open %(model)s Alerts' % {'model': display_name},
+        }
+    return None

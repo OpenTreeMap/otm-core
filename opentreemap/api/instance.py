@@ -26,6 +26,7 @@ from treemap.templatetags.form_extras import field_type_label_choices
 from treemap.json_field import is_json_field_reference
 from treemap.plugin import get_viewable_instances_filter
 from treemap.ecobenefits import BenefitCategory
+from treemap.search_fields import mobile_search_fields
 
 import treemap.lib.perms as perms_lib
 
@@ -35,7 +36,7 @@ def transform_instance_info_response(instance_view_fn):
     Removes some information from the instance info response for older APIs
 
     v3 - Collection UDFs added
-    v4 - Multiselect fields added
+    v4 - Multiselect fields added and new search options added
     v5 - universalRev added
     """
     @wraps(instance_view_fn)
@@ -65,6 +66,11 @@ def transform_instance_info_response(instance_view_fn):
                 if 'field_keys' in group:
                     group['field_keys'] = [key for key in group['field_keys']
                                            if key not in multichoice_fields]
+
+            # Remove all standard searches that are not species, range, or bool
+            instance_info_dict['search']['standard'] = [
+                field for field in instance_info_dict['search']['standard']
+                if field['search_type'] in {'SPECIES', 'RANGE', 'BOOL'}]
 
         if request.api_version < 5:
             instance_info_dict['geoRevHash'] = (
@@ -231,7 +237,7 @@ def instance_info(request, instance):
     info = _instance_info_dict(instance)
     info['fields'] = perms
     info['field_key_groups'] = readable_mobile_api_fields
-    info['search'] = instance.mobile_search_fields
+    info['search'] = mobile_search_fields(instance)
     info['date_format'] = _unicode_dateformat(instance.date_format)
     info['short_date_format'] = _unicode_dateformat(instance.short_date_format)
 
