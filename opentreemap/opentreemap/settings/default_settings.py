@@ -67,19 +67,23 @@ MANAGERS = ADMINS
 
 TEST_RUNNER = "treemap.tests.OTM2TestRunner"
 
-
-OMGEO_SETTINGS = [[
+OMGEO_SETTINGS = [[  # Used when no suggestion has been chosen
     'omgeo.services.EsriWGS',
     {
         'preprocessors': [],
         'postprocessors': [
-            postprocessors.UseHighScoreIfAtLeast(99),
-            postprocessors.DupePicker(
+            postprocessors.AttrFilter(
+                good_values=['PointAddress', 'BuildingName', 'StreetAddress',
+                             'StreetName'],
+                attr='locator_type'),
+            postprocessors.DupePicker(  # Filters by highest score
                 attr_dupes='match_addr',
                 attr_sort='locator_type',
                 ordered_list=['PointAddress', 'BuildingName', 'StreetAddress']
             ),
-            postprocessors.ScoreSorter(),
+            postprocessors.AttrSorter(
+                ordered_values=['PointAddress', 'StreetAddress', 'StreetName'],
+                attr='locator_type'),
             postprocessors.GroupBy('match_addr'),
             postprocessors.GroupBy(('x', 'y')),
             postprocessors.SnapPoints(distance=10)
@@ -87,6 +91,23 @@ OMGEO_SETTINGS = [[
     }
 ]]
 
+OMGEO_SETTINGS_FOR_MAGIC_KEY = [[  # Used when a suggestion has been chosen
+    'omgeo.services.EsriWGS',
+    {
+        'preprocessors': [],
+        'postprocessors': [
+            postprocessors.UseHighScoreIfAtLeast(99),
+            postprocessors.DupePicker(  # Filters by highest score
+                attr_dupes='match_addr',
+                attr_sort='locator_type',
+                ordered_list=['PointAddress', 'BuildingName', 'StreetAddress']
+            ),
+            postprocessors.GroupBy('match_addr'),
+            postprocessors.GroupBy(('x', 'y')),
+            postprocessors.SnapPoints(distance=10)
+        ]
+    }
+]]
 
 # Set TILE_HOST to None if the tiler is running on the same host
 # as this app. Otherwise, provide a Leaflet url template as described
