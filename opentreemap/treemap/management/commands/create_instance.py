@@ -94,7 +94,7 @@ class Command(BaseCommand):
         instance = Instance(
             config={},
             name=name,
-            bounds_obj=InstanceBounds.objects.create(geom=bounds),
+            bounds=InstanceBounds.objects.create(geom=bounds),
             is_public=True,
             url_name=url_name)
 

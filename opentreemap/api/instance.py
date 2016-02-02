@@ -125,7 +125,7 @@ def instances_closest_to_point(request, lat, lng):
         results = []
         for instance in instances:
             instance_info = _instance_info_dict(instance)
-            d = D(m=point.distance(instance.bounds_obj.geom)).km
+            d = D(m=point.distance(instance.bounds.geom)).km
             instance_info['distance'] = d
             results.append(instance_info)
         return sorted(results, key=itemgetter('distance'))
@@ -134,7 +134,7 @@ def instances_closest_to_point(request, lat, lng):
         'nearby': get_annotated_contexts(
             instances
             .filter(is_public=True)
-            .filter(bounds_obj__geom__distance_lte=(
+            .filter(bounds__geom__distance_lte=(
                 point, D(m=distance)))
             .exclude(personal_predicate)
             [0:max_instances]),
@@ -273,7 +273,7 @@ def _contextify_instances(instances):
 def _instance_info_dict(instance):
     center = instance.center
     center.transform(4326)
-    bounds = instance.bounds_obj.geom
+    bounds = instance.bounds.geom
     bounds.transform(4326)
     extent = bounds.extent
     p1 = Point(float(extent[0]), float(extent[1]), srid=4326)
