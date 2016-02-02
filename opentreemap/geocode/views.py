@@ -13,17 +13,18 @@ from django.contrib.gis.geos.point import Point
 from django_tinsel.decorators import json_api_call
 
 from omgeo import Geocoder
-from omgeo.places import PlaceQuery
+from omgeo.places import Viewbox, PlaceQuery
 
 
-geocoder = Geocoder(sources=settings.OMGEO_SETTINGS)
+geocoder = Geocoder(sources=settings.OMGEO_SETTINGS, postprocessors=[])
+geocoder_for_magic_key = Geocoder(
+    sources=settings.OMGEO_SETTINGS_FOR_MAGIC_KEY)
 
 
 def _omgeo_candidate_to_dict(candidate, srid=3857):
     p = Point(candidate.x, candidate.y, srid=candidate.wkid)
     if candidate.wkid != srid:
         p.transform(srid)
-
     return {
         'address': candidate.match_addr,
         'region': candidate.match_region,
@@ -53,26 +54,92 @@ def _no_results_response(address, inregion=False):
     return response
 
 
+def _in_bbox(bbox, c):
+    x, y = c['x'], c['y']
+
+    valid_x = x >= float(bbox['xmin']) and x <= float(bbox['xmax'])
+    valid_y = y >= float(bbox['ymin']) and y <= float(bbox['ymax'])
+
+    return valid_x and valid_y
+
+
+def _contains_bbox(request):
+    return ('xmin' in request.REQUEST and 'ymin' in request.REQUEST and
+            'xmax' in request.REQUEST and 'ymax' in request.REQUEST)
+
+
+def _get_viewbox_from_request(request):
+    if _contains_bbox(request):
+        xmin, ymin, xmax, ymax = [request.REQUEST[b] for b
+                                  in ['xmin', 'ymin', 'xmax', 'ymax']]
+        return Viewbox(
+            left=float(xmin),
+            right=float(xmax),
+            bottom=float(ymin),
+            top=float(ymax),
+            wkid=3857)
+    else:
+        return None
+
+
 def geocode(request):
     """
-    Endpoint to geocode a lat/lng pair
-
-    Configuration for sources is pulled from the OMGEO_SETTINGS
-    settings key
+    Search for specified address, returning candidates with lat/long
     """
     key = request.REQUEST.get('key')
     address = request.REQUEST.get('address')
+    if key:
+        return _geocode_with_magic_key(address, key)
+    else:
+        return _geocode_without_magic_key(request, address)
 
+
+def _geocode_with_magic_key(address, key):
+    # See settings.OMGEO_SETTINGS_FOR_MAGIC_KEY for configuration
     pq = PlaceQuery(query=address, key=key)
-
-    geocode_result = geocoder.geocode(pq)
+    geocode_result = geocoder_for_magic_key.geocode(pq)
     candidates = geocode_result.get('candidates', None)
-
-    if not candidates or len(candidates) == 0:
+    if candidates:
+        # Address searches return many candidates. But the user already
+        # chose a specific suggestion so we want the first candidate.
+        # The exception is a "point of interest" search, where the user's
+        # chosen suggestion may be a category like "Beaches" and you want to
+        # see many candidates.
+        if candidates[0].locator_type != 'POI':
+            candidates = [candidates[0]]
+        candidates = [_omgeo_candidate_to_dict(c) for c in candidates]
+        return {'candidates': candidates}
+    else:
         return _no_results_response(address)
 
-    candidates = [_omgeo_candidate_to_dict(c) for c in candidates]
-    return {'candidates': candidates}
+
+def _geocode_without_magic_key(request, address):
+    # See settings.OMGEO_SETTINGS for configuration
+    viewbox = _get_viewbox_from_request(request)
+    pq = PlaceQuery(query=address, viewbox=viewbox)
+    geocode_result = geocoder.geocode(pq)
+
+    candidates = geocode_result.get('candidates', None)
+
+    if not candidates:
+        return _no_results_response(address)
+    else:
+        candidates = [_omgeo_candidate_to_dict(c) for c in candidates]
+
+        if _contains_bbox(request):
+            # The geocoder favored results inside the bounding box but may have
+            # returned results outside the bounding box, so filter those away.
+            bbox = {'xmin': request.REQUEST['xmin'],
+                    'ymin': request.REQUEST['ymin'],
+                    'xmax': request.REQUEST['xmax'],
+                    'ymax': request.REQUEST['ymax']}
+
+            candidates = [c for c in candidates if _in_bbox(bbox, c)]
+
+            if len(candidates) == 0:
+                return _no_results_response(address, inregion=True)
+
+        return {'candidates': candidates}
 
 
 geocode_view = json_api_call(geocode)

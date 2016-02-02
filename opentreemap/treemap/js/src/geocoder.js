@@ -35,12 +35,19 @@ function latLngToParam(latLng) {
 exports = module.exports = function (config) {
 
     var geocodeServer = function (address, magicKey) {
+        var data = {
+            address: address,
+            key: magicKey
+        };
+        if (config.instance.extent) {
+            _.extend(data, config.instance.extent);
+        }
         return Bacon.fromPromise(
             $.ajax({
                 url: '/geocode',
                 type: 'GET',
-                data: {address: address, key: magicKey},
-                dataType: 'json',
+                data: data,
+                dataType: 'json'
             }));
     };
 
