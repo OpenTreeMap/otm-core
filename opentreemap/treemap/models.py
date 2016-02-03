@@ -616,7 +616,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     def clean(self):
         super(MapFeature, self).clean()
 
-        if not self.instance.bounds_obj.geom.contains(self.geom):
+        if not self.instance.bounds.geom.contains(self.geom):
             raise ValidationError({
                 "geom": [
                     _(
