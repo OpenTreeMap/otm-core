@@ -19,6 +19,7 @@ function init(options) {
         mapManager = options.mapManager,
         plotMarker = options.plotMarker,
         onClose = options.onClose || $.noop,
+        clearChildEditControls = options.clearEditControls || $.noop,
         sidebar = options.sidebar,
         $sidebar = $(sidebar),
         formSelector = options.formSelector,
@@ -84,7 +85,6 @@ function init(options) {
     deactivateBus.onValue(function () {
         // Hide/deactivate/clear everything
         plotMarker.hide();
-        $addressInput.val("");
         clearEditControls();
     });
 
@@ -95,7 +95,7 @@ function init(options) {
         }
     });
 
-    otmTypeahead.create({
+    var addressTypeahead = otmTypeahead.create({
         input: addressInput,
         geocoder: true,
         geocoderBbox: config.instance.extent
@@ -106,9 +106,9 @@ function init(options) {
             inputs: addressInput,
             button: '.geocode'
         }),
-        geocodeCandidateStream = searchTriggerStream.map(function() {
-            return otmTypeahead.getDatum($addressInput);
-        }).filter('.magicKey'),
+        geocodeCandidateStream = searchTriggerStream
+            .map(addressTypeahead.getDatum)
+            .filter('.magicKey'),
         geocodeResponseStream = gcoder.geocodeStream(geocodeCandidateStream),
         cleanupLocationFeedbackStream = Bacon.mergeAll([
             searchTriggerStream,
@@ -316,6 +316,9 @@ function init(options) {
     }
 
     function clearEditControls() {
+        clearChildEditControls();
+
+        addressTypeahead.clear();
         $(editFields).find('input,select').each(function () {
             var $control = $(this),
                 type = $control.prop('type');
