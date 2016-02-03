@@ -49,8 +49,7 @@ class GenericImportEvent(models.Model):
     status = models.IntegerField(default=PENDING_VERIFICATION)
 
     last_processed_at = models.DateTimeField(null=True, blank=True)
-    # TODO: convert to regular BooleanField after a release
-    is_lost = models.NullBooleanField(default=False)
+    is_lost = models.BooleanField(default=False)
 
     # The id of a running verification task.  Used for canceling imports
     task_id = models.CharField(max_length=50, default='', blank=True)
