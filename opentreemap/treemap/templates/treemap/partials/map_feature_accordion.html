@@ -6,6 +6,8 @@
 <form id="details-form" data-location-x="{{ plot.geom.x|unlocalize }}" data-location-y="{{ plot.geom.y|unlocalize }}"
       data-map-feature-type="{% if feature.is_plot %}plot{% else %}resource{% endif %}">
 
+    <div class="alert alert-danger text-danger" data-class="error" data-field="mapFeature.geom"></div>
+
     {% if feature.is_plot %}
     {% if tree %}
     {# The "edit-tree-species" label is used as an id prefix in "species_div.html" #}

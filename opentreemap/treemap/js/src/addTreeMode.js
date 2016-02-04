@@ -14,13 +14,17 @@ var activateMode = _.identity,
     STEP_FINAL = 2;
 
 function init(options) {
-    var manager = addMapFeature.init(options),
-        plotMarker = options.plotMarker,
+    var plotMarker = options.plotMarker,
         $sidebar = $(options.sidebar),
         $speciesTypeahead = U.$find('#add-tree-species-typeahead', $sidebar),
         $speciesInput = U.$find('[data-typeahead-input="tree.species"]', $sidebar),
         $summaryHead = U.$find('.summaryHead', $sidebar),
-        $summarySubhead = U.$find('.summarySubhead', $sidebar);
+        $summarySubhead = U.$find('.summarySubhead', $sidebar),
+        typeahead = otmTypeahead.create(options.typeahead),
+        clearEditControls = function() {
+            typeahead.clear();
+        },
+        manager = addMapFeature.init(_.extend({clearEditControls: clearEditControls}, options));
 
     activateMode = function() {
         manager.activate();
@@ -29,9 +33,10 @@ function init(options) {
         plotMarker.enablePlacing();
     };
 
-    deactivateMode = manager.deactivate;
-
-    otmTypeahead.bulkCreate(options.typeaheads);
+    deactivateMode = function() {
+        typeahead.clear();
+        manager.deactivate();
+    };
 
     diameterCalculator({ formSelector: options.formSelector,
                          cancelStream: manager.deactivateStream,

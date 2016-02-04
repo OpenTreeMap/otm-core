@@ -5,15 +5,17 @@ from __future__ import division
 
 import json
 import io
+
 from copy import copy
-from celery.result import GroupResult
+from celery.result import GroupResult, AsyncResult
 
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.core.paginator import Paginator, Page
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.utils.translation import ugettext as _
 
 from treemap.models import Species, Tree, User, MapFeature
@@ -75,6 +77,10 @@ def start_import(request, instance):
             'max_tree_height_conversion_factor':
             storage_to_instance_units_factor(instance, 'tree', 'height')
         }
+
+    if not getattr(request, 'FILES'):
+        return HttpResponseBadRequest("No attachment received")
+
     process_csv(request, instance, import_type, **kwargs)
 
     return get_import_table(request, instance, table)
@@ -84,6 +90,7 @@ def list_imports(request, instance):
     table_names = [TABLE_ACTIVE_TREES, TABLE_FINISHED_TREES,
                    TABLE_ACTIVE_SPECIES, TABLE_FINISHED_SPECIES]
 
+    _cleanup_tables(instance)
     tables = [_get_table_context(instance, table_name, 1)
               for table_name in table_names]
 
@@ -102,12 +109,32 @@ def list_imports(request, instance):
 
 def get_import_table(request, instance, table_name):
     page_number = int(request.GET.get('page', '1'))
+    _cleanup_tables(instance)
     return {
         'table': _get_table_context(instance, table_name, page_number)
     }
 
 
 _EVENT_TABLE_PAGE_SIZE = 5
+
+
+def _cleanup_tables(instance):
+    q = Q(instance=instance, is_lost=False)
+    ievents = (list(TreeImportEvent.objects.filter(q)) +
+               list(SpeciesImportEvent.objects.filter(q)))
+
+    for ie in ievents:
+        mark_lost = False
+        if ie.has_not_been_processed_recently():
+            mark_lost = True
+        elif ie.task_id != '' and ie.is_running():
+            result = AsyncResult(ie.task_id)
+            if not result or result.failed():
+                mark_lost = True
+
+        if mark_lost:
+            ie.is_lost = True
+            ie.mark_finished_and_save()
 
 
 def _get_table_context(instance, table_name, page_number):
@@ -117,23 +144,26 @@ def _get_table_context(instance, table_name, page_number):
     species = SpeciesImportEvent.objects\
         .filter(instance=instance)\
         .order_by('-created')
-    finished = GenericImportEvent.FINISHED_CREATING
+    inactive_q = Q(is_lost=True) | Q(
+        status__in={
+            GenericImportEvent.FINISHED_CREATING,
+            GenericImportEvent.FAILED_FILE_VERIFICATION})
 
     if table_name == TABLE_ACTIVE_TREES:
         title = _('Active Tree Imports')
-        rows = trees.exclude(status=finished)
+        rows = trees.exclude(inactive_q)
 
     elif table_name == TABLE_FINISHED_TREES:
         title = _('Finished Tree Imports')
-        rows = trees.filter(status=finished)
+        rows = trees.filter(inactive_q)
 
     elif table_name == TABLE_ACTIVE_SPECIES:
         title = _('Active Species Imports')
-        rows = species.exclude(status=finished)
+        rows = species.exclude(inactive_q)
 
     elif table_name == TABLE_FINISHED_SPECIES:
         title = _('Finished Species Imports')
-        rows = species.filter(status=finished)
+        rows = species.filter(inactive_q)
 
     else:
         raise Exception('Unexpected import table name: %s' % table_name)
@@ -615,7 +645,7 @@ def solve(request, instance, import_event_id, row_index):
     target_species = request.GET['species']
 
     # Strip off merge errors
-    #TODO: Json handling is terrible.
+    # TODO: Json handling is terrible.
     row.errors = json.dumps(row.errors_array_without_merge_errors())
     row.datadict.update(data)
     row.datadict = row.datadict  # invoke setter to update row.data
@@ -633,17 +663,17 @@ def solve(request, instance, import_event_id, row_index):
     return context
 
 
-@transaction.atomic
 def commit(request, instance, import_type, import_event_id):
-    ie = _get_import_event(instance, import_type, import_event_id)
+    with transaction.atomic():
+        ie = _get_import_event(instance, import_type, import_event_id)
 
-    if _get_tree_limit_context(ie).get('tree_limit_exceeded'):
-        raise Exception(_("tree limit exceeded"))
+        if _get_tree_limit_context(ie).get('tree_limit_exceeded'):
+            raise Exception(_("tree limit exceeded"))
 
-    ie.status = GenericImportEvent.CREATING
+        ie.status = GenericImportEvent.CREATING
 
-    ie.save()
-    ie.rows().update(status=GenericImportRow.WAITING)
+        ie.update_progress_timestamp_and_save()
+        ie.rows().update(status=GenericImportRow.WAITING)
 
     commit_import_event.delay(import_type, import_event_id)
 
@@ -677,11 +707,15 @@ def cancel(request, instance, import_type, import_event_id):
     ie = _get_import_event(instance, import_type, import_event_id)
 
     ie.status = GenericImportEvent.CANCELED
-    ie.save()
+    ie.mark_finished_and_save()
 
     # If verifications tasks are still scheduled, we need to revoke them
     if ie.task_id:
-        GroupResult.restore(ie.task_id).revoke()
+        result = GroupResult.restore(ie.task_id)
+        if result:
+            result.revoke()
+
+    # If we couldn't get the task, it is already effectively cancelled
 
     return list_imports(request, instance)
 

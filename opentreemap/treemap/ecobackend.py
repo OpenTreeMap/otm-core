@@ -72,7 +72,7 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
                     hexstring = ''.join('%02X' % ord(x) for x in bytestring)
 
                     v = "ST_GeomFromEWKT('%s')" % GEOSGeometry(hexstring).ewkt
-                else:
+                elif not isinstance(v, unicode):
                     v = str(v)
 
                 if k == "param":

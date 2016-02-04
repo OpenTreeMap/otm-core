@@ -19,9 +19,9 @@ def _rotate_image_based_on_exif(img):
         # According to PIL.ExifTags, 0x0112 is "Orientation"
         orientation = img._getexif()[0x0112]
         if orientation == 6:  # Right turn
-            img = img.rotate(-90)
+            img = img.rotate(-90, expand=True)
         elif orientation == 5:  # Left turn
-            img = img.rotate(90)
+            img = img.rotate(90, expand=True)
     except:
         pass
 
@@ -81,7 +81,7 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None,
         if degrees_to_rotate is None:
             image = _rotate_image_based_on_exif(image)
         else:
-            image = image.rotate(degrees_to_rotate)
+            image = image.rotate(degrees_to_rotate, expand=True)
 
         image_file = _get_file_for_image(image, name, format)
         thumb_file = None

@@ -39,7 +39,7 @@ script:
   - flake8 --exclude migrations,opentreemap/settings/local_settings.py,*.pyc opentreemap
   - npm run check
   - testem ci -l Firefox
-  - cd opentreemap && coverage run --rcfile=../coveragerc --source=. manage.py test
+  - cd opentreemap && coverage run --rcfile=../.coveragerc --source=. manage.py test
 
 after_success:
   coveralls

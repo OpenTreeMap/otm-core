@@ -100,7 +100,7 @@ exports.init = function(options) {
                     if ($(display).is('[data-value]')) {
                         $input = FH.getSerializableField($(editFields), field);
                         if ($input.is('[type="checkbox"]')) {
-                            value = $input.is(':checked') ? "True" : "False";
+                            value = $input.is(':checked') ? "Yes" : "No";
                         } else if ($input.is('[data-date-format]')) {
                             value = FH.getTimestampFromDatepicker($input);
                         } else if ($input.is('select[multiple]')) {

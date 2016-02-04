@@ -18,7 +18,6 @@ var $ = require('jquery'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
         require('treemap/reverseGeocodeStreamAndUpdateAddressesOnForm'),
     streetView = require('treemap/streetView'),
-    History = require('history'),
     alerts = require('treemap/alerts'),
 
     dom = {
@@ -80,12 +79,12 @@ exports.init = function(options) {
         if (inEditMode) {
             prompter.lock();
             if (!hrefHasEdit) {
-                History.replaceState(null, document.title, U.appendSegmentToUrl('edit'));
+                history.replaceState(null, document.title, U.appendSegmentToUrl('edit'));
             }
         } else {
             prompter.unlock();
             if (hrefHasEdit) {
-                History.replaceState(null, document.title, U.removeLastUrlSegment());
+                history.replaceState(null, document.title, U.removeLastUrlSegment());
             }
         }
     });

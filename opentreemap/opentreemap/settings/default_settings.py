@@ -1,4 +1,5 @@
 import os
+from omgeo import postprocessors
 
 # Django settings for opentreemap project.
 OTM_VERSION = 'dev'
@@ -66,8 +67,46 @@ MANAGERS = ADMINS
 
 TEST_RUNNER = "treemap.tests.OTM2TestRunner"
 
-OMGEO_SETTINGS = [[
-    'omgeo.services.EsriWGS', {}
+OMGEO_SETTINGS = [[  # Used when no suggestion has been chosen
+    'omgeo.services.EsriWGS',
+    {
+        'preprocessors': [],
+        'postprocessors': [
+            postprocessors.AttrFilter(
+                good_values=['PointAddress', 'BuildingName', 'StreetAddress',
+                             'StreetName'],
+                attr='locator_type'),
+            postprocessors.DupePicker(  # Filters by highest score
+                attr_dupes='match_addr',
+                attr_sort='locator_type',
+                ordered_list=['PointAddress', 'BuildingName', 'StreetAddress']
+            ),
+            postprocessors.AttrSorter(
+                ordered_values=['PointAddress', 'StreetAddress', 'StreetName'],
+                attr='locator_type'),
+            postprocessors.GroupBy('match_addr'),
+            postprocessors.GroupBy(('x', 'y')),
+            postprocessors.SnapPoints(distance=10)
+        ]
+    }
+]]
+
+OMGEO_SETTINGS_FOR_MAGIC_KEY = [[  # Used when a suggestion has been chosen
+    'omgeo.services.EsriWGS',
+    {
+        'preprocessors': [],
+        'postprocessors': [
+            postprocessors.UseHighScoreIfAtLeast(99),
+            postprocessors.DupePicker(  # Filters by highest score
+                attr_dupes='match_addr',
+                attr_sort='locator_type',
+                ordered_list=['PointAddress', 'BuildingName', 'StreetAddress']
+            ),
+            postprocessors.GroupBy('match_addr'),
+            postprocessors.GroupBy(('x', 'y')),
+            postprocessors.SnapPoints(distance=10)
+        ]
+    }
 ]]
 
 # Set TILE_HOST to None if the tiler is running on the same host
@@ -109,11 +148,11 @@ USE_TZ = True
 
 # Path to the Django Project root
 # Current file is in opentreemap/opentreemap/settings, so go up 3
-PROJECT_ROOT = os.path.abspath(
+BASE_DIR = os.path.abspath(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 # Path to the location of SCSS files, used for on-the-fly compilation to CSS
-SCSS_ROOT = os.path.join(PROJECT_ROOT, 'treemap', 'css', 'sass')
+SCSS_ROOT = os.path.join(BASE_DIR, 'treemap', 'css', 'sass')
 
 # Entry point .scss file for on-the-fly compilation to CSS
 SCSS_ENTRY = 'main'
@@ -186,7 +225,7 @@ if ROLLBAR_ACCESS_TOKEN is not None:
     ROLLBAR = {
         'access_token': ROLLBAR_ACCESS_TOKEN,
         'environment': STACK_TYPE,
-        'root': PROJECT_ROOT
+        'root': BASE_DIR
     }
     MIDDLEWARE_CLASSES += (
         'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',)

@@ -4,7 +4,6 @@ var _ = require('lodash'),
     Bacon = require('baconjs'),
     url = require('url'),
     L = require('leaflet'),
-    History = require('history'),
 
     modeNamesForUrl = [
         require('treemap/addTreeMode').name,
@@ -20,22 +19,16 @@ var _state = null,
 
 function HistoryApi() {
     function onStateChange(callback) {
-        History.Adapter.bind(window, 'statechange', callback);
-        // We use the "History" library for "pushState" etc. capabilities on IE9.
-        // If we drop IE9 support we should change "History" to "history" in this
-        // module, and replace the above "bind" call with:
-        //        window.onpopstate = function(event) {
-        //            setStateAndPushToApp(event.state || getStateFromCurrentUrl());
-        //        };
+        window.onpopstate = callback;
     }
     function getState() {
-        return History.getState();
+        return history.state;
     }
     function pushState(state, title, url) {
-        History.pushState(state, title, url);
+        history.pushState(state, title, url);
     }
     function replaceState(state, title, url) {
-        History.replaceState(state, title, url);
+        history.replaceState(state, title, url);
     }
     return {
         onStateChange: onStateChange,
@@ -44,7 +37,6 @@ function HistoryApi() {
         replaceState: replaceState
     };
 }
-
 
 function WindowApi() {
     return {

@@ -41,7 +41,7 @@ def _create_rows_for_event(ie, csv_file):
         return True
     else:
         ie.status = ie.FAILED_FILE_VERIFICATION
-        ie.save()
+        ie.mark_finished_and_save()
         return False
 
 
@@ -70,12 +70,12 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
 
     try:
         ie.status = GenericImportEvent.LOADING
-        ie.save()
+        ie.update_progress_timestamp_and_save()
         success = _create_rows_for_event(ie, file_obj)
     except Exception as e:
         ie.append_error(errors.GENERIC_ERROR, data=[str(e)])
         ie.status = GenericImportEvent.FAILED_FILE_VERIFICATION
-        ie.save()
+        ie.mark_finished_and_save()
         success = False
 
     if not success:
@@ -86,13 +86,12 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
         return
 
     ie.status = GenericImportEvent.PREPARING_VERIFICATION
-    ie.save()
+    ie.update_progress_timestamp_and_save()
 
     try:
-        row_set = ie.rows()
-        validation_tasks = (
-            _validate_rows.subtask(row_set[i:(i+settings.IMPORT_BATCH_SIZE)])
-            for i in xrange(0, ie.row_count, settings.IMPORT_BATCH_SIZE))
+        validation_tasks = []
+        for i in xrange(0, ie.row_count, settings.IMPORT_BATCH_SIZE):
+            validation_tasks.append(_validate_rows.s(import_type, ie.id, i))
 
         final_task = _finalize_validation.si(import_type, import_event_id)
 
@@ -103,21 +102,27 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
             ie.task_id = group_result.id
 
         ie.status = GenericImportEvent.VERIFIYING
-        ie.save()
+        ie.update_progress_timestamp_and_save()
     except Exception as e:
         ie.status = GenericImportEvent.VERIFICATION_ERROR
-        ie.save()
+        ie.mark_finished_and_save()
         try:
             ie.append_error(errors.GENERIC_ERROR, data=[str(e)])
             ie.save()
-            ie.row_set().delete()
+            # I don't think this ever worked in the past.
+            # TODO: delete?
+            ie.rows().delete()
         except Exception:
+            # This has shown to swallow real exceptions in development.
+            # TODO: At the very least, we should add logging.
             pass
         return
 
 
 @task()
-def _validate_rows(*rows):
+def _validate_rows(import_type, import_event_id, start_row_id):
+    ie = _get_import_event(import_type, import_event_id)
+    rows = ie.rows()[start_row_id:(start_row_id+settings.IMPORT_BATCH_SIZE)]
     for row in rows:
         row.validate_row()
 
@@ -126,12 +131,14 @@ def _validate_rows(*rows):
 def _finalize_validation(import_type, import_event_id):
     ie = _get_import_event(import_type, import_event_id)
 
-    ie.task_id = ''
     # There shouldn't be any rows left to verify, but it doesn't hurt to check
     if _get_waiting_row_count(ie) == 0:
         ie.status = GenericImportEvent.FINISHED_VERIFICATION
+    else:
+        # TODO: if we're going to check, we should probably raise
+        pass
 
-    ie.save()
+    ie.mark_finished_and_save()
 
 
 @task()
@@ -144,7 +151,10 @@ def commit_import_event(import_type, import_event_id):
 
     finalize_task = _finalize_commit.si(import_type, import_event_id)
 
-    chord(commit_tasks, finalize_task).delay()
+    async_result = chord(commit_tasks, finalize_task).delay()
+    if async_result:
+        ie.task_id = async_result.id
+        ie.save()
 
 
 @task(rate_limit=settings.IMPORT_COMMIT_RATE_LIMIT)
@@ -161,7 +171,7 @@ def _finalize_commit(import_type, import_event_id):
     ie = _get_import_event(import_type, import_event_id)
 
     ie.status = GenericImportEvent.FINISHED_CREATING
-    ie.save()
+    ie.mark_finished_and_save()
 
     # A species import could change a species' i-Tree region,
     # affecting eco

@@ -8,10 +8,11 @@ from django.db import transaction
 from django.http import Http404
 from django.utils.translation import ugettext as _
 
-from opentreemap.util import UrlParams, get_ids_from_request
+from opentreemap.util import get_ids_from_request
 
 from treemap.audit import (Audit, approve_or_reject_existing_edit,
                            approve_or_reject_audits_and_apply)
+from treemap.lib.page_of_items import UrlParams, make_filter_context
 from treemap.models import MapFeaturePhoto
 
 
@@ -59,15 +60,20 @@ def photo_review(request, instance):
     urlizer = UrlParams('photo_review', instance.url_name, page=page_number,
                         sort=sort_order, archived=is_archived)
 
+    filter_value = dict(archived=is_archived)
+
+    filter_context = make_filter_context(urlizer, filter_value, [
+        (_('Active'), _('active'), dict(archived=False)),
+        (_('Archived'), _('archived'), dict(archived=True)),
+    ])
+    filter_context['container_attr'] = 'data-photo-filter'
+
     return {
         'photos': paged_photos,
         'sort_order': sort_order,
         'is_archived': is_archived,
-        'is_archived_text': _("Archived") if is_archived else _("Active"),
-        'is_archived_text_lower': (_("archived") if is_archived
-                                   else _("active")),
+        'archived_filter': filter_context,
         'url_for_pagination': urlizer.url('sort', 'archived'),
-        'url_for_filter': urlizer.url('sort'),
         'url_for_sort': urlizer.url('archived'),
         'full_params': urlizer.params('page', 'sort', 'archived')
     }

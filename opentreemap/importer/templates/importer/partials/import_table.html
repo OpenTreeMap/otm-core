@@ -27,10 +27,12 @@
                 {% endif %}
             </td>
             <td>
-              <a class="js-view"
-                 href="{% url 'importer:status' import_type=ie.import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">
-                {%trans "View" %}
-              </a>
+              {% if ie.is_running or ie.is_finished %}
+                <a class="js-view"
+                   href="{% url 'importer:status' import_type=ie.import_type import_event_id=ie.pk instance_url_name=request.instance.url_name %}">
+                  {%trans "View" %}
+                </a>
+              {% endif %}
             </td>
             <td>
               {% if ie.can_export %}

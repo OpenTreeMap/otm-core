@@ -9,15 +9,17 @@ var $ = require('jquery'),
     streetView = require('treemap/streetView'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
         require('treemap/reverseGeocodeStreamAndUpdateAddressesOnForm'),
-    geocoder = require('treemap/geocoder'),
-    geocoderUi = require('treemap/geocoderUi'),
-    enterOrClickEventStream = require('treemap/baconUtils').enterOrClickEventStream;
+    geocoderInvokeUi = require('treemap/geocoderInvokeUi'),
+    geocoderResultsUi = require('treemap/geocoderResultsUi'),
+    enterOrClickEventStream = require('treemap/baconUtils').enterOrClickEventStream,
+    otmTypeahead = require('treemap/otmTypeahead');
 
 function init(options) {
     var config = options.config,
         mapManager = options.mapManager,
         plotMarker = options.plotMarker,
         onClose = options.onClose || $.noop,
+        clearChildEditControls = options.clearEditControls || $.noop,
         sidebar = options.sidebar,
         $sidebar = $(sidebar),
         formSelector = options.formSelector,
@@ -25,7 +27,6 @@ function init(options) {
         addFeatureRadioOptions = options.addFeatureRadioOptions,
         addFeatureUrl = config.instance.url + 'plots/',
         onSaveBefore = options.onSaveBefore || _.identity,
-        gcoder = geocoder(config),
 
         $addFeatureHeaderLink = options.$addFeatureHeaderLink,
         $exploreMapHeaderLink = options.$exploreMapHeaderLink,
@@ -83,7 +84,6 @@ function init(options) {
     deactivateBus.onValue(function () {
         // Hide/deactivate/clear everything
         plotMarker.hide();
-        $addressInput.val("");
         clearEditControls();
     });
 
@@ -99,10 +99,11 @@ function init(options) {
             inputs: addressInput,
             button: '.geocode'
         }),
-        addressStream = searchTriggerStream.map(function () {
-            return $(addressInput).val();
+        geocodeResponseStream = geocoderInvokeUi({
+            config: config,
+            searchTriggerStream: searchTriggerStream,
+            addressInput: addressInput
         }),
-        geocodeResponseStream = gcoder.geocodeStream(addressStream),
         cleanupLocationFeedbackStream = Bacon.mergeAll([
             searchTriggerStream,
             geolocateStream,
@@ -110,13 +111,19 @@ function init(options) {
             addFeatureStream,
             deactivateBus
         ]),
-        geocodedLocationStream = geocoderUi({
+        geocodedLocationStream = geocoderResultsUi({
             geocodeResponseStream: geocodeResponseStream,
             cancelGeocodeSuggestionStream: cleanupLocationFeedbackStream,
             resultTemplate: '#geocode-results-template',
             addressInput: addressInput,
             displayedResults: sidebar + ' [data-class="geocode-result"]'
         });
+
+    var addressTypeahead = otmTypeahead.create({
+        input: addressInput,
+        geocoder: true,
+        geocoderBbox: config.instance.extent
+    });
 
     cleanupLocationFeedbackStream.onValue(function hideLocationErrors() {
         $geocodeError.hide();
@@ -309,6 +316,9 @@ function init(options) {
     }
 
     function clearEditControls() {
+        clearChildEditControls();
+
+        addressTypeahead.clear();
         $(editFields).find('input,select').each(function () {
             var $control = $(this),
                 type = $control.prop('type');

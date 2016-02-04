@@ -47,11 +47,11 @@ class SpeciesImportEvent(GenericImportEvent):
     def __unicode__(self):
         return _('Species Import #%s') % self.pk
 
-    def status_summary(self):
+    def status_description(self):
         if self.status == GenericImportEvent.CREATING:
             return "Creating Species Records"
         else:
-            return super(SpeciesImportEvent, self).status_summary()
+            return super(SpeciesImportEvent, self).status_description()
 
     def legal_and_required_fields(self):
         return (fields.species.ALL,
@@ -307,6 +307,7 @@ class SpeciesImportRow(GenericImportRow):
             self.status = SpeciesImportRow.VERIFIED
 
         self.save()
+        self.import_event.update_progress_timestamp_and_save()
         return not fatal
 
     def _prepare_merge_data(self):
@@ -413,4 +414,5 @@ class SpeciesImportRow(GenericImportRow):
 
         self.species = species
         self.status = SpeciesImportRow.SUCCESS
+        self.import_event.update_progress_timestamp_and_save()
         self.save()

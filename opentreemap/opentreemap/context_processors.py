@@ -7,6 +7,7 @@ import copy
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
+from django.utils.timezone import now
 from django.utils.translation import ugettext as _
 
 from treemap.util import get_last_visited_instance
@@ -24,6 +25,7 @@ def global_settings(request):
     if hasattr(request, 'user') and request.user.is_authenticated():
         last_effective_instance_user =\
             request.user.get_effective_instance_user(last_instance)
+        _update_last_seen(last_effective_instance_user)
     else:
         if hasattr(request, 'instance'):
             instance = request.instance
@@ -61,3 +63,14 @@ def global_settings(request):
     }
 
     return ctx
+
+
+def _update_last_seen(last_effective_instance_user):
+    # Update the instance user's "last seen" date if necessary.
+    # Done here instead of in middleware to avoid looking up
+    # the request's InstanceUser again.
+    iu = last_effective_instance_user
+    today = now().date()
+    if iu and iu.id and (not iu.last_seen or iu.last_seen < today):
+        iu.last_seen = today
+        iu.save_base()

@@ -1264,8 +1264,17 @@ class InstancesClosestToPoint(OTMTestCase):
 
         instance_infos = instances_closest_to_point(request, 0, 0)
         self.assertEqual(2, len(instance_infos))
+        self.assertEqual(2, len(instance_infos['nearby']))
         self.assertEqual(self.i1.pk, instance_infos['nearby'][0]['id'])
         self.assertEqual(self.i3.pk, instance_infos['nearby'][1]['id'])
+
+        i5 = make_instance(is_public=True, point=Point(200, 200))
+
+        instance_infos = instances_closest_to_point(request, 0, 0)
+        self.assertEqual(3, len(instance_infos['nearby']))
+        self.assertEqual(self.i1.pk, instance_infos['nearby'][0]['id'])
+        self.assertEqual(i5.pk, instance_infos['nearby'][1]['id'])
+        self.assertEqual(self.i3.pk, instance_infos['nearby'][2]['id'])
 
         self.assertEqual(0, len(instance_infos['personal']))
 

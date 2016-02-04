@@ -3,7 +3,6 @@
 var Bacon = require('baconjs'),
     $ = require('jquery'),
     url = require('url'),
-    History = require('history'),
     R = require('ramda'),
     _ = require('lodash');
 
@@ -193,7 +192,7 @@ exports.reloadContainerOnClickAndRecordUrl = function() {
     var stream = exports.reloadContainerOnClick.apply(this, arguments);
     stream.onValue(function(partialUrl) {
         var params = url.parse(partialUrl).query;
-        History.replaceState(null, document.title, '?' + params + window.location.hash);
+        history.replaceState(null, document.title, '?' + params + window.location.hash);
     });
     return stream;
 };
