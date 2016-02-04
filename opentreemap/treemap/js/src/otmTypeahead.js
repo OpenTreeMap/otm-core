@@ -181,7 +181,7 @@ var create = exports.create = function(options) {
         backspaceOrDeleteStream = $input.asEventStream('keyup')
                                         .filter(BU.keyCodeIs([8, 46])),
 
-        editStream = selectStream.merge(backspaceOrDeleteStream.map(undefined)).skipDuplicates(),
+        editStream = selectStream.merge(backspaceOrDeleteStream.map(undefined)),
 
         idStream = selectStream.map(".id")
                                .merge(backspaceOrDeleteStream.map(""));
@@ -262,6 +262,19 @@ var create = exports.create = function(options) {
             }
         });
     }
+
+    return {
+        getDatum: function() {
+            return exports.getDatum($input);
+        },
+        clear: function() {
+            $input.typeahead('val', '');
+            $input.removeData('datum');
+            if (options.hidden) {
+                $hidden_input.val('');
+            }
+        }
+    };
 };
 
 exports.bulkCreate = function (typeaheads) {
