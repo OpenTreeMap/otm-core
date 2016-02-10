@@ -230,6 +230,12 @@ if ROLLBAR_ACCESS_TOKEN is not None:
     MIDDLEWARE_CLASSES += (
         'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',)
 
+# Settings for StatsD metrics aggregation
+STATSD_CLIENT = 'django_statsd.clients.normal'
+STATSD_PREFIX = '{}.django'.format(STACK_TYPE.lower())
+STATSD_HOST = os.environ.get('OTM_STATSD_HOST', 'localhost')
+STATSD_CELERY_SIGNALS = True
+
 ROOT_URLCONF = 'opentreemap.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
