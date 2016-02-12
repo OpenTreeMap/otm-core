@@ -109,10 +109,10 @@ function resetType(widgetName, optionKey, state) {
     resetSelectWidget(widgetName, optionKey, state);
     var $el = $(widgets.type.selector),
         shouldEnable = !_.isNull(state.modelName);
-    enableDropdown($el, shouldEnable);
+    enableInput($el, shouldEnable);
 }
 
-function enableDropdown($el, shouldEnable) {
+function enableInput($el, shouldEnable) {
     $el.prop('disabled', shouldEnable ? false : 'disabled');
 }
 
@@ -142,7 +142,7 @@ function resetAction(state) {
             .filter(typeSelector)
             .appendTo($el);
     }
-    enableDropdown($el, shouldEnable);
+    enableInput($el, shouldEnable);
 
     $el = $(widgets.action.selector);
     if (!_.isNull(state.action)) {
@@ -158,15 +158,19 @@ function resetDateBox(widgetName, state) {
         $widget = $(widgets[widgetName].selector),
         longDate = moment(state[widgetName], DATETIME_FORMAT),
         shortDate = moment(state[widgetName], 'MM/DD/YYYY'),
+        shouldEnable = !_.isNull(state.modelName) && !_.isNull(state.type),
         val;
 
-    if (!_.isNull(longDate) && longDate.isValid()) {
-        val = longDate.format('MM/DD/YYYY');
-    } else if (!_.isNull(shortDate) && shortDate.isValid()) {
-        val = shortDate.format('MM/DD/YYYY');
-    } else {
-        val = '';
+    if (shouldEnable) {
+        if (!_.isNull(longDate) && longDate.isValid()) {
+            val = longDate.format('MM/DD/YYYY');
+        } else if (!_.isNull(shortDate) && shortDate.isValid()) {
+            val = shortDate.format('MM/DD/YYYY');
+        } else {
+            val = '';
+        }
     }
+    enableInput($widget, shouldEnable);
 
     $widget.attr('name', name);
     $widget.val(val);
