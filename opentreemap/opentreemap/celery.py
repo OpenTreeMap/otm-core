@@ -7,6 +7,8 @@ import rollbar
 from celery import Celery
 from celery.signals import task_failure
 
+from django_statsd.celery import register_celery_events
+
 from django.conf import settings
 
 # set the default Django settings module for the 'celery' program.
@@ -19,6 +21,9 @@ app = Celery('opentreemap')
 # pickle the object when using Windows.
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+
+if getattr(settings, 'STATSD_CELERY_SIGNALS', False):
+    register_celery_events()
 
 rollbar_settings = getattr(settings, 'ROLLBAR', {})
 access_token = rollbar_settings.get('access_token')
