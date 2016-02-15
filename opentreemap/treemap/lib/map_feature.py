@@ -15,7 +15,7 @@ from django.utils.translation import ugettext as _
 from django.db.models import Q
 
 from treemap.audit import Audit
-from treemap.ecobackend import ECOBENEFIT_ERRORS
+from treemap.ecobackend import ECOBENEFIT_FAILURE_CODES_AND_PATTERNS
 from treemap.lib import execute_sql
 from treemap.models import Tree, MapFeature, User, Favorite
 
@@ -79,12 +79,12 @@ def _map_feature_audits(user, instance, feature, filters=None,
 def _add_eco_benefits_to_context_dict(instance, feature, context):
     FeatureClass = feature.__class__
 
-    benefits, basis, error = FeatureClass.benefits\
-                                         .benefits_for_object(
-                                             instance, feature)
+    benefits, basis, failure_code = FeatureClass.benefits\
+                                                .benefits_for_object(
+                                                    instance, feature)
 
-    if error in ECOBENEFIT_ERRORS:
-        context[error] = True
+    if failure_code in ECOBENEFIT_FAILURE_CODES_AND_PATTERNS:
+        context[failure_code] = True
     elif benefits:
         context.update(format_benefits(instance, benefits, basis))
 
