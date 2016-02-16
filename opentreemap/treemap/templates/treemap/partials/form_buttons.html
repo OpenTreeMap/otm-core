@@ -5,12 +5,12 @@
     {% block other_buttons %}
     {% endblock other_buttons %}
     <button data-class="display" class="btn btn-info editBtn">
-        {% trans "Edit" %}
-    </button>
-    <button data-class="edit" class="btn btn-primary saveBtn" style="display: none;">
-        {% trans "Save" %}
+        <i class="icon-pencil"></i>{% trans "Edit" %}
     </button>
     <button data-class="edit" class="btn cancelBtn" style="display: none;">
-        {% trans "Cancel" %}
+        <i class="icon-cancel-1"></i>{% trans "Cancel" %}
+    </button>
+    <button data-class="edit" class="btn btn-primary saveBtn" style="display: none;">
+        <i class="icon-check-1"></i>{% trans "Save" %}
     </button>
 </div>

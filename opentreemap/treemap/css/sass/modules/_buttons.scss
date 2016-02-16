@@ -1,16 +1,21 @@
 @mixin buttons {
-	.btn {
-		@include button($button-default, $main-text-color);
-		&.btn-primary 	{ @include button($primary-color, #FFF); }
-		&.btn-info 		{ @include button($secondary-color, #FFF); }
-		&.btn-success 	{ @include button($button-success, #FFF); }
-		&.btn-warning 	{ @include button($button-warning, #FFF); }
-		&.btn-danger 	{ @include button($button-danger, #FFF); }
-		&.btn-inverse 	{ @include button($button-inverse, #FFF); }
+    .btn {
+        @include button($button-default, $main-text-color);
+        &.btn-primary   { @include button($primary-color, #FFF); }
+        &.btn-info      { @include button($secondary-color, #FFF); }
+        &.btn-success   { @include button($button-success, #FFF); }
+        &.btn-warning   { @include button($button-warning, #FFF); }
+        &.btn-danger    { @include button($button-danger, #FFF); }
+        &.btn-inverse   { @include button($button-inverse, #FFF); }
 
-        &.btn-otmprimary 	{ @include button($button-primary, #FFF); }
+        &.btn-otmprimary    { @include button($button-primary, #FFF); }
         &.btn-otmsecondary  { @include button($button-info, #FFF); }
-	}
+
+        i {
+            padding-right: 5px;
+            margin-left: -5px;
+        }
+    }
 }
 
 @mixin button($bg-color: $button-default, $text-color: $main-text-color) {
