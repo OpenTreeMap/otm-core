@@ -273,6 +273,8 @@ exports.init = function(options) {
 
     responseStream.onValue(onSaveAfter);
 
+    globalCancelStream.onValue(showSavePending, false);
+
     saveOKFormDataStream.onValue(editForm.formFieldsToDisplayValues);
 
     globalErrorsStream.onValue(showGlobalErrors);
