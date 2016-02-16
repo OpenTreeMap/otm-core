@@ -122,19 +122,7 @@ exports.init = function(options) {
                     });
             });
 
-            onSaveBefore(data);
             return data;
-        },
-
-        update = function(data) {
-            var stream = Bacon.fromPromise($.ajax({
-                url: updateUrl,
-                type: 'PUT',
-                contentType: "application/json",
-                data: JSON.stringify(data)
-            }));
-            stream.onValue(onSaveAfter);
-            return stream;
         },
 
         showGlobalErrors = function (errors) {
@@ -174,7 +162,36 @@ exports.init = function(options) {
 
         responseStream = saveStream
             .map(getDataToSave)
-            .flatMap(update),
+            .flatMapLatest(function (data) {
+                // onSaveBefore is a function that takes form data
+                // and carries out arbitrary, potentially blocking
+                // actions before allowing the save process to
+                // continue.
+                //
+                // the return value of an onSaveBefore callback can be:
+                // * null - for non-blocking side effects and mutation
+                //          of the data object
+                // * an eventStream - for blocking side effects,
+                //                    failure cases and early exits.
+                //
+                // when providing an eventStream as the return value for
+                // onSaveBefore, it should meet the following criteria:
+                // * it should be a stream of data objects. If you are using
+                //   eventStreams to block on IO, map them to the `data`
+                //   object provided.
+                // * it should pust a new stream value when it's ok to
+                //   proceed and block until then. There is no concept
+                //   of exiting, just failing to stop blocking.
+                return onSaveBefore(data) || Bacon.once(data);
+            })
+            .flatMap(function(data) {
+                return Bacon.fromPromise($.ajax({
+                    url: updateUrl,
+                    type: 'PUT',
+                    contentType: "application/json",
+                    data: JSON.stringify(data)
+                }));
+            }),
 
         responseErrorStream = responseStream
             .errors()
@@ -252,6 +269,8 @@ exports.init = function(options) {
     actionStream.onValue(editForm.hideAndShowElements, displayFields, eventsLandingInDisplayMode);
     actionStream.onValue(editForm.hideAndShowElements, validationFields, ['save:error']);
 
+    responseStream.onValue(onSaveAfter);
+
     saveOKFormDataStream.onValue(editForm.formFieldsToDisplayValues);
 
     globalErrorsStream.onValue(showGlobalErrors);
@@ -274,7 +293,6 @@ exports.init = function(options) {
         inEditModeProperty: inEditModeProperty,
         showGlobalErrors: showGlobalErrors,
         showValidationErrorsInline: showValidationErrorsInline,
-        getDataToSave: getDataToSave,
         setUpdateUrl: function (url) { updateUrl = url; }
     };
 };
