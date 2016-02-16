@@ -6,7 +6,7 @@
       <p>Ecosystem benefits cannot be calculated for this species of tree in this location.</p>
       <p>The tree's location falls within a climate region that does not support benefit calculations for this species.</p>
       {% endblocktrans %}
-  {% elif unknown_ecobenefit_error %}
+  {% elif incomplete_eco_data or unknown_eco_failure %}
       {% blocktrans %}
       <!-- TODO: When the ecoservice returns structured errors, replace this with real conditions -->
       <!-- Or, maybe always leave this to avoid 500s -->
