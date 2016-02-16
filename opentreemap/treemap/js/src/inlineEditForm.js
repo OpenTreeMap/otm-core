@@ -42,6 +42,8 @@ exports.init = function(options) {
             .map('save:start'),
         externalCancelStream = BU.triggeredObjectStream('cancel'),
         cancelStream = $cancel.asEventStream('click').map('cancel'),
+        globalCancelStream = cancelStream.merge(externalCancelStream),
+
         actionStream = new Bacon.Bus(),
 
         editForm = editableForm.init(options),
@@ -289,7 +291,10 @@ exports.init = function(options) {
         actionStream: actionStream.map(_.identity),
         cancel: externalCancelStream.trigger,
         saveOkStream: saveOkStream,
+        // TODO: audit all uses of cancelStream, external cancel, and
+        // global cancel stream and merge these streams in the api
         cancelStream: cancelStream,
+        globalCancelStream: globalCancelStream,
         inEditModeProperty: inEditModeProperty,
         showGlobalErrors: showGlobalErrors,
         showValidationErrorsInline: showValidationErrorsInline,
