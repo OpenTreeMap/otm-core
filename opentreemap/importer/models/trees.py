@@ -233,7 +233,7 @@ class TreeImportRow(GenericImportRow):
         # Simple validation
         # longitude must be between -180 and 180
         # latitude must be betwen -90 and 90
-        if abs(x) > 180 or abs(y) > 90:
+        if abs(x) > 180 or abs(y) >= 90:
             self.append_error(errors.INVALID_GEOM,
                               (fields.trees.POINT_X, fields.trees.POINT_Y))
             return False
