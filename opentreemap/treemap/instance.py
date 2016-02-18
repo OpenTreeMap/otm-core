@@ -152,7 +152,7 @@ class Instance(models.Model):
     """
     geo_rev = models.IntegerField(default=1)
     universal_rev = models.IntegerField(default=1, null=True, blank=True)
-    eco_rev = models.IntegerField(default=1, null=True, blank=True)
+    eco_rev = models.IntegerField(default=1)
 
     eco_benefits_conversion = models.ForeignKey(
         'BenefitCurrencyConversion', null=True, blank=True)
