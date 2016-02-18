@@ -152,15 +152,15 @@ class Instance(models.Model):
     """
     geo_rev = models.IntegerField(default=1)
     universal_rev = models.IntegerField(default=1, null=True, blank=True)
-    eco_rev = models.IntegerField(default=1, null=True, blank=True)
+    eco_rev = models.IntegerField(default=1)
 
     eco_benefits_conversion = models.ForeignKey(
         'BenefitCurrencyConversion', null=True, blank=True)
 
     """ Center of the map when loading the instance """
-    bounds_obj = models.OneToOneField(InstanceBounds,
-                                      on_delete=models.CASCADE,
-                                      null=True, blank=True)
+    bounds = models.OneToOneField(InstanceBounds,
+                                  on_delete=models.CASCADE,
+                                  null=True, blank=True)
 
     """
     Override the center location (which is, by default,
@@ -271,7 +271,7 @@ class Instance(models.Model):
 
     @property
     def extent_as_json(self):
-        boundary = self.bounds_obj.geom.boundary
+        boundary = self.bounds.geom.boundary
         xmin, ymin, xmax, ymax = boundary.extent
 
         return json.dumps({'xmin': xmin, 'ymin': ymin,
@@ -279,13 +279,13 @@ class Instance(models.Model):
 
     @property
     def bounds_as_geojson(self):
-        boundary = self.bounds_obj.geom
+        boundary = self.bounds.geom
         boundary.transform(4326)
         return boundary.json
 
     @property
     def center(self):
-        return self.center_override or self.bounds_obj.geom.centroid
+        return self.center_override or self.bounds.geom.centroid
 
     @property
     def geo_rev_hash(self):
@@ -442,7 +442,7 @@ class Instance(models.Model):
     def itree_regions(self, **extra_query):
         from treemap.models import ITreeRegion, ITreeRegionInMemory
 
-        query = {'geometry__intersects': self.bounds_obj.geom}
+        query = {'geometry__intersects': self.bounds.geom}
         query.update(extra_query)
 
         if self.itree_region_default:

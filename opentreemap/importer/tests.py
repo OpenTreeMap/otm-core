@@ -1048,7 +1048,7 @@ class TreeIntegrationTests(IntegrationTests):
                           (6000000, 6000000),
                           (6000000, -6000000),
                           (-6000000, -6000000)))
-        self.instance.bounds_obj = InstanceBounds.objects.create(
+        self.instance.bounds = InstanceBounds.objects.create(
             geom=MultiPolygon(square))
         self.instance.save()
 

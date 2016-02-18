@@ -31,15 +31,23 @@ exports.create = function(options) {
             if (status == google.maps.StreetViewStatus.OK) {
                 if (panorama === null) {
                     panorama = new google.maps.StreetViewPanorama(div, {
-                        position:pos,
+                        position: pos,
                         addressControl: showAddress,
                         panControl: false,
                     });
                 } else {
                     panorama.setPosition(pos);
                 }
-            }
-            else {
+                if (data !== null) {
+                    // Show specified location ("pos") in the view by computing
+                    // the angle ("heading") of a line from the camera location to "pos".
+                    var cameraPos = data.location.latLng,
+                        heading = google.maps.geometry.spherical.computeHeading(cameraPos, pos),
+                        pov = panorama.getPov();
+                    pov.heading = heading;
+                    panorama.setPov(pov);
+                }
+            } else {
                 panorama = null;
                 $(div).html(options.noStreetViewText || '');
             }

@@ -276,7 +276,7 @@ def make_instance(name=None, is_public=False, url_name=None, point=None,
                       (p1.x + d, p1.y + d),
                       (p1.x + d, p1.y - d),
                       (p1.x - d, p1.y - d)))
-    instance.bounds_obj = InstanceBounds.objects.create(
+    instance.bounds = InstanceBounds.objects.create(
         geom=MultiPolygon((square,)))
     instance.save()
 

@@ -16,19 +16,27 @@ from django.contrib.gis.geos import GEOSGeometry
 from opentreemap.util import add_rollbar_handler
 
 import logging
-logger = logging.getLogger(__name__)
-add_rollbar_handler(logger)
 
+# By default the level for the logger will be NOTSET, which falls back
+# to the level set on the root logger, which is WARNING.
+#
+# https://docs.python.org/dev/library/logging.html#logging.Logger.setLevel
+#
+# We want to log some non-critical ecobenefit failures as INFO so that
+# the WARNING level does not have too many.
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+add_rollbar_handler(logger, level=logging.INFO)
 
 # A system for handling unstructured text errors from the ecoservice
 #
-# Each key in `ECOBENEFIT_ERRORS` has a corresponding template
-# block in the plot_detail page that will display a user friendly
-# error message, as descriptive as possible.
+# Each key in `ECOBENEFIT_FAILURE_CODES_AND_PATTERNS` has a
+# corresponding block in the `plot_eco.html` template that will display a
+# user friendly error message, as descriptive as possible.
 #
-# Each Value in `ECOBENEFIT_ERRORS` is a list of regexps used to
-# correctly identify a given error type. They will all be tried in
-# succession.
+# Each Value in `ECOBENEFIT_FAILURE_CODES_AND_PATTERNS` is a list of
+# regexps used to correctly identify a given error type. They will all
+# be tried in succession.
 #
 # If no pattern is found for any key, a 500 will raise.
 #
@@ -36,20 +44,27 @@ add_rollbar_handler(logger)
 # replace these patterns with simple destructuring.
 #
 
-BAD_CODE_PAIR = 'invalid_eco_pair'
-UNKNOWN_ECOBENEFIT_ERROR = 'unknown_ecobenefit_error'
-ECOBENEFIT_ERRORS = {
-    BAD_CODE_PAIR: [
+INVALID_ECO_PAIR = 'invalid_eco_pair'
+INCOMPLETE_ECO_DATA = 'incomplete_eco_data'
+UNKNOWN_ECO_FAILURE = 'unknown_eco_failure'
+ECOBENEFIT_FAILURE_CODES_AND_PATTERNS = {
+    INVALID_ECO_PAIR: [
         (r'iTree code not found for otmcode '
          r'([A-Z]+) in region ([A-Za-z]+)\n')],
-    UNKNOWN_ECOBENEFIT_ERROR: [
+    INCOMPLETE_ECO_DATA: [
         'Species data not found for the .* region',
         ('There are overrides defined for instance .* in '
          'the .* region but not for species ID .*'),
         ('There are overrides defined for the instance, '
-         'but not for the .* region'),
-        'Missing or invalid .* parameter',
+         'but not for the .* region')],
+    UNKNOWN_ECO_FAILURE: [
+        'Missing or invalid .* parameter'
     ]
+}
+LOG_FUNCTION_FOR_FAILURE_CODE = {
+    INVALID_ECO_PAIR: logger.info,
+    INCOMPLETE_ECO_DATA: logger.info,
+    UNKNOWN_ECO_FAILURE: logger.error,
 }
 
 
@@ -101,19 +116,43 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
     # as an exception, or return it as a status code on
     # a json response. therefore, it's always safe to
     # return this string, and never raise.
-    general_unhandled_struct = (None, UNKNOWN_ECOBENEFIT_ERROR)
+    general_unhandled_struct = (None, UNKNOWN_ECO_FAILURE)
 
     try:
         return (json.loads(urllib2.urlopen(req).read()), None)
     except urllib2.HTTPError as e:
         error_body = e.fp.read()
-        logger.warning("ECOBENEFIT FAILURE: " + error_body)
-        for code, patterns in ECOBENEFIT_ERRORS.items():
+        for code, patterns in ECOBENEFIT_FAILURE_CODES_AND_PATTERNS.items():
             for pattern in patterns:
                 match = re.match(pattern, error_body)
                 if match:
+                    # When you pass a dictionary to a Python logger's
+                    # `extra` kwarg, each key in the dictionary is
+                    # added as an attribute on the log message object
+                    # itself. Rollbar specifically looks for an
+                    # attribute named `extra_data` on the log message.
+                    # https://github.com/rollbar/pyrollbar/blob/cbfc2529a2d8847e18f7134aa874eb7c68426e2f/rollbar/logger.py#L97 # NOQA
+                    extra = {
+                        'extra_data': {
+                            'ecobenefit_message': error_body,
+                            'ecobenefit_matched_message_pattern': pattern,
+                            'ecobenefit_failure_code': code
+                        }
+                    }
+                    # We set the text of the log message to the code
+                    # and pattern that were matched rather than the
+                    # fully detailed message so that Rollbar can group
+                    # and count similar failures.
+                    LOG_FUNCTION_FOR_FAILURE_CODE[code](
+                        "ECOBENEFIT FAILURE: %s %s " % (code, pattern),
+                        extra=extra)
                     return (None, code)
         else:
+            # If we did not break out of the loop by returning early
+            # that means we received an unknown response from the
+            # ecoservice.
+            LOG_FUNCTION_FOR_FAILURE_CODE[UNKNOWN_ECO_FAILURE](
+                "ECOBENEFIT FAILURE: " + error_body)
             return general_unhandled_struct
     except urllib2.URLError:
         logger.error("Error connecting to ecoservice", exc_info=sys.exc_info())
