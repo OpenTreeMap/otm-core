@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point, Polygon
 from django.utils.translation import ugettext as _
+from django.db import transaction
 
 from treemap.models import Species, Plot, Tree, MapFeature
 from treemap.lib.object_caches import udf_defs
@@ -100,6 +101,7 @@ class TreeImportRow(GenericImportRow):
     def model_fields(self):
         return fields.trees
 
+    @transaction.atomic
     def commit_row(self):
         is_valid = self.validate_row()
 
@@ -159,7 +161,6 @@ class TreeImportRow(GenericImportRow):
         self.plot = plot
         self.status = TreeImportRow.SUCCESS
         self.save()
-        self.import_event.update_progress_timestamp_and_save()
 
     def _import_value_to_udf_value(self, udf_def, value):
         if udf_def.datatype_dict['type'] == 'multichoice':
@@ -421,5 +422,4 @@ class TreeImportRow(GenericImportRow):
             self.status = TreeImportRow.VERIFIED
 
         self.save()
-        self.import_event.update_progress_timestamp_and_save()
         return not fatal
