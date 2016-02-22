@@ -39,8 +39,9 @@ GENERIC_ERROR = e(
 #
 # Errors that are attributed to rows
 #
-INVALID_GEOM = e(10, _('Longitude must be between -180 and 180 and '
-                       'latitude must be betwen -90 and 90'), True)
+INVALID_GEOM = e(10, _('Longitude must be between -180 and 180 (inclusive) '
+                       'and latitude must be between -90 and 90 (exclusive'),
+                 True)
 
 GEOM_OUT_OF_BOUNDS = e(
     11, _('Geometry must be inside the map bounds'), True)
