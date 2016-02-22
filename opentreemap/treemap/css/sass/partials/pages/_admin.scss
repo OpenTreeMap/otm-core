@@ -184,7 +184,7 @@
                 line-height: 50px;
                 border-bottom-color: #83848B;
 
-                #toggle-sidebar {
+                .toggle {
                     cursor: pointer;
                 }
 
@@ -272,7 +272,7 @@
                     background: none;
                 }
             }
-            
+
             th {
                 white-space: nowrap;
                 text-overflow: ellipsis;
@@ -324,6 +324,10 @@
                     -webkit-font-smoothing: antialiased;
                     -moz-osx-font-smoothing: grayscale;
                 }
+            }
+
+            &.disabled > a {
+                opacity: 0.5;
             }
 
             .dropdown-menu {
@@ -484,6 +488,45 @@
         li.active > a, li:hover > a {
             color: #555;
             background-color: #f1f4f9;
+        }
+    }
+
+    .management-toggle {
+        background-color: #64656D;
+        margin: -16px;
+        margin-bottom: 16px;
+
+        .management-toggle-section {
+            padding: 16px;
+
+            .close {
+                color: #FFF;
+            }
+            .management-search {
+                border-bottom: solid 1px white;
+                width: calc(100% - 30px);
+                position: relative;
+
+                input {
+                    border: none;
+                    background: none;
+                    box-shadow: none;
+                    color: #FFF;
+                }
+                button {
+                    position: absolute;
+                    right: 5px;
+                    bottom: 5px;
+                    color: #ddd;
+                    font-size: 14px;
+                    background: none;
+                    border: none;
+
+                    &:focus {
+                        outline: none;
+                    }
+                }
+            }
         }
     }
 }
