@@ -101,7 +101,6 @@ class TreeImportRow(GenericImportRow):
     def model_fields(self):
         return fields.trees
 
-    @transaction.atomic
     def commit_row(self):
         is_valid = self.validate_row()
 
@@ -141,8 +140,11 @@ class TreeImportRow(GenericImportRow):
         else:
             plot = Plot(instance=self.import_event.instance)
 
-        self._commit_plot_data(data, plot)
+        self._commit_row(data, plot)
 
+    @transaction.atomic
+    def _commit_row(self, data, plot):
+        self._commit_plot_data(data, plot)
         # TREE_PRESENT handling:
         #   If True, create a tree
         #   If False, don't create a tree
