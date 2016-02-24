@@ -312,7 +312,6 @@ class SpeciesImportRow(GenericImportRow):
             self.status = SpeciesImportRow.VERIFIED
 
         self.save()
-        self.import_event.update_progress_timestamp_and_save()
         return not fatal
 
     def _prepare_merge_data(self):
@@ -419,5 +418,4 @@ class SpeciesImportRow(GenericImportRow):
 
         self.species = species
         self.status = SpeciesImportRow.SUCCESS
-        self.import_event.update_progress_timestamp_and_save()
         self.save()
