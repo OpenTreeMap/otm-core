@@ -369,7 +369,8 @@ DOUBLE_CLICK_INTERVAL = 300
 IMPORT_BATCH_SIZE = 85
 
 # The rate limit for how frequently batches of imports can happen per worker
-IMPORT_COMMIT_RATE_LIMIT = "1/m"
+IMPORT_COMMIT_RATE_LIMIT = "8/m"
+IMPORT_VALIDATION_RATE_LIMIT = "30/m"
 
 # We have... issues on IE9 right now
 # Disable it on production, but enable it in Debug mode
