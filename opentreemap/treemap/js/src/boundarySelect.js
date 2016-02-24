@@ -3,7 +3,8 @@
 var $ = require('jquery'),
     BU = require('treemap/baconUtils'),
     _ = require('lodash'),
-    L = require('leaflet');
+    L = require('leaflet'),
+    layersLib = require('treemap/layers');
 
 var boundaryUrlTemplate = _.template('<%= instanceUrl %>boundaries/<%= boundaryId %>/geojson/');
 var currentLayer = null;
@@ -23,9 +24,9 @@ function showBoundaryGeomOnMapLayerAndZoom(map, boundaryGeom) {
     // so our only choice is to set the z-index of the entire overlay pane.
     // That's not great since we might want other polygons on the map,
     // *above* the plot tiles.
-    // TODO: When we switch to Leaflet 0.8, make a separate pane to contain
+    // TODO: When we switch to Leaflet 1.0, make a separate pane to contain
     // the boundary polygon, with a permanent z-index.
-    map.getPanes().overlayPane.style.zIndex = -2;
+    map.getPanes().overlayPane.style.zIndex = layersLib.OVERLAY_PANE_Z_INDEX;
 
     currentLayer = boundaryGeom;
 
