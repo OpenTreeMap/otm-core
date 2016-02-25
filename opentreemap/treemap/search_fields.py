@@ -171,8 +171,8 @@ def advanced_search_fields(instance, user):
 
 
 def mobile_search_fields(instance):
-    from treemap.templatetags.form_extras import field_type_label_choices
-
+    from treemap.templatetags.form_extras import (field_type_label_choices,
+                                                  ADD_BLANK_NEVER)
     search_fields = copy.deepcopy(instance.mobile_search_fields)
     for field in search_fields['standard']:
         identifier = field['identifier']
@@ -184,7 +184,7 @@ def mobile_search_fields(instance):
         Model, field_name = _parse_field_info(instance, field)
         set_search_field_label(instance, field)
         field_type, __, choices = field_type_label_choices(
-            Model, field_name, treat_multichoice_as_choice=True)
+            Model, field_name, add_blank=ADD_BLANK_NEVER)
 
         if identifier == 'species.id':
             field['search_type'] = 'SPECIES'

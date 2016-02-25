@@ -250,8 +250,14 @@ def _udf_dict(model, field_name):
         raise Exception("Datatype for field %s not found" % field_name)
 
 
+# Should a blank choice be added for choice and multichoice fields?
+ADD_BLANK_ALWAYS = 0
+ADD_BLANK_NEVER = 1
+ADD_BLANK_IF_CHOICE_FIELD = 2
+
+
 def field_type_label_choices(model, field_name, label=None,
-                             treat_multichoice_as_choice=False):
+                             add_blank=ADD_BLANK_IF_CHOICE_FIELD):
     choices = None
     udf_field_name = field_name.replace('udf:', '')
     if not _is_udf(model, udf_field_name):
@@ -275,8 +281,10 @@ def field_type_label_choices(model, field_name, label=None,
         if 'choices' in udf_dict:
             choices = [{'value': value, 'display_value': value}
                        for value in udf_dict['choices']]
-            if field_type == 'choice' or treat_multichoice_as_choice:
-                # choice fields get a blank option but multichoice fields don't
+            if add_blank == ADD_BLANK_ALWAYS or (
+                add_blank == ADD_BLANK_IF_CHOICE_FIELD
+                    and field_type == 'choice'
+            ):
                 choices.insert(0, {'value': "", 'display_value': ""})
 
     return field_type, label, choices
@@ -351,8 +359,10 @@ class AbstractNode(template.Node):
             is_visible = is_editable = True
             data_type = "string"
         else:
+            add_blank = (ADD_BLANK_ALWAYS if self.treat_multichoice_as_choice
+                         else ADD_BLANK_IF_CHOICE_FIELD)
             data_type, label, choices = field_type_label_choices(
-                model, field_name, label, self.treat_multichoice_as_choice)
+                model, field_name, label, add_blank=add_blank)
             field_value = _field_value(model, field_name, data_type)
 
             if user is not None and hasattr(model, 'field_is_visible'):
@@ -466,7 +476,7 @@ class SearchNode(CreateNode):
 
     @property
     def treat_multichoice_as_choice(self):
-        # We only support searching for one value in a multichoice field
+        # When used for searching, multichoice and choice fields act the same
         return True
 
 register.tag('field', inline_edit_tag('field', FieldNode))
