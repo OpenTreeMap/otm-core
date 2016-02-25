@@ -190,9 +190,11 @@ exports.reloadContainerOnClick = function ($container /*, selector1, selector2, 
 
 exports.reloadContainerOnClickAndRecordUrl = function() {
     var stream = exports.reloadContainerOnClick.apply(this, arguments);
-    stream.onValue(function(partialUrl) {
-        var params = url.parse(partialUrl).query;
-        history.replaceState(null, document.title, '?' + params + window.location.hash);
-    });
+    stream.onValue(exports.recordUrl);
     return stream;
+};
+
+exports.recordUrl = function(partialUrl) {
+    var params = url.parse(partialUrl).query;
+    history.replaceState(null, document.title, '?' + params + window.location.hash);
 };

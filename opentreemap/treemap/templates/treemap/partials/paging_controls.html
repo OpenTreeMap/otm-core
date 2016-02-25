@@ -9,7 +9,7 @@
             <a href="{% add_params url page=1 %}"><i class="icon-to-start"></i></a>
         </li>
         <li>
-            <a href="{% add_params url page=paging.previous_page_number %}">&laquo;</a>
+            <a href="{% add_params url page=paging.previous_page_number|unlocalize %}">&laquo;</a>
         </li>
       {% else %}
       <li class="disabled"><a><i class="icon-to-start"></i></a></li>
