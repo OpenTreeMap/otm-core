@@ -1,6 +1,6 @@
 boto==2.39.0
 django-storages==1.4
-Django==1.8.9  # rq.filter: >=1.8,<1.9
+Django==1.8.10  # rq.filter: >=1.8,<1.9
 Pillow==3.1.1
 gunicorn==19.4.5
 psycopg2==2.6.1
