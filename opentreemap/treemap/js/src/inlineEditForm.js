@@ -27,7 +27,6 @@ exports.init = function(options) {
         validationFields = options.validationFields || section + ' [data-class="error"]',
         globalErrorSection = options.globalErrorSection,
         errorCallback = options.errorCallback || $.noop,
-        onSaveBefore = options.onSaveBefore || _.identity,
         onSaveAfter = options.onSaveAfter || _.identity,
 
         showSavePending = function (saveIsPending) {
@@ -184,7 +183,15 @@ exports.init = function(options) {
                 // * it should pust a new stream value when it's ok to
                 //   proceed and block until then. There is no concept
                 //   of exiting, just failing to stop blocking.
-                return onSaveBefore(data) || Bacon.once(data);
+                var result = options.onSaveBefore ?
+                        options.onSaveBefore(data) : null;
+                if (_.isNull(result) || _.isUndefined(result)) {
+                    return Bacon.once(data);
+                } else if (_.isObject(result) && result.hasOwnProperty('takeUntil')) {
+                    return result;
+                } else {
+                    throw "onSaveBefore returned something other than a stream or null";
+                }
             })
             .flatMap(function(data) {
                 return Bacon.fromPromise($.ajax({
