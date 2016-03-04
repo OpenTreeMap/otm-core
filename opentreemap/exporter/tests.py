@@ -134,8 +134,8 @@ class ExportTreeTaskTest(AsyncCSVTestCase):
     def test_tree_task_unit(self):
         self.assertTaskProducesCSV(
             self.user, 'tree', {'diameter': '2.0',
-                                'udf:Test int': '4',
-                                'plot__udf:Test choice': 'a'})
+                                'tree: Test int': '4',
+                                'planting site: Test choice': 'a'})
 
     @media_dir
     @override_settings(FEATURE_BACKEND_FUNCTION=None)

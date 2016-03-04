@@ -83,14 +83,14 @@ class trees(object):
     STREET_ADDRESS = 'street address'
     CITY_ADDRESS = 'city'
     POSTAL_CODE = 'postal code'
-    PLOT_WIDTH = 'plot width'
-    PLOT_LENGTH = 'plot length'
+    PLOT_WIDTH = 'planting site width'
+    PLOT_LENGTH = 'planting site length'
 
     # TODO: READONLY restore when implemented
     # READ_ONLY = 'read only'
 
-    OPENTREEMAP_PLOT_ID = 'opentreemap plot id'
-    EXTERNAL_ID_NUMBER = 'external id number'
+    OPENTREEMAP_PLOT_ID = 'planting site id'
+    EXTERNAL_ID_NUMBER = 'owner orig id'
 
     TREE_PRESENT = 'tree present'
 
