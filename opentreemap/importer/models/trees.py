@@ -87,6 +87,7 @@ class TreeImportRow(GenericImportRow):
         'canopy_height': fields.trees.CANOPY_HEIGHT,
         'species': fields.trees.SPECIES_OBJECT,
         'date_planted': fields.trees.DATE_PLANTED,
+        'date_removed': fields.trees.DATE_REMOVED,
         # TODO: READONLY restore when implemented
         # 'readonly': fields.trees.READ_ONLY
     }

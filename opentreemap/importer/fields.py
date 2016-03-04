@@ -106,12 +106,13 @@ class trees(object):
     TREE_HEIGHT = 'tree height'
     CANOPY_HEIGHT = 'canopy height'
     DATE_PLANTED = 'date planted'
+    DATE_REMOVED = 'date removed'
 
     # order matters, so this is a tuple and not a set
     SPECIES_FIELDS = (GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME,
                       COMMON_NAME)
 
-    DATE_FIELDS = {DATE_PLANTED}
+    DATE_FIELDS = {DATE_PLANTED, DATE_REMOVED}
 
     STRING_FIELDS = {STREET_ADDRESS, CITY_ADDRESS, POSTAL_CODE, GENUS,
                      SPECIES, CULTIVAR, OTHER_PART_OF_NAME, COMMON_NAME,
@@ -147,6 +148,7 @@ class trees(object):
         ('tree__height', TREE_HEIGHT),
         ('tree__canopy_height', CANOPY_HEIGHT),
         ('tree__date_planted', DATE_PLANTED),
+        ('tree__date_removed', DATE_REMOVED),
     )
 
     # TODO: READONLY restore when implemented
