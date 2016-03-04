@@ -30,7 +30,7 @@ from importer.models.trees import TreeImportEvent, TreeImportRow
 from importer.models.species import SpeciesImportEvent, SpeciesImportRow
 from importer.tasks import (run_import_event_validation, commit_import_event,
                             get_import_event_model, get_import_row_model,
-                            get_import_export)
+                            get_import_export, make_import_template)
 from importer import errors, fields
 
 TABLE_ACTIVE_TREES = 'activeTrees'
@@ -749,3 +749,20 @@ def export_single_import(request, instance, import_type, import_event_id):
         filename, csv_fields = "trees.csv", ie.ordered_legal_fields()
 
     return filename, get_import_export, (import_type, ie.pk,), csv_fields
+
+
+def download_import_template(request, instance, import_type):
+    if import_type == SpeciesImportEvent.import_type:
+        filename = 'OpenTreeMap_Species_Import_Template.csv'
+        field_names = fields.title_case(fields.species.ALL)
+    else:
+        filename = 'OpenTreeMap_Tree_Import_Template.csv'
+        ie = TreeImportEvent(instance=instance)
+        field_names = ie.ordered_legal_fields_title_case()
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = "attachment; filename=%s" % filename
+    writer = csv.DictWriter(response, field_names)
+    writer.writeheader()
+
+    return response
