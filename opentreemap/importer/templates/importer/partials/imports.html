@@ -37,7 +37,7 @@
                 <div class="instructions">
                   <p>Need help formatting your CSV?  We have formatting
                      <a href="{% static 'OpenTreeMap_Tree_Import_Guide.pdf' %}" target="_blank">instructions</a>
-                     and a <a href="{% static 'OpenTreeMap_Tree_Import_Template.csv' %}" target="_blank">template</a> to use.
+                     and a <a href="javascript:" data-export-start-url="{% url 'importer:download_import_template' instance_url_name=request.instance.url_name import_type='tree' %}">template</a> to use.
                   </p>
                 </div>
               </div>
@@ -56,7 +56,7 @@
                 <div class="instructions">
                   <p>Need help formatting your CSV?  We have formatting
                      <a href="{% static 'OpenTreeMap_Species_Import_Guide.pdf' %}" target="_blank">instructions</a>
-                     and a <a href="{% static 'OpenTreeMap_Species_Import_Template.csv' %}" target="_blank">template</a> to use.
+                     and a <a href="javascript:" data-export-start-url="{% url 'importer:download_import_template' instance_url_name=request.instance.url_name import_type='species' %}">template</a> to use.
                   </p>
                 </div>
               </div>

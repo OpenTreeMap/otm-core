@@ -51,4 +51,7 @@ export_all_species = _api_call('GET', json_api_call(views.export_all_species))
 export_single_import = _api_call(
     'GET', json_api_call(views.export_single_import))
 
+download_import_template = _api_call(
+    'GET', json_api_call(views.download_import_template))
+
 merge_species = _api_call('POST', views.merge_species)

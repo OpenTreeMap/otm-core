@@ -222,3 +222,10 @@ def get_import_export(import_type, import_event_id):
     ie = _get_import_event(import_type, import_event_id)
 
     return [clean_row_data(json.loads(row.data)) for row in ie.rows()]
+
+
+@task
+def make_import_template():
+    # TODO: probably hooking into this abstraction at the wrong level
+    # if I'm writing a shell function like this
+    return []

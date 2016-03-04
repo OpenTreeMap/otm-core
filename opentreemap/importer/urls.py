@@ -31,6 +31,9 @@ urlpatterns = patterns(
         name='export_all_species'),
     url(r'^export/%s/$' % _import_api_pattern, routes.export_single_import,
         name='export_single_import'),
+    url(r'^download_template/%s/$' % _type_pattern,
+        routes.download_import_template,
+        name='download_import_template'),
 
     # API
     url(r'^api/merge$', routes.merge_species, name='merge'),
