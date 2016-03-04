@@ -137,6 +137,7 @@ class trees(object):
         ('length', PLOT_LENGTH),
         ('tree__plot', OPENTREEMAP_PLOT_ID),
         ('owner_orig_id', EXTERNAL_ID_NUMBER),
+        ('tree_present', TREE_PRESENT),
         ('tree__species__genus', GENUS),
         ('tree__species__species', SPECIES),
         ('tree__species__cultivar', CULTIVAR),
