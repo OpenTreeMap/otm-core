@@ -127,9 +127,27 @@ class trees(object):
     # TODO: READONLY restore when implemented
     BOOLEAN_FIELDS = {TREE_PRESENT}
 
+    EXPORTER_PAIRS = (
+        ('geom__x', POINT_X),
+        ('geom__y', POINT_Y),
+        ('address_street', STREET_ADDRESS),
+        ('address_city', CITY_ADDRESS),
+        ('address_zip', POSTAL_CODE),
+        ('width', PLOT_WIDTH),
+        ('length', PLOT_LENGTH),
+        ('tree__plot', OPENTREEMAP_PLOT_ID),
+        ('owner_orig_id', EXTERNAL_ID_NUMBER),
+        ('tree__species__genus', GENUS),
+        ('tree__species__species', SPECIES),
+        ('tree__species__cultivar', CULTIVAR),
+        ('tree__species__other_part_of_name', OTHER_PART_OF_NAME),
+        ('tree__species__common_name', COMMON_NAME),
+        ('tree__diameter', DIAMETER),
+        ('tree__height', TREE_HEIGHT),
+        ('tree__canopy_height', CANOPY_HEIGHT),
+        ('tree__date_planted', DATE_PLANTED),
+    )
+
     # TODO: READONLY restore when implemented
     # Note: this is a tuple and not a set so it will be ordered in exports
-    ALL = (POINT_X, POINT_Y, STREET_ADDRESS, CITY_ADDRESS, POSTAL_CODE,
-           PLOT_WIDTH, PLOT_LENGTH, OPENTREEMAP_PLOT_ID, EXTERNAL_ID_NUMBER,
-           TREE_PRESENT, GENUS, SPECIES, CULTIVAR, OTHER_PART_OF_NAME,
-           COMMON_NAME, DIAMETER, TREE_HEIGHT, CANOPY_HEIGHT, DATE_PLANTED)
+    ALL = tuple([p[1] for p in EXPORTER_PAIRS])
