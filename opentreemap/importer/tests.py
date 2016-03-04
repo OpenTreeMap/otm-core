@@ -390,12 +390,12 @@ class TreeUdfValidationTest(TreeValidationTestBase):
 
         row = {'point x': '16',
                'point y': '20',
-               'plot: test date': '2015-12-08'}
+               'planting site: test date': '2015-12-08'}
         i = self.mkrow(row)
         i.validate_row()
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['plot: test date'] = '12/8/15'
+        row['planting site: test date'] = '12/8/15'
         i = self.mkrow(row)
         i.validate_row()
         self.assertHasError(i, errors.INVALID_UDF_VALUE,
@@ -412,14 +412,14 @@ class TreeUdfValidationTest(TreeValidationTestBase):
 
         row = {'point x': '16',
            'point y': '20',
-           'plot: test choice': 'a'}
+           'planting site: test choice': 'a'}
 
         i = self.mkrow(row)
         i.validate_row()
 
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['plot: test choice'] = 'z'
+        row['planting site: test choice'] = 'z'
 
         i = self.mkrow(row)
         i.validate_row()
@@ -439,27 +439,27 @@ class TreeUdfValidationTest(TreeValidationTestBase):
 
         row = {'point x': '16',
                'point y': '20',
-               'plot: test multichoice': '["a"]'}
+               'planting site: test multichoice': '["a"]'}
         i = self.mkrow(row)
         i.validate_row()
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['plot: test multichoice'] = '"a"'
+        row['planting site: test multichoice'] = '"a"'
         i = self.mkrow(row)
         i.validate_row()
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['plot: test multichoice'] = '["a","b"]'
+        row['planting site: test multichoice'] = '["a","b"]'
         i = self.mkrow(row)
         i.validate_row()
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['plot: test multichoice'] = None
+        row['planting site: test multichoice'] = None
         i = self.mkrow(row)
         i.validate_row()
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['plot: test multichoice'] = '[]'
+        row['planting site: test multichoice'] = '[]'
         i = self.mkrow(row)
         i.validate_row()
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
@@ -468,13 +468,13 @@ class TreeUdfValidationTest(TreeValidationTestBase):
 
         # This is an error because the JSON parser requires that
         # strings be wrapped with double quotes.
-        row['plot: test multichoice'] = 'a'
+        row['planting site: test multichoice'] = 'a'
         i = self.mkrow(row)
         i.validate_row()
         self.assertHasError(i, errors.INVALID_UDF_VALUE,
                             data="[u'Test multichoice must be valid JSON']")
 
-        row['plot: test multichoice'] = '"a","b"'
+        row['planting site: test multichoice'] = '"a","b"'
         i = self.mkrow(row)
         i.validate_row()
         self.assertHasError(i, errors.INVALID_UDF_VALUE,
@@ -1342,8 +1342,8 @@ class TreeIntegrationTests(IntegrationTests):
         )
 
         csv = """
-        | point x | point y | tree: cuteness | plot: flatness |
-        | 26.00   | 26.00   | not much       | very           |
+        | point x | point y | tree: cuteness | planting site: flatness |
+        | 26.00   | 26.00   | not much       | very                    |
         """
 
         ieid = self.run_through_commit_views(csv)
