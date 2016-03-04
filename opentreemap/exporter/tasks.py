@@ -176,11 +176,11 @@ def async_csv_export(job, model, query, display_filters):
                           + sorted(values_sp))
 
         if ordered_fields:
+            field_header_map = _csv_field_header_map(ordered_fields)
             limited_qs = (initial_qs
                           .extra(select=select,
                                  select_params=select_params)
-                          .values(*ordered_fields))
-            field_header_map = _csv_field_header_map(ordered_fields)
+                          .values(*field_header_map.keys()))
         else:
             limited_qs = initial_qs.none()
 
@@ -195,7 +195,7 @@ def async_csv_export(job, model, query, display_filters):
     else:
         csv_file = TemporaryFile()
         write_csv(limited_qs, csv_file,
-                  field_order=ordered_fields,
+                  field_order=field_header_map.keys(),
                   field_header_map=field_header_map)
         filename = generate_filename(limited_qs).replace('plot', 'tree')
         job.complete_with(filename, File(csv_file))
@@ -207,7 +207,7 @@ def _csv_field_header_map(field_names):
     # Our query uses plot-centric field names but our csv wants tree-centric
     # header names. So convert e.g. "tree__canopy_height" -> "canopy_height"
     # and "width" -> "plot__width".
-    map = {}
+    map = OrderedDict()
     for name in field_names:
         if name.startswith('tree__'):
             header = name[6:]
