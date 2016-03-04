@@ -418,10 +418,9 @@ class GenericImportRow(models.Model):
             if value:
                 try:
                     datep = datetime.strptime(value, '%Y-%m-%d')
-                    self.cleaned[self.model_fields.DATE_PLANTED] = datep
+                    self.cleaned[field] = datep
                 except ValueError:
-                    self.append_error(errors.INVALID_DATE,
-                                      self.model_fields.DATE_PLANTED)
+                    self.append_error(errors.INVALID_DATE, field)
                     has_errors = True
 
         return has_errors
