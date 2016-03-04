@@ -169,6 +169,10 @@ def async_csv_export(job, model, query, display_filters):
             values_plot = [f for f in values_plot if f != 'geom']
             values_plot += ['geom__x', 'geom__y']
 
+        if values_tree:
+            select['tree_present'] = "treemap_tree.id is not null"
+            values_plot += ['tree_present']
+
         get_ll = 'ST_Transform(treemap_mapfeature.the_geom_webmercator, 4326)'
         select['geom__x'] = 'ST_X(%s)' % get_ll
         select['geom__y'] = 'ST_Y(%s)' % get_ll
