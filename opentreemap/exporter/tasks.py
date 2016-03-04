@@ -28,6 +28,8 @@ from exporter.models import ExportJob
 from exporter.user import write_users
 from exporter.util import sanitize_unicode_record
 
+from importer import fields
+
 
 @contextmanager
 def _job_transaction_manager(job_pk):
@@ -204,15 +206,41 @@ def async_csv_export(job, model, query, display_filters):
 
 
 def _csv_field_header_map(field_names):
-    # Our query uses plot-centric field names but our csv wants tree-centric
-    # header names. So convert e.g. "tree__canopy_height" -> "canopy_height"
-    # and "width" -> "plot__width".
     map = OrderedDict()
+    # TODO: make this conditional based on whether or not
+    # we are performing a complete export or an "importable" export
+    discarded = ['readonly', 'udf:Stewardship', 'id',
+                 'tree__readonly', 'tree__udf:Stewardship',
+                 'tree__species', 'tree__id',
+                 'tree__species__fact_sheet_url',
+                 'tree__species__fall_conspicuous',
+                 'tree__species__flower_conspicuous',
+                 'tree__species__flowering_period',
+                 'tree__species__fruit_or_nut_period',
+                 'tree__species__has_wildlife_value',
+                 'tree__species__id',
+                 'tree__species__is_native',
+                 'tree__species__max_diameter',
+                 'tree__species__max_height',
+                 'tree__species__otm_code',
+                 'tree__species__palatable_human',
+                 'tree__species__plant_guide_url']
+
+    pretty = OrderedDict(fields.trees.EXPORTER_PAIRS)
+
     for name in field_names:
-        if name.startswith('tree__'):
-            header = name[6:]
+        if name in pretty:
+            header = pretty[name]
+        elif name in discarded:
+            # discarded must run first in order for the following
+            # blocks not to include well-defined collection udfs
+            continue
+        elif name.startswith('udf:'):
+            header = 'planting site: ' + name[4:]
+        elif name.startswith('tree__udf:'):
+            header = 'tree: ' + name[10:]
         else:
-            header = 'plot__%s' % name
+            continue
         map[name] = header
     return map
 
