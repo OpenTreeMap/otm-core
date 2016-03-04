@@ -432,11 +432,13 @@ class Species(UDFModel, PendingAuditable):
     other_part_of_name = models.CharField(max_length=255, blank=True)
 
     ### From original OTM (some renamed) ###
+    # TODO: if we drop verbose name then this can re-import clean after export
     is_native = models.NullBooleanField(verbose_name='Native to Region')
     flowering_period = models.CharField(max_length=255, blank=True)
     fruit_or_nut_period = models.CharField(max_length=255, blank=True)
     fall_conspicuous = models.NullBooleanField()
     flower_conspicuous = models.NullBooleanField()
+    # TODO: if we drop verbose name then this can re-import clean after export
     palatable_human = models.NullBooleanField(verbose_name='Edible')
     has_wildlife_value = models.NullBooleanField()
     fact_sheet_url = models.URLField(max_length=255, blank=True)

@@ -244,6 +244,9 @@ def _csv_field_header_map(field_names):
         elif name.startswith('tree__udf:'):
             header = 'tree: ' + name[10:]
         else:
+            # TODO: log that we have an uncaught field that may be
+            # making re-imports impossible. This is better than crashing
+            # an export that is otherwise usable.
             continue
         map[name] = header
     return map
