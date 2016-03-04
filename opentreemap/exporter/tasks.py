@@ -48,7 +48,7 @@ def _job_transaction(fn):
     return wrapper
 
 
-def values_for_model(
+def _values_for_model(
         instance, job, table, model,
         select, select_params, prefix=None):
     if prefix:
@@ -132,8 +132,8 @@ def async_csv_export(job, model, query, display_filters):
     if model == 'species':
         initial_qs = (Species.objects.
                       filter(instance=instance))
-        values = values_for_model(instance, job, 'treemap_species',
-                                  'Species', select, select_params)
+        values = _values_for_model(instance, job, 'treemap_species',
+                                   'Species', select, select_params)
         ordered_fields = values + select.keys()
         limited_qs = (initial_qs
                       .extra(select=select,
@@ -151,14 +151,14 @@ def async_csv_export(job, model, query, display_filters):
         initial_qs = Filter(query, display_filters, instance)\
             .get_objects(Plot)
 
-        values_tree = values_for_model(
+        values_tree = _values_for_model(
             instance, job, 'treemap_tree', 'Tree',
             select, select_params,
             prefix='tree')
-        values_plot = values_for_model(
+        values_plot = _values_for_model(
             instance, job, 'treemap_mapfeature', 'Plot',
             select, select_params)
-        values_sp = values_for_model(
+        values_sp = _values_for_model(
             instance, job, 'treemap_species', 'Species',
             select, select_params,
             prefix='tree__species')
