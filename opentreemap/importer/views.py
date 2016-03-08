@@ -685,9 +685,7 @@ def process_csv(request, instance, import_type, **kwargs):
     filename = files.keys()[0]
     file_obj = files[filename]
 
-    file_obj = io.BytesIO(file_obj.read()
-                          .decode('latin1')
-                          .encode('utf-8'))
+    file_obj = io.BytesIO(decode(file_obj.read()).encode('utf-8'))
 
     owner = request.user
     ImportEventModel = get_import_event_model(import_type)
@@ -700,6 +698,16 @@ def process_csv(request, instance, import_type, **kwargs):
     run_import_event_validation.delay(import_type, ie.pk, file_obj)
 
     return ie.pk
+
+
+# http://stackoverflow.com/a/8898439/362702
+def decode(s):
+    for encoding in "utf-8-sig", "utf-16":
+        try:
+            return s.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    return s.decode("latin-1")
 
 
 @transaction.atomic
