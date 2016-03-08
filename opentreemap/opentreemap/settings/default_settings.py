@@ -236,6 +236,10 @@ STATSD_PREFIX = '{}.django'.format(STACK_TYPE.lower())
 STATSD_HOST = os.environ.get('OTM_STATSD_HOST', 'localhost')
 STATSD_CELERY_SIGNALS = True
 
+STACK_COLOR = os.environ.get('OTM_STACK_COLOR', 'Black')
+CELERY_DEFAULT_QUEUE = STACK_COLOR
+CELERY_DEFAULT_ROUTING_KEY = "task.%s" % STACK_COLOR
+
 ROOT_URLCONF = 'opentreemap.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
