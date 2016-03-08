@@ -136,11 +136,11 @@ def async_csv_export(job, model, query, display_filters):
                       filter(instance=instance))
         values = _values_for_model(instance, job, 'treemap_species',
                                    'Species', select, select_params)
-        ordered_fields = values + select.keys()
+        field_names = values + select.keys()
         limited_qs = (initial_qs
                       .extra(select=select,
                              select_params=select_params)
-                      .values(*ordered_fields))
+                      .values(*field_names))
     else:
         # model == 'tree'
 
@@ -153,36 +153,34 @@ def async_csv_export(job, model, query, display_filters):
         initial_qs = Filter(query, display_filters, instance)\
             .get_objects(Plot)
 
-        values_tree = _values_for_model(
+        tree_fields = _values_for_model(
             instance, job, 'treemap_tree', 'Tree',
             select, select_params,
             prefix='tree')
-        values_plot = _values_for_model(
+        plot_fields = _values_for_model(
             instance, job, 'treemap_mapfeature', 'Plot',
             select, select_params)
-        values_sp = _values_for_model(
+        species_fields = _values_for_model(
             instance, job, 'treemap_species', 'Species',
             select, select_params,
             prefix='tree__species')
 
-        if 'geom' in values_plot:
-            values_plot = [f for f in values_plot if f != 'geom']
-            values_plot += ['geom__x', 'geom__y']
+        if 'geom' in plot_fields:
+            plot_fields = [f for f in plot_fields if f != 'geom']
+            plot_fields += ['geom__x', 'geom__y']
 
-        if values_tree:
+        if tree_fields:
             select['tree_present'] = "treemap_tree.id is not null"
-            values_plot += ['tree_present']
+            plot_fields += ['tree_present']
 
         get_ll = 'ST_Transform(treemap_mapfeature.the_geom_webmercator, 4326)'
         select['geom__x'] = 'ST_X(%s)' % get_ll
         select['geom__y'] = 'ST_Y(%s)' % get_ll
 
-        ordered_fields = (sorted(values_tree)
-                          + sorted(values_plot)
-                          + sorted(values_sp))
+        field_names = set(tree_fields + plot_fields + species_fields)
 
-        if ordered_fields:
-            field_header_map = _csv_field_header_map(ordered_fields)
+        if field_names:
+            field_header_map = _csv_field_header_map(field_names)
             limited_qs = (initial_qs
                           .extra(select=select,
                                  select_params=select_params)
@@ -213,33 +211,32 @@ def _csv_field_header_map(field_names):
     map = OrderedDict()
     # TODO: make this conditional based on whether or not
     # we are performing a complete export or an "importable" export
-    discarded = ['readonly', 'udf:Stewardship', 'id',
-                 'tree__readonly', 'tree__udf:Stewardship',
-                 'tree__species', 'tree__id',
-                 'tree__species__fact_sheet_url',
-                 'tree__species__fall_conspicuous',
-                 'tree__species__flower_conspicuous',
-                 'tree__species__flowering_period',
-                 'tree__species__fruit_or_nut_period',
-                 'tree__species__has_wildlife_value',
-                 'tree__species__id',
-                 'tree__species__is_native',
-                 'tree__species__max_diameter',
-                 'tree__species__max_height',
-                 'tree__species__otm_code',
-                 'tree__species__palatable_human',
-                 'tree__species__plant_guide_url']
+    omit = {'readonly', 'udf:Stewardship', 'id',
+            'tree__readonly', 'tree__udf:Stewardship',
+            'tree__species', 'tree__id',
+            'tree__species__fact_sheet_url',
+            'tree__species__fall_conspicuous',
+            'tree__species__flower_conspicuous',
+            'tree__species__flowering_period',
+            'tree__species__fruit_or_nut_period',
+            'tree__species__has_wildlife_value',
+            'tree__species__id',
+            'tree__species__is_native',
+            'tree__species__max_diameter',
+            'tree__species__max_height',
+            'tree__species__otm_code',
+            'tree__species__palatable_human',
+            'tree__species__plant_guide_url'}
 
-    pretty = OrderedDict(fields.trees.EXPORTER_PAIRS)
+    field_names = field_names - omit
 
-    for name in field_names:
-        if name in pretty:
-            header = pretty[name]
-        elif name in discarded:
-            # discarded must run first in order for the following
-            # blocks not to include well-defined collection udfs
-            continue
-        elif name.startswith('udf:'):
+    for name, header in fields.trees.EXPORTER_PAIRS:
+        if name in field_names:
+            map[name] = header
+            field_names.remove(name)
+
+    for name in sorted(field_names):
+        if name.startswith('udf:'):
             header = 'planting site: ' + name[4:]
         elif name.startswith('tree__udf:'):
             header = 'tree: ' + name[10:]
