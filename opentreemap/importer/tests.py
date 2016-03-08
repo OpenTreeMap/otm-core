@@ -1379,7 +1379,7 @@ class TreeIntegrationTests(IntegrationTests):
         # self.assertEqual(plot.readonly, False)
 
         csv = """
-        | point x | point y | owner orig id      | planting site id |
+        | point x | point y | owner original id  | planting site id |
         | 45.53   | 31.1    | 443                | %s               |
         """ % plot.id
 

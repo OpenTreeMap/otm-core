@@ -90,7 +90,7 @@ class trees(object):
     # READ_ONLY = 'read only'
 
     OPENTREEMAP_PLOT_ID = 'planting site id'
-    EXTERNAL_ID_NUMBER = 'owner orig id'
+    EXTERNAL_ID_NUMBER = 'owner original id'
 
     TREE_PRESENT = 'tree present'
 
