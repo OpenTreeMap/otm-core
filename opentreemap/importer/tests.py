@@ -1405,6 +1405,41 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(int(p1_geom.x*100), 4553)
         self.assertEqual(int(p1_geom.y*100), 3109)
 
+    def test_swap_locations_using_otm_id(self):
+        center = self.instance.center
+        self.assertEqual(3857, center.srid)
+        p1 = mkPlot(self.instance, self.user,
+                    geom=Point(center.x, center.y, srid=center.srid))
+        p2 = mkPlot(self.instance, self.user,
+                    geom=Point(center.x + 100, center.y + 100, srid=center.srid))
+
+        csv_point_1 = p1.geom.clone()
+        csv_point_1.transform(4326)
+        csv_point_2 = p2.geom.clone()
+        csv_point_2.transform(4326)
+
+        new_values = {
+            'p1x': csv_point_2.x, 'p1y': csv_point_2.y, 'p1id': p1.pk,
+            'p2x': csv_point_1.x, 'p2y': csv_point_1.y, 'p2id': p2.pk
+        }
+
+        csv = """
+        | point x | point y | opentreemap plot id |
+        | %(p1x)s | %(p1y)s | %(p1id)s            |
+        | %(p2x)s | %(p2y)s | %(p2id)s            |
+        """ % new_values
+
+        self.run_through_commit_views(csv)
+
+        p1_new = Plot.objects.get(pk=p1.pk)
+        p2_new = Plot.objects.get(pk=p2.pk)
+
+        # Use assertAlmostEqual to avoid tiny floating point discrepancies
+        self.assertAlmostEqual(p1.geom.x, p2_new.geom.x)
+        self.assertAlmostEqual(p1.geom.y, p2_new.geom.y)
+        self.assertAlmostEqual(p2.geom.x, p1_new.geom.x)
+        self.assertAlmostEqual(p2.geom.y, p1_new.geom.y)
+
     def test_tree_present_works_as_expected(self):
         csv = """
         | point x | point y | tree present | diameter |

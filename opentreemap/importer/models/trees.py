@@ -269,6 +269,15 @@ class TreeImportRow(GenericImportRow):
         return True
 
     def validate_proximity(self, point):
+        # This block must stay at the top of the function and
+        # effectively disables proximity validation when the import
+        # row includes an OTM plot id. Proximity validation can
+        # prevent instance admins from correcting the locations of
+        # previously uploaded trees in bulk.
+        oid = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
+        if oid is not None:
+            return True
+
         plot_ids_from_this_import = TreeImportRow.objects\
             .filter(import_event=self.import_event)\
             .filter(plot__isnull=False)\
@@ -288,10 +297,6 @@ class TreeImportRow(GenericImportRow):
                            .filter(feature_type='Plot')\
                            .filter(geom__intersects=nearby_bbox)\
                            .exclude(pk__in=plot_ids_from_this_import)\
-
-        oid = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
-        if oid:
-            nearby = nearby.exclude(pk=oid)
 
         nearby = nearby.distance(point).order_by('distance')[:5]
 
