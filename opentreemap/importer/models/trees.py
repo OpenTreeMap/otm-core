@@ -44,7 +44,10 @@ class TreeImportEvent(GenericImportEvent):
 
     def get_udf_column_name(self, udf_def):
         # Prefix with model name, e.g. "Density" -> "Tree: Density"
-        return "%s: %s" % (udf_def.model_type.lower(), udf_def.name.lower())
+        model_name = udf_def.model_type.lower()
+        if model_name == 'plot':
+            model_name = 'planting site'
+        return "%s: %s" % (model_name, udf_def.name.lower())
 
     def ordered_legal_fields(self):
         def udf_column_names(model_name):
@@ -84,6 +87,7 @@ class TreeImportRow(GenericImportRow):
         'canopy_height': fields.trees.CANOPY_HEIGHT,
         'species': fields.trees.SPECIES_OBJECT,
         'date_planted': fields.trees.DATE_PLANTED,
+        'date_removed': fields.trees.DATE_REMOVED,
         # TODO: READONLY restore when implemented
         # 'readonly': fields.trees.READ_ONLY
     }
