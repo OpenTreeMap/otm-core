@@ -211,7 +211,7 @@ def _csv_field_header_map(field_names):
     map = OrderedDict()
     # TODO: make this conditional based on whether or not
     # we are performing a complete export or an "importable" export
-    omit = {'readonly', 'udf:Stewardship', 'id',
+    omit = {'readonly', 'udf:Stewardship',
             'tree__readonly', 'tree__udf:Stewardship',
             'tree__species', 'tree__id',
             'tree__species__fact_sheet_url',

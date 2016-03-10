@@ -136,7 +136,7 @@ class trees(object):
         ('address_zip', POSTAL_CODE),
         ('width', PLOT_WIDTH),
         ('length', PLOT_LENGTH),
-        ('tree__plot', OPENTREEMAP_PLOT_ID),
+        ('id', OPENTREEMAP_PLOT_ID),
         ('owner_orig_id', EXTERNAL_ID_NUMBER),
         ('tree_present', TREE_PRESENT),
         ('tree__species__genus', GENUS),
