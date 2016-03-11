@@ -27,6 +27,7 @@ class SpeciesImportEvent(GenericImportEvent):
     species information
     """
 
+    import_schema_version = 1  # Update if any column header name changes
     import_type = 'species'
 
     max_diameter_conversion_factor = models.FloatField(default=1.0)

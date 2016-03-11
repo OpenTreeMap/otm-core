@@ -25,6 +25,7 @@ class TreeImportEvent(GenericImportEvent):
     tree/plot information
     """
 
+    import_schema_version = 1  # Update if any column header name changes
     import_type = 'tree'
 
     plot_length_conversion_factor = models.FloatField(default=1.0)

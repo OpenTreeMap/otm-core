@@ -148,22 +148,26 @@ def _get_table_context(instance, table_name, page_number):
         status__in={
             GenericImportEvent.FINISHED_CREATING,
             GenericImportEvent.FAILED_FILE_VERIFICATION})
+    trees_inactive_q = inactive_q | ~Q(
+        schema_version=TreeImportEvent.import_schema_version)
+    species_inactive_q = inactive_q | ~Q(
+        schema_version=SpeciesImportEvent.import_schema_version)
 
     if table_name == TABLE_ACTIVE_TREES:
         title = _('Active Tree Imports')
-        rows = trees.exclude(inactive_q)
+        rows = trees.exclude(trees_inactive_q)
 
     elif table_name == TABLE_FINISHED_TREES:
         title = _('Finished Tree Imports')
-        rows = trees.filter(inactive_q)
+        rows = trees.filter(trees_inactive_q)
 
     elif table_name == TABLE_ACTIVE_SPECIES:
         title = _('Active Species Imports')
-        rows = species.exclude(inactive_q)
+        rows = species.exclude(species_inactive_q)
 
     elif table_name == TABLE_FINISHED_SPECIES:
         title = _('Finished Species Imports')
-        rows = species.filter(inactive_q)
+        rows = species.filter(species_inactive_q)
 
     else:
         raise Exception('Unexpected import table name: %s' % table_name)
