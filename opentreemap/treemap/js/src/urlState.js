@@ -18,7 +18,10 @@ var _state = null,
     _window = null;
 
 function HistoryApi() {
+    var stateChangeCallback = null;
+
     function onStateChange(callback) {
+        stateChangeCallback = callback;
         window.onpopstate = callback;
     }
     function getState() {
@@ -26,9 +29,15 @@ function HistoryApi() {
     }
     function pushState(state, title, url) {
         history.pushState(state, title, url);
+        if (stateChangeCallback) {
+            stateChangeCallback();
+        }
     }
     function replaceState(state, title, url) {
         history.replaceState(state, title, url);
+        if (stateChangeCallback) {
+            stateChangeCallback();
+        }
     }
     return {
         onStateChange: onStateChange,
