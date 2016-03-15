@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import csv
+import logging
 
 from contextlib import contextmanager
 from functools import wraps
@@ -23,12 +24,18 @@ from treemap.udf import UserDefinedCollectionValue
 from treemap.lib.object_caches import udf_defs
 
 from djqscsv import write_csv, generate_filename
-from exporter.models import ExportJob
 
+from opentreemap.util import add_rollbar_handler
+
+from exporter.models import ExportJob
 from exporter.user import write_users
 from exporter.util import sanitize_unicode_record
 
 from importer import fields
+
+
+logger = logging.getLogger(__name__)
+add_rollbar_handler(logger, level=logging.INFO)
 
 
 @contextmanager
@@ -241,9 +248,8 @@ def _csv_field_header_map(field_names):
         elif name.startswith('tree__udf:'):
             header = 'tree: ' + name[10:]
         else:
-            # TODO: log that we have an uncaught field that may be
-            # making re-imports impossible. This is better than crashing
-            # an export that is otherwise usable.
+            logger.warn('Unrecognized export field name',
+                        extra={'extra_data': {'field_name': name}})
             continue
         map[name] = header
     return map
