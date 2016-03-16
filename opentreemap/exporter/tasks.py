@@ -239,14 +239,14 @@ def _csv_field_header_map(field_names):
 
     for name, header in fields.trees.EXPORTER_PAIRS:
         if name in field_names:
-            map[name] = header
+            map[name] = header.title()
             field_names.remove(name)
 
     for name in sorted(field_names):
         if name.startswith('udf:'):
-            header = 'planting site: ' + name[4:]
+            header = 'Planting Site: ' + name[4:]
         elif name.startswith('tree__udf:'):
-            header = 'tree: ' + name[10:]
+            header = 'Tree: ' + name[10:]
         else:
             logger.warn('Unrecognized export field name',
                         extra={'extra_data': {'field_name': name}})

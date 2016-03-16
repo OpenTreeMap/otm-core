@@ -133,9 +133,9 @@ class ExportTreeTaskTest(AsyncCSVTestCase):
     @media_dir
     def test_tree_task_unit(self):
         self.assertTaskProducesCSV(
-            self.user, 'tree', {'diameter': '2.0',
-                                'tree: Test int': '4',
-                                'planting site: Test choice': 'a'})
+            self.user, 'tree', {'Diameter': '2.0',
+                                'Tree: Test int': '4',
+                                'Planting Site: Test choice': 'a'})
 
     @media_dir
     @override_settings(FEATURE_BACKEND_FUNCTION=None)
@@ -150,7 +150,7 @@ class ExportTreeTaskTest(AsyncCSVTestCase):
     @media_dir
     @override_settings(FEATURE_BACKEND_FUNCTION=None)
     def test_psuedo_async_tree_export(self):
-        self.assertPsuedoAsyncTaskWorks('tree', self.user, 'diameter', '2.0',
+        self.assertPsuedoAsyncTaskWorks('tree', self.user, 'Diameter', '2.0',
                                         '.*tree_export(_\d+)?\.csv')
 
 
@@ -165,12 +165,12 @@ class ExportSpeciesTaskTest(AsyncCSVTestCase):
     @media_dir
     def test_species_task_unit(self):
         self.assertTaskProducesCSV(
-            self.user, 'species', {'common name': 'foo'})
+            self.user, 'species', {'Common Name': 'foo'})
 
     @media_dir
     @override_settings(FEATURE_BACKEND_FUNCTION=None)
     def test_psuedo_async_species_export(self):
-        self.assertPsuedoAsyncTaskWorks('species', self.user, 'common name',
+        self.assertPsuedoAsyncTaskWorks('species', self.user, 'Common Name',
                                         'foo', '.*species_export(_\d+)?\.csv')
 
 

@@ -63,6 +63,10 @@ class SpeciesImportEvent(GenericImportEvent):
         return (fields.species.ALL,
                 {fields.species.GENUS, fields.species.COMMON_NAME})
 
+    def legal_and_required_fields_title_case(self):
+        legal, required = self.legal_and_required_fields()
+        return fields.title_case(legal), fields.title_case(required)
+
 
 class SpeciesImportRow(GenericImportRow):
 

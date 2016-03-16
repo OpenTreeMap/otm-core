@@ -588,12 +588,12 @@ class SpeciesCommitTest(SpeciesValidationTest):
             'common name': 'the common name',
             'cultivar': 'the cultivar',
             'other part of name': 'the other',
-            'is native': 'True',
+            'native to region': 'True',
             'flowering period': 'summer',
             'fruit or nut period': 'fall',
             'fall conspicuous': 'True',
             'flower conspicuous': 'True',
-            'palatable human': 'True',
+            'edible': 'True',
             'has wildlife value': 'True',
             'fact sheet url': 'the fact sheet url',
             'plant guide url': 'the plant guide url',
@@ -627,7 +627,7 @@ class SpeciesCommitTest(SpeciesValidationTest):
             'genus': 'Prunus',
             'species': 'americana',
             'common name': 'American plum',
-            'is native': 'true'})
+            'native to region': 'true'})
         self.assertNotHasError(row, errors.MERGE_REQUIRED)
         species = Species.objects.filter(otm_code='PRAM')
         self.assertEqual(1, species.count())
@@ -797,7 +797,7 @@ class SpeciesStatusValidationTest(SpeciesValidationTest):
             "common name": "American plum",
             "genus": "Prunus",
             "species": "americana",
-            "is native": "Yes",
+            "native to region": "Yes",
         })
 
     def test_different_than_empty_and_non_empty_field(self):
@@ -805,7 +805,7 @@ class SpeciesStatusValidationTest(SpeciesValidationTest):
             "common name": "Not a tree at all",
             "genus": "Prunus",
             "species": "americana",
-            "is native": "Yes",
+            "native to region": "Yes",
         })
         differing_field_names = self.get_field_names_for_error(
             row, errors.MERGE_REQUIRED)
@@ -816,7 +816,7 @@ class SpeciesStatusValidationTest(SpeciesValidationTest):
             "common name": "American plum",
             "genus": "Prunus",
             "species": "americana",
-            "is native": "I am not a boolean value",
+            "native to region": "I am not a boolean value",
         })
 
 
@@ -1424,7 +1424,7 @@ class TreeIntegrationTests(IntegrationTests):
         }
 
         csv = """
-        | point x | point y | opentreemap plot id |
+        | point x | point y | planting site id |
         | %(p1x)s | %(p1y)s | %(p1id)s            |
         | %(p2x)s | %(p2y)s | %(p2id)s            |
         """ % new_values

@@ -173,6 +173,9 @@ class GenericImportEvent(models.Model):
     def legal_and_required_fields(self):
         raise Exception('Abstract Method')
 
+    def legal_and_required_fields_title_case(self):
+        raise Exception('Abstract Method')
+
     def validate_field_names(self, input_fields):
         """
         Make sure the imported file has valid columns

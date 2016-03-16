@@ -3,25 +3,30 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from treemap.models import Species
+
 
 class species(object):
+    def _verbose_name_lower(field_name):
+        return Species._meta.get_field(field_name).verbose_name.lower()
+
     # Fields of the OTM Species object
-    GENUS = 'genus'
-    SPECIES = 'species'
-    CULTIVAR = 'cultivar'
-    OTHER_PART_OF_NAME = 'other part of name'
-    COMMON_NAME = 'common name'
-    IS_NATIVE = 'is native'
-    FLOWERING_PERIOD = 'flowering period'
-    FRUIT_OR_NUT_PERIOD = 'fruit or nut period'
-    FALL_CONSPICUOUS = 'fall conspicuous'
-    FLOWER_CONSPICUOUS = 'flower conspicuous'
-    PALATABLE_HUMAN = 'palatable human'
-    HAS_WILDLIFE_VALUE = 'has wildlife value'
-    FACT_SHEET_URL = 'fact sheet url'
-    PLANT_GUIDE_URL = 'plant guide url'
-    MAX_DIAMETER = 'max diameter'
-    MAX_HEIGHT = 'max height'
+    GENUS = _verbose_name_lower('genus')
+    SPECIES = _verbose_name_lower('species')
+    CULTIVAR = _verbose_name_lower('cultivar')
+    OTHER_PART_OF_NAME = _verbose_name_lower('other_part_of_name')
+    COMMON_NAME = _verbose_name_lower('common_name')
+    IS_NATIVE = _verbose_name_lower('is_native')
+    FLOWERING_PERIOD = _verbose_name_lower('flowering_period')
+    FRUIT_OR_NUT_PERIOD = _verbose_name_lower('fruit_or_nut_period')
+    FALL_CONSPICUOUS = _verbose_name_lower('fall_conspicuous')
+    FLOWER_CONSPICUOUS = _verbose_name_lower('flower_conspicuous')
+    PALATABLE_HUMAN = _verbose_name_lower('palatable_human')
+    HAS_WILDLIFE_VALUE = _verbose_name_lower('has_wildlife_value')
+    FACT_SHEET_URL = _verbose_name_lower('fact_sheet_url')
+    PLANT_GUIDE_URL = _verbose_name_lower('plant_guide_url')
+    MAX_DIAMETER = _verbose_name_lower('max_diameter')
+    MAX_HEIGHT = _verbose_name_lower('max_height')
 
     # Other import and/or export fields
     ID = 'database id of species'
@@ -115,7 +120,7 @@ class trees(object):
     DATE_FIELDS = {DATE_PLANTED, DATE_REMOVED}
 
     STRING_FIELDS = {STREET_ADDRESS, CITY_ADDRESS, POSTAL_CODE, GENUS,
-                     SPECIES, CULTIVAR, OTHER_PART_OF_NAME, COMMON_NAME,
+                     CULTIVAR, OTHER_PART_OF_NAME, COMMON_NAME,
                      EXTERNAL_ID_NUMBER}
 
     POS_FLOAT_FIELDS = {PLOT_WIDTH, PLOT_LENGTH, DIAMETER, TREE_HEIGHT,
@@ -154,3 +159,9 @@ class trees(object):
     # TODO: READONLY restore when implemented
     # Note: this is a tuple and not a set so it will be ordered in exports
     ALL = tuple([p[1] for p in EXPORTER_PAIRS])
+
+
+def title_case(field_names):
+    """Return new collection of strings converted to title case"""
+    collection_type = type(field_names)
+    return collection_type(n.title() for n in field_names)

@@ -44,27 +44,43 @@ class TreeImportEvent(GenericImportEvent):
         return _('Tree Import #%s') % self.pk
 
     def get_udf_column_name(self, udf_def):
-        # Prefix with model name, e.g. "Density" -> "Tree: Density"
-        model_name = udf_def.model_type.lower()
-        if model_name == 'plot':
-            model_name = 'planting site'
-        return "%s: %s" % (model_name, udf_def.name.lower())
+        name = self._get_udf_name(udf_def)
+        return name.lower()
 
-    def ordered_legal_fields(self):
-        def udf_column_names(model_name):
-            return tuple(self.get_udf_column_name(udf_def)
+    def _get_udf_name(self, udf_def):
+        # Prefix with model name, e.g. "Density" -> "Tree: Density"
+        model_name = udf_def.model_type
+        if model_name == 'Plot':
+            model_name = 'Planting Site'
+        return "%s: %s" % (model_name, udf_def.name)
+
+    def _get_udf_names(self):
+        def udf_names(model_name):
+            return tuple(self._get_udf_name(udf_def)
                          for udf_def in udf_defs(self.instance, model_name)
                          if not udf_def.iscollection)
 
-        plot_udfs = udf_column_names('Plot')
-        tree_udfs = udf_column_names('Tree')
+        return udf_names('Plot') + udf_names('Tree')
 
-        return fields.trees.ALL + plot_udfs + tree_udfs
+    def ordered_legal_fields(self):
+        udf_names = self._get_udf_names()
+        udf_names = tuple(n.lower() for n in udf_names)
+        return fields.trees.ALL + udf_names
+
+    def ordered_legal_fields_title_case(self):
+        udf_names = self._get_udf_names()
+        return fields.title_case(fields.trees.ALL) + udf_names
+
+    def _required_fields(self):
+        return {fields.trees.POINT_X, fields.trees.POINT_Y}
 
     def legal_and_required_fields(self):
         legal_fields = set(self.ordered_legal_fields())
+        return legal_fields, self._required_fields()
 
-        return (legal_fields, {fields.trees.POINT_X, fields.trees.POINT_Y})
+    def legal_and_required_fields_title_case(self):
+        legal_fields = set(self.ordered_legal_fields_title_case())
+        return legal_fields, fields.title_case(self._required_fields())
 
 
 class TreeImportRow(GenericImportRow):
