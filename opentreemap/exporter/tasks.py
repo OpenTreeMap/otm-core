@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import csv
+import logging
 
 from contextlib import contextmanager
 from functools import wraps
@@ -23,10 +24,18 @@ from treemap.udf import UserDefinedCollectionValue
 from treemap.lib.object_caches import udf_defs
 
 from djqscsv import write_csv, generate_filename
-from exporter.models import ExportJob
 
+from opentreemap.util import add_rollbar_handler
+
+from exporter.models import ExportJob
 from exporter.user import write_users
 from exporter.util import sanitize_unicode_record
+
+from importer import fields
+
+
+logger = logging.getLogger(__name__)
+add_rollbar_handler(logger, level=logging.INFO)
 
 
 @contextmanager
@@ -48,7 +57,7 @@ def _job_transaction(fn):
     return wrapper
 
 
-def values_for_model(
+def _values_for_model(
         instance, job, table, model,
         select, select_params, prefix=None):
     if prefix:
@@ -132,13 +141,13 @@ def async_csv_export(job, model, query, display_filters):
     if model == 'species':
         initial_qs = (Species.objects.
                       filter(instance=instance))
-        values = values_for_model(instance, job, 'treemap_species',
-                                  'Species', select, select_params)
-        ordered_fields = values + select.keys()
+        values = _values_for_model(instance, job, 'treemap_species',
+                                   'Species', select, select_params)
+        field_names = values + select.keys()
         limited_qs = (initial_qs
                       .extra(select=select,
                              select_params=select_params)
-                      .values(*ordered_fields))
+                      .values(*field_names))
     else:
         # model == 'tree'
 
@@ -151,36 +160,38 @@ def async_csv_export(job, model, query, display_filters):
         initial_qs = Filter(query, display_filters, instance)\
             .get_objects(Plot)
 
-        values_tree = values_for_model(
+        tree_fields = _values_for_model(
             instance, job, 'treemap_tree', 'Tree',
             select, select_params,
             prefix='tree')
-        values_plot = values_for_model(
+        plot_fields = _values_for_model(
             instance, job, 'treemap_mapfeature', 'Plot',
             select, select_params)
-        values_sp = values_for_model(
+        species_fields = _values_for_model(
             instance, job, 'treemap_species', 'Species',
             select, select_params,
             prefix='tree__species')
 
-        if 'geom' in values_plot:
-            values_plot = [f for f in values_plot if f != 'geom']
-            values_plot += ['geom__x', 'geom__y']
+        if 'geom' in plot_fields:
+            plot_fields = [f for f in plot_fields if f != 'geom']
+            plot_fields += ['geom__x', 'geom__y']
+
+        if tree_fields:
+            select['tree_present'] = "treemap_tree.id is not null"
+            plot_fields += ['tree_present']
 
         get_ll = 'ST_Transform(treemap_mapfeature.the_geom_webmercator, 4326)'
         select['geom__x'] = 'ST_X(%s)' % get_ll
         select['geom__y'] = 'ST_Y(%s)' % get_ll
 
-        ordered_fields = (sorted(values_tree)
-                          + sorted(values_plot)
-                          + sorted(values_sp))
+        field_names = set(tree_fields + plot_fields + species_fields)
 
-        if ordered_fields:
+        if field_names:
+            field_header_map = _csv_field_header_map(field_names)
             limited_qs = (initial_qs
                           .extra(select=select,
                                  select_params=select_params)
-                          .values(*ordered_fields))
-            field_header_map = _csv_field_header_map(ordered_fields)
+                          .values(*field_header_map.keys()))
         else:
             limited_qs = initial_qs.none()
 
@@ -195,7 +206,7 @@ def async_csv_export(job, model, query, display_filters):
     else:
         csv_file = TemporaryFile()
         write_csv(limited_qs, csv_file,
-                  field_order=ordered_fields,
+                  field_order=field_header_map.keys(),
                   field_header_map=field_header_map)
         filename = generate_filename(limited_qs).replace('plot', 'tree')
         job.complete_with(filename, File(csv_file))
@@ -204,15 +215,42 @@ def async_csv_export(job, model, query, display_filters):
 
 
 def _csv_field_header_map(field_names):
-    # Our query uses plot-centric field names but our csv wants tree-centric
-    # header names. So convert e.g. "tree__canopy_height" -> "canopy_height"
-    # and "width" -> "plot__width".
-    map = {}
-    for name in field_names:
-        if name.startswith('tree__'):
-            header = name[6:]
+    map = OrderedDict()
+    # TODO: make this conditional based on whether or not
+    # we are performing a complete export or an "importable" export
+    omit = {'readonly',
+            'tree__readonly',
+            'tree__species', 'tree__id',
+            'tree__species__fact_sheet_url',
+            'tree__species__fall_conspicuous',
+            'tree__species__flower_conspicuous',
+            'tree__species__flowering_period',
+            'tree__species__fruit_or_nut_period',
+            'tree__species__has_wildlife_value',
+            'tree__species__id',
+            'tree__species__is_native',
+            'tree__species__max_diameter',
+            'tree__species__max_height',
+            'tree__species__otm_code',
+            'tree__species__palatable_human',
+            'tree__species__plant_guide_url'}
+
+    field_names = field_names - omit
+
+    for name, header in fields.trees.EXPORTER_PAIRS:
+        if name in field_names:
+            map[name] = header.title()
+            field_names.remove(name)
+
+    for name in sorted(field_names):
+        if name.startswith('udf:'):
+            header = 'Planting Site: ' + name[4:]
+        elif name.startswith('tree__udf:'):
+            header = 'Tree: ' + name[10:]
         else:
-            header = 'plot__%s' % name
+            logger.warn('Unrecognized export field name',
+                        extra={'extra_data': {'field_name': name}})
+            continue
         map[name] = header
     return map
 

@@ -27,6 +27,7 @@ class SpeciesImportEvent(GenericImportEvent):
     species information
     """
 
+    import_schema_version = 1  # Update if any column header name changes
     import_type = 'species'
 
     max_diameter_conversion_factor = models.FloatField(default=1.0)
@@ -61,6 +62,10 @@ class SpeciesImportEvent(GenericImportEvent):
     def legal_and_required_fields(self):
         return (fields.species.ALL,
                 {fields.species.GENUS, fields.species.COMMON_NAME})
+
+    def legal_and_required_fields_title_case(self):
+        legal, required = self.legal_and_required_fields()
+        return fields.title_case(legal), fields.title_case(required)
 
 
 class SpeciesImportRow(GenericImportRow):

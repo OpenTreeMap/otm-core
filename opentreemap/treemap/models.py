@@ -425,26 +425,37 @@ class Species(UDFModel, PendingAuditable):
     # species row to a cannonical species. An otm_code
     # is usually the USDA code, but this is not guaranteed.
     otm_code = models.CharField(max_length=255)
-    common_name = models.CharField(max_length=255)
-    genus = models.CharField(max_length=255)
-    species = models.CharField(max_length=255, blank=True)
-    cultivar = models.CharField(max_length=255, blank=True)
-    other_part_of_name = models.CharField(max_length=255, blank=True)
+    common_name = models.CharField(max_length=255, verbose_name='Common Name')
+    genus = models.CharField(max_length=255, verbose_name='Genus')
+    species = models.CharField(max_length=255, blank=True,
+                               verbose_name='Species')
+    cultivar = models.CharField(max_length=255, blank=True,
+                                verbose_name='Cultivar')
+    other_part_of_name = models.CharField(max_length=255, blank=True,
+                                          verbose_name='Other Part of Name')
 
     ### From original OTM (some renamed) ###
     is_native = models.NullBooleanField(verbose_name='Native to Region')
-    flowering_period = models.CharField(max_length=255, blank=True)
-    fruit_or_nut_period = models.CharField(max_length=255, blank=True)
-    fall_conspicuous = models.NullBooleanField()
-    flower_conspicuous = models.NullBooleanField()
+    flowering_period = models.CharField(max_length=255, blank=True,
+                                        verbose_name='Flowering Period')
+    fruit_or_nut_period = models.CharField(max_length=255, blank=True,
+                                           verbose_name='Fruit or Nut Period')
+    fall_conspicuous = models.NullBooleanField(verbose_name='Fall Conspicuous')
+    flower_conspicuous = models.NullBooleanField(
+        verbose_name='Flower Conspicuous')
     palatable_human = models.NullBooleanField(verbose_name='Edible')
-    has_wildlife_value = models.NullBooleanField()
-    fact_sheet_url = models.URLField(max_length=255, blank=True)
-    plant_guide_url = models.URLField(max_length=255, blank=True)
+    has_wildlife_value = models.NullBooleanField(
+        verbose_name='Has Wildlife Value')
+    fact_sheet_url = models.URLField(max_length=255, blank=True,
+                                     verbose_name='Fact Sheet URL')
+    plant_guide_url = models.URLField(max_length=255, blank=True,
+                                      verbose_name='Plant Guide URL')
 
     ### Used for validation
-    max_diameter = models.IntegerField(default=DEFAULT_MAX_DIAMETER)
-    max_height = models.IntegerField(default=DEFAULT_MAX_HEIGHT)
+    max_diameter = models.IntegerField(default=DEFAULT_MAX_DIAMETER,
+                                       verbose_name='Max Diameter')
+    max_height = models.IntegerField(default=DEFAULT_MAX_HEIGHT,
+                                     verbose_name='Max Height')
 
     updated_at = models.DateTimeField(  # TODO: remove null=True
         null=True, auto_now=True, editable=False, db_index=True)
