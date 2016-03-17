@@ -22,7 +22,7 @@ django-contrib-comments==1.6.2
 django-threadedcomments==1.0.1
 django-apptemplates==1.0
 django-queryset-csv==0.3.3
-python-dateutil==2.5.0
+python-dateutil==2.5.1
 pytz==2016.1
 django-tinsel==0.1.1
 django-url-tools==0.0.8
