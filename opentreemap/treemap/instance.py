@@ -125,6 +125,7 @@ class Instance(models.Model):
     basemap_type = models.CharField(max_length=255,
                                     choices=(("google", "Google"),
                                              ("bing", "Bing"),
+                                             ("esri", "ESRI"),
                                              ("tms", "Tile Map Service")),
                                     default="google")
     basemap_data = models.CharField(max_length=255, null=True, blank=True)

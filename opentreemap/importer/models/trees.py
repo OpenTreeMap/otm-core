@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point, Polygon
 from django.utils.translation import ugettext as _
+from django.db import transaction
 
 from treemap.models import Species, Plot, Tree, MapFeature
 from treemap.lib.object_caches import udf_defs
@@ -24,6 +25,7 @@ class TreeImportEvent(GenericImportEvent):
     tree/plot information
     """
 
+    import_schema_version = 1  # Update if any column header name changes
     import_type = 'tree'
 
     plot_length_conversion_factor = models.FloatField(default=1.0)
@@ -42,24 +44,43 @@ class TreeImportEvent(GenericImportEvent):
         return _('Tree Import #%s') % self.pk
 
     def get_udf_column_name(self, udf_def):
-        # Prefix with model name, e.g. "Density" -> "Tree: Density"
-        return "%s: %s" % (udf_def.model_type.lower(), udf_def.name.lower())
+        name = self._get_udf_name(udf_def)
+        return name.lower()
 
-    def ordered_legal_fields(self):
-        def udf_column_names(model_name):
-            return tuple(self.get_udf_column_name(udf_def)
+    def _get_udf_name(self, udf_def):
+        # Prefix with model name, e.g. "Density" -> "Tree: Density"
+        model_name = udf_def.model_type
+        if model_name == 'Plot':
+            model_name = 'Planting Site'
+        return "%s: %s" % (model_name, udf_def.name)
+
+    def _get_udf_names(self):
+        def udf_names(model_name):
+            return tuple(self._get_udf_name(udf_def)
                          for udf_def in udf_defs(self.instance, model_name)
                          if not udf_def.iscollection)
 
-        plot_udfs = udf_column_names('Plot')
-        tree_udfs = udf_column_names('Tree')
+        return udf_names('Plot') + udf_names('Tree')
 
-        return fields.trees.ALL + plot_udfs + tree_udfs
+    def ordered_legal_fields(self):
+        udf_names = self._get_udf_names()
+        udf_names = tuple(n.lower() for n in udf_names)
+        return fields.trees.ALL + udf_names
+
+    def ordered_legal_fields_title_case(self):
+        udf_names = self._get_udf_names()
+        return fields.title_case(fields.trees.ALL) + udf_names
+
+    def _required_fields(self):
+        return {fields.trees.POINT_X, fields.trees.POINT_Y}
 
     def legal_and_required_fields(self):
         legal_fields = set(self.ordered_legal_fields())
+        return legal_fields, self._required_fields()
 
-        return (legal_fields, {fields.trees.POINT_X, fields.trees.POINT_Y})
+    def legal_and_required_fields_title_case(self):
+        legal_fields = set(self.ordered_legal_fields_title_case())
+        return legal_fields, fields.title_case(self._required_fields())
 
 
 class TreeImportRow(GenericImportRow):
@@ -83,6 +104,7 @@ class TreeImportRow(GenericImportRow):
         'canopy_height': fields.trees.CANOPY_HEIGHT,
         'species': fields.trees.SPECIES_OBJECT,
         'date_planted': fields.trees.DATE_PLANTED,
+        'date_removed': fields.trees.DATE_REMOVED,
         # TODO: READONLY restore when implemented
         # 'readonly': fields.trees.READ_ONLY
     }
@@ -139,8 +161,11 @@ class TreeImportRow(GenericImportRow):
         else:
             plot = Plot(instance=self.import_event.instance)
 
-        self._commit_plot_data(data, plot)
+        self._commit_row(data, plot)
 
+    @transaction.atomic
+    def _commit_row(self, data, plot):
+        self._commit_plot_data(data, plot)
         # TREE_PRESENT handling:
         #   If True, create a tree
         #   If False, don't create a tree
@@ -159,7 +184,6 @@ class TreeImportRow(GenericImportRow):
         self.plot = plot
         self.status = TreeImportRow.SUCCESS
         self.save()
-        self.import_event.update_progress_timestamp_and_save()
 
     def _import_value_to_udf_value(self, udf_def, value):
         if udf_def.datatype_dict['type'] == 'multichoice':
@@ -233,7 +257,7 @@ class TreeImportRow(GenericImportRow):
         # Simple validation
         # longitude must be between -180 and 180
         # latitude must be betwen -90 and 90
-        if abs(x) > 180 or abs(y) > 90:
+        if abs(x) > 180 or abs(y) >= 90:
             self.append_error(errors.INVALID_GEOM,
                               (fields.trees.POINT_X, fields.trees.POINT_Y))
             return False
@@ -266,6 +290,15 @@ class TreeImportRow(GenericImportRow):
         return True
 
     def validate_proximity(self, point):
+        # This block must stay at the top of the function and
+        # effectively disables proximity validation when the import
+        # row includes an OTM plot id. Proximity validation can
+        # prevent instance admins from correcting the locations of
+        # previously uploaded trees in bulk.
+        oid = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
+        if oid is not None:
+            return True
+
         plot_ids_from_this_import = TreeImportRow.objects\
             .filter(import_event=self.import_event)\
             .filter(plot__isnull=False)\
@@ -285,10 +318,6 @@ class TreeImportRow(GenericImportRow):
                            .filter(feature_type='Plot')\
                            .filter(geom__intersects=nearby_bbox)\
                            .exclude(pk__in=plot_ids_from_this_import)\
-
-        oid = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
-        if oid:
-            nearby = nearby.exclude(pk=oid)
 
         nearby = nearby.distance(point).order_by('distance')[:5]
 
@@ -421,5 +450,4 @@ class TreeImportRow(GenericImportRow):
             self.status = TreeImportRow.VERIFIED
 
         self.save()
-        self.import_event.update_progress_timestamp_and_save()
         return not fatal

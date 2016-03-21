@@ -14,12 +14,14 @@ var $ = require('jquery'),
     layersLib = require('treemap/layers'),
 
     MIN_ZOOM_OPTION = layersLib.MIN_ZOOM_OPTION,
-    MAX_ZOOM_OPTION = layersLib.MAX_ZOOM_OPTION;
+    MAX_ZOOM_OPTION = layersLib.MAX_ZOOM_OPTION,
+    BASE_LAYER_OPTION = layersLib.BASE_LAYER_OPTION;
 
 // Leaflet extensions
 require('utfgrid');
 require('leafletbing');
 require('leafletgoogle');
+require('esri-leaflet');
 
 var MapManager = function() {};  // constructor
 
@@ -196,27 +198,47 @@ MapManager.prototype = {
 };
 
 function getBasemapLayers(config) {
+    var options = _.extend({}, MAX_ZOOM_OPTION, BASE_LAYER_OPTION);
+
     function makeBingLayer(layer) {
         return new L.BingLayer(
             config.instance.basemap.bing_api_key,
-            {type: layer});
+            _.extend(options, {type: layer}));
     }
 
-    var layers;
+    function makeEsriLayer(key) {
+        var layer = L.esri.basemapLayer(key, options);
+        layer.on('load', function () {
+            // Otherwise basemap is behind plot layer (esri-leaflet 1.0.2, leaflet 0.7.3)
+            layer.setZIndex(BASE_LAYER_OPTION.zIndex);
+        });
+        return layer;
+    }
+
     if (config.instance.basemap.type === 'bing') {
         return {
             'Road': makeBingLayer('Road'),
             'Aerial': makeBingLayer('Aerial'),
             'Hybrid': makeBingLayer('AerialWithLabels')
         };
+    } else if (config.instance.basemap.type === 'esri') {
+        return {
+            'Streets': makeEsriLayer("Topographic"),
+            'Hybrid': L.layerGroup([
+                makeEsriLayer("Imagery"),
+                makeEsriLayer("ImageryTransportation")
+            ]),
+            'Satellite': makeEsriLayer("Imagery")
+        };
     } else if (config.instance.basemap.type === 'tms') {
-        layers = [L.tileLayer(config.instance.basemap.data, MAX_ZOOM_OPTION)];
+        return [L.tileLayer(config.instance.basemap.data, options)];
     } else {
-        return {'Streets': new L.Google('ROADMAP', MAX_ZOOM_OPTION),
-                'Hybrid': new L.Google('HYBRID', MAX_ZOOM_OPTION),
-                'Satellite': new L.Google('SATELLITE', MAX_ZOOM_OPTION)};
+        return {
+            'Streets': new L.Google('ROADMAP', options),
+            'Hybrid': new L.Google('HYBRID', options),
+            'Satellite': new L.Google('SATELLITE', options)
+        };
     }
-    return layers;
 }
 
 function deserializeZoomLatLngAndSetOnMap(mapManager, state) {

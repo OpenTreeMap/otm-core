@@ -149,8 +149,7 @@ class InstanceMobileSearch(OTMTestCase):
                 'label': 'Planting Site Choice',
                 'identifier': 'plot.udf:Choice',
                 'search_type': 'CHOICE',
-                'choices': [{'display_value': '', 'value': ''},
-                            {'display_value': 'a', 'value': 'a'},
+                'choices': [{'display_value': 'a', 'value': 'a'},
                             {'display_value': 'b', 'value': 'b'},
                             {'display_value': 'c', 'value': 'c'}]
             }
@@ -174,8 +173,7 @@ class InstanceMobileSearch(OTMTestCase):
                 'label': 'Tree MultiChoice',
                 'identifier': 'tree.udf:MultiChoice',
                 'search_type': 'MULTICHOICE',
-                'choices': [{'display_value': '', 'value': ''},
-                            {'display_value': 'a', 'value': 'a'},
+                'choices': [{'display_value': 'a', 'value': 'a'},
                             {'display_value': 'b', 'value': 'b'},
                             {'display_value': 'c', 'value': 'c'}]
             }

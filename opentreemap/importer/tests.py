@@ -293,26 +293,26 @@ class TreeValidationTest(TreeValidationTestBase):
 
     def test_otm_id(self):
         # silly invalid-int-errors should be caught
-        i = self.mkrow({'point x': '16',
-                        'point y': '20',
-                        'opentreemap plot id': '44b'})
+        i = self.mkrow({fields.trees.POINT_X: '16',
+                        fields.trees.POINT_Y: '20',
+                        fields.trees.OPENTREEMAP_PLOT_ID: '44b'})
         r = i.validate_row()
 
         self.assertFalse(r)
         self.assertHasError(i, errors.INT_ERROR, None)
 
-        i = self.mkrow({'point x': '25',
-                        'point y': '25',
-                        'opentreemap plot id': '-22'})
+        i = self.mkrow({fields.trees.POINT_X: '25',
+                        fields.trees.POINT_Y: '25',
+                        fields.trees.OPENTREEMAP_PLOT_ID: '-22'})
         r = i.validate_row()
 
         self.assertFalse(r)
         self.assertHasError(i, errors.POS_INT_ERROR)
 
         # With no plots in the system, all ids should fail
-        i = self.mkrow({'point x': '25',
-                        'point y': '25',
-                        'opentreemap plot id': '44'})
+        i = self.mkrow({fields.trees.POINT_X: '25',
+                        fields.trees.POINT_Y: '25',
+                        fields.trees.OPENTREEMAP_PLOT_ID: '44'})
         r = i.validate_row()
 
         self.assertFalse(r)
@@ -321,9 +321,9 @@ class TreeValidationTest(TreeValidationTestBase):
         p = mkPlot(self.instance, self.user)
 
         # With an existing plot it should be fine
-        i = self.mkrow({'point x': '25',
-                        'point y': '25',
-                        'opentreemap plot id': p.pk})
+        i = self.mkrow({fields.trees.POINT_Y: '25',
+                        fields.trees.POINT_X: '25',
+                        fields.trees.OPENTREEMAP_PLOT_ID: p.pk})
         r = i.validate_row()
 
         self.assertNotHasError(i, errors.INVALID_OTM_ID)
@@ -390,12 +390,12 @@ class TreeUdfValidationTest(TreeValidationTestBase):
 
         row = {'point x': '16',
                'point y': '20',
-               'plot: test date': '2015-12-08'}
+               'planting site: test date': '2015-12-08'}
         i = self.mkrow(row)
         i.validate_row()
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['plot: test date'] = '12/8/15'
+        row['planting site: test date'] = '12/8/15'
         i = self.mkrow(row)
         i.validate_row()
         self.assertHasError(i, errors.INVALID_UDF_VALUE,
@@ -412,14 +412,14 @@ class TreeUdfValidationTest(TreeValidationTestBase):
 
         row = {'point x': '16',
            'point y': '20',
-           'plot: test choice': 'a'}
+           'planting site: test choice': 'a'}
 
         i = self.mkrow(row)
         i.validate_row()
 
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['plot: test choice'] = 'z'
+        row['planting site: test choice'] = 'z'
 
         i = self.mkrow(row)
         i.validate_row()
@@ -439,27 +439,27 @@ class TreeUdfValidationTest(TreeValidationTestBase):
 
         row = {'point x': '16',
                'point y': '20',
-               'plot: test multichoice': '["a"]'}
+               'planting site: test multichoice': '["a"]'}
         i = self.mkrow(row)
         i.validate_row()
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['plot: test multichoice'] = '"a"'
+        row['planting site: test multichoice'] = '"a"'
         i = self.mkrow(row)
         i.validate_row()
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['plot: test multichoice'] = '["a","b"]'
+        row['planting site: test multichoice'] = '["a","b"]'
         i = self.mkrow(row)
         i.validate_row()
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['plot: test multichoice'] = None
+        row['planting site: test multichoice'] = None
         i = self.mkrow(row)
         i.validate_row()
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
 
-        row['plot: test multichoice'] = '[]'
+        row['planting site: test multichoice'] = '[]'
         i = self.mkrow(row)
         i.validate_row()
         self.assertNotHasError(i, errors.INVALID_UDF_VALUE)
@@ -468,13 +468,13 @@ class TreeUdfValidationTest(TreeValidationTestBase):
 
         # This is an error because the JSON parser requires that
         # strings be wrapped with double quotes.
-        row['plot: test multichoice'] = 'a'
+        row['planting site: test multichoice'] = 'a'
         i = self.mkrow(row)
         i.validate_row()
         self.assertHasError(i, errors.INVALID_UDF_VALUE,
                             data="[u'Test multichoice must be valid JSON']")
 
-        row['plot: test multichoice'] = '"a","b"'
+        row['planting site: test multichoice'] = '"a","b"'
         i = self.mkrow(row)
         i.validate_row()
         self.assertHasError(i, errors.INVALID_UDF_VALUE,
@@ -588,12 +588,12 @@ class SpeciesCommitTest(SpeciesValidationTest):
             'common name': 'the common name',
             'cultivar': 'the cultivar',
             'other part of name': 'the other',
-            'is native': 'True',
+            'native to region': 'True',
             'flowering period': 'summer',
             'fruit or nut period': 'fall',
             'fall conspicuous': 'True',
             'flower conspicuous': 'True',
-            'palatable human': 'True',
+            'edible': 'True',
             'has wildlife value': 'True',
             'fact sheet url': 'the fact sheet url',
             'plant guide url': 'the plant guide url',
@@ -627,7 +627,7 @@ class SpeciesCommitTest(SpeciesValidationTest):
             'genus': 'Prunus',
             'species': 'americana',
             'common name': 'American plum',
-            'is native': 'true'})
+            'native to region': 'true'})
         self.assertNotHasError(row, errors.MERGE_REQUIRED)
         species = Species.objects.filter(otm_code='PRAM')
         self.assertEqual(1, species.count())
@@ -797,7 +797,7 @@ class SpeciesStatusValidationTest(SpeciesValidationTest):
             "common name": "American plum",
             "genus": "Prunus",
             "species": "americana",
-            "is native": "Yes",
+            "native to region": "Yes",
         })
 
     def test_different_than_empty_and_non_empty_field(self):
@@ -805,7 +805,7 @@ class SpeciesStatusValidationTest(SpeciesValidationTest):
             "common name": "Not a tree at all",
             "genus": "Prunus",
             "species": "americana",
-            "is native": "Yes",
+            "native to region": "Yes",
         })
         differing_field_names = self.get_field_names_for_error(
             row, errors.MERGE_REQUIRED)
@@ -816,7 +816,7 @@ class SpeciesStatusValidationTest(SpeciesValidationTest):
             "common name": "American plum",
             "genus": "Prunus",
             "species": "americana",
-            "is native": "I am not a boolean value",
+            "native to region": "I am not a boolean value",
         })
 
 
@@ -1198,12 +1198,12 @@ class TreeIntegrationTests(IntegrationTests):
         string_too_long = 'a' * 256
 
         csv = """
-        | point x    | point y    | opentreemap plot id | date planted |
-        | 25.0000002 | 25.0000002 |                       | 2012-02-18   |
-        | 25.1000002 | 25.1000002 | 133                   |              |
-        | 25.1000002 | 25.1000002 | -3                    | 2023-FF-33   |
-        | 25.1000002 | 25.1000002 | bar                   | 2012-02-91   |
-        | 25.1000002 | 25.1000002 | %s                    |              |
+| point x    | point y    | planting site id | date planted |
+| 25.0000002 | 25.0000002 |                  | 2012-02-18   |
+| 25.1000002 | 25.1000002 | 133              |              |
+| 25.1000002 | 25.1000002 | -3               | 2023-FF-33   |
+| 25.1000002 | 25.1000002 | bar              | 2012-02-91   |
+| 25.1000002 | 25.1000002 | %s               |              |
         """ % (p1.pk)
 
         gflds = [fields.trees.POINT_X, fields.trees.POINT_Y]
@@ -1239,10 +1239,10 @@ class TreeIntegrationTests(IntegrationTests):
 
 
     def test_unit_changes(self):
-        csv = """
-        | point x | point y | tree height | canopy height | diameter | plot width | plot length |
-        | 45.53   | 31.1    | 10.0        | 11.0          | 12.0     | 13.0       | 14.0        |
-        """
+        csv = ("| point x | point y | tree height | canopy height | "
+               "diameter | planting site width | planting site length |\n"
+               "| 45.53   | 31.1    | 10.0        | 11.0          | "
+               "12.0     | 13.0                | 14.0                 |")
 
         r = self.create_csv_request(csv, name='some name')
         ieid = process_csv(r, self.instance, self.import_type(),
@@ -1342,8 +1342,8 @@ class TreeIntegrationTests(IntegrationTests):
         )
 
         csv = """
-        | point x | point y | tree: cuteness | plot: flatness |
-        | 26.00   | 26.00   | not much       | very           |
+        | point x | point y | tree: cuteness | planting site: flatness |
+        | 26.00   | 26.00   | not much       | very                    |
         """
 
         ieid = self.run_through_commit_views(csv)
@@ -1361,8 +1361,8 @@ class TreeIntegrationTests(IntegrationTests):
         # | 45.53   | 31.1    | 19.2       | 13          | false     |
         # """
         csv = """
-        | point x | point y | plot width | plot length |
-        | 45.53   | 31.1    | 19.2       | 13          |
+        | point x | point y | planting site width | planting site length |
+        | 45.53   | 31.1    | 19.2                | 13                   |
         """
 
         ieid = self.run_through_commit_views(csv)
@@ -1379,8 +1379,8 @@ class TreeIntegrationTests(IntegrationTests):
         # self.assertEqual(plot.readonly, False)
 
         csv = """
-        | point x | point y | external id number | opentreemap plot id |
-        | 45.53   | 31.1    | 443                | %s                  |
+        | point x | point y | owner original id  | planting site id |
+        | 45.53   | 31.1    | 443                | %s               |
         """ % plot.id
 
         ieid = self.run_through_commit_views(csv)
@@ -1394,8 +1394,8 @@ class TreeIntegrationTests(IntegrationTests):
         p1 = mkPlot(self.instance, self.user)
 
         csv = """
-        | point x | point y | opentreemap plot id |
-        | 45.53   | 31.1    | %s                    |
+        | point x | point y | planting site id |
+        | 45.53   | 31.1    | %s               |
         """ % p1.pk
 
         self.run_through_commit_views(csv)
@@ -1404,6 +1404,41 @@ class TreeIntegrationTests(IntegrationTests):
         p1_geom.transform(4326)
         self.assertEqual(int(p1_geom.x*100), 4553)
         self.assertEqual(int(p1_geom.y*100), 3109)
+
+    def test_swap_locations_using_otm_id(self):
+        center = self.instance.center
+        self.assertEqual(3857, center.srid)
+        p1 = mkPlot(self.instance, self.user,
+                    geom=Point(center.x, center.y, srid=center.srid))
+        p2 = mkPlot(self.instance, self.user,
+                    geom=Point(center.x + 100, center.y + 100, srid=center.srid))
+
+        csv_point_1 = p1.geom.clone()
+        csv_point_1.transform(4326)
+        csv_point_2 = p2.geom.clone()
+        csv_point_2.transform(4326)
+
+        new_values = {
+            'p1x': csv_point_2.x, 'p1y': csv_point_2.y, 'p1id': p1.pk,
+            'p2x': csv_point_1.x, 'p2y': csv_point_1.y, 'p2id': p2.pk
+        }
+
+        csv = """
+        | point x | point y | planting site id |
+        | %(p1x)s | %(p1y)s | %(p1id)s            |
+        | %(p2x)s | %(p2y)s | %(p2id)s            |
+        """ % new_values
+
+        self.run_through_commit_views(csv)
+
+        p1_new = Plot.objects.get(pk=p1.pk)
+        p2_new = Plot.objects.get(pk=p2.pk)
+
+        # Use assertAlmostEqual to avoid tiny floating point discrepancies
+        self.assertAlmostEqual(p1.geom.x, p2_new.geom.x)
+        self.assertAlmostEqual(p1.geom.y, p2_new.geom.y)
+        self.assertAlmostEqual(p2.geom.x, p1_new.geom.x)
+        self.assertAlmostEqual(p2.geom.y, p1_new.geom.y)
 
     def test_tree_present_works_as_expected(self):
         csv = """

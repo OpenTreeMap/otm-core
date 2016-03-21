@@ -27,6 +27,7 @@ class SpeciesImportEvent(GenericImportEvent):
     species information
     """
 
+    import_schema_version = 1  # Update if any column header name changes
     import_type = 'species'
 
     max_diameter_conversion_factor = models.FloatField(default=1.0)
@@ -38,8 +39,13 @@ class SpeciesImportEvent(GenericImportEvent):
     def __init__(self, *args, **kwargs):
         super(SpeciesImportEvent, self).__init__(*args, **kwargs)
         self.all_region_codes = all_itree_region_codes()
-        self.instance_region_codes = [itr.code for itr
-                                      in self.instance.itree_regions()]
+
+    @property
+    def instance_region_codes(self):
+        if getattr(self, '_instance_region_codes', None) is None:
+            self._instance_region_codes = [itr.code for itr
+                                           in self.instance.itree_regions()]
+        return self._instance_region_codes
 
     def row_set(self):
         return self.speciesimportrow_set
@@ -56,6 +62,10 @@ class SpeciesImportEvent(GenericImportEvent):
     def legal_and_required_fields(self):
         return (fields.species.ALL,
                 {fields.species.GENUS, fields.species.COMMON_NAME})
+
+    def legal_and_required_fields_title_case(self):
+        legal, required = self.legal_and_required_fields()
+        return fields.title_case(legal), fields.title_case(required)
 
 
 class SpeciesImportRow(GenericImportRow):
@@ -307,7 +317,6 @@ class SpeciesImportRow(GenericImportRow):
             self.status = SpeciesImportRow.VERIFIED
 
         self.save()
-        self.import_event.update_progress_timestamp_and_save()
         return not fatal
 
     def _prepare_merge_data(self):
@@ -414,5 +423,4 @@ class SpeciesImportRow(GenericImportRow):
 
         self.species = species
         self.status = SpeciesImportRow.SUCCESS
-        self.import_event.update_progress_timestamp_and_save()
         self.save()

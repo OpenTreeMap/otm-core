@@ -32,6 +32,8 @@ class GenericImportEvent(models.Model):
     CANCELED = 8
     VERIFICATION_ERROR = 10
 
+    schema_version = models.IntegerField(null=True, blank=True)
+
     # Original Name of the file
     file_name = models.CharField(max_length=255)
 
@@ -53,6 +55,12 @@ class GenericImportEvent(models.Model):
 
     # The id of a running verification task.  Used for canceling imports
     task_id = models.CharField(max_length=50, default='', blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            # Record current import schema version (defined in subclass)
+            self.schema_version = self.import_schema_version
+        super(GenericImportEvent, self).save(*args, **kwargs)
 
     @property
     def row_count(self):
@@ -94,6 +102,7 @@ class GenericImportEvent(models.Model):
 
     def can_export(self):
         return (not self.is_running()
+                and self.has_current_schema_version()
                 and self.status != self.FAILED_FILE_VERIFICATION
                 and self.status != self.VERIFICATION_ERROR)
 
@@ -101,9 +110,12 @@ class GenericImportEvent(models.Model):
         return self.status == self.LOADING or self.status == self.VERIFIYING
 
     def can_add_to_map(self):
-        return (
+        return self.has_current_schema_version() and (
             self.status == self.FINISHED_VERIFICATION or
             self.status == self.FINISHED_CREATING)
+
+    def has_current_schema_version(self):
+        return self.schema_version == self.import_schema_version
 
     def completed_row_summary(self):
         waiting = self.row_set().filter(status=GenericImportRow.WAITING)
@@ -159,6 +171,9 @@ class GenericImportEvent(models.Model):
         return self.row_set().order_by('idx').all()
 
     def legal_and_required_fields(self):
+        raise Exception('Abstract Method')
+
+    def legal_and_required_fields_title_case(self):
         raise Exception('Abstract Method')
 
     def validate_field_names(self, input_fields):
@@ -418,10 +433,9 @@ class GenericImportRow(models.Model):
             if value:
                 try:
                     datep = datetime.strptime(value, '%Y-%m-%d')
-                    self.cleaned[self.model_fields.DATE_PLANTED] = datep
+                    self.cleaned[field] = datep
                 except ValueError:
-                    self.append_error(errors.INVALID_DATE,
-                                      self.model_fields.DATE_PLANTED)
+                    self.append_error(errors.INVALID_DATE, field)
                     has_errors = True
 
         return has_errors
