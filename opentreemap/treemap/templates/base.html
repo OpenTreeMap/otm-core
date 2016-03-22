@@ -161,6 +161,9 @@
       {% block content %}
       {% endblock content %}
 
+      {% block endbody %}
+      {% endblock endbody %}
+
     </div>
 
     <footer>{% block footer %}{% endblock footer %}</footer>
@@ -196,9 +199,6 @@
       </ul>
     </script>
     {% endverbatim %}
-
-    {% block endbody %}
-    {% endblock endbody %}
 
     {% block scripts %}
     {% endblock scripts %}
