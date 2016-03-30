@@ -60,27 +60,28 @@ def _find_similar_species(target, instance):
 
 
 def start_import(request, instance):
+    if not getattr(request, 'FILES'):
+        return HttpResponseBadRequest("No attachment received")
+
     import_type = request.REQUEST['type']
     if import_type == TreeImportEvent.import_type:
         table = TABLE_ACTIVE_TREES
-        factors = {'plot_length_conversion_factor': 'unit_plot_length',
-                   'plot_width_conversion_factor': 'unit_plot_width',
-                   'diameter_conversion_factor': 'unit_diameter',
-                   'tree_height_conversion_factor': 'unit_tree_height',
-                   'canopy_height_conversion_factor': 'unit_canopy_height'}
-        kwargs = {k: float(request.REQUEST.get(v, 1.0))
-                  for (k, v) in factors.items()}
+        factors = {
+            'diameter_conversion_factor': ('tree', 'diameter'),
+            'tree_height_conversion_factor': ('tree', 'height'),
+            'canopy_height_conversion_factor': ('tree', 'canopy_height'),
+            'plot_length_conversion_factor': ('plot', 'length'),
+            'plot_width_conversion_factor': ('plot', 'width'),
+        }
     else:
         table = TABLE_ACTIVE_SPECIES
-        kwargs = {
-            'max_diameter_conversion_factor':
-            storage_to_instance_units_factor(instance, 'tree', 'diameter'),
-            'max_tree_height_conversion_factor':
-            storage_to_instance_units_factor(instance, 'tree', 'height')
+        factors = {
+            'max_diameter_conversion_factor': ('tree', 'diameter'),
+            'max_tree_height_conversion_factor': ('tree', 'height'),
         }
 
-    if not getattr(request, 'FILES'):
-        return HttpResponseBadRequest("No attachment received")
+    kwargs = {k: 1 / storage_to_instance_units_factor(instance, v[0], v[1])
+              for (k, v) in factors.items()}
 
     process_csv(request, instance, import_type, **kwargs)
 

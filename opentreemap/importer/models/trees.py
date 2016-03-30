@@ -13,6 +13,7 @@ from django.db import transaction
 
 from treemap.models import Species, Plot, Tree, MapFeature
 from treemap.lib.object_caches import udf_defs
+from treemap.units import storage_to_instance_units_factor
 
 from importer.models.base import GenericImportRow, GenericImportEvent
 from importer import fields
@@ -332,10 +333,15 @@ class TreeImportRow(GenericImportRow):
         else:
             return True
 
-    def validate_species_max(self, field, max_val, err):
+    def validate_species_max(self, field, value_name, max_val, err):
         inputval = self.cleaned.get(field, None)
-        if inputval:
-            if max_val and inputval > max_val:
+        if inputval and max_val:
+            # inputval is in instance units but max_val is in storage units.
+            # Convert max_val to instance units before comparing.
+            factor = storage_to_instance_units_factor(
+                self.import_event.instance, 'tree', value_name)
+            max_val *= factor
+            if inputval > max_val:
                 self.append_error(err, field, max_val)
                 return False
 
@@ -343,12 +349,12 @@ class TreeImportRow(GenericImportRow):
 
     def validate_species_dbh_max(self, species):
         return self.validate_species_max(
-            fields.trees.DIAMETER,
+            fields.trees.DIAMETER, 'diameter',
             species.max_diameter, errors.SPECIES_DBH_TOO_HIGH)
 
     def validate_species_height_max(self, species):
         return self.validate_species_max(
-            fields.trees.TREE_HEIGHT,
+            fields.trees.TREE_HEIGHT, 'height',
             species.max_height, errors.SPECIES_HEIGHT_TOO_HIGH)
 
     def validate_species(self):

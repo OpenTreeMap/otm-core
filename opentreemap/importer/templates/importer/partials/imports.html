@@ -17,18 +17,18 @@
                   <div class="input-group">
                     {% trans "CSV to Upload:" %} <input type="file" name="file" accept="text/csv,.csv">
                   </div><!-- /input-group -->
-                  <div id="importer-tree-units" style="display: none;">
+                  <div id="importer-tree-units" style="display: none; padding-top:10px">
                     {% with u=importer_instance_units %}
                     {% with pl=u.plot_length pw=u.plot_width td=u.tree_diameter th=u.tree_height tch=u.tree_canopy_height %}
                     {% blocktrans %}
                     <h5>Unit Warning</h5>
                     <p>The following units are used for your tree map.</p>
                     <p>Please ensure that your file contains measurements of the same unit.</p>
-                    <p>Plot Length: {{ pl }}</p>
-                    <p>Plot Width: {{ pw }}</p>
                     <p>Tree Diameter: {{ td }}</p>
                     <p>Tree Height: {{ th }}</p>
                     <p>Tree Canopy Height: {{ tch }}</p>
+                    <p>Planting Site Length: {{ pl }}</p>
+                    <p>Planting Site Width: {{ pw }}</p>
                     {% endblocktrans %}
                     {% endwith %}
                     {% endwith %}
