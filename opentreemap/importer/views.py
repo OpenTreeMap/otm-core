@@ -378,8 +378,7 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
     if is_species and status == GenericImportRow.VERIFIED:
         query = query.filter(merged=True)
 
-    field_names_original = [f for f
-                            in json.loads(ie.field_order)
+    field_names_original = [f.strip() for f in json.loads(ie.field_order)
                             if f != 'ignore']
     field_names = [f.lower() for f in field_names_original]
 

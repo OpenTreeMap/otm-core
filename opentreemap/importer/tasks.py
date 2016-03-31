@@ -22,7 +22,7 @@ def _create_rows_for_event(ie, csv_file):
     # so we can show progress. Caller does manual cleanup if necessary.
     reader = utf8_file_to_csv_dictreader(csv_file)
 
-    field_names = reader.fieldnames
+    field_names = [f.strip() for f in reader.fieldnames]
     ie.field_order = json.dumps(field_names)
     ie.save()
 
