@@ -18,7 +18,7 @@ value="{{ field.value }}"
 {% block extra_save_classes %}resolver-popover-accept{% endblock extra_save_classes %}
 
 {% block extra_save_attributes %}
-data-url="{% url 'importer:update_row' instance_url_name=request.instance.url_name import_type=panel.import_type row_id=field.row_id %}"
+data-url="{% url 'importer:update_row' instance_url_name=request.instance.url_name import_type=panel.import_type row_id=field.row_id %}{{ panel.panel_and_page }}"
 data-field-name="{{ field.name }}"
 {% endblock extra_save_attributes %}
 
