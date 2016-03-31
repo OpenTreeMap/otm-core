@@ -6,6 +6,30 @@ You can quickly set up a [Vagrant](https://www.vagrantup.com/)-based development
 cloning the [otm-vagrant](https://github.com/opentreemap/otm2-vagrant)
 repository.
 
+## Finding Issues To Work On
+
+We use Github Issues to track all the work we do on OpenTreeMap and we use
+labels to help organize and prioritize our efforts. The
+[contributing](https://github.com/issues?utf8=%E2%9C%93&q=user%3AOpenTreeMap+is%3Aissue+is%3Aopen+label%3Acontributing)
+label is a good place to start. The OpenTreeMap core team assigns this label
+to issues that we identify as good candidates for new new contributors.
+
+| Label  | What It Means |
+| ------------- | ------------- |
+| contributing | The issue describes a bug or enhancement that the OpenTreeMap team has identified as a good candidate for new new contributors. |
+| bug | The issue describes a defect. The application does not behave as expected. |
+| enhancement  | The issue describes a new feature, or an improvement to an existing feature.  |
+| high, medium, low | These are mutually exclusive labels that identify the priority of the issue set by the OpenTreeMap core team. |
+| blocked | A problem or dependency is preventing the issue from being worked on. |
+| question | More discussion is needed before the issue can be worked on. |
+| design | The issue primarily involves user interface or interaction changes. |
+| production | The issue describes a problem encountered on opentreemap.org |
+| customer | The issue was reported by an OpenTreeMap customer. |
+| +, queue, in progress, in review, tested on staging, otm release | These labels are used by the OpenTreeMap core team for work tracking. |
+
+Members of the OpenTreeMap core team assign issues to themselves when they
+start working on them. Avoid working on issues that are already assigned.
+
 ## Django and Python style
 
 ### Indentation
