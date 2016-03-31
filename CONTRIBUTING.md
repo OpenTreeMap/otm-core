@@ -14,25 +14,31 @@ Four spaces. No tabs, please.
 
 ### Linting
 
-We run all our our Python code (excluding migrations and settings)
+We run all of our Python code (excluding migrations and settings)
 through [flake8](https://flake8.readthedocs.org/en/2.2.3/). If you are
-using the vagrant-based development setup, there is a
-[fabric](http://www.fabfile.org/) task that will run flake8 with the
-correct settings.
+using the vagrant-based development setup, you can use this command to
+run flake8:
 
 ```
-fab vagrant check
+vagrant ssh -c 'cd /vagrant/otm-core/opentreemap; flake8 --exclude migrations,opentreemap/settings/local_settings.py *'
 ```
+
+To avoid build failures make sure to run this command against
+your changes before opening a pull request.
 
 ### Testing
 
 We try to unit test as much of our code as possible.
-If you are using the vagrant-based development setup, there is a task that will run the unit test suite.
-Please run the unit tests before submitting a pull request if you modify Python code,
+If you are using the vagrant-based development setup, this command
+will run the test suite:
 
 ```
-fab vagrant test
+vagrant ssh -c 'cd /vagrant/otm-core/opentreemap && ./manage.py test --noinput'
 ```
+
+To avoid build failures please run the unit tests before submitting a
+pull request if you modify Python code.
+
 
 ### View Functions
 
@@ -59,11 +65,11 @@ Four spaces. No tabs, please.
 
 We use [browserify](http://browserify.org/) to compile nodejs-style
 modules for use in the browser. If you are using the vagrant-based
-development environment there is a fabric task that will compile a
-Javascript bundle and collect all the static Django assets
+development environment running this command will compile a Javascript
+bundle and collect all the static Django assets
 
 ```
-fab vagrant static:dev_mode=True
+vagrant ssh -c 'cd /vagrant/otm-core/; ./node_modules/.bin/grunt --dev'
 ```
 
 ### Bacon.js
@@ -73,6 +79,20 @@ browser. Please reference the existing modules in the
 [src](https://github.com/OpenTreeMap/otm-core/tree/master/opentreemap/treemap/js/src)
 directory for examples of how we use stream processing rather than
 directly attaching callbacks to DOM events.
+
+### Linting
+
+We run all of our Javascript code through
+[jshint](http://jshint.com/). If you are using the vagrant-based
+development setup, you can use this command to run jshint:
+
+```
+vagrant ssh -c 'cd /vagrant/otm-core && npm run check'
+```
+
+To avoid build failures make sure to run this command against
+your changes before opening a pull request if you have added or
+modified any Javascript code.
 
 ### Testing
 
@@ -93,4 +113,3 @@ This section addresses the question of where code should live.
 ### Permissions
 
 Because of the complicated relationship of models associated with permission checking, permissions are centralized in a module, `treemap/lib/perms.py`, instead of added as methods to a class. Functions that check permissions should be written to accept a number of related types or type combinations and stored in this module. The private functions in this module should be responsible for walking the necessary relationships in order to check the permission properly.
-
