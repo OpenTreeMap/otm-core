@@ -548,11 +548,11 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     instance = models.ForeignKey(Instance)
     geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
 
-    address_street = models.CharField(max_length=255, blank=True, null=True,
+    address_street = models.CharField(max_length=255, blank=True,
                                       verbose_name=_("Address"))
-    address_city = models.CharField(max_length=255, blank=True, null=True,
+    address_city = models.CharField(max_length=255, blank=True,
                                     verbose_name=_("City"))
-    address_zip = models.CharField(max_length=30, blank=True, null=True,
+    address_zip = models.CharField(max_length=30, blank=True,
                                    verbose_name=_("Postal Code"))
 
     readonly = models.BooleanField(default=False)
