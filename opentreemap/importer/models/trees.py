@@ -299,11 +299,6 @@ class TreeImportRow(GenericImportRow):
         if oid is not None:
             return True
 
-        plot_ids_from_this_import = TreeImportRow.objects\
-            .filter(import_event=self.import_event)\
-            .filter(plot__isnull=False)\
-            .values_list('plot__pk', flat=True)
-
         offset = 3.048  # 10ft in meters
         nearby_bbox = Polygon(((point.x - offset, point.y - offset),
                                (point.x - offset, point.y + offset),
@@ -316,8 +311,7 @@ class TreeImportRow(GenericImportRow):
         nearby = MapFeature.objects\
                            .filter(instance=self.import_event.instance)\
                            .filter(feature_type='Plot')\
-                           .filter(geom__intersects=nearby_bbox)\
-                           .exclude(pk__in=plot_ids_from_this_import)\
+                           .filter(geom__intersects=nearby_bbox)
 
         nearby = nearby.distance(point).order_by('distance')[:5]
 
