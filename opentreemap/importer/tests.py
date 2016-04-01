@@ -168,23 +168,40 @@ class TreeValidationTest(TreeValidationTestBase):
 
         i = self.mkrow(row)
         i.validate_row()
-
-        self.assertHasError(i, errors.SPECIES_DBH_TOO_HIGH)
-        self.assertNotHasError(i, errors.SPECIES_HEIGHT_TOO_HIGH)
+        self.assertHasError(i, errors.SPECIES_DBH_TOO_HIGH)  # 15 > 12
+        self.assertNotHasError(i, errors.SPECIES_HEIGHT_TOO_HIGH)  # 18 < 22
 
         row['tree height'] = 25
         i = self.mkrow(row)
         i.validate_row()
-
-        self.assertHasError(i, errors.SPECIES_DBH_TOO_HIGH)
-        self.assertHasError(i, errors.SPECIES_HEIGHT_TOO_HIGH)
+        self.assertHasError(i, errors.SPECIES_HEIGHT_TOO_HIGH)  # 25 > 22
 
         row['cultivar'] = 'c1'
         i = self.mkrow(row)
         i.validate_row()
+        self.assertNotHasError(i, errors.SPECIES_DBH_TOO_HIGH)  # 15 < 19
+        self.assertNotHasError(i, errors.SPECIES_HEIGHT_TOO_HIGH)  # 25 < 30
 
-        self.assertNotHasError(i, errors.SPECIES_DBH_TOO_HIGH)
-        self.assertNotHasError(i, errors.SPECIES_HEIGHT_TOO_HIGH)
+        # Make sure comparisons work when instance has non-default units
+        set_attr_on_json_field(
+            self.instance, 'config.value_display.tree.diameter.units', 'cm')
+        set_attr_on_json_field(
+            self.instance, 'config.value_display.tree.height.units', 'm')
+        self.instance.save()
+
+        row['diameter'] = 38  # cm, about 15 in
+        row['tree height'] = 5.5  # m, about 25 ft
+        i = self.mkrow(row)
+        i.validate_row()
+        self.assertNotHasError(i, errors.SPECIES_DBH_TOO_HIGH)  # 15 < 19
+        self.assertNotHasError(i, errors.SPECIES_HEIGHT_TOO_HIGH)  # 25 < 30
+
+        row['cultivar'] = ''
+        i = self.mkrow(row)
+        i.validate_row()
+        self.assertHasError(i, errors.SPECIES_DBH_TOO_HIGH)  # 15 > 12
+        self.assertNotHasError(i, errors.SPECIES_HEIGHT_TOO_HIGH)  # 25 < 30
+
 
     def test_proximity(self):
         p1 = mkPlot(self.instance, self.user,
@@ -1007,8 +1024,10 @@ class SpeciesIntegrationTests(IntegrationTests):
         ie = SpeciesImportEvent.objects.get(pk=ieid)
         species = ie.speciesimportrow_set.all()[0].species
 
-        self.assertEqual(species.max_diameter, 254)  # 100 in = 254 cm
-        self.assertEqual(species.max_height, 30)  # 100 ft = 30.48 m (rounded)
+        cm_to_in = 1 / 2.54
+        self.assertEqual(species.max_diameter, int(100 * cm_to_in))
+        m_to_ft = 1 / .0254 / 12
+        self.assertEqual(species.max_height, int(100 * m_to_ft))
 
 
 class SpeciesExportTests(TestCase):
@@ -1052,7 +1071,8 @@ class TreeIntegrationTests(IntegrationTests):
             geom=MultiPolygon(square))
         self.instance.save()
 
-        settings.DBH_TO_INCHES_FACTOR = 1.0
+    def assertAlmostEqual(self, a, b):
+        self.assertTrue(abs(a - b) < 1e-5, '%s != %s' % (a, b))
 
     def import_type(self):
         return 'tree'
@@ -1244,28 +1264,32 @@ class TreeIntegrationTests(IntegrationTests):
                "| 45.53   | 31.1    | 10.0        | 11.0          | "
                "12.0     | 13.0                | 14.0                 |")
 
-        r = self.create_csv_request(csv, name='some name')
-        ieid = process_csv(r, self.instance, self.import_type(),
-                           plot_length_conversion_factor=1.5,
-                           plot_width_conversion_factor=2.5,
-                           diameter_conversion_factor=3.5,
-                           tree_height_conversion_factor=4.5,
-                           canopy_height_conversion_factor=5.5)
+        set_attr_on_json_field(
+            self.instance, 'config.value_display.tree.diameter.units', 'cm')
+        set_attr_on_json_field(
+            self.instance, 'config.value_display.tree.height.units', 'm')
+        set_attr_on_json_field(
+            self.instance, 'config.value_display.tree.canopy_height.units', 'm')
+        set_attr_on_json_field(
+            self.instance, 'config.value_display.plot.length.units', 'm')
+        set_attr_on_json_field(
+            self.instance, 'config.value_display.plot.width.units', 'm')
+        self.instance.save()
 
-        req = HttpRequest()
-        req.user = self.user
-        login(self.client, self.user.username)
-
-        commit(req, self.instance, self.import_type(), ieid)
-
+        ieid = self.run_through_commit_views(csv)
         ie = TreeImportEvent.objects.get(pk=ieid)
         plot = ie.treeimportrow_set.all()[0].plot
+        tree = plot.current_tree()
 
-        self.assertEqual(plot.width, 13.0*2.5)
-        self.assertEqual(plot.length, 14.0*1.5)
-        self.assertEqual(plot.current_tree().diameter, 3.5*12.0)
-        self.assertEqual(plot.current_tree().height, 10.0 * 4.5)
-        self.assertEqual(plot.current_tree().canopy_height, 11.0 * 5.5)
+        cm_to_in = 1 / 2.54
+        m_to_in = 1 / .0254
+        m_to_ft = m_to_in / 12
+
+        self.assertAlmostEqual(plot.width, 13.0 * m_to_in)
+        self.assertAlmostEqual(plot.length, 14.0 * m_to_in)
+        self.assertAlmostEqual(tree.diameter, 12.0 * cm_to_in)
+        self.assertAlmostEqual(tree.height, 10.0 * m_to_ft)
+        self.assertAlmostEqual(tree.canopy_height, 11.0 * m_to_ft)
 
     def test_all_tree_data(self):
         s1_gsc = Species(instance=self.instance, genus='g1', species='s1',
