@@ -58,27 +58,6 @@
             }
         }
 
-        .field-group.disabled {
-
-            label, input, select, textarea, span {
-                pointer-events: none;
-                opacity: 0.4;
-            }
-
-            .search-fields-title {
-                display: none;
-            }
-        }
-
-        .field-group-message {
-            display: none;
-            font-weight: 600;
-            font-style: italic;
-            margin-bottom: 10px;
-            font-size: 1.3rem;
-            min-width: 300px;
-        }
-
         form {
             margin: 0 0 10px;
         }
@@ -104,8 +83,8 @@
             min-width: 350px;
         }
 
-        > span, 
-        > label, 
+        > span,
+        > label,
         > input {
             display: inline-block;
             float: none;
@@ -138,7 +117,7 @@
                 }
             }
         }
-        select, 
+        select,
         input.udfc-selector {
             background: $primary-color;
             padding: 8px 33px 3px 15px;
@@ -170,7 +149,7 @@
                 }
             }
         }
-        
+
         input.udfc-selector {
             width: 110px;
         }
@@ -252,6 +231,41 @@
     }
 }
 
+.field-group.disabled,
+.search-field-wrapper.disabled {
+    label, input, select, textarea, span {
+        pointer-events: none;
+        opacity: 0.5;
+    }
+    &.field-group {
+        .search-fields-title {
+            display: none;
+        }
+    }
+    .form-group + .field-disabled-message {
+        margin-top: -15px;
+        margin-left: 28px;
+    }
+    .search-range + .field-disabled-message {
+        margin-top: -15px;
+    }
+}
+
+.field-group-message {
+    display: none;
+    font-weight: 600;
+    font-style: italic;
+    margin-bottom: 10px;
+    font-size: 1.3rem;
+    min-width: 300px;
+}
+
+.search-block-wrapper .field-group-message {
+    color: #799397;
+    font-size: 1.2rem;
+    font-weight: 400;
+}
+
 .advanced-search {
 
     .dropdown {
@@ -261,7 +275,7 @@
     > .dropdown:first-child {
         border-right: 1px solid $primary-color;
     }
-    
+
 
     // Dropdown Toggles
     .dropdown-toggle {
@@ -332,7 +346,7 @@
                 width: 45%;
             }
         }
-        
+
         > span {
             float: left;
             margin: 6px 0;
@@ -369,7 +383,6 @@
         display: block;
     }
 }
-
 
 #search-fields-Tree {
     min-width: 340px;

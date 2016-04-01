@@ -1,6 +1,7 @@
 {% load l10n %}
 {% load i18n %}
 {% if field.is_visible %}
+<div class="search-field-wrapper">
     {% if field.search_type == 'RANGE' %}
         <div class="search-range clearfix">
             <label>{{ field.label }}</label>
@@ -30,4 +31,8 @@
             {% endif %}
         </div>
     {% endif %}
+    <div class="field-group-message field-disabled-message">
+        {% trans "Disabled while other searches for this field are active" %}
+    </div>
+</div>
 {% endif %}

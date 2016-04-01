@@ -32,9 +32,16 @@ var dom = {
     categoryDisplayToggle: '.advanced-search #adv-search-category-display',
     categoryContent: '.advanced-search .dropdown-menu',
     fieldGroup: '.field-group',
-    fieldsDisabledMessage: '.fields-disabled-message',
+    fieldGroupDisabledMessage: '.fields-disabled-message',
+    fieldDisabledMessage: '.field-disabled-message',
+    speciesDisabledMessage: '#species-disabled',
     datePickerTextBox: '[data-date-format]',
-    datePicker: '.datepicker'
+    datePicker: '.datepicker',
+    searchFields: '[data-search-type]',
+    searchFieldContainer: '.search-field-wrapper',
+    speciesSearchTypeahead: '#species-typeahead',
+    speciesSearchToggle: '#species-toggle',
+    speciesSearchContainer: '#species-search-wrapper'
 };
 
 // Placed onto the jquery object
@@ -123,6 +130,12 @@ function initSearchUi(config, searchStream) {
             updateDisabledFieldGroups(Search.buildSearch());
         });
 
+    // Enable/disable fields when values change
+    $(dom.searchFields).add(dom.speciesSearchTypeahead)
+        .on('change typeahead:select', function () {
+            updateDisabledFields(Search.buildSearch());
+        });
+
     // Update UI when search executed
     searchStream.onValue(function () {
         // Close open categories (in case search was triggered by hitting "enter")
@@ -147,6 +160,7 @@ function initSearchUi(config, searchStream) {
 function updateUi(search) {
     updateActiveSearchIndicators(search);
     updateDisabledFieldGroups(search);
+    updateDisabledFields(search);
 }
 
 function updateActiveSearchIndicators(search) {
@@ -224,16 +238,61 @@ function updateDisabledFieldGroups(search) {
             _(fieldGroupsToEnable).pull('EmptyPlot').push('Plot');
         }
         $(dom.fieldGroup).addClass('disabled');
-        $(dom.fieldsDisabledMessage).show();
+        $(dom.fieldGroupDisabledMessage).show();
         _.each(fieldGroupsToEnable, function (featureName) {
             var $group = $('#search-fields-' + featureName);
             $group.removeClass('disabled');
-            $group.find(dom.fieldsDisabledMessage).hide();
+            $group.find(dom.fieldGroupDisabledMessage).hide();
         });
     } else {
         $(dom.fieldGroup).removeClass('disabled');
-        $(dom.fieldsDisabledMessage).hide();
+        $(dom.fieldGroupDisabledMessage).hide();
     }
+}
+
+function updateDisabledFields(search) {
+    var minMax = ['MIN', 'MAX'];
+
+    // First enable all search fields
+    $(dom.searchFields).prop('disabled', false);
+    $(dom.fieldDisabledMessage).hide();
+    $(dom.searchFieldContainer).removeClass('disabled');
+    updateDisabledSpeciesFields(false);
+
+    // Then disable all fields which are not filled in but which have the same
+    // key as another filled in field
+    _.each(search.filter, function(predicate, field) {
+        var searchTypes = _.keys(predicate),
+            minOrMax = _.contains(searchTypes, 'MIN') || _.contains(searchTypes, 'MAX');
+        $(dom.searchFields).filter('[name="' + field + '"]').each(function(i, elem) {
+            var $elem = $(elem),
+                searchType = $elem.attr('data-search-type');
+
+            // Min/Max fields don't affect other min/Max fields
+            if (minOrMax && _.contains(['MIN', 'MAX'], searchType)) {
+                return;
+            }
+
+            if (($elem.is(':checkbox') && !$elem.is(':checked')) || $elem.val().length === 0) {
+                $elem.prop('disabled', true);
+
+                if (field === 'species.id' && searchType === 'IS') {
+                    updateDisabledSpeciesFields(true);
+                } else {
+                    $elem.closest(dom.searchFieldContainer)
+                        .addClass('disabled')
+                        .find(dom.fieldDisabledMessage).show();
+                }
+            }
+        });
+    });
+}
+
+function updateDisabledSpeciesFields(disabled) {
+    $(dom.speciesSearchTypeahead).prop('disabled', disabled);
+    $(dom.speciesSearchToggle).prop('disabled', disabled);
+    $(dom.speciesSearchContainer).toggleClass('disabled', disabled);
+    $(dom.speciesDisabledMessage).toggle(disabled);
 }
 
 module.exports = exports = {

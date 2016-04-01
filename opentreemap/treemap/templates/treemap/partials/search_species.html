@@ -3,15 +3,21 @@
 
 <!--Species Search-->
 <div class="search-block visible-md visible-lg">
-  <label>{% trans "Search by Species" %}</label>
-  <div class="search-field-group">
-    <a class="typeahead-toggle" id="species-toggle"><i class="icon-menu"></i></a>
-    <input type="text"
-           data-class="search"
-           id="species-typeahead"
-           class="form-control"
-           placeholder="Common or Scientific Name"
-           data-thumbprint="{{ request|species_thumbprint }}"/>
-    <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
-  </div>
+    <div id="species-search-wrapper" class="search-field-wrapper">
+        <label>{% trans "Search by Species" %}</label>
+        <div class="search-field-group">
+            <button class="typeahead-toggle" id="species-toggle"><i class="icon-menu"></i></button>
+            <input type="text"
+                   data-class="search"
+                   id="species-typeahead"
+                   class="form-control"
+                   placeholder="Common or Scientific Name"
+                   data-thumbprint="{{ request|species_thumbprint }}"/>
+            <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
+        </div>
+    </div>
+    <div id="species-disabled" class="field-group-message" style="display: none">
+        {% trans "Disabled while missing species search is active" %}
+    </div>
+
 </div>
