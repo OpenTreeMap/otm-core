@@ -470,7 +470,8 @@ class SearchNode(CreateNode):
             # JSON) using a LIKE query. Add quotes around the choice values
             # so e.g. a search for "car" will match "car" but not "carp".
             for choice in field['choices']:
-                choice['value'] = '"%s"' % choice['value']
+                if choice['value']:
+                    choice['value'] = '"%s"' % choice['value']
 
         return field
 

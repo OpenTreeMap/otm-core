@@ -1,6 +1,7 @@
 {% load l10n %}
 {% load i18n %}
 {% if field.is_visible %}
+<div class="search-field-wrapper">
     {% if field.search_type == 'RANGE' %}
         <div class="search-range clearfix">
             <label>{{ field.label }}</label>
@@ -8,9 +9,9 @@
                 {% include "treemap/field/inputs.html" %}
             {% endwith %}
             <span class="hidden-xs">
-        {# Translators: This is in-between two date boxes for a range search #}
-        {% trans "through" %}
-      </span>
+                {# Translators: This is in-between two date boxes for a range search #}
+                {% trans "through" %}
+            </span>
             <span class="visible-xs-inline">-</span>
             {% with 'data-class=search data-search-type=MAX id=max'|add:field.id as extra %}
                 {% include "treemap/field/inputs.html" %}
@@ -30,4 +31,15 @@
             {% endif %}
         </div>
     {% endif %}
+
+    {% if field.search_type == 'ISNULL' %}
+        <div class="field-group-message field-disabled-message field-checkbox-message">
+            {% trans "Disabled while a search for this field is active" %}
+        </div>
+    {% else %}
+        <div class="field-group-message field-disabled-message">
+            {% trans "Disabled while a missing search for this field is active." %}
+        </div>
+    {% endif %}
+</div>
 {% endif %}
