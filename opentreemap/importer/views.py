@@ -14,7 +14,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
-from django.core.paginator import Paginator, Page
+from django.core.paginator import Paginator, Page, EmptyPage
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.utils.translation import ugettext as _
@@ -277,7 +277,6 @@ def update_row(request, instance, import_type, row_id):
     panel_name = request.GET.get('panel', 'verified')
     page_number = int(request.GET.get('page', '1'))
     context = _get_status_panels(ie, instance, panel_name, page_number)
-    context['active_panel_name'] = 'error'
     return context
 
 
@@ -394,13 +393,20 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
             return RowPage(*args, **kwargs)
 
     row_pages = RowPaginator(query, PAGE_SIZE)
-    row_page = row_pages.page(page_number)
+
+    try:
+        row_page = row_pages.page(page_number)
+    except EmptyPage:
+        # If the page number is out of bounds, return the last page
+        row_page = row_pages.page(row_pages.num_pages)
 
     paging_url = reverse('importer:status',
                          kwargs={'instance_url_name': instance.url_name,
                                  'import_type': ie.import_type,
                                  'import_event_id': ie.pk})
-    paging_url += "?panel=%s" % panel_spec['name']
+    panel_query = "?panel=%s" % panel_spec['name']
+    paging_url += panel_query
+    panel_and_page = panel_query + "&page=%s" % page_number
 
     return {
         'name': panel_spec['name'],
@@ -410,7 +416,8 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
         'rows': row_page,
         'paging_url': paging_url,
         'import_event_id': ie.pk,
-        'import_type': ie.import_type
+        'import_type': ie.import_type,
+        'panel_and_page': panel_and_page
     }
 
 
