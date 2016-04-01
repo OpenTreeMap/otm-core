@@ -268,12 +268,12 @@ function updateDisabledFields(search) {
             var $elem = $(elem),
                 searchType = $elem.attr('data-search-type');
 
-            // Min/Max fields don't affect other min/Max fields
+            // Min/Max fields shouldn't disable their corresponding Max/Min field
             if (minOrMax && _.contains(['MIN', 'MAX'], searchType)) {
                 return;
             }
 
-            if (($elem.is(':checkbox') && !$elem.is(':checked')) || $elem.val().length === 0) {
+            if (($elem.is(':checkbox') && !$elem.is(':checked')) || $elem.val() === null || $elem.val().length === 0) {
                 $elem.prop('disabled', true);
 
                 if (field === 'species.id' && searchType === 'IS') {

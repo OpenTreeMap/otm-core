@@ -242,12 +242,11 @@
             display: none;
         }
     }
-    .form-group + .field-disabled-message {
+    .field-disabled-message {
         margin-top: -15px;
-        margin-left: 28px;
-    }
-    .search-range + .field-disabled-message {
-        margin-top: -15px;
+        &.field-checkbox-message {
+            margin-left: 28px;
+        }
     }
 }
 
