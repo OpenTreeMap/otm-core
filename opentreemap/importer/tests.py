@@ -1060,15 +1060,10 @@ class SpeciesExportTests(TestCase):
 class TreeIntegrationTests(IntegrationTests):
     def setUp(self):
         super(TreeIntegrationTests, self).setUp()
-        # To make plot validation easier, the bounds are basically the world
-        # There are tests for plot in instance bounds in ValidationTest
-        square = Polygon(((-6000000, -6000000),
-                          (-6000000, 6000000),
-                          (6000000, 6000000),
-                          (6000000, -6000000),
-                          (-6000000, -6000000)))
-        self.instance.bounds = InstanceBounds.objects.create(
-            geom=MultiPolygon(square))
+        # To make plot validation easier, the bounds are basically the world.
+        # There are tests for plot in instance bounds in ValidationTest.
+        self.instance.bounds = InstanceBounds.create_from_box(
+            -6000000, -6000000, 6000000, 6000000)
         self.instance.save()
 
     def assertAlmostEqual(self, a, b):

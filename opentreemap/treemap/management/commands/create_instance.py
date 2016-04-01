@@ -9,7 +9,7 @@ from optparse import make_option
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from django.contrib.gis.geos import MultiPolygon, Polygon, GEOSGeometry, Point
+from django.contrib.gis.geos import GEOSGeometry, Point
 
 from treemap.instance import (Instance, InstanceBounds,
                               create_stewardship_udfs,
@@ -74,16 +74,10 @@ class Command(BaseCommand):
             center_pt.transform(3857)
             x = center_pt.x
             y = center_pt.y
-            offset = 50000
-            bounds = Polygon(((x - offset, y - offset),
-                              (x - offset, y + offset),
-                              (x + offset, y + offset),
-                              (x + offset, y - offset),
-                              (x - offset, y - offset)))
-
-            bounds = MultiPolygon((bounds, ))
+            instance_bounds = InstanceBounds.create_from_point(x, y)
         else:
-            bounds = GEOSGeometry(open(options['geojson'], srid=4326).read())
+            geom = GEOSGeometry(open(options['geojson'], srid=4326).read())
+            instance_bounds = InstanceBounds.objects.create(geom=geom)
 
         if not options.get('url_name', None):
             raise Exception('You must specify a "url_name" starting with a '
@@ -94,7 +88,7 @@ class Command(BaseCommand):
         instance = Instance(
             config={},
             name=name,
-            bounds=InstanceBounds.objects.create(geom=bounds),
+            bounds=instance_bounds,
             is_public=True,
             url_name=url_name)
 
@@ -103,7 +97,7 @@ class Command(BaseCommand):
         instance.save()
 
         instance.boundaries = Boundary.objects.filter(
-            geom__intersects=bounds)
+            geom__intersects=instance_bounds.geom)
 
         role = Role.objects.create(
             name='user', instance=instance, rep_thresh=0,

@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import RegexValidator
 from django.conf import settings
@@ -93,6 +94,25 @@ class InstanceBounds(models.Model):
     """ Center of the map when loading the instance """
     geom = models.MultiPolygonField(srid=3857)
     objects = models.GeoManager()
+
+    @classmethod
+    def create_from_point(cls, x, y, half_edge=50000):
+        """Create as square using Web Mercator point and default edge 100km"""
+        return cls.create_from_box(
+            x - half_edge, y - half_edge,
+            x + half_edge, y + half_edge
+        )
+
+    @classmethod
+    def create_from_box(cls, x_min, y_min, x_max, y_max):
+        """Create from box (Web Mercator coordinates)"""
+        bounds = Polygon(((x_min, y_min),
+                          (x_min, y_max),
+                          (x_max, y_max),
+                          (x_max, y_min),
+                          (x_min, y_min)))
+        bounds = MultiPolygon((bounds, ))
+        return InstanceBounds.objects.create(geom=bounds)
 
     def __str__(self):
         return "instance_id: %s" % self.instance.id
