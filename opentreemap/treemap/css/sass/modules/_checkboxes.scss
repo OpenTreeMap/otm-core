@@ -1,8 +1,8 @@
 @mixin checkboxes {
-	input[type='radio'],
+    input[type='radio'],
     input[type='checkbox'] {
         opacity: 0;
-        float: left;
+        position: absolute;
         width: 0;
 
         & + label {
@@ -22,7 +22,7 @@
         }
 
         @include select-none;
-	}
+    }
     input[type='radio']:checked + label {
         background-image: url(/static/img/radio.png);
     }
