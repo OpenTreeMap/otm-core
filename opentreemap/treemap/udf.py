@@ -337,12 +337,12 @@ class UserDefinedFieldDefinition(models.Model):
             self, datatype, old_choice_value, new_choice_value):
         if datatype['type'] not in ('choice', 'multichoice'):
             raise ValidationError(
-                {'datatype': [_("can't change choices "
+                {'datatype': [_("Can't change choices "
                                 "on a non-choice field")]})
 
         if old_choice_value not in datatype['choices']:
             raise ValidationError(
-                {'datatype': [_("choice '%(choice)s' not found") % {
+                {'datatype': [_("Choice '%(choice)s' not found") % {
                     'choice': old_choice_value}]})
 
         choices = datatype['choices']
@@ -520,17 +520,23 @@ class UserDefinedFieldDefinition(models.Model):
     def validate(self):
         model_type = self.model_type
 
+        if model_type not in {cls.__name__ for cls
+                              in self.instance.editable_udf_models()['all']}:
+            raise ValidationError(
+                {'udf.model': [_("Invalid model '%(model_type)s'") %
+                               {'model_type': model_type}]})
+
         model_class = safe_get_udf_model_class(model_type)
 
         field_names = [field.name for field in model_class._meta.fields]
 
         if self.name in field_names:
             raise ValidationError(
-                {'name': [_('cannot use fields that already '
+                {'name': [_('Cannot use fields that already '
                             'exist on the model')]})
         if not self.name:
             raise ValidationError(
-                {'name': [_('name cannot be blank')]})
+                {'name': [_('Name cannot be blank')]})
 
         if not _UDF_NAME_REGEX.match(self.name):
             raise ValidationError(
@@ -547,11 +553,12 @@ class UserDefinedFieldDefinition(models.Model):
             .exclude(
                 pk=self.pk)
 
-        if existing_objects.count() != 0:
-            template = _("a field already exists on model '%(model_type)s' "
-                         "with name '%(name)s'")
-            raise ValidationError(template % {'model_type': model_type,
-                                              'name': self.name})
+        if existing_objects.exists():
+            template = _("There is already a custom %(model_type)s field with"
+                         " name '%(name)s'")
+            raise ValidationError(template % {
+                'model_type': model_class.display_name(self.instance),
+                'name': self.name})
 
         datatype = self.datatype_dict
 
@@ -607,19 +614,19 @@ class UserDefinedFieldDefinition(models.Model):
             choices = datatype.get('choices', None)
 
             if choices is None:
-                raise ValidationError(_('missing choices key for key'))
+                raise ValidationError(_('Missing choices key'))
 
             for choice in choices:
                 if not isinstance(choice, basestring):
                     raise ValidationError(_('Choice must be a string'))
-                if choice is None or choice == '':
-                    raise ValidationError(_('empty choice not allowed'))
+                if choice is None or choice.strip() == '':
+                    raise ValidationError(_('Empty choice is not allowed'))
 
             if len(choices) == 0:
-                raise ValidationError(_('empty choice list'))
+                raise ValidationError(_('There must be at least one choice'))
 
             if len(choices) != len(set(choices)):
-                raise ValidationError(_('duplicate choices'))
+                raise ValidationError(_('Duplicate choices are not allowed'))
 
         if 'default' in datatype:
             try:

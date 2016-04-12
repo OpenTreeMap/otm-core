@@ -107,14 +107,11 @@
     {% endwith %}
     <div class="pull-right">
       {% with fields=request.instance|get_advanced_search_fields:request.user %}
-        {% trans "General" as title %}
-        {% include "treemap/partials/advanced_search/dropdown.html" with fields=fields.general category='mapFeature' %}
+        {% include "treemap/partials/advanced_search/dropdown.html" with fields=fields.general category='mapFeature' title=_("General") %}
         {% include "treemap/partials/advanced_search/display.html" with fields=fields.display category='display' %}
-        {% trans "Trees" as title %}
-        {% include "treemap/partials/advanced_search/dropdown.html" with fields=fields.Tree category='tree' feature='Tree' %}
-        {% trans "Planting Sites" as title %}
-        {% include "treemap/partials/advanced_search/dropdown.html" with fields=fields.Plot category='plot' feature='Plot'%}
-        {% include "treemap/partials/advanced_search/missing.html" with fields=fields.missing category='missing' %}
+        {% include "treemap/partials/advanced_search/dropdown.html" with fields=fields.Tree category='tree' feature='Tree' title=_("Trees") %}
+        {% include "treemap/partials/advanced_search/dropdown.html" with fields=fields.Plot category='plot' feature='Plot' title=_("Planting Sites") %}
+        {% include "treemap/partials/advanced_search/dropdown.html" with fields=fields.missing category='missing' title=_("Missing") %}
         {% include "treemap/partials/advanced_search/more.html" with fields=fields.more category='more' %}
       {% endwith %}
     </div>

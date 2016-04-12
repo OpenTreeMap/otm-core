@@ -80,20 +80,14 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
 
     var result = {};
 
-    // initialize results with an empty list for all multiselects
-    // so that a value is sent every time for all multiselects
-    $form.find('select[name][multiple]').each(function(i, elem) {
-        result[elem.name] = [];
-    });
-
     _.each($form.serializeArray(), function(item) {
         var type = getField($editFields, item.name).attr('data-type'),
             displayValue = getDisplayValue(type, item.name),
             $field = getSerializableField($editFields, item.name);
 
         if (type === 'multichoice') {
-            // always serialize and send multichoice values
-            result[item.name].push(item.value);
+            // If n choices are selected the serialized array has n items.
+            // It's simpler to skip them here and process them below.
             return;
         }
 
@@ -120,11 +114,27 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
             result[item.name] = item.value;
         }
     });
+
     $form.find('[name][type="checkbox"]').not('[disabled]').each(function(i, elem) {
         if (elem.checked !== getDisplayValue('bool', elem.name)) {
             result[elem.name] = elem.checked;
         }
     });
+
+    $form
+        .find('select[name][multiple]')
+        .each(function(i, elem) {
+            // Compare current multichoice value with display value
+            var name = elem.name,
+                value = $(elem).val() || [],
+                display = getDisplayValue('multichoice', name);
+            display = (display === "null") ? [] : JSON.parse(display);
+            if (! _.isEqual(value.sort(), display.sort())) {
+                // Value of multichoice field has changed
+                result[name] = value;
+            }
+        });
+
     return result;
 };
 

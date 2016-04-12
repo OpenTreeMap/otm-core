@@ -1,7 +1,7 @@
 {% load form_extras %}
 {% load i18n %}
 
-<div {% if feature %}class="field-group" id="search-fields-{{ feature }}{% endif %}">
+<div {% if feature %}class="field-group" id="search-fields-{{ feature }}"{% endif %}>
     {% if feature %}
         <div class="field-group-message fields-disabled-message">
             {{ title }} {% trans "disabled in Display" %}

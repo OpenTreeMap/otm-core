@@ -1,8 +1,6 @@
 import json
 
 from django.db import transaction
-from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext as _
 
 from treemap.audit import Role, FieldPermission
 from treemap.udf import (UserDefinedFieldDefinition)
@@ -37,25 +35,6 @@ def udf_create(params, instance):
     data = _parse_params(params)
     name, model_type, datatype = (data['name'], data['model_type'],
                                   data['datatype'])
-
-    udfs = UserDefinedFieldDefinition.objects.filter(
-        instance=instance,
-        model_type=model_type,
-        name=name)
-
-    if udfs.exists():
-        raise ValidationError(
-            {'udf.name':
-             [_("A user defined field with name "
-                "'%(udf_name)s' already exists on "
-                "model '%(model_type)s'") % {'udf_name': name,
-                                             'model_type': model_type}]})
-
-    if model_type not in {cls.__name__ for cls
-                          in instance.editable_udf_models()['all']}:
-        raise ValidationError(
-            {'udf.model': [_("Invalid model '%(model_type)s'")
-                           % {'model_type': model_type}]})
 
     udf = UserDefinedFieldDefinition(
         name=name,

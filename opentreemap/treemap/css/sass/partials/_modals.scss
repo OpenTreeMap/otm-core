@@ -1,46 +1,36 @@
+@mixin color-modal($color) {
+
+    ul {
+        margin-top: 10px;
+    }
+
+    ~ .modal-backdrop {
+        background: $dark-secondary;
+        opacity: 0.8;
+    }
+
+    .modal-content {
+        border: 2px solid $color;
+    }
+
+    .modal-header {
+        background: $color;
+        color: $paper;
+    }
+
+    .modal-footer {
+        background: lighten($color, 25%);
+    }
+}
+
 .modal.modal-warning {
-
-	.modal-content {
-		border: 2px solid #f0ad4e;
-	}
-
-	.modal-header {
-		background: #f0ad4e;
-		color: $paper;
-	}
-
-	.modal-footer {
-		background: lighten(#f0ad4e, 30%);
-	}
+    @include color-modal(#f0ad4e);
 }
 
-
 .modal.modal-danger {
-
-	.modal-content {
-		border: 2px solid #df4425;
-	}
-
-	.modal-header {
-		background: #df4425;
-		color: $paper;
-	}
-
-	.modal-footer {
-		background: lighten(#df4425, 40%);
-	}
+    @include color-modal(#df4425);
 }
 
-
-.modal.modal-warning,
-.modal.modal-danger {
-
-	ul {
-		margin-top: 10px;
-	}
-
-	~ .modal-backdrop {
-	  background: $dark-secondary;
-	  opacity: 0.8;
-	}
+.modal.modal-primary {
+    @include color-modal($primary-color);
 }

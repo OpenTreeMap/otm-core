@@ -271,13 +271,7 @@ def make_instance(name=None, is_public=False, url_name=None, point=None,
     instance.seed_with_dummy_default_role()
 
     d = edge_length / 2
-    square = Polygon(((p1.x - d, p1.y - d),
-                      (p1.x - d, p1.y + d),
-                      (p1.x + d, p1.y + d),
-                      (p1.x + d, p1.y - d),
-                      (p1.x - d, p1.y - d)))
-    instance.bounds = InstanceBounds.objects.create(
-        geom=MultiPolygon((square,)))
+    instance.bounds = InstanceBounds.create_from_point(p1.x, p1.y, d)
     instance.save()
 
     new_role = Role.objects.create(

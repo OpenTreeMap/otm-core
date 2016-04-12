@@ -14,7 +14,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
-from django.core.paginator import Paginator, Page
+from django.core.paginator import Paginator, Page, EmptyPage
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.utils.translation import ugettext as _
@@ -60,27 +60,28 @@ def _find_similar_species(target, instance):
 
 
 def start_import(request, instance):
+    if not getattr(request, 'FILES'):
+        return HttpResponseBadRequest("No attachment received")
+
     import_type = request.REQUEST['type']
     if import_type == TreeImportEvent.import_type:
         table = TABLE_ACTIVE_TREES
-        factors = {'plot_length_conversion_factor': 'unit_plot_length',
-                   'plot_width_conversion_factor': 'unit_plot_width',
-                   'diameter_conversion_factor': 'unit_diameter',
-                   'tree_height_conversion_factor': 'unit_tree_height',
-                   'canopy_height_conversion_factor': 'unit_canopy_height'}
-        kwargs = {k: float(request.REQUEST.get(v, 1.0))
-                  for (k, v) in factors.items()}
+        factors = {
+            'diameter_conversion_factor': ('tree', 'diameter'),
+            'tree_height_conversion_factor': ('tree', 'height'),
+            'canopy_height_conversion_factor': ('tree', 'canopy_height'),
+            'plot_length_conversion_factor': ('plot', 'length'),
+            'plot_width_conversion_factor': ('plot', 'width'),
+        }
     else:
         table = TABLE_ACTIVE_SPECIES
-        kwargs = {
-            'max_diameter_conversion_factor':
-            storage_to_instance_units_factor(instance, 'tree', 'diameter'),
-            'max_tree_height_conversion_factor':
-            storage_to_instance_units_factor(instance, 'tree', 'height')
+        factors = {
+            'max_diameter_conversion_factor': ('tree', 'diameter'),
+            'max_tree_height_conversion_factor': ('tree', 'height'),
         }
 
-    if not getattr(request, 'FILES'):
-        return HttpResponseBadRequest("No attachment received")
+    kwargs = {k: 1 / storage_to_instance_units_factor(instance, v[0], v[1])
+              for (k, v) in factors.items()}
 
     process_csv(request, instance, import_type, **kwargs)
 
@@ -276,7 +277,6 @@ def update_row(request, instance, import_type, row_id):
     panel_name = request.GET.get('panel', 'verified')
     page_number = int(request.GET.get('page', '1'))
     context = _get_status_panels(ie, instance, panel_name, page_number)
-    context['active_panel_name'] = 'error'
     return context
 
 
@@ -378,8 +378,7 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
     if is_species and status == GenericImportRow.VERIFIED:
         query = query.filter(merged=True)
 
-    field_names_original = [f for f
-                            in json.loads(ie.field_order)
+    field_names_original = [f.strip() for f in json.loads(ie.field_order)
                             if f != 'ignore']
     field_names = [f.lower() for f in field_names_original]
 
@@ -394,13 +393,20 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
             return RowPage(*args, **kwargs)
 
     row_pages = RowPaginator(query, PAGE_SIZE)
-    row_page = row_pages.page(page_number)
+
+    try:
+        row_page = row_pages.page(page_number)
+    except EmptyPage:
+        # If the page number is out of bounds, return the last page
+        row_page = row_pages.page(row_pages.num_pages)
 
     paging_url = reverse('importer:status',
                          kwargs={'instance_url_name': instance.url_name,
                                  'import_type': ie.import_type,
                                  'import_event_id': ie.pk})
-    paging_url += "?panel=%s" % panel_spec['name']
+    panel_query = "?panel=%s" % panel_spec['name']
+    paging_url += panel_query
+    panel_and_page = panel_query + "&page=%s" % page_number
 
     return {
         'name': panel_spec['name'],
@@ -410,7 +416,8 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
         'rows': row_page,
         'paging_url': paging_url,
         'import_event_id': ie.pk,
-        'import_type': ie.import_type
+        'import_type': ie.import_type,
+        'panel_and_page': panel_and_page
     }
 
 
