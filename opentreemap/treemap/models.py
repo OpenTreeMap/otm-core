@@ -627,6 +627,9 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     def clean(self):
         super(MapFeature, self).clean()
 
+        if self.geom is None:
+            raise ValidationError({
+                "geom": [_("Feature location is not specified")]})
         if not self.instance.bounds.geom.contains(self.geom):
             raise ValidationError({
                 "geom": [
