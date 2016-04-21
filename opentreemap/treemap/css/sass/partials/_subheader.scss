@@ -31,14 +31,6 @@
         transition: .2s ease-in-out -webkit-transform;
         transition: .2s ease-in-out transform;
 
-        + .stats-bar {
-            position: absolute;
-            width: 100%;
-            box-shadow: 0 6px 0 rgba(0,0,0,.15);
-            transition: .2s ease-in-out -webkit-transform;
-            transition: .2s ease-in-out transform;
-        }
-
         .dropdown-toggle.filter-active {
             font-weight: bold;
             color: #fff;
@@ -183,29 +175,23 @@
         font-size: 1.6rem;
         font-weight: 300;
         background: lighten($primary-color, 45%);
-        height: 90px;
+        height: 42px;
         position: relative;
         z-index: 9;
         color: darken($primary-color, 25%);
+        width: 100%;
+        box-shadow: 0 6px 0 rgba(0,0,0,.15);
+        transition: .2s ease-in-out -webkit-transform;
+        transition: .2s ease-in-out transform;
 
-        @media(min-width: 990px){
-            height: 42px;
-        }
         span {
             font-weight: bold;
         }
 
         .half{
-            position: relative;
-            display: block;
-            width: 100%;
-            padding: 6px;
-
-            @media (min-width: 990px){
-                display: inline;
-                width: inherit;
-                padding: 0px;
-            }
+            display: inline;
+            width: inherit;
+            padding: 0px;
 
             label{
                 float: right;
