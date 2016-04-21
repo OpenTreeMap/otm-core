@@ -26,7 +26,7 @@ python-dateutil==2.5.3
 pytz==2016.3
 django-tinsel==0.1.1
 django-url-tools==0.0.8
-django-redis==4.4.1
+django-redis==4.4.2
 hiredis==0.2.0
 rollbar==0.12.1
 django-statsd-mozilla==0.3.16
