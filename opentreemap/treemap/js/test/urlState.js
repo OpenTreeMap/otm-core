@@ -130,15 +130,15 @@ var urlStateTests = {
         var context = createContext();
         urlState.init(context);
         urlState.stateChangeStream.take(1).onValue(function(state) {
-            assert.deepEqual(state, {bar: 2});
+            assert.deepEqual(state, {bar: '2'});
             done();
         });
         // This should NOT trigger an update on stateChangeStream.
-        urlState.set('foo', 1, {
+        urlState.set('foo', '1', {
             silent: true
         });
         // This SHOULD trigger an update on stateChangeStream.
-        urlState.set('bar', 2, {
+        urlState.set('bar', '2', {
             silent: false
         });
     }
