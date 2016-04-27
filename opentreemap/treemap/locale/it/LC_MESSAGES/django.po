@@ -1,0 +1,453 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-08-07 17:55+0000\n"
+"PO-Revision-Date: 2016-04-27 19:07+0200\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"X-Generator: Poedit 1.8.7\n"
+
+#. Translators: 'Energy' is the name of an eco benefit
+#: views.py:310
+msgid "Energy"
+msgstr "Energia"
+
+#. Translators: 'Stormwater' is the name of an eco benefit
+#: views.py:312
+msgid "Stormwater"
+msgstr "Acqua piovana"
+
+#. Translators: 'Carbon Dioxide' is the name of an eco benefit
+#: views.py:314
+msgid "Carbon Dioxide"
+msgstr "Anidride Carbonica"
+
+#. Translators: 'Air Quaility' is the name of an eco benefit
+#: views.py:316
+msgid "Air Quality"
+msgstr "Qualità dell'aria"
+
+#: templates/base.html:36 templates/instance_base.html:7
+#: templates/treemap/index.html:5
+msgid "Explore Trees"
+msgstr "Esplora gli alberi"
+
+#: templates/base.html:37 templates/instance_base.html:8
+msgid "Add a Tree"
+msgstr "Aggiungi un Albero"
+
+#: templates/base.html:42 templates/registration/logout.html:4
+msgid "Logout"
+msgstr "Esci"
+
+#: templates/base.html:44 templates/registration/login.html:4
+#: templates/registration/login.html:20
+msgid "Login"
+msgstr "Accedi"
+
+#: templates/base.html:45 templates/treemap/plot_detail.html:122
+msgid "Sign Up"
+msgstr "Registrati"
+
+#: templates/base.html:67
+msgid "Search by Species"
+msgstr "Cerca per Specie"
+
+#: templates/base.html:76
+msgid "Cerca per Località"
+msgstr "Cerca per Località"
+
+#: templates/base.html:85
+msgid "Search"
+msgstr "Cerca"
+
+#: templates/base.html:88
+msgid "Advanced"
+msgstr "Avanzato"
+
+#: templates/base.html:89
+msgid "Reset"
+msgstr "Resetta"
+
+#: templates/base.html:118
+msgid "Tree Key"
+msgstr "Tree Key"
+
+#: templates/base.html:119
+msgid "Resources"
+msgstr "Risorse"
+
+#: templates/base.html:120
+msgid "FAQ"
+msgstr "FAQ"
+
+#: templates/base.html:121
+msgid "About"
+msgstr "Info"
+
+#: templates/base.html:122
+msgid "Contact"
+msgstr "Contatti"
+
+#: templates/registration/activate.html:8
+msgid "Account successfully activated"
+msgstr "Account creato"
+
+#: templates/registration/activate.html:10
+#: templates/registration/login.html:22
+#: templates/registration/password_reset_complete.html:8
+#: templates/registration/registration_form.html:33
+msgid "Log in"
+msgstr "Accedi"
+
+#: templates/registration/activate.html:14
+msgid "Account activation failed"
+msgstr "Attivazione dell'account fallita"
+
+#: templates/registration/activation_complete.html:5
+msgid "Your account is now activated."
+msgstr "Il tuo account è ora attivo"
+
+#: templates/registration/activation_email.txt:2
+msgid "Activate account at"
+msgstr "Account attivato"
+
+#: templates/registration/activation_email.txt:6
+#, python-format
+msgid "Link is valid for %(expiration_days)s days."
+msgstr "Il link è valido per %(expiration_days)s giorni."
+
+#: templates/registration/activation_email_subject.txt:1
+msgid "Account activation on"
+msgstr "Attivazione dell'account su"
+
+#: templates/registration/login.html:20
+msgid "Need an account?"
+msgstr "Necessiti di un account?"
+
+#: templates/registration/login.html:27
+msgid "Forgot password"
+msgstr "Password dimenticata"
+
+#: templates/registration/login.html:27
+msgid "Reset it"
+msgstr "Resetta"
+
+#: templates/registration/logout.html:8
+msgid "Logged out"
+msgstr "Uscito"
+
+#: templates/registration/password_change_done.html:5
+msgid "Password changed"
+msgstr "Password cambiata"
+
+#: templates/registration/password_change_form.html:9
+#: templates/registration/password_reset_confirm.html:12
+#: templates/registration/password_reset_form.html:9
+#: templates/registration/registration_form.html:28
+#: templates/treemap/plot_detail.html:119
+msgid "Submit"
+msgstr "Invia"
+
+#: templates/registration/password_reset_complete.html:6
+msgid "Password reset successfully"
+msgstr "Reset della password riuscito"
+
+#: templates/registration/password_reset_confirm.html:17
+msgid "Password reset failed"
+msgstr "Reset della password fallito"
+
+#: templates/registration/password_reset_done.html:5
+msgid "Email with password reset instructions has been sent."
+msgstr "L'email con le istruzioni per il reset della password è stata inviata"
+
+#: templates/registration/password_reset_email.html:2
+#, python-format
+msgid "Reset password at %(site_name)s"
+msgstr "Reset della password a %(site_name)s"
+
+#: templates/registration/registration_closed.html:5
+msgid "Registration is currently closed."
+msgstr "Le registrazioni sono attualmente chiuse"
+
+#: templates/registration/registration_complete.html:5
+msgid "You are now registered. Activation email sent."
+msgstr "Sei registrato. Email di attivazione inviata."
+
+#: templates/registration/registration_form.html:4
+msgid "Register"
+msgstr "Registrati"
+
+#: templates/registration/registration_form.html:33
+msgid "Already have an account?"
+msgstr "Hai già un account?"
+
+#: templates/treemap/partials/eco_benefits.html:15
+#, python-format
+msgid ""
+"\n"
+"    %(tree_count)s</span> tree,\n"
+"  "
+msgid_plural ""
+"\n"
+"    %(tree_count)s</span> trees,\n"
+"  "
+msgstr[0] ""
+"\n"
+"    %(tree_count)s</span> albero,\n"
+"  "
+msgstr[1] ""
+"\n"
+"    %(tree_count)s</span> alberi,\n"
+"  "
+
+#: templates/treemap/partials/eco_benefits.html:22
+#, python-format
+msgid ""
+"\n"
+"    %(plot_count)s</span> planting site\n"
+"  "
+msgid_plural ""
+"\n"
+"    %(plot_count)s</span> planting sites\n"
+"  "
+msgstr[0] ""
+"\n"
+"    %(plot_count)s</span> Sito di Impianto\n"
+"  "
+msgstr[1] ""
+"\n"
+"    %(plot_count)s</span> Siti di Impianto\n"
+"  "
+
+#: templates/treemap/map.html:4
+msgid "Map"
+msgstr "Mappa"
+
+#: templates/treemap/map.html:27
+msgid "DBH Min:"
+msgstr "DBH Min:"
+
+#: templates/treemap/map.html:28
+msgid "DBH Max:"
+msgstr "DBH Max:"
+
+#: templates/treemap/plot_detail.html:4
+msgid "Planting Site"
+msgstr "Sito di Impianto"
+
+#: templates/treemap/plot_detail.html:16
+msgid "Add Photos"
+msgstr "Aggiungi Foto"
+
+#: templates/treemap/plot_detail.html:18
+msgid "Add to Favorites"
+msgstr "Aggiungi ai favoriti"
+
+#: templates/treemap/plot_detail.html:20
+msgid "Latest Update"
+msgstr "Ultimo aggiornamento"
+
+#: templates/treemap/plot_detail.html:22
+msgid "Complete"
+msgstr "Completo"
+
+#: templates/treemap/plot_detail.html:27
+msgid "Your Turn"
+msgstr "Tuo turno"
+
+#: templates/treemap/plot_detail.html:28
+msgid ""
+"Our database of trees comes from public records and citizen foresters like "
+"you. Update the information for this tree and help us grow!"
+msgstr ""
+"Il nostro database di alberi proviene da registri pubblici e da cittadini "
+"come te. Aggiornare le informazioni di questo albero e aiutarci a crescere!"
+
+#: templates/treemap/plot_detail.html:30 templates/treemap/recent_edits.html:4
+#: templates/treemap/recent_edits.html:9 templates/treemap/user.html:13
+msgid "Recent Edits"
+msgstr "Editing recenti"
+
+#: templates/treemap/plot_detail.html:48
+msgid "General Tree Information"
+msgstr "Informazioni generali dell'Albero"
+
+#: templates/treemap/plot_detail.html:51
+msgid "Tree Number"
+msgstr "Numero dell'Albero"
+
+#: templates/treemap/plot_detail.html:55
+msgid "Scientific Name"
+msgstr "Nome Scientifico"
+
+#: templates/treemap/plot_detail.html:59
+msgid "Common Name"
+msgstr "Nome Comune"
+
+#: templates/treemap/plot_detail.html:63
+msgid "Trunk Diameter"
+msgstr "Diametro del Tronco"
+
+#: templates/treemap/plot_detail.html:67
+msgid "Tree Height"
+msgstr "Altezza dell'albero"
+
+#: templates/treemap/plot_detail.html:71
+msgid "Canopy Height"
+msgstr "Altezza della Chioma"
+
+#: templates/treemap/plot_detail.html:80
+msgid "Yearly Ecosystem Services"
+msgstr "Ecosystem Services Annuali"
+
+#: templates/treemap/plot_detail.html:83
+msgid "Stormwater Intercepted"
+msgstr "Acque piovane intercettate"
+
+#: templates/treemap/plot_detail.html:88
+msgid "Energy Conserved"
+msgstr "Energia conservata"
+
+#: templates/treemap/plot_detail.html:93
+msgid "Air pollutants removed"
+msgstr "Inquinanti nell'aria ridotti"
+
+#: templates/treemap/plot_detail.html:98
+msgid "Carbon dioxide reduced"
+msgstr "Anidiride Carbonica ridotta"
+
+#: templates/treemap/plot_detail.html:103
+msgid "Total Co2 stored to date"
+msgstr "Co2 Totale immagazzinata fino ad oggi"
+
+#: templates/treemap/plot_detail.html:114
+msgid "Commments"
+msgstr "Commenti"
+
+#: templates/treemap/plot_detail.html:122
+msgid "or"
+msgstr "o"
+
+#: templates/treemap/plot_detail.html:122
+msgid "log in"
+msgstr "Accedi"
+
+#: templates/treemap/plot_detail.html:122
+msgid "to add comments"
+msgstr "per aggiungere commenti"
+
+#: templates/treemap/partials/plot_popup.html:2
+msgid "ID:"
+msgstr "ID:"
+
+#: templates/treemap/partials/plot_popup.html:3
+msgid "Species:"
+msgstr "Specie:"
+
+#: templates/treemap/partials/plot_popup.html:4
+msgid "Nearby Address:"
+msgstr "Indirizzo"
+
+#: templates/treemap/partials/plot_popup.html:5
+msgid "View all details"
+msgstr "Vedi tutti i dettagli"
+
+#: templates/treemap/partials/plot_popup.html:6
+msgid "Edit details"
+msgstr "Edita i dettagli"
+
+#: templates/treemap/recent_edits.html:15
+msgid "Audit ID"
+msgstr "ID di Revisione"
+
+#: templates/treemap/recent_edits.html:16
+msgid "Model"
+msgstr "Modello"
+
+#: templates/treemap/recent_edits.html:17
+msgid "Model #"
+msgstr "Modello #"
+
+#: templates/treemap/recent_edits.html:18
+msgid "Field"
+msgstr "Campo"
+
+#: templates/treemap/recent_edits.html:19
+msgid "Old Value"
+msgstr "Vecchio valore"
+
+#: templates/treemap/recent_edits.html:20
+msgid "Current Value"
+msgstr "Valore attuale"
+
+#: templates/treemap/recent_edits.html:21
+msgid "Commit By"
+msgstr "Commit di"
+
+#: templates/treemap/recent_edits.html:22
+msgid "Commit On"
+msgstr "Commit attivo"
+
+#: templates/treemap/recent_edits.html:102
+#: templates/treemap/recent_edits.html:104
+#: templates/treemap/recent_user_edits.html:50
+msgid "Previous"
+msgstr "Precedente"
+
+#: templates/treemap/recent_edits.html:108
+#: templates/treemap/recent_edits.html:110
+#: templates/treemap/recent_user_edits.html:58
+msgid "Next"
+msgstr "Prossimo"
+
+#: templates/treemap/recent_user_edits.html:5
+msgid "Action"
+msgstr "Azione"
+
+#: templates/treemap/recent_user_edits.html:6
+msgid "Item"
+msgstr "Oggetto"
+
+#: templates/treemap/recent_user_edits.html:7
+msgid "Value Changed"
+msgstr "Valore cambiato"
+
+#: templates/treemap/recent_user_edits.html:8
+msgid "New Value"
+msgstr "Nuovo valore"
+
+#: templates/treemap/recent_user_edits.html:9
+msgid "Date"
+msgstr "Data"
+
+#: templates/treemap/user.html:7
+msgid "Username:"
+msgstr "Nome Utente:"
+
+#: templates/treemap/user.html:8
+msgid "Name:"
+msgstr "Nome:"
+
+#: templates/treemap/user.html:9
+msgid "Email:"
+msgstr "Email:"
+
+#: templates/treemap/user.html:10
+msgid "Reputation:"
+msgstr "Reputazione:"
+
+#: templates/treemap/user.html:11
+msgid "Instance:"
+msgstr "Caso:"
