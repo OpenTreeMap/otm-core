@@ -126,6 +126,10 @@ function set(key, value, options) {
         var newState = _.extend({}, _state);
         newState[key] = value;
 
+        // Serialize and deserialize state to ensure that deserializing state
+        // from the URL will match the stored state (mostly matter for float precision)
+        newState = getStateFromUrl(getUrlFromState(newState));
+
         // Prevent data from being pushed to _stateChangeBus by making _state
         // identical to newState.
         if (options.silent) {
@@ -196,8 +200,12 @@ module.exports = {
 };
 
 function getStateFromCurrentUrl() {
+    return getStateFromUrl(_window.getLocationHref());
+}
+
+function getStateFromUrl(urlText) {
     var newState = {},
-        query = url.parse(_window.getLocationHref(), true).query,
+        query = url.parse(urlText, true).query,
         allKeys = _.union(_.keys(deserializers), _.keys(query));
 
     _.each(allKeys, function(k) {
