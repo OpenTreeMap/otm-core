@@ -1,0 +1,454 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-08-07 17:55+0000\n"
+"PO-Revision-Date: 2016-05-02 20:20+0200\n"
+"Language: ca\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"X-Generator: Poedit 1.8.4\n"
+
+#. Translators: 'Energy' is the name of an eco benefit
+#: views.py:310
+msgid "Energy"
+msgstr "Energia"
+
+#. Translators: 'Stormwater' is the name of an eco benefit
+#: views.py:312
+msgid "Stormwater"
+msgstr "Aigua de pluja"
+
+#. Translators: 'Carbon Dioxide' is the name of an eco benefit
+#: views.py:314
+msgid "Carbon Dioxide"
+msgstr "Diòxid de carboni"
+
+#. Translators: 'Air Quaility' is the name of an eco benefit
+#: views.py:316
+msgid "Air Quality"
+msgstr "Qualitat de l'aire"
+
+#: templates/base.html:36 templates/instance_base.html:7
+#: templates/treemap/index.html:5
+msgid "Explore Trees"
+msgstr "Explorar arbres"
+
+#: templates/base.html:37 templates/instance_base.html:8
+msgid "Add a Tree"
+msgstr "Afegir un arbre"
+
+#: templates/base.html:42 templates/registration/logout.html:4
+msgid "Logout"
+msgstr "Ix"
+
+#: templates/base.html:44 templates/registration/login.html:4
+#: templates/registration/login.html:20
+msgid "Login"
+msgstr "Login"
+
+#: templates/base.html:45 templates/treemap/plot_detail.html:122
+msgid "Sign Up"
+msgstr "Registra't"
+
+#: templates/base.html:67
+msgid "Search by Species"
+msgstr "Busca per espècies"
+
+#: templates/base.html:76
+msgid "Search by Location"
+msgstr "Busca per ubicació"
+
+#: templates/base.html:85
+msgid "Search"
+msgstr "Busca"
+
+#: templates/base.html:88
+msgid "Advanced"
+msgstr "Avançat"
+
+#: templates/base.html:89
+msgid "Reset"
+msgstr "Canvia"
+
+#: templates/base.html:118
+msgid "Tree Key"
+msgstr "Clau d'arbre"
+
+#: templates/base.html:119
+msgid "Resources"
+msgstr "Recursos"
+
+#: templates/base.html:120
+msgid "FAQ"
+msgstr "FAQ"
+
+#: templates/base.html:121
+msgid "About"
+msgstr "Sobre"
+
+#: templates/base.html:122
+msgid "Contact"
+msgstr "Contacte"
+
+#: templates/registration/activate.html:8
+msgid "Account successfully activated"
+msgstr "Compte activat satisfactòriament"
+
+#: templates/registration/activate.html:10
+#: templates/registration/login.html:22
+#: templates/registration/password_reset_complete.html:8
+#: templates/registration/registration_form.html:33
+msgid "Log in"
+msgstr "Logueja't"
+
+#: templates/registration/activate.html:14
+msgid "Account activation failed"
+msgstr "L'activació del compte ha fallat"
+
+#: templates/registration/activation_complete.html:5
+msgid "Your account is now activated."
+msgstr "El teu compte està activat."
+
+#: templates/registration/activation_email.txt:2
+msgid "Activate account at"
+msgstr "Activar compte a"
+
+#: templates/registration/activation_email.txt:6
+#, python-format
+msgid "Link is valid for %(expiration_days)s days."
+msgstr "L'enllaç és vàlid durant  %(expiration_days)s dies."
+
+#: templates/registration/activation_email_subject.txt:1
+msgid "Account activation on"
+msgstr "Activación del compte en"
+
+#: templates/registration/login.html:20
+msgid "Need an account?"
+msgstr "Necessites un compte"
+
+#: templates/registration/login.html:27
+msgid "Forgot password"
+msgstr "Has oblidat la contrasenya"
+
+#: templates/registration/login.html:27
+msgid "Reset it"
+msgstr "Canvia-ho"
+
+#: templates/registration/logout.html:8
+msgid "Logged out"
+msgstr "Sessió tancada"
+
+#: templates/registration/password_change_done.html:5
+msgid "Password changed"
+msgstr "Contrasenya canviada"
+
+#: templates/registration/password_change_form.html:9
+#: templates/registration/password_reset_confirm.html:12
+#: templates/registration/password_reset_form.html:9
+#: templates/registration/registration_form.html:28
+#: templates/treemap/plot_detail.html:119
+msgid "Submit"
+msgstr "Envia"
+
+#: templates/registration/password_reset_complete.html:6
+msgid "Password reset successfully"
+msgstr "Contrasenya canviada amb èxit"
+
+#: templates/registration/password_reset_confirm.html:17
+msgid "Password reset failed"
+msgstr "El canvi de contrasenya ha fallat"
+
+#: templates/registration/password_reset_done.html:5
+msgid "Email with password reset instructions has been sent."
+msgstr ""
+"S'ha enviat un correu electrònic amb les instruccions de canvi de "
+"contrasenya "
+
+#: templates/registration/password_reset_email.html:2
+#, python-format
+msgid "Reset password at %(site_name)s"
+msgstr "Canvia la contrasenya en %(site_name)s"
+
+#: templates/registration/registration_closed.html:5
+msgid "Registration is currently closed."
+msgstr "El registre està actualment tancat."
+
+#: templates/registration/registration_complete.html:5
+msgid "You are now registered. Activation email sent."
+msgstr "Estàs regist"
+
+#: templates/registration/registration_form.html:4
+msgid "Register"
+msgstr "Registra't"
+
+#: templates/registration/registration_form.html:33
+msgid "Already have an account?"
+msgstr "Ja tens un compte?"
+
+#: templates/treemap/partials/eco_benefits.html:15
+#, python-format
+msgid ""
+"\n"
+"    %(tree_count)s</span> tree,\n"
+"  "
+msgid_plural ""
+"\n"
+"    %(tree_count)s</span> trees,\n"
+"  "
+msgstr[0] ""
+"\n"
+"    %(tree_count)s</span> arbre,"
+msgstr[1] ""
+"\n"
+"    %(tree_count)s</span> arbres,"
+
+#: templates/treemap/partials/eco_benefits.html:22
+#, python-format
+msgid ""
+"\n"
+"    %(plot_count)s</span> planting site\n"
+"  "
+msgid_plural ""
+"\n"
+"    %(plot_count)s</span> planting sites\n"
+"  "
+msgstr[0] ""
+"\n"
+"    %(plot_count)s</span> lloc de plantació\n"
+"  "
+msgstr[1] ""
+"\n"
+"    %(plot_count)s</span> llocs de plantació"
+
+#: templates/treemap/map.html:4
+msgid "Map"
+msgstr "Mapa"
+
+#: templates/treemap/map.html:27
+msgid "DBH Min:"
+msgstr "DBH Min:"
+
+#: templates/treemap/map.html:28
+msgid "DBH Max:"
+msgstr "DBH Max:"
+
+#: templates/treemap/plot_detail.html:4
+msgid "Planting Site"
+msgstr "Lloc de plantació"
+
+#: templates/treemap/plot_detail.html:16
+msgid "Add Photos"
+msgstr "Afegir fotos"
+
+#: templates/treemap/plot_detail.html:18
+msgid "Add to Favorites"
+msgstr "Afegir a favorits"
+
+#: templates/treemap/plot_detail.html:20
+msgid "Latest Update"
+msgstr "Última c"
+
+#: templates/treemap/plot_detail.html:22
+msgid "Complete"
+msgstr "Completat"
+
+#: templates/treemap/plot_detail.html:27
+msgid "Your Turn"
+msgstr "El teu torn"
+
+#: templates/treemap/plot_detail.html:28
+msgid ""
+"Our database of trees comes from public records and citizen foresters like "
+"you. Update the information for this tree and help us grow!"
+msgstr ""
+"La nostra base de dades prové de registres públics i de ciutadans "
+"voluntaris com tú. Actualitza la informació sobre aquest arbre i ajunda'ns "
+"a crèixer."
+
+#: templates/treemap/plot_detail.html:30
+#: templates/treemap/recent_edits.html:4
+#: templates/treemap/recent_edits.html:9 templates/treemap/user.html:13
+msgid "Recent Edits"
+msgstr "Edicions recents"
+
+#: templates/treemap/plot_detail.html:48
+msgid "General Tree Information"
+msgstr "Informació general de l'arbre"
+
+#: templates/treemap/plot_detail.html:51
+msgid "Tree Number"
+msgstr "Número d'arbre"
+
+#: templates/treemap/plot_detail.html:55
+msgid "Scientific Name"
+msgstr "Nom cièntific"
+
+#: templates/treemap/plot_detail.html:59
+msgid "Common Name"
+msgstr "Nom comú"
+
+#: templates/treemap/plot_detail.html:63
+msgid "Trunk Diameter"
+msgstr "Diametre del tronc"
+
+#: templates/treemap/plot_detail.html:67
+msgid "Tree Height"
+msgstr "Altura del 'arbre"
+
+#: templates/treemap/plot_detail.html:71
+msgid "Canopy Height"
+msgstr "Altura de la canòpia"
+
+#: templates/treemap/plot_detail.html:80
+msgid "Yearly Ecosystem Services"
+msgstr "Serveis d'ecosistemes anuals"
+
+#: templates/treemap/plot_detail.html:83
+msgid "Stormwater Intercepted"
+msgstr "Aigua de pluja interceptada"
+
+#: templates/treemap/plot_detail.html:88
+msgid "Energy Conserved"
+msgstr "Energia conservada"
+
+#: templates/treemap/plot_detail.html:93
+msgid "Air pollutants removed"
+msgstr "Contamintants de l'aire remoguts"
+
+#: templates/treemap/plot_detail.html:98
+msgid "Carbon dioxide reduced"
+msgstr "Reducció de diòxid de carboni"
+
+#: templates/treemap/plot_detail.html:103
+msgid "Total Co2 stored to date"
+msgstr "Co2 total emmagatzemat a data de"
+
+#: templates/treemap/plot_detail.html:114
+msgid "Commments"
+msgstr "Comentaris"
+
+#: templates/treemap/plot_detail.html:122
+msgid "or"
+msgstr "o"
+
+#: templates/treemap/plot_detail.html:122
+msgid "log in"
+msgstr "entra"
+
+#: templates/treemap/plot_detail.html:122
+msgid "to add comments"
+msgstr "afegir comentaris"
+
+#: templates/treemap/partials/plot_popup.html:2
+msgid "ID:"
+msgstr "ID:"
+
+#: templates/treemap/partials/plot_popup.html:3
+msgid "Species:"
+msgstr "Espècies:"
+
+#: templates/treemap/partials/plot_popup.html:4
+msgid "Nearby Address:"
+msgstr "Adreça propera:"
+
+#: templates/treemap/partials/plot_popup.html:5
+msgid "View all details"
+msgstr "Mostra tots els detalls"
+
+#: templates/treemap/partials/plot_popup.html:6
+msgid "Edit details"
+msgstr "Editar detalls"
+
+#: templates/treemap/recent_edits.html:15
+msgid "Audit ID"
+msgstr "Audit ID"
+
+#: templates/treemap/recent_edits.html:16
+msgid "Model"
+msgstr "Mòdel"
+
+#: templates/treemap/recent_edits.html:17
+msgid "Model #"
+msgstr "Mòdel #"
+
+#: templates/treemap/recent_edits.html:18
+msgid "Field"
+msgstr "Camp"
+
+#: templates/treemap/recent_edits.html:19
+msgid "Old Value"
+msgstr "Valor antic"
+
+#: templates/treemap/recent_edits.html:20
+msgid "Current Value"
+msgstr "Valor actual"
+
+#: templates/treemap/recent_edits.html:21
+msgid "Commit By"
+msgstr "Registrat per"
+
+#: templates/treemap/recent_edits.html:22
+msgid "Commit On"
+msgstr "Registrat en"
+
+#: templates/treemap/recent_edits.html:102
+#: templates/treemap/recent_edits.html:104
+#: templates/treemap/recent_user_edits.html:50
+msgid "Previous"
+msgstr "Previ"
+
+#: templates/treemap/recent_edits.html:108
+#: templates/treemap/recent_edits.html:110
+#: templates/treemap/recent_user_edits.html:58
+msgid "Next"
+msgstr "Següent"
+
+#: templates/treemap/recent_user_edits.html:5
+msgid "Action"
+msgstr "Acció"
+
+#: templates/treemap/recent_user_edits.html:6
+msgid "Item"
+msgstr "Element"
+
+#: templates/treemap/recent_user_edits.html:7
+msgid "Value Changed"
+msgstr "Valor canviat"
+
+#: templates/treemap/recent_user_edits.html:8
+msgid "New Value"
+msgstr "Nou valor"
+
+#: templates/treemap/recent_user_edits.html:9
+msgid "Date"
+msgstr "Data"
+
+#: templates/treemap/user.html:7
+msgid "Username:"
+msgstr "Usuari:"
+
+#: templates/treemap/user.html:8
+msgid "Name:"
+msgstr "Nom:"
+
+#: templates/treemap/user.html:9
+msgid "Email:"
+msgstr "Correu electrònic:"
+
+#: templates/treemap/user.html:10
+msgid "Reputation:"
+msgstr "Reputació:"
+
+#: templates/treemap/user.html:11
+msgid "Instance:"
+msgstr "Instància:"
