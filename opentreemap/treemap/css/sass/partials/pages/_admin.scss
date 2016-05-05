@@ -219,6 +219,10 @@
                     width: 100%;
                     height: 16px;
                 }
+
+                @media (max-width: 768px) {
+                    top: 105px;
+                }
             }
         }
     }
@@ -564,6 +568,58 @@
     textarea {
         width: 80%;
         height: 20em;
+    }
+}
+
+.management-content .page-header {
+
+    @media (max-width: 768px) {
+        height: auto;
+        z-index: 1;
+        padding-bottom: 0;
+    }
+
+    .page-header-title {
+        text-align: center;
+        position: absolute;
+        left: 0;
+        right: 0;
+        
+        @media (max-width: 768px) {
+            text-align: left;
+            padding-left: 10px;
+            padding-right: 10px;
+            float: left;
+            position: relative;
+        }
+    }
+
+    .page-header-toggles {
+        float: left;
+        left: 10px;
+        z-index: 1;
+        position: relative;
+
+        @media (max-width: 768px) {
+            left: 0;
+            padding: 0 10px;
+        }
+    }
+
+    .page-header-actions {
+        position: relative;
+        right: 10px;
+        float: right;
+        z-index: 1;
+
+        @media (max-width: 768px) {
+            float: none;
+            right: 0;
+            padding-left: 10px;
+            padding-right: 10px;
+            clear: both;
+            background: #fff;
+        }
     }
 }
 
