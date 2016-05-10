@@ -209,7 +209,12 @@ class InstanceDataCommand(BaseCommand):
             n_audits = Audit.objects.filter(instance=instance).count()
             with connection.cursor() as cursor:
                 cursor.execute(
-                    'DELETE FROM treemap_audit a WHERE a.instance_id = %s',
+                    """
+    DELETE FROM treemap_audit a
+    WHERE a.instance_id = %s
+    AND a.model NOT IN
+    ('InstanceUser', 'Species', 'ITreeCodeOverride', 'EnhancedInstance')
+                    """,
                     (instance.pk,))
             self.stdout.write("Deleted %s audits" % n_audits)
 
