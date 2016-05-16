@@ -20,7 +20,7 @@ git+https://github.com/dahlia/libsass-python.git@4aa8fd3c2cef8c1
 # 1.6 so we include them here
 django-contrib-comments==1.7.1
 django-threadedcomments==1.0.1
-django-apptemplates==1.2.0
+django-apptemplates==1.2
 django-queryset-csv==0.3.3
 python-dateutil==2.5.3
 pytz==2016.4
