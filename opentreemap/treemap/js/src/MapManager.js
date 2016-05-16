@@ -103,6 +103,8 @@ MapManager.prototype = {
             fixZoomLayerSwitch(map, boundariesLayer);
         }
 
+        _.each(config.instance.customLayers, _.partial(addCustomLayer, this, config));
+
         if (options.trackZoomLatLng) {
             map.on("moveend", _.partial(serializeZoomLatLngFromMap, map));
             urlState.stateChangeStream.filter('.zoomLatLng')
@@ -272,6 +274,14 @@ function fixZoomLayerSwitch(map, layer) {
             layer._clearBgBuffer();
         }
     });
+}
+
+function addCustomLayer(mapManager, config, layerInfo) {
+    var layer = layersLib.createCustomLayer(layerInfo, config);
+    mapManager.layersControl.addOverlay(layer, layerInfo.name);
+    if (layerInfo.showByDefault) {
+        mapManager.map.addLayer(layer);
+    }
 }
 
 module.exports = MapManager;

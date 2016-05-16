@@ -250,6 +250,8 @@ class Instance(models.Model):
     search_config = _make_config_property('search_config',
                                           DEFAULT_SEARCH_FIELDS)
 
+    custom_layers = _make_config_property('custom_layers', [])
+
     non_admins_can_export = models.BooleanField(default=True)
 
     def advanced_search_fields(self, user):
