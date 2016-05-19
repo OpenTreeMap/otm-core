@@ -13,7 +13,6 @@ var $ = require("jquery"),
 
     BASE_LAYER_OPTION = exports.BASE_LAYER_OPTION = {zIndex: 0},
     BOUNDARY_LAYER_OPTION = {zIndex: 1},
-    OVERLAY_PANE_Z_INDEX = exports.OVERLAY_PANE_Z_INDEX = 2,
     CUSTOM_LAYER_OPTION = {zIndex: 2},
     FEATURE_LAYER_OPTION = {zIndex: 3};
 
