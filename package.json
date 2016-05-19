@@ -5,6 +5,7 @@
     "doc": "doc"
   },
   "dependencies": {
+    "autotrack": "^0.6.5",
     "baconjs": "~0.6",
     "console-browserify": "~1.0.1",
     "dragula": "^2.0.2",

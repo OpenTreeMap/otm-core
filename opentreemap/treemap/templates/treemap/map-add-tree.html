@@ -4,7 +4,7 @@
 {% with nsteps=3 %}
 <div class="sidebar-inner">
     <a href="javascript:;" class="close cancelBtn small">×</a>
-    <h3>Add a Tree</h3>
+    <h3>{% trans "Add a Tree" %}</h3>
     <div class="add-step-container" id="add-tree-container">
         {% include "treemap/partials/step_set_location.html" with first=True feature_name="tree" %}
         <div class="add-step">
@@ -31,31 +31,35 @@
                 <h3 class="summaryHead"></h3>
                 <h6 class="summarySubhead"></h6>
                 <h4 class="summaryAddress"></h4>
-                <h6>Nearby Address</h6>
+                <h6>{% trans "Nearby Address" %}</h6>
                 <hr/>
                 <label>{% trans "After I add this tree..." %}</label>
                 <div>
-                    <input type="radio" name="addFeatureOptions" value="copy" id="addtree-addsame" /><label for="addtree-addsame">
+                    <input type="radio" name="addFeatureOptions" value="copy" id="addtree-addsame"
+                           data-event-category="add-tree" data-event-action="done-add-copy" /><label for="addtree-addsame">
                         {% trans "Add another tree with these details" %}
                     </label>
                 </div>
                 <div>
-                    <input type="radio" name="addFeatureOptions" value="new" id="addtree-addnew" /><label for="addtree-addnew">
+                    <input type="radio" name="addFeatureOptions" value="new" id="addtree-addnew" 
+                           data-event-category="add-tree" data-event-action="done-add-new" /><label for="addtree-addnew">
                         {% trans "Add another tree with new details" %}
                     </label>
                 </div>
                 <div>
-                    <input type="radio" name="addFeatureOptions" value="edit" id="addtree-viewdetails" /><label for="addtree-viewdetails">
+                    <input type="radio" name="addFeatureOptions" value="edit" id="addtree-viewdetails"
+                           data-event-category="add-tree" data-event-action="done-edit" /><label for="addtree-viewdetails">
                         {% trans "Continue editing this tree" %}
                     </label>
                 </div>
                 <div>
-                    <input type="radio" name="addFeatureOptions" value="close" id="addtree-done" checked /><label for="addtree-done">
+                    <input type="radio" name="addFeatureOptions" value="close" id="addtree-done" checked
+                           data-event-category="add-tree" data-event-action="done-close" /><label for="addtree-done">
                         {% trans "I'm done!" %}
                     </label>
                 </div>
             </div>
-            {% include 'treemap/partials/step_controls.html' with last=True %}
+            {% include 'treemap/partials/step_controls.html' with last=True feature_name="tree" %}
         </div>
     </div>
 </div>

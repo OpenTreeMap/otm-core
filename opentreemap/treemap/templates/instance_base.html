@@ -14,6 +14,17 @@
 {% endif %}
 {% endblock application_css %}
 
+{% block google_analytics_actions %}
+{# for instance-specific pages, remove the url_name from the url for better tracking #}
+var pathname = document.location.pathname;
+pathname = pathname.replace(/\/[a-zA-Z]+[a-zA-Z0-9\-]*\//, '/<instance_url_name>/');
+
+// Note: we're only removing the url_name on the app tracker, not the global tracker
+// This way we can still see which instances get more traffic and look at usage differences between them
+ga('set', 'page', pathname);
+{{ block.super }}
+{% endblock google_analytics_actions %}
+
 {% block instance_title %} | {{ request.instance.name }}{% endblock %}
 
 {% block instancetopnav %}
@@ -28,6 +39,7 @@
           <a data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
              data-always-enable="{{ last_effective_instance_user|plot_is_creatable }}"
              data-disabled-title='{% trans "Adding trees is not available to all users" %}'
+             data-event-category="add-tree" data-event-action="start-add-tree"
              data-action='addtree'>{% trans "Add a Tree" %}</a>
         </li>
         <li>
@@ -44,6 +56,7 @@
          data-always-enable='{{ last_effective_instance_user|plot_is_creatable }}'
          data-disabled-title='{% trans "Adding trees is not available to all users" %}'
          data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
+         data-event-category="add-tree" data-event-action="start-add-tree"
          disabled='disabled'>{% trans "Add a Tree" %}</a>
     </li>
   {% endif %}
@@ -145,6 +158,7 @@
       <a class="btn btn-primary addBtn"
          data-action='addtree'
          data-feature="add_plot"
+         data-event-category="add-tree" data-event-action="start-add-tree"
          data-always-enable="{{ last_effective_instance_user|plot_is_creatable }}"
          data-disabled-title="{% trans "Adding trees is not available to all users" %}"
          data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
@@ -169,10 +183,13 @@
 {% block searchoptions %}
 <div class="search-options">
   <div class="btn-group">
-    <button id="search-advanced" class="btn btn-default btn-sm">{% trans "Advanced" %}</button>
-    <button id="search-reset" class="btn btn-default btn-sm">{% trans "Reset" %}</button>
+    <button id="search-advanced" class="btn btn-default btn-sm"
+        data-event-category="search" data-event-action="toggle-advanced">{% trans "Advanced" %}</button>
+    <button id="search-reset" class="btn btn-default btn-sm"
+        data-event-category="search" data-event-action="reset">{% trans "Reset" %}</button>
   </div>
-  <a id="perform-search" class="btn btn-primary btn-lg btn-block">{% trans "Search" %}</a>
+  <a id="perform-search" class="btn btn-primary btn-lg btn-block"
+        data-event-category="search" data-event-action="do-search">{% trans "Search" %}</a>
 </div>
 {% endblock searchoptions %}
 

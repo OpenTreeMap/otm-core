@@ -124,7 +124,7 @@ module.exports = function(grunt) {
                 src: [],
                 dest: appBundlePath,
                 options: {
-                    alias: getRegularAliases(),
+                    alias: getRegularAliases().concat(['autotrack:']),
                     aliasMappings: {
                         cwd:'treemap/js/lib/',
                         src: ['*.js'],
