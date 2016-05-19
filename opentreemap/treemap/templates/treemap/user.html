@@ -15,6 +15,16 @@
 active
 {% endblock %}
 
+{% block google_analytics_actions %}
+{# for user-specific pages, remove the username from the url for better tracking #}
+var pathname = document.location.pathname;
+pathname = pathname.replace(/users\/[\w.@+-]+\//, 'users/<username>/');
+
+ga('set', 'page', pathname);
+ga('global.set', 'page', pathname);
+{{ block.super }}
+{% endblock google_analytics_actions %}
+
 {% block header %}
 {% load i18n %}
 <div class="header">

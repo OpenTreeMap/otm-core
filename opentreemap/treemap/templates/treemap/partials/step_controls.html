@@ -16,7 +16,7 @@
         </li>
         {% endif %}
         <li class="next">
-            <a href="#">
+            <a href="#"{% if feature_name and last %} data-event-category="add-{{ feature_name }}" data-event-action="confirm-done"{% endif %}>
                 {% if last %} Done {% else %} Next &raquo; {% endif %}
             </a>
         </li>
