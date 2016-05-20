@@ -1229,6 +1229,8 @@ class Boundary(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False,
                                       db_index=True)
 
+    canopy_percent = models.FloatField(null=True)
+
     objects = models.GeoManager()
 
     def __unicode__(self):
