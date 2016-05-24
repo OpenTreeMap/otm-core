@@ -217,6 +217,22 @@ class Instance(models.Model):
     # Monotonically increasing number used to invalidate my InstanceAdjuncts
     adjuncts_timestamp = models.BigIntegerField(default=0)
 
+    """
+    Flag indicating whether canopy data is available and should be displayed.
+    """
+    # TODO: Switch to a BooleanField after the migration that adds this field
+    # has been deployed
+    canopy_enabled = models.NullBooleanField(default=False)
+
+    """
+    The boundary category to be used for showing a choropleth canopy
+    layer. max_length=255 matches Boundary.category
+    """
+    # TODO: Make this field non-nullable after the migration that adds
+    # this field has been deployed.
+    canopy_boundary_category = models.CharField(max_length=255, null=True,
+                                                blank=True)
+
     objects = models.GeoManager()
 
     def __unicode__(self):
