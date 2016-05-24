@@ -331,11 +331,17 @@ def context_dict_for_map_feature(request, feature, edit=False):
 
     user = request.user
     if user and user.is_authenticated():
-        feature.mask_unauthorized_fields(user)
         favorited = Favorite.objects \
             .filter(map_feature=feature, user=user).exists()
     else:
         favorited = False
+
+    # The mask_unauthorized_fields call can set feature.id to None,
+    # which prevents the Favorite query above from ever returning
+    # True. To avoid that we need to do the field masking after
+    # setting the favorited flag.
+    if user and user.is_authenticated():
+        feature.mask_unauthorized_fields(user)
 
     feature.convert_to_display_units()
 
