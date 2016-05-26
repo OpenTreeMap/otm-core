@@ -13,7 +13,7 @@ var $ = require("jquery"),
 
     BASE_LAYER_OPTION = exports.BASE_LAYER_OPTION = {zIndex: 0},
     BOUNDARY_LAYER_OPTION = {zIndex: 1},
-    OVERLAY_PANE_Z_INDEX = exports.OVERLAY_PANE_Z_INDEX = 2,
+    CUSTOM_LAYER_OPTION = {zIndex: 2},
     FEATURE_LAYER_OPTION = {zIndex: 3};
 
 ////////////////////////////////////////////////
@@ -77,6 +77,21 @@ exports.createPlotUTFLayer = function (config) {
     };
 
     return layer;
+};
+
+exports.createCustomLayer = function(layerInfo, config) {
+    if (layerInfo.type === 'tile') {
+        var options = _.extend({}, CUSTOM_LAYER_OPTION);
+        options.maxZoom = layerInfo.maxZoom || MAX_ZOOM_OPTION.maxZoom;
+        if (layerInfo.maxNativeZoom) {
+            // NOTE: this won't work until we upgrade to Leaflet > 0.7
+            options.maxNativeZoom = layerInfo.maxNativeZoom;
+        }
+        if (layerInfo.opacity) {
+            options.opacity = layerInfo.opacity;
+        }
+        return L.tileLayer(layerInfo.url, options);
+    }
 };
 
 ////////////////////////////////////////////////

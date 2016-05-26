@@ -21,12 +21,25 @@ function showBoundaryGeomOnMapLayerAndZoom(map, boundaryGeom) {
     // We want to put the boundary polygon below the plot tiles
     // so that plots will display and select normally.
     // But in Leaflet < 0.8 all polygon layers go in the "overlay pane",
-    // so our only choice is to set the z-index of the entire overlay pane.
+    // which is above the tile pane:
+    //     Map pane
+    //         Tile pane (position absolute, z-index 2)
+    //             ... tile layers ...
+    //         Objects pane (z-index 2)
+    //             Overlay pane (z-index 4)
+    //                 ... polygon layers ...
+    //             Shadow pane (z-index 5)
+    //             Marker pane (z-index 6)
+    //             Popup pane (z-index 7)
+    // We solve it by putting the tile pane above the overlay pane.
     // That's not great since we might want other polygons on the map,
     // *above* the plot tiles.
     // TODO: When we switch to Leaflet 1.0, make a separate pane to contain
     // the boundary polygon, with a permanent z-index.
-    map.getPanes().overlayPane.style.zIndex = layersLib.OVERLAY_PANE_Z_INDEX;
+    // (Also note that these z-indexes are unrelated to the ones in
+    // layers.js, which only apply within the tile pane -- the tile pane
+    // creates a stacking context because it has position absolute.)
+    map.getPanes().tilePane.style.zIndex = 5;
 
     currentLayer = boundaryGeom;
 

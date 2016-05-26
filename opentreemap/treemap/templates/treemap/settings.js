@@ -82,6 +82,7 @@ otm.settings.doubleClickInterval = '{{ settings.DOUBLE_CLICK_INTERVAL }}';
             'data': '{{ request.instance.basemap_data }}',
             'bing_api_key': '{{ BING_API_KEY }}'
         },
+        'customLayers': {{ request.instance.custom_layers|as_json|safe }},
         'primaryColor': '{{ request.instance.config|primary_color }}',
         'secondaryColor': '{{ request.instance.config|secondary_color }}',
         'supportsEcobenefits': {{ request.instance_supports_ecobenefits|yesno:"true,false" }}

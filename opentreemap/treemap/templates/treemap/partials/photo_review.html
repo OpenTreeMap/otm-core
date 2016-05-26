@@ -2,13 +2,13 @@
 {% load sort %}
 
 <div class="page-header">
-    <div class="col-xs-2">
+    <div class="page-header-toggles">
         <i class="icon-menu" id="toggle-sidebar"></i>
     </div>
-    <div class="col-xs-6 text-center">
+    <div class="page-header-title">
         <h1>{% trans "Photos" %}</h1>
     </div>
-    <div class="col-xs-4 text-right">
+    <div class="page-header-actions">
         {% include 'treemap/partials/filter_dropdown.html' with filter=archived_filter %}
     </div>
 </div>
