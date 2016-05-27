@@ -66,6 +66,7 @@ otm.settings.doubleClickInterval = '{{ settings.DOUBLE_CLICK_INTERVAL }}';
         'url': '{{ SITE_ROOT }}{{ request.instance.url_name }}/',
         'mapUrl': "{% url 'map' instance_url_name=last_instance.url_name %}",
         'polygonForPointUrl': "{% url 'polygon_for_point' instance_url_name=last_instance.url_name %}",
+        'canopyForPointUrl': "{% url 'canopy_popup' instance_url_name=last_instance.url_name %}",
         'addTreeUrl': "{% url 'map' instance_url_name=last_instance.url_name %}{{ settings.ADD_TREE_URL_HASH }}",
         'name': '{{ request.instance.name }}',
         'mapFeatureTypes': {{ request.instance.map_feature_types|as_json|safe }},
@@ -85,7 +86,8 @@ otm.settings.doubleClickInterval = '{{ settings.DOUBLE_CLICK_INTERVAL }}';
         'customLayers': {{ request.instance.custom_layers|as_json|safe }},
         'primaryColor': '{{ request.instance.config|primary_color }}',
         'secondaryColor': '{{ request.instance.config|secondary_color }}',
-        'supportsEcobenefits': {{ request.instance_supports_ecobenefits|yesno:"true,false" }}
+        'supportsEcobenefits': {{ request.instance_supports_ecobenefits|yesno:"true,false" }},
+        'canopyEnabled': {{ request.instance.canopy_enabled|yesno:"true,false" }}
     }
 {% endif %}
 

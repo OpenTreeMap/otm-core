@@ -5,7 +5,8 @@ var $ = require('jquery'),
     L = require('leaflet'),
     Bacon = require('baconjs'),
     BU = require('treemap/baconUtils'),
-    buttonEnabler = require('treemap/buttonEnabler');
+    buttonEnabler = require('treemap/buttonEnabler'),
+    format = require('util').format;
 
 var config,  // Module-level config set in `init` and read by helper functions
     map,
@@ -32,21 +33,13 @@ function init(options) {
         $accordionSection = options.$treeDetailAccordionSection,
         $buttonGroup = options.$buttonGroup;
 
-    var clickedIdStream = map.utfEvents
-        .filter(inMyMode)
-        .map('.data.' + config.utfGrid.mapfeatureIdKey);
-
-
-    var popupHtmlStream = BU.fetchFromIdStream(clickedIdStream,
-                                               getPlotPopupContent);
-
-    var accordionHtmlStream = BU.fetchFromIdStream(clickedIdStream,
+    var utfEventStream = map.utfEvents.filter(inMyMode),
+        popupHtmlStream = utfEventStream.flatMap(getPopupContent),
+        clickedIdStream = utfEventStream.map('.data.' + config.utfGrid.mapfeatureIdKey),
+        accordionHtmlStream = BU.fetchFromIdStream(clickedIdStream,
                                                    getPlotAccordionContent,
-                                                   '');
-
-
-    var plotUrlStream = clickedIdStream
-        .map(idToPlotDetailUrl);
+                                                   ''),
+        plotUrlStream = clickedIdStream.map(idToPlotDetailUrl);
 
     plotUrlStream.onValue($fullDetailsButton, 'attr', 'href');
     plotUrlStream.onValue(inlineEditForm.setUpdateUrl);
@@ -54,11 +47,10 @@ function init(options) {
     // Leaflet needs both the content and a coordinate to
     // show a popup, so zip map clicks together with content
     // requested via ajax
-    BU.leafletEventStream(map, 'click')
-       .filter(inMyMode)
+    utfEventStream
        .map('.latlng')
-       .zip(popupHtmlStream, makePopup) // TODO: size is not being sent to makePopup
-       .onValue(showPlotDetailPopup);
+       .zip(popupHtmlStream, makePopup)
+       .onValue(showPopup);
 
     accordionHtmlStream.onValue(function () { $buttonGroup.show(); });
 
@@ -97,40 +89,53 @@ function init(options) {
     $accordionSection.collapse('hide');
 }
 
-function getPlotPopupContent(id) {
-    var search = $.ajax({
-        url: config.instance.url + 'features/' + id + '/popup',
-        type: 'GET',
-        dataType: 'html'
-    });
-    return Bacon.fromPromise(search);
+function getPopupContent(utfGridEvent) {
+    var data = utfGridEvent.data,
+        featureId = data ? data[config.utfGrid.mapfeatureIdKey] : null;
+
+    if (featureId) {
+        return getPopup(config.instance.url + 'features/' + featureId + '/popup');
+
+    } else if (config.instance.canopyEnabled) {
+        var latlng = utfGridEvent.latlng;
+        return getPopup(config.instance.canopyForPointUrl +
+            format('?lng=%d&lat=%d', latlng.lng, latlng.lat));
+
+    } else {
+        return null;
+    }
+
+    function getPopup(url) {
+        return Bacon.fromPromise($.ajax({
+            url: url,
+            type: 'GET',
+            dataType: 'html'
+        }));
+    }
 }
 
-function makePopup(latLon, html, size) {
-    size = size || {};
+function makePopup(latLon, html) {
     if (latLon && html) {
         var popupOptions = {
-            maxWidth: size.width || 320,
-            maxHeight: size.height || 130
+            maxWidth: 400,
+            maxHeight: 300
         };
-
-        var isPlot = $(html).data('mapfeature-type') === 'Plot';
 
         var popup = L.popup(popupOptions)
             .setLatLng(latLon)
             .setContent(html);
-
-        popup.isPlot = isPlot;
+        
+        var mapFeatureType = $(html).data('mapfeature-type');
+        popup.isMapFeature = mapFeatureType !== undefined;
+        popup.isPlot = mapFeatureType === 'Plot';
 
         return popup;
-
-        //TODO: Pan map if out of view
     } else {
         return null;
     }
 }
 
-function showPlotDetailPopup(newPopup) {
+function showPopup(newPopup) {
     if (popup) {
         map.closePopup(popup);
     }
@@ -140,20 +145,19 @@ function showPlotDetailPopup(newPopup) {
     plotMarker.useTreeIcon(popup ? popup.isPlot : false);
 
     if (popup) {
-        // Add the popup
         map.openPopup(popup);
+    }
 
+    if (popup && popup.isMapFeature) {
         // Move the plot marker to this location
         plotMarker.place(popup._latlng);
         plotMarker.bindPopup(popup);
-
     } else {
         plotMarker.unbindPopup();
         plotMarker.hide();
     }
 
     buttonEnabler.run({ config: config });
-
 }
 
 function getPlotAccordionContent(id) {

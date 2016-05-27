@@ -2,12 +2,15 @@
 {% load instance_config %}
 
 <div data-mapfeature-type="{{ feature.feature_type }}">
-    <div>
+    <div class="popup-content">
         <h4>{{ title }}</h4>
-        <address>
-            <strong>{% trans "Nearby Address:" %}</strong>
+        {% if feature.address_full %}
+            <div>
+                <strong>{% trans "Nearby Address:" %}</strong>
+            </div>
             {{ feature.address_full }}
-        </address>
+        {% endif %}
+        {% include 'treemap/partials/canopy_percentages.html' %}
     </div>
     <div>
         <a href="{% url 'map_feature_detail' instance_url_name=request.instance.url_name feature_id=feature.pk %}"

@@ -147,16 +147,17 @@
 .leaflet-popup-content {
     margin: 18px 20px;
 
+    .popup-content {
+        margin-bottom: 15px;
+    }
     h4 {
         margin: 0 0 0.5em;
     }
-    address {
-        margin-bottom: 15px;
-
-        strong {
-            clear: both;
-            display: block;
-        }
+    table {
+        margin: 9px -4px 0 -4px;
+    }
+    th, td {
+        padding: 0 4px;
     }
 }
 
