@@ -120,7 +120,9 @@ def boundary_to_geojson(request, instance, boundary_id):
 def boundary_autocomplete(request, instance):
     max_items = request.GET.get('max_items', None)
 
-    boundaries = instance.boundaries.order_by('name')[:max_items]
+    boundaries = instance.boundaries \
+                         .filter(searchable=True) \
+                         .order_by('name')[:max_items]
 
     return [{'name': boundary.name,
              'category': boundary.category,
