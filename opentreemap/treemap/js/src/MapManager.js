@@ -130,7 +130,9 @@ MapManager.prototype = {
         } else {
             var visible = _.keys(basemapMapping)[0];
             map.addLayer(basemapMapping[visible]);
-            this.layersControl = L.control.layers(basemapMapping).addTo(map);
+            this.layersControl = L.control.layers(basemapMapping, null, {
+                autoZIndex: false
+            }).addTo(map);
         }
 
         if (options.disableScrollWithMouseWheel) {
