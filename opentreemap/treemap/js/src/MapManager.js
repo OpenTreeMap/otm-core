@@ -102,6 +102,11 @@ MapManager.prototype = {
             fixZoomLayerSwitch(map, boundariesLayer);
         }
 
+        if (config.instance.canopyEnabled) {
+            var canopyLayer = layersLib.createCanopyBoundariesTileLayer(config);
+            map.addLayer(canopyLayer);
+        }
+
         _.each(config.instance.customLayers, _.partial(addCustomLayer, this, config));
 
         if (options.trackZoomLatLng) {

@@ -14,7 +14,8 @@ var $ = require("jquery"),
     BASE_LAYER_OPTION = exports.BASE_LAYER_OPTION = {zIndex: 0},
     BOUNDARY_LAYER_OPTION = {zIndex: 1},
     CUSTOM_LAYER_OPTION = {zIndex: 2},
-    FEATURE_LAYER_OPTION = {zIndex: 3};
+    CANOPY_BOUNDARY_LAYER_OPTION = {zIndex: 3, opacity: 0.75},
+    FEATURE_LAYER_OPTION = {zIndex: 4};
 
 ////////////////////////////////////////////////
 // public functions
@@ -26,6 +27,13 @@ exports.createBoundariesTileLayer = function (config) {
     var revToUrl = getUrlMaker(config, 'treemap_boundary', 'png'),
         url = revToUrl(config.instance.geoRevHash),
         options = _.extend({}, MAX_ZOOM_OPTION, MIN_ZOOM_OPTION, BOUNDARY_LAYER_OPTION);
+    return L.tileLayer(url, options);
+};
+
+exports.createCanopyBoundariesTileLayer = function (config) {
+    var revToUrl = getUrlMaker(config, 'treemap_canopy_boundary', 'png'),
+        url = revToUrl(config.instance.geoRevHash),
+        options = _.extend({}, MAX_ZOOM_OPTION, CANOPY_BOUNDARY_LAYER_OPTION);
     return L.tileLayer(url, options);
 };
 
