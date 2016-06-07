@@ -329,6 +329,9 @@ module.exports = exports = {
                 })
                 .map(Search.buildSearch),
             uSearch = udfcSearch.init(resetStream),
+            searchChangedStream = Bacon
+                .mergeAll(searchStream, resetStream)
+                .map(true),
 
             geocodeResponseStream = geocoderInvokeUi({
                 config: config,
@@ -348,7 +351,7 @@ module.exports = exports = {
         initSearchUi(config, searchStream);
 
         return {
-            // a stream events corresponding to clicks on the reset button.
+            // a stream of events corresponding to clicks on the reset button.
             resetStream: resetStream,
 
             // the final, pinpointed stream of geocoded locations
@@ -359,6 +362,9 @@ module.exports = exports = {
             // Stream of search events, carries the filter object and display
             // list with it. should be used by consumer to execute searches.
             filterNonGeocodeObjectStream: filtersStream,
+
+            // has a value on all events that change the current search
+            searchChangedStream: searchChangedStream,
 
             applySearchToDom: function (search) {
                 Search.applySearchToDom(search);
