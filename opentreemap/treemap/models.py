@@ -1230,7 +1230,7 @@ class Boundary(models.Model):
                                       db_index=True)
 
     canopy_percent = models.FloatField(null=True)
-    searchable = models.NullBooleanField(default=True)
+    searchable = models.BooleanField(default=True)
 
     objects = models.GeoManager()
 
