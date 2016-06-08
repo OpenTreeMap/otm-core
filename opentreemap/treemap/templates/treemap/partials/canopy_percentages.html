@@ -1,0 +1,18 @@
+{% load i18n %}
+
+{% if boundaries_with_canopy %}
+    <table>
+        <tr>
+            <th>{% trans "Canopy" %}</th>
+            <th>{% trans "Area" %}</th>
+            <th>{% trans "Category" %}</th>
+        </tr>
+        {% for boundary in boundaries_with_canopy %}
+            <tr>
+                <td>{{ boundary.canopy_percent|floatformat }}%</td>
+                <td>{{ boundary.name }}</td>
+                <td>{{ boundary.category }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endif %}

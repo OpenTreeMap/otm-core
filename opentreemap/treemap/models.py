@@ -1226,8 +1226,11 @@ class Boundary(models.Model):
     category = models.CharField(max_length=255)
     sort_order = models.IntegerField()
 
-    updated_at = models.DateTimeField(  # TODO: remove null=True
-        null=True, auto_now=True, editable=False, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True, editable=False,
+                                      db_index=True)
+
+    canopy_percent = models.FloatField(null=True)
+    searchable = models.NullBooleanField(default=True)
 
     objects = models.GeoManager()
 

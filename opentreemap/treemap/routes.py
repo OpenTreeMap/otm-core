@@ -143,6 +143,10 @@ map_feature_popup = do(
     render_template('treemap/partials/map_feature_popup.html'),
     feature_views.map_feature_popup)
 
+canopy_popup = do(
+    instance_request,
+    feature_views.canopy_popup)
+
 add_map_feature_photo = add_map_feature_photo_do(
     feature_views.add_map_feature_photo)
 

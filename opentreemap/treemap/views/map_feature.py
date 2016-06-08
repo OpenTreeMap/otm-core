@@ -7,6 +7,7 @@ import json
 import hashlib
 from functools import wraps
 
+from django.http import HttpResponse
 from django.template import RequestContext, TemplateDoesNotExist
 from django.template.loader import get_template
 from django.shortcuts import get_object_or_404, render_to_response
@@ -340,7 +341,33 @@ def rotate_map_feature_photo(request, instance, feature_id, photo_id):
 def map_feature_popup(request, instance, feature_id):
     feature = get_map_feature_or_404(feature_id, instance)
     context = context_dict_for_map_feature(request, feature)
+    if instance.canopy_enabled:
+        context['boundaries_with_canopy'] = \
+            _get_boundaries_with_canopy(instance, feature.geom)
     return context
+
+
+def canopy_popup(request, instance):
+    if instance.canopy_enabled:
+        lng = request.GET['lng']
+        lat = request.GET['lat']
+        point = Point(float(lng), float(lat), srid=4326)
+        result = _get_boundaries_with_canopy(instance, point)
+        if result:
+            return render_to_response('treemap/partials/canopy_popup.html',
+                                      {'boundaries_with_canopy': result},
+                                      RequestContext(request))
+    return HttpResponse('')
+
+
+def _get_boundaries_with_canopy(instance, point):
+    boundaries = instance.boundaries \
+        .filter(geom__contains=point) \
+        .exclude(canopy_percent__isnull=True) \
+        .order_by('-sort_order')
+    for boundary in boundaries:
+        boundary.canopy_percent *= 100
+    return boundaries
 
 
 def favorite_map_feature(request, instance, feature_id):

@@ -2,23 +2,26 @@
 {% load instance_config %}
 
 <div data-mapfeature-type="{{ feature.feature_type }}">
-  <div>
-    <h4>{{ title }}</h4>
-    <address>
-      <strong>{% trans "Nearby Address:" %}</strong>
-      {{ feature.address_full }}
-    </address>
-  </div>
-  <div>
-    <a href="{% url 'map_feature_detail' instance_url_name=request.instance.url_name feature_id=feature.pk %}"
-       class="btn btn-sm btn-secondary">{% trans "View All Details" %}</a>
+    <div class="popup-content">
+        <h4>{{ title }}</h4>
+        {% if feature.address_full %}
+            <div>
+                <strong>{% trans "Nearby Address:" %}</strong>
+            </div>
+            {{ feature.address_full }}
+        {% endif %}
+        {% include 'treemap/partials/canopy_percentages.html' %}
+    </div>
+    <div>
+        <a href="{% url 'map_feature_detail' instance_url_name=request.instance.url_name feature_id=feature.pk %}"
+           class="btn btn-sm btn-secondary">{% trans "View All Details" %}</a>
 
-    {% if feature.is_plot or feature.is_editable %}
-    <a disabled="disabled"
-       data-always-enable="{{ last_effective_instance_user|map_feature_is_writable:feature }}"
-       data-disabled-title="{% trans "Editing a tree's details is not available to all users" %}"
-       data-href="{% url 'map_feature_detail_edit' instance_url_name=request.instance.url_name feature_id=feature.pk edit='edit' %}"
-       class="btn btn-sm btn-info">{% trans "Edit Details" %}</a>
-    {% endif %}
-  </div>
+        {% if feature.is_plot or feature.is_editable %}
+            <a disabled="disabled"
+               data-always-enable="{{ last_effective_instance_user|map_feature_is_writable:feature }}"
+               data-disabled-title="{% trans "Editing a tree's details is not available to all users" %}"
+               data-href="{% url 'map_feature_detail_edit' instance_url_name=request.instance.url_name feature_id=feature.pk edit='edit' %}"
+               class="btn btn-sm btn-info">{% trans "Edit Details" %}</a>
+        {% endif %}
+    </div>
 </div>
