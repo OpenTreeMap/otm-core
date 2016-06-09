@@ -2,6 +2,8 @@
 
 "use strict";
 
+var toastr = require('toastr');
+
 // For modal dialog on jquery
 require('bootstrap');
 
@@ -15,6 +17,10 @@ var $ = require('jquery'),
 require('jqueryUiWidget');
 require('jqueryIframeTransport');
 require('jqueryFileUpload');
+
+
+var MAX_FILE_SIZE_BYTES = 1048576; // 1 MB (Default Nginx client_max_body_size value)
+
 
 module.exports.init = function(options) {
     var $panel = $(options.panelId),
@@ -45,7 +51,8 @@ module.exports.init = function(options) {
             $imageContainer.removeData('carousel');
         }
     }
-    $chooser.fileupload({
+
+    var fileupload = $chooser.fileupload({
         dataType: dataType,
         start: function () {
             $error.hide();
@@ -91,6 +98,23 @@ module.exports.init = function(options) {
                 $error.text(message).show();
             }
         }
+    });
+
+    fileupload.bind('fileuploadadd', function(e, data) {
+        data.process(function() {
+            var defer = $.Deferred();
+            _.each(data.files, function(file) {
+                if (file.size >= MAX_FILE_SIZE_BYTES) {
+                    var message = options.fileExceedsMaximumFileSize
+                            .replace('{0}', file.name)
+                            .replace('{1}', MAX_FILE_SIZE_BYTES / 1024 / 1024 + ' MB');
+                    toastr.error(message);
+                    defer.reject([data]);
+                }
+            });
+            defer.resolve([data]);
+            return defer.promise();
+        });
     });
 
     $imageContainer.on('slide', function(e) {
