@@ -72,9 +72,9 @@ function onLocationFound(config, mapManager, location) {
     var latLng = U.webMercatorToLeafletLatLng(location.x, location.y),
         marker = L.marker(latLng, {
             icon: L.icon({
-                iconUrl: config.staticUrl + 'img/marker.png',
-                iconSize: [21, 25],
-                iconAnchor: [10, 24]
+                iconUrl: config.staticUrl + 'img/mapmarker_locationsearch.png',
+                iconSize: [70, 60],
+                iconAnchor: [20, 60]
             }),
             clickable: false,
             keyboard: false
