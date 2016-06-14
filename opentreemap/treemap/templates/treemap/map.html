@@ -8,6 +8,7 @@
 
 {% block searchscripts %}
 <script src="//maps.google.com/maps/api/js?v=3&sensor=false"></script>
+{% include "treemap/partials/canopy_filter_control.html" %}
 <script>
 (function(require) {
     var $ = require("jquery"),

@@ -185,6 +185,11 @@ module.exports = function(grunt) {
                             exports: null,
                             depends: { jquery: 'jQuery' }
                         },
+                        ionRangeSlider: {
+                            path: './treemap/js/shim/ion.rangeSlider.js',
+                            exports: null,
+                            depends: { jquery: 'jQuery' }
+                        },
                         "bootstrap-datepicker": {
                             path: './treemap/js/shim/bootstrap-datepicker.js',
                             exports: null,
@@ -245,8 +250,8 @@ module.exports = function(grunt) {
                       'treemap/css/vendor/bootstrap-responsive.css',
                       'treemap/css/vendor/bootstrap-lightbox.css',
                       'treemap/css/vendor/bootstrap-slider.css',
-                      'treemap/css/vendor/datepicker.css',
                       'treemap/css/vendor/bootstrap-multiselect.css',
+                      'treemap/css/vendor/datepicker.css',
                       'treemap/css/vendor/fontello.css',
                       'treemap/css/vendor/toastr.css',
                       'treemap/css/vendor/leaflet.css',
