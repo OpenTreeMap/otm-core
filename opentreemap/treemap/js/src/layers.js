@@ -110,6 +110,19 @@ function getUrlMaker(config, table, extension) {
     };
 }
 
+// Combine base from `newBaseUrl` with querystring from `url`.
+//
+// The purpose of this is to generate a new search url for tile layers
+// from an updated base url (because of revision hash changes), while
+// also preserving the current querystring filters.
+//
+// Ref: https://github.com/OpenTreeMap/otm-core/issues/2437
+function updateBaseUrl(url, newBaseUrl) {
+    var oldQueryString = url.split('?')[1],
+        newBase = newBaseUrl.split('?')[0];
+    return newBase + '?' + oldQueryString;
+}
+
 function filterableLayer (table, extension, config, layerOptions) {
     var revToUrl = getUrlMaker(config, table, extension),
         noSearchUrl = revToUrl(config.instance.geoRevHash),
@@ -120,14 +133,9 @@ function filterableLayer (table, extension, config, layerOptions) {
         noSearchUrl = revToUrl(response.geoRevHash);
         searchBaseUrl = revToUrl(response.universalRevHash);
 
-        // TODO: this is cryptic. This method gets called even when a
-        // search is activated, so setting the URL to the noSearchUrl
-        // would seem to clear the search, only it doesn't. I guess
-        // setFilter is being called again, afterward, somewhere else.
-        // unfortunately, this is necessary because without it new
-        // tiles don't get requested, and we haven't closed over filters
-        // so we can't simply make another call to `setFilter`.
-        layer.setUrl(noSearchUrl);
+        // Update tiles to reflect content changes.
+        var newLayerUrl = updateBaseUrl(layer._url, searchBaseUrl);
+        layer.setUrl(newLayerUrl);
     };
 
     layer.setFilter = function(filters) {
