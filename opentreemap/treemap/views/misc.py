@@ -122,7 +122,7 @@ def boundary_autocomplete(request, instance):
 
     boundaries = instance.boundaries \
                          .filter(searchable=True) \
-                         .order_by('name')[:max_items]
+                         .order_by('sort_order', 'name')[:max_items]
 
     return [{'name': boundary.name,
              'category': boundary.category,
