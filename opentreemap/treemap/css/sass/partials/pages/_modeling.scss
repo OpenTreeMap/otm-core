@@ -397,6 +397,19 @@
             }
         }
     }
+
+    .leaflet-loading-control {
+        background: #fff;
+        padding: 5px 10px;
+        font-size: 12pt;
+        box-shadow: 0 1px 7px rgba(0, 0, 0, 0.4);
+        border-radius: 4px;
+
+        img {
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+    }
 }
 
 #sidebar-prioritization {
