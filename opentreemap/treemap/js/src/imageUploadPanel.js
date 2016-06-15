@@ -19,9 +19,6 @@ require('jqueryIframeTransport');
 require('jqueryFileUpload');
 
 
-var MAX_FILE_SIZE_BYTES = 1048576; // 1 MB (Default Nginx client_max_body_size value)
-
-
 module.exports.init = function(options) {
     var $panel = $(options.panelId),
         $image = $(options.imageElement),
@@ -104,10 +101,11 @@ module.exports.init = function(options) {
         data.process(function() {
             var defer = $.Deferred();
             _.each(data.files, function(file) {
-                if (file.size >= MAX_FILE_SIZE_BYTES) {
-                    var message = options.fileExceedsMaximumFileSize
+                if (file.size >= options.maxImageSize) {
+                    var mb = options.maxImageSize / 1024 / 1024,
+                        message = options.fileExceedsMaximumFileSize
                             .replace('{0}', file.name)
-                            .replace('{1}', MAX_FILE_SIZE_BYTES / 1024 / 1024 + ' MB');
+                            .replace('{1}', mb + ' MB');
                     toastr.error(message);
                     defer.reject([data]);
                 }
