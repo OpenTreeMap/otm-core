@@ -294,7 +294,8 @@ var mapFeatureOptions = {
         dataType: 'html',
         imageContainer: '#photo-carousel',
         lightbox: '#photo-lightbox',
-        fileExceedsMaximumFileSize: '{% trans "{0} exceeds the maximum file size of {1}" %}'
+        fileExceedsMaximumFileSize: '{% trans "{0} exceeds the maximum file size of {1}" %}',
+        maxImageSize: {{ settings.MAXIMUM_IMAGE_SIZE }}
     },
     location: {
         edit: '#edit-location',
