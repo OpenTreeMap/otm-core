@@ -110,11 +110,10 @@ class Command(BaseCommand):
         add_default_permissions(instance, roles=[role])
 
         eco_benefits_conversion = \
-            BenefitCurrencyConversion.get_default_for_point(Point(x, y))
+            BenefitCurrencyConversion.get_default_for_instance(instance)
         if eco_benefits_conversion:
             eco_benefits_conversion.save()
-
-        instance.eco_benefits_conversion = eco_benefits_conversion
+            instance.eco_benefits_conversion = eco_benefits_conversion
 
         instance.default_role = role
         instance.save()

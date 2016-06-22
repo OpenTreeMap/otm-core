@@ -196,17 +196,14 @@ class BenefitCurrencyConversion(Dictable, models.Model):
         }
 
     @classmethod
-    def get_default_for_point(cls, point):
+    def get_default_for_instance(cls, instance):
         """
-        Returns a new BenefitCurrencyConversion for the i-Tree region that
-        contains the given point.
+        Returns a new BenefitCurrencyConversion for the instance's (first)
+        i-Tree region. The instance must have bounds for this to work.
         """
-        regions_covered = ITreeRegion.objects.filter(geometry__contains=point)
+        regions_covered = instance.itree_regions()
 
-        if len(regions_covered) > 1:
-            raise MultipleObjectsReturned(
-                "There should not be overlapping i-Tree regions")
-        elif len(regions_covered) == 0:
+        if len(regions_covered) == 0:
             return None
 
         region_code = regions_covered[0].code
