@@ -64,7 +64,7 @@ var create = exports.create = function(options) {
         $hidden_input = $(options.hidden),
         $openButton = $(options.button),
         reverse = options.reverse,
-        sorter = _.isArray(options.sortKeys) ? getSortFunction(options.sortKeys) : undefined,
+        sorter = _.isArray(options.sortKeys) ? getSortFunction(options.sortKeys) : getSortFunction(['value']),
 
         setTypeaheadAfterDataLoaded = function($typeahead, key, query) {
             if (!key) {
@@ -94,7 +94,9 @@ var create = exports.create = function(options) {
             limit: 3000,
             source: function(query, sync, async) {
                 if (query === '') {
-                    sync(prefetchEngine.all());
+                    var result = prefetchEngine.all();
+                    result.sort(sorter);
+                    sync(result);
                 } else {
                     prefetchEngine.search(query, sync, async);
                 }

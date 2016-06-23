@@ -14,7 +14,8 @@ var $ = require("jquery"),
     BASE_LAYER_OPTION = exports.BASE_LAYER_OPTION = {zIndex: 0},
     BOUNDARY_LAYER_OPTION = {zIndex: 1},
     CUSTOM_LAYER_OPTION = {zIndex: 2},
-    FEATURE_LAYER_OPTION = {zIndex: 3};
+    CANOPY_BOUNDARY_LAYER_OPTION = {zIndex: 3, opacity: 0.75},
+    FEATURE_LAYER_OPTION = {zIndex: 4};
 
 ////////////////////////////////////////////////
 // public functions
@@ -26,6 +27,17 @@ exports.createBoundariesTileLayer = function (config) {
     var revToUrl = getUrlMaker(config, 'treemap_boundary', 'png'),
         url = revToUrl(config.instance.geoRevHash),
         options = _.extend({}, MAX_ZOOM_OPTION, MIN_ZOOM_OPTION, BOUNDARY_LAYER_OPTION);
+    return L.tileLayer(url, options);
+};
+
+exports.getCanopyBoundariesTileLayerUrl = function(config, tilerArgs) {
+    var revToUrl = getUrlMaker(config, 'treemap_canopy_boundary', 'png', tilerArgs);
+    return revToUrl(config.instance.geoRevHash);
+};
+
+exports.createCanopyBoundariesTileLayer = function (config) {
+    var url = exports.getCanopyBoundariesTileLayerUrl(config),
+        options = _.extend({}, MAX_ZOOM_OPTION, CANOPY_BOUNDARY_LAYER_OPTION);
     return L.tileLayer(url, options);
 };
 
@@ -64,7 +76,6 @@ exports.createPlotUTFLayer = function (config) {
         layer.setUrl(revToUrl(hashes.geoRevHash));
     };
 
-    // TODO: I don't think this is used anywhere. can we delete it?
     layer.setUrl = function(url) {
         // Poke some internals
         // Update the url
@@ -98,16 +109,35 @@ exports.createCustomLayer = function(layerInfo, config) {
 // internal functions
 ////////////////////////////////////////////////
 
-function getUrlMaker(config, table, extension) {
+function getUrlMaker(config, table, extension, tilerArgs) {
     return function revToUrl(rev) {
+        var query = {
+            'instance_id': config.instance.id,
+            'restrict': JSON.stringify(config.instance.mapFeatureTypes)
+        };
+
+        if (tilerArgs) {
+            _.extend(query, tilerArgs);
+        }
+
         return format(
             '%s/tile/%s/database/otm/table/%s/{z}/{x}/{y}.%s%s',
             config.tileHost || '', rev, table, extension,
-            urlLib.format({query: {
-                'instance_id': config.instance.id,
-                'restrict': JSON.stringify(config.instance.mapFeatureTypes)
-            }}));
+            urlLib.format({query: query}));
     };
+}
+
+// Combine base from `newBaseUrl` with querystring from `url`.
+//
+// The purpose of this is to generate a new search url for tile layers
+// from an updated base url (because of revision hash changes), while
+// also preserving the current querystring filters.
+//
+// Ref: https://github.com/OpenTreeMap/otm-core/issues/2437
+function updateBaseUrl(url, newBaseUrl) {
+    var oldQueryString = url.split('?')[1],
+        newBase = newBaseUrl.split('?')[0];
+    return newBase + '?' + oldQueryString;
 }
 
 function filterableLayer (table, extension, config, layerOptions) {
@@ -120,14 +150,9 @@ function filterableLayer (table, extension, config, layerOptions) {
         noSearchUrl = revToUrl(response.geoRevHash);
         searchBaseUrl = revToUrl(response.universalRevHash);
 
-        // TODO: this is cryptic. This method gets called even when a
-        // search is activated, so setting the URL to the noSearchUrl
-        // would seem to clear the search, only it doesn't. I guess
-        // setFilter is being called again, afterward, somewhere else.
-        // unfortunately, this is necessary because without it new
-        // tiles don't get requested, and we haven't closed over filters
-        // so we can't simply make another call to `setFilter`.
-        layer.setUrl(noSearchUrl);
+        // Update tiles to reflect content changes.
+        var newLayerUrl = updateBaseUrl(layer._url, searchBaseUrl);
+        layer.setUrl(newLayerUrl);
     };
 
     layer.setFilter = function(filters) {

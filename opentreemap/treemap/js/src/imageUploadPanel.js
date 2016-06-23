@@ -2,6 +2,8 @@
 
 "use strict";
 
+var toastr = require('toastr');
+
 // For modal dialog on jquery
 require('bootstrap');
 
@@ -15,6 +17,7 @@ var $ = require('jquery'),
 require('jqueryUiWidget');
 require('jqueryIframeTransport');
 require('jqueryFileUpload');
+
 
 module.exports.init = function(options) {
     var $panel = $(options.panelId),
@@ -45,7 +48,8 @@ module.exports.init = function(options) {
             $imageContainer.removeData('carousel');
         }
     }
-    $chooser.fileupload({
+
+    var fileupload = $chooser.fileupload({
         dataType: dataType,
         start: function () {
             $error.hide();
@@ -91,6 +95,24 @@ module.exports.init = function(options) {
                 $error.text(message).show();
             }
         }
+    });
+
+    fileupload.bind('fileuploadadd', function(e, data) {
+        data.process(function() {
+            var defer = $.Deferred();
+            _.each(data.files, function(file) {
+                if (file.size >= options.maxImageSize) {
+                    var mb = options.maxImageSize / 1024 / 1024,
+                        message = options.fileExceedsMaximumFileSize
+                            .replace('{0}', file.name)
+                            .replace('{1}', mb + ' MB');
+                    toastr.error(message);
+                    defer.reject([data]);
+                }
+            });
+            defer.resolve([data]);
+            return defer.promise();
+        });
     });
 
     $imageContainer.on('slide', function(e) {

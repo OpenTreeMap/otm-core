@@ -6,7 +6,7 @@ var $ = require('jquery'),
     _ = require('lodash'),
     Bacon = require('baconjs'),
     L = require('leaflet'),
-    BU = require('treemap/baconUtils'),
+    U = require('treemap/utility'),
     MapManager = require('treemap/MapManager'),
     mapManager = new MapManager(),
     urlState = require('treemap/urlState'),
@@ -26,7 +26,7 @@ module.exports.init = function (options) {
     // if the map is not already zoomed in.
     var searchBar = SearchBar.init(config);
 
-    searchBar.geocodedLocationStream.onValue(mapManager, 'setCenterWM');
+    searchBar.geocodedLocationStream.onValue(_.partial(onLocationFound, config, mapManager));
 
     var triggeredQueryStream =
         Bacon.mergeAll(
@@ -43,6 +43,10 @@ module.exports.init = function (options) {
     triggeredQueryStream.onValue(searchBar.applySearchToDom);
 
     builtSearchEvents.onValue(urlState.setSearch);
+
+    searchBar.searchChangedStream.onValue(function () {
+        clearFoundLocationMarker(mapManager.map);
+    });
 
     boundarySelect.init({
         config: config,
@@ -63,6 +67,29 @@ module.exports.init = function (options) {
         initMapState: urlState.init
     };
 };
+
+function onLocationFound(config, mapManager, location) {
+    var latLng = U.webMercatorToLeafletLatLng(location.x, location.y),
+        marker = L.marker(latLng, {
+            icon: L.icon({
+                iconUrl: config.staticUrl + 'img/mapmarker_locationsearch.png',
+                iconSize: [70, 60],
+                iconAnchor: [20, 60]
+            }),
+            clickable: false,
+            keyboard: false
+        });
+    marker.addTo(mapManager.map);
+    mapManager.map.foundLocationMarker = marker;
+    mapManager.setCenterLL(latLng);
+}
+
+function clearFoundLocationMarker(map) {
+    if (map.foundLocationMarker) {
+        map.removeLayer(map.foundLocationMarker);
+        map.foundLocationMarker = null;
+    }
+}
 
 // Extract and return numeric region ID from JSON search object, or
 // return undefined if a region is not specified in the search object.

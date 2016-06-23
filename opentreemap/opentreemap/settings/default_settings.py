@@ -43,8 +43,9 @@ AWS_HEADERS = {
     'Cache-Control': 'max-age=86400',
 }
 
-# Size is in bytes
-MAXIMUM_IMAGE_SIZE = 20971520  # 20mb
+# Size is in bytes (20 MB)
+MAXIMUM_IMAGE_SIZE = int(os.environ.get('DJANGO_MAXIMUM_IMAGE_SIZE', 20971520))
+MAXIMUM_IMAGE_SIZE_MB = MAXIMUM_IMAGE_SIZE / 1024 / 1024
 
 # API distance check, in meters
 MAP_CLICK_RADIUS = 100

@@ -1,3 +1,5 @@
+{% load i18n %}
+
 <div id="{{ panel_id }}" class="modal fade">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -6,6 +8,11 @@
         <h2>{{ title }}</h2>
       </div>
       <div class="modal-body">
+        <p>
+          {% blocktrans with settings.MAXIMUM_IMAGE_SIZE_MB as max_image_size %}
+            Maximum file size: {{ max_image_size }}MB
+          {% endblocktrans %}
+        </p>
         <input class="fileChooser" type="file" name="file" data-url="{{ upload_photo_endpoint }}" accept="image/*">
         <div class="progress">
           <div class="progress-bar-info" style="width: 0%; height: 100%"></div>

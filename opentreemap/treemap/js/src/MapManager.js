@@ -11,6 +11,7 @@ var $ = require('jquery'),
     urlState = require('treemap/urlState'),
 
     layersLib = require('treemap/layers'),
+    CanopyFilterControl = require('treemap/CanopyFilterControl'),
 
     MIN_ZOOM_OPTION = layersLib.MIN_ZOOM_OPTION,
     MAX_ZOOM_OPTION = layersLib.MAX_ZOOM_OPTION,
@@ -102,6 +103,38 @@ MapManager.prototype = {
             fixZoomLayerSwitch(map, boundariesLayer);
         }
 
+        if (config.instance.canopyEnabled) {
+            var canopyLayer = layersLib.createCanopyBoundariesTileLayer(config);
+
+            var filterControl = new CanopyFilterControl();
+            filterControl.tilerArgsProp
+                .debounce(1000)
+                .map(function(tilerArgs) {
+                    tilerArgs.category = config.instance.canopyBoundaryCategory;
+                    return tilerArgs;
+                })
+                .onValue(function(tilerArgs) {
+                    var newUrl = layersLib.getCanopyBoundariesTileLayerUrl(config, tilerArgs);
+                    canopyLayer.setUrl(newUrl);
+                });
+
+            map.on('overlayadd', function(e) {
+                if (e.layer === canopyLayer) {
+                    map.addControl(filterControl);
+                }
+            });
+
+            map.on('overlayremove', function(e) {
+                if (e.layer === canopyLayer) {
+                    map.removeControl(filterControl);
+                }
+            });
+
+            this.layersControl.addOverlay(canopyLayer, 'Regional Canopy Percentages');
+
+            fixZoomLayerSwitch(map, canopyLayer);
+        }
+
         _.each(config.instance.customLayers, _.partial(addCustomLayer, this, config));
 
         if (options.trackZoomLatLng) {
@@ -130,7 +163,9 @@ MapManager.prototype = {
         } else {
             var visible = _.keys(basemapMapping)[0];
             map.addLayer(basemapMapping[visible]);
-            this.layersControl = L.control.layers(basemapMapping).addTo(map);
+            this.layersControl = L.control.layers(basemapMapping, null, {
+                autoZIndex: false
+            }).addTo(map);
         }
 
         if (options.disableScrollWithMouseWheel) {

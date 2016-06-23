@@ -220,17 +220,13 @@ class Instance(models.Model):
     """
     Flag indicating whether canopy data is available and should be displayed.
     """
-    # TODO: Switch to a BooleanField after the migration that adds this field
-    # has been deployed
-    canopy_enabled = models.NullBooleanField(default=False)
+    canopy_enabled = models.BooleanField(default=False)
 
     """
     The boundary category to be used for showing a choropleth canopy
     layer. max_length=255 matches Boundary.category
     """
-    # TODO: Make this field non-nullable after the migration that adds
-    # this field has been deployed.
-    canopy_boundary_category = models.CharField(max_length=255, null=True,
+    canopy_boundary_category = models.CharField(max_length=255, default='',
                                                 blank=True)
 
     objects = models.GeoManager()
