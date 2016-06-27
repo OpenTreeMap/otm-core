@@ -1,8 +1,13 @@
 {% load i18n %}
 
 <script type="text/template" id="canopy-filter-tmpl">
-<div class="canopy-filter leaflet-control leaflet-bar">
-    <h4>{% trans "Regional Canopy Filter" %}</h4>
+<div class="canopy-filter leaflet-control leaflet-bar text-center">
+    <strong>{% trans "Regional Canopy Filter" %}</strong>
+    <span class="from-label"></span>
+    <span class="to-label"></span>
     <input type="text" name="canopy-slider" value="" />
+    <div class="legend">
+        <div class="color-ramp light-to-dark-green"></div>
+    </div>
 </div>
 </script>

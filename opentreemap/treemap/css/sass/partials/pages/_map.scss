@@ -1,5 +1,17 @@
 // Partial: Map Page
 
+// Keep these colors in sync with otm-tiler/style/canopy.mms
+$light-to-dark-green: #ffffff 10%,
+                      #f6f9f4 10%, #f6f9f4 20%,
+                      #d7ebc7 20%, #d7ebc7 30%,
+                      #b8dd9b 30%, #b8dd9b 40%,
+                      #99cf6f 40%, #99cf6f 50%,
+                      #7ac143 50%, #7ac143 60%,
+                      #5ba63b 60%, #5ba63b 70%,
+                      #3d8c33 70%, #3d8c33 80%,
+                      #1e722b 80%, #1e722b 90%,
+                      #005824 90%;
+
 #streetview {
     width: 200px;
     height: 180px;
@@ -240,4 +252,29 @@
 .canopy-filter {
     background: #fff;
     padding: 10px;
+
+    .from-label,
+    .to-label {
+        position: absolute;
+        top: 30px;
+        font-size: smaller;
+    }
+    .from-label {
+        left: 10px;
+    }
+    .to-label {
+        right: 10px;
+    }
+
+   .color-ramp {
+       display: inline-block;
+       width: 150px;
+       height: 10px;
+       border: 1px solid #ddd;
+
+       &.light-to-dark-green {
+           background: -webkit-linear-gradient(90deg, $light-to-dark-green);
+           background: linear-gradient(90deg, $light-to-dark-green);
+       }
+   }
 }
