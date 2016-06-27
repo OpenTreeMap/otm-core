@@ -35,20 +35,30 @@ var CanopyFilterControl = L.Control.extend({
             step: 1,
             drag_interval: true,
             hide_min_max: true,
+            hide_from_to: true,
             grid: false,
             postfix: '%',
             onChange: function (data) {
-                self._changeBus.push({
+                changeBus.push({
                     canopyMin: data.from / 100,
                     canopyMax: data.to / 100
                 });
             },
         });
 
-        var el = $el.get(0);
+        this.tilerArgsProp.onValue(function(value) {
+            $el.find('.from-label').text(Math.floor(value.canopyMin * 100) + '%');
+            $el.find('.to-label').text(Math.floor(value.canopyMax * 100) + '%');
+        });
+    },
+
+    onAdd: function(map) {
+        var el = this.$el.get(0);
         L.DomEvent.disableClickPropagation(el);
         return el;
     }
 });
 
-module.exports = CanopyFilterControl;
+module.exports = {
+    CanopyFilterControl: CanopyFilterControl
+};
