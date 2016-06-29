@@ -11,7 +11,7 @@ var $ = require('jquery'),
     urlState = require('treemap/urlState'),
 
     layersLib = require('treemap/layers'),
-    CanopyFilterControl = require('treemap/CanopyFilterControl'),
+    CanopyFilterControl = require('treemap/controls').CanopyFilterControl,
 
     MIN_ZOOM_OPTION = layersLib.MIN_ZOOM_OPTION,
     MAX_ZOOM_OPTION = layersLib.MAX_ZOOM_OPTION,
