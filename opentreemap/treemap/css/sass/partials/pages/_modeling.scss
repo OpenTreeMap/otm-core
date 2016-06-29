@@ -537,15 +537,29 @@ $blue-to-red: #2791c3 10%,
         }
     }
 
+    .presets {
+        padding: 15px;
+        border-bottom: 1px solid #ddd;
+
+        .dropdown-toggle {
+            width: 100%;
+            text-align: left;
+
+            .caret {
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                margin-top: -1px;
+            }
+        }
+    }
+
     .layer {
         padding: 15px;
         border-top: 1px solid #fff;
         border-bottom: 1px solid #ddd;
         background: #f8f8f8;
 
-        &:first-child {
-            border-top: none;
-        }
         &:last-child {
             border-bottom: none;
         }
