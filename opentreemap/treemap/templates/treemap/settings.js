@@ -75,7 +75,7 @@ otm.settings.doubleClickInterval = '{{ settings.DOUBLE_CLICK_INTERVAL }}';
             'x': '{{ request.instance.center.x }}',
             'y': '{{ request.instance.center.y }}'
         },
-        'extent': {{ request.instance.extent_as_json|safe }},
+        'extent': {{ request.instance.bounds_extent_as_json|safe }},
         'bounds': {{ request.instance.bounds_as_geojson|safe }},
         'basemap': {
             'type': '{{ request.instance.basemap_type }}',
