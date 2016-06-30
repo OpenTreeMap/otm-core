@@ -42,8 +42,7 @@ MapManager.prototype = {
         this._utfLayer = utfLayer;
         allPlotsLayer.setOpacity(0.3);
 
-        options.centerWM = options.centerWM || config.instance.center;
-        options.zoom = options.zoom || this.ZOOM_DEFAULT;
+        options.bounds = getDomMapAttribute('bounds', options.domId);
         var map = this.createMap(options);
 
         if (options.plotLayerViewOnly) {
@@ -149,11 +148,20 @@ MapManager.prototype = {
     createMap: function (options) {
         var center = options.centerWM || {x: 0, y: 0},
             zoom = options.zoom || 2,
-            map = L.map(options.domId, {
-                center: U.webMercatorToLeafletLatLng(center.x, center.y),
-                zoom: zoom
-            }),
+            bounds = options.bounds,
+            map = L.map(options.domId),
             basemapMapping = getBasemapLayers(options.config);
+
+        if (_.isUndefined(bounds)) {
+            map.setView(U.webMercatorToLeafletLatLng(center.x, center.y), zoom);
+        } else {
+            map.fitBounds([
+                    U.webMercatorToLeafletLatLng(bounds.xmin, bounds.ymin),
+                    U.webMercatorToLeafletLatLng(bounds.xmax, bounds.ymax)
+                ],
+                MAX_ZOOM_OPTION
+            );
+        }
 
         if (_.isArray(basemapMapping)) {
             _.each(_.values(basemapMapping),
