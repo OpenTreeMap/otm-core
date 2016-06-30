@@ -23,6 +23,16 @@ project](https://github.com/OpenTreeMap/otm-vagrant) to get started.
 While not recommended for production, otm-vagrant greatly simplifies 
 getting a development environment for testing and contributing to OTM locally.
 
+### Environment variables
+This project requires several environment variables, to provide API keys for several services.
+
+```
+ROLLBAR_SERVER_SIDE_ACCESS_TOKEN=....
+GOOGLE_MAPS_KEY=...
+```
+`ROLLBAR_SERVER_SIDE_ACCESS_TOKEN` is a token for [Rollbar](rollbar.com).
+`GOOGLE_MAPS_KEY` is a browser key for the Google Maps Javascript API, [which can be obtained here](https://developers.google.com/maps/documentation/javascript/get-api-key).
+
 ##Other Repositories
 
 This repository (ie, otm-core) is but one of a few separate repositories 
@@ -35,6 +45,8 @@ benefits calculation service
 * [otm-ios](https://github.com/OpenTreeMap/otm-ios) - An 
 OpenTreeMap client for iOS devices.
 * [otm-android](https://github.com/OpenTreeMap/otm-android) - An OpenTreeMap client for Android devices.
+
+
 
 ###Deprecated Repositories
 
