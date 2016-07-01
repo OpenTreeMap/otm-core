@@ -1,9 +1,9 @@
 "use strict";
 
-var inlineEditForm = require('treemap/inlineEditForm'),
-    recentEdits = require('treemap/recentEdits'),
-    imageUploadPanel = require('treemap/imageUploadPanel'),
-    csrf = require('treemap/csrf'),
+var inlineEditForm = require('treemap/lib/inlineEditForm.js'),
+    recentEdits = require('treemap/lib/recentEdits.js'),
+    imageUploadPanel = require('treemap/lib/imageUploadPanel.js'),
+    csrf = require('treemap/lib/csrf.js'),
     $ = require('jquery');
 
 exports.init = function(options) {

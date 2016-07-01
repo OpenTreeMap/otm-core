@@ -4,13 +4,13 @@ var $ = require('jquery'),
     _ = require('lodash'),
     Bootstrap = require('bootstrap'),  // for $(...).collapse()
     Bacon = require('baconjs'),
-    addTreeModeName = require('treemap/addTreeMode').name,
-    addResourceModeName = require('treemap/addResourceMode').name,
-    BU = require('treemap/baconUtils'),
-    buttonEnabler = require('treemap/buttonEnabler'),
-    MapPage = require('treemap/mapPage'),
-    modes = require('treemap/treeMapModes'),
-    Search = require('treemap/search');
+    addTreeModeName = require('treemap/lib/addTreeMode.js').name,
+    addResourceModeName = require('treemap/lib/addResourceMode.js').name,
+    BU = require('treemap/lib/baconUtils.js'),
+    buttonEnabler = require('treemap/lib/buttonEnabler.js'),
+    MapPage = require('treemap/lib/mapPage.js'),
+    modes = require('treemap/lib/treeMapModes.js'),
+    Search = require('treemap/lib/search.js');
 
 function changeMode (modeName) {
     if (modeName === addTreeModeName) {

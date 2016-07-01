@@ -1,8 +1,8 @@
 "use strict";
 
 var $ = require('jquery'),
-    mapFeatureDelete = require('treemap/mapFeatureDelete'),
-    mapFeatureUdf = require('treemap/mapFeatureUdf');
+    mapFeatureDelete = require('treemap/lib/mapFeatureDelete.js'),
+    mapFeatureUdf = require('treemap/lib/mapFeatureUdf.js');
 
 // Placed onto the jquery object
 require('bootstrap-datepicker');

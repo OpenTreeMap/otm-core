@@ -2,15 +2,15 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
-    U = require('treemap/utility'),
+    U = require('treemap/lib/utility.js'),
     R = require('ramda'),
     format = require('util').format,
-    otmTypeahead = require('treemap/otmTypeahead'),
-    FH = require('treemap/fieldHelpers'),
-    mapFeatureDelete = require('treemap/mapFeatureDelete'),
-    diameterCalculator = require('treemap/diameterCalculator'),
-    mapFeatureUdf = require('treemap/mapFeatureUdf'),
-    plotAddTree = require('treemap/plotAddTree'),
+    otmTypeahead = require('treemap/lib/otmTypeahead.js'),
+    FH = require('treemap/lib/fieldHelpers.js'),
+    mapFeatureDelete = require('treemap/lib/mapFeatureDelete.js'),
+    diameterCalculator = require('treemap/lib/diameterCalculator.js'),
+    mapFeatureUdf = require('treemap/lib/mapFeatureUdf.js'),
+    plotAddTree = require('treemap/lib/plotAddTree.js'),
     moment = require('moment');
 
 // Placed onto the jquery object
