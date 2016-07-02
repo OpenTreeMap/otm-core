@@ -4,8 +4,8 @@ var geocoder = require('treemap/lib/geocoder.js'),
     _ = require('lodash'),
     $ = require('jquery');
 
-module.exports = function(config, triggerStream, formSelector) {
-    var gcoder = geocoder(config);
+module.exports = function(triggerStream, formSelector) {
+    var gcoder = geocoder();
     var reverseGeocodeStream = gcoder.reverseGeocodeStream(triggerStream);
     reverseGeocodeStream.onValue(function(geocode) {
         // Grab the applicable values

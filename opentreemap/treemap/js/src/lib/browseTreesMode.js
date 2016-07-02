@@ -4,26 +4,29 @@ var $ = require('jquery'),
     _ = require('lodash'),
     L = require('leaflet'),
     Bacon = require('baconjs'),
+    reverse = require('reverse'),
     BU = require('treemap/lib/baconUtils.js'),
     buttonEnabler = require('treemap/lib/buttonEnabler.js'),
+    config = require('treemap/lib/config.js'),
     format = require('util').format;
 
-var config,  // Module-level config set in `init` and read by helper functions
-    map,
+var map,
     popup,  // Most recent popup (so it can be deleted)
     plotMarker,
     $fullDetailsButton;
 
 function idToPlotDetailUrl(id) {
     if (id) {
-        return config.instance.url + 'features/' + id + '/';
+        return reverse.map_feature_detail({
+            instance_url_name: config.instance.url_name,
+            feature_id: id
+        });
     } else {
         return '';
     }
 }
 
 function init(options) {
-    config = options.config;
     map = options.map;
     plotMarker = options.plotMarker;
     $fullDetailsButton = options.$fullDetailsButton;
@@ -94,11 +97,14 @@ function getPopupContent(utfGridEvent) {
         featureId = data ? data[config.utfGrid.mapfeatureIdKey] : null;
 
     if (featureId) {
-        return getPopup(config.instance.url + 'features/' + featureId + '/popup');
+        return getPopup(reverse.map_feature_popup({
+            instance_url_name: config.instance.url_name,
+            feature_id: featureId
+        }));
 
     } else if (config.instance.canopyEnabled) {
         var latlng = utfGridEvent.latlng;
-        return getPopup(config.instance.canopyForPointUrl +
+        return getPopup(reverse.canopy_popup(config.instance.url_name) +
             format('?lng=%d&lat=%d', latlng.lng, latlng.lat));
 
     } else {
@@ -157,12 +163,15 @@ function showPopup(newPopup) {
         plotMarker.hide();
     }
 
-    buttonEnabler.run({ config: config });
+    buttonEnabler.run();
 }
 
 function getPlotAccordionContent(id) {
     var search = $.ajax({
-        url: config.instance.url + 'features/' + id + '/detail',
+        url: reverse.map_feature_accordion({
+            instance_url_name: config.instance.url_name,
+            feature_id: id
+        }),
         type: 'GET',
         dataType: 'html'
     });

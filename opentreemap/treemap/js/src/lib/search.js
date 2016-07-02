@@ -3,9 +3,11 @@
 var $ = require('jquery'),
     Bacon = require('baconjs'),
     _ = require('lodash'),
+    reverse = require('reverse'),
     moment = require("moment"),
     isTypeaheadHiddenField = require('treemap/lib/fieldHelpers.js'),
     FH = require('treemap/lib/fieldHelpers.js'),
+    config = require('treemap/lib/config.js'),
     querystring = require('querystring');
 
 var DATETIME_FORMAT = FH.DATETIME_FORMAT;
@@ -36,7 +38,7 @@ var isEmpty = exports.isEmpty = function(obj) {
     return filterObjectIsEmpty(obj.filter) && displayListIsEmpty(obj.display);
 };
 
-var makeQueryStringFromFilters = exports.makeQueryStringFromFilters = function(config, filters) {
+var makeQueryStringFromFilters = exports.makeQueryStringFromFilters = function(filters) {
     var query = {};
     if ( ! filterObjectIsEmpty(filters.filter)) {
         query[config.urls.filterQueryArgumentName] = JSON.stringify(filters.filter);
@@ -72,11 +74,11 @@ function buildElems() {
 // be conveniently used in unit tests
 exports._buildElems = buildElems;
 
-function executeSearch(config, filters) {
-    var query = makeQueryStringFromFilters(config, filters);
+function executeSearch(filters) {
+    var query = makeQueryStringFromFilters(filters);
 
     var search = $.ajax({
-        url: config.instance.url + 'benefit/search',
+        url: reverse.benefit_search(config.instance.url_name),
         data: query,
         type: 'GET',
         dataType: 'html'
@@ -222,13 +224,13 @@ function buildDisplayList() {
 //   of the item should be JSON generated from buildSearch
 //
 // applyFilter: Function to call when filter changes.
-exports.init = function(searchStream, config, applyFilter) {
+exports.init = function(searchStream, applyFilter) {
     searchStream.onValue(applyFilter);
 
     // Clear any previous search results
     searchStream.map('').onValue($('#search-results'), 'html');
 
     searchStream
-        .flatMap(_.partial(executeSearch, config))
+        .flatMap(executeSearch)
         .onValue(updateSearchResults);
 };

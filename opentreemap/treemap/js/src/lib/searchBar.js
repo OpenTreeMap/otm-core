@@ -20,6 +20,8 @@ var $ = require('jquery'),
     udfcSearch = require('treemap/lib/udfcSearch.js'),
     BU = require('treemap/lib/baconUtils.js'),
     MapManager = require('treemap/lib/MapManager.js'),
+    reverse = require('reverse'),
+    config = require('treemap/lib/config.js'),
     mapManager = new MapManager();
 
 var dom = {
@@ -67,24 +69,24 @@ var getSearchDatum = function() {
     return otmTypeahead.getDatum($('#boundary-typeahead'));
 };
 
-function redirectToSearchPage(config, filters, wmCoords) {
+function redirectToSearchPage(filters, wmCoords) {
     var getZPortion = function (wmCoords) {
             var ll = U.webMercatorToLatLng(wmCoords.x, wmCoords.y);
             return '&z='+ mapManager.ZOOM_PLOT + '/' + ll.lat + '/' + ll.lng;
         },
-        query = Search.makeQueryStringFromFilters(config, filters);
+        query = Search.makeQueryStringFromFilters(filters);
 
     query += wmCoords ? getZPortion(wmCoords) : '';
 
-    window.location.href = config.instance.url + 'map/?' + query;
+    window.location.href = reverse.map(config.instance.url_name) + '?' + query;
 }
 
-function initSearchUi(config, searchStream) {
+function initSearchUi(searchStream) {
     var $advancedToggle = $(dom.advancedToggle),
         $subheader = $(dom.subheader);
     otmTypeahead.create({
         name: "species",
-        url: config.instance.url + "species/",
+        url: reverse.species_list_view(config.instance.url_name),
         input: "#species-typeahead",
         template: "#species-element-template",
         hidden: "#search-species",
@@ -94,7 +96,7 @@ function initSearchUi(config, searchStream) {
     });
     otmTypeahead.create({
         name: "boundaries",
-        url: config.instance.url + "boundaries/",
+        url: reverse.boundary_list(config.instance.url_name),
         input: "#boundary-typeahead",
         template: "#boundary-element-template",
         hidden: "#boundary",
@@ -297,9 +299,9 @@ function updateDisabledSpeciesFields(disabled) {
 
 module.exports = exports = {
 
-    initDefaults: function (config) {
-        var streams = exports.init(config),
-            redirect = _.partial(redirectToSearchPage, config),
+    initDefaults: function () {
+        var streams = exports.init(),
+            redirect = _.partial(redirectToSearchPage),
             redirectWithoutLocation = _.partialRight(redirect, undefined);
 
         streams.filterNonGeocodeObjectStream.onValue(redirectWithoutLocation);
@@ -316,7 +318,7 @@ module.exports = exports = {
         Search.reset();
     },
 
-    init: function (config) {
+    init: function () {
         var searchStream = BU.enterOrClickEventStream({
                 inputs: 'input[data-class="search"]',
                 button: '#perform-search'
@@ -334,7 +336,6 @@ module.exports = exports = {
                 .map(true),
 
             geocodeResponseStream = geocoderInvokeUi({
-                config: config,
                 searchTriggerStream: searchStream,
                 addressInput: '#boundary-typeahead'
             }),
@@ -348,7 +349,7 @@ module.exports = exports = {
                 });
 
         geocodeResponseStream.onError(showGeocodeError);
-        initSearchUi(config, searchStream);
+        initSearchUi(searchStream);
 
         return {
             // a stream of events corresponding to clicks on the reset button.

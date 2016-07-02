@@ -4,7 +4,8 @@ var $ = require("jquery"),
     _ = require("lodash"),
     L = require('leaflet'),
     urlLib = require('url'),
-    Search = require("treemap/lib/search"),
+    Search = require("treemap/lib/search.js"),
+    config = require("treemap/lib/config.js"),
     format = require('util').format,
 
     MAX_ZOOM_OPTION = exports.MAX_ZOOM_OPTION = {maxZoom: 21},
@@ -21,42 +22,41 @@ var $ = require("jquery"),
 // public functions
 ////////////////////////////////////////////////
 
-exports.createBoundariesTileLayer = function (config) {
+exports.createBoundariesTileLayer = function () {
     // we will never update boundaries based on a revision, so
     // safe to use the same url permanently.
-    var revToUrl = getUrlMaker(config, 'treemap_boundary', 'png'),
+    var revToUrl = getUrlMaker('treemap_boundary', 'png'),
         url = revToUrl(config.instance.geoRevHash),
         options = _.extend({}, MAX_ZOOM_OPTION, MIN_ZOOM_OPTION, BOUNDARY_LAYER_OPTION);
     return L.tileLayer(url, options);
 };
 
-exports.getCanopyBoundariesTileLayerUrl = function(config, tilerArgs) {
-    var revToUrl = getUrlMaker(config, 'treemap_canopy_boundary', 'png', tilerArgs);
+exports.getCanopyBoundariesTileLayerUrl = function(tilerArgs) {
+    var revToUrl = getUrlMaker('treemap_canopy_boundary', 'png', tilerArgs);
     return revToUrl(config.instance.geoRevHash);
 };
 
-exports.createCanopyBoundariesTileLayer = function (config) {
-    var url = exports.getCanopyBoundariesTileLayerUrl(config),
+exports.createCanopyBoundariesTileLayer = function () {
+    var url = exports.getCanopyBoundariesTileLayerUrl(),
         options = _.extend({}, MAX_ZOOM_OPTION, CANOPY_BOUNDARY_LAYER_OPTION);
     return L.tileLayer(url, options);
 };
 
-exports.createPlotTileLayer = function (config) {
+exports.createPlotTileLayer = function () {
     var options = _.extend({}, MAX_ZOOM_OPTION, FEATURE_LAYER_OPTION);
     return filterableLayer(
-        'treemap_mapfeature', 'png', config, options);
+        'treemap_mapfeature', 'png', options);
 };
 
-exports.createPolygonTileLayer = function (config) {
+exports.createPolygonTileLayer = function () {
     var options = _.extend({}, MAX_ZOOM_OPTION, MIN_ZOOM_OPTION, FEATURE_LAYER_OPTION);
     return filterableLayer(
-        'stormwater_polygonalmapfeature', 'png', config, options);
+        'stormwater_polygonalmapfeature', 'png', options);
 };
 
-exports.createPlotUTFLayer = function (config) {
+exports.createPlotUTFLayer = function () {
     var layer,
-        revToUrl = getUrlMaker(
-            config, 'treemap_mapfeature', 'grid.json'),
+        revToUrl = getUrlMaker('treemap_mapfeature', 'grid.json'),
         url = revToUrl(config.instance.geoRevHash),
         options = _.extend({resolution: 4}, MAX_ZOOM_OPTION, FEATURE_LAYER_OPTION);
 
@@ -90,7 +90,7 @@ exports.createPlotUTFLayer = function (config) {
     return layer;
 };
 
-exports.createCustomLayer = function(layerInfo, config) {
+exports.createCustomLayer = function(layerInfo) {
     if (layerInfo.type === 'tile') {
         var options = _.extend({}, CUSTOM_LAYER_OPTION);
         options.maxZoom = layerInfo.maxZoom || MAX_ZOOM_OPTION.maxZoom;
@@ -109,7 +109,7 @@ exports.createCustomLayer = function(layerInfo, config) {
 // internal functions
 ////////////////////////////////////////////////
 
-function getUrlMaker(config, table, extension, tilerArgs) {
+function getUrlMaker(table, extension, tilerArgs) {
     return function revToUrl(rev) {
         var query = {
             'instance_id': config.instance.id,
@@ -140,8 +140,8 @@ function updateBaseUrl(url, newBaseUrl) {
     return newBase + '?' + oldQueryString;
 }
 
-function filterableLayer (table, extension, config, layerOptions) {
-    var revToUrl = getUrlMaker(config, table, extension),
+function filterableLayer (table, extension, layerOptions) {
+    var revToUrl = getUrlMaker(table, extension),
         noSearchUrl = revToUrl(config.instance.geoRevHash),
         searchBaseUrl = revToUrl(config.instance.universalRevHash),
         layer = L.tileLayer(noSearchUrl, layerOptions);
@@ -160,7 +160,7 @@ function filterableLayer (table, extension, config, layerOptions) {
         if (Search.isEmpty(filters)) {
             fullUrl = noSearchUrl;
         } else {
-            var query = Search.makeQueryStringFromFilters(config, filters);
+            var query = Search.makeQueryStringFromFilters(filters);
             var suffix = query ? '&' + query : '';
             fullUrl = searchBaseUrl + suffix;
         }

@@ -142,40 +142,12 @@
 
 <script>
 {% localize off %}
-(function(require, config, mapFeatureOptions) {
-      var mapFeatureModule = require('treemap/mapFeature'),
-          plot = require('treemap/plot');
-
-      // mapFeatureOptions is defined in a script block of the super-template
-      mapFeatureOptions.treeIdColumn = '#tree-id-column';
-      mapFeatureOptions.useTreeIcon = true;
-      var mapFeature = mapFeatureModule.init(mapFeatureOptions);
-
-      plot.init({
-          startInEditMode: {% if editmode %}true{% else %}false{% endif %},
-          treeIdColumn: '#tree-id-column',
-          ecoBenefits: '#ecobenefits',
-          plotId: {{ plot.id }},
-          treePresenceSection: '#tree-presence-section',
-          beginAddTree: '#begin-add-tree',
-          addTreeControls: '#add-tree-controls',
-          treeSection: '#tree-details',
-          inlineEditForm: mapFeatureOptions.inlineEditForm,
-          deleteControls: mapFeatureOptions.deleteControls,
-          config: mapFeatureOptions.config,
-          form: mapFeature.inlineEditForm,
-          typeaheads: [{
-              name: "species",
-              url: config.instance.url + "species/",
-              input: "#plot-species-typeahead",
-              template: "#species-element-template",
-              hidden: "#plot-species-hidden",
-              reverse: "id",
-              forceMatch: true
-          }]
-      });
-})(require, otm.settings, mapFeatureOptions);
+// mapFeature is defined in a script block of the super-template
+window.mapFeature.useTreeIcon = true;
+window.mapFeature.plotId = {{ plot.id }};
+Object.freeze(window.mapFeature);
 {% endlocalize %}
 </script>
+<script src="{{ STATIC_URL }}js/treemap/plot.js"></script>
 
 {% endblock scripts %}

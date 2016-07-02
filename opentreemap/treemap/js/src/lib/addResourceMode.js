@@ -5,7 +5,9 @@ var $ = require('jquery'),
     L = require('leaflet'),
     U = require('treemap/lib/utility.js'),
     addMapFeature = require('treemap/lib/addMapFeature.js'),
-    polylineEditor = require('treemap/lib/polylineEditor.js');
+    polylineEditor = require('treemap/lib/polylineEditor.js'),
+    config = require('treemap/lib/config.js'),
+    reverse = require('reverse');
 
 var activateMode = _.identity,
     deactivateMode = _.identity,
@@ -18,7 +20,6 @@ var activateMode = _.identity,
 function init(options) {
     options.onSaveBefore = onSaveBefore;
     var manager = addMapFeature.init(options),
-        config = options.config,
         $sidebar = $(options.sidebar),
         $footerStepCounts = U.$find('.footer-total-steps', $sidebar),
         $resourceType = U.$find('input[name="addResourceType"]', $sidebar),
@@ -55,7 +56,10 @@ function init(options) {
             areaFieldName = $option.data('area-field-name'),
             skipDetailForm = $option.data('skip-detail-form') == 'True',
             enableContinueEditing = $option.data('is-editable') == 'True',
-            addFeatureUrl = config.instance.url + 'features/' + type + '/';
+            addFeatureUrl = reverse.add_map_feature({
+                instance_url_name: config.instance.url_name,
+                type: type
+            });
         if (type) {
             manager.setAddFeatureUrl(addFeatureUrl);
             manager.stepControls.maxStepNumber = manager.stepControls.initialMaxStepNumber;
@@ -83,7 +87,10 @@ function init(options) {
             }
 
             $.ajax({
-                url: config.instance.url + "features/" + type + '/',
+                url: reverse.add_map_feature({
+                    instance_url_name: config.instance.url_name,
+                    type: type
+                }),
                 type: 'GET',
                 dataType: 'html',
                 success: onResourceFormLoaded

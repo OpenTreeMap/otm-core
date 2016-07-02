@@ -152,34 +152,5 @@ ga('global.set', 'page', pathname);
 {% endblock content %}
 
 {% block scripts %}
-<script>
-(function(require, config) {
-    require('treemap/user').init({
-        inlineEditForm: {
-            updateUrl: window.location.href,
-            form: '#user-form',
-            edit: '#edit-user',
-            save: '#save-edit',
-            cancel: '#cancel-edit',
-            displayFields: '[data-class="display"]',
-            editFields: '[data-class="edit"]',
-            validationFields: '[data-class="error"]',
-            errorCallback: require('treemap/alerts').makeErrorCallback(config)
-        },
-      {% usercontent for user %}
-        imageUploadPanel: {
-            panelId: '#set-photo-modal',
-            show: '#toggle-set-photo-modal',
-            error: '#upload-photo-error',
-            imageElement: '#user-photo'
-        },
-      {% endusercontent %}
-        recentEdits: {
-            recentEditsContainer: '#recent-user-edits-container',
-            prevLink: '#recent-user-edits-prev',
-            nextLink: '#recent-user-edits-next',
-        }
-    });
-})(require, otm.settings);
-</script>
+<script src="{{ STATIC_URL }}js/treemap/user.js"></script>
 {% endblock scripts %}

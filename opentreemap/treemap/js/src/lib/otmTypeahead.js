@@ -58,8 +58,7 @@ var getSortFunction = function(sortKeys) {
 };
 
 var create = exports.create = function(options) {
-    var config = options.config,
-        template = mustache.compile($(options.template).html()),
+    var template = mustache.compile($(options.template).html()),
         $input = $(options.input),
         $hidden_input = $(options.hidden),
         $openButton = $(options.button),

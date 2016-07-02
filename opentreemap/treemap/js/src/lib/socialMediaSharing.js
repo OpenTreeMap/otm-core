@@ -25,7 +25,9 @@ var $ = require('jquery'),
         photoModal: '#social-media-sharing-photo-upload-modal',
         photoPreview: '#social-media-sharing-photo-upload-preview',
         shareLinkSelector: '[' + attrs.dataUrlTemplate + ']',
-        mapFeaturePhotoDetailAbsoluteUrl: '[' + attrs.mapFeaturePhotoDetailAbsoluteUrl + ']'
+        mapFeaturePhotoDetailAbsoluteUrl: '[' + attrs.mapFeaturePhotoDetailAbsoluteUrl + ']',
+        toggle: '.share',
+        container: '.js-container'
     },
 
     generateHref = R.curry(
@@ -66,8 +68,8 @@ function renderPhotoModal (imageData) {
 
 module.exports.init = function(options) {
     var imageFinishedStream = options.imageFinishedStream || Bacon.never();
-    $(options.share.toggle).click(function () {
-        $(options.share.container).toggle(_SHARE_CONTAINER_SIZE);
+    $(dom.toggle).click(function () {
+        $(dom.container).toggle(_SHARE_CONTAINER_SIZE);
     });
 
     imageFinishedStream

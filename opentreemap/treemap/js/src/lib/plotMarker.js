@@ -8,7 +8,8 @@ var $ = require('jquery'),
     Bacon = require('baconjs'),
     U = require('treemap/lib/utility.js'),
     L = require('leaflet'),
-    leafletPip = require('leaflet-pip');
+    leafletPip = require('leaflet-pip'),
+    config = require('treemap/lib/config.js');
 
 var marker,
     shouldUseTreeIcon,
@@ -17,16 +18,14 @@ var marker,
     moveBus = new Bacon.Bus(),
     markerWasMoved,
     trackingMarker,
-    config,
     lastMarkerLocation,
     map,
     boundsGeoJson;
 
 exports = module.exports = {
 
-    init: function(theConfig, theMap) {
+    init: function(theMap) {
         map = theMap;
-        config = theConfig;
         boundsGeoJson = L.geoJson(config.instance.bounds, {
             style: {
                 color: "#dddddd",

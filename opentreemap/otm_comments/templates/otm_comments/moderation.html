@@ -13,11 +13,5 @@
 
 
 {% block scripts %}
-<script>
-(function(require) {
-    require('otm_comments/moderation.js')({
-      container: '#comments-content'
-    });
-})(require);
-</script>
+<script src="{{ STATIC_URL }}js/otm_comments/modration.js"></script>
 {% endblock scripts %}

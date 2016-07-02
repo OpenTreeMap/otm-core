@@ -11,22 +11,21 @@ var $ = require('jquery'),
     mapManager = new MapManager(),
     urlState = require('treemap/lib/urlState.js'),
     SearchBar = require('treemap/lib/searchBar.js'),
+    config = require('treemap/lib/config.js'),
     boundarySelect = require('treemap/lib/boundarySelect.js');
 
 $.ajaxSetup(require('treemap/lib/csrf.js').jqueryAjaxSetupOptions);
 
 module.exports.init = function (options) {
-    var config = options.config;
-
     // init mapManager before searchBar so that .setCenterWM is set
     mapManager.createTreeMap(options);
 
     // When there is a single geocode result (either by an exact match
     // or the user selects a candidate) move the map to it and zoom
     // if the map is not already zoomed in.
-    var searchBar = SearchBar.init(config);
+    var searchBar = SearchBar.init();
 
-    searchBar.geocodedLocationStream.onValue(_.partial(onLocationFound, config, mapManager));
+    searchBar.geocodedLocationStream.onValue(_.partial(onLocationFound, mapManager));
 
     var triggeredQueryStream =
         Bacon.mergeAll(
@@ -49,7 +48,6 @@ module.exports.init = function (options) {
     });
 
     boundarySelect.init({
-        config: config,
         idStream: builtSearchEvents.map(searchToBoundaryId),
         map: mapManager.map,
         style: {
@@ -68,7 +66,7 @@ module.exports.init = function (options) {
     };
 };
 
-function onLocationFound(config, mapManager, location) {
+function onLocationFound(mapManager, location) {
     var latLng = U.webMercatorToLeafletLatLng(location.x, location.y),
         marker = L.marker(latLng, {
             icon: L.icon({

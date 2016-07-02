@@ -106,26 +106,12 @@
 
 <script>
 {% localize off %}
-(function(require, config, mapFeatureOptions) {
-      var mapFeatureModule = require('treemap/mapFeature'),
-          resource = require('treemap/resource');
-
-      // mapFeatureOptions is defined in a script block of the super-template
-      mapFeatureOptions.useTreeIcon = false;
-      mapFeatureOptions.resourceType = "{{ feature.map_feature_type|to_object_name }}";
-      var mapFeature = mapFeatureModule.init(mapFeatureOptions);
-
-      resource.init({
-          ecoBenefits: '#ecobenefits',
-          featureId: {{ feature.id|unlocalize }},
-          inlineEditForm: mapFeatureOptions.inlineEditForm,
-          form: mapFeature.inlineEditForm,
-          deleteControls: mapFeatureOptions.deleteControls,
-          config: mapFeatureOptions.config
-
-      });
-})(require, otm.settings, mapFeatureOptions);
-{% endlocalize %}
+// mapFeature is defined in a script block of the super-template
+window.mapFeature.useTreeIcon = false;
+window.mapFeature.resourceType = "{{ feature.map_feature_type|to_object_name }}";
+Object.freeze(window.mapFeature);
 </script>
+<script src="{{ STATIC_URL }}js/treemap/resource.js"></script>
+{% endlocalize %}
 
 {% endblock scripts %}

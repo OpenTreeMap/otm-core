@@ -2,7 +2,8 @@
 
 var L = require('leaflet'),
     _ = require('lodash'),
-    U = require('treemap/lib/utility.js');
+    U = require('treemap/lib/utility.js'),
+    config = require('treemap/lib/config.js');
 
 function makePolygonFromPoint(p1) {
     var p2 = U.offsetLatLngByMeters(p1, -20, -20);
@@ -28,8 +29,6 @@ module.exports = function (options) {
 
     return {
 
-        config: options.config,
-
         mapManager: options.mapManager,
 
         initAreaPolygon: function(options) {
@@ -43,12 +42,12 @@ module.exports = function (options) {
             }
 
             var pointIcon = L.icon({
-                iconUrl: this.config.staticUrl + 'img/polygon-point.png',
+                iconUrl: config.staticUrl + 'img/polygon-point.png',
                 iconSize: [11, 11],
                 iconAnchor: [6, 6]
             }),
                 newPointIcon = L.icon({
-                    iconUrl: this.config.staticUrl + 'img/polygon-point-new.png',
+                    iconUrl: config.staticUrl + 'img/polygon-point-new.png',
                     iconSize: [11, 11],
                     iconAnchor: [6, 6]
                 });

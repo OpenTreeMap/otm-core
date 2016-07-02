@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     U = require('treemap/lib/utility.js'),
+    config = require('treemap/lib/config.js'),
     _ = require('lodash'),
     Bacon = require('baconjs');
 
@@ -32,7 +33,7 @@ function latLngToParam(latLng) {
     return latLng.lng + ', ' + latLng.lat;
 }
 
-exports = module.exports = function (config) {
+exports = module.exports = function () {
 
     var geocodeServer = function (address, magicKey) {
         var data = {

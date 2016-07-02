@@ -33,8 +33,7 @@ function init(options) {
     });
 
     var markerMoveStream = plotMarker.moveStream.filter(options.inMyMode);
-    reverseGeocodeStreamAndUpdateAddressesOnForm(
-        options.config, markerMoveStream, dom.form);
+    reverseGeocodeStreamAndUpdateAddressesOnForm(markerMoveStream, dom.form);
 }
 
 function onClick(e) { 

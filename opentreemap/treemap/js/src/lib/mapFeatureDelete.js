@@ -1,15 +1,23 @@
 "use strict";
 
 var $ = require('jquery'),
-    toastr = require('toastr');
+    toastr = require('toastr'),
+    reverse = require('reverse'),
+    config = require('treemap/lib/config.js');
+
+var dom = {
+    delete: '#delete-object',
+    deleteConfirm: '#delete-confirm',
+    deleteCancel: '#delete-cancel',
+    deleteConfirmationBox: '#delete-confirmation-box',
+};
 
 exports.init = function(options) {
-    var config = options.config,
-        controls = options.deleteControls,
-        $delete = $(controls.delete),
-        $deleteConfirm = $(controls.deleteConfirm),
-        $deleteCancel = $(controls.deleteCancel),
-        $deleteConfirmationBox = $(controls.deleteConfirmationBox),
+    options = options || {};
+    var $delete = $(dom.delete),
+        $deleteConfirm = $(dom.deleteConfirm),
+        $deleteCancel = $(dom.deleteCancel),
+        $deleteConfirmationBox = $(dom.deleteConfirmationBox),
 
         resetUIState = function () {
             if (options.resetUIState) {
@@ -20,7 +28,7 @@ exports.init = function(options) {
 
         getUrls = options.getUrls || function () {
             return {deleteUrl: document.URL,
-                    afterDeleteUrl: config.instance.mapUrl};
+                    afterDeleteUrl: reverse.map(config.instance.url_name)};
         };
 
     $deleteConfirm.click(function () {

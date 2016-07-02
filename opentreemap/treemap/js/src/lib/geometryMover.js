@@ -160,8 +160,7 @@ exports.polygonMover = function (options) {
         }
     });
 
-    obj.editor = polylineEditor({config: options.config,
-                                 mapManager: options.mapManager});
+    obj.editor = polylineEditor({mapManager: options.mapManager});
     obj.location = options.location.polygon;
     init(obj, options);
     return obj;

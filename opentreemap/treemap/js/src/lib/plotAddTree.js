@@ -16,7 +16,7 @@ exports.init = function(options) {
         exitEditModeStream = inEditModeProperty.filter(R.eq(false));
 
     function updateForm (val) {
-        var $editFields = $(options.inlineEditForm.editFields);
+        var $editFields = $('[data-class="edit"]');
         FH.getSerializableField($editFields, 'tree.plot').val(val);
     }
 

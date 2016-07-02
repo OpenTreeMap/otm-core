@@ -7,6 +7,8 @@
 
 var $                   = require('jquery'),
     _                   = require('lodash'),
+    reverse             = require('reverse'),
+    config              = require('treemap/lib/config.js'),
     U                   = require('treemap/lib/utility.js'),
     browseTreesMode     = require('treemap/lib/browseTreesMode.js'),
     addTreeMode         = require('treemap/lib/addTreeMode.js'),
@@ -79,11 +81,10 @@ function inAddTreeMode()     { return currentMode === addTreeMode; }
 function inEditTreeMode()    { return currentMode === editTreeDetailsMode; }
 function inAddResourceMode() { return currentMode === addResourceMode; }
 
-function init(config, mapManager, triggerSearchBus) {
+function init(mapManager, triggerSearchBus) {
     // browseTreesMode and editTreeDetailsMode share an inlineEditForm,
     // so initialize it here.
     var form = inlineEditForm.init({
-        config: config,
         updateUrl: '', // set in browseTreesMode.js on map click
         form: '#details-form',
         edit: '#quick-edit-button',
@@ -110,10 +111,9 @@ function init(config, mapManager, triggerSearchBus) {
     });
     form.saveOkStream.onValue(triggerSearchBus.push);
 
-    plotMarker.init(config, mapManager.map);
+    plotMarker.init(mapManager.map);
 
     browseTreesMode.init({
-        config: config,
         map: mapManager.map,
         inMyMode: inBrowseTreesMode,
         $treeDetailAccordionSection: $treeDetailAccordionSection,
@@ -124,7 +124,6 @@ function init(config, mapManager, triggerSearchBus) {
     });
 
     addTreeMode.init({
-        config: config,
         $addFeatureHeaderLink: $addFeatureHeaderLink,
         $exploreMapHeaderLink: $exploreMapHeaderLink,
         mapManager: mapManager,
@@ -135,22 +134,20 @@ function init(config, mapManager, triggerSearchBus) {
         formSelector: '#add-tree-form',
         validationFields: '#add-tree-container [data-class="error"]',
         indexOfSetLocationStep: 0,
-        typeahead: getSpeciesTypeaheadOptions(config, "add-tree-species"),
+        typeahead: getSpeciesTypeaheadOptions("add-tree-species"),
         addFeatureRadioOptions: 'addFeatureOptions',
         triggerSearchBus: triggerSearchBus
     });
 
     editTreeDetailsMode.init({
-        config: config,
         mapManager: mapManager,
         inlineEditForm: form,
         plotMarker: plotMarker,
         inMyMode: inEditTreeMode,
-        typeaheads: [getSpeciesTypeaheadOptions(config, "edit-tree-species")]
+        typeaheads: [getSpeciesTypeaheadOptions("edit-tree-species")]
     });
 
     addResourceMode.init({
-        config: config,
         $addFeatureHeaderLink: $addFeatureHeaderLink,
         $exploreMapHeaderLink: $exploreMapHeaderLink,
         mapManager: mapManager,
@@ -166,10 +163,10 @@ function init(config, mapManager, triggerSearchBus) {
     });
 }
 
-function getSpeciesTypeaheadOptions(config, idPrefix) {
+function getSpeciesTypeaheadOptions(idPrefix) {
     return {
         name: "species",
-        url: config.instance.url + "species/",
+        url: reverse.species_list_view(config.instance.url_name),
         input: "#" + idPrefix + "-typeahead",
         template: "#species-element-template",
         hidden: "#" + idPrefix + "-hidden",

@@ -6,6 +6,8 @@ var $ = require('jquery'),
     U = require('treemap/lib/utility.js'),
     _ = require('lodash'),
     Bacon = require('baconjs'),
+    reverse = require('reverse'),
+    config = require('treemap/lib/config.js'),
 
     START_URL_ATTR = 'data-export-start-url',
     ENABLE_EXPORT_SELECTOR = '[' + START_URL_ATTR + ']',
@@ -25,9 +27,7 @@ var $ = require('jquery'),
         stop: function () { _activeJob = null; },
         start: function (jobId) { _activeJob = jobId; },
         isCurrent: function (jobId) { return _activeJob === jobId; }
-    },
-
-    config;
+    };
 
 ////////////////////////////////////////
 // ajax / job mgmt
@@ -65,7 +65,10 @@ function getJobStartStream () {
 function makeJobCheckStream (attrStream) {
     function poll (jobId) {
         jobManager.start(jobId);
-        var url = config.exportCheckUrl + '/' + jobId + '/';
+        var url = reverse.check_export({
+            instance_url_name: config.instance.url_name,
+            job_id: jobId
+        });
         return Bacon.fromPoll(DEFAULT_INTERVAL, function() {
             return jobManager.isCurrent(jobId) ?
                 BU.jsonRequest('GET', url)() : new Bacon.End();
@@ -124,8 +127,6 @@ function getDisplayManager (defaultErrorMessage) {
 }
 
 exports.run = function (options) {
-    config = options.config;
-
     var startStream = getJobStartStream(),
         defaultErrorMessage = $(ERROR_LABEL_SELECTOR).html(),
         displayManager = getDisplayManager(defaultErrorMessage),

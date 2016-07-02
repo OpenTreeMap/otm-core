@@ -48,12 +48,5 @@
 {% endblock content %}
 
 {% block scripts %}
-<script>
-(function (require) {
-    var $ = require('jquery');
-    $(function () {
-        $('input[name="username"]').focus();
-    })
-})(require);
-</script>
+<script src="{{ STATIC_URL }}js/treemap/login.js"></script>
 {% endblock scripts %}

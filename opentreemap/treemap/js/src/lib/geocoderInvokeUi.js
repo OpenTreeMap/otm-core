@@ -10,7 +10,7 @@ module.exports = function (options) {
         geocodeCandidateStream = options.searchTriggerStream
             .map(getDatum)
             .filter(_.identity),  // ignore false values
-        gcoder = geocoder(options.config),
+        gcoder = geocoder(),
         geocodeResponseStream = gcoder.geocodeStream(geocodeCandidateStream);
 
     return geocodeResponseStream;

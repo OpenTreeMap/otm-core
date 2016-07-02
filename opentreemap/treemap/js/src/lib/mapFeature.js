@@ -18,30 +18,48 @@ var $ = require('jquery'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
         require('treemap/lib/reverseGeocodeStreamAndUpdateAddressesOnForm.js'),
     streetView = require('treemap/lib/streetView.js'),
+    config = require('treemap/lib/config.js'),
+    reverse = require('reverse'),
     alerts = require('treemap/lib/alerts.js'),
+    comments = require('otm_comments/lib/comments.js'),
 
     dom = {
         favoriteLink: '#favorite-link',
-        favoriteIcon: '#favorite-star'
+        favoriteIcon: '#favorite-star',
+        ecoBenefits: '#ecobenefits',
+        sidebar: '#sidebar',
+        form: '#map-feature-form',
+        streetView: '#street-view',
+        location: {
+            edit: '#edit-location',
+            cancel: '#cancel-edit-location',
+        },
     };
 
-exports.init = function(options) {
-    var $ecoBenefits = $(options.ecoBenefits),
+exports.init = function() {
+    var $ecoBenefits = $(dom.ecoBenefits),
         detailUrl = window.location.href;
 
     if (U.getLastUrlSegment(detailUrl) == 'edit') {
         detailUrl = U.removeLastUrlSegment(detailUrl);
     }
 
+    comments('#comments-container');
+
     // Set up cross-site forgery protection
     $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
     var prompter = statePrompter.init({
-        warning: options.config.trans.exitWarning,
-        question: options.config.trans.exitQuestion
+        warning: config.trans.exitWarning,
+        question: config.trans.exitQuestion
     });
 
-    var imageFinishedStream = imageUploadPanel.init(options.imageUploadPanel);
+    var imageFinishedStream = imageUploadPanel.init({
+        panelId: '#add-photo-modal',
+        dataType: 'html',
+        imageContainer: '#photo-carousel',
+        lightbox: '#photo-lightbox',
+    });
 
     var shouldBeInEditModeBus = new Bacon.Bus();
     var shouldBeInEditModeStream = shouldBeInEditModeBus.merge(
@@ -50,18 +68,26 @@ exports.init = function(options) {
 
     var currentMover;
 
-    var form = inlineEditForm.init(
-            _.extend(options.inlineEditForm,
-                     { config: options.config,
-                       updateUrl: detailUrl,
-                       shouldBeInEditModeStream: shouldBeInEditModeStream,
-                       errorCallback: alerts.makeErrorCallback(options.config),
-                       onSaveBefore: function (data) { currentMover.onSaveBefore(data); },
-                       onSaveAfter: function (data) { currentMover.onSaveAfter(data); }
-                     }));
+    var form = inlineEditForm.init({
+        form: dom.form,
+        edit: '#edit-map-feature',
+        save: '#save-edit-map-feature',
+        cancel: '#cancel-edit-map-feature',
+        displayFields: '[data-class="display"]',
+        editFields: '[data-class="edit"]',
+        validationFields: '[data-class="error"]',
+        updateUrl: detailUrl,
+        shouldBeInEditModeStream: shouldBeInEditModeStream,
+        errorCallback: alerts.errorCallback,
+        onSaveBefore: function (data) { currentMover.onSaveBefore(data); },
+        onSaveAfter: function (data) { currentMover.onSaveAfter(data); }
+    });
 
-    if (options.config.instance.supportsEcobenefits) {
-        var updateEcoUrl = U.appendSegmentToUrl('eco', detailUrl);
+    if (config.instance.supportsEcobenefits) {
+        var updateEcoUrl = reverse.plot_eco({
+            instance_url_name: config.instance.url_name,
+            feature_id: window.mapFeature.featureId
+        });
         form.saveOkStream
             .map($ecoBenefits)
             .onValue('.load', updateEcoUrl);
@@ -70,7 +96,7 @@ exports.init = function(options) {
     var sidebarUpdate = form.saveOkStream.merge(imageFinishedStream),
         updateSidebarUrl = U.appendSegmentToUrl('sidebar', detailUrl);
     sidebarUpdate
-        .map($(options.sidebar))
+        .map($(dom.sidebar))
         .onValue('.load', updateSidebarUrl);
 
     form.inEditModeProperty.onValue(function(inEditMode) {
@@ -89,62 +115,59 @@ exports.init = function(options) {
         }
     });
 
-    if (options.startInEditMode) {
-        if (options.config.loggedIn) {
+    if (window.mapFeature.startInEditMode) {
+        if (config.loggedIn) {
             shouldBeInEditModeBus.push(true);
         } else {
-            window.location = options.config.loginUrl + window.location.href;
+            window.location = config.loginUrl + window.location.href;
         }
     }
 
     var mapManager = new MapManager();
     mapManager.createTreeMap({
-        config: options.config,
         domId: 'map',
         disableScrollWithMouseWheel: true,
-        centerWM: options.location.point,
+        centerWM: window.mapFeature.location.point,
         zoom: mapManager.ZOOM_PLOT
     });
 
     var moverOptions = {
         mapManager: mapManager,
         inlineEditForm: form,
-        editLocationButton: options.location.edit,
-        cancelEditLocationButton: options.location.cancel,
-        location: options.location,
-        config: options.config,
-        resourceType: options.resourceType
+        editLocationButton: dom.location.edit,
+        cancelEditLocationButton: dom.location.cancel,
+        resourceType: window.mapFeature.resourceType,
+        location: window.mapFeature.location
     };
 
-    if (options.isEditablePolygon) {
+    if (window.mapFeature.isEditablePolygon) {
         currentMover = geometryMover.polygonMover(moverOptions);
     } else {
-        plotMarker.init(options.config, mapManager.map);
-        plotMarker.useTreeIcon(options.useTreeIcon);
-        reverseGeocodeStreamAndUpdateAddressesOnForm(
-            options.config, plotMarker.moveStream, options.form);
+        plotMarker.init(mapManager.map);
+        plotMarker.useTreeIcon(window.mapFeature.useTreeIcon);
+        reverseGeocodeStreamAndUpdateAddressesOnForm(plotMarker.moveStream, dom.form);
         moverOptions.plotMarker = plotMarker;
         currentMover = geometryMover.plotMover(moverOptions);
     }
 
     var detailUrlPrefix = U.removeLastUrlSegment(detailUrl),
         clickedIdStream = mapManager.map.utfEvents
-            .map('.data.' + options.config.utfGrid.mapfeatureIdKey)
+            .map('.data.' + config.utfGrid.mapfeatureIdKey)
             .filter(BU.isDefinedNonEmpty);
 
     clickedIdStream
-        .filter(BU.not, options.featureId)
+        .filter(BU.not, window.mapFeature.featureId)
         .map(_.partialRight(U.appendSegmentToUrl, detailUrlPrefix, false))
         .filter(R.not(currentMover.isEnabled))
         .onValue(_.bind(window.location.assign, window.location));
 
-    if (options.config.instance.basemap.type === 'google') {
-        var $streetViewContainer = $(options.streetView);
+    if (config.instance.basemap.type === 'google') {
+        var $streetViewContainer = $(dom.streetView);
         $streetViewContainer.show();
         var panorama = streetView.create({
             streetViewElem: $streetViewContainer[0],
-            noStreetViewText: options.config.trans.noStreetViewText,
-            location: options.location.point
+            noStreetViewText: config.trans.noStreetViewText,
+            location: window.mapFeature.location.point
         });
         form.saveOkStream
             .map('.formData')
@@ -156,7 +179,7 @@ exports.init = function(options) {
     var $favoriteLink = $(dom.favoriteLink),
         $favoriteIcon = $(dom.favoriteIcon);
 
-    if (options.config.loggedIn) {
+    if (config.loggedIn) {
         $favoriteLink.on('click', function(e) {
             var wasFavorited = $favoriteLink.attr('data-is-favorited') === 'True',
                 url = $favoriteLink.attr(wasFavorited ? 'data-unfavorite-url' : 'data-favorite-url');
@@ -186,8 +209,7 @@ exports.init = function(options) {
         });
     }
 
-    socialMediaSharing.init(
-        _.extend(options, {imageFinishedStream: imageFinishedStream}));
+    socialMediaSharing.init({imageFinishedStream: imageFinishedStream});
 
     return {
         inlineEditForm: form

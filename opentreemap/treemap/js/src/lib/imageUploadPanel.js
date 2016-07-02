@@ -1,20 +1,18 @@
 // Manage panel for image uploading
-
 "use strict";
 
-var toastr = require('toastr');
+var $ = require('jquery'),
+    toastr = require('toastr'),
+    Bacon = require('baconjs'),
+    format = require('util').format,
+    U = require('treemap/lib/utility.js'),
+    _ = require('lodash'),
+    config = require('treemap/lib/config.js');
 
 // For modal dialog on jquery
 require('bootstrap');
 
-var $ = require('jquery'),
-    Bacon = require('baconjs'),
-    format = require('util').format,
-    U = require('treemap/lib/utility.js'),
-    _ = require('lodash');
-
 // jQuery-File-Upload and its dependencies
-require('jqueryUiWidget');
 require('jqueryIframeTransport');
 require('jqueryFileUpload');
 
@@ -103,7 +101,7 @@ module.exports.init = function(options) {
             _.each(data.files, function(file) {
                 if (file.size >= options.maxImageSize) {
                     var mb = options.maxImageSize / 1024 / 1024,
-                        message = options.fileExceedsMaximumFileSize
+                        message = config.trans.fileExceedsMaximumFileSize
                             .replace('{0}', file.name)
                             .replace('{1}', mb + ' MB');
                     toastr.error(message);

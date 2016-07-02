@@ -16,6 +16,8 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     format = require('util').format,
+    config = require('treemap/lib/config.js'),
+
 
     enablePermAttr = 'data-always-enable',
     disabledTitleAttr = 'data-disabled-title',
@@ -23,8 +25,7 @@ var $ = require('jquery'),
     hrefAttr = 'data-href',
     enablePermSelector = '[' + enablePermAttr + ']',
     disabledButtonWrapperAttrPair = 'data-class="disabled-button-wrapper"',
-    disabledButtonWrapperSelector = '[' + disabledButtonWrapperAttrPair + ']',
-    config;
+    disabledButtonWrapperSelector = '[' + disabledButtonWrapperAttrPair + ']';
 
 function removeActionableDataAttributes($el) {
     // in case it triggers a modal
@@ -67,8 +68,7 @@ function fullyDisable($el, disabledTitle) {
 }
 
 exports.run = function (options) {
-    var $elements = $(enablePermSelector),
-        config = options.config;
+    var $elements = $(enablePermSelector);
 
     _.each($elements, function(element) {
         var $element = $(element),

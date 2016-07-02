@@ -6,17 +6,18 @@ var $ = require('jquery'),
     FH = require('treemap/lib/fieldHelpers.js'),
     U = require('treemap/lib/utility.js'),
     Bacon = require('baconjs'),
+    reverse = require('reverse'),
     streetView = require('treemap/lib/streetView.js'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
         require('treemap/lib/reverseGeocodeStreamAndUpdateAddressesOnForm.js'),
     geocoderInvokeUi = require('treemap/lib/geocoderInvokeUi.js'),
     geocoderResultsUi = require('treemap/lib/geocoderResultsUi.js'),
     enterOrClickEventStream = require('treemap/lib/baconUtils.js').enterOrClickEventStream,
-    otmTypeahead = require('treemap/lib/otmTypeahead.js');
+    otmTypeahead = require('treemap/lib/otmTypeahead.js'),
+    config = require('treemap/lib/config.js');
 
 function init(options) {
-    var config = options.config,
-        mapManager = options.mapManager,
+    var mapManager = options.mapManager,
         plotMarker = options.plotMarker,
         onClose = options.onClose || $.noop,
         clearChildEditControls = options.clearEditControls || $.noop,
@@ -25,7 +26,7 @@ function init(options) {
         formSelector = options.formSelector,
         indexOfSetLocationStep = options.indexOfSetLocationStep,
         addFeatureRadioOptions = options.addFeatureRadioOptions,
-        addFeatureUrl = config.instance.url + 'plots/',
+        addFeatureUrl = reverse.add_plot(config.instance.url_name),
         onSaveBefore = options.onSaveBefore || _.identity,
 
         $addFeatureHeaderLink = options.$addFeatureHeaderLink,
@@ -100,7 +101,6 @@ function init(options) {
             button: '.geocode'
         }),
         geocodeResponseStream = geocoderInvokeUi({
-            config: config,
             searchTriggerStream: searchTriggerStream,
             addressInput: addressInput
         }),
@@ -136,8 +136,7 @@ function init(options) {
 
     var markerMoveStream = plotMarker.moveStream.filter(options.inMyMode);
     var reverseGeocodeStream =
-            reverseGeocodeStreamAndUpdateAddressesOnForm(
-                config, markerMoveStream, formSelector);
+            reverseGeocodeStreamAndUpdateAddressesOnForm(markerMoveStream, formSelector);
 
     reverseGeocodeStream.onValue(function (response) {
         var a = response.address,
@@ -148,7 +147,7 @@ function init(options) {
     });
     reverseGeocodeStream.onError($addressInput, 'val', '');
 
-    if (options.config.instance.basemap.type === 'google') {
+    if (config.instance.basemap.type === 'google') {
         var $streetViewContainer = $("#streetview");
         var container = null;
 
@@ -157,7 +156,7 @@ function init(options) {
             if (!container) {
                 container = streetView.create({
                     streetViewElem: $streetViewContainer[0],
-                    noStreetViewText: options.config.trans.noStreetViewText,
+                    noStreetViewText: config.trans.noStreetViewText,
                     location: latlng,
                     hideAddress: true
                 });
@@ -305,7 +304,11 @@ function init(options) {
             break;
         case 'edit':
             close();
-            var url = config.instance.url + 'features/' + result.featureId + '/edit';
+            var url = reverse.map_feature_detail_edit({
+                instance_url_name: config.instance.url_name,
+                feature_id: result.featureId,
+                edit: 'edit'
+            });
             window.location.hash = '';
             window.location.href = url;
             break;

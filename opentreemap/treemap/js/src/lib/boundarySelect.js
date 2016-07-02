@@ -4,9 +4,10 @@ var $ = require('jquery'),
     BU = require('treemap/lib/baconUtils.js'),
     _ = require('lodash'),
     L = require('leaflet'),
-    layersLib = require('treemap/lib/layers.js');
+    layersLib = require('treemap/lib/layers.js'),
+    config = require('treemap/lib/config'),
+    reverse = require('reverse');
 
-var boundaryUrlTemplate = _.template('<%= instanceUrl %>boundaries/<%= boundaryId %>/geojson/');
 var currentLayer = null;
 
 function clearLayer(map) {
@@ -47,10 +48,10 @@ function showBoundaryGeomOnMapLayerAndZoom(map, boundaryGeom) {
     map.fitBounds(boundaryGeom.getBounds());
 }
 
-function instanceBoundaryIdToUrl(instanceUrl, id) {
-    return boundaryUrlTemplate({
-        instanceUrl: instanceUrl,
-        boundaryId: id
+function instanceBoundaryIdToUrl(id) {
+    return reverse.boundaries_geojson({
+        instance_url_name: config.instance.url_name,
+        boundary_id: id
     });
 }
 
@@ -65,7 +66,7 @@ exports.init = function (options) {
         idStream = options.idStream,
         boundaries = idStream
             .filter(BU.isDefined)
-            .map(instanceBoundaryIdToUrl, options.config.instance.url)
+            .map(instanceBoundaryIdToUrl)
             .flatMap(BU.getJsonFromUrl);
 
     boundaries.map(parseGeoJson, options.style)

@@ -13,6 +13,9 @@ var $ = require('jquery'),
     layersLib = require('treemap/lib/layers.js'),
     CanopyFilterControl = require('treemap/lib/controls.js').CanopyFilterControl,
 
+    config = require('treemap/lib/config.js'),
+    reverse = require('reverse'),
+
     MIN_ZOOM_OPTION = layersLib.MIN_ZOOM_OPTION,
     MAX_ZOOM_OPTION = layersLib.MAX_ZOOM_OPTION,
     BASE_LAYER_OPTION = layersLib.BASE_LAYER_OPTION;
@@ -30,13 +33,11 @@ MapManager.prototype = {
     ZOOM_PLOT: 18,
 
     createTreeMap: function (options) {
-        var config = options.config,
-            hasPolygons = getDomMapBool('has-polygons', options.domId),
+        var hasPolygons = getDomMapBool('has-polygons', options.domId),
             hasBoundaries = getDomMapBool('has-boundaries', options.domId),
-            plotLayer = layersLib.createPlotTileLayer(config),
-            allPlotsLayer = layersLib.createPlotTileLayer(config),
-            utfLayer = layersLib.createPlotUTFLayer(config);
-        this._config = config;
+            plotLayer = layersLib.createPlotTileLayer(),
+            allPlotsLayer = layersLib.createPlotTileLayer(),
+            utfLayer = layersLib.createPlotUTFLayer();
         this._plotLayer = plotLayer;
         this._allPlotsLayer = allPlotsLayer;
         this._utfLayer = utfLayer;
@@ -53,8 +54,8 @@ MapManager.prototype = {
             var baseUtfEventStream = BU.leafletEventStream(utfLayer, 'click');
 
             if (hasPolygons) {
-                var polygonLayer = layersLib.createPolygonTileLayer(config),
-                    allPolygonsLayer = layersLib.createPolygonTileLayer(config);
+                var polygonLayer = layersLib.createPolygonTileLayer(),
+                    allPolygonsLayer = layersLib.createPolygonTileLayer();
                 this._hasPolygons = hasPolygons;
                 this._polygonLayer = polygonLayer;
                 this._allPolygonsLayer = allPolygonsLayer;
@@ -80,9 +81,10 @@ MapManager.prototype = {
                             // The distance parameter changes as a function of zoom
                             // halving with every zoom level.  I arrived at 20
                             // meters at zoom level 15 through trial and error
-                            dist = 20 / Math.pow(2, map.getZoom() - MIN_ZOOM_OPTION.minZoom);
+                            dist = 20 / Math.pow(2, map.getZoom() - MIN_ZOOM_OPTION.minZoom),
+                            url = reverse.polygon_for_point({instance_url_name: config.instance.url_name});
 
-                        return config.instance.polygonForPointUrl + format('?lng=%d&lat=%d&distance=%d', lng, lat, dist);
+                        return url + format('?lng=%d&lat=%d&distance=%d', lng, lat, dist);
                     }).flatMap(BU.getJsonFromUrl);
 
                 map.utfEvents = Bacon.mergeAll(
@@ -95,7 +97,7 @@ MapManager.prototype = {
         }
 
         if (hasBoundaries) {
-            var boundariesLayer = layersLib.createBoundariesTileLayer(config);
+            var boundariesLayer = layersLib.createBoundariesTileLayer();
             map.addLayer(boundariesLayer);
             this.layersControl.addOverlay(boundariesLayer, 'Boundaries');
 
@@ -103,7 +105,7 @@ MapManager.prototype = {
         }
 
         if (config.instance.canopyEnabled) {
-            var canopyLayer = layersLib.createCanopyBoundariesTileLayer(config);
+            var canopyLayer = layersLib.createCanopyBoundariesTileLayer();
 
             var filterControl = new CanopyFilterControl();
             filterControl.tilerArgsProp
@@ -113,7 +115,7 @@ MapManager.prototype = {
                     return tilerArgs;
                 })
                 .onValue(function(tilerArgs) {
-                    var newUrl = layersLib.getCanopyBoundariesTileLayerUrl(config, tilerArgs);
+                    var newUrl = layersLib.getCanopyBoundariesTileLayerUrl(tilerArgs);
                     canopyLayer.setUrl(newUrl);
                 });
 
@@ -134,7 +136,7 @@ MapManager.prototype = {
             fixZoomLayerSwitch(map, canopyLayer);
         }
 
-        _.each(config.instance.customLayers, _.partial(addCustomLayer, this, config));
+        _.each(config.instance.customLayers, _.partial(addCustomLayer, this));
 
         if (options.trackZoomLatLng) {
             map.on("moveend", _.partial(serializeZoomLatLngFromMap, map));
@@ -150,7 +152,8 @@ MapManager.prototype = {
             zoom = options.zoom || 2,
             bounds = options.bounds,
             map = L.map(options.domId),
-            basemapMapping = getBasemapLayers(options.config);
+            type = options.type,
+            basemapMapping = getBasemapLayers(type);
 
         if (_.isUndefined(bounds)) {
             map.setView(U.webMercatorToLeafletLatLng(center.x, center.y), zoom);
@@ -241,12 +244,13 @@ MapManager.prototype = {
     }
 };
 
-function getBasemapLayers(config) {
+function getBasemapLayers(type) {
     var options = _.extend({}, MAX_ZOOM_OPTION, BASE_LAYER_OPTION);
+    type = type || config.instance.basemap.type;
 
     function makeBingLayer(layer) {
         return new L.BingLayer(
-            config.instance.basemap.bing_api_key,
+            config.bing_api_key,
             _.extend(options, {type: layer}));
     }
 
@@ -259,13 +263,13 @@ function getBasemapLayers(config) {
         return layer;
     }
 
-    if (config.instance.basemap.type === 'bing') {
+    if (type === 'bing') {
         return {
             'Road': makeBingLayer('Road'),
             'Aerial': makeBingLayer('Aerial'),
             'Hybrid': makeBingLayer('AerialWithLabels')
         };
-    } else if (config.instance.basemap.type === 'esri') {
+    } else if (type === 'esri') {
         return {
             'Streets': makeEsriLayer("Topographic"),
             'Hybrid': L.layerGroup([
@@ -274,7 +278,7 @@ function getBasemapLayers(config) {
             ]),
             'Satellite': makeEsriLayer("Imagery")
         };
-    } else if (config.instance.basemap.type === 'tms') {
+    } else if (type === 'tms') {
         return [L.tileLayer(config.instance.basemap.data, options)];
     } else {
         return {
@@ -318,8 +322,8 @@ function fixZoomLayerSwitch(map, layer) {
     });
 }
 
-function addCustomLayer(mapManager, config, layerInfo) {
-    var layer = layersLib.createCustomLayer(layerInfo, config);
+function addCustomLayer(mapManager, layerInfo) {
+    var layer = layersLib.createCustomLayer(layerInfo);
     mapManager.layersControl.addOverlay(layer, layerInfo.name);
     if (layerInfo.showByDefault) {
         mapManager.map.addLayer(layer);
