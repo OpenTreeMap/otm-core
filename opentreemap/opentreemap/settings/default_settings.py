@@ -152,6 +152,9 @@ USE_TZ = True
 BASE_DIR = os.path.abspath(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
+# Path to the Repository root
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+
 # Path to the location of SCSS files, used for on-the-fly compilation to CSS
 SCSS_ROOT = os.path.join(BASE_DIR, 'treemap', 'css', 'sass')
 
@@ -184,6 +187,7 @@ SITE_ROOT = '/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
+    os.path.join(PROJECT_ROOT, 'static/'),
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -305,6 +309,7 @@ UNMANAGED_APPS = (
     'django_hstore',
     'djcelery',
     'url_tools',
+    'django_js_reverse',
 )
 
 I18N_APPS = (
@@ -387,3 +392,6 @@ USE_ECO_CACHE = True
 
 BING_API_KEY = None
 GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_KEY', None)
+
+JS_REVERSE_JS_MINIFY = False
+JS_REVERSE_OUTPUT_PATH = os.path.join(PROJECT_ROOT, 'assets/js/shim')
