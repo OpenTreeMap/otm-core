@@ -156,7 +156,7 @@ BASE_DIR = os.path.abspath(
 PROJECT_ROOT = os.path.dirname(BASE_DIR)
 
 # Path to the location of SCSS files, used for on-the-fly compilation to CSS
-SCSS_ROOT = os.path.join(BASE_DIR, 'treemap', 'css', 'sass')
+SCSS_ROOT = os.path.join(PROJECT_ROOT, 'assets', 'css', 'sass')
 
 # Entry point .scss file for on-the-fly compilation to CSS
 SCSS_ENTRY = 'main'
@@ -192,10 +192,12 @@ SITE_ROOT = '/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
+    # Webpack compiled files are output here
     os.path.join(PROJECT_ROOT, 'static/'),
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
+    # This is the directory where webpack get's its source data from
+    # We use this as a static directory so that images can be referenced in CSS
+    # but also be collected as by collectstatic
+    os.path.join(PROJECT_ROOT, 'assets/'),
 )
 
 # List of finder classes that know how to find static files in

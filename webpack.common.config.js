@@ -3,7 +3,9 @@
 var Webpack = require('webpack'),
     glob = require('glob'),
     path = require('path'),
-    _ = require('lodash');
+    _ = require('lodash'),
+    _ = require('lodash'),
+    ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 function d(path) {
     // Turns a relative path from 'opentreemap/' into an absolute path
@@ -55,16 +57,20 @@ module.exports = {
         path: d('static'),
         sourceMapFilename: '[file].map'
     },
+    devtool: "source-map",
     module: {
         loaders: [{
             include: [shimmed["bootstrap-datepicker"], shimmed["bootstrap-multiselect"], shimmed["bootstrap-slider"]],
             loader: "imports?bootstrap"
-        }, {
-            include: shimmed.reverse,
-            loader: "imports?this=>window!exports?Urls"
-        }, {
+        }, , {
             test: /\.scss$/,
-            loaders: ['style', 'css?sourceMap', 'sass?sourceMap']
+            loader: ExtractTextPlugin.extract(['css?sourceMap', 'sass?sourceMap'], {extract: true})
+        }, {
+            test: /\.woff($|\?)|\.woff2($|\?)|\.ttf($|\?)|\.eot($|\?)|\.svg($|\?)/,
+            loader: 'url',
+        }, {
+            test: /\.(jpg|png|gif)$/,
+            loader: 'url?limit=25000',
         }]
     },
     resolve: {
@@ -91,5 +97,6 @@ module.exports = {
             // Chunks are moved to the common bundle if they are used in 2 or more entry bundles
             minChunks: 2,
         }),
+        new ExtractTextPlugin('css/main.css', {allChunks: true})
     ]
 };
