@@ -16,7 +16,7 @@ function getEntries() {
     files.forEach(function(file) {
         var app = file.split(path.sep)[2],
             basename = path.basename(file, '.js');
-        entries[app + '/' + basename] = file;
+        entries['js/' + app + '/' + basename] = file;
     });
     return entries;
 }
@@ -45,15 +45,14 @@ var shimmed = {
     "bootstrap-datepicker": d('assets/js/shim/bootstrap-datepicker.js'),
     "bootstrap-multiselect": d('assets/js/shim/bootstrap-multiselect.js'),
     "bootstrap-slider": d('assets/js/shim/bootstrap-slider.js'),
-    jscolor: d('assets/js/shim/jscolor.js'),
-    reverse: d('assets/js/shim/reverse.js'),
+    jscolor: d('assets/js/shim/jscolor.js')
 };
 
 module.exports = {
     entry: getEntries(),
     output: {
         filename: '[name].js',
-        path: d('static/js'),
+        path: d('static'),
         sourceMapFilename: '[file].map'
     },
     module: {
@@ -63,6 +62,9 @@ module.exports = {
         }, {
             include: shimmed.reverse,
             loader: "imports?this=>window!exports?Urls"
+        }, {
+            test: /\.scss$/,
+            loaders: ['style', 'css?sourceMap', 'sass?sourceMap']
         }]
     },
     resolve: {
@@ -84,7 +86,7 @@ module.exports = {
         }),
         new Webpack.optimize.CommonsChunkPlugin({
             // Inlude the treemap/base entry module as part of the common module
-            name: "treemap/base",
+            name: "js/treemap/base",
 
             // Chunks are moved to the common bundle if they are used in 2 or more entry bundles
             minChunks: 2,

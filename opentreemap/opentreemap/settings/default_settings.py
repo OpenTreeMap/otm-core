@@ -180,7 +180,12 @@ STATIC_ROOT = ''
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
-STATIC_URL = '/static/'
+WEBPACK_DEV_SERVER = os.environ.get('WEBPACK_DEV_SERVER', None)
+
+if WEBPACK_DEV_SERVER is not None:
+    STATIC_URL = WEBPACK_DEV_SERVER + 'static/'
+else:
+    STATIC_URL = '/static/'
 
 # Root URL for the application
 SITE_ROOT = '/'

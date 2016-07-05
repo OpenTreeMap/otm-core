@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load instance_config %}
+{% load js_reverse %}
 
 <!DOCTYPE html>
 <!--
@@ -196,6 +197,12 @@
     {% block global_scripts %}
       {% if settings.USE_JS_I18N %}
       <script type="text/javascript" src="{% url 'django.views.i18n.javascript_catalog' %}"></script>
+      {% endif %}
+      {% if settings.WEBPACK_DEV_SERVER and settings.DEBUG %}
+      {# We include the reverse.js file in the webpack bundle in production, but for development we include it on the page instead #}
+        <script type="text/javascript" charset="utf-8">
+          {% js_reverse_inline %}
+        </script>
       {% endif %}
       <script src="{{ STATIC_URL }}js/treemap/base.js"></script>
     {% endblock global_scripts %}
