@@ -1,3 +1,6 @@
+// Where assets used in url(...) are
+$staticUrl: '../../' !default;
+
 // Fonts
 @import url(//fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Roboto:100,400,700);
 $base-font-family               : 'Open Sans', 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -28,7 +31,7 @@ $button-danger                  : #df4425;
 $button-inverse                 : #231f20;
 
 // Background Image
-$background-image               : url('/static/img/default-background.jpg') !default; // Standard tree background
+$background-image               : url('#{$staticUrl}img/default-background.jpg') !default; // Standard tree background
 
 //Management
 $body-management                : #f1f4f9;

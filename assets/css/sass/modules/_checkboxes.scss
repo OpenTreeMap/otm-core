@@ -14,7 +14,7 @@
             line-height: 1.6rem;
             color: $main-text-color;
             cursor: pointer;
-            background: url(/static/img/off.png) left 3px no-repeat;
+            background: url(#{$staticUrl}/img/off.png) left 3px no-repeat;
         }
         &.disabled + label {
             opacity: 0.4;
@@ -24,9 +24,9 @@
         @include select-none;
     }
     input[type='radio']:checked + label {
-        background-image: url(/static/img/radio.png);
+        background-image: url(#{$staticUrl}img/radio.png);
     }
     input[type='checkbox']:checked + label {
-        background-image: url(/static/img/check.png);
+        background-image: url(#{$staticUrl}img/check.png);
     }
 }

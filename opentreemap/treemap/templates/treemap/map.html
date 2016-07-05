@@ -9,7 +9,7 @@
 {% block searchscripts %}
 <script src="https://maps.googleapis.com/maps/api/js?key={{ settings.GOOGLE_MAPS_API_KEY }}"></script>
 {% include "treemap/partials/canopy_filter_control.html" %}
-<script src="http://192.168.1.18:8080/static/js/treemap/treeMap.js"></script>
+<script src="{{ STATIC_URL }}js/treemap/treeMap.js"></script>
 {% endblock searchscripts %}
 
 {% block content %}

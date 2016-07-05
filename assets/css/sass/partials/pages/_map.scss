@@ -70,27 +70,6 @@ $light-to-dark-green: #ffffff 10%,
         }
     }
 }
-
-.leaflet-control-layers-toggle {
-    background-image: url(/static/img/leaflet/layers.png) !important;
-}
-
-.leaflet-retina {
-    .leaflet-control-layers-toggle {
-        background-image: url(/static/img/leaflet/layers-2x.png) !important;
-    }
-}
-
-
-.leaflet-draw-toolbar a {
-	background-image: url(/static/img/leaflet-draw/spritesheet.png) !important;
-}
-
-.leaflet-retina .leaflet-draw-toolbar a {
-	background-image: url(/static/img/leaflet-draw/spritesheet-2x.png) !important;
-}
-
-
 .leaflet-control {
 
     &.leaflet-control-attribution {
