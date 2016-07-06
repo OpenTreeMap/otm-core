@@ -26,6 +26,7 @@
     "file-loader": "^0.9.0",
     "glob": "^7.0.5",
     "imports-loader": "^0.6.5",
+    "jshint": "^2.9.2",
     "mocha": "~1.14.0",
     "node-sass": "^3.5.3",
     "sass-loader": "^4.0.0",
@@ -41,8 +42,9 @@
   },
   "scripts": {
     "test": "testem ci",
-    "check": "grunt check",
-    "grunt": "grunt",
+    "check": "jshint opentreemap/*/js/src/*",
+    "build": "webpack -p --config webpack.prod.config.js",
+    "build-dev": "webpack -d --config webpack.dev.config.js",
     "watch": "webpack-dev-server --config webpack.dev.config.js --host 0.0.0.0 --port 6062 --content-base static/"
   },
   "author": "Azavea",
