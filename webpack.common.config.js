@@ -85,6 +85,7 @@ module.exports = {
     plugins: [
         // Provide jquery and Leaflet as global variables, which gets rid of
         // most of our shimming needs
+        // NOTE: the test configuration relies on this being the first plugin
         new Webpack.ProvidePlugin({
             jQuery: "jquery",
             "window.jQuery": "jquery",

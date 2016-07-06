@@ -1,10 +1,10 @@
 {
-    "test_page": "opentreemap/treemap/js/test/test.html",
-    "before_tests": "npm run grunt-dev-build",
+    "test_page": "assets/tests/test.html",
+    "before_tests": "npm run build-test",
     "src_files": [
-        "opentreemap/*/js/*/*.js"
+        "opentreemap/*/js/**/*.js"
     ],
     "serve_files": [
-        "opentreemap/treemap/static/js/treemap.test.js"
+        "static/test.js"
     ]
 }
