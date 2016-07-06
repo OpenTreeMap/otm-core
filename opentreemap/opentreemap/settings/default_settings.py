@@ -182,7 +182,7 @@ STATIC_ROOT = ''
 # Example: "http://example.com/static/", "http://static.example.com/"
 WEBPACK_DEV_SERVER = os.environ.get('WEBPACK_DEV_SERVER', None)
 
-if WEBPACK_DEV_SERVER is not None:
+if WEBPACK_DEV_SERVER is not None and DEBUG:
     STATIC_URL = WEBPACK_DEV_SERVER + 'static/'
 else:
     STATIC_URL = '/static/'

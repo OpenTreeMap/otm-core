@@ -57,7 +57,6 @@ module.exports = {
         path: d('static'),
         sourceMapFilename: '[file].map'
     },
-    devtool: "source-map",
     module: {
         loaders: [{
             include: [shimmed["bootstrap-datepicker"], shimmed["bootstrap-multiselect"], shimmed["bootstrap-slider"]],

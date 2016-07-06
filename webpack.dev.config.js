@@ -13,6 +13,11 @@ config.entry['js/treemap/base'] = [
 ];
 
 config.output.publicPath = host + 'static/';
+config.output.pathInfo = true;
+
+config.debug = true;
+
+config.devtool = 'eval';
 
 config.plugins = config.plugins.concat([
     new webpack.HotModuleReplacementPlugin()

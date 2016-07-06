@@ -43,8 +43,8 @@
   "scripts": {
     "test": "testem ci",
     "check": "jshint opentreemap/*/js/src/*",
-    "build": "webpack -p --config webpack.prod.config.js",
-    "build-dev": "webpack -d --config webpack.dev.config.js",
+    "build": "webpack --config webpack.prod.config.js",
+    "build-dev": "webpack --config webpack.dev.config.js",
     "build-test": "webpack -d --config webpack.test.config.js",
     "watch": "webpack-dev-server --config webpack.dev.config.js --host 0.0.0.0 --port 6062 --content-base static/"
   },
