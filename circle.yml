@@ -1,6 +1,8 @@
 machine:
   environment:
     DJANGO_SETTINGS_MODULE: opentreemap.settings
+  node:
+    version: 0.12.15
 
 dependencies:
   pre:
@@ -18,7 +20,8 @@ database:
     - psql -c "CREATE DATABASE ci;" -U postgres
     - psql -c "CREATE EXTENSION postgis;" -U postgres -d ci
     - python opentreemap/manage.py migrate --noinput
-    - npm run grunt
+    - python opentreemap/manage.py collectstatic_js_reverse
+    - npm run build
     - python opentreemap/manage.py collectstatic --noinput
 
 test:
