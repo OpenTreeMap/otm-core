@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load render_bundle get_files from webpack_loader %}
 {% load i18n %}
 {% load instance_config %}
 {% load form_extras %}
@@ -9,7 +10,8 @@
 {% if request.instance.scss_variables %}
   <link id="application-css" href="{% url 'scss' %}?{{ request.instance.scss_query_string }}" rel="stylesheet">
 {% else %}
-  <link id="application-css" href="{{ STATIC_URL }}css/main.css" rel="stylesheet">
+  {% get_files 'js/treemap/base' 'css' as css_files %}
+  <link id="application-css" href="{{ css_files.0.url }}" rel="stylesheet">
 {% endif %}
 
 {% endblock application_css %}
@@ -194,7 +196,7 @@ ga('set', 'page', pathname);
 {% endblock searchoptions %}
 
 {% block searchscripts %}
-<script src="{{ STATIC_URL }}js/treemap/searchBar.js"></script>
+{% render_bundle 'js/treemap/searchBar' %}
 {% endblock searchscripts %}
 
 {% block footer %}

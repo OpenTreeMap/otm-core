@@ -317,6 +317,7 @@ UNMANAGED_APPS = (
     'djcelery',
     'url_tools',
     'django_js_reverse',
+    'webpack_loader',
 )
 
 I18N_APPS = (
@@ -402,3 +403,11 @@ GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_KEY', None)
 
 JS_REVERSE_JS_MINIFY = False
 JS_REVERSE_OUTPUT_PATH = os.path.join(PROJECT_ROOT, 'assets/js/shim')
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': '/',  # must end with slash
+        'STATS_FILE': os.path.join(PROJECT_ROOT, 'static',
+                                   'webpack-stats.json')
+    }
+}

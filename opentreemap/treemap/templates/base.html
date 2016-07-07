@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load render_bundle from webpack_loader %}
 {% load instance_config %}
 {% load js_reverse %}
 
@@ -12,13 +13,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/png" href="/favicon.png" />
     {% block application_css %}
-
-    <link href="{{ STATIC_URL }}css/main.css" rel="stylesheet">
+    {% render_bundle 'js/treemap/base' 'css' %}
     {% endblock application_css %}
-
-    <!--[if lt IE 9]>
-      <script src="{{ STATIC_URL }}js/html5shiv.js"></script>
-    <![endif]-->
 
     {% block head_extra %}
     {% endblock head_extra %}
@@ -195,7 +191,7 @@
           {% js_reverse_inline %}
         </script>
       {% endif %}
-      <script src="{{ STATIC_URL }}js/treemap/base.js"></script>
+      {% render_bundle 'js/treemap/base' 'js' %}
     {% endblock global_scripts %}
 
     {% block templates %}

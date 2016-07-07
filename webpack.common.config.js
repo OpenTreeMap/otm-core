@@ -5,6 +5,7 @@ var Webpack = require('webpack'),
     path = require('path'),
     _ = require('lodash'),
     _ = require('lodash'),
+    BundleTracker = require('webpack-bundle-tracker'),
     ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 function d(path) {
@@ -97,6 +98,7 @@ module.exports = {
             // Chunks are moved to the common bundle if they are used in 2 or more entry bundles
             minChunks: 2,
         }),
-        new ExtractTextPlugin('css/main.css', {allChunks: true})
+        new ExtractTextPlugin('css/main.css', {allChunks: true}),
+        new BundleTracker({path: d('static'), filename: 'webpack-stats.json'})
     ]
 };

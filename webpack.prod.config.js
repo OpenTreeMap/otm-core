@@ -4,7 +4,9 @@ var webpack = require('webpack'),
     config = require('./webpack.common.config.js'),
     reversePath = __dirname + '/assets/js/shim/reverse.js';
 
-// Allows require-ing the global variable created by django-js-reverse
+config.output.filename = '[name]-[chunkhash].js';
+
+// Allows require-ing the static file created by django-js-reverse
 config.resolve.alias.reverse = reversePath;
 
 config.devtool = 'source-map';

@@ -1,4 +1,5 @@
 {% extends "treemap/map_feature_detail.html" %}
+{% load render_bundle from webpack_loader %}
 {% load i18n %}
 {% load l10n %}
 {% load auth_extras %}
@@ -148,6 +149,6 @@ window.mapFeature.plotId = {{ plot.id }};
 Object.freeze(window.mapFeature);
 {% endlocalize %}
 </script>
-<script src="{{ STATIC_URL }}js/treemap/plot.js"></script>
+{% render_bundle 'js/treemap/plot' %}
 
 {% endblock scripts %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load render_bundle from webpack_loader %}
 {% load auth_extras %}
 {% load form_extras %}
 {% load i18n %}
@@ -152,5 +153,5 @@ ga('global.set', 'page', pathname);
 {% endblock content %}
 
 {% block scripts %}
-<script src="{{ STATIC_URL }}js/treemap/user.js"></script>
+{% render_bundle 'js/treemap/user' %}
 {% endblock scripts %}
