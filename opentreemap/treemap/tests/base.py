@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.test.utils import override_settings
 
-_test_settings = {
+test_settings = {
     # Use a faster password hasher for unit tests to improve performance
     'PASSWORD_HASHERS': ('django.contrib.auth.hashers.MD5PasswordHasher',),
 
@@ -13,7 +13,7 @@ _test_settings = {
 }
 
 
-@override_settings(**_test_settings)
+@override_settings(**test_settings)
 class OTMTestCase(TestCase):
     """
     Base class for OTM2 tests.
