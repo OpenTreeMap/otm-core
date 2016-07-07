@@ -129,6 +129,8 @@ def make_officer_role(instance):
         ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
         ('Plot', 'length', FieldPermission.WRITE_DIRECTLY),
         ('Plot', 'readonly', FieldPermission.WRITE_DIRECTLY),
+        ('RainBarrel', 'geom', FieldPermission.WRITE_DIRECTLY),
+        ('RainBarrel', 'capacity', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'height', FieldPermission.WRITE_DIRECTLY))

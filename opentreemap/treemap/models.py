@@ -579,6 +579,8 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     hide_at_zoom = models.IntegerField(
         null=True, blank=True, default=None, db_index=True)
 
+    users_can_delete_own_creations = True
+
     def __init__(self, *args, **kwargs):
         super(MapFeature, self).__init__(*args, **kwargs)
         if self.feature_type == '':
@@ -947,6 +949,8 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
                                     verbose_name=_("Date Planted"))
     date_removed = models.DateField(null=True, blank=True,
                                     verbose_name=_("Date Removed"))
+
+    users_can_delete_own_creations = True
 
     objects = GeoHStoreUDFManager()
 

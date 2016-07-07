@@ -748,7 +748,20 @@ class Authorizable(UserTrackable):
             return True
         else:
             writeable_perms = self._get_writeable_perms_set(user)
-            return writeable_perms >= set(self.tracked_fields)
+            can_delete = writeable_perms >= set(self.tracked_fields)
+            if not can_delete:
+                if getattr(self, 'users_can_delete_own_creations', False):
+                    can_delete = self._was_created_by(user)
+            return can_delete
+
+    def _was_created_by(self, user):
+        fields_created_by_user = Audit.objects.filter(
+            model=self.__class__.__name__,
+            model_id=self.id,
+            action=Audit.Type.Insert,
+            user=user,
+        )
+        return fields_created_by_user.exists()
 
     def user_can_create(self, user, direct_only=False):
         """
@@ -871,8 +884,8 @@ class Authorizable(UserTrackable):
             super(Authorizable, self).delete_with_user(user, *args, **kwargs)
         else:
             raise AuthorizeException("%s does not have permission to "
-                                     "delete %s objects." %
-                                     (user, self._model_name))
+                                     "delete %s %s." %
+                                     (user, self._model_name, self.id))
 
 
 class AuditException(Exception):
