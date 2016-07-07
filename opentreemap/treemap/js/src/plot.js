@@ -125,7 +125,7 @@ var beginAddStream = plotAddTree.init({
     form: form,
     addTreeControls: dom.addTreeControls,
     beginAddTree: dom.beginAddTree,
-    plotId: window.mapFeature.plotId
+    plotId: window.otm.mapFeature.plotId
 });
 beginAddStream.onValue($treeSection, 'show');
 

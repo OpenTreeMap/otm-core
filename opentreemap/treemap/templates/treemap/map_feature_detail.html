@@ -267,7 +267,8 @@
 {% localize off %}
 // Define options for mapFeature.init(), which will be called in the
 // type-specific template inheriting from this one (e.g. plot_detail.html)
-window.mapFeature = {
+// This global variable is later used in the JS entry module as a simple way to pass in static data
+window.otm.mapFeature = {
     startInEditMode: {% if editmode %}true{% else %}false{% endif %},
     isEditablePolygon: {% if feature.polygon and feature.is_editable %}true{% else %}false{% endif %},
     featureId: {{ feature.pk }},

@@ -108,9 +108,9 @@
 <script>
 {% localize off %}
 // mapFeature is defined in a script block of the super-template
-window.mapFeature.useTreeIcon = false;
-window.mapFeature.resourceType = "{{ feature.map_feature_type|to_object_name }}";
-Object.freeze(window.mapFeature);
+window.otm.mapFeature.useTreeIcon = false;
+window.otm.mapFeature.resourceType = "{{ feature.map_feature_type|to_object_name }}";
+Object.freeze(window.otm.mapFeature);
 </script>
 {% render_bundle 'js/treemap/resource' %}
 {% endlocalize %}

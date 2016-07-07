@@ -144,9 +144,9 @@
 <script>
 {% localize off %}
 // mapFeature is defined in a script block of the super-template
-window.mapFeature.useTreeIcon = true;
-window.mapFeature.plotId = {{ plot.id }};
-Object.freeze(window.mapFeature);
+window.otm.mapFeature.useTreeIcon = true;
+window.otm.mapFeature.plotId = {{ plot.id }};
+Object.freeze(window.otm.mapFeature);
 {% endlocalize %}
 </script>
 {% render_bundle 'js/treemap/plot' %}

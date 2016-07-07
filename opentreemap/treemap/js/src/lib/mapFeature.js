@@ -86,7 +86,7 @@ exports.init = function() {
     if (config.instance.supportsEcobenefits) {
         var updateEcoUrl = reverse.plot_eco({
             instance_url_name: config.instance.url_name,
-            feature_id: window.mapFeature.featureId
+            feature_id: window.otm.mapFeature.featureId
         });
         form.saveOkStream
             .map($ecoBenefits)
@@ -115,7 +115,7 @@ exports.init = function() {
         }
     });
 
-    if (window.mapFeature.startInEditMode) {
+    if (window.otm.mapFeature.startInEditMode) {
         if (config.loggedIn) {
             shouldBeInEditModeBus.push(true);
         } else {
@@ -127,7 +127,7 @@ exports.init = function() {
     mapManager.createTreeMap({
         domId: 'map',
         disableScrollWithMouseWheel: true,
-        centerWM: window.mapFeature.location.point,
+        centerWM: window.otm.mapFeature.location.point,
         zoom: mapManager.ZOOM_PLOT
     });
 
@@ -136,15 +136,15 @@ exports.init = function() {
         inlineEditForm: form,
         editLocationButton: dom.location.edit,
         cancelEditLocationButton: dom.location.cancel,
-        resourceType: window.mapFeature.resourceType,
-        location: window.mapFeature.location
+        resourceType: window.otm.mapFeature.resourceType,
+        location: window.otm.mapFeature.location
     };
 
-    if (window.mapFeature.isEditablePolygon) {
+    if (window.otm.mapFeature.isEditablePolygon) {
         currentMover = geometryMover.polygonMover(moverOptions);
     } else {
         plotMarker.init(mapManager.map);
-        plotMarker.useTreeIcon(window.mapFeature.useTreeIcon);
+        plotMarker.useTreeIcon(window.otm.mapFeature.useTreeIcon);
         reverseGeocodeStreamAndUpdateAddressesOnForm(plotMarker.moveStream, dom.form);
         moverOptions.plotMarker = plotMarker;
         currentMover = geometryMover.plotMover(moverOptions);
@@ -156,7 +156,7 @@ exports.init = function() {
             .filter(BU.isDefinedNonEmpty);
 
     clickedIdStream
-        .filter(BU.not, window.mapFeature.featureId)
+        .filter(BU.not, window.otm.mapFeature.featureId)
         .map(_.partialRight(U.appendSegmentToUrl, detailUrlPrefix, false))
         .filter(R.not(currentMover.isEnabled))
         .onValue(_.bind(window.location.assign, window.location));
@@ -167,7 +167,7 @@ exports.init = function() {
         var panorama = streetView.create({
             streetViewElem: $streetViewContainer[0],
             noStreetViewText: config.trans.noStreetViewText,
-            location: window.mapFeature.location.point
+            location: window.otm.mapFeature.location.point
         });
         form.saveOkStream
             .map('.formData')
