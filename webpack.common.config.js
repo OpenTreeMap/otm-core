@@ -4,7 +4,6 @@ var Webpack = require('webpack'),
     glob = require('glob'),
     path = require('path'),
     _ = require('lodash'),
-    _ = require('lodash'),
     BundleTracker = require('webpack-bundle-tracker'),
     ExtractTextPlugin = require("extract-text-webpack-plugin");
 
@@ -62,7 +61,7 @@ module.exports = {
         loaders: [{
             include: [shimmed["bootstrap-datepicker"], shimmed["bootstrap-multiselect"], shimmed["bootstrap-slider"]],
             loader: "imports?bootstrap"
-        }, , {
+        }, {
             test: /\.scss$/,
             loader: ExtractTextPlugin.extract(['css?sourceMap', 'sass?sourceMap'], {extract: true})
         }, {

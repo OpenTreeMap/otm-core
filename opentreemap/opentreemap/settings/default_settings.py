@@ -196,7 +196,7 @@ STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, 'static/'),
     # This is the directory where webpack get's its source data from
     # We use this as a static directory so that images can be referenced in CSS
-    # but also be collected as by collectstatic
+    # but also be collected by collectstatic
     os.path.join(PROJECT_ROOT, 'assets/'),
 )
 
