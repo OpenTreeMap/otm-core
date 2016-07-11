@@ -25,4 +25,6 @@ config.plugins.concat([
     new webpack.optimize.OccurrenceOrderPlugin()
 ]);
 
+config.output.publicPath = '/static/';
+
 module.exports = config;
