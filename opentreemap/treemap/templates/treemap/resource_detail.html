@@ -1,4 +1,5 @@
 {% extends "treemap/map_feature_detail.html" %}
+{% load render_bundle from webpack_loader %}
 {% load i18n %}
 {% load l10n %}
 {% load auth_extras %}
@@ -106,26 +107,12 @@
 
 <script>
 {% localize off %}
-(function(require, config, mapFeatureOptions) {
-      var mapFeatureModule = require('treemap/mapFeature'),
-          resource = require('treemap/resource');
-
-      // mapFeatureOptions is defined in a script block of the super-template
-      mapFeatureOptions.useTreeIcon = false;
-      mapFeatureOptions.resourceType = "{{ feature.map_feature_type|to_object_name }}";
-      var mapFeature = mapFeatureModule.init(mapFeatureOptions);
-
-      resource.init({
-          ecoBenefits: '#ecobenefits',
-          featureId: {{ feature.id|unlocalize }},
-          inlineEditForm: mapFeatureOptions.inlineEditForm,
-          form: mapFeature.inlineEditForm,
-          deleteControls: mapFeatureOptions.deleteControls,
-          config: mapFeatureOptions.config
-
-      });
-})(require, otm.settings, mapFeatureOptions);
-{% endlocalize %}
+// mapFeature is defined in a script block of the super-template
+window.otm.mapFeature.useTreeIcon = false;
+window.otm.mapFeature.resourceType = "{{ feature.map_feature_type|to_object_name }}";
+Object.freeze(window.otm.mapFeature);
 </script>
+{% render_bundle 'js/treemap/resource' %}
+{% endlocalize %}
 
 {% endblock scripts %}

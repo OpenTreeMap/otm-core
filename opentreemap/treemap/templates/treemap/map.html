@@ -1,4 +1,5 @@
 {% extends "instance_base.html" %}
+{% load render_bundle from webpack_loader %}
 {% load i18n %}
 
 {% block page_title %} | {% trans "Map" %}{% endblock %}
@@ -9,16 +10,7 @@
 {% block searchscripts %}
 <script src="https://maps.googleapis.com/maps/api/js?key={{ settings.GOOGLE_MAPS_API_KEY }}"></script>
 {% include "treemap/partials/canopy_filter_control.html" %}
-<script>
-(function(require) {
-    var $ = require("jquery"),
-        treeMap = require("treemap/treeMap");
-
-    $(function(){
-        treeMap.init(otm.settings);
-    })
-})(require);
-</script>
+{% render_bundle 'js/treemap/treeMap' %}
 {% endblock searchscripts %}
 
 {% block content %}

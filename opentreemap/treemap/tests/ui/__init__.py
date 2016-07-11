@@ -7,6 +7,7 @@ import importlib
 from time import sleep
 
 from django.test import LiveServerTestCase
+from django.test.utils import override_settings
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
@@ -19,6 +20,7 @@ from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 
 from treemap.tests import make_commander_user, create_mock_system_user
+from treemap.tests.base import test_settings
 from treemap.models import Instance, Tree, Plot
 from treemap.lib.object_caches import clear_caches
 from treemap.plugin import setup_for_ui_test
@@ -200,6 +202,7 @@ class UITestCase(LiveServerTestCase):
             return element_or_selector
 
 
+@override_settings(**test_settings)
 class TreemapUITestCase(UITestCase):
     def assertElementVisibility(self, element, visible):
         if isinstance(element, basestring):

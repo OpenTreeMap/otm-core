@@ -1,7 +1,7 @@
 "use strict";
 
 var assert = require('chai').assert,
-    search = require('treemap/search'),
+    search = require('treemap/lib/search.js'),
     $ = require('jquery'),
     _ = require('lodash');
 

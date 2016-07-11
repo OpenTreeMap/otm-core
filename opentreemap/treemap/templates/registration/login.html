@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load render_bundle from webpack_loader %}
 {% load i18n %}
 {% load util %}
 
@@ -48,12 +49,5 @@
 {% endblock content %}
 
 {% block scripts %}
-<script>
-(function (require) {
-    var $ = require('jquery');
-    $(function () {
-        $('input[name="username"]').focus();
-    })
-})(require);
-</script>
+{% render_bundle 'js/treemap/login' %}
 {% endblock scripts %}
