@@ -249,7 +249,9 @@ def context_dict_for_plot(request, plot, tree_id=None, **kwargs):
     context['photo_upload_share_text'] = _photo_upload_share_text(
         plot, tree is not None)
 
-    pmfs = PolygonalMapFeature.objects.filter(polygon__contains=plot.geom)
+    pmfs = PolygonalMapFeature.objects.filter(
+        polygon__contains=plot.geom,
+        mapfeature_ptr__instance_id=instance.id)
 
     if pmfs:
         context['containing_polygonalmapfeature'] = pmfs[0].cast_to_subtype()
