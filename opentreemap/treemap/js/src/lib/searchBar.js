@@ -324,7 +324,12 @@ module.exports = exports = {
                 button: '#perform-search'
             }),
             resetStream = $("#search-reset").asEventStream("click"),
+            searchFiltersProp = searchStream.map(Search.buildSearch).toProperty(),
             filtersStream = searchStream
+                // Filter out geocoded selections.
+                // The search datum will have a different object format
+                // depending on the type of location selected in the
+                // typeahead box.
                 .filter(function() {
                     var datum = getSearchDatum();
                     return !(datum && datum.magicKey);
@@ -363,6 +368,10 @@ module.exports = exports = {
             // Stream of search events, carries the filter object and display
             // list with it. should be used by consumer to execute searches.
             filterNonGeocodeObjectStream: filtersStream,
+
+            // Current value of search filters updated every time the
+            // "Search" button is pressed.
+            searchFiltersProp: searchFiltersProp,
 
             // has a value on all events that change the current search
             searchChangedStream: searchChangedStream,

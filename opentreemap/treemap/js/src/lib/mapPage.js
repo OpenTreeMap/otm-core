@@ -35,9 +35,13 @@ module.exports.init = function (options) {
             searchBar.resetStream.map({})
         );
 
+    var geocodeEvents = searchBar.searchFiltersProp
+        .sampledBy(searchBar.geocodedLocationStream);
+
     var builtSearchEvents = Bacon.mergeAll(
             triggeredQueryStream,
-            searchBar.filterNonGeocodeObjectStream);
+            searchBar.filterNonGeocodeObjectStream,
+            geocodeEvents);
 
     triggeredQueryStream.onValue(searchBar.applySearchToDom);
 
