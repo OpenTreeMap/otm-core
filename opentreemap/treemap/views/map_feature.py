@@ -34,7 +34,6 @@ from treemap.lib.map_feature import (get_map_feature_or_404,
                                      context_dict_for_plot,
                                      context_dict_for_resource,
                                      context_dict_for_map_feature)
-from treemap.lib.perms import map_feature_is_deletable
 from treemap.views.misc import add_map_info_to_context
 
 
@@ -155,10 +154,7 @@ def update_map_feature_detail(request, instance, feature_id):
 
 def delete_map_feature(request, instance, feature_id):
     feature = get_map_feature_or_404(feature_id, instance)
-    if not map_feature_is_deletable(request.user.get_instance_user(instance),
-                                    feature):
-        raise ValidationError("map feature not deletable")
-    feature.delete_with_user(request.user)
+    feature.delete_with_user(request.user)  # may raise AuthorizeException
     update_hide_at_zoom_after_delete(feature)
     return {'ok': True}
 
