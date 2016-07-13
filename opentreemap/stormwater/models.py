@@ -33,6 +33,20 @@ class PolygonalMapFeature(MapFeature):
     def benefits(cls):
         return CountOnlyBenefitCalculator(cls)
 
+    def calculate_area(self):
+        """
+        Make a PostGIS query that accurately calculates the area of
+        the polygon by first casting it to a Geography.
+        """
+        if self.pk is None:
+            return None
+        area_sql = 'ST_Area(ST_Transform(polygon, 4326)::geography)'
+        area_col_name = 'area'
+        return PolygonalMapFeature.objects \
+                                  .filter(pk=self.pk) \
+                                  .extra(select={area_col_name: area_sql}) \
+                                  .values(area_col_name)[0][area_col_name]
+
 
 class Bioswale(PolygonalMapFeature):
     objects = GeoHStoreUDFManager()
