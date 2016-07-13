@@ -20,6 +20,13 @@
         <td>{{ feature.pk|unlocalize }}</td>
     </tr>
 
+    {% if area %}
+    <tr>
+        <td>{% trans "Area" %}</td>
+        <td>{{ area }}</td>
+    </tr>
+    {% endif %}
+
     {% block resource_details %}
     {% endblock resource_details %}
 
