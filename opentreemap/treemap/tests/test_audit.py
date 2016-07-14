@@ -922,7 +922,10 @@ class UserRoleFieldPermissionTest(OTMTestCase):
             self.tree.delete_with_user(self.outlaw)
 
         iuser = self.outlaw.get_instance_user(self.instance)
-        iuser.admin = True
+        role = Role.objects.create(instance=self.instance,
+                                   name=Role.ADMINISTRATOR,
+                                   rep_thresh=0)
+        iuser.role = role
         iuser.save_with_user(self.commander)
 
         self.tree.delete_with_user(self.outlaw)
