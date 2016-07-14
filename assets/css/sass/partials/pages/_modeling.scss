@@ -47,6 +47,10 @@ $blue-to-red: #2791c3 10%,
 
             .actions {
                 margin: 10px 0 0 0;
+
+                span {
+                    padding-right: 7px;
+                }
             }
 
             .private {
@@ -539,17 +543,30 @@ $blue-to-red: #2791c3 10%,
 
     .presets {
         padding: 15px;
-        border-bottom: 1px solid #ddd;
+        border-bottom: 2px solid #ddd;
+        background: #f8f8f8;
 
-        .dropdown-toggle {
-            width: 100%;
-            text-align: left;
+        h4 {
+            display: inline;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: $primary-color;
+            padding-right: 3px;
+        }
 
-            .caret {
-                position: absolute;
-                right: 10px;
-                top: 50%;
-                margin-top: -1px;
+        .presets-dropdown {
+            display: inline;
+
+            .dropdown-toggle {
+                width: 75%;
+                text-align: left;
+
+                .caret {
+                    position: absolute;
+                    right: 10px;
+                    top: 50%;
+                    margin-top: -1px;
+                }
             }
         }
     }
