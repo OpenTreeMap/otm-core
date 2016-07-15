@@ -259,6 +259,11 @@ class Instance(models.Model):
 
     map_feature_types = _make_config_property('map_feature_types', ['Plot'])
 
+    map_feature_config = _make_config_property('map_feature_config', {})
+
+    annual_rainfall_inches = _make_config_property('annual_rainfall_inches',
+                                                   None)
+
     mobile_search_fields = _make_config_property('mobile_search_fields',
                                                  DEFAULT_MOBILE_SEARCH_FIELDS)
 

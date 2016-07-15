@@ -6,6 +6,7 @@ from __future__ import division
 
 import hashlib
 import re
+from copy import copy
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -673,6 +674,31 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             return cls.subclass_dict()[type]
         except KeyError as e:
             raise ValidationError('Map feature type %s not found' % e)
+
+    @classmethod
+    def get_config(cls, instance):
+        """
+        Get configuration properties for this map feature type on the
+        specified instance.
+        """
+        config = copy(getattr(cls, 'default_config', {}))
+        overrides = instance.map_feature_config.get(cls.__name__, {})
+        config.update(overrides)
+        return config
+
+    @classmethod
+    def set_config_property(cls, instance, key, value):
+        """
+        Set a configuration property for this map feature type on the
+        specified instance.
+        """
+        config = instance.map_feature_config
+        class_name = cls.__name__
+        if class_name not in config:
+            config[class_name] = {}
+        config[class_name][key] = value
+        instance.map_feature_config = config
+        instance.save()
 
     @property
     def address_full(self):
