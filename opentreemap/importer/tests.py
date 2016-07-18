@@ -19,13 +19,15 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.http import HttpRequest, HttpResponseBadRequest
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
+from django.utils.translation import ugettext as _
 
 from api.test_utils import setupTreemapEnv, mkPlot
 
+from treemap.instance import Instance, InstanceBounds
 from treemap.json_field import set_attr_on_json_field
 from treemap.models import (Species, Plot, Tree, ITreeCodeOverride,
                             ITreeRegion, User)
-from treemap.instance import Instance, InstanceBounds
+from treemap.plugin import get_tree_limit
 from treemap.tests import (make_admin_user, make_instance, login,
                            ecoservice_not_running, make_request)
 from treemap.udf import UserDefinedFieldDefinition
@@ -1522,3 +1524,106 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(tree1.species.pk, apple.pk)
         self.assertEqual(tree2.species.pk, crab_apple.pk)
         self.assertIsNone(rows[2].plot)
+
+
+always_three = lambda *args, **kwargs: 3
+
+
+@override_settings(TREE_LIMIT_FUNCTION='importer.tests.always_three')
+class TreeLimitTests(IntegrationTests):
+    def setUp(self):
+        super(TreeLimitTests, self).setUp()
+        # To make plot validation easier, the bounds are basically the world.
+        # There are tests for plot in instance bounds in ValidationTest.
+        self.instance.bounds = InstanceBounds.create_from_box(
+            -6000000, -6000000, 6000000, 6000000)
+        self.instance.save()
+
+    def import_type(self):
+        return 'tree'
+
+    def test_exact_limit(self):
+        csv = """
+        | point x | point y |
+        | 45.59   | 31.1    |
+        | 45.58   | 32.9    |
+        | 45.58   | 33.9    |
+        """
+        ieid = self.run_through_commit_views(csv)
+        ie = TreeImportEvent.objects.get(pk=ieid)
+
+        self.assertEqual(ie.status, ie.FINISHED_CREATING)
+
+        rows = ie.rows()
+
+        self.assertEqual(len(rows), 3)
+
+    def test_too_many(self):
+        csv1 = """
+        | point x | point y |
+        | 45.59   | 31.1    |
+        | 45.58   | 32.9    |
+        | 45.58   | 34.5    |
+        """
+        ieid1 = self.run_through_commit_views(csv1)
+        ie1 = TreeImportEvent.objects.get(pk=ieid1)
+
+        self.assertEqual(ie1.status, ie1.FINISHED_CREATING)
+
+        rows = ie1.rows()
+
+        self.assertEqual(len(rows), 3)
+
+        plot1, plot2, plot3 = [r.plot for r in rows]
+        self.assertIsNotNone(plot1)
+        self.assertIsNotNone(plot2)
+        self.assertIsNotNone(plot3)
+
+        tree_limit = get_tree_limit(ie1.instance)
+
+        self.assertEqual(tree_limit, 3)
+
+        csv2 = """
+        | point x | point y |
+        | 45.58   | 33.9    |
+        """
+        with self.assertRaises(Exception) as cm:
+            ieid2 = self.run_through_commit_views(csv2)
+
+    def test_update_near_limit(self):
+        csv1 = """
+        | point x | point y |
+        | 45.59   | 31.1    |
+        | 45.58   | 32.9    |
+        """
+        ieid1 = self.run_through_commit_views(csv1)
+        ie1 = TreeImportEvent.objects.get(pk=ieid1)
+
+        self.assertEqual(ie1.status, ie1.FINISHED_CREATING)
+
+        rows1 = ie1.rows()
+
+        self.assertEqual(len(rows1), 2)
+
+        plot1, plot2 = [r.plot for r in rows1]
+        self.assertIsNotNone(plot1)
+        self.assertIsNotNone(plot2)
+
+        csv2 = """
+        | point x | point y | planting site id |
+        | 45.58   | 34.5    | {} |
+        | 45.58   | 33.9    | {} |
+        """.format(plot1.pk, plot2.pk)
+
+        ieid2 = self.run_through_commit_views(csv2)
+        ie2 = TreeImportEvent.objects.get(pk=ieid2)
+
+        self.assertEqual(ie2.status, ie1.FINISHED_CREATING)
+
+        rows2 = ie2.rows()
+
+        self.assertEqual(len(rows2), 2)
+
+        plot3, plot4 = [r.plot for r in rows2]
+        self.assertEqual(plot3.pk, plot1.pk)
+        self.assertEqual(plot4.pk, plot2.pk)
