@@ -71,8 +71,6 @@ class GenericImportEvent(models.Model):
         return t % self.status_description()
 
     def is_past_verifying_stage(self):
-        # This method is used by tasks for concurrency control
-        self.refresh_from_db()
         return self.status in {
             GenericImportEvent.FINISHED_VERIFICATION,
             GenericImportEvent.CREATING,

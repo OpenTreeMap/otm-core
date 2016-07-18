@@ -122,6 +122,7 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
 @transaction.atomic
 def _update_ie_status(ie):
     # Protect against race condition between task completion and main task
+    ie.refresh_from_db()
     if not ie.is_past_verifying_stage():
         ie.status = GenericImportEvent.VERIFIYING
         ie.update_progress_timestamp_and_save()
