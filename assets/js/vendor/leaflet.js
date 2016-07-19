@@ -14,6 +14,11 @@
 // is resolved in master, but the suggested fix doesn't appear there.
 // See https://github.com/azavea/OTM2/issues/776
 
+// HOTFIX 3 applied:
+// https://github.com/Leaflet/Leaflet/issues/2101
+// Respect maxZoom option in Map.fitBounds
+// This was added in https://github.com/Leaflet/Leaflet/commit/c3734e5a91bdfa850339ff797e876f2dba9d9cfd
+
 (function (window, document, undefined) {
 var oldL = window.L,
     L = {};
@@ -1603,6 +1608,7 @@ L.Map = L.Class.extend({
 		    nePoint = this.project(bounds.getNorthEast(), zoom),
 		    center = this.unproject(swPoint.add(nePoint).divideBy(2).add(paddingOffset), zoom);
 
+		zoom = (typeof options.maxZoom === 'number') ? Math.min(options.maxZoom, zoom) : zoom;
 		return this.setView(center, zoom, options);
 	},
 
