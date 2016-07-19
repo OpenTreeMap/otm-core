@@ -313,7 +313,15 @@ def _get_tree_limit_context(ie):
 
     tree_count = MapFeature.objects.filter(instance=ie.instance).count()
     remaining_tree_limit = tree_limit - tree_count
-    verified_count = ie.rows().filter(status=TreeImportRow.VERIFIED).count()
+
+    added_site_q =\
+        Q(data__contains='"planting site id": ""') |\
+        ~Q(data__contains='"planting site id"')
+    verified_added_q = Q(status=TreeImportRow.VERIFIED) & added_site_q
+
+    verified_count = ie.rows()\
+        .filter(verified_added_q)\
+        .count()
 
     tree_limit_exceeded = remaining_tree_limit - verified_count < 0
 

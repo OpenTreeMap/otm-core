@@ -8,6 +8,7 @@ import json
 from celery import task, chord
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
+from django.db import transaction
 
 from importer.models.base import GenericImportEvent, GenericImportRow
 from importer.models.species import SpeciesImportEvent, SpeciesImportRow
@@ -100,8 +101,8 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
             group_result.save()
             ie.task_id = group_result.id
 
-        ie.status = GenericImportEvent.VERIFIYING
-        ie.update_progress_timestamp_and_save()
+        _assure_status_is_at_least_verifying(ie)
+
     except Exception as e:
         ie.status = GenericImportEvent.VERIFICATION_ERROR
         ie.mark_finished_and_save()
@@ -116,6 +117,15 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
             # TODO: At the very least, we should add logging.
             pass
         return
+
+
+@transaction.atomic
+def _assure_status_is_at_least_verifying(ie):
+    # Protect against race condition between task completion and main task
+    ie.refresh_from_db()
+    if not ie.is_past_verifying_stage():
+        ie.status = GenericImportEvent.VERIFIYING
+        ie.update_progress_timestamp_and_save()
 
 
 @task()
@@ -152,6 +162,10 @@ def commit_import_event(import_type, import_event_id):
     finalize_task = _finalize_commit.si(import_type, import_event_id)
 
     async_result = chord(commit_tasks, finalize_task).delay()
+    # Protect against a race condition where finalize_task's ie
+    # may have already been updated to FINISHED_CREATING and saved to the db,
+    # rendering this instance of the ie model obsolete.
+    ie.refresh_from_db()
     if async_result:
         ie.task_id = async_result.id
         ie.save()
