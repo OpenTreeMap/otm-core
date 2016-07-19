@@ -6,10 +6,10 @@ from __future__ import division
 import importlib
 from time import sleep
 
-from django.test import LiveServerTestCase
 from django.test.utils import override_settings
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from registration.models import RegistrationProfile
 
@@ -30,7 +30,7 @@ DISPLAY_WIDTH = 1280
 DISPLAY_HEIGHT = 1024
 
 
-class UITestCase(LiveServerTestCase):
+class UITestCase(StaticLiveServerTestCase):
     def use_xvfb(self):
         from pyvirtualdisplay import Display
         self.display = Display('xvfb',
