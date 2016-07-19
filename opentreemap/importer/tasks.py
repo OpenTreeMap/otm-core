@@ -101,7 +101,7 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
             group_result.save()
             ie.task_id = group_result.id
 
-        _update_ie_status(ie)
+        _assure_status_is_at_least_verifying(ie)
 
     except Exception as e:
         ie.status = GenericImportEvent.VERIFICATION_ERROR
@@ -120,7 +120,7 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
 
 
 @transaction.atomic
-def _update_ie_status(ie):
+def _assure_status_is_at_least_verifying(ie):
     # Protect against race condition between task completion and main task
     ie.refresh_from_db()
     if not ie.is_past_verifying_stage():
