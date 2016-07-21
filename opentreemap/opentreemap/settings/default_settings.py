@@ -378,6 +378,10 @@ DISPLAY_DEFAULTS = {
     'rainBarrel': {
         'capacity': {'units': 'gal', 'digits': 1}
     },
+    'greenInfrastructure': {
+        'rainfall': {'units': 'in', 'digits': 1},
+        'area':     {'units': 'sq_m', 'digits': 1}
+    }
 }
 
 # Time in ms for two clicks to be considered a double-click in some scenarios
