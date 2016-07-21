@@ -3,9 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from map_features.benefits import (FEET_SQ_PER_METER_SQ, FEET_PER_INCH,
-                                   GALLONS_PER_CUBIC_FT)
-from treemap.json_field import set_attr_on_json_field
+from treemap.ecobenefits import (FEET_SQ_PER_METER_SQ, FEET_PER_INCH,
+                                 GALLONS_PER_CUBIC_FT)
 from treemap.lib.udf import udf_create
 from treemap.search import Filter
 from treemap.tests.test_udfs import UdfCRUTestCase
@@ -124,4 +123,3 @@ class PolygonalMapFeatureTest(OTMTestCase):
         self.assert_basis(basis, 2, 0)
         self._assert_runoff_reduced(
             2 * self.polygon_area_sq_meters, .5, runoff_reduced)
-

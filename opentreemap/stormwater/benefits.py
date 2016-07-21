@@ -5,9 +5,8 @@ from __future__ import division
 
 from django.utils.translation import ugettext_lazy as _
 
-from treemap.ecobenefits import BenefitCalculator
-from map_features.benefits import (FEET_SQ_PER_METER_SQ, FEET_PER_INCH,
-                                   GALLONS_PER_CUBIC_FT)
+from treemap.ecobenefits import (BenefitCalculator, FEET_SQ_PER_METER_SQ,
+                                 FEET_PER_INCH, GALLONS_PER_CUBIC_FT)
 
 
 class PolygonalBasinBenefitCalculator(BenefitCalculator):
