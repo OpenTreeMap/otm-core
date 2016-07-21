@@ -1,3 +1,3 @@
 "use strict";
 
-require("treemap/lib/searchBar.js").init();
+require("treemap/lib/searchBar.js").initDefaults();
