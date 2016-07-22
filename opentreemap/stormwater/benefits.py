@@ -5,9 +5,8 @@ from __future__ import division
 
 from django.utils.translation import ugettext_lazy as _
 
-from treemap.ecobenefits import BenefitCalculator
-from map_features.benefits import (FEET_SQ_PER_METER_SQ, FEET_PER_INCH,
-                                   GALLONS_PER_CUBIC_FT)
+from treemap.ecobenefits import (BenefitCalculator, FEET_SQ_PER_METER_SQ,
+                                 FEET_PER_INCH, GALLONS_PER_CUBIC_FT)
 
 
 class PolygonalBasinBenefitCalculator(BenefitCalculator):
@@ -26,13 +25,14 @@ class PolygonalBasinBenefitCalculator(BenefitCalculator):
         return stats, basis, None
 
     def _benefits_for_feature_qs(self, feature_qs, instance):
-        annual_rainfall_ft = instance.annual_rainfall_inches * FEET_PER_INCH
         config = self.MapFeatureClass.get_config(instance)
         diversion_rate = config['diversion_rate']
-        should_compute = (annual_rainfall_ft is not None and
+        should_compute = (instance.annual_rainfall_inches is not None and
                           diversion_rate is not None and
                           config['should_show_eco'])
         if should_compute:
+            annual_rainfall_ft = instance.annual_rainfall_inches * \
+                FEET_PER_INCH
             # annual stormwater diverted =
             #     annual rainfall x area x fraction stormwater diverted
             feature_areas = \

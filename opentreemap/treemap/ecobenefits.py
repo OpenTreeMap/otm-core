@@ -17,6 +17,9 @@ from treemap.models import MapFeature
 WATTS_PER_BTU = 0.29307107
 GAL_PER_CUBIC_M = 264.172052
 LBS_PER_KG = 2.20462
+FEET_SQ_PER_METER_SQ = 10.7639
+FEET_PER_INCH = 1/12.0
+GALLONS_PER_CUBIC_FT = 7.48
 
 
 class BenefitCategory(object):
