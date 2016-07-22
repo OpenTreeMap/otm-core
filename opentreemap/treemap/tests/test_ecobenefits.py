@@ -53,6 +53,7 @@ class EcoTest(UrlTestCase):
         p = region.geometry.point_on_surface
 
         self.instance = make_instance(is_public=True, point=p)
+        self.instance.annual_rainfall_inches = 30
         self.user = make_commander_user(self.instance)
 
         self.species = Species(otm_code='CEAT',
@@ -335,6 +336,7 @@ class EcoTest(UrlTestCase):
 class EcoCacheTest(UrlTestCase):
     def setUp(self):
         self.instance = make_instance()
+        self.instance.annual_rainfall_inches = 30
         self.user = make_commander_user(self.instance)
         self.benefits = 'some benefits'
         self.filter = Filter('', '', self.instance)
