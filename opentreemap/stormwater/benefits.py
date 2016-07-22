@@ -25,13 +25,14 @@ class PolygonalBasinBenefitCalculator(BenefitCalculator):
         return stats, basis, None
 
     def _benefits_for_feature_qs(self, feature_qs, instance):
-        annual_rainfall_ft = instance.annual_rainfall_inches * FEET_PER_INCH
         config = self.MapFeatureClass.get_config(instance)
         diversion_rate = config['diversion_rate']
-        should_compute = (annual_rainfall_ft is not None and
+        should_compute = (instance.annual_rainfall_inches is not None and
                           diversion_rate is not None and
                           config['should_show_eco'])
         if should_compute:
+            annual_rainfall_ft = instance.annual_rainfall_inches * \
+                FEET_PER_INCH
             # annual stormwater diverted =
             #     annual rainfall x area x fraction stormwater diverted
             feature_areas = \
