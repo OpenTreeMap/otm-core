@@ -171,6 +171,11 @@ class MapTest(TreemapUITestCase):
             # Click on the tree we added
             self.click_point_on_map(20, 20)
 
+            # Need to wait until the marker shows up to click the edit button
+            # Not a problem for real usage as it only takes a single event loop
+            self.wait_until_present(
+                'img[src="/static/img/mapmarker_viewmode.png"]')
+
             self.click_when_visible('#quick-edit-button')
             self.wait_until_visible('#save-details-button')
 
@@ -225,6 +230,11 @@ class ModeChangeTest(TreemapUITestCase):
 
             # Click on the tree we added
             self.click_point_on_map(20, 20)
+
+            # Need to wait until the marker shows up to click the edit button
+            # Not a problem for real usage as it only takes a single event loop
+            self.wait_until_present(
+                'img[src="/static/img/mapmarker_viewmode.png"]')
 
             # enter edit mode, which should lock
             self.click_when_visible('#quick-edit-button')
