@@ -190,9 +190,10 @@ def compile_scss(request):
     override variables with '!default' in our normal .scss files should have
     any effect
     """
+    # Webpack and libsass have different opinions on how url(...) works
+    scss = "$staticUrl: '/static/';\n"
     # We can probably be a bit looser with what we allow here in the future if
     # we need to, but we must do some checking so that libsass doesn't explode
-    scss = ''
     for key, value in request.GET.items():
         if _SCSS_VAR_NAME_RE.match(key) and COLOR_RE.match(value):
             scss += '$%s: #%s;\n' % (key, value)

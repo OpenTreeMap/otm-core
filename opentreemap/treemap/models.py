@@ -196,17 +196,14 @@ class BenefitCurrencyConversion(Dictable, models.Model):
         }
 
     @classmethod
-    def get_default_for_point(cls, point):
+    def get_default_for_instance(cls, instance):
         """
-        Returns a new BenefitCurrencyConversion for the i-Tree region that
-        contains the given point.
+        Returns a new BenefitCurrencyConversion for the instance's (first)
+        i-Tree region. The instance must have bounds for this to work.
         """
-        regions_covered = ITreeRegion.objects.filter(geometry__contains=point)
+        regions_covered = instance.itree_regions()
 
-        if len(regions_covered) > 1:
-            raise MultipleObjectsReturned(
-                "There should not be overlapping i-Tree regions")
-        elif len(regions_covered) == 0:
+        if len(regions_covered) == 0:
             return None
 
         region_code = regions_covered[0].code
@@ -582,6 +579,8 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     hide_at_zoom = models.IntegerField(
         null=True, blank=True, default=None, db_index=True)
 
+    users_can_delete_own_creations = True
+
     def __init__(self, *args, **kwargs):
         super(MapFeature, self).__init__(*args, **kwargs)
         if self.feature_type == '':
@@ -950,6 +949,8 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
                                     verbose_name=_("Date Planted"))
     date_removed = models.DateField(null=True, blank=True,
                                     verbose_name=_("Date Removed"))
+
+    users_can_delete_own_creations = True
 
     objects = GeoHStoreUDFManager()
 

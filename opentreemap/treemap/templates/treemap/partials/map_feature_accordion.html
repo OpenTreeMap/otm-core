@@ -27,6 +27,12 @@
     {% else %}
     <label>{{ term.Resource.singular }}</label>
     <div class="field-view">{{ title }}</div>
+
+    {% if area %}
+    <label>{% trans "Area" %}</label>
+    <div class="field-view">{{ area }}</div>
+    {% endif %}
+
     {% endif %}
 
     {% include "treemap/partials/eco_benefits.html" with hidecounts=True %}

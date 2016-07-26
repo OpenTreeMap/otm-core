@@ -1,4 +1,5 @@
 {% extends "instance_base.html" %}
+{% load render_bundle from webpack_loader %}
 {% load i18n %}
 
 {% block page_title %} | {% trans "Map" %}{% endblock %}
@@ -7,18 +8,9 @@
 {% endblock head_extra %}
 
 {% block searchscripts %}
-<script src="//maps.google.com/maps/api/js?v=3&sensor=false"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ settings.GOOGLE_MAPS_API_KEY }}"></script>
 {% include "treemap/partials/canopy_filter_control.html" %}
-<script>
-(function(require) {
-    var $ = require("jquery"),
-        treeMap = require("treemap/treeMap");
-
-    $(function(){
-        treeMap.init(otm.settings);
-    })
-})(require);
-</script>
+{% render_bundle 'js/treemap/treeMap' %}
 {% endblock searchscripts %}
 
 {% block content %}
@@ -27,7 +19,8 @@
   </div>
   <div id="map" class="map"
        data-has-boundaries="{{ has_boundaries }}"
-       data-has-polygons="{{ has_polygons }}">
+       data-has-polygons="{{ has_polygons }}"
+       data-bounds="{{ request.instance.map_extent_as_json }}">
   </div>
   <div class="sidebar">
     <div id="sidebar-browse-trees">

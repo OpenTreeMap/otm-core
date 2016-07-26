@@ -152,8 +152,11 @@ USE_TZ = True
 BASE_DIR = os.path.abspath(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
+# Path to the Repository root
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+
 # Path to the location of SCSS files, used for on-the-fly compilation to CSS
-SCSS_ROOT = os.path.join(BASE_DIR, 'treemap', 'css', 'sass')
+SCSS_ROOT = os.path.join(PROJECT_ROOT, 'assets', 'css', 'sass')
 
 # Entry point .scss file for on-the-fly compilation to CSS
 SCSS_ENTRY = 'main'
@@ -177,16 +180,24 @@ STATIC_ROOT = ''
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
-STATIC_URL = '/static/'
+WEBPACK_DEV_SERVER = os.environ.get('WEBPACK_DEV_SERVER', None)
+
+if WEBPACK_DEV_SERVER is not None and DEBUG:
+    STATIC_URL = WEBPACK_DEV_SERVER + 'static/'
+else:
+    STATIC_URL = '/static/'
 
 # Root URL for the application
 SITE_ROOT = '/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
+    # Webpack compiled files are output here
+    os.path.join(PROJECT_ROOT, 'static/'),
+    # This is the directory where webpack gets its source data from
+    # We use this as a static directory so that images can be referenced in CSS
+    # but also be collected by collectstatic
+    os.path.join(PROJECT_ROOT, 'assets/'),
 )
 
 # List of finder classes that know how to find static files in
@@ -305,6 +316,8 @@ UNMANAGED_APPS = (
     'django_hstore',
     'djcelery',
     'url_tools',
+    'django_js_reverse',
+    'webpack_loader',
 )
 
 I18N_APPS = (
@@ -386,3 +399,15 @@ USE_OBJECT_CACHES = True
 USE_ECO_CACHE = True
 
 BING_API_KEY = None
+GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_KEY', None)
+
+JS_REVERSE_JS_MINIFY = False
+JS_REVERSE_OUTPUT_PATH = os.path.join(PROJECT_ROOT, 'assets/js/shim')
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': '/',  # must end with slash
+        'STATS_FILE': os.path.join(PROJECT_ROOT, 'static',
+                                   'webpack-stats.json')
+    }
+}

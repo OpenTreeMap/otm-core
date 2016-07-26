@@ -119,3 +119,15 @@ def add_rollbar_handler(logger, level=logging.WARNING):
         rollbar_handler = RollbarHandler()
         rollbar_handler.setLevel(level)
         logger.addHandler(rollbar_handler)
+
+
+def extent_as_json(extent):
+    xmin, ymin, xmax, ymax = extent
+
+    return json.dumps({'xmin': xmin, 'ymin': ymin, 'xmax': xmax, 'ymax': ymax})
+
+
+def extent_intersection(*extents):
+    extents = zip(*extents)
+    xmins, ymins, xmaxes, ymaxes = extents
+    return (max(xmins), max(ymins), min(xmaxes), min(ymaxes))

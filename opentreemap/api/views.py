@@ -32,7 +32,8 @@ from treemap.decorators import api_admin_instance_request as \
     admin_instance_request
 from treemap.decorators import creates_instance_user
 from django_tinsel.exceptions import HttpBadRequestException
-from treemap.audit import Audit, approve_or_reject_audit_and_apply
+from treemap.audit import (Audit, approve_or_reject_audit_and_apply,
+                           AuthorizeException)
 
 from api.auth import create_401unauthorized
 from api.decorators import (check_signature, check_signature_and_require_login,
@@ -241,10 +242,8 @@ def remove_plot(request, instance, plot_id):
     try:
         plot.delete_with_user(request.user)
         return {"ok": True}
-    except Exception:
-        raise PermissionDenied(
-            '%s does not have permission to delete plot %s' %
-            (request.user.username, plot_id))
+    except AuthorizeException as e:
+        raise PermissionDenied(e.msg)
 
 
 @require_http_methods(["DELETE"])

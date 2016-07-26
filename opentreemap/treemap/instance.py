@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib.gis.db import models
+from django.contrib.gis.db.models import Extent
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import RegexValidator
@@ -15,6 +16,8 @@ from django.utils.translation import ugettext_lazy as _
 import hashlib
 import json
 from urllib import urlencode
+
+from opentreemap.util import extent_intersection, extent_as_json
 
 from treemap.search_fields import (DEFAULT_MOBILE_SEARCH_FIELDS,
                                    DEFAULT_MOBILE_API_FIELDS,
@@ -28,6 +31,8 @@ from treemap.species.codes import (species_codes_for_regions,
                                    all_species_codes, ITREE_REGION_CHOICES)
 
 URL_NAME_PATTERN = r'[a-zA-Z]+[a-zA-Z0-9\-]*'
+
+_DEFAULT_REV = 1
 
 
 def reserved_name_validator(name):
@@ -171,9 +176,10 @@ class Instance(models.Model):
     modified in a way that would affect ecobenefit calculations.
     Its value is part of cache keys for non-search ecobenefit summaries.
     """
-    geo_rev = models.IntegerField(default=1)
-    universal_rev = models.IntegerField(default=1, null=True, blank=True)
-    eco_rev = models.IntegerField(default=1)
+    geo_rev = models.IntegerField(default=_DEFAULT_REV)
+    universal_rev = models.IntegerField(default=_DEFAULT_REV,
+                                        null=True, blank=True)
+    eco_rev = models.IntegerField(default=_DEFAULT_REV)
 
     eco_benefits_conversion = models.ForeignKey(
         'BenefitCurrencyConversion', null=True, blank=True)
@@ -305,12 +311,25 @@ class Instance(models.Model):
         return n > 1
 
     @property
-    def extent_as_json(self):
-        boundary = self.bounds.geom.boundary
-        xmin, ymin, xmax, ymax = boundary.extent
+    def map_extent_as_json(self):
+        feature_extent = self.mapfeature_set \
+            .aggregate(Extent('geom'))['geom__extent']
+        bounds_extent = self.bounds_extent
 
-        return json.dumps({'xmin': xmin, 'ymin': ymin,
-                           'xmax': xmax, 'ymax': ymax})
+        if feature_extent is not None:
+            intersection = extent_intersection(feature_extent, bounds_extent)
+            return extent_as_json(intersection)
+
+        return extent_as_json(bounds_extent)
+
+    @property
+    def bounds_extent(self):
+        boundary = self.bounds.geom.boundary
+        return boundary.extent
+
+    @property
+    def bounds_extent_as_json(self):
+        return extent_as_json(self.bounds_extent)
 
     @property
     def bounds_as_geojson(self):

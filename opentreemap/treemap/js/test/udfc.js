@@ -4,10 +4,10 @@ var assert = require('chai').assert,
     format = require('util').format,
     $ = require('jquery'),
     Bacon = require('baconjs'),
-    udfcSearch = require('treemap/udfcSearch'),
+    udfcSearch = require('treemap/lib/udfcSearch.js'),
     _ = require('lodash');
 
-require('treemap/baconUtils');
+require('treemap/lib/baconUtils.js');
 
 var initialDomData = {
     body: '<div class="udfc-search">' +

@@ -335,6 +335,10 @@ class UserDefinedFieldDefinition(models.Model):
 
     def _validate_and_update_choice(
             self, datatype, old_choice_value, new_choice_value):
+
+        # Prevent validation errors when the choice value is numeric.
+        old_choice_value = unicode(old_choice_value)
+
         if datatype['type'] not in ('choice', 'multichoice'):
             raise ValidationError(
                 {'datatype': [_("Can't change choices "

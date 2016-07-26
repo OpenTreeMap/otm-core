@@ -14,6 +14,7 @@ from django.core.urlresolvers import reverse
 from django.db import IntegrityError, connection
 from django.contrib.gis.geos import Point
 
+from stormwater.models import RainBarrel
 from treemap.templatetags.util import audit_detail_link
 
 from treemap.models import (Tree, Plot, FieldPermission, User, InstanceUser,
@@ -28,7 +29,8 @@ from treemap.udf import UserDefinedFieldDefinition
 from treemap.tests import (make_instance, make_user_with_default_role,
                            make_user_and_role, make_commander_user,
                            make_officer_user, make_observer_user,
-                           make_apprentice_user, set_write_permissions)
+                           make_apprentice_user, set_write_permissions,
+                           make_admin_user)
 from treemap.tests.base import OTMTestCase
 
 
@@ -936,14 +938,12 @@ class UserRoleFieldPermissionTest(OTMTestCase):
         with self.assertRaises(AuthorizeException):
             self.plot.delete_with_user(self.outlaw, cascade=True)
 
-        with self.assertRaises(AuthorizeException):
-            self.tree.delete_with_user(self.officer)
-
-        with self.assertRaises(AuthorizeException):
-            self.plot.delete_with_user(self.officer, cascade=True)
-
         self.tree.delete_with_user(self.commander)
         self.plot.delete_with_user(self.commander, cascade=True)
+
+    def test_delete_object_you_created(self):
+        self.tree.delete_with_user(self.officer)
+        self.plot.delete_with_user(self.officer, cascade=True)
 
     def test_masking_authorized(self):
         "When masking with a superuser, nothing should happen"
@@ -1000,6 +1000,40 @@ class UserRoleFieldPermissionTest(OTMTestCase):
 
         self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).canopy_height,
                             110)
+
+
+class UserCanDeleteTestCase(OTMTestCase):
+    def setUp(self):
+        instance = make_instance()
+
+        self.creator_user = make_officer_user(instance)
+        self.admin_user = make_admin_user(instance)
+        self.other_user = make_officer_user(instance, username='other')
+
+        self.plot = Plot(geom=instance.center, instance=instance)
+        self.plot.save_with_user(self.creator_user)
+
+        self.tree = Tree(plot=self.plot, instance=instance)
+        self.tree.save_with_user(self.creator_user)
+
+        self.rainBarrel = RainBarrel(geom=instance.center, instance=instance,
+                                     capacity=5)
+        self.rainBarrel.save_with_user(self.creator_user)
+
+    def assert_can_delete(self, user, deletable, should_be_able_to_delete):
+        can = deletable.user_can_delete(user)
+        self.assertEqual(can, should_be_able_to_delete)
+
+    def test_user_can_delete(self):
+        self.assert_can_delete(self.creator_user, self.plot, True)
+        self.assert_can_delete(self.admin_user, self.plot, True)
+        self.assert_can_delete(self.other_user, self.plot, False)
+        self.assert_can_delete(self.creator_user, self.rainBarrel, True)
+        self.assert_can_delete(self.admin_user, self.rainBarrel, True)
+        self.assert_can_delete(self.other_user, self.rainBarrel, False)
+        self.assert_can_delete(self.creator_user, self.tree, True)
+        self.assert_can_delete(self.admin_user, self.tree, True)
+        self.assert_can_delete(self.other_user, self.tree, False)
 
 
 class FieldPermMgmtTest(OTMTestCase):

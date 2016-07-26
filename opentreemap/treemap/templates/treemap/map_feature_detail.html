@@ -127,7 +127,7 @@
                     data-always-enable="{{ last_effective_instance_user|is_deletable:tree }}"
                     data-disabled-title="{% trans "Deleting of trees is not available to all users" %}"
                     {% else %}
-                    data-always-enable="{{ last_effective_instance_user|map_feature_is_deletable:feature }}"
+                    data-always-enable="{{ last_effective_instance_user|is_deletable:feature }}"
                     {% if feature.is_plot %}
                     data-disabled-title="{% trans "Deleting of planting sites is not available to all users" %}"
                     {% else %}
@@ -261,64 +261,26 @@
     </div>
   </form>
 </script>
-<script src="//maps.google.com/maps/api/js?v=3&sensor=false"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ settings.GOOGLE_MAPS_API_KEY }}"></script>
 
 <script>
 {% localize off %}
 // Define options for mapFeature.init(), which will be called in the
 // type-specific template inheriting from this one (e.g. plot_detail.html)
-var mapFeatureOptions = {
-    config: otm.settings,
+// This global variable is later used in the JS entry module as a simple way to pass in static data
+window.otm.mapFeature = {
     startInEditMode: {% if editmode %}true{% else %}false{% endif %},
     isEditablePolygon: {% if feature.polygon and feature.is_editable %}true{% else %}false{% endif %},
-    deleteControls: {
-        delete: '#delete-object',
-        deleteConfirm: '#delete-confirm',
-        deleteCancel: '#delete-cancel',
-        deleteConfirmationBox: '#delete-confirmation-box',
-    },
     featureId: {{ feature.pk }},
-    sidebar: '#sidebar',
-    form: '#map-feature-form',
-    inlineEditForm: {
-        form: '#map-feature-form',
-        edit: '#edit-map-feature',
-        save: '#save-edit-map-feature',
-        cancel: '#cancel-edit-map-feature',
-        displayFields: '[data-class="display"]',
-        editFields: '[data-class="edit"]',
-        validationFields: '[data-class="error"]'
-    },
-    imageUploadPanel: {
-        panelId: '#add-photo-modal',
-        dataType: 'html',
-        imageContainer: '#photo-carousel',
-        lightbox: '#photo-lightbox',
-        fileExceedsMaximumFileSize: '{% trans "{0} exceeds the maximum file size of {1}" %}',
-        maxImageSize: {{ settings.MAXIMUM_IMAGE_SIZE }}
-    },
+    maxImageSize: {{ settings.MAXIMUM_IMAGE_SIZE }},
     location: {
-        edit: '#edit-location',
-        cancel: '#cancel-edit-location',
         polygon: {{ feature.polygon|lat_lng_coordinates_json|safe }},
         point: {
             x: {{ feature.geom.x }},
             y: {{ feature.geom.y }}
         }
     },
-    streetView: '#street-view',
-    share: {
-        toggle: '.share',
-        container: '.js-container'
-    }
 };
 {% endlocalize %}
 </script>
-
-<script>
-(function(require) {
-    require('otm_comments/comments')(otm.settings, '#comments-container');
-})(require);
-</script>
-
 {% endblock scripts %}

@@ -32,3 +32,4 @@ local/
 
 opentreemap/treemap/management/commands/extracollect.py
 
+assets/js/shim/reverse.js

@@ -70,6 +70,16 @@ class GenericImportEvent(models.Model):
         t = "Unknown Error While %s" if self.is_lost else "%s"
         return t % self.status_description()
 
+    def is_past_verifying_stage(self):
+        return self.status in {
+            GenericImportEvent.FINISHED_VERIFICATION,
+            GenericImportEvent.CREATING,
+            GenericImportEvent.FINISHED_CREATING,
+            GenericImportEvent.FAILED_FILE_VERIFICATION,
+            GenericImportEvent.CANCELED,
+            GenericImportEvent.VERIFICATION_ERROR
+        }
+
     def status_description(self):
         summaries = {
             self.PENDING_VERIFICATION: "Not Yet Started",

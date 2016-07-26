@@ -1,17 +1,19 @@
 {% extends "base.html" %}
+{% load render_bundle get_files from webpack_loader %}
 {% load i18n %}
 {% load instance_config %}
 {% load form_extras %}
 {% load exports %}
 
 {% block application_css %}
+
 {% if request.instance.scss_variables %}
-<link id="application-css" href="{% url 'scss' %}?{{ request.instance.scss_query_string }}" rel="stylesheet">
-{% elif settings.DEBUG %}
-<link id="application-css" href="{{ STATIC_URL }}css/main.css" rel="stylesheet">
+  <link id="application-css" href="{% url 'scss' %}?{{ request.instance.scss_query_string }}" rel="stylesheet">
 {% else %}
-<link id="application-css" href="{{ STATIC_URL }}css/main.min.css" rel="stylesheet">
+  {% get_files 'js/treemap/base' 'css' as css_files %}
+  <link id="application-css" href="{{ css_files.0.url }}" rel="stylesheet">
 {% endif %}
+
 {% endblock application_css %}
 
 {% block google_analytics_actions %}
@@ -194,13 +196,7 @@ ga('set', 'page', pathname);
 {% endblock searchoptions %}
 
 {% block searchscripts %}
-<script type="text/javascript">
-    // This allows searches on non-map pages to redirect to the map page.
-    // Map pages should override this block, and not call this function.
-    (function(require) {
-        require("treemap/searchBar").initDefaults(otm.settings);
-    })(require);
-</script>
+{% render_bundle 'js/treemap/searchBar' %}
 {% endblock searchscripts %}
 
 {% block footer %}

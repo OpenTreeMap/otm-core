@@ -2,7 +2,7 @@
 
 var assert = require('chai').assert,
     _ = require('lodash'),
-    urlState = require('treemap/urlState');
+    urlState = require('treemap/lib/urlState.js');
 
 
 function HistoryApiMock() {

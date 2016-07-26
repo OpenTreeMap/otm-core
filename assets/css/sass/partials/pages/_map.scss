@@ -1,0 +1,259 @@
+// Partial: Map Page
+
+// Keep these colors in sync with otm-tiler/style/canopy.mms
+$light-to-dark-green: #ffffff 10%,
+                      #f6f9f4 10%, #f6f9f4 20%,
+                      #d7ebc7 20%, #d7ebc7 30%,
+                      #b8dd9b 30%, #b8dd9b 40%,
+                      #99cf6f 40%, #99cf6f 50%,
+                      #7ac143 50%, #7ac143 60%,
+                      #5ba63b 60%, #5ba63b 70%,
+                      #3d8c33 70%, #3d8c33 80%,
+                      #1e722b 80%, #1e722b 90%,
+                      #005824 90%;
+
+#streetview {
+    width: 200px;
+    height: 180px;
+    position: absolute;
+    left: 20px;
+    bottom: 40px;
+    background: gray;
+    z-index: 10000;
+    text-align: center;
+    padding: 70px 60px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #AAA;
+    box-shadow: 0 2px 6px rgba(0,0,0,.5);
+
+    @media #{$screen-xs} {
+        display: none !important;
+    }
+}
+
+#streetview img {
+    border: none !important;
+    max-width: none !important;
+}
+
+.map {
+    left: 0;
+    background: $well-color;
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    right: 350px;
+
+    @media #{$screen-xs} {
+        right: 0;
+    }
+}
+
+.leaflet-control-container {
+    @each $direction in right, left, top, bottom {
+        .leaflet-#{$direction} {
+            z-index: 9;
+
+            .leaflet-control {
+                margin-#{$direction}: 16px;
+            }
+        }
+    }
+
+    // Overrides Leaflet button in bottom-right
+    .leaflet-bottom.leaflet-right {
+        margin: 0 !important;
+
+        .leaflet-control {
+            margin-right: 0;
+        }
+    }
+}
+.leaflet-control {
+
+    &.leaflet-control-attribution {
+        margin-bottom: 12px;
+        margin-right: 0;
+    }
+
+    &.leaflet-control-zoom {
+
+        > a {
+            color: black;
+        }
+    }
+
+    &.leaflet-control-layers {
+        .leaflet-control-layers-list {
+            margin: 0;
+            padding-bottom: 3px;
+        }
+        .leaflet-control-layers-base {
+
+            label {
+                font-size: 1.4rem;
+                padding: 0 8px;
+                margin-bottom: 3px;
+
+                .leaflet-control-layers-selector {
+                    margin: 0 4px 0 0;
+
+                    & + span {
+                        top: 2px;
+                        position: relative;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@keyframes pulse {
+    0%  { opacity: 1; }
+    30% { opacity: 0.5; }
+    60% { opacity: 1; }
+}
+@-webkit-keyframes pulse {
+    0%  { opacity: 1; }
+    30% { opacity: 0.5; }
+    60% { opacity: 1; }
+}
+
+.leaflet-marker-icon {
+
+    &.animated {
+        -webkit-animation: pulse 2s infinite;
+        -moz-animation: pulse 2s infinite;
+        -o-animation: pulse 2s infinite;
+        animation: pulse 2s infinite;
+    }
+}
+
+.leaflet-popup-close-button {
+    margin-top: 6px;
+    margin-right: 4px;
+}
+
+.leaflet-popup-content {
+    margin: 18px 20px;
+
+    .popup-content {
+        margin-bottom: 15px;
+    }
+    h4 {
+        margin: 0 0 0.5em;
+    }
+    table {
+        margin: 9px -4px 0 -4px;
+    }
+    th, td {
+        padding: 0 4px;
+    }
+}
+
+// fix typeaheads in input-groups
+.input-group {
+    .twitter-typeahead {
+        width: 100%;
+        float: left;
+        &:first-child {
+            border-left-radius: 4px;
+            width: 100%;
+        }
+        &:last-child {
+            border-right-radius: 4px;
+            width: 100%;
+        }
+    }
+}
+
+// fix typeaheads in form-inline
+.form-inline .twitter-typeahead {
+    float: left;
+    margin-right: 4px;
+}
+
+.tt-menu {
+    margin-top: 10px;
+    padding: 0;
+    width: 100%;
+    font-size: 1.2rem;
+    position: relative;
+    border: 1px solid $well-color;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0px 3px 0px rgba(0, 3, 0, 0.3);
+
+    &:before {
+        content: '';
+        width: 0;
+        height: 0;
+        position: absolute;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 10px solid $well-color;
+        top: -10px;
+        left: 10px;
+    }
+
+    .tt-dataset {
+        max-height: 300px;
+        overflow: auto;
+        cursor: pointer;
+
+        .tt-suggestion {
+            padding: 8px 10px;
+            border-bottom: 1px solid $light-gray-color;
+
+            &.tt-cursor,
+            &:hover {
+                background-color: $light-gray-color;
+            }
+            &:last-child {
+                border: none;
+            }
+
+            p {
+                line-height: 1.6rem;
+                margin: 0;
+                font-size: 1.2rem;
+            }
+        }
+    }
+}
+
+.external-help-link {
+    font-size: 1.2rem;
+    font-weight: 400 !important;
+}
+
+.canopy-filter {
+    background: #fff;
+    padding: 10px;
+
+    .from-label,
+    .to-label {
+        position: absolute;
+        top: 30px;
+        font-size: smaller;
+    }
+    .from-label {
+        left: 10px;
+    }
+    .to-label {
+        right: 10px;
+    }
+
+   .color-ramp {
+       display: inline-block;
+       width: 150px;
+       height: 10px;
+       border: 1px solid #ddd;
+
+       &.light-to-dark-green {
+           background: -webkit-linear-gradient(90deg, $light-to-dark-green);
+           background: linear-gradient(90deg, $light-to-dark-green);
+       }
+   }
+}
