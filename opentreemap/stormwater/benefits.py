@@ -6,7 +6,8 @@ from __future__ import division
 from django.utils.translation import ugettext_lazy as _
 
 from treemap.ecobenefits import (BenefitCalculator, FEET_SQ_PER_METER_SQ,
-                                 FEET_PER_INCH, GALLONS_PER_CUBIC_FT)
+                                 FEET_PER_INCH, GALLONS_PER_CUBIC_FT,
+                                 BenefitCategory)
 
 
 class PolygonalBasinBenefitCalculator(BenefitCalculator):
@@ -56,10 +57,10 @@ class PolygonalBasinBenefitCalculator(BenefitCalculator):
 
         return {
             'resource': {
-                'runoff_reduced': {
+                BenefitCategory.STORMWATER: {
                     'value': runoff_reduced,
                     'unit': 'gallons',
-                    'unit-name': 'green_infrastructure_eco',
+                    'unit-name': 'eco',
                     'currency': currency,
                     'label': _('Stormwater runoff reduced')
                 }
