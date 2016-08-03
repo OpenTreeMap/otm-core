@@ -84,7 +84,7 @@ class PolygonalMapFeatureTest(OTMTestCase):
             return 0
         else:
             self.assert_basis(basis, 1, 0)
-            return benefits['resource']['runoff_reduced']['value']
+            return benefits['resource']['stormwater']['value']
 
     def _assert_runoff_reduced(self, area_sq_meters, diversion_rate,
                                runoff_reduced):
@@ -120,7 +120,7 @@ class PolygonalMapFeatureTest(OTMTestCase):
         benefits, basis = Bioswale.benefits.benefits_for_filter(
             self.instance, Filter('', '', self.instance))
 
-        runoff_reduced = benefits['resource']['runoff_reduced']['value']
+        runoff_reduced = benefits['resource']['stormwater']['value']
 
         self.assert_basis(basis, 2, 0)
         self._assert_runoff_reduced(
