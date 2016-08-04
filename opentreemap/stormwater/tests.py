@@ -54,6 +54,7 @@ class PolygonalMapFeatureTest(OTMTestCase):
 
         self.instance.annual_rainfall_inches = 30
         Bioswale.set_config_property(self.instance, 'diversion_rate', .5)
+        Bioswale.set_config_property(self.instance, 'should_show_eco', True)
 
     def _make_map_feature(self, MapFeatureClass):
         feature = MapFeatureClass(instance=self.instance,
@@ -83,7 +84,7 @@ class PolygonalMapFeatureTest(OTMTestCase):
             return 0
         else:
             self.assert_basis(basis, 1, 0)
-            return benefits['resource']['runoff_reduced']['value']
+            return benefits['resource']['stormwater']['value']
 
     def _assert_runoff_reduced(self, area_sq_meters, diversion_rate,
                                runoff_reduced):
@@ -93,6 +94,7 @@ class PolygonalMapFeatureTest(OTMTestCase):
         self.assertAlmostEqual(runoff_reduced, expected, places=0)
 
     def test_rain_garden(self):
+        RainGarden.set_config_property(self.instance, 'should_show_eco', True)
         feature = self._make_map_feature(RainGarden)
         runoff_reduced = self._get_runoff_reduced(feature)
         self._assert_runoff_reduced(
@@ -118,7 +120,7 @@ class PolygonalMapFeatureTest(OTMTestCase):
         benefits, basis = Bioswale.benefits.benefits_for_filter(
             self.instance, Filter('', '', self.instance))
 
-        runoff_reduced = benefits['resource']['runoff_reduced']['value']
+        runoff_reduced = benefits['resource']['stormwater']['value']
 
         self.assert_basis(basis, 2, 0)
         self._assert_runoff_reduced(

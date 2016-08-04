@@ -19,6 +19,7 @@
       {% if not hide_summary and request.instance.has_resources and resource_benefits %}
         <div class="benefit-value-title">{{ term.Resource.singular }} {% trans "Benefits" %}</div>
       {% endif %}
+      {% include "treemap/partials/benefit_value_row.html" with benefit=resource_benefits.stormwater icon='tint' %}
       {% include "treemap/partials/benefit_value_row.html" with benefit=resource_benefits.runoff_reduced icon='tint' %}
       {% include "treemap/partials/benefit_value_row.html" with benefit=resource_benefits.usage_reduced icon='tint' %}
     {% endwith %}

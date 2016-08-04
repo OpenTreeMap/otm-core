@@ -687,7 +687,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         return config
 
     @classmethod
-    def set_config_property(cls, instance, key, value):
+    def set_config_property(cls, instance, key, value, save=True):
         """
         Set a configuration property for this map feature type on the
         specified instance.
@@ -698,7 +698,8 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             config[class_name] = {}
         config[class_name][key] = value
         instance.map_feature_config = config
-        instance.save()
+        if save:
+            instance.save()
 
     @property
     def address_full(self):
