@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import copy
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
@@ -60,6 +61,7 @@ def global_settings(request):
         'logo_url': logo_url,
         'header_comment': header_comment,
         'term': term,
+        'datepicker_start_date': datetime.min.replace(year=1900),
     }
 
     return ctx
