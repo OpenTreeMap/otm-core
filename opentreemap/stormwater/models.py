@@ -14,7 +14,6 @@ from treemap.ecobenefits import CountOnlyBenefitCalculator
 
 class PolygonalMapFeature(MapFeature):
     area_field_name = 'polygon'
-    skip_detail_form = True
 
     polygon = models.MultiPolygonField(srid=3857)
 
@@ -57,6 +56,11 @@ class PolygonalMapFeature(MapFeature):
 
 class Bioswale(PolygonalMapFeature):
     objects = GeoHStoreUDFManager()
+    drainage_area = models.FloatField(
+        null=True,
+        blank=True,
+        verbose_name=_("Adjacent Drainage Area"),
+        error_messages={'invalid': _("Please enter a number.")})
 
     udf_settings = {
         'Perennial Plants': {
@@ -109,6 +113,11 @@ class Bioswale(PolygonalMapFeature):
 
 class RainGarden(PolygonalMapFeature):
     objects = GeoHStoreUDFManager()
+    drainage_area = models.FloatField(
+        null=True,
+        blank=True,
+        verbose_name=_("Adjacent Drainage Area"),
+        error_messages={'invalid': _("Please enter a number.")})
 
     udf_settings = {
         'Perennial Plants': {
@@ -173,8 +182,3 @@ class RainBarrel(MapFeature):
     @classproperty
     def benefits(cls):
         return CountOnlyBenefitCalculator(cls)
-
-    @property
-    def is_editable(self):
-        # this is a holdover until we can support editing for all resources
-        return True

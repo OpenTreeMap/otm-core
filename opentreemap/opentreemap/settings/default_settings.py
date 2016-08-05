@@ -375,8 +375,14 @@ DISPLAY_DEFAULTS = {
         'co2storage': {'units': 'lbs', 'digits': 1},
         'airquality': {'units': 'lbs/year', 'digits': 1}
     },
+    'bioswale': {
+        'drainage_area': {'units': 'sq_m', 'digits': 1}
+    },
     'rainBarrel': {
         'capacity': {'units': 'gal', 'digits': 1}
+    },
+    'rainGarden': {
+        'drainage_area': {'units': 'sq_m', 'digits': 1}
     },
     'greenInfrastructure': {
         'rainfall': {'units': 'in', 'digits': 1},
