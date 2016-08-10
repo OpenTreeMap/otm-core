@@ -497,7 +497,8 @@ def save_user(migration_rules, migration_event, user_dict,
         # given how unlikely it is for a user to create a new account
         # on the same day they logged in with an existing account,
         # we can live with the ambiguity.
-        if last_login.replace(tzinfo=pytz.UTC) > user_obj.last_login:
+        if (user_obj.last_login is None
+                or last_login.replace(tzinfo=pytz.UTC) > user_obj.last_login):
             user_obj.username = user_dict['fields']['username']
             user_obj.password = user_dict['fields']['password']
             user_obj.last_login = last_login
