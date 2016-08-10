@@ -85,7 +85,8 @@ otm.settings.doubleClickInterval = '{{ settings.DOUBLE_CLICK_INTERVAL }}';
         'primaryColor': '{{ request.instance.config|primary_color }}',
         'secondaryColor': '{{ request.instance.config|secondary_color }}',
         'supportsEcobenefits': {{ request.instance_supports_ecobenefits|yesno:"true,false" }},
-        'canopyEnabled': {{ request.instance.canopy_enabled|yesno:"true,false" }}
+        'canopyEnabled': {{ request.instance.canopy_enabled|yesno:"true,false" }},
+        'canopyBoundaryCategory': '{{ request.instance.canopy_boundary_category }}'
     });
 {% endif %}
 
