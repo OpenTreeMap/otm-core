@@ -20,7 +20,8 @@ from treemap.util import get_model_for_instance, to_object_name
 from treemap.json_field import (is_json_field_reference,
                                 get_attr_from_json_field)
 from treemap.units import (get_digits_if_formattable, get_units_if_convertible,
-                           is_convertible_or_formattable, format_value)
+                           is_convertible_or_formattable, format_value,
+                           get_unit_name)
 
 register = template.Library()
 
@@ -384,6 +385,8 @@ class AbstractNode(template.Node):
 
             units = get_units_if_convertible(
                 model.instance, object_name, field_name)
+            if units != '':
+                units = get_unit_name(units)
 
         if field_value is None:
             display_val = None
