@@ -497,7 +497,7 @@ class InlineFieldTagTests(OTMTestCase):
 
     def test_sets_units(self):
         self.assert_plot_length_context_value(
-            self.observer, 'field.units', 'in')
+            self.observer, 'field.units', 'inches')
 
     def test_sets_digits(self):
         self.assert_plot_length_context_value(
@@ -505,7 +505,7 @@ class InlineFieldTagTests(OTMTestCase):
 
     def test_sets_display_value(self):
         self.assert_plot_length_context_value(
-            self.observer, 'field.display_value', '12.3 in')
+            self.observer, 'field.display_value', '12.3 inches')
 
     PLOT_LENGTH_DISPLAY_DEFAULTS = {'plot':
                                     {'length': {'units': 'in', 'digits': 1}}}
@@ -517,7 +517,7 @@ class InlineFieldTagTests(OTMTestCase):
         set_attr_on_json_field(
             self.instance, 'config.value_display.plot.length.digits', '3')
         self.assert_plot_length_context_value(
-            self.observer, 'field.display_value', '0.312 m')
+            self.observer, 'field.display_value', '0.312 meters')
 
     def test_sets_data_type(self):
         self.assert_plot_length_context_value(

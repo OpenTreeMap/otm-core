@@ -680,6 +680,8 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         """
         Get configuration properties for this map feature type on the
         specified instance.
+
+        Note that the map feature config is assumed to be flat.
         """
         config = copy(getattr(cls, 'default_config', {}))
         overrides = instance.map_feature_config.get(cls.__name__, {})

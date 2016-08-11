@@ -50,6 +50,7 @@ class PolygonalMapFeatureTest(OTMTestCase):
 
         self.instance = make_instance(point=self.point, edge_length=10000)
         self.user = make_commander_user(instance=self.instance)
+        self.instance.remove_map_feature_types(keep=['Plot'])
         self.instance.add_map_feature_types(['Bioswale', 'RainGarden'])
 
         self.instance.annual_rainfall_inches = 30
