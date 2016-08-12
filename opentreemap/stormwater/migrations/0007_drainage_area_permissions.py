@@ -32,7 +32,7 @@ def add_permissions_all(apps, schema_editor):
             return True
 
     for instance in Instance.objects.filter(config__contains='"Plot",'):
-        types = instance.config['map_feature_types']
+        types = instance.map_feature_types
         if 'Bioswale' in types or 'RainGarden' in types:
             for role in Role.objects.filter(instance=instance):
                 perm_specs = [

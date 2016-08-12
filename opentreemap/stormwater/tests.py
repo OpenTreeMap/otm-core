@@ -19,8 +19,7 @@ from stormwater.models import Bioswale, RainGarden
 @override_settings(FEATURE_BACKEND_FUNCTION=None)
 class UdfGenericCreateTest(UdfCRUTestCase):
     def test_non_treemap_model(self):
-        self.instance.map_feature_types += ['Bioswale']
-        self.instance.save()
+        self.instance.add_map_feature_types(['Bioswale'])
 
         body = {'udf.name': 'Testing choice',
                 'udf.model': 'Bioswale',
@@ -50,7 +49,6 @@ class PolygonalMapFeatureTest(OTMTestCase):
 
         self.instance = make_instance(point=self.point, edge_length=10000)
         self.user = make_commander_user(instance=self.instance)
-        self.instance.remove_map_feature_types(keep=['Plot'])
         self.instance.add_map_feature_types(['Bioswale', 'RainGarden'])
 
         self.instance.annual_rainfall_inches = 30
