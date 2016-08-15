@@ -6,281 +6,281 @@
 {% load util %}
 
 {% block head_extra %}
-{# Facebook & Google+ scrape these properties for their share dialogs #}
-<meta property="og:url" content="{{ share.url }}" />
-<meta property="og:title" content="{{ share.title }}" />
-<meta property="og:description" content="{{ share.description }}" />
-<meta property="og:image" content="{{ share.image }}" />
-<meta property="og:type" content="article" />
-<meta property="og:site_name" content="{{ request.instance.name }}" />
+    {# Facebook & Google+ scrape these properties for their share dialogs #}
+    <meta property="og:url" content="{{ share.url }}" />
+    <meta property="og:title" content="{{ share.title }}" />
+    <meta property="og:description" content="{{ share.description }}" />
+    <meta property="og:image" content="{{ share.image }}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="{{ request.instance.name }}" />
 {% endblock head_extra %}
 
 {% block subhead_exports %}
-{# Exporting is not available from the detail page #}
+    {# Exporting is not available from the detail page #}
 {% endblock subhead_exports %}
 
 {% block content %}
-{% include "treemap/partials/upload_image.html" with panel_id="add-photo-modal" title="Add a Photo" %}
-{% include "treemap/partials/photo_social_media_sharing.html" %}
+    {% include "treemap/partials/upload_image.html" with panel_id="add-photo-modal" title="Add a Photo" %}
+    {% include "treemap/partials/photo_social_media_sharing.html" %}
 
-{# Modal for viewing and rotating photos, used by imageUploadPanel.js #}
-<div id="photo-lightbox" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content lightbox">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-      <img data-photo-image src="">
-      <div class="lightbox-caption">
-        <a class="btn btn-small pull-right" data-class="view" data-photo-edit>{% trans "Edit" %}</a>
-        <a class="btn btn-small pull-left btn-rotate" data-class="edit" data-photo-rotate="-90"><i class="icon-ccw"></i></a>
-        <a class="btn btn-small pull-left btn-rotate" data-class="edit" data-photo-rotate="90"><i class="icon-cw"></i></a>
-        <button data-class="edit" disabled="disabled" class="btn btn-small pull-right"
-            data-photo-save="">{% trans "Save" %}</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="image-background"></div>
-<div class="container contained topper tree-details">
-  <div class="row">
-    <div class="col-md-3">
-      <div class="photo-container">
-        <div id="photo-carousel" class="carousel slide" data-interval="">
-            {% include "treemap/partials/photo_carousel.html" %}
+    {# Modal for viewing and rotating photos, used by imageUploadPanel.js #}
+    <div id="photo-lightbox" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content lightbox">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <img data-photo-image src="">
+                <div class="lightbox-caption">
+                    <a class="btn btn-small pull-right" data-class="view" data-photo-edit>{% trans "Edit" %}</a>
+                    <a class="btn btn-small pull-left btn-rotate" data-class="edit" data-photo-rotate="-90"><i class="icon-ccw"></i></a>
+                    <a class="btn btn-small pull-left btn-rotate" data-class="edit" data-photo-rotate="90"><i class="icon-cw"></i></a>
+                    <button data-class="edit" disabled="disabled" class="btn btn-small pull-right"
+                            data-photo-save="">{% trans "Save" %}</button>
+                </div>
+            </div>
         </div>
-        <button id="toggle-add-photo-modal"
-                data-toggle="modal"
-                data-target="#add-photo-modal"
-                data-href="{{ request.get_full_path }}"
-                disabled="disabled"
-                {% if feature.is_plot %}
-                data-disabled-title="{% trans "Adding tree photos is not available to all users" %}"
-                data-always-enable="{{ last_effective_instance_user|treephoto_is_writable }}"
-                {% else %}
-                data-disabled-title="{% trans "Adding resource photos is not available to all users" %}"
-                data-always-enable="{{ last_effective_instance_user|mapfeaturephoto_is_writable }}"
-                {% endif %}
-                class="btn btn-xs add-photos">{% trans "Add Photo" %}</button>
-      </div>
-      <div id="sidebar">
-        {% include "treemap/partials/sidebar.html" %}
-      </div>
     </div>
 
-    <div class="col-md-9">
-      <div class="detail-header">
-        {% if request.instance.is_public %}
-        <div class="js-container pull-right" style="display: none">
-          <a target="_blank" href="http://www.facebook.com/sharer/sharer.php?u={{ share.url }}">
-            <img src="/static/img/facebook_32.png">
-          </a>
-          <a target="_blank" href="http://twitter.com/share?url={{ share.url }}&text={{ share.title }}">
-            <img src="/static/img/twitter_32.png">
-          </a>
-          <a target="_blank" href="https://plus.google.com/share?url={{ share.url }}">
-            <img src="/static/img/googleplus_32.png">
-          </a>
-        </div>
-        <button class="btn share">Share</button>
-        {% endif %}
-        <h2 class="common-name" id="map-feature-title">
-          {{ title }}
-          <a id="favorite-link"
-            data-href="{{ request.get_full_path }}"
-            data-is-favorited="{{ favorited }}"
-            data-always-enable="{{ request.user.is_authenticated }}"
-            data-favorite-url="{% url 'favorite_map_feature' instance_url_name=request.instance.url_name feature_id=feature.pk %}"
-            data-unfavorite-url="{% url 'unfavorite_map_feature' instance_url_name=request.instance.url_name feature_id=feature.pk %}">
-            {% if favorited %}
-              <i id="favorite-star" class="icon-star"></i>
-            {% else %}
-              <i id="favorite-star" class="icon-star-empty"></i>
-            {% endif %}
-          </a>
-        </h2>
-        <h4 class="address" id="map-feature-address">{{ feature.address_full }}</h4>
-      </div>
-      <div class="row">
-        <div class="col-md-8">
-          <p>
-{% if feature.is_plot or feature.is_editable %}
-            <button id="edit-map-feature"
-                    data-class="display"
-                    disabled="disabled"
-                    data-always-enable="{{ last_effective_instance_user|map_feature_is_writable:feature }}"
-                    data-href="{{ request.get_full_path }}"
-                    {% if feature.is_plot %}
-                    data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
-                    {% else %}
-                    {# TODO: what kind of text do want to put here? Do we want to put this on the model? #}
-                    data-disabled-title="{% trans "Editing of the resource's details is not available to all users" %}"
+    <div class="image-background"></div>
+    <div class="container contained topper tree-details">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="photo-container">
+                    <div id="photo-carousel" class="carousel slide" data-interval="">
+                        {% include "treemap/partials/photo_carousel.html" %}
+                    </div>
+                    <button id="toggle-add-photo-modal"
+                            data-toggle="modal"
+                            data-target="#add-photo-modal"
+                            data-href="{{ request.get_full_path }}"
+                            disabled="disabled"
+                            {% if feature.is_plot %}
+                            data-disabled-title="{% trans "Adding tree photos is not available to all users" %}"
+                            data-always-enable="{{ last_effective_instance_user|treephoto_is_writable }}"
+                            {% else %}
+                            data-disabled-title="{% trans "Adding resource photos is not available to all users" %}"
+                            data-always-enable="{{ last_effective_instance_user|mapfeaturephoto_is_writable }}"
+                            {% endif %}
+                            class="btn btn-xs add-photos">{% trans "Add Photo" %}</button>
+                </div>
+                <div id="sidebar">
+                    {% include "treemap/partials/sidebar.html" %}
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <div class="detail-header">
+                    {% if request.instance.is_public %}
+                        <div class="js-container pull-right" style="display: none">
+                            <a target="_blank" href="http://www.facebook.com/sharer/sharer.php?u={{ share.url }}">
+                                <img src="/static/img/facebook_32.png">
+                            </a>
+                            <a target="_blank" href="http://twitter.com/share?url={{ share.url }}&text={{ share.title }}">
+                                <img src="/static/img/twitter_32.png">
+                            </a>
+                            <a target="_blank" href="https://plus.google.com/share?url={{ share.url }}">
+                                <img src="/static/img/googleplus_32.png">
+                            </a>
+                        </div>
+                        <button class="btn share">Share</button>
                     {% endif %}
-                    class="btn btn-sm btn-info">{% trans "Edit" %}</button>
-            <button id="save-edit-map-feature" data-class="edit" class="btn btn-sm btn-primary" style="display: none;">{% trans "Save" %}</button>
-            <button id="cancel-edit-map-feature" data-class="edit" class="btn btn-sm" style="display: none;">{% trans "Cancel" %}</button>
-{% endif %}
-            <button id="delete-object"
-                    data-class="display"
-                    disabled="disabled"
-                    {% if has_tree %}
-                    {# TODO: this will not work quite right when a user adds a tree without refreshing #}
-                    data-always-enable="{{ last_effective_instance_user|is_deletable:tree }}"
-                    data-disabled-title="{% trans "Deleting of trees is not available to all users" %}"
-                    {% else %}
-                    data-always-enable="{{ last_effective_instance_user|is_deletable:feature }}"
-                    {% if feature.is_plot %}
-                    data-disabled-title="{% trans "Deleting of planting sites is not available to all users" %}"
-                    {% else %}
-                    data-disabled-title="{% blocktrans with resources=term.Resource.plural.lower %}Deleting of {{ resources }} is not available to all users{% endblocktrans %}"
-                    {% endif %}
-                    {% endif %}
-                    data-href="{{ request.get_full_path }}"
-                    class="btn btn-sm btn-danger">{% trans "Delete" %}</button>
-          </p>
+                    <h2 class="common-name" id="map-feature-title">
+                        {{ title }}
+                        <a id="favorite-link"
+                           data-href="{{ request.get_full_path }}"
+                           data-is-favorited="{{ favorited }}"
+                           data-always-enable="{{ request.user.is_authenticated }}"
+                           data-favorite-url="{% url 'favorite_map_feature' instance_url_name=request.instance.url_name feature_id=feature.pk %}"
+                           data-unfavorite-url="{% url 'unfavorite_map_feature' instance_url_name=request.instance.url_name feature_id=feature.pk %}">
+                            {% if favorited %}
+                                <i id="favorite-star" class="icon-star"></i>
+                            {% else %}
+                                <i id="favorite-star" class="icon-star-empty"></i>
+                            {% endif %}
+                        </a>
+                    </h2>
+                    <h4 class="address" id="map-feature-address">{{ feature.address_full }}</h4>
+                </div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <p>
+                            {% if feature.is_plot or feature.is_editable %}
+                                <button id="edit-map-feature"
+                                        data-class="display"
+                                        disabled="disabled"
+                                        data-always-enable="{{ last_effective_instance_user|map_feature_is_writable:feature }}"
+                                        data-href="{{ request.get_full_path }}"
+                                        {% if feature.is_plot %}
+                                        data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
+                                        {% else %}
+                                            {# TODO: what kind of text do want to put here? Do we want to put this on the model? #}
+                                        data-disabled-title="{% trans "Editing of the resource's details is not available to all users" %}"
+                                        {% endif %}
+                                        class="btn btn-sm btn-info">{% trans "Edit" %}</button>
+                                <button id="save-edit-map-feature" data-class="edit" class="btn btn-sm btn-primary" style="display: none;">{% trans "Save" %}</button>
+                                <button id="cancel-edit-map-feature" data-class="edit" class="btn btn-sm" style="display: none;">{% trans "Cancel" %}</button>
+                            {% endif %}
+                            <button id="delete-object"
+                                    data-class="display"
+                                    disabled="disabled"
+                                    {% if has_tree %}
+                                        {# TODO: this will not work quite right when a user adds a tree without refreshing #}
+                                    data-always-enable="{{ last_effective_instance_user|is_deletable:tree }}"
+                                    data-disabled-title="{% trans "Deleting of trees is not available to all users" %}"
+                                    {% else %}
+                                    data-always-enable="{{ last_effective_instance_user|is_deletable:feature }}"
+                                        {% if feature.is_plot %}
+                                    data-disabled-title="{% trans "Deleting of planting sites is not available to all users" %}"
+                                        {% else %}
+                                    data-disabled-title="{% blocktrans with resources=term.Resource.plural.lower %}Deleting of {{ resources }} is not available to all users{% endblocktrans %}"
+                                        {% endif %}
+                                    {% endif %}
+                                    data-href="{{ request.get_full_path }}"
+                                    class="btn btn-sm btn-danger">{% trans "Delete" %}</button>
+                        </p>
 
-          <!-- Alerts -->
-          <div id="delete-confirmation-box" data-class="delete" class="alert alert-danger" style="display: none;">
-            {% block delete_confirmation_text %}
-            {% endblock %}
-            <button id="delete-confirm" class="btn btm-small btn-danger">{% trans "Confirm Deletion" %}</button>
-            <button id="delete-cancel" class="btn btm-small">{% trans "Cancel" %}</button>
-          </div>
-          <hr>
+                        <!-- Alerts -->
+                        <div id="delete-confirmation-box" data-class="delete" class="alert alert-danger" style="display: none;">
+                            {% block delete_confirmation_text %}
+                            {% endblock %}
+                            <button id="delete-confirm" class="btn btm-small btn-danger">{% trans "Confirm Deletion" %}</button>
+                            <button id="delete-cancel" class="btn btm-small">{% trans "Cancel" %}</button>
+                        </div>
+                        <hr>
 
-          <!-- Map Feature Details -->
-          <form id="map-feature-form">
+                        <!-- Map Feature Details -->
+                        <form id="map-feature-form">
 
-            {# There isn't a field to show "inline" errors for geom fields, so just show it up top #}
-            <div class="alert alert-warning" data-class="error" data-field="mapFeature.geom" style="display: none;"></div>
-            {% block subclass_details %}
-            {% endblock subclass_details %}
+                            {# There isn't a field to show "inline" errors for geom fields, so just show it up top #}
+                            <div class="alert alert-warning" data-class="error" data-field="mapFeature.geom" style="display: none;"></div>
+                            {% block subclass_details %}
+                            {% endblock subclass_details %}
 
-          </form>
+                        </form>
 
-          <!-- Commenting -->
-          <h3>{% trans "Comments" %}</h3>
-          <div id="comments-container">
-            {% get_comment_list for feature as comments %}
-            {% for comment in comments|fill_tree|annotate_tree %}
-               {% ifchanged comment.parent_id %}{% else %}</li>{% endifchanged %}
-               {% if not comment.open and not comment.close %}</li>{% endif %}
-               {% if comment.open %}<ul>{% endif %}
+                        <!-- Commenting -->
+                        <h3>{% trans "Comments" %}</h3>
+                        <div id="comments-container">
+                            {% get_comment_list for feature as comments %}
+                            {% for comment in comments|fill_tree|annotate_tree %}
+                                {% ifchanged comment.parent_id %}{% else %}</li>{% endifchanged %}
+                                {% if not comment.open and not comment.close %}</li>{% endif %}
+                                {% if comment.open %}<ul>{% endif %}
 
-               <li class="comment_li" id="c{{ comment.id|unlocalize }}">
-                 <div class="comment">
-                   <div class="comment_info">
-                     {% if comment.is_removed %}
-                     <div class="comment_user deactive">[{% trans "Removed by Moderator" %}]</div>
-                     {% else %}
-                     <div class="comment_user">{{ comment.user_name }}</div>
-                     {% endif %}
-                     <div class="comment_data">
-                       {{ comment.submit_date|date:"d M Y, H:i" }}
-                       {% if request.user.is_authenticated and not comment.is_removed %}
-                       | <a href="javascript:void(0);"  data-comment-id="{{ comment.id|unlocalize }}" class="comment_reply_link">Reply</a>
-                       | <div data-class="comment-flag">{% include "otm_comments/partials/flagging.html" %}</div>
-                       {% endif %}
-                     </div>
-                   </div>
-                   <div class="comment_text">
-                     {% if comment.is_removed %}
-                     <div class="deactive">[{% trans "This comment has been removed by a moderator." %}]</div>
-                     {% else %}
-                     {{ comment.comment }}
-                     {% endif %}
-                   </div>
-                 </div>
-               {% for close in comment.close %}</li></ul>{% endfor %}
-             {% endfor %}
-            {% if not request.user.is_authenticated %}
-              <p><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a>
-                 {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "log in" %}</a>
-                 {% trans "to add comments" %}</p>
-            {% endif %}
-          </div>
+                            <li class="comment_li" id="c{{ comment.id|unlocalize }}">
+                                <div class="comment">
+                                    <div class="comment_info">
+                                        {% if comment.is_removed %}
+                                            <div class="comment_user deactive">[{% trans "Removed by Moderator" %}]</div>
+                                        {% else %}
+                                            <div class="comment_user">{{ comment.user_name }}</div>
+                                        {% endif %}
+                                        <div class="comment_data">
+                                            {{ comment.submit_date|date:"d M Y, H:i" }}
+                                            {% if request.user.is_authenticated and not comment.is_removed %}
+                                                | <a href="javascript:void(0);"  data-comment-id="{{ comment.id|unlocalize }}" class="comment_reply_link">Reply</a>
+                                                | <div data-class="comment-flag">{% include "otm_comments/partials/flagging.html" %}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="comment_text">
+                                        {% if comment.is_removed %}
+                                            <div class="deactive">[{% trans "This comment has been removed by a moderator." %}]</div>
+                                        {% else %}
+                                            {{ comment.comment }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% for close in comment.close %}</li></ul>{% endfor %}
+                            {% endfor %}
+                            {% if not request.user.is_authenticated %}
+                                <p><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a>
+                                    {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "log in" %}</a>
+                                    {% trans "to add comments" %}</p>
+                            {% endif %}
+                        </div>
 
-          <div id="comment_disclaimer">
-            <p class="text-muted">
-              <em>
-                {% if feature.is_plot %}
-                {% trans "The comment system does not serve as a way to report problems with a tree." %}
-                {% else %}
-                {% blocktrans with resource=term.Resource.singular.lower %}
-                The comment system does not serve as a way to report problems with a {{ resource }}.
-                {% endblocktrans %}
-                {% endif %}
-              </em>
-            </p>
-          </div>
+                        <div id="comment_disclaimer">
+                            <p class="text-muted">
+                                <em>
+                                    {% if feature.is_plot %}
+                                        {% trans "The comment system does not serve as a way to report problems with a tree." %}
+                                    {% else %}
+                                        {% blocktrans with resource=term.Resource.singular.lower %}
+                                            The comment system does not serve as a way to report problems with a {{ resource }}.
+                                        {% endblocktrans %}
+                                    {% endif %}
+                                </em>
+                            </p>
+                        </div>
 
+                    </div>
+
+                    <!-- Maps -->
+                    <div class="col-md-4">
+                        <div id="map" class="map-small"
+                             data-has-boundaries="False"
+                             data-has-polygons="{{ has_polygons }}">
+                        </div>
+                        {% if feature.is_editable %}
+                            <button
+                                    disabled="disabled"
+                                    data-always-enable="{{ last_effective_instance_user|geom_is_writable:feature.feature_type }}"
+                                    data-disabled-title="{% trans "Editing location is not available to all users" %}"
+                                    data-href="{{ request.get_full_path }}"
+                                    style="display:none"
+                                    id="edit-location"
+                                    class="btn btn-block btn-sm btn-otmsecondary">{% trans "Move Location" %}</button>
+                            <button class="btn btn-block btn-sm btn-alert" style="display:none" id="cancel-edit-location">{% trans "Cancel Move Location" %}</button>
+                        {% endif %}
+                        <br>
+                        <div id="street-view" class="street-view-small" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <!-- Maps -->
-        <div class="col-md-4">
-          <div id="map" class="map-small"
-               data-has-boundaries="False"
-               data-has-polygons="{{ has_polygons }}">
-          </div>
-          {% if feature.is_editable %}
-          <button
-             disabled="disabled"
-             data-always-enable="{{ last_effective_instance_user|geom_is_writable:feature.feature_type }}"
-             data-disabled-title="{% trans "Editing location is not available to all users" %}"
-             data-href="{{ request.get_full_path }}"
-             style="display:none"
-             id="edit-location"
-             class="btn btn-block btn-sm btn-otmsecondary">{% trans "Move Location" %}</button>
-          <button class="btn btn-block btn-sm btn-alert" style="display:none" id="cancel-edit-location">{% trans "Cancel Move Location" %}</button>
-          {% endif %}
-          <br>
-          <div id="street-view" class="street-view-small" style="display: none;"></div>
-        </div>
-      </div>
     </div>
-  </div>
-</div>
 {% endblock content %}
 
 {% block scripts %}
-<script id="template-comment" type="template/underscore">
-  {% get_comment_form for feature as form %}
-  <form action="{% url 'comments-post-comment' %}" class="<%= classname %>" method="post">
-    {% csrf_token %}
-    {{ form.comment }}
-    <input style="display: none" id="id_honeypot" name="honeypot" type="text">
-    {{ form.content_type }}
-    {{ form.object_pk }}
-    {{ form.timestamp }}
-    {{ form.security_hash }}
-    <input type="hidden" name="parent" value="<%= parent %>">
+    <script id="template-comment" type="template/underscore">
+        {% get_comment_form for feature as form %}
+        <form action="{% url 'comments-post-comment' %}" class="<%= classname %>" method="post">
+            {% csrf_token %}
+            {{ form.comment }}
+            <input style="display: none" id="id_honeypot" name="honeypot" type="text">
+            {{ form.content_type }}
+            {{ form.object_pk }}
+            {{ form.timestamp }}
+            {{ form.security_hash }}
+            <input type="hidden" name="parent" value="<%= parent %>">
 
-    <input type="hidden" name="next" value="{{request.get_full_path}}" />
-    <input type="hidden" name="markup" value="5">
-    <div class="submit">
-      <input disabled="disabled" type="submit" name="post" class="submit-post btn btn-primary" value="Post" />
-    </div>
-  </form>
-</script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ settings.GOOGLE_MAPS_API_KEY }}"></script>
+            <input type="hidden" name="next" value="{{request.get_full_path}}" />
+            <input type="hidden" name="markup" value="5">
+            <div class="submit">
+                <input disabled="disabled" type="submit" name="post" class="submit-post btn btn-primary" value="Post" />
+            </div>
+        </form>
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ settings.GOOGLE_MAPS_API_KEY }}"></script>
 
-<script>
-{% localize off %}
-// Define options for mapFeature.init(), which will be called in the
-// type-specific template inheriting from this one (e.g. plot_detail.html)
-// This global variable is later used in the JS entry module as a simple way to pass in static data
-window.otm.mapFeature = {
-    startInEditMode: {% if editmode %}true{% else %}false{% endif %},
-    isEditablePolygon: {% if feature.polygon and feature.is_editable %}true{% else %}false{% endif %},
-    featureId: {{ feature.pk }},
-    maxImageSize: {{ settings.MAXIMUM_IMAGE_SIZE }},
-    location: {
-        polygon: {{ feature.polygon|lat_lng_coordinates_json|safe }},
-        point: {
-            x: {{ feature.geom.x }},
-            y: {{ feature.geom.y }}
-        }
-    },
-};
-{% endlocalize %}
-</script>
+    <script>
+        {% localize off %}
+            // Define options for mapFeature.init(), which will be called in the
+            // type-specific template inheriting from this one (e.g. plot_detail.html)
+            // This global variable is later used in the JS entry module as a simple way to pass in static data
+            window.otm.mapFeature = {
+                startInEditMode: {% if editmode %}true{% else %}false{% endif %},
+                isEditablePolygon: {% if feature.polygon and feature.is_editable %}true{% else %}false{% endif %},
+                featureId: {{ feature.pk }},
+                maxImageSize: {{ settings.MAXIMUM_IMAGE_SIZE }},
+                location: {
+                    polygon: {{ feature.polygon|lat_lng_coordinates_json|safe }},
+                    point: {
+                        x: {{ feature.geom.x }},
+                        y: {{ feature.geom.y }}
+                    }
+                },
+            };
+        {% endlocalize %}
+    </script>
 {% endblock scripts %}

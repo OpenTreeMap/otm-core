@@ -4,5 +4,5 @@
 {% load form_extras %}
 
 {% block resource_details %}
-{% field _("Adjacent Drainage Area") from "bioswale.drainage_area" for request.user withtemplate "treemap/field/tr.html" %}
+    {% field _("Adjacent Drainage Area") from "bioswale.drainage_area" for request.user withtemplate "treemap/field/tr.html" %}
 {% endblock resource_details %}
