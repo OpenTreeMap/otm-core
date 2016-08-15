@@ -107,7 +107,7 @@ class Bioswale(PolygonalMapFeature):
 
     default_config = {
         'should_show_eco': False,
-        'diversion_rate': 0.95
+        'diversion_rate': 0.85
     }
 
 
@@ -164,7 +164,7 @@ class RainGarden(PolygonalMapFeature):
 
     default_config = {
         'should_show_eco': False,
-        'diversion_rate': 0.95
+        'diversion_rate': 0.85
     }
 
 

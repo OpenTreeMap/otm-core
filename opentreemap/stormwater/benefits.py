@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
 
 from treemap.ecobenefits import (BenefitCalculator, FEET_SQ_PER_METER_SQ,
@@ -20,32 +21,46 @@ class PolygonalBasinBenefitCalculator(BenefitCalculator):
         return self._benefits_for_feature_qs(features_qs, instance)
 
     def benefits_for_object(self, instance, feature):
-        from stormwater.models import PolygonalMapFeature
-        feature_qs = PolygonalMapFeature.objects.filter(pk=feature.pk)
+        feature_qs = feature.__class__.objects.filter(pk=feature.pk)
         stats, basis = self._benefits_for_feature_qs(feature_qs, instance)
         return stats, basis, None
 
     def _benefits_for_feature_qs(self, feature_qs, instance):
+        from stormwater.models import PolygonalMapFeature
+        feature_count = feature_qs.count()
+        feature_qs = feature_qs.filter(drainage_area__isnull=False)
+        poly_qs = PolygonalMapFeature.objects.filter(id__in=feature_qs)
         config = self.MapFeatureClass.get_config(instance)
         diversion_rate = config['diversion_rate']
         should_compute = (instance.annual_rainfall_inches is not None and
                           diversion_rate is not None and
                           config['should_show_eco'])
         if should_compute:
+            total_drainage_area = feature_qs.aggregate(
+                total_drainage_area=Sum('drainage_area')).get(
+                'total_drainage_area')
+            if total_drainage_area is None:
+                should_compute = False
+        if should_compute:
             annual_rainfall_ft = instance.annual_rainfall_inches * \
                 FEET_PER_INCH
             # annual stormwater diverted =
-            #     annual rainfall x area x fraction stormwater diverted
+            #     annual rainfall x (total feature area +
+            #     (total drainage area x fraction stormwater diverted))
+            total_drainage_area *= FEET_SQ_PER_METER_SQ
             feature_areas = \
-                self.MapFeatureClass.feature_qs_areas(feature_qs)
+                self.MapFeatureClass.feature_qs_areas(poly_qs)
             total_area = sum(feature_areas) * FEET_SQ_PER_METER_SQ
-            runoff_reduced = annual_rainfall_ft * total_area * diversion_rate
+            runoff_reduced = annual_rainfall_ft * (
+                total_area + total_drainage_area * diversion_rate)
             runoff_reduced *= GALLONS_PER_CUBIC_FT
             stats = self._format_stats(instance, runoff_reduced)
-            basis = self._get_basis(feature_qs.count(), 0)
+            features_used = poly_qs.count()
+            basis = self._get_basis(features_used,
+                                    feature_count - features_used)
         else:
             stats = {}
-            basis = self._get_basis(0, feature_qs.count())
+            basis = self._get_basis(0, feature_count)
         return stats, basis
 
     def _format_stats(self, instance, runoff_reduced):
