@@ -7,7 +7,6 @@ var $ = require('jquery'),
     format = require('util').format,
     otmTypeahead = require('treemap/lib/otmTypeahead.js'),
     FH = require('treemap/lib/fieldHelpers.js'),
-    mapFeature = require('treemap/lib/mapFeature.js'),
     mapFeatureDelete = require('treemap/lib/mapFeatureDelete.js'),
     diameterCalculator = require('treemap/lib/diameterCalculator.js'),
     mapFeatureUdf = require('treemap/lib/mapFeatureUdf.js'),
@@ -15,9 +14,6 @@ var $ = require('jquery'),
     moment = require('moment'),
     config = require('treemap/lib/config.js'),
     reverse = require('reverse');
-
-// Placed onto the jquery object
-require('bootstrap-datepicker');
 
 var dom = {
     form: '#map-feature-form',
@@ -29,24 +25,23 @@ var dom = {
     treeSection: '#tree-details',
 };
 
-function excludeNullMap (obs, fn) {
+exports.init = function(form) {
+function excludeNullMap(obs, fn) {
     return obs.map(fn)
         .filter(R.not(_.isUndefined))
         .filter(R.not(_.isNull));
 }
 
-var form = mapFeature.init().inlineEditForm,
-    $treeSection = $(dom.treeSection),
+var $treeSection = $(dom.treeSection),
     newTreeIdStream = excludeNullMap(form.saveOkStream,
-                                        '.responseData.treeId'),
+        '.responseData.treeId'),
     newTitleStream = excludeNullMap(form.saveOkStream,
-                                    '.responseData.feature.title'),
+        '.responseData.feature.title'),
     newAddressStream = excludeNullMap(form.saveOkStream,
-                                        '.responseData.feature.address_full'),
+        '.responseData.feature.address_full'),
 
     getPlotUrlFromTreeUrl = _.compose(U.removeLastUrlSegment,
-                                        U.removeLastUrlSegment);
-
+        U.removeLastUrlSegment);
 
 // tree id is the sole datapoint used to determine the state
 // of the plot to be acted upon.
@@ -72,13 +67,15 @@ function getUrls() {
         deleteUrl = 'trees/' + getTreeId() + '/';
         afterDeleteUrl = document.URL;
     }
-    return {deleteUrl: deleteUrl,
-            afterDeleteUrl: afterDeleteUrl};
+    return {
+        deleteUrl: deleteUrl,
+        afterDeleteUrl: afterDeleteUrl
+    };
 }
 
 mapFeatureDelete.init({
     getUrls: getUrls,
-    resetUIState: function() {
+    resetUIState: function () {
         if (getTreeId() === '') {
             $('#delete-plot-warning').show();
             $('#delete-tree-warning').hide();
@@ -89,7 +86,7 @@ mapFeatureDelete.init({
     }
 });
 
-function initializeTreeIdSection (id) {
+function initializeTreeIdSection(id) {
     var $section = $(dom.treeIdColumn);
     $section.attr('data-tree-id', id);
     $section.html(format('<a href="trees/%s/">%s</a>', id, id));
@@ -106,8 +103,6 @@ otmTypeahead.create({
     forceMatch: true
 });
 
-$('[data-date-format]').datepicker();
-
 diameterCalculator({
     formSelector: dom.form,
     cancelStream: form.cancelStream,
@@ -120,12 +115,11 @@ newTreeIdStream.onValue(initializeTreeIdSection);
 newTitleStream.onValue($('#map-feature-title'), 'html');
 newAddressStream.onValue($('#map-feature-address'), 'html');
 
-
 var beginAddStream = plotAddTree.init({
     form: form,
     addTreeControls: dom.addTreeControls,
     beginAddTree: dom.beginAddTree,
-    plotId: window.otm.mapFeature.plotId
+    plotId: window.otm.mapFeature.featureId
 });
 beginAddStream.onValue($treeSection, 'show');
 
@@ -133,3 +127,4 @@ form.cancelStream
     .skipUntil(beginAddStream)
     .takeUntil(newTreeIdStream)
     .onValue($treeSection, 'hide');
+};

@@ -1,13 +1,10 @@
-{% extends "treemap/map_feature_detail.html" %}
-{% load render_bundle from webpack_loader %}
+{% extends "treemap/partials/map_feature_detail_base.html" %}
 {% load i18n %}
 {% load l10n %}
 {% load auth_extras %}
 {% load form_extras %}
 {% load udf %}
 {% load util %}
-
-{% block page_title %} | {% trans "Planting Site" %} {{plot.pk}}{% endblock %}
 
 {% block subclass_details %}
 
@@ -135,20 +132,3 @@
         {% trans "You are about to delete this planting site. Once deleted, it will not be possible to view the details of this planting site or the trees it has contained in the past. Are you sure you want to continue?" %}
     </p>
 {% endblock %}
-
-
-{% block scripts %}
-
-    {{ block.super }}
-
-    <script>
-        {% localize off %}
-            // mapFeature is defined in a script block of the super-template
-            window.otm.mapFeature.useTreeIcon = true;
-            window.otm.mapFeature.plotId = {{ plot.id }};
-            Object.freeze(window.otm.mapFeature);
-        {% endlocalize %}
-    </script>
-    {% render_bundle 'js/treemap/plot' %}
-
-{% endblock scripts %}

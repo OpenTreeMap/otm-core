@@ -8,7 +8,7 @@ import hashlib
 from functools import wraps
 
 from django.http import HttpResponse
-from django.template import RequestContext, TemplateDoesNotExist
+from django.template import RequestContext
 from django.template.loader import get_template
 from django.shortcuts import get_object_or_404, render_to_response
 from django.core.exceptions import ValidationError
@@ -88,17 +88,14 @@ def map_feature_detail(request, instance, feature_id,
     add_map_info_to_context(context, instance)
 
     if render:
+        template = 'treemap/map_feature_detail.html'
         if feature.is_plot:
-            template = 'treemap/plot_detail.html'
+            partial = 'treemap/partials/plot_detail.html'
         else:
             app = feature.__module__.split('.')[0]
-            try:
-                template = '%s/%s_detail.html' % (app, feature.feature_type)
-                get_template(template)
-            except TemplateDoesNotExist:
-                template = 'treemap/resource_detail.html'
-        return render_to_response(template, context,
-                                  RequestContext(request))
+            partial = '%s/%s_detail.html' % (app, feature.feature_type)
+        context['map_feature_partial'] = partial
+        return render_to_response(template, context, RequestContext(request))
     else:
         return context
 

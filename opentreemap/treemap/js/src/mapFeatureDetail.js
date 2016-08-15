@@ -3,6 +3,8 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     toastr = require('toastr'),
+    plotDetail = require('treemap/lib/plotDetail.js'),
+    resourceDetail = require('treemap/lib/resourceDetail.js'),
     inlineEditForm = require('treemap/lib/inlineEditForm.js'),
     MapManager = require('treemap/lib/MapManager.js'),
     R = require('ramda'),
@@ -21,9 +23,12 @@ var $ = require('jquery'),
     config = require('treemap/lib/config.js'),
     reverse = require('reverse'),
     alerts = require('treemap/lib/alerts.js'),
-    comments = require('otm_comments/lib/comments.js'),
+    comments = require('otm_comments/lib/comments.js');
 
-    dom = {
+// Placed onto the jquery object
+require('bootstrap-datepicker');
+
+var dom = {
         favoriteLink: '#favorite-link',
         favoriteIcon: '#favorite-star',
         ecoBenefits: '#ecobenefits',
@@ -36,7 +41,7 @@ var $ = require('jquery'),
         },
     };
 
-exports.init = function() {
+function init() {
     var $ecoBenefits = $(dom.ecoBenefits),
         detailUrl = window.location.href;
 
@@ -82,6 +87,12 @@ exports.init = function() {
         onSaveBefore: function (data) { currentMover.onSaveBefore(data); },
         onSaveAfter: function (data) { currentMover.onSaveAfter(data); }
     });
+
+    if (window.otm.mapFeature.isPlot) {
+        plotDetail.init(form);
+    } else {
+        resourceDetail.init(form);
+    }
 
     if (config.instance.supportsEcobenefits) {
         var updateEcoUrl = reverse.plot_eco({
@@ -209,9 +220,9 @@ exports.init = function() {
         });
     }
 
-    socialMediaSharing.init({imageFinishedStream: imageFinishedStream});
+    $('[data-date-format]').datepicker();
 
-    return {
-        inlineEditForm: form
-    };
-};
+    socialMediaSharing.init({imageFinishedStream: imageFinishedStream});
+}
+
+init();
