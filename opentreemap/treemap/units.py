@@ -98,6 +98,9 @@ _unit_conversions = {
 }
 _unit_conversions["ft"] = {u: v * 12 for (u, v)
                            in _unit_conversions["in"].iteritems()}
+_unit_conversions["sq_ft"] = {
+    u: v / _unit_conversions["sq_m"]["sq_ft"]
+    for u, v in _unit_conversions["sq_m"].iteritems()}
 
 
 def get_unit_name(abbrev):

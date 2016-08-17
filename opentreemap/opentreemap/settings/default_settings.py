@@ -357,7 +357,17 @@ REGISTRATION_EMAIL_HTML = False
 # STORAGE_UNITS is the unit the value will be stored/computed as,
 # if different from DISPLAY_DEFAULTS
 #
-STORAGE_UNITS = {}
+STORAGE_UNITS = {
+    'bioswale': {
+        'drainage_area': 'sq_m'
+    },
+    'rainGarden': {
+        'drainage_area': 'sq_m'
+    },
+    'greenInfrastructure': {
+        'area': 'sq_m'
+    }
+}
 DISPLAY_DEFAULTS = {
     'plot': {
         'width':  {'units': 'in', 'digits': 1},
@@ -376,17 +386,17 @@ DISPLAY_DEFAULTS = {
         'airquality': {'units': 'lbs/year', 'digits': 1}
     },
     'bioswale': {
-        'drainage_area': {'units': 'sq_m', 'digits': 1}
+        'drainage_area': {'units': 'sq_ft', 'digits': 1}
     },
     'rainBarrel': {
         'capacity': {'units': 'gal', 'digits': 1}
     },
     'rainGarden': {
-        'drainage_area': {'units': 'sq_m', 'digits': 1}
+        'drainage_area': {'units': 'sq_ft', 'digits': 1}
     },
     'greenInfrastructure': {
         'rainfall': {'units': 'in', 'digits': 1},
-        'area':     {'units': 'sq_m', 'digits': 1}
+        'area':     {'units': 'sq_ft', 'digits': 1}
     }
 }
 
