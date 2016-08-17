@@ -14,6 +14,7 @@ from treemap.ecobenefits import CountOnlyBenefitCalculator
 
 class PolygonalMapFeature(MapFeature):
     area_field_name = 'polygon'
+    enable_detail_next = True
 
     polygon = models.MultiPolygonField(srid=3857)
 
