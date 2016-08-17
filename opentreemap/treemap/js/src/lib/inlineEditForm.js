@@ -18,10 +18,10 @@ exports.init = function(options) {
         section = options.section || 'body',
         form = options.form || section + ' form',
         $section = $(section),
-        $edit = options.edit ? $(options.edit) : $section.find('.editBtn'),
-        $save = options.save ? $(options.save) : $section.find('.saveBtn'),
-        $cancel = options.cancel ? $(options.cancel) : $section.find('.cancelBtn'),
-        $spinner = options.spinner ? $(options.spinner) : $section.find('.spinner'),
+        edit = options.edit || '.editBtn',
+        save = options.save || '.saveBtn',
+        cancel = options.cancel || '.cancelBtn',
+        spinner = options.spinner || '.spinner',
         displayFields = options.displayFields || section + ' [data-class="display"]',
         editFields = options.editFields || section + ' [data-class="edit"]',
         validationFields = options.validationFields || section + ' [data-class="error"]',
@@ -30,17 +30,17 @@ exports.init = function(options) {
         onSaveAfter = options.onSaveAfter || _.identity,
 
         showSavePending = function (saveIsPending) {
-            $spinner.toggle(saveIsPending);
-            $save.prop('disabled', saveIsPending);
-            $cancel.prop('disabled', saveIsPending);
+            $section.find(spinner).toggle(saveIsPending);
+            $section.find(save).prop('disabled', saveIsPending);
+            $section.find(cancel).prop('disabled', saveIsPending);
         },
 
-        editStream = $edit.asEventStream('click').map(editableForm.editStartAction),
-        saveStream = (options.saveStream || $save.asEventStream('click'))
+        editStream = $section.asEventStream('click', edit).map(editableForm.editStartAction),
+        saveStream = (options.saveStream || $section.asEventStream('click', save))
             .doAction(showSavePending, true)
             .map('save:start'),
         externalCancelStream = BU.triggeredObjectStream('cancel'),
-        cancelStream = $cancel.asEventStream('click').map('cancel'),
+        cancelStream = $section.asEventStream('click', cancel).map('cancel'),
         globalCancelStream = cancelStream.merge(externalCancelStream),
 
         actionStream = new Bacon.Bus(),
