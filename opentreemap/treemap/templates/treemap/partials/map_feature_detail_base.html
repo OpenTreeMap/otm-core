@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load l10n %}
 {% load util %}
+{% load staticfiles %}
 
 <div class="detail-header">
     {% if request.instance.is_public %}
@@ -71,6 +72,7 @@
                 {% endif %}
                 data-href="{{ request.get_full_path }}"
                 class="btn btn-sm btn-danger">{% trans "Delete" %}</button>
+        <img class="spinner" src="{% static "img/spinner.gif" %}" style="display: none;">
     </p>
 
     <!-- Alerts -->

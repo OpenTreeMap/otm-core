@@ -68,7 +68,7 @@ class PlotAddTest(PlotDetailUITestCase):
         self.begin_add_tree.click()
         self.find('input[name="tree.height"]').send_keys('11')
         self.save_edit.click()
-        self.wait_until_visible(self.edit_plot)
+        self.wait_until_present('#edit-map-feature')
         self.assertEqual(Tree.objects.filter(plot=self.plot).count(), 1)
 
         self.assertEqual(self.find_id('map-feature-title').text,

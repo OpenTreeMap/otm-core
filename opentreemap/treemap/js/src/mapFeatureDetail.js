@@ -11,6 +11,7 @@ var $ = require('jquery'),
     BU = require('treemap/lib/baconUtils.js'),
     Bacon = require('baconjs'),
     U = require('treemap/lib/utility.js'),
+    FH = require('treemap/lib/fieldHelpers.js'),
     geometryMover = require('treemap/lib/geometryMover.js'),
     plotMarker = require('treemap/lib/plotMarker.js'),
     statePrompter = require('treemap/lib/statePrompter.js'),
@@ -23,6 +24,7 @@ var $ = require('jquery'),
     config = require('treemap/lib/config.js'),
     reverse = require('reverse'),
     alerts = require('treemap/lib/alerts.js'),
+    buttonEnabler = require('treemap/lib/buttonEnabler.js'),
     comments = require('otm_comments/lib/comments.js');
 
 // Placed onto the jquery object
@@ -31,7 +33,7 @@ require('bootstrap-datepicker');
 var dom = {
         favoriteLink: '#favorite-link',
         favoriteIcon: '#favorite-star',
-        ecoBenefits: '#ecobenefits',
+        detail: '#mapFeaturePartial',
         sidebar: '#sidebar',
         form: '#map-feature-form',
         streetView: '#street-view',
@@ -42,8 +44,7 @@ var dom = {
     };
 
 function init() {
-    var $ecoBenefits = $(dom.ecoBenefits),
-        detailUrl = window.location.href;
+    var detailUrl = window.location.href;
 
     if (U.getLastUrlSegment(detailUrl) == 'edit') {
         detailUrl = U.removeLastUrlSegment(detailUrl);
@@ -85,30 +86,39 @@ function init() {
         shouldBeInEditModeStream: shouldBeInEditModeStream,
         errorCallback: alerts.errorCallback,
         onSaveBefore: function (data) { currentMover.onSaveBefore(data); },
-        onSaveAfter: function (data) { currentMover.onSaveAfter(data); }
+        onSaveAfter: function (data) { currentMover.onSaveAfter(data); },
+        dontUpdateOnSaveOk: true
     });
 
-    if (window.otm.mapFeature.isPlot) {
-        plotDetail.init(form);
-    } else {
-        resourceDetail.init(form);
+    function initDetailAfterRefresh() {
+        buttonEnabler.run();
+        FH.renderMultiChoices($('[data-class="display"]').filter('[data-type="multichoice"]'));
+        initDetail();
     }
 
-    if (config.instance.supportsEcobenefits) {
-        var updateEcoUrl = reverse.plot_eco({
+    function initDetail() {
+        if (window.otm.mapFeature.isPlot) {
+            plotDetail.init(form);
+        } else {
+            resourceDetail.init(form);
+        }
+    }
+
+    initDetail(form);
+
+    var refreshDetailUrl = reverse.map_feature_detail_partial({
+            instance_url_name: config.instance.url_name,
+            feature_id: window.otm.mapFeature.featureId
+        }),
+        refreshSidebarUrl = reverse.map_feature_sidebar({
             instance_url_name: config.instance.url_name,
             feature_id: window.otm.mapFeature.featureId
         });
-        form.saveOkStream
-            .map($ecoBenefits)
-            .onValue('.load', updateEcoUrl);
-    }
-
-    var sidebarUpdate = form.saveOkStream.merge(imageFinishedStream),
-        updateSidebarUrl = U.appendSegmentToUrl('sidebar', detailUrl);
-    sidebarUpdate
-        .map($(dom.sidebar))
-        .onValue('.load', updateSidebarUrl);
+    form.saveOkStream.merge(imageFinishedStream)
+        .onValue(function () {
+            $(dom.detail).load(refreshDetailUrl, initDetailAfterRefresh);
+            $(dom.sidebar).load(refreshSidebarUrl);
+        });
 
     form.inEditModeProperty.onValue(function(inEditMode) {
         var hrefHasEdit = U.getLastUrlSegment() === 'edit';

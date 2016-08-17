@@ -114,7 +114,7 @@ class UITestCase(StaticLiveServerTestCase):
 
         def is_present(driver):
             element[0] = self.find(selector)
-            return element[0] is not None
+            return element[0] is not None and element[0].is_displayed()
 
         WebDriverWait(self.driver, timeout).until(is_present)
         return element[0]

@@ -28,6 +28,7 @@ exports.init = function(options) {
         globalErrorSection = options.globalErrorSection,
         errorCallback = options.errorCallback || $.noop,
         onSaveAfter = options.onSaveAfter || _.identity,
+        dontUpdateOnSaveOk = options.dontUpdateOnSaveOk || false,
 
         showSavePending = function (saveIsPending) {
             $section.find(spinner).toggle(saveIsPending);
@@ -221,7 +222,9 @@ exports.init = function(options) {
             }),
 
         saveOkStream = responseStream.map(function(responseData) {
-            showSavePending(false);
+            if (!dontUpdateOnSaveOk) {
+                showSavePending(false);
+            }
             return {
                 formData: getDataToSave(),
                 responseData: responseData
@@ -274,9 +277,16 @@ exports.init = function(options) {
     actionStream.plug(saveOkStream.map('save:ok'));
     actionStream.plug(responseErrorStream.map('save:error'));
     actionStream.plug(modeChangeStream);
-    actionStream.onValue(editForm.hideAndShowElements, editFields, eventsLandingInEditMode);
-    actionStream.onValue(editForm.hideAndShowElements, displayFields, eventsLandingInDisplayMode);
+    actionStream.onValue(hideAndShowElements, editFields, eventsLandingInEditMode);
+    actionStream.onValue(hideAndShowElements, displayFields, eventsLandingInDisplayMode);
     actionStream.onValue(editForm.hideAndShowElements, validationFields, ['save:error']);
+
+    function hideAndShowElements(fields, actions, action) {
+        var shouldHideAndShow = !(dontUpdateOnSaveOk && action === 'save:ok');
+        if (shouldHideAndShow) {
+            editForm.hideAndShowElements(fields, actions, action);
+        }
+    }
 
     responseStream.onValue(onSaveAfter);
 

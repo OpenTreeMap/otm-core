@@ -14,7 +14,7 @@ class PlotEditTest(PlotDetailUITestCase):
         self._select_elements()
         self.edit_plot.click()
         self.save_edit.click()
-        self.wait_until_visible(self.edit_plot)
+        self.wait_until_present('#edit-map-feature')
         self.assertEqual(Tree.objects.count(), 0)
 
     def test_edit_empty_plot_from_map(self):
@@ -36,7 +36,7 @@ class PlotEditTest(PlotDetailUITestCase):
         plot_width_field.send_keys('5')
 
         self.click('#save-edit-map-feature')
-        self.wait_until_visible('#edit-map-feature')
+        self.wait_until_present('#edit-map-feature')
 
         plot = Plot.objects.get(pk=plot.pk)
 
