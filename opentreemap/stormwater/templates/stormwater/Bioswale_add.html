@@ -5,7 +5,9 @@
 
 {% block resource_add_details %}
 <div class="resource-question">
-  {% trans "What is the area of adjacent drainage?" as drainage_area %}
-  {% create drainage_area from "Bioswale.drainage_area" in request.instance withtemplate "treemap/field/div.html" %}
+  {# Translators: singular means Bioswale #}
+  {% trans "How large is the area that drains into the {singular}?" as drainage_area %}
+  {% trans "Approximate size is fine. Do not include the area of the {singular} itself" as explanation %}
+  {% create drainage_area from "Bioswale.drainage_area" in request.instance withtemplate "treemap/field/div.html" withhelp explanation %}
 </div>
 {% endblock resource_add_details %}

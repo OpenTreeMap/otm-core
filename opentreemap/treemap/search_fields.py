@@ -183,7 +183,7 @@ def mobile_search_fields(instance):
 
         Model, field_name = _parse_field_info(instance, field)
         set_search_field_label(instance, field)
-        field_type, __, choices = field_type_label_choices(
+        field_type, __, __, choices = field_type_label_choices(
             Model, field_name, add_blank=ADD_BLANK_NEVER)
 
         if identifier == 'species.id':
@@ -236,7 +236,7 @@ def get_search_field_label(instance, field_info):
         else:
             label = Model._meta.verbose_name_plural
     else:
-        __, label, __ = field_type_label_choices(Model, field_name, '')
+        __, label, __, __ = field_type_label_choices(Model, field_name, '')
         if hasattr(Model, 'terminology'):
             prefix = force_text(Model.terminology(instance)['singular'])
         else:

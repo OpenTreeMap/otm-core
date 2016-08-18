@@ -155,6 +155,10 @@
                             border-left: none;
                         }
                     }
+
+                    .explanation {
+                        font-size: 1.2rem;
+                    }
                 }
 
                 @include checkboxes;

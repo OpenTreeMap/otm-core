@@ -68,7 +68,8 @@ class Label(Grammar):
 class InlineEditGrammar(Grammar):
     grammar = (OR(G(OR(b"field", b"create"), OPTIONAL(Label)), b"search"),
                b"from", Variable, OPTIONAL(b"for", Variable),
-               OPTIONAL(b"in", Variable), b"withtemplate", Variable)
+               OPTIONAL(b"in", Variable), b"withtemplate", Variable,
+               OPTIONAL(b"withhelp", Label))
     grammar_whitespace = True
 
 
@@ -204,8 +205,10 @@ def inline_edit_tag(tag, Node):
         user = _token_to_variable(one_or_none(elems[3]))
         instance = _token_to_variable(one_or_none(elems[4]))
         field_template = _token_to_variable(elems[6].string)
+        help_text = _token_to_variable(one_or_none(elems[7]))
 
-        return Node(label, identifier, user, field_template, instance)
+        return Node(label, identifier, user, field_template, instance,
+                    help_text)
 
     return tag_parser
 
@@ -258,6 +261,7 @@ ADD_BLANK_IF_CHOICE_FIELD = 2
 
 
 def field_type_label_choices(model, field_name, label=None,
+                             explanation=None,
                              add_blank=ADD_BLANK_IF_CHOICE_FIELD):
     choices = None
     udf_field_name = field_name.replace('udf:', '')
@@ -271,6 +275,7 @@ def field_type_label_choices(model, field_name, label=None,
                             % (VALID_FIELD_KEYS,
                                field_type))
         label = label if label else field.verbose_name
+        explanation = explanation if explanation else field.help_text
         choices = [{'value': choice[0], 'display_value': choice[1]}
                    for choice in field.choices]
         if choices and field.null:
@@ -288,16 +293,26 @@ def field_type_label_choices(model, field_name, label=None,
             ):
                 choices.insert(0, {'value': "", 'display_value': ""})
 
-    return field_type, label, choices
+    return field_type, label, explanation, choices
+
+
+def format_with_terminology(model, label):
+    terminology_fn = getattr(model.__class__, 'terminology', None)
+    instance = model.instance
+    if label and terminology_fn and instance:
+        return label.format(**terminology_fn(instance))
+    return label
 
 
 class AbstractNode(template.Node):
-    def __init__(self, label, identifier, user, field_template, instance):
+    def __init__(self, label, identifier, user, field_template, instance,
+                 explanation):
         self.label = label
         self.identifier = identifier
         self.user = user
         self.instance = instance
         self.field_template = field_template
+        self.explanation = explanation
 
     # Overriden in SearchNode
     def resolve_label_and_identifier(self, context):
@@ -316,6 +331,7 @@ class AbstractNode(template.Node):
         return False
 
     def render(self, context):
+        explanation = _resolve_variable(self.explanation, context)
         label, identifier = self.resolve_label_and_identifier(context)
         user = _resolve_variable(self.user, context)
         instance = _resolve_variable(self.instance, context)
@@ -333,6 +349,7 @@ class AbstractNode(template.Node):
         model = self.get_model(context, model_name_or_object_name, instance)
 
         object_name = to_object_name(model_name_or_object_name)
+
         identifier = "%s.%s" % (object_name, field_name)
 
         def _field_value(model, field_name, data_type):
@@ -362,8 +379,9 @@ class AbstractNode(template.Node):
         else:
             add_blank = (ADD_BLANK_ALWAYS if self.treat_multichoice_as_choice
                          else ADD_BLANK_IF_CHOICE_FIELD)
-            data_type, label, choices = field_type_label_choices(
-                model, field_name, label, add_blank=add_blank)
+            data_type, label, explanation, choices = field_type_label_choices(
+                model, field_name, label, explanation=explanation,
+                add_blank=add_blank)
             field_value = _field_value(model, field_name, data_type)
 
             if user is not None and hasattr(model, 'field_is_visible'):
@@ -387,6 +405,8 @@ class AbstractNode(template.Node):
                 model.instance, object_name, field_name)
             if units != '':
                 units = get_unit_name(units)
+            label = format_with_terminology(model, label)
+            explanation = format_with_terminology(model, explanation)
 
         if field_value is None:
             display_val = None
@@ -415,6 +435,7 @@ class AbstractNode(template.Node):
 
         context['field'] = {
             'label': label,
+            'explanation': explanation,
             'identifier': identifier,
             'value': field_value,
             'display_value': display_val,
@@ -441,8 +462,9 @@ class CreateNode(AbstractNode):
 
 
 class SearchNode(CreateNode):
-    def __init__(self, __, identifier, user, template, instance):
-        super(SearchNode, self).__init__(None, None, user, template, instance)
+    def __init__(self, __, identifier, user, template, instance, explanation):
+        super(SearchNode, self).__init__(None, None, user, template, instance,
+                                         explanation)
         self.json = identifier
 
     def resolve_label_and_identifier(self, context):

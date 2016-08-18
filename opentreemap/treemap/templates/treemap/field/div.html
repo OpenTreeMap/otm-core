@@ -13,6 +13,9 @@
                 {% include "treemap/field/inputs.html" %}
                 {% endblock inputs %}
             </div>
+            {% if field.explanation %}
+                <p class="explanation">{{ field.explanation }}</p>
+            {% endif %}
             <div class="alert alert-danger text-danger"
                 style="display: none;"
                 {% include "treemap/field/attrs.html" with class="error" %}></div>
