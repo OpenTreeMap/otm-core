@@ -312,7 +312,6 @@ def context_dict_for_resource(request, resource, **kwargs):
 
     if isinstance(resource, PolygonalMapFeature):
         context['contained_plots'] = resource.contained_plots()
-        # TODO: Convert to map owner prefered units
         __, display_area = get_display_value(instance,
                                              'greenInfrastructure', 'area',
                                              resource.calculate_area())

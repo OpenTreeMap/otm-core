@@ -358,12 +358,6 @@ REGISTRATION_EMAIL_HTML = False
 # if different from DISPLAY_DEFAULTS
 #
 STORAGE_UNITS = {
-    'bioswale': {
-        'drainage_area': 'sq_m'
-    },
-    'rainGarden': {
-        'drainage_area': 'sq_m'
-    },
     'greenInfrastructure': {
         'area': 'sq_m'
     }
