@@ -5,6 +5,6 @@ var $ = require('jquery'),
     mapFeatureUdf = require('treemap/lib/mapFeatureUdf.js');
 
 exports.init = function(form) {
-mapFeatureUdf.init(form);
-mapFeatureDelete.init();
+    mapFeatureUdf.init(form);
+    mapFeatureDelete.init();
 };

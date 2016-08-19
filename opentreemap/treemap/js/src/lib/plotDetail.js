@@ -26,105 +26,105 @@ var dom = {
 };
 
 exports.init = function(form) {
-function excludeNullMap(obs, fn) {
-    return obs.map(fn)
-        .filter(R.not(_.isUndefined))
-        .filter(R.not(_.isNull));
-}
-
-var $treeSection = $(dom.treeSection),
-    newTreeIdStream = excludeNullMap(form.saveOkStream,
-        '.responseData.treeId'),
-    newTitleStream = excludeNullMap(form.saveOkStream,
-        '.responseData.feature.title'),
-    newAddressStream = excludeNullMap(form.saveOkStream,
-        '.responseData.feature.address_full'),
-
-    getPlotUrlFromTreeUrl = _.compose(U.removeLastUrlSegment,
-        U.removeLastUrlSegment);
-
-// tree id is the sole datapoint used to determine the state
-// of the plot to be acted upon.
-// this *must be calculated dynamically* to handle the case
-// in which a tree is added and then deleted without a
-// page refresh in between.
-// this information is used for:
-// * deciding which warning message to show
-// * The url to post a delete verb to
-// * the url to redirect to
-function getTreeId() {
-    return $(dom.treeIdColumn).attr('data-tree-id');
-}
-
-function getUrls() {
-    var deleteUrl = document.URL,
-        afterDeleteUrl = reverse.map(config.instance.url_name),
-        currentlyOnTreeUrl = _.contains(U.getUrlSegments(document.URL), "trees");
-
-    if (getTreeId() !== '' && currentlyOnTreeUrl) {
-        afterDeleteUrl = getPlotUrlFromTreeUrl(document.URL);
-    } else if (getTreeId() !== '') {
-        deleteUrl = 'trees/' + getTreeId() + '/';
-        afterDeleteUrl = document.URL;
+    function excludeNullMap(obs, fn) {
+        return obs.map(fn)
+            .filter(R.not(_.isUndefined))
+            .filter(R.not(_.isNull));
     }
-    return {
-        deleteUrl: deleteUrl,
-        afterDeleteUrl: afterDeleteUrl
-    };
-}
-
-mapFeatureDelete.init({
-    getUrls: getUrls,
-    resetUIState: function () {
-        if (getTreeId() === '') {
-            $('#delete-plot-warning').show();
-            $('#delete-tree-warning').hide();
-        } else {
-            $('#delete-tree-warning').show();
-            $('#delete-plot-warning').hide();
+    
+    var $treeSection = $(dom.treeSection),
+        newTreeIdStream = excludeNullMap(form.saveOkStream,
+            '.responseData.treeId'),
+        newTitleStream = excludeNullMap(form.saveOkStream,
+            '.responseData.feature.title'),
+        newAddressStream = excludeNullMap(form.saveOkStream,
+            '.responseData.feature.address_full'),
+    
+        getPlotUrlFromTreeUrl = _.compose(U.removeLastUrlSegment,
+            U.removeLastUrlSegment);
+    
+    // tree id is the sole datapoint used to determine the state
+    // of the plot to be acted upon.
+    // this *must be calculated dynamically* to handle the case
+    // in which a tree is added and then deleted without a
+    // page refresh in between.
+    // this information is used for:
+    // * deciding which warning message to show
+    // * The url to post a delete verb to
+    // * the url to redirect to
+    function getTreeId() {
+        return $(dom.treeIdColumn).attr('data-tree-id');
+    }
+    
+    function getUrls() {
+        var deleteUrl = document.URL,
+            afterDeleteUrl = reverse.map(config.instance.url_name),
+            currentlyOnTreeUrl = _.contains(U.getUrlSegments(document.URL), "trees");
+    
+        if (getTreeId() !== '' && currentlyOnTreeUrl) {
+            afterDeleteUrl = getPlotUrlFromTreeUrl(document.URL);
+        } else if (getTreeId() !== '') {
+            deleteUrl = 'trees/' + getTreeId() + '/';
+            afterDeleteUrl = document.URL;
         }
+        return {
+            deleteUrl: deleteUrl,
+            afterDeleteUrl: afterDeleteUrl
+        };
     }
-});
-
-function initializeTreeIdSection(id) {
-    var $section = $(dom.treeIdColumn);
-    $section.attr('data-tree-id', id);
-    $section.html(format('<a href="trees/%s/">%s</a>', id, id));
-    $(dom.treePresenceSection).hide();
-}
-
-otmTypeahead.create({
-    name: "species",
-    url: reverse.species_list_view(config.instance.url_name),
-    input: "#plot-species-typeahead",
-    template: "#species-element-template",
-    hidden: "#plot-species-hidden",
-    reverse: "id",
-    forceMatch: true
-});
-
-diameterCalculator({
-    formSelector: dom.form,
-    cancelStream: form.cancelStream,
-    saveOkStream: form.saveOkStream
-});
-
-mapFeatureUdf.init(form);
-
-newTreeIdStream.onValue(initializeTreeIdSection);
-newTitleStream.onValue($('#map-feature-title'), 'html');
-newAddressStream.onValue($('#map-feature-address'), 'html');
-
-var beginAddStream = plotAddTree.init({
-    form: form,
-    addTreeControls: dom.addTreeControls,
-    beginAddTree: dom.beginAddTree,
-    plotId: window.otm.mapFeature.featureId
-});
-beginAddStream.onValue($treeSection, 'show');
-
-form.cancelStream
-    .skipUntil(beginAddStream)
-    .takeUntil(newTreeIdStream)
-    .onValue($treeSection, 'hide');
+    
+    mapFeatureDelete.init({
+        getUrls: getUrls,
+        resetUIState: function () {
+            if (getTreeId() === '') {
+                $('#delete-plot-warning').show();
+                $('#delete-tree-warning').hide();
+            } else {
+                $('#delete-tree-warning').show();
+                $('#delete-plot-warning').hide();
+            }
+        }
+    });
+    
+    function initializeTreeIdSection(id) {
+        var $section = $(dom.treeIdColumn);
+        $section.attr('data-tree-id', id);
+        $section.html(format('<a href="trees/%s/">%s</a>', id, id));
+        $(dom.treePresenceSection).hide();
+    }
+    
+    otmTypeahead.create({
+        name: "species",
+        url: reverse.species_list_view(config.instance.url_name),
+        input: "#plot-species-typeahead",
+        template: "#species-element-template",
+        hidden: "#plot-species-hidden",
+        reverse: "id",
+        forceMatch: true
+    });
+    
+    diameterCalculator({
+        formSelector: dom.form,
+        cancelStream: form.cancelStream,
+        saveOkStream: form.saveOkStream
+    });
+    
+    mapFeatureUdf.init(form);
+    
+    newTreeIdStream.onValue(initializeTreeIdSection);
+    newTitleStream.onValue($('#map-feature-title'), 'html');
+    newAddressStream.onValue($('#map-feature-address'), 'html');
+    
+    var beginAddStream = plotAddTree.init({
+        form: form,
+        addTreeControls: dom.addTreeControls,
+        beginAddTree: dom.beginAddTree,
+        plotId: window.otm.mapFeature.featureId
+    });
+    beginAddStream.onValue($treeSection, 'show');
+    
+    form.cancelStream
+        .skipUntil(beginAddStream)
+        .takeUntil(newTreeIdStream)
+        .onValue($treeSection, 'hide');
 };
