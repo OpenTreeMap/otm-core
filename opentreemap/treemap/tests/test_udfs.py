@@ -7,6 +7,7 @@ import json
 from random import shuffle
 from datetime import datetime
 import psycopg2
+from unittest.case import skip
 
 from django.db import connection
 from django.db.models import Q
@@ -990,6 +991,7 @@ class CollectionUDFTest(OTMTestCase):
         self.plot = Plot(geom=self.p, instance=self.instance)
         self.plot.save_with_user(self.commander_user)
 
+    @skip('incorrect reliance on order, see issue #2700')
     def test_can_update_choice_option(self):
         stews = [{'action': 'water',
                   'height': 42},
@@ -1015,6 +1017,7 @@ class CollectionUDFTest(OTMTestCase):
         self.assertEqual(plot.udfs['Stewardship'][0]['action'], 'h2o')
         self.assertEqual(audits, ['h2o', 'prune'])
 
+    @skip('incorrect reliance on order, see issue #2700')
     def test_can_delete_choice_option(self):
         stews = [{'action': 'water',
                   'height': 42},
@@ -1059,6 +1062,7 @@ class CollectionUDFTest(OTMTestCase):
 
             self.assertDictContainsSubset(expected_stew, actual_stew)
 
+    @skip('incorrect reliance on order, see issue #2700')
     def test_can_delete(self):
         stews = [{'action': 'water',
                   'height': 42},
