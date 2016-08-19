@@ -2,7 +2,6 @@
 
 var $ = require('jquery'),
     R = require('ramda'),
-    Bacon = require('baconjs'),
     FH = require('treemap/lib/fieldHelpers.js');
 
 require('treemap/lib/baconUtils.js');

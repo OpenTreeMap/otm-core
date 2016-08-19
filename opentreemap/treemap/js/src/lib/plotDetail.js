@@ -2,11 +2,8 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
-    U = require('treemap/lib/utility.js'),
     R = require('ramda'),
-    format = require('util').format,
     otmTypeahead = require('treemap/lib/otmTypeahead.js'),
-    FH = require('treemap/lib/fieldHelpers.js'),
     mapFeatureDelete = require('treemap/lib/mapFeatureDelete.js'),
     diameterCalculator = require('treemap/lib/diameterCalculator.js'),
     mapFeatureUdf = require('treemap/lib/mapFeatureUdf.js'),
@@ -18,7 +15,6 @@ var $ = require('jquery'),
 var dom = {
     form: '#map-feature-form',
     treeIdColumn: '#tree-id-column',
-    ecoBenefits: '#ecobenefits',
     treePresenceSection: '#tree-presence-section',
     beginAddTree: '#begin-add-tree',
     addTreeControls: '#add-tree-controls',
@@ -32,67 +28,24 @@ exports.init = function(form) {
             .filter(R.not(_.isNull));
     }
     
-    var $treeSection = $(dom.treeSection),
+    var treeId = $(dom.treeIdColumn).attr('data-tree-id'),
         newTreeIdStream = excludeNullMap(form.saveOkStream,
-            '.responseData.treeId'),
-        newTitleStream = excludeNullMap(form.saveOkStream,
-            '.responseData.feature.title'),
-        newAddressStream = excludeNullMap(form.saveOkStream,
-            '.responseData.feature.address_full'),
-    
-        getPlotUrlFromTreeUrl = _.compose(U.removeLastUrlSegment,
-            U.removeLastUrlSegment);
-    
-    // tree id is the sole datapoint used to determine the state
-    // of the plot to be acted upon.
-    // this *must be calculated dynamically* to handle the case
-    // in which a tree is added and then deleted without a
-    // page refresh in between.
-    // this information is used for:
-    // * deciding which warning message to show
-    // * The url to post a delete verb to
-    // * the url to redirect to
-    function getTreeId() {
-        return $(dom.treeIdColumn).attr('data-tree-id');
-    }
-    
-    function getUrls() {
-        var deleteUrl = document.URL,
-            afterDeleteUrl = reverse.map(config.instance.url_name),
-            currentlyOnTreeUrl = _.contains(U.getUrlSegments(document.URL), "trees");
-    
-        if (getTreeId() !== '' && currentlyOnTreeUrl) {
-            afterDeleteUrl = getPlotUrlFromTreeUrl(document.URL);
-        } else if (getTreeId() !== '') {
-            deleteUrl = 'trees/' + getTreeId() + '/';
-            afterDeleteUrl = document.URL;
-        }
-        return {
+            '.responseData.treeId');
+
+    if (treeId) {
+        var deleteUrl = reverse.delete_tree({
+                instance_url_name: config.instance.url_name,
+                feature_id: window.otm.mapFeature.featureId,
+                tree_id: treeId
+            });
+        mapFeatureDelete.init({
             deleteUrl: deleteUrl,
-            afterDeleteUrl: afterDeleteUrl
-        };
+            successUrl: document.URL
+        });
+    } else {
+        mapFeatureDelete.init();
     }
-    
-    mapFeatureDelete.init({
-        getUrls: getUrls,
-        resetUIState: function () {
-            if (getTreeId() === '') {
-                $('#delete-plot-warning').show();
-                $('#delete-tree-warning').hide();
-            } else {
-                $('#delete-tree-warning').show();
-                $('#delete-plot-warning').hide();
-            }
-        }
-    });
-    
-    function initializeTreeIdSection(id) {
-        var $section = $(dom.treeIdColumn);
-        $section.attr('data-tree-id', id);
-        $section.html(format('<a href="trees/%s/">%s</a>', id, id));
-        $(dom.treePresenceSection).hide();
-    }
-    
+
     otmTypeahead.create({
         name: "species",
         url: reverse.species_list_view(config.instance.url_name),
@@ -110,21 +63,21 @@ exports.init = function(form) {
     });
     
     mapFeatureUdf.init(form);
-    
-    newTreeIdStream.onValue(initializeTreeIdSection);
-    newTitleStream.onValue($('#map-feature-title'), 'html');
-    newAddressStream.onValue($('#map-feature-address'), 'html');
-    
+
     var beginAddStream = plotAddTree.init({
         form: form,
         addTreeControls: dom.addTreeControls,
         beginAddTree: dom.beginAddTree,
         plotId: window.otm.mapFeature.featureId
     });
-    beginAddStream.onValue($treeSection, 'show');
+    beginAddStream.onValue(function () {
+        $(dom.treeSection).show();
+    });
     
     form.cancelStream
         .skipUntil(beginAddStream)
         .takeUntil(newTreeIdStream)
-        .onValue($treeSection, 'hide');
+        .onValue(function () {
+            $(dom.treeSection).hide();
+        });
 };
