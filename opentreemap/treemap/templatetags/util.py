@@ -6,6 +6,7 @@ import json
 
 from opentreemap.util import dotted_split
 
+from treemap.DotDict import DotDict
 from treemap.models import MapFeature, Tree, TreePhoto, MapFeaturePhoto, Audit
 from treemap.udf import UserDefinedCollectionValue
 from treemap.util import (get_filterable_audit_models, to_model_name,
@@ -92,6 +93,11 @@ def audit_detail_link(audit):
             return None
     else:
         return None
+
+
+@register.filter
+def interpolate_string(text, params):
+    return text.format(**DotDict(params))
 
 
 @register.filter

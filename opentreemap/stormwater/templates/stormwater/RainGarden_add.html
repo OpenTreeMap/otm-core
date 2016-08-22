@@ -2,12 +2,13 @@
 {% load i18n %}
 {% load l10n %}
 {% load form_extras %}
+{% load util %}
 
 {% block resource_add_details %}
 <div class="resource-question">
-  {# Translators: singular means Rain Garden #}
-  {% trans "How large is the area that drains into the {singular}?" as drainage_area %}
-  {% trans "Approximate size is fine. Do not include the area of the {singular} itself" as explanation %}
+  {# Translators: RainGarden.singular means Rain Garden #}
+  {% trans "How large is the area that drains into the {RainGarden.singular}?"|interpolate_string:term as drainage_area %}
+  {% trans "Approximate size is fine. Do not include the area of the {RainGarden.singular} itself."|interpolate_string:term as explanation %}
   {% create drainage_area from "RainGarden.drainage_area" in request.instance withtemplate "treemap/field/div.html" withhelp explanation %}
 </div>
 {% endblock resource_add_details %}

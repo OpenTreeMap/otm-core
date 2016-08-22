@@ -296,14 +296,6 @@ def field_type_label_choices(model, field_name, label=None,
     return field_type, label, explanation, choices
 
 
-def format_with_terminology(model, label):
-    terminology_fn = getattr(model.__class__, 'terminology', None)
-    instance = model.instance
-    if label and terminology_fn and instance:
-        return label.format(**terminology_fn(instance))
-    return label
-
-
 class AbstractNode(template.Node):
     def __init__(self, label, identifier, user, field_template, instance,
                  explanation):
@@ -405,8 +397,6 @@ class AbstractNode(template.Node):
                 model.instance, object_name, field_name)
             if units != '':
                 units = get_unit_name(units)
-            label = format_with_terminology(model, label)
-            explanation = format_with_terminology(model, explanation)
 
         if field_value is None:
             display_val = None
