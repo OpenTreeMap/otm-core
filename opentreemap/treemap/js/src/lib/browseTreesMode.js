@@ -130,7 +130,7 @@ function makePopup(latLon, html) {
         var popup = L.popup(popupOptions)
             .setLatLng(latLon)
             .setContent(html);
-        
+
         var mapFeatureType = $(html).data('mapfeature-type');
         popup.isMapFeature = mapFeatureType !== undefined;
         popup.isPlot = mapFeatureType === 'Plot';
