@@ -21,6 +21,7 @@ from treemap.models import Tree, MapFeature, User, Favorite
 
 from treemap.lib import format_benefits
 from treemap.lib.photo import context_dict_for_photo
+from treemap.units import get_display_value, get_units, get_unit_name
 from treemap.util import leaf_models_of_class, to_object_name
 
 from stormwater.models import PolygonalMapFeature
@@ -311,9 +312,12 @@ def context_dict_for_resource(request, resource, **kwargs):
 
     if isinstance(resource, PolygonalMapFeature):
         context['contained_plots'] = resource.contained_plots()
-        # TODO: Convert to map owner prefered units
-        display_area = int(round(resource.calculate_area(), 0))
-        context['area'] = '%d m²' % display_area
+        __, display_area = get_display_value(instance,
+                                             'greenInfrastructure', 'area',
+                                             resource.calculate_area())
+        display_units = get_unit_name(get_units(instance,
+                                      'greenInfrastructure', 'area'))
+        context['area'] = '{} {}'.format(display_area, display_units)
 
     return context
 
