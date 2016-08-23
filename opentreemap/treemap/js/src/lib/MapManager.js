@@ -89,7 +89,9 @@ MapManager.prototype = {
 
                 map.utfEvents = Bacon.mergeAll(
                     plotUtfEventStream,
-                    polygonDataStream
+                    emptyUtfEventStream.zip(polygonDataStream, function(utf, polygon) {
+                        return _.merge({}, utf, polygon);
+                    })
                 );
             } else {
                 map.utfEvents = baseUtfEventStream;
