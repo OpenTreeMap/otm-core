@@ -11,7 +11,8 @@ from django.contrib.staticfiles import finders
 from django.utils.timezone import now
 from django.utils.translation import ugettext as _
 
-from treemap.util import get_last_visited_instance
+from treemap.units import Convertible
+from treemap.util import get_last_visited_instance, leaf_models_of_class
 from treemap.models import InstanceUser
 
 
@@ -52,6 +53,9 @@ def global_settings(request):
     term = copy.copy(REPLACEABLE_TERMS)
     if hasattr(request, 'instance'):
         term.update(request.instance.config.get('terms', {}))
+        for clz in leaf_models_of_class(Convertible):
+            term.update({
+                clz.__name__: clz.terminology(request.instance)})
 
     ctx = {
         'SITE_ROOT': settings.SITE_ROOT,

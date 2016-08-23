@@ -6,7 +6,17 @@
 
 {% block resource_add_details %}
 <div class="resource-question">
-  {# Translators: RainGarden.singular means Rain Garden #}
+  {% captureas drainage_area %}
+    {% blocktrans with rain_garden=term.RainGarden.singular %}
+      How large is the area that drains into the {{rain_garden}}?
+    {% endblocktrans %}
+  {% endcaptureas %}
+  {% captureas explanation %}
+    {% blocktrans with rain_garden=term.RainGarden.singular %}
+      Approximate size is fine.
+      Do not include the area of the {{rain_garden}} itself.
+    {% endblocktrans %}
+  {% endcaptureas %}
   {% trans "How large is the area that drains into the {RainGarden.singular}?"|interpolate_string:term as drainage_area %}
   {% trans "Approximate size is fine. Do not include the area of the {RainGarden.singular} itself."|interpolate_string:term as explanation %}
   {% create drainage_area from "RainGarden.drainage_area" in request.instance withtemplate "treemap/field/div.html" withhelp explanation %}

@@ -6,7 +6,6 @@ import json
 
 from opentreemap.util import dotted_split
 
-from treemap.DotDict import DotDict
 from treemap.models import MapFeature, Tree, TreePhoto, MapFeaturePhoto, Audit
 from treemap.udf import UserDefinedCollectionValue
 from treemap.util import (get_filterable_audit_models, to_model_name,
@@ -18,6 +17,34 @@ register = template.Library()
 
 
 register.filter('get', lambda a, b: a[b])
+
+
+# From https://djangosnippets.org/snippets/545/
+# Found from http://bit.ly/2c37Fgz on stackoverflow
+# /questions/15073695/assigning-blocktrans-output-to-variable
+#
+# The correct answer to the stackoverflow question is to use the
+# blocktrans `asvar` parameter, but that only works in django v 1.9+.
+# `captureas` seems more generally useful than just for blocktrans.
+@register.tag(name='captureas')
+def do_captureas(parser, token):
+    try:
+        tag_name, var_name = token.contents.split(None, 1)
+    except ValueError:
+        var_name = 'captured'
+    nodelist = parser.parse(('endcaptureas',))
+    parser.delete_first_token()
+    return CaptureasNode(nodelist, var_name)
+
+
+class CaptureasNode(template.Node):
+    def __init__(self, nodelist, varname):
+        self.nodelist = nodelist
+        self.varname = varname
+
+    def render(self, context):
+        context[self.varname] = self.nodelist.render(context)
+        return ''
 
 
 def _instance_reverse(name, thing, **kwargs):
@@ -93,11 +120,6 @@ def audit_detail_link(audit):
             return None
     else:
         return None
-
-
-@register.filter
-def interpolate_string(text, params):
-    return text.format(**DotDict(params))
 
 
 @register.filter
