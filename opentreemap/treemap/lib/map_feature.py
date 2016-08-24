@@ -21,7 +21,7 @@ from treemap.models import Tree, MapFeature, User, Favorite
 
 from treemap.lib import format_benefits
 from treemap.lib.photo import context_dict_for_photo
-from treemap.units import get_display_value, get_units, get_unit_name
+from treemap.units import get_display_value, get_units, get_unit_abbreviation
 from treemap.util import leaf_models_of_class, to_object_name
 
 from stormwater.models import PolygonalMapFeature
@@ -315,8 +315,8 @@ def context_dict_for_resource(request, resource, **kwargs):
         __, display_area = get_display_value(instance,
                                              'greenInfrastructure', 'area',
                                              resource.calculate_area())
-        display_units = get_unit_name(get_units(instance,
-                                      'greenInfrastructure', 'area'))
+        display_units = get_unit_abbreviation(
+            get_units(instance, 'greenInfrastructure', 'area'))
         context['area'] = '{} {}'.format(display_area, display_units)
 
     return context

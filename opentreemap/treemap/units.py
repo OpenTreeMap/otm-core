@@ -87,6 +87,11 @@ _unit_names = {
     "sq_m": _("meters²")
 }
 
+_unit_abbreviations = {
+    "sq_ft": _("ft²"),
+    "sq_m": _("m²")
+}
+
 _unit_conversions = {
     "in": {"in": 1, "ft": 1 / 12, "cm": 2.54, "m": .0254},
     "lbs/year": {"lbs/year": 1, "kg/year": 0.453592},
@@ -105,6 +110,10 @@ _unit_conversions["sq_ft"] = {
 
 def get_unit_name(abbrev):
     return _unit_names[abbrev]
+
+
+def get_unit_abbreviation(abbrev):
+    return _unit_abbreviations.get(abbrev, abbrev)
 
 
 def get_convertible_units(category_name, value_name):
