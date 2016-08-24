@@ -141,7 +141,7 @@ def get_unit_name(abbrev):
 
 
 def get_unit_abbreviation(abbrev):
-    return _unit_abbreviations.get(abbrev, abbrev)
+    return _unit_abbreviations[abbrev]
 
 
 def get_convertible_units(category_name, value_name):
