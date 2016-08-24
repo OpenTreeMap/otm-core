@@ -102,7 +102,7 @@
 {% block delete_confirmation_text %}
 <p>
     <strong>{% trans "Warning!" %}</strong>
-    {% blocktrans with resource=term.resource.singular.lower %}
+    {% blocktrans with resource=term.Resource.singular.lower %}
     You are about to delete this {{ resource }}. Do you want to continue?
     {% endblocktrans %}
 </p>
