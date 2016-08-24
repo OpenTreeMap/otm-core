@@ -53,6 +53,20 @@ def global_settings(request):
     term = copy.copy(REPLACEABLE_TERMS)
     if hasattr(request, 'instance'):
         term.update(request.instance.config.get('terms', {}))
+        # config.get('terms') above populates the term context variable with
+        # model terminology provided it has been customized for the treemap
+        # instance, but fails to populate it with the default terminology. The
+        # for loop below ensures that term is populated with model terminology
+        # whether it has been customized or not.
+
+        # Convertible is the base class where the terminology class property is
+        # defined, so its leaf subclasses are the ones with default terminology
+        # we might care about.
+
+        # leaf_models_of_class uses recursive descent through the
+        # clz.__subclasses__ attributes, but it only iterates through a total
+        # of around ten nodes at present, so it is unlikely to be a performance
+        # problem.
         for clz in leaf_models_of_class(Convertible):
             term.update({
                 clz.__name__: clz.terminology(request.instance)})
