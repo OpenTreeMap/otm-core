@@ -88,7 +88,35 @@ _unit_names = {
 }
 
 _unit_abbreviations = {
+    # Translators: "in" is an abbreviation for "inches"
+    "in": _("in"),
+    # Translators: "ft" is an abbreviation for "feet"
+    "ft": _("ft"),
+    # Translators: "cm" is an abbreviation for "centimeters"
+    "cm": _("cm"),
+    # Translators: "m" is an abbreviation for "meters"
+    "m": _("m"),
+    # Translators: "lbs/year" is an abbreviation for "pounds per year"
+    "lbs/year": _("lbs/year"),
+    # Translators: "kg/year" is an abbreviation for "kilograms per year"
+    "kg/year": _("kg/year"),
+    # Translators: "lbs" is an abbreviation for "pounds"
+    "lbs": _("lbs"),
+    # Translators: "kg" is an abbreviation for "kilograms"
+    "kg": _("kg"),
+    # Translators: "kwh/year" is an abbreviation for "kilowatt-hours per year"
+    "kwh/year": _("kwh/year"),
+    # Translators: "gal" is an abbreviation for "gallons"
+    "gal": _("gal"),
+    # Translators: "gal/year" is an abbreviation for "gallons per year"
+    "gal/year": _("gal/year"),
+    # Translators: "L" is an abbreviation for "liters"
+    "L": _("L"),
+    # Translators: "L/year" is an abbreviation for "liters per year"
+    "L/year": _("L/year"),
+    # Translators: "ft²" is an abbreviation for "square feet"
     "sq_ft": _("ft²"),
+    # Translators: "m²" is an abbreviation for "square meters"
     "sq_m": _("m²")
 }
 
