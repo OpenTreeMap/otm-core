@@ -19,7 +19,7 @@ class PlotEditDeleteTest(PlotDetailDeleteUITestCase):
         self.diameter_input.clear()
         self.diameter_input.send_keys('11')
         self.save_edit.click()
-        self.wait_until_visible(self.edit_plot)
+        self.wait_until_present('#edit-map-feature')
 
         self.assertEqual(Tree.objects.count(), 1)
 

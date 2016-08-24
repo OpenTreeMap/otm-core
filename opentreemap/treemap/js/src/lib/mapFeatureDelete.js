@@ -10,34 +10,21 @@ var dom = {
     deleteConfirm: '#delete-confirm',
     deleteCancel: '#delete-cancel',
     deleteConfirmationBox: '#delete-confirmation-box',
+    spinner: '.spinner'
 };
 
 exports.init = function(options) {
     options = options || {};
-    var $delete = $(dom.delete),
-        $deleteConfirm = $(dom.deleteConfirm),
-        $deleteCancel = $(dom.deleteCancel),
-        $deleteConfirmationBox = $(dom.deleteConfirmationBox),
 
-        resetUIState = function () {
-            if (options.resetUIState) {
-                options.resetUIState();
-            }
-            $deleteConfirmationBox.hide();
-        },
-
-        getUrls = options.getUrls || function () {
-            return {deleteUrl: document.URL,
-                    afterDeleteUrl: reverse.map(config.instance.url_name)};
-        };
-
-    $deleteConfirm.click(function () {
-        var urls = getUrls();
+    $(dom.deleteConfirm).click(function () {
+        var deleteUrl = options.deleteUrl || document.URL,
+            successUrl = options.successUrl || reverse.map(config.instance.url_name);
+        $(dom.spinner).show();
         $.ajax({
-            url: urls.deleteUrl,
+            url: deleteUrl,
             type: 'DELETE',
             success: function () {
-                window.location = urls.afterDeleteUrl;
+                window.location = successUrl;
             },
             error: function () {
                 toastr.error("Cannot delete");
@@ -45,9 +32,10 @@ exports.init = function(options) {
         });
     });
 
-    $deleteCancel.click(resetUIState);
-    $delete.click(function () { 
-        resetUIState();
-        $deleteConfirmationBox.show(); 
+    $(dom.deleteCancel).click(function () {
+        $(dom.deleteConfirmationBox).hide();
+    });
+    $(dom.delete).click(function () {
+        $(dom.deleteConfirmationBox).show();
     });
 };

@@ -189,7 +189,7 @@ class TreemapUrlTests(UrlTestCase):
     def test_plot_detail(self):
         plot = self.make_plot()
         url = self.prefix + 'features/%s/' % plot.id
-        self.assert_template(url, 'treemap/plot_detail.html')
+        self.assert_template(url, 'treemap/partials/plot_detail.html')
         self.assert_template(url, 'treemap/map_feature_detail.html')
 
     def test_plot_detail_invalid(self):
@@ -218,7 +218,7 @@ class TreemapUrlTests(UrlTestCase):
     def test_map_feature_accordion(self):
         plot = self.make_plot()
         self.assert_template(
-            self.prefix + 'features/%s/detail' % plot.id,
+            self.prefix + 'features/%s/accordion' % plot.id,
             'treemap/partials/map_feature_accordion.html')
 
     def test_map_feature_accordion_invalid(self):
