@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from stormwater.benefits import PolygonalBasinBenefitCalculator
 from treemap.decorators import classproperty
-from treemap.models import MapFeature, GeoHStoreUDFManager
+from treemap.models import MapFeature, GeoHStoreUDFManager, ValidationMixin
 from treemap.ecobenefits import CountOnlyBenefitCalculator
 
 
@@ -55,7 +55,7 @@ class PolygonalMapFeature(MapFeature):
         return feature_areas[0]
 
 
-class Bioswale(PolygonalMapFeature):
+class Bioswale(PolygonalMapFeature, ValidationMixin):
     objects = GeoHStoreUDFManager()
     drainage_area = models.FloatField(
         null=True,
@@ -111,8 +111,12 @@ class Bioswale(PolygonalMapFeature):
         'diversion_rate': 0.85
     }
 
+    def clean(self):
+        self.validate_positive_nullable_float_field('drainage_area')
+        super(Bioswale, self).clean()
 
-class RainGarden(PolygonalMapFeature):
+
+class RainGarden(PolygonalMapFeature, ValidationMixin):
     objects = GeoHStoreUDFManager()
     drainage_area = models.FloatField(
         null=True,
@@ -167,6 +171,10 @@ class RainGarden(PolygonalMapFeature):
         'should_show_eco': False,
         'diversion_rate': 0.85
     }
+
+    def clean(self):
+        self.validate_positive_nullable_float_field('drainage_area')
+        super(RainGarden, self).clean()
 
 
 class RainBarrel(MapFeature):
