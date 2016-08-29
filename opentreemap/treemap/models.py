@@ -823,30 +823,35 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
 
 class ValidationMixin(object):
-    def validate_positive_nullable_float_field(self, field_name,
-                                               max_value=None):
+    def validate_positive_nullable_float_field(
+            self, field_name, max_value=None, zero_ok=False):
+
         if getattr(self, field_name) is not None:
             pretty_field_name = field_name.replace('_', ' ')
+
+            def error(message):
+                return ValidationError({field_name: [
+                    message % {'field_name': pretty_field_name}]})
+
             try:
                 # The value could be a string at this point so we
-                # cast to make sure that we are comparing two numeric
-                # values
+                # cast to make sure we are comparing two numeric values
                 new_value = float(getattr(self, field_name))
             except ValueError:
-                raise ValidationError({field_name: [
-                    _('The %(field_name)s must be a decimal number' %
-                      {'field_name': pretty_field_name})]})
+                raise error(_('The %(field_name)s must be a decimal number'))
 
-            if new_value <= 0:
-                raise ValidationError({field_name: [
-                    _('The %(field_name)s must be greater than zero' %
-                      {'field_name': pretty_field_name})]})
+            if zero_ok:
+                if new_value < 0:
+                    raise error(_(
+                        'The %(field_name)s must be zero or greater'))
+            else:
+                if new_value <= 0:
+                    raise error(_(
+                        'The %(field_name)s must be greater than zero'))
 
             if max_value is not None:
                 if new_value > max_value:
-                    raise ValidationError({field_name: [
-                        _('The %(field_name)s is too large' %
-                          {'field_name': pretty_field_name})]})
+                    raise error(_('The %(field_name)s is too large'))
 
 
 # TODO:

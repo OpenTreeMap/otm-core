@@ -112,7 +112,8 @@ class Bioswale(PolygonalMapFeature, ValidationMixin):
     }
 
     def clean(self):
-        self.validate_positive_nullable_float_field('drainage_area')
+        self.validate_positive_nullable_float_field('drainage_area',
+                                                    zero_ok=True)
         super(Bioswale, self).clean()
 
 
@@ -173,7 +174,8 @@ class RainGarden(PolygonalMapFeature, ValidationMixin):
     }
 
     def clean(self):
-        self.validate_positive_nullable_float_field('drainage_area')
+        self.validate_positive_nullable_float_field('drainage_area',
+                                                    zero_ok=True)
         super(RainGarden, self).clean()
 
 
