@@ -28,12 +28,47 @@ MIGRATION_RULES['boundary']['presave_actions'] = (MIGRATION_RULES['boundary']
                                                   .get('presave_actions', [])
                                                   + [set_boundary_fields])
 
+# At the time of migration, 7 of the Tampa species did not have an i-Tree code
+# defined in the species fixture. otm-legacy has a one-to-many relationship
+# between the `treemap_species` table and the `treemap_resources` table via
+# `treemap_species_resource` and the i-Tree code used by the eco benefit
+# calculations is read from the `meta_species` column of the
+# `treemap_resources` table.
+#
+# Rather than spend time updating the migrator to
+# handle this edge case, we have opted to add a literal dictionary lookup for
+# these species so we can properly calculate eco benefits for these species.
+#
+# The lookup table was created by running this query against the otm-legacy
+# database:
+#
+# SELECT lower(scientific_name), meta_species
+# FROM treemap_species s
+# JOIN treemap_species_resource sr ON s.id = sr.species_id
+# JOIN treemap_resource r ON sr.resource_id = r.id
+# WHERE itree_code = '';
+meta_species = {
+    'phanera yunnanensis': 'BEM OTHER',
+    'phoenix dactylifera': 'PEM OTHER',
+    'tabebuia chrysotricha': 'BDS OTHER',
+    'phoenix rupicola': 'PEM OTHER',
+    'tabebuia impetiginosa': 'BDM OTHER',
+    'unknown unknown': 'BDM OTHER',
+    'phoenix sylvestris': 'PEM OTHER'
+}
+
 
 def create_override(species_obj, species_dict):
+    sci_name = species_dict['fields']['scientific_name'].lower()
+    itree_code = species_dict['fields'].get('itree_code', None)
+    if not itree_code:
+        print('No itree_code for "%d: %s"' % (species_dict['pk'], sci_name))
+        itree_code = meta_species.get(sci_name, '')
+        print('Looked up meta species "%s"' % itree_code)
     override = ITreeCodeOverride(
         instance_species_id=species_obj.pk,
         region=ITreeRegion.objects.get(code=TAMPA_ITREE_REGION_CODE),
-        itree_code=species_dict['fields']['itree_code'])
+        itree_code=itree_code)
     override.save_with_user(User.system_user())
     return species_obj
 
