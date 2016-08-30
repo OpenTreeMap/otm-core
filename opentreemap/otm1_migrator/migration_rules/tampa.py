@@ -59,9 +59,9 @@ meta_species = {
 
 
 def create_override(species_obj, species_dict):
-    sci_name = species_dict['fields']['scientific_name'].lower()
     itree_code = species_dict['fields'].get('itree_code', None)
     if not itree_code:
+        sci_name = species_dict['fields'].get('scientific_name', '').lower()
         print('No itree_code for "%d: %s"' % (species_dict['pk'], sci_name))
         itree_code = meta_species.get(sci_name, '')
         print('Looked up meta species "%s"' % itree_code)
