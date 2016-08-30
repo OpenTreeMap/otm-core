@@ -30,3 +30,4 @@ rollbar==0.12.1
 django-statsd-mozilla==0.3.16
 django-js-reverse==0.7.2
 django-webpack-loader==0.3.0
+statsd==3.2.1
