@@ -273,8 +273,8 @@ class TreemapPrivateUrlTests(UrlTestCase):
         self.assert_redirects(desired_path, expected_path, 302)
 
     def test_embed(self):
-        desired_path = self.prefix + 'map/?embed='
-        expected_path = '/not-available?embed='
+        desired_path = self.prefix + 'map/?embed=1'
+        expected_path = '/not-available?embed=1'
         self.assert_redirects(desired_path, expected_path, 302)
 
 

@@ -11,6 +11,8 @@ from django.contrib.staticfiles import finders
 from django.utils.timezone import now
 from django.utils.translation import ugettext as _
 
+from opentreemap.util import request_is_embedded
+
 from treemap.units import Convertible
 from treemap.util import get_last_visited_instance, leaf_models_of_class
 from treemap.models import InstanceUser
@@ -50,12 +52,6 @@ def global_settings(request):
     except:
         header_comment = "Version information not available\n"
 
-    embed = False
-    try:
-        embed = request.GET.get('embed') is not None
-    except:
-        pass
-
     term = copy.copy(REPLACEABLE_TERMS)
     if hasattr(request, 'instance'):
         term.update(request.instance.config.get('terms', {}))
@@ -85,7 +81,7 @@ def global_settings(request):
         'logo_url': logo_url,
         'header_comment': header_comment,
         'term': term,
-        'embed': embed,
+        'embed': request_is_embedded(request),
         'datepicker_start_date': datetime.min.replace(year=1900),
     }
 

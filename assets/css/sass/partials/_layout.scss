@@ -50,22 +50,32 @@ body {
             top: 196px;
         }
 
+        @media #{$screen-gtxs} {
+            .embed & {
+                bottom: 0;
+                top: 147px;
+            }
+        }
+
         @media #{$screen-xs} {
             right: 0;
             top: 154px;
             overflow: auto;
 
+            .embed & {
+                bottom: 0;
+                top: 98px;
+            }
+
             .map {
                 height: 300px;
             }
         }
-    }
-}
 
-.embed {
-    .content.explore-map {
-        bottom: 0;
-        top: 147px;
+        .embed & {
+            bottom: 0;
+            top: 141px;
+        }
     }
 }
 

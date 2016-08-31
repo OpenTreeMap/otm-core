@@ -18,6 +18,8 @@ from django.contrib.auth.decorators import login_required
 from django_tinsel.utils import LazyEncoder, decorate as do
 from django_tinsel.decorators import json_api_call
 
+from opentreemap.util import request_is_embedded
+
 from treemap.util import (add_visited_instance,
                           get_instance_or_404, login_redirect,
                           can_read_as_super_admin)
@@ -45,12 +47,12 @@ def instance_request(view_fn, redirect=True):
             return view_fn(request, instance, *args, **kwargs)
         else:
             if redirect:
-                if request.user.is_authenticated():
+                if request_is_embedded(request):
+                    return HttpResponseRedirect(
+                        reverse('instance_not_available') + '?embed=1')
+                elif request.user.is_authenticated():
                     return HttpResponseRedirect(
                         reverse('instance_not_available'))
-                elif request.GET.get('embed') is not None:
-                    return HttpResponseRedirect(
-                        reverse('instance_not_available') + '?embed=')
                 else:
                     return login_redirect(request)
             else:

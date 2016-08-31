@@ -131,3 +131,12 @@ def extent_intersection(*extents):
     extents = zip(*extents)
     xmins, ymins, xmaxes, ymaxes = extents
     return (max(xmins), max(ymins), min(xmaxes), min(ymaxes))
+
+
+def request_is_embedded(request):
+    embed_value = None
+    try:
+        embed_value = request.GET.get('embed')
+    except:
+        pass
+    return embed_value is not None and 0 < len(embed_value)
