@@ -186,6 +186,9 @@ class TreemapUrlTests(UrlTestCase):
     def test_tree_list(self):
         self.assert_template(self.prefix + 'map/', 'treemap/map.html')
 
+    def test_tree_list_embed(self):
+        self.assert_template(self.prefix + 'map/?embed=', 'treemap/map.html')
+
     def test_plot_detail(self):
         plot = self.make_plot()
         url = self.prefix + 'features/%s/' % plot.id

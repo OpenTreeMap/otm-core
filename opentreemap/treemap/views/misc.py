@@ -87,6 +87,7 @@ def get_map_view_context(request, instance):
         ],
         'resource_classes': resource_classes,
         'only_one_resource_class': len(resource_classes) == 1,
+        'embed': request.GET.get('embed') is not None,
     }
     add_map_info_to_context(context, instance)
     return context

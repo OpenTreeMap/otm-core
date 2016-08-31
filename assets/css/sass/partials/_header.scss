@@ -16,6 +16,13 @@
     }
 }
 
+.embed {
+    .header {
+        padding-top: 0;
+        height: 98px;
+    }
+}
+
 .logo {
     display: inline-block;
     vertical-align: middle;
@@ -38,6 +45,12 @@
     right: 15px;
     top: 60px;
     display: inline-block;
+}
+
+.embed {
+    .search-wrapper {
+        top: 15px;
+    }
 }
 
 .search-block-wrapper {
@@ -86,7 +99,7 @@
                 font-size: 1.8rem;
                 line-height: 1.6rem;
 
-                &.active, 
+                &.active,
                 &:hover {
                     color: $main-text-color;
                 }
@@ -129,8 +142,8 @@
 
     .btn-default {
 
-        &:hover, 
-        &:focus, 
+        &:hover,
+        &:focus,
         &:active, &.active {
             box-shadow: none;
             background: darken($button-default, 5%);

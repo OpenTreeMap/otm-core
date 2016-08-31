@@ -48,7 +48,8 @@
     {% endif %}
   </head>
   <body>
-    <div {% block outermost_atts %}{% endblock outermost_atts %} class="wrapper">
+    <div {% block outermost_atts %}{% endblock outermost_atts %} class="wrapper{% if embed %} embed{% endif %}">
+      {% if not embed %}
       {% block topnav %}
       <!-- Top Nav -->
       <div class="navbar navbar-inverse navbar-fixed-top">
@@ -129,6 +130,7 @@
         </div>
       </div>
       {% endblock topnav %}
+      {% endif %}
 
       {% block header %}
       <!-- Logo and Search -->
@@ -171,7 +173,9 @@
 
     </div>
 
-    <footer>{% block footer %}{% endblock footer %}</footer>
+    {% if not embed %}
+      <footer>{% block footer %}{% endblock footer %}</footer>
+    {% endif %}
 
     {% block config_scripts %}
       {% if request.instance %}

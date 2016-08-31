@@ -5,6 +5,7 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     Bacon = require('baconjs'),
+    url = require('url'),
     L = require('leaflet'),
     U = require('treemap/lib/utility.js'),
     MapManager = require('treemap/lib/MapManager.js'),
@@ -60,9 +61,13 @@ module.exports.init = function (options) {
         }
     });
 
+    var queryObject = url.parse(location.href, true).query;
+    var embed = queryObject && queryObject.hasOwnProperty('embed');
+
     return {
         mapManager: mapManager,
         map: mapManager.map,
+        embed: !!embed,
         builtSearchEvents: builtSearchEvents,
         getMapStateSearch: urlState.getSearch,
         mapStateChangeStream: urlState.stateChangeStream,

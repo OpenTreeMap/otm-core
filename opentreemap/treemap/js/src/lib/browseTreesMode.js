@@ -12,6 +12,7 @@ var $ = require('jquery'),
 
 var map,
     popup,  // Most recent popup (so it can be deleted)
+    embed,  // True if embed is in the query string
     plotMarker,
     $fullDetailsButton;
 
@@ -28,6 +29,7 @@ function idToPlotDetailUrl(id) {
 
 function init(options) {
     map = options.map;
+    embed = options.embed;
     plotMarker = options.plotMarker;
     $fullDetailsButton = options.$fullDetailsButton;
 
@@ -77,6 +79,9 @@ function init(options) {
         .assign($('#accordion-map-feature-detail-tab'), 'html');
 
     var showTreeDetailLink = $accordionSection.parent().find('a');
+    if (embed) {
+        showTreeDetailLink.filter('#full-details-button').attr('target', '_blank');
+    }
     showTreeDetailLink.on('click', function(event) {
         if ($('#map-feature-accordion').html().length === 0) {
             event.stopPropagation();
@@ -127,11 +132,16 @@ function makePopup(latLon, html) {
             maxHeight: 300
         };
 
+        var $popup = $(html);
+        if (embed) {
+            $popup.find('a').attr('target', '_blank');
+        }
+
         var popup = L.popup(popupOptions)
             .setLatLng(latLon)
-            .setContent(html);
+            .setContent($popup.html());
 
-        var mapFeatureType = $(html).data('mapfeature-type');
+        var mapFeatureType = $popup.data('mapfeature-type');
         popup.isMapFeature = mapFeatureType !== undefined;
         popup.isPlot = mapFeatureType === 'Plot';
 
