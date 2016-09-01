@@ -138,10 +138,22 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
     return result;
 };
 
-exports.renderMultiChoices = function($container) {
-    $container.each(function (__, el) {
+exports.initActiveFields = function($editFields, $displayFields) {
+    // Initialize any form fields with special JavaScript behavior,
+    // currently multichoice fields and date fields.
+    $editFields.find('select[multiple]').multiselect(
+        {enableFiltering: true,
+         enableCaseInsensitiveFiltering: true,
+         filterBehavior: 'value'});
+    exports.renderMultiChoices($displayFields.filter('[data-type="multichoice"]'));
+
+    $editFields.find("input[data-date-format]").datepicker();
+};
+
+exports.renderMultiChoices = function($multichoiceDisplayElements) {
+    $multichoiceDisplayElements.each(function (__, el) {
         var $el = $(el),
-            value = JSON.parse($(el).attr('data-value'));
-        $(el).html(multiChoiceDisplayTemplate({rows: value}));
+            value = JSON.parse($el.attr('data-value'));
+        $el.html(multiChoiceDisplayTemplate({rows: value}));
     });
 };
