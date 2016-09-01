@@ -92,7 +92,8 @@ function init() {
 
     function initDetailAfterRefresh() {
         buttonEnabler.run();
-        FH.renderMultiChoices($('[data-class="display"]').filter('[data-type="multichoice"]'));
+        FH.initMultiChoice($('[data-class="edit"]'), $('[data-class="display"]'));
+        $("input[data-date-format]").datepicker();
         initDetail();
     }
 
@@ -228,8 +229,6 @@ function init() {
             e.preventDefault();
         });
     }
-
-    $('[data-date-format]').datepicker();
 
     socialMediaSharing.init({imageFinishedStream: imageFinishedStream});
 }
