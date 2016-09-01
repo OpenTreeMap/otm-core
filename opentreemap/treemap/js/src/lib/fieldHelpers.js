@@ -138,16 +138,12 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
     return result;
 };
 
-exports.initActiveFields = function($editFields, $displayFields) {
-    // Initialize any form fields with special JavaScript behavior,
-    // currently multichoice fields and date fields.
+exports.initMultiChoice = function($editFields, $displayFields) {
     $editFields.find('select[multiple]').multiselect(
         {enableFiltering: true,
          enableCaseInsensitiveFiltering: true,
          filterBehavior: 'value'});
     exports.renderMultiChoices($displayFields.filter('[data-type="multichoice"]'));
-
-    $editFields.find("input[data-date-format]").datepicker();
 };
 
 exports.renderMultiChoices = function($multichoiceDisplayElements) {

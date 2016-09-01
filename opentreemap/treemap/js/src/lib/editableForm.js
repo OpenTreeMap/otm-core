@@ -169,7 +169,7 @@ exports.init = function(options) {
             }
         };
 
-    FH.initActiveFields($(editFields), $(displayFields));
+    FH.initMultiChoice($(editFields), $(displayFields));
 
     return {
         displayValuesToFormFields: displayValuesToFormFields,

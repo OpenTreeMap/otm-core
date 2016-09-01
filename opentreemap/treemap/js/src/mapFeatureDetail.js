@@ -92,7 +92,8 @@ function init() {
 
     function initDetailAfterRefresh() {
         buttonEnabler.run();
-        FH.initActiveFields($('[data-class="edit"]'), $('[data-class="display"]'));
+        FH.initMultiChoice($('[data-class="edit"]'), $('[data-class="display"]'));
+        $("input[data-date-format]").datepicker();
         initDetail();
     }
 
