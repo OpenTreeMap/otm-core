@@ -1,4 +1,7 @@
 {% load l10n %}
+{% if css_class %}
+class="{{ css_class }}"
+{% endif %}
 data-field="{{ field.identifier }}"
 data-class="{{ class }}"
 data-value="{{ field.value|default_if_none:""|unlocalize }}"
