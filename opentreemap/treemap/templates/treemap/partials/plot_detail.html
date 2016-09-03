@@ -16,7 +16,7 @@
 
     <!-- Tree Information -->
     <div id="tree-details" {{ has_tree|yesno:",style=display:none;" }}>
-        <table class="table table-hover">
+        <table class="table table-hover can-inline-edit">
             <tbody>
             {% usercanread tree "id" as value %}
                 <tr>
@@ -70,7 +70,7 @@
             {% endwith %}
         </div>
     {% else %}
-        <table class="table table-hover">
+        <table class="table table-hover can-inline-edit">
             <tbody>
             {% trans "Width" as width %}
             {% field width from "plot.width" for request.user withtemplate "treemap/field/tr.html" %}

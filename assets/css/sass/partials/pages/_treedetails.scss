@@ -43,17 +43,24 @@
 #map-feature-form {
     margin-top: 0;
 
-    table {
+    table.can-inline-edit {
         > tbody {
             > tr {
                 > td:first-child {
                     width: 45%;
-                    vertical-align: middle;
+                    > .alert {
+                        margin-top: 8px;
+                    }
                 }
-
-                &.diameter-row {
-                    td:first-child {
-                        vertical-align: top;
+            }
+        }
+    }
+    &[data-mode="edit"] {
+        table.can-inline-edit {
+            > tbody {
+                > tr.editable {
+                    > td:first-child {
+                        padding-top: 16px;
                     }
                 }
             }

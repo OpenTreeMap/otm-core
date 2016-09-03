@@ -142,7 +142,9 @@ exports.init = function(options) {
             typeaheadToDisplayValues();
         },
 
-        hideAndShowElements = function (fields, actions, action) {
+        hideAndShowElements = function (mode, fields, actions, action) {
+            var $modeEl = $(fields).parents('[data-mode]');
+            $modeEl.attr('data-mode', mode);
             if (_.contains(actions, action)) {
                 $(fields).show();
             } else {

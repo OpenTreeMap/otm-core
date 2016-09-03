@@ -36,8 +36,8 @@ exports.init = function(options) {
     actionStream.plug(editStream);
     actionStream.plug(saveOkStream);
     actionStream.plug(cancelStream);
-    actionStream.onValue(editForm.hideAndShowElements, editFields, eventsLandingInEditMode);
-    actionStream.onValue(editForm.hideAndShowElements, displayFields, eventsLandingInDisplayMode);
+    actionStream.onValue(editForm.hideAndShowElements, 'edit', editFields, eventsLandingInEditMode);
+    actionStream.onValue(editForm.hideAndShowElements, 'display' , displayFields, eventsLandingInDisplayMode);
 
     saveOkStream.onValue(editForm.formFieldsToDisplayValues);
 
