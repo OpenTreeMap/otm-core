@@ -150,6 +150,7 @@ exports.init = function(options) {
                 if ($field.length > 0) {
                     $field.html(errorList.join(','));
                     $field.show();
+                    $field.parents('.error').show();
                 } else {
                     console.log('Field error returned from server, ' +
                                 'but no dom element bound from client.',
