@@ -46,7 +46,7 @@
     table {
         > tbody {
             > tr {
-                > td:first-child {
+                > td:not([colspan]):first-child {
                     width: 45%;
                     vertical-align: middle;
                 }
@@ -55,6 +55,11 @@
                     td:first-child {
                         vertical-align: top;
                     }
+                }
+            }
+            > tr.error {
+                >td {
+                    border-top: 0 none;
                 }
             }
         }

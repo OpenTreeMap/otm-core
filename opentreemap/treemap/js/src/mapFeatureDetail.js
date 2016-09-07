@@ -92,7 +92,8 @@ function init() {
 
     function initDetailAfterRefresh() {
         buttonEnabler.run();
-        FH.renderMultiChoices($('[data-class="display"]').filter('[data-type="multichoice"]'));
+        FH.initMultiChoice($('[data-class="edit"]'), $('[data-class="display"]'));
+        $("input[data-date-format]").datepicker();
         initDetail();
     }
 
@@ -197,12 +198,11 @@ function init() {
             .onValue(panorama.update);
     }
 
-    var $favoriteLink = $(dom.favoriteLink),
-        $favoriteIcon = $(dom.favoriteIcon);
-
     if (config.loggedIn) {
-        $favoriteLink.on('click', function(e) {
-            var wasFavorited = $favoriteLink.attr('data-is-favorited') === 'True',
+        $('body').on('click', dom.favoriteLink, function(e) {
+            var $favoriteLink = $(dom.favoriteLink),
+                $favoriteIcon = $(dom.favoriteIcon),
+                wasFavorited = $favoriteLink.attr('data-is-favorited') === 'True',
                 url = $favoriteLink.attr(wasFavorited ? 'data-unfavorite-url' : 'data-favorite-url');
 
             $.ajax({
@@ -229,8 +229,6 @@ function init() {
             e.preventDefault();
         });
     }
-
-    $('[data-date-format]').datepicker();
 
     socialMediaSharing.init({imageFinishedStream: imageFinishedStream});
 }

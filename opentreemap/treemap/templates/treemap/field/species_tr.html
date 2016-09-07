@@ -20,9 +20,12 @@
     <td>
       {% include "treemap/field/species_typeahead.html" %}
     </td>
-    <td class="text-danger"
-        style="display: none;"
-        {% include "treemap/field/attrs.html" with class="error"%}></td>
+  <tr class="error" style="display:none">
+    <td colspan="2">
+      <div class="alert alert-danger"
+           {% include "treemap/field/attrs.html" with class="error" %}></div>
+    </td>
+  </tr>
   </tr>
   {% endif %}
 {% endif %}

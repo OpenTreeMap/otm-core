@@ -310,16 +310,12 @@ class UserExportsTest(UserExportsTestCase):
                              'created': str(self.user1.created)})
 
         self.assertUserJSON(user2data,
-                            {'last_edit_model': 'Plot',
-                             'last_edit_model_id': str(self.plot.pk),
-                             'last_edit_instance_id': str(self.instance.pk),
-                             'last_edit_user_id': str(self.user1.pk),
-                             'email': 'genly@example.com',
-                             'email_hash': self.user2.email_hash,
-                             'last_edit_model': 'Tree',
+                            {'last_edit_model': 'Tree',
                              'last_edit_model_id': str(self.tree.pk),
                              'last_edit_instance_id': str(self.instance.pk),
-                             'last_edit_user_id': str(self.user2.pk)})
+                             'last_edit_user_id': str(self.user2.pk),
+                             'email': 'genly@example.com',
+                             'email_hash': self.user2.email_hash})
 
     def test_min_edit_date(self):
         last_week = now() - datetime.timedelta(days=7)
