@@ -82,7 +82,7 @@
             {% field city from "plot.address_city" for request.user withtemplate "treemap/field/tr.html" %}
             {% trans "Postal Code" as zip %}
             {% field zip from "plot.address_zip" for request.user withtemplate "treemap/field/tr.html" %}
-            {% trans "Original Owner Id" as oid %}
+            {% trans "Custom ID" as oid %}
             {% field oid from "plot.owner_orig_id" for request.user withtemplate "treemap/field/tr.html" %}
             <!-- Hiding readonly field temporarily -->
             <!-- See github #379 and #772 for more details -->
