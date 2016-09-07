@@ -126,6 +126,11 @@ map_feature_detail = do(
                 PUT=feature_views.update_map_feature_detail,
                 DELETE=feature_views.delete_map_feature))))
 
+map_feature_detail_partial = do(
+    instance_request,
+    require_http_method('GET'),
+    feature_views.render_map_feature_detail_partial)
+
 map_feature_accordion = do(
     instance_request,
     render_template('treemap/partials/map_feature_accordion.html'),

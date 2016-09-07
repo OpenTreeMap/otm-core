@@ -3,12 +3,15 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     toastr = require('toastr'),
+    plotDetail = require('treemap/lib/plotDetail.js'),
+    resourceDetail = require('treemap/lib/resourceDetail.js'),
     inlineEditForm = require('treemap/lib/inlineEditForm.js'),
     MapManager = require('treemap/lib/MapManager.js'),
     R = require('ramda'),
     BU = require('treemap/lib/baconUtils.js'),
     Bacon = require('baconjs'),
     U = require('treemap/lib/utility.js'),
+    FH = require('treemap/lib/fieldHelpers.js'),
     geometryMover = require('treemap/lib/geometryMover.js'),
     plotMarker = require('treemap/lib/plotMarker.js'),
     statePrompter = require('treemap/lib/statePrompter.js'),
@@ -21,12 +24,16 @@ var $ = require('jquery'),
     config = require('treemap/lib/config.js'),
     reverse = require('reverse'),
     alerts = require('treemap/lib/alerts.js'),
-    comments = require('otm_comments/lib/comments.js'),
+    buttonEnabler = require('treemap/lib/buttonEnabler.js'),
+    comments = require('otm_comments/lib/comments.js');
 
-    dom = {
+// Placed onto the jquery object
+require('bootstrap-datepicker');
+
+var dom = {
         favoriteLink: '#favorite-link',
         favoriteIcon: '#favorite-star',
-        ecoBenefits: '#ecobenefits',
+        detail: '#mapFeaturePartial',
         sidebar: '#sidebar',
         form: '#map-feature-form',
         streetView: '#street-view',
@@ -36,9 +43,8 @@ var $ = require('jquery'),
         },
     };
 
-exports.init = function() {
-    var $ecoBenefits = $(dom.ecoBenefits),
-        detailUrl = window.location.href;
+function init() {
+    var detailUrl = window.location.href;
 
     if (U.getLastUrlSegment(detailUrl) == 'edit') {
         detailUrl = U.removeLastUrlSegment(detailUrl);
@@ -80,24 +86,40 @@ exports.init = function() {
         shouldBeInEditModeStream: shouldBeInEditModeStream,
         errorCallback: alerts.errorCallback,
         onSaveBefore: function (data) { currentMover.onSaveBefore(data); },
-        onSaveAfter: function (data) { currentMover.onSaveAfter(data); }
+        onSaveAfter: function (data) { currentMover.onSaveAfter(data); },
+        dontUpdateOnSaveOk: true
     });
 
-    if (config.instance.supportsEcobenefits) {
-        var updateEcoUrl = reverse.plot_eco({
+    function initDetailAfterRefresh() {
+        buttonEnabler.run();
+        FH.initMultiChoice($('[data-class="edit"]'), $('[data-class="display"]'));
+        $("input[data-date-format]").datepicker();
+        initDetail();
+    }
+
+    function initDetail() {
+        if (window.otm.mapFeature.isPlot) {
+            plotDetail.init(form);
+        } else {
+            resourceDetail.init(form);
+        }
+    }
+
+    initDetail(form);
+
+    var refreshDetailUrl = reverse.map_feature_detail_partial({
+            instance_url_name: config.instance.url_name,
+            feature_id: window.otm.mapFeature.featureId
+        }),
+        refreshSidebarUrl = reverse.map_feature_sidebar({
             instance_url_name: config.instance.url_name,
             feature_id: window.otm.mapFeature.featureId
         });
-        form.saveOkStream
-            .map($ecoBenefits)
-            .onValue('.load', updateEcoUrl);
-    }
-
-    var sidebarUpdate = form.saveOkStream.merge(imageFinishedStream),
-        updateSidebarUrl = U.appendSegmentToUrl('sidebar', detailUrl);
-    sidebarUpdate
-        .map($(dom.sidebar))
-        .onValue('.load', updateSidebarUrl);
+    form.saveOkStream.merge(imageFinishedStream)
+        .onValue(function () {
+            $(dom.detail).load(refreshDetailUrl, initDetailAfterRefresh);
+            $(dom.sidebar).load(refreshSidebarUrl);
+        });
 
     form.inEditModeProperty.onValue(function(inEditMode) {
         var hrefHasEdit = U.getLastUrlSegment() === 'edit';
@@ -176,12 +198,11 @@ exports.init = function() {
             .onValue(panorama.update);
     }
 
-    var $favoriteLink = $(dom.favoriteLink),
-        $favoriteIcon = $(dom.favoriteIcon);
-
     if (config.loggedIn) {
-        $favoriteLink.on('click', function(e) {
-            var wasFavorited = $favoriteLink.attr('data-is-favorited') === 'True',
+        $('body').on('click', dom.favoriteLink, function(e) {
+            var $favoriteLink = $(dom.favoriteLink),
+                $favoriteIcon = $(dom.favoriteIcon),
+                wasFavorited = $favoriteLink.attr('data-is-favorited') === 'True',
                 url = $favoriteLink.attr(wasFavorited ? 'data-unfavorite-url' : 'data-favorite-url');
 
             $.ajax({
@@ -210,8 +231,6 @@ exports.init = function() {
     }
 
     socialMediaSharing.init({imageFinishedStream: imageFinishedStream});
+}
 
-    return {
-        inlineEditForm: form
-    };
-};
+init();

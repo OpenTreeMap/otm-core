@@ -6,6 +6,7 @@ from __future__ import division
 
 import hashlib
 import re
+from copy import copy
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -674,6 +675,34 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         except KeyError as e:
             raise ValidationError('Map feature type %s not found' % e)
 
+    @classmethod
+    def get_config(cls, instance):
+        """
+        Get configuration properties for this map feature type on the
+        specified instance.
+
+        Note that the map feature config is assumed to be flat.
+        """
+        config = copy(getattr(cls, 'default_config', {}))
+        overrides = instance.map_feature_config.get(cls.__name__, {})
+        config.update(overrides)
+        return config
+
+    @classmethod
+    def set_config_property(cls, instance, key, value, save=True):
+        """
+        Set a configuration property for this map feature type on the
+        specified instance.
+        """
+        config = instance.map_feature_config
+        class_name = cls.__name__
+        if class_name not in config:
+            config[class_name] = {}
+        config[class_name][key] = value
+        instance.map_feature_config = config
+        if save:
+            instance.save()
+
     @property
     def address_full(self):
         components = []
@@ -794,30 +823,35 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
 
 class ValidationMixin(object):
-    def validate_positive_nullable_float_field(self, field_name,
-                                               max_value=None):
+    def validate_positive_nullable_float_field(
+            self, field_name, max_value=None, zero_ok=False):
+
         if getattr(self, field_name) is not None:
             pretty_field_name = field_name.replace('_', ' ')
+
+            def error(message):
+                return ValidationError({field_name: [
+                    message % {'field_name': pretty_field_name}]})
+
             try:
                 # The value could be a string at this point so we
-                # cast to make sure that we are comparing two numeric
-                # values
+                # cast to make sure we are comparing two numeric values
                 new_value = float(getattr(self, field_name))
             except ValueError:
-                raise ValidationError({field_name: [
-                    _('The %(field_name)s must be a decimal number' %
-                      {'field_name': pretty_field_name})]})
+                raise error(_('The %(field_name)s must be a decimal number'))
 
-            if new_value <= 0:
-                raise ValidationError({field_name: [
-                    _('The %(field_name)s must be greater than zero' %
-                      {'field_name': pretty_field_name})]})
+            if zero_ok:
+                if new_value < 0:
+                    raise error(_(
+                        'The %(field_name)s must be zero or greater'))
+            else:
+                if new_value <= 0:
+                    raise error(_(
+                        'The %(field_name)s must be greater than zero'))
 
             if max_value is not None:
                 if new_value > max_value:
-                    raise ValidationError({field_name: [
-                        _('The %(field_name)s is too large' %
-                          {'field_name': pretty_field_name})]})
+                    raise error(_('The %(field_name)s is too large'))
 
 
 # TODO:

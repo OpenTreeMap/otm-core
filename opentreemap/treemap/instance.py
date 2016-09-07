@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from copy import deepcopy
+
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Extent
 from django.contrib.gis.geos import MultiPolygon, Polygon
@@ -203,7 +205,7 @@ class Instance(models.Model):
 
     """
     Config contains a bunch of configuration variables for a given instance,
-    which can be accessed via properties such as `map_feature_types`.
+    which can be accessed via properties such as `annual_rainfall_inches`.
     Note that it is a DotDict, and so supports get() with a dotted key and a
     default, e.g.
         instance.config.get('fruit.apple.type', 'delicious')
@@ -242,7 +244,7 @@ class Instance(models.Model):
 
     def _make_config_property(prop, default=None):
         def get_config(self):
-            return self.config.get(prop, default)
+            return self.config.get(prop, deepcopy(default))
 
         def set_config(self, value):
             self.config[prop] = value
@@ -257,7 +259,14 @@ class Instance(models.Model):
 
     scss_variables = _make_config_property('scss_variables')
 
-    map_feature_types = _make_config_property('map_feature_types', ['Plot'])
+    _map_feature_types = _make_config_property('map_feature_types', ['Plot'])
+
+    # Never access this property directly.
+    # Use the map feature class methods, get_config and set_config_property
+    map_feature_config = _make_config_property('map_feature_config', {})
+
+    annual_rainfall_inches = _make_config_property('annual_rainfall_inches',
+                                                   None)
 
     mobile_search_fields = _make_config_property('mobile_search_fields',
                                                  DEFAULT_MOBILE_SEARCH_FIELDS)
@@ -271,6 +280,13 @@ class Instance(models.Model):
     custom_layers = _make_config_property('custom_layers', [])
 
     non_admins_can_export = models.BooleanField(default=True)
+
+    @property
+    def map_feature_types(self):
+        """
+        To update, use add_map_feature_types and remove_map_feature_types.
+        """
+        return self._map_feature_types
 
     def advanced_search_fields(self, user):
         return advanced_search_fields(self, user)
@@ -425,6 +441,16 @@ class Instance(models.Model):
 
     @transaction.atomic
     def remove_map_feature_types(self, remove=None, keep=None):
+        """
+        remove_map_feature_types(self, remove=None, keep=None)
+
+        Either remove the map feature types in the remove argument,
+        or remove all but the types in the keep argument.
+        The types to remove or keep is a list of map feature class names.
+
+        Then remove map feature config for all removed map features,
+        and save the instance!!!
+        """
         from treemap.util import to_object_name
         if keep and remove:
             raise Exception('Invalid use of remove_map_features API: '
@@ -450,11 +476,21 @@ class Instance(models.Model):
                 # non-plot mobile_api_fields are not currently
                 # supported, but when they are added, they should
                 # also be removed here.
-        self.map_feature_types = remaining_types
+        self._map_feature_types = remaining_types
         self.save()
 
     @transaction.atomic
     def add_map_feature_types(self, types):
+        """
+        add_map_feature_types(self, types)
+
+        types is a list of map feature class names.
+
+        Add these types to the instance config,
+        save the instance!!!,
+        and create udf rows for udfs that have settings defaults,
+        if they don't already exist.
+        """
         from treemap.models import MapFeature  # prevent circular import
         from treemap.audit import add_default_permissions
 
@@ -464,7 +500,7 @@ class Instance(models.Model):
         if len(dups) > 0:
             raise ValidationError('Map feature types already added: %s' % dups)
 
-        self.map_feature_types = list(self.map_feature_types) + list(types)
+        self._map_feature_types = list(self.map_feature_types) + list(types)
         self.save()
 
         for type, clz in zip(types, classes):

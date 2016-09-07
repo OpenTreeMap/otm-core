@@ -3,12 +3,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.test import SimpleTestCase
 from django.test.utils import override_settings
 from django.contrib.gis.geos import Point, MultiPolygon
 from django.core.exceptions import ValidationError
 
 from treemap.models import (Tree, Instance, Plot, FieldPermission, Species,
-                            ITreeRegion)
+                            ITreeRegion, ValidationMixin)
 from treemap.audit import Audit, ReputationMetric, Role
 from treemap.tests import (make_instance, make_commander_user,
                            make_user_with_default_role, make_user,
@@ -441,3 +442,38 @@ class InstanceTest(OTMTestCase):
         ITreeRegion.objects.create(geometry=MultiPolygon((p1.buffer(10))))
 
         self.assertEqual(instance.has_itree_region(), True)
+
+
+class Car(ValidationMixin):
+    def __init__(self, weight):
+        self.weight = weight
+
+
+class ValidationMixinTest(SimpleTestCase):
+
+    def test_non_number(self):
+        with self.assertRaises(ValidationError):
+            Car('xxx').validate_positive_nullable_float_field('weight')
+
+    def test_negative(self):
+        with self.assertRaises(ValidationError):
+            Car(-1).validate_positive_nullable_float_field('weight')
+
+    def test_zero(self):
+        with self.assertRaises(ValidationError):
+            Car(0).validate_positive_nullable_float_field('weight')
+
+    def test_zero_ok(self):
+        Car(0).validate_positive_nullable_float_field('weight', zero_ok=True)
+
+    def test_positive_ok(self):
+        Car(5).validate_positive_nullable_float_field('weight')
+        Car(5).validate_positive_nullable_float_field('weight', zero_ok=True)
+
+    def test_max_value(self):
+        with self.assertRaises(ValidationError):
+            Car(5).validate_positive_nullable_float_field('weight',
+                                                          max_value=2)
+
+    def test_max_value_ok(self):
+        Car(2).validate_positive_nullable_float_field('weight', max_value=2)

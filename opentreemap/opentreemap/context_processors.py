@@ -4,13 +4,15 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import copy
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.utils.timezone import now
 from django.utils.translation import ugettext as _
 
-from treemap.util import get_last_visited_instance
+from treemap.units import Convertible
+from treemap.util import get_last_visited_instance, leaf_models_of_class
 from treemap.models import InstanceUser
 
 
@@ -51,6 +53,23 @@ def global_settings(request):
     term = copy.copy(REPLACEABLE_TERMS)
     if hasattr(request, 'instance'):
         term.update(request.instance.config.get('terms', {}))
+        # config.get('terms') above populates the term context variable with
+        # model terminology provided it has been customized for the treemap
+        # instance, but fails to populate it with the default terminology. The
+        # for loop below ensures that term is populated with model terminology
+        # whether it has been customized or not.
+
+        # Convertible is the base class where the terminology class property is
+        # defined, so its leaf subclasses are the ones with default terminology
+        # we might care about.
+
+        # leaf_models_of_class uses recursive descent through the
+        # clz.__subclasses__ attributes, but it only iterates through a total
+        # of around ten nodes at present, so it is unlikely to be a performance
+        # problem.
+        for clz in leaf_models_of_class(Convertible):
+            term.update({
+                clz.__name__: clz.terminology(request.instance)})
 
     ctx = {
         'SITE_ROOT': settings.SITE_ROOT,
@@ -60,6 +79,7 @@ def global_settings(request):
         'logo_url': logo_url,
         'header_comment': header_comment,
         'term': term,
+        'datepicker_start_date': datetime.min.replace(year=1900),
     }
 
     return ctx

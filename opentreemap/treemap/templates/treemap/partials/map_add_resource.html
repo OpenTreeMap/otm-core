@@ -24,6 +24,7 @@
                            data-area-field-name="{{ cls.area_field_name|default_if_none:"" }}"
                            data-is-editable="{{ cls.is_editable|default_if_none:"False" }}"
                            data-skip-detail-form="{{ cls.skip_detail_form|default:"False" }}"
+                           data-enable-detail-next="{{ cls.enable_detail_next|default:"False" }}"
                     /><label for="resourceType{{ cls.feature_type }}">
                       {% with terminology=cls|terminology:request.instance %}
                         {{ terminology.singular }}

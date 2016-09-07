@@ -821,11 +821,19 @@ class UserDefinedFieldDefinition(models.Model):
                 return value
 
             try:
-                return parse_date_string_with_or_without_time(value)
+                valid_date = parse_date_string_with_or_without_time(value)
             except ValueError:
                 raise ValidationError(_('%(fieldname)s must be formatted as '
                                         'YYYY-MM-DD') %
                                       {'fieldname': self.name})
+
+            # Ensure date UDF values contain a year >= 1900 so that
+            # date formatting with `strftime` will work correctly.
+            if valid_date.year < 1900:
+                raise ValidationError(_('%(fieldname)s year must be >= 1900')
+                                      % {'fieldname': self.name})
+
+            return valid_date
 
         elif 'choices' in datatype_dict:
             def _validate(val):

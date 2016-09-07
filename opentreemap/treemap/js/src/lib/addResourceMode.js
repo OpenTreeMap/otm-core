@@ -55,6 +55,7 @@ function init(options) {
             typeName = $option.next().text().trim(),
             areaFieldName = $option.data('area-field-name'),
             skipDetailForm = $option.data('skip-detail-form') == 'True',
+            enableDetailNext = $option.data('enable-detail-next') == 'True',
             enableContinueEditing = $option.data('is-editable') == 'True',
             addFeatureUrl = reverse.add_map_feature({
                 instance_url_name: config.instance.url_name,
@@ -65,7 +66,7 @@ function init(options) {
             manager.stepControls.maxStepNumber = manager.stepControls.initialMaxStepNumber;
             manager.stepControls.enableNext(STEP_CHOOSE_TYPE, true);
             manager.stepControls.enableNext(STEP_OUTLINE_AREA, true);
-            manager.stepControls.enableNext(STEP_DETAILS, false);
+            manager.stepControls.enableNext(STEP_DETAILS, enableDetailNext);
             $summaryHead.text(typeName);
 
             var hasAreaStep = !!areaFieldName;

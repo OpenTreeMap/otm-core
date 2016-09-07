@@ -357,7 +357,11 @@ REGISTRATION_EMAIL_HTML = False
 # STORAGE_UNITS is the unit the value will be stored/computed as,
 # if different from DISPLAY_DEFAULTS
 #
-STORAGE_UNITS = {}
+STORAGE_UNITS = {
+    'greenInfrastructure': {
+        'area': 'sq_m'
+    }
+}
 DISPLAY_DEFAULTS = {
     'plot': {
         'width':  {'units': 'in', 'digits': 1},
@@ -375,9 +379,19 @@ DISPLAY_DEFAULTS = {
         'co2storage': {'units': 'lbs', 'digits': 1},
         'airquality': {'units': 'lbs/year', 'digits': 1}
     },
+    'bioswale': {
+        'drainage_area': {'units': 'sq_ft', 'digits': 1}
+    },
     'rainBarrel': {
         'capacity': {'units': 'gal', 'digits': 1}
     },
+    'rainGarden': {
+        'drainage_area': {'units': 'sq_ft', 'digits': 1}
+    },
+    'greenInfrastructure': {
+        'rainfall': {'units': 'in', 'digits': 1},
+        'area':     {'units': 'sq_ft', 'digits': 1}
+    }
 }
 
 # Time in ms for two clicks to be considered a double-click in some scenarios

@@ -9,6 +9,8 @@
 </select>
 {% elif field.type == 'date' %}
 <input class="form-control" type="text" data-field-name="{{ field.name }}"
+       data-date-start-date="{{ datepicker_start_date|date:request.instance.short_date_format|datepicker_format }}"
+       data-date-assume-nearby-year="true"
        data-date-display-format="{{ request.instance.short_date_format|moment_format }}"
        data-date-format="{{ request.instance.short_date_format|datepicker_format }}"
        data-date-serialize-format="YYYY-MM-DD" value="{% trans "Today" %}" />

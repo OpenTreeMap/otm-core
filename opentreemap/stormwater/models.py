@@ -6,14 +6,15 @@ from __future__ import division
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from stormwater.benefits import PolygonalBasinBenefitCalculator
 from treemap.decorators import classproperty
-from treemap.models import MapFeature, GeoHStoreUDFManager
+from treemap.models import MapFeature, GeoHStoreUDFManager, ValidationMixin
 from treemap.ecobenefits import CountOnlyBenefitCalculator
 
 
 class PolygonalMapFeature(MapFeature):
     area_field_name = 'polygon'
-    skip_detail_form = True
+    enable_detail_next = True
 
     polygon = models.MultiPolygonField(srid=3857)
 
@@ -31,25 +32,36 @@ class PolygonalMapFeature(MapFeature):
 
     @classproperty
     def benefits(cls):
-        return CountOnlyBenefitCalculator(cls)
+        return PolygonalBasinBenefitCalculator(cls)
 
-    def calculate_area(self):
+    @classmethod
+    def feature_qs_areas(cls, polygonal_map_feature_qs):
         """
         Make a PostGIS query that accurately calculates the area of
-        the polygon by first casting it to a Geography.
+        the polygon(s) by first casting to a Geography.
         """
-        if self.pk is None:
-            return None
         area_sql = 'ST_Area(ST_Transform(polygon, 4326)::geography)'
         area_col_name = 'area'
-        return PolygonalMapFeature.objects \
-                                  .filter(pk=self.pk) \
-                                  .extra(select={area_col_name: area_sql}) \
-                                  .values(area_col_name)[0][area_col_name]
+        feature_areas = polygonal_map_feature_qs \
+            .extra(select={area_col_name: area_sql}) \
+            .values_list(area_col_name, flat=True)
+        return feature_areas
+
+    def calculate_area(self):
+        if self.pk is None:
+            return None
+        feature_areas = self.feature_qs_areas(
+            PolygonalMapFeature.objects.filter(pk=self.pk))
+        return feature_areas[0]
 
 
-class Bioswale(PolygonalMapFeature):
+class Bioswale(PolygonalMapFeature, ValidationMixin):
     objects = GeoHStoreUDFManager()
+    drainage_area = models.FloatField(
+        null=True,
+        blank=True,
+        verbose_name=_("Adjacent Drainage Area"),
+        error_messages={'invalid': _("Please enter a number.")})
 
     udf_settings = {
         'Perennial Plants': {
@@ -94,9 +106,24 @@ class Bioswale(PolygonalMapFeature):
         'plural': _('Bioswales'),
     }
 
+    default_config = {
+        'should_show_eco': False,
+        'diversion_rate': 0.85
+    }
 
-class RainGarden(PolygonalMapFeature):
+    def clean(self):
+        self.validate_positive_nullable_float_field('drainage_area',
+                                                    zero_ok=True)
+        super(Bioswale, self).clean()
+
+
+class RainGarden(PolygonalMapFeature, ValidationMixin):
     objects = GeoHStoreUDFManager()
+    drainage_area = models.FloatField(
+        null=True,
+        blank=True,
+        verbose_name=_("Adjacent Drainage Area"),
+        error_messages={'invalid': _("Please enter a number.")})
 
     udf_settings = {
         'Perennial Plants': {
@@ -141,6 +168,16 @@ class RainGarden(PolygonalMapFeature):
         'plural': _('Rain Gardens'),
     }
 
+    default_config = {
+        'should_show_eco': False,
+        'diversion_rate': 0.85
+    }
+
+    def clean(self):
+        self.validate_positive_nullable_float_field('drainage_area',
+                                                    zero_ok=True)
+        super(RainGarden, self).clean()
+
 
 class RainBarrel(MapFeature):
     objects = GeoHStoreUDFManager()
@@ -156,8 +193,3 @@ class RainBarrel(MapFeature):
     @classproperty
     def benefits(cls):
         return CountOnlyBenefitCalculator(cls)
-
-    @property
-    def is_editable(self):
-        # this is a holdover until we can support editing for all resources
-        return True

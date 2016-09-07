@@ -19,6 +19,34 @@ register = template.Library()
 register.filter('get', lambda a, b: a[b])
 
 
+# From https://djangosnippets.org/snippets/545/
+# Found from http://bit.ly/2c37Fgz on stackoverflow
+# /questions/15073695/assigning-blocktrans-output-to-variable
+#
+# The correct answer to the stackoverflow question is to use the
+# blocktrans `asvar` parameter, but that only works in django v 1.9+.
+# `captureas` seems more generally useful than just for blocktrans.
+@register.tag(name='captureas')
+def do_captureas(parser, token):
+    try:
+        tag_name, var_name = token.contents.split(None, 1)
+    except ValueError:
+        var_name = 'captured'
+    nodelist = parser.parse(('endcaptureas',))
+    parser.delete_first_token()
+    return CaptureasNode(nodelist, var_name)
+
+
+class CaptureasNode(template.Node):
+    def __init__(self, nodelist, varname):
+        self.nodelist = nodelist
+        self.varname = varname
+
+    def render(self, context):
+        context[self.varname] = self.nodelist.render(context)
+        return ''
+
+
 def _instance_reverse(name, thing, **kwargs):
     kwargs['instance_url_name'] = thing.instance.url_name
     return reverse(name, kwargs=kwargs)
