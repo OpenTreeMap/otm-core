@@ -258,6 +258,26 @@ class TreemapUrlTests(UrlTestCase):
             % (username, self.instance.id))
 
 
+@override_settings(FEATURE_BACKEND_FUNCTION=None)
+class TreemapPrivateUrlTests(UrlTestCase):
+    # Tests for URLs defined in treemap/urls.py
+    # All treemap URLs start with /<instance_url_name>/
+
+    def setUp(self):
+        self.instance = make_instance(is_public=False)
+        self.prefix = '/%s/' % self.instance.url_name
+
+    def test_instance(self):
+        desired_path = self.prefix + 'map/'
+        expected_path = '/accounts/login/?next=' + desired_path
+        self.assert_redirects(desired_path, expected_path, 302)
+
+    def test_embed(self):
+        desired_path = self.prefix + 'map/?embed='
+        expected_path = '/not-available?embed='
+        self.assert_redirects(desired_path, expected_path, 302)
+
+
 class InstanceUrlTests(RequestTestCase):
     def setUp(self):
         make_instance(name='The inztance', is_public=True,

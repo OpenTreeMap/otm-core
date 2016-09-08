@@ -48,6 +48,9 @@ def instance_request(view_fn, redirect=True):
                 if request.user.is_authenticated():
                     return HttpResponseRedirect(
                         reverse('instance_not_available'))
+                elif request.GET.get('embed') is not None:
+                    return HttpResponseRedirect(
+                        reverse('instance_not_available') + '?embed=')
                 else:
                     return login_redirect(request)
             else:
