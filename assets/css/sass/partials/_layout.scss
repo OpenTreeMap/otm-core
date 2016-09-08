@@ -7,13 +7,16 @@ body {
 }
 
 .wrapper {
-	min-height: 100%;
-	height: auto !important;
-	height: 100%;
-	margin-bottom: -40px;
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin-bottom: -40px;
+    &.embed {
+        margin-bottom: 0;
+    }
 
-	@include buttons;
-	@include links;
+    @include buttons;
+    @include links;
 }
 
 .image-background {
@@ -32,12 +35,15 @@ body {
     overflow: auto;
     margin-bottom: 40px;
 
-    &.map {
+    &.explore-map {
         position: absolute;
         overflow: hidden;
         margin: 0;
         top: 244px;
         width: 100%;
+
+        left: 0;
+        right: 350px;
         bottom: 40px;
 
         @media(min-width: 990px){
@@ -45,6 +51,7 @@ body {
         }
 
         @media #{$screen-xs} {
+            right: 0;
             top: 154px;
             overflow: auto;
 
@@ -52,6 +59,13 @@ body {
                 height: 300px;
             }
         }
+    }
+}
+
+.embed {
+    .content.explore-map {
+        bottom: 0;
+        top: 147px;
     }
 }
 

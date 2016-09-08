@@ -81,7 +81,7 @@ function inAddTreeMode()     { return currentMode === addTreeMode; }
 function inEditTreeMode()    { return currentMode === editTreeDetailsMode; }
 function inAddResourceMode() { return currentMode === addResourceMode; }
 
-function init(mapManager, triggerSearchBus) {
+function init(mapManager, triggerSearchBus, embed) {
     // browseTreesMode and editTreeDetailsMode share an inlineEditForm,
     // so initialize it here.
     var form = inlineEditForm.init({
@@ -115,6 +115,7 @@ function init(mapManager, triggerSearchBus) {
 
     browseTreesMode.init({
         map: mapManager.map,
+        embed: embed,
         inMyMode: inBrowseTreesMode,
         $treeDetailAccordionSection: $treeDetailAccordionSection,
         $fullDetailsButton: $fullDetailsButton,

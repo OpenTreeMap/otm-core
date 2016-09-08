@@ -50,6 +50,12 @@ def global_settings(request):
     except:
         header_comment = "Version information not available\n"
 
+    embed = False
+    try:
+        embed = request.GET.get('embed') is not None
+    except:
+        pass
+
     term = copy.copy(REPLACEABLE_TERMS)
     if hasattr(request, 'instance'):
         term.update(request.instance.config.get('terms', {}))
@@ -79,6 +85,7 @@ def global_settings(request):
         'logo_url': logo_url,
         'header_comment': header_comment,
         'term': term,
+        'embed': embed,
         'datepicker_start_date': datetime.min.replace(year=1900),
     }
 
