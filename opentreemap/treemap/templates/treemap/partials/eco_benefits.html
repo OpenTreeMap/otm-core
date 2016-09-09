@@ -2,60 +2,60 @@
 {% load l10n %}
 
 {% if request.instance_supports_ecobenefits %}
-<div {% if not hidecounts %}id="benefit-values"{% endif %} class="benefit-values panel-inner">
-    {% with plot_benefits=benefits.plot %}
-      {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.totals %}
-      {% if not hide_summary and plot_benefits %}
-        <div class="benefit-value-title">{% trans "Tree Benefits"%}</div>
-      {% endif %}
-      {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.energy icon='flash-1' %}
-      {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.stormwater icon='tint' %}
-      {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.airquality icon='cloud' %}
-      {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.co2 %}
-      {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.co2storage %}
-    {% endwith %}
+    <div {% if not hidecounts %}id="benefit-values"{% endif %} class="benefit-values panel-inner">
+        {% with plot_benefits=benefits.plot %}
+            {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.totals %}
+            {% if not hide_summary and plot_benefits %}
+                <div class="benefit-value-title">{% trans "Tree Benefits"%}</div>
+            {% endif %}
+            {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.energy icon='flash-1' %}
+            {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.stormwater icon='tint' %}
+            {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.airquality icon='cloud' %}
+            {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.co2 %}
+            {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.co2storage %}
+        {% endwith %}
 
-    {% with resource_benefits=benefits.resource %}
-      {% if not hide_summary and request.instance.has_resources and resource_benefits %}
-        <div class="benefit-value-title">{{ term.Resource.singular }} {% trans "Benefits" %}</div>
-      {% endif %}
-      {% include "treemap/partials/benefit_value_row.html" with benefit=resource_benefits.stormwater icon='tint' %}
-      {% include "treemap/partials/benefit_value_row.html" with benefit=resource_benefits.runoff_reduced icon='tint' %}
-      {% include "treemap/partials/benefit_value_row.html" with benefit=resource_benefits.usage_reduced icon='tint' %}
-    {% endwith %}
+        {% with resource_benefits=benefits.resource %}
+            {% if not hide_summary and request.instance.has_resources and resource_benefits %}
+                <div class="benefit-value-title">{{ term.Resource.singular }} {% trans "Benefits" %}</div>
+            {% endif %}
+            {% include "treemap/partials/benefit_value_row.html" with benefit=resource_benefits.stormwater icon='tint' %}
+            {% include "treemap/partials/benefit_value_row.html" with benefit=resource_benefits.runoff_reduced icon='tint' %}
+            {% include "treemap/partials/benefit_value_row.html" with benefit=resource_benefits.usage_reduced icon='tint' %}
+        {% endwith %}
 
-    {% if not hide_summary and not hidecounts %}
-    <div class="benefit-tree-count">
-      {% with has_resources=request.instance.has_resources plot_basis=basis.plot resource_basis=basis.resource %}
-        {% blocktrans with used=plot_basis.n_objects_used total=plot_basis.n_total %}
-        Based on {{ used }} out of {{ total }} total trees{% endblocktrans %}{% if not has_resources %}.{% endif %}
-        {% if has_resources %}
-          {% blocktrans with used=resource_basis.n_objects_used total=resource_basis.n_total resources=term.Resource.plural.lower %}
-            and {{ used }} out of {{ total }} total {{ resources }}.
-          {% endblocktrans %}
+        {% if not hide_summary and not hidecounts %}
+            <div class="benefit-tree-count">
+                {% with has_resources=request.instance.has_resources plot_basis=basis.plot resource_basis=basis.resource %}
+                    {% blocktrans with used=plot_basis.n_objects_used total=plot_basis.n_total %}
+                        Based on {{ used }} out of {{ total }} total trees{% endblocktrans %}{% if not has_resources %}.{% endif %}
+                    {% if has_resources %}
+                        {% blocktrans with used=resource_basis.n_objects_used total=resource_basis.n_total resources=term.Resource.plural.lower %}
+                            and {{ used }} out of {{ total }} total {{ resources }}.
+                        {% endblocktrans %}
+                    {% endif %}
+                {% endwith %}
+
+            </div>
         {% endif %}
-      {% endwith %}
-
     </div>
-    {% endif %}
-</div>
 {% endif %}
 {% if not hidecounts %}
-<div id="tree-and-planting-site-counts">
-  {% localize on %}
-  <span id="tree-count">{{ basis.plot.n_total }}</span> {{ tree_count_label }}
-  <span id="planting-site-count">{{ basis.plot.n_plots }}</span> {{ plot_count_label }}
-  {% if request.instance.has_resources and basis.resource %}
-    {% with resource_count=basis.resource.n_total %}
-      <span id="resource-count">{{ resource_count }}</span>
-      {% if resource_count == 1 %}
-        {{ term.Resource.singular.lower }}
-      {% else %}
-        {{ term.Resource.plural.lower }}
-      {% endif %}
-    {% endwith %}
-  {% endif %}
+    <div id="tree-and-planting-site-counts">
+        {% localize on %}
+            <span id="tree-count">{{ basis.plot.n_total }}</span> {{ tree_count_label }}
+            <span id="planting-site-count">{{ basis.plot.n_plots }}</span> {{ plot_count_label }}
+            {% if request.instance.has_resources and basis.resource %}
+                {% with resource_count=basis.resource.n_total %}
+                    <span id="resource-count">{{ resource_count }}</span>
+                    {% if resource_count == 1 %}
+                        {{ term.Resource.singular.lower }}
+                    {% else %}
+                        {{ term.Resource.plural.lower }}
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
 
-  {% endlocalize %}
-</div>
+        {% endlocalize %}
+    </div>
 {% endif %}
