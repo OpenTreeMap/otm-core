@@ -90,16 +90,33 @@ def search_tree_benefits(request, instance):
     }
 
     formatted = format_benefits(instance, benefits, basis, digits=0)
-    formatted['hide_summary'] = hide_summary
 
-    formatted['tree_count_label'] = (
-        'tree,' if basis['plot']['n_total'] == 1 else 'trees,')
-    formatted['plot_count_label'] = (
-        'planting site' if basis['plot']['n_plots'] == 1 else 'planting sites')
-    if instance.has_resources and 'resource' in basis:
-        formatted['plot_count_label'] += ','
+    n_trees = basis['plot']['n_total']
+    n_plots = basis['plot']['n_plots']
+    n_empty_plots = n_plots - n_trees
+    n_resources = 0
 
-    return formatted
+    tree_count_label = _('tree') if n_trees == 1 else _('trees')
+    tree_count_label += ','
+    empty_plot_count_label = (
+        _('empty planting site') if n_empty_plots == 1 else
+        _('empty planting sites'))
+    has_resources = instance.has_resources and 'resource' in basis
+    if has_resources:
+        n_resources = basis['resource']['n_total']
+        empty_plot_count_label += ','
+
+    context = {
+        'n_trees': n_trees,
+        'n_empty_plots': n_empty_plots,
+        'n_resources': n_resources,
+        'tree_count_label': tree_count_label,
+        'empty_plot_count_label': empty_plot_count_label,
+        'has_resources': has_resources,
+        'hide_summary': hide_summary
+    }
+    context.update(formatted)
+    return context
 
 
 def search_hash(request, instance):

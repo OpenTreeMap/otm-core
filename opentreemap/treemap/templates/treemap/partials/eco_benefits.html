@@ -43,19 +43,16 @@
 {% if not hidecounts %}
     <div id="tree-and-planting-site-counts">
         {% localize on %}
-            <span id="tree-count">{{ basis.plot.n_total }}</span> {{ tree_count_label }}
-            <span id="planting-site-count">{{ basis.plot.n_plots }}</span> {{ plot_count_label }}
-            {% if request.instance.has_resources and basis.resource %}
-                {% with resource_count=basis.resource.n_total %}
-                    <span id="resource-count">{{ resource_count }}</span>
-                    {% if resource_count == 1 %}
-                        {{ term.Resource.singular.lower }}
-                    {% else %}
-                        {{ term.Resource.plural.lower }}
-                    {% endif %}
-                {% endwith %}
+            <span>{{ n_trees }}</span> {{ tree_count_label }}
+            <span>{{ n_empty_plots }}</span> {{ empty_plot_count_label }}
+            {% if has_resources %}
+                <span>{{ n_resources }}</span>
+                {% if n_resources == 1 %}
+                    {{ term.Resource.singular.lower }}
+                {% else %}
+                    {{ term.Resource.plural.lower }}
+                {% endif %}
             {% endif %}
-
         {% endlocalize %}
     </div>
 {% endif %}
