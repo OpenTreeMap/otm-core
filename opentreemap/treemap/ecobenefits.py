@@ -12,7 +12,6 @@ import itertools
 
 from treemap import ecobackend
 from treemap.ecocache import get_cached_benefits
-from treemap.models import MapFeature
 
 WATTS_PER_BTU = 0.29307107
 GAL_PER_CUBIC_M = 264.172052

@@ -13,7 +13,7 @@ from django.db import transaction
 from django.http import HttpResponseRedirect
 
 from treemap.search import Filter
-from treemap.models import Tree
+from treemap.models import Tree, Plot
 from treemap.audit import Audit
 from treemap.ecobenefits import get_benefits_for_filter
 from treemap.ecobenefits import BenefitCategory
@@ -113,10 +113,36 @@ def search_tree_benefits(request, instance):
         'tree_count_label': tree_count_label,
         'empty_plot_count_label': empty_plot_count_label,
         'has_resources': has_resources,
-        'hide_summary': hide_summary
+        'hide_summary': hide_summary,
+        'single_result': _single_result_context(instance, n_plots, n_resources,
+                                                filter)
     }
     context.update(formatted)
     return context
+
+
+def _single_result_context(instance, n_plots, n_resources, filter):
+    # If search found just one feature, return its id and location
+    if n_plots + n_resources != 1:
+        return None
+    else:
+        if n_plots == 1:
+            qs = filter.get_objects(Plot)
+        else:  # n_resources == 1
+            for Resource in instance.resource_classes:
+                qs = filter.get_objects(Resource)
+                if qs.count() == 1:
+                    break
+        if qs.count() != 1:
+            raise Exception('Failed to retrieve single resource')
+        feature = qs[0]
+        latlon = feature.geom
+        latlon.transform(4326)
+        return {
+            'id': feature.id,
+            'lon': latlon.x,
+            'lat': latlon.y,
+        }
 
 
 def search_hash(request, instance):

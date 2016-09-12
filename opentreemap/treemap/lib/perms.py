@@ -5,7 +5,7 @@ from __future__ import division
 from treemap.lib.object_caches import role_permissions
 
 from django.contrib.gis.db.models import Field
-from treemap.models import InstanceUser, Role, Plot, MapFeature
+from treemap.models import InstanceUser, Role, Plot
 
 """
 Tools to assist in resolving permissions, specifically when the type of

@@ -38,7 +38,13 @@ function init(options) {
         $accordionSection = options.$treeDetailAccordionSection,
         $buttonGroup = options.$buttonGroup;
 
-    var utfEventStream = map.utfEvents.filter(inMyMode),
+    var singleSearchResultAsMockUtfEventStream = options.completedSearchStream
+            .map(getSingleSearchResultAsMockUtfEvent)
+            .filter(BU.isDefinedNonEmpty),
+        utfEventStream =
+            Bacon.mergeAll(map.utfEvents, singleSearchResultAsMockUtfEventStream)
+                .filter(inMyMode),
+
         popupHtmlStream = utfEventStream.flatMap(getPopupContent),
         clickedIdStream = utfEventStream.map('.data.' + config.utfGrid.mapfeatureIdKey),
         accordionHtmlStream = BU.fetchFromIdStream(clickedIdStream,
@@ -95,6 +101,23 @@ function init(options) {
     });
 
     $accordionSection.collapse('hide');
+}
+
+function getSingleSearchResultAsMockUtfEvent(html) {
+    var $result = $(html).filter('#single-result');
+    if ($result.length == 1) {
+        return {
+            data: {
+                id: $result.data('id')
+            },
+            latlng: {
+                lat: $result.data('lat'),
+                lng: $result.data('lon')
+            }
+        };
+    } else {
+        return undefined;
+    }
 }
 
 function getPopupContent(utfGridEvent) {

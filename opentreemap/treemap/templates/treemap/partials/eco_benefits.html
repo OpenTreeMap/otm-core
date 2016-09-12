@@ -55,4 +55,14 @@
             {% endif %}
         {% endlocalize %}
     </div>
+
+    {% if single_result %}
+        {% localize off %}
+            <div id="single-result"
+                 data-id="{{ single_result.id }}"
+                 data-lat="{{ single_result.lat }}"
+                 data-lon="{{ single_result.lon }}"
+            ></div>
+        {% endlocalize %}
+    {% endif %}
 {% endif %}

@@ -18,7 +18,7 @@ from django.template import RequestContext
 
 from stormwater.models import PolygonalMapFeature
 
-from treemap.models import User, Species, StaticPage, MapFeature, Instance
+from treemap.models import User, Species, StaticPage, Instance
 
 from treemap.plugin import get_viewable_instances_filter
 
