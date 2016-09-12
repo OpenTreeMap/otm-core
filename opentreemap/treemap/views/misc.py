@@ -73,10 +73,7 @@ def index(request, instance):
 def get_map_view_context(request, instance):
     if request.user and not request.user.is_anonymous():
         iuser = request.user.get_instance_user(instance)
-        resource_names = [mfn for mfn in instance.map_feature_types
-                          if mfn != 'Plot']
-        resource_classes = [resource for resource in
-                            map(MapFeature.get_subclass, resource_names)
+        resource_classes = [resource for resource in instance.resource_classes
                             if map_feature_is_creatable(iuser, resource)]
     else:
         resource_classes = []
