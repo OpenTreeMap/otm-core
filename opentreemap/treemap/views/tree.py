@@ -7,7 +7,7 @@ import hashlib
 
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext as _, ungettext
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.http import HttpResponseRedirect
@@ -96,11 +96,9 @@ def search_tree_benefits(request, instance):
     n_empty_plots = n_plots - n_trees
     n_resources = 0
 
-    tree_count_label = _('tree') if n_trees == 1 else _('trees')
-    tree_count_label += ','
-    empty_plot_count_label = (
-        _('empty planting site') if n_empty_plots == 1 else
-        _('empty planting sites'))
+    tree_count_label = ungettext('tree', 'trees', n_trees) + ','
+    empty_plot_count_label = ungettext(
+        'empty planting site', 'empty planting sites', n_empty_plots)
     has_resources = instance.has_resources and 'resource' in basis
     if has_resources:
         n_resources = basis['resource']['n_total']
@@ -133,8 +131,6 @@ def _single_result_context(instance, n_plots, n_resources, filter):
                 qs = filter.get_objects(Resource)
                 if qs.count() == 1:
                     break
-        if qs.count() != 1:
-            raise Exception('Failed to retrieve single resource')
         feature = qs[0]
         latlon = feature.geom
         latlon.transform(4326)
