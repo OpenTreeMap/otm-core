@@ -25,7 +25,7 @@ from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name,
                            Convertible)
 from treemap.util import (all_models_of_class, leaf_models_of_class,
-                          to_object_name)
+                          to_object_name, safe_get_model_class)
 
 from treemap.lib.object_caches import (permissions,
                                        invalidate_adjuncts, udf_defs)
@@ -636,7 +636,9 @@ class FieldPermission(models.Model):
         if self.field_name.startswith('udf:'):
             base_name = self.field_name[4:]
         else:
-            base_name = self.field_name
+            Model = safe_get_model_class(self.model_name)
+            field = Model._meta.get_field(self.field_name)
+            base_name = getattr(field, 'verbose_name', self.field_name)
 
         return base_name.replace('_', ' ').title()
 
