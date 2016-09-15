@@ -369,7 +369,8 @@ class UserDefinedFieldDefinition(models.Model):
 
         if self.datatype_dict['type'] == 'choice':
             for model in Model.objects\
-                              .filter(**{self.canonical_name:
+                              .filter(**{'instance': self.instance,
+                                         self.canonical_name:
                                          old_choice_value}):
                 model.udfs[self.name] = new_choice_value
                 model.save_base()
