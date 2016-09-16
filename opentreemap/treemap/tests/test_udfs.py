@@ -728,6 +728,85 @@ class UDFDefTest(OTMTestCase):
                 name='__contains')
 
 
+class ScalarUDFInstanceIsolationTest(OTMTestCase):
+    def setUp(self):
+        self.p = Point(-8515941.0, 4953519.0)
+        self.instances = [
+            make_instance(point=self.p),
+            make_instance(point=self.p)
+        ]
+        self.commander_users = [
+            make_commander_user(i, username='commander%d' % i.pk)
+            for i in self.instances]
+        for i in range(len(self.instances)):
+            set_write_permissions(self.instances[i], self.commander_users[i],
+                                  'Plot', ['udf:Test choice'])
+        self.choice_udfds = [
+            UserDefinedFieldDefinition.objects.create(
+                instance=i,
+                model_type='Plot',
+                datatype=json.dumps({'type': 'choice',
+                                     'choices': ['a', 'b', 'c']}),
+                iscollection=False,
+                name='Test choice') for i in self.instances]
+
+        self.plots = [
+            Plot(geom=self.p, instance=i) for i in self.instances]
+
+        for i in range(len(self.plots)):
+            self.plots[i].save_with_user(self.commander_users[i])
+
+        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
+    def test_update_choice_value_in_one_instance(self):
+        # Add and assert a choice value in both instances
+        for i in range(len(self.plots)):
+            self.plots[i].udfs['Test choice'] = 'a'
+            self.plots[i].save_with_user(self.commander_users[i])
+
+            self.plots[i] = Plot.objects.get(pk=self.plots[i].pk)
+            audit = self.plots[i].audits().get(field='udf:Test choice')
+
+            self.assertEqual(
+                self.plots[i].udfs['Test choice'], 'a')
+            self.assertEqual(
+                audit.current_value, 'a')
+
+        # Update a choice name in the first instance only and assert the change
+        self.choice_udfds[0].update_choice('a', 'm')
+
+        self.plots[0] = Plot.objects.get(pk=self.plots[0].pk)
+        audit0 = self.plots[0].audits().get(field='udf:Test choice')
+
+        self.assertEqual(
+            self.plots[0].udfs['Test choice'], 'm')
+        self.assertEqual(
+            audit0.current_value, 'm')
+
+        choice0 = UserDefinedFieldDefinition.objects.get(
+            pk=self.choice_udfds[0].pk)
+
+        self.assertEqual(
+            set(choice0.datatype_dict['choices']),
+            {'m', 'b', 'c'})
+
+        # Assert that the second instance is unchanged
+        self.plots[1] = Plot.objects.get(pk=self.plots[1].pk)
+        audit0 = self.plots[1].audits().get(field='udf:Test choice')
+
+        self.assertEqual(
+            self.plots[1].udfs['Test choice'], 'a')
+        self.assertEqual(
+            audit0.current_value, 'a')
+
+        choice1 = UserDefinedFieldDefinition.objects.get(
+            pk=self.choice_udfds[1].pk)
+
+        self.assertEqual(
+            set(choice1.datatype_dict['choices']),
+            {'a', 'b', 'c'})
+
+
 class ScalarUDFTest(OTMTestCase):
 
     def setUp(self):
