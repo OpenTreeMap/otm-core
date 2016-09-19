@@ -230,7 +230,10 @@ exports.init = function(searchStream, applyFilter) {
     // Clear any previous search results
     searchStream.map('').onValue($('#search-results'), 'html');
 
-    searchStream
-        .flatMap(executeSearch)
-        .onValue(updateSearchResults);
+    var completedSearch = searchStream
+        .flatMap(executeSearch);
+
+    completedSearch.onValue(updateSearchResults);
+
+    return completedSearch;
 };

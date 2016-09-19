@@ -39,7 +39,12 @@ var mapPage = MapPage.init({
 
     modeChangeStream = mapPage.mapStateChangeStream
         .map('.modeName')
-        .filter(BU.isDefined);
+        .filter(BU.isDefined),
+
+    completedEcobenefitsSearchStream = Search.init(
+        ecoBenefitsSearchEvents,
+        _.bind(mapManager.setFilter, mapManager));
+
 
 modeChangeStream.onValue(changeMode);
 
@@ -71,13 +76,11 @@ $('[data-action="addresource"]').click(function(e) {
     performAdd(e, modes.activateAddResourceMode);
 });
 
-Search.init(
-    ecoBenefitsSearchEvents,
-    _.bind(mapManager.setFilter, mapManager));
-
 buttonEnabler.run();
 
-modes.init(mapManager, triggerSearchFromSidebar, mapPage.embed);
+modes.init(mapManager, triggerSearchFromSidebar, mapPage.embed,
+    completedEcobenefitsSearchStream);
 
-// Read state from current URL, initializing zoom/lat/long/search/mode
+// Read state from current URL, initializing
+// zoom/lat/long/search/mode/selection
 mapPage.initMapState();
