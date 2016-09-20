@@ -19,7 +19,7 @@ var $                   = require('jquery'),
     plotMarker          = require('treemap/lib/plotMarker.js'),
     statePrompter       = require('treemap/lib/statePrompter.js'),
     prompter,
-    currentMode;
+    currentMode, currentType;
 
 var sidebarBrowseTrees          = '#sidebar-browse-trees',
     sidebarAddTree              = '#sidebar-add-tree',
@@ -30,7 +30,7 @@ var sidebarBrowseTrees          = '#sidebar-browse-trees',
     $exploreMapHeaderLink       = U.$find('.navbar li.explore-map'),
     $addFeatureHeaderLink       = U.$find('.navbar li[data-feature=add_plot]');
 
-function activateMode(mode, sidebar, safeTransition) {
+function activateMode(mode, sidebar, safeTransition, type) {
 
     // each mode activator takes an argument that determines
     // whether or not to lock the prompter, or in other words,
@@ -39,7 +39,7 @@ function activateMode(mode, sidebar, safeTransition) {
     if (safeTransition === true) {
         prompter.unlock();
     }
-    if (mode !== currentMode &&
+    if ((mode !== currentMode || type !== currentType) &&
         prompter.canProceed()) {
         if (currentMode && currentMode.deactivate) {
             currentMode.deactivate();
@@ -47,7 +47,7 @@ function activateMode(mode, sidebar, safeTransition) {
         $(sidebar).siblings().hide();
         $(sidebar).show();
         if (mode.activate) {
-            mode.activate();
+            mode.activate(type);
         }
 
         // lockOnActivate will specify whether to leave the
@@ -59,7 +59,9 @@ function activateMode(mode, sidebar, safeTransition) {
             prompter.unlock();
         }
         urlState.setModeName(mode.name);
+        urlState.setModeType(type);
         currentMode = mode;
+        currentType = type;
     }
 }
 
@@ -72,8 +74,8 @@ function activateAddTreeMode(safeTranstion) {
 function activateEditTreeDetailsMode(safeTranstion) {
     activateMode(editTreeDetailsMode, sidebarBrowseTrees, safeTranstion);
 }
-function activateAddResourceMode(safeTranstion) {
-    activateMode(addResourceMode, sidebarAddResource, safeTranstion);
+function activateAddResourceMode(safeTranstion, type) {
+    activateMode(addResourceMode, sidebarAddResource, safeTranstion, type);
 }
 
 function inBrowseTreesMode() { return currentMode === browseTreesMode; }

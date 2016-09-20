@@ -240,7 +240,7 @@ class TreemapUITestCase(UITestCase):
 
     def click_add_tree(self):
         # Enter add tree mode
-        self.click(".subhead .addBtn")
+        self.click('.subhead [data-feature="add_plot"]')
 
     def _click_add_tree_next_step(self, n):
         button = self.driver.find_elements_by_css_selector(

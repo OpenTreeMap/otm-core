@@ -1,0 +1,15 @@
+{% load i18n %}
+{% load instance_config %}
+<a class="btn btn-primary"
+   {% if embed %}
+   target="_blank"
+   {% else %}
+   data-feature="add_plot"
+   data-event-category="add-tree"
+   data-event-action="start-add-tree"
+   {% endif %}
+   data-action='addtree'
+   data-always-enable="{{ last_effective_instance_user|plot_is_creatable }}"
+   data-disabled-title="{% trans "Adding trees is not available to all users" %}"
+   data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
+   disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>

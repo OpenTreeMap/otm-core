@@ -157,3 +157,30 @@
 .udfc {
     right: 0;
 }
+
+// Disabled links get wrapped in labels, and we need to override
+// the styling for them to behave like an anchor tag
+.btn-group > label {
+    position: relative;
+    float: left;
+
+    &:first-child {
+        margin-left: 0;
+
+        &:not(:last-child) > .btn:not(.dropdown-toggle) {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0
+        }
+    }
+}
+.dropdown-menu li > label {
+    display: block;
+    clear: both;
+
+    > a {
+        padding: 3px 20px;
+        font-weight: normal;
+        line-height: 1.42857143;
+        color: #333;
+    }
+}
