@@ -46,15 +46,8 @@ body {
         right: 350px;
         bottom: 40px;
 
-        @media(min-width: 990px){
-            top: 196px;
-        }
-
         @media #{$screen-gtxs} {
-            .embed & {
-                bottom: 0;
-                top: 147px;
-            }
+            top: 196px;
         }
 
         @media #{$screen-xs} {
@@ -63,8 +56,8 @@ body {
             overflow: auto;
 
             .embed & {
-                bottom: 0;
-                top: 98px;
+                bottom: 0 !important;
+                top: 98px !important;
             }
 
             .map {
