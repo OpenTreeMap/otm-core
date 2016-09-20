@@ -14,10 +14,8 @@
         vertical-align: middle;
         margin-right: -0.25em;
     }
-}
 
-.embed {
-    .header {
+    .embed & {
         padding-top: 0;
         height: 98px;
     }
@@ -45,10 +43,8 @@
     right: 15px;
     top: 60px;
     display: inline-block;
-}
 
-.embed {
-    .search-wrapper {
+    .embed & {
         top: 15px;
     }
 }
