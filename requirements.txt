@@ -1,33 +1,34 @@
-boto==2.38.0
-django-storages==1.1.8
-Django==1.8.8  # rq.filter: >=1.8,<1.9
-Pillow==3.1.0
-gunicorn==19.4.5
-psycopg2==2.6.1
-django-hstore==1.4.1
-wsgiref==0.1.2
-pep8==1.4.6 # rq.filter: ==1.4.6
-flake8==2.0 # rq.filter: ==2.0
-python-omgeo==1.7.2
-django-registration-redux==1.3
-# Modgrammar-py2 has a 0.9.2 release on PyPi, but no artifacts for the release
-modgrammar-py2==0.9.1 # rq.filter: !=0.9.2
+# For outdated module report see https://requires.io/github/OpenTreeMap/otm-core/requirements/?branch=develop
+# Changelog URL shown below if not linked on above page
+
+boto==2.42.0                             # http://docs.pythonboto.org/en/latest/releasenotes/v2.39.0.html
+Django==1.8.14  # rq.filter: >=1.8,<1.9  # https://docs.djangoproject.com/en/1.10/releases/#id2
+django-apptemplates==1.2
 django-celery-with-redis==3.0
-libsass==0.11.1
-# Django comments are no longer bundled with django in
-# 1.6 so we include them here
-django-contrib-comments==1.6.2
+django-contrib-comments==1.7.3
+django-hstore==1.4.2
+django-js-reverse==0.7.2
+django-queryset-csv==0.3.3               # https://github.com/azavea/django-queryset-csv/commits/master
+django-redis==4.4.4
+django-registration-redux==1.4
+django-statsd-mozilla==0.3.16
+django-storages==1.5.1
 django-threadedcomments==1.0.1
-django-apptemplates==1.0
-django-queryset-csv==0.3.2
-python-dateutil==2.4.2
-pytz==2015.7
 django-tinsel==0.1.1
 django-url-tools==0.0.8
-django-redis==4.3.0
+django-webpack-loader==0.3.3             # https://github.com/owais/django-webpack-loader/releases
+flake8==2.0 # rq.filter: ==2.0
+gunicorn==19.6.0                         # http://docs.gunicorn.org/en/stable/news.html
 hiredis==0.2.0
-rollbar==0.12.1
-django-statsd-mozilla==0.3.16
-django-js-reverse==0.7.2
-django-webpack-loader==0.3.0
+libsass==0.11.1
+# Modgrammar-py2 has a 0.9.2 release on PyPi, but no artifacts for the release
+modgrammar-py2==0.9.1 # rq.filter: !=0.9.2
+pep8==1.4.6 # rq.filter: ==1.4.6
+Pillow==3.3.1
+psycopg2==2.6.2                          # http://initd.org/psycopg/docs/news.html
+python-dateutil==2.5.3                   # https://github.com/dateutil/dateutil/blob/master/NEWS
+python-omgeo==1.9.0
+pytz==2016.6.1                           # https://launchpad.net/pytz/+announcements
+rollbar==0.13.3                          # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
 statsd==3.2.1
+wsgiref==0.1.2
