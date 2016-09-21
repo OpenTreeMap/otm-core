@@ -2,14 +2,14 @@
 # Changelog URL shown below if not linked on above page
 
 boto==2.42.0                             # http://docs.pythonboto.org/en/latest/releasenotes/v2.39.0.html
-Django==1.8.14  # rq.filter: >=1.8,<1.9  # https://docs.djangoproject.com/en/1.10/releases/#id2
+Django==1.10.1  # rq.filter: >=1.8,<1.9  # https://docs.djangoproject.com/en/1.10/releases/#id2
 django-apptemplates==1.2
 django-celery-with-redis==3.0
 django-contrib-comments==1.7.3
 django-hstore==1.4.2
 django-js-reverse==0.7.2
 django-queryset-csv==0.3.3               # https://github.com/azavea/django-queryset-csv/commits/master
-django-redis==4.4.4
+django-redis==4.5.0
 django-registration-redux==1.4
 django-statsd-mozilla==0.3.16
 django-storages==1.5.1
@@ -29,6 +29,6 @@ psycopg2==2.6.2                          # http://initd.org/psycopg/docs/news.ht
 python-dateutil==2.5.3                   # https://github.com/dateutil/dateutil/blob/master/NEWS
 python-omgeo==1.9.0
 pytz==2016.6.1                           # https://launchpad.net/pytz/+announcements
-rollbar==0.13.3                          # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
+rollbar==0.13.4                          # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
 statsd==3.2.1
 wsgiref==0.1.2
