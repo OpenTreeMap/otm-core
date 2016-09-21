@@ -181,13 +181,15 @@ function updateActiveSearchIndicators(search) {
             var featureName = key.split('.')[0],
                 featureCategories = ['tree', 'plot', 'mapFeature'],
                 simpleSearchKeys = ['species.id', 'mapFeature.geom'],
-                displayedFeatures = _.map(search.display, R.toLower);
+                displayedFeatures = _.map(search.display, function (s) {
+                    return s.toLowerCase();
+                });
             if (_.contains(simpleSearchKeys, key)) {
                 // do not add filter categories for search fields that are not
                 // part of the advanced search.
                 return false;
             } else if (_.contains(featureCategories, featureName)) {
-                if (!hasDisplayFilters(search) || _.contains(displayedFeatures, featureName)) {
+                if (!hasDisplayFilters(search) || _.contains(displayedFeatures, featureName) || featureName === 'mapFeature') {
                     return featureName;
                 } else {
                     return false; // feature filter is disabled by display filter
