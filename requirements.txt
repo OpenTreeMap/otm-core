@@ -2,7 +2,8 @@
 # Changelog URL shown below if not linked on above page
 
 boto==2.42.0                             # http://docs.pythonboto.org/en/latest/releasenotes/v2.39.0.html
-Django==1.8.14  # rq.filter: >=1.8,<1.9  # https://docs.djangoproject.com/en/1.10/releases/#id2
+# https://docs.djangoproject.com/en/1.10/releases/#id2
+Django==1.8.14  # rq.filter: >=1.8,<1.9
 django-apptemplates==1.2
 django-celery-with-redis==3.0
 django-contrib-comments==1.7.3
