@@ -103,6 +103,7 @@ function init() {
         } else {
             resourceDetail.init(form);
         }
+        updateFavoritedState(isFavoriteNow());
     }
 
     initDetail(form);
@@ -198,39 +199,56 @@ function init() {
             .onValue(panorama.update);
     }
 
+    handleFavoriteClick();
+
+    socialMediaSharing.init({imageFinishedStream: imageFinishedStream});
+}
+
+function isFavoriteNow() {
+    return $(dom.favoriteLink).attr('data-is-favorited') === 'True';
+}
+
+function updateFavoritedState(isFavorite) {
+    var $favoriteLink = $(dom.favoriteLink),
+        $favoriteIcon = $(dom.favoriteIcon),
+        title = $favoriteLink.attr(
+            isFavorite ? 'data-favorite-title' : 'data-unfavorite-title');
+
+    $favoriteIcon.attr('title', title);
+
+    if (isFavorite) {
+        $favoriteIcon.removeClass('icon-star-empty');
+        $favoriteIcon.addClass('icon-star');
+        $favoriteLink.attr('data-is-favorited', 'True');
+    } else {
+        $favoriteIcon.addClass('icon-star-empty');
+        $favoriteIcon.removeClass('icon-star');
+        $favoriteLink.attr('data-is-favorited', 'False');
+    }
+}
+
+function handleFavoriteClick() {
     if (config.loggedIn) {
-        $('body').on('click', dom.favoriteLink, function(e) {
-            var $favoriteLink = $(dom.favoriteLink),
-                $favoriteIcon = $(dom.favoriteIcon),
-                wasFavorited = $favoriteLink.attr('data-is-favorited') === 'True',
-                url = $favoriteLink.attr(wasFavorited ? 'data-unfavorite-url' : 'data-favorite-url');
+        $('body').on('click', dom.favoriteLink, function (e) {
+            var wasFavorited = isFavoriteNow(),
+                url = $(dom.favoriteLink)
+                    .attr(wasFavorited ? 'data-unfavorite-url' : 'data-favorite-url');
 
             $.ajax({
                 dataType: "json",
                 url: url,
                 type: 'POST'
             })
-            .done(function(response) {
-                // Flip classes and is-favorited attribute if request succeeded
-                if (wasFavorited) {
-                    $favoriteIcon.addClass('icon-star-empty');
-                    $favoriteIcon.removeClass('icon-star');
-                    $favoriteLink.attr('data-is-favorited', 'False');
-                } else {
-                    $favoriteIcon.removeClass('icon-star-empty');
-                    $favoriteIcon.addClass('icon-star');
-                    $favoriteLink.attr('data-is-favorited', 'True');
-                }
-            })
-            .fail(function() {
-                toastr.error('Could not save your favorite');
-            });
+                .done(function (response) {
+                    updateFavoritedState(!wasFavorited);
+                })
+                .fail(function () {
+                    toastr.error('Could not save your favorite');
+                });
 
             e.preventDefault();
         });
     }
-
-    socialMediaSharing.init({imageFinishedStream: imageFinishedStream});
 }
 
 init();
