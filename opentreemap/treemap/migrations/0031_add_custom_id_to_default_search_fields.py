@@ -11,25 +11,20 @@ from treemap.DotDict import DotDict
 identifier = u'plot.owner_orig_id'
 
 
-def update_config_property(apps, update_fn, prop_name, *categories):
+def update_config_property(apps, update_fn, *categories):
     Instance = apps.get_model("treemap", "Instance")
-    filter_pattern = '\"{}\":'.format(prop_name)
-    for instance in Instance.objects.filter(config__contains=filter_pattern):
-        instance.config = update_fn(instance.config, prop_name, *categories)
+    for instance in Instance.objects.filter(
+            config__contains='\"search_config\":'):
+        instance.config = update_fn(instance.config, *categories)
         instance.save()
 
 
-def is_in_values(specs, pattern):
-    values = [spec.values() for spec in specs]
-    return True in [pattern in v for v in values]
-
-
-def add_to_config(config, prop_name, *categories):
+def add_to_config(config, *categories):
     config = deepcopy(config or DotDict({}))
     for category in categories:
-        lookup = '.'.join([prop_name, category])
+        lookup = '.'.join(['search_config', category])
         specs = config.setdefault(lookup, [])
-        if not is_in_values(specs, identifier):
+        if True not in [identifier in v for s in specs for v in s.values()]:
             # mutates config[lookup]
             specs.append({u'identifier': identifier})
 
@@ -37,16 +32,13 @@ def add_to_config(config, prop_name, *categories):
 
 
 def add_custom_id_forward(apps, schema_editor):
-    update_config_property(apps, add_to_config, 'search_config',
-                           'Plot', 'missing')
-    update_config_property(apps, add_to_config, 'mobile_search_fields',
-                           'standard', 'missing')
+    update_config_property(apps, add_to_config, 'Plot', 'missing')
 
 
-def remove_from_config(config, prop_name, *categories):
+def remove_from_config(config, *categories):
     config = deepcopy(config or DotDict({}))
     for category in categories:
-        lookup = '.'.join([prop_name, category])
+        lookup = '.'.join(['search_config', category])
         specs = config.get(lookup)
         if specs:
             for index, spec in enumerate(specs):
@@ -59,10 +51,7 @@ def remove_from_config(config, prop_name, *categories):
 
 
 def add_custom_id_backward(apps, schema_editor):
-    update_config_property(apps, remove_from_config, 'search_config',
-                           'Plot', 'missing')
-    update_config_property(apps, remove_from_config, 'mobile_search_fields',
-                           'standard', 'missing')
+    update_config_property(apps, remove_from_config, 'Plot', 'missing')
 
 
 class Migration(migrations.Migration):
