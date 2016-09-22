@@ -80,6 +80,12 @@ var serializers = {
         if (state.modeName) {
             query.m = state.modeName;
         }
+    },
+
+    modeType: function(state, query) {
+        if (state.modeType) {
+            query.t = state.modeType;
+        }
     }
 };
 
@@ -111,6 +117,10 @@ var deserializers = {
 
     m: function(newState, query) {
         newState.modeName = query.m || '';
+    },
+
+    t: function(newState, query) {
+        newState.modeType = query.t || '';
     }
 };
 
@@ -137,9 +147,9 @@ function set(key, value, options) {
         }
 
         if (options.replaceState) {
-            _history.replaceState(newState, document.title, getUrlFromState(newState));
+            _history.replaceState(newState, '', getUrlFromState(newState));
         } else {
-            _history.pushState(newState, document.title, getUrlFromState(newState));
+            _history.pushState(newState, '', getUrlFromState(newState));
         }
     }
 }
@@ -180,6 +190,13 @@ module.exports = {
     setModeName: function (modeName) {
         modeName = _.contains(modeNamesForUrl, modeName) ? modeName : '';
         set('modeName', modeName, {
+            silent: true,
+            replaceState: true
+        });
+    },
+
+    setModeType: function (modeType) {
+        set('modeType', modeType, {
             silent: true,
             replaceState: true
         });

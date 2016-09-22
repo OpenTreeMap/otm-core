@@ -39,22 +39,16 @@ body {
         position: absolute;
         overflow: hidden;
         margin: 0;
-        top: 244px;
+        top: 196px;
         width: 100%;
 
         left: 0;
         right: 350px;
         bottom: 40px;
 
-        @media(min-width: 990px){
-            top: 196px;
-        }
-
-        @media #{$screen-gtxs} {
-            .embed & {
-                bottom: 0;
-                top: 147px;
-            }
+        .embed & {
+            bottom: 0;
+            top: 141px;
         }
 
         @media #{$screen-xs} {
@@ -70,11 +64,6 @@ body {
             .map {
                 height: 300px;
             }
-        }
-
-        .embed & {
-            bottom: 0;
-            top: 141px;
         }
     }
 }

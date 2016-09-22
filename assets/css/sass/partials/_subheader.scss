@@ -187,32 +187,32 @@
         span {
             font-weight: bold;
         }
-
-        .half{
-            display: inline;
-            width: inherit;
+        .stats-list {
+            display: block;
+            width: 100%;
             padding: 0px;
 
-            label{
-                float: right;
+            .exportBtn {
+                margin-left: 10px;
+                margin-top: -12px;
+                width: 135px;
+                display: inline-block;
+            }
+            #tree-and-planting-site-counts {
+                height: 22px;
+                // 305px is approximately the size of the export button + the add tree button group + margins
+                // as determined from trial-and-error.
+                max-width: calc(100% - 305px);
+                display: inline-block;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
             }
         }
-
-        .exportBtn {
-            margin-left: 10px;
-            margin-top: -2px;
-        }
-
         .addBtn {
+            display: inline;
             float: right;
-            margin-top: -6px;
-            margin-left: 8px;
-
-            i {
-                position: relative;
-                left: -4px;
-                top: 0;
-            }
+            margin-top: -33px;
         }
     }
 }

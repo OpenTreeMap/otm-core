@@ -36,21 +36,7 @@ ga('set', 'page', pathname);
       <a class="dropdown-toggle" data-toggle="dropdown">
         <i class="icon-plus-circled"></i>
       </a>
-      <ul class="dropdown-menu">
-        <li>
-          <a data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
-             data-always-enable="{{ last_effective_instance_user|plot_is_creatable }}"
-             data-disabled-title='{% trans "Adding trees is not available to all users" %}'
-             data-event-category="add-tree" data-event-action="start-add-tree"
-             data-action='addtree'>{% trans "Add a Tree" %}</a>
-        </li>
-        <li>
-          <a data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource"
-             data-always-enable="{{ last_effective_instance_user|any_resource_is_creatable }}"
-             data-disabled-title='{% blocktrans with resources=term.Resource.plural %}Adding {{ resources }} is not available to all users{% endblocktrans %}'
-             data-action='addresource'>{% trans "Add a" %} {{ term.Resource.singular }}</a>
-        </li>
-      </ul>
+      {% include "treemap/partials/add_feature_menu.html" with dropdown_class="dropdown-menu-left" include_tree=True %}
     </li>
   {% else %}
     <li data-feature="add_plot">
@@ -134,8 +120,8 @@ ga('set', 'page', pathname);
   {% endif %}
 
   <div class="stats-bar hidden-xs">
-    <div class="half">
-      <div style="display: inline;" id="tree-and-planting-site-counts">
+    <div class="stats-list">
+      <div id="tree-and-planting-site-counts">
       </div>
       {% if not embed %}
         {% block subhead_exports %}
@@ -148,31 +134,20 @@ ga('set', 'page', pathname);
         {% endblock subhead_exports %}
       {% endif %}
     </div>
-    <div class="half">
+    <div class="addBtn">
       {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
         {% if request.instance.has_resources %}
-        <a class="btn btn-primary addBtn"
-           {% if embed %}target="_blank"{% endif %}
-           data-action='addresource'
-           data-always-enable="{{ last_effective_instance_user|any_resource_is_creatable }}"
-           data-disabled-title=
-             "{% blocktrans with resources=term.Resource.plural.lower %}Adding {{ resources }} is not available to all users {% endblocktrans %}"
-           data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource"
-           disabled="disabled"><i class="icon-plus"></i> {% trans "Add a" %} {{ term.Resource.singular }}</a>
+          <div class="btn-group">
+            {% include "treemap/partials/add_plot_btn.html" %}
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="caret"></span>
+              <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            {% include "treemap/partials/add_feature_menu.html" with dropdown_class="dropdown-menu-right" %}
+          </div>
+        {% else %}
+          {% include "treemap/partials/add_plot_btn.html" %}
         {% endif %}
-      <a class="btn btn-primary addBtn"
-         {% if embed %}
-         target="_blank"
-         {% else %}
-         data-feature="add_plot"
-         data-event-category="add-tree"
-         data-event-action="start-add-tree"
-         {% endif %}
-         data-action='addtree'
-         data-always-enable="{{ last_effective_instance_user|plot_is_creatable }}"
-         data-disabled-title="{% trans "Adding trees is not available to all users" %}"
-         data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
-         disabled="disabled"><i class="icon-plus"></i> {% trans "Add a Tree" %}</a>
       {% endif %}
     </div>
   </div>

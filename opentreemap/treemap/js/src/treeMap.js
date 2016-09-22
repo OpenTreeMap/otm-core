@@ -13,13 +13,16 @@ var $ = require('jquery'),
     modes = require('treemap/lib/treeMapModes.js'),
     Search = require('treemap/lib/search.js');
 
-function changeMode (modeName) {
+function changeMode (modeOptions) {
+    var modeName = modeOptions.modeName,
+        type = modeOptions.modeType;
+
     if (modeName === addTreeModeName) {
-        modes.activateAddTreeMode();
+        modes.activateAddTreeMode(false);
     } else if (modeName === addResourceModeName) {
-        modes.activateAddResourceMode();
+        modes.activateAddResourceMode(false, type);
     } else {
-        modes.activateBrowseTreesMode();
+        modes.activateBrowseTreesMode(false);
     }
 }
 
@@ -38,8 +41,7 @@ var mapPage = MapPage.init({
         ),
 
     modeChangeStream = mapPage.mapStateChangeStream
-        .map('.modeName')
-        .filter(BU.isDefined),
+        .filter(BU.isPropertyDefined('modeName')),
 
     completedEcobenefitsSearchStream = Search.init(
         ecoBenefitsSearchEvents,
@@ -49,12 +51,14 @@ var mapPage = MapPage.init({
 modeChangeStream.onValue(changeMode);
 
 var performAdd = function (e, addFn) {
+    var btn = e.target;
+
     if (!mapPage.embed) {
+        var type = $(btn).attr('data-class');
         e.preventDefault();
-        addFn();
+        addFn(false, type);
     } else {
-        var btn = e.target,
-            href = btn.href,
+        var href = btn.href,
             parsedHref = url.parse(href, true),
             currentLocation = url.parse(location.href, true),
             adjustedQuery = _.chain({})

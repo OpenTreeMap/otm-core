@@ -38,10 +38,10 @@ function init(options) {
     manager.addFeatureStream.onValue(initSteps);
     manager.deactivateStream.onValue(initSteps);
 
-    activateMode = function() {
+    activateMode = function(type) {
         manager.activate();
         plotMarker.useTreeIcon(false);
-        initSteps();
+        initSteps(type);
     };
 
     deactivateMode = function () {
@@ -120,11 +120,15 @@ function init(options) {
         U.$find('select', $form).on('change', enableFinalStep);
     }
 
-    function initSteps() {
+    function initSteps(type) {
         plotMarker.hide();
         editor.removeAreaPolygon();
         hideSubquestions();
-        if (onlyOneResourceType) {
+        var $type = _.isUndefined(type) ? $() : $resourceType.filter('[value="' + type + '"]');
+        if ($type.length === 1) {
+            $type.prop('checked', true);
+            onResourceTypeChosen();
+        } else if (onlyOneResourceType) {
             onResourceTypeChosen();
         } else {
             $resourceType.prop('checked', false);
@@ -188,8 +192,8 @@ function init(options) {
     }
 }
 
-function activate() {
-    activateMode();
+function activate(type) {
+    activateMode(type);
 }
 
 function deactivate() {
