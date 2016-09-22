@@ -13,7 +13,7 @@ import re
 from treemap.DotDict import DotDict
 from treemap.lib.object_caches import udf_defs
 
-DEFAULT_MOBILE_SEARCH_FIELDS = {
+DEFAULT_MOBILE_SEARCH_FIELDS = DotDict({
     'standard': [
         {'identifier': 'species.id'},
         {'identifier': 'tree.diameter'},
@@ -24,22 +24,26 @@ DEFAULT_MOBILE_SEARCH_FIELDS = {
         {'identifier': 'tree.diameter'},
         {'identifier': 'mapFeaturePhoto.id'}
     ]
-}
+})
 
-DEFAULT_SEARCH_FIELDS = {
+DEFAULT_SEARCH_FIELDS = DotDict({
     'general': [
         {'identifier': 'mapFeature.updated_at'}
     ],
     'missing': [
         {'identifier': 'species.id'},
         {'identifier': 'tree.diameter'},
+        {'identifier': 'plot.owner_orig_id'},
         {'identifier': 'mapFeaturePhoto.id'}
+    ],
+    'Plot': [
+        {'identifier': 'plot.owner_orig_id'}
     ],
     'Tree': [
         {'identifier': 'tree.diameter'},
-        {'identifier': 'tree.date_planted'},
+        {'identifier': 'tree.date_planted'}
     ]
-}
+})
 
 DEFAULT_MOBILE_API_FIELDS = (
     {'header': ugettext_noop('Tree Information'),
