@@ -535,7 +535,11 @@ class InstanceUser(Auditable, models.Model):
         self.save_with_user(system_user, *args, **kwargs)
 
     def __unicode__(self):
-        return '%s/%s' % (self.user.get_username(), self.instance.name)
+        # protect against not being logged in
+        username = ''
+        if getattr(self, 'user', None) is not None:
+            username = self.user.get_username() + '/'
+        return '%s%s' % (username, self.instance.name)
 
 post_save.connect(invalidate_adjuncts, sender=InstanceUser)
 post_delete.connect(invalidate_adjuncts, sender=InstanceUser)

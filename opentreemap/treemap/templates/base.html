@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load auth_extras %}
 {% load render_bundle from webpack_loader %}
 {% load instance_config %}
 {% load js_reverse %}
@@ -110,7 +111,7 @@
                 </ul>
               </li>
             {% else %}
-              <li class="hidden-xs"><a id="login" href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
+              <li class="hidden-xs"><a id="login" href="{% url 'auth_login' %}?{% login_forward %}">{% trans "Login" %}</a></li>
               {% block signup %}
               <li class="hidden-xs"><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
               {% endblock signup %}
@@ -119,7 +120,7 @@
                   <i class="icon-cog"></i>
                 </a>
                 <ul class="dropdown-menu dropdown-pull-left">
-                  <li><a id="login" href="{% url 'auth_login' %}">{% trans "Login" %}</a></li>
+                  <li><a id="login" href="{% url 'auth_login' %}?{% login_forward %}">{% trans "Login" %}</a></li>
                   {% block signup_small %}
                   <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
                   {% endblock signup_small %}

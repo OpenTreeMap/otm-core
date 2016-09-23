@@ -4,6 +4,15 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django import template
+from django.conf import settings
+from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.core.exceptions import ValidationError
+from django.shortcuts import resolve_url
+from django.utils.encoding import force_str
+from django.utils.http import urlencode
+from django.utils.translation import ugettext_lazy as _
+
+from treemap.util import get_login_redirect_path
 
 register = template.Library()
 
@@ -215,3 +224,28 @@ class UserContentNode(template.Node):
         # If there was a user match, the function would have
         # previously returned the protected content
         return ''
+
+
+@register.simple_tag(takes_context=True)
+def login_forward(context):
+    """
+    If the current page is an instance page and the user is not logged in,
+    return the `?next=` query param with a value that is the sanitized
+    version of the current page url.
+
+    `login_forward` should not be called if the user is already logged in.
+
+    Return an empty string if the current page is not an instance page.
+    """
+    request = template.Variable('request').resolve(context)
+
+    if getattr(request, 'user', None) and request.user.is_authenticated():
+        raise ValidationError(
+            _('Can\'t forward login if already logged in'))
+    if not getattr(request, 'instance', None):
+        return ''  # No point in forwarding back to a static page
+    # urlparse chokes on lazy objects in Python 3, force to str
+    resolved_login_url = force_str(resolve_url(settings.LOGIN_URL))
+    return urlencode([(REDIRECT_FIELD_NAME,
+                       (get_login_redirect_path(
+                           request, resolved_login_url)))])
