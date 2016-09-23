@@ -262,7 +262,9 @@
                 width: $native-width;
             }
             #snippet {
-                width: $native-width;
+                // Add 2px to account for the iframe border,
+                // given that the iframe uses content-box.
+                width: $native-width + 2px;
             }
             #iframe-container {
                 margin-top: 20px;
@@ -270,6 +272,10 @@
                 width: 0;
                 iframe {
                     border: $well-color solid 1px;
+                    // Use content-box because we can't assume
+                    // the customer's website will style the
+                    // border or padding the same way.
+                    box-sizing: content-box;
                 }
             }
             #preview {
