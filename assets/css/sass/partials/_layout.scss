@@ -2,8 +2,8 @@
 
 html,
 body {
-	height: 100%;
-	background: #f1f1f2;
+    height: 100%;
+    background: #f1f1f2;
 }
 
 .wrapper {
@@ -21,13 +21,13 @@ body {
 
 .image-background {
     //background-image: $background-image;
-	background-image: none;
-	height: 500px;
-	position: absolute;
-	z-index: 0;
-	width: 100%;
-	background-size: cover;
-	background-repeat: no-repeat;
+    background-image: none;
+    height: 500px;
+    position: absolute;
+    z-index: 0;
+    width: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
 }
 
 .content {
@@ -69,26 +69,26 @@ body {
 }
 
 .container.contained {
-	padding: 25px;
-	background: white;
-	border-radius: 6px;
-	box-shadow: 0 3px 0 gray;
-	box-shadow: 0 3px 0 rgba(0,0,0,.35);
-	margin: 90px auto;
-	position: relative;
-	width: 920px;
+    padding: 25px;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 3px 0 gray;
+    box-shadow: 0 3px 0 rgba(0,0,0,.35);
+    margin: 90px auto;
+    position: relative;
+    width: 920px;
     z-index: 98;
 
-	@media (min-width: 1200px) {
-		width: 1100px;
-	}
-	@media (max-width: 979px) and (min-width: 768px) {
-		width: 710px;
-	}
-	@media (max-width: 767px) {
-		width: auto;
-		margin: 50px 10px 90px;
-	}
+    @media (min-width: 1200px) {
+        width: 1100px;
+    }
+    @media (max-width: 979px) and (min-width: 768px) {
+        width: 710px;
+    }
+    @media (max-width: 767px) {
+        width: auto;
+        margin: 50px 10px 90px;
+    }
 
     &.topper:before {
         content: '';
@@ -206,33 +206,33 @@ body {
 }
 
 .well {
-	border: 1px solid lighten($well-color, 10%);
-	background: $light-gray-color;
-	border-radius: 6px;
+    border: 1px solid lighten($well-color, 10%);
+    background: $light-gray-color;
+    border-radius: 6px;
 
-	> :last-child {
-		margin-bottom: 0;
-	}
+    > :last-child {
+        margin-bottom: 0;
+    }
 
-	h4 {
-		color: $secondary-color;
-		font-size: 1.6rem;
-		font-weight: 400;
-		line-height: 2.1rem;
-		margin-bottom: 8px;
-	}
-	h5 {
-		margin-bottom: 6px;
+    h4 {
         color: $secondary-color;
-		font-size: 1.4rem;
-		font-weight: 700;
-	}
-	p, li {
-		font-size: 1.4rem;
-		font-weight: 300;
-		line-height: 2.1rem;
+        font-size: 1.6rem;
+        font-weight: 400;
+        line-height: 2.1rem;
+        margin-bottom: 8px;
+    }
+    h5 {
+        margin-bottom: 6px;
+        color: $secondary-color;
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+    p, li {
+        font-size: 1.4rem;
+        font-weight: 300;
+        line-height: 2.1rem;
         word-wrap: break-word;
-	}
+    }
     p {
         clear: both;
     }
@@ -254,7 +254,7 @@ body {
 }
 
 @media (max-width: 767px) {
-	body {
-		padding: 0;
-	}
+    body {
+        padding: 0;
+    }
 }
