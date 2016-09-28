@@ -84,7 +84,7 @@
                 </a>
               </li>
               <li class="hidden-xs"><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
-              <li class="user-img">
+              <li class="user-img hidden-xs">
                 <a href="{% url 'profile' %}">
                 {% if request.user.thumbnail %}
                   <img src="{{ request.user.thumbnail.url }}">
