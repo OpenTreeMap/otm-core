@@ -19,7 +19,7 @@ $.ajaxSetup(require('treemap/lib/csrf.js').jqueryAjaxSetupOptions);
 
 module.exports.init = function (options) {
     // init mapManager before searchBar so that .setCenterWM is set
-    mapManager.createTreeMap(options);
+    var zoomLatLngOutputStream = mapManager.createTreeMap(options);
 
     // When there is a single geocode result (either by an exact match
     // or the user selects a candidate) move the map to it and zoom
@@ -71,6 +71,7 @@ module.exports.init = function (options) {
         builtSearchEvents: builtSearchEvents,
         getMapStateSearch: urlState.getSearch,
         mapStateChangeStream: urlState.stateChangeStream,
+        zoomLatLngOutputStream: zoomLatLngOutputStream,
         initMapState: urlState.init
     };
 };
