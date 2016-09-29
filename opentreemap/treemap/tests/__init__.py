@@ -300,7 +300,8 @@ def create_mock_system_user():
 
 
 def make_request(params={}, user=None, instance=None,
-                 method='GET', body=None, file=None):
+                 method='GET', body=None, file=None,
+                 path='hello/world'):
     if user is None:
         user = AnonymousUser()
 
@@ -312,9 +313,9 @@ def make_request(params={}, user=None, instance=None,
 
     if file:
         post_data = {'file': file}
-        req = RequestFactory().post("hello/world", post_data, **extra)
+        req = RequestFactory().post(path, post_data, **extra)
     else:
-        req = RequestFactory().get("hello/world", params, **extra)
+        req = RequestFactory().get(path, params, **extra)
         req.method = method
 
     setattr(req, 'user', user)

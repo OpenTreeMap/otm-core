@@ -97,12 +97,9 @@ def get_last_visited_instance(request):
     return instance
 
 
-def login_redirect(request):
+def get_login_redirect_path(request, resolved_login_url):
     # Reference: django/contrib/auth/decorators.py
     path = request.build_absolute_uri()
-    # urlparse chokes on lazy objects in Python 3, force to str
-    resolved_login_url = force_str(
-        resolve_url(settings.LOGIN_URL))
     # If the login url is the same scheme and net location then just
     # use the path as the "next" url.
     login_scheme, login_netloc = urlparse(resolved_login_url)[:2]
@@ -110,6 +107,14 @@ def login_redirect(request):
     if (not login_scheme or login_scheme == current_scheme)\
     and (not login_netloc or login_netloc == current_netloc):  # NOQA
         path = request.get_full_path()
+    return path
+
+
+def login_redirect(request):
+    # urlparse chokes on lazy objects in Python 3, force to str
+    resolved_login_url = force_str(
+        resolve_url(settings.LOGIN_URL))
+    path = get_login_redirect_path(request, resolved_login_url)
     from django.contrib.auth.views import redirect_to_login
     return redirect_to_login(
         path, resolved_login_url, REDIRECT_FIELD_NAME)

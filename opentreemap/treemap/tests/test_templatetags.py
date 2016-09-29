@@ -18,7 +18,7 @@ from treemap.templatetags.partial import PartialNode
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.models import Plot, Tree, InstanceUser
 from treemap.tests import (make_instance, make_observer_user,
-                           make_commander_user, make_user)
+                           make_commander_user, make_user, make_request)
 from treemap.tests.base import OTMTestCase
 from treemap.templatetags.util import display_name
 
@@ -294,6 +294,47 @@ class UserContentTagTests(OTMTestCase):
         content = self.render_literal_user_id_template(self.public_user,
                                                        self.user)
         self.assertEqual(content, '')
+
+
+class LoginForwardingTests(OTMTestCase):
+
+    def setUp(self):
+        self.instance = make_instance()
+        self.literal_template = Template(
+            '{% load auth_extras %}{% login_forward %}')
+
+    def render_template(self, template, path, instance=None):
+        return template.render(Context({'request':
+                               make_request(path=path, instance=instance)}))
+
+    def test_request_has_instance(self):
+        path = '/{}/anything/goes/'.format(self.instance.url_name)
+        self.assertEqual(
+            self.render_template(
+                self.literal_template, path, self.instance),
+            '?next=%2F{}%2Fanything%2Fgoes%2F'.format(
+                self.instance.url_name))
+
+    def test_request_path_redirect(self):
+        path = '/users/anything/goes/'
+        self.assertEqual(
+            self.render_template(self.literal_template, path),
+            '?next=%2Fusers%2Fanything%2Fgoes%2F')
+
+        path = '/comments/anything/goes/'
+        self.assertEqual(
+            self.render_template(self.literal_template, path),
+            '?next=%2Fcomments%2Fanything%2Fgoes%2F')
+
+        path = '/create/'
+        self.assertEqual(
+            self.render_template(self.literal_template, path),
+            '?next=%2Fcreate%2F')
+
+    def test_default_redirect(self):
+        path = '/anything/else/'
+        self.assertEqual(
+            self.render_template(self.literal_template, path), '')
 
 
 @override_settings(TEMPLATE_LOADERS=(
