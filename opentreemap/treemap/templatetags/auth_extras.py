@@ -227,7 +227,7 @@ class UserContentNode(template.Node):
 
 
 @register.simple_tag(takes_context=True)
-def login_forward(context):
+def login_forward(context, query_prefix='?'):
     """
     If the current page is an instance page and the user is not logged in,
     return the `?next=` query param with a value that is the sanitized
@@ -242,10 +242,14 @@ def login_forward(context):
     if getattr(request, 'user', None) and request.user.is_authenticated():
         raise ValidationError(
             _('Can\'t forward login if already logged in'))
-    if not getattr(request, 'instance', None):
-        return ''  # No point in forwarding back to a static page
     # urlparse chokes on lazy objects in Python 3, force to str
     resolved_login_url = force_str(resolve_url(settings.LOGIN_URL))
-    return urlencode([(REDIRECT_FIELD_NAME,
-                       (get_login_redirect_path(
-                           request, resolved_login_url)))])
+    path = get_login_redirect_path(request, resolved_login_url)
+    if not getattr(request, 'instance', None):
+        maxsplit = 2 if path.startswith('/') else 1
+        root = path.split('/', maxsplit)[:maxsplit][-1]
+        # Could get fancy and make a setting, to decouple from other modules
+        if root not in ('comments', 'users', 'create'):
+            # Anything else, probably better off with the default redirect
+            return ''
+    return query_prefix + urlencode([(REDIRECT_FIELD_NAME, path)])
