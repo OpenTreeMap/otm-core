@@ -11,6 +11,8 @@ from django.contrib.staticfiles import finders
 from django.utils.timezone import now
 from django.utils.translation import ugettext as _
 
+from opentreemap.util import request_is_embedded
+
 from treemap.units import Convertible
 from treemap.util import get_last_visited_instance, leaf_models_of_class
 from treemap.models import InstanceUser
@@ -79,6 +81,7 @@ def global_settings(request):
         'logo_url': logo_url,
         'header_comment': header_comment,
         'term': term,
+        'embed': request_is_embedded(request),
         'datepicker_start_date': datetime.min.replace(year=1900),
     }
 

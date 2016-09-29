@@ -8,7 +8,8 @@
     </div>
     <div id="tree-detail" class="panel-body collapse">
       <div class="panel-body-buttons" id="map-plot-details-button" style="display: none;">
-        <a class="btn" data-class="display" id="full-details-button">{% trans "Full Details" %}</a>
+        <a class="btn" data-class="display" id="full-details-button">{% trans "More Details" %}</a>
+        {% if not embed %}
         <button class="btn"
                 data-class="display"
                 id="quick-edit-button"
@@ -18,6 +19,7 @@
                 disabled="disabled">{% trans "Quick Edit" %}</button>
                 <button class="btn btn-success" data-class="edit" id="save-details-button" style="display:none">Save</button>
                 <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</button>
+      {% endif %}
       </div>
       <div class="panel-inner" id="map-feature-accordion">
       </div>

@@ -436,7 +436,7 @@ class AbstractNode(template.Node):
             'is_editable': is_editable,
             'choices': choices,
         }
-        self.get_additional_context(context['field'])
+        self.get_additional_context(context['field'], model, field_name)
 
         return field_template.render(context)
 
@@ -464,11 +464,18 @@ class SearchNode(CreateNode):
 
         return label, identifier
 
-    def get_additional_context(self, field):
-        # Identifier is lower-cased above to match the calling convention of
-        # update endpoints, so we shouldn't overwrite it :(
-        field.update({k: v for k, v in self.search_json.items()
-                      if v is not None and k != 'identifier'})
+    def get_additional_context(self, field, model, field_name):
+        def update_field(settings):
+            # Identifier is lower-cased above to match the calling convention
+            # of update endpoints, so we shouldn't overwrite it :(
+            field.update({k: v for k, v in settings.items()
+                          if v is not None and k != 'identifier'})
+
+        search_settings = getattr(model, 'search_settings', {}).get(field_name)
+        if search_settings:
+            update_field(search_settings)
+
+        update_field(self.search_json)
 
         data_type = field['data_type']
         if 'search_type' not in field:

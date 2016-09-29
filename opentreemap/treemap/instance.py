@@ -511,6 +511,18 @@ class Instance(models.Model):
 
         add_default_permissions(self, models=classes)
 
+    @property
+    def map_feature_classes(self):
+        from treemap.models import MapFeature
+        classes = {MapFeature.get_subclass(m)
+                   for m in self.map_feature_types}
+        return classes
+
+    @property
+    def resource_classes(self):
+        from treemap.models import Plot
+        return self.map_feature_classes - {Plot}
+
     def update_geo_rev(self):
         self.update_revs('geo_rev')
 

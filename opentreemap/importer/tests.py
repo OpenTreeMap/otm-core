@@ -1400,8 +1400,8 @@ class TreeIntegrationTests(IntegrationTests):
         # self.assertEqual(plot.readonly, False)
 
         csv = """
-        | point x | point y | owner original id  | planting site id |
-        | 45.53   | 31.1    | 443                | %s               |
+        | point x | point y | custom id  | planting site id |
+        | 45.53   | 31.1    | 443        | %s               |
         """ % plot.id
 
         ieid = self.run_through_commit_views(csv)

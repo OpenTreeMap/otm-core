@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from time import sleep
+
 from treemap.tests.ui import TreemapUITestCase, ui_test_urls
 from treemap.models import Tree, Plot
 
@@ -176,10 +178,12 @@ class MapTest(TreemapUITestCase):
             self.wait_until_present(
                 'img[src="/static/img/mapmarker_viewmode.png"]')
 
-            self.click_when_visible('#quick-edit-button')
-            self.wait_until_visible('#save-details-button')
+            # Not sure why, but this prevents an intermittent test failure
+            sleep(1)
 
-            diameter = self.driver.find_element_by_css_selector(
+            self.click_when_visible('#quick-edit-button')
+
+            diameter = self.wait_until_visible(
                 'input[data-class="diameter-input"]')
 
             diameter.clear()

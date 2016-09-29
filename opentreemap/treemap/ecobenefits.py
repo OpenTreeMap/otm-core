@@ -12,7 +12,6 @@ import itertools
 
 from treemap import ecobackend
 from treemap.ecocache import get_cached_benefits
-from treemap.models import MapFeature
 
 WATTS_PER_BTU = 0.29307107
 GAL_PER_CUBIC_M = 264.172052
@@ -408,13 +407,9 @@ def _annotate_basis_with_extra_stats(basis):
 
 
 def get_benefits_for_filter(filter):
-    allowed_types = filter.instance.map_feature_types
     benefits, basis = {}, {}
 
-    for C in MapFeature.subclass_dict().values():
-        if C.__name__ not in allowed_types:
-            continue
-
+    for C in filter.instance.map_feature_classes:
         ft_benefit_groups, ft_basis = _benefits_for_class(C, filter)
 
         _combine_benefit_basis(basis, ft_basis)

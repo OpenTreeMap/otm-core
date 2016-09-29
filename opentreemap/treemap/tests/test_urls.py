@@ -186,6 +186,9 @@ class TreemapUrlTests(UrlTestCase):
     def test_tree_list(self):
         self.assert_template(self.prefix + 'map/', 'treemap/map.html')
 
+    def test_tree_list_embed(self):
+        self.assert_template(self.prefix + 'map/?embed=', 'treemap/map.html')
+
     def test_plot_detail(self):
         plot = self.make_plot()
         url = self.prefix + 'features/%s/' % plot.id
@@ -253,6 +256,26 @@ class TreemapUrlTests(UrlTestCase):
             self.prefix + 'users/%s/edits/' % username,
             '/users/%s/edits/?instance_id=%s'
             % (username, self.instance.id))
+
+
+@override_settings(FEATURE_BACKEND_FUNCTION=None)
+class TreemapPrivateUrlTests(UrlTestCase):
+    # Tests for URLs defined in treemap/urls.py
+    # All treemap URLs start with /<instance_url_name>/
+
+    def setUp(self):
+        self.instance = make_instance(is_public=False)
+        self.prefix = '/%s/' % self.instance.url_name
+
+    def test_instance(self):
+        desired_path = self.prefix + 'map/'
+        expected_path = '/accounts/login/?next=' + desired_path
+        self.assert_redirects(desired_path, expected_path, 302)
+
+    def test_embed(self):
+        desired_path = self.prefix + 'map/?embed=1'
+        expected_path = '/not-available?embed=1'
+        self.assert_redirects(desired_path, expected_path, 302)
 
 
 class InstanceUrlTests(RequestTestCase):

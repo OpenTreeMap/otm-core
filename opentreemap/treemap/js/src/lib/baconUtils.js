@@ -48,6 +48,10 @@ exports.isPropertyUndefined = function(key) {
     return R.or(isUndefined, R.compose(isUndefined, getValueForKey(key)));
 };
 
+exports.isPropertyDefined = function(key) {
+    return R.and(isDefined, R.compose(isDefined, getValueForKey(key)));
+};
+
 exports.fetchFromIdStream = function (idStream, fetchFn, undefinedMapping, errorMapping) {
     return Bacon.mergeAll(
         idStream

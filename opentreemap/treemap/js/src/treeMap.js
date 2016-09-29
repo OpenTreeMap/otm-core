@@ -4,6 +4,7 @@ var $ = require('jquery'),
     _ = require('lodash'),
     Bootstrap = require('bootstrap'),  // for $(...).collapse()
     Bacon = require('baconjs'),
+    url = require('url'),
     addTreeModeName = require('treemap/lib/addTreeMode.js').name,
     addResourceModeName = require('treemap/lib/addResourceMode.js').name,
     BU = require('treemap/lib/baconUtils.js'),
@@ -12,13 +13,16 @@ var $ = require('jquery'),
     modes = require('treemap/lib/treeMapModes.js'),
     Search = require('treemap/lib/search.js');
 
-function changeMode (modeName) {
+function changeMode (modeOptions) {
+    var modeName = modeOptions.modeName,
+        type = modeOptions.modeType;
+
     if (modeName === addTreeModeName) {
-        modes.activateAddTreeMode();
+        modes.activateAddTreeMode(false);
     } else if (modeName === addResourceModeName) {
-        modes.activateAddResourceMode();
+        modes.activateAddResourceMode(false, type);
     } else {
-        modes.activateBrowseTreesMode();
+        modes.activateBrowseTreesMode(false);
     }
 }
 
@@ -37,28 +41,50 @@ var mapPage = MapPage.init({
         ),
 
     modeChangeStream = mapPage.mapStateChangeStream
-        .map('.modeName')
-        .filter(BU.isDefined);
+        .filter(BU.isPropertyDefined('modeName')),
+
+    completedEcobenefitsSearchStream = Search.init(
+        ecoBenefitsSearchEvents,
+        _.bind(mapManager.setFilter, mapManager));
+
 
 modeChangeStream.onValue(changeMode);
 
+var performAdd = function (e, addFn) {
+    var btn = e.target;
+
+    if (!mapPage.embed) {
+        var type = $(btn).attr('data-class');
+        e.preventDefault();
+        addFn(false, type);
+    } else {
+        var href = btn.href,
+            parsedHref = url.parse(href, true),
+            currentLocation = url.parse(location.href, true),
+            adjustedQuery = _.chain({})
+                .assign(currentLocation.query, parsedHref.query)
+                .omit('embed')
+                .value();
+        parsedHref.search = null;
+        parsedHref.query = adjustedQuery;
+        btn.href = url.format(parsedHref);
+        // allow default
+    }
+};
+
 $('[data-action="addtree"]').click(function(e) {
-    e.preventDefault();
-    modes.activateAddTreeMode();
+    performAdd(e, modes.activateAddTreeMode);
 });
 
 $('[data-action="addresource"]').click(function(e) {
-    e.preventDefault();
-    modes.activateAddResourceMode();
+    performAdd(e, modes.activateAddResourceMode);
 });
-
-Search.init(
-    ecoBenefitsSearchEvents,
-    _.bind(mapManager.setFilter, mapManager));
 
 buttonEnabler.run();
 
-modes.init(mapManager, triggerSearchFromSidebar);
+modes.init(mapManager, triggerSearchFromSidebar, mapPage.embed,
+    completedEcobenefitsSearchStream);
 
-// Read state from current URL, initializing zoom/lat/long/search/mode
+// Read state from current URL, initializing
+// zoom/lat/long/search/mode/selection
 mapPage.initMapState();

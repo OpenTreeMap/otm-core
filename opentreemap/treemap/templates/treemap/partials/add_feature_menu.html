@@ -1,0 +1,38 @@
+{% load i18n %}
+{% load instance_config %}
+{% load util %}
+<ul class="dropdown-menu {{ dropdown_class }}">
+  {% if include_tree %}
+    <li>
+      <a data-always-enable="{{ last_effective_instance_user|plot_is_creatable }}"
+         data-disabled-title='{% trans "Adding trees is not available to all users" %}'
+         {% if embed %}
+         target="_blank"
+         {% else %}
+         data-event-category="add-tree" data-event-action="start-add-tree"
+         data-action='addtree'
+         {% endif %}
+         data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree">
+          {% trans "Add a Tree" %}
+      </a>
+    </li>
+    <li role="separator" class="divider"></li>
+  {% endif %}
+  {% for Resource in request.instance.resource_classes %}
+    {% with res_term=Resource|terminology:request.instance %}
+      <li>
+        <a data-always-enable="{{ last_effective_instance_user|any_resource_is_creatable }}"
+           data-disabled-title='{% blocktrans with resources=res_term.plural %}Adding {{ resources }} is not available to all users{% endblocktrans %}'
+           {% if embed %}
+           target="_blank"
+           {% else %}
+           data-action='addresource'
+           data-class='{{ Resource.map_feature_type }}'
+           {% endif %}
+           data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addResource&t={{ Resource.map_feature_type }}">
+            {% trans "Add a" %} {{ res_term.singular }}
+        </a>
+      </li>
+    {% endwith %}
+  {% endfor %}
+</ul>

@@ -5,7 +5,7 @@ from __future__ import division
 from treemap.lib.object_caches import role_permissions
 
 from django.contrib.gis.db.models import Field
-from treemap.models import InstanceUser, Role, Plot, MapFeature
+from treemap.models import InstanceUser, Role, Plot
 
 """
 Tools to assist in resolving permissions, specifically when the type of
@@ -211,11 +211,8 @@ def any_resource_is_creatable(role_related_obj):
     if role is None:
         return False
 
-    map_features = {MapFeature.get_subclass(m)
-                    for m in role.instance.map_feature_types}
-    resources = map_features - {Plot}
-
-    return any(map_feature_is_creatable(role, Model) for Model in resources)
+    return any(map_feature_is_creatable(role, Model)
+               for Model in role.instance.resource_classes)
 
 
 def geom_is_writable(instanceuser, model_name):

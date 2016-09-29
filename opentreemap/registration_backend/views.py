@@ -79,11 +79,12 @@ class RegistrationView(DefaultRegistrationView):
 
     def dispatch(self, request, instance_url_name=None, *args, **kwargs):
         if instance_url_name:
-            request.instance = get_instance_or_404(url_name=instance_url_name)
+            self.request.instance = get_instance_or_404(
+                url_name=instance_url_name)
         return super(RegistrationView, self).dispatch(
-            request, *args, **kwargs)
+            self.request, *args, **kwargs)
 
-    def get_success_url(self, request, new_user):
+    def get_success_url(self, new_user):
         """
         If a user already belongs to an instance (i.e. was invited)
         and they have been activated, redirect to that map page
@@ -95,9 +96,9 @@ class RegistrationView(DefaultRegistrationView):
             url = reverse('map', kwargs={'instance_url_name':
                                          instance.url_name})
             return (url, [], {})
-        return super(RegistrationView, self).get_success_url(request, new_user)
+        return super(RegistrationView, self).get_success_url(new_user)
 
-    def register(self, request, form):
+    def register(self, form):
         """
         Register a new user account, inactive user account with the specified
         username, email, and password.
@@ -128,6 +129,7 @@ class RegistrationView(DefaultRegistrationView):
         # if Site._meta.installed:
         #     site = Site.objects.get_current()
         # else:
+        request = self.request
         site = RequestSite(request)
 
         should_email = should_send_user_activation(
@@ -160,7 +162,7 @@ class RegistrationView(DefaultRegistrationView):
 
 
 class ActivationView(DefaultActivationView):
-    def get_success_url(self, request, user):
+    def get_success_url(self, user):
         instanceusers = InstanceUser.objects.filter(user=user)
 
         if instanceusers.exists():
@@ -168,4 +170,4 @@ class ActivationView(DefaultActivationView):
             url = reverse('map', kwargs={'instance_url_name':
                                          instance.url_name})
             return (url, [], {})
-        return super(ActivationView, self).get_success_url(request, user)
+        return super(ActivationView, self).get_success_url(user)

@@ -865,13 +865,18 @@ class Plot(MapFeature, ValidationMixin):
     length = models.FloatField(null=True, blank=True,
                                verbose_name=_("Planting Site Length"))
 
-    owner_orig_id = models.CharField(max_length=255, null=True, blank=True)
+    owner_orig_id = models.CharField(max_length=255, null=True, blank=True,
+                                     verbose_name=_("Custom ID"))
 
     objects = GeoHStoreUDFManager()
     is_editable = True
 
     _terminology = {'singular': _('Planting Site'),
                     'plural': _('Planting Sites')}
+
+    search_settings = {
+        'owner_orig_id': {'search_type': 'IS'}
+    }
 
     udf_settings = {
         'Stewardship': {
