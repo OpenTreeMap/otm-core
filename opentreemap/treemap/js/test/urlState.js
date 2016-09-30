@@ -98,7 +98,7 @@ var urlStateTests = {
         var context = createContext();
         urlState.init(context);
 
-        urlState.setZoomLatLng(1, {lat: 2, lng: 3});
+        urlState.setZoomLatLng({zoom: 1, lat: 2, lng: 3});
         urlState.setModeName('scenarios');
         urlState.set('foo', 'bar');
 

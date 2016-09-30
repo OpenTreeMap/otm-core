@@ -56,6 +56,11 @@ $blue-to-red: #2791c3 10%,
             .private {
                 color: lighten($main-text-color, 70%);
             }
+
+            #autosave-message {
+                font-size: 1.2rem;
+                color: lighten($main-text-color, 70%);
+            }
         }
 
         .search-block-wrapper {

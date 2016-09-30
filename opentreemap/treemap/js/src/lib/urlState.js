@@ -172,12 +172,13 @@ module.exports = {
         });
     },
 
-    setZoomLatLng: function (zoom, center) {
-        var zoomLatLng = makeZoomLatLng(zoom, center.lat, center.lng);
-        set('zoomLatLng', zoomLatLng, {
-            silent: true,
-            replaceState: true
-        });
+    setZoomLatLng: function (zoomLatLng) {
+        if (!_.isEmpty(zoomLatLng)) {
+            set('zoomLatLng', zoomLatLng, {
+                silent: true,
+                replaceState: true
+            });
+        }
     },
 
     setSearch: function (otmSearch) {
