@@ -239,7 +239,18 @@ body {
 }
 
 .datepicker {
-    z-index: 1000 !important;
+    // This rule uses important because bootstrap-datepicker assigns a z-index
+    // in `element.style`, causing it to be occluded by something with a
+    // higher z-index than the assigned value.
+    //
+    // In absence of other changes, we need a z-index higher than that of
+    // `.navbar-fixed-top`, which has a z-index of 1030. `.datepicker`
+    // is a child of `body`, so the occlusion is not a stacking problem.
+    //
+    // The high z-index causes slightly odd artifacts when editing tree
+    // details on the plot detail page. There are other better solutions,
+    // but this is by far the quickest.
+    z-index: 1040 !important;
 }
 
 @media (max-width: 767px) {
