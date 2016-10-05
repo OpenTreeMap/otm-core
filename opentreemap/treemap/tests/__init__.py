@@ -110,6 +110,15 @@ def _make_permissions(field_permission):
     return permissions
 
 
+def make_administrator_role(instance):
+    """
+    The administrator role has permission to modify all model fields
+    directly for all models under test, and has the name Role.ADMINISTRATOR.
+    """
+    return _make_loaded_role(instance, Role.ADMINISTRATOR,
+                             FieldPermission.WRITE_DIRECTLY)
+
+
 def make_commander_role(instance):
     """
     The commander role has permission to modify all model fields
@@ -223,6 +232,10 @@ def make_user(instance=None, username='username', make_role=None,
 
 def make_commander_user(instance=None, username='commander'):
     return make_user(instance, username, make_commander_role)
+
+
+def make_administrator_user(instance, username='administrator', admin=True):
+    return make_user(instance, username, make_administrator_role, admin)
 
 
 def make_admin_user(instance, username='admin'):

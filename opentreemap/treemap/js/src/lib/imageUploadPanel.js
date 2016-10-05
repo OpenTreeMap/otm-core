@@ -7,7 +7,8 @@ var $ = require('jquery'),
     format = require('util').format,
     U = require('treemap/lib/utility.js'),
     _ = require('lodash'),
-    config = require('treemap/lib/config.js');
+    config = require('treemap/lib/config.js'),
+    photoCarousel = require('treemap/lib/photoCarousel.js');
 
 // For modal dialog on jquery
 require('bootstrap');
@@ -22,6 +23,9 @@ module.exports.init = function(options) {
         $image = $(options.imageElement),
         $error = $(options.error),
         $imageContainer = $(options.imageContainer),
+        loadImageCarouselHtml = photoCarousel.getImageCarouselLoader({
+            $imageContainer: $imageContainer
+        }),
         dataType = options.dataType || 'json',
 
         $chooser = $panel.find('.fileChooser'),
@@ -30,22 +34,14 @@ module.exports.init = function(options) {
         finishedStream = new Bacon.EventStream(function(subscribe) {
             callback = subscribe;
 
-            return function() { callback = null; };
+            return function() {
+                callback = null;
+            };
         }),
 
         currentRotation = 0,
         $lightbox = $(options.lightbox),
         $lightboxImage = $lightbox.find('[data-photo-image]');
-
-    function loadImageCarouselHtml(data) {
-        if ($imageContainer.length > 0) {
-            $imageContainer.html(data);
-            // We need to remove the cached data because Bootstrap stores
-            // the carousel-indicators, and adds the active class onto its
-            // stored fragments
-            $imageContainer.removeData('carousel');
-        }
-    }
 
     var fileupload = $chooser.fileupload({
         dataType: dataType,
@@ -166,22 +162,52 @@ module.exports.init = function(options) {
         });
     }
 
-    // Reset image rotation  and buttons on opening the lightbox
-    $imageContainer.on('click', '[href="' + options.lightbox + '"]', function(e) {
-        var $toggle = $(this),
-        endpoint = $toggle.attr('data-endpoint');
+    function isPhotoDeletable () {
+        var $deleteControl = $imageContainer.find('.item.active .delete-photo');
+        return 0 < $deleteControl.length;
+    }
 
-        e.preventDefault();
+    // Reset image rotation and buttons on opening the lightbox
+    // $imageContainer.on('click', '[href="' + options.lightbox + '"]', function(e) {
+    $lightbox.on('show.bs.modal', function(e) {
+        var $toggle = $(e.relatedTarget),
+            $active = $toggle.parents('.item.active'),
+            $endpointEl = $active.find('[data-endpoint]'),
+            $deleteToggleEl = $active.find('.delete-photo'),
+            mode = $toggle.is($deleteToggleEl) ? 'delete' : 'view',
+            endpoint = $endpointEl.attr('data-endpoint'),
+            modeSelector = '[data-class="' + mode + '"]',
+            notModeSelector = '[data-class]:not(' + modeSelector + ')',
+            $keepControl = $lightbox.find('[data-photo-keep]');
 
+        $keepControl.off('click.delete-mode');
         currentRotation = 0;
         rotateLightboxImage(0);
+        $lightbox.find('[data-photo-delete-start]').prop('disabled', true);
+        $lightbox.find('[data-photo-confirm]').prop('disabled', true);
+
         $lightboxImage.attr('src', $toggle.attr('data-photo-src'));
-        $lightbox.find('[data-class="view"]').show();
-        $lightbox.find('[data-class="edit"]').hide();
+        $lightbox.find(modeSelector).show();
+        $lightbox.find(notModeSelector).hide();
         $lightbox.find('[data-photo-save]').attr('data-photo-save', endpoint);
+
+        if (1 === $deleteToggleEl.length) {
+            $lightbox.find('[data-photo-confirm]').attr('data-photo-confirm', endpoint);
+            $lightbox.find('button[data-class="delete"]').removeProp('disabled');
+            $lightbox.find('[data-photo-delete-start]').removeProp('disabled');
+
+            if (mode === 'delete') {
+                $keepControl.one('click.delete-mode', function () {
+                    $lightbox.modal('hide');
+                });
+            }
+        } else {
+            $lightbox.find('[data-photo-confirm]').attr('data-photo-confirm', '');
+        }
     });
-    $lightbox.on('click', '[data-class="view"]', function() {
-        $lightbox.find('[data-class="view"]').hide();
+
+    $lightbox.on('click', '[data-photo-edit]', function() {
+        $lightbox.find('[data-class]:not([data-class="edit"])').hide();
         $lightbox.find('[data-class="edit"]').show();
     });
 
@@ -212,6 +238,31 @@ module.exports.init = function(options) {
             method: 'POST',
             url: $button.attr('data-photo-save'),
             data: {'degrees': degreesToSave}
+        })
+        .done(function(data) {
+            $lightbox.modal('hide');
+            loadImageCarouselHtml(data);
+        });
+    });
+
+    $lightbox.on('click', '[data-photo-keep]', function(e) {
+        $lightbox.find('[data-class]:not([data-class="view"])').hide();
+        $lightbox.find('[data-class="view"]').show();
+    });
+
+    $lightbox.on('click', '[data-photo-delete-start]', function(e) {
+        $lightbox.find('[data-class]:not([data-class="delete"])').hide();
+        $lightbox.find('[data-class="delete"]').show();
+    });
+
+    $lightbox.on('click', '[data-photo-confirm]:not([data-photo-confirm=""])', function(e) {
+        var $button = $(e.target);
+
+        $lightbox.find('button[data-class="delete"]').prop('disabled', true);
+
+        $.ajax({
+            method: 'DELETE',
+            url: $button.attr('data-photo-confirm')
         })
         .done(function(data) {
             $lightbox.modal('hide');

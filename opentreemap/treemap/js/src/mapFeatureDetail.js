@@ -201,7 +201,9 @@ function init() {
 
     handleFavoriteClick();
 
-    socialMediaSharing.init({imageFinishedStream: imageFinishedStream});
+    socialMediaSharing.init({
+        imageFinishedStream: imageFinishedStream
+    });
 }
 
 function isFavoriteNow() {

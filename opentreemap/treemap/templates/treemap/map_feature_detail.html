@@ -32,13 +32,25 @@
         <div class="modal-dialog">
             <div class="modal-content lightbox">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <p class="alert alert-danger" data-class="delete">
+                    {% trans "Are you sure you want to delete this photo?" %}
+                </p>
                 <img data-photo-image src="">
                 <div class="lightbox-caption">
+                    <button class="btn btn-small btn-danger pull-right" type="button" disabled="disabled"
+                            data-class="view"
+                            data-photo-delete-start
+                            data-disabled-title="{% trans 'Deleting of photos is not available to all users' %}"
+                            >{% trans "Delete" %}</button>
                     <a class="btn btn-small pull-right" data-class="view" data-photo-edit>{% trans "Edit" %}</a>
                     <a class="btn btn-small pull-left btn-rotate" data-class="edit" data-photo-rotate="-90"><i class="icon-ccw"></i></a>
                     <a class="btn btn-small pull-left btn-rotate" data-class="edit" data-photo-rotate="90"><i class="icon-cw"></i></a>
                     <button data-class="edit" disabled="disabled" class="btn btn-small pull-right"
                             data-photo-save="">{% trans "Save" %}</button>
+                    <button data-class="delete" disabled="disabled" class="btn btn-small btn-danger pull-right"
+                            data-photo-confirm="">{% trans "Yes" %}</button>
+                    <button data-class="delete" class="btn btn-small pull-right"
+                            data-photo-keep="">{% trans "No" %}</button>
                 </div>
             </div>
         </div>
