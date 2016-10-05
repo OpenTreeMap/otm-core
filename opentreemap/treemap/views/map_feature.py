@@ -23,7 +23,7 @@ from treemap.lib.hide_at_zoom import (update_hide_at_zoom_after_move,
 
 from treemap.units import Convertible
 from treemap.models import (Tree, Species, MapFeature,
-                            MapFeaturePhoto, Favorite)
+                            MapFeaturePhoto, TreePhoto, Favorite)
 from treemap.util import (package_field_errors, to_object_name)
 
 from treemap.images import get_image_from_request
@@ -73,6 +73,7 @@ def get_photo_context_and_errors(fn):
         photos = feature.photos()
         return {'photos': [context_dict_for_photo(request, photo)
                            for photo in photos],
+                'feature': feature,
                 'error': error}
 
     return wrapper
@@ -342,6 +343,14 @@ def rotate_map_feature_photo(request, instance, feature_id, photo_id):
     image_data = mf_photo.image.read(settings.MAXIMUM_IMAGE_SIZE)
     mf_photo.set_image(image_data, degrees_to_rotate=degrees)
     mf_photo.save_with_user(request.user)
+
+
+@get_photo_context_and_errors
+def delete_photo(request, instance, feature_id, photo_id):
+    feature = get_map_feature_or_404(feature_id, instance)
+    photo_class = TreePhoto if feature.is_plot else MapFeaturePhoto
+    mf_photo = get_object_or_404(photo_class, pk=photo_id, map_feature=feature)
+    mf_photo.delete_with_user(request.user)  # may raise AuthorizeException
 
 
 def map_feature_popup(request, instance, feature_id):

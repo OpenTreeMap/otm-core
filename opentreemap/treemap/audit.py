@@ -707,14 +707,18 @@ class Authorizable(UserTrackable):
 
         self._has_been_masked = False
 
+    def get_instance(self):
+        instance = getattr(self, 'instance', None)
+        if not instance:
+            raise AuthorizeException(_(
+                "Cannot retrieve permissions for {} with id {} because "
+                "it does not have an instance associated with it.".format(
+                    self.__class__.__name__, self.pk)))
+        return instance
+
     def _get_writeable_perms_set(self, user, direct_only=False):
 
-        if not self.instance:
-            raise AuthorizeException(_(
-                "Cannot retrieve permissions for this object because "
-                "it does not have an instance associated with it."))
-
-        perms = permissions(user, self.instance, self._model_name)
+        perms = permissions(user, self.get_instance(), self._model_name)
 
         if direct_only:
             perm_set = {perm.field_name
@@ -732,31 +736,47 @@ class Authorizable(UserTrackable):
         # a class property to get the set of field names that are also
         # writable.
         can_write_anything = bool({perm.field_name for perm
-                                   in permissions(user, self.instance)
+                                   in permissions(user, self.get_instance())
                                    if perm.allows_writes})
         if can_write_anything:
             return getattr(type(self), 'joint_writable', set())
         else:
             return set()
 
+    def is_user_administrator(self, user):
+        try:
+            instance = self.get_instance()
+        except AuthorizeException:
+            return False
+        if not user or not user.is_authenticated():
+            return False
+        return user.get_role(instance).name == Role.ADMINISTRATOR
+
     def user_can_delete(self, user):
         """
         A user is able to delete an object if they have all
         field permissions on a model.
+        If the model sets 'users_can_delete_own_creations',
+        then the user that created it can delete it without
+        necessarily having all the field permissions.
         """
 
-        is_admin = user.get_role(self.instance).name == Role.ADMINISTRATOR
-        if is_admin:
+        if not user or not user.is_authenticated():
+            return False
+        if self.is_user_administrator(user):
             return True
-        else:
+        writeable_perms = set()
+        try:
             writeable_perms = self._get_writeable_perms_set(user)
-            can_delete = writeable_perms >= set(self.tracked_fields)
-            if not can_delete:
-                if getattr(self, 'users_can_delete_own_creations', False):
-                    can_delete = self._was_created_by(user)
-            return can_delete
+        except AuthorizeException:
+            pass
+        can_delete = writeable_perms >= set(self.tracked_fields)
+        if not can_delete:
+            if getattr(self, 'users_can_delete_own_creations', False):
+                can_delete = self.was_created_by(user)
+        return can_delete
 
-    def _was_created_by(self, user):
+    def was_created_by(self, user):
         fields_created_by_user = Audit.objects.filter(
             model=self.__class__.__name__,
             model_id=self.id,
@@ -801,7 +821,7 @@ class Authorizable(UserTrackable):
         fields that inheriting subclasses will want to treat as
         special pending_edit fields.
         """
-        perms = permissions(user, self.instance, self._model_name)
+        perms = permissions(user, self.get_instance(), self._model_name)
         fields_to_audit = []
         tracked_fields = self.tracked_fields
         for perm in perms:
@@ -814,7 +834,7 @@ class Authorizable(UserTrackable):
 
     def mask_unauthorized_fields(self, user):
         readable_fields = {perm.field_name for perm
-                           in permissions(user, self.instance,
+                           in permissions(user, self.get_instance(),
                                           self._model_name)
                            if perm.allows_reads}
 
@@ -827,7 +847,7 @@ class Authorizable(UserTrackable):
         self._has_been_masked = True
 
     def _perms_for_user(self, user):
-        return permissions(user, self.instance, self._model_name)
+        return permissions(user, self.get_instance(), self._model_name)
 
     def visible_fields(self, user):
         perms = self._perms_for_user(user)
