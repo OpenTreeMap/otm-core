@@ -59,7 +59,7 @@ class InstanceDataCommand(BaseCommand):
             r = Role.objects.get_or_create(name=Role.ADMINISTRATOR,
                                            rep_thresh=0,
                                            instance=instance,
-                                           default_permission=3)
+                                           default_permission_level=3)
             instance_user = InstanceUser(instance=instance,
                                          user=user,
                                          role=r[0])

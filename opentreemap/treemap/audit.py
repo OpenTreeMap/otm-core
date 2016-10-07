@@ -185,12 +185,14 @@ def _add_default_permissions(models, role, instance):
     existing = FieldPermission.objects.filter(role=role, instance=instance)
     if existing.exists():
         for perm in perms:
-            perm['defaults'] = {'permission_level': role.default_permission}
+            perm['defaults'] = {
+                'permission_level': role.default_permission_level
+            }
             FieldPermission.objects.get_or_create(**perm)
     else:
         perms = [FieldPermission(**perm) for perm in perms]
         for perm in perms:
-            perm.permission_level = role.default_permission
+            perm.permission_level = role.default_permission_level
 
         FieldPermission.objects.bulk_create(perms)
         # Because we use bulk_create, we must manually trigger the save signal
@@ -683,8 +685,12 @@ class Role(models.Model):
 
     name = models.CharField(max_length=255)
     instance = models.ForeignKey('Instance', null=True, blank=True)
-    default_permission = models.IntegerField(choices=FieldPermission.choices,
-                                             default=FieldPermission.NONE)
+
+    default_permission_level = models.IntegerField(
+        db_column='default_permission',
+        choices=FieldPermission.choices,
+        default=FieldPermission.NONE)
+
     rep_thresh = models.IntegerField()
 
     def __unicode__(self):

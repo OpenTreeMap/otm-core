@@ -101,7 +101,7 @@ class Command(BaseCommand):
 
         role = Role.objects.create(
             name='user', instance=instance, rep_thresh=0,
-            default_permission=FieldPermission.WRITE_DIRECTLY)
+            default_permission_level=FieldPermission.WRITE_DIRECTLY)
 
         create_stewardship_udfs(instance)
 
