@@ -8,9 +8,10 @@ import json
 
 from django.test.utils import override_settings
 
-from treemap.models import Plot
+from treemap.models import (Plot, Tree)
 from treemap.tests import (make_instance, make_commander_user, login,
-                           make_simple_boundary, RequestTestCase)
+                           make_simple_boundary, RequestTestCase,
+                           LocalMediaTestCase)
 from treemap.tests.base import OTMTestCase
 
 from opentreemap.settings import STATIC_ROOT
@@ -23,7 +24,8 @@ class UrlTestCase(OTMTestCase):
         send = {
             'GET': self.client.get,
             'PUT': self.client.put,
-            'POST': self.client.post
+            'POST': self.client.post,
+            'DELETE': self.client.delete
         }[method]
         if content_type is None:
             response = send(url, data)
@@ -135,11 +137,12 @@ class RootUrlTests(UrlTestCase):
 
 
 @override_settings(FEATURE_BACKEND_FUNCTION=None)
-class TreemapUrlTests(UrlTestCase):
+class TreemapUrlTests(UrlTestCase, LocalMediaTestCase):
     # Tests for URLs defined in treemap/urls.py
     # All treemap URLs start with /<instance_url_name>/
 
     def setUp(self):
+        super(TreemapUrlTests, self).setUp()
         self.instance = make_instance(is_public=True)
         self.prefix = '/%s/' % self.instance.url_name
 
@@ -148,6 +151,14 @@ class TreemapUrlTests(UrlTestCase):
         plot = Plot(geom=self.instance.center, instance=self.instance)
         plot.save_with_user(user)
         return plot
+
+    def make_tree(self, user=None):
+        user = user or make_commander_user(self.instance)
+        plot = Plot(geom=self.instance.center, instance=self.instance)
+        plot.save_with_user(user)
+        tree = Tree(instance=self.instance, plot=plot)
+        tree.save_with_user(user)
+        return tree
 
     def make_boundary(self):
         boundary = make_simple_boundary('b')
@@ -217,6 +228,42 @@ class TreemapUrlTests(UrlTestCase):
 
     def test_plot_popup_invalid(self):
         self.assert_404(self.prefix + 'features/999/popup')
+
+    def test_delete_plot_photo(self):
+        commander = make_commander_user(self.instance)
+        self.client.login(username=commander.username, password='password')
+        tree = self.make_tree(commander)
+        image = self.load_resource('tree1.gif')
+        tp = tree.add_photo(image, commander)
+        tp.save_with_user(commander)
+
+        url = self.prefix + 'plots/%s/photo/%s' % (tree.plot.id, tp.id)
+        self.assert_200(url, method='DELETE')
+
+    def test_delete_tree_photo(self):
+        commander = make_commander_user(self.instance)
+        self.client.login(username=commander.username, password='password')
+        tree = self.make_tree(commander)
+        image = self.load_resource('tree1.gif')
+        tp = tree.add_photo(image, commander)
+        tp.save_with_user(commander)
+
+        url = self.prefix + 'plots/%s/tree/%s/photo/%s' % (
+            tree.plot.id, tree.id, tp.id)
+        self.assert_200(url, method='DELETE')
+
+    def test_rotate_tree_photo(self):
+        commander = make_commander_user(self.instance)
+        self.client.login(username=commander.username, password='password')
+        tree = self.make_tree(commander)
+        image = self.load_resource('tree1.gif')
+        tp = tree.add_photo(image, commander)
+        tp.save_with_user(commander)
+
+        url = self.prefix + 'features/%s/photo/%s' % (tree.plot.id, tp.id)
+        self.assert_200(url, method='POST', data={
+            'degrees': -90
+        })
 
     def test_map_feature_accordion(self):
         plot = self.make_plot()

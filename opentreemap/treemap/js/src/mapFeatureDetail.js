@@ -18,6 +18,7 @@ var $ = require('jquery'),
     csrf = require('treemap/lib/csrf.js'),
     imageUploadPanel = require('treemap/lib/imageUploadPanel.js'),
     socialMediaSharing = require('treemap/lib/socialMediaSharing.js'),
+    deletePhoto = require('treemap/lib/deletePhoto.js'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
         require('treemap/lib/reverseGeocodeStreamAndUpdateAddressesOnForm.js'),
     streetView = require('treemap/lib/streetView.js'),
@@ -65,6 +66,10 @@ function init() {
         dataType: 'html',
         imageContainer: '#photo-carousel',
         lightbox: '#photo-lightbox',
+    });
+    var deletionFinishedStream = deletePhoto.init({
+        modal: '#delete-photo-confirm-modal',
+        imageContainer: '#photo-carousel'
     });
 
     var shouldBeInEditModeBus = new Bacon.Bus();
@@ -116,7 +121,7 @@ function init() {
             instance_url_name: config.instance.url_name,
             feature_id: window.otm.mapFeature.featureId
         });
-    form.saveOkStream.merge(imageFinishedStream)
+    form.saveOkStream.merge(imageFinishedStream).merge(deletionFinishedStream)
         .onValue(function () {
             $(dom.detail).load(refreshDetailUrl, initDetailAfterRefresh);
             $(dom.sidebar).load(refreshSidebarUrl);
@@ -201,7 +206,9 @@ function init() {
 
     handleFavoriteClick();
 
-    socialMediaSharing.init({imageFinishedStream: imageFinishedStream});
+    socialMediaSharing.init({
+        imageFinishedStream: imageFinishedStream.merge(deletionFinishedStream)
+    });
 }
 
 function isFavoriteNow() {
