@@ -130,6 +130,20 @@ def requires_feature(ft):
     return wrapper_function
 
 
+def requires_permission(codename):
+    def wrapper_function(view_fn):
+        @wraps(view_fn)
+        def wrapped(request, instance, *args, **kwargs):
+            if request.instance_user.role.has_permission(codename):
+                return view_fn(request, instance, *args, **kwargs)
+            else:
+                raise PermissionDenied
+
+        return wrapped
+
+    return wrapper_function
+
+
 def json_api_edit(req_function):
     """
     Wraps view function for an AJAX call which modifies data.
