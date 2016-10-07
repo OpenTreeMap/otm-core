@@ -16,7 +16,8 @@ from treemap.instance import (Instance, InstanceBounds,
                               add_species_to_instance)
 from treemap.models import (Boundary, InstanceUser, User,
                             BenefitCurrencyConversion)
-from treemap.audit import (Role, FieldPermission, add_default_permissions)
+from treemap.audit import (Role, FieldPermission, add_default_permissions,
+                           add_instance_permissions)
 
 logger = logging.getLogger('')
 
@@ -108,6 +109,7 @@ class Command(BaseCommand):
         add_species_to_instance(instance)
 
         add_default_permissions(instance, roles=[role])
+        add_instance_permissions([role])
 
         eco_benefits_conversion = \
             BenefitCurrencyConversion.get_default_for_instance(instance)

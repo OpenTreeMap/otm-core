@@ -96,3 +96,7 @@ get_viewable_instances_filter = get_plugin_function(
 
 get_tree_limit = get_plugin_function('TREE_LIMIT_FUNCTION',
                                      lambda instance: None)
+
+
+get_instance_permission_spec = get_plugin_function(
+    'INSTANCE_PERMISSIONS_FUNCTION', lambda instance: [])

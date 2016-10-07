@@ -60,11 +60,13 @@ ga('set', 'page', pathname);
 
 {% if settings.MODELING_VIEW_NAME %}
   {% if request.instance|feature_enabled:'modeling' %}
-    <li class="{% block activemodeling %}{% endblock %} hidden-xs">
-      <a href="{% url settings.MODELING_VIEW_NAME instance_url_name=request.instance.url_name %}">
-        <span>{% trans "Plan" %}</span>
-      </a>
-    </li>
+    {% if last_effective_instance_user|has_permission:'modeling' %}
+      <li class="{% block activemodeling %}{% endblock %} hidden-xs">
+        <a href="{% url settings.MODELING_VIEW_NAME instance_url_name=request.instance.url_name %}">
+          <span>{% trans "Plan" %}</span>
+        </a>
+      </li>
+    {% endif %}
   {% endif %}
 {% endif %}
 
