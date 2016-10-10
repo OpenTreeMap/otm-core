@@ -24,7 +24,9 @@ $mobile-search-button-group-width : 166px;
 
     .embed & {
         padding-top: 0;
-        height: 98px;
+        @media #{$screen-gtxs} {
+            height: 98px;
+        }
     }
 }
 
@@ -58,8 +60,10 @@ $mobile-search-button-group-width : 166px;
         left: 10px;
         right: 10px;
     }
-    .embed & {
-        top: 15px;
+    @media #{$screen-gtxs} {
+        .embed & {
+            top: 15px;
+        }
     }
 }
 

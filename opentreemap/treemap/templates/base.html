@@ -50,7 +50,6 @@
   </head>
   <body>
     <div {% block outermost_atts %}{% endblock outermost_atts %} class="wrapper{% if embed %} embed{% endif %}">
-      {% if not embed %}
       {% block topnav %}
       <!-- Top Nav -->
       <div class="navbar navbar-inverse navbar-fixed-top">
@@ -131,7 +130,6 @@
         </div>
       </div>
       {% endblock topnav %}
-      {% endif %}
 
       {% block header %}
       <!-- Logo and Search -->

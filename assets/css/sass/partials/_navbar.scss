@@ -17,6 +17,16 @@
             padding-right: 0;
         }
     }
+    @media #{$screen-gtxs} {
+        .embed & {
+            display: none;
+        }
+    }
+    .embed & {
+        .navbar-right {
+            display: none;
+        }
+    }
 
     .nav {
         margin: 0 -15px;

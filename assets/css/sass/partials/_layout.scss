@@ -48,7 +48,9 @@ body {
 
         .embed & {
             bottom: 0;
-            top: 141px;
+            @media #{$screen-gtxs} {
+                top: 141px;
+            }
         }
 
         @media #{$screen-xs} {
@@ -56,11 +58,6 @@ body {
             top: 128px;
             bottom: 0;
             overflow: auto;
-
-            .embed & {
-                bottom: 0;
-                top: 98px;
-            }
 
             .map {
                 height: 300px;

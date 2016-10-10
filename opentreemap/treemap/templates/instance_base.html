@@ -40,18 +40,22 @@ ga('set', 'page', pathname);
     </li>
   {% else %}
     <li data-feature="add_plot">
-      <a data-action='addtree'
-         data-always-enable='{{ last_effective_instance_user|plot_is_creatable }}'
+      <a data-always-enable='{{ last_effective_instance_user|plot_is_creatable }}'
          data-disabled-title='{% trans "Adding trees is not available to all users" %}'
          data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
+         {% if embed %}
+         target="_blank"
+         {% else %}
          data-event-category="add-tree" data-event-action="start-add-tree"
+         data-action='addtree'
+         {% endif %}
          disabled='disabled'>{% trans "Add a Tree" %}</a>
     </li>
   {% endif %}
 {% endif %}
 
 <li class="explore-map {% block activeexplore %}active{% endblock %}">
-  <a href="{% url 'map' instance_url_name=request.instance.url_name %}">
+    <a href="{% url 'map' instance_url_name=request.instance.url_name %}" {% if embed %}target="_blank"{% endif %}>
     <span class="hidden-xs">{% trans "Explore Map" %}</span>
     <!-- We hide the logo on mobile, so we show the instance name instead of "Explore Map" to give context about which map you are on -->
     <span class="visible-xs-inline">{{ request.instance.name }}</span>
