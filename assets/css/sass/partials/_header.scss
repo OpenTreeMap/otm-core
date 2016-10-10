@@ -335,7 +335,21 @@ $mobile-search-button-group-width : 166px;
             }
         }
         .search-options {
-            width: 100%;
+            width: calc(100% + 20px);
+            left: -10px;
+            position: absolute;
+            float: none;
+            margin: 0;
+            padding: 12px 15px;
+            background: #fff;
+            z-index: 10;
+            top: 0;
+
+            &.fixed {
+                position: fixed;
+                width: 100%;
+                left: 0;
+            }
             #search-advanced {
                 float: right;
                 width: 30px;
@@ -358,7 +372,7 @@ $mobile-search-button-group-width : 166px;
                 display: block;
                 position: absolute;
                 font-size: 1.6rem;
-                width: calc(50% - 18px);
+                width: calc(50% - 28px);
                 margin: 0;
                 padding: 5px 0;
                 line-height: 1.333333;
@@ -368,7 +382,7 @@ $mobile-search-button-group-width : 166px;
             }
             #perform-search {
                 top: 12px;
-                left: calc(50% - 18px);
+                left: calc(50% - 28px);
                 border-radius: 0 6px 6px 0;
             }
         }

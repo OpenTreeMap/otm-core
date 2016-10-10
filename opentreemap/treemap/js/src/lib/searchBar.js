@@ -22,6 +22,7 @@ var $ = require('jquery'),
     MapManager = require('treemap/lib/MapManager.js'),
     reverse = require('reverse'),
     config = require('treemap/lib/config.js'),
+    stickyTitles = require('treemap/lib/stickyTitles.js'),
     mapManager = new MapManager();
 
 var dom = {
@@ -167,6 +168,10 @@ function initSearchUi(searchStream) {
             $header.toggleClass('collapsed', !active);
         }, 20);
     }
+
+    // Update CSS on search options bar to keep it fixed to top of the screen
+    // when scrolling on mobile
+    stickyTitles($(window), '.search-options', $header);
 }
 
 
