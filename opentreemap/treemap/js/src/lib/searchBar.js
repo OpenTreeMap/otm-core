@@ -25,6 +25,7 @@ var $ = require('jquery'),
     mapManager = new MapManager();
 
 var dom = {
+    header: '.header',
     subheader: '.subhead',
     advanced: '.advanced-search',
     advancedToggle: '#search-advanced',
@@ -43,7 +44,8 @@ var dom = {
     searchFieldContainer: '.search-field-wrapper',
     speciesSearchTypeahead: '#species-typeahead',
     speciesSearchToggle: '#species-toggle',
-    speciesSearchContainer: '#species-search-wrapper'
+    speciesSearchContainer: '#species-search-wrapper',
+    locationSearchTypeahead: '#boundary-typeahead',
 };
 
 // Placed onto the jquery object
@@ -83,6 +85,7 @@ function redirectToSearchPage(filters, wmCoords) {
 
 function initSearchUi(searchStream) {
     var $advancedToggle = $(dom.advancedToggle),
+        $header = $(dom.header),
         $subheader = $(dom.subheader);
     otmTypeahead.create({
         name: "species",
@@ -143,21 +146,29 @@ function initSearchUi(searchStream) {
         // Close open categories (in case search was triggered by hitting "enter")
         $(dom.categoryOpenToggle).dropdown('toggle');
 
-        if ($advancedToggle.hasClass('active')) {
-            $advancedToggle.removeClass('active').blur();
-        }
-        if ($subheader.hasClass('expanded')) {
-            $subheader.removeClass('expanded');
-        }
+        toggleAdvanced(false);
         updateUi(Search.buildSearch());
     });
 
     $advancedToggle.on("click", function() {
-        $advancedToggle.toggleClass('active').blur();
-        $subheader.toggleClass('expanded');
+        toggleAdvanced();
     });
     $subheader.find("input[data-date-format]").datepicker();
+
+    function toggleAdvanced(active) {
+        $advancedToggle.toggleClass('active', active).blur();
+        $subheader.toggleClass('expanded', active);
+        $header.toggleClass('expanded', active);
+        // Waiting until we've given the browser a chance to repaint the DOM
+        // to add 'collapsed' helps us prevent unwanted CSS animations
+        setTimeout(function() {
+            active = $header.hasClass('expanded');
+            $subheader.toggleClass('collapsed', !active);
+            $header.toggleClass('collapsed', !active);
+        }, 20);
+    }
 }
+
 
 function updateUi(search) {
     updateActiveSearchIndicators(search);
@@ -167,10 +178,12 @@ function updateUi(search) {
 
 function updateActiveSearchIndicators(search) {
     var activeCategories = _(search.filter)
-        .map(getFilterCategory)
-        .unique()
-        .filter() // remove "false" (category with a filter that isn't displayed)
-        .value();
+            .map(getFilterCategory)
+            .unique()
+            .filter() // remove "false" (category with a filter that isn't displayed)
+            .value(),
+
+        simpleSearchKeys = ['species.id', 'mapFeature.geom'];
 
     function getFilterCategory(filter, key) {
         var moreSearchFeatureBlacklist;
@@ -180,7 +193,6 @@ function updateActiveSearchIndicators(search) {
         } else {
             var featureName = key.split('.')[0],
                 featureCategories = ['tree', 'plot', 'mapFeature'],
-                simpleSearchKeys = ['species.id', 'mapFeature.geom'],
                 displayedFeatures = _.map(search.display, function (s) {
                     return s.toLowerCase();
                 });
@@ -215,7 +227,10 @@ function updateActiveSearchIndicators(search) {
         activeCategories.push('display');
     }
 
+    var simpleSearchActive = _.any(simpleSearchKeys, _.partial(_.has, search.filter)) || $(dom.locationSearchTypeahead).val() !== "";
+
     $(dom.advancedToggle).toggleClass('filter-active', activeCategories.length > 0);
+    $(dom.advancedToggle).toggleClass('simple-filter-active', simpleSearchActive);
 
     $(dom.categoryToggle).removeClass('filter-active');
 
@@ -323,7 +338,7 @@ module.exports = exports = {
     init: function () {
         var searchStream = BU.enterOrClickEventStream({
                 inputs: 'input[data-class="search"]',
-                button: '#perform-search'
+                button: '#perform-search,#location-perform-search'
             }),
             resetStream = $("#search-reset").asEventStream("click"),
             searchFiltersProp = searchStream.map(Search.buildSearch).toProperty(),

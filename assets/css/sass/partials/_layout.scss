@@ -53,7 +53,8 @@ body {
 
         @media #{$screen-xs} {
             right: 0;
-            top: 154px;
+            top: 128px;
+            bottom: 0;
             overflow: auto;
 
             .embed & {
@@ -253,7 +254,7 @@ body {
     z-index: 1040 !important;
 }
 
-@media (max-width: 767px) {
+@media #{$screen-xs} {
     body {
         padding: 0;
     }
