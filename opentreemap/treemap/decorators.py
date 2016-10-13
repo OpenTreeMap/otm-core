@@ -134,6 +134,11 @@ def requires_permission(codename):
     def wrapper_function(view_fn):
         @wraps(view_fn)
         def wrapped(request, instance, *args, **kwargs):
+            if not hasattr(request, 'instance_user'):
+                raise Exception(
+                    'request.instance_user not defined -- requires_permission '
+                    'should only be used inside of instance_request, which '
+                    'sets request.instance_user')
             if request.instance_user.role.has_permission(codename):
                 return view_fn(request, instance, *args, **kwargs)
             else:
