@@ -237,19 +237,7 @@ class TreemapUrlTests(UrlTestCase, LocalMediaTestCase):
         tp = tree.add_photo(image, commander)
         tp.save_with_user(commander)
 
-        url = self.prefix + 'plots/%s/photo/%s' % (tree.plot.id, tp.id)
-        self.assert_200(url, method='DELETE')
-
-    def test_delete_tree_photo(self):
-        commander = make_commander_user(self.instance)
-        self.client.login(username=commander.username, password='password')
-        tree = self.make_tree(commander)
-        image = self.load_resource('tree1.gif')
-        tp = tree.add_photo(image, commander)
-        tp.save_with_user(commander)
-
-        url = self.prefix + 'plots/%s/tree/%s/photo/%s' % (
-            tree.plot.id, tree.id, tp.id)
+        url = self.prefix + 'features/%s/photo/%s' % (tree.plot.id, tp.id)
         self.assert_200(url, method='DELETE')
 
     def test_rotate_tree_photo(self):
