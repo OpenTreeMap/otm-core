@@ -8,7 +8,7 @@ import json
 
 from django.test.utils import override_settings
 
-from treemap.models import (Plot, Tree)
+from treemap.models import Plot, Tree
 from treemap.tests import (make_instance, make_commander_user, login,
                            make_simple_boundary, RequestTestCase,
                            LocalMediaTestCase)

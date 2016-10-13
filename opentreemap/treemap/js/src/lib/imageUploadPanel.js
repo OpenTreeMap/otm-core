@@ -186,14 +186,14 @@ module.exports.init = function(options) {
         $lightbox.find('[data-photo-delete-start]').prop('disabled', true);
         $lightbox.find('[data-photo-confirm]').prop('disabled', true);
 
-        $lightboxImage.attr('src', $toggle.attr('data-photo-src'));
+        $lightboxImage.attr('src', $endpointEl.attr('data-photo-src'));
         $lightbox.find(modeSelector).show();
         $lightbox.find(notModeSelector).hide();
         $lightbox.find('[data-photo-save]').attr('data-photo-save', endpoint);
 
         if (1 === $deleteToggleEl.length) {
             $lightbox.find('[data-photo-confirm]').attr('data-photo-confirm', endpoint);
-            $lightbox.find('button[data-class="delete"]').removeProp('disabled');
+            $lightbox.find('[data-class="delete"] button').removeProp('disabled');
             $lightbox.find('[data-photo-delete-start]').removeProp('disabled');
 
             if (mode === 'delete') {
@@ -213,7 +213,10 @@ module.exports.init = function(options) {
 
     $lightbox.on('click', '[data-photo-rotate]', function(e) {
         var $target = $(e.currentTarget),
-            $saveButton = $target.siblings('[data-photo-save]').first(),
+            $saveButton = $target
+		.parents('.lightbox-caption')
+		.find('[data-photo-save]')
+		.first(),
             degrees = parseInt($target.attr('data-photo-rotate'), 10);
 
         currentRotation = (360 + currentRotation + degrees) % 360;
@@ -223,7 +226,7 @@ module.exports.init = function(options) {
         if (currentRotation === 0) {
             $saveButton.prop('disabled', true);
         } else {
-            $saveButton.prop('disabled', false);
+            $saveButton.removeProp('disabled');
         }
     });
 

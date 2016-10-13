@@ -6,7 +6,7 @@
 <div class="carousel-inner">
 {% for photo in photos %}
   <div class="item {{ forloop.first|yesno:"active," }}">
-    <a data-toggle="modal" href="#photo-lightbox"
+    <a data-toggle="modal" href="#photo-lightbox" class="inspect-photo"
         data-photo-src="{{ photo.image }}"
         {% if forloop.first %}
         {# this is the *actual* photo for the map feature and will be used by the sharing code when a new upload takes place #}
