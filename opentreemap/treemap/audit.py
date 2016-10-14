@@ -29,7 +29,7 @@ from treemap.units import (is_convertible, is_convertible_or_formattable,
 from treemap.util import (all_models_of_class, leaf_models_of_class,
                           to_object_name, safe_get_model_class)
 
-from treemap.lib.object_caches import (permissions,
+from treemap.lib.object_caches import (permissions as field_permissions,
                                        invalidate_adjuncts, udf_defs)
 from treemap.lib.dates import datesafe_eq
 
@@ -462,7 +462,7 @@ def _verify_user_can_apply_audit(audit, user):
         field = audit.field
         model = audit.model
 
-    perms = permissions(user, audit.instance, model)
+    perms = field_permissions(user, audit.instance, model)
 
     foundperm = False
     for perm in perms:
@@ -781,14 +781,14 @@ class Authorizable(UserTrackable):
 
         self._has_been_masked = False
 
-    def _get_writeable_perms_set(self, user, direct_only=False):
+    def _get_writable_perms_set(self, user, direct_only=False):
 
         if not self.instance:
             raise AuthorizeException(_(
                 "Cannot retrieve permissions for this object because "
                 "it does not have an instance associated with it."))
 
-        perms = permissions(user, self.instance, self._model_name)
+        perms = field_permissions(user, self.instance, self._model_name)
 
         if direct_only:
             perm_set = {perm.field_name
@@ -799,14 +799,14 @@ class Authorizable(UserTrackable):
             perm_set = {perm.field_name for perm in perms
                         if perm.allows_writes}
 
-        return perm_set.union(self._get_joint_writeable_fields(user))
+        return perm_set.union(self._get_joint_writable_fields(user))
 
-    def _get_joint_writeable_fields(self, user):
+    def _get_joint_writable_fields(self, user):
         # If any field on any model is writable in any capacity, read
         # a class property to get the set of field names that are also
         # writable.
         can_write_anything = bool({perm.field_name for perm
-                                   in permissions(user, self.instance)
+                                   in field_permissions(user, self.instance)
                                    if perm.allows_writes})
         if can_write_anything:
             return getattr(type(self), 'joint_writable', set())
@@ -823,8 +823,8 @@ class Authorizable(UserTrackable):
         if is_admin:
             return True
         else:
-            writeable_perms = self._get_writeable_perms_set(user)
-            can_delete = writeable_perms >= set(self.tracked_fields)
+            writable_perms = self._get_writable_perms_set(user)
+            can_delete = writable_perms >= set(self.tracked_fields)
             if not can_delete:
                 if getattr(self, 'users_can_delete_own_creations', False):
                     can_delete = self._was_created_by(user)
@@ -850,7 +850,7 @@ class Authorizable(UserTrackable):
         """
         can_create = True
 
-        perm_set = self._get_writeable_perms_set(user, direct_only)
+        perm_set = self._get_writable_perms_set(user, direct_only)
 
         for field in self._fields_required_for_create():
             if field.name not in perm_set:
@@ -875,7 +875,7 @@ class Authorizable(UserTrackable):
         fields that inheriting subclasses will want to treat as
         special pending_edit fields.
         """
-        perms = permissions(user, self.instance, self._model_name)
+        perms = field_permissions(user, self.instance, self._model_name)
         fields_to_audit = []
         tracked_fields = self.tracked_fields
         for perm in perms:
@@ -888,8 +888,8 @@ class Authorizable(UserTrackable):
 
     def mask_unauthorized_fields(self, user):
         readable_fields = {perm.field_name for perm
-                           in permissions(user, self.instance,
-                                          self._model_name)
+                           in field_permissions(user, self.instance,
+                                                self._model_name)
                            if perm.allows_reads}
 
         fields = set(self.get_previous_state().keys())
@@ -901,7 +901,7 @@ class Authorizable(UserTrackable):
         self._has_been_masked = True
 
     def _perms_for_user(self, user):
-        return permissions(user, self.instance, self._model_name)
+        return field_permissions(user, self.instance, self._model_name)
 
     def visible_fields(self, user):
         perms = self._perms_for_user(user)
@@ -915,9 +915,9 @@ class Authorizable(UserTrackable):
 
     def editable_fields(self, user):
         perms = self._perms_for_user(user)
-        always_writeable = self._get_joint_writeable_fields(user)
+        always_writable = self._get_joint_writable_fields(user)
 
-        return always_writeable | \
+        return always_writable | \
             {perm.field_name for perm in perms if perm.allows_writes}
 
     def field_is_editable(self, user, field):
@@ -934,7 +934,7 @@ class Authorizable(UserTrackable):
 
         if self.pk is not None:
             for field in self._updated_fields():
-                if field not in self._get_writeable_perms_set(user):
+                if field not in self._get_writable_perms_set(user):
                     raise AuthorizeException("Can't edit field %s on %s" %
                                             (field, self._model_name))
 
