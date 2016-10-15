@@ -11,7 +11,9 @@ from django.utils.encoding import force_text
 
 from treemap.instance import (add_species_to_instance, create_stewardship_udfs)
 from treemap.models import ITreeRegion, Species, Boundary
-from treemap.search_fields import API_FIELD_ERRORS, DEFAULT_MOBILE_API_FIELDS
+from treemap.search_fields import (INSTANCE_FIELD_ERRORS,
+                                   DEFAULT_MOBILE_API_FIELDS,
+                                   DEFAULT_WEB_DETAIL_FIELDS)
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.species import SPECIES
 from treemap.species.codes import species_codes_for_regions
@@ -112,56 +114,61 @@ class InstanceMobileApiFieldsTests(OTMTestCase):
         self.assertIn(force_text(msg), messages)
 
     def test_basic_errors(self):
-        self.assert_raises_code(API_FIELD_ERRORS['no_field_groups'], [])
-        self.assert_raises_code(API_FIELD_ERRORS['no_field_groups'], {})
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['no_field_groups'], [])
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['no_field_groups'], {})
 
-        self.assert_raises_code(API_FIELD_ERRORS['group_has_no_header'], [
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['group_has_no_header'], [
             {'header': '', 'field_keys': ['tree.height']}
         ])
-        self.assert_raises_code(API_FIELD_ERRORS['group_has_no_header'], [
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['group_has_no_header'], [
             {'field_keys': ['tree.height']}
         ])
 
-        self.assert_raises_code(API_FIELD_ERRORS['group_has_no_keys'], [
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['group_has_no_keys'], [
             {'header': 'Trees'}
         ])
-        self.assert_raises_code(API_FIELD_ERRORS['group_has_no_keys'], [
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['group_has_no_keys'], [
             {'header': 'Trees', 'collection_udf_keys': None}
         ])
 
-        self.assert_raises_code(API_FIELD_ERRORS['group_has_both_keys'], [
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['group_has_both_keys'], [
             {'header': 'Trees',
              'field_keys': ['plot.width', 'plot.length'],
              'collection_udf_keys': ['plot.udf:Stewardship']}
         ])
 
     def test_collection_udf_errors(self):
-        self.assert_raises_code(API_FIELD_ERRORS['group_has_no_sort_key'], [
-            {'header': 'Trees', 'sort_key': '',
-             'collection_udf_keys': ['plot.udf:Stewardship']}
-        ])
-        self.assert_raises_code(API_FIELD_ERRORS['group_has_no_sort_key'], [
-            {'header': 'Trees',
-             'collection_udf_keys': ['plot.udf:Stewardship']}
-        ])
-
-        self.assert_raises_code(API_FIELD_ERRORS['group_has_missing_cudf'], [
-            {'header': 'Trees',
-             'collection_udf_keys': ['plot.udf:Not a field']}
-        ])
-        # UDF: Name exists, but it is not a collection field
-        self.assert_raises_code(API_FIELD_ERRORS['group_has_missing_cudf'], [
-            {'header': 'Trees',
-             'collection_udf_keys': ['plot.udf:Name']}
-        ])
-        # Similar for plot.width
-        self.assert_raises_code(API_FIELD_ERRORS['group_has_missing_cudf'], [
-            {'header': 'Trees',
-             'collection_udf_keys': ['plot.width']}
-        ])
+        self.assert_raises_code(
+            INSTANCE_FIELD_ERRORS['group_has_no_sort_key'], [
+                {'header': 'Trees', 'sort_key': '',
+                 'collection_udf_keys': ['plot.udf:Stewardship']}
+            ])
+        self.assert_raises_code(
+            INSTANCE_FIELD_ERRORS['group_has_no_sort_key'], [
+                {'header': 'Trees',
+                 'collection_udf_keys': ['plot.udf:Stewardship']}
+            ])
 
         self.assert_raises_code(
-            API_FIELD_ERRORS['group_has_invalid_sort_key'],
+            INSTANCE_FIELD_ERRORS['group_has_missing_cudf'], [
+                {'header': 'Trees',
+                 'collection_udf_keys': ['plot.udf:Not a field']}
+            ])
+        # UDF: Name exists, but it is not a collection field
+        self.assert_raises_code(
+            INSTANCE_FIELD_ERRORS['group_has_missing_cudf'], [
+                {'header': 'Trees',
+                 'collection_udf_keys': ['plot.udf:Name']}
+            ])
+        # Similar for plot.width
+        self.assert_raises_code(
+            INSTANCE_FIELD_ERRORS['group_has_missing_cudf'], [
+                {'header': 'Trees',
+                 'collection_udf_keys': ['plot.width']}
+            ])
+
+        self.assert_raises_code(
+            INSTANCE_FIELD_ERRORS['group_has_invalid_sort_key'],
             [
                 {'header': 'Trees', 'sort_key': 1,
                  'collection_udf_keys': ['plot.udf:Stewardship',
@@ -169,7 +176,7 @@ class InstanceMobileApiFieldsTests(OTMTestCase):
             ]
         )
         self.assert_raises_code(
-            API_FIELD_ERRORS['group_has_invalid_sort_key'],
+            INSTANCE_FIELD_ERRORS['group_has_invalid_sort_key'],
             [
                 {'header': 'Trees', 'sort_key': 'Date Created',
                  'collection_udf_keys': ['plot.udf:Stewardship',
@@ -178,13 +185,13 @@ class InstanceMobileApiFieldsTests(OTMTestCase):
         )
 
     def test_standard_errors(self):
-        self.assert_raises_code(API_FIELD_ERRORS['duplicate_fields'], [
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['duplicate_fields'], [
             {'header': 'Best Fields', 'model': 'tree',
              'field_keys': ['tree.udf:Man Units', 'tree.height']},
             {'header': 'Other Fields', 'model': 'tree',
              'field_keys': ['tree.date_planted', 'tree.height']}
         ])
-        self.assert_raises_code(API_FIELD_ERRORS['duplicate_fields'], [
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['duplicate_fields'], [
             {'header': 'Fields', 'sort_key': 'Date',
              'collection_udf_keys': [
                  'tree.udf:Stewardship', 'plot.udf:Stewardship']},
@@ -193,29 +200,153 @@ class InstanceMobileApiFieldsTests(OTMTestCase):
         ])
 
         self.assert_raises_code(
-            API_FIELD_ERRORS['group_missing_model'],
+            INSTANCE_FIELD_ERRORS['group_missing_model'],
             [{'header': 'Trees', 'field_keys': ['hydrant.valves']}]
         )
         self.assert_raises_code(
-            API_FIELD_ERRORS['group_missing_model'],
+            INSTANCE_FIELD_ERRORS['group_missing_model'],
             [{'header': 'Stuff', 'model': 'hydrant',
               'field_keys': ['hydrant.valves']}]
         )
 
         self.assert_raises_code(
-            API_FIELD_ERRORS['group_invalid_model'],
+            INSTANCE_FIELD_ERRORS['group_invalid_model'],
             [{'header': 'Trees', 'model': 'tree', 'field_keys': ['length']}]
         )
 
-        self.assert_raises_code(API_FIELD_ERRORS['missing_field'], [
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['missing_field'], [
             {'header': 'Trees', 'model': 'tree',
              'field_keys': ['tree.udf:Stewardship']}
         ])
-        self.assert_raises_code(API_FIELD_ERRORS['missing_field'], [
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['missing_field'], [
             {'header': 'Trees', 'model': 'plot',
              'field_keys': ['plot.udf:Not a field']}
         ])
-        self.assert_raises_code(API_FIELD_ERRORS['missing_field'], [
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['missing_field'], [
+            {'header': 'Trees', 'model': 'plot',
+             'field_keys': ['plot.doesnotexist']}
+        ])
+
+
+class InstanceWebDetailFieldsTests(OTMTestCase):
+    def setUp(self):
+        self.instance = make_instance()
+        datatype = [
+            {'type': 'choice', 'choices': ['love', 'hug'], 'name': 'action'},
+            {'type': 'int', 'name': 'times'},
+            {'type': 'date', 'name': 'day'},
+        ]
+        create_stewardship_udfs(self.instance)
+        make_collection_udf(self.instance, model='Plot', name='Caring',
+                            datatype=datatype)
+        make_collection_udf(self.instance, model='Tree', name='Caring',
+                            datatype=datatype)
+
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'string'}),
+            iscollection=False,
+            name='Name')
+
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Tree',
+            datatype=json.dumps({'type': 'int'}),
+            iscollection=False,
+            name='Man Units')
+
+    def test_default_detail_fields(self):
+        self.instance.web_detail_fields = DEFAULT_WEB_DETAIL_FIELDS
+        self.instance.save()
+
+    def assert_raises_code(self, msg, fields):
+        with self.assertRaises(ValidationError) as m:
+            self.instance.web_detail_fields = fields
+            self.instance.save()
+
+        val_err = m.exception
+        self.assertIn('web_detail_fields', val_err.message_dict)
+        messages = {force_text(e) for e
+                    in val_err.message_dict['web_detail_fields']}
+        self.assertIn(force_text(msg), messages)
+
+    def test_basic_errors(self):
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['no_field_groups'], [])
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['no_field_groups'], {})
+
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['group_has_no_header'], [
+            {'header': '', 'field_keys': ['tree.height']}
+        ])
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['group_has_no_header'], [
+            {'field_keys': ['tree.height']}
+        ])
+
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['group_has_no_keys'], [
+            {'header': 'Trees'}
+        ])
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['group_has_no_keys'], [
+            {'header': 'Trees', 'collection_udf_keys': None}
+        ])
+
+    def test_collection_udf_errors(self):
+        self.assert_raises_code(
+            INSTANCE_FIELD_ERRORS['group_has_missing_cudf'], [
+                {'header': 'Trees',
+                 'collection_udf_keys': ['plot.udf:Not a field']}
+            ])
+        # UDF: Name exists, but it is not a collection field
+        self.assert_raises_code(
+            INSTANCE_FIELD_ERRORS['group_has_missing_cudf'], [
+                {'header': 'Trees',
+                 'collection_udf_keys': ['plot.udf:Name']}
+            ])
+        # Similar for plot.width
+        self.assert_raises_code(
+            INSTANCE_FIELD_ERRORS['group_has_missing_cudf'], [
+                {'header': 'Trees',
+                 'collection_udf_keys': ['plot.width']}
+            ])
+
+    def test_standard_errors(self):
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['duplicate_fields'], [
+            {'header': 'Best Fields', 'model': 'tree',
+             'field_keys': ['tree.udf:Man Units', 'tree.height']},
+            {'header': 'Other Fields', 'model': 'tree',
+             'field_keys': ['tree.date_planted', 'tree.height']}
+        ])
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['duplicate_fields'], [
+            {'header': 'Fields', 'sort_key': 'Date',
+             'collection_udf_keys': [
+                 'tree.udf:Stewardship', 'plot.udf:Stewardship']},
+            {'header': 'Other fields', 'sort_key': 'Date',
+             'collection_udf_keys': ['tree.udf:Stewardship']}
+        ])
+
+        self.assert_raises_code(
+            INSTANCE_FIELD_ERRORS['group_missing_model'],
+            [{'header': 'Trees', 'field_keys': ['hydrant.valves']}]
+        )
+        self.assert_raises_code(
+            INSTANCE_FIELD_ERRORS['group_missing_model'],
+            [{'header': 'Stuff', 'model': 'hydrant',
+              'field_keys': ['hydrant.valves']}]
+        )
+
+        self.assert_raises_code(
+            INSTANCE_FIELD_ERRORS['group_invalid_model'],
+            [{'header': 'Trees', 'model': 'tree', 'field_keys': ['length']}]
+        )
+
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['missing_field'], [
+            {'header': 'Trees', 'model': 'tree',
+             'field_keys': ['tree.udf:Stewardship']}
+        ])
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['missing_field'], [
+            {'header': 'Trees', 'model': 'plot',
+             'field_keys': ['plot.udf:Not a field']}
+        ])
+        self.assert_raises_code(INSTANCE_FIELD_ERRORS['missing_field'], [
             {'header': 'Trees', 'model': 'plot',
              'field_keys': ['plot.doesnotexist']}
         ])

@@ -1,0 +1,40 @@
+{% load i18n %}
+{% load l10n %}
+{% load auth_extras %}
+{% load form_extras %}
+{% load udf %}
+{% load util %}
+
+<h3>{% trans "Planting Site Information" %}</h3>
+{% if containing_polygonalmapfeature %}
+    <div class="well" id="containing-polygonalmapfeature">
+        {% with pmf_id=containing_polygonalmapfeature.pk|unlocalize %}
+            {% url 'map_feature_detail' instance_url_name=request.instance.url_name feature_id=pmf_id as polygonal_url %}
+            {% blocktrans with display_name=containing_polygonalmapfeature.terminology.singular %}
+                This tree is part of <a href="{{ polygonal_url }}">{{ display_name }} #{{ pmf_id }}.</a> For stewardship actions, please <a href="{{ polygonal_url }}">go to the {{ display_name }} detail page.</a>
+            {% endblocktrans %}
+        {% endwith %}
+    </div>
+{% else %}
+    <table class="table table-hover">
+        <tbody>
+        {% for tuple in group.fields %}
+            {% with field=tuple.0 label=tuple.1 template=tuple.2 %}
+                {% if label %}
+                    {% field label from field for request.user withtemplate template %}
+                {% else %}
+                    {% field from field for request.user withtemplate template %}
+                {% endif %}
+            {% endwith %}
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {# Render collection UDF fields for the Plot  #}
+    {% for udf in group.collection_udfs %}
+        {% with values=plot.udfs|get:udf.name title_prefix=udf.model_type|display_name %}
+            {% include "treemap/partials/collectionudf.html" with udf=udf title_prefix=title_prefix model=plot values=values %}
+        {% endwith %}
+    {% endfor %}
+
+{% endif %}

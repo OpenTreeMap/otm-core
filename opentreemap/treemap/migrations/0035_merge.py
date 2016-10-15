@@ -1,0 +1,15 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('treemap', '0032_add_udfs_to_web_detail_fields'),
+        ('treemap', '0034_add_permission_view_external_link'),
+    ]
+
+    operations = [
+    ]

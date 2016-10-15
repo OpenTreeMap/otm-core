@@ -649,6 +649,7 @@ class UserDefinedFieldDefinition(models.Model):
 
     @transaction.atomic
     def delete(self, *args, **kwargs):
+        save_instance = False
 
         if self.iscollection:
             UserDefinedCollectionValue.objects.filter(field_definition=self)\
@@ -658,15 +659,18 @@ class UserDefinedFieldDefinition(models.Model):
                          .filter(model='udf:%s' % self.pk)\
                          .delete()
 
-            if 'mobile_api_fields' in self.instance.config:
-                for group in self.instance.mobile_api_fields:
+            for prop in ('mobile_api_fields', 'web_detail_fields'):
+                if prop not in self.instance.config:
+                    pass
+
+                for group in getattr(self.instance, prop):
                     if self.full_name in group.get('collection_udf_keys', []):
                         # If this is the only collection UDF with this name,
                         # we remove the entire group, since there would be no
                         # eligible items to go *in* the group after deletion
                         if len([udf for udf in udf_defs(self.instance)
                                 if udf.name == self.name]) == 1:
-                            self.instance.mobile_api_fields.remove(group)
+                            getattr(self.instance, prop).remove(group)
                         # Otherwise, just remove this UDF from the group
                         else:
                             group['collection_udf_keys'].remove(self.full_name)
@@ -689,15 +693,16 @@ class UserDefinedFieldDefinition(models.Model):
                          .filter(field=self.canonical_name)\
                          .delete()
 
-            save_instance = False
-            # For mobile_api_fields, mobile_search_fields, and search_config
+            # For mobile_api_fields, mobile_search_fields, and search_config,
+            # and web_detail_fields
             # If the field is not in the config, that means the instance is
             # using the default, which should not be mutated
-            if 'mobile_api_fields' in self.instance.config:
-                for group in self.instance.mobile_api_fields:
-                    if self.full_name in group.get('field_keys', []):
-                        group['field_keys'].remove(self.full_name)
-                        save_instance = True
+            for prop in ('mobile_api_fields', 'web_detail_fields'):
+                if prop in self.instance.config:
+                    for group in getattr(self.instance, prop):
+                        if self.full_name in group.get('field_keys', []):
+                            group['field_keys'].remove(self.full_name)
+                            save_instance = True
 
             if 'search_config' in self.instance.config:
                 for key in (self.model_type, 'missing'):
@@ -715,8 +720,8 @@ class UserDefinedFieldDefinition(models.Model):
                             if o.get('identifier') != self.full_name]
                         save_instance = True
 
-            if save_instance:
-                self.instance.save()
+        if save_instance:
+            self.instance.save()
 
         # remove field permissions for this udf
         perms = FieldPermission.objects.filter(model_name=self.model_type,

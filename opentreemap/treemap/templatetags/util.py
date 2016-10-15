@@ -187,3 +187,11 @@ def lat_lng_coordinates_json(geom):
         return "''"
     else:
         return json.dumps(geom.transform(4326, clone=True).tuple[0][0])
+
+
+@register.filter
+def udf_name(udf_identifier):
+    if 'udf:' not in udf_identifier:
+        raise ValueError('Unrecognized identifier %(id)s' % udf_identifier)
+
+    return udf_identifier.split("udf:", 1)[1]

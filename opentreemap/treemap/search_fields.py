@@ -58,7 +58,22 @@ DEFAULT_MOBILE_API_FIELDS = (
      'sort_key': 'Date'}
 )
 
-API_FIELD_ERRORS = {
+DEFAULT_WEB_DETAIL_FIELDS = (
+    {'header': ugettext_noop('Tree Information'),
+     'model': 'tree',
+     'field_keys': ['tree.id', 'tree.species', 'tree.diameter', 'tree.height',
+                    'tree.canopy_height', 'tree.date_planted',
+                    'tree.date_removed'],
+     'collection_udf_keys': ['tree.udf:Stewardship']},
+    {'header': ugettext_noop('Planting Site Information'),
+     'model': 'plot',
+     'field_keys': ['plot.width', 'plot.length', 'plot.address_street',
+                    'plot.address_city', 'plot.address_zip',
+                    'plot.owner_orig_id'],
+     'collection_udf_keys': ['plot.udf:Stewardship']},
+)
+
+INSTANCE_FIELD_ERRORS = {
     'no_field_groups': _('Must be a non-empty list'),
 
     'group_has_no_header': _(
