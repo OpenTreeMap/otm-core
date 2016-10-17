@@ -539,7 +539,9 @@ class InstanceUser(Auditable, models.Model):
         username = ''
         if getattr(self, 'user', None) is not None:
             username = self.user.get_username() + '/'
-        return '%s%s' % (username, self.instance.name)
+        if not username and not self.instance.name:
+            return ''
+        return '%s %s' % (username, self.instance.name)
 
 post_save.connect(invalidate_adjuncts, sender=InstanceUser)
 post_delete.connect(invalidate_adjuncts, sender=InstanceUser)
@@ -564,11 +566,6 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     # efficient.
     updated_at = models.DateTimeField(default=timezone.now,
                                       verbose_name=_("Last Updated"))
-
-    # Tells the permission system that if any other field is writable,
-    # updated_at is also writable
-    joint_writable = {'updated_at', 'hide_at_zoom'}
-
     objects = GeoHStoreUDFManager()
 
     # subclass responsibilities
@@ -593,6 +590,15 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         self._do_not_track.add('feature_type')
         self._do_not_track.add('mapfeature_ptr')
         self._do_not_track.add('hide_at_zoom')
+
+        # Tells the permission system that if any other field in the role
+        # is writable, _joint_writable fields are also writable.
+        # `updated_at`, `hide_at_zoom`, and `geom` never need to be checked.
+        # If we ever implement the ability to lock down a model instance,
+        # `readonly` should be removed from this list.
+        self._joint_writable.update({'updated_at', 'hide_at_zoom', 'geom',
+                                     'readonly'})
+
         self.populate_previous_state()
 
     @property
@@ -802,10 +808,15 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             return None
 
     def __unicode__(self):
-        x = self.geom.x if self.geom else "?"
-        y = self.geom.y if self.geom else "?"
-        address = self.address_street or "Address Unknown"
-        text = "%s (%s, %s) %s" % (self.feature_type, x, y, address)
+        geom = getattr(self, 'geom', None)
+        x = geom and geom.x or '?'
+        y = geom and geom.y or '?'
+
+        address = getattr(self, 'address_street', "Address Unknown")
+        feature_type = getattr(self, 'feature_type', "Type Unknown")
+        if not feature_type and not address and not x and not y:
+            return ''
+        text = "%s (%s, %s) %s" % (feature_type, x, y, address)
         return text
 
     @classproperty
@@ -1027,14 +1038,20 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
         }
     }
 
-    def __unicode__(self):
-        diameter_chunk = ("Diameter: %s, " % self.diameter
-                          if self.diameter else "")
-        species_chunk = ("Species: %s - " % self.species
-                         if self.species else "")
-        return "%s%s" % (diameter_chunk, species_chunk)
-
     _terminology = {'singular': _('Tree'), 'plural': _('Trees')}
+
+    def __unicode__(self):
+        diameter_str = getattr(self, 'diameter', '')
+        species_str = getattr(self, 'species', '')
+        if not diameter_str and not species_str:
+            return ''
+        diameter_chunk = "Diameter: %s" % diameter_str
+        species_chunk = "Species: %s" % species_str
+        return "%s, %s - " % (diameter_chunk, species_chunk)
+
+    def __init__(self, *args, **kwargs):
+        super(Tree, self).__init__(*args, **kwargs)
+        self._joint_writable.update({'plot', 'readonly'})
 
     def dict(self):
         props = self.as_dict()

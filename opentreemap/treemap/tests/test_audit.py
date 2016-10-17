@@ -5,6 +5,7 @@ from __future__ import division
 
 import psycopg2
 import json
+from unittest.case import skip
 
 from django.test.client import RequestFactory
 from django.core.exceptions import (FieldError, ValidationError,
@@ -395,15 +396,15 @@ class PendingTest(OTMTestCase):
         self.pending_user = make_apprentice_user(self.instance)
         self.observer_user = make_observer_user(self.instance)
 
-        self.plot = Plot(geom=self.p1, instance=self.instance)
+        self.plot = Plot(geom=self.p1, instance=self.instance, length=5.0)
         self.plot.save_with_user(self.commander_user)
 
     def test_reject(self):
         # Setup
-        readonly_orig = self.plot.readonly
-        readonly_new = not readonly_orig
+        plot_length_orig = self.plot.length
+        plot_length_new = plot_length_orig + 1.0
 
-        self.plot.readonly = readonly_new
+        self.plot.length = plot_length_new
         self.plot.save_with_user(self.pending_user)
 
         # Generated a single audit
@@ -435,8 +436,8 @@ class PendingTest(OTMTestCase):
         self.assertEqual(refaudit.action, Audit.Type.PendingReject)
 
         # The object shouldn't have changed
-        self.assertEqual(Plot.objects.get(pk=self.plot.pk).readonly,
-                         readonly_orig)
+        self.assertEqual(Plot.objects.get(pk=self.plot.pk).length,
+                         plot_length_orig)
 
         ohash = Plot.objects.get(pk=self.plot.pk).hash
 
@@ -456,10 +457,10 @@ class PendingTest(OTMTestCase):
 
     def test_accept(self):
         # Setup
-        readonly_orig = self.plot.readonly
-        readonly_new = not readonly_orig
+        plot_length_orig = self.plot.length
+        plot_length_new = plot_length_orig + 1.0
 
-        self.plot.readonly = readonly_new
+        self.plot.length = plot_length_new
         self.plot.save_with_user(self.pending_user)
 
         # Generated a single audit
@@ -491,8 +492,8 @@ class PendingTest(OTMTestCase):
         self.assertEqual(refaudit.action, Audit.Type.PendingApprove)
 
         # The object should be updated
-        self.assertEqual(Plot.objects.get(pk=self.plot.pk).readonly,
-                         readonly_new)
+        self.assertEqual(Plot.objects.get(pk=self.plot.pk).length,
+                         plot_length_new)
 
         ohash = Plot.objects.get(pk=self.plot.pk).hash
 
@@ -546,6 +547,7 @@ class PendingInsertTest(OTMTestCase):
 
         self.assertEquals(Plot.objects.count(), 1)
 
+    @skip("Insert pending approval not implemented at this time")
     def test_insert_writes_when_approved(self):
 
         new_plot = Plot(geom=self.p1, instance=self.instance)
@@ -632,6 +634,7 @@ class PendingInsertTest(OTMTestCase):
                                     model_id=field_audit.model_id,
                                     action=Audit.Type.PendingApprove))
 
+    @skip("Insert pending approval not implemented at this time")
     def test_approve_insert_without_required_raises_integrity_error(self):
         new_plot = Plot(geom=self.p1, instance=self.instance)
         new_plot.save_with_user(self.pending_user)
@@ -708,6 +711,7 @@ class PendingInsertTest(OTMTestCase):
         self.assertEqual(new_plot.geom, self.p1)
         self.assertEqual(new_plot.udfs['times climbed'], '2')
 
+    @skip("Insert pending approval not implemented at this time")
     def test_lots_of_trees_and_plots(self):
         """
         Make 3 plots: 2 pending and 1 approved
