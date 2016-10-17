@@ -781,6 +781,11 @@ class Authorizable(UserTrackable):
 
         self._has_been_masked = False
 
+        # When any other field is writeable, any field in `_joint_writable`
+        # is writable.
+        # `_joint_writable` fields are always readable.
+        self._joint_writable = set(['id'])
+
     def _get_writable_perms_set(self, user, direct_only=False):
 
         if not self.instance:
@@ -788,7 +793,7 @@ class Authorizable(UserTrackable):
                 "Cannot retrieve permissions for this object because "
                 "it does not have an instance associated with it."))
 
-        perms = field_permissions(user, self.instance, self._model_name)
+        perms = self._perms_for_user(user)
 
         if direct_only:
             perm_set = {perm.field_name
@@ -802,14 +807,16 @@ class Authorizable(UserTrackable):
         return perm_set.union(self._get_joint_writable_fields(user))
 
     def _get_joint_writable_fields(self, user):
-        # If any field on any model is writable in any capacity, read
+        # If any field on *any* model is writable in any capacity, read
         # a class property to get the set of field names that are also
-        # writable.
+        # writable. The idea is that if a tree is updated, the plot's
+        # `updated_at` must get updated, even if the role has no write
+        # access on the plot.
         can_write_anything = bool({perm.field_name for perm
                                    in field_permissions(user, self.instance)
                                    if perm.allows_writes})
         if can_write_anything:
-            return getattr(type(self), 'joint_writable', set())
+            return self._joint_writable
         else:
             return set()
 
@@ -875,7 +882,7 @@ class Authorizable(UserTrackable):
         fields that inheriting subclasses will want to treat as
         special pending_edit fields.
         """
-        perms = field_permissions(user, self.instance, self._model_name)
+        perms = self._perms_for_user(user)
         fields_to_audit = []
         tracked_fields = self.tracked_fields
         for perm in perms:
@@ -888,8 +895,7 @@ class Authorizable(UserTrackable):
 
     def mask_unauthorized_fields(self, user):
         readable_fields = {perm.field_name for perm
-                           in field_permissions(user, self.instance,
-                                                self._model_name)
+                           in self._perms_for_user(user)
                            if perm.allows_reads}
 
         fields = set(self.get_previous_state().keys())

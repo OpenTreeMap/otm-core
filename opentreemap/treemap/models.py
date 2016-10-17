@@ -564,11 +564,6 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     # efficient.
     updated_at = models.DateTimeField(default=timezone.now,
                                       verbose_name=_("Last Updated"))
-
-    # Tells the permission system that if any other field is writable,
-    # updated_at is also writable
-    joint_writable = {'updated_at', 'hide_at_zoom'}
-
     objects = GeoHStoreUDFManager()
 
     # subclass responsibilities
@@ -593,6 +588,15 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         self._do_not_track.add('feature_type')
         self._do_not_track.add('mapfeature_ptr')
         self._do_not_track.add('hide_at_zoom')
+
+        # Tells the permission system that if any other field in the role
+        # is writable, _joint_writable fields are also writable.
+        # `updated_at`, `hide_at_zoom`, and `geom` never need to be checked.
+        # If we ever implement the ability to lock down a model instance,
+        # `readonly` should be removed from this list.
+        self._joint_writable.update({'updated_at', 'hide_at_zoom', 'geom',
+                                     'readonly'})
+
         self.populate_previous_state()
 
     @property
@@ -1027,14 +1031,16 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
         }
     }
 
-    def __unicode__(self):
-        diameter_chunk = ("Diameter: %s, " % self.diameter
-                          if self.diameter else "")
-        species_chunk = ("Species: %s - " % self.species
-                         if self.species else "")
-        return "%s%s" % (diameter_chunk, species_chunk)
-
     _terminology = {'singular': _('Tree'), 'plural': _('Trees')}
+
+    def __unicode__(self):
+        diameter_chunk = "Diameter: %s" % getattr(self, 'diameter', '')
+        species_chunk = "Species: %s" % getattr(self, 'species', '')
+        return "%s, %s - " % (diameter_chunk, species_chunk)
+
+    def __init__(self, *args, **kwargs):
+        super(Tree, self).__init__(*args, **kwargs)
+        self._joint_writable.update({'plot', 'readonly'})
 
     def dict(self):
         props = self.as_dict()
