@@ -97,6 +97,21 @@ def add_species_to_instance(instance):
     Species.objects.bulk_create(instance_species_list)
 
 
+PERMISSION_VIEW_EXTERNAL_LINK = 'view_external_link'
+
+
+# Don't call this function directly, call plugin.get_instance_permission_spec()
+def get_instance_permission_spec():
+    from treemap.audit import Role
+    return [
+        {
+            'codename': PERMISSION_VIEW_EXTERNAL_LINK,
+            'label': _('Can view "External Link" of a tree or map feature'),
+            'default_role_names': [Role.ADMINISTRATOR, Role.EDITOR]
+        }
+    ]
+
+
 class InstanceBounds(models.Model):
     """ Center of the map when loading the instance """
     geom = models.MultiPolygonField(srid=3857)

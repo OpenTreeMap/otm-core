@@ -7,6 +7,7 @@ import hashlib
 from functools import partial
 from datetime import datetime
 
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 
@@ -20,6 +21,7 @@ from django.db.models.fields import FieldDoesNotExist
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, connection, transaction
 from django.conf import settings
+from django.contrib.auth.models import Permission
 
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name,
@@ -142,6 +144,15 @@ def approve_or_reject_audits_and_apply(audits, user, approved):
         approve_or_reject_audit_and_apply(audit, user, approved)
 
 
+def add_instance_permissions(roles):
+    from treemap.plugin import get_instance_permission_spec
+    for spec in get_instance_permission_spec():
+        perm = Permission.objects.get(codename=spec['codename'])
+        for role in roles:
+            if role.name in spec['default_role_names']:
+                role.instance_permissions.add(perm)
+
+
 def add_default_permissions(instance, roles=None, models=None):
     # Audit is imported into models, so models can't be imported up top
     from treemap.models import MapFeaturePhoto
@@ -156,10 +167,36 @@ def add_default_permissions(instance, roles=None, models=None):
         models = leaf_models_of_class(Authorizable) | {MapFeaturePhoto}
 
     for role in roles:
-        _add_default_permissions(models, role, instance)
+        _add_default_field_permissions(models, role, instance)
+
+    _add_default_add_and_delete_permissions(models, roles)
 
 
-def _add_default_permissions(models, role, instance):
+def _add_default_add_and_delete_permissions(models, roles):
+    # Each of the 'models' has built-in "add" and "delete" permissions
+    # (from django.contrib.auth, e.g. Plot has "add_plot" and "delete_plot").
+    # Bulk create those permissions for all 'roles' whose default permission
+    # level allows write.
+    role_ids = [
+        role.id for role in roles
+        if role.default_permission_level > FieldPermission.READ_ONLY]
+
+    ThroughModel = Role.instance_permissions.through
+    existing = ThroughModel.objects.filter(role_id__in=role_ids)
+    existing_pairs = [(e.role_id, e.permission_id) for e in existing]
+
+    perm_names = [Role.permission_codename(Model, action)
+                  for Model in models for action in ['add', 'delete']]
+    perms = Permission.objects.filter(codename__in=perm_names)
+
+    role_perms = [ThroughModel(role_id=role_id, permission_id=perm.id)
+                  for role_id in role_ids for perm in perms
+                  if (role_id, perm.id) not in existing_pairs]
+
+    ThroughModel.objects.bulk_create(role_perms)
+
+
+def _add_default_field_permissions(models, role, instance):
     """
     Create FieldPermission entries for role using its default permission level.
     Make an entry for every tracked field of given models, as well as UDFs of
@@ -185,12 +222,14 @@ def _add_default_permissions(models, role, instance):
     existing = FieldPermission.objects.filter(role=role, instance=instance)
     if existing.exists():
         for perm in perms:
-            perm['defaults'] = {'permission_level': role.default_permission}
+            perm['defaults'] = {
+                'permission_level': role.default_permission_level
+            }
             FieldPermission.objects.get_or_create(**perm)
     else:
         perms = [FieldPermission(**perm) for perm in perms]
         for perm in perms:
-            perm.permission_level = role.default_permission
+            perm.permission_level = role.default_permission_level
 
         FieldPermission.objects.bulk_create(perms)
         # Because we use bulk_create, we must manually trigger the save signal
@@ -692,9 +731,44 @@ class Role(models.Model):
 
     name = models.CharField(max_length=255)
     instance = models.ForeignKey('Instance', null=True, blank=True)
-    default_permission = models.IntegerField(choices=FieldPermission.choices,
-                                             default=FieldPermission.NONE)
+
+    default_permission_level = models.IntegerField(
+        db_column='default_permission',
+        choices=FieldPermission.choices,
+        default=FieldPermission.NONE)
+
+    instance_permissions = models.ManyToManyField(Permission)
+
     rep_thresh = models.IntegerField()
+
+    def can_create(self, Model):
+        return self._can_do_action(Model, 'add')
+
+    def can_delete(self, Model):
+        return self._can_do_action(Model, 'delete')
+
+    def _can_do_action(self, Model, action):
+        codename = self.permission_codename(Model, action)
+        return self.has_permission(codename, Model)
+
+    @classmethod
+    def permission_codename(clz, Model, action):
+        """
+        Return name of built-in permission (django.contrib.auth) for
+        performing 'action' on 'Model'.
+        """
+        return '%s_%s' % (action, Model.__name__.lower())
+
+    def has_permission(self, codename, Model=None):
+        """
+        Return true if role has permission 'codename' for 'Model';
+        otherwise return false. 'Model' may be None.
+        """
+        qs = self.instance_permissions.filter(codename=codename)
+        if Model is not None:
+            content_type = ContentType.objects.get_for_model(Model)
+            qs = qs.filter(content_type=content_type)
+        return qs.exists()
 
     def __unicode__(self):
         return '%s (%s)' % (self.name, self.pk)

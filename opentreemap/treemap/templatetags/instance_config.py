@@ -35,6 +35,11 @@ def feature_enabled(instance, feature):
 
 
 @register.filter
+def has_permission(instance_user, codename):
+    return instance_user.role.has_permission(codename)
+
+
+@register.filter
 def plot_field_is_writable(thing, field):
     return perms.plot_is_writable(thing, field=field)
 

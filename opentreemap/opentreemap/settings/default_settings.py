@@ -7,6 +7,7 @@ API_VERSION = 'v0.1'
 
 FEATURE_BACKEND_FUNCTION = None
 USER_ACTIVATION_FUNCTION = None
+INSTANCE_PERMISSIONS_FUNCTION = 'treemap.instance.get_instance_permission_spec'
 
 ECOSERVICE_NAME = 'ecoservice'
 

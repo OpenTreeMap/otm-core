@@ -84,10 +84,11 @@ def _set_permissions(instance, role, permissions):
         fp.save()
 
 
-def _make_loaded_role(instance, name, default_permission, permissions=(),
+def _make_loaded_role(instance, name, default_permission_level, permissions=(),
                       rep_thresh=2):
     role, created = Role.objects.get_or_create(
-        name=name, instance=instance, default_permission=default_permission,
+        name=name, instance=instance,
+        default_permission_level=default_permission_level,
         rep_thresh=rep_thresh)
     role.save()
 
@@ -291,7 +292,7 @@ def make_instance(name=None, is_public=False, url_name=None, point=None,
 
     new_role = Role.objects.create(
         name='role-%s' % name, instance=instance,
-        rep_thresh=0, default_permission=FieldPermission.READ_ONLY)
+        rep_thresh=0, default_permission_level=FieldPermission.READ_ONLY)
 
     instance.default_role = new_role
     instance.save()
