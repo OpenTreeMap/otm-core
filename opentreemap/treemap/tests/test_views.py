@@ -25,7 +25,8 @@ from treemap.decorators import return_400_if_validation_errors
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.audit import (Audit, approve_or_reject_audit_and_apply,
                            approve_or_reject_audits_and_apply,
-                           FieldPermission, add_default_permissions)
+                           FieldPermission, add_default_permissions,
+                           AuthorizeException)
 from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, StaticPage, ITreeRegion)
 from treemap.routes import (root_settings_js, instance_settings_js,
@@ -36,7 +37,8 @@ from treemap.views.misc import (public_instances_geojson, species_list,
                                 boundary_autocomplete, boundary_to_geojson,
                                 edits, compile_scss, static_page)
 from treemap.views.map_feature import (update_map_feature, delete_map_feature,
-                                       rotate_map_feature_photo, plot_detail)
+                                       rotate_map_feature_photo, plot_detail,
+                                       delete_photo)
 from treemap.views.user import (user_audits, upload_user_photo, update_user,
                                 forgot_username, user)
 from treemap.views.photo import approve_or_reject_photos
@@ -47,7 +49,8 @@ from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            set_write_permissions, MockSession,
                            set_read_permissions,
                            make_plain_user, LocalMediaTestCase, media_dir,
-                           make_instance_user, set_invisible_permissions)
+                           make_instance_user, set_invisible_permissions,
+                           make_observer_role, make_administrator_user)
 from treemap.tests.base import OTMTestCase
 from treemap.tests.test_udfs import make_collection_udf
 
@@ -210,6 +213,44 @@ class TreePhotoAffectsPlotUpdatedAtTestCase(TreePhotoTestCase):
 
         self.plot = Plot.objects.get(pk=self.plot.pk)
         self.assertGreater(self.plot.updated_at, self.initial_updated)
+
+
+class DeleteOwnPhotoTest(TreePhotoTestCase):
+    def setUp(self):
+        super(DeleteOwnPhotoTest, self).setUp()
+        tp = self.tree.add_photo(self.image, self.user)
+        tp.save_with_user(self.user)
+
+    def _delete_photo(self, user):
+        old_photo = self.tree.photos()[0]
+        return delete_photo(
+            make_request(method='DELETE',
+                         user=user, instance=self.instance),
+            self.instance, self.plot.pk, old_photo.pk)
+
+    def test_delete_own_photo(self):
+        self._delete_photo(self.user)
+        self.assertEqual(len(self.tree.photos()), 0)
+
+    def test_admin_can_delete_photo(self):
+        self._delete_photo(
+            make_administrator_user(self.instance))
+        self.assertEqual(len(self.tree.photos()), 0)
+
+    def test_delete_own_photo_after_role_demotion(self):
+        admin = make_administrator_user(self.instance)
+        observer_role = make_observer_role(self.instance)
+        iu = self.user.get_effective_instance_user(self.instance)
+        iu.role = observer_role
+        iu.save_with_user(admin)
+
+        self._delete_photo(self.user)
+        self.assertEqual(len(self.tree.photos()), 0)
+
+    def test_cannot_delete_others_photo(self):
+        other = make_commander_user(self.instance, username="other")
+        self.assertRaises(AuthorizeException, self._delete_photo, other)
+        self.assertEqual(len(self.tree.photos()), 1)
 
 
 class TreePhotoRotationTest(TreePhotoTestCase):

@@ -1211,6 +1211,16 @@ class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
         thumb.delete(False)
         image.delete(False)
 
+    def user_can_delete(self, user):
+        """
+        A user can delete a photo if they are admin or if they created the
+        photo.
+        """
+
+        if not user or not user.is_authenticated():
+            return False
+        return self.is_user_administrator(user) or self.was_created_by(user)
+
 
 class TreePhoto(MapFeaturePhoto):
     tree = models.ForeignKey(Tree)
