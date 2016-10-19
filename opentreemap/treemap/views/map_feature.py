@@ -16,6 +16,7 @@ from django.conf import settings
 from django.db import transaction
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from django.contrib.gis.db.models import GeometryField
+from django.utils.translation import ugettext as _
 
 from opentreemap.util import dotted_split
 from treemap.lib.hide_at_zoom import (update_hide_at_zoom_after_move,
@@ -101,11 +102,48 @@ def _map_feature_detail_context(request, instance, feature_id, edit=False):
 
     if feature.is_plot:
         partial = 'treemap/partials/plot_detail.html'
+        _add_plot_field_groups(context, instance)
     else:
         app = feature.__module__.split('.')[0]
         partial = '%s/%s_detail.html' % (app, feature.feature_type)
 
     return context, partial
+
+
+def _add_plot_field_groups(context, instance):
+    templates = {
+        "tree.id": "treemap/field/tree_id_tr.html",
+        "tree.species": "treemap/field/species_tr.html",
+        "tree.diameter": "treemap/field/diameter_tr.html"
+    }
+
+    labels = {
+        # 'plot-species' is used as the "label" in the 'field' tag,
+        # but ulitmately gets used as an identifier in the template
+        "tree.species": "plot-species",
+        "tree.diameter": _("Trunk Diameter")
+    }
+    labels.update({
+        v: k for k, v in context['tree'].scalar_udf_names_and_fields})
+    labels.update({
+        v: k for k, v in context['plot'].scalar_udf_names_and_fields})
+
+    def info(group):
+        group['fields'] = [
+            (field, labels.get(field),
+             templates.get(field, "treemap/field/tr.html"))
+            for field in group.get('field_keys', [])
+        ]
+        group['collection_udfs'] = [
+            next(udf for udf in udf_defs(instance)
+                 if udf.full_name == udf_name)
+            for udf_name in group.get('collection_udf_keys', [])
+        ]
+
+        return group
+
+    context['field_groups'] = [
+        info(group) for group in instance.web_detail_fields]
 
 
 def render_map_feature_detail_partial(request, instance, feature_id, **kwargs):

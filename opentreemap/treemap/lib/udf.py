@@ -4,6 +4,7 @@ from django.db import transaction
 
 from treemap.audit import Role, FieldPermission
 from treemap.udf import (UserDefinedFieldDefinition)
+from treemap.util import to_object_name
 
 
 def udf_exists(params, instance):
@@ -56,6 +57,8 @@ def udf_create(params, instance):
             role=role,
             instance=role.instance)
 
+    _add_scalar_udf_to_field_configs(udf, instance)
+
     return udf
 
 
@@ -73,3 +76,20 @@ def _parse_params(params):
 
     return {'name': name, 'model_type': model_type,
             'datatype': datatype}
+
+
+def _add_scalar_udf_to_field_configs(udf, instance):
+    save_instance = False
+
+    for prop in ('mobile_api_fields', 'web_detail_fields'):
+        for group in getattr(instance, prop):
+            if (('model' in group and
+                 group['model'] == to_object_name(udf.model_type))):
+                field_keys = group.get('field_keys')
+
+                if 'field_keys' in group and udf.full_name not in field_keys:
+                    field_keys.append(udf.full_name)
+                    save_instance = True
+
+    if save_instance:
+        instance.save()

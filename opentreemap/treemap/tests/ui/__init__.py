@@ -24,6 +24,7 @@ from treemap.tests.base import test_settings
 from treemap.models import Instance, Tree, Plot
 from treemap.lib.object_caches import clear_caches
 from treemap.plugin import setup_for_ui_test
+from treemap.instance import create_stewardship_udfs
 
 
 DISPLAY_WIDTH = 1280
@@ -197,6 +198,7 @@ class TreemapUITestCase(UITestCase):
             is_public=False,
             url_name='autotest-instance',
             edge_length=20000)
+        create_stewardship_udfs(self.instance)
 
         self.user = make_commander_user(instance=self.instance,
                                         username='username')

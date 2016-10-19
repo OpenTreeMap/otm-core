@@ -21,11 +21,11 @@ from urllib import urlencode
 
 from opentreemap.util import extent_intersection, extent_as_json
 
-from treemap.search_fields import (DEFAULT_MOBILE_SEARCH_FIELDS,
-                                   DEFAULT_MOBILE_API_FIELDS,
-                                   DEFAULT_SEARCH_FIELDS, API_FIELD_ERRORS,
-                                   advanced_search_fields,
-                                   get_udfc_search_fields)
+from treemap.search_fields import (
+    DEFAULT_MOBILE_SEARCH_FIELDS, DEFAULT_MOBILE_API_FIELDS,
+    DEFAULT_WEB_DETAIL_FIELDS, DEFAULT_SEARCH_FIELDS, INSTANCE_FIELD_ERRORS,
+    advanced_search_fields, get_udfc_search_fields)
+
 from treemap.species import SPECIES
 from treemap.json_field import JSONField
 from treemap.lib.object_caches import udf_defs
@@ -288,6 +288,9 @@ class Instance(models.Model):
 
     mobile_api_fields = _make_config_property('mobile_api_fields',
                                               DEFAULT_MOBILE_API_FIELDS)
+
+    web_detail_fields = _make_config_property('web_detail_fields',
+                                              DEFAULT_WEB_DETAIL_FIELDS)
 
     search_config = _make_config_property('search_config',
                                           DEFAULT_SEARCH_FIELDS)
@@ -624,9 +627,13 @@ class Instance(models.Model):
         # To work around this, we only validate when there is something in the
         # 'config' object, which ignores the default api fields
         if 'mobile_api_fields' in self.config:
-            self._validate_mobile_api_fields()
+            self._validate_field_groups(self.mobile_api_fields,
+                                        'mobile_api_fields')
+        if 'web_detail_fields' in self.config:
+            self._validate_field_groups(self.web_detail_fields,
+                                        'web_detail_fields')
 
-    def _validate_mobile_api_fields(self):
+    def _validate_field_groups(self, field_groups, prop):
         # Validate that:
         # 1) overall structure is correct
         # 2) each individual group has a header and collection or normal fields
@@ -642,7 +649,11 @@ class Instance(models.Model):
         def _truthy_of_type(item, types):
             return item and isinstance(item, types)
 
-        field_groups = self.mobile_api_fields
+        def raise_errors(errors):
+            message = {}
+            message[prop] = list(errors)
+            raise ValidationError(message)
+
         errors = set()
 
         scalar_udfs = {udef.full_name: udef for udef in udf_defs(self)
@@ -651,42 +662,44 @@ class Instance(models.Model):
                            if udef.iscollection}
 
         if not _truthy_of_type(field_groups, (list, tuple)):
-            raise ValidationError(
-                {'mobile_api_fields': [API_FIELD_ERRORS['no_field_groups']]})
+            raise_errors([INSTANCE_FIELD_ERRORS['no_field_groups']])
 
         for group in field_groups:
             if not _truthy_of_type(group.get('header'), basestring):
-                errors.add(API_FIELD_ERRORS['group_has_no_header'])
+                errors.add(INSTANCE_FIELD_ERRORS['group_has_no_header'])
 
             if ((not isinstance(group.get('collection_udf_keys'), list)
                  and not isinstance(group.get('field_keys'), list))):
-                errors.add(API_FIELD_ERRORS['group_has_no_keys'])
+                errors.add(INSTANCE_FIELD_ERRORS['group_has_no_keys'])
 
-            elif 'collection_udf_keys' in group and 'field_keys' in group:
-                errors.add(API_FIELD_ERRORS['group_has_both_keys'])
+            elif ((prop == 'mobile_api_fields' and
+                   'collection_udf_keys' in group and 'field_keys' in group)):
+                errors.add(INSTANCE_FIELD_ERRORS['group_has_both_keys'])
 
             if isinstance(group.get('collection_udf_keys'), list):
                 sort_key = group.get('sort_key')
-                if not sort_key:
-                    errors.add(API_FIELD_ERRORS['group_has_no_sort_key'])
+                if prop == 'mobile_api_fields' and not sort_key:
+                    errors.add(INSTANCE_FIELD_ERRORS['group_has_no_sort_key'])
 
                 for key in group['collection_udf_keys']:
                     udef = collection_udfs.get(key)
                     if udef is None:
-                        errors.add(API_FIELD_ERRORS['group_has_missing_cudf'])
-                    elif sort_key not in udef.datatype_by_field:
                         errors.add(
-                            API_FIELD_ERRORS['group_has_invalid_sort_key'])
-            elif isinstance(group.get('field_keys'), list):
+                            INSTANCE_FIELD_ERRORS['group_has_missing_cudf'])
+                    elif ((prop == 'mobile_api_fields' and
+                           sort_key not in udef.datatype_by_field)):
+                        errors.add(INSTANCE_FIELD_ERRORS['group_has_invalid_sort_key'])  # NOQA
+            if isinstance(group.get('field_keys'), list):
                 if group.get('model') not in {'tree', 'plot'}:
-                    errors.add(API_FIELD_ERRORS['group_missing_model'])
+                    errors.add(INSTANCE_FIELD_ERRORS['group_missing_model'])
                 else:
                     for key in group['field_keys']:
                         if not key.startswith(group['model']):
-                            errors.add(API_FIELD_ERRORS['group_invalid_model'])
+                            errors.add(
+                                INSTANCE_FIELD_ERRORS['group_invalid_model'])
 
         if errors:
-            raise ValidationError({'mobile_api_fields': list(errors)})
+            raise_errors(errors)
 
         scalar_fields = [key for group in field_groups
                          for key in group.get('field_keys', [])]
@@ -696,7 +709,7 @@ class Instance(models.Model):
         all_fields = scalar_fields + collection_fields
 
         if len(all_fields) != len(set(all_fields)):
-            errors.add(API_FIELD_ERRORS['duplicate_fields'])
+            errors.add(INSTANCE_FIELD_ERRORS['duplicate_fields'])
 
         for field in scalar_fields:
             model_name, name = field.split('.', 1)  # maxsplit of 1
@@ -704,10 +717,10 @@ class Instance(models.Model):
             standard_fields = Model._meta.get_all_field_names()
 
             if ((name not in standard_fields and field not in scalar_udfs)):
-                errors.add(API_FIELD_ERRORS['missing_field'])
+                errors.add(INSTANCE_FIELD_ERRORS['missing_field'])
 
         if errors:
-            raise ValidationError({'mobile_api_fields': list(errors)})
+            raise_errors(errors)
 
     def save(self, *args, **kwargs):
         self.full_clean()

@@ -10,6 +10,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from django.core.urlresolvers import reverse
 
+from treemap.instance import create_stewardship_udfs
 from treemap.tests.ui import TreemapUITestCase
 
 from otm_comments.models import EnhancedThreadedComment
@@ -181,6 +182,10 @@ class CommentReviewUITest(CommentTestMixin, TreemapUITestCase):
 
 
 class CommentUITest(CommentTestMixin, TreemapUITestCase):
+    def setUp(self):
+        super(CommentUITest, self).setUp()
+        create_stewardship_udfs(self.instance)
+
     def assertCommentText(self, pk, comment_text):
         comment_text_el = (self
                            .find_id('c' + str(pk))

@@ -1,0 +1,41 @@
+{% load i18n %}
+{% load l10n %}
+{% load auth_extras %}
+{% load form_extras %}
+{% load udf %}
+{% load util %}
+
+<h3>{% trans "Tree Information" %}</h3>
+
+<!-- Add a Tree Section -->
+{% include "treemap/partials/plot_detail_add_tree.html" %}
+
+<!-- Tree Information -->
+<div id="tree-details" {{ has_tree|yesno:",style=display:none;" }}>
+    <table class="table table-hover">
+        <tbody>
+        {% for tuple in group.fields %}
+            {% with field=tuple.0 label=tuple.1 template=tuple.2 %}
+                {% if label %}
+                    {% field label from field for request.user withtemplate template %}
+                {% else %}
+                    {% field from field for request.user withtemplate template %}
+                {% endif %}
+            {% endwith %}
+        {% endfor %}
+{#         {% usercanread tree "id" as value %} #}
+{#         {% endusercanread %} #}
+        </tbody>
+    </table>
+
+    {% if not containing_polygonalmapfeature %}
+        {# Render collection UDF fields for the Tree #}
+        {% if has_tree %}
+            {% for udf in group.collection_udfs %}
+                {% with values=tree.udfs|get:udf.name title_prefix=udf.model_type|display_name %}
+                    {% include "treemap/partials/collectionudf.html" with udf=udf title_prefix=title_prefix model=tree values=values %}
+                {% endwith %}
+            {% endfor %}
+        {% endif %}
+    {% endif %}
+</div>

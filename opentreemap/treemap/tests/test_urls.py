@@ -9,6 +9,7 @@ import json
 from django.test.utils import override_settings
 
 from treemap.models import Plot, Tree
+from treemap.instance import create_stewardship_udfs
 from treemap.tests import (make_instance, make_commander_user, login,
                            make_simple_boundary, RequestTestCase,
                            LocalMediaTestCase)
@@ -201,6 +202,7 @@ class TreemapUrlTests(UrlTestCase, LocalMediaTestCase):
         self.assert_template(self.prefix + 'map/?embed=', 'treemap/map.html')
 
     def test_plot_detail(self):
+        create_stewardship_udfs(self.instance)
         plot = self.make_plot()
         url = self.prefix + 'features/%s/' % plot.id
         self.assert_template(url, 'treemap/partials/plot_detail.html')
@@ -254,6 +256,7 @@ class TreemapUrlTests(UrlTestCase, LocalMediaTestCase):
         })
 
     def test_map_feature_accordion(self):
+        create_stewardship_udfs(self.instance)
         plot = self.make_plot()
         self.assert_template(
             self.prefix + 'features/%s/accordion' % plot.id,
