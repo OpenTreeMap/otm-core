@@ -219,17 +219,34 @@ def _add_default_field_permissions(models, role, instance):
                 'instance': role.instance
             })
 
+    #TODO: Remove while implementing issue
+    # https://github.com/OpenTreeMap/otm-core/issues/2176
+    # Making photos read only used to be done in the management page,
+    # but hopefully #2176 can be done without touching management,
+    # so move it here for now.
+    #
+    # Ugliness is due to perm sometimes being a dict,
+    # sometimes a FieldPermission.
+    def default_permission_level(perm):
+        if role.default_permission_level < FieldPermission.READ_ONLY:
+            model_name = getattr(perm, 'model_name', '')
+            if model_name == '' and getattr(perm, 'get'):
+                model_name = perm.get('model_name', '')
+            if model_name.lower().endswith('photo'):
+                return FieldPermission.READ_ONLY
+        return role.default_permission_level
+
     existing = FieldPermission.objects.filter(role=role, instance=instance)
     if existing.exists():
         for perm in perms:
             perm['defaults'] = {
-                'permission_level': role.default_permission_level
+                'permission_level': default_permission_level(perm)
             }
             FieldPermission.objects.get_or_create(**perm)
     else:
         perms = [FieldPermission(**perm) for perm in perms]
         for perm in perms:
-            perm.permission_level = role.default_permission_level
+            perm.permission_level = default_permission_level(perm)
 
         FieldPermission.objects.bulk_create(perms)
         # Because we use bulk_create, we must manually trigger the save signal
@@ -900,9 +917,7 @@ class Authorizable(UserTrackable):
         return fields_to_audit
 
     def mask_unauthorized_fields(self, user):
-        readable_fields = {perm.field_name for perm
-                           in self._perms_for_user(user)
-                           if perm.allows_reads}
+        readable_fields = self.visible_fields(user)
 
         fields = set(self.get_previous_state().keys())
         unreadable_fields = fields - readable_fields
@@ -917,7 +932,7 @@ class Authorizable(UserTrackable):
 
     def visible_fields(self, user):
         perms = self._perms_for_user(user)
-        always_readable = getattr(type(self), 'always_writable', set())
+        always_readable = self._always_writable
 
         return always_readable | \
             {perm.field_name for perm in perms if perm.allows_reads}
@@ -933,12 +948,6 @@ class Authorizable(UserTrackable):
 
     def field_is_editable(self, user, field):
         return field in self.editable_fields(user)
-
-    @staticmethod
-    def mask_queryset(qs, user):
-        for model in qs:
-            model.mask_unauthorized_fields(user)
-        return qs
 
     def save_with_user(self, user, *args, **kwargs):
         self._assert_not_masked()

@@ -360,6 +360,16 @@
             min-width: 200px;
             max-width: 200px;
         }
+        .codename-radio {
+            font-weight: normal;
+            text-transform: none;
+        }
+        .boolean-radio {
+            margin: 0;
+            input[type="radio"] {
+                margin: 0;
+            }
+        }
     }
 
     .admin-table {
