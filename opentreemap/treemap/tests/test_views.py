@@ -20,7 +20,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 
 from treemap import ecobackend
-from treemap.lib.object_caches import permissions
 from treemap.decorators import return_400_if_validation_errors
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.audit import (Audit, approve_or_reject_audit_and_apply,
@@ -31,6 +30,7 @@ from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, StaticPage, ITreeRegion)
 from treemap.routes import (root_settings_js, instance_settings_js,
                             instance_user_page)
+from treemap.lib.object_caches import field_permissions
 from treemap.lib.tree import add_tree_photo_helper
 from treemap.lib.user import get_user_instances
 from treemap.views.misc import (public_instances_geojson, species_list,
@@ -431,7 +431,7 @@ class PlotImageUpdateTest(LocalMediaTestCase):
 
     def _make_audited_request(self):
         # Update user to only have pending permission
-        perms = permissions(self.user, self.instance)
+        perms = field_permissions(self.user, self.instance)
 
         def update_perms(plevel):
             for perm in perms:

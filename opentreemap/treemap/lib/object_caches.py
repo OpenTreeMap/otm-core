@@ -22,11 +22,13 @@ _adjuncts = {}
 # Interface functions
 
 
-def permissions(user, instance, model_name=None):
+def field_permissions(user, instance, model_name=None):
     if settings.USE_OBJECT_CACHES:
         return _get_adjuncts(instance).permissions(user, model_name)
     else:
         return _permissions_from_db(user, instance, model_name)
+
+permissions = field_permissions
 
 
 def role_permissions(role, instance=None, model_name=None):

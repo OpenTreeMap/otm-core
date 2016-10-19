@@ -29,7 +29,7 @@ from treemap.units import (is_convertible, is_convertible_or_formattable,
 from treemap.util import (all_models_of_class, leaf_models_of_class,
                           to_object_name, safe_get_model_class)
 
-from treemap.lib.object_caches import (permissions as field_permissions,
+from treemap.lib.object_caches import (field_permissions,
                                        invalidate_adjuncts, udf_defs)
 from treemap.lib.dates import datesafe_eq
 
@@ -790,10 +790,8 @@ class Authorizable(UserTrackable):
 
         self._has_been_masked = False
 
-        # When any other field is writable, any field in `_joint_writable`
-        # is writable.
-        # `_joint_writable` fields are always readable.
-        self._joint_writable = {'id'}
+        # `_always_writable` fields are also always readable.
+        self._always_writable = {'id'}
 
     def get_instance(self):
         instance = getattr(self, 'instance', None)
@@ -817,22 +815,7 @@ class Authorizable(UserTrackable):
             perm_set = {perm.field_name for perm in perms
                         if perm.allows_writes}
 
-        return perm_set.union(self._get_joint_writable_fields(user))
-
-    def _get_joint_writable_fields(self, user):
-        # If any field on *any* model is writable in any capacity, read
-        # a class property to get the set of field names that are also
-        # writable. The idea is that if a tree is updated, the plot's
-        # `updated_at` must get updated, even if the role has no write
-        # access on the plot.
-        field_perms = field_permissions(user, self.get_instance())
-        can_write_anything = bool({perm.field_name for perm
-                                   in field_perms
-                                   if perm.allows_writes})
-        if can_write_anything:
-            return self._joint_writable
-        else:
-            return set()
+        return perm_set.union(self._always_writable)
 
     def user_can_delete(self, user):
         """
@@ -906,11 +889,11 @@ class Authorizable(UserTrackable):
         perms = self._perms_for_user(user)
         fields_to_audit = []
         tracked_fields = self.tracked_fields
-        joint_writable = self._joint_writable
+        always_writable = self._always_writable
         for perm in perms:
             if ((perm.permission_level == FieldPermission.WRITE_WITH_AUDIT and
                  perm.field_name in tracked_fields and
-                 perm.field_name not in joint_writable)):
+                 perm.field_name not in always_writable)):
 
                 fields_to_audit.append(perm.field_name)
 
@@ -934,7 +917,7 @@ class Authorizable(UserTrackable):
 
     def visible_fields(self, user):
         perms = self._perms_for_user(user)
-        always_readable = getattr(type(self), 'joint_writable', set())
+        always_readable = getattr(type(self), 'always_writable', set())
 
         return always_readable | \
             {perm.field_name for perm in perms if perm.allows_reads}
@@ -944,9 +927,8 @@ class Authorizable(UserTrackable):
 
     def editable_fields(self, user):
         perms = self._perms_for_user(user)
-        always_writable = self._get_joint_writable_fields(user)
 
-        return always_writable | \
+        return self._always_writable | \
             {perm.field_name for perm in perms if perm.allows_writes}
 
     def field_is_editable(self, user, field):

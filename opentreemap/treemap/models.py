@@ -591,12 +591,10 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         self._do_not_track.add('mapfeature_ptr')
         self._do_not_track.add('hide_at_zoom')
 
-        # Tells the permission system that if any other field in the role
-        # is writable, _joint_writable fields are also writable.
         # `updated_at`, `hide_at_zoom`, and `geom` never need to be checked.
         # If we ever implement the ability to lock down a model instance,
         # `readonly` should be removed from this list.
-        self._joint_writable.update({'updated_at', 'hide_at_zoom', 'geom',
+        self._always_writable.update({'updated_at', 'hide_at_zoom', 'geom',
                                      'readonly'})
 
         self.populate_previous_state()
@@ -1051,7 +1049,10 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
 
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)
-        self._joint_writable.update({'plot', 'readonly'})
+        # `plot` never needs to be checked.
+        # If we ever implement the ability to lock down a model instance,
+        # `readonly` should be removed from this list.
+        self._always_writable.update({'plot', 'readonly'})
 
     def dict(self):
         props = self.as_dict()
