@@ -29,8 +29,8 @@ from treemap.instance import Instance
 from treemap.audit import (UserTrackable, Audit, UserTrackingException,
                            _reserve_model_id, FieldPermission,
                            AuthorizeException, Authorizable, Auditable)
-from treemap.lib.object_caches import permissions, invalidate_adjuncts, \
-    udf_defs
+from treemap.lib.object_caches import (field_permissions,
+                                       invalidate_adjuncts, udf_defs)
 from treemap.lib.dates import (parse_date_string_with_or_without_time,
                                DATETIME_FORMAT)
 from treemap.util import safe_get_model_class, to_object_name
@@ -222,8 +222,8 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
         field_perm = None
         model = self.field_definition.model_type
         field = 'udf:%s' % self.field_definition.name
-        perms = permissions(user, self.field_definition.instance,
-                            model_name=model)
+        perms = field_permissions(user, self.field_definition.instance,
+                                  model_name=model)
         for perm in perms:
             if perm.field_name == field and perm.allows_writes:
                 field_perm = perm
