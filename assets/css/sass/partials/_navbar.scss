@@ -17,6 +17,16 @@
             padding-right: 0;
         }
     }
+    @media #{$screen-gtxs} {
+        .embed & {
+            display: none;
+        }
+    }
+    .embed & {
+        .navbar-right {
+            display: none;
+        }
+    }
 
     .nav {
         margin: 0 -15px;
@@ -103,10 +113,6 @@
                 top: 6px;
                 position: relative;
 
-                @media (max-width: 979px) {
-                    display: none;
-                }
-
                 a {
                     padding: 0;
                     height: auto;
@@ -117,7 +123,6 @@
                     max-width: 105%;
                 }
             }
-
             > a {
                 padding: 10px 0;
                 height: 44px;
@@ -206,9 +211,6 @@
         padding-left: 30px;
     }
 
-    .user-img {
-        border-radius: 9px;
-    }
     h2 {
         color: white;
         margin: 0 0 2px;

@@ -50,7 +50,6 @@
   </head>
   <body>
     <div {% block outermost_atts %}{% endblock outermost_atts %} class="wrapper{% if embed %} embed{% endif %}">
-      {% if not embed %}
       {% block topnav %}
       <!-- Top Nav -->
       <div class="navbar navbar-inverse navbar-fixed-top">
@@ -84,7 +83,7 @@
                 </a>
               </li>
               <li class="hidden-xs"><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
-              <li class="user-img">
+              <li class="user-img hidden-xs">
                 <a href="{% url 'profile' %}">
                 {% if request.user.thumbnail %}
                   <img src="{{ request.user.thumbnail.url }}">
@@ -131,14 +130,13 @@
         </div>
       </div>
       {% endblock topnav %}
-      {% endif %}
 
       {% block header %}
       <!-- Logo and Search -->
-      <div class="header">
+      <div class="header collapsed">
 
         {% block logo %}
-        <div class="logo hidden-xs">
+        <div class="logo hidden-xs hidden-sm">
           <a href="{% if last_instance %}{% url 'map' instance_url_name=last_instance.url_name %}{% else %}/{% endif %}"
             ><img id="site-logo" src="{{ logo_url }}" alt="OpenTreeMap">
           </a>
@@ -175,7 +173,7 @@
     </div>
 
     {% if not embed %}
-      <footer>{% block footer %}{% endblock footer %}</footer>
+      <footer class="hidden-xs">{% block footer %}{% endblock footer %}</footer>
     {% endif %}
 
     {% block config_scripts %}

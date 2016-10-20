@@ -40,18 +40,22 @@ ga('set', 'page', pathname);
     </li>
   {% else %}
     <li data-feature="add_plot">
-      <a data-action='addtree'
-         data-always-enable='{{ last_effective_instance_user|plot_is_creatable }}'
+      <a data-always-enable='{{ last_effective_instance_user|plot_is_creatable }}'
          data-disabled-title='{% trans "Adding trees is not available to all users" %}'
          data-href="{% url 'map' instance_url_name=request.instance.url_name %}?m=addTree"
+         {% if embed %}
+         target="_blank"
+         {% else %}
          data-event-category="add-tree" data-event-action="start-add-tree"
+         data-action='addtree'
+         {% endif %}
          disabled='disabled'>{% trans "Add a Tree" %}</a>
     </li>
   {% endif %}
 {% endif %}
 
 <li class="explore-map {% block activeexplore %}active{% endblock %}">
-  <a href="{% url 'map' instance_url_name=request.instance.url_name %}">
+    <a href="{% url 'map' instance_url_name=request.instance.url_name %}" {% if embed %}target="_blank"{% endif %}>
     <span class="hidden-xs">{% trans "Explore Map" %}</span>
     <!-- We hide the logo on mobile, so we show the instance name instead of "Explore Map" to give context about which map you are on -->
     <span class="visible-xs-inline">{{ request.instance.name }}</span>
@@ -108,7 +112,7 @@ ga('set', 'page', pathname);
         {% endif %}
       {% endwith %}
     {% endwith %}
-    <div class="pull-right">
+    <div class="search-right">
       {% with fields=request.instance|get_advanced_search_fields:request.user %}
         {% include "treemap/partials/advanced_search/dropdown.html" with fields=fields.general category='mapFeature' title=_("General") %}
         {% include "treemap/partials/advanced_search/display.html" with fields=fields.display category='display' %}
@@ -121,14 +125,14 @@ ga('set', 'page', pathname);
   </div>
   {% endif %}
 
-  <div class="stats-bar hidden-xs">
+  <div class="stats-bar">
     <div class="stats-list">
       <div id="tree-and-planting-site-counts">
       </div>
       {% if not embed %}
         {% block subhead_exports %}
           {% if request.instance|export_enabled_for:request.user %}
-          <a href="javascript:;" class="btn btn-primary btn-xs exportBtn"
+          <a href="javascript:;" class="btn btn-primary btn-xs exportBtn hidden-xs"
              data-export-start-url="{% url 'begin_export' instance_url_name=request.instance.url_name model='tree' %}">
             <i class="icon-export"></i> {% trans "Export Search Results" %}
           </a>
@@ -136,7 +140,7 @@ ga('set', 'page', pathname);
         {% endblock subhead_exports %}
       {% endif %}
     </div>
-    <div class="addBtn">
+    <div class="addBtn hidden-xs">
       {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
         {% if request.instance.has_resources %}
           <div class="btn-group">
@@ -173,7 +177,13 @@ ga('set', 'page', pathname);
 <div class="search-options">
   <div class="btn-group">
     <button id="search-advanced" class="btn btn-default btn-sm"
-        data-event-category="search" data-event-action="toggle-advanced">{% trans "Advanced" %}</button>
+        data-event-category="search" data-event-action="toggle-advanced">
+        <span class="hidden-xs">{% trans "Advanced" %}</span>
+        <span class="visible-xs-inline">
+            <span class="text">{% trans "Advanced" %}</span>
+            <i class="icon-cancel"></i>
+        </span>
+    </button>
     <button id="search-reset" class="btn btn-default btn-sm"
         data-event-category="search" data-event-action="reset">{% trans "Reset" %}</button>
   </div>
