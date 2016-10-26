@@ -830,6 +830,10 @@ $blue-to-red: #2791c3 10%,
     }
 }
 
+#stale-revision-dialog {
+    @include checkboxes;
+}
+
 #plan-list {
     position: fixed;
     left: 0;
