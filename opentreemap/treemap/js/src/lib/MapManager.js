@@ -140,7 +140,7 @@ MapManager.prototype = {
 
         _.each(config.instance.customLayers, _.partial(addCustomLayer, this));
 
-        var zoomLatLngOutputStream = trackZoomLatLng(options, map, this);
+        var zoomLatLngOutputStream = trackZoomLatLng(options, map);
 
         return zoomLatLngOutputStream;
     },
@@ -218,7 +218,10 @@ MapManager.prototype = {
     },
 
     setCenterAndZoomLL: function (zoom, location, reset) {
-        // Never zoom out, or try to zoom farther than allowed.
+        // Don't zoom out. For example, if user is choosing a tree location
+        // via geolocation but is zoomed in further than ZOOM_PLOT, we don't
+        // want to zoom them out.
+        // Also, don't try to zoom in farther than allowed.
         var zoomToApply = Math.max(
             this.map.getZoom(),
             Math.min(zoom, this.map.getMaxZoom()));
@@ -287,7 +290,7 @@ function getBasemapLayers(type) {
     }
 }
 
-function trackZoomLatLng(options, map, mapManager) {
+function trackZoomLatLng(options, map) {
     var zoomLatLngOutputStream =
         BU.leafletEventStream(map, 'moveend')
             .map(function () {
@@ -310,9 +313,9 @@ function trackZoomLatLng(options, map, mapManager) {
 
         zoomLatLngInputStream.onValue(function (zoomLatLng) {
             if (!_.isEmpty(zoomLatLng)) {
-                mapManager.setCenterAndZoomLL(
-                    zoomLatLng.zoom,
-                    new L.LatLng(zoomLatLng.lat, zoomLatLng.lng));
+                map.setView(
+                    new L.LatLng(zoomLatLng.lat, zoomLatLng.lng),
+                    zoomLatLng.zoom);
             }
         });
     }
