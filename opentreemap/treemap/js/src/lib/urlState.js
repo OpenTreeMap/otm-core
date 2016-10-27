@@ -1,5 +1,14 @@
 "use strict";
 
+// Manage the URL query string.
+// Callers may:
+// * Fetch data from the URL using get()
+// * Store data in the URL using set() or custom functions like setSearch()
+// * Handle events in the stateChangeStream to respond to URL changes
+//
+// We store a data object in window.history.state, and use it when the
+// history changes to send only changed values to the stateChangeStream.
+
 var _ = require('lodash'),
     Bacon = require('baconjs'),
     url = require('url'),
@@ -168,7 +177,7 @@ module.exports = {
         setStateAndPushToApp(getStateFromCurrentUrl());
 
         _history.onStateChange(function() {
-            setStateAndPushToApp(_history.getState().data || getStateFromCurrentUrl());
+            setStateAndPushToApp(getStateFromCurrentUrl());
         });
     },
 

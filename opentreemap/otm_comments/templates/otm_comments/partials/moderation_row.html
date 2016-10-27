@@ -12,7 +12,7 @@
     <td><span class="label label-danger">{{ comment.visible_flag_count }}</span></td>
     <td>
       <a class="user-link" href="{{ comment.user|detail_link }}">{{ comment.user.username }} </a>
-      <div class="comment less">{{ comment.comment }}</div> <a data-less-more href="#">more</a>
+      <div class="comment less">{{ comment.comment }}</div> <a data-less-more href="javascript:;">more</a>
       {% with visible_flags=comment.visible_flags %}
       {% if visible_flags %}
         <p><label>Flagged By: {% spaceless %}

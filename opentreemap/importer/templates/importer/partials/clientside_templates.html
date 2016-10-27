@@ -81,16 +81,16 @@
 <script type="text/template" id="pager-template">
   <div class="pages pagination pagination-small">
     <ul>
-      <li><a href="#">&lt;</a></li>
-      <li><a href="#">&lt;&lt;</a></li>
+      <li><a href="javascript:;">&lt;</a></li>
+      <li><a href="javascript:;">&lt;&lt;</a></li>
       <% _.each(_.range(start_page, end_page), function(i) { %>
         <li
           <% if (i == page) { %> class="active" <% } %>
-          ><a href="#"><%= i + 1 %></a>
+          ><a href="javascript:;"><%= i + 1 %></a>
         </li>
       <% }); %>
-      <li><a href="#">&gt;&gt;</a></li>
-      <li><a href="#">&gt;</a></li>
+      <li><a href="javascript:;">&gt;&gt;</a></li>
+      <li><a href="javascript:;">&gt;</a></li>
     </ul>
   </div>
 </script>
