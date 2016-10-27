@@ -6,37 +6,28 @@ var assert = require('chai').assert,
 
 
 function HistoryApiMock() {
-    var _state = null,
-        _url = '',
+    var _url = '',
         _callbacks = [];
 
     function onStateChange(callback) {
         _callbacks.push(callback);
     }
 
-    function getState() {
-        return {
-            data: _state
-        };
-    }
-
     // Exists on mock only.
-    function getStateUrl() {
+    function getUrl() {
         return _url;
     }
 
-    function pushState(state, title, url) {
-        _state = state;
+    function pushUrl(url) {
         _url = url;
         _.invoke(_callbacks, 'apply');
     }
 
     return {
         onStateChange: onStateChange,
-        getState: getState,
-        getStateUrl: getStateUrl,
-        pushState: pushState,
-        replaceState: pushState
+        getUrl: getUrl,
+        pushUrl: pushUrl,
+        replaceUrl: pushUrl
     };
 }
 
@@ -60,7 +51,7 @@ function createContext() {
         history = new HistoryApiMock();
 
     history.onStateChange(function() {
-        win.setLocationHref(history.getStateUrl());
+        win.setLocationHref(history.getUrl());
     });
 
     return {
@@ -71,17 +62,16 @@ function createContext() {
 
 
 var historyApiMockTests = {
-    'pushState': function(done) {
+    'pushUrl': function(done) {
         var history = new HistoryApiMock();
-        assert.equal(history.getState().data, null);
+        assert.equal(history.getUrl(), '');
 
         history.onStateChange(function() {
-            assert.deepEqual(history.getState().data, {foo: 1});
-            assert.equal(history.getStateUrl(), '?foo=1');
+            assert.equal(history.getUrl(), '?foo=1');
             done();
         });
 
-        history.pushState({foo: 1}, '', '?foo=1');
+        history.pushUrl('?foo=1');
     }
 };
 
