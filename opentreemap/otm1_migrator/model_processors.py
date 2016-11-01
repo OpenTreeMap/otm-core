@@ -259,7 +259,7 @@ def _base_process_comment(migration_rules, migration_event,
         print("Can't import comment %s because "
               "it is assigned to a ContentType (model) "
               "that does not exist in OTM2 .. SKIPPING"
-              % comment_obj.comment)
+              % comment_obj.comment.encode('utf-8'))
         return None
     content_type = ContentType.objects.get(pk=comment_obj.content_type_id)
 
