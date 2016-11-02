@@ -5,26 +5,23 @@ from __future__ import division
 
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.gis.geos import Point
 
 from treemap.instance import Instance
-from treemap.models import Role, Plot
+from treemap.models import Role, Plot, Tree
+from treemap.models import TreePhoto
 from treemap.lib import perms
-from treemap.tests import make_instance
-
-from treemap.tests.base import OTMTestCase
-
-
-class PermTestCase(OTMTestCase):
-    def test_none_perm(self):
-        self.assertEqual(False,
-                         perms._allows_perm(Role(),
-                                            'NonExistentModel',
-                                            any, 'allows_reads'))
+from treemap.tests import (make_instance, make_user, make_tweaker_role,
+                           make_commander_user, LocalMediaTestCase)
 
 
-class InstancePermissionsTestCase(OTMTestCase):
+class PermissionsTestCase(LocalMediaTestCase):
     def setUp(self):
-        self.instance = make_instance()
+        super(PermissionsTestCase, self).setUp()
+
+        self.p = Point(-8515941.0, 4953519.0)
+
+        self.instance = make_instance(point=self.p)
         self.role_yes = self._make_empty_role('yes')
         self.role_no = self._make_empty_role('no')
 
@@ -45,6 +42,92 @@ class InstancePermissionsTestCase(OTMTestCase):
                                       codename=codename)
         role.instance_permissions.add(perm)
 
+
+class PermsTest(PermissionsTestCase):
+    def setUp(self):
+        super(PermsTest, self).setUp()
+        self.role_no = make_tweaker_role(self.instance, 'no')
+
+    def test_none_perm(self):
+        self.assertEqual(False,
+                         perms._allows_perm(Role(),
+                                            'NonExistentModel',
+                                            any, 'allows_reads'))
+
+    def test_plot_is_creatable(self):
+        self._add_builtin_permission(self.role_yes, Plot, 'add_plot')
+        self.assertTrue(perms.plot_is_creatable(self.role_yes))
+
+    def test_plot_is_deletable(self):
+        self._add_builtin_permission(self.role_yes, Plot, 'delete_plot')
+
+        user_yes = make_user(instance=self.instance,
+                             make_role=lambda inst: self.role_yes)
+        plot = Plot(instance=self.instance)
+
+        self.assertTrue(
+            perms.is_deletable(user_yes.get_instance_user(self.instance),
+                               plot))
+
+    def test_plot_is_not_creatable(self):
+        self.assertFalse(perms.plot_is_creatable(self.role_no))
+
+    def test_plot_is_not_deletable(self):
+        user_no = make_user(instance=self.instance,
+                            make_role=lambda inst: self.role_no)
+        plot = Plot(instance=self.instance)
+
+        self.assertFalse(
+            perms.is_deletable(user_no.get_instance_user(self.instance),
+                               plot))
+
+    def test_tree_photo_is_addable(self):
+        self._add_builtin_permission(self.role_yes, TreePhoto, 'add_treephoto')
+        plot = Plot(instance=self.instance)
+        self.assertTrue(perms.photo_is_addable(self.role_yes, plot))
+
+    def test_tree_photo_is_not_addable(self):
+        self._add_builtin_permission(self.role_no, Tree, 'add_tree')
+        self._add_builtin_permission(self.role_no, Plot, 'add_plot')
+        plot = Plot(instance=self.instance)
+        self.assertFalse(perms.photo_is_addable(self.role_no, plot))
+
+    def test_tree_photo_is_deletable(self):
+        commander = make_commander_user(self.instance)
+        plot = Plot(instance=self.instance, geom=self.p)
+        plot.save_with_user(commander)
+        tree = Tree(plot=plot, instance=self.instance)
+        tree.save_with_user(commander)
+        image = self.load_resource('tree1.gif')
+
+        photo = tree.add_photo(image, commander)
+
+        self._add_builtin_permission(self.role_yes, TreePhoto,
+                                     'delete_treephoto')
+        user_yes = make_user(instance=self.instance,
+                             make_role=lambda inst: self.role_yes)
+        self.assertTrue(
+            perms.is_deletable(user_yes.get_instance_user(self.instance),
+                               photo))
+
+    def test_tree_photo_is_not_deletable(self):
+        commander = make_commander_user(self.instance)
+        plot = Plot(instance=self.instance, geom=self.p)
+        plot.save_with_user(commander)
+        tree = Tree(plot=plot, instance=self.instance)
+        tree.save_with_user(commander)
+        image = self.load_resource('tree1.gif')
+
+        photo = tree.add_photo(image, commander)
+
+        user_yes = make_user(instance=self.instance,
+                             make_role=lambda inst: self.role_yes)
+        self.assertFalse(
+            perms.is_deletable(user_yes.get_instance_user(self.instance),
+                               photo))
+
+
+class InstancePermissionsTest(PermissionsTestCase):
     def test_builtin_permission(self):
         self._add_builtin_permission(self.role_yes, Plot, 'add_plot')
         self.assertTrue(self.role_yes.has_permission('add_plot', Plot))

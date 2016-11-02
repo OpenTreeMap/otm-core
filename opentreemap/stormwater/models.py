@@ -26,8 +26,12 @@ class PolygonalMapFeature(MapFeature):
 
     def __init__(self, *args, **kwargs):
         super(PolygonalMapFeature, self).__init__(*args, **kwargs)
-        self._do_not_track.add('polygonalmapfeature_ptr')
+        self._do_not_track |= self.do_not_track
         self.populate_previous_state()
+
+    @classproperty
+    def do_not_track(cls):
+        return MapFeature.do_not_track | {'polygonalmapfeature_ptr'}
 
     @property
     def is_editable(self):

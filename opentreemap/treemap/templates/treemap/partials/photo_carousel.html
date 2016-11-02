@@ -23,7 +23,7 @@
     </a>
     {% endif %}
   </div>
-{% empty %}
+  {% empty %}
   {% if feature.is_plot %}
   <div class="item active">
     <img id="tree-photo-placeholder" src="{{ STATIC_URL }}img/tree.png" alt="{% trans 'There are no photos' %}">

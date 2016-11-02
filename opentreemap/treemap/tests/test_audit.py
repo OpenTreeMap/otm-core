@@ -31,7 +31,9 @@ from treemap.tests import (make_instance, make_user_with_default_role,
                            make_user_and_role, make_commander_user,
                            make_officer_user, make_observer_user,
                            make_apprentice_user, set_write_permissions,
-                           make_admin_user)
+                           make_admin_user, make_tweaker_user,
+                           make_administrator_user,
+                           make_conjurer_user, make_commander_role)
 from treemap.tests.base import OTMTestCase
 
 
@@ -48,25 +50,19 @@ class ScopeModelTest(OTMTestCase):
         self.p2 = Point(5, 5)
 
         self.instance1 = make_instance(point=self.p1)
+        self.instance1.default_role.instance_permissions.add(
+            *Role.model_permissions((Plot, Tree)))
+
         self.user = make_user_with_default_role(self.instance1, 'auser')
-        self.global_role = self.instance1.default_role
+        self.instance1.default_role.instance_permissions.add(
+            *Role.model_permissions((Plot, Tree)))
 
         self.instance2 = make_instance(name='i2')
         self.instance2.save()
 
         iuser = InstanceUser(instance=self.instance2, user=self.user,
-                             role=self.global_role)
+                             role=self.instance1.default_role)
         iuser.save_with_user(self.user)
-
-        for i in [self.instance1, self.instance2]:
-            FieldPermission(model_name='Plot', field_name='geom',
-                            permission_level=FieldPermission.WRITE_DIRECTLY,
-                            role=self.global_role,
-                            instance=i).save()
-            FieldPermission(model_name='Tree', field_name='plot',
-                            permission_level=FieldPermission.WRITE_DIRECTLY,
-                            role=self.global_role,
-                            instance=i).save()
 
         self.plot1 = Plot(geom=self.p1, instance=self.instance1)
 
@@ -83,8 +79,7 @@ class ScopeModelTest(OTMTestCase):
             (self.plot2, self.instance2, False),
         ]
 
-        for tc in tree_combos:
-            plot, instance, readonly = tc
+        for plot, instance, readonly in tree_combos:
             t = Tree(plot=plot, instance=instance, readonly=readonly)
 
             t.save_with_user(self.user)
@@ -122,10 +117,7 @@ class AuditTest(OTMTestCase):
     def setUp(self):
         inst = self.instance = make_instance()
 
-        permissions = (
-            ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
-            ('Tree', 'id', FieldPermission.WRITE_DIRECTLY),
-            ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
+        field_permissions = (
             ('Tree', 'species', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'readonly', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
@@ -134,8 +126,10 @@ class AuditTest(OTMTestCase):
             ('Tree', 'date_planted', FieldPermission.WRITE_DIRECTLY),
             ('Tree', 'date_removed', FieldPermission.WRITE_DIRECTLY))
 
-        self.user1 = make_user_and_role(inst, 'charles', 'role1', permissions)
-        self.user2 = make_user_and_role(inst, 'amy', 'role2', permissions)
+        self.user1 = make_user_and_role(inst, 'charles', 'role1',
+                                        field_permissions, (Plot, Tree))
+        self.user2 = make_user_and_role(inst, 'amy', 'role2',
+                                        field_permissions, (Plot, Tree))
 
     def assertAuditsEqual(self, exps, acts):
         self.assertEqual(len(exps), len(acts))
@@ -238,12 +232,17 @@ class MultiUserTestCase(OTMTestCase):
         self.direct_user = make_officer_user(self.instance)
         self.pending_user = make_apprentice_user(self.instance)
         self.observer_user = make_observer_user(self.instance)
-
-        self.plot = Plot(geom=self.p1, instance=self.instance)
-        self.plot.save_with_user(self.commander_user)
+        self.outlaw_user = make_user_with_default_role(self.instance, 'outlaw')
+        self.tweaker_user = make_tweaker_user(self.instance)
+        self.conjurer_user = make_conjurer_user(self.instance)
 
 
 class ReviewTest(MultiUserTestCase):
+    def setUp(self):
+        super(ReviewTest, self).setUp()
+
+        self.plot = Plot(geom=self.p1, instance=self.instance)
+        self.plot.save_with_user(self.commander_user)
 
     def test_simple_approve(self):
         self.plot.width = 444
@@ -467,7 +466,6 @@ class PendingTest(OTMTestCase):
         audit = Audit.objects.filter(requires_auth=True)[0]
 
         # Should match the model
-        self.assertTrue(audit.requires_auth)
         self.assertEqual(audit.model_id, self.plot.pk)
 
         # Users who don't have direct field access can't accept
@@ -849,115 +847,58 @@ class ReputationTest(OTMTestCase):
         self._test_negative_adjustment(3, 0)
 
 
-class UserRoleFieldPermissionTest(OTMTestCase):
+class UserRoleFieldPermissionTest(MultiUserTestCase):
     def setUp(self):
-        self.p1 = Point(-8515941.0, 4953519.0)
-        self.instance = make_instance(point=self.p1)
-        self.commander = make_commander_user(self.instance)
-        self.officer = make_officer_user(self.instance)
-        self.observer = make_observer_user(self.instance)
-        self.outlaw = make_user_with_default_role(self.instance, 'outlaw')
+        super(UserRoleFieldPermissionTest, self).setUp()
 
         self.plot = Plot(geom=self.p1, instance=self.instance)
-        self.plot.save_with_user(self.officer)
+        self.plot.save_with_user(self.commander_user)
 
         self.tree = Tree(plot=self.plot, instance=self.instance)
-        self.tree.save_with_user(self.officer)
+        self.tree.save_with_user(self.direct_user)
 
     def test_no_permission_cant_edit_object(self):
         self.plot.length = 10
         self.assertRaises(AuthorizeException,
-                          self.plot.save_with_user, self.outlaw)
+                          self.plot.save_with_user, self.outlaw_user)
 
         self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
 
         self.tree.diameter = 10
         self.assertRaises(AuthorizeException,
-                          self.tree.save_with_user, self.outlaw)
+                          self.tree.save_with_user, self.outlaw_user)
 
         self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
 
     def test_readonly_cant_edit_object(self):
         self.plot.length = 10
         self.assertRaises(AuthorizeException,
-                          self.plot.save_with_user, self.observer)
+                          self.plot.save_with_user, self.observer_user)
 
         self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
 
         self.tree.diameter = 10
         self.assertRaises(AuthorizeException,
-                          self.tree.save_with_user, self.observer)
+                          self.tree.save_with_user, self.observer_user)
 
         self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
 
     def test_writeperm_allows_write(self):
         self.plot.length = 10
-        self.plot.save_with_user(self.officer)
+        self.plot.save_with_user(self.direct_user)
         self.assertEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
 
         self.tree.diameter = 10
-        self.tree.save_with_user(self.officer)
+        self.tree.save_with_user(self.direct_user)
         self.assertEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
-
-    def test_save_new_object_authorized(self):
-        '''Save two new objects with authorized user, nothing should happen'''
-        plot = Plot(geom=self.p1, instance=self.instance)
-
-        plot.save_with_user(self.officer)
-
-        tree = Tree(plot=plot, instance=self.instance)
-
-        tree.save_with_user(self.officer)
-
-    @skip("User can create tests are broken until next iteration"
-          " in the instance permissions cutover")
-    def test_save_new_object_unauthorized(self):
-        plot = Plot(geom=self.p1, instance=self.instance)
-
-        self.assertRaises(AuthorizeException,
-                          plot.save_with_user, self.outlaw)
-
-        plot.save_base()
-        tree = Tree(plot=plot, instance=self.instance)
-
-        self.assertRaises(AuthorizeException,
-                          tree.save_with_user, self.outlaw)
-
-    def test_make_administrator_can_delete(self):
-        with self.assertRaises(AuthorizeException):
-            self.tree.delete_with_user(self.outlaw)
-
-        iuser = self.outlaw.get_instance_user(self.instance)
-        role = Role.objects.create(instance=self.instance,
-                                   name=Role.ADMINISTRATOR,
-                                   rep_thresh=0)
-        iuser.role = role
-        iuser.save_with_user(self.commander)
-
-        self.tree.delete_with_user(self.outlaw)
-        self.assertEqual(Tree.objects.count(), 0)
-
-    def test_delete_object(self):
-        with self.assertRaises(AuthorizeException):
-            self.tree.delete_with_user(self.outlaw)
-
-        with self.assertRaises(AuthorizeException):
-            self.plot.delete_with_user(self.outlaw, cascade=True)
-
-        self.tree.delete_with_user(self.commander)
-        self.plot.delete_with_user(self.commander, cascade=True)
-
-    def test_delete_object_you_created(self):
-        self.tree.delete_with_user(self.officer)
-        self.plot.delete_with_user(self.officer, cascade=True)
 
     def test_masking_authorized(self):
         "When masking with a superuser, nothing should happen"
         self.plot.width = 5
-        self.plot.save_with_user(self.commander)
+        self.plot.save_with_user(self.commander_user)
 
         plot = Plot.objects.get(pk=self.plot.pk)
-        plot.mask_unauthorized_fields(self.commander)
+        plot.mask_unauthorized_fields(self.commander_user)
         self.assertEqual(self.plot.width, plot.width)
 
     def test_masking_unauthorized(self):
@@ -966,13 +907,13 @@ class UserRoleFieldPermissionTest(OTMTestCase):
         self.plot.save_base()
 
         plot = Plot.objects.get(pk=self.plot.pk)
-        plot.mask_unauthorized_fields(self.observer)
+        plot.mask_unauthorized_fields(self.observer_user)
         self.assertEqual(plot.width, None)
         # geom is always readable
         self.assertEqual(plot.geom, self.plot.geom)
 
         plot = Plot.objects.get(pk=self.plot.pk)
-        plot.mask_unauthorized_fields(self.outlaw)
+        plot.mask_unauthorized_fields(self.outlaw_user)
         self.assertEqual(plot.width, None)
         # geom is always readable
         self.assertEqual(plot.geom, self.plot.geom)
@@ -985,7 +926,7 @@ class UserRoleFieldPermissionTest(OTMTestCase):
         self.plot.width = 110
 
         self.assertRaises(AuthorizeException,
-                          self.plot.save_with_user, self.officer)
+                          self.plot.save_with_user, self.direct_user)
 
         self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
         self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).width, 110)
@@ -994,7 +935,7 @@ class UserRoleFieldPermissionTest(OTMTestCase):
         self.tree.canopy_height = 110
 
         self.assertRaises(AuthorizeException, self.tree.save_with_user,
-                          self.officer)
+                          self.direct_user)
 
         self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter,
                             10)
@@ -1003,13 +944,105 @@ class UserRoleFieldPermissionTest(OTMTestCase):
                             110)
 
 
+class UserRoleModelPermissionTest(MultiUserTestCase):
+    def setUp(self):
+        super(UserRoleModelPermissionTest, self).setUp()
+
+        self.plot = Plot(geom=self.p1, instance=self.instance)
+        self.plot.save_with_user(self.direct_user)
+
+        self.tree = Tree(plot=self.plot, instance=self.instance)
+        self.tree.save_with_user(self.direct_user)
+
+    def _change_user_role(self, user, role):
+        iuser = user.get_instance_user(self.instance)
+        iuser.role = role
+        iuser.save_with_user(self.commander_user)
+
+    def test_save_new_object_authorized_officer(self):
+        ''' Save two new objects with authorized user,
+        nothing should happen'''
+        plot = Plot(geom=self.p1, instance=self.instance)
+
+        plot.save_with_user(self.direct_user)
+
+        tree = Tree(plot=plot, instance=self.instance)
+
+        tree.save_with_user(self.direct_user)
+
+    def test_save_new_object_authorized_conjurer(self):
+        ''' Save two new objects with authorized user,
+        nothing should happen'''
+        plot = Plot(geom=self.p1, instance=self.instance)
+
+        plot.save_with_user(self.conjurer_user)
+
+        tree = Tree(plot=plot, instance=self.instance)
+
+        tree.save_with_user(self.conjurer_user)
+
+    def test_save_new_object_unauthorized_outlaw(self):
+        plot = Plot(geom=self.p1, instance=self.instance)
+
+        self.assertRaises(AuthorizeException,
+                          plot.save_with_user, self.outlaw_user)
+
+        plot.save_base()
+        tree = Tree(plot=plot, instance=self.instance)
+
+        self.assertRaises(AuthorizeException,
+                          tree.save_with_user, self.outlaw_user)
+
+    def test_save_new_object_unauthorized_tweaker(self):
+        plot = Plot(geom=self.p1, instance=self.instance)
+
+        self.assertRaises(AuthorizeException,
+                          plot.save_with_user, self.tweaker_user)
+
+        plot.save_base()
+        tree = Tree(plot=plot, instance=self.instance)
+
+        self.assertRaises(AuthorizeException,
+                          tree.save_with_user, self.tweaker_user)
+
+    def test_assign_commander_role_can_delete(self):
+        with self.assertRaises(AuthorizeException):
+            self.tree.delete_with_user(self.outlaw_user)
+
+        self._change_user_role(
+            self.outlaw_user, make_commander_role(self.tree.get_instance()))
+
+        self.tree.delete_with_user(self.outlaw_user)
+        self.assertEqual(Tree.objects.count(), 0)
+
+    def test_delete_object(self):
+        with self.assertRaises(AuthorizeException):
+            self.tree.delete_with_user(self.outlaw_user)
+        self.tree.delete_with_user(self.commander_user)
+
+        with self.assertRaises(AuthorizeException):
+            self.plot.delete_with_user(self.outlaw_user, cascade=True)
+        self.plot.delete_with_user(self.commander_user, cascade=True)
+
+    def test_delete_object_you_created(self):
+        outlaw_role = self.outlaw_user.get_role(self.instance)
+        self._change_user_role(self.direct_user, outlaw_role)
+        self.tree.delete_with_user(self.direct_user)
+        self.plot.delete_with_user(self.direct_user, cascade=True)
+
+
 class UserCanDeleteTestCase(OTMTestCase):
     def setUp(self):
         instance = make_instance()
+        # Fancy name, but no write, create, or delete permissions
+        instance.default_role.name = Role.ADMINISTRATOR
 
         self.creator_user = make_officer_user(instance)
         self.admin_user = make_admin_user(instance)
-        self.other_user = make_officer_user(instance, username='other')
+        self.administrator_user = make_administrator_user(instance)
+        self.other_user = make_observer_user(instance, username='other')
+        self.tweaker_user = make_tweaker_user(instance)
+        self.conjurer_user = make_conjurer_user(instance)
 
         self.plot = Plot(geom=instance.center, instance=instance)
         self.plot.save_with_user(self.creator_user)
@@ -1026,15 +1059,46 @@ class UserCanDeleteTestCase(OTMTestCase):
         self.assertEqual(can, should_be_able_to_delete)
 
     def test_user_can_delete(self):
+        self.assert_can_delete(self.conjurer_user, self.plot, True)
+        self.assert_can_delete(self.conjurer_user, self.rainBarrel, True)
+        self.assert_can_delete(self.conjurer_user, self.tree, True)
+
         self.assert_can_delete(self.creator_user, self.plot, True)
-        self.assert_can_delete(self.admin_user, self.plot, True)
-        self.assert_can_delete(self.other_user, self.plot, False)
         self.assert_can_delete(self.creator_user, self.rainBarrel, True)
-        self.assert_can_delete(self.admin_user, self.rainBarrel, True)
-        self.assert_can_delete(self.other_user, self.rainBarrel, False)
         self.assert_can_delete(self.creator_user, self.tree, True)
+
+        self.assert_can_delete(self.admin_user, self.plot, True)
+        self.assert_can_delete(self.admin_user, self.rainBarrel, True)
         self.assert_can_delete(self.admin_user, self.tree, True)
+
+    def test_user_cannot_delete(self):
+        self.assert_can_delete(self.tweaker_user, self.plot, False)
+        self.assert_can_delete(self.tweaker_user, self.rainBarrel, False)
+        self.assert_can_delete(self.tweaker_user, self.tree, False)
+
+        self.assert_can_delete(self.other_user, self.plot, False)
+        self.assert_can_delete(self.other_user, self.rainBarrel, False)
         self.assert_can_delete(self.other_user, self.tree, False)
+
+    def test_admin_cannot_delete_by_flag(self):
+        instance = self.tree.get_instance()
+        role = self.admin_user.get_role(instance)
+        role.instance_permissions.clear()
+
+        self.assertTrue(self.admin_user.get_instance_user(instance).admin)
+        self.assertEqual(role.instance_permissions.count(), 0)
+
+        self.assert_can_delete(self.admin_user, self.tree, False)
+
+    def test_administrator_cannot_delete_by_role_name(self):
+        instance = self.tree.get_instance()
+        role = self.administrator_user.get_role(instance)
+        role.instance_permissions.clear()
+
+        self.assertEqual(role.name, Role.ADMINISTRATOR)
+        self.assertEqual(role.instance_permissions.count(), 0)
+
+        self.assert_can_delete(self.administrator_user, self.tree, False)
 
 
 class FieldPermMgmtTest(OTMTestCase):
@@ -1115,6 +1179,11 @@ class AuditDetailTagTest(OTMTestCase):
 
 
 class SaveWithoutVerifyingTest(MultiUserTestCase):
+    def setUp(self):
+        super(SaveWithoutVerifyingTest, self).setUp()
+
+        self.plot = Plot(geom=self.p1, instance=self.instance)
+        self.plot.save_with_user(self.direct_user)
 
     def tests_works_when_normal_save_fails(self):
         self.plot = self.plot

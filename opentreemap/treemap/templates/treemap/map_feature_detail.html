@@ -71,13 +71,12 @@
                             data-toggle="modal"
                             data-target="#add-photo-modal"
                             data-href="{{ request.get_full_path }}"
+                            data-always-enable="{{ last_effective_instance_user|photo_is_addable:feature }}"
                             disabled="disabled"
                             {% if feature.is_plot %}
                             data-disabled-title="{% trans "Adding tree photos is not available to all users" %}"
-                            data-always-enable="{{ last_effective_instance_user|treephoto_is_writable }}"
                             {% else %}
                             data-disabled-title="{% trans "Adding resource photos is not available to all users" %}"
-                            data-always-enable="{{ last_effective_instance_user|mapfeaturephoto_is_writable }}"
                             {% endif %}
                             class="btn btn-xs add-photos">{% trans "Add Photo" %}</button>
                 </div>
@@ -99,9 +98,6 @@
                         </div>
                         {% if feature.is_editable %}
                             <button
-                                    disabled="disabled"
-                                    data-always-enable="{{ last_effective_instance_user|geom_is_writable:feature.feature_type }}"
-                                    data-disabled-title="{% trans "Editing location is not available to all users" %}"
                                     data-href="{{ request.get_full_path }}"
                                     style="display:none"
                                     id="edit-location"

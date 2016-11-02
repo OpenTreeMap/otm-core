@@ -33,7 +33,17 @@ from treemap.lib.object_caches import (field_permissions,
                                        invalidate_adjuncts, udf_defs)
 from treemap.lib.dates import (parse_date_string_with_or_without_time,
                                DATETIME_FORMAT)
-from treemap.util import safe_get_model_class, to_object_name
+# Import utilities for ways in which a UserDefinedFieldDefinition
+# is identified
+# They have to be defined in `util` to avoid cyclical
+# import dependencies.
+# Please also see name related properties on that class.
+# Note that audits refer to collection udfds as 'udf:{udfd.pk}',
+# but to scalar udfds as 'udf:{udfd.name}', same as FieldPermissions
+from treemap.util import (safe_get_model_class, to_object_name,
+                          get_pk_from_collection_audit_name,
+                          get_name_from_canonical_name,
+                          make_udf_name_from_key)
 
 from treemap.decorators import classproperty
 
@@ -93,8 +103,12 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
 
     def __init__(self, *args, **kwargs):
         super(UserDefinedCollectionValue, self).__init__(*args, **kwargs)
-        self._do_not_track.add('data')
+        self._do_not_track |= self.do_not_track
         self.populate_previous_state()
+
+    @classproperty
+    def do_not_track(cls):
+        return UserTrackable.do_not_track | {'data'}
 
     @property
     def tracked_fields(self):
@@ -116,7 +130,7 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
             try:
                 # UDF Collections store their model names in the audit table as
                 # udf:<pk of UserDefinedFieldDefinition>
-                pk = int(audit_name[4:])
+                pk = get_pk_from_collection_audit_name(audit_name)
                 if not instance:
                     # TODO: should use caching (udf_defs)
                     udf_def = UserDefinedFieldDefinition.objects.get(pk=pk)
@@ -158,7 +172,7 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
             model_name = cls.get_display_model_name(audit.model)
 
         if field.startswith('udf:'):
-            field = field[4:]
+            field = get_name_from_canonical_name(field)
 
         return format_string % {'field': field,
                                 'model': model_name,
@@ -197,7 +211,7 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
 
     def apply_change(self, key, val):
         if key.startswith('udf:'):
-            key = key[4:]
+            key = get_name_from_canonical_name(key)
             self.data[key] = val
         else:
             try:
@@ -221,7 +235,7 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
 
         field_perm = None
         model = self.field_definition.model_type
-        field = 'udf:%s' % self.field_definition.name
+        field = self.field_definition.canonical_name
         perms = field_permissions(user, self.field_definition.instance,
                                   model_name=model)
         for perm in perms:
@@ -252,7 +266,7 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
             Audit.objects.create(
                 current_value=new_val,
                 previous_value=old_val,
-                model='udf:%s' % self.field_definition.pk,
+                model=self.field_definition.collection_audit_name,
                 model_id=model_id,
                 field=field,
                 instance=self.field_definition.instance,
@@ -397,7 +411,7 @@ class UserDefinedFieldDefinition(models.Model):
 
         audits = Audit.objects.filter(
             model=self.model_type,
-            field='udf:%s' % self.name,
+            field=self.canonical_name,
             instance=self.instance)
 
         self._update_choices_on_audits(
@@ -503,8 +517,8 @@ class UserDefinedFieldDefinition(models.Model):
                 vals.hupdate('data', {name: new_choice_value})
 
             audits = Audit.objects.filter(
-                model='udf:%s' % self.pk,
-                field='udf:%s' % name)
+                model=self.collection_audit_name,
+                field=make_udf_name_from_key(name))
 
             # If the string is empty we want to delete the audits
             # _update_choices_on_audits only does nf new_choice_value
@@ -656,7 +670,7 @@ class UserDefinedFieldDefinition(models.Model):
                                               .delete()
 
             Audit.objects.filter(instance=self.instance)\
-                         .filter(model='udf:%s' % self.pk)\
+                         .filter(model=self.collection_audit_name)\
                          .delete()
 
             for prop in ('mobile_api_fields', 'web_detail_fields'):
@@ -887,21 +901,25 @@ class UserDefinedFieldDefinition(models.Model):
 
                     except ValidationError as e:
                         msgs = e.messages
-                        errors['udf:%s' % self.name] = msgs
+                        errors[self.canonical_name] = msgs
                 else:
-                    errors['udf:%s' % self.name] = ['Invalid subfield %s' %
-                                                    subfield_name]
+                    errors[self.canonical_name] = ['Invalid subfield %s' %
+                                                   subfield_name]
 
         if errors:
             raise ValidationError(errors)
 
     @property
     def canonical_name(self):
-        return 'udf:%s' % self.name
+        return make_udf_name_from_key(self.name)
 
     @property
     def full_name(self):
         return to_object_name(self.model_type) + '.' + self.canonical_name
+
+    @property
+    def collection_audit_name(self):
+        return make_udf_name_from_key(self.pk)
 
 
 post_save.connect(invalidate_adjuncts, sender=UserDefinedFieldDefinition)
@@ -1015,6 +1033,7 @@ class UDFDescriptor(Creator):
             value = UDFDictionary(
                 value=value, field=self.field, instance=obj
             )
+        # setattr goes into infinite recursion, so fish in `__dict__`
         obj.__dict__[self.field.name] = value
 
 
@@ -1090,13 +1109,17 @@ class UDFModel(UserTrackable, models.Model):
 
     def __init__(self, *args, **kwargs):
         super(UDFModel, self).__init__(*args, **kwargs)
-        self._do_not_track.add('udfs')
         # Collection UDF audits are handled by the UDFCollectionValue class
-        self._do_not_track |= {udfd.canonical_name
-                               for udfd in self.collection_udfs}
+        self._collection_field_names = {udfd.canonical_name
+                                        for udfd in self.collection_udfs}
+        self._do_not_track |= self.do_not_track | self._collection_field_names
         self.populate_previous_state()
 
         self.dirty_collection_udfs = {}
+
+    @classproperty
+    def do_not_track(cls):
+        return UserTrackable.do_not_track | {'udfs'}
 
     def fields_were_updated(self):
         normal_fields = super(UDFModel, self).fields_were_updated()
@@ -1152,7 +1175,7 @@ class UDFModel(UserTrackable, models.Model):
 
     def apply_change(self, key, val):
         if key.startswith('udf:'):
-            udf_field_name = key[4:]
+            udf_field_name = get_name_from_canonical_name(key)
             if udf_field_name in self.udf_field_names:
                 self.udfs[udf_field_name] = val
             else:
@@ -1195,7 +1218,7 @@ class UDFModel(UserTrackable, models.Model):
                 if field.iscollection]
 
     def collection_udfs_audit_names(self):
-        return ['udf:%s' % udf.pk for udf in self.collection_udfs]
+        return [udf.collection_audit_name for udf in self.collection_udfs]
 
     def collection_udfs_search_names(self):
         object_name = to_object_name(self.__class__.__name__)
@@ -1205,7 +1228,7 @@ class UDFModel(UserTrackable, models.Model):
     def visible_collection_udfs_audit_names(self, user):
         if isinstance(self, Authorizable):
             visible_fields = self.visible_fields(user)
-            return ['udf:%s' % udf.pk for udf in self.collection_udfs
+            return [udf.collection_audit_name for udf in self.collection_udfs
                     if udf.canonical_name in visible_fields]
         return self.collection_udfs_audit_names()
 
@@ -1315,9 +1338,9 @@ class UDFModel(UserTrackable, models.Model):
                 try:
                     field.clean_value(val)
                 except ValidationError as e:
-                    errors['udf:%s' % key] = e.messages
+                    errors[make_udf_name_from_key(key)] = e.messages
             else:
-                errors['udf:%s' % key] = [_(
+                errors[make_udf_name_from_key(key)] = [_(
                     'Invalid user defined field name')]
 
         # Clean collection values, but only if they were loaded
@@ -1333,7 +1356,7 @@ class UDFModel(UserTrackable, models.Model):
                     except ValidationError as e:
                         errors.update(e.message_dict)
                 else:
-                    errors['udf:%s' % collection_field_name] = [_(
+                    errors[make_udf_name_from_key(collection_field_name)] = [_(
                         'Invalid user defined field name')]
 
         if errors:
