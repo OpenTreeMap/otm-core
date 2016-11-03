@@ -107,7 +107,7 @@ UDFS = {
                 'Asian longhorn beetle (Anoplophora glabripennis)',
                 'Bronze birch borer (Agrilus anxius)',
                 'Emerald ash borer (Agrilus planipennis)',
-                'Horse chestnut bleeding canker (Pseudomonas syringae pv aesculi)',
+                'Horse chestnut bleeding canker (Pseudomonas syringae pv aesculi)',  # NOQA
                 'Horse chestnut leaf miner (Cameraria ohridella)',
                 'Needle blight (Dothistroma septosporum)',
                 'Oak processionary moth (Thaumetopoea processionea)',
