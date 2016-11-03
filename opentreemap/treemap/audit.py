@@ -28,6 +28,7 @@ from treemap.units import (is_convertible, is_convertible_or_formattable,
                            Convertible)
 from treemap.util import (all_models_of_class, leaf_models_of_class,
                           to_object_name, safe_get_model_class)
+from treemap.decorators import classproperty
 
 from treemap.lib.object_caches import (field_permissions,
                                        invalidate_adjuncts, udf_defs)
@@ -802,6 +803,10 @@ class Authorizable(UserTrackable):
     edits they have attempted to make.
     """
 
+    @classproperty
+    def always_writable(cls):
+        return {'id'}
+
     def __init__(self, *args, **kwargs):
         super(Authorizable, self).__init__(*args, **kwargs)
 
@@ -832,7 +837,7 @@ class Authorizable(UserTrackable):
             perm_set = {perm.field_name for perm in perms
                         if perm.allows_writes}
 
-        return perm_set.union(self._always_writable)
+        return perm_set.union(self.always_writable)
 
     def user_can_delete(self, user):
         """
@@ -906,7 +911,7 @@ class Authorizable(UserTrackable):
         perms = self._perms_for_user(user)
         fields_to_audit = []
         tracked_fields = self.tracked_fields
-        always_writable = self._always_writable
+        always_writable = self.always_writable
         for perm in perms:
             if ((perm.permission_level == FieldPermission.WRITE_WITH_AUDIT and
                  perm.field_name in tracked_fields and
@@ -932,7 +937,7 @@ class Authorizable(UserTrackable):
 
     def visible_fields(self, user):
         perms = self._perms_for_user(user)
-        always_readable = self._always_writable
+        always_readable = self.always_writable
 
         return always_readable | \
             {perm.field_name for perm in perms if perm.allows_reads}
@@ -943,7 +948,7 @@ class Authorizable(UserTrackable):
     def editable_fields(self, user):
         perms = self._perms_for_user(user)
 
-        return self._always_writable | \
+        return self.always_writable | \
             {perm.field_name for perm in perms if perm.allows_writes}
 
     def field_is_editable(self, user, field):
