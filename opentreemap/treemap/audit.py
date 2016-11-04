@@ -187,7 +187,10 @@ def _add_default_add_and_delete_permissions(models, roles):
     existing_pairs = [(e.role_id, e.permission_id) for e in existing]
 
     perm_names = [Role.permission_codename(Model, action)
-                  for Model in models for action in ['add', 'delete']]
+                  for Model in models for action in ['add', 'delete']] + \
+                 [Role.permission_codename(Model, action, photo=True)
+                  for Model in models for action in ['add', 'delete']
+                  if Model.__name__ != 'Plot']
     perms = Permission.objects.filter(codename__in=perm_names)
 
     role_perms = [ThroughModel(role_id=role_id, permission_id=perm.id)
@@ -770,12 +773,13 @@ class Role(models.Model):
         return self.has_permission(codename, Model)
 
     @classmethod
-    def permission_codename(clz, Model, action):
+    def permission_codename(clz, Model, action, photo=False):
         """
         Return name of built-in permission (django.contrib.auth) for
         performing 'action' on 'Model'.
         """
-        return '%s_%s' % (action, Model.__name__.lower())
+        photo = 'photo' if photo else ''
+        return '{}_{}{}'.format(action, Model.__name__.lower(), photo)
 
     def has_permission(self, codename, Model=None):
         """
@@ -789,7 +793,7 @@ class Role(models.Model):
         return qs.exists()
 
     def __unicode__(self):
-        return '%s (%s)' % (self.name, self.pk)
+        return '{} ({})'.format(self.name, self.pk)
 
 
 class AuthorizeException(Exception):
