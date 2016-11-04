@@ -18,7 +18,7 @@ from treemap.tests import (make_instance, make_commander_user,
                            make_officer_user,
                            set_write_permissions)
 
-from treemap.lib.object_caches import role_permissions
+from treemap.lib.object_caches import role_field_permissions
 from treemap.lib.udf import udf_create
 
 from treemap.udf import UserDefinedFieldDefinition
@@ -1349,7 +1349,7 @@ class UdfCreateTest(UdfCRUTestCase):
 
         for role in roles_in_instance:
             perms = [perm.field_name
-                     for perm in role_permissions(role, self.instance)]
+                     for perm in role_field_permissions(role, self.instance)]
 
             self.assertIn('udf:cool udf', perms)
 

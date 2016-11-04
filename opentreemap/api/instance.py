@@ -17,7 +17,7 @@ from django.contrib.gis.measure import D
 from django.utils.translation import ugettext as _
 
 from django_tinsel.exceptions import HttpBadRequestException
-from treemap.lib.object_caches import role_permissions
+from treemap.lib.object_caches import role_field_permissions
 from treemap.models import Instance, InstanceUser
 from treemap.units import (get_units_if_convertible, get_digits_if_formattable,
                            storage_to_instance_units_factor)
@@ -168,7 +168,7 @@ def instance_info(request, instance):
     # dictionary. If a field isn't at least readable, it doesn't
     # get sent over at all.
     perms = {}
-    for fp in role_permissions(role, instance):
+    for fp in role_field_permissions(role, instance):
         model = fp.model_name.lower()
         field_key = '%s.%s' % (model, fp.field_name)
         if fp.allows_reads:
