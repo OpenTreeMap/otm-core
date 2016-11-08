@@ -106,8 +106,10 @@ def get_instance_permission_spec():
     return [
         {
             'codename': PERMISSION_VIEW_EXTERNAL_LINK,
-            'label': _('Can view "External Link" of a tree or map feature'),
-            'default_role_names': [Role.ADMINISTRATOR, Role.EDITOR]
+            'description': _('Can view "External Link" '
+                             'of a tree or map feature'),
+            'default_role_names': [Role.ADMINISTRATOR, Role.EDITOR],
+            'label': _('Can View External Link')
         }
     ]
 

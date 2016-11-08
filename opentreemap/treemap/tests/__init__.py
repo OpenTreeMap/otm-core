@@ -20,7 +20,8 @@ from django.http import HttpResponse
 from django.conf.urls import patterns
 
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Permission
+from django.contrib.contenttypes.models import ContentType
 
 from treemap.models import (User, InstanceUser, Boundary, FieldPermission,
                             Role)
@@ -338,6 +339,14 @@ def make_request(params={}, user=None, instance=None,
         setattr(req, 'instance', instance)
 
     return req
+
+
+def make_permission(codename, Model, name=None):
+    perm, __ = Permission.objects.get_or_create(
+        codename=codename,
+        name=name or codename,
+        content_type=ContentType.objects.get_for_model(Model))
+    return perm
 
 
 def media_dir(f):

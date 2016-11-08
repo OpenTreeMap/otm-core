@@ -1461,7 +1461,7 @@ class RecentEditsViewTest(ViewTestCase):
         self.plot.save_with_user(self.commander)
 
         self.check_audits(
-            "/sdj/?page_size=2&exclude_pending=true",
+            "/blah/?page_size=2&exclude_pending=true",
             [{
                 "model": "udf:%s" % cudf.pk,
                 "ref": None,
@@ -1496,16 +1496,27 @@ class RecentEditsViewTest(ViewTestCase):
         self.plot.save_with_user(self.commander)
 
         self.check_audits(
-            "/sdj/?page_size=2&exclude_pending=true",
+            "/blah/?page_size=2&exclude_pending=true",
             [self.next_plot_delta, self.plot_delta], user=self.officer)
 
-    def test_normal_audits_not_shown_with_no_permissions(self):
+    def test_only_show_audits_for_permitted_fields(self):
         set_invisible_permissions(self.instance, self.commander, 'Plot',
                                   self.plot.tracked_fields)
         set_invisible_permissions(self.instance, self.commander, 'Tree',
                                   self.tree.tracked_fields)
 
-        self.check_audits("/sdj/", [], user=self.commander)
+        req = self.factory.get('/blah/')
+        req.user = self.commander
+        result = edits(req, self.instance)['audits']
+        tree_audit_fields = {
+            audit.field for audit in result if audit.model == 'tree'}
+        plot_audit_fields = {
+            audit.field for audit in result if audit.model == 'plot'}
+
+        self.assertLessEqual(tree_audit_fields,
+                             self.tree.visible_fields(self.commander))
+        self.assertLessEqual(plot_audit_fields,
+                             self.plot.visible_fields(self.commander))
 
     def test_system_user_edits_hidden(self):
         self.check_audits('/blah/?page_size=2',

@@ -28,6 +28,7 @@ from treemap.units import (is_convertible, is_convertible_or_formattable,
                            Convertible)
 from treemap.util import (all_models_of_class, leaf_models_of_class,
                           to_object_name, safe_get_model_class)
+from treemap.decorators import classproperty
 
 from treemap.lib.object_caches import (field_permissions,
                                        invalidate_adjuncts, udf_defs)
@@ -186,7 +187,10 @@ def _add_default_add_and_delete_permissions(models, roles):
     existing_pairs = [(e.role_id, e.permission_id) for e in existing]
 
     perm_names = [Role.permission_codename(Model, action)
-                  for Model in models for action in ['add', 'delete']]
+                  for Model in models for action in ['add', 'delete']] + \
+                 [Role.permission_codename(Model, action, photo=True)
+                  for Model in models for action in ['add', 'delete']
+                  if Model.__name__ != 'Plot']
     perms = Permission.objects.filter(codename__in=perm_names)
 
     role_perms = [ThroughModel(role_id=role_id, permission_id=perm.id)
@@ -219,17 +223,34 @@ def _add_default_field_permissions(models, role, instance):
                 'instance': role.instance
             })
 
+    #TODO: Remove while implementing issue
+    # https://github.com/OpenTreeMap/otm-core/issues/2176
+    # Making photos read only used to be done in the management page,
+    # but hopefully #2176 can be done without touching management,
+    # so move it here for now.
+    #
+    # Ugliness is due to perm sometimes being a dict,
+    # sometimes a FieldPermission.
+    def default_permission_level(perm):
+        if role.default_permission_level < FieldPermission.READ_ONLY:
+            model_name = getattr(perm, 'model_name', '')
+            if model_name == '' and getattr(perm, 'get'):
+                model_name = perm.get('model_name', '')
+            if model_name.lower().endswith('photo'):
+                return FieldPermission.READ_ONLY
+        return role.default_permission_level
+
     existing = FieldPermission.objects.filter(role=role, instance=instance)
     if existing.exists():
         for perm in perms:
             perm['defaults'] = {
-                'permission_level': role.default_permission_level
+                'permission_level': default_permission_level(perm)
             }
             FieldPermission.objects.get_or_create(**perm)
     else:
         perms = [FieldPermission(**perm) for perm in perms]
         for perm in perms:
-            perm.permission_level = role.default_permission_level
+            perm.permission_level = default_permission_level(perm)
 
         FieldPermission.objects.bulk_create(perms)
         # Because we use bulk_create, we must manually trigger the save signal
@@ -752,12 +773,13 @@ class Role(models.Model):
         return self.has_permission(codename, Model)
 
     @classmethod
-    def permission_codename(clz, Model, action):
+    def permission_codename(clz, Model, action, photo=False):
         """
         Return name of built-in permission (django.contrib.auth) for
         performing 'action' on 'Model'.
         """
-        return '%s_%s' % (action, Model.__name__.lower())
+        photo = 'photo' if photo else ''
+        return '{}_{}{}'.format(action, Model.__name__.lower(), photo)
 
     def has_permission(self, codename, Model=None):
         """
@@ -771,7 +793,7 @@ class Role(models.Model):
         return qs.exists()
 
     def __unicode__(self):
-        return '%s (%s)' % (self.name, self.pk)
+        return '{} ({})'.format(self.name, self.pk)
 
 
 class AuthorizeException(Exception):
@@ -784,6 +806,10 @@ class Authorizable(UserTrackable):
     Determines whether or not a user can save based on the
     edits they have attempted to make.
     """
+
+    @classproperty
+    def always_writable(cls):
+        return {'id'}
 
     def __init__(self, *args, **kwargs):
         super(Authorizable, self).__init__(*args, **kwargs)
@@ -815,7 +841,7 @@ class Authorizable(UserTrackable):
             perm_set = {perm.field_name for perm in perms
                         if perm.allows_writes}
 
-        return perm_set.union(self._always_writable)
+        return perm_set.union(self.always_writable)
 
     def user_can_delete(self, user):
         """
@@ -889,7 +915,7 @@ class Authorizable(UserTrackable):
         perms = self._perms_for_user(user)
         fields_to_audit = []
         tracked_fields = self.tracked_fields
-        always_writable = self._always_writable
+        always_writable = self.always_writable
         for perm in perms:
             if ((perm.permission_level == FieldPermission.WRITE_WITH_AUDIT and
                  perm.field_name in tracked_fields and
@@ -900,9 +926,7 @@ class Authorizable(UserTrackable):
         return fields_to_audit
 
     def mask_unauthorized_fields(self, user):
-        readable_fields = {perm.field_name for perm
-                           in self._perms_for_user(user)
-                           if perm.allows_reads}
+        readable_fields = self.visible_fields(user)
 
         fields = set(self.get_previous_state().keys())
         unreadable_fields = fields - readable_fields
@@ -917,7 +941,7 @@ class Authorizable(UserTrackable):
 
     def visible_fields(self, user):
         perms = self._perms_for_user(user)
-        always_readable = getattr(type(self), 'always_writable', set())
+        always_readable = self.always_writable
 
         return always_readable | \
             {perm.field_name for perm in perms if perm.allows_reads}
@@ -928,17 +952,11 @@ class Authorizable(UserTrackable):
     def editable_fields(self, user):
         perms = self._perms_for_user(user)
 
-        return self._always_writable | \
+        return self.always_writable | \
             {perm.field_name for perm in perms if perm.allows_writes}
 
     def field_is_editable(self, user, field):
         return field in self.editable_fields(user)
-
-    @staticmethod
-    def mask_queryset(qs, user):
-        for model in qs:
-            model.mask_unauthorized_fields(user)
-        return qs
 
     def save_with_user(self, user, *args, **kwargs):
         self._assert_not_masked()

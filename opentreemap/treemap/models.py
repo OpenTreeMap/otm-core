@@ -583,6 +583,14 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
     users_can_delete_own_creations = True
 
+    @classproperty
+    def always_writable(cls):
+        # `updated_at`, `hide_at_zoom`, and `geom` never need to be checked.
+        # If we ever implement the ability to lock down a model instance,
+        # `readonly` should be removed from this list.
+        return PendingAuditable.always_writable | {
+            'updated_at', 'hide_at_zoom', 'geom', 'readonly'}
+
     def __init__(self, *args, **kwargs):
         super(MapFeature, self).__init__(*args, **kwargs)
         if self.feature_type == '':
@@ -590,12 +598,6 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         self._do_not_track.add('feature_type')
         self._do_not_track.add('mapfeature_ptr')
         self._do_not_track.add('hide_at_zoom')
-
-        # `updated_at`, `hide_at_zoom`, and `geom` never need to be checked.
-        # If we ever implement the ability to lock down a model instance,
-        # `readonly` should be removed from this list.
-        self._always_writable.update({'updated_at', 'hide_at_zoom', 'geom',
-                                     'readonly'})
 
         self.populate_previous_state()
 
@@ -1036,6 +1038,14 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
         }
     }
 
+    @classproperty
+    def always_writable(cls):
+        # `plot` never needs to be checked.
+        # If we ever implement the ability to lock down a model instance,
+        # `readonly` should be removed from this list.
+        return PendingAuditable.always_writable | {
+            'plot', 'readonly'}
+
     _terminology = {'singular': _('Tree'), 'plural': _('Trees')}
 
     def __unicode__(self):
@@ -1049,10 +1059,6 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
 
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)
-        # `plot` never needs to be checked.
-        # If we ever implement the ability to lock down a model instance,
-        # `readonly` should be removed from this list.
-        self._always_writable.update({'plot', 'readonly'})
 
     def dict(self):
         props = self.as_dict()

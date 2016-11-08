@@ -967,20 +967,15 @@ class UserRoleFieldPermissionTest(OTMTestCase):
 
         plot = Plot.objects.get(pk=self.plot.pk)
         plot.mask_unauthorized_fields(self.observer)
-        self.assertEqual(None, plot.width)
+        self.assertEqual(plot.width, None)
+        # geom is always readable
+        self.assertEqual(plot.geom, self.plot.geom)
 
         plot = Plot.objects.get(pk=self.plot.pk)
         plot.mask_unauthorized_fields(self.outlaw)
-        self.assertEqual(None, plot.width)
-
-    def test_masking_whole_queryset(self):
-        "Masking also works on entire querysets"
-        self.plot.width = 5
-        self.plot.save_base()
-
-        plots = Plot.objects.filter(pk=self.plot.pk)
-        plot = Plot.mask_queryset(plots, self.observer)[0]
-        self.assertEqual(None, plot.width)
+        self.assertEqual(plot.width, None)
+        # geom is always readable
+        self.assertEqual(plot.geom, self.plot.geom)
 
     def test_write_fails_if_any_fields_cant_be_written(self):
         """ If a user tries to modify several fields simultaneously,

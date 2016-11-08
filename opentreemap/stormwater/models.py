@@ -20,6 +20,10 @@ class PolygonalMapFeature(MapFeature):
 
     objects = GeoHStoreUDFManager()
 
+    @classproperty
+    def always_writable(cls):
+        return MapFeature.always_writable | {'polygon'}
+
     def __init__(self, *args, **kwargs):
         super(PolygonalMapFeature, self).__init__(*args, **kwargs)
         self._do_not_track.add('polygonalmapfeature_ptr')
