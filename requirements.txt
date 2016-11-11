@@ -34,6 +34,6 @@ psycopg2==2.6.2                          # http://initd.org/psycopg/docs/news.ht
 python-dateutil==2.5.3                   # https://github.com/dateutil/dateutil/blob/master/NEWS
 python-omgeo==1.9.0
 pytz==2016.6.1                           # https://launchpad.net/pytz/+announcements
-rollbar==0.13.3                          # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
+rollbar==0.13.8                          # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
 statsd==3.2.1
 wsgiref==0.1.2
