@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
 
 import json
+import re
 
 from opentreemap.util import dotted_split
 
@@ -11,6 +12,9 @@ from treemap.udf import UserDefinedCollectionValue
 from treemap.util import (get_filterable_audit_models, to_model_name,
                           safe_get_model_class)
 from treemap.units import Convertible
+
+
+_external_tree_id_url_re = re.compile(r'#{tree.id}')
 
 
 register = template.Library()

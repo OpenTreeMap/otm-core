@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import datetime
+import re
 from collections import OrderedDict
 
 from urlparse import urlparse
@@ -225,3 +226,24 @@ def get_name_from_canonical_name(canonical_name):
 
 def make_udf_name_from_key(key):
     return 'udf:{}'.format(key)
+
+
+# Utilities for external links
+_external_url_re = re.compile(r'#{([_.a-z]+)}', re.IGNORECASE)
+_valid_url_tokens = ['tree.id', 'planting_site.id', 'planting_site.custom_id']
+
+
+def get_tokens_from_template(token_template):
+    return _external_url_re.findall(token_template)
+
+
+def validate_token_template(token_template):
+    tokens = get_tokens_from_template(token_template)
+    return not tokens or any(token in _valid_url_tokens for token in tokens)
+
+
+def get_url_tokens_for_display(in_bold=False):
+    show = lambda t: ('<b>#{%s}</b>' if in_bold else '#{%s}') % t
+
+    return (', '.join(show(token) for token in _valid_url_tokens[:-1]) +
+            unicode(_(' or ')) + show(_valid_url_tokens[-1]))
