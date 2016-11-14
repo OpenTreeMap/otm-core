@@ -7,6 +7,9 @@ TREEZILLA_ITREE_REGION_CODE = 'NoEastXXX'
 METERS_TO_INCHES = 39.3701
 METERS_TO_FEET = 3.28084
 
+MIGRATION_RULES['tree']['removed_fields'].remove('tree_owner')
+MIGRATION_RULES['tree']['common_fields'].add('tree_owner')
+
 BOUNDARY_TYPES = {
     'DIS': {'name': 'District', 'sort_order': 10},
     'LBO': {'name': 'London Borough', 'sort_order': 10},
@@ -100,6 +103,7 @@ UDFS = {
     },
     'tree': {
         'sponsor': {'udf.name': 'Sponsor'},
+        'tree_owner': {'udf.name': 'Owner'},
         'pests': {
             'udf.name': 'Pests',
             'udf.choices': [
