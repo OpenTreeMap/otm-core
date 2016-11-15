@@ -552,6 +552,8 @@ post_delete.connect(invalidate_adjuncts, sender=InstanceUser)
 
 
 # UDFModel overrides implementations of methods in
+# authorizable and auditable, thus needs to be inherited
+# before PendingAuditable.
 class MapFeature(Convertible, UDFModel, PendingAuditable):
     "Superclass for map feature subclasses like Plot, RainBarrel, etc."
     instance = models.ForeignKey(Instance)
@@ -988,7 +990,8 @@ class Plot(MapFeature, ValidationMixin):
 
 
 # UDFModel overrides implementations of methods in
-# authorizable and auditable, thus needs to be inherited first
+# authorizable and auditable, thus needs to be inherited
+# before PendingAuditable.
 class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
     """
     Represents a single tree, belonging to an instance
@@ -1277,14 +1280,20 @@ class TreePhoto(MapFeaturePhoto):
     def always_writable(cls):
         return MapFeaturePhoto.always_writable | {'tree'}
 
+    # TreePhoto needs the version user_can_create and user_can_delete
+    # defined in Authorizable, which is a base class for PendingAuditable,
+    # which is one of the base classes for MapFeaturePhoto.
+    #
+    # MapFeaturePhoto, used as a leaf class, overrides these methods
+    # in an incompatible way.
+    #
+    # So skip over the MapFeaturePhoto version by calling
+    # MapFeaturePhoto's superclass.
+
     def user_can_create(self, user):
-        # MapFeaturePhoto as a leaf obeys different rules,
-        # so defer to our grand-super.
         return super(MapFeaturePhoto, self).user_can_create(user)
 
     def user_can_delete(self, user):
-        # MapFeaturePhoto as a leaf obeys different rules,
-        # so defer to our grand-super.
         return super(MapFeaturePhoto, self).user_can_delete(user)
 
     def save_with_user(self, *args, **kwargs):

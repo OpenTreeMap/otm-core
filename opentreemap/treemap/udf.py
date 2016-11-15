@@ -1112,6 +1112,8 @@ class UDFModel(UserTrackable, models.Model):
         # Collection UDF audits are handled by the UDFCollectionValue class
         self._collection_field_names = {udfd.canonical_name
                                         for udfd in self.collection_udfs}
+        # This is the whole reason for keeping _do_not_track
+        # in addition to the do_not_track class property.
         self._do_not_track |= self.do_not_track | self._collection_field_names
         self.populate_previous_state()
 

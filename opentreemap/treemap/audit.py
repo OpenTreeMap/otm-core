@@ -162,12 +162,17 @@ def add_instance_permissions(roles):
 
 def add_default_permissions(instance, roles=None, models=None):
     """
-    Add field permissions with the `role.default_permission_level`
-    for all the models to all the roles.
+    If no models are specified, use all authorizable models.
 
-    For roles with `default_permission_level` that permits write,
-    also add all the `add` and `delete` model permissions
-    for all the models.
+    If no roles are specified, use all roles for the specified instance.
+
+    Add field permissions for the set of fields on each model that
+    `requires_authorization` for each role, specifying the
+    `role.default_permission_level`.
+
+    For roles whose `default_permission_level` permits writes,
+    also add all the `add` and `delete` model permissions for all the models,
+    and their associated photo models.
     """
     # Audit is imported into models, so models can't be imported up top
     from treemap.models import MapFeaturePhoto
@@ -225,7 +230,7 @@ def _add_default_field_permissions(models, role, instance):
         perms += [{'model_name': model_name,
                    'field_name': field_name,
                    'role': role,
-                   'instance': role.instance}
+                   'instance': instance}
                   for field_name in Model.requires_authorization | udfs]
 
     existing = FieldPermission.objects.filter(role=role, instance=instance)
@@ -532,9 +537,8 @@ class Dictable(object):
 
 class UserTrackable(Dictable):
     def __init__(self, *args, **kwargs):
-        # updated_at is "metadata" and it does not make sense to
-        # redundantly track when it changes, assign reputation for
-        # editing it, etc.
+        # _do_not_track returns the static do_not_track set unioned
+        # with any fields that are added during instance initialization.
         self._do_not_track = self.do_not_track
         super(UserTrackable, self).__init__(*args, **kwargs)
         self.populate_previous_state()
@@ -547,6 +551,16 @@ class UserTrackable(Dictable):
 
     @classproperty
     def do_not_track(cls):
+        '''
+        do_not_track returns the set of statically defined field names
+        on the model that should not be tracked.
+
+        Subclasses of UserTrackable should return their own field names
+        unioned with those of their immediate superclass.
+        '''
+        # updated_at is "metadata" and it does not make sense to
+        # redundantly track when it changes, assign reputation for
+        # editing it, etc.
         return {'instance', 'updated_at'}
 
     @property
