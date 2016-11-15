@@ -92,6 +92,35 @@ class PermsTest(PermissionsTestCase):
         plot = Plot(instance=self.instance)
         self.assertFalse(perms.photo_is_addable(self.role_no, plot))
 
+    def test_user_can_create_tree_photo(self):
+        self._add_builtin_permission(self.role_yes, TreePhoto, 'add_treephoto')
+        commander = make_commander_user(self.instance)
+        plot = Plot(instance=self.instance, geom=self.p)
+        plot.save_with_user(commander)
+        tree = Tree(plot=plot, instance=self.instance)
+        tree.save_with_user(commander)
+        user_yes = make_user(instance=self.instance,
+                             make_role=lambda inst: self.role_yes)
+        photo = TreePhoto(instance=self.instance,
+                          map_feature=plot, tree=tree)
+        photo.set_image(self.load_resource('tree1.gif'))
+        self.assertTrue(photo.user_can_create(user_yes))
+
+    def test_user_cannot_create_tree_photo(self):
+        self._add_builtin_permission(self.role_no, Tree, 'add_tree')
+        self._add_builtin_permission(self.role_no, Plot, 'add_plot')
+        commander = make_commander_user(self.instance)
+        plot = Plot(instance=self.instance, geom=self.p)
+        plot.save_with_user(commander)
+        tree = Tree(plot=plot, instance=self.instance)
+        tree.save_with_user(commander)
+        user_no = make_user(instance=self.instance,
+                            make_role=lambda inst: self.role_no)
+        photo = TreePhoto(instance=self.instance,
+                          map_feature=plot, tree=tree)
+        photo.set_image(self.load_resource('tree1.gif'))
+        self.assertFalse(photo.user_can_create(user_no))
+
     def test_tree_photo_is_deletable(self):
         commander = make_commander_user(self.instance)
         plot = Plot(instance=self.instance, geom=self.p)
@@ -120,11 +149,41 @@ class PermsTest(PermissionsTestCase):
 
         photo = tree.add_photo(image, commander)
 
+        user_no = make_user(instance=self.instance,
+                            make_role=lambda inst: self.role_no)
+        self.assertFalse(
+            perms.is_deletable(user_no.get_instance_user(self.instance),
+                               photo))
+
+    def test_user_can_delete_tree_photo(self):
+        commander = make_commander_user(self.instance)
+        plot = Plot(instance=self.instance, geom=self.p)
+        plot.save_with_user(commander)
+        tree = Tree(plot=plot, instance=self.instance)
+        tree.save_with_user(commander)
+        image = self.load_resource('tree1.gif')
+
+        photo = tree.add_photo(image, commander)
+
+        self._add_builtin_permission(self.role_yes, TreePhoto,
+                                     'delete_treephoto')
         user_yes = make_user(instance=self.instance,
                              make_role=lambda inst: self.role_yes)
-        self.assertFalse(
-            perms.is_deletable(user_yes.get_instance_user(self.instance),
-                               photo))
+        self.assertTrue(photo.user_can_delete(user_yes))
+
+    def test_user_cannot_delete_tree_photo(self):
+        commander = make_commander_user(self.instance)
+        plot = Plot(instance=self.instance, geom=self.p)
+        plot.save_with_user(commander)
+        tree = Tree(plot=plot, instance=self.instance)
+        tree.save_with_user(commander)
+        image = self.load_resource('tree1.gif')
+
+        photo = tree.add_photo(image, commander)
+
+        user_no = make_user(instance=self.instance,
+                            make_role=lambda inst: self.role_no)
+        self.assertFalse(photo.user_can_delete(user_no))
 
 
 class InstancePermissionsTest(PermissionsTestCase):

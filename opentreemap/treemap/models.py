@@ -1277,6 +1277,11 @@ class TreePhoto(MapFeaturePhoto):
     def always_writable(cls):
         return MapFeaturePhoto.always_writable | {'tree'}
 
+    def user_can_create(self, user):
+        # MapFeaturePhoto as a leaf obeys different rules,
+        # so defer to our grand-super.
+        return super(MapFeaturePhoto, self).user_can_create(user)
+
     def user_can_delete(self, user):
         # MapFeaturePhoto as a leaf obeys different rules,
         # so defer to our grand-super.

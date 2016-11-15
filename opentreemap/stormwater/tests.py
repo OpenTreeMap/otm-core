@@ -65,6 +65,16 @@ class ResourcePermsTest(PermissionsTestCase):
         rainbarrel = RainBarrel(instance=self.instance, geom=self.p)
         self.assertTrue(perms.photo_is_addable(self.role_yes, rainbarrel))
 
+    def test_rainbarrel_photo_is_not_addable(self):
+        self._add_builtin_permission(self.role_no, RainBarrel,
+                                     'add_rainbarrel')
+        self._add_builtin_permission(self.role_no, Bioswale,
+                                     'add_bioswale')
+        self._add_builtin_permission(self.role_no, MapFeaturePhoto,
+                                     'add_bioswalephoto')
+        rainbarrel = RainBarrel(instance=self.instance, geom=self.p)
+        self.assertFalse(perms.photo_is_addable(self.role_no, rainbarrel))
+
     def test_user_can_create_rainbarrel_photo(self):
         self._add_builtin_permission(self.role_yes, MapFeaturePhoto,
                                      'add_rainbarrelphoto')
@@ -75,16 +85,6 @@ class ResourcePermsTest(PermissionsTestCase):
                                 map_feature=rainbarrel)
         photo.set_image(self.load_resource('tree1.gif'))
         self.assertTrue(photo.user_can_create(user_yes))
-
-    def test_rainbarrel_photo_is_not_addable(self):
-        self._add_builtin_permission(self.role_no, RainBarrel,
-                                     'add_rainbarrel')
-        self._add_builtin_permission(self.role_no, Bioswale,
-                                     'add_bioswale')
-        self._add_builtin_permission(self.role_no, MapFeaturePhoto,
-                                     'add_bioswalephoto')
-        rainbarrel = RainBarrel(instance=self.instance, geom=self.p)
-        self.assertFalse(perms.photo_is_addable(self.role_no, rainbarrel))
 
     def test_user_cannot_create_rainbarrel_photo(self):
         self._add_builtin_permission(self.role_no, RainBarrel,
