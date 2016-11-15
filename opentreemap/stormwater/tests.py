@@ -65,6 +65,17 @@ class ResourcePermsTest(PermissionsTestCase):
         rainbarrel = RainBarrel(instance=self.instance, geom=self.p)
         self.assertTrue(perms.photo_is_addable(self.role_yes, rainbarrel))
 
+    def test_user_can_create_rainbarrel_photo(self):
+        self._add_builtin_permission(self.role_yes, MapFeaturePhoto,
+                                     'add_rainbarrelphoto')
+        rainbarrel = RainBarrel(instance=self.instance, geom=self.p)
+        user_yes = make_user(instance=self.instance,
+                             make_role=lambda inst: self.role_yes)
+        photo = MapFeaturePhoto(instance=self.instance,
+                                map_feature=rainbarrel)
+        photo.set_image(self.load_resource('tree1.gif'))
+        self.assertTrue(photo.user_can_create(user_yes))
+
     def test_rainbarrel_photo_is_not_addable(self):
         self._add_builtin_permission(self.role_no, RainBarrel,
                                      'add_rainbarrel')
@@ -74,6 +85,21 @@ class ResourcePermsTest(PermissionsTestCase):
                                      'add_bioswalephoto')
         rainbarrel = RainBarrel(instance=self.instance, geom=self.p)
         self.assertFalse(perms.photo_is_addable(self.role_no, rainbarrel))
+
+    def test_user_cannot_create_rainbarrel_photo(self):
+        self._add_builtin_permission(self.role_no, RainBarrel,
+                                     'add_rainbarrel')
+        self._add_builtin_permission(self.role_no, Bioswale,
+                                     'add_bioswale')
+        self._add_builtin_permission(self.role_no, MapFeaturePhoto,
+                                     'add_bioswalephoto')
+        rainbarrel = RainBarrel(instance=self.instance, geom=self.p)
+        user_no = make_user(instance=self.instance,
+                            make_role=lambda inst: self.role_no)
+        photo = MapFeaturePhoto(instance=self.instance,
+                                map_feature=rainbarrel)
+        photo.set_image(self.load_resource('tree1.gif'))
+        self.assertFalse(photo.user_can_create(user_no))
 
     def test_rainbarrel_photo_is_deletable(self):
         commander = make_commander_user(self.instance)
@@ -107,11 +133,45 @@ class ResourcePermsTest(PermissionsTestCase):
                                      'delete_bioswale')
         self._add_builtin_permission(self.role_no, MapFeaturePhoto,
                                      'delete_bioswalephoto')
+        user_no = make_user(instance=self.instance,
+                            make_role=lambda inst: self.role_no)
+        self.assertFalse(
+            perms.is_deletable(user_no.get_instance_user(self.instance),
+                               photo))
+
+    def test_user_can_delete_rainbarrel_photo(self):
+        commander = make_commander_user(self.instance)
+        rainbarrel = RainBarrel(instance=self.instance, geom=self.p,
+                                capacity=50.0)
+        rainbarrel.save_with_user(commander)
+        image = self.load_resource('tree1.gif')
+
+        photo = rainbarrel.add_photo(image, commander)
+
+        self._add_builtin_permission(self.role_yes, MapFeaturePhoto,
+                                     'delete_rainbarrelphoto')
         user_yes = make_user(instance=self.instance,
                              make_role=lambda inst: self.role_yes)
-        self.assertFalse(
-            perms.is_deletable(user_yes.get_instance_user(self.instance),
-                               photo))
+        self.assertTrue(photo.user_can_delete(user_yes))
+
+    def test_user_cannot_delete_rainbarrel_photo(self):
+        commander = make_commander_user(self.instance)
+        rainbarrel = RainBarrel(instance=self.instance, geom=self.p,
+                                capacity=50.0)
+        rainbarrel.save_with_user(commander)
+        image = self.load_resource('tree1.gif')
+
+        photo = rainbarrel.add_photo(image, commander)
+
+        self._add_builtin_permission(self.role_no, RainBarrel,
+                                     'delete_rainbarrel')
+        self._add_builtin_permission(self.role_no, Bioswale,
+                                     'delete_bioswale')
+        self._add_builtin_permission(self.role_no, MapFeaturePhoto,
+                                     'delete_bioswalephoto')
+        user_no = make_user(instance=self.instance,
+                            make_role=lambda inst: self.role_no)
+        self.assertFalse(photo.user_can_delete(user_no))
 
 
 @override_settings(FEATURE_BACKEND_FUNCTION=None)

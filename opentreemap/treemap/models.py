@@ -1253,16 +1253,21 @@ class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
         thumb.delete(False)
         image.delete(False)
 
+    def user_can_create(self, user):
+        return self._user_can_do(user, 'add')
+
     def user_can_delete(self, user):
         """
         A user can delete a photo if their role has the right permission
         or if they created the photo.
         """
+        return self._user_can_do(user, 'delete') or self.was_created_by(user)
+
+    def _user_can_do(self, user, action):
         role = user.get_role(self.get_instance())
         codename = Role.permission_codename(self.map_feature.__class__,
-                                            'delete', photo=True)
-        return role.has_permission(codename, Model=self.__class__) or \
-            self.was_created_by(user)
+                                            action, photo=True)
+        return role.has_permission(codename, Model=self.__class__)
 
 
 class TreePhoto(MapFeaturePhoto):
