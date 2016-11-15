@@ -272,50 +272,12 @@
 }
 
 #scenarioResults {
+    #eco-chart {
+        margin-bottom: 25px;
+    }
+
     .charts-header {
         margin-bottom: 10px;
-    }
-
-    .chart-container {
-        position: relative;
-        padding-left: 15px;
-    }
-
-    .legend {
-        display: inline-block;
-        font-size: .8em;
-        margin-top: 5px;
-
-        .entry {
-            display: inline-block;
-        }
-
-        .swatch {
-            float: left;
-            width: 1em;
-            height: 1em;
-            margin: 3px 4px 0 6px;
-        }
-    }
-
-    .top-chart {
-        height: 250px;
-    }
-
-    .y-axis-label {
-        position: absolute;
-        top: 0;
-        left: 0;
-
-        .inner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform:         translateX(-50%) translateY(-50%) rotate(-90deg);
-            -moz-transform:    translateX(-50%) translateY(-50%) rotate(-90deg);
-            -webkit-transform: translateX(-50%) translateY(-50%) rotate(-90deg);
-            white-space: nowrap;
-        }
     }
 
     .total-eco {
