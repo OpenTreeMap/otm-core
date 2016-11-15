@@ -276,6 +276,11 @@
         margin-bottom: 10px;
     }
 
+    .chart-container {
+        position: relative;
+        padding-left: 15px;
+    }
+
     .legend {
         display: inline-block;
         font-size: .8em;
@@ -298,10 +303,9 @@
     }
 
     .y-axis-label {
-        width: 15px;
-        margin-right: 15px;
-        position: relative;
-        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 0;
 
         .inner {
             position: absolute;
