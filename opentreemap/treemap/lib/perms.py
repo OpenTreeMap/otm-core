@@ -2,6 +2,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import inspect
+
 from treemap.lib.object_caches import role_field_permissions
 
 from django.contrib.gis.db.models import Field
@@ -217,14 +219,25 @@ def any_resource_is_creatable(role_related_obj):
 
 
 def _get_associated_model_class(associated_model):
-    if callable(getattr(associated_model, 'cast_to_subtype', None)):
-        associated_model = associated_model.cast_to_subtype()
-    clz = associated_model.__class__ if \
-        isinstance(associated_model, Authorizable) else associated_model
+    if inspect.isclass(associated_model):
+        clz = associated_model
+    else:
+        if callable(getattr(associated_model, 'cast_to_subtype', None)):
+            associated_model = associated_model.cast_to_subtype()
+        clz = associated_model.__class__ if \
+            isinstance(associated_model, Authorizable) else associated_model
     return Tree if clz == Plot else clz
 
 
 def photo_is_addable(role_related_obj, associated_model):
+    '''
+    photo_is_addable(role_related_obj, associated_model) returns
+    True if a user possessing role_related_obj can add a photo
+    to the associated_model, False otherwise.
+
+    role_related_obj may be a role or an instance user.
+    associated_model may be a model class or instance of a model.
+    '''
     AssociatedClass = _get_associated_model_class(associated_model)
     PhotoClass = TreePhoto if AssociatedClass == Tree else MapFeaturePhoto
     codename = Role.permission_codename(AssociatedClass, 'add', photo=True)
