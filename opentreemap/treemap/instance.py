@@ -92,6 +92,7 @@ def add_species_to_instance(instance):
     instance_species_list = []
     for species_dict in SPECIES:
         if species_dict['otm_code'] in species_code_set:
+            species_dict = deepcopy(species_dict)
             species_dict['instance'] = instance
             instance_species_list.append(Species(**species_dict))
     Species.objects.bulk_create(instance_species_list)
