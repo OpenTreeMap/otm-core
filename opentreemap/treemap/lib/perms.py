@@ -217,6 +217,8 @@ def any_resource_is_creatable(role_related_obj):
 
 
 def _get_associated_model_class(associated_model):
+    if callable(getattr(associated_model, 'cast_to_subtype', None)):
+        associated_model = associated_model.cast_to_subtype()
     clz = associated_model.__class__ if \
         isinstance(associated_model, Authorizable) else associated_model
     return Tree if clz == Plot else clz

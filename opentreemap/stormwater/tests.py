@@ -7,7 +7,7 @@ from treemap.ecobenefits import (FEET_SQ_PER_METER_SQ, FEET_PER_INCH,
                                  GALLONS_PER_CUBIC_FT)
 from treemap.lib import perms
 from treemap.lib.udf import udf_create
-from treemap.models import MapFeaturePhoto
+from treemap.models import MapFeature, MapFeaturePhoto
 from treemap.search import Filter
 from treemap.tests.test_udfs import UdfCRUTestCase
 from treemap.tests import (make_instance, make_commander_user,
@@ -38,6 +38,17 @@ class ResourcePermsTest(PermissionsTestCase):
         super(ResourcePermsTest, self).setUp()
         self.instance.add_map_feature_types(['RainBarrel', 'Bioswale'])
         self.role_no = make_tweaker_role(self.instance, 'no')
+        self.commander = make_commander_user(self.instance)
+
+    def _create_rainbarrel_return_map_feature(self):
+        # Create a RainBarrel, but return the MapFeature
+        # referenced by it, to make sure the permission codename
+        # is constructed correctly even when passed a MapFeature.
+        rainbarrel = RainBarrel(instance=self.instance, geom=self.p,
+                                capacity=50.0)
+        rainbarrel.save_with_user(self.commander)
+        rainbarrel.refresh_from_db()
+        return MapFeature.objects.get(pk=rainbarrel.pk)
 
     def test_map_feature_is_creatable(self):
         self._add_builtin_permission(self.role_yes, RainBarrel,
@@ -62,7 +73,7 @@ class ResourcePermsTest(PermissionsTestCase):
     def test_rainbarrel_photo_is_addable(self):
         self._add_builtin_permission(self.role_yes, MapFeaturePhoto,
                                      'add_rainbarrelphoto')
-        rainbarrel = RainBarrel(instance=self.instance, geom=self.p)
+        rainbarrel = self._create_rainbarrel_return_map_feature()
         self.assertTrue(perms.photo_is_addable(self.role_yes, rainbarrel))
 
     def test_rainbarrel_photo_is_not_addable(self):
@@ -72,13 +83,13 @@ class ResourcePermsTest(PermissionsTestCase):
                                      'add_bioswale')
         self._add_builtin_permission(self.role_no, MapFeaturePhoto,
                                      'add_bioswalephoto')
-        rainbarrel = RainBarrel(instance=self.instance, geom=self.p)
+        rainbarrel = self._create_rainbarrel_return_map_feature()
         self.assertFalse(perms.photo_is_addable(self.role_no, rainbarrel))
 
     def test_user_can_create_rainbarrel_photo(self):
         self._add_builtin_permission(self.role_yes, MapFeaturePhoto,
                                      'add_rainbarrelphoto')
-        rainbarrel = RainBarrel(instance=self.instance, geom=self.p)
+        rainbarrel = self._create_rainbarrel_return_map_feature()
         user_yes = make_user(instance=self.instance,
                              make_role=lambda inst: self.role_yes)
         photo = MapFeaturePhoto(instance=self.instance,
@@ -93,7 +104,7 @@ class ResourcePermsTest(PermissionsTestCase):
                                      'add_bioswale')
         self._add_builtin_permission(self.role_no, MapFeaturePhoto,
                                      'add_bioswalephoto')
-        rainbarrel = RainBarrel(instance=self.instance, geom=self.p)
+        rainbarrel = self._create_rainbarrel_return_map_feature()
         user_no = make_user(instance=self.instance,
                             make_role=lambda inst: self.role_no)
         photo = MapFeaturePhoto(instance=self.instance,
@@ -102,13 +113,10 @@ class ResourcePermsTest(PermissionsTestCase):
         self.assertFalse(photo.user_can_create(user_no))
 
     def test_rainbarrel_photo_is_deletable(self):
-        commander = make_commander_user(self.instance)
-        rainbarrel = RainBarrel(instance=self.instance, geom=self.p,
-                                capacity=50.0)
-        rainbarrel.save_with_user(commander)
+        rainbarrel = self._create_rainbarrel_return_map_feature()
         image = self.load_resource('tree1.gif')
 
-        photo = rainbarrel.add_photo(image, commander)
+        photo = rainbarrel.add_photo(image, self.commander)
 
         self._add_builtin_permission(self.role_yes, MapFeaturePhoto,
                                      'delete_rainbarrelphoto')
@@ -119,13 +127,10 @@ class ResourcePermsTest(PermissionsTestCase):
                                photo))
 
     def test_rainbarrel_photo_is_not_deletable(self):
-        commander = make_commander_user(self.instance)
-        rainbarrel = RainBarrel(instance=self.instance, geom=self.p,
-                                capacity=50.0)
-        rainbarrel.save_with_user(commander)
+        rainbarrel = self._create_rainbarrel_return_map_feature()
         image = self.load_resource('tree1.gif')
 
-        photo = rainbarrel.add_photo(image, commander)
+        photo = rainbarrel.add_photo(image, self.commander)
 
         self._add_builtin_permission(self.role_no, RainBarrel,
                                      'delete_rainbarrel')
@@ -140,13 +145,10 @@ class ResourcePermsTest(PermissionsTestCase):
                                photo))
 
     def test_user_can_delete_rainbarrel_photo(self):
-        commander = make_commander_user(self.instance)
-        rainbarrel = RainBarrel(instance=self.instance, geom=self.p,
-                                capacity=50.0)
-        rainbarrel.save_with_user(commander)
+        rainbarrel = self._create_rainbarrel_return_map_feature()
         image = self.load_resource('tree1.gif')
 
-        photo = rainbarrel.add_photo(image, commander)
+        photo = rainbarrel.add_photo(image, self.commander)
 
         self._add_builtin_permission(self.role_yes, MapFeaturePhoto,
                                      'delete_rainbarrelphoto')
@@ -155,13 +157,10 @@ class ResourcePermsTest(PermissionsTestCase):
         self.assertTrue(photo.user_can_delete(user_yes))
 
     def test_user_cannot_delete_rainbarrel_photo(self):
-        commander = make_commander_user(self.instance)
-        rainbarrel = RainBarrel(instance=self.instance, geom=self.p,
-                                capacity=50.0)
-        rainbarrel.save_with_user(commander)
+        rainbarrel = self._create_rainbarrel_return_map_feature()
         image = self.load_resource('tree1.gif')
 
-        photo = rainbarrel.add_photo(image, commander)
+        photo = rainbarrel.add_photo(image, self.commander)
 
         self._add_builtin_permission(self.role_no, RainBarrel,
                                      'delete_rainbarrel')

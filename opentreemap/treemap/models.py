@@ -1268,9 +1268,11 @@ class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
 
     def _user_can_do(self, user, action):
         role = user.get_role(self.get_instance())
-        codename = Role.permission_codename(self.map_feature.__class__,
-                                            action, photo=True)
-        return role.has_permission(codename, Model=self.__class__)
+        Clz = self.map_feature.__class__
+        if callable(getattr(self.map_feature, 'cast_to_subtype', None)):
+            Clz = self.map_feature.cast_to_subtype().__class__
+        codename = Role.permission_codename(Clz, action, photo=True)
+        return role.has_permission(codename, Model=MapFeaturePhoto)
 
 
 class TreePhoto(MapFeaturePhoto):
