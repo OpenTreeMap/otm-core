@@ -80,10 +80,8 @@ def increment_adjuncts_timestamp(instance):
 
 
 def _permissions_from_db(user, instance, model_name):
-    if user is None or user.is_anonymous():
-        role = instance.default_role
-    else:
-        role = user.get_role(instance)
+    from treemap.audit import Role
+    role = Role.objects.get_role(instance, user)
     return _role_permissions_from_db(role, model_name)
 
 

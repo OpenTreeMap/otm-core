@@ -33,7 +33,7 @@ def safe_get_model_class(model_string):
     """
     from treemap.models import MapFeature
 
-    # All of our models live in 'treemap.models', so
+    # All of our base models live in 'treemap.models', so
     # we can start with that namespace
     models_module = __import__('treemap.models')
 
@@ -209,3 +209,19 @@ def can_read_as_super_admin(request):
         return False
     else:
         return request.user.is_super_admin() and request.method == 'GET'
+
+
+# Utilities for ways in which a UserDefinedFieldDefinition is identified.
+# Please also see name related properties on that class.
+# Note that audits refer to collection udfds as 'udf:{udfd.pk}',
+# but to scalar udfds as 'udf:{udfd.name}', same as FieldPermissions
+def get_pk_from_collection_audit_name(name):
+    return int(name[4:])
+
+
+def get_name_from_canonical_name(canonical_name):
+    return canonical_name[4:]
+
+
+def make_udf_name_from_key(key):
+    return 'udf:{}'.format(key)

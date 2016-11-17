@@ -521,7 +521,7 @@ class InstanceUser(Auditable, models.Model):
 
     def __init__(self, *args, **kwargs):
         super(InstanceUser, self).__init__(*args, **kwargs)
-        self._do_not_track.add('last_seen')
+        self._do_not_track |= self.do_not_track
 
     class Meta:
         unique_together = ('instance', 'user',)
@@ -533,6 +533,10 @@ class InstanceUser(Auditable, models.Model):
     def save(self, *args, **kwargs):
         system_user = User.system_user()
         self.save_with_user(system_user, *args, **kwargs)
+
+    @classproperty
+    def do_not_track(cls):
+        return Auditable.do_not_track | {'last_seen'}
 
     def __unicode__(self):
         # protect against not being logged in
@@ -547,6 +551,9 @@ post_save.connect(invalidate_adjuncts, sender=InstanceUser)
 post_delete.connect(invalidate_adjuncts, sender=InstanceUser)
 
 
+# UDFModel overrides implementations of methods in
+# authorizable and auditable, thus needs to be inherited
+# before PendingAuditable.
 class MapFeature(Convertible, UDFModel, PendingAuditable):
     "Superclass for map feature subclasses like Plot, RainBarrel, etc."
     instance = models.ForeignKey(Instance)
@@ -595,11 +602,14 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         super(MapFeature, self).__init__(*args, **kwargs)
         if self.feature_type == '':
             self.feature_type = self.map_feature_type
-        self._do_not_track.add('feature_type')
-        self._do_not_track.add('mapfeature_ptr')
-        self._do_not_track.add('hide_at_zoom')
+        self._do_not_track |= self.do_not_track
 
         self.populate_previous_state()
+
+    @classproperty
+    def do_not_track(cls):
+        return PendingAuditable.do_not_track | UDFModel.do_not_track | {
+            'feature_type', 'mapfeature_ptr', 'hide_at_zoom'}
 
     @property
     def _is_generic(self):
@@ -872,7 +882,6 @@ class ValidationMixin(object):
 # TODO:
 # Exclusion Zones
 # Proximity validation
-# UDFModel overrides implementations of methods in
 # authorizable and auditable, thus needs to be inherited first
 class Plot(MapFeature, ValidationMixin):
     width = models.FloatField(null=True, blank=True,
@@ -981,7 +990,8 @@ class Plot(MapFeature, ValidationMixin):
 
 
 # UDFModel overrides implementations of methods in
-# authorizable and auditable, thus needs to be inherited first
+# authorizable and auditable, thus needs to be inherited
+# before PendingAuditable.
 class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
     """
     Represents a single tree, belonging to an instance
@@ -1169,13 +1179,24 @@ class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
     created_at = models.DateTimeField(auto_now_add=True)
     instance = models.ForeignKey(Instance)
 
+    users_can_delete_own_creations = True
     _terminology = {'singular': _('Photo'), 'plural': _('Photos')}
 
     def __init__(self, *args, **kwargs):
         super(MapFeaturePhoto, self).__init__(*args, **kwargs)
-        self._do_not_track.add('created_at')
-        self._do_not_track.add('mapfeaturephoto_ptr')
+        self._do_not_track |= self.do_not_track
         self.populate_previous_state()
+
+    @classproperty
+    def do_not_track(cls):
+        return PendingAuditable.do_not_track | {
+            'created_at', 'mapfeaturephoto_ptr'}
+
+    @classproperty
+    def always_writable(cls):
+        return PendingAuditable.always_writable | {
+            f.name for f in MapFeaturePhoto._meta.fields
+            if f.name not in MapFeaturePhoto.do_not_track}
 
     def _get_db_prep_for_image(self, field):
         """
@@ -1235,19 +1256,47 @@ class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
         thumb.delete(False)
         image.delete(False)
 
+    def user_can_create(self, user):
+        return self._user_can_do(user, 'add')
+
     def user_can_delete(self, user):
         """
-        A user can delete a photo if they are admin or if they created the
-        photo.
+        A user can delete a photo if their role has the right permission
+        or if they created the photo.
         """
+        return self._user_can_do(user, 'delete') or self.was_created_by(user)
 
-        if not user or not user.is_authenticated():
-            return False
-        return self.is_user_administrator(user) or self.was_created_by(user)
+    def _user_can_do(self, user, action):
+        role = user.get_role(self.get_instance())
+        Clz = self.map_feature.__class__
+        if callable(getattr(self.map_feature, 'cast_to_subtype', None)):
+            Clz = self.map_feature.cast_to_subtype().__class__
+        codename = Role.permission_codename(Clz, action, photo=True)
+        return role.has_permission(codename, Model=MapFeaturePhoto)
 
 
 class TreePhoto(MapFeaturePhoto):
     tree = models.ForeignKey(Tree)
+
+    @classproperty
+    def always_writable(cls):
+        return MapFeaturePhoto.always_writable | {'tree'}
+
+    # TreePhoto needs the version user_can_create and user_can_delete
+    # defined in Authorizable, which is a base class for PendingAuditable,
+    # which is one of the base classes for MapFeaturePhoto.
+    #
+    # MapFeaturePhoto, used as a leaf class, overrides these methods
+    # in an incompatible way.
+    #
+    # So skip over the MapFeaturePhoto version by calling
+    # MapFeaturePhoto's superclass.
+
+    def user_can_create(self, user):
+        return super(MapFeaturePhoto, self).user_can_create(user)
+
+    def user_can_delete(self, user):
+        return super(MapFeaturePhoto, self).user_can_delete(user)
 
     def save_with_user(self, *args, **kwargs):
         def is_attr_set(attr):

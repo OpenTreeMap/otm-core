@@ -7,7 +7,6 @@ import tempfile
 import json
 import os
 from shutil import rmtree
-from unittest.case import skip
 
 from django.template import Template, Context, TemplateSyntaxError
 from django.test.utils import override_settings
@@ -19,7 +18,8 @@ from treemap.templatetags.partial import PartialNode
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.models import Plot, Tree, InstanceUser
 from treemap.tests import (make_instance, make_observer_user,
-                           make_commander_user, make_user, make_request)
+                           make_commander_user, make_user, make_request,
+                           make_conjurer_user, make_tweaker_user)
 from treemap.tests.base import OTMTestCase
 from treemap.templatetags.util import display_name
 
@@ -178,15 +178,13 @@ class UserCanCreateTagTest(OTMTestCase):
             self._render_basic_template_with_vars(AnonymousUser, self.plot),
             '')
 
-    @skip("User can create tests are broken until next iteration"
-          " in the instance permissions cutover")
     def test_works_with_user_with_no_create_perms(self):
-        user = make_observer_user(self.instance)
+        user = make_tweaker_user(self.instance)
         self.assertEqual(
             self._render_basic_template_with_vars(user, self.plot), '')
 
     def test_works_with_user_with_create_perms(self):
-        user = make_commander_user(self.instance)
+        user = make_conjurer_user(self.instance)
         self.assertEqual(
             self._render_basic_template_with_vars(user, self.plot), 'true')
 

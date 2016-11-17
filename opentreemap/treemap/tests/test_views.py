@@ -23,14 +23,11 @@ from treemap import ecobackend
 from treemap.decorators import return_400_if_validation_errors
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.audit import (Audit, approve_or_reject_audit_and_apply,
-                           approve_or_reject_audits_and_apply,
-                           FieldPermission, add_default_permissions,
-                           AuthorizeException)
+                           add_default_permissions, AuthorizeException)
 from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, StaticPage, ITreeRegion)
 from treemap.routes import (root_settings_js, instance_settings_js,
                             instance_user_page)
-from treemap.lib.object_caches import field_permissions
 from treemap.lib.tree import add_tree_photo_helper
 from treemap.lib.user import get_user_instances
 from treemap.views.misc import (public_instances_geojson, species_list,
@@ -47,7 +44,7 @@ from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
                            set_write_permissions, MockSession,
-                           set_read_permissions,
+                           set_read_permissions, make_tweaker_user,
                            make_plain_user, LocalMediaTestCase, media_dir,
                            make_instance_user, set_invisible_permissions,
                            make_observer_role, make_administrator_user)
@@ -248,7 +245,7 @@ class DeleteOwnPhotoTest(TreePhotoTestCase):
         self.assertEqual(len(self.tree.photos()), 0)
 
     def test_cannot_delete_others_photo(self):
-        other = make_commander_user(self.instance, username="other")
+        other = make_tweaker_user(self.instance, username="other")
         self.assertRaises(AuthorizeException, self._delete_photo, other)
         self.assertEqual(len(self.tree.photos()), 1)
 
@@ -343,74 +340,6 @@ class ApproveOrRejectPhotoTest(TreePhotoTestCase):
 
         self.assertEqual(TreePhoto.objects.count(), 0)
 
-    @media_dir
-    def test_approve_photo_that_is_pending(self):
-        self.assertEqual(TreePhoto.objects.count(), 0)
-
-        FieldPermission.objects.all().update(
-            permission_level=FieldPermission.WRITE_WITH_AUDIT)
-
-        self.tree.add_photo(self.image, self.user)
-
-        FieldPermission.objects.all().update(
-            permission_level=FieldPermission.WRITE_DIRECTLY)
-
-        self.assertEqual(TreePhoto.objects.count(), 0)
-
-        # Get most recent tree photo id
-        tp_audit = Audit.objects.filter(
-            model='TreePhoto', field='id').order_by('-created')[0]
-
-        tp_pk = tp_audit.current_value
-
-        approve_or_reject_photos(
-            make_request({'ids': str(tp_pk)}, user=self.user),
-            self.instance, 'approve')
-
-        tp = TreePhoto.objects.get(pk=tp_pk)
-        for audit in tp.audits():
-            if audit.ref:
-                self.assertEqual(audit.ref.action, Audit.Type.PendingApprove)
-            else:
-                self.assertEqual(audit.action, Audit.Type.PendingApprove)
-
-        self.assertEqual(TreePhoto.objects.count(), 1)
-
-    @media_dir
-    def test_reject_photo_that_is_pending(self):
-        self.assertEqual(TreePhoto.objects.count(), 0)
-
-        FieldPermission.objects.all().update(
-            permission_level=FieldPermission.WRITE_WITH_AUDIT)
-
-        self.tree.add_photo(self.image, self.user)
-
-        FieldPermission.objects.all().update(
-            permission_level=FieldPermission.WRITE_DIRECTLY)
-
-        self.assertEqual(TreePhoto.objects.count(), 0)
-
-        # Get most recent tree photo id
-        tp_audit = Audit.objects.filter(
-            model='TreePhoto', field='id').order_by('-created')[0]
-
-        tp_pk = tp_audit.current_value
-
-        approve_or_reject_photos(
-            make_request({'ids': str(tp_pk)}, user=self.user),
-            self.instance, 'reject')
-
-        audit_list = Audit.objects.filter(
-            model='TreePhoto', field='id', model_id=tp_pk)
-
-        for audit in audit_list:
-            if audit.ref:
-                self.assertEqual(audit.ref.action, Audit.Type.PendingReject)
-            else:
-                self.assertEqual(audit.action, Audit.Type.PendingReject)
-
-        self.assertEqual(TreePhoto.objects.count(), 0)
-
 
 class PlotImageUpdateTest(LocalMediaTestCase):
     def setUp(self):
@@ -428,72 +357,6 @@ class PlotImageUpdateTest(LocalMediaTestCase):
 
         self.tree = Tree(instance=self.instance, plot=self.plot)
         self.tree.save_with_user(self.user)
-
-    def _make_audited_request(self):
-        # Update user to only have pending permission
-        perms = field_permissions(self.user, self.instance)
-
-        def update_perms(plevel):
-            for perm in perms:
-                perm.permission_level = plevel
-                perm.save()
-
-        update_perms(FieldPermission.WRITE_WITH_AUDIT)
-
-        # Delete any audits already in the system
-        Audit.objects.all().delete()
-
-        self.assertEqual(TreePhoto.objects.count(), 0)
-
-        tree_image = self.load_resource('tree1.gif')
-
-        photo = self._make_tree_photo_request(
-            tree_image, self.plot.pk, self.tree.pk)
-
-        # Restore permissions
-        update_perms(FieldPermission.WRITE_DIRECTLY)
-
-        return photo
-
-    @media_dir
-    def test_can_create_pending_image(self):
-        objects = self.tree.treephoto_set.all()
-        self.assertEqual(len(objects), 0)
-
-        self._make_audited_request()
-
-        objects = self.tree.treephoto_set.all()
-        self.assertEqual(len(objects), 0)
-
-        # Approve audits
-        approve_or_reject_audits_and_apply(
-            Audit.objects.all(), self.user, approved=True)
-
-        # Verify tree photo exists
-        objects = self.tree.treephoto_set.all()
-        self.assertEqual(len(objects), 1)
-
-        photo = objects[0]
-
-        self.assertTreePhotoExists(photo)
-
-    @media_dir
-    def test_can_reject_pending_image(self):
-        objects = self.tree.treephoto_set.all()
-        self.assertEqual(len(objects), 0)
-
-        self._make_audited_request()
-
-        objects = self.tree.treephoto_set.all()
-        self.assertEqual(len(objects), 0)
-
-        # Reject audits
-        approve_or_reject_audits_and_apply(
-            Audit.objects.all(), self.user, approved=False)
-
-        # Verify no tree photos were created
-        objects = self.tree.treephoto_set.all()
-        self.assertEqual(len(objects), 0)
 
     def _run_basic_test_with_image_file(self, image_file):
         tp = TreePhoto(tree=self.tree, instance=self.instance)
@@ -626,10 +489,6 @@ class PlotImageUpdateTest(LocalMediaTestCase):
                           invalid_thing, self.plot.pk, self.tree.pk)
 
         self.assertEqual(TreePhoto.objects.count(), 0)
-
-    @media_dir
-    def test_can_create_and_apply_pending_images(self):
-        pass
 
     @media_dir
     def test_non_authorized_users_cant_create_images(self):
