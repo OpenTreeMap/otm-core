@@ -16,11 +16,13 @@ from django.db import connection
 from django.db.models.query import QuerySet
 from django.core import mail
 
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import Point
 
 from treemap import ecobackend
 from treemap.decorators import return_400_if_validation_errors
+from treemap.json_field import set_attr_on_json_field
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.audit import (Audit, approve_or_reject_audit_and_apply,
                            add_default_permissions, AuthorizeException)
@@ -47,7 +49,7 @@ from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            set_read_permissions, make_tweaker_user,
                            make_plain_user, LocalMediaTestCase, media_dir,
                            make_instance_user, set_invisible_permissions,
-                           make_observer_role, make_administrator_user)
+                           make_observer_role)
 from treemap.tests.base import OTMTestCase
 from treemap.tests.test_udfs import make_collection_udf
 
@@ -230,12 +232,12 @@ class DeleteOwnPhotoTest(TreePhotoTestCase):
         self.assertEqual(len(self.tree.photos()), 0)
 
     def test_admin_can_delete_photo(self):
-        self._delete_photo(
-            make_administrator_user(self.instance))
+        self._delete_photo(self.user)
         self.assertEqual(len(self.tree.photos()), 0)
 
     def test_delete_own_photo_after_role_demotion(self):
-        admin = make_administrator_user(self.instance)
+        admin = make_user(self.instance, username='headhoncho',
+                          make_role=self.user.get_role)
         observer_role = make_observer_role(self.instance)
         iu = self.user.get_effective_instance_user(self.instance)
         iu.role = observer_role
@@ -998,6 +1000,133 @@ class PlotViewPhotoProgressTest(TreePhotoTestCase):
                         self.initial_progress)
         self.assertTrue(len(context['progress_messages']) <
                         self.initial_message_count)
+
+
+from treemap.util import validate_token_template
+from treemap.instance import PERMISSION_VIEW_EXTERNAL_LINK
+
+
+class PlotExternalLinkTest(OTMTestCase):
+
+    def move(self, pt, x, y):
+        return Point(pt.x + x, pt.y + y)
+
+    def _add_instance_permission(self, role):
+        content_type = ContentType.objects.get_for_model(Instance)
+        perm = Permission.objects.get(content_type=content_type,
+                                      codename=PERMISSION_VIEW_EXTERNAL_LINK)
+        role.instance_permissions.add(perm)
+
+    def setUp(self):
+        super(PlotExternalLinkTest, self).setUp()
+        self.p1 = Point(-7615441.0, 5953519.0)
+
+        self.instance = make_instance(is_public=True, point=self.p1)
+        set_attr_on_json_field(self.instance,
+                               'config.externalLink.text', 'some text')
+        self.instance.save()
+
+        self.creator = make_commander_user(self.instance, username='creator')
+        self.commander = make_commander_user(self.instance)
+
+        self.empty_plot = Plot(instance=self.instance,
+                               geom=self.move(self.p1, 0.5, 0))
+        self.empty_plot.save_with_user(self.creator)
+        self.planted_plot = Plot(instance=self.instance,
+                                 geom=self.move(self.p1, 0, 0.5))
+        self.planted_plot.save_with_user(self.creator)
+
+        self.tree = Tree(instance=self.instance, plot=self.planted_plot)
+        self.tree.save_with_user(self.creator)
+
+    def test_validate_token_template(self):
+        self.assertTrue(validate_token_template('no tokens'))
+        self.assertTrue(validate_token_template(
+            '#{tree.id} #{planting_site.id} #{planting_site.custom_id}' * 2))
+        self.assertFalse(validate_token_template(
+            '#{tree.id} #{}'))
+        self.assertFalse(validate_token_template(
+            '#{tree.id} #{ tree.id }'))
+        self.assertFalse(validate_token_template(
+            '#{tree.id} #{bioswale.id}'))
+
+    def test_tree_external_link_shows(self):
+        set_attr_on_json_field(self.instance,
+                               'config.externalLink.url',
+                               'something#{tree.id}/#hash')
+        self.instance.save()
+        self._add_instance_permission(self.commander.get_role(self.instance))
+
+        context = plot_detail(make_request(user=self.commander,
+                                           instance=self.instance),
+                              self.instance, self.planted_plot.pk)
+
+        self.assertEqual(context['external_link'],
+                         'something{}/#hash'.format(str(self.tree.pk)))
+
+    def test_plot_external_link_shows(self):
+        set_attr_on_json_field(self.instance,
+                               'config.externalLink.url',
+                               'something#{planting_site.id}/#hash')
+        self.instance.save()
+        self._add_instance_permission(self.commander.get_role(self.instance))
+
+        context = plot_detail(make_request(user=self.commander,
+                                           instance=self.instance),
+                              self.instance, self.empty_plot.pk)
+
+        self.assertEqual(context['external_link'],
+                         'something{}/#hash'.format(str(self.empty_plot.pk)))
+
+    def test_plot_external_link_custom_id_shows(self):
+        set_attr_on_json_field(self.instance,
+                               'config.externalLink.url',
+                               'something#{planting_site.custom_id}/#hash')
+        self.instance.save()
+        self._add_instance_permission(self.commander.get_role(self.instance))
+
+        self.empty_plot.owner_orig_id = 'AN_ID'
+        self.empty_plot.save_with_user(self.creator)
+
+        context = plot_detail(make_request(user=self.commander,
+                                           instance=self.instance),
+                              self.instance, self.empty_plot.pk)
+
+        self.assertEqual(context['external_link'],
+                         'something{}/#hash'.format(
+                             str(self.empty_plot.owner_orig_id)))
+
+    def test_no_tree_no_external_link(self):
+        set_attr_on_json_field(self.instance,
+                               'config.externalLink.url',
+                               'something#{tree.id}/more')
+        self.instance.save()
+        self._add_instance_permission(self.commander.get_role(self.instance))
+
+        context = plot_detail(make_request(user=self.commander,
+                                           instance=self.instance),
+                              self.instance, self.empty_plot.pk)
+
+        self.assertIsNone(context['external_link'])
+
+    def test_no_config_no_external_link(self):
+        context = plot_detail(make_request(user=self.commander,
+                                           instance=self.instance),
+                              self.instance, self.empty_plot.pk)
+
+        self.assertIsNone(context['external_link'])
+
+    def test_no_permission_no_external_link(self):
+        set_attr_on_json_field(self.instance,
+                               'config.externalLink.url',
+                               'something#{planting_site.id}/more')
+        self.instance.save()
+
+        context = plot_detail(make_request(user=self.commander,
+                                           instance=self.instance),
+                              self.instance, self.empty_plot.pk)
+
+        self.assertIsNone(context['external_link'])
 
 
 class RecentEditsViewTest(ViewTestCase):

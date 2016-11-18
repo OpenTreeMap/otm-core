@@ -32,7 +32,6 @@ from treemap.tests import (make_instance, make_user_with_default_role,
                            make_officer_user, make_observer_user,
                            make_apprentice_user, set_write_permissions,
                            make_admin_user, make_tweaker_user,
-                           make_administrator_user,
                            make_conjurer_user, make_commander_role)
 from treemap.tests.base import OTMTestCase
 
@@ -1039,7 +1038,6 @@ class UserCanDeleteTestCase(OTMTestCase):
 
         self.creator_user = make_officer_user(instance)
         self.admin_user = make_admin_user(instance)
-        self.administrator_user = make_administrator_user(instance)
         self.other_user = make_observer_user(instance, username='other')
         self.tweaker_user = make_tweaker_user(instance)
         self.conjurer_user = make_conjurer_user(instance)
@@ -1089,16 +1087,6 @@ class UserCanDeleteTestCase(OTMTestCase):
         self.assertEqual(role.instance_permissions.count(), 0)
 
         self.assert_can_delete(self.admin_user, self.tree, False)
-
-    def test_administrator_cannot_delete_by_role_name(self):
-        instance = self.tree.get_instance()
-        role = self.administrator_user.get_role(instance)
-        role.instance_permissions.clear()
-
-        self.assertEqual(role.name, Role.ADMINISTRATOR)
-        self.assertEqual(role.instance_permissions.count(), 0)
-
-        self.assert_can_delete(self.administrator_user, self.tree, False)
 
 
 class FieldPermMgmtTest(OTMTestCase):

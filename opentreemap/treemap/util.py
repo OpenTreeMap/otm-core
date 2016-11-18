@@ -229,17 +229,50 @@ def make_udf_name_from_key(key):
 
 
 # Utilities for external links
-_external_url_re = re.compile(r'#{([_.a-z]+)}', re.IGNORECASE)
+def _build_choice_pattern(choices):
+    '''
+    Return a string describing a regex oring choices together
+    '''
+    return '|'.join([choice.replace('.', r'\.') for choice in choices])
+
+
 _valid_url_tokens = ['tree.id', 'planting_site.id', 'planting_site.custom_id']
 
 
-def get_tokens_from_template(token_template):
-    return _external_url_re.findall(token_template)
+def get_external_link_choice_pattern():
+    return '|'.join([choice.replace('.', r'\.')
+                     for choice in _valid_url_tokens])
+
+_validation_pattern = r'''\#(?:   # starts with a hash
+    (?P<valid>{{(?:{})}}) |       # valid group is braced, filled by format
+    (?P<invalid>{{.*?}})          # anything else braced is invalid
+    )
+    '''.format(get_external_link_choice_pattern())
+
+_validator_re = re.compile(_validation_pattern, re.VERBOSE | re.IGNORECASE)
+
+
+def get_valid_url_tokens():
+    return tuple(_valid_url_tokens)
+
+
+def _re_group_count(compiled, text):
+    '''
+    Return a dict with the counts of valid and invalid strings in text
+    '''
+    totals = {'valid': 0, 'invalid': 0}
+
+    return reduce(
+        lambda ac, groupdict: {
+            k: v if groupdict[k] is None else v + 1
+            for k, v in ac.iteritems()},
+        [m.groupdict() for m in compiled.finditer(text)],
+        totals)
 
 
 def validate_token_template(token_template):
-    tokens = get_tokens_from_template(token_template)
-    return not tokens or any(token in _valid_url_tokens for token in tokens)
+    check = _re_group_count(_validator_re, token_template)
+    return 0 == check['invalid']
 
 
 def get_url_tokens_for_display(in_bold=False):

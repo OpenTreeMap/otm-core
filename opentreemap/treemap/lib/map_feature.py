@@ -24,7 +24,8 @@ from treemap.models import Tree, MapFeature, User, Favorite
 from treemap.lib import format_benefits
 from treemap.lib.photo import context_dict_for_photo
 from treemap.units import get_display_value, get_units, get_unit_abbreviation
-from treemap.util import (leaf_models_of_class, to_object_name)
+from treemap.util import (leaf_models_of_class, to_object_name,
+                          get_external_link_choice_pattern)
 
 from stormwater.models import PolygonalMapFeature
 
@@ -234,12 +235,12 @@ def context_dict_for_plot(request, plot, tree_id=None, **kwargs):
             delimiter = '#'
             pattern = '''
             \#(?:
-                (?P<escaped>\#) |          # escape with repeated delimiter
-                (?P<named>[_.a-z]+) |      # "#foo" substitutes foo keyword
-                {(?P<braced>[_.a-z]+)} |   # "#{foo}" substitutes foo keyword
-                (?P<invalid>)              # not sure what would be invalid
+                (?P<escaped>\#)         |  # escape with repeated delimiter
+                (?P<named>(?:{0}))      |  # "#foo" substitutes foo keyword
+                {{(?P<braced>(?:{0}))}} |  # "#{{foo}}" substitutes foo keyword
+                (?P<invalid>{{}})          # requires a name
             )
-            '''
+            '''.format(get_external_link_choice_pattern())
 
         return UrlTemplate(external_url).safe_substitute(substitutes)
 
