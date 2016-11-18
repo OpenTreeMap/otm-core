@@ -252,10 +252,6 @@ _validation_pattern = r'''\#(?:   # starts with a hash
 _validator_re = re.compile(_validation_pattern, re.VERBOSE | re.IGNORECASE)
 
 
-def get_valid_url_tokens():
-    return tuple(_valid_url_tokens)
-
-
 def _re_group_count(compiled, text):
     '''
     Return a dict with the counts of valid and invalid strings in text
