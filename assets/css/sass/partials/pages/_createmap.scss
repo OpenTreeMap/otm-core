@@ -81,7 +81,7 @@
     .create-map-search {
         width: 300px;
         position: absolute;
-        z-index: 99;
+        z-index: 900;
         top: 15px;
         left: 55px;
         box-shadow: 0 1px 7px rgba(0,0,0,0.35);
@@ -159,7 +159,7 @@
     width: 98%;
     height: 715px;
     position: absolute;
-    z-index: 99;
+    z-index: 900;
     top: 110px;
 
     h3 {

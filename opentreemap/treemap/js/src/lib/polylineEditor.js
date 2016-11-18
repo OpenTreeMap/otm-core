@@ -5,6 +5,8 @@ var L = require('leaflet'),
     U = require('treemap/lib/utility.js'),
     config = require('treemap/lib/config.js');
 
+require('leaflet-draw');
+
 function makePolygonFromPoint(p1) {
     var p2 = U.offsetLatLngByMeters(p1, -20, -20);
 
@@ -14,7 +16,6 @@ function makePolygonFromPoint(p1) {
         [p2.lng, p2.lat],
         [p1.lng, p2.lat]
     ];
-
 }
 
 function flipXY(coordinates) {
@@ -40,23 +41,7 @@ module.exports = function (options) {
             } else {
                 points = makePolygonFromPoint(options.plotMarker.getLatLng());
             }
-
-            var pointIcon = L.icon({
-                iconUrl: config.staticUrl + 'img/polygon-point.png',
-                iconSize: [11, 11],
-                iconAnchor: [6, 6]
-            }),
-                newPointIcon = L.icon({
-                    iconUrl: config.staticUrl + 'img/polygon-point-new.png',
-                    iconSize: [11, 11],
-                    iconAnchor: [6, 6]
-                });
-
-            areaPolygon = L.Polyline.PolylineEditor(flipXY(points), {
-                pointIcon: pointIcon,
-                newPointIcon: newPointIcon,
-                pointZIndexOffset: 1000
-            });
+            areaPolygon = new L.Polygon(flipXY(points));
             areaPolygon.addTo(this.mapManager.map);
         },
 
@@ -64,9 +49,8 @@ module.exports = function (options) {
             if (!areaPolygon) {
                 return null;
             }
-            var points = _.map(areaPolygon.getPoints(), function (point) {
-                var latLng = point.getLatLng();
-                return [latLng.lng, latLng.lat];
+            var points = _.map(areaPolygon.getLatLngs()[0], function (point) {
+                return [point.lng, point.lat];
             });
             points.push(points[0]);
             return points;
@@ -98,12 +82,12 @@ module.exports = function (options) {
             if (!areaPolygon) {
                 this.initAreaPolygon(options);
             }
-            this.mapManager.map.setEditablePolylinesEnabled(true);
+            areaPolygon.editing.enable();
         },
 
         disableAreaPolygon: function() {
             if (areaPolygon) {
-                this.mapManager.map.setEditablePolylinesEnabled(false);
+                areaPolygon.editing.disable();
             }
         }
     };

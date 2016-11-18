@@ -406,7 +406,7 @@ IMPORT_COMMIT_RATE_LIMIT = "1/m"
 
 # We have... issues on IE9 right now
 # Disable it on production, but enable it in Debug mode
-IE_VERSION_MINIMUM = 9 if DEBUG else 10
+IE_VERSION_MINIMUM = 9 if DEBUG else 11
 
 IE_VERSION_UNSUPPORTED_REDIRECT_PATH = '/unsupported'
 

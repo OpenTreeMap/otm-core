@@ -12,15 +12,36 @@ var $ = require("jquery"),
     // Min zoom level for detail layers
     MIN_ZOOM_OPTION = exports.MIN_ZOOM_OPTION = {minZoom: 15},
 
-    BASE_LAYER_OPTION = exports.BASE_LAYER_OPTION = {zIndex: 0},
+    // Make a separate pane for the base map and for the searched boundary polygon,
+    // so we can show the polygon between the base map and the other tiles.
+    // (see CSS for z-index of .leaflet-base-pane and .leaflet-searched-boundary-pane)
+    baseMapPaneName = 'base-map',
+    searchedBoundaryPaneName = 'searched-boundary',
+    BASE_PANE_OPTION = exports.BASE_PANE_OPTION = {pane: baseMapPaneName},
+    SEARCHED_BOUNDARY_PANE_OPTION = exports.SEARCHED_BOUNDARY_PANE_OPTION = {pane: searchedBoundaryPaneName},
+
+    // Control stacking of tile layers within the Leaflet tile pane
+
+    // Outlines of named boundaries (treemap.Boundary model)
     BOUNDARY_LAYER_OPTION = {zIndex: 1},
+
+    // Custom-configured layers for individual treemaps (e.g. canopy layer)
     CUSTOM_LAYER_OPTION = {zIndex: 2},
+
+    // Canopy percentages chloropleth layer (for e.g. patreemap)
     CANOPY_BOUNDARY_LAYER_OPTION = {zIndex: 3, opacity: 0.75},
+
+    // Tree dots (all and searched) and their UTF grids
     FEATURE_LAYER_OPTION = {zIndex: 4};
 
 ////////////////////////////////////////////////
 // public functions
 ////////////////////////////////////////////////
+
+exports.initPanes = function (map) {
+    map.createPane(baseMapPaneName);
+    map.createPane(searchedBoundaryPaneName);
+};
 
 exports.createBoundariesTileLayer = function () {
     // we will never update boundaries based on a revision, so
@@ -70,7 +91,7 @@ exports.createPlotUTFLayer = function () {
         options.useJsonP = false;
     }
 
-    layer = new L.UtfGrid(url, options);
+    layer = new L.utfGrid(url, options);
 
     layer.setHashes = function (hashes) {
         layer.setUrl(revToUrl(hashes.geoRevHash));
@@ -95,7 +116,6 @@ exports.createCustomLayer = function(layerInfo) {
         var options = _.extend({}, CUSTOM_LAYER_OPTION);
         options.maxZoom = layerInfo.maxZoom || MAX_ZOOM_OPTION.maxZoom;
         if (layerInfo.maxNativeZoom) {
-            // NOTE: this won't work until we upgrade to Leaflet > 0.7
             options.maxNativeZoom = layerInfo.maxNativeZoom;
         }
         if (layerInfo.opacity) {

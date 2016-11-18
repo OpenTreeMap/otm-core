@@ -35,10 +35,8 @@ function getAliases() {
 }
 
 var shimmed = {
-    leafletgoogle: d('assets/js/shim/leaflet.google.js'),
     leafletbing: d('assets/js/shim/leaflet.bing.js'),
     utfgrid: d('assets/js/shim/leaflet.utfgrid.js'),
-    leafletEditablePolyline: d('assets/js/shim/leaflet-editable-polyline.js'),
     typeahead: d('assets/js/shim/typeahead.jquery.js'),
     bootstrap: d('assets/js/shim/bootstrap.js'),
     jqueryFileUpload: d('assets/js/shim/jquery.fileupload.js'),
