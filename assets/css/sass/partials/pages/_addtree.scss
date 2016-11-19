@@ -117,12 +117,12 @@
                 select {
                     font-size: 1.2rem;
                 }
-                span:not(.input-group-addon) {
+                span:not(.input-group-addon):not(.inline) {
                     display: block;
                 }
-                .twitter-typeahead{
+                .twitter-typeahead {
                         display:block !important;
-                    }
+                }
 
                 .form-search {
                     margin: 0;
