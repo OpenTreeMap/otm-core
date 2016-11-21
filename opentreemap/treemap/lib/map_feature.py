@@ -22,10 +22,10 @@ from treemap.lib import execute_sql
 from treemap.models import Tree, MapFeature, User, Favorite
 
 from treemap.lib import format_benefits
+from treemap.lib.external_link import get_external_link_choice_pattern
 from treemap.lib.photo import context_dict_for_photo
 from treemap.units import get_display_value, get_units, get_unit_abbreviation
-from treemap.util import (leaf_models_of_class, to_object_name,
-                          get_external_link_choice_pattern)
+from treemap.util import leaf_models_of_class, to_object_name
 
 from stormwater.models import PolygonalMapFeature
 
