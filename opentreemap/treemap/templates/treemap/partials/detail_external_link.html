@@ -1,0 +1,9 @@
+{% load instance_config %}
+
+{% if external_link %}
+    <a href="{{ external_link }}"
+       title="{{ last_instance|instance_config:'externalLink.text' }}">
+        {{ last_instance|instance_config:'externalLink.text' }}
+    </a>
+    <hr>
+{% endif %}
