@@ -519,3 +519,100 @@ FROM (
 ) b
 WHERE b.id = treemap_mapfeature.id;
 """)
+
+
+def set_map_feature_updated_by():
+    models = [Model.map_feature_type for Model in
+              leaf_models_of_class(MapFeature)]
+    if not models:
+        raise Exception("Could not find any map_feature subclasses")
+
+    models_in = "('%s')" % "','".join(models)
+
+    # For a baseline, pull the most recent change to the MapFeature itself.
+    # This depends on the fact that all the MapFeature subclasses share the
+    # same id pool and ids do not overlap.
+    # NOTE: This MUST be run first. Additional update queries compare
+    # dates against the updated_at values set by this statement.
+    execute_sql("""
+UPDATE treemap_mapfeature
+SET updated_by_id = m.updated_by
+FROM (
+  SELECT DISTINCT ON (a.model_id)
+    a.id AS audit_id, a.model_id, a.user_id AS updated_by,
+    MAX(a.updated) AS updated_at
+  FROM treemap_audit a
+  WHERE a.model IN %s
+  GROUP BY a.model_id, a.id
+  ORDER BY a.model_id, updated_at DESC
+) m
+    WHERE m.model_id = treemap_mapfeature.id;""" % models_in)
+
+    # If the tree associated with a MapFeature has been updated more
+    # recently than the MapFeature, override the MapFeature's updated_by_id
+    # with the user_id of the tree's most recent audit.
+    execute_sql("""
+UPDATE treemap_mapfeature
+SET updated_by_id = mfja.tree_by_user
+FROM (
+  -- MapFeature has the same id as the Plot referenced by the Tree
+  -- from the immediate subquery,
+  -- with update information from innermost subquery
+  -- but only if the Tree update is more recent than the MapFeature update
+  SELECT mf.id AS plot_id, tja.updated_by AS tree_by_user
+  FROM treemap_mapfeature mf
+  JOIN (
+    -- Tree's plot with update information from innermost subquery
+    SELECT t.plot_id, ta.updated_at, ta.updated_by
+    FROM treemap_tree t
+    JOIN (
+      -- Most recent audit records of Trees
+      SELECT DISTINCT ON (a.model_id)
+        a.model_id, a.user_id AS updated_by, MAX(a.updated) AS updated_at
+      FROM treemap_audit a
+      WHERE a.model = 'Tree'
+      GROUP BY a.model_id, a.id
+      ORDER BY a.model_id, updated_at DESC
+    ) ta  -- ta for tree audit
+    ON ta.model_id = t.id
+  ) tja  -- tja for tree joined with audit
+  ON mf.id = tja.plot_id
+  WHERE mf.updated_at < tja.updated_at
+) mfja  -- mfja for mapfeature joined with audit
+WHERE mfja.plot_id = treemap_mapfeature.id;""")
+
+    # If a photo associated with a Tree or MapFeature has been updated more
+    # recently than the MapFeature, override the MapFeeature's updated_by_id
+    # with the user_id of the photo's most recent audit.
+    # TreePhoto is a subclass of MapFeaturePhoto
+    # so they share the same id range.
+    execute_sql("""
+UPDATE treemap_mapfeature
+SET updated_by_id = mfja.photo_by_user
+FROM (
+  -- MapFeature referenced by the photo from the immediate subquery,
+  -- with update information from innermost subquery
+  -- but only if the photo update is more recent than the MapFeature update
+  SELECT mf.id AS map_feature_id, phja.updated_by AS photo_by_user
+  FROM treemap_mapfeature mf
+  JOIN (
+    -- Photo's MapFeature with update information from innermost subquery
+    SELECT mfph.map_feature_id, pha.updated_at, pha.updated_by
+    FROM treemap_mapfeaturephoto mfph
+    JOIN (
+      -- Most recent audit records of Photos,
+      -- where the model id is the same for a TreePhoto and its
+      -- MapFeaturePhoto superclass
+      SELECT DISTINCT ON (a.model_id)
+        a.model_id, a.user_id AS updated_by, MAX(a.updated) AS updated_at
+      FROM treemap_audit a
+      WHERE a.model in ('TreePhoto', 'MapFeaturePhoto')
+      GROUP BY a.model_id, a.id
+      ORDER BY a.model_id, updated_at DESC
+    ) pha  -- pha for photo audit
+    ON pha.model_id = mfph.id
+  ) phja  -- phja for photo joined with audit
+  ON mf.id = phja.map_feature_id
+  WHERE mf.updated_at < phja.updated_at
+) mfja  -- mfja for mapfeature joined with audit
+WHERE mfja.map_feature_id = treemap_mapfeature.id;""")
