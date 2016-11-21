@@ -30,6 +30,9 @@ from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, StaticPage, ITreeRegion)
 from treemap.routes import (root_settings_js, instance_settings_js,
                             instance_user_page)
+
+from treemap.lib.external_link import validate_token_template
+from treemap.instance import PERMISSION_VIEW_EXTERNAL_LINK
 from treemap.lib.tree import add_tree_photo_helper
 from treemap.lib.user import get_user_instances
 from treemap.views.misc import (public_instances_geojson, species_list,
@@ -1000,10 +1003,6 @@ class PlotViewPhotoProgressTest(TreePhotoTestCase):
                         self.initial_progress)
         self.assertTrue(len(context['progress_messages']) <
                         self.initial_message_count)
-
-
-from treemap.util import validate_token_template
-from treemap.instance import PERMISSION_VIEW_EXTERNAL_LINK
 
 
 class PlotExternalLinkTest(OTMTestCase):
