@@ -114,18 +114,10 @@ $light-to-dark-green: #ffffff 10%,
     30% { opacity: 0.5; }
     60% { opacity: 1; }
 }
-@-webkit-keyframes pulse {
-    0%  { opacity: 1; }
-    30% { opacity: 0.5; }
-    60% { opacity: 1; }
-}
 
 .leaflet-marker-icon {
 
     &.animated {
-        -webkit-animation: pulse 2s infinite;
-        -moz-animation: pulse 2s infinite;
-        -o-animation: pulse 2s infinite;
         animation: pulse 2s infinite;
     }
 }
@@ -261,7 +253,6 @@ $light-to-dark-green: #ffffff 10%,
        border: 1px solid #ddd;
 
        &.light-to-dark-green {
-           background: -webkit-linear-gradient(90deg, $light-to-dark-green);
            background: linear-gradient(90deg, $light-to-dark-green);
        }
    }

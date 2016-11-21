@@ -277,15 +277,6 @@ body {
         &::placeholder {
             text-overflow: ellipsis !important;
         }
-        &::-moz-placeholder {
-            text-overflow: ellipsis !important;
-        }
-        &:-ms-input-placeholder {
-            text-overflow: ellipsis !important;
-        }
-        &::-webkit-input-placeholder {
-            text-overflow: ellipsis !important;
-        }
     }
     .typeahead-toggle {
         padding: 9px 4px 7px;

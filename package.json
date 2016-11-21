@@ -19,6 +19,7 @@
     "sanitize-filename": "~1.4.2"
   },
   "devDependencies": {
+    "autoprefixer": "^6.5.3",
     "chai": "~1.8.1",
     "css-loader": "^0.23.1",
     "exports-loader": "^0.6.3",
@@ -29,6 +30,7 @@
     "jshint": "^2.9.2",
     "mocha": "~1.14.0",
     "node-sass": "^3.5.3",
+    "postcss-loader": "^1.1.1",
     "sass-loader": "^4.0.0",
     "style-loader": "^0.13.1",
     "testem": "^0.9.2",
