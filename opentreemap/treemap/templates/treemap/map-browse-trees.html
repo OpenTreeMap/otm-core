@@ -2,24 +2,26 @@
 {% load instance_config %}
 
 <div class="panel" id="map-info">
-  <div class="panel-group">
+  <div class="panel-group" id="feature-panel">
     <div class="panel-heading">
       <a class="panel-toggle collapsed" data-toggle="collapse" data-parent="#map-info" href="#tree-detail">{% trans "Details" %} <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
     </div>
     <div id="tree-detail" class="panel-body collapse">
-      <div class="panel-body-buttons" id="map-plot-details-button" style="display: none;">
-        <a class="btn" data-class="display" id="full-details-button">{% trans "More Details" %}</a>
-        {% if not embed %}
-        <button class="btn"
-                data-class="display"
-                id="quick-edit-button"
-                data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
-                data-href="{{ request.get_full_path }}"
-                data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
-                disabled="disabled">{% trans "Quick Edit" %}</button>
-                <button class="btn btn-success" data-class="edit" id="save-details-button" style="display:none">Save</button>
-                <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</button>
-      {% endif %}
+      <div class="panel-body-buttons-wrapper">
+        <div class="panel-body-buttons" id="map-plot-details-button" style="display: none;">
+          <a class="btn" data-class="display" id="full-details-button">{% trans "More Details" %}</a>
+          {% if not embed %}
+          <button class="btn"
+                  data-class="display"
+                  id="quick-edit-button"
+                  data-always-enable="{{ last_effective_instance_user|plot_is_writable }}"
+                  data-href="{{ request.get_full_path }}"
+                  data-disabled-title="{% trans "Editing of the tree details is not available to all users" %}"
+                  disabled="disabled">{% trans "Quick Edit" %}</button>
+                  <button class="btn btn-success" data-class="edit" id="save-details-button" style="display:none">Save</button>
+                  <button class="btn" data-class="edit" id="cancel-edit-details-button" style="display:none">Cancel</button>
+          {% endif %}
+        </div>
       </div>
       <div class="panel-inner" id="map-feature-accordion">
       </div>
@@ -38,24 +40,24 @@
                 style="display:none"
                 id="cancel-edit-plot-location"
                 disabled="disabled">Cancel Tree Move</button>
+        <button class="btn btn-block"
+                style="display:none"
+                id="done-edit-plot-location">Done</button>
       </div>
-      <div class="panel-inner benefit-values hidden">
-        {% comment %}
-        TODO: on tree select, make ajax call to ecobenefits with
-         just one tree. render, calling format_benefits with
-         summary = True, and stick the results from
-         search_tree_benefits in here.
-        {% endcomment %}
-      </div>
+      <div class="panel-inner benefit-values hidden"></div>
     </div>
   </div>
   {% if request.instance_supports_ecobenefits %}
-  <div class="panel-group">
+  <div class="panel-group" id="eco-panel">
     <div class="panel-heading">
       <a class="panel-toggle" data-toggle="collapse" data-parent="#map-info" href="#yearlyEco">{% trans "Eco Benefits" %} <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
     </div>
     <div id="yearlyEco" class="panel-body collapse in">
-      <div class="panel-inner benefit-values" id="benefit-values"></div>
+      <div class="panel-inner benefit-values" id="benefit-values">
+          <div class="benefit-value-row benefit-loading">
+              <h3 class="benefit-label">{% trans "Loading Ecobenefits" %}</h3>
+          </div>
+      </div>
     </div>
   </div>
   {% endif %}

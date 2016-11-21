@@ -9,6 +9,8 @@
 
     @media #{$screen-xs} {
         border-top: none;
+        position: relative;
+
         > .advanced-search > .dropdown {
             position: absolute;
             bottom: 0;

@@ -1,17 +1,34 @@
 {% load i18n %}
-<div class="add-step">
-    <div class="add-step-header">{% trans "Set the" %} {{ feature_name }}'s {% trans "location" %}</div>
+<div class="add-step with-map">
+    <div class="add-step-header">
+        {% trans "Set the" %} {{ feature_name }}'s {% trans "location" %}
+        <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
+    </div>
     <div class="add-step-content">
         {# Making onsubmit return false prevents the form from being submitted. We want to run JS code instead #}
         <form class="form-search form-inline" onsubmit="return false;">
             <input type="text" class="search-query form-control" placeholder="{% trans 'Address, City, State' %}">
-            <button class="btn btn-primary geocode">{% trans "Search" %}</button>
+            <button class="btn geocode">{% trans "Search" %}</button>
         </form>
         <a class="geolocate"><i class="icon-direction"></i> {% trans "Use Current Location" %}</a>
-        <div class="alert alert-info place-marker-message">{% trans 'Choose a point on the map, enter an address including city, or select "Use Current Location."' %}</div>
-        <div class="alert alert-danger text-danger geocode-error" style="display: none;">{% trans "Unable to locate this address. You may need to include a city and state." %}</div>
-        <div class="alert alert-danger text-danger geolocate-error" style="display: none;">{% trans "Unable to determine current location" %}</div>
-        <div class="alert alert-info move-marker-message" style="display: none;">{% trans "Please move marker to exact location of the" %} {{ feature_name }}</div>
+        <div class="alert alert-info place-marker-message">
+            <span class="visible-xs-inline">
+                {% trans 'Tap on the map, enter an address, or select "Use Current Location."' %}
+            </span>
+            <span class="hidden-xs">
+                {% trans 'Choose a point on the map, enter an address with city, or select "Use Current Location."' %}
+            </span>
+        </div>
+        <div class="alert alert-danger text-danger geocode-error" style="display: none;">
+            <span class="visible-xs-inline">{% trans "Unable to locate this address." %}</span>
+            <span class="hidden-xs">{% trans "Unable to locate this address. You may need to include a city and state." %}</span>
+        </div>
+        <div class="alert alert-danger text-danger geolocate-error" style="display: none;">
+            {% trans "Unable to determine current location" %}
+        </div>
+        <div class="alert alert-info move-marker-message hidden-xs" style="display: none;">
+            {% trans "Please move marker to exact location of the" %} {{ feature_name }}
+        </div>
         <div class="alert alert-danger" data-class="error" data-field="mapFeature.geom"></div>
     </div>
     {% include 'treemap/partials/step_controls.html' %}

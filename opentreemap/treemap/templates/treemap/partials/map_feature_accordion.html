@@ -3,36 +3,44 @@
 {% load auth_extras %}
 {% load form_extras %}
 
+<div class="visible-xs-block feature-info">
+    <h4>{{ title }}</h4>
+    {% if feature.address_full %}
+        <div>
+            <strong>{% trans "Nearby Address:" %}</strong>
+        </div>
+        <span class="feature-address">{{ feature.address_full }}</span>
+    {% endif %}
+</div>
+
 <form id="details-form" data-location-x="{{ plot.geom.x|unlocalize }}" data-location-y="{{ plot.geom.y|unlocalize }}"
       data-map-feature-type="{% if feature.is_plot %}plot{% else %}resource{% endif %}">
 
     <div class="alert alert-danger text-danger" data-class="error" data-field="mapFeature.geom"></div>
 
     {% if feature.is_plot %}
-    {% if tree %}
-    {# The "edit-tree-species" label is used as an id prefix in "species_div.html" #}
-    {% field "edit-tree-species" from "tree.species" for request.user withtemplate "treemap/field/species_div.html" %}
+        {% if tree %}
+            {# The "edit-tree-species" label is used as an id prefix in "species_div.html" #}
+            {% field "edit-tree-species" from "tree.species" for request.user withtemplate "treemap/field/species_div.html" %}
 
-    {% trans "Trunk Diameter" as diameter %}
-    {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field/diameter_div.html" %}
-    <hr>
-    {% trans "Tree Height" as height %}
-    {% field height from "tree.height" for request.user withtemplate "treemap/field/div.html" %}
-    {% endif %}
+            {% trans "Trunk Diameter" as diameter %}
+            {% field diameter from "tree.diameter" for request.user withtemplate "treemap/field/diameter_div.html" %}
+            <hr>
+            {% trans "Tree Height" as height %}
+            {% field height from "tree.height" for request.user withtemplate "treemap/field/div.html" %}
+        {% endif %}
 
-    <input type="hidden" name="plot.address_street" value="{{ plot.address_street}}">
-    <input type="hidden" name="plot.address_city" value="{{ plot.address_city}}">
-    <input type="hidden" name="plot.address_zip" value="{{ plot.address_zip}}">
-
+        <input type="hidden" name="plot.address_street" value="{{ plot.address_street}}">
+        <input type="hidden" name="plot.address_city" value="{{ plot.address_city}}">
+        <input type="hidden" name="plot.address_zip" value="{{ plot.address_zip}}">
     {% else %}
-    <label>{{ term.Resource.singular }}</label>
-    <div class="field-view">{{ title }}</div>
+        <label>{{ term.Resource.singular }}</label>
+        <div class="field-view">{{ title }}</div>
 
-    {% if area %}
-    <label>{% trans "Area" %}</label>
-    <div class="field-view">{{ area }}</div>
-    {% endif %}
-
+        {% if area %}
+            <label>{% trans "Area" %}</label>
+            <div class="field-view">{{ area }}</div>
+        {% endif %}
     {% endif %}
 
     {% include "treemap/partials/eco_benefits.html" with hidecounts=True %}

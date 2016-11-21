@@ -152,6 +152,15 @@ $light-to-dark-green: #ffffff 10%,
     }
 }
 
+@media #{$screen-xs} {
+    .leaflet-popup-pane {
+        display: none;
+    }
+    .leaflet-control-zoom {
+        display: none;
+    }
+}
+
 // fix typeaheads in input-groups
 .input-group {
     .twitter-typeahead {

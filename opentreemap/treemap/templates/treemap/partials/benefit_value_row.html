@@ -2,7 +2,7 @@
 {% load l10n %}
 
 {% if benefit.value or benefit.currency >= 0 %}
-<div class="benefit-value-row">
+<div class="benefit-value-row {% if total %}benefit-total{% endif %}">
   {% if icon %}
   <div class="benefit-icon"><i class="icon-{{ icon }}"></i></div>
   {% else %}
