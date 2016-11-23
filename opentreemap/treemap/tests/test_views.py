@@ -42,7 +42,7 @@ from treemap.views.map_feature import (update_map_feature, delete_map_feature,
                                        rotate_map_feature_photo, plot_detail,
                                        delete_photo)
 from treemap.views.user import (user_audits, upload_user_photo, update_user,
-                                forgot_username, user)
+                                forgot_username, user, users)
 from treemap.views.photo import approve_or_reject_photos
 from treemap.views.tree import delete_tree
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
@@ -1955,3 +1955,45 @@ class InstanceListTest(OTMTestCase):
         other_instance.save()
 
         self.assertEqual(2, len(public_instances_geojson(make_request())))
+
+
+class UserAutocompleteTest(OTMTestCase):
+    def setUp(self):
+        self.i1 = make_instance()
+        self.i2 = make_instance()
+
+        self.mike = make_user(instance=self.i1, username='mike')
+        self.maria = make_user(instance=self.i1, username='Maria')
+        self.matt = make_user(instance=self.i2, username='MATT')
+
+    def assert_users_in_list(self, users_list, *users):
+        self.assertEqual(len(users_list), len(users))
+
+        for i in range(0, len(users)):
+            user_dict = users_list[i]
+            user = users[i]
+            self.assertIn('id', user_dict)
+            self.assertIn('username', user_dict)
+            self.assertEqual(user.pk, user_dict['id'])
+            self.assertEqual(user.username, user_dict['username'])
+
+    def test_full_results(self):
+        users_list = users(make_request(), self.i2)
+        self.assert_users_in_list(users_list, self.matt)
+
+    def test_filtering(self):
+        users_list = users(make_request(), self.i1)
+        self.assert_users_in_list(users_list, self.maria, self.mike)
+
+        users_list = users(make_request({'q': 'M'}), self.i1)
+        self.assert_users_in_list(users_list, self.maria, self.mike)
+
+        users_list = users(make_request({'q': 'Mi'}), self.i1)
+        self.assert_users_in_list(users_list, self.mike)
+
+    def test_max(self):
+        users_list = users(make_request(), self.i1)
+        self.assert_users_in_list(users_list, self.maria, self.mike)
+
+        users_list = users(make_request({'max_items': '1'}), self.i1)
+        self.assert_users_in_list(users_list, self.maria)

@@ -18,7 +18,7 @@ from opentreemap.util import json_from_request, dotted_split
 from treemap.decorators import get_instance_or_404
 from treemap.images import save_image_from_request
 from treemap.util import package_field_errors
-from treemap.models import User, Favorite, MapFeaturePhoto
+from treemap.models import User, Favorite, MapFeaturePhoto, InstanceUser
 from treemap.util import get_filterable_audit_models
 from treemap.lib.user import get_audits, get_user_instances, get_audits_params
 
@@ -208,3 +208,34 @@ def user(request, username):
             'public_fields': public_fields,
             'private_fields': private_fields,
             'favorites': favorites}
+
+
+def users(request, instance):
+    max_items = request.GET.get('max_items', None)
+    query = request.GET.get('q', None)
+
+    users_qs = InstanceUser.objects \
+                           .filter(instance=instance)\
+                           .order_by('user__username')\
+                           .values('user_id', 'user__username',
+                                   'user__first_name', 'user__last_name',
+                                   'user__make_info_public')
+
+    if query:
+        users_qs = users_qs.filter(user__username__icontains=query)
+
+    if max_items:
+        users_qs = users_qs[:int(max_items)]
+
+    def annotate_user_dict(udict):
+        user = {
+            'id': udict['user_id'],
+            'username': udict['user__username'],
+        }
+        if udict['user__make_info_public']:
+            user['first_name'] = udict['user__first_name']
+            user['last_name'] = udict['user__last_name']
+
+        return user
+
+    return [annotate_user_dict(user) for user in users_qs]
