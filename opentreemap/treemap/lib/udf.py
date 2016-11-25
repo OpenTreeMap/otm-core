@@ -47,13 +47,12 @@ def udf_create(params, instance):
 
     field_name = udf.canonical_name
 
-    # Add a restrictive permission for this UDF to all roles in the
-    # instance
+    # Add the default permission for this UDF to all roles in the instance
     for role in Role.objects.filter(instance=instance):
         FieldPermission.objects.get_or_create(
             model_name=model_type,
             field_name=field_name,
-            permission_level=FieldPermission.NONE,
+            permission_level=role.default_permission_level,
             role=role,
             instance=role.instance)
 
