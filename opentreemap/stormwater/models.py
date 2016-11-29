@@ -198,6 +198,11 @@ class RainBarrel(MapFeature):
         'plural': _('Rain Barrels'),
     }
 
+    @property
+    def is_editable(self):
+        # this is a holdover until we can support editing for all resources
+        return True
+
     @classproperty
     def benefits(cls):
         return CountOnlyBenefitCalculator(cls)
