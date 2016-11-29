@@ -21,6 +21,7 @@ from treemap.tests import (make_instance, make_commander_user,
 from treemap.lib.object_caches import role_field_permissions
 from treemap.lib.udf import udf_create
 
+from treemap.instance import create_stewardship_udfs
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.models import Instance, Plot, User
 from treemap.audit import (AuthorizeException, FieldPermission, Role,
@@ -1310,6 +1311,7 @@ class UdfCRUTestCase(OTMTestCase):
         User._system_user.save_base()
 
         self.instance = make_instance()
+        create_stewardship_udfs(self.instance)
         self.user = make_commander_user(self.instance)
 
         set_write_permissions(self.instance, self.user,
