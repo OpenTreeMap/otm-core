@@ -7,6 +7,8 @@ import collections
 
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.db.models.expressions import RawSQL
+from django.db.models.functions import Length
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext as _
 from django.core.urlresolvers import reverse
@@ -222,7 +224,14 @@ def users(request, instance):
                                    'user__make_info_public')
 
     if query:
-        users_qs = users_qs.filter(user__username__icontains=query)
+        users_qs = users_qs.filter(user__username__icontains=query)\
+            .order_by(
+                RawSQL('treemap_user.username ILIKE %s OR NULL', (query,)),
+                RawSQL('treemap_user.username ILIKE %s OR NULL',
+                       (query + '%',)),
+                Length('user__username'),
+                'user__username'
+            )
 
     if max_items:
         users_qs = users_qs[:int(max_items)]

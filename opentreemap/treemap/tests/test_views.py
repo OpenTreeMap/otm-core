@@ -1963,37 +1963,34 @@ class UserAutocompleteTest(OTMTestCase):
         self.i2 = make_instance()
 
         self.mike = make_user(instance=self.i1, username='mike')
+        self.also_mike = make_user(instance=self.i1, username='i-am-mike')
         self.maria = make_user(instance=self.i1, username='Maria')
         self.matt = make_user(instance=self.i2, username='MATT')
 
-    def assert_users_in_list(self, users_list, *users):
-        self.assertEqual(len(users_list), len(users))
+    def assert_users_in_list(self, instance, params, *expected_users):
+        users_list = users(make_request(params), instance)
+        self.assertEqual(len(users_list), len(expected_users))
 
-        for i in range(0, len(users)):
+        for i in range(0, len(expected_users)):
             user_dict = users_list[i]
-            user = users[i]
-            self.assertIn('id', user_dict)
+            user = expected_users[i]
             self.assertIn('username', user_dict)
-            self.assertEqual(user.pk, user_dict['id'])
+            self.assertIn('id', user_dict)
             self.assertEqual(user.username, user_dict['username'])
+            self.assertEqual(user.pk, user_dict['id'])
 
     def test_full_results(self):
-        users_list = users(make_request(), self.i2)
-        self.assert_users_in_list(users_list, self.matt)
+        self.assert_users_in_list(self.i2, {}, self.matt)
 
-    def test_filtering(self):
-        users_list = users(make_request(), self.i1)
-        self.assert_users_in_list(users_list, self.maria, self.mike)
-
-        users_list = users(make_request({'q': 'M'}), self.i1)
-        self.assert_users_in_list(users_list, self.maria, self.mike)
-
-        users_list = users(make_request({'q': 'Mi'}), self.i1)
-        self.assert_users_in_list(users_list, self.mike)
+    def test_filtering_and_sorting(self):
+        self.assert_users_in_list(self.i1, {}, self.also_mike, self.maria,
+                                  self.mike)
+        self.assert_users_in_list(self.i1, {'q': 'M'}, self.mike, self.maria,
+                                  self.also_mike)
+        self.assert_users_in_list(self.i1, {'q': 'Mi'}, self.mike,
+                                  self.also_mike)
 
     def test_max(self):
-        users_list = users(make_request(), self.i1)
-        self.assert_users_in_list(users_list, self.maria, self.mike)
-
-        users_list = users(make_request({'max_items': '1'}), self.i1)
-        self.assert_users_in_list(users_list, self.maria)
+        self.assert_users_in_list(self.i1, {}, self.also_mike, self.maria,
+                                  self.mike)
+        self.assert_users_in_list(self.i1, {'max_items': '1'}, self.also_mike)
