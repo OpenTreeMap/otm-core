@@ -199,22 +199,26 @@ class TreePhotoTestCase(LocalMediaTestCase):
 class TreePhotoAffectsPlotUpdatedAtTestCase(TreePhotoTestCase):
     def setUp(self):
         super(TreePhotoAffectsPlotUpdatedAtTestCase, self).setUp()
+        self.fellow = make_commander_user(self.instance, 'other-commander')
         self.initial_updated = self.plot.updated_at
 
     def test_add_photo_sets_updated(self):
-        self.tree.add_photo(self.image, self.user)
+        self.tree.add_photo(self.image, self.fellow)
+        self.plot.refresh_from_db()
         self.assertGreater(self.plot.updated_at, self.initial_updated)
+        self.assertEqual(self.plot.updated_by, self.fellow)
 
     def test_delete_photo_sets_updated(self):
         self.tree.add_photo(self.image, self.user)
-        self.plot = Plot.objects.get(pk=self.plot.pk)
+        self.plot.refresh_from_db()
         self.initial_updated = self.plot.updated_at
 
         photo = self.plot.current_tree().photos()[0]
-        photo.delete_with_user(self.user)
+        photo.delete_with_user(self.fellow)
 
-        self.plot = Plot.objects.get(pk=self.plot.pk)
+        self.plot.refresh_from_db()
         self.assertGreater(self.plot.updated_at, self.initial_updated)
+        self.assertEqual(self.plot.updated_by, self.fellow)
 
 
 class DeleteOwnPhotoTest(TreePhotoTestCase):

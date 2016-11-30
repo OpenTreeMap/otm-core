@@ -22,10 +22,11 @@ class CreateInstanceManagementTest(OTMTestCase):
         name = 'my_instance'
         url_name = 'my-instance'
 
-        self.assertEqual(Instance.objects.count(), 0)
+        # Allow test --keepdb to work
+        count = Instance.objects.count()
         call_command('create_instance', name, center=center, user=user,
                      url_name=url_name)
-        self.assertEqual(Instance.objects.count(), 1)
+        self.assertEqual(Instance.objects.count(), count + 1)
 
 
 class RandomTreesManagementTest(OTMTestCase):

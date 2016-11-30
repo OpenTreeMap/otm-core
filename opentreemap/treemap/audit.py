@@ -558,10 +558,10 @@ class UserTrackable(Dictable):
         Subclasses of UserTrackable should return their own field names
         unioned with those of their immediate superclass.
         '''
-        # updated_at is "metadata" and it does not make sense to
-        # redundantly track when it changes, assign reputation for
-        # editing it, etc.
-        return {'instance', 'updated_at'}
+        # updated_at and updated_by are "metadata" and
+        # it does not make sense to redundantly track when they change,
+        # assign reputation for editing them, etc.
+        return {'instance', 'updated_at', 'updated_by'}
 
     @property
     def tracked_fields(self):
@@ -833,6 +833,7 @@ class Authorizable(UserTrackable):
     edits they have attempted to make.
     """
 
+    # `always_writable` fields are also always readable.
     @classproperty
     def always_writable(cls):
         return {'id'}
@@ -841,9 +842,6 @@ class Authorizable(UserTrackable):
         super(Authorizable, self).__init__(*args, **kwargs)
 
         self._has_been_masked = False
-
-        # `_always_writable` fields are also always readable.
-        self._always_writable = {'id'}
 
     def get_instance(self):
         instance = getattr(self, 'instance', None)
@@ -867,7 +865,7 @@ class Authorizable(UserTrackable):
             perm_set = {perm.field_name for perm in perms
                         if perm.allows_writes}
 
-        return perm_set.union(self.always_writable)
+        return perm_set.union(self.bypasses_authorization)
 
     def user_can_delete(self, user):
         can_delete = user.get_role(self.get_instance()).can_delete(
@@ -908,11 +906,10 @@ class Authorizable(UserTrackable):
         perms = self._perms_for_user(user)
         fields_to_audit = []
         tracked_fields = self.tracked_fields
-        always_writable = self.always_writable
         for perm in perms:
             if ((perm.permission_level == FieldPermission.WRITE_WITH_AUDIT and
                  perm.field_name in tracked_fields and
-                 perm.field_name not in always_writable)):
+                 perm.field_name not in self.bypasses_authorization)):
 
                 fields_to_audit.append(perm.field_name)
 
@@ -934,7 +931,7 @@ class Authorizable(UserTrackable):
 
     def visible_fields(self, user):
         perms = self._perms_for_user(user)
-        always_readable = self.always_writable
+        always_readable = self.bypasses_authorization
 
         return always_readable | \
             {perm.field_name for perm in perms if perm.allows_reads}
@@ -945,7 +942,7 @@ class Authorizable(UserTrackable):
     def editable_fields(self, user):
         perms = self._perms_for_user(user)
 
-        return self.always_writable | \
+        return self.bypasses_authorization | \
             {perm.field_name for perm in perms if perm.allows_writes}
 
     def field_is_editable(self, user, field):

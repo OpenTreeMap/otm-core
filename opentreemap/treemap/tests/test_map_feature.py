@@ -8,9 +8,10 @@ from unittest.case import skip
 
 from django.contrib.gis.geos import Point
 
-from treemap.models import (Tree, Plot, MapFeature, Species)
+from treemap.models import (Tree, Plot, MapFeature, Species, TreePhoto)
 from treemap.instance import Instance
-from treemap.tests import (make_instance, make_commander_user)
+from treemap.tests import (make_instance, make_commander_user,
+                           LocalMediaTestCase)
 from treemap.tests.base import OTMTestCase
 from treemap.views.map_feature import update_map_feature
 
@@ -187,42 +188,66 @@ class PlotHashTestCase(OTMTestCase):
                          same_hash_msg)
 
 
-class UpdatedAtTest(OTMTestCase):
+class UpdatedFieldsTest(LocalMediaTestCase):
 
     def setUp(self):
+        super(UpdatedFieldsTest, self).setUp()
+
         self.point = Point(-8515941.0, 4953519.0)
         self.instance = make_instance(point=self.point)
         self.user = make_commander_user(self.instance)
+        self.fellow = make_commander_user(self.instance, 'other-commander')
         self.plot = Plot(geom=self.point, instance=self.instance)
         self.plot.save_with_user(self.user)
-        self.plot = Plot.objects.get(pk=self.plot.pk)
+        self.plot.refresh_from_db()
         self.initial_updated = self.plot.updated_at
+
+    def test_initial_updated_by(self):
+        self.assertEqual(self.plot.updated_by, self.user)
 
     def test_update_sets_updated(self):
         self.plot.width = 22
-        self.plot.save_with_user(self.user)
+        self.plot.save_with_user(self.fellow)
         self.assertGreater(self.plot.updated_at, self.initial_updated)
+        self.assertEqual(self.plot.updated_by, self.fellow)
 
     def test_add_tree_sets_updated(self):
         tree = Tree(diameter=10, plot=self.plot, instance=self.instance)
-        tree.save_with_user(self.user)
+        tree.save_with_user(self.fellow)
+        self.plot.refresh_from_db()
         self.assertGreater(self.plot.updated_at, self.initial_updated)
+        self.assertEqual(self.plot.updated_by, self.fellow)
 
     def test_update_tree_sets_updated(self):
         tree = Tree(diameter=10, plot=self.plot, instance=self.instance)
         tree.save_with_user(self.user)
-        self.plot = Plot.objects.get(pk=self.plot.pk)
+        self.plot.refresh_from_db()
         self.inital_updated = self.plot.updated_at
 
         tree.height = 22
-        tree.save_with_user(self.user)
+        tree.save_with_user(self.fellow)
+        self.plot.refresh_from_db()
         self.assertGreater(self.plot.updated_at, self.initial_updated)
+        self.assertEqual(self.plot.updated_by, self.fellow)
 
     def test_delete_tree_sets_updated(self):
         tree = Tree(diameter=10, plot=self.plot, instance=self.instance)
         tree.save_with_user(self.user)
-        self.plot = Plot.objects.get(pk=self.plot.pk)
+        self.plot.refresh_from_db()
         self.inital_updated = self.plot.updated_at
 
-        tree.delete_with_user(self.user)
+        tree.delete_with_user(self.fellow)
+        self.plot.refresh_from_db()
         self.assertGreater(self.plot.updated_at, self.initial_updated)
+        self.assertEqual(self.plot.updated_by, self.fellow)
+
+    def test_add_photo_sets_updated(self):
+        tree = Tree(diameter=10, plot=self.plot, instance=self.instance)
+        tree.save_with_user(self.user)
+        photo = TreePhoto(instance=self.instance,
+                          map_feature=self.plot, tree=tree)
+        photo.set_image(self.load_resource('tree1.gif'))
+        photo.save_with_user(self.fellow)
+        self.plot.refresh_from_db()
+        self.assertGreater(self.plot.updated_at, self.initial_updated)
+        self.assertEqual(self.plot.updated_by, self.fellow)
