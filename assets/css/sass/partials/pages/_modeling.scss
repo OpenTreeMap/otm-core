@@ -56,6 +56,11 @@ $blue-to-red: #2791c3 10%,
             .private {
                 color: lighten($main-text-color, 70%);
             }
+
+            #autosave-message {
+                font-size: 1.2rem;
+                color: lighten($main-text-color, 70%);
+            }
         }
 
         .search-block-wrapper {
@@ -186,6 +191,7 @@ $blue-to-red: #2791c3 10%,
     .content.map {
         top: 173px;
         bottom: 0;
+        right: 0;
 
         .sidebar {
             right: auto;
@@ -824,6 +830,10 @@ $blue-to-red: #2791c3 10%,
     }
 }
 
+#stale-revision-dialog {
+    @include checkboxes;
+}
+
 #plan-list {
     position: fixed;
     left: 0;
@@ -855,6 +865,15 @@ $blue-to-red: #2791c3 10%,
             right: 20px;
             margin-top: -50px;
         }
+    }
+
+    .new-plan {
+        float: left;
+        margin-top: 21px;
+        margin-left: 30px;
+        background-color: $button-primary;
+        border-color: $button-primary;
+        color: $paper;
     }
 
     .plans-backdrop {

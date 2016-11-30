@@ -7,6 +7,7 @@ import hashlib
 from functools import partial
 from datetime import datetime
 
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 
@@ -14,20 +15,25 @@ from django.forms.models import model_to_dict
 from django.utils.translation import ugettext_lazy as _
 from django.utils.dateformat import format as dformat
 from django.dispatch import receiver
-from django.db.models import OneToOneField
+from django.db import models as django_models
 from django.db.models.signals import post_save, post_delete
 from django.db.models.fields import FieldDoesNotExist
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, connection, transaction
 from django.conf import settings
+from django.contrib.auth.models import Permission
 
 from treemap.units import (is_convertible, is_convertible_or_formattable,
                            get_display_value, get_units, get_unit_name,
                            Convertible)
 from treemap.util import (all_models_of_class, leaf_models_of_class,
-                          to_object_name, safe_get_model_class)
+                          to_object_name, safe_get_model_class,
+                          get_pk_from_collection_audit_name,
+                          get_name_from_canonical_name,
+                          make_udf_name_from_key)
+from treemap.decorators import classproperty
 
-from treemap.lib.object_caches import (permissions,
+from treemap.lib.object_caches import (field_permissions,
                                        invalidate_adjuncts, udf_defs)
 from treemap.lib.dates import datesafe_eq
 
@@ -53,7 +59,7 @@ def get_id_sequence_name(model_class):
     Tree => 'treemap_tree_id_seq'
     Plot => 'treemap_mapfeature_id_seq'
     """
-    if isinstance(model_class._meta.pk, OneToOneField):
+    if isinstance(model_class._meta.pk, django_models.OneToOneField):
         # Model uses multi-table inheritance (probably a MapFeature subclass)
         model_class = model_class._meta.get_parent_list()[-1]
 
@@ -142,7 +148,32 @@ def approve_or_reject_audits_and_apply(audits, user, approved):
         approve_or_reject_audit_and_apply(audit, user, approved)
 
 
+def add_instance_permissions(roles):
+    """
+    Add all the instance permissions to all the roles passed in.
+    """
+    from treemap.plugin import get_instance_permission_spec
+    for spec in get_instance_permission_spec():
+        perm = Permission.objects.get(codename=spec['codename'])
+        for role in roles:
+            if role.name in spec['default_role_names']:
+                role.instance_permissions.add(perm)
+
+
 def add_default_permissions(instance, roles=None, models=None):
+    """
+    If no models are specified, use all authorizable models.
+
+    If no roles are specified, use all roles for the specified instance.
+
+    Add field permissions for the set of fields on each model that
+    `requires_authorization` for each role, specifying the
+    `role.default_permission_level`.
+
+    For roles whose `default_permission_level` permits writes,
+    also add all the `add` and `delete` model permissions for all the models,
+    and their associated photo models.
+    """
     # Audit is imported into models, so models can't be imported up top
     from treemap.models import MapFeaturePhoto
     if roles is None:
@@ -156,10 +187,34 @@ def add_default_permissions(instance, roles=None, models=None):
         models = leaf_models_of_class(Authorizable) | {MapFeaturePhoto}
 
     for role in roles:
-        _add_default_permissions(models, role, instance)
+        _add_default_field_permissions(models, role, instance)
+
+    _add_default_add_and_delete_permissions(models, roles)
 
 
-def _add_default_permissions(models, role, instance):
+def _add_default_add_and_delete_permissions(models, roles):
+    # Each of the 'models' has built-in "add" and "delete" permissions
+    # (from django.contrib.auth, e.g. Plot has "add_plot" and "delete_plot").
+    # Bulk create those permissions for all 'roles' whose default permission
+    # level allows write.
+    role_ids = [
+        role.id for role in roles
+        if role.default_permission_level > FieldPermission.READ_ONLY]
+
+    ThroughModel = Role.instance_permissions.through
+    existing = ThroughModel.objects.filter(role_id__in=role_ids)
+    existing_pairs = [(e.role_id, e.permission_id) for e in existing]
+
+    perms = Role.model_permissions(models)
+
+    role_perms = [ThroughModel(role_id=role_id, permission_id=perm.id)
+                  for role_id in role_ids for perm in perms
+                  if (role_id, perm.id) not in existing_pairs]
+
+    ThroughModel.objects.bulk_create(role_perms)
+
+
+def _add_default_field_permissions(models, role, instance):
     """
     Create FieldPermission entries for role using its default permission level.
     Make an entry for every tracked field of given models, as well as UDFs of
@@ -170,27 +225,25 @@ def _add_default_permissions(models, role, instance):
         mobj = Model(instance=instance)
 
         model_name = mobj._model_name
-        udfs = [udf.canonical_name for udf in udf_defs(instance, model_name)]
+        udfs = {udf.canonical_name for udf in udf_defs(instance, model_name)}
 
-        model_fields = set(mobj.tracked_fields + udfs)
-
-        for field_name in model_fields:
-            perms.append({
-                'model_name': model_name,
-                'field_name': field_name,
-                'role': role,
-                'instance': role.instance
-            })
+        perms += [{'model_name': model_name,
+                   'field_name': field_name,
+                   'role': role,
+                   'instance': instance}
+                  for field_name in Model.requires_authorization | udfs]
 
     existing = FieldPermission.objects.filter(role=role, instance=instance)
     if existing.exists():
         for perm in perms:
-            perm['defaults'] = {'permission_level': role.default_permission}
+            perm['defaults'] = {
+                'permission_level': role.default_permission_level
+            }
             FieldPermission.objects.get_or_create(**perm)
     else:
         perms = [FieldPermission(**perm) for perm in perms]
         for perm in perms:
-            perm.permission_level = role.default_permission
+            perm.permission_level = role.default_permission_level
 
         FieldPermission.objects.bulk_create(perms)
         # Because we use bulk_create, we must manually trigger the save signal
@@ -408,38 +461,42 @@ def _verify_user_can_apply_audit(audit, user):
     If the model is a udf collection, verify the user has
     write directly permission on the UDF
     """
-    # This comingling here isn't really great...
-    # However it allows us to have a pretty external interface in that
-    # UDF collections can have a single permission based on the original
-    # model, instead of having to assign a bunch of new ones.
-    from udf import UserDefinedFieldDefinition
 
+    model, field = _get_model_and_field(audit)
+    Model = safe_get_model_class(model)
+
+    if field in Model.bypasses_authorization:
+        return
+
+    perms = [perm for perm in field_permissions(user, audit.instance, model)
+             if perm.field_name == field]
+    if len(perms) == 1:
+        if perms[0].permission_level != FieldPermission.WRITE_DIRECTLY:
+                raise AuthorizeException(
+                    "User %s can't edit field %s on model %s" %
+                    (user, field, model))
+    elif len(perms) == 0:
+        raise AuthorizeException(
+            "User %s can't edit field %s on model %s"
+            " (No permissions found)" %
+            (user, field, model))
+
+
+def _get_model_and_field(audit):
     if audit.model.startswith('udf:'):
-        # TODO: should use caching (udf_defs)
-        udf = UserDefinedFieldDefinition.objects.get(pk=audit.model[4:])
-        field = 'udf:%s' % udf.name
+        # This comingling here isn't really great...
+        # However it allows us to have a pretty external interface in that
+        # UDF collections can have a single permission based on the original
+        # model, instead of having to assign a bunch of new ones.
+        key = get_pk_from_collection_audit_name(audit.model)
+        udf = [defn for defn in udf_defs(audit.instance)
+               if defn.pk == key][0]
+        field = make_udf_name_from_key(udf.name)
         model = udf.model_type
     else:
         field = audit.field
         model = audit.model
-
-    perms = permissions(user, audit.instance, model)
-
-    foundperm = False
-    for perm in perms:
-        if perm.field_name == field:
-            if perm.permission_level == FieldPermission.WRITE_DIRECTLY:
-                foundperm = True
-                break
-            else:
-                raise AuthorizeException(
-                    "User %s can't edit field %s on model %s" %
-                    (user, field, model))
-
-    if not foundperm:
-        raise AuthorizeException(
-            "User %s can't edit field %s on model %s (No permissions found)" %
-            (user, field, model))
+    return model, field
 
 
 @transaction.atomic
@@ -474,16 +531,15 @@ class Dictable(object):
     @property
     def hash(self):
         values = ['%s:%s' % (k, v) for (k, v) in self.as_dict().iteritems()]
-
-        return hashlib.md5('|'.join(values)).hexdigest()
+        string = '|'.join(values).encode('utf-8')
+        return hashlib.md5(string).hexdigest()
 
 
 class UserTrackable(Dictable):
     def __init__(self, *args, **kwargs):
-        # updated_at is "metadata" and it does not make sense to
-        # redundantly track when it changes, assign reputation for
-        # editing it, etc.
-        self._do_not_track = set(['instance', 'updated_at'])
+        # _do_not_track returns the static do_not_track set unioned
+        # with any fields that are added during instance initialization.
+        self._do_not_track = self.do_not_track
         super(UserTrackable, self).__init__(*args, **kwargs)
         self.populate_previous_state()
 
@@ -493,12 +549,19 @@ class UserTrackable(Dictable):
         # is none, set it to the default value of the field.
         setattr(self, key, orig_value)
 
-    def _fields_required_for_create(self):
-        return [field for field in self._meta.fields
-                if (not field.null and
-                    not field.blank and
-                    not field.primary_key and
-                    not field.name in self._do_not_track)]
+    @classproperty
+    def do_not_track(cls):
+        '''
+        do_not_track returns the set of statically defined field names
+        on the model that should not be tracked.
+
+        Subclasses of UserTrackable should return their own field names
+        unioned with those of their immediate superclass.
+        '''
+        # updated_at is "metadata" and it does not make sense to
+        # redundantly track when it changes, assign reputation for
+        # editing it, etc.
+        return {'instance', 'updated_at'}
 
     @property
     def tracked_fields(self):
@@ -558,6 +621,15 @@ class UserTrackable(Dictable):
         raise UserTrackingException(
             'All deletes to %s objects must be saved via "delete_with_user"' %
             (self._model_name))
+
+    def is_user_administrator(self, user):
+        try:
+            instance = self.get_instance()
+        except AuthorizeException:
+            return False
+        if not user or not user.is_authenticated():
+            return False
+        return user.get_role(instance).name == Role.ADMINISTRATOR
 
     def fields(self):
         return self.as_dict().keys()
@@ -634,7 +706,7 @@ class FieldPermission(models.Model):
     @property
     def display_field_name(self):
         if self.field_name.startswith('udf:'):
-            base_name = self.field_name[4:]
+            base_name = get_name_from_canonical_name(self.field_name)
         else:
             Model = safe_get_model_class(self.model_name)
             field = Model._meta.get_field(self.field_name)
@@ -676,24 +748,83 @@ post_save.connect(invalidate_adjuncts, sender=FieldPermission)
 post_delete.connect(invalidate_adjuncts, sender=FieldPermission)
 
 
+class RoleManager(models.Manager):
+    def get_role(self, instance, user=None):
+        if user is None or user.is_anonymous():
+            return instance.default_role
+        return user.get_role(instance)
+
+
 class Role(models.Model):
     # special role names, used in the app
     DEFAULT_ROLE_NAMES = ('administrator', 'editor', 'public')
     ADMINISTRATOR, EDITOR, PUBLIC = DEFAULT_ROLE_NAMES
 
+    objects = RoleManager()
+
     name = models.CharField(max_length=255)
     instance = models.ForeignKey('Instance', null=True, blank=True)
-    default_permission = models.IntegerField(choices=FieldPermission.choices,
-                                             default=FieldPermission.NONE)
+
+    default_permission_level = models.IntegerField(
+        db_column='default_permission',
+        choices=FieldPermission.choices,
+        default=FieldPermission.NONE)
+
+    instance_permissions = models.ManyToManyField(Permission)
+
     rep_thresh = models.IntegerField()
 
+    def can_create(self, Model):
+        return self._can_do_action(Model, 'add')
+
+    def can_delete(self, Model):
+        return self._can_do_action(Model, 'delete')
+
+    def _can_do_action(self, Model, action):
+        codename = self.permission_codename(Model, action)
+        return self.has_permission(codename, Model)
+
+    @classmethod
+    def permission_codename(clz, Model, action, photo=False):
+        """
+        Return name of built-in permission (django.contrib.auth) for
+        performing 'action' on 'Model'.
+        """
+        photo = 'photo' if photo else ''
+        return '{}_{}{}'.format(action, Model.__name__.lower(), photo)
+
+    @classmethod
+    def model_permissions(clz, models, actions=None,
+                          include_photos=True):
+        if actions is None:
+            actions = ['add', 'delete']
+        perm_names = [Role.permission_codename(Model, action)
+                      for Model in models for action in actions]
+        if include_photos:
+            perm_names += [
+                Role.permission_codename(Model, action, photo=True)
+                for Model in models for action in ['add', 'delete']
+                if Model.__name__ != 'Plot']
+        return Permission.objects.filter(codename__in=perm_names)
+
+    def has_permission(self, codename, Model=None):
+        """
+        Return true if role has permission 'codename' for 'Model';
+        otherwise return false. 'Model' may be None.
+        """
+        qs = self.instance_permissions.filter(codename=codename)
+        if Model is not None:
+            content_type = ContentType.objects.get_for_model(Model)
+            qs = qs.filter(content_type=content_type)
+        return qs.exists()
+
     def __unicode__(self):
-        return '%s (%s)' % (self.name, self.pk)
+        return '{} ({})'.format(self.name, self.pk)
 
 
 class AuthorizeException(Exception):
     def __init__(self, name):
-        super(Exception, self).__init__(name)
+        super(AuthorizeException, self).__init__(name)
 
 
 class Authorizable(UserTrackable):
@@ -702,19 +833,30 @@ class Authorizable(UserTrackable):
     edits they have attempted to make.
     """
 
+    @classproperty
+    def always_writable(cls):
+        return {'id'}
+
     def __init__(self, *args, **kwargs):
         super(Authorizable, self).__init__(*args, **kwargs)
 
         self._has_been_masked = False
 
-    def _get_writeable_perms_set(self, user, direct_only=False):
+        # `_always_writable` fields are also always readable.
+        self._always_writable = {'id'}
 
-        if not self.instance:
+    def get_instance(self):
+        instance = getattr(self, 'instance', None)
+        if not instance:
             raise AuthorizeException(_(
-                "Cannot retrieve permissions for this object because "
-                "it does not have an instance associated with it."))
+                "Cannot retrieve permissions for {} with id {} because "
+                "it does not have an instance associated with it.".format(
+                    self.__class__.__name__, self.pk)))
+        return instance
 
-        perms = permissions(user, self.instance, self._model_name)
+    def _get_writable_perms_set(self, user, direct_only=False):
+
+        perms = self._perms_for_user(user)
 
         if direct_only:
             perm_set = {perm.field_name
@@ -725,38 +867,17 @@ class Authorizable(UserTrackable):
             perm_set = {perm.field_name for perm in perms
                         if perm.allows_writes}
 
-        return perm_set.union(self._get_joint_writeable_fields(user))
-
-    def _get_joint_writeable_fields(self, user):
-        # If any field on any model is writable in any capacity, read
-        # a class property to get the set of field names that are also
-        # writable.
-        can_write_anything = bool({perm.field_name for perm
-                                   in permissions(user, self.instance)
-                                   if perm.allows_writes})
-        if can_write_anything:
-            return getattr(type(self), 'joint_writable', set())
-        else:
-            return set()
+        return perm_set.union(self.always_writable)
 
     def user_can_delete(self, user):
-        """
-        A user is able to delete an object if they have all
-        field permissions on a model.
-        """
+        can_delete = user.get_role(self.get_instance()).can_delete(
+            self.__class__)
+        if not can_delete:
+            if getattr(self, 'users_can_delete_own_creations', False):
+                can_delete = self.was_created_by(user)
+        return can_delete
 
-        is_admin = user.get_role(self.instance).name == Role.ADMINISTRATOR
-        if is_admin:
-            return True
-        else:
-            writeable_perms = self._get_writeable_perms_set(user)
-            can_delete = writeable_perms >= set(self.tracked_fields)
-            if not can_delete:
-                if getattr(self, 'users_can_delete_own_creations', False):
-                    can_delete = self._was_created_by(user)
-            return can_delete
-
-    def _was_created_by(self, user):
+    def was_created_by(self, user):
         fields_created_by_user = Audit.objects.filter(
             model=self.__class__.__name__,
             model_id=self.id,
@@ -765,25 +886,8 @@ class Authorizable(UserTrackable):
         )
         return fields_created_by_user.exists()
 
-    def user_can_create(self, user, direct_only=False):
-        """
-        A user is able to create an object if they have permission on
-        all required fields of its model.
-
-        If direct_only is False this method will return true
-        if the user has either permission to create directly or
-        create with audits
-        """
-        can_create = True
-
-        perm_set = self._get_writeable_perms_set(user, direct_only)
-
-        for field in self._fields_required_for_create():
-            if field.name not in perm_set:
-                can_create = False
-                break
-
-        return can_create
+    def user_can_create(self, user):
+        return user.get_role(self.get_instance()).can_create(self.__class__)
 
     def _assert_not_masked(self):
         """
@@ -801,22 +905,21 @@ class Authorizable(UserTrackable):
         fields that inheriting subclasses will want to treat as
         special pending_edit fields.
         """
-        perms = permissions(user, self.instance, self._model_name)
+        perms = self._perms_for_user(user)
         fields_to_audit = []
         tracked_fields = self.tracked_fields
+        always_writable = self.always_writable
         for perm in perms:
             if ((perm.permission_level == FieldPermission.WRITE_WITH_AUDIT and
-                 perm.field_name in tracked_fields)):
+                 perm.field_name in tracked_fields and
+                 perm.field_name not in always_writable)):
 
                 fields_to_audit.append(perm.field_name)
 
         return fields_to_audit
 
     def mask_unauthorized_fields(self, user):
-        readable_fields = {perm.field_name for perm
-                           in permissions(user, self.instance,
-                                          self._model_name)
-                           if perm.allows_reads}
+        readable_fields = self.visible_fields(user)
 
         fields = set(self.get_previous_state().keys())
         unreadable_fields = fields - readable_fields
@@ -827,11 +930,11 @@ class Authorizable(UserTrackable):
         self._has_been_masked = True
 
     def _perms_for_user(self, user):
-        return permissions(user, self.instance, self._model_name)
+        return field_permissions(user, self.get_instance(), self._model_name)
 
     def visible_fields(self, user):
         perms = self._perms_for_user(user)
-        always_readable = getattr(type(self), 'joint_writable', set())
+        always_readable = self.always_writable
 
         return always_readable | \
             {perm.field_name for perm in perms if perm.allows_reads}
@@ -841,29 +944,25 @@ class Authorizable(UserTrackable):
 
     def editable_fields(self, user):
         perms = self._perms_for_user(user)
-        always_writeable = self._get_joint_writeable_fields(user)
 
-        return always_writeable | \
+        return self.always_writable | \
             {perm.field_name for perm in perms if perm.allows_writes}
 
     def field_is_editable(self, user, field):
         return field in self.editable_fields(user)
-
-    @staticmethod
-    def mask_queryset(qs, user):
-        for model in qs:
-            model.mask_unauthorized_fields(user)
-        return qs
 
     def save_with_user(self, user, *args, **kwargs):
         self._assert_not_masked()
 
         if self.pk is not None:
             for field in self._updated_fields():
-                if field not in self._get_writeable_perms_set(user):
+                if field not in self._get_writable_perms_set(user):
                     raise AuthorizeException("Can't edit field %s on %s" %
                                             (field, self._model_name))
 
+        # If `WRITE_WITH_AUDIT` (i.e. pending write) is resurrected,
+        # this test will prevent `_PendingAuditable` from getting called
+        # and making the audit objects required for approval or rejection.
         elif not self.user_can_create(user):
             raise AuthorizeException("%s does not have permission to "
                                      "create new %s objects." %
@@ -888,6 +987,19 @@ class Authorizable(UserTrackable):
             raise AuthorizeException("%s does not have permission to "
                                      "delete %s %s." %
                                      (user, self._model_name, self.id))
+
+    @classproperty
+    def bypasses_authorization(cls):
+        return cls.do_not_track | cls.always_writable
+
+    @classproperty
+    def requires_authorization(cls):
+        """
+        Return the set of fieldnames that require FieldPermission
+        in order to read or write.
+        """
+        return {f.name for f in cls._meta.fields
+                if f.name not in cls.bypasses_authorization}
 
 
 class AuditException(Exception):
@@ -1052,17 +1164,16 @@ class _PendingAuditable(Auditable):
                         "'full_clean_with_user'")
 
     def full_clean_with_user(self, user):
-        if (self.user_can_create(user, direct_only=True)):
+        if self.user_can_create(user):
             exclude_fields = []
         else:
             # If we aren't making a real object then we shouldn't
             # check foreign key contraints. These will be checked
             # when the object is actually made. They are also enforced
-            # a the database level
-            exclude_fields = []
-            for field in self._fields_required_for_create():
-                if isinstance(field, models.ForeignKey):
-                    exclude_fields.append(field.name)
+            # at the database level
+            exclude_fields = [
+                field for field in self._meta.fields
+                if isinstance(field, models.ForeignKey)]
 
         super(_PendingAuditable, self).full_clean(exclude=exclude_fields)
 
@@ -1072,9 +1183,7 @@ class _PendingAuditable(Auditable):
                    .filter(ref__isnull=True)\
                    .order_by('-created')
 
-    def save_with_system_user_bypass_auth(self,
-                                          *args,
-                                          **kwargs):
+    def save_with_system_user_bypass_auth(self, *args, **kwargs):
         from treemap.models import User
         return self.save_with_user(User.system_user(),
                                    auth_bypass=True, *args, **kwargs)
@@ -1100,7 +1209,7 @@ class _PendingAuditable(Auditable):
 
         is_insert = self.pk is None
 
-        if ((self.user_can_create(user, direct_only=True)
+        if ((self.user_can_create(user)
              or not is_insert or auth_bypass)):
             # Auditable will make the audits for us (including pending audits)
             return super(_PendingAuditable, self).save_with_user(
@@ -1265,11 +1374,11 @@ class Audit(models.Model):
         # get the model/field class for each audit record and convert
         # the value to a python object
         if self.field.startswith('udf:'):
-            field_name = self.field[4:]
+            field_name = get_name_from_canonical_name(self.field)
             udfds = udf_defs(self.instance)
 
             if self.model.startswith('udf:'):
-                udfd_pk = int(self.model[4:])
+                udfd_pk = get_pk_from_collection_audit_name(self.model)
                 udf_def = next((udfd for udfd in udfds if udfd.pk == udfd_pk),
                                None)
                 if udf_def is not None:
@@ -1365,7 +1474,7 @@ class Audit(models.Model):
             return ''
         name = self.field
         if name.startswith('udf:'):
-            return name[4:]
+            return get_name_from_canonical_name(name)
         else:
             return name.replace('_', ' ')
 

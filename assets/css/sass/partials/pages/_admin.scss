@@ -360,6 +360,16 @@
             min-width: 200px;
             max-width: 200px;
         }
+        .codename-radio {
+            font-weight: normal;
+            text-transform: none;
+        }
+        .boolean-radio {
+            margin: 0;
+            input[type="radio"] {
+                margin: 0;
+            }
+        }
     }
 
     .admin-table {
@@ -704,6 +714,15 @@
         .enabled-fields .field-row {
             background-color: #F7F3DF;
         }
+        .field-list-wrapper:not(:last-child) {
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 8px;
+        }
+    }
+    &:not(.edit) {
+        .field-list-wrapper:not(:first-child) {
+            margin-top: -0.5rem;
+        }
     }
     .group-header {
         background-color: #CCC;
@@ -722,6 +741,9 @@
     .handle {
         cursor: move;
     }
+    .field-list-wrapper {
+        margin: 0 0.5rem;
+    }
 }
 .field-controls,.group-controls {
     i {
@@ -739,7 +761,7 @@
     border-radius: 5px;
     color: #424242;
     padding: 1rem 1.5rem;
-    margin: 0.5rem;
+    margin: 0.5rem 0;
 
     .field-controls {
         display: inline-block;

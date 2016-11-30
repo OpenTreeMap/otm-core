@@ -13,7 +13,7 @@ from celery import task
 from tempfile import TemporaryFile
 
 from django.core.files import File
-from treemap.lib.object_caches import permissions
+from treemap.lib.object_caches import field_permissions
 
 from treemap.search import Filter
 from treemap.models import Species, Plot
@@ -70,7 +70,7 @@ def _values_for_model(
     dummy_instance = model_class()
 
     for field_name in (perm.field_name for perm
-                       in permissions(job.user, instance, model)
+                       in field_permissions(job.user, instance, model)
                        if perm.permission_level >= FieldPermission.READ_ONLY):
         prefixed_name = prefix + field_name
 

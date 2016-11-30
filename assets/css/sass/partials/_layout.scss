@@ -2,8 +2,8 @@
 
 html,
 body {
-	height: 100%;
-	background: #f1f1f2;
+    height: 100%;
+    background: #f1f1f2;
 }
 
 .wrapper {
@@ -21,13 +21,13 @@ body {
 
 .image-background {
     //background-image: $background-image;
-	background-image: none;
-	height: 500px;
-	position: absolute;
-	z-index: 0;
-	width: 100%;
-	background-size: cover;
-	background-repeat: no-repeat;
+    background-image: none;
+    height: 500px;
+    position: absolute;
+    z-index: 0;
+    width: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
 }
 
 .content {
@@ -48,18 +48,16 @@ body {
 
         .embed & {
             bottom: 0;
-            top: 141px;
+            @media #{$screen-gtxs} {
+                top: 141px;
+            }
         }
 
         @media #{$screen-xs} {
             right: 0;
-            top: 154px;
+            top: 128px;
+            bottom: 0;
             overflow: auto;
-
-            .embed & {
-                bottom: 0;
-                top: 98px;
-            }
 
             .map {
                 height: 300px;
@@ -69,26 +67,26 @@ body {
 }
 
 .container.contained {
-	padding: 25px;
-	background: white;
-	border-radius: 6px;
-	box-shadow: 0 3px 0 gray;
-	box-shadow: 0 3px 0 rgba(0,0,0,.35);
-	margin: 90px auto;
-	position: relative;
-	width: 920px;
+    padding: 25px;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 3px 0 gray;
+    box-shadow: 0 3px 0 rgba(0,0,0,.35);
+    margin: 90px auto;
+    position: relative;
+    width: 920px;
     z-index: 98;
 
-	@media (min-width: 1200px) {
-		width: 1100px;
-	}
-	@media (max-width: 979px) and (min-width: 768px) {
-		width: 710px;
-	}
-	@media (max-width: 767px) {
-		width: auto;
-		margin: 50px 10px 90px;
-	}
+    @media (min-width: 1200px) {
+        width: 1100px;
+    }
+    @media (max-width: 979px) and (min-width: 768px) {
+        width: 710px;
+    }
+    @media (max-width: 767px) {
+        width: auto;
+        margin: 50px 10px 90px;
+    }
 
     &.topper:before {
         content: '';
@@ -206,44 +204,55 @@ body {
 }
 
 .well {
-	border: 1px solid lighten($well-color, 10%);
-	background: $light-gray-color;
-	border-radius: 6px;
+    border: 1px solid lighten($well-color, 10%);
+    background: $light-gray-color;
+    border-radius: 6px;
 
-	> :last-child {
-		margin-bottom: 0;
-	}
+    > :last-child {
+        margin-bottom: 0;
+    }
 
-	h4 {
-		color: $secondary-color;
-		font-size: 1.6rem;
-		font-weight: 400;
-		line-height: 2.1rem;
-		margin-bottom: 8px;
-	}
-	h5 {
-		margin-bottom: 6px;
+    h4 {
         color: $secondary-color;
-		font-size: 1.4rem;
-		font-weight: 700;
-	}
-	p, li {
-		font-size: 1.4rem;
-		font-weight: 300;
-		line-height: 2.1rem;
+        font-size: 1.6rem;
+        font-weight: 400;
+        line-height: 2.1rem;
+        margin-bottom: 8px;
+    }
+    h5 {
+        margin-bottom: 6px;
+        color: $secondary-color;
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+    p, li {
+        font-size: 1.4rem;
+        font-weight: 300;
+        line-height: 2.1rem;
         word-wrap: break-word;
-	}
+    }
     p {
         clear: both;
     }
 }
 
 .datepicker {
-    z-index: 1000 !important;
+    // This rule uses important because bootstrap-datepicker assigns a z-index
+    // in `element.style`, causing it to be occluded by something with a
+    // higher z-index than the assigned value.
+    //
+    // In absence of other changes, we need a z-index higher than that of
+    // `.navbar-fixed-top`, which has a z-index of 1030. `.datepicker`
+    // is a child of `body`, so the occlusion is not a stacking problem.
+    //
+    // The high z-index causes slightly odd artifacts when editing tree
+    // details on the plot detail page. There are other better solutions,
+    // but this is by far the quickest.
+    z-index: 1040 !important;
 }
 
-@media (max-width: 767px) {
-	body {
-		padding: 0;
-	}
+@media #{$screen-xs} {
+    body {
+        padding: 0;
+    }
 }

@@ -17,8 +17,9 @@ from django.contrib.gis.measure import D
 from django.utils.translation import ugettext as _
 
 from django_tinsel.exceptions import HttpBadRequestException
-from treemap.lib.object_caches import role_permissions
-from treemap.models import Instance, InstanceUser
+from treemap.lib.object_caches import role_field_permissions
+from treemap.audit import Role
+from treemap.models import Instance, InstanceUser, Plot
 from treemap.units import (get_units_if_convertible, get_digits_if_formattable,
                            storage_to_instance_units_factor)
 from treemap.util import safe_get_model_class
@@ -152,12 +153,7 @@ def instance_info(request, instance):
     will be tailored to that user
     """
     user = request.user
-
-    role = instance.default_role
-    if user and not user.is_anonymous():
-        instance_user = user.get_instance_user(instance)
-        if instance_user:
-            role = instance_user.role
+    role = Role.objects.get_role(instance, user)
 
     collection_udfs = instance.collection_udfs
     collection_udf_dict = {"%s.%s" % (udf.model_type.lower(),
@@ -168,7 +164,7 @@ def instance_info(request, instance):
     # dictionary. If a field isn't at least readable, it doesn't
     # get sent over at all.
     perms = {}
-    for fp in role_permissions(role, instance):
+    for fp in role_field_permissions(role, instance):
         model = fp.model_name.lower()
         field_key = '%s.%s' % (model, fp.field_name)
         if fp.allows_reads:
@@ -244,7 +240,7 @@ def instance_info(request, instance):
     info['meta_perms'] = {
         'can_add_tree': perms_lib.plot_is_creatable(role),
         'can_edit_tree': perms_lib.plot_is_writable(role),
-        'can_edit_tree_photo': perms_lib.treephoto_is_writable(role),
+        'can_edit_tree_photo': perms_lib.photo_is_addable(role, Plot),
     }
 
     public_config_keys = ['scss_variables']

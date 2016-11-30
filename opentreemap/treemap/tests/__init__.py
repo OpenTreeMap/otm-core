@@ -20,7 +20,8 @@ from django.http import HttpResponse
 from django.conf.urls import patterns
 
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Permission
+from django.contrib.contenttypes.models import ContentType
 
 from treemap.models import (User, InstanceUser, Boundary, FieldPermission,
                             Role)
@@ -77,21 +78,22 @@ def make_simple_polygon(n=1):
 def _set_permissions(instance, role, permissions):
     for perm in permissions:
         model_name, field_name, permission_level = perm
-        fp, created = FieldPermission.objects.get_or_create(
+        fp, __ = FieldPermission.objects.get_or_create(
             model_name=model_name, field_name=field_name, role=role,
             instance=instance)
         fp.permission_level = permission_level
         fp.save()
 
 
-def _make_loaded_role(instance, name, default_permission, permissions=(),
+def _make_loaded_role(instance, name, default_permission_level, permissions=(),
                       rep_thresh=2):
-    role, created = Role.objects.get_or_create(
-        name=name, instance=instance, default_permission=default_permission,
+    role, __ = Role.objects.get_or_create(
+        name=name, instance=instance,
+        default_permission_level=default_permission_level,
         rep_thresh=rep_thresh)
     role.save()
 
-    add_default_permissions(instance, [role])
+    add_default_permissions(instance, {role})
     _set_permissions(instance, role, permissions)
 
     return role
@@ -119,6 +121,45 @@ def make_commander_role(instance):
                              FieldPermission.WRITE_DIRECTLY)
 
 
+def make_tweaker_role(instance, name='tweaker'):
+    """
+    The tweaker role has permission to modify all model fields
+    directly for all models under test, but not create or delete.
+    """
+    permissions = []
+    models = leaf_models_of_class(Authorizable)
+    for Model in models:
+        permissions += [
+            (Model.__name__, fieldname,
+             FieldPermission.WRITE_DIRECTLY)
+            for fieldname in Model.requires_authorization]
+    return _make_loaded_role(instance, name, FieldPermission.NONE,
+                             permissions)
+
+
+def make_conjurer_role(instance):
+    """
+    The conjurer role has permission to create and delete all models
+    under test and their related photo types,
+    but limited permission to read or write fields in them.
+    """
+    permissions = (
+        ('Plot', 'length', FieldPermission.WRITE_DIRECTLY),
+        ('Tree', 'height', FieldPermission.WRITE_DIRECTLY))
+    conjurer = _make_loaded_role(instance, 'conjurer', FieldPermission.NONE,
+                                 permissions)
+    models = [Model for Model in leaf_models_of_class(Authorizable)
+              if Model.__name__ in {'Plot', 'RainBarrel', 'Tree'}]
+    ThroughModel = Role.instance_permissions.through
+    model_permissions = Role.model_permissions(models)
+
+    role_perms = [ThroughModel(role_id=conjurer.id, permission_id=perm.id)
+                  for perm in model_permissions]
+    ThroughModel.objects.bulk_create(role_perms)
+
+    return conjurer
+
+
 def make_officer_role(instance):
     """
     The officer role has permission to modify only a few fields,
@@ -126,16 +167,17 @@ def make_officer_role(instance):
     modify them directly without moderation.
     """
     permissions = (
-        ('Plot', 'geom', FieldPermission.WRITE_DIRECTLY),
         ('Plot', 'length', FieldPermission.WRITE_DIRECTLY),
-        ('Plot', 'readonly', FieldPermission.WRITE_DIRECTLY),
-        ('RainBarrel', 'geom', FieldPermission.WRITE_DIRECTLY),
         ('RainBarrel', 'capacity', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
-        ('Tree', 'plot', FieldPermission.WRITE_DIRECTLY),
         ('Tree', 'height', FieldPermission.WRITE_DIRECTLY))
-    return _make_loaded_role(instance, 'officer', FieldPermission.NONE,
-                             permissions)
+    officer = _make_loaded_role(instance, 'officer', FieldPermission.NONE,
+                                permissions)
+    models = [Model for Model in leaf_models_of_class(Authorizable)
+              if Model.__name__ in {'Plot', 'RainBarrel', 'Tree'}]
+    officer.instance_permissions.add(*Role.model_permissions(models))
+    officer.save()
+    return officer
 
 
 def make_apprentice_role(instance):
@@ -152,8 +194,8 @@ def make_observer_role(instance):
     The observer can read a few model fields.
     """
     permissions = (
-        ('Plot', 'geom', FieldPermission.READ_ONLY),
         ('Plot', 'length', FieldPermission.READ_ONLY),
+        ('RainBarrel', 'capacity', FieldPermission.READ_ONLY),
         ('Tree', 'diameter', FieldPermission.READ_ONLY),
         ('Tree', 'height', FieldPermission.READ_ONLY))
     return _make_loaded_role(instance, 'observer', FieldPermission.NONE,
@@ -241,14 +283,28 @@ def make_observer_user(instance, username='observer'):
     return make_user(instance, username, make_observer_role)
 
 
+def make_tweaker_user(instance, username='tweaker'):
+    return make_user(instance, username, make_tweaker_role)
+
+
+def make_conjurer_user(instance, username='conjurer'):
+    return make_user(instance, username, make_conjurer_role)
+
+
 def make_user_with_default_role(instance, username):
     return make_user(instance, username)
 
 
-def make_user_and_role(instance, username, rolename, permissions):
+def make_user_and_role(instance, username, rolename, field_permissions,
+                       models_to_permit):
     def make_role(instance):
-        return _make_loaded_role(instance, rolename, FieldPermission.NONE,
-                                 permissions)
+        role = _make_loaded_role(instance, rolename, FieldPermission.NONE,
+                                 field_permissions)
+        if models_to_permit:
+            role.instance_permissions.add(
+                *Role.model_permissions(models_to_permit))
+
+        return role
 
     return make_user(instance, username, make_role)
 
@@ -278,7 +334,7 @@ def make_instance(name=None, is_public=False, url_name=None, point=None,
 
     new_role = Role.objects.create(
         name='role-%s' % name, instance=instance,
-        rep_thresh=0, default_permission=FieldPermission.READ_ONLY)
+        rep_thresh=0, default_permission_level=FieldPermission.READ_ONLY)
 
     instance.default_role = new_role
     instance.save()
@@ -300,7 +356,8 @@ def create_mock_system_user():
 
 
 def make_request(params={}, user=None, instance=None,
-                 method='GET', body=None, file=None):
+                 method='GET', body=None, file=None,
+                 path='hello/world'):
     if user is None:
         user = AnonymousUser()
 
@@ -312,9 +369,9 @@ def make_request(params={}, user=None, instance=None,
 
     if file:
         post_data = {'file': file}
-        req = RequestFactory().post("hello/world", post_data, **extra)
+        req = RequestFactory().post(path, post_data, **extra)
     else:
-        req = RequestFactory().get("hello/world", params, **extra)
+        req = RequestFactory().get(path, params, **extra)
         req.method = method
 
     setattr(req, 'user', user)
@@ -323,6 +380,14 @@ def make_request(params={}, user=None, instance=None,
         setattr(req, 'instance', instance)
 
     return req
+
+
+def make_permission(codename, Model, name=None):
+    perm, __ = Permission.objects.get_or_create(
+        codename=codename,
+        name=name or codename,
+        content_type=ContentType.objects.get_for_model(Model))
+    return perm
 
 
 def media_dir(f):

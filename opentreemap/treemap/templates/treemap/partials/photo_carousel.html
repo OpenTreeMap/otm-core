@@ -1,27 +1,32 @@
 {% load i18n %}
+{% load instance_config %}
 {# Template meant to be included as the contents of a Bootstrap Carousel #}
 {# Expects to be given - photos: a list of MapFeaturePhoto objects, error: an optional error message #}
 
 <div class="carousel-inner">
 {% for photo in photos %}
   <div class="item {{ forloop.first|yesno:"active," }}">
-    <a data-toggle="modal" href="#photo-lightbox"
+    <a data-toggle="modal" href="#photo-lightbox" class="inspect-photo"
         data-photo-src="{{ photo.image }}"
         {% if forloop.first %}
-        {# this is the *actual* photo for the map feature and will be
-           used by the sharing code when a new upload takes place #}
+        {# this is the *actual* photo for the map feature and will be used by the sharing code when a new upload takes place #}
         data-map-feature-photo-detail-absolute-url="{{ photo.absolute_detail_url }}"
         data-map-feature-photo-image-absolute-url="{{ photo.absolute_image }}"
         data-map-feature-photo-thumbnail="{{ photo.thumbnail }}"
         {% endif %}
-        data-endpoint="{% url 'rotate_photo' instance_url_name=request.instance.url_name feature_id=photo.map_feature photo_id=photo.id %}">
-      <img src="{{ photo.thumbnail }}" alt="">
+        data-endpoint="{% url 'map_feature_photo' instance_url_name=request.instance.url_name feature_id=photo.map_feature photo_id=photo.id %}">
+      <img src="{{ photo.thumbnail }}" alt="{% trans 'Photo number' %} {{ forloop.counter }}">
     </a>
+    {% if last_effective_instance_user|is_deletable:photo.raw %}
+    <a class="delete-photo" title="{% trans 'Delete photo number' %} {{ forloop.counter }}"
+        data-toggle="modal" href="#photo-lightbox"><i class="icon-trash-1"></i>
+    </a>
+    {% endif %}
   </div>
-{% empty %}
+  {% empty %}
   {% if feature.is_plot %}
   <div class="item active">
-    <img id="tree-photo-placeholder" src="{{ STATIC_URL }}img/tree.png">
+    <img id="tree-photo-placeholder" src="{{ STATIC_URL }}img/tree.png" alt="{% trans 'There are no photos' %}">
   </div>
   {% endif %}
 {% endfor %}
@@ -36,8 +41,6 @@
     {% endfor %}</ol>
   </div>
 </div>
-{% for photo in photos %}
-{% endfor %}
 {% if photos|length > 1 %}
 <a class="carousel-control left" href="#photo-carousel" data-slide="prev"><i class="icon-left-circled"></i></a>
 <a class="carousel-control right" href="#photo-carousel" data-slide="next"><i class="icon-right-circled"></i></a>

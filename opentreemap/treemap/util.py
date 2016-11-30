@@ -33,7 +33,7 @@ def safe_get_model_class(model_string):
     """
     from treemap.models import MapFeature
 
-    # All of our models live in 'treemap.models', so
+    # All of our base models live in 'treemap.models', so
     # we can start with that namespace
     models_module = __import__('treemap.models')
 
@@ -97,12 +97,9 @@ def get_last_visited_instance(request):
     return instance
 
 
-def login_redirect(request):
+def get_login_redirect_path(request, resolved_login_url):
     # Reference: django/contrib/auth/decorators.py
     path = request.build_absolute_uri()
-    # urlparse chokes on lazy objects in Python 3, force to str
-    resolved_login_url = force_str(
-        resolve_url(settings.LOGIN_URL))
     # If the login url is the same scheme and net location then just
     # use the path as the "next" url.
     login_scheme, login_netloc = urlparse(resolved_login_url)[:2]
@@ -110,6 +107,14 @@ def login_redirect(request):
     if (not login_scheme or login_scheme == current_scheme)\
     and (not login_netloc or login_netloc == current_netloc):  # NOQA
         path = request.get_full_path()
+    return path
+
+
+def login_redirect(request):
+    # urlparse chokes on lazy objects in Python 3, force to str
+    resolved_login_url = force_str(
+        resolve_url(settings.LOGIN_URL))
+    path = get_login_redirect_path(request, resolved_login_url)
     from django.contrib.auth.views import redirect_to_login
     return redirect_to_login(
         path, resolved_login_url, REDIRECT_FIELD_NAME)
@@ -204,3 +209,19 @@ def can_read_as_super_admin(request):
         return False
     else:
         return request.user.is_super_admin() and request.method == 'GET'
+
+
+# Utilities for ways in which a UserDefinedFieldDefinition is identified.
+# Please also see name related properties on that class.
+# Note that audits refer to collection udfds as 'udf:{udfd.pk}',
+# but to scalar udfds as 'udf:{udfd.name}', same as FieldPermissions
+def get_pk_from_collection_audit_name(name):
+    return int(name[4:])
+
+
+def get_name_from_canonical_name(canonical_name):
+    return canonical_name[4:]
+
+
+def make_udf_name_from_key(key):
+    return 'udf:{}'.format(key)

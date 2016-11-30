@@ -140,13 +140,9 @@ MapManager.prototype = {
 
         _.each(config.instance.customLayers, _.partial(addCustomLayer, this));
 
-        if (options.trackZoomLatLng) {
-            map.on("moveend", _.partial(serializeZoomLatLngFromMap, map));
-            urlState.stateChangeStream.filter('.zoomLatLng')
-                .onValue(_.partial(deserializeZoomLatLngAndSetOnMap, this));
-        }
+        var zoomLatLngOutputStream = trackZoomLatLng(options, map);
 
-        return map;
+        return zoomLatLngOutputStream;
     },
 
     createMap: function (options) {
@@ -222,7 +218,10 @@ MapManager.prototype = {
     },
 
     setCenterAndZoomLL: function (zoom, location, reset) {
-        // Never zoom out, or try to zoom farther than allowed.
+        // Don't zoom out. For example, if user is choosing a tree location
+        // via geolocation but is zoomed in further than ZOOM_PLOT, we don't
+        // want to zoom them out.
+        // Also, don't try to zoom in farther than allowed.
         var zoomToApply = Math.max(
             this.map.getZoom(),
             Math.min(zoom, this.map.getMaxZoom()));
@@ -291,16 +290,36 @@ function getBasemapLayers(type) {
     }
 }
 
-function deserializeZoomLatLngAndSetOnMap(mapManager, state) {
-    var zll = state.zoomLatLng,
-        center = new L.LatLng(zll.lat, zll.lng);
-    mapManager.setCenterAndZoomLL(zll.zoom, center);
-}
+function trackZoomLatLng(options, map) {
+    var zoomLatLngOutputStream =
+        BU.leafletEventStream(map, 'moveend')
+            .map(function () {
+                var zoomLatLng = _.extend({zoom: map.getZoom()}, map.getCenter());
+                return zoomLatLng;
+            });
 
-function serializeZoomLatLngFromMap(map) {
-    var zoom = map.getZoom(),
-        center = map.getCenter();
-    urlState.setZoomLatLng(zoom, center);
+    if (options.trackZoomLatLng) {
+        var zoomLatLngInputStream;
+        if (options.zoomLatLngInputStream) {
+            // Calling page will save/load zoomLatLng
+            zoomLatLngInputStream = options.zoomLatLngInputStream;
+        } else {
+            // Save/load zoomLatLng in urlState
+            zoomLatLngInputStream = urlState.stateChangeStream
+                .filter('.zoomLatLng')
+                .map('.zoomLatLng');
+            zoomLatLngOutputStream.onValue(urlState.setZoomLatLng);
+        }
+
+        zoomLatLngInputStream.onValue(function (zoomLatLng) {
+            if (!_.isEmpty(zoomLatLng)) {
+                map.setView(
+                    new L.LatLng(zoomLatLng.lat, zoomLatLng.lng),
+                    zoomLatLng.zoom);
+            }
+        });
+    }
+    return zoomLatLngOutputStream;
 }
 
 function getDomMapBool(dataAttName, domId) {

@@ -89,7 +89,7 @@ exports.init = function(options) {
             $(editFields).each(function(index, el){
                 var field = $(el).attr('data-field'),
                     $input, value, display, digits, units,
-                    displayValue;
+                    displayValue, displayMap;
 
                 // if the edit field has a data-field property,
                 // look for a corresponding display value and if
@@ -108,6 +108,9 @@ exports.init = function(options) {
                             value = FH.getTimestampFromDatepicker($input);
                         } else if ($input.is('select[multiple]')) {
                             value = JSON.stringify($input.val());
+                        } else if ($input.is('[type="radio"]')) {
+                            $input = $input.filter(':checked');
+                            value = $input.attr('data-value');
                         } else {
                             value = $input.val();
                         }
@@ -125,6 +128,13 @@ exports.init = function(options) {
                             displayValue = getBooleanFieldText(display, value);
                         } else if (value && $input.is('[data-date-format]')) {
                             displayValue = $input.val();
+                        } else if ($input.is('[type="radio"]')) {
+                            if ($(display).is('[data-display-map]')) {
+                                displayMap = JSON.parse($(display).attr('data-display-map'));
+                                if (displayMap[displayValue]) {
+                                    displayValue = displayMap[displayValue];
+                                }
+                            }
                         } else if (value) {
                             digits = $(display).data('digits');
                             if (digits) {

@@ -16,27 +16,31 @@ from django.db import connection
 from django.db.models.query import QuerySet
 from django.core import mail
 
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import Point
 
 from treemap import ecobackend
-from treemap.lib.object_caches import permissions
 from treemap.decorators import return_400_if_validation_errors
+from treemap.json_field import set_attr_on_json_field
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.audit import (Audit, approve_or_reject_audit_and_apply,
-                           approve_or_reject_audits_and_apply,
-                           FieldPermission, add_default_permissions)
+                           add_default_permissions, AuthorizeException)
 from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
                             InstanceUser, StaticPage, ITreeRegion)
 from treemap.routes import (root_settings_js, instance_settings_js,
                             instance_user_page)
+
+from treemap.lib.external_link import validate_token_template
+from treemap.instance import PERMISSION_VIEW_EXTERNAL_LINK
 from treemap.lib.tree import add_tree_photo_helper
 from treemap.lib.user import get_user_instances
 from treemap.views.misc import (public_instances_geojson, species_list,
                                 boundary_autocomplete, boundary_to_geojson,
                                 edits, compile_scss, static_page)
 from treemap.views.map_feature import (update_map_feature, delete_map_feature,
-                                       rotate_map_feature_photo, plot_detail)
+                                       rotate_map_feature_photo, plot_detail,
+                                       delete_photo)
 from treemap.views.user import (user_audits, upload_user_photo, update_user,
                                 forgot_username, user)
 from treemap.views.photo import approve_or_reject_photos
@@ -45,9 +49,10 @@ from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
                            make_simple_boundary, make_request, make_user,
                            set_write_permissions, MockSession,
-                           set_read_permissions,
+                           set_read_permissions, make_tweaker_user,
                            make_plain_user, LocalMediaTestCase, media_dir,
-                           make_instance_user, set_invisible_permissions)
+                           make_instance_user, set_invisible_permissions,
+                           make_observer_role)
 from treemap.tests.base import OTMTestCase
 from treemap.tests.test_udfs import make_collection_udf
 
@@ -212,6 +217,44 @@ class TreePhotoAffectsPlotUpdatedAtTestCase(TreePhotoTestCase):
         self.assertGreater(self.plot.updated_at, self.initial_updated)
 
 
+class DeleteOwnPhotoTest(TreePhotoTestCase):
+    def setUp(self):
+        super(DeleteOwnPhotoTest, self).setUp()
+        tp = self.tree.add_photo(self.image, self.user)
+        tp.save_with_user(self.user)
+
+    def _delete_photo(self, user):
+        old_photo = self.tree.photos()[0]
+        return delete_photo(
+            make_request(method='DELETE',
+                         user=user, instance=self.instance),
+            self.instance, self.plot.pk, old_photo.pk)
+
+    def test_delete_own_photo(self):
+        self._delete_photo(self.user)
+        self.assertEqual(len(self.tree.photos()), 0)
+
+    def test_admin_can_delete_photo(self):
+        self._delete_photo(self.user)
+        self.assertEqual(len(self.tree.photos()), 0)
+
+    def test_delete_own_photo_after_role_demotion(self):
+        admin = make_user(self.instance, username='headhoncho',
+                          make_role=self.user.get_role)
+        observer_role = make_observer_role(self.instance)
+        iu = self.user.get_effective_instance_user(self.instance)
+        iu.role = observer_role
+        iu.save_with_user(admin)
+
+        self._delete_photo(self.user)
+        self.assertEqual(len(self.tree.photos()), 0)
+
+    def test_cannot_delete_others_photo(self):
+        other = make_tweaker_user(self.instance, username="other")
+        self.assertRaises(AuthorizeException, self._delete_photo, other)
+        self.assertEqual(len(self.tree.photos()), 1)
+
+
 class TreePhotoRotationTest(TreePhotoTestCase):
     def setUp(self):
         super(TreePhotoRotationTest, self).setUp()
@@ -302,74 +345,6 @@ class ApproveOrRejectPhotoTest(TreePhotoTestCase):
 
         self.assertEqual(TreePhoto.objects.count(), 0)
 
-    @media_dir
-    def test_approve_photo_that_is_pending(self):
-        self.assertEqual(TreePhoto.objects.count(), 0)
-
-        FieldPermission.objects.all().update(
-            permission_level=FieldPermission.WRITE_WITH_AUDIT)
-
-        self.tree.add_photo(self.image, self.user)
-
-        FieldPermission.objects.all().update(
-            permission_level=FieldPermission.WRITE_DIRECTLY)
-
-        self.assertEqual(TreePhoto.objects.count(), 0)
-
-        # Get most recent tree photo id
-        tp_audit = Audit.objects.filter(
-            model='TreePhoto', field='id').order_by('-created')[0]
-
-        tp_pk = tp_audit.current_value
-
-        approve_or_reject_photos(
-            make_request({'ids': str(tp_pk)}, user=self.user),
-            self.instance, 'approve')
-
-        tp = TreePhoto.objects.get(pk=tp_pk)
-        for audit in tp.audits():
-            if audit.ref:
-                self.assertEqual(audit.ref.action, Audit.Type.PendingApprove)
-            else:
-                self.assertEqual(audit.action, Audit.Type.PendingApprove)
-
-        self.assertEqual(TreePhoto.objects.count(), 1)
-
-    @media_dir
-    def test_reject_photo_that_is_pending(self):
-        self.assertEqual(TreePhoto.objects.count(), 0)
-
-        FieldPermission.objects.all().update(
-            permission_level=FieldPermission.WRITE_WITH_AUDIT)
-
-        self.tree.add_photo(self.image, self.user)
-
-        FieldPermission.objects.all().update(
-            permission_level=FieldPermission.WRITE_DIRECTLY)
-
-        self.assertEqual(TreePhoto.objects.count(), 0)
-
-        # Get most recent tree photo id
-        tp_audit = Audit.objects.filter(
-            model='TreePhoto', field='id').order_by('-created')[0]
-
-        tp_pk = tp_audit.current_value
-
-        approve_or_reject_photos(
-            make_request({'ids': str(tp_pk)}, user=self.user),
-            self.instance, 'reject')
-
-        audit_list = Audit.objects.filter(
-            model='TreePhoto', field='id', model_id=tp_pk)
-
-        for audit in audit_list:
-            if audit.ref:
-                self.assertEqual(audit.ref.action, Audit.Type.PendingReject)
-            else:
-                self.assertEqual(audit.action, Audit.Type.PendingReject)
-
-        self.assertEqual(TreePhoto.objects.count(), 0)
-
 
 class PlotImageUpdateTest(LocalMediaTestCase):
     def setUp(self):
@@ -387,72 +362,6 @@ class PlotImageUpdateTest(LocalMediaTestCase):
 
         self.tree = Tree(instance=self.instance, plot=self.plot)
         self.tree.save_with_user(self.user)
-
-    def _make_audited_request(self):
-        # Update user to only have pending permission
-        perms = permissions(self.user, self.instance)
-
-        def update_perms(plevel):
-            for perm in perms:
-                perm.permission_level = plevel
-                perm.save()
-
-        update_perms(FieldPermission.WRITE_WITH_AUDIT)
-
-        # Delete any audits already in the system
-        Audit.objects.all().delete()
-
-        self.assertEqual(TreePhoto.objects.count(), 0)
-
-        tree_image = self.load_resource('tree1.gif')
-
-        photo = self._make_tree_photo_request(
-            tree_image, self.plot.pk, self.tree.pk)
-
-        # Restore permissions
-        update_perms(FieldPermission.WRITE_DIRECTLY)
-
-        return photo
-
-    @media_dir
-    def test_can_create_pending_image(self):
-        objects = self.tree.treephoto_set.all()
-        self.assertEqual(len(objects), 0)
-
-        self._make_audited_request()
-
-        objects = self.tree.treephoto_set.all()
-        self.assertEqual(len(objects), 0)
-
-        # Approve audits
-        approve_or_reject_audits_and_apply(
-            Audit.objects.all(), self.user, approved=True)
-
-        # Verify tree photo exists
-        objects = self.tree.treephoto_set.all()
-        self.assertEqual(len(objects), 1)
-
-        photo = objects[0]
-
-        self.assertTreePhotoExists(photo)
-
-    @media_dir
-    def test_can_reject_pending_image(self):
-        objects = self.tree.treephoto_set.all()
-        self.assertEqual(len(objects), 0)
-
-        self._make_audited_request()
-
-        objects = self.tree.treephoto_set.all()
-        self.assertEqual(len(objects), 0)
-
-        # Reject audits
-        approve_or_reject_audits_and_apply(
-            Audit.objects.all(), self.user, approved=False)
-
-        # Verify no tree photos were created
-        objects = self.tree.treephoto_set.all()
-        self.assertEqual(len(objects), 0)
 
     def _run_basic_test_with_image_file(self, image_file):
         tp = TreePhoto(tree=self.tree, instance=self.instance)
@@ -585,10 +494,6 @@ class PlotImageUpdateTest(LocalMediaTestCase):
                           invalid_thing, self.plot.pk, self.tree.pk)
 
         self.assertEqual(TreePhoto.objects.count(), 0)
-
-    @media_dir
-    def test_can_create_and_apply_pending_images(self):
-        pass
 
     @media_dir
     def test_non_authorized_users_cant_create_images(self):
@@ -1100,6 +1005,129 @@ class PlotViewPhotoProgressTest(TreePhotoTestCase):
                         self.initial_message_count)
 
 
+class PlotExternalLinkTest(OTMTestCase):
+
+    def move(self, pt, x, y):
+        return Point(pt.x + x, pt.y + y)
+
+    def _add_instance_permission(self, role):
+        content_type = ContentType.objects.get_for_model(Instance)
+        perm = Permission.objects.get(content_type=content_type,
+                                      codename=PERMISSION_VIEW_EXTERNAL_LINK)
+        role.instance_permissions.add(perm)
+
+    def setUp(self):
+        super(PlotExternalLinkTest, self).setUp()
+        self.p1 = Point(-7615441.0, 5953519.0)
+
+        self.instance = make_instance(is_public=True, point=self.p1)
+        set_attr_on_json_field(self.instance,
+                               'config.externalLink.text', 'some text')
+        self.instance.save()
+
+        self.creator = make_commander_user(self.instance, username='creator')
+        self.commander = make_commander_user(self.instance)
+
+        self.empty_plot = Plot(instance=self.instance,
+                               geom=self.move(self.p1, 0.5, 0))
+        self.empty_plot.save_with_user(self.creator)
+        self.planted_plot = Plot(instance=self.instance,
+                                 geom=self.move(self.p1, 0, 0.5))
+        self.planted_plot.save_with_user(self.creator)
+
+        self.tree = Tree(instance=self.instance, plot=self.planted_plot)
+        self.tree.save_with_user(self.creator)
+
+    def test_validate_token_template(self):
+        self.assertTrue(validate_token_template('no tokens'))
+        self.assertTrue(validate_token_template(
+            '#{tree.id} #{planting_site.id} #{planting_site.custom_id}' * 2))
+        self.assertFalse(validate_token_template(
+            '#{tree.id} #{}'))
+        self.assertFalse(validate_token_template(
+            '#{tree.id} #{ tree.id }'))
+        self.assertFalse(validate_token_template(
+            '#{tree.id} #{bioswale.id}'))
+
+    def test_tree_external_link_shows(self):
+        set_attr_on_json_field(self.instance,
+                               'config.externalLink.url',
+                               'something#{tree.id}/#hash')
+        self.instance.save()
+        self._add_instance_permission(self.commander.get_role(self.instance))
+
+        context = plot_detail(make_request(user=self.commander,
+                                           instance=self.instance),
+                              self.instance, self.planted_plot.pk)
+
+        self.assertEqual(context['external_link'],
+                         'something{}/#hash'.format(str(self.tree.pk)))
+
+    def test_plot_external_link_shows(self):
+        set_attr_on_json_field(self.instance,
+                               'config.externalLink.url',
+                               'something#{planting_site.id}/#hash')
+        self.instance.save()
+        self._add_instance_permission(self.commander.get_role(self.instance))
+
+        context = plot_detail(make_request(user=self.commander,
+                                           instance=self.instance),
+                              self.instance, self.empty_plot.pk)
+
+        self.assertEqual(context['external_link'],
+                         'something{}/#hash'.format(str(self.empty_plot.pk)))
+
+    def test_plot_external_link_custom_id_shows(self):
+        set_attr_on_json_field(self.instance,
+                               'config.externalLink.url',
+                               'something#{planting_site.custom_id}/#hash')
+        self.instance.save()
+        self._add_instance_permission(self.commander.get_role(self.instance))
+
+        self.empty_plot.owner_orig_id = 'AN_ID'
+        self.empty_plot.save_with_user(self.creator)
+
+        context = plot_detail(make_request(user=self.commander,
+                                           instance=self.instance),
+                              self.instance, self.empty_plot.pk)
+
+        self.assertEqual(context['external_link'],
+                         'something{}/#hash'.format(
+                             str(self.empty_plot.owner_orig_id)))
+
+    def test_no_tree_no_external_link(self):
+        set_attr_on_json_field(self.instance,
+                               'config.externalLink.url',
+                               'something#{tree.id}/more')
+        self.instance.save()
+        self._add_instance_permission(self.commander.get_role(self.instance))
+
+        context = plot_detail(make_request(user=self.commander,
+                                           instance=self.instance),
+                              self.instance, self.empty_plot.pk)
+
+        self.assertIsNone(context['external_link'])
+
+    def test_no_config_no_external_link(self):
+        context = plot_detail(make_request(user=self.commander,
+                                           instance=self.instance),
+                              self.instance, self.empty_plot.pk)
+
+        self.assertIsNone(context['external_link'])
+
+    def test_no_permission_no_external_link(self):
+        set_attr_on_json_field(self.instance,
+                               'config.externalLink.url',
+                               'something#{planting_site.id}/more')
+        self.instance.save()
+
+        context = plot_detail(make_request(user=self.commander,
+                                           instance=self.instance),
+                              self.instance, self.empty_plot.pk)
+
+        self.assertIsNone(context['external_link'])
+
+
 class RecentEditsViewTest(ViewTestCase):
 
     def setUp(self):
@@ -1420,7 +1448,7 @@ class RecentEditsViewTest(ViewTestCase):
         self.plot.save_with_user(self.commander)
 
         self.check_audits(
-            "/sdj/?page_size=2&exclude_pending=true",
+            "/blah/?page_size=2&exclude_pending=true",
             [{
                 "model": "udf:%s" % cudf.pk,
                 "ref": None,
@@ -1455,16 +1483,27 @@ class RecentEditsViewTest(ViewTestCase):
         self.plot.save_with_user(self.commander)
 
         self.check_audits(
-            "/sdj/?page_size=2&exclude_pending=true",
+            "/blah/?page_size=2&exclude_pending=true",
             [self.next_plot_delta, self.plot_delta], user=self.officer)
 
-    def test_normal_audits_not_shown_with_no_permissions(self):
+    def test_only_show_audits_for_permitted_fields(self):
         set_invisible_permissions(self.instance, self.commander, 'Plot',
                                   self.plot.tracked_fields)
         set_invisible_permissions(self.instance, self.commander, 'Tree',
                                   self.tree.tracked_fields)
 
-        self.check_audits("/sdj/", [], user=self.commander)
+        req = self.factory.get('/blah/')
+        req.user = self.commander
+        result = edits(req, self.instance)['audits']
+        tree_audit_fields = {
+            audit.field for audit in result if audit.model == 'tree'}
+        plot_audit_fields = {
+            audit.field for audit in result if audit.model == 'plot'}
+
+        self.assertLessEqual(tree_audit_fields,
+                             self.tree.visible_fields(self.commander))
+        self.assertLessEqual(plot_audit_fields,
+                             self.plot.visible_fields(self.commander))
 
     def test_system_user_edits_hidden(self):
         self.check_audits('/blah/?page_size=2',

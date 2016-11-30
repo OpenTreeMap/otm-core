@@ -185,10 +185,19 @@ var create = exports.create = function(options) {
         editStream = selectStream.merge(backspaceOrDeleteStream.map(undefined)),
 
         idStream = selectStream.map(".id")
-                               .merge(backspaceOrDeleteStream.map(""));
+                               .merge(backspaceOrDeleteStream.map("")),
+
+        openCloseStream = Bacon.mergeAll(
+                $input.asEventStream('focus typeahead:active typeahead:open').map(true),
+                $input.asEventStream('typeahead:idle typeahead:close').map(false)
+            );
 
     editStream.filter(BU.isDefined).onValue($input, "data", "datum");
     editStream.filter(BU.isUndefined).onValue($input, "removeData", "datum");
+
+    openCloseStream.onValue(function(active) {
+            $input.closest('.search-wrapper').toggleClass('typeahead-active', active);
+        });
 
     if (options.forceMatch) {
         $input.on('blur', function() {

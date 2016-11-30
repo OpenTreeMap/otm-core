@@ -4,6 +4,7 @@ from django.db import transaction
 
 from treemap.audit import Role, FieldPermission
 from treemap.udf import (UserDefinedFieldDefinition)
+from treemap.util import to_object_name
 
 
 def udf_exists(params, instance):
@@ -46,15 +47,16 @@ def udf_create(params, instance):
 
     field_name = udf.canonical_name
 
-    # Add a restrictive permission for this UDF to all roles in the
-    # instance
+    # Add the default permission for this UDF to all roles in the instance
     for role in Role.objects.filter(instance=instance):
         FieldPermission.objects.get_or_create(
             model_name=model_type,
             field_name=field_name,
-            permission_level=FieldPermission.NONE,
+            permission_level=role.default_permission_level,
             role=role,
             instance=role.instance)
+
+    _add_scalar_udf_to_field_configs(udf, instance)
 
     return udf
 
@@ -73,3 +75,28 @@ def _parse_params(params):
 
     return {'name': name, 'model_type': model_type,
             'datatype': datatype}
+
+
+def _add_scalar_udf_to_field_configs(udf, instance):
+    save_instance = False
+
+    for prop in ('mobile_api_fields', 'web_detail_fields'):
+        attr = getattr(instance, prop)
+        for group in attr:
+            if (('model' in group and
+                 group['model'] == to_object_name(udf.model_type))):
+                field_keys = group.get('field_keys')
+
+                if 'field_keys' in group and udf.full_name not in field_keys:
+                    field_keys.append(udf.full_name)
+                    save_instance = True
+                    # The first time a udf is configured,
+                    # getattr(instance, prop) returns a deepcopy of
+                    # the default for prop.
+                    # Mutating the deepcopy does not set prop on config
+                    # to refer to that deepcopy, so we must do the
+                    # setattr here.
+                    setattr(instance, prop, attr)
+
+    if save_instance:
+        instance.save()

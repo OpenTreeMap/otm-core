@@ -61,12 +61,12 @@
     </select>
   </label>
 
-  <span>{% trans "between" %}</span>
+  <span class="udfc-date-label">{% trans "between" %}</span>
   <input id="udfc-search-date-from" data-search-type="MIN"
          class="udfc-selector"
          {% include "treemap/partials/date_picker_init.html" %}
          />
-  <span>{% trans "and" %}</span>
+  <span class="udfc-date-label">{% trans "and" %}</span>
   <input id="udfc-search-date-to" data-search-type="MAX"
          class="udfc-selector"
          {% include "treemap/partials/date_picker_init.html" %}

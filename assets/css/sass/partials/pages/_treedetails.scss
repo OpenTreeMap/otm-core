@@ -178,10 +178,27 @@
         border-radius: 9px;
 
         .item {
-            img {
-                width: auto;
-                height: auto;
-                margin: 0 auto;
+            .inspect-photo {
+                display: block;
+                img {
+                    width: auto;
+                    height: auto;
+                    margin: 0 auto;
+                }
+            }
+            .delete-photo {
+                color: #df4425;
+                display: none;
+                font-size: 3rem;
+                opacity: 0;
+                position: absolute;
+                right: 0px;
+                top: 0px;
+
+            }
+            &:hover .delete-photo {
+                display: block;
+                opacity: .9;
             }
         }
     }
@@ -194,9 +211,7 @@
         line-height: normal;
         text-align: center;
         background: transparent;
-        border: none;
         display: block;
-        border-radius: 0;
         opacity: 0.5;
         color: #42424a;
         top: 38%;

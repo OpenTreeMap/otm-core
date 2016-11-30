@@ -1,9 +1,17 @@
 "use strict";
 
+// Manage the URL query string.
+// Callers may:
+// * Fetch data from the URL using get()
+// * Store data in the URL using set() or custom functions like setSearch()
+// * Handle events in the stateChangeStream to respond to URL changes
+//
+// We track in _state the current values of URL query string parameters, and use
+// it when the history changes to send only changed values to the stateChangeStream.
+
 var _ = require('lodash'),
     Bacon = require('baconjs'),
     url = require('url'),
-    L = require('leaflet'),
 
     modeNamesForUrl = [
         require('treemap/lib/addTreeMode.js').name,
@@ -24,26 +32,22 @@ function HistoryApi() {
         stateChangeCallback = callback;
         window.onpopstate = callback;
     }
-    function getState() {
-        return history.state;
-    }
-    function pushState(state, title, url) {
-        history.pushState(state, title, url);
+    function pushUrl(url) {
+        history.pushState(null, document.title, url);
         if (stateChangeCallback) {
             stateChangeCallback();
         }
     }
-    function replaceState(state, title, url) {
-        history.replaceState(state, title, url);
+    function replaceUrl(url) {
+        history.replaceState(null, document.title, url);
         if (stateChangeCallback) {
             stateChangeCallback();
         }
     }
     return {
         onStateChange: onStateChange,
-        getState: getState,
-        pushState: pushState,
-        replaceState: replaceState
+        pushUrl: pushUrl,
+        replaceUrl: replaceUrl
     };
 }
 
@@ -127,7 +131,7 @@ var deserializers = {
 function set(key, value, options) {
     options = _.defaults({}, options, {
         silent: false,
-        replaceState: false
+        replace: false
     });
 
     var currentValue = _state && _state[key];
@@ -146,10 +150,10 @@ function set(key, value, options) {
             _state = newState;
         }
 
-        if (options.replaceState) {
-            _history.replaceState(newState, '', getUrlFromState(newState));
+        if (options.replace) {
+            _history.replaceUrl(getUrlFromState(newState));
         } else {
-            _history.pushState(newState, '', getUrlFromState(newState));
+            _history.pushUrl(getUrlFromState(newState));
         }
     }
 }
@@ -168,22 +172,23 @@ module.exports = {
         setStateAndPushToApp(getStateFromCurrentUrl());
 
         _history.onStateChange(function() {
-            setStateAndPushToApp(_history.getState().data || getStateFromCurrentUrl());
+            setStateAndPushToApp(getStateFromCurrentUrl());
         });
     },
 
-    setZoomLatLng: function (zoom, center) {
-        var zoomLatLng = makeZoomLatLng(zoom, center.lat, center.lng);
-        set('zoomLatLng', zoomLatLng, {
-            silent: true,
-            replaceState: true
-        });
+    setZoomLatLng: function (zoomLatLng) {
+        if (!_.isEmpty(zoomLatLng)) {
+            set('zoomLatLng', zoomLatLng, {
+                silent: true,
+                replace: true
+            });
+        }
     },
 
     setSearch: function (otmSearch) {
         set('search', otmSearch, {
             silent: true,
-            replaceState: false
+            replace: false
         });
     },
 
@@ -191,14 +196,14 @@ module.exports = {
         modeName = _.contains(modeNamesForUrl, modeName) ? modeName : '';
         set('modeName', modeName, {
             silent: true,
-            replaceState: true
+            replace: true
         });
     },
 
     setModeType: function (modeType) {
         set('modeType', modeType, {
             silent: true,
-            replaceState: true
+            replace: true
         });
     },
 

@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import datetime
+from string import Template
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -14,12 +15,14 @@ from django.utils.formats import number_format
 from django.utils.translation import ugettext as _
 from django.db.models import Q
 
-from treemap.audit import Audit
+from treemap.audit import Audit, Role
 from treemap.ecobackend import ECOBENEFIT_FAILURE_CODES_AND_PATTERNS
+from treemap.json_field import get_attr_from_json_field
 from treemap.lib import execute_sql
 from treemap.models import Tree, MapFeature, User, Favorite
 
 from treemap.lib import format_benefits
+from treemap.lib.external_link import get_external_link_choice_pattern
 from treemap.lib.photo import context_dict_for_photo
 from treemap.units import get_display_value, get_units, get_unit_abbreviation
 from treemap.util import leaf_models_of_class, to_object_name
@@ -204,6 +207,45 @@ def context_dict_for_plot(request, plot, tree_id=None, **kwargs):
     else:
         photos = []
 
+    def get_external_link_url(user, feature, tree=None):
+        if not user or not feature or not feature.is_plot:
+            return None
+        instance = feature.instance
+        external_link_config =  \
+            get_attr_from_json_field(instance, 'config.externalLink') or None
+        if not external_link_config or \
+                not external_link_config.get('url', None) or \
+                not external_link_config.get('text', None):
+            return None
+        role = Role.objects.get_role(instance, user)
+        if not role.has_permission('view_external_link'):
+            return None
+        external_url = external_link_config['url']
+        if not tree and -1 < external_url.find(r'#{tree.id}'):
+            return None
+
+        plot = feature.cast_to_subtype()
+        substitutes = {
+            'planting_site.id': str(plot.pk),
+            'planting_site.custom_id': plot.owner_orig_id or '',
+            'tree.id': tree and str(tree.pk) or ''
+        }
+
+        class UrlTemplate(Template):
+            delimiter = '#'
+            pattern = '''
+            \#(?:
+                (?P<escaped>\#)         |  # escape with repeated delimiter
+                (?P<named>(?:{0}))      |  # "#foo" substitutes foo keyword
+                {{(?P<braced>(?:{0}))}} |  # "#{{foo}}" substitutes foo keyword
+                (?P<invalid>{{}})          # requires a name
+            )
+            '''.format(get_external_link_choice_pattern())
+
+        return UrlTemplate(external_url).safe_substitute(substitutes)
+
+    context['external_link'] = get_external_link_url(user, plot, tree)
+
     has_tree_diameter = tree is not None and tree.diameter is not None
     has_tree_species_with_code = tree is not None \
         and tree.species is not None and tree.species.otm_code is not None
@@ -273,6 +315,8 @@ def context_dict_for_resource(request, resource, **kwargs):
     # Give them 2 for adding the resource and answering its questions
     total_progress_items = 3
     completed_progress_items = 2
+
+    context['external_link'] = None
 
     photos = resource.photos()
     context['photos'] = [context_dict_for_photo(request, photo)

@@ -5,8 +5,8 @@ from django.test import TestCase
 from django.test.utils import override_settings
 
 from treemap.audit import FieldPermission
-from treemap.lib.object_caches import (clear_caches, role_permissions,
-                                       permissions, udf_defs)
+from treemap.lib.object_caches import (clear_caches, role_field_permissions,
+                                       field_permissions, udf_defs)
 from treemap.models import InstanceUser
 from treemap.tests import (make_instance, make_commander_user,
                            make_user)
@@ -26,7 +26,7 @@ class PermissionsCacheTest(TestCase):
 
         self.simple_user = make_user()
         default_role = self.instance.default_role
-        FieldPermission(model_name='Plot', field_name='geom',
+        FieldPermission(model_name='Plot', field_name='owner_orig_id',
                         role=default_role, instance=self.instance,
                         permission_level=READ).save()
 
@@ -36,27 +36,27 @@ class PermissionsCacheTest(TestCase):
         return perms[0] if expectedCount == 1 else None
 
     def get_role_permission(self, role, expectedCount, model_name='Plot',
-                            field_name='geom'):
-        perms = role_permissions(role, self.instance, model_name)
+                            field_name='owner_orig_id'):
+        perms = role_field_permissions(role, self.instance, model_name)
         return self.get_permission(perms, field_name, expectedCount)
 
     def get_user_permission(self, user, expectedCount, model_name='Plot',
-                            field_name='geom'):
-        perms = permissions(user, self.instance, model_name)
+                            field_name='owner_orig_id'):
+        perms = field_permissions(user, self.instance, model_name)
         return self.get_permission(perms, field_name, expectedCount)
 
     def assert_role_permission(self, role, level, model_name='Plot',
-                               field_name='geom'):
+                               field_name='owner_orig_id'):
         perm = self.get_role_permission(role, 1, model_name, field_name)
         self.assertEqual(level, perm.permission_level)
 
     def assert_user_permission(self, user, level, model_name='Plot',
-                               field_name='geom'):
+                               field_name='owner_orig_id'):
         perm = self.get_user_permission(user, 1, model_name, field_name)
         self.assertEqual(level, perm.permission_level)
 
     def set_permission(self, role, level, model_name='Plot',
-                       field_name='geom'):
+                       field_name='owner_orig_id'):
         fp, created = FieldPermission.objects.get_or_create(
             model_name=model_name,
             field_name=field_name,
@@ -65,7 +65,8 @@ class PermissionsCacheTest(TestCase):
         fp.permission_level = level
         fp.save()
 
-    def get_single_perm_qs(self, role, model_name='Plot', field_name='geom'):
+    def get_single_perm_qs(self, role, model_name='Plot',
+                           field_name='owner_orig_id'):
         return FieldPermission.objects.filter(
             model_name=model_name,
             field_name=field_name,
@@ -74,12 +75,13 @@ class PermissionsCacheTest(TestCase):
         )
 
     def set_permission_silently(self, role, level, model_name='Plot',
-                                field_name='geom'):
+                                field_name='owner_orig_id'):
         # update() sends no signals, so cache won't be invalidated
         qs = self.get_single_perm_qs(role, model_name, field_name)
         qs.update(permission_level=level)
 
-    def delete_permission(self, role, model_name='Plot', field_name='geom'):
+    def delete_permission(self, role, model_name='Plot',
+                          field_name='owner_orig_id'):
         qs = self.get_single_perm_qs(role, model_name, field_name)
         qs.delete()
 
@@ -96,7 +98,7 @@ class PermissionsCacheTest(TestCase):
         self.assert_user_permission(None, READ)
 
     def test_empty_model_name(self):
-        perms = permissions(self.user, self.instance)
+        perms = field_permissions(self.user, self.instance)
         self.assertEqual(len(perms), FieldPermission.objects.filter(
             instance=self.instance, role=self.user.get_role(self.instance))
             .count())

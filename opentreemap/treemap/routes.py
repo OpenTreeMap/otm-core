@@ -155,8 +155,16 @@ canopy_popup = do(
 add_map_feature_photo = add_map_feature_photo_do(
     feature_views.add_map_feature_photo)
 
-rotate_map_feature_photo = add_map_feature_photo_do(
-    feature_views.rotate_map_feature_photo)
+delete_photo = do(
+    require_http_method("DELETE"),
+    login_or_401,
+    instance_request,
+    render_template('treemap/partials/photo_carousel.html'),
+    feature_views.delete_photo)
+
+map_feature_photo = route(
+    POST=add_map_feature_photo_do(feature_views.rotate_map_feature_photo),
+    DELETE=delete_photo)
 
 map_feature_photo_detail = do(
     instance_request,

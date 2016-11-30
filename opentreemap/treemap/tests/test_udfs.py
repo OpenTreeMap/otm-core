@@ -7,7 +7,6 @@ import json
 from random import shuffle
 from datetime import datetime
 import psycopg2
-from unittest.case import skip
 
 from django.db import connection
 from django.db.models import Q
@@ -19,9 +18,10 @@ from treemap.tests import (make_instance, make_commander_user,
                            make_officer_user,
                            set_write_permissions)
 
-from treemap.lib.object_caches import role_permissions
+from treemap.lib.object_caches import role_field_permissions
 from treemap.lib.udf import udf_create
 
+from treemap.instance import create_stewardship_udfs
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.models import Instance, Plot, User
 from treemap.audit import (AuthorizeException, FieldPermission, Role,
@@ -1070,7 +1070,6 @@ class CollectionUDFTest(OTMTestCase):
         self.plot = Plot(geom=self.p, instance=self.instance)
         self.plot.save_with_user(self.commander_user)
 
-    @skip('incorrect reliance on order, see issue #2700')
     def test_can_update_choice_option(self):
         stews = [{'action': 'water',
                   'height': 42},
@@ -1084,7 +1083,7 @@ class CollectionUDFTest(OTMTestCase):
         audits = [a.current_value for a in
                   plot.audits().filter(field='udf:action')]
 
-        self.assertEqual(plot.udfs['Stewardship'][0]['action'], 'water')
+        self.assertEqual(self._get_udf_actions(plot), {'water', 'prune'})
         self.assertEqual(audits, ['water', 'prune'])
 
         self.udf.update_choice('water', 'h2o', name='action')
@@ -1093,10 +1092,13 @@ class CollectionUDFTest(OTMTestCase):
         audits = [a.current_value for a in
                   plot.audits().filter(field='udf:action')]
 
-        self.assertEqual(plot.udfs['Stewardship'][0]['action'], 'h2o')
+        self.assertEqual(self._get_udf_actions(plot), {'h2o', 'prune'})
         self.assertEqual(audits, ['h2o', 'prune'])
 
-    @skip('incorrect reliance on order, see issue #2700')
+    def _get_udf_actions(self, plot):
+        # UDF collection values are not ordered! So compare using sets.
+        return {value['action'] for value in plot.udfs['Stewardship']}
+
     def test_can_delete_choice_option(self):
         stews = [{'action': 'water',
                   'height': 42},
@@ -1110,7 +1112,7 @@ class CollectionUDFTest(OTMTestCase):
         audits = [a.current_value for a in
                   plot.audits().filter(field='udf:action')]
 
-        self.assertEqual(plot.udfs['Stewardship'][0]['action'], 'water')
+        self.assertEqual(self._get_udf_actions(plot), {'water', 'prune'})
         self.assertEqual(audits, ['water', 'prune'])
 
         self.udf.delete_choice('water', name='action')
@@ -1119,7 +1121,7 @@ class CollectionUDFTest(OTMTestCase):
         audits = [a.current_value for a in
                   plot.audits().filter(field='udf:action')]
 
-        self.assertEqual(plot.udfs['Stewardship'][0]['action'], '')
+        self.assertEqual(self._get_udf_actions(plot), {'', 'prune'})
         self.assertEqual(audits, ['prune'])
 
     def test_can_get_and_set(self):
@@ -1141,7 +1143,6 @@ class CollectionUDFTest(OTMTestCase):
 
             self.assertDictContainsSubset(expected_stew, actual_stew)
 
-    @skip('incorrect reliance on order, see issue #2700')
     def test_can_delete(self):
         stews = [{'action': 'water',
                   'height': 42},
@@ -1154,8 +1155,8 @@ class CollectionUDFTest(OTMTestCase):
         reloaded_plot = Plot.objects.get(pk=self.plot.pk)
         all_new_stews = reloaded_plot.udfs['Stewardship']
 
-        # Remove first one
-        new_stews = all_new_stews[1:]
+        # Keep only 'prune' (note that UDF collection values are unordered)
+        new_stews = filter(lambda v: v['action'] == 'prune', all_new_stews)
         reloaded_plot.udfs['Stewardship'] = new_stews
         reloaded_plot.save_with_user(self.commander_user)
 
@@ -1310,6 +1311,7 @@ class UdfCRUTestCase(OTMTestCase):
         User._system_user.save_base()
 
         self.instance = make_instance()
+        create_stewardship_udfs(self.instance)
         self.user = make_commander_user(self.instance)
 
         set_write_permissions(self.instance, self.user,
@@ -1349,7 +1351,7 @@ class UdfCreateTest(UdfCRUTestCase):
 
         for role in roles_in_instance:
             perms = [perm.field_name
-                     for perm in role_permissions(role, self.instance)]
+                     for perm in role_field_permissions(role, self.instance)]
 
             self.assertIn('udf:cool udf', perms)
 

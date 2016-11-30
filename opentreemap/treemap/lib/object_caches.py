@@ -22,18 +22,21 @@ _adjuncts = {}
 # Interface functions
 
 
-def permissions(user, instance, model_name=None):
+def field_permissions(user, instance, model_name=None):
     if settings.USE_OBJECT_CACHES:
         return _get_adjuncts(instance).permissions(user, model_name)
     else:
         return _permissions_from_db(user, instance, model_name)
 
+permissions = field_permissions
 
-def role_permissions(role, instance=None, model_name=None):
+
+def role_field_permissions(role, instance=None, model_name=None):
     if settings.USE_OBJECT_CACHES:
         if not instance:
             instance = role.instance
-        return _get_adjuncts(instance).role_permissions(role.id, model_name)
+        return _get_adjuncts(instance).role_field_permissions(
+            role.id, model_name)
     else:
         return _role_permissions_from_db(role, model_name)
 
@@ -77,10 +80,8 @@ def increment_adjuncts_timestamp(instance):
 
 
 def _permissions_from_db(user, instance, model_name):
-    if user is None or user.is_anonymous():
-        role = instance.default_role
-    else:
-        role = user.get_role(instance)
+    from treemap.audit import Role
+    role = Role.objects.get_role(instance, user)
     return _role_permissions_from_db(role, model_name)
 
 
@@ -126,9 +127,9 @@ class _InstanceAdjuncts:
             role_id = self._user_role_ids[user.id]
         else:
             role_id = self._user_role_ids[None]
-        return self.role_permissions(role_id, model_name)
+        return self.role_field_permissions(role_id, model_name)
 
-    def role_permissions(self, role_id, model_name):
+    def role_field_permissions(self, role_id, model_name):
         if not self._permissions:
             self._load_permissions()
         return self._permissions.get((role_id, model_name), [])
