@@ -470,6 +470,19 @@ $blue-to-red: #2791c3 10%,
     #tree-mortality-container {
         .col-sm-12 {
             padding: 10px;
+
+            label {
+                width: 50%;
+                float: left;
+                padding-top: 0;
+                font-size: 1.2rem;
+            }
+            .btn,
+            .form-group {
+                width: 46%;
+                float: left;
+                margin-left: 4%;
+            }
         }
     }
 
