@@ -539,8 +539,7 @@ UPDATE treemap_mapfeature
 SET updated_by_id = m.updated_by
 FROM (
   SELECT DISTINCT ON (a.model_id)
-    a.id AS audit_id, a.model_id, a.user_id AS updated_by,
-    MAX(a.updated) AS updated_at
+    a.model_id, a.user_id AS updated_by, a.updated AS updated_at
   FROM treemap_audit a
   WHERE a.model IN %s
   GROUP BY a.model_id, a.id
@@ -568,7 +567,7 @@ FROM (
     JOIN (
       -- Most recent audit records of Trees
       SELECT DISTINCT ON (a.model_id)
-        a.model_id, a.user_id AS updated_by, MAX(a.updated) AS updated_at
+        a.model_id, a.user_id AS updated_by, a.updated AS updated_at
       FROM treemap_audit a
       WHERE a.model = 'Tree'
       GROUP BY a.model_id, a.id
@@ -604,7 +603,7 @@ FROM (
       -- where the model id is the same for a TreePhoto and its
       -- MapFeaturePhoto superclass
       SELECT DISTINCT ON (a.model_id)
-        a.model_id, a.user_id AS updated_by, MAX(a.updated) AS updated_at
+        a.model_id, a.user_id AS updated_by, a.updated AS updated_at
       FROM treemap_audit a
       WHERE a.model in ('TreePhoto', 'MapFeaturePhoto')
       GROUP BY a.model_id, a.id
