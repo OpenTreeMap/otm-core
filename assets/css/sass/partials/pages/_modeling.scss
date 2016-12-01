@@ -103,7 +103,7 @@ $blue-to-red: #2791c3 10%,
     }
 
     #view-switcher {
-        padding-top: 5px;
+        padding-top: 4px;
         box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
         position: relative;
 
@@ -164,6 +164,8 @@ $blue-to-red: #2791c3 10%,
             padding-left: 10px;
             position: relative;
             white-space: nowrap;
+            margin-top: -2px;
+            padding-bottom: 1px;
         }
 
         #scenario-buttons {
@@ -172,8 +174,6 @@ $blue-to-red: #2791c3 10%,
             > .btn-group.js-scenario {
                 display: inline-block;
                 border: 1px solid #ddd;
-                border-bottom: none;
-                border-radius: 5px 5px 0 0;
                 margin-right: 5px;
 
                 .btn {
@@ -183,6 +183,10 @@ $blue-to-red: #2791c3 10%,
                 &.active .btn {
                     color: $primary-color;
                     background-color: #fff;
+                }
+
+                .dropdown-toggle {
+                    border-left: 1px solid #ddd;
                 }
             }
         }
@@ -461,6 +465,47 @@ $blue-to-red: #2791c3 10%,
         .legend-label {
             white-space: nowrap;
         }
+    }
+
+    #tree-mortality-container {
+        .col-sm-12 {
+            padding: 10px;
+
+            label {
+                width: 50%;
+                float: left;
+                padding-top: 0;
+                font-size: 1.2rem;
+            }
+            .btn,
+            .form-group {
+                width: 46%;
+                float: left;
+                margin-left: 4%;
+            }
+        }
+    }
+
+    #mortality-rate-table {
+        th, td {
+            vertical-align: middle;
+        }
+    }
+
+    .remove-tree-button {
+        padding: 5px;
+        border-radius: 4px;
+        border: 1px solid #e84f4f;
+        color: #e84f4f;
+        opacity: 1;
+        display: block;
+        margin: auto;
+        text-align: center;
+    }
+
+    #mortality-rate-dropdown .dropdown-menu {
+        max-height: 200px;
+        overflow: auto;
     }
 }
 
