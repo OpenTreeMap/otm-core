@@ -3,7 +3,7 @@
 
 boto==2.43.0                             # http://docs.pythonboto.org/en/latest/releasenotes/v2.39.0.html
 # https://docs.djangoproject.com/en/1.10/releases/#id2
-Django==1.8.16  # rq.filter: >=1.8,<1.9
+Django==1.8.17  # rq.filter: >=1.8,<1.9
 django-apptemplates==1.2
 # django-celery requires celery, but is incompatible with celery
 # 4.0. django-celery has added this restriction on the master branch,
