@@ -256,10 +256,18 @@ def _base_process_comment(migration_rules, migration_event,
     comment_obj.site_id = 1
 
     if comment_obj.content_type_id == models.UNBOUND_MODEL_ID:
-        print("Can't import comment %s because "
-              "it is assigned to a ContentType (model) "
-              "that does not exist in OTM2 .. SKIPPING"
-              % comment_obj.comment.encode('utf-8'))
+        try:
+            print("Can't import comment %s because "
+                  "it is assigned to a ContentType (model) "
+                  "that does not exist in OTM2 .. SKIPPING"
+                  % comment_obj.comment.encode('utf-8'))
+        except:
+            # There was a problem handling the comment string when
+            # printing the warning message. Ignore it and move on
+            # rather than crash the import.
+            print("Can't import comment because "
+                  "it is assigned to a ContentType (model) "
+                  "that does not exist in OTM2 .. SKIPPING")
         return None
     content_type = ContentType.objects.get(pk=comment_obj.content_type_id)
 
