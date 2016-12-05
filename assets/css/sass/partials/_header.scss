@@ -90,52 +90,6 @@ $mobile-search-button-group-width : 166px;
             display: block;
             margin-top: -2px;
         }
-        .search-field-group {
-            position: relative;
-
-            .twitter-typeahead {
-                display: block !important;
-            }
-
-            input[type="text"] {
-                margin: 0;
-                padding-left: 32px;
-                font-size: 1.2rem;
-
-                &::placeholder {
-                    text-overflow: ellipsis !important;
-                }
-                &::-moz-placeholder {
-                    text-overflow: ellipsis !important;
-                }
-                &:-ms-input-placeholder {
-                    text-overflow: ellipsis !important;
-                }
-                &::-webkit-input-placeholder {
-                    text-overflow: ellipsis !important;
-                }
-            }
-            .typeahead-toggle {
-                padding: 9px 4px 7px;
-                position: absolute;
-                top: 0px;
-                z-index: 9;
-                background: none;
-                border: none;
-                cursor: pointer;
-                color: $well-color;
-                font-size: 1.8rem;
-                line-height: 1.6rem;
-
-                &.active,
-                &:hover {
-                    color: $main-text-color;
-                }
-            }
-            .search-button {
-                display: none;
-            }
-        }
         .dropdown-menu {
             width: 257px;
             -moz-border-radius: 3px;
@@ -251,7 +205,7 @@ $mobile-search-button-group-width : 166px;
                 > label {
                     display: none;
                 }
-                .search-field-group .twitter-typeahead input[type="text"] {
+                .autocomplete-group .twitter-typeahead input[type="text"] {
                     padding-left: 8px;
                     border-top-right-radius: 0;
                     border-bottom-right-radius: 0;
