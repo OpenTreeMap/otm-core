@@ -85,6 +85,7 @@ var create = exports.create = function(options) {
 
         prefetchEngine,
         geocoderEngine,
+        allDataStream,
 
         typeaheadOptions = {
             minLength: options.minLength || 0
@@ -176,15 +177,19 @@ var create = exports.create = function(options) {
         $input.typeahead(typeaheadOptions, geocoderOptions);
     }
 
-    var selectStream = $input.asEventStream('typeahead:select typeahead:autocomplete',
-                                            function(e, datum) { return datum; }),
+    var datumGet = function(e, datum) { return datum; },
+        selectStream = $input.asEventStream('typeahead:select', datumGet),
+
+        autocompleteStream = $input.asEventStream('typeahead:autocomplete', datumGet),
+
+        matchStream = Bacon.mergeAll(selectStream, autocompleteStream),
 
         backspaceOrDeleteStream = $input.asEventStream('keyup')
                                         .filter(BU.keyCodeIs([8, 46])),
 
-        editStream = selectStream.merge(backspaceOrDeleteStream.map(undefined)),
+        editStream = matchStream.merge(backspaceOrDeleteStream.map(undefined)),
 
-        idStream = selectStream.map(".id")
+        idStream = matchStream.map(".id")
                                .merge(backspaceOrDeleteStream.map("")),
 
         openCloseStream = Bacon.mergeAll(
@@ -238,6 +243,9 @@ var create = exports.create = function(options) {
             $hidden_input.val(value || '');
         });
 
+        allDataStream = Bacon.fromPromise(enginePromise).map(function () {
+            return prefetchEngine.all();
+        });
     }
 
     if (options.button) {
@@ -283,7 +291,9 @@ var create = exports.create = function(options) {
             if (options.hidden) {
                 $hidden_input.val('');
             }
-        }
+        },
+        selectStream: selectStream,
+        allDataStream: allDataStream
     };
 };
 
