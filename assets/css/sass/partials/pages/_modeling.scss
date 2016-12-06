@@ -768,19 +768,12 @@ $blue-to-red: #2791c3 10%,
             font-weight: 400;
             font-size: 1.4rem;
         }
-
-        .remove-mask {
-            position: absolute;
-            cursor: pointer;
-            font-size: 1.2rem;
-            right: 18px;
-            top: 14px;
-            opacity: .5;
-        }
     }
 
-    .search-block {
-        padding: 12px 14px 16px;
+    #boundary-masks {
+        .mask-chooser {
+            padding: 18px 14px 16px;
+        }
 
         label {
             display: block;
@@ -796,6 +789,25 @@ $blue-to-red: #2791c3 10%,
 
             > li > a {
                 padding: 3px 12px;
+            }
+        }
+
+        #chosen-masks {
+            .mask-name {
+                font-size: 1.3rem;
+                font-weight: 600;
+                color: $main-text-color;
+            }
+            .mask-category {
+                font-size: 1.1rem;
+            }
+            .remove-mask {
+                position: absolute;
+                cursor: pointer;
+                font-size: 2rem;
+                right: 18px;
+                top: 14px;
+                opacity: .5;
             }
         }
     }
