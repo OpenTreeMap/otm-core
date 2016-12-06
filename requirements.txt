@@ -33,7 +33,7 @@ Pillow==3.4.2
 psycopg2==2.6.2                          # http://initd.org/psycopg/docs/news.html
 python-dateutil==2.6.0                   # https://github.com/dateutil/dateutil/blob/master/NEWS
 python-omgeo==1.9.0
-pytz==2016.7                           # https://launchpad.net/pytz/+announcements
+pytz==2016.10                           # https://launchpad.net/pytz/+announcements
 rollbar==0.13.8                          # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
 statsd==3.2.1
 wsgiref==0.1.2
