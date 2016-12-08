@@ -11,10 +11,6 @@ class InvalidInstanceException(Exception):
     pass
 
 
-class FeatureNotEnabledException(Exception):
-    pass
-
-
 class JSONResponseForbidden(HttpResponseForbidden):
     def __init__(self, *args, **kwargs):
         super(JSONResponseForbidden, self).__init__(
