@@ -112,22 +112,26 @@ exports.getJsonFromUrl = function(url) {
 // a button to provide a consistent form submission
 // experience
 exports.enterOrClickEventStream = function(options) {
+    var button = $(options.button),
+        performSearchClickStream = button.asEventStream("click"),
+        enterKeyPressStream = exports.enterKeyPressStream(options);
+
+    return Bacon.mergeAll(
+        enterKeyPressStream,
+        performSearchClickStream);
+};
+
+exports.enterKeyPressStream = function(options) {
     var inputs = $(options.inputs),
-        button = $(options.button),
         enterKeyPressStream = inputs
             .asEventStream("keyup")
-            .filter(isEnterKey),
-
-        performSearchClickStream = button.asEventStream("click"),
-
-        triggerEventStream = enterKeyPressStream.merge(
-            performSearchClickStream);
+            .filter(isEnterKey);
 
     // When enter is pressed blur the text input that caused it to close
     // any touch keyboards that may be open
     enterKeyPressStream.map('.target').map($).onValue('.blur');
 
-    return triggerEventStream;
+    return enterKeyPressStream;
 };
 
 exports.leafletEventStream = function(leafletThing, event) {

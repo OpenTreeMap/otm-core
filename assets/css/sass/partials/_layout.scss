@@ -251,6 +251,53 @@ body {
     z-index: 1040 !important;
 }
 
+.autocomplete-group {
+    position: relative;
+
+    .twitter-typeahead {
+        display: block !important;
+    }
+
+    input[type="text"] {
+        margin: 0;
+        padding-left: 32px;
+        font-size: 1.2rem;
+
+        &::placeholder {
+            text-overflow: ellipsis !important;
+        }
+        &::-moz-placeholder {
+            text-overflow: ellipsis !important;
+        }
+        &:-ms-input-placeholder {
+            text-overflow: ellipsis !important;
+        }
+        &::-webkit-input-placeholder {
+            text-overflow: ellipsis !important;
+        }
+    }
+    .typeahead-toggle {
+        padding: 9px 4px 7px;
+        position: absolute;
+        top: 0px;
+        z-index: 9;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: $well-color;
+        font-size: 1.8rem;
+        line-height: 1.6rem;
+
+        &.active,
+        &:hover {
+            color: $main-text-color;
+        }
+    }
+    .search-button {
+        display: none;
+    }
+}
+
 @media #{$screen-xs} {
     body {
         padding: 0;
