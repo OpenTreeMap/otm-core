@@ -30,6 +30,7 @@ function init(options) {
         mapManager = options.mapManager,
         plotMarker = options.plotMarker,
         areaFieldIdentifier,
+        hideSearch,
         editor = polylineEditor(options),
         onlyOneResourceType = $resourceType.length === 1;
 
@@ -42,11 +43,15 @@ function init(options) {
         manager.activate();
         plotMarker.useTreeIcon(false);
         initSteps(type);
+        $('body').addClass('add-feature');
+        hideSearch = $('body').hasClass('hide-search');
     };
 
     deactivateMode = function () {
         editor.removeAreaPolygon();
         manager.deactivate();
+        $('body').removeClass('add-feature');
+        $('body').toggleClass('hide-search', hideSearch);
     };
 
     function onResourceTypeChosen() {
@@ -202,6 +207,7 @@ function deactivate() {
 
 module.exports = {
     name: 'addResource',
+    hideSearch: true,
     init: init,
     activate: activate,
     deactivate: deactivate,

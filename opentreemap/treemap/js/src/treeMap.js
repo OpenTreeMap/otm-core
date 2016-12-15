@@ -88,3 +88,29 @@ modes.init(mapManager, triggerSearchFromSidebar, mapPage.embed,
 // Read state from current URL, initializing
 // zoom/lat/long/search/mode/selection
 mapPage.initMapState();
+
+// Toggle class on panel-group when toggle is tapped to show/hide
+// expanded view on mobile
+var prevCenter;
+$('#feature-panel').on('click', '.sidebar-panel-toggle', function() {
+    $('body').toggleClass('hide-search open');
+    $('#feature-panel').toggleClass('expanded with-map');
+
+    // Recenter map on selected feature when shrinking it
+    // Put it back to previous center when enlarging it again
+    var latLon = prevCenter;
+    if ($('body').is('.open')) {
+        prevCenter = mapPage.map.getCenter();
+        latLon = $("#map-feature-popup").data('latlon');
+    }
+    mapPage.map.invalidateSize();
+    mapPage.map.panTo(latLon, {
+        animate: true,
+        duration: 0.4,
+        easeLinearity: 0.1
+    });
+});
+
+$('#eco-panel').on('click', '.sidebar-panel-toggle', function() {
+    $('#eco-panel').toggleClass('expanded full');
+});

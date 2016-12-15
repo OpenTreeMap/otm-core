@@ -24,31 +24,28 @@ function init(options) {
         clearEditControls = function() {
             typeahead.clear();
         },
-        manager = addMapFeature.init(_.extend({clearEditControls: clearEditControls}, options));
+        manager = addMapFeature.init(_.extend({clearEditControls: clearEditControls}, options)),
+        hideSearch;
 
     activateMode = function() {
         manager.activate();
         // Let user start creating a feature (by clicking the map)
         plotMarker.useTreeIcon(true);
         plotMarker.enablePlacing();
+        $('body').addClass('add-feature');
+        hideSearch = $('body').hasClass('hide-search');
     };
 
     deactivateMode = function() {
         typeahead.clear();
         manager.deactivate();
+        $('body').removeClass('add-feature');
+        $('body').toggleClass('hide-search', hideSearch);
     };
 
     diameterCalculator({ formSelector: options.formSelector,
                          cancelStream: manager.deactivateStream,
                          saveOkStream: manager.addFeatureStream });
-
-    manager.stepControls.stepChangeCompleteStream.onValue(function (stepNumber) {
-        if (stepNumber === STEP_DETAILS) {
-            if ($speciesInput.val().length === 0) {
-                $speciesInput.focus();
-            }
-        }
-    });
 
     manager.stepControls.stepChangeStartStream.onValue(function (stepNumber) {
         if (stepNumber === STEP_FINAL) {
@@ -70,10 +67,6 @@ function init(options) {
 
     // In case we're adding another tree, make user move the marker
     manager.addFeatureStream.onValue(manager.requireMarkerDrag);
-
-    _.defer(function () {
-        manager.focusOnAddressInput();
-    });
 }
 
 function activate() {
@@ -86,6 +79,7 @@ function deactivate() {
 
 module.exports = {
     name: 'addTree',
+    hideSearch: true,
     init: init,
     activate: activate,
     deactivate: deactivate,

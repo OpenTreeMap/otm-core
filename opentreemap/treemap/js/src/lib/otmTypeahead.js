@@ -197,6 +197,14 @@ var create = exports.create = function(options) {
                 $input.asEventStream('typeahead:idle typeahead:close').map(false)
             );
 
+    selectStream.onValue(function() {
+        // After the user selects a field, blur the input so that any soft
+        // keyboards that are open will close (mobile)
+        _.defer(function() {
+            $input.blur();
+        });
+    });
+
     editStream.filter(BU.isDefined).onValue($input, "data", "datum");
     editStream.filter(BU.isUndefined).onValue($input, "removeData", "datum");
 

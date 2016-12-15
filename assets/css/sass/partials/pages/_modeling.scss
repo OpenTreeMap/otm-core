@@ -229,12 +229,11 @@ $blue-to-red: #2791c3 10%,
                     display: inline-block;
                     -webkit-appearance: none;
                     -moz-appearance: none;
-                    appearance: none;
                     cursor: pointer;
                     width: 100%;
                 }
 
-                @media screen and ( -webkit-min-device-pixel-ratio: 0 ) {
+                @media screen and ( min-resolution: 0dppx ) {
                     select {
                         padding-right: 18px;
                     }
@@ -253,9 +252,6 @@ $blue-to-red: #2791c3 10%,
                         content: '>';
                         font: 14px "Consolas", monospace;
                         color: $light-gray-color;
-                        -webkit-transform: rotate(90deg);
-                        -moz-transform: rotate(90deg);
-                        -ms-transform: rotate(90deg);
                         transform: rotate(90deg);
                         right: 12px;
                         top: 8px;
@@ -381,11 +377,6 @@ $blue-to-red: #2791c3 10%,
 
                         &[for="visibility-slider"] + div.slider > .slider-track {
                             background: #002400;
-                            background: -moz-linear-gradient(left, #002400 0%, #005700 17%, #008a00 33%, #52b152 67%, #83c783 83%, #b4ddb4 100%);
-                            background: -webkit-gradient(linear, left top, right top, color-stop(0%,#002400), color-stop(17%,#005700), color-stop(33%,#008a00), color-stop(67%,#52b152), color-stop(83%,#83c783), color-stop(100%,#b4ddb4));
-                            background: -webkit-linear-gradient(left, #002400 0%,#005700 17%,#008a00 33%,#52b152 67%,#83c783 83%,#b4ddb4 100%);
-                            background: -o-linear-gradient(left, #002400 0%,#005700 17%,#008a00 33%,#52b152 67%,#83c783 83%,#b4ddb4 100%);
-                            background: -ms-linear-gradient(left, #002400 0%,#005700 17%,#008a00 33%,#52b152 67%,#83c783 83%,#b4ddb4 100%);
                             background: linear-gradient(to right, #002400 0%,#005700 17%,#008a00 33%,#52b152 67%,#83c783 83%,#b4ddb4 100%);
                             filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#002400', endColorstr='#b4ddb4',GradientType=1 );
 
@@ -429,7 +420,6 @@ $blue-to-red: #2791c3 10%,
         display: inline-block;
 
         &.blue-to-red {
-            background: -webkit-linear-gradient(90deg, $blue-to-red);
             background: linear-gradient(90deg, $blue-to-red);
         }
     }
@@ -783,8 +773,6 @@ $blue-to-red: #2791c3 10%,
 
         .dropdown-menu {
             width: 257px;
-            -moz-border-radius: 3px;
-            -webkit-border-radius: 3px;
             border-radius: 3px;
 
             > li > a {

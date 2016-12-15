@@ -9,6 +9,8 @@
 
     @media #{$screen-xs} {
         border-top: none;
+        position: relative;
+
         > .advanced-search > .dropdown {
             position: absolute;
             bottom: 0;
@@ -34,13 +36,11 @@
     }
     &.expanded {
         > .advanced-search {
-            -webkit-transform: translate(0);
-                    transform: translate(0);
+            transform: translate(0);
             box-shadow: 0 6px 0 rgba(0,0,0,.15);
 
             + .stats-bar {
-                -webkit-transform: translate(0,-101%);
-                        transform: translate(0,-101%);
+                transform: translate(0,-101%);
             }
             @media #{$screen-xs} {
                 padding-top: 150px;
@@ -55,8 +55,7 @@
     > .advanced-search {
         background: lighten($primary-color, 15%);
         position: absolute;
-        -webkit-transform: translate(0,-110%);
-                transform: translate(0,-110%);
+        transform: translate(0,-110%);
         width: 100%;
         z-index: 11;
 
@@ -66,7 +65,6 @@
             }
         }
         @media #{$screen-gtxs} {
-            transition: .2s ease-in-out -webkit-transform;
             transition: .2s ease-in-out transform;
         }
         .search-block-wrapper {
@@ -198,8 +196,7 @@
                 border-radius: 100%;
                 left: 3px;
                 top: 28px;
-                -webkit-transform: translate(0, -50%);
-                        transform: translate(0, -50%);
+                transform: translate(0, -50%);
             }
         }
 
@@ -289,7 +286,6 @@
             font-weight: 500;
             -webkit-appearance: none;
             -moz-appearance: none;
-            appearance: none;
             border: none;
             border-bottom: 1px dashed lighten($primary-color, 45%);
             outline: none;
@@ -329,11 +325,6 @@
             option {
                 color: black;
                 background: white;
-
-                @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
-                    color: white;
-                    background: transparent;
-                }
             }
         }
 
@@ -363,7 +354,6 @@
             font-size: 1.2rem;
         }
         @media #{$screen-gtxs} {
-            transition: .2s ease-in-out -webkit-transform;
             transition: .2s ease-in-out transform;
         }
         span {
