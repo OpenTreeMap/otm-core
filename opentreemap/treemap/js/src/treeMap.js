@@ -28,7 +28,9 @@ function changeMode (modeOptions) {
 
 var mapPage = MapPage.init({
         domId: 'map',
-        trackZoomLatLng: true
+        trackZoomLatLng: true,
+        fillSearchBoundary: true,
+        saveSearchInUrl: true
     }),
     mapManager = mapPage.mapManager,
 
