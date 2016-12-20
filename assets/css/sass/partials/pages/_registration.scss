@@ -101,6 +101,9 @@
     border: none;
     background-color: $navbar-color;
     margin-top: 15px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    line-height: 63px;
 
     h3 {
         margin-bottom: 0;
@@ -112,6 +115,7 @@
     }
     a {
         margin-left: 20px;
+        margin-right: 20px;
     }
 }
 
