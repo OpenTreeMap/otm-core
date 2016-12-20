@@ -29,6 +29,8 @@ ga('set', 'page', pathname);
 
 {% block instance_title %} | {{ request.instance.name }}{% endblock %}
 
+{% block header_class %}instance-header{% endblock %}
+
 {% block instancetopnav %}
 {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
   {% if request.instance.has_resources %}
