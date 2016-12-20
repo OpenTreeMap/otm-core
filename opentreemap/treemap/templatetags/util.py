@@ -163,7 +163,7 @@ def display_name(audit_or_model_or_name, instance=None):
 def is_filterable_audit_model(model_name):
     allowed_models = get_filterable_audit_models()
 
-    return model_name in allowed_models.values()
+    return model_name in allowed_models
 
 
 @register.filter

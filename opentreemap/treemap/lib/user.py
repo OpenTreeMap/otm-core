@@ -3,8 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import urllib
-
 from django.db.models import Q
 
 from treemap.audit import Audit, Authorizable, get_auditable_class
@@ -21,12 +19,14 @@ def _instance_ids_edited_by(user):
                         .distinct()
 
 
-def get_audits(logged_in_user, instance, query_vars, user, models,
-               model_id, page=0, page_size=20, exclude_pending=True,
-               should_count=False):
-    start_pos = page * page_size
-    end_pos = start_pos + page_size
+PAGE_DEFAULT = 20
+ALLOWED_MODELS = get_filterable_audit_models()
 
+
+def get_audits(logged_in_user, instance, query_vars, user=None,
+               models=ALLOWED_MODELS, model_id=None, start_id=None,
+               prev_start_ids=[], page_size=PAGE_DEFAULT, exclude_pending=True,
+               should_count=False):
     if instance:
         if instance.is_accessible_by(logged_in_user):
             instances = Instance.objects.filter(pk=instance.pk)
@@ -36,10 +36,10 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
     # show audits where the user has permission
     else:
         instances = Instance.objects\
-                            .filter(pk__in=_instance_ids_edited_by(user))\
-                            .filter(user_accessible_instance_filter(
-                                logged_in_user))\
-                            .distinct()
+            .filter(user_accessible_instance_filter(logged_in_user))
+        if user:
+            instances = instances.filter(pk__in=_instance_ids_edited_by(user))
+        instances = instances.distinct()
 
     if not instances.exists():
         # Force no results
@@ -103,7 +103,7 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
               .select_related('instance')
               .exclude(udf_bookkeeping_fields)
               .exclude(user=User.system_user())
-              .order_by('-created'))
+              .order_by('-pk'))
 
     if user:
         audits = audits.filter(user=user)
@@ -112,20 +112,38 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
     if exclude_pending:
         audits = audits.exclude(requires_auth=True, ref__isnull=True)
 
-    total_count = audits.count() if should_count else 0
-    audits = audits[start_pos:end_pos]
+    # Slicing the QuerySet uses a SQL Limit, which has proven to be quite slow.
+    # By relying on the fact the our list is ordered by primary key from newest
+    # to oldest, we can rely on the index on the primary key, which is faster.
+    if start_id is not None:
+        audits = audits.filter(pk__lt=start_id)
 
-    query_vars = {k: v for (k, v) in query_vars.iteritems() if k != 'page'}
-    next_page = None
-    prev_page = None
+    total_count = audits.count() if should_count else 0
+    audits = audits[:page_size]
+
+    # Coerce the queryset into a list so we can get the last item on the page
+    audits = list(audits)
+
     # We are using len(audits) instead of audits.count() because we
     # have already realized the queryset at this point
     if len(audits) == page_size:
-        query_vars['page'] = page + 1
-        next_page = "?" + urllib.urlencode(query_vars)
-    if page > 0:
-        query_vars['page'] = page - 1
-        prev_page = "?" + urllib.urlencode(query_vars)
+        query_vars.setlist('prev', prev_start_ids + [audits[0].pk])
+        query_vars['start'] = audits[-1].pk
+        next_page = "?" + query_vars.urlencode()
+    else:
+        next_page = None
+
+    if prev_start_ids:
+        if len(prev_start_ids) == 1:
+            del query_vars['prev']
+            del query_vars['start']
+        else:
+            prev_start_id = prev_start_ids.pop()
+            query_vars.setlist('prev', prev_start_ids)
+            query_vars['start'] = prev_start_id
+        prev_page = "?" + query_vars.urlencode()
+    else:
+        prev_page = None
 
     return {'audits': audits,
             'total_count': total_count,
@@ -135,26 +153,22 @@ def get_audits(logged_in_user, instance, query_vars, user, models,
 
 def get_audits_params(request):
     PAGE_MAX = 100
-    PAGE_DEFAULT = 20
 
-    r = request.REQUEST
+    r = request.GET
 
     page_size = min(int(r.get('page_size', PAGE_DEFAULT)), PAGE_MAX)
-    page = int(r.get('page', 0))
+    start_id = r.get('start', None)
+    if start_id is not None:
+        start_id = int(start_id)
 
-    models = []
+    prev_start_ids = [int(pk) for pk in r.getlist('prev')]
 
-    allowed_models = get_filterable_audit_models()
-    models_param = r.get('models', None)
+    models = r.getlist('models', default=ALLOWED_MODELS)
 
-    if models_param:
-        for model in models_param.split(','):
-            if model.lower() in allowed_models:
-                models.append(allowed_models[model.lower()])
-            else:
+    if models:
+        for model in models:
+            if model not in ALLOWED_MODELS:
                 raise Exception("Invalid model: %s" % model)
-    else:
-        models = allowed_models.values()
 
     model_id = r.get('model_id', None)
 
@@ -164,7 +178,9 @@ def get_audits_params(request):
 
     exclude_pending = r.get('exclude_pending', "false") == "true"
 
-    return (page, page_size, models, model_id, exclude_pending)
+    return {'start_id': start_id, 'prev_start_ids': prev_start_ids,
+            'page_size': page_size, 'models': models, 'model_id': model_id,
+            'exclude_pending': exclude_pending}
 
 
 def user_accessible_instance_filter(logged_in_user):

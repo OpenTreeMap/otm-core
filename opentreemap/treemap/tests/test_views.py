@@ -13,7 +13,6 @@ from django.test.client import RequestFactory
 from django.http import Http404, HttpResponse
 from django.core.exceptions import ValidationError
 from django.db import connection
-from django.db.models.query import QuerySet
 from django.core import mail
 
 from django.contrib.auth.models import AnonymousUser, Permission
@@ -1218,11 +1217,12 @@ class RecentEditsViewTest(ViewTestCase):
     def check_audits(self, url, dicts, user=None):
         req = self.factory.get(url)
         req.user = user if user else AnonymousUser()
-        resulting_audits = [audit.dict()
+        resulting_audits = [audit
                             for audit
                             in edits(req, self.instance)['audits']]
 
-        self._assert_dicts_equal(dicts, resulting_audits)
+        self._assert_dicts_equal(dicts, [a.dict() for a in resulting_audits])
+        return resulting_audits
 
     def check_user_audits(self, url, username, dicts):
         req = self.factory.get(url)
@@ -1241,46 +1241,45 @@ class RecentEditsViewTest(ViewTestCase):
                                [self.next_plot_delta, self.plot_delta])
 
     def test_paging(self):
-        self.check_audits('/blah/?page_size=1&page=1', [self.plot_delta])
-        self.check_user_audits('/eblah/?page_size=1&page=1&instance_id=%s'
-                               % self.instance.pk,
-                               self.commander.username, [self.plot_delta])
+        ret_audits = self.check_audits('/blah/?page_size=1',
+                                       [self.next_plot_delta])
+
+        self.check_audits('/blah/?page_size=1&start=%s' % ret_audits[0].pk,
+                          [self.plot_delta])
 
     def test_model_filtering_errors(self):
         self.assertRaises(Exception,
                           self.check_audits,
-                          "/blah/?model_id=%s&page=0&page_size=1" %
+                          "/blah/?model_id=%s&page_size=1" %
                           self.tree.pk, [])
 
         self.assertRaises(Exception,
                           self.check_audits,
                           "/blah/?model_id=%s&"
-                          "models=Tree,Plot&page=0&page_size=1" %
+                          "models=Tree&models=Plot&page_size=1" %
                           self.tree.pk, [])
 
         self.assertRaises(Exception,
                           self.check_audits,
-                          "/blah/?models=User&page=0&page_size=1", [])
+                          "/blah/?models=User&page_size=1", [])
 
         self.assertRaises(Exception,
                           self.check_user_audits,
-                          "/blah/?model_id=%s&page=0&page_size=1"
-                          "&instance_id=%s"
-                          % (self.instance.pk, self.tree.pk),
+                          "/blah/?model_id=%s&page_size=1&instance_id=%s"
+                          % (self.tree.pk, self.instance.pk),
                           self.commander.username, [])
 
         self.assertRaises(Exception,
                           self.check_user_audits,
-                          "/blah/?model_id=%s&"
-                          "models=Tree,Plot&page=0&page_size=1"
-                          "&instance_id=%s"
-                          % (self.instance.pk, self.tree.pk),
+                          "/blah/?model_id=%s&models=Tree&models=Plot"
+                          "&page_size=1&instance_id=%s"
+                          % (self.tree.pk, self.instance.pk),
                           self.commander.username, [])
 
         self.assertRaises(Exception,
                           self.check_user_audits,
-                          "/blah/?models=User&page=0&page_size=1",
-                          "&instance_id=%s" % self.instance.pk,
+                          "/blah/?models=User&page_size=1&instance_id=%s"
+                          % self.instance.pk,
                           self.commander.username, [])
 
     def test_model_filtering(self):
@@ -1301,23 +1300,23 @@ class RecentEditsViewTest(ViewTestCase):
         }
 
         self.check_audits(
-            "/blah/?model_id=%s&models=Tree&page=0&page_size=1" % self.tree.pk,
+            "/blah/?model_id=%s&models=Tree&page_size=1" % self.tree.pk,
             [specific_tree_delta])
 
         self.check_audits(
-            "/blah/?model_id=%s&models=Plot&page=0&page_size=1" % self.plot.pk,
+            "/blah/?model_id=%s&models=Plot&page_size=1" % self.plot.pk,
             [self.next_plot_delta])
 
         self.check_audits(
-            "/blah/?models=Plot,Tree&page=0&page_size=3",
+            "/blah/?models=Plot&models=Tree&page_size=3",
             [generic_plot_delta, generic_plot_delta, generic_tree_delta])
 
         self.check_audits(
-            "/blah/?models=Plot&page=0&page_size=5",
+            "/blah/?models=Plot&page_size=5",
             [generic_plot_delta] * 5)
 
         self.check_audits(
-            "/blah/?models=Tree&page=0&page_size=5",
+            "/blah/?models=Tree&page_size=5",
             [generic_tree_delta] * 5)
 
     def test_model_user_filtering(self):
@@ -1338,21 +1337,21 @@ class RecentEditsViewTest(ViewTestCase):
         }
 
         self.check_user_audits(
-            "/blah/?model_id=%s&models=Tree&page=0&page_size=1" % self.tree.pk,
+            "/blah/?model_id=%s&models=Tree&page_size=1" % self.tree.pk,
             self.officer.username, [specific_tree_delta])
 
         self.check_user_audits(
-            "/blah/?model_id=%s&models=Plot&page=0&page_size=1&instance_id=%s"
+            "/blah/?model_id=%s&models=Plot&page_size=1&instance_id=%s"
             % (self.plot.pk, self.instance.pk),
             self.commander.username, [self.next_plot_delta])
 
         self.check_user_audits(
-            "/blah/?models=Plot&page=0&page_size=3&instance_id=%s"
+            "/blah/?models=Plot&page_size=3&instance_id=%s"
             % self.instance.pk, self.commander.username,
             [generic_plot_delta] * 3)
 
         self.check_user_audits(
-            "/blah/?models=Tree&page=0&page_size=3", self.officer.username,
+            "/blah/?models=Tree&page_size=3", self.officer.username,
             [generic_tree_delta] * 3)
 
     def test_user_filtering(self):
@@ -1604,8 +1603,8 @@ class UserViewTests(ViewTestCase):
         self.assertEquals(self.joe.username, context['user'].username,
                           'the user view should return a dict with user with '
                           '"username" set to %s ' % self.joe.username)
-        self.assertEquals(QuerySet, type(context['audits']),
-                          'the user view should return a queryset')
+        self.assertEquals(list, type(context['audits']),
+                          'the user view should return a list of audits')
 
     def test_get_with_invalid_username_returns_404(self):
         self.assertRaises(Http404, user, make_request(),
