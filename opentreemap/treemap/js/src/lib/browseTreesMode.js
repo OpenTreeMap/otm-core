@@ -164,7 +164,7 @@ function makePopup(latLon, html) {
             $popup.find('a').attr('target', '_blank');
         }
 
-        var $popupContents = $($popup.html());
+        var $popupContents = $($popup[0].outerHTML);
         $popupContents.data('latlon', latLon);
 
         var popup = L.popup(popupOptions)
