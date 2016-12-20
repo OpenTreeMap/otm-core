@@ -270,17 +270,27 @@ exports.init = function(options) {
     $(window).on('submit', form, function(event) { event.preventDefault(); });
 
     // Merge the major streams on the page together so that it can centrally
-    // manage the cleanup of ui forms after the change in run mode
-    actionStream.plug(editStream);
-    actionStream.plug(saveStream);
-    actionStream.plug(cancelStream);
-    actionStream.plug(externalCancelStream);
-    actionStream.plug(saveOkStream.map('save:ok'));
-    actionStream.plug(responseErrorStream.map('save:error'));
-    actionStream.plug(modeChangeStream);
-    actionStream.onValue(hideAndShowElements, editFields, eventsLandingInEditMode);
+    // manage the cleanup of ui forms after the change in run mode.
+    //
+    // Note that if the user is not logged in, the buttonEnabler removes the
+    // data-class attribute. In that condition, editing is impossible,
+    // so avoid plugging edit related streams into the actionStream.
+    // We assume that the edit element exists by the time this code is reached.
+    // Ajax that retrieves html snippets containing the edit button is done
+    // in response to a successful save, but that will not occur when the
+    // user is not logged in.
+    if ($(edit).length && $(edit).first().is('[data-class]')) {
+        actionStream.plug(editStream);
+        actionStream.plug(saveStream);
+        actionStream.plug(cancelStream);
+        actionStream.plug(externalCancelStream);
+        actionStream.plug(saveOkStream.map('save:ok'));
+        actionStream.plug(responseErrorStream.map('save:error'));
+        actionStream.plug(modeChangeStream);
+        actionStream.onValue(hideAndShowElements, editFields, eventsLandingInEditMode);
+        actionStream.onValue(editForm.hideAndShowElements, validationFields, ['save:error']);
+    }
     actionStream.onValue(hideAndShowElements, displayFields, eventsLandingInDisplayMode);
-    actionStream.onValue(editForm.hideAndShowElements, validationFields, ['save:error']);
 
     function hideAndShowElements(fields, actions, action) {
         var shouldHideAndShow = !(dontUpdateOnSaveOk && action === 'save:ok');
