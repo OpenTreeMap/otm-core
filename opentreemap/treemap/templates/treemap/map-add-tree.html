@@ -1,3 +1,4 @@
+{% load auth_extras %}
 {% load form_extras %}
 {% load i18n %}
 
@@ -7,6 +8,7 @@
     <h3>{% trans "Add a Tree" %}</h3>
     <div class="add-step-container" id="add-tree-container">
         {% include "treemap/partials/step_set_location.html" with first=True feature_name="tree" %}
+        {% usercancreate tree %}
         <div class="add-step">
             <div class="add-step-header">
                 {% trans "Add species and additional info" %}
@@ -28,6 +30,7 @@
             </div>
             {% include 'treemap/partials/step_controls.html' %}
         </div>
+        {% endusercancreate %}
         <div class="add-step">
             <div class="add-step-header">
                 {% trans "Finalize this tree" %}
@@ -47,7 +50,7 @@
                     </label>
                 </div>
                 <div>
-                    <input type="radio" name="addFeatureOptions" value="new" id="addtree-addnew" 
+                    <input type="radio" name="addFeatureOptions" value="new" id="addtree-addnew"
                            data-event-category="add-tree" data-event-action="done-add-new" /><label for="addtree-addnew">
                         {% trans "Add another tree with new details" %}
                     </label>
