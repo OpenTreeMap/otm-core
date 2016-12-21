@@ -171,7 +171,7 @@ function initSearchUi(searchStream) {
 
     // Update CSS on search options bar to keep it fixed to top of the screen
     // when scrolling on mobile
-    stickyTitles($(window), '.search-options', $header);
+    stickyTitles($('body > .wrapper'), '.search-options', $header);
 }
 
 

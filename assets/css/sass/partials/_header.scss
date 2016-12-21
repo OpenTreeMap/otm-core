@@ -8,8 +8,10 @@
     z-index: 100;
 
     @media #{$screen-xs} {
-        height: 100px;
-        transition: margin-top 400ms cubic-bezier(0, 0, 0.1, 1)
+        &.instance-header {
+            height: 100px;
+            transition: margin-top 400ms cubic-bezier(0, 0, 0.1, 1)
+        }
     }
 
     &:before {
@@ -22,9 +24,12 @@
 
     .embed & {
         padding-top: 0;
-        @media #{$screen-gtxs} {
-            height: 98px;
-        }
+    }
+}
+
+.embed .instance-header {
+    @media #{$screen-gtxs} {
+        height: 98px;
     }
 }
 
@@ -36,6 +41,12 @@
     img {
         max-width: 300px;
         max-height: 78px;
+    }
+}
+
+.instance-header .logo {
+    @media #{$screen-ltmd} {
+        display: none;
     }
 }
 
