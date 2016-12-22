@@ -68,7 +68,7 @@ $blue-to-red: #2791c3 10%,
 
             .search-block {
                 height: 78px;
-                padding: 10px 14px;
+                padding: 10px 4px;
 
                 &.search-block-large {
                     width: 325px;
@@ -98,6 +98,12 @@ $blue-to-red: #2791c3 10%,
                 label {
                     margin-top: -2px;
                 }
+            }
+
+            .btn {
+                margin-top: 30px;
+                padding: 6px 0 6px 9px;
+                color: $subtext-color;
             }
         }
     }
