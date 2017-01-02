@@ -1,5 +1,6 @@
 {% load l10n %}
 {% load dateformat %}
+{% load util %}
 {% if field.data_type == 'bool' or field.search_type == 'ISNULL' %}
     <input name="{{ field.identifier }}"
           {% if field.value %}
@@ -34,6 +35,8 @@
            class="{{ class|default_if_none:"" }} form-control"
            value="{{ field.value|default_if_none:""|unlocalize }}"
            {{ extra|default:"" }} ></textarea>
+{% elif field.typeahead_url %}
+    {% include "treemap/partials/autocomplete.html" %}
 {% else %}
   {% if field.units %}
   <div class="input-group">

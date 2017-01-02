@@ -277,6 +277,10 @@ body {
         &::placeholder {
             text-overflow: ellipsis !important;
         }
+
+        &.no-hamburger {
+            padding-left: 8px;
+        }
     }
     .typeahead-toggle {
         padding: 9px 4px 7px;
