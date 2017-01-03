@@ -1241,11 +1241,29 @@ class RecentEditsViewTest(ViewTestCase):
                                [self.next_plot_delta, self.plot_delta])
 
     def test_paging(self):
-        ret_audits = self.check_audits('/blah/?page_size=1',
-                                       [self.next_plot_delta])
+        # Test that navigating next->next->prev gives the same results for page
+        # 2 both times (no off-by-one errors)
+        req = self.factory.get('/blah/?page_size=1')
+        req.user = AnonymousUser()
+        page_one_result = edits(req, self.instance)
+        self._assert_dicts_equal([self.next_plot_delta],
+                                 [a.dict() for a in page_one_result['audits']])
 
-        self.check_audits('/blah/?page_size=1&start=%s' % ret_audits[0].pk,
-                          [self.plot_delta])
+        req = self.factory.get('/blah/' + page_one_result['next_page'])
+        req.user = AnonymousUser()
+        page_two_result = edits(req, self.instance)
+        self._assert_dicts_equal([self.plot_delta],
+                                 [a.dict() for a in page_two_result['audits']])
+
+        req = self.factory.get('/blah/' + page_two_result['next_page'])
+        req.user = AnonymousUser()
+        page_three_result = edits(req, self.instance)
+
+        req = self.factory.get('/blah/' + page_three_result['prev_page'])
+        req.user = AnonymousUser()
+        page_two_again_result = edits(req, self.instance)
+        self.assertEqual(page_two_result['audits'],
+                         page_two_again_result['audits'])
 
     def test_model_filtering_errors(self):
         self.assertRaises(Exception,

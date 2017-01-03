@@ -116,19 +116,20 @@ def get_audits(logged_in_user, instance, query_vars, user=None,
     # By relying on the fact the our list is ordered by primary key from newest
     # to oldest, we can rely on the index on the primary key, which is faster.
     if start_id is not None:
-        audits = audits.filter(pk__lt=start_id)
+        audits = audits.filter(pk__lte=start_id)
 
     total_count = audits.count() if should_count else 0
     audits = audits[:page_size]
 
-    # Coerce the queryset into a list so we can get the last item on the page
+    # Coerce the queryset into a list so we can get the last audit row on the
+    # current page
     audits = list(audits)
 
     # We are using len(audits) instead of audits.count() because we
     # have already realized the queryset at this point
     if len(audits) == page_size:
         query_vars.setlist('prev', prev_start_ids + [audits[0].pk])
-        query_vars['start'] = audits[-1].pk
+        query_vars['start'] = audits[-1].pk - 1
         next_page = "?" + query_vars.urlencode()
     else:
         next_page = None
