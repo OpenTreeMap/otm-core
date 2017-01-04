@@ -5,15 +5,16 @@ from __future__ import division
 
 import collections
 
-from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse
 from django.db.models.expressions import RawSQL
 from django.db.models.functions import Length
+from django.http import HttpResponseRedirect
+from django.http.request import QueryDict
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext as _
-from django.core.urlresolvers import reverse
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect
 
 from opentreemap.util import json_from_request, dotted_split
 
@@ -21,7 +22,6 @@ from treemap.decorators import get_instance_or_404
 from treemap.images import save_image_from_request
 from treemap.util import package_field_errors
 from treemap.models import User, Favorite, MapFeaturePhoto, InstanceUser
-from treemap.util import get_filterable_audit_models
 from treemap.lib.user import get_audits, get_user_instances, get_audits_params
 
 USER_PROFILE_FIELDS = collections.OrderedDict([
@@ -61,11 +61,10 @@ def user_audits(request, username):
     instance = (get_instance_or_404(pk=instance_id)
                 if instance_id else None)
 
-    (page, page_size, models, model_id,
-     exclude_pending) = get_audits_params(request)
+    params = get_audits_params(request)
 
-    return get_audits(request.user, instance, request.REQUEST, user,
-                      models, model_id, page, page_size, exclude_pending)
+    return get_audits(request.user, instance, request.GET.copy(), user=user,
+                      **params)
 
 
 def instance_user_audits(request, instance_url_name, username):
@@ -171,11 +170,12 @@ def user(request, username):
     instance = (get_instance_or_404(pk=instance_id)
                 if instance_id else None)
 
-    query_vars = {'instance_id': instance_id} if instance_id else {}
+    query_vars = QueryDict(mutable=True)
+    if instance_id:
+        query_vars['instance_id'] = instance_id
 
-    models = get_filterable_audit_models().values()
     audit_dict = get_audits(request.user, instance, query_vars,
-                            user, models, 0, should_count=True)
+                            user=user, should_count=True)
 
     reputation = user.get_reputation(instance) if instance else None
 

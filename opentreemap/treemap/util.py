@@ -183,7 +183,7 @@ def get_filterable_audit_models():
     map_features = [c.__name__ for c in leaf_models_of_class(MapFeature)]
     models = map_features + ['Tree']
 
-    return {model.lower(): model for model in models}
+    return models
 
 
 def get_csv_response(filename):
