@@ -7,7 +7,8 @@ from copy import deepcopy
 
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Extent
-from django.contrib.gis.geos import MultiPolygon, Polygon
+from django.contrib.gis.gdal import SpatialReference
+from django.contrib.gis.geos import MultiPolygon, Polygon, GEOSGeometry
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import RegexValidator
 from django.conf import settings
@@ -137,6 +138,27 @@ class InstanceBounds(models.Model):
                           (x_max, y_min),
                           (x_min, y_min)))
         bounds = MultiPolygon((bounds, ))
+        return InstanceBounds.objects.create(geom=bounds)
+
+    @classmethod
+    def create_from_geojson(cls, geojson):
+        """Create from GeoJSON (lon/lat coordinates)"""
+        geojson_dict = json.loads(geojson)
+        if geojson_dict['type'] != 'FeatureCollection':
+            raise ValidationError('GeoJSON must contain a FeatureCollection')
+
+        geoms = []
+        web_mercator = SpatialReference(3857)
+        for feature in geojson_dict['features']:
+            geom_dict = feature['geometry']
+            if geom_dict['type'] != 'Polygon':
+                raise ValidationError('GeoJSON features must be Polygons')
+            geom = GEOSGeometry(json.dumps(geom_dict), 4326)
+            geom.transform(web_mercator)
+            geoms.append(geom)
+
+        bounds = MultiPolygon(geoms)
+
         return InstanceBounds.objects.create(geom=bounds)
 
     def __str__(self):

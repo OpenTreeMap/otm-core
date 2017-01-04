@@ -21,7 +21,7 @@ require('jqueryFileUpload');
 module.exports.init = function(options) {
     var $panel = $(options.panelId),
         $image = $(options.imageElement),
-        $error = $(options.error),
+        $error = $(options.error || '.js-image-upload-error'),
         $imageContainer = $(options.imageContainer),
         loadImageCarouselHtml = photoCarousel.getImageCarouselLoader({
             $imageContainer: $imageContainer
@@ -53,12 +53,12 @@ module.exports.init = function(options) {
             $progressBar.width(progress + '%');
         },
         always: function (e, data) {
-            $panel.modal('hide');
             $progressBar.width('0%');
 
             loadImageCarouselHtml(data.result);
         },
         done: function (e, data) {
+            $panel.modal('hide');
             if ($image.length > 0) {
                 $image.attr('src', data.result.url);
             }
@@ -108,6 +108,14 @@ module.exports.init = function(options) {
             return defer.promise();
         });
     });
+
+    $panel.on('hidden.bs.modal', function() {
+        $error.hide();
+    });
+
+    // TODO: all following code is specific to the map feature detail page.
+    // Move it to a separate module, since above code is generic and used in
+    // several other places.
 
     $imageContainer.on('slide', function(e) {
         var $thumbnailList = $imageContainer.find('.carousel-indicators'),

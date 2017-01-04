@@ -28,7 +28,5 @@ recentEdits.init({
 
 imageUploadPanel.init({
     panelId: '#set-photo-modal',
-    show: '#toggle-set-photo-modal',
-    error: '#upload-photo-error',
     imageElement: '#user-photo'
 });
