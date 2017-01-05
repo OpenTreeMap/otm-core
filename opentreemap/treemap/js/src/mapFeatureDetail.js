@@ -16,7 +16,7 @@ var $ = require('jquery'),
     plotMarker = require('treemap/lib/plotMarker.js'),
     statePrompter = require('treemap/lib/statePrompter.js'),
     csrf = require('treemap/lib/csrf.js'),
-    imageUploadPanel = require('treemap/lib/imageUploadPanel.js'),
+    uploadPanel = require('treemap/lib/uploadPanel.js'),
     socialMediaSharing = require('treemap/lib/socialMediaSharing.js'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
         require('treemap/lib/reverseGeocodeStreamAndUpdateAddressesOnForm.js'),
@@ -60,7 +60,7 @@ function init() {
         question: config.trans.exitQuestion
     });
 
-    var imageFinishedStream = imageUploadPanel.init({
+    var imageFinishedStream = uploadPanel.init({
         panelId: '#add-photo-modal',
         dataType: 'html',
         imageContainer: '#photo-carousel',
