@@ -17,9 +17,10 @@ require('jqueryFileUpload');
 
 
 module.exports.init = function(options) {
-    var $panel = $(options.panelId),
+    options = options || {};
+    var $panel = $(options.panelId || '#upload-panel'),
         $image = $(options.imageElement),
-        $error = $(options.error || '.js-image-upload-error'),
+        $error = $(options.error || '.js-upload-error'),
         dataType = options.dataType || 'json',
 
         $chooser = $panel.find('.fileChooser'),
@@ -72,7 +73,7 @@ module.exports.init = function(options) {
                 } else if (json && json.globalErrors) {
                     message = json.globalErrors.join(',');
                 } else {
-                    message = "Unable to upload image";
+                    message = "Upload failed";
                 }
                 $error.text(message).show();
             }

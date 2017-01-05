@@ -27,6 +27,5 @@ recentEdits.init({
 });
 
 uploadPanel.init({
-    panelId: '#set-photo-modal',
     imageElement: '#user-photo'
 });

@@ -62,7 +62,6 @@ function init() {
     });
 
     var imageFinishedStream = uploadPanel.init({
-        panelId: '#add-photo-modal',
         dataType: 'html'
     });
 

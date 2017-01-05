@@ -24,10 +24,11 @@
 {% endblock subhead_exports %}
 
 {% block content %}
-    {% include "treemap/partials/upload_file.html" with panel_id="add-photo-modal" title="Add a Photo" %}
+    {% trans "Add a Photo" as upload_title %}
+    {% include "treemap/partials/upload_file.html" with title=upload_title upload_url=upload_photo_endpoint %}
     {% include "treemap/partials/photo_social_media_sharing.html" %}
 
-    {# Modal for viewing and rotating photos, used by uploadPanel.js #}
+    {# Modal for viewing and rotating photos #}
     <div id="photo-lightbox" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content lightbox">
@@ -67,9 +68,8 @@
                     <div id="photo-carousel" class="carousel slide" data-interval="">
                         {% include "treemap/partials/photo_carousel.html" %}
                     </div>
-                    <button id="toggle-add-photo-modal"
-                            data-toggle="modal"
-                            data-target="#add-photo-modal"
+                    <button data-toggle="modal"
+                            data-target="#upload-panel"
                             data-href="{{ request.get_full_path }}"
                             data-always-enable="{{ last_effective_instance_user|photo_is_addable:feature }}"
                             disabled="disabled"
