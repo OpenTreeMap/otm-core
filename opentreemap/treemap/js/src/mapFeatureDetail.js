@@ -17,6 +17,7 @@ var $ = require('jquery'),
     statePrompter = require('treemap/lib/statePrompter.js'),
     csrf = require('treemap/lib/csrf.js'),
     uploadPanel = require('treemap/lib/uploadPanel.js'),
+    imageLightbox = require('treemap/lib/imageLightbox.js'),
     socialMediaSharing = require('treemap/lib/socialMediaSharing.js'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
         require('treemap/lib/reverseGeocodeStreamAndUpdateAddressesOnForm.js'),
@@ -62,9 +63,13 @@ function init() {
 
     var imageFinishedStream = uploadPanel.init({
         panelId: '#add-photo-modal',
-        dataType: 'html',
+        dataType: 'html'
+    });
+
+    imageLightbox.init({
+        imageFinishedStream: imageFinishedStream,
         imageContainer: '#photo-carousel',
-        lightbox: '#photo-lightbox',
+        lightbox: '#photo-lightbox'
     });
 
     var shouldBeInEditModeBus = new Bacon.Bus();
