@@ -143,7 +143,10 @@ class InstanceBounds(models.Model):
     @classmethod
     def create_from_geojson(cls, geojson):
         """Create from GeoJSON (lon/lat coordinates)"""
-        geojson_dict = json.loads(geojson)
+        try:
+            geojson_dict = json.loads(geojson)
+        except ValueError as e:
+            raise ValidationError(e.message)
         if geojson_dict['type'] != 'FeatureCollection':
             raise ValidationError('GeoJSON must contain a FeatureCollection')
 
