@@ -454,18 +454,17 @@ class Instance(models.Model):
         # or when the current instance's species are updated.
         #
         # To get a unique thumbprint across instances and species updates
-        # we use the instance's latest species update time if available,
-        # and otherwise its url name.
+        # we use the instance's url_name, latest species update time, and
+        # species count (to handle deletions).
         from treemap.models import Species
-        thumbprint = None
         my_species = Species.objects \
             .filter(instance_id=self.id) \
             .order_by('-updated_at')
-        try:
-            thumbprint = my_species[0].updated_at
-        except IndexError:
-            pass
-        return "%s_%s" % (self.url_name, thumbprint)
+        if my_species.exists():
+            return "%s_%s_%s" % (
+                self.url_name, my_species.count(), my_species[0].updated_at)
+        else:
+            return self.url_name
 
     @property
     def boundary_thumbprint(self):
