@@ -25,7 +25,7 @@ django-webpack-loader==0.4.1             # https://github.com/owais/django-webpa
 flake8==2.0 # rq.filter: ==2.0
 gunicorn==19.6.0                         # http://docs.gunicorn.org/en/stable/news.html
 hiredis==0.2.0
-libsass==0.12.2
+libsass==0.12.3
 # Modgrammar-py2 has a 0.9.2 release on PyPi, but no artifacts for the release
 modgrammar-py2==0.9.1 # rq.filter: !=0.9.2
 pep8==1.4.6 # rq.filter: ==1.4.6
