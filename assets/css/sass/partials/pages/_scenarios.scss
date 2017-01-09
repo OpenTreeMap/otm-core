@@ -219,7 +219,7 @@
         bottom: 60px;
         left: 50%;
         margin-left: -300px;
-        padding: 8px 36px 10px 16px;
+        padding: 10px;
         font-size: 1.2rem;
         color: white;
         border-radius: 6px;
@@ -227,8 +227,8 @@
         // Hidden by default.
         display: none;
 
-        .close, .cancel-action, .done {
-            margin-right: -20px;
+        .done {
+            margin-right: 5px;
         }
     }
 
