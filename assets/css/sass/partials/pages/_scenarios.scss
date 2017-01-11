@@ -125,6 +125,11 @@
                     
                     input.form-control {
                         font-size: 1.2rem;
+                        min-width: 33px;
+                    }
+
+                    .input-group-addon {
+                        padding: 5px;
                     }
                 }
             }
