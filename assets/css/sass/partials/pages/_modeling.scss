@@ -141,6 +141,13 @@ $blue-to-red: #2791c3 10%,
                 padding: 9px 13px;
                 border-radius: 0;
                 border-left: 2px solid #ddd;
+                border-left: 2px solid #ddd;
+                height: 37px; // equal to height of scenario toolbar
+
+                i {
+                    padding: 0;
+                    margin: 0;
+                }
             }
         }
 
@@ -207,7 +214,7 @@ $blue-to-red: #2791c3 10%,
             right: auto;
             left: 0;
             border: none;
-            bottom: 40px;
+            bottom: 0;
 
             .templates {
                 height: 50px;
@@ -307,23 +314,24 @@ $blue-to-red: #2791c3 10%,
                 }
             }
             .scenario-trees-total {
-                width: 260px;
-                position: absolute;
-                bottom: 15px;
-                right: -285px;
+                position: fixed;
+                bottom: 40px;
+                right: initial;
+                left: 355px;
                 background: white;
-                padding: 7px 12px 8px;
+                padding: 2px 10px;
                 font-size: 1.4rem;
-                border-radius: 6px;
+                border-radius: 4px;
                 box-shadow: 0 1px 7px rgba(0, 0, 0, 0.4);
                 z-index: 1;
-
+                margin: 10px;
 
                 p {
                     color: darken($subtext-color, 10%);
                     margin: 5px;
                     font-weight: 600;
                     font-size: 13px;
+                    display: inline-block;
 
                     > span {
                         color: $primary-color;
