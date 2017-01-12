@@ -25,10 +25,23 @@ $blue-to-red: #2791c3 10%,
 
         .toolbar-wrapper {
             top: 50px;
+
+            @media (max-width: 991px) {
+                left: initial;
+                width: 60%;
+
+                #toolbar {
+                    width: 100%;
+                }
+            }
         }
 
         .search-wrapper {
             top: 55px;
+
+            @media (max-width: 991px) {
+                left: 62%;
+            }
         }
 
         .action-block {
@@ -60,6 +73,14 @@ $blue-to-red: #2791c3 10%,
             #autosave-message {
                 font-size: 1.2rem;
                 color: lighten($main-text-color, 70%);
+            }
+
+            @media (max-width: 991px) {
+                margin: 0;
+                border: none;
+                padding-left: 0;
+                padding-right: 0;
+                border-right: 1px solid #ddd;
             }
         }
 
@@ -104,6 +125,14 @@ $blue-to-red: #2791c3 10%,
                 margin-top: 30px;
                 padding: 6px 0 6px 9px;
                 color: $subtext-color;
+            }
+
+            @media (max-width: 991px) {
+                width: 100%;
+
+                .search-block {
+                    width: 70%;
+                }
             }
         }
     }
