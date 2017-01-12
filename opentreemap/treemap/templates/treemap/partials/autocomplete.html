@@ -1,0 +1,15 @@
+{% load i18n %}
+
+<!-- Location Search -->
+<div class="autocomplete-group">
+  <input type="text"
+         data-class="search"
+         id="{{ field.id }}-typeahead"
+         class="form-control no-hamburger"
+         placeholder="{{ field.placeholder }}"
+         data-qualifier="{{ field.qualifier }}"
+         data-display="{{ field.display }}"
+         data-remote="{{ field.typeahead_url }}"/>
+  <a class="btn btn-default search-button" id="{{ field.qualifier }}-perform-search"><i class="icon-search"></i></a>
+  <input name="{{ field.identifier }}_id" type="hidden" id="{{ field.id }}-value" {{ extra|default:"" }}/>
+</div>

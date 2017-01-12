@@ -84,6 +84,7 @@ var create = exports.create = function(options) {
         },
 
         prefetchEngine,
+        queryEngine,
         geocoderEngine,
         allDataStream,
 
@@ -102,6 +103,13 @@ var create = exports.create = function(options) {
                 }
             },
             display: 'value',
+            templates: {
+                suggestion: template
+            },
+        },
+        queryOptions = {
+            source: null,
+            display: options.display,
             templates: {
                 suggestion: template
             },
@@ -138,6 +146,22 @@ var create = exports.create = function(options) {
             queryTokenizer: Bloodhound.tokenizers.nonword,
             sorter: sorter
         });
+    } else if (options.remote) {
+        queryEngine = new Bloodhound({
+            identify: function(datum) {
+                return datum.id;
+            },
+            remote: {
+                url: options.remote,
+                wildcard: '%Q%'
+            },
+            datumTokenizer: function(datum) {
+                return datum.tokens;
+            },
+            queryTokenizer: Bloodhound.tokenizers.nonword
+            // No sorter: the backend sorts it already
+        });
+        queryOptions.source = queryEngine;
     }
 
     if (options.geocoder) {
@@ -173,8 +197,10 @@ var create = exports.create = function(options) {
         $input.typeahead(typeaheadOptions, prefetchOptions, geocoderOptions);
     } else if (prefetchEngine) {
         $input.typeahead(typeaheadOptions, prefetchOptions);
-    } else {
+    } else if (geocoderEngine) {
         $input.typeahead(typeaheadOptions, geocoderOptions);
+    } else if (queryEngine) {
+        $input.typeahead(typeaheadOptions, queryOptions);
     }
 
     var datumGet = function(e, datum) { return datum; },
@@ -228,32 +254,41 @@ var create = exports.create = function(options) {
         .merge(idStream.map(""))
         .onValue($input, 'attr', 'data-unmatched');
 
-    if (options.hidden && options.url) {
-        var enginePromise = prefetchEngine.initialize();
-        idStream.onValue($hidden_input, "val");
+    if (options.hidden) {
+        if (options.url) {
+            var enginePromise = prefetchEngine.initialize();
+            idStream.onValue($hidden_input, 'val');
 
-        enginePromise.done(function() {
-            // Specify a 'reverse' key to lookup data in reverse,
-            // otherwise restore verbatim
-            var value = $hidden_input.val();
-            if (value) {
-                setTypeaheadAfterDataLoaded($input, reverse, value);
-            }
-        });
-
-        $hidden_input.on('restore', function(event, value) {
             enginePromise.done(function() {
-                // If we're already loaded, this applies right away
-                setTypeaheadAfterDataLoaded($input, reverse, value);
+                // Specify a 'reverse' key to lookup data in reverse,
+                // otherwise restore verbatim
+                var value = $hidden_input.val();
+                if (value) {
+                    setTypeaheadAfterDataLoaded($input, reverse, value);
+                }
             });
 
-            // If we're not, this will get used when loaded later
-            $hidden_input.val(value || '');
-        });
+            $hidden_input.on('restore', function(event, value) {
+                enginePromise.done(function() {
+                    // If we're already loaded, this applies right away
+                    setTypeaheadAfterDataLoaded($input, reverse, value);
+                });
 
-        allDataStream = Bacon.fromPromise(enginePromise).map(function () {
-            return prefetchEngine.all();
-        });
+                // If we're not, this will get used when loaded later
+                $hidden_input.val(value || '');
+            });
+
+            allDataStream = Bacon.fromPromise(enginePromise).map(function () {
+                return prefetchEngine.all();
+            });
+        } else if (options.remote) {
+            queryEngine.initialize();
+            idStream.onValue($hidden_input, 'val');
+            $hidden_input.on('restore', function(event, value) {
+                $hidden_input.val(value || '');
+                $input.val(value || '');
+            });
+        }
     }
 
     if (options.button) {

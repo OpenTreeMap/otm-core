@@ -574,7 +574,8 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     # efficient.
     updated_at = models.DateTimeField(default=timezone.now,
                                       verbose_name=_("Last Updated"))
-    updated_by = models.ForeignKey(User, null=True, blank=True)
+    updated_by = models.ForeignKey(User, null=True, blank=True,
+                                   verbose_name=_("Updated By"))
 
     objects = GeoHStoreUDFManager()
 

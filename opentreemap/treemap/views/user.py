@@ -240,6 +240,8 @@ def users(request, instance):
         user = {
             'id': udict['user_id'],
             'username': udict['user__username'],
+            'first_name': '',
+            'last_name': ''
         }
         if udict['user__make_info_public']:
             user['first_name'] = udict['user__first_name']
