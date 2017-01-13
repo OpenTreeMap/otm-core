@@ -215,7 +215,7 @@ tree_detail = instance_request(tree_views.tree_detail)
 
 search_tree_benefits = do(
     instance_request,
-    etag(tree_views.search_hash),
+    etag(tree_views.ecobenefits_hash),
     render_template('treemap/partials/eco_benefits.html'),
     tree_views.search_tree_benefits)
 
