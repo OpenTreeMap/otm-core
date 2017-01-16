@@ -18,8 +18,8 @@ from django.utils.translation import ugettext as _
 
 from django_tinsel.exceptions import HttpBadRequestException
 from treemap.lib.object_caches import role_field_permissions
-from treemap.audit import Role
-from treemap.models import Instance, InstanceUser, Plot
+from treemap.audit import Role, FieldPermission
+from treemap.models import Instance, InstanceUser, Plot, Tree
 from treemap.units import (get_units_if_convertible, get_digits_if_formattable,
                            storage_to_instance_units_factor)
 from treemap.util import safe_get_model_class
@@ -160,52 +160,67 @@ def instance_info(request, instance):
                                       udf.canonical_name): udf
                            for udf in collection_udfs}
 
+    def add_perms(field_permissions, perms):
+        for fp in field_permissions:
+            model = fp.model_name.lower()
+            field_key = '%s.%s' % (model, fp.field_name)
+            if fp.allows_reads:
+                if field_key in collection_udf_dict:
+                    choices = []
+                    data_type = json.loads(
+                        collection_udf_dict[field_key].datatype)
+                elif is_json_field_reference(fp.field_name):
+                    choices = None
+                    data_type = "string"
+                else:
+                    model_inst = safe_get_model_class(fp.model_name)(
+                        instance=instance)
+                    data_type, __, __, choices = field_type_label_choices(
+                        model_inst, fp.field_name, fp.display_field_name)
+
+                digits = get_digits_if_formattable(
+                    instance, model, fp.field_name)
+
+                units = get_units_if_convertible(
+                    instance, model, fp.field_name)
+
+                factor = 1.0
+
+                try:
+                    factor = storage_to_instance_units_factor(
+                        instance, model, fp.field_name)
+                except KeyError:
+                    pass
+
+                perms[field_key] = {
+                    'data_type': data_type,
+                    'choices': choices,
+                    'units': units,
+                    'digits': digits,
+                    'canonical_units_factor': 1.0 / factor,
+                    'can_write': fp.allows_writes,
+                    'display_name': fp.display_field_name,
+                    'field_name': fp.field_name,
+                    'field_key': field_key,
+                    'is_collection': field_key in collection_udf_dict
+                }
+
     # collect perms for the given role/instance into a serializable
     # dictionary. If a field isn't at least readable, it doesn't
     # get sent over at all.
+
+    field_perms = role_field_permissions(role, instance)
+    always_writable = [
+        FieldPermission(
+            model_name=Model.__name__,
+            field_name=field_name,
+            permission_level=FieldPermission.WRITE_DIRECTLY
+        )
+        for Model in {Tree, Plot}
+        for field_name in Model.always_writable]
     perms = {}
-    for fp in role_field_permissions(role, instance):
-        model = fp.model_name.lower()
-        field_key = '%s.%s' % (model, fp.field_name)
-        if fp.allows_reads:
-            if field_key in collection_udf_dict:
-                choices = []
-                data_type = json.loads(collection_udf_dict[field_key].datatype)
-            elif is_json_field_reference(fp.field_name):
-                choices = None
-                data_type = "string"
-            else:
-                model_inst = safe_get_model_class(fp.model_name)(
-                    instance=instance)
-                data_type, __, __, choices = field_type_label_choices(
-                    model_inst, fp.field_name, fp.display_field_name)
-
-            digits = get_digits_if_formattable(
-                instance, model, fp.field_name)
-
-            units = get_units_if_convertible(
-                instance, model, fp.field_name)
-
-            factor = 1.0
-
-            try:
-                factor = storage_to_instance_units_factor(
-                    instance, model, fp.field_name)
-            except KeyError:
-                pass
-
-            perms[field_key] = {
-                'data_type': data_type,
-                'choices': choices,
-                'units': units,
-                'digits': digits,
-                'canonical_units_factor': 1.0 / factor,
-                'can_write': fp.allows_writes,
-                'display_name': fp.display_field_name,
-                'field_name': fp.field_name,
-                'field_key': field_key,
-                'is_collection': field_key in collection_udf_dict
-            }
+    add_perms(field_perms, perms)
+    add_perms(always_writable, perms)
 
     def get_key_for_group(field_group):
         for key in ('collection_udf_keys', 'field_keys'):
