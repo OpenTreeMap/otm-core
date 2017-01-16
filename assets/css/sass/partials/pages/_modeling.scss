@@ -380,7 +380,7 @@ $blue-to-red: #2791c3 10%,
                 right: 70px;
                 z-index: 4;
 
-                &:hover {
+                &:hover, &:active {
                     .options-toggle {
                         border-radius: 6px 6px 0 0;
                     }
@@ -414,9 +414,10 @@ $blue-to-red: #2791c3 10%,
                     box-shadow: 0 4px 7px rgba(0, 0, 0, 0.25);
 
                     label {
-                        float: left;
                         clear: both;
-                        margin: 12px 0 0;
+                        display: block;
+                        text-align: center;
+                        margin: 0;
 
                         &[for="visibility-slider"] + div.slider > .slider-track {
                             background: #002400;
@@ -427,10 +428,6 @@ $blue-to-red: #2791c3 10%,
                                 background: transparent;
                                 box-shadow: none;
                             }
-                        }
-
-                        &:first-of-type {
-                            margin-top: 0;
                         }
                     }
                     input.slider {
