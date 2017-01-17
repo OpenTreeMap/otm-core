@@ -221,6 +221,13 @@ def instance_info(request, instance):
     perms = {}
     add_perms(field_perms, perms)
     add_perms(always_writable, perms)
+    # Legacy iOS app versions (<= 2.6.0) enforce photo permissions using
+    # the `treephoto.image` field, so set it. This can be removed when we
+    # think all users are on a later version.
+    perms['treephoto.image'] = {
+        'can_write': perms_lib.photo_is_addable(role, Plot),
+        'data_type': 'string'
+    }
 
     def get_key_for_group(field_group):
         for key in ('collection_udf_keys', 'field_keys'):
