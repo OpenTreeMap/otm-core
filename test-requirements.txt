@@ -1,4 +1,4 @@
-coverage==4.3.2                # https://coverage.readthedocs.io/en/coverage-4.2/changes.html
+coverage==4.3.3                # https://coverage.readthedocs.io/en/coverage-4.2/changes.html
 PyVirtualDisplay==0.2.1        # https://github.com/ponty/PyVirtualDisplay/releases
 
 # We use Firefox and selenium for running UI tests. But using the latest 
