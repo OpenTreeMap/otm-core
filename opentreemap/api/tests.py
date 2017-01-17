@@ -1197,6 +1197,11 @@ class Instance(LocalMediaTestCase):
             {'field_keys': ['tree.date_planted']},
             info.get('field_key_groups')[0])
 
+    def test_adds_always_writable_api_fields(self):
+        request = sign_request_as_user(make_request(user=self.user), self.user)
+        fields = instance_info(request, self.instance)['fields']
+        self.assertTrue('plot.geom' in fields)
+
     def test_collection_udfs_v3(self):
         request = sign_request_as_user(make_request(user=self.user), self.user)
 
