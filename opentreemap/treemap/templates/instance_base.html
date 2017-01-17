@@ -29,6 +29,8 @@ ga('set', 'page', pathname);
 
 {% block instance_title %} | {{ request.instance.name }}{% endblock %}
 
+{% block header_class %}instance-header{% endblock %}
+
 {% block instancetopnav %}
 {% if request.instance|feature_enabled:'add_plot' and last_effective_instance_user %}
   {% if request.instance.has_resources %}
@@ -235,6 +237,13 @@ ga('set', 'page', pathname);
 <li><a href="javascript:;" data-class="geocode-result" data-x="{{x}}" data-y="{{y}}" data-srid="{{srid}}" data-address"{{address}}">{{address}}</a></li>
 {{/candidates}}
 </ul>
+</script>
+
+<script id="updated_by-template" type="text/x-mustache-template">
+<div>
+  <p class="pull-right">{{first_name}} {{last_name}}</p>
+  <p>{{username}}</p>
+</div>
 </script>
 
 {% endverbatim %}

@@ -34,6 +34,10 @@ class VisitedInstancesTests(ViewTestCase):
         middleware.process_request(self.request)
         self.request.session.save()
 
+    def _format(self, number):
+        # Allow tests to work with --keepdb
+        return '{:,d}'.format(number)
+
     def test_session(self):
         #
         # Create a view that renders a simple template
@@ -51,25 +55,25 @@ class VisitedInstancesTests(ViewTestCase):
         # Going to an instance sets the context variable
         self.client.get('/%s/map/' % self.instance1.url_name)
         self.assertEqual(self.client.get('/test').content,
-                         str(self.instance1.pk))
+                         self._format(self.instance1.pk))
 
         # Going to a non-public instance doesn't update it
         self.client.get('/%s/map/' % self.instance3.url_name)
         self.assertEqual(self.client.get('/test').content,
-                         str(self.instance1.pk))
+                         self._format(self.instance1.pk))
 
         # Going to a private instance while not logged in
         # also doesn't update
         self.client.get('/%s/map/' % self.instance4.url_name)
         self.assertEqual(self.client.get('/test').content,
-                         str(self.instance1.pk))
+                         self._format(self.instance1.pk))
 
         self.client.login(username='joe', password='joe')
 
         # But should change after logging in
         self.client.get('/%s/map/' % self.instance4.url_name)
         self.assertEqual(self.client.get('/test').content,
-                         str(self.instance4.pk))
+                         self._format(self.instance4.pk))
 
     def test_get_last_instance(self):
         add_visited_instance(self.request, self.instance1)

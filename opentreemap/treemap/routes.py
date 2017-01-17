@@ -258,6 +258,13 @@ forgot_username = route(
         return_400_if_validation_errors,
         user_views.forgot_username))
 
+users = do(
+    require_http_method("GET"),
+    instance_request,
+    json_api_call,
+    return_400_if_validation_errors,
+    user_views.users)
+
 #####################################
 # photo
 #####################################

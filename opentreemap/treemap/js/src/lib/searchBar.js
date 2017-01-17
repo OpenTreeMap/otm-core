@@ -47,6 +47,7 @@ var dom = {
     speciesSearchToggle: '#species-toggle',
     speciesSearchContainer: '#species-search-wrapper',
     locationSearchTypeahead: '#boundary-typeahead',
+    foreignKey: '[data-foreign-key]',
 };
 
 // Placed onto the jquery object
@@ -111,6 +112,22 @@ function initSearchUi(searchStream) {
         geocoderBbox: config.instance.extent
     });
 
+    var $query_typeaheads = $('.search-right .autocomplete-group');
+    $query_typeaheads.each(function () {
+        var $textInput = $(this).find('[type="text"]');
+        var $hiddenInput = $(this).find('[type="hidden"]');
+
+        otmTypeahead.create({
+            remote: $textInput.data('remote'),
+            display: $textInput.data('display'),
+            input: $textInput,
+            template: '#' + $textInput.data('qualifier') + '-template',
+            hidden: $hiddenInput,
+            reverse: "id",
+            minLength: 1
+        });
+    });
+
     // Keep dropdowns open when controls in them are clicked
     $(dom.categoryContent).on('click', stopPropagation);
     $(dom.datePickerTextBox).datepicker()
@@ -171,7 +188,7 @@ function initSearchUi(searchStream) {
 
     // Update CSS on search options bar to keep it fixed to top of the screen
     // when scrolling on mobile
-    stickyTitles($(window), '.search-options', $header);
+    stickyTitles($('body > .wrapper'), '.search-options', $header);
 }
 
 

@@ -477,3 +477,47 @@ class ValidationMixinTest(SimpleTestCase):
 
     def test_max_value_ok(self):
         Car(2).validate_positive_nullable_float_field('weight', max_value=2)
+
+
+class ITreeRegionTest(OTMTestCase):
+    def _assert_in_region(self, x, y, expected_region_code):
+        point = Point(x, y)
+        qs = ITreeRegion.objects.filter(geometry__contains=point)
+        self.assertEqual(qs.count(), 1)
+        self.assertEqual(qs[0].code, expected_region_code)
+
+    def test_san_francisco(self):
+        self._assert_in_region(-13628451, 4517429, 'CaNCCoJBK')
+
+    def test_port_angeles(self):
+        self._assert_in_region(-13727668, 6118484, 'PacfNWLOG')
+
+    def test_houghton(self):
+        self._assert_in_region(-9813435, 5955504, 'MidWstMSP')
+
+    def test_chicago(self):
+        self._assert_in_region(-9760799, 5152191, 'NoEastXXX')
+
+    def test_detroit(self):
+        self._assert_in_region(-9254991, 5200108, 'NoEastXXX')
+
+    def test_portland_me(self):
+        self._assert_in_region(-7822045, 5404243, 'NoEastXXX')
+
+    def test_rhode_island(self):
+        self._assert_in_region(-7956856, 5070548, 'NoEastXXX')
+
+    def test_nyc(self):
+        self._assert_in_region(-8230764, 4953880, 'NoEastXXX')
+
+    def test_newport_news(self):
+        self._assert_in_region(-8507102, 4439277, 'PiedmtCLT')
+
+    def test_tampa(self):
+        self._assert_in_region(-9183802, 3244417, 'CenFlaXXX')
+
+    def test_miami_beach(self):
+        self._assert_in_region(-8923531, 2960740, 'TropicPacXXX')
+
+    def test_houston(self):
+        self._assert_in_region(-10569491, 3465206, 'GulfCoCHS')

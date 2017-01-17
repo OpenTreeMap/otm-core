@@ -8,15 +8,24 @@ body {
 
 .wrapper {
     min-height: 100%;
-    height: auto !important;
     height: 100%;
     margin-bottom: -40px;
+
     &.embed {
         margin-bottom: 0;
     }
 
     @include buttons;
     @include links;
+
+    @media #{$screen-xs} {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        overflow: auto;
+    }
 }
 
 .image-background {
@@ -54,13 +63,15 @@ body {
         }
 
         @media #{$screen-xs} {
-            right: 0;
-            top: 128px;
-            bottom: 0;
-            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            position: static;
+            height: calc(100% - 126px);
 
             .map {
-                height: 300px;
+                height: auto;
+                flex: 1 0;
+                position: relative;
             }
         }
     }
@@ -251,8 +262,59 @@ body {
     z-index: 1040 !important;
 }
 
+.autocomplete-group {
+    position: relative;
+
+    .twitter-typeahead {
+        display: block !important;
+    }
+
+    input[type="text"] {
+        margin: 0;
+        padding-left: 32px;
+        font-size: 1.2rem;
+
+        &::placeholder {
+            text-overflow: ellipsis !important;
+        }
+
+        &.no-hamburger {
+            padding-left: 8px;
+        }
+    }
+    .typeahead-toggle {
+        padding: 9px 4px 7px;
+        position: absolute;
+        top: 0px;
+        z-index: 9;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: $well-color;
+        font-size: 1.8rem;
+        line-height: 1.6rem;
+
+        &.active,
+        &:hover {
+            color: $main-text-color;
+        }
+    }
+    .search-button {
+        display: none;
+    }
+}
+
 @media #{$screen-xs} {
     body {
         padding: 0;
+    }
+    .hide-search {
+        .header {
+            margin-top: -90px;
+        }
+        .content.explore-map {
+            margin-top: 9px;
+            height: calc(100% - #{$navbar-height});
+        }
     }
 }

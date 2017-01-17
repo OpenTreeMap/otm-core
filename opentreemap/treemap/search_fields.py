@@ -28,7 +28,8 @@ DEFAULT_MOBILE_SEARCH_FIELDS = DotDict({
 
 DEFAULT_SEARCH_FIELDS = DotDict({
     'general': [
-        {'identifier': 'mapFeature.updated_at'}
+        {'identifier': 'mapFeature.updated_at'},
+        {'identifier': 'mapFeature.updated_by'}
     ],
     'missing': [
         {'identifier': 'species.id'},

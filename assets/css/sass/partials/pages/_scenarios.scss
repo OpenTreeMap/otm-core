@@ -113,7 +113,7 @@
                     }
 
                     label {
-                        font-size: 1.1rem;
+                        font-size: 1.2rem;
                         font-weight: 700;
 
                         > em {
@@ -125,8 +125,19 @@
                     
                     input.form-control {
                         font-size: 1.2rem;
+                        min-width: 33px;
+                    }
+
+                    .input-group-addon {
+                        padding: 5px;
                     }
                 }
+            }
+
+            > .alert {
+                padding: 8px;
+                margin: 10px -5px 0 -5px;
+                margin-bottom: 0;
             }
 
             .form-group {
@@ -213,7 +224,7 @@
         bottom: 60px;
         left: 50%;
         margin-left: -300px;
-        padding: 8px 36px 10px 16px;
+        padding: 10px;
         font-size: 1.2rem;
         color: white;
         border-radius: 6px;
@@ -221,8 +232,8 @@
         // Hidden by default.
         display: none;
 
-        .close, .cancel-action, .done {
-            margin-right: -20px;
+        .done {
+            margin-right: 5px;
         }
     }
 
@@ -287,6 +298,13 @@
     .category-label {
         margin: .7em 0 .1em 0;
         text-decoration: underline;
+        font-weight: bold;
+    }
+
+    .total-currency {
+        margin-top: 1em;
+        border-top: 1px solid #888;
+        padding-top: .3em;
         font-weight: bold;
     }
 }

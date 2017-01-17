@@ -185,7 +185,7 @@ MIGRATION_RULES = {
                          'contenttype': 'content_type'},
         'common_fields': {'comment', 'is_public',
                           'ip_address'},
-        'renamed_fields': {'submit_date': 'date_submitted'},
+        'renamed_fields': {'date_submitted': 'submit_date'},
         'removed_fields': {'is_removed', 'user_name', 'user_email',
                            'user_url', 'site', 'object_pk'},
     },
@@ -195,8 +195,8 @@ MIGRATION_RULES = {
         'dependencies': {'user': 'user',
                          'contenttype': 'content_type'},
         'common_fields': {'comment', 'is_public', 'is_approved',
-                          'ip_address', 'date_submitted',
-                          'date_modified', 'date_approved'},
+                          'ip_address', 'date_modified', 'date_approved'},
+        'renamed_fields': {'date_submitted': 'submit_date'},
         'removed_fields': {'markup',  # this is no longer in the schema
                            # object_id and parent are not actually removed
                            # but they have to be processed manually so they

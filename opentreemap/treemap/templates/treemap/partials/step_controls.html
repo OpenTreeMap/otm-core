@@ -12,12 +12,12 @@
     <ul class="pager">
         {% if not first %}
         <li class="previous">
-            <a href="javascript:;">&laquo; Back</a>
+            <a class="btn btn-primary" href="javascript:;">{% trans "« Back" %}</a>
         </li>
         {% endif %}
         <li class="next">
-            <a href="javascript:;"{% if feature_name and last %} data-event-category="add-{{ feature_name }}" data-event-action="confirm-done"{% endif %}>
-                {% if last %} Done {% else %} Next &raquo; {% endif %}
+            <a class="btn btn-primary" href="javascript:;"{% if feature_name and last %} data-event-category="add-{{ feature_name }}" data-event-action="confirm-done"{% endif %}>
+                {% if last %}{% trans "Done" %}{% else %}{% trans "Next »" %}{% endif %}
             </a>
         </li>
     </ul>

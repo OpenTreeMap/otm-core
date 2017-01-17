@@ -5,7 +5,8 @@ var Webpack = require('webpack'),
     path = require('path'),
     _ = require('lodash'),
     BundleTracker = require('webpack-bundle-tracker'),
-    ExtractTextPlugin = require("extract-text-webpack-plugin");
+    ExtractTextPlugin = require("extract-text-webpack-plugin"),
+    autoprefixer = require('autoprefixer');
 
 function d(path) {
     // Turns a relative path from 'opentreemap/' into an absolute path
@@ -63,7 +64,7 @@ module.exports = {
             loader: "imports?bootstrap"
         }, {
             test: /\.scss$/,
-            loader: ExtractTextPlugin.extract(['css?sourceMap', 'sass?sourceMap'], {extract: true})
+            loader: ExtractTextPlugin.extract(['css', 'postcss-loader', 'sass'], {extract: true})
         }, {
             test: /\.woff($|\?)|\.woff2($|\?)|\.ttf($|\?)|\.eot($|\?)|\.svg($|\?)/,
             loader: 'url',
@@ -99,5 +100,8 @@ module.exports = {
         }),
         new ExtractTextPlugin('css/main.css', {allChunks: true}),
         new BundleTracker({path: d('static'), filename: 'webpack-stats.json'})
-    ]
+    ],
+    postcss: function () {
+        return [autoprefixer];
+    }
 };

@@ -36,7 +36,7 @@ function init(options) {
     reverseGeocodeStreamAndUpdateAddressesOnForm(markerMoveStream, dom.form);
 }
 
-function onClick(e) { 
+function onClick(e) {
     toastr.options = {
         "positionClass": "toast-bottom-left",
         "timeOut": "3000"
@@ -64,6 +64,18 @@ function activate() {
 
     mapManager.map.on('click', onClick);
 
+    // For full-screen mobile view, set class on body when starting/canceling
+    // plot move mode
+    $('#edit-plot-location,#cancel-edit-plot-location').on('click', function () {
+        $('body').toggleClass('feature-move');
+    });
+
+    $('#done-edit-plot-location').on('click', function() {
+        $('#edit-plot-location').show();
+        $('#cancel-edit-plot-location').hide();
+        currentPlotMover.disable();
+        $('body').toggleClass('feature-move');
+    });
 }
 
 function deactivate() {
@@ -81,6 +93,7 @@ function onSaveBefore(data) {
 
 module.exports = {
     name: 'editTreeDetails',
+    hideSearch: true,
     init: init,
     activate: activate,
     deactivate: deactivate,

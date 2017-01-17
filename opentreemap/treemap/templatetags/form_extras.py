@@ -10,6 +10,7 @@ from modgrammar import Grammar, OPTIONAL, G, WORD, OR, ParseError
 from django import template
 from django.template.loader import get_template
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from django.utils import dateformat
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -37,7 +38,7 @@ _identifier_regex = re.compile(
 
 FIELD_MAPPINGS = {
     'IntegerField': 'int',
-    'ForeignKey': 'int',
+    'ForeignKey': 'foreign_key',
     'OneToOneField': 'int',
     'AutoField': 'int',
     'FloatField': 'float',
@@ -416,6 +417,9 @@ class AbstractNode(template.Node):
             # there's no meaningful intermediate value to send
             # without rendering the same markup server-side.
             display_val = None
+        elif data_type == 'foreign_key:':
+            # also rendered clientside
+            display_val = ''
         elif choices:
             display_vals = [choice['display_value'] for choice in choices
                             if choice['value'] == field_value]
@@ -464,6 +468,35 @@ class SearchNode(CreateNode):
 
         return label, identifier
 
+    def _fill_in_typeahead(self, field, field_name, model):
+        relation_lookup_infos = {
+            'treemap.models.User': {
+                # /<instance>/users/?q=<query> returns JSON
+                # with a list of objects with properties
+                # `username`, `first_name`, and `last_name`.
+                # This corresponds to a JavaScript
+                # `otmTypeahead` widget for looking up users
+                # by username. The widget requires a wildcard
+                # to tell it where to put the query param.
+                # The wildcard defined in the JavaScript is `'%Q%'`.
+                'url': reverse(
+                    'users', kwargs={
+                        'instance_url_name': model.instance.url_name
+                    }
+                ) + '?q=%Q%',
+                'placeholder': _('Please type a username'),
+                'display': 'username'
+            }
+        }
+        related_model = model._meta.get_field(field_name).related_model
+        model_name = related_model.__module__ + '.' + related_model.__name__
+        info = relation_lookup_infos.get(model_name)
+        if info:
+            field['typeahead_url'] = info['url']
+            field['placeholder'] = info['placeholder']
+            field['display'] = info['display']
+            field['qualifier'] = field_name
+
     def get_additional_context(self, field, model, field_name):
         def update_field(settings):
             # Identifier is lower-cased above to match the calling convention
@@ -483,6 +516,9 @@ class SearchNode(CreateNode):
                 field['search_type'] = 'RANGE'
             elif data_type in {'long_string', 'string', 'multichoice'}:
                 field['search_type'] = 'LIKE'
+            elif data_type == 'foreign_key':
+                field['search_type'] = 'IS'
+                self._fill_in_typeahead(field, field_name, model)
             else:
                 field['search_type'] = 'IS'
 
