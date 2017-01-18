@@ -152,13 +152,25 @@ class InstanceBounds(models.Model):
 
         geoms = []
         web_mercator = SpatialReference(3857)
-        for feature in geojson_dict['features']:
-            geom_dict = feature['geometry']
-            if geom_dict['type'] != 'Polygon':
-                raise ValidationError('GeoJSON features must be Polygons')
+
+        def add_polygon(geom_dict):
             geom = GEOSGeometry(json.dumps(geom_dict), 4326)
             geom.transform(web_mercator)
             geoms.append(geom)
+
+        for feature in geojson_dict['features']:
+            geom_dict = feature['geometry']
+            if geom_dict['type'] == 'Polygon':
+                add_polygon(geom_dict)
+            elif geom_dict['type'] == 'MultiPolygon':
+                for polygon in geom_dict['coordinates']:
+                    add_polygon({
+                        'type': 'Polygon',
+                        'coordinates': polygon
+                    })
+            else:
+                raise ValidationError(
+                    'GeoJSON features must be Polygons or MultiPolygons')
 
         bounds = MultiPolygon(geoms)
 
