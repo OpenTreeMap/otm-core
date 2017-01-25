@@ -8,8 +8,10 @@ import json
 from django.core.cache import cache
 from django.test import override_settings
 
-from treemap.models import Plot, Tree, Species, ITreeRegion
-from treemap.tests import make_instance, make_commander_user, make_request
+from treemap.models import (Plot, Tree, Species, ITreeRegion,
+                            ITreeCodeOverride)
+from treemap.tests import (make_instance, make_commander_user, make_request,
+                           OTMTestCase)
 from treemap.tests.test_urls import UrlTestCase
 
 from treemap import ecobackend
@@ -19,7 +21,8 @@ from treemap.ecobenefits import (TreeBenefitsCalculator,
                                  _combine_grouped_benefits, BenefitCategory)
 from treemap.views.tree import search_tree_benefits
 from treemap.search import Filter
-from treemap.ecocache import get_cached_benefits, get_cached_plot_count
+from treemap.ecocache import (get_cached_benefits, get_cached_plot_count,
+                              invalidate_ecoservice_cache_if_stale)
 
 
 class EcoTest(UrlTestCase):
@@ -377,3 +380,34 @@ class EcoCacheTest(UrlTestCase):
 
         count = get_cached_plot_count(self.filter)
         self.assertEqual(1, count)
+
+
+class EcoserviceCacheBusterTest(OTMTestCase):
+    def setUp(self):
+        def mock_json_benefits_call(*args, **kwargs):
+            if args[0] == 'invalidate_cache':
+                self.cache_invalidated = True
+            return None, None
+
+        self.cache_invalidated = False
+        self.orig_benefit_fn = ecobackend.json_benefits_call
+        ecobackend.json_benefits_call = mock_json_benefits_call
+
+    def tearDown(self):
+        ecobackend.json_benefits_call = self.orig_benefit_fn
+
+    def test_adding_override_invalidates_cache(self):
+        instance = make_instance()
+        user = make_commander_user(instance)
+        species = Species(instance=instance, genus='g')
+        species.save_with_user(user)
+        species.refresh_from_db()
+        ITreeCodeOverride(
+            instance_species=species,
+            region=ITreeRegion.objects.get(code='NMtnPrFNL'),
+            itree_code='CEL OTHER'
+        ).save_with_user(user)
+
+        invalidate_ecoservice_cache_if_stale()
+
+        self.assertTrue(self.cache_invalidated)

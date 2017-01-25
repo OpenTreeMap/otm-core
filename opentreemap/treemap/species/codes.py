@@ -41,6 +41,8 @@ def get_itree_code(region_code, otm_code):
 # to a species changes depending on where that species
 # is located geographically.
 
+# NOTE: if you change this, also recreate otm-ecoservice/data/species.json
+
 _CODES = {
 ##################################################
     'CaNCCoJBK': {

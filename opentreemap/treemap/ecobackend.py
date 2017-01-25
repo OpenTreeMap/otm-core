@@ -15,6 +15,8 @@ from django.contrib.gis.geos import GEOSGeometry
 
 from opentreemap.util import add_rollbar_handler
 
+from treemap.ecocache import invalidate_ecoservice_cache_if_stale
+
 import logging
 
 # By default the level for the logger will be NOTSET, which falls back
@@ -71,6 +73,9 @@ LOG_FUNCTION_FOR_FAILURE_CODE = {
 def json_benefits_call(endpoint, params, post=False, convert_params=True):
     url = "%s/%s" % (settings.ECO_SERVICE_URL, endpoint)
 
+    if endpoint not in ['invalidate_cache', 'itree_codes.json']:
+        invalidate_ecoservice_cache_if_stale()
+
     if post:
         if convert_params:
             paramdata = {}
@@ -119,7 +124,10 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
     general_unhandled_struct = (None, UNKNOWN_ECO_FAILURE)
 
     try:
-        return (json.loads(urllib2.urlopen(req).read()), None)
+        result = urllib2.urlopen(req).read()
+        if result:
+            result = json.loads(result)
+        return result, None
     except urllib2.HTTPError as e:
         error_body = e.fp.read()
         for code, patterns in ECOBENEFIT_FAILURE_CODES_AND_PATTERNS.items():
