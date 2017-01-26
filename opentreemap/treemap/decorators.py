@@ -131,15 +131,15 @@ def requires_feature(ft):
 
 def requires_permission(codename):
     """
-    Wraps view function, testing whether the current InstanceUser has the
-    specified permission. Should only be used within instance_request
-    (which sets request.instance_user).
+    Wraps view function, testing whether the current user has the
+    specified permission.
     """
     def wrapper_function(view_fn):
         @wraps(view_fn)
         def wrapped(request, instance, *args, **kwargs):
-            iuser = request.instance_user
-            if iuser and iuser.role.has_permission(codename):
+            from treemap.audit import Role
+            role = Role.objects.get_role(instance, request.user)
+            if role.has_permission(codename):
                 return view_fn(request, instance, *args, **kwargs)
             else:
                 raise PermissionDenied
