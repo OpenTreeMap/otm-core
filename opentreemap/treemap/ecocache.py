@@ -6,8 +6,9 @@ import hashlib
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db.models.signals import post_save, post_delete
 
-from treemap.models import Plot
+from treemap.models import Plot, ITreeCodeOverride
 
 # Cache the results of plot counts and tree ecobenefit summary requests.
 #
@@ -76,3 +77,56 @@ def _get_key(prefix, filter):
                            version,
                            filter_hash)
     return key
+
+
+# ----------------------------------------------------------------
+# The ecoservice keeps a cache of i-Tree code overrides.
+# Store a cache buster in Redis, and keep a local copy.
+# If the local copy is stale, invalidate the ecoservice cache.
+
+_ITREE_CODE_OVERRIDE_REV_KEY = 'itree_code_override_rev'
+my_itree_code_override_rev = None
+
+
+def _init_ecoservice_cache_handling():
+    global my_itree_code_override_rev
+    my_itree_code_override_rev = _get_cached_rev()
+
+    post_save.connect(_increment_itree_code_override_rev,
+                      sender=ITreeCodeOverride)
+    post_delete.connect(_increment_itree_code_override_rev,
+                        sender=ITreeCodeOverride)
+
+
+def _get_cached_rev():
+    cached_rev = cache.get(_ITREE_CODE_OVERRIDE_REV_KEY)
+    if not cached_rev:
+        timeout = 60 * 60 * 24 * 365 * 10  # 10 years
+        cache.set(_ITREE_CODE_OVERRIDE_REV_KEY, 1, timeout)
+    return cached_rev
+
+
+def _increment_itree_code_override_rev(*args, **kwargs):
+    # This line added only for tests, where the cache key may not have been
+    # created. Redis incr() creates the key if absent, but django_redis
+    # doesn't because it's a Django cache backend. (Explained in this issue
+    # from a different Django Redis cache backend -
+    # https://github.com/sebleier/django-redis-cache/issues/113)
+    _get_cached_rev()
+
+    cache.incr(_ITREE_CODE_OVERRIDE_REV_KEY)
+
+
+def invalidate_ecoservice_cache_if_stale():
+    from treemap import ecobackend
+    global my_itree_code_override_rev
+    cached_rev = cache.get(_ITREE_CODE_OVERRIDE_REV_KEY)
+    if my_itree_code_override_rev != cached_rev:
+        __, err = ecobackend.json_benefits_call('invalidate_cache', {})
+        if err:
+            raise Exception('Failed to invalidate ecoservice cache')
+        my_itree_code_override_rev = cached_rev
+    return cached_rev
+
+
+_init_ecoservice_cache_handling()
