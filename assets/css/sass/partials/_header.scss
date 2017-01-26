@@ -269,6 +269,7 @@
             #search-advanced {
                 &.filter-active, &.simple-filter-active {
                     font-weight: 700;
+                    margin-left: 12px;
 
                     &:before {
                         content: '';
