@@ -83,10 +83,14 @@ def update_or_create_plot(request, instance, plot_id=None):
             for key, val in request_dict[model].iteritems():
                 data["%s.%s" % (model, key)] = val
 
-    # We explicitly disallow setting a plot's tree id
+    # We explicitly disallow setting a plot's tree id.
+    # We ignore plot's updated at and by because
+    # auditing sets them automatically.
     keys = ["tree.plot",
             "tree.udfs",
             "tree.instance",
+            "plot.updated_at",
+            "plot.updated_by",
             "plot.instance",
             "plot.udfs"]
 

@@ -596,11 +596,13 @@ class UpdatePlotAndTree(OTMTestCase):
 
         reputation_count = self.user.get_reputation(self.instance)
 
+        # Include `updated_by` because the app does send it,
+        # and the endpoint must ignore it.
         updated_values = {'plot':
-                          {'geom':
-                           {'y': 0.001, 'x': 0.001, 'srid': 4326},
+                          {'geom': {'y': 0.001, 'x': 0.001, 'srid': 4326},
                            'width': 11,
-                           'length': 22}}
+                           'length': 22,
+                           'updated_by': self.user.pk}}
 
         response = put_json("%s/instance/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.pk),
@@ -725,7 +727,10 @@ class UpdatePlotAndTree(OTMTestCase):
         test_tree.diameter = 2.3
         test_tree.save_with_user(self.user)
 
-        updated_values = {'tree': {'diameter': 3.9}}
+        # Include `updated_by` because the app does send it,
+        # and the endpoint must ignore it.
+        updated_values = {'tree': {'diameter': 3.9},
+                          'plot': {'updated_by': self.user.pk}}
         response = put_json("%s/instance/%s/plots/%d" %
                             (API_PFX, self.instance.url_name, test_plot.id),
                             updated_values, self.client, self.user)
