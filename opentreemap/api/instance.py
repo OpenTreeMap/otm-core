@@ -229,6 +229,20 @@ def instance_info(request, instance):
         'data_type': 'string'
     }
 
+    # These identifiers are not included in `perms` for instances
+    # created after the transtion to model-level permissions, but the
+    # identifiers are referenced in the default mobile search
+    # configuration. Versions of the iOS application depend on all the
+    # identifiers in the search config being respresented in the
+    # `perms` dictionary if the user is allowed to see the field
+    # value. Species and photos are always visible, so we can hard
+    # code a non-None value for these identifiers.
+    for identifier in ('species.id', 'mapFeaturePhoto.id'):
+        if identifier not in perms:
+            perms[identifier] = {
+                'data_type': 'string'
+            }
+
     def get_key_for_group(field_group):
         for key in ('collection_udf_keys', 'field_keys'):
             if key in field_group:
