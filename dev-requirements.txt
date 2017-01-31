@@ -1,5 +1,5 @@
 django-debug-toolbar==1.6     # https://django-debug-toolbar.readthedocs.io/en/stable/changes.html
 django-extensions==1.7.6
-ipython==5.2.0
+ipython==5.2.1
 ipdb==0.10.2
 six==1.10.0
