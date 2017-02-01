@@ -13,12 +13,11 @@ from celery import task
 from tempfile import TemporaryFile
 
 from django.core.files import File
-from treemap.lib.object_caches import field_permissions
 
 from treemap.search import Filter
 from treemap.models import Species, Plot
 from treemap.util import safe_get_model_class
-from treemap.audit import model_hasattr, FieldPermission
+from treemap.audit import model_hasattr
 from treemap.udf import UserDefinedCollectionValue
 
 from treemap.lib.object_caches import udf_defs
@@ -69,9 +68,10 @@ def _values_for_model(
     model_class = safe_get_model_class(model)
     dummy_instance = model_class()
 
-    for field_name in (perm.field_name for perm
-                       in field_permissions(job.user, instance, model)
-                       if perm.permission_level >= FieldPermission.READ_ONLY):
+    if hasattr(model_class, 'instance'):
+        dummy_instance.instance = instance
+
+    for field_name in dummy_instance.visible_fields(job.user):
         prefixed_name = prefix + field_name
 
         if field_name.startswith('udf:'):
@@ -218,9 +218,19 @@ def _csv_field_header_map(field_names):
     map = OrderedDict()
     # TODO: make this conditional based on whether or not
     # we are performing a complete export or an "importable" export
-    omit = {'readonly',
+    omit = {'feature_type',
+            'hide_at_zoom',
+            'instance',
+            'mapfeature_ptr',
+            'readonly',
+            'udfs',
+            'updated_at',
+            'updated_by',
+            'tree__id',
+            'tree__instance',
+            'tree__plot',
             'tree__readonly',
-            'tree__species', 'tree__id',
+            'tree__species',
             'tree__species__fact_sheet_url',
             'tree__species__fall_conspicuous',
             'tree__species__flower_conspicuous',
@@ -228,12 +238,16 @@ def _csv_field_header_map(field_names):
             'tree__species__fruit_or_nut_period',
             'tree__species__has_wildlife_value',
             'tree__species__id',
+            'tree__species__instance',
             'tree__species__is_native',
             'tree__species__max_diameter',
             'tree__species__max_height',
             'tree__species__otm_code',
             'tree__species__palatable_human',
-            'tree__species__plant_guide_url'}
+            'tree__species__plant_guide_url',
+            'tree__species__udfs',
+            'tree__species__updated_at',
+            'tree__udfs'}
 
     field_names = field_names - omit
 
