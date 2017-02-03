@@ -10,7 +10,7 @@ django-apptemplates==1.2
 # but it has not yet been released.
 celery>=4.0,<4.1
 django-celery-with-redis==3.0
-django-contrib-comments==1.7.3
+django-contrib-comments==1.8.0
 django-hstore==1.4.2
 django-js-reverse==0.7.3
 django-queryset-csv==1.0.0               # https://github.com/azavea/django-queryset-csv/commits/master
