@@ -9,7 +9,11 @@
          placeholder="{{ field.placeholder }}"
          data-qualifier="{{ field.qualifier }}"
          data-display="{{ field.display }}"
+         data-display-value="{{ field.display_value }}"
          data-remote="{{ field.typeahead_url }}"/>
   <a class="btn btn-default search-button" id="{{ field.qualifier }}-perform-search"><i class="icon-search"></i></a>
-  <input name="{{ field.identifier }}_id" type="hidden" id="{{ field.id }}-value" {{ extra|default:"" }}/>
+  <input name="{{ field.identifier }}_id"
+         type="hidden"
+         id="{{ field.id }}-value"
+         {{ extra|default:"" }}/>
 </div>

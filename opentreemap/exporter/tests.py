@@ -139,16 +139,6 @@ class ExportTreeTaskTest(AsyncCSVTestCase):
 
     @media_dir
     @override_settings(FEATURE_BACKEND_FUNCTION=None)
-    def test_export_view_permission_failure(self):
-        request = make_request(user=self.unprivileged_user)
-        begin_ctx = begin_export(request, self.instance, 'tree')
-        check_ctx = check_export(request, self.instance, begin_ctx['job_id'])
-        self.assertEqual(check_ctx['status'], 'MODEL_PERMISSION_ERROR')
-        self.assertEqual(check_ctx['message'],
-                         'User has no permissions on this model')
-
-    @media_dir
-    @override_settings(FEATURE_BACKEND_FUNCTION=None)
     def test_psuedo_async_tree_export(self):
         self.assertPsuedoAsyncTaskWorks('tree', self.user, 'Diameter', '2.0',
                                         '.*tree_export(_\d+)?\.csv')

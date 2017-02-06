@@ -155,9 +155,7 @@ var create = exports.create = function(options) {
                 url: options.remote,
                 wildcard: '%Q%'
             },
-            datumTokenizer: function(datum) {
-                return datum.tokens;
-            },
+            datumTokenizer: Bloodhound.tokenizers.nonword,
             queryTokenizer: Bloodhound.tokenizers.nonword
             // No sorter: the backend sorts it already
         });
@@ -286,7 +284,8 @@ var create = exports.create = function(options) {
             idStream.onValue($hidden_input, 'val');
             $hidden_input.on('restore', function(event, value) {
                 $hidden_input.val(value || '');
-                $input.val(value || '');
+                var displayValue = $input.data('display-value');
+                setTypeahead($input, displayValue || value || '');
             });
         }
     }
