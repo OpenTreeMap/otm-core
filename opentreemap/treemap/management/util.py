@@ -218,4 +218,6 @@ class InstanceDataCommand(BaseCommand):
                     (instance.pk,))
             self.stdout.write("Deleted %s audits" % n_audits)
 
+        instance.update_revs('geo_rev', 'eco_rev', 'universal_rev')
+
         return instance, user

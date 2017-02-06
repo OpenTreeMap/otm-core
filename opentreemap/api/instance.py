@@ -221,6 +221,27 @@ def instance_info(request, instance):
     perms = {}
     add_perms(field_perms, perms)
     add_perms(always_writable, perms)
+    # Legacy iOS app versions (<= 2.6.0) enforce photo permissions using
+    # the `treephoto.image` field, so set it. This can be removed when we
+    # think all users are on a later version.
+    perms['treephoto.image'] = {
+        'can_write': perms_lib.photo_is_addable(role, Plot),
+        'data_type': 'string'
+    }
+
+    # These identifiers are not included in `perms` for instances
+    # created after the transtion to model-level permissions, but the
+    # identifiers are referenced in the default mobile search
+    # configuration. Versions of the iOS application depend on all the
+    # identifiers in the search config being respresented in the
+    # `perms` dictionary if the user is allowed to see the field
+    # value. Species and photos are always visible, so we can hard
+    # code a non-None value for these identifiers.
+    for identifier in ('species.id', 'mapFeaturePhoto.id'):
+        if identifier not in perms:
+            perms[identifier] = {
+                'data_type': 'string'
+            }
 
     def get_key_for_group(field_group):
         for key in ('collection_udf_keys', 'field_keys'):

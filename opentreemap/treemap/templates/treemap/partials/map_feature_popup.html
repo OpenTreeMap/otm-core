@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load instance_config %}
 
-<div data-mapfeature-type="{{ feature.feature_type }}">
+<div data-mapfeature-type="{{ feature.feature_type }}" id="map-feature-popup">
     <div class="popup-content">
         <h4>{{ title }}</h4>
         {% if feature.address_full %}

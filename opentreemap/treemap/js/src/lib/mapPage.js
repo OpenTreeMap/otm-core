@@ -46,7 +46,9 @@ module.exports.init = function (options) {
 
     triggeredQueryStream.onValue(searchBar.applySearchToDom);
 
-    builtSearchEvents.onValue(urlState.setSearch);
+    if (options.saveSearchInUrl) {
+        builtSearchEvents.onValue(urlState.setSearch);
+    }
 
     searchBar.searchChangedStream.onValue(function () {
         clearFoundLocationMarker(mapManager.map);
@@ -55,9 +57,11 @@ module.exports.init = function (options) {
     boundarySelect.init({
         idStream: builtSearchEvents.map(searchToBoundaryId),
         map: mapManager.map,
-        style: {
+        style: options.fillSearchBoundary ? {
             fillOpacity: 0.3,
             fillColor: config.instance.secondaryColor || '#56abb2'
+        } : {
+            fillOpacity: 0
         }
     });
 

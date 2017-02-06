@@ -57,6 +57,11 @@ class ThumbprintTests(OTMTestCase):
         thumbprint2 = instance.species_thumbprint
         self.assertNotEqual(thumbprint1, thumbprint2)
 
+        s = Species.objects.filter(instance=instance, common_name='Acacia')
+        s.delete()
+        thumbprint3 = instance.species_thumbprint
+        self.assertNotEqual(thumbprint2, thumbprint3)
+
     def test_boundary_thumbprint(self):
         g = MultiPolygon(Polygon(((0, 0), (1, 0), (1, 1), (0, 1), (0, 0))))
         b = Boundary.objects.create(

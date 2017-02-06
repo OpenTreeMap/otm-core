@@ -18,6 +18,7 @@ var $                   = require('jquery'),
     urlState            = require('treemap/lib/urlState.js'),
     plotMarker          = require('treemap/lib/plotMarker.js'),
     statePrompter       = require('treemap/lib/statePrompter.js'),
+    stickyTitles        = require('treemap/lib/stickyTitles.js'),
     prompter,
     currentMode, currentType;
 
@@ -57,6 +58,9 @@ function activateMode(mode, sidebar, safeTransition, type) {
             prompter.lock();
         } else {
             prompter.unlock();
+        }
+        if ('hideSearch' in mode) {
+            $('body').toggleClass('hide-search', mode.hideSearch);
         }
         urlState.setModeName(mode.name);
         urlState.setModeType(type);
@@ -165,6 +169,10 @@ function init(mapManager, triggerSearchBus, embed, completedSearchStream) {
         addFeatureRadioOptions: 'addResourceOptions',
         triggerSearchBus: triggerSearchBus
     });
+
+    // Update CSS on search options bar to keep it fixed to top of the screen
+    // when scrolling on mobile
+    stickyTitles($('#map-content'), '#map-plot-details-button', $('#sidebar-browse-trees'));
 }
 
 function getSpeciesTypeaheadOptions(idPrefix) {

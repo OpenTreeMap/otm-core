@@ -32,6 +32,8 @@ function removeActionableDataAttributes($el) {
     $el.removeAttr('data-target');
     // in case an event is bound to this element
     $el.removeAttr('data-action');
+    // in case it triggers a mode change
+    $el.removeAttr('data-class');
 }
 
 function makeRedirectToLogin(loginUrl, $el, href) {
@@ -44,6 +46,9 @@ function makeRedirectToLogin(loginUrl, $el, href) {
     if ($el.is('a')) { $el.attr('href', fullHref); }
     else if ($el.is('button')) {
         $el.off('click');
+        if ($el.attr('data-href')) {
+            $el.attr('data-href', fullHref);
+        }
         $el.click(function () {
             window.location = fullHref;
         });

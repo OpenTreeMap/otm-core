@@ -182,6 +182,8 @@ function buildFilterObject () {
                 // will make numeric comparison more flexible, and range
                 // searches on text don't make sense.
                 val = parseFloat(val);
+            } else if ($elem.is('[data-remote]')) {
+                val = parseInt(val, 10);
             } else {
                 val = val;
             }
@@ -226,9 +228,6 @@ function buildDisplayList() {
 // applyFilter: Function to call when filter changes.
 exports.init = function(searchStream, applyFilter) {
     searchStream.onValue(applyFilter);
-
-    // Clear any previous search results
-    searchStream.map('').onValue($('#search-results'), 'html');
 
     var completedSearch = searchStream
         .flatMap(executeSearch);

@@ -88,13 +88,6 @@ function init(options) {
         clearEditControls();
     });
 
-    // Handle moving to "set location" step
-    stepControls.stepChangeCompleteStream.onValue(function (stepNumber) {
-        if (stepNumber === indexOfSetLocationStep) {
-            focusOnAddressInput();
-        }
-    });
-
     // Handle setting initial position via address search
     var searchTriggerStream = enterOrClickEventStream({
             inputs: addressInput,
@@ -116,7 +109,7 @@ function init(options) {
             cancelGeocodeSuggestionStream: cleanupLocationFeedbackStream,
             resultTemplate: '#geocode-results-template',
             addressInput: addressInput,
-            displayedResults: sidebar + ' [data-class="geocode-result"]'
+            displayedResults: '.wrapper > .popover [data-class="geocode-result"]'
         });
 
     var addressTypeahead = otmTypeahead.create({
@@ -202,12 +195,6 @@ function init(options) {
 
     function setAddFeatureUrl(url) {
         addFeatureUrl = url;
-    }
-
-    function focusOnAddressInput() {
-        if ($addressInput.val().length === 0) {
-            $addressInput.focus();
-        }
     }
 
     function geolocate() {
@@ -369,7 +356,6 @@ function init(options) {
         activate: activate,
         deactivate: deactivate,
         setAddFeatureUrl: setAddFeatureUrl,
-        focusOnAddressInput: focusOnAddressInput,
         getFormData: getFormData,
         requireMarkerDrag: requireMarkerDrag,
         stepControls: stepControls,

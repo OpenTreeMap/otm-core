@@ -14,7 +14,6 @@ from django.http import HttpResponseRedirect
 
 from treemap.search import Filter
 from treemap.models import Tree, Plot
-from treemap.audit import Audit
 from treemap.ecobenefits import get_benefits_for_filter
 from treemap.ecobenefits import BenefitCategory
 from treemap.ecocache import get_cached_plot_count
@@ -141,14 +140,8 @@ def _single_result_context(instance, n_plots, n_resources, filter):
         }
 
 
-def search_hash(request, instance):
-    audits = instance.scope_model(Audit)\
-                     .order_by('-updated')
-
-    try:
-        audit_id_str = str(audits[0].pk)
-    except IndexError:
-        audit_id_str = 'none'
+def ecobenefits_hash(request, instance):
+    universal_rev = str(instance.universal_rev)
 
     eco_conversion = instance.eco_benefits_conversion
 
@@ -159,6 +152,6 @@ def search_hash(request, instance):
 
     map_features = ','.join(instance.map_feature_types)
 
-    string_to_hash = audit_id_str + ":" + eco_str + ":" + map_features
+    string_to_hash = universal_rev + ":" + eco_str + ":" + map_features
 
     return hashlib.md5(string_to_hash).hexdigest()

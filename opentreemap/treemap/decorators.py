@@ -23,7 +23,6 @@ from opentreemap.util import request_is_embedded
 from treemap.util import (add_visited_instance,
                           get_instance_or_404, login_redirect,
                           can_read_as_super_admin)
-from treemap.exceptions import FeatureNotEnabledException
 
 
 def instance_request(view_fn, redirect=True):
@@ -123,7 +122,7 @@ def requires_feature(ft):
             if instance.feature_enabled(ft):
                 return view_fn(request, instance, *args, **kwargs)
             else:
-                raise FeatureNotEnabledException('Feature Not Enabled')
+                raise PermissionDenied
 
         return wrapped
 
@@ -132,14 +131,15 @@ def requires_feature(ft):
 
 def requires_permission(codename):
     """
-    Wraps view function, testing whether the current InstanceUser has the
-    specified permission. Should only be used within instance_request
-    (which sets request.instance_user).
+    Wraps view function, testing whether the current user has the
+    specified permission.
     """
     def wrapper_function(view_fn):
         @wraps(view_fn)
         def wrapped(request, instance, *args, **kwargs):
-            if request.instance_user.role.has_permission(codename):
+            from treemap.audit import Role
+            role = Role.objects.get_role(instance, request.user)
+            if role.has_permission(codename):
                 return view_fn(request, instance, *args, **kwargs)
             else:
                 raise PermissionDenied
@@ -211,8 +211,7 @@ def creates_instance_user(view_fn):
                     role=instance.default_role
                 ).save_with_user(request.user)
             else:
-                raise FeatureNotEnabledException(
-                    'Users cannot join this map automatically')
+                raise PermissionDenied
 
         return view_fn(request, instance, *args, **kwargs)
 

@@ -455,6 +455,7 @@ class Species(UDFModel, PendingAuditable):
     max_height = models.IntegerField(default=DEFAULT_MAX_HEIGHT,
                                      verbose_name='Max Height')
 
+    # Included for the sake of cache busting
     updated_at = models.DateTimeField(  # TODO: remove null=True
         null=True, auto_now=True, editable=False, db_index=True)
 
@@ -573,6 +574,9 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     # efficient.
     updated_at = models.DateTimeField(default=timezone.now,
                                       verbose_name=_("Last Updated"))
+    updated_by = models.ForeignKey(User, null=True, blank=True,
+                                   verbose_name=_("Last Updated By"))
+
     objects = GeoHStoreUDFManager()
 
     # subclass responsibilities
@@ -592,11 +596,11 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
     @classproperty
     def always_writable(cls):
-        # `updated_at`, `hide_at_zoom`, and `geom` never need to be checked.
+        # `hide_at_zoom` and `geom` never need to be checked.
         # If we ever implement the ability to lock down a model instance,
         # `readonly` should be removed from this list.
         return PendingAuditable.always_writable | {
-            'updated_at', 'hide_at_zoom', 'geom', 'readonly'}
+            'hide_at_zoom', 'geom', 'readonly'}
 
     def __init__(self, *args, **kwargs):
         super(MapFeature, self).__init__(*args, **kwargs)
@@ -623,7 +627,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     def is_plot(self):
         return getattr(self, 'feature_type', None) == 'Plot'
 
-    def update_updated_at(self):
+    def update_updated_fields(self, user):
         """Changing a child object of a map feature (tree, photo,
         etc.) demands that we update the updated_at field on the
         parent map_feature, however there is likely code throughout
@@ -631,8 +635,9 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         calling save on the parent MapFeature. This method intended to
         by called in the save method of those child objects."""
         self.updated_at = timezone.now()
+        self.updated_by = user
         MapFeature.objects.filter(pk=self.pk).update(
-            updated_at=self.updated_at)
+            updated_at=self.updated_at, updated_by=user)
 
     def save_with_user(self, user, *args, **kwargs):
         self.full_clean_with_user(user)
@@ -642,6 +647,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
                 'Never save a MapFeature -- only save a MapFeature subclass')
 
         self.updated_at = timezone.now()
+        self.updated_by = user
         super(MapFeature, self).save_with_user(user, *args, **kwargs)
 
     def clean(self):
@@ -1119,7 +1125,7 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
         self.validate_height()
         self.validate_canopy_height()
 
-        self.plot.update_updated_at()
+        self.plot.update_updated_fields(user)
         super(Tree, self).save_with_user(user, *args, **kwargs)
 
     @property
@@ -1154,7 +1160,7 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
         photos = self.photos()
         for photo in photos:
             photo.delete_with_user(user)
-        self.plot.update_updated_at()
+        self.plot.update_updated_fields(user)
         self.instance.update_universal_rev()
         super(Tree, self).delete_with_user(user, *args, **kwargs)
 
@@ -1231,7 +1237,7 @@ class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
             image_data, self.image_prefix, thumb_size=(256, 256),
             degrees_to_rotate=degrees_to_rotate)
 
-    def save_with_user(self, *args, **kwargs):
+    def save_with_user(self, user, *args, **kwargs):
         if not self.thumbnail.name:
             raise Exception('You need to call set_image instead')
         if (hasattr(self, 'map_feature') and
@@ -1243,15 +1249,15 @@ class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
         if self.pk is None:
             self.created_at = timezone.now()
 
-        self.map_feature.update_updated_at()
-        super(MapFeaturePhoto, self).save_with_user(*args, **kwargs)
+        self.map_feature.update_updated_fields(user)
+        super(MapFeaturePhoto, self).save_with_user(user, *args, **kwargs)
 
-    def delete_with_user(self, *args, **kwargs):
+    def delete_with_user(self, user, *args, **kwargs):
         thumb = self.thumbnail
         image = self.image
 
-        self.map_feature.update_updated_at()
-        super(MapFeaturePhoto, self).delete_with_user(*args, **kwargs)
+        self.map_feature.update_updated_fields(user)
+        super(MapFeaturePhoto, self).delete_with_user(user, *args, **kwargs)
 
         thumb.delete(False)
         image.delete(False)
@@ -1353,6 +1359,7 @@ class Boundary(models.Model):
     category = models.CharField(max_length=255)
     sort_order = models.IntegerField()
 
+    # Included for the sake of cache busting
     updated_at = models.DateTimeField(auto_now=True, editable=False,
                                       db_index=True)
 

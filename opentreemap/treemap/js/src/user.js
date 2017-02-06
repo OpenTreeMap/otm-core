@@ -2,7 +2,7 @@
 
 var inlineEditForm = require('treemap/lib/inlineEditForm.js'),
     recentEdits = require('treemap/lib/recentEdits.js'),
-    imageUploadPanel = require('treemap/lib/imageUploadPanel.js'),
+    uploadPanel = require('treemap/lib/uploadPanel.js'),
     csrf = require('treemap/lib/csrf.js'),
     $ = require('jquery');
 
@@ -26,9 +26,6 @@ recentEdits.init({
     nextLink: '#recent-user-edits-next',
 });
 
-imageUploadPanel.init({
-    panelId: '#set-photo-modal',
-    show: '#toggle-set-photo-modal',
-    error: '#upload-photo-error',
+uploadPanel.init({
     imageElement: '#user-photo'
 });

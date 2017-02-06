@@ -84,7 +84,9 @@ var create = exports.create = function(options) {
         },
 
         prefetchEngine,
+        queryEngine,
         geocoderEngine,
+        allDataStream,
 
         typeaheadOptions = {
             minLength: options.minLength || 0
@@ -101,6 +103,13 @@ var create = exports.create = function(options) {
                 }
             },
             display: 'value',
+            templates: {
+                suggestion: template
+            },
+        },
+        queryOptions = {
+            source: null,
+            display: options.display,
             templates: {
                 suggestion: template
             },
@@ -137,6 +146,20 @@ var create = exports.create = function(options) {
             queryTokenizer: Bloodhound.tokenizers.nonword,
             sorter: sorter
         });
+    } else if (options.remote) {
+        queryEngine = new Bloodhound({
+            identify: function(datum) {
+                return datum.id;
+            },
+            remote: {
+                url: options.remote,
+                wildcard: '%Q%'
+            },
+            datumTokenizer: Bloodhound.tokenizers.nonword,
+            queryTokenizer: Bloodhound.tokenizers.nonword
+            // No sorter: the backend sorts it already
+        });
+        queryOptions.source = queryEngine;
     }
 
     if (options.geocoder) {
@@ -172,25 +195,39 @@ var create = exports.create = function(options) {
         $input.typeahead(typeaheadOptions, prefetchOptions, geocoderOptions);
     } else if (prefetchEngine) {
         $input.typeahead(typeaheadOptions, prefetchOptions);
-    } else {
+    } else if (geocoderEngine) {
         $input.typeahead(typeaheadOptions, geocoderOptions);
+    } else if (queryEngine) {
+        $input.typeahead(typeaheadOptions, queryOptions);
     }
 
-    var selectStream = $input.asEventStream('typeahead:select typeahead:autocomplete',
-                                            function(e, datum) { return datum; }),
+    var datumGet = function(e, datum) { return datum; },
+        selectStream = $input.asEventStream('typeahead:select', datumGet),
+
+        autocompleteStream = $input.asEventStream('typeahead:autocomplete', datumGet),
+
+        matchStream = Bacon.mergeAll(selectStream, autocompleteStream),
 
         backspaceOrDeleteStream = $input.asEventStream('keyup')
                                         .filter(BU.keyCodeIs([8, 46])),
 
-        editStream = selectStream.merge(backspaceOrDeleteStream.map(undefined)),
+        editStream = matchStream.merge(backspaceOrDeleteStream.map(undefined)),
 
-        idStream = selectStream.map(".id")
+        idStream = matchStream.map(".id")
                                .merge(backspaceOrDeleteStream.map("")),
 
         openCloseStream = Bacon.mergeAll(
                 $input.asEventStream('focus typeahead:active typeahead:open').map(true),
                 $input.asEventStream('typeahead:idle typeahead:close').map(false)
             );
+
+    selectStream.onValue(function() {
+        // After the user selects a field, blur the input so that any soft
+        // keyboards that are open will close (mobile)
+        _.defer(function() {
+            $input.blur();
+        });
+    });
 
     editStream.filter(BU.isDefined).onValue($input, "data", "datum");
     editStream.filter(BU.isUndefined).onValue($input, "removeData", "datum");
@@ -215,29 +252,42 @@ var create = exports.create = function(options) {
         .merge(idStream.map(""))
         .onValue($input, 'attr', 'data-unmatched');
 
-    if (options.hidden && options.url) {
-        var enginePromise = prefetchEngine.initialize();
-        idStream.onValue($hidden_input, "val");
+    if (options.hidden) {
+        if (options.url) {
+            var enginePromise = prefetchEngine.initialize();
+            idStream.onValue($hidden_input, 'val');
 
-        enginePromise.done(function() {
-            // Specify a 'reverse' key to lookup data in reverse,
-            // otherwise restore verbatim
-            var value = $hidden_input.val();
-            if (value) {
-                setTypeaheadAfterDataLoaded($input, reverse, value);
-            }
-        });
-
-        $hidden_input.on('restore', function(event, value) {
             enginePromise.done(function() {
-                // If we're already loaded, this applies right away
-                setTypeaheadAfterDataLoaded($input, reverse, value);
+                // Specify a 'reverse' key to lookup data in reverse,
+                // otherwise restore verbatim
+                var value = $hidden_input.val();
+                if (value) {
+                    setTypeaheadAfterDataLoaded($input, reverse, value);
+                }
             });
 
-            // If we're not, this will get used when loaded later
-            $hidden_input.val(value || '');
-        });
+            $hidden_input.on('restore', function(event, value) {
+                enginePromise.done(function() {
+                    // If we're already loaded, this applies right away
+                    setTypeaheadAfterDataLoaded($input, reverse, value);
+                });
 
+                // If we're not, this will get used when loaded later
+                $hidden_input.val(value || '');
+            });
+
+            allDataStream = Bacon.fromPromise(enginePromise).map(function () {
+                return prefetchEngine.all();
+            });
+        } else if (options.remote) {
+            queryEngine.initialize();
+            idStream.onValue($hidden_input, 'val');
+            $hidden_input.on('restore', function(event, value) {
+                $hidden_input.val(value || '');
+                var displayValue = $input.data('display-value');
+                setTypeahead($input, displayValue || value || '');
+            });
+        }
     }
 
     if (options.button) {
@@ -283,7 +333,9 @@ var create = exports.create = function(options) {
             if (options.hidden) {
                 $hidden_input.val('');
             }
-        }
+        },
+        selectStream: selectStream,
+        allDataStream: allDataStream
     };
 };
 

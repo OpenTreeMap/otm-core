@@ -30,6 +30,7 @@
 
     .nav {
         margin: 0 -15px;
+        height: #{$navbar-height - 1px};
 
         &.navbar-left {
             margin-left: 15px;
@@ -40,8 +41,14 @@
 
         > li {
             margin-left: 20px;
-            height: 44px;
+            height: #{$navbar-height - 1px};
 
+            @media #{$screen-xs} {
+                &.add-menu + li.explore-map {
+                    position: relative;
+                    top: -2px;
+                }
+            }
             &:first-child {
                 margin-left: 0;
             }
@@ -163,6 +170,7 @@
 @media (max-width: 767px) {
     .navbar {
         margin: 0;
+        z-index: 4001;
 
 
         .navbar-collapse {
@@ -173,16 +181,21 @@
             }
         }
     }
-    .navbar-nav .open .dropdown-menu {
+    .navbar-inverse .navbar-nav .open .dropdown-menu {
         position: absolute;
         top: 100%;
         float: left;
         background: white;
         border: 1px solid rgba(0, 0, 0, 0.15);
         box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
+
+        .divider {
+            background-color: #e5e5e5;
+        }
     }
     .dropdown-pull-left {
-        left: -380%
+        right: 0;
+        left: inherit;
     }
 }
 

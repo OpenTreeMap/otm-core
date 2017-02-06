@@ -69,6 +69,10 @@ function init(options) {
 
     accordionHtmlStream
         .map(BU.isDefinedNonEmpty)
+        .assign($('body'), 'toggleClass', 'feature-selected');
+
+    accordionHtmlStream
+        .map(BU.isDefinedNonEmpty)
         .decode({true: 'show', false: 'hide'})
         .onValue(_.bind($accordionSection.collapse, $accordionSection));
 
@@ -160,9 +164,12 @@ function makePopup(latLon, html) {
             $popup.find('a').attr('target', '_blank');
         }
 
+        var $popupContents = $($popup[0].outerHTML);
+        $popupContents.data('latlon', latLon);
+
         var popup = L.popup(popupOptions)
             .setLatLng(latLon)
-            .setContent($popup.html());
+            .setContent($popupContents[0]);
 
         var mapFeatureType = $popup.data('mapfeature-type');
         popup.isMapFeature = mapFeatureType !== undefined;

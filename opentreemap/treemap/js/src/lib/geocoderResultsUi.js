@@ -62,10 +62,13 @@ function showGeocodeCandidates(addressInput, template, res) {
         $(addressInput).popover({
             html: true, // Allows 'content' to be markup
             content: template(res),
-            placement: 'bottom',
+            placement: 'auto bottom',
+            viewport: 'body > .wrapper',
             trigger: 'manual',
-            title: 'Results'
-        }).popover('show');
+            title: 'Results',
+            container: '.wrapper'
+        })
+        .popover('show');
     } else {
         window.alert('There was a problem running your search.');
     }

@@ -215,7 +215,7 @@ tree_detail = instance_request(tree_views.tree_detail)
 
 search_tree_benefits = do(
     instance_request,
-    etag(tree_views.search_hash),
+    etag(tree_views.ecobenefits_hash),
     render_template('treemap/partials/eco_benefits.html'),
     tree_views.search_tree_benefits)
 
@@ -257,6 +257,13 @@ forgot_username = route(
         render_template('treemap/forgot_username_done.html'),
         return_400_if_validation_errors,
         user_views.forgot_username))
+
+users = do(
+    require_http_method("GET"),
+    instance_request,
+    json_api_call,
+    return_400_if_validation_errors,
+    user_views.users)
 
 #####################################
 # photo

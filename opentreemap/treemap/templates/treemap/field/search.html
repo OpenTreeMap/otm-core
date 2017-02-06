@@ -18,7 +18,7 @@
             {% endwith %}
         </div>
     {% else %}
-        <div class="form-group">
+        <div class="form-group{% if field.typeahead_url %} search-block{% endif %}">
             {% if field.search_type != 'ISNULL' %}
                 {# Label must precede input for most fields but must follow input for "missing data" checkboxes #}
                 <label for="{{ field.id }}">{{ field.label }}</label>

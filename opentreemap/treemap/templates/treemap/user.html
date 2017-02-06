@@ -38,7 +38,8 @@ ga('global.set', 'page', pathname);
 {% block content %}
 
 {% url 'user_photo' user.username as photo_url %}
-{% include "treemap/partials/upload_image.html" with panel_id="set-photo-modal" title="Set a Photo" upload_photo_endpoint=photo_url %}
+{% trans "Set a Photo" as upload_title %}
+{% include "treemap/partials/upload_file.html" with title=upload_title upload_url=photo_url %}
 <div class="image-background"></div>
 
 <div class="container contained topper profile">
@@ -52,9 +53,7 @@ ga('global.set', 'page', pathname);
                       <img class="user-photo" id="user-photo" src="{{STATIC_URL}}img/profile.png">
                     {% endif %}
                     {% usercontent for user %}
-                    <button id="toggle-set-photo-modal"
-                      data-toggle="modal"
-                      data-target="#set-photo-modal"
+                    <button data-toggle="modal" data-target="#upload-panel"
                       class="btn btn-xs add-photos">{% trans "Add Photo" %}</button>
                     {% endusercontent %}
                 </div>
@@ -63,7 +62,6 @@ ga('global.set', 'page', pathname);
                 </h1>
             </div>
             {% usercontent for user %}
-            <div id="upload-photo-error" class="text-danger" style="display: none"></div>
             <button id="edit-user" data-class="display" class="btn btn-sm btn-info">{% trans "Edit Profile" %}</button>
             <button id="save-edit" data-class="edit" class="btn btn-sm btn-primary" style="display: none;">{% trans "Save" %}</button>
             <button id="cancel-edit" data-class="edit" class="btn btn-sm" style="display: none;">{% trans "Cancel" %}</button>

@@ -72,7 +72,6 @@ textarea,
     background-color: #ffffff;
     background-image: none;
     border: 1px solid #cccccc;
-    -webkit-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
     transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
 
 	&:focus {

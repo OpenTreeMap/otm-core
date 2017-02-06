@@ -13,7 +13,6 @@ from django.test.client import RequestFactory
 from django.http import Http404, HttpResponse
 from django.core.exceptions import ValidationError
 from django.db import connection
-from django.db.models.query import QuerySet
 from django.core import mail
 
 from django.contrib.auth.models import AnonymousUser, Permission
@@ -42,7 +41,7 @@ from treemap.views.map_feature import (update_map_feature, delete_map_feature,
                                        rotate_map_feature_photo, plot_detail,
                                        delete_photo)
 from treemap.views.user import (user_audits, upload_user_photo, update_user,
-                                forgot_username, user)
+                                forgot_username, user, users)
 from treemap.views.photo import approve_or_reject_photos
 from treemap.views.tree import delete_tree
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
@@ -199,22 +198,26 @@ class TreePhotoTestCase(LocalMediaTestCase):
 class TreePhotoAffectsPlotUpdatedAtTestCase(TreePhotoTestCase):
     def setUp(self):
         super(TreePhotoAffectsPlotUpdatedAtTestCase, self).setUp()
+        self.fellow = make_commander_user(self.instance, 'other-commander')
         self.initial_updated = self.plot.updated_at
 
     def test_add_photo_sets_updated(self):
-        self.tree.add_photo(self.image, self.user)
+        self.tree.add_photo(self.image, self.fellow)
+        self.plot.refresh_from_db()
         self.assertGreater(self.plot.updated_at, self.initial_updated)
+        self.assertEqual(self.plot.updated_by, self.fellow)
 
     def test_delete_photo_sets_updated(self):
         self.tree.add_photo(self.image, self.user)
-        self.plot = Plot.objects.get(pk=self.plot.pk)
+        self.plot.refresh_from_db()
         self.initial_updated = self.plot.updated_at
 
         photo = self.plot.current_tree().photos()[0]
-        photo.delete_with_user(self.user)
+        photo.delete_with_user(self.fellow)
 
-        self.plot = Plot.objects.get(pk=self.plot.pk)
+        self.plot.refresh_from_db()
         self.assertGreater(self.plot.updated_at, self.initial_updated)
+        self.assertEqual(self.plot.updated_by, self.fellow)
 
 
 class DeleteOwnPhotoTest(TreePhotoTestCase):
@@ -1214,11 +1217,12 @@ class RecentEditsViewTest(ViewTestCase):
     def check_audits(self, url, dicts, user=None):
         req = self.factory.get(url)
         req.user = user if user else AnonymousUser()
-        resulting_audits = [audit.dict()
+        resulting_audits = [audit
                             for audit
                             in edits(req, self.instance)['audits']]
 
-        self._assert_dicts_equal(dicts, resulting_audits)
+        self._assert_dicts_equal(dicts, [a.dict() for a in resulting_audits])
+        return resulting_audits
 
     def check_user_audits(self, url, username, dicts):
         req = self.factory.get(url)
@@ -1237,46 +1241,63 @@ class RecentEditsViewTest(ViewTestCase):
                                [self.next_plot_delta, self.plot_delta])
 
     def test_paging(self):
-        self.check_audits('/blah/?page_size=1&page=1', [self.plot_delta])
-        self.check_user_audits('/eblah/?page_size=1&page=1&instance_id=%s'
-                               % self.instance.pk,
-                               self.commander.username, [self.plot_delta])
+        # Test that navigating next->next->prev gives the same results for page
+        # 2 both times (no off-by-one errors)
+        req = self.factory.get('/blah/?page_size=1')
+        req.user = AnonymousUser()
+        page_one_result = edits(req, self.instance)
+        self._assert_dicts_equal([self.next_plot_delta],
+                                 [a.dict() for a in page_one_result['audits']])
+
+        req = self.factory.get('/blah/' + page_one_result['next_page'])
+        req.user = AnonymousUser()
+        page_two_result = edits(req, self.instance)
+        self._assert_dicts_equal([self.plot_delta],
+                                 [a.dict() for a in page_two_result['audits']])
+
+        req = self.factory.get('/blah/' + page_two_result['next_page'])
+        req.user = AnonymousUser()
+        page_three_result = edits(req, self.instance)
+
+        req = self.factory.get('/blah/' + page_three_result['prev_page'])
+        req.user = AnonymousUser()
+        page_two_again_result = edits(req, self.instance)
+        self.assertEqual(page_two_result['audits'],
+                         page_two_again_result['audits'])
 
     def test_model_filtering_errors(self):
         self.assertRaises(Exception,
                           self.check_audits,
-                          "/blah/?model_id=%s&page=0&page_size=1" %
+                          "/blah/?model_id=%s&page_size=1" %
                           self.tree.pk, [])
 
         self.assertRaises(Exception,
                           self.check_audits,
                           "/blah/?model_id=%s&"
-                          "models=Tree,Plot&page=0&page_size=1" %
+                          "models=Tree&models=Plot&page_size=1" %
                           self.tree.pk, [])
 
         self.assertRaises(Exception,
                           self.check_audits,
-                          "/blah/?models=User&page=0&page_size=1", [])
+                          "/blah/?models=User&page_size=1", [])
 
         self.assertRaises(Exception,
                           self.check_user_audits,
-                          "/blah/?model_id=%s&page=0&page_size=1"
-                          "&instance_id=%s"
-                          % (self.instance.pk, self.tree.pk),
+                          "/blah/?model_id=%s&page_size=1&instance_id=%s"
+                          % (self.tree.pk, self.instance.pk),
                           self.commander.username, [])
 
         self.assertRaises(Exception,
                           self.check_user_audits,
-                          "/blah/?model_id=%s&"
-                          "models=Tree,Plot&page=0&page_size=1"
-                          "&instance_id=%s"
-                          % (self.instance.pk, self.tree.pk),
+                          "/blah/?model_id=%s&models=Tree&models=Plot"
+                          "&page_size=1&instance_id=%s"
+                          % (self.tree.pk, self.instance.pk),
                           self.commander.username, [])
 
         self.assertRaises(Exception,
                           self.check_user_audits,
-                          "/blah/?models=User&page=0&page_size=1",
-                          "&instance_id=%s" % self.instance.pk,
+                          "/blah/?models=User&page_size=1&instance_id=%s"
+                          % self.instance.pk,
                           self.commander.username, [])
 
     def test_model_filtering(self):
@@ -1297,23 +1318,23 @@ class RecentEditsViewTest(ViewTestCase):
         }
 
         self.check_audits(
-            "/blah/?model_id=%s&models=Tree&page=0&page_size=1" % self.tree.pk,
+            "/blah/?model_id=%s&models=Tree&page_size=1" % self.tree.pk,
             [specific_tree_delta])
 
         self.check_audits(
-            "/blah/?model_id=%s&models=Plot&page=0&page_size=1" % self.plot.pk,
+            "/blah/?model_id=%s&models=Plot&page_size=1" % self.plot.pk,
             [self.next_plot_delta])
 
         self.check_audits(
-            "/blah/?models=Plot,Tree&page=0&page_size=3",
+            "/blah/?models=Plot&models=Tree&page_size=3",
             [generic_plot_delta, generic_plot_delta, generic_tree_delta])
 
         self.check_audits(
-            "/blah/?models=Plot&page=0&page_size=5",
+            "/blah/?models=Plot&page_size=5",
             [generic_plot_delta] * 5)
 
         self.check_audits(
-            "/blah/?models=Tree&page=0&page_size=5",
+            "/blah/?models=Tree&page_size=5",
             [generic_tree_delta] * 5)
 
     def test_model_user_filtering(self):
@@ -1334,21 +1355,21 @@ class RecentEditsViewTest(ViewTestCase):
         }
 
         self.check_user_audits(
-            "/blah/?model_id=%s&models=Tree&page=0&page_size=1" % self.tree.pk,
+            "/blah/?model_id=%s&models=Tree&page_size=1" % self.tree.pk,
             self.officer.username, [specific_tree_delta])
 
         self.check_user_audits(
-            "/blah/?model_id=%s&models=Plot&page=0&page_size=1&instance_id=%s"
+            "/blah/?model_id=%s&models=Plot&page_size=1&instance_id=%s"
             % (self.plot.pk, self.instance.pk),
             self.commander.username, [self.next_plot_delta])
 
         self.check_user_audits(
-            "/blah/?models=Plot&page=0&page_size=3&instance_id=%s"
+            "/blah/?models=Plot&page_size=3&instance_id=%s"
             % self.instance.pk, self.commander.username,
             [generic_plot_delta] * 3)
 
         self.check_user_audits(
-            "/blah/?models=Tree&page=0&page_size=3", self.officer.username,
+            "/blah/?models=Tree&page_size=3", self.officer.username,
             [generic_tree_delta] * 3)
 
     def test_user_filtering(self):
@@ -1600,8 +1621,8 @@ class UserViewTests(ViewTestCase):
         self.assertEquals(self.joe.username, context['user'].username,
                           'the user view should return a dict with user with '
                           '"username" set to %s ' % self.joe.username)
-        self.assertEquals(QuerySet, type(context['audits']),
-                          'the user view should return a queryset')
+        self.assertEquals(list, type(context['audits']),
+                          'the user view should return a list of audits')
 
     def test_get_with_invalid_username_returns_404(self):
         self.assertRaises(Http404, user, make_request(),
@@ -1955,3 +1976,42 @@ class InstanceListTest(OTMTestCase):
         other_instance.save()
 
         self.assertEqual(2, len(public_instances_geojson(make_request())))
+
+
+class UserAutocompleteTest(OTMTestCase):
+    def setUp(self):
+        self.i1 = make_instance()
+        self.i2 = make_instance()
+
+        self.mike = make_user(instance=self.i1, username='mike')
+        self.also_mike = make_user(instance=self.i1, username='i-am-mike')
+        self.maria = make_user(instance=self.i1, username='Maria')
+        self.matt = make_user(instance=self.i2, username='MATT')
+
+    def assert_users_in_list(self, instance, params, *expected_users):
+        users_list = users(make_request(params), instance)
+        self.assertEqual(len(users_list), len(expected_users))
+
+        for i in range(0, len(expected_users)):
+            user_dict = users_list[i]
+            user = expected_users[i]
+            self.assertIn('username', user_dict)
+            self.assertIn('id', user_dict)
+            self.assertEqual(user.username, user_dict['username'])
+            self.assertEqual(user.pk, user_dict['id'])
+
+    def test_full_results(self):
+        self.assert_users_in_list(self.i2, {}, self.matt)
+
+    def test_filtering_and_sorting(self):
+        self.assert_users_in_list(self.i1, {}, self.also_mike, self.maria,
+                                  self.mike)
+        self.assert_users_in_list(self.i1, {'q': 'M'}, self.mike, self.maria,
+                                  self.also_mike)
+        self.assert_users_in_list(self.i1, {'q': 'Mi'}, self.mike,
+                                  self.also_mike)
+
+    def test_max(self):
+        self.assert_users_in_list(self.i1, {}, self.also_mike, self.maria,
+                                  self.mike)
+        self.assert_users_in_list(self.i1, {'max_items': '1'}, self.also_mike)

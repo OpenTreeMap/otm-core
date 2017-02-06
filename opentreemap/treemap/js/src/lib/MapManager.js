@@ -181,6 +181,28 @@ MapManager.prototype = {
             map.scrollWheelZoom = false;
         }
 
+        // Disables pinch-to-zoom and double-tap-to-zoom
+        // This is supposed to be disabled already by user-scalable=no,
+        // but iOS Safari 10+ ignores that property
+        $('body').off('touchstart');
+        $('body').on('touchstart', function(e) {
+            if (e.originalEvent.touches.length > 1) {
+                e.preventDefault(); // pinch - prevent zoom
+                e.stopPropagation();
+                return;
+            }
+
+            var t2 = e.timeStamp;
+            var t1 = this.lastTouch || t2;
+            var dt = t2 - t1;
+            this.lastTouch = t2;
+
+            if (dt && dt < 500) {
+                e.preventDefault(); // double tap - prevent zoom
+                e.stopPropagation();
+            }
+        });
+
         this.map = map;
         return map;
     },

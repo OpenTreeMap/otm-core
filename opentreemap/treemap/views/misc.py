@@ -52,8 +52,7 @@ def edits(request, instance):
        - page
          The page to return
     """
-    (page, page_size, models, model_id,
-     exclude_pending) = get_audits_params(request)
+    params = get_audits_params(request)
 
     user_id = request.GET.get('user', None)
     user = None
@@ -61,8 +60,8 @@ def edits(request, instance):
     if user_id is not None:
         user = User.objects.get(pk=user_id)
 
-    return get_audits(request.user, instance, request.REQUEST, user,
-                      models, model_id, page, page_size, exclude_pending)
+    return get_audits(request.user, instance, request.GET.copy(), user,
+                      **params)
 
 
 def index(request, instance):
@@ -84,6 +83,7 @@ def get_map_view_context(request, instance):
         ],
         'resource_classes': resource_classes,
         'only_one_resource_class': len(resource_classes) == 1,
+        'q': request.GET.get('q'),
     }
     add_map_info_to_context(context, instance)
     return context

@@ -11,8 +11,7 @@
             font-size: 23px;
 
             @media #{$screen-xs} {
-                padding: 20px 20px 15px;
-                margin: 0;
+                display: none;
             }
         }
 
@@ -29,6 +28,7 @@
                 overflow-y: hidden;
                 position: relative;
                 top: 0;
+                width: 100%;
             }
         }
         .add-step {
@@ -38,11 +38,49 @@
             width: 100%;
             position: absolute;
             background: white;
-            -webkit-transition: .6s ease-in-out left;
             transition: .6s ease-in-out left;
 
             @media #{$screen-xs} {
-                position: relative;
+                &.with-map {
+                    bottom: 0;
+                    height: auto;
+                    min-height: 180px;
+
+                    &, &.prev, &.next {
+                        position: relative;
+                    }
+                    &.fixed {
+                        height: 200px;
+                        position: fixed;
+                        top: initial;
+                    }
+                }
+                &:not(.with-map) {
+                    overflow: auto;
+
+                    &, &.prev, &.next {
+                        position: fixed;
+                        top: $navbar-height;
+                    }
+                    .add-step-content {
+                        overflow: visible;
+                        margin-bottom: 85px;
+                        padding-top: 10px;
+                    }
+                    .add-step-footer {
+                        position: fixed;
+                        background: #FFF;
+                        z-index: 10;
+                        transition: .6s ease-in-out left;
+                        width: 100vw;
+                    }
+                    &.next .add-step-footer {
+                        left: 100%;
+                    }
+                    &.prev .add-step-footer {
+                        left: -100%;
+                    }
+                }
             }
 
             &.next,
@@ -78,9 +116,17 @@
                 text-transform: uppercase;
                 padding: 5px 20px;
                 margin: 0;
+
+                @media #{$screen-xs} {
+                    background: $secondary-color;
+                    padding: 10px 15px;
+                    padding-right: 30px;
+                    color: #FFF;
+                }
             }
             .add-step-content {
                 padding: 20px;
+                padding-bottom: 60px;
                 position: absolute;
                 bottom: 60px;
                 top: 30px;
@@ -91,6 +137,10 @@
                 @media #{$screen-xs} {
                     position: static;
                     overflow-y: hidden;
+
+                    .alert {
+                        clear: both;
+                    }
                 }
 
                 h3 {
@@ -117,23 +167,67 @@
                 select {
                     font-size: 1.2rem;
                 }
-                span:not(.input-group-addon) {
+                span:not(.input-group-addon):not(.inline) {
                     display: block;
                 }
-                .twitter-typeahead{
-                        display:block !important;
-                    }
+                .twitter-typeahead {
+                    display:block !important;
+                }
 
                 .form-search {
                     margin: 0;
-                }
 
+                    @media #{$screen-xs} {
+                        margin-bottom: 40px;
+
+                        // These styles force the dropdown menu to always be
+                        // open when the input is focused, and position it so
+                        // that it does not scroll off the screen
+                        .tt-menu {
+                            position: relative !important;
+                            width: calc(100vw - 40px);
+
+                            &.tt-empty {
+                                visibility: hidden;
+                            }
+                            &.tt-open {
+                                display: block !important;
+
+                                .tt-dataset {
+                                    height: 125px;
+
+                                    .tt-suggestion {
+                                        white-space: nowrap;
+                                        text-overflow: ellipsis;
+                                        overflow: hidden;
+                                        padding: 12px 10px;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .twitter-typeahead {
+                        width: calc(100% - 75px);
+
+                        input {
+                            width: 100%;
+                        }
+                    }
+                    .geocode {
+                        width: 70px;
+                    }
+                }
                 .geolocate {
                     font-size: 1.2rem;
                     color: $secondary-color;
                     display: block;
                     margin: 5px 0 12px -3px;
                     cursor: pointer;
+
+                    @media #{$screen-xs} {
+                        position: absolute;
+                        top: 95px;
+                    }
                 }
                 .resource-question {
                     margin-bottom: 20px;
@@ -173,10 +267,6 @@
                 left: 0;
                 right: 0;
 
-                @media #{$screen-xs} {
-                    position: relative;
-                }
-
                 .counter {
                     position: absolute;
                     top: 18px;
@@ -188,10 +278,15 @@
                 .pager {
                     position: relative;
                     margin: 13px 0;
+
+                    li.disabled > a {
+                        color: #FFF;
+                        opacity: 0.5;
+                    }
                 }
-              .footer-step-number:before {
-                  content: counter(steps);
-              }
+                .footer-step-number:before {
+                    content: counter(steps);
+                }
             }
         }
     }
@@ -204,7 +299,19 @@
         opacity: 0.5;
 
         @media #{$screen-xs} {
-            top: 18px;
+            top: 6px;
+            right: 15px;
+            position: absolute;
+            z-index: 11;
+            color: #FFF;
+            opacity: 1;
         }
     }
 }
+@media #{$screen-xs} {
+    #sidebar-add-resource {
+         > .sidebar-inner .add-step.with-map {
+            min-height: 200px;
+         }
+     }
+ }

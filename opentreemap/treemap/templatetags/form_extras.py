@@ -10,6 +10,7 @@ from modgrammar import Grammar, OPTIONAL, G, WORD, OR, ParseError
 from django import template
 from django.template.loader import get_template
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from django.utils import dateformat
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -37,7 +38,7 @@ _identifier_regex = re.compile(
 
 FIELD_MAPPINGS = {
     'IntegerField': 'int',
-    'ForeignKey': 'int',
+    'ForeignKey': 'foreign_key',
     'OneToOneField': 'int',
     'AutoField': 'int',
     'FloatField': 'float',
@@ -51,6 +52,8 @@ FIELD_MAPPINGS = {
     'PointField': 'point',
     'MultiPolygonField': 'multipolygon',
 }
+
+FOREIGN_KEY_PREDICATE = 'IS'
 
 VALID_FIELD_KEYS = ','.join(FIELD_MAPPINGS.keys())
 
@@ -398,7 +401,10 @@ class AbstractNode(template.Node):
             if units != '':
                 units = get_unit_abbreviation(units)
 
-        if field_value is None:
+        if data_type == 'foreign_key':
+            # rendered clientside
+            display_val = ''
+        elif field_value is None:
             display_val = None
         elif data_type in ['date', 'datetime']:
             fmt = (model.instance.short_date_format if model.instance
@@ -436,7 +442,8 @@ class AbstractNode(template.Node):
             'is_editable': is_editable,
             'choices': choices,
         }
-        self.get_additional_context(context['field'], model, field_name)
+        self.get_additional_context(
+            context['field'], model, field_name, context.get('q', ''))
 
         return field_template.render(context)
 
@@ -464,7 +471,61 @@ class SearchNode(CreateNode):
 
         return label, identifier
 
-    def get_additional_context(self, field, model, field_name):
+    def _fill_in_typeahead(self, field, field_name, model, search_query):
+        def get_search_query_value(column, display, identifier,
+                                   related_class, search_query):
+            if not search_query:
+                return ''
+            search_map = json.loads(search_query) or {}
+            model_name, field_name = tuple(dotted_split(
+                identifier, 2, maxsplit=1))
+            search_field = '{}.{}'.format(model_name, column)
+            pred = search_map.get(search_field)
+            if not pred:
+                return ''
+
+            query_value = pred[FOREIGN_KEY_PREDICATE]
+            related_model = related_class.objects.get(id=query_value)
+            return getattr(related_model, display)
+
+        relation_lookup_infos = {
+            'treemap.models.User': {
+                # /<instance>/users/?q=<query> returns JSON
+                # with a list of objects with properties
+                # `username`, `first_name`, and `last_name`.
+                # This corresponds to a JavaScript
+                # `otmTypeahead` widget for looking up users
+                # by username. The widget requires a wildcard
+                # to tell it where to put the query param.
+                # The wildcard defined in the JavaScript is `'%Q%'`.
+                'url': reverse(
+                    'users', kwargs={
+                        'instance_url_name': model.instance.url_name
+                    }
+                ) + '?q=%Q%',
+                'placeholder': _('Please type a username'),
+                'display': 'username'
+            }
+        }
+        field_instance = model._meta.get_field(field_name)
+        related_model = field_instance.related_model
+        model_name = '{}.{}'.format(
+            related_model.__module__, related_model.__name__)
+        info = relation_lookup_infos.get(model_name)
+        if info:
+            display = info['display']
+            field['typeahead_url'] = info['url']
+            field['placeholder'] = info['placeholder']
+            field['display'] = display
+            field['qualifier'] = field_name
+            field['column'] = field_instance.column
+
+            if search_query:
+                field['display_value'] = get_search_query_value(
+                    field_instance.column, display,
+                    field['identifier'], related_model, search_query)
+
+    def get_additional_context(self, field, model, field_name, search_query):
         def update_field(settings):
             # Identifier is lower-cased above to match the calling convention
             # of update endpoints, so we shouldn't overwrite it :(
@@ -483,6 +544,9 @@ class SearchNode(CreateNode):
                 field['search_type'] = 'RANGE'
             elif data_type in {'long_string', 'string', 'multichoice'}:
                 field['search_type'] = 'LIKE'
+            elif data_type == 'foreign_key':
+                field['search_type'] = FOREIGN_KEY_PREDICATE
+                self._fill_in_typeahead(field, field_name, model, search_query)
             else:
                 field['search_type'] = 'IS'
 
