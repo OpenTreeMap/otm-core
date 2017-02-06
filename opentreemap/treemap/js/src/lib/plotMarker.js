@@ -171,25 +171,13 @@ function enableMoving(options) {
     } else {
         showMarker(true);
     }
-
-    // Normally we'd simply use:
-    // marker.dragging.enable/disable
-    //
-    // However, the dragging context gets lost
-    // somewhere between here and "disableMoving"
-    //
-    // Once lost we can't unbind the drag handler
-    // and we're stuck. The workaround is to
-    // hang on to the most recently added context
-    // and disable when needed
-    markerDraggingContext = marker.dragging;
-    markerDraggingContext.enable();
+    marker.dragging.enable();
 }
 
 // Prevent user from dragging the marker
 function disableMoving() {
-    if (markerDraggingContext) {
-        markerDraggingContext.disable();
+    if (marker.dragging) {
+        marker.dragging.disable();
     }
     if (map.hasLayer(marker)) {
         showViewMarker();
