@@ -1,40 +1,36 @@
-/*
- Copyright (c) 2012, Smartrak, David Leaver
- Leaflet.utfgrid is an open-source JavaScript library that provides utfgrid interaction on leaflet powered maps.
- https://github.com/danzel/Leaflet.utfgrid
-*/
-(function (window, undefined) {
+L.Util.ajax = function (url, timeout, success, error) {
 
-L.Util.ajax = function (url, cb) {
-	// the following is from JavaScript: The Definitive Guide
-	// and https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest_in_IE6
 	if (window.XMLHttpRequest === undefined) {
-		window.XMLHttpRequest = function () {
-			/*global ActiveXObject:true */
-			try {
-				return new ActiveXObject("Microsoft.XMLHTTP");
-			}
-			catch  (e) {
-				throw new Error("XMLHttpRequest is not supported");
-			}
-		};
+		error(new Error("XMLHttpRequest is not supported"));
 	}
 	var response, request = new XMLHttpRequest();
 	request.open("GET", url);
 	request.onreadystatechange = function () {
-		/*jshint evil: true */
-		if (request.readyState === 4 && request.status === 200) {
-			if (window.JSON) {
-				response = JSON.parse(request.responseText);
+		if (request.readyState === 4) {
+			if (request.status === 200) {
+				if (window.JSON) {
+					try {
+						response = JSON.parse(request.responseText);
+						success(response);
+					} catch(e) {
+						error(e);
+					}
+				} else {
+					error(new Error('json not supported'));
+				}
+			} else if (!request.status) {
+				error('Attempted cross origin request without CORS enabled');
 			} else {
-				response = eval("(" + request.responseText + ")");
+				error(request.status);
 			}
-			cb(response);
 		}
 	};
+	request.ontimeout = function () { error('timeout'); };
+	request.timeout = timeout;
 	request.send();
+	return request;
 };
-L.UtfGrid = L.Class.extend({
+L.UtfGrid = (L.Layer || L.Class).extend({
 	includes: L.Mixin.Events,
 	options: {
 		subdomains: 'abc',
@@ -46,7 +42,10 @@ L.UtfGrid = L.Class.extend({
 		resolution: 4,
 
 		useJsonP: true,
-		pointerCursor: true
+		pointerCursor: true,
+
+		maxRequests: 4,
+		requestTimeout: 60000
 	},
 
 	//The thing the mouse is currently on
@@ -54,6 +53,11 @@ L.UtfGrid = L.Class.extend({
 
 	initialize: function (url, options) {
 		L.Util.setOptions(this, options);
+
+		// The requests
+		this._requests = {};
+		this._request_queue = [];
+		this._requests_in_process = [];
 
 		this._url = url;
 		this._cache = {};
@@ -95,6 +99,31 @@ L.UtfGrid = L.Class.extend({
 		map.off('click', this._click, this);
 		map.off('mousemove', this._move, this);
 		map.off('moveend', this._update, this);
+		if (this.options.pointerCursor) {
+			this._container.style.cursor = '';
+		}
+	},
+
+	setUrl: function (url, noRedraw) {
+		this._url = url;
+
+		if (!noRedraw) {
+			this.redraw();
+		}
+
+		return this;
+	},
+
+	redraw: function () {
+		// Clear cache to force all tiles to reload
+		this._request_queue = [];
+		for (var req_key in this._requests) {
+			if (this._requests.hasOwnProperty(req_key)) {
+				this._abort_request(req_key);
+			}
+		}
+		this._cache = {};
+		this._update();
 	},
 
 	_click: function (e) {
@@ -138,19 +167,17 @@ L.UtfGrid = L.Class.extend({
 		y = (y + max) % max;
 
 		var data = this._cache[map.getZoom() + '_' + x + '_' + y];
-		if (!data) {
-			return { latlng: e.latlng, data: null };
+		var result = null;
+		if (data && data.grid) {
+			var idx = this._utfDecode(data.grid[gridY].charCodeAt(gridX)),
+				key = data.keys[idx];
+
+			if (data.data.hasOwnProperty(key)) {
+				result = data.data[key];
+			}
 		}
 
-		var idx = this._utfDecode(data.grid[gridY].charCodeAt(gridX)),
-		    key = data.keys[idx],
-		    result = data.data[key];
-
-		if (!data.data.hasOwnProperty(key)) {
-			result = null;
-		}
-
-		return { latlng: e.latlng, data: result};
+		return L.extend({ latlng: e.latlng, data: result }, e);
 	},
 
 	//Load up all required json grid files
@@ -174,11 +201,13 @@ L.UtfGrid = L.Class.extend({
 				max = this._map.options.crs.scale(zoom) / tileSize;
 
 		//Load all required ones
+		var visible_tiles = [];
 		for (var x = nwTilePoint.x; x <= seTilePoint.x; x++) {
 			for (var y = nwTilePoint.y; y <= seTilePoint.y; y++) {
 
 				var xw = (x + max) % max, yw = (y + max) % max;
 				var key = zoom + '_' + xw + '_' + yw;
+				visible_tiles.push(key);
 
 				if (!this._cache.hasOwnProperty(key)) {
 					this._cache[key] = null;
@@ -189,6 +218,12 @@ L.UtfGrid = L.Class.extend({
 						this._loadTile(zoom, xw, yw);
 					}
 				}
+			}
+		}
+		// If we still have requests for tiles that have now gone out of sight, attempt to abort them.
+		for (var req_key in this._requests) {
+			if (visible_tiles.indexOf(req_key) < 0) {
+				this._abort_request(req_key);
 			}
 		}
 	},
@@ -216,9 +251,17 @@ L.UtfGrid = L.Class.extend({
 			self._cache[key] = data;
 			delete window[wk][functionName];
 			head.removeChild(script);
+			self._finish_request(key);
 		};
 
-		head.appendChild(script);
+		this._queue_request(key, url, function () {
+			head.appendChild(script);
+			return {
+				abort: function () {
+					head.removeChild(script);
+				}
+			};
+		});
 	},
 
 	_loadTile: function (zoom, x, y) {
@@ -230,10 +273,113 @@ L.UtfGrid = L.Class.extend({
 		}, this.options));
 
 		var key = zoom + '_' + x + '_' + y;
-		var self = this;
-		L.Util.ajax(url, function (data) {
-			self._cache[key] = data;
-		});
+		this._queue_request(key, url, this._ajaxRequestFactory(key, url));
+	},
+
+	_ajaxRequestFactory: function (key, url) {
+		var successCallback = this._successCallbackFactory(key);
+		var errorCallback = this._errorCallbackFactory(url, key);
+		return function () {
+			var request = L.Util.ajax(url, this.options.requestTimeout, successCallback, errorCallback);
+			return request;
+		}.bind(this);
+	},
+
+	_successCallbackFactory: function (key) {
+		return function (data) {
+			this._cache[key] = data;
+			this._finish_request(key);
+		}.bind(this);
+	},
+
+	_errorCallbackFactory: function (tileurl, key) {
+		return function (statuscode) {
+			this._finish_request(key);
+			this.fire('tileerror', {
+				url: tileurl,
+				code: statuscode
+			});
+		}.bind(this);
+	},
+
+	_queue_request: function (key, url, callback) {
+		this._requests[key] = {
+			callback: callback,
+			timeout: null,
+			handler: null,
+			url: url
+		};
+		this._request_queue.push(key);
+		this._process_queued_requests();
+	},
+
+	_finish_request: function (key) {
+		// Remove from requests in process
+		var pos = this._requests_in_process.indexOf(key);
+		if (pos >= 0) {
+			this._requests_in_process.splice(pos, 1);
+		}
+		// Remove from request queue
+		pos = this._request_queue.indexOf(key);
+		if (pos >= 0) {
+			this._request_queue.splice(pos, 1);
+		}
+		// Remove the request entry
+		if (this._requests[key]) {
+			if (this._requests[key].timeout) {
+				window.clearTimeout(this._requests[key].timeout);
+			}
+			delete this._requests[key];
+		}
+		// Recurse
+		this._process_queued_requests();
+		// Fire 'load' event if all tiles have been loaded
+		if (this._requests_in_process.length === 0) {
+			this.fire('load');
+		}
+	},
+
+	_abort_request: function (key) {
+		// Abort the request if possible
+		if (this._requests[key] && this._requests[key].handler) {
+			if (typeof this._requests[key].handler.abort === 'function') {
+				this._requests[key].handler.abort();
+			}
+		}
+		// Ensure we don't keep a false copy of the data in the cache
+		if (this._cache[key] === null) {
+			delete this._cache[key];
+		}
+		// And remove the request
+		this._finish_request(key);
+	},
+
+	_process_queued_requests: function () {
+		while (this._request_queue.length > 0 && (this.options.maxRequests === 0 ||
+		       this._requests_in_process.length < this.options.maxRequests)) {
+			this._process_request(this._request_queue.pop());
+		}
+	},
+
+	_process_request: function (key) {
+		this._requests_in_process.push(key);
+		// The callback might call _finish_request, so don't assume _requests[key] still exists.
+		var handler = this._requests[key].callback();
+		if (this._requests[key]) {
+			this._requests[key].handler = handler;
+			if (handler.timeout === undefined) {
+				var timeoutCallback = this._timeoutCallbackFactory(key);
+				this._requests[key].timeout = window.setTimeout(timeoutCallback, this.options.requestTimeout);
+			}
+		}
+	},
+
+	_timeoutCallbackFactory: function (key) {
+		var tileurl = this._requests[key].url;
+		return function () {
+			this.fire('tileerror', { url: tileurl, code: 'timeout' });
+			this._abort_request(key);
+		}.bind(this);
 	},
 
 	_utfDecode: function (c) {
@@ -247,7 +393,6 @@ L.UtfGrid = L.Class.extend({
 	}
 });
 
-
-
-
-}(this));
+L.utfGrid = function (url, options) {
+	return new L.UtfGrid(url, options);
+};

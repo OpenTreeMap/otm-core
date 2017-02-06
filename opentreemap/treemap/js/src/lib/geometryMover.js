@@ -8,8 +8,6 @@ var $ = require('jquery'),
     polylineEditor = require('treemap/lib/polylineEditor.js'),
     format = require('util').format;
 
-require('leafletEditablePolyline');
-
 function init(obj, options) {
     var inlineEditForm = options.inlineEditForm,
         $editLocationButton = $(options.editLocationButton),
