@@ -146,7 +146,7 @@ exports.polygonMover = function (options) {
         },
 
         disable: function (options) {
-            this.editor.removeAreaPolygon();
+            this.editor.removeAreaPolygon(options.isCancel);
         },
 
         enable: function () {

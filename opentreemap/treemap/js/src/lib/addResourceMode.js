@@ -128,6 +128,7 @@ function init(options) {
     function initSteps(type) {
         plotMarker.hide();
         editor.removeAreaPolygon();
+        editor.areaStream.onValue($('.js-area'), 'html');
         hideSubquestions();
         var $type = _.isUndefined(type) ? $() : $resourceType.filter('[value="' + type + '"]');
         if ($type.length === 1) {
