@@ -90,7 +90,6 @@ function init() {
         shouldBeInEditModeStream: shouldBeInEditModeStream,
         errorCallback: alerts.errorCallback,
         onSaveBefore: function (data) { currentMover.onSaveBefore(data); },
-        onSaveAfter: function (data) { currentMover.onSaveAfter(data); },
         dontUpdateOnSaveOk: true
     });
 

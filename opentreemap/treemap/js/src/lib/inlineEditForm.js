@@ -27,7 +27,6 @@ exports.init = function(options) {
         validationFields = options.validationFields || section + ' [data-class="error"]',
         globalErrorSection = options.globalErrorSection,
         errorCallback = options.errorCallback || $.noop,
-        onSaveAfter = options.onSaveAfter || _.identity,
         dontUpdateOnSaveOk = options.dontUpdateOnSaveOk || false,
 
         showSavePending = function (saveIsPending) {
@@ -298,8 +297,6 @@ exports.init = function(options) {
             editForm.hideAndShowElements(fields, actions, action);
         }
     }
-
-    responseStream.onValue(onSaveAfter);
 
     globalCancelStream.onValue(showSavePending, false);
 
