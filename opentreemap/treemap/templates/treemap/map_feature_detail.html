@@ -19,6 +19,8 @@
     <meta property="og:site_name" content="{{ request.instance.name }}" />
 {% endblock head_extra %}
 
+{% block map_query %}{{ map_query }}{% endblock %}
+
 {% block subhead_exports %}
     {# Exporting is not available from the detail page #}
 {% endblock subhead_exports %}
