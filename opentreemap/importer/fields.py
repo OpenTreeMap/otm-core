@@ -95,6 +95,7 @@ class trees(object):
     # READ_ONLY = 'read only'
 
     OPENTREEMAP_PLOT_ID = 'planting site id'
+    OPENTREEMAP_TREE_ID = 'tree id'
     EXTERNAL_ID_NUMBER = 'custom id'
 
     TREE_PRESENT = 'tree present'
@@ -128,7 +129,7 @@ class trees(object):
 
     FLOAT_FIELDS = {POINT_X, POINT_Y}
 
-    POS_INT_FIELDS = {OPENTREEMAP_PLOT_ID}
+    POS_INT_FIELDS = {OPENTREEMAP_PLOT_ID, OPENTREEMAP_TREE_ID}
 
     # TODO: READONLY restore when implemented
     BOOLEAN_FIELDS = {TREE_PRESENT}
@@ -143,6 +144,7 @@ class trees(object):
         ('length', PLOT_LENGTH),
         ('id', OPENTREEMAP_PLOT_ID),
         ('owner_orig_id', EXTERNAL_ID_NUMBER),
+        ('tree__id', OPENTREEMAP_TREE_ID),
         ('tree_present', TREE_PRESENT),
         ('tree__species__genus', GENUS),
         ('tree__species__species', SPECIES),

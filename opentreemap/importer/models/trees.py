@@ -153,12 +153,15 @@ class TreeImportRow(GenericImportRow):
         })
 
         plot_id = data.get(self.model_fields.OPENTREEMAP_PLOT_ID, None)
+        tree_id = data.get(self.model_fields.OPENTREEMAP_TREE_ID, None)
 
         # Check for an existing plot, use it if we're not already:
         if plot_id and (self.plot is None or self.plot.pk != plot_id):
             plot = Plot.objects.get(pk=plot_id)
         elif self.plot is not None:
             plot = self.plot
+        elif tree_id:
+            plot = Tree.objects.get(pk=tree_id).plot
         else:
             plot = Plot(instance=self.import_event.instance)
 
@@ -275,29 +278,46 @@ class TreeImportRow(GenericImportRow):
 
         return True
 
-    def validate_otm_id(self):
-        oid = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
+    def validate_plot_id_and_tree_id(self):
+        result = True
+        plot_id = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
+        tree_id = self.cleaned.get(fields.trees.OPENTREEMAP_TREE_ID, None)
 
-        if oid:
+        if tree_id:
+            tree = Tree.objects.filter(pk=tree_id,
+                                       instance=self.import_event.instance)
+            if not tree.exists():
+                self.append_error(errors.INVALID_TREE_ID,
+                                  fields.trees.OPENTREEMAP_TREE_ID)
+                result = False
+            elif plot_id:
+                if tree[0].plot_id != plot_id:
+                    self.append_error(errors.PLOT_TREE_MISMATCH,
+                                      (fields.trees.OPENTREEMAP_PLOT_ID,
+                                       fields.trees.OPENTREEMAP_TREE_ID))
+                    result = False
+
+        if plot_id:
             has_plot = Plot.objects \
-                .filter(pk=oid, instance=self.import_event.instance) \
+                .filter(pk=plot_id, instance=self.import_event.instance) \
                 .exists()
 
             if not has_plot:
-                self.append_error(errors.INVALID_OTM_ID,
+                self.append_error(errors.INVALID_PLOT_ID,
                                   fields.trees.OPENTREEMAP_PLOT_ID)
-                return False
+                result = False
 
-        return True
+        return result
 
     def validate_proximity(self, point):
         # This block must stay at the top of the function and
         # effectively disables proximity validation when the import
-        # row includes an OTM plot id. Proximity validation can
+        # row includes an OTM plot id or tree id. Proximity validation can
         # prevent instance admins from correcting the locations of
         # previously uploaded trees in bulk.
-        oid = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
-        if oid is not None:
+        plot_id = self.cleaned.get(fields.trees.OPENTREEMAP_PLOT_ID, None)
+        tree_id = self.cleaned.get(fields.trees.OPENTREEMAP_TREE_ID, None)
+        if plot_id is not None or tree_id is not None:
             return True
 
         offset = 3.048  # 10ft in meters
@@ -419,7 +439,7 @@ class TreeImportRow(GenericImportRow):
         self.validate_user_defined_fields()
 
         # We can work on the 'cleaned' data from here on out
-        self.validate_otm_id()
+        self.validate_plot_id_and_tree_id()
 
         # Attaches a GEOS point to fields.trees.POINT
         self.validate_geom()

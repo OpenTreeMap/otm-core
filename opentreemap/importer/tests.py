@@ -21,7 +21,7 @@ from django.http import HttpRequest, HttpResponseBadRequest
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.utils.translation import ugettext as _
 
-from api.test_utils import setupTreemapEnv, mkPlot
+from api.test_utils import setupTreemapEnv, mkPlot, mkTree
 
 from treemap.instance import Instance, InstanceBounds
 from treemap.json_field import set_attr_on_json_field
@@ -335,7 +335,7 @@ class TreeValidationTest(TreeValidationTestBase):
         r = i.validate_row()
 
         self.assertFalse(r)
-        self.assertHasError(i, errors.INVALID_OTM_ID)
+        self.assertHasError(i, errors.INVALID_PLOT_ID)
 
         p = mkPlot(self.instance, self.user)
 
@@ -345,7 +345,7 @@ class TreeValidationTest(TreeValidationTestBase):
                         fields.trees.OPENTREEMAP_PLOT_ID: p.pk})
         r = i.validate_row()
 
-        self.assertNotHasError(i, errors.INVALID_OTM_ID)
+        self.assertNotHasError(i, errors.INVALID_PLOT_ID)
         self.assertNotHasError(i, errors.INT_ERROR)
 
     def test_geom_validation(self):
@@ -1211,17 +1211,18 @@ class TreeIntegrationTests(IntegrationTests):
     def test_faulty_data2(self):
         p1 = mkPlot(self.instance, self.user,
                     geom=Point(25.0000001, 25.0000001, srid=4326))
-
-        string_too_long = 'a' * 256
+        t1 = mkTree(self.instance, self.user, p1)
+        t2 = mkTree(self.instance, self.user)
 
         csv = """
-| point x    | point y    | planting site id | date planted |
-| 25.0000002 | 25.0000002 |                  | 2012-02-18   |
-| 25.1000002 | 25.1000002 | 133              |              |
-| 25.1000002 | 25.1000002 | -3               | 2023-FF-33   |
-| 25.1000002 | 25.1000002 | bar              | 2012-02-91   |
-| 25.1000002 | 25.1000002 | %s               |              |
-        """ % (p1.pk)
+| point x    | point y    | planting site id | tree id | date planted |
+| 25.0000002 | 25.0000002 |                  |         | 2012-02-18   |
+| 25.1000002 | 25.1000002 | 133              | 244     |              |
+| 25.1000002 | 25.1000002 | -3               |         | 2023-FF-33   |
+| 25.1000002 | 25.1000002 | bar              |         | 2012-02-91   |
+| 25.1000002 | 25.1000002 | %s               | %s      |              |
+| 25.1000002 | 25.1000002 | %s               | %s      |              |
+        """ % (p1.pk, t2.pk, p1.pk, t1.pk)
 
         gflds = [fields.trees.POINT_X, fields.trees.POINT_Y]
 
@@ -1232,7 +1233,10 @@ class TreeIntegrationTests(IntegrationTests):
                            gflds,
                            [p1.pk])])
         self.assertEqual(ierrors['1'],
-                         [(errors.INVALID_OTM_ID[0],
+                         [(errors.INVALID_TREE_ID[0],
+                           [fields.trees.OPENTREEMAP_TREE_ID],
+                           None),
+                          (errors.INVALID_PLOT_ID[0],
                            [fields.trees.OPENTREEMAP_PLOT_ID],
                            None)])
         self.assertEqual(ierrors['2'],
@@ -1246,7 +1250,11 @@ class TreeIntegrationTests(IntegrationTests):
                            [fields.trees.OPENTREEMAP_PLOT_ID], None),
                           (errors.INVALID_DATE[0],
                            [fields.trees.DATE_PLANTED], None)])
-        self.assertNotIn('4', ierrors)
+        self.assertEqual(ierrors['4'],
+                         [(errors.PLOT_TREE_MISMATCH[0],
+                           [fields.trees.OPENTREEMAP_PLOT_ID,
+                            fields.trees.OPENTREEMAP_TREE_ID], None)])
+        self.assertNotIn('5', ierrors)
 
     def test_no_files(self):
         req = make_request({'type': TreeImportEvent.import_type})
@@ -1413,18 +1421,24 @@ class TreeIntegrationTests(IntegrationTests):
 
     def test_override_with_opentreemap_id(self):
         p1 = mkPlot(self.instance, self.user)
+        t1 = mkTree(self.instance, self.user)
 
         csv = """
-        | point x | point y | planting site id |
-        | 45.53   | 31.1    | %s               |
-        """ % p1.pk
+        | point x | point y | planting site id | tree id |
+        | 45.53   | 31.1    | %s               |         |
+        | 45.53   | 31.1    |                  | %s      |
+        """ % (p1.pk, t1.pk)
 
         self.run_through_commit_views(csv)
 
         p1_geom = Plot.objects.get(pk=p1.pk).geom
+        p2_geom = Tree.objects.get(pk=t1.pk).plot.geom
+        self.assertEqual(p1_geom, p2_geom)
+
         p1_geom.transform(4326)
         self.assertEqual(int(p1_geom.x*100), 4553)
         self.assertEqual(int(p1_geom.y*100), 3109)
+
 
     def test_swap_locations_using_otm_id(self):
         center = self.instance.center
