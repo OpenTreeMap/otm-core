@@ -57,7 +57,8 @@ ga('set', 'page', pathname);
 {% endif %}
 
 <li class="explore-map {% block activeexplore %}active{% endblock %}">
-    <a href="{% url 'map' instance_url_name=request.instance.url_name %}" {% if embed %}target="_blank"{% endif %}>
+    <a href="{% url 'map' instance_url_name=request.instance.url_name %}{% block map_query %}{% endblock %}"
+       {% if embed %}target="_blank"{% endif %}>
     <span class="hidden-xs">{% trans "Explore Map" %}</span>
     <!-- We hide the logo on mobile, so we show the instance name instead of "Explore Map" to give context about which map you are on -->
     <span class="visible-xs-inline">{{ request.instance.name }}</span>

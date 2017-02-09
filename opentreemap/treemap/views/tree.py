@@ -131,8 +131,7 @@ def _single_result_context(instance, n_plots, n_resources, filter):
                 if qs.count() == 1:
                     break
         feature = qs[0]
-        latlon = feature.geom
-        latlon.transform(4326)
+        latlon = feature.latlon
         return {
             'id': feature.id,
             'lon': latlon.x,
