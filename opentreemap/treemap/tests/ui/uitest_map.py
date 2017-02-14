@@ -151,8 +151,9 @@ class MapTest(TreemapUITestCase):
         self.login_and_go_to_map_page()
         self.start_add_tree(20, 20)
 
-        diameter = self.driver.find_element_by_css_selector(
-            'input[data-class="diameter-input"]')
+        sel_diameter = 'input[data-class="diameter-input"]'
+        sel_circumference = 'input[data-class="circumference-input"]'
+        diameter = self.driver.find_element_by_css_selector(sel_diameter)
 
         diameter.send_keys('124.0')
 
@@ -185,11 +186,12 @@ class MapTest(TreemapUITestCase):
 
             self.click_when_visible('#quick-edit-button')
 
-            diameter = self.wait_until_visible(
-                'input[data-class="diameter-input"]')
+            diameter = self.wait_until_visible(sel_diameter)
 
             diameter.clear()
             diameter.send_keys('32.0')
+
+            self.wait_for_input_value(sel_circumference, '100.5')
 
             self.click('#save-details-button')
             self.wait_until_visible('#quick-edit-button')
