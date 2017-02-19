@@ -18,7 +18,7 @@ django-redis==4.7.0
 django-registration-redux==1.4
 django-statsd-mozilla==0.3.16
 django-storages==1.5.2
-django-threadedcomments==1.0.1
+django-threadedcomments==1.1
 django-tinsel==0.1.1
 django-url-tools==0.0.8
 django-webpack-loader==0.4.1             # https://github.com/owais/django-webpack-loader/releases
