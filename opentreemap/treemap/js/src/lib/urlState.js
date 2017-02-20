@@ -15,8 +15,8 @@ var _ = require('lodash'),
     url = require('url'),
 
     modeNamesForUrl = [
-        require('treemap/lib/addTreeMode.js').name,
-        require('treemap/lib/addResourceMode.js').name,
+        require('treemap/mapPage/addTreeMode.js').name,
+        require('treemap/mapPage/addResourceMode.js').name,
         'prioritization',
         'scenarios'
     ];
