@@ -69,17 +69,17 @@ function activateMode(mode, sidebar, safeTransition, type) {
     }
 }
 
-function activateBrowseTreesMode(safeTranstion) {
-    activateMode(browseTreesMode, sidebarBrowseTrees, safeTranstion);
+function activateBrowseTreesMode(safeTransition) {
+    activateMode(browseTreesMode, sidebarBrowseTrees, safeTransition);
 }
-function activateAddTreeMode(safeTranstion) {
-    activateMode(addTreeMode, sidebarAddTree, safeTranstion);
+function activateAddTreeMode(safeTransition) {
+    activateMode(addTreeMode, sidebarAddTree, safeTransition);
 }
-function activateEditTreeDetailsMode(safeTranstion) {
-    activateMode(editTreeDetailsMode, sidebarBrowseTrees, safeTranstion);
+function activateEditTreeDetailsMode(safeTransition) {
+    activateMode(editTreeDetailsMode, sidebarBrowseTrees, safeTransition);
 }
-function activateAddResourceMode(safeTranstion, type) {
-    activateMode(addResourceMode, sidebarAddResource, safeTranstion, type);
+function activateAddResourceMode(safeTransition, type) {
+    activateMode(addResourceMode, sidebarAddResource, safeTransition, type);
 }
 
 function inBrowseTreesMode() { return currentMode === browseTreesMode; }
