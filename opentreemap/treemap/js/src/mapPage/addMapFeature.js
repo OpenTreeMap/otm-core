@@ -32,7 +32,7 @@ function init(options) {
         $addFeatureHeaderLink = options.$addFeatureHeaderLink,
         $exploreMapHeaderLink = options.$exploreMapHeaderLink,
 
-        stepControls = require('treemap/lib/stepControls.js').init($sidebar),
+        stepControls = require('treemap/mapPage/stepControls.js').init($sidebar),
         addressInput = sidebar + ' .form-search input',
         $addressInput = $(addressInput),
         $summaryAddress = U.$find('.summaryAddress', $sidebar),
