@@ -5,12 +5,13 @@ var $ = require('jquery'),
     Bootstrap = require('bootstrap'),  // for $(...).collapse()
     Bacon = require('baconjs'),
     url = require('url'),
-    addTreeModeName = require('treemap/lib/addTreeMode.js').name,
-    addResourceModeName = require('treemap/lib/addResourceMode.js').name,
+    addTreeModeName = require('treemap/mapPage/addTreeMode.js').name,
+    addResourceModeName = require('treemap/mapPage/addResourceMode.js').name,
     BU = require('treemap/lib/baconUtils.js'),
     buttonEnabler = require('treemap/lib/buttonEnabler.js'),
     MapPage = require('treemap/lib/mapPage.js'),
-    modes = require('treemap/lib/treeMapModes.js'),
+    modes = require('treemap/mapPage/modes.js'),
+    adHocPolygon = require('treemap/mapPage/adHocPolygon.js'),
     Search = require('treemap/lib/search.js');
 
 function changeMode (modeOptions) {
@@ -86,6 +87,11 @@ buttonEnabler.run();
 
 modes.init(mapManager, triggerSearchFromSidebar, mapPage.embed,
     completedEcobenefitsSearchStream);
+
+adHocPolygon.init({
+    map: mapManager.map,
+    modes: modes
+});
 
 // Read state from current URL, initializing
 // zoom/lat/long/search/mode/selection

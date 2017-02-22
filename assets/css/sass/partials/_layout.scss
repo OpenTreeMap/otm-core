@@ -282,7 +282,7 @@ body {
             padding-left: 8px;
         }
     }
-    .typeahead-toggle {
+    .typeahead-toggle, .draw-area-button {
         padding: 9px 4px 7px;
         position: absolute;
         top: 0px;
@@ -293,14 +293,37 @@ body {
         color: $well-color;
         font-size: 1.8rem;
         line-height: 1.6rem;
-
+    }
+    .typeahead-toggle {
         &.active,
         &:hover {
             color: $main-text-color;
         }
     }
+    .draw-area-button {
+        right: 0px;
+    }
     .search-button {
         display: none;
+    }
+}
+
+.location-search-alternate {
+    padding: 4px 7px 6px 7px;
+    border: 1px solid $secondary-color;
+    border-radius: 6px;
+    background-color: $secondary-color;
+    color: white;
+    display: none;
+
+    a {
+        color: white;
+    }
+    .text {
+        font-size: 1.2rem;
+    }
+    .clear-location-search {
+        float: right;
     }
 }
 

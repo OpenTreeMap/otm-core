@@ -10,10 +10,11 @@ var $                   = require('jquery'),
     reverse             = require('reverse'),
     config              = require('treemap/lib/config.js'),
     U                   = require('treemap/lib/utility.js'),
-    browseTreesMode     = require('treemap/lib/browseTreesMode.js'),
-    addTreeMode         = require('treemap/lib/addTreeMode.js'),
-    editTreeDetailsMode = require('treemap/lib/editTreeDetailsMode.js'),
-    addResourceMode     = require('treemap/lib/addResourceMode.js'),
+    browseTreesMode     = require('treemap/mapPage/browseTreesMode.js'),
+    drawAreaMode        = require('treemap/mapPage/drawAreaMode.js'),
+    addTreeMode         = require('treemap/mapPage/addTreeMode.js'),
+    editTreeDetailsMode = require('treemap/mapPage/editTreeDetailsMode.js'),
+    addResourceMode     = require('treemap/mapPage/addResourceMode.js'),
     inlineEditForm      = require('treemap/lib/inlineEditForm.js'),
     urlState            = require('treemap/lib/urlState.js'),
     plotMarker          = require('treemap/lib/plotMarker.js'),
@@ -69,17 +70,20 @@ function activateMode(mode, sidebar, safeTransition, type) {
     }
 }
 
-function activateBrowseTreesMode(safeTranstion) {
-    activateMode(browseTreesMode, sidebarBrowseTrees, safeTranstion);
+function activateBrowseTreesMode(safeTransition) {
+    activateMode(browseTreesMode, sidebarBrowseTrees, safeTransition);
 }
-function activateAddTreeMode(safeTranstion) {
-    activateMode(addTreeMode, sidebarAddTree, safeTranstion);
+function activateDrawAreaMode(safeTransition) {
+    activateMode(drawAreaMode, sidebarBrowseTrees, safeTransition);
 }
-function activateEditTreeDetailsMode(safeTranstion) {
-    activateMode(editTreeDetailsMode, sidebarBrowseTrees, safeTranstion);
+function activateAddTreeMode(safeTransition) {
+    activateMode(addTreeMode, sidebarAddTree, safeTransition);
 }
-function activateAddResourceMode(safeTranstion, type) {
-    activateMode(addResourceMode, sidebarAddResource, safeTranstion, type);
+function activateEditTreeDetailsMode(safeTransition) {
+    activateMode(editTreeDetailsMode, sidebarBrowseTrees, safeTransition);
+}
+function activateAddResourceMode(safeTransition, type) {
+    activateMode(addResourceMode, sidebarAddResource, safeTransition, type);
 }
 
 function inBrowseTreesMode() { return currentMode === browseTreesMode; }
@@ -129,6 +133,11 @@ function init(mapManager, triggerSearchBus, embed, completedSearchStream) {
         inlineEditForm: form,
         plotMarker: plotMarker,
         $buttonGroup: $treeDetailButtonGroup
+    });
+
+    drawAreaMode.init({
+        map: mapManager.map,
+        tooltipStrings: config.trans.tooltipsForDrawArea
     });
 
     addTreeMode.init({
@@ -191,6 +200,7 @@ function getSpeciesTypeaheadOptions(idPrefix) {
 module.exports = {
     init: init,
     activateBrowseTreesMode: activateBrowseTreesMode,
+    activateDrawAreaMode: activateDrawAreaMode,
     activateAddTreeMode: activateAddTreeMode,
     activateAddResourceMode: activateAddResourceMode
 };

@@ -1,0 +1,36 @@
+{% extends "treemap/partials/search_location.html" %}
+{% load i18n %}
+
+{% block well-controls %}
+    <a class="draw-area-button" title="{% trans "Draw area on map" %}">
+        <i class="icon-pencil"></i>
+    </a>
+{% endblock %}
+
+{% block alternate-content %}
+    <div class="location-search-alternate" id="draw-area-controls">
+        <a class="cancel-draw-area">
+            <i class="icon-cancel"></i>
+        </a>
+        <span class="text">{% trans "Draw area on map" %}</span>
+    </div>
+    <div class="location-search-alternate" id="custom-area-controls">
+        <a class="clear-location-search">
+            <i class="icon-cancel"></i>
+        </a>
+        <span class="text" style="font-style:italic; font-weight:bold">
+            {% trans "CUSTOM AREA" %}
+        </span>
+        &nbsp;
+        <a class="js-edit-area">
+            <i class="icon-pencil"></i>
+        </a>
+    </div>
+    <div class="location-search-alternate" id="edit-area-controls">
+        <span class="text">
+            {% trans "Edit area" %}
+            <a class="js-edit-area-done" style="font-weight:bold;">DONE</a>
+            <a class="js-edit-area-cancel">CANCEL</a>
+        </span>
+    </div>
+{% endblock %}

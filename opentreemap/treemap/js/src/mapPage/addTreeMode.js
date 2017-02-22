@@ -3,7 +3,7 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     U = require('treemap/lib/utility.js'),
-    addMapFeature = require('treemap/lib/addMapFeature.js'),
+    addMapFeature = require('treemap/mapPage/addMapFeature.js'),
     otmTypeahead = require('treemap/lib/otmTypeahead.js'),
     diameterCalculator = require('treemap/lib/diameterCalculator.js');
 

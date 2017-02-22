@@ -25,11 +25,15 @@ function getEntries() {
 }
 
 function getAliases() {
-    var dirs = glob.sync('opentreemap/*/js/src/lib/'),
+    var dirs = glob.sync('opentreemap/*/js/src/*/'),
         aliases = {};
-    dirs.forEach(function(dir) {
-        var app = dir.split(path.sep)[1];
-        aliases[app + '/lib'] = d(dir.slice(0, -1));
+    dirs.forEach(function(thePath) {
+        var parts = thePath.split(path.sep),
+            app = parts[1],
+            dir = parts[4],
+            alias = app + path.sep + dir,
+            target = thePath.slice(0, -1);
+        aliases[alias] = d(target);
     });
     return _.merge(aliases, shimmed);
 }
