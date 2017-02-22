@@ -2,18 +2,18 @@
 
 <!-- Location Search -->
 <div class="search-block">
-  <label class="boundary-search-label">
-      {% block label %}{% trans "Search by Location" %}{% endblock %}
-  </label>
-  <div class="autocomplete-group">
-    <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
-    <input type="text"
-           data-class="search"
-           id="boundary-typeahead"
-           class="form-control"
-           placeholder="{% trans "Address, City, State" %}"
-           data-thumbprint="{{ request.instance.boundary_thumbprint }}"/>
-    <a class="btn btn-default search-button" id="location-perform-search"><i class="icon-search"></i></a>
-    <input name="mapFeature.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />
-  </div>
+    <label class="boundary-search-label">
+        {% block label %}{% trans "Search by Location" %}{% endblock %}
+    </label>
+    <div class="autocomplete-group">
+        <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
+        <input type="text"
+               data-class="search"
+               id="boundary-typeahead"
+               class="form-control"
+               placeholder="{% trans "Address, City, State" %}"
+               data-thumbprint="{{ request.instance.boundary_thumbprint }}"/>
+        <a class="btn btn-default search-button" id="location-perform-search"><i class="icon-search"></i></a>
+        <input name="mapFeature.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />
+    </div>
 </div>
