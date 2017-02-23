@@ -49,7 +49,7 @@ function onActivate() {
 
 function onKeyDown(e) {
     if (e.keyCode == 27) {  // Escape key
-        clearLocationSearch();
+        cancelDrawArea();
     }
 }
 
