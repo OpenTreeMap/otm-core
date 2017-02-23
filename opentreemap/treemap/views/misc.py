@@ -18,7 +18,7 @@ from django.template import RequestContext
 
 from stormwater.models import PolygonalMapFeature
 
-from treemap.models import User, Species, StaticPage, Instance
+from treemap.models import User, Species, Tree, Plot, StaticPage, Instance
 
 from treemap.plugin import get_viewable_instances_filter
 
@@ -71,6 +71,8 @@ def index(request, instance):
 
 
 def get_map_view_context(request, instance):
+    def make_dummy_tree():
+        return Tree(instance=instance, plot=Plot(geom=instance.center))
     if request.user and not request.user.is_anonymous():
         iuser = request.user.get_instance_user(instance)
         resource_classes = [resource for resource in instance.resource_classes
@@ -82,6 +84,8 @@ def get_map_view_context(request, instance):
         'fields_for_add_tree': [
             (_('Tree Height'), 'Tree.height')
         ],
+        # Needed for checking add-tree permission
+        'tree': make_dummy_tree(),
         'resource_classes': resource_classes,
         'only_one_resource_class': len(resource_classes) == 1,
         'polygon_area_units': get_unit_abbreviation(
