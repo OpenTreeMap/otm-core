@@ -200,7 +200,7 @@
         .search-block-wrapper {
             width: calc(100% - #{$mobile-search-button-group-width});
         }
-        .draw-area-button {
+        .draw-area {
             display: none;
         }
         &:not(.expanded) {

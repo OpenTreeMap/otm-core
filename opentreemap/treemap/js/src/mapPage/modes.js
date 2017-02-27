@@ -12,6 +12,7 @@ var $                   = require('jquery'),
     U                   = require('treemap/lib/utility.js'),
     browseTreesMode     = require('treemap/mapPage/browseTreesMode.js'),
     drawAreaMode        = require('treemap/mapPage/drawAreaMode.js'),
+    editAreaMode        = require('treemap/mapPage/editAreaMode.js'),
     addTreeMode         = require('treemap/mapPage/addTreeMode.js'),
     editTreeDetailsMode = require('treemap/mapPage/editTreeDetailsMode.js'),
     addResourceMode     = require('treemap/mapPage/addResourceMode.js'),
@@ -76,6 +77,9 @@ function activateBrowseTreesMode(safeTransition) {
 function activateDrawAreaMode(safeTransition) {
     activateMode(drawAreaMode, sidebarBrowseTrees, safeTransition);
 }
+function activateEditAreaMode(safeTransition) {
+    activateMode(editAreaMode, sidebarBrowseTrees, safeTransition);
+}
 function activateAddTreeMode(safeTransition) {
     activateMode(addTreeMode, sidebarAddTree, safeTransition);
 }
@@ -135,9 +139,21 @@ function init(mapManager, triggerSearchBus, embed, completedSearchStream) {
         $buttonGroup: $treeDetailButtonGroup
     });
 
+    // As discussed in http://stackoverflow.com/a/21424911, using "this" could
+    // fail if modes.init() were called within this file. But it won't be, so
+    // silence JSHint's warning.
+    /*jshint validthis: true */
+
     drawAreaMode.init({
         map: mapManager.map,
+        modes: this,
         tooltipStrings: config.trans.tooltipsForDrawArea
+    });
+
+    editAreaMode.init({
+        map: mapManager.map,
+        modes: this,
+        tooltipStrings: config.trans.tooltipForEditArea
     });
 
     addTreeMode.init({
@@ -201,6 +217,7 @@ module.exports = {
     init: init,
     activateBrowseTreesMode: activateBrowseTreesMode,
     activateDrawAreaMode: activateDrawAreaMode,
+    activateEditAreaMode: activateEditAreaMode,
     activateAddTreeMode: activateAddTreeMode,
     activateAddResourceMode: activateAddResourceMode
 };
