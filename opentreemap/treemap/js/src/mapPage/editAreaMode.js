@@ -3,7 +3,7 @@
 var $ = require('jquery'),
     L = require('leaflet'),
     locationSearchUI = require('treemap/mapPage/locationSearchUI.js'),
-    plotMarker   = require('treemap/lib/plotMarker.js');
+    plotMarker = require('treemap/lib/plotMarker.js');
 
 var map,
     modes,

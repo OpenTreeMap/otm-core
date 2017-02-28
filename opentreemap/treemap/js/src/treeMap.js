@@ -89,7 +89,8 @@ modes.init(mapManager, triggerSearchFromSidebar, mapPage.embed,
     completedEcobenefitsSearchStream);
 
 locationSearchUI.init({
-    map: mapManager.map
+    map: mapManager.map,
+    builtSearchEvents: mapPage.builtSearchEvents
 });
 
 // Read state from current URL, initializing

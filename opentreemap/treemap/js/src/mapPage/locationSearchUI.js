@@ -1,13 +1,17 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('lodash'),
-    L = require('leaflet');
+    _ = require('lodash');
 
 var dom = {
-    clearLocationSearch: '.clear-location-search',
+    locationInput: '#boundary-typeahead',
+    locationSearched: '#location-searched .text',
+    drawArea: '.draw-area',
+    clearLocationInput: '.clear-location-input',
+    clearCustomArea: '.clear-custom-area',
     controls: {
         standard: '#location-search-well',
+        searched: '#location-searched',
         drawArea: '#draw-area-controls',
         customArea: '#custom-area-controls',
         editArea: '#edit-area-controls'
@@ -19,7 +23,33 @@ var map,
 
 function init(options) {
     map = options.map;
-    $(dom.clearLocationSearch).click(clearLocationSearch);
+    $(dom.locationInput).on('input', showAppropriateWellButton);
+    $(dom.clearLocationInput).click(clearLocationInput);
+    $(dom.clearCustomArea).click(clearCustomArea);
+
+    options.builtSearchEvents.onValue(onSearchChanged);
+}
+
+function showAppropriateWellButton() {
+    var hasValue = ($(dom.locationInput).val().length > 0);
+    $(dom.drawArea).toggle(!hasValue);
+    $(dom.clearLocationInput).toggle(hasValue);
+}
+
+function clearLocationInput() {
+    $(dom.locationInput).val('');
+    showAppropriateWellButton();
+}
+
+function onSearchChanged() {
+    var text = $(dom.locationInput).val();
+    if (text) {
+        showControls(dom.controls.searched);
+        $(dom.locationSearched).html(text);
+    } else {
+        showControls(dom.controls.standard);
+        showAppropriateWellButton();
+    }
 }
 
 function getPolygon() {
@@ -30,7 +60,7 @@ function setPolygon(newPolygon) {
     polygon = newPolygon.addTo(map);
 }
 
-function clearLocationSearch() {
+function clearCustomArea() {
     if (polygon) {
         map.removeLayer(polygon);
         polygon = null;

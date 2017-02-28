@@ -281,8 +281,13 @@ body {
         &.no-hamburger {
             padding-left: 8px;
         }
+
     }
-    .typeahead-toggle, .draw-area {
+    #boundary-typeahead {
+        padding-right: 28px;
+    }
+
+    .typeahead-toggle, a {
         padding: 9px 4px 7px;
         position: absolute;
         top: 0px;
@@ -300,21 +305,25 @@ body {
             color: $main-text-color;
         }
     }
-    .draw-area {
+    .draw-area, .clear-location-input {
         right: 0px;
     }
-    .search-button {
+    .search-button, .clear-location-input {
         display: none;
     }
 }
 
 .location-search-alternate {
-    padding: 4px 7px 6px 7px;
+    position: relative;
+    padding: 4px 23px 6px 7px;
     border: 1px solid $secondary-color;
     border-radius: 6px;
     background-color: $secondary-color;
     color: white;
     display: none;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 
     a {
         color: white;
@@ -323,12 +332,13 @@ body {
     .text {
         font-size: 1.2rem;
     }
-    .clear-location-search, .cancel-draw {
-        float: right;
+    .cancel {
+        position: absolute;
+        right: 3px;
     }
     .controls {
         float: right;
-        margin-top: 4px;
+        margin: 4px -15px 0 0;
 
         .cancel-edit {
             font-weight: normal;
