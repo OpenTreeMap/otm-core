@@ -92,6 +92,12 @@ boundary_autocomplete = do(
     instance_request,
     misc_views.boundary_autocomplete)
 
+anonymous_boundary = do(
+    require_http_method('POST'),
+    json_api_call,
+    return_400_if_validation_errors,
+    misc_views.add_anonymous_boundary)
+
 species_list = do(
     json_api_call,
     instance_request,

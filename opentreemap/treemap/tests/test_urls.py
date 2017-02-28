@@ -6,6 +6,7 @@ from __future__ import division
 import os
 import json
 
+from django.core.urlresolvers import reverse
 from django.test.utils import override_settings
 
 from treemap.models import Plot, Tree
@@ -183,6 +184,12 @@ class TreemapUrlTests(UrlTestCase, LocalMediaTestCase):
 
     def test_boundary_invalid(self):
         self.assert_404(self.prefix + 'boundaries/99/geojson/')
+
+    def test_anonymous_boundary(self):
+        url = reverse('anonymous_boundary')
+        self.assert_200(url, method='POST', data=json.dumps({
+            'polygon': [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
+        }), content_type="application/json")
 
     def test_boundaries_autocomplete(self):
         self.make_boundary()
