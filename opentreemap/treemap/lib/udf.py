@@ -70,6 +70,8 @@ def _parse_params(params):
 
     if udf_type in ('choice', 'multichoice'):
         datatype['choices'] = params.get('udf.choices', None)
+        datatype['protected_choices'] = \
+            params.get('udf.protected_choices', None)
 
     datatype = json.dumps(datatype)
 
