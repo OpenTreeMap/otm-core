@@ -11,7 +11,7 @@ var $ = require('jquery'),
     buttonEnabler = require('treemap/lib/buttonEnabler.js'),
     MapPage = require('treemap/lib/mapPage.js'),
     modes = require('treemap/mapPage/modes.js'),
-    adHocPolygon = require('treemap/mapPage/adHocPolygon.js'),
+    locationSearchUI = require('treemap/mapPage/locationSearchUI.js'),
     Search = require('treemap/lib/search.js');
 
 function changeMode (modeOptions) {
@@ -88,7 +88,7 @@ buttonEnabler.run();
 modes.init(mapManager, triggerSearchFromSidebar, mapPage.embed,
     completedEcobenefitsSearchStream);
 
-adHocPolygon.init({
+locationSearchUI.init({
     map: mapManager.map
 });
 
