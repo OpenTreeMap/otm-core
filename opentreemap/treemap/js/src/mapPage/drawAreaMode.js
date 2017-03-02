@@ -2,8 +2,7 @@
 
 var $ = require('jquery'),
     L = require('leaflet'),
-    locationSearchUI = require('treemap/mapPage/locationSearchUI.js'),
-    plotMarker = require('treemap/lib/plotMarker.js');
+    locationSearchUI = require('treemap/mapPage/locationSearchUI.js');
 
 var map,
     modes,
@@ -29,7 +28,6 @@ function init(options) {
 }
 
 function activate() {
-    plotMarker.hide();
     locationSearchUI.showDrawAreaControls();
     setTooltips(customTooltips);
     drawer.enable();
@@ -41,7 +39,7 @@ function activate() {
 function onDrawComplete(e) {
     locationSearchUI.setPolygon(e.layer);
     polygonComplete = true;
-    modes.activateBrowseTreesMode(true);
+    modes.activateBrowseTreesMode();
 }
 
 function onKeyDown(e) {
@@ -51,7 +49,7 @@ function onKeyDown(e) {
 }
 
 function cancelDraw() {
-    modes.activateBrowseTreesMode(true);
+    modes.activateBrowseTreesMode();
 }
 
 function deactivate() {

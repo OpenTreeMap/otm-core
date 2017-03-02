@@ -14,19 +14,6 @@ var $ = require('jquery'),
     locationSearchUI = require('treemap/mapPage/locationSearchUI.js'),
     Search = require('treemap/lib/search.js');
 
-function changeMode (modeOptions) {
-    var modeName = modeOptions.modeName,
-        type = modeOptions.modeType;
-
-    if (modeName === addTreeModeName) {
-        modes.activateAddTreeMode(false);
-    } else if (modeName === addResourceModeName) {
-        modes.activateAddResourceMode(false, type);
-    } else {
-        modes.activateBrowseTreesMode(false);
-    }
-}
-
 var mapPage = MapPage.init({
         domId: 'map',
         trackZoomLatLng: true,
@@ -51,15 +38,36 @@ var mapPage = MapPage.init({
         _.bind(mapManager.setFilter, mapManager));
 
 
-modeChangeStream.onValue(changeMode);
+modeChangeStream.onValue(function (modeOptions) {
+    // Mode was specified in the URL, e.g. because user clicked "Add a Tree" on
+    // a different page
+    var modeName = modeOptions.modeName,
+        mapFeatureType = modeOptions.modeType;
 
-var performAdd = function (e, addFn) {
+    if (modeName === addTreeModeName) {
+        modes.activateAddTreeMode();
+    } else if (modeName === addResourceModeName) {
+        modes.activateAddResourceMode({mapFeatureType: mapFeatureType});
+    } else {
+        modes.activateBrowseTreesMode();
+    }
+});
+
+$('[data-action="addtree"]').click(function(e) {
+    performAdd(e, modes.activateAddTreeMode);
+});
+
+$('[data-action="addresource"]').click(function(e) {
+    performAdd(e, modes.activateAddResourceMode);
+});
+
+var performAdd = function (e, activateTheMode) {
     var btn = e.target;
 
     if (!mapPage.embed) {
-        var type = $(btn).attr('data-class');
+        var mapFeatureType = $(btn).attr('data-class');
         e.preventDefault();
-        addFn(false, type);
+        activateTheMode({mapFeatureType: mapFeatureType});
     } else {
         var href = btn.href,
             parsedHref = url.parse(href, true),
@@ -74,14 +82,6 @@ var performAdd = function (e, addFn) {
         // allow default
     }
 };
-
-$('[data-action="addtree"]').click(function(e) {
-    performAdd(e, modes.activateAddTreeMode);
-});
-
-$('[data-action="addresource"]').click(function(e) {
-    performAdd(e, modes.activateAddResourceMode);
-});
 
 buttonEnabler.run();
 
