@@ -1,12 +1,11 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('lodash');
+    _ = require('lodash'),
+    L = require('leaflet');
 
 var dom = {
-    cancelDrawArea: '.cancel-draw-area',
     clearLocationSearch: '.clear-location-search',
-    drawAreaButton: '.draw-area-button',
     controls: {
         standard: '#location-search-well',
         drawArea: '#draw-area-controls',
@@ -16,51 +15,27 @@ var dom = {
 };
 
 var map,
-    modes,
-    adHocPolygonLayer;
+    polygon;
 
 function init(options) {
     map = options.map;
-    modes = options.modes;
-
-    $(dom.drawAreaButton).click(modes.activateDrawAreaMode);
-    $(dom.cancelDrawArea).click(cancelDrawArea);
     $(dom.clearLocationSearch).click(clearLocationSearch);
 }
 
-function cancelDrawArea() {
-    clearLocationSearch();
-    modes.activateBrowseTreesMode(true);
+function getPolygon() {
+    return polygon;
+}
+
+function setPolygon(newPolygon) {
+    polygon = newPolygon.addTo(map);
 }
 
 function clearLocationSearch() {
-    // Note this may be called from any mode, not just drawAreaMode
-    if (adHocPolygonLayer) {
-        map.removeLayer(adHocPolygonLayer);
-        adHocPolygonLayer = null;
+    if (polygon) {
+        map.removeLayer(polygon);
+        polygon = null;
     }
     showControls(dom.controls.standard);
-}
-
-function onActivate() {
-    showControls(dom.controls.drawArea);
-    $(document).on('keydown', onKeyDown);
-}
-
-function onKeyDown(e) {
-    if (e.keyCode == 27) {  // Escape key
-        cancelDrawArea();
-    }
-}
-
-function onNewPolygon(polygonLayer) {
-    adHocPolygonLayer = polygonLayer.addTo(map);
-    modes.activateBrowseTreesMode(true);
-}
-
-function onDeactivate() {
-    showControls(adHocPolygonLayer ? dom.controls.customArea : dom.controls.standard);
-    $(document).off('keydown', onKeyDown);
 }
 
 function showControls(controls) {
@@ -72,7 +47,10 @@ function showControls(controls) {
 
 module.exports = {
     init: init,
-    onActivate: onActivate,
-    onNewPolygon: onNewPolygon,
-    onDeactivate: onDeactivate
+    getPolygon: getPolygon,
+    setPolygon: setPolygon,
+    showStandardControls: _.partial(showControls, dom.controls.standard),
+    showDrawAreaControls: _.partial(showControls, dom.controls.drawArea),
+    showCustomAreaControls: _.partial(showControls, dom.controls.customArea),
+    showEditAreaControls: _.partial(showControls, dom.controls.editArea)
 };

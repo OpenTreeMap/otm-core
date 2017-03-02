@@ -282,7 +282,7 @@ body {
             padding-left: 8px;
         }
     }
-    .typeahead-toggle, .draw-area-button {
+    .typeahead-toggle, .draw-area {
         padding: 9px 4px 7px;
         position: absolute;
         top: 0px;
@@ -300,7 +300,7 @@ body {
             color: $main-text-color;
         }
     }
-    .draw-area-button {
+    .draw-area {
         right: 0px;
     }
     .search-button {
@@ -318,12 +318,22 @@ body {
 
     a {
         color: white;
+        cursor: pointer;
     }
     .text {
         font-size: 1.2rem;
     }
-    .clear-location-search, .cancel-draw-area {
+    .clear-location-search, .cancel-draw {
         float: right;
+    }
+    .controls {
+        float: right;
+        margin-top: 4px;
+
+        .cancel-edit {
+            font-weight: normal;
+            margin-left: 25px;
+        }
     }
 }
 

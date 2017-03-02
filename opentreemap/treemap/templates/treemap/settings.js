@@ -61,7 +61,12 @@ otm.settings.trans = Object.freeze({
         end: {
             message: '{% trans "Click first corner to finish" %}'
         }
-    }
+    },
+    tooltipForEditArea: [
+        '{% trans "Drag a corner to move it." %}',
+        '{% trans "Click a corner to delete it." %}',
+        '{% trans "Enter when done. ESC to cancel." %}'
+    ]
 });
 
 otm.settings.errorMessages = Object.freeze({
