@@ -32,7 +32,7 @@ pep8==1.4.6 # rq.filter: ==1.4.6
 Pillow==4.0.0
 psycopg2==2.7                          # http://initd.org/psycopg/docs/news.html
 python-dateutil==2.6.0                   # https://github.com/dateutil/dateutil/blob/master/NEWS
-python-omgeo==1.9.0
+python-omgeo==1.9.1
 pytz==2016.10                           # https://launchpad.net/pytz/+announcements
 rollbar==0.13.11                          # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
 statsd==3.2.1
