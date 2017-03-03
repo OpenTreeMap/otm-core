@@ -13,8 +13,8 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
 from django.core.exceptions import ValidationError
-from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.shortcuts import render_to_response
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 
 from stormwater.models import PolygonalMapFeature
@@ -109,10 +109,7 @@ def static_page(request, instance, page):
 
 
 def boundary_to_geojson(request, instance, boundary_id):
-    try:
-        boundary = Boundary.all_objects.get(pk=boundary_id)
-    except Boundary.DoesNotExist, Boundary.MultipleObjectsReturned:
-        raise Http404
+    boundary = get_object_or_404(Boundary.all_objects, pk=boundary_id)
     geom = boundary.geom
 
     # Leaflet prefers to work with lat/lng so we do the transformation
