@@ -8,6 +8,8 @@ from django.conf import settings
 from django.views.generic import RedirectView
 from django.contrib import admin
 
+from django.shortcuts import redirect
+
 from treemap import routes
 from treemap.instance import URL_NAME_PATTERN
 from treemap.urls import USERNAME_PATTERN
@@ -37,7 +39,9 @@ urlpatterns = patterns(
     url('^comments/', include('django_comments.urls')),
     url(r'^', include('geocode.urls')),
     url(r'^stormwater/', include('stormwater.urls')),
-    url(r'^$', routes.landing_page),
+    # Default hardcoded front site. TODO: make this more pretty.
+    url(r'^$', RedirectView.as_view(url='/warszawa/map/')),
+    # url(r'^$', routes.landing_page),
     url(r'^config/settings.js$', routes.root_settings_js),
     url(r'^users/%s/$' % USERNAME_PATTERN,
         routes.user, name='user'),

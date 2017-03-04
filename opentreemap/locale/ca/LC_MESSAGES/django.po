@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-03 13:16-0500\n"
+"POT-Creation-Date: 2017-03-04 18:50+0100\n"
 "PO-Revision-Date: 2016-05-04 23:27+0100\n"
 "Last-Translator: \n"
 "Language-Team: riromu@upv.es\n"
@@ -177,7 +177,7 @@ msgstr "El diametre és prou llarg per a estes espècies"
 msgid "The height is too large for this species"
 msgstr "L'altura es prou alta per aquesta espècie"
 
-#: importer/models/base.py:134
+#: importer/models/base.py:144
 msgid "For this class, data must be a list"
 msgstr "Per aquesta classe, les dades han de ser una llista"
 
@@ -369,12 +369,20 @@ msgid "Please provide a new value:"
 msgstr "Per favor introdueix un nou valor:"
 
 #: importer/templates/importer/partials/row_status.html:31
-#, python-format
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "        Your tree map currently contains %(tree_count)s trees. This data "
+#| "upload will cause your tree map to exceed the %(tree_limit)s number of "
+#| "trees included in your plan. Please add more trees to your plan or upload "
+#| "%(remaining_tree_limit)s or fewer trees.\n"
+#| "        "
 msgid ""
 "\n"
-"        Your tree map currently contains %(tree_count)s trees. This data "
-"upload will cause your tree map to exceed the %(tree_limit)s number of trees "
-"included in your plan. Please add more trees to your plan or upload "
+"        Your tree map currently contains %(tree_count)s trees. This data\n"
+"upload will cause your tree map to exceed the number of trees included in "
+"your\n"
+"plan (%(tree_limit)s). Please add more trees to your plan or upload "
 "%(remaining_tree_limit)s or fewer trees.\n"
 "        "
 msgstr ""
@@ -385,7 +393,7 @@ msgstr ""
 "%(remaining_tree_limit)s o disminueix el nombre d'arbres.\n"
 "        "
 
-#: importer/templates/importer/partials/row_status.html:38
+#: importer/templates/importer/partials/row_status.html:40
 msgid "Add to Tree Map"
 msgstr "Afegir al mapa d'arbres"
 
@@ -457,7 +465,7 @@ msgstr "Importacions d'espècies actives"
 msgid "Finished Species Imports"
 msgstr "Importacions d'espècies finalitzades"
 
-#: importer/views.py:501
+#: importer/views.py:509
 msgid ""
 "Please consult the OpenTreeMap Species Import Guide for information on "
 "resolving this error."
@@ -465,55 +473,55 @@ msgstr ""
 "Per favor, consulta les espècies d' \"OpenTreeMap Species Import Guide\" per "
 "informació sobre resoldre aquest error."
 
-#: importer/views.py:532
+#: importer/views.py:540
 msgid "Import Value"
 msgstr "Valor de importación"
 
-#: importer/views.py:533
+#: importer/views.py:541
 msgid "Create New"
 msgstr "Crear Nou"
 
-#: importer/views.py:538
+#: importer/views.py:546
 msgid "Match"
 msgstr "Aparellar"
 
-#: importer/views.py:539
+#: importer/views.py:547
 msgid "Merge with Match"
 msgstr "Fusionar i aparella"
 
-#: importer/views.py:595
+#: importer/views.py:603
 msgid "Ready to Add"
 msgstr "Llest per a afegir"
 
-#: importer/views.py:600
+#: importer/views.py:608
 msgid "Errors"
 msgstr "Errors"
 
-#: importer/views.py:605
+#: importer/views.py:613
 msgid "Successfully Added"
 msgstr "Afegit correctament"
 
-#: importer/views.py:612
+#: importer/views.py:620
 msgid "Warnings"
 msgstr "Advertències"
 
-#: importer/views.py:619
+#: importer/views.py:627
 msgid "Merge Required"
 msgstr "Fusió requerida"
 
-#: importer/views.py:684
+#: importer/views.py:692
 msgid "tree limit exceeded"
 msgstr "limit de l'arbre excedit"
 
-#: opentreemap/context_processors.py:18
+#: opentreemap/context_processors.py:22
 msgid "Resource"
 msgstr "Recurs"
 
-#: opentreemap/context_processors.py:19
+#: opentreemap/context_processors.py:23
 msgid "Resources"
 msgstr "Recursos"
 
-#: otm_comments/templates/otm_comments/moderation.html:4
+#: otm_comments/templates/otm_comments/moderation.html:5
 msgid "Comment Moderation"
 msgstr "Moderació de comentaris"
 
@@ -640,48 +648,94 @@ msgstr ""
 "Desitja rebre actualitzacions puntuals dels mapes d'arbres sobre els quals "
 "vull contribuir."
 
-#: stormwater/models.py:79
+#: stormwater/benefits.py:80
+#, fuzzy
+#| msgid "Stormwater filtered"
+msgid "Stormwater runoff reduced"
+msgstr "aigua de pluja filtrada"
+
+#: stormwater/models.py:71 stormwater/models.py:133
+#: stormwater/templates/stormwater/Bioswale_detail.html:7
+#: stormwater/templates/stormwater/RainGarden_detail.html:7
+msgid "Adjacent Drainage Area"
+msgstr ""
+
+#: stormwater/models.py:72 stormwater/models.py:134 stormwater/models.py:194
+msgid "Please enter a number."
+msgstr "Per favor, introdueix un número."
+
+#: stormwater/models.py:113
 msgid "Bioswale"
 msgstr "Canal de filtració biològica"
 
-#: stormwater/models.py:80
+#: stormwater/models.py:114
 msgid "Bioswales"
 msgstr "Canals de filatracions biològiques"
 
-#: stormwater/models.py:126
+#: stormwater/models.py:175
 msgid "Rain Garden"
 msgstr "Jardí de pluja"
 
-#: stormwater/models.py:127
+#: stormwater/models.py:176
 #, fuzzy
 #| msgid "Rain Garden"
 msgid "Rain Gardens"
 msgstr "Jardí de pluja"
 
-#: stormwater/models.py:134
+#: stormwater/models.py:193
 #: stormwater/templates/stormwater/RainBarrel_detail.html:7
 msgid "Capacity"
 msgstr "Capacitat"
 
-#: stormwater/models.py:135
-msgid "Please enter a number."
-msgstr "Per favor, introdueix un número."
-
-#: stormwater/models.py:138
+#: stormwater/models.py:197
 #, fuzzy
 #| msgid "Rain Garden"
 msgid "Rain Barrel"
 msgstr "Jardí de pluja"
 
-#: stormwater/models.py:139
+#: stormwater/models.py:198
 #, fuzzy
 #| msgid "Rain Garden"
 msgid "Rain Barrels"
 msgstr "Jardí de pluja"
 
+#: stormwater/templates/stormwater/Bioswale_add.html:10
+#, python-format
+msgid ""
+"\n"
+"      How large is the area that drains into the %(bioswale)s?\n"
+"    "
+msgstr ""
+
+#: stormwater/templates/stormwater/Bioswale_add.html:15
+#, python-format
+msgid ""
+"\n"
+"      Approximate size is fine.\n"
+"      Do not include the area of the %(bioswale)s itself.\n"
+"    "
+msgstr ""
+
 #: stormwater/templates/stormwater/RainBarrel_add.html:8
 msgid "How much water does the tank hold?"
 msgstr "Quanta aigua conté el tanc?"
+
+#: stormwater/templates/stormwater/RainGarden_add.html:10
+#, python-format
+msgid ""
+"\n"
+"      How large is the area that drains into the %(rain_garden)s?\n"
+"    "
+msgstr ""
+
+#: stormwater/templates/stormwater/RainGarden_add.html:15
+#, python-format
+msgid ""
+"\n"
+"      Approximate size is fine.\n"
+"      Do not include the area of the %(rain_garden)s itself.\n"
+"    "
+msgstr ""
 
 #~ msgid ""
 #~ "Cannot retrieve permissions for this object because it does not have an "
@@ -740,9 +794,6 @@ msgstr "Quanta aigua conté el tanc?"
 
 #~ msgid "Energy conserved"
 #~ msgstr "Energia conservada"
-
-#~ msgid "Stormwater filtered"
-#~ msgstr "aigua de pluja filtrada"
 
 #~ msgid "Carbon dioxide removed"
 #~ msgstr "Diòxid de carboni eliminat"
