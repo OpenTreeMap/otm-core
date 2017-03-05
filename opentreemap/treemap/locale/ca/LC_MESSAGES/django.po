@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-04 18:50+0100\n"
+"POT-Creation-Date: 2017-03-05 20:07+0100\n"
 "PO-Revision-Date: 2016-05-04 23:22+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -18,23 +18,23 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#: treemap/audit.py:683
+#: opentreemap/treemap/audit.py:683
 msgid "Invisible"
 msgstr "Invisible"
 
-#: treemap/audit.py:684
+#: opentreemap/treemap/audit.py:684
 msgid "Read Only"
 msgstr "Només lectura"
 
-#: treemap/audit.py:685
+#: opentreemap/treemap/audit.py:685
 msgid "Pending Write Access"
 msgstr "Pendent d'accés d'escriptura"
 
-#: treemap/audit.py:686
+#: opentreemap/treemap/audit.py:686
 msgid "Full Write Access"
 msgstr "Accés d'escriptura complet"
 
-#: treemap/audit.py:850
+#: opentreemap/treemap/audit.py:850
 #, fuzzy
 #| msgid ""
 #| "Cannot retrieve permissions for this object because it does not have an "
@@ -46,157 +46,158 @@ msgstr ""
 "No es poden recuperar els permissos per aquest objecte perqupè no hi ha una "
 "instància associada a ell."
 
-#: treemap/audit.py:1129
+#: opentreemap/treemap/audit.py:1129
 #, python-format
 msgid "created a %(model)s"
 msgstr "creat un %(model)s"
 
-#: treemap/audit.py:1130
+#: opentreemap/treemap/audit.py:1130
 #, python-format
 msgid "updated the %(model)s"
 msgstr "actualitzat el %(model)s"
 
-#: treemap/audit.py:1131
+#: opentreemap/treemap/audit.py:1131
 #, python-format
 msgid "deleted the %(model)s"
 msgstr "esborrat el %(model)s"
 
-#: treemap/audit.py:1132
+#: opentreemap/treemap/audit.py:1132
 #, python-format
 msgid "approved an edit to the %(model)s"
 msgstr "aprovada una edició al %(model)s"
 
-#: treemap/audit.py:1134
+#: opentreemap/treemap/audit.py:1134
 #, python-format
 msgid "rejected an edit to the %(model)s"
 msgstr "rebutjada una edició al %(model)s"
 
-#: treemap/audit.py:1139 treemap/audit.py:1140
+#: opentreemap/treemap/audit.py:1139 opentreemap/treemap/audit.py:1140
 #, python-format
 msgid "set %(field)s to %(value)s"
 msgstr "fixa %(field)s a %(value)s"
 
-#: treemap/audit.py:1141
+#: opentreemap/treemap/audit.py:1141
 #, python-format
 msgid "deleted %(field)s"
 msgstr "eborrat %(field)s"
 
-#: treemap/audit.py:1142
+#: opentreemap/treemap/audit.py:1142
 #, python-format
 msgid "approved setting %(field)s to %(value)s"
 msgstr "Aprovat  %(field)s per defecta a %(value)s"
 
-#: treemap/audit.py:1144
+#: opentreemap/treemap/audit.py:1144
 #, python-format
 msgid "rejecting setting %(field)s to %(value)s"
 msgstr "rebutjant valor per decte %(field)s a %(value)s"
 
-#: treemap/audit.py:1344
+#: opentreemap/treemap/audit.py:1344
 msgid "Create"
 msgstr "Crear"
 
-#: treemap/audit.py:1345 treemap/templates/treemap/map_feature_detail.html:45
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:78
-#: treemap/templates/treemap/partials/photo.html:22
-#: treemap/templates/treemap/partials/photo_review.html:37
+#: opentreemap/treemap/audit.py:1345
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:45
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:78
+#: opentreemap/treemap/templates/treemap/partials/photo.html:22
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:37
 msgid "Delete"
 msgstr "Esborrar"
 
-#: treemap/audit.py:1346
+#: opentreemap/treemap/audit.py:1346
 msgid "Update"
 msgstr "actualitza"
 
-#: treemap/audit.py:1347
+#: opentreemap/treemap/audit.py:1347
 msgid "Approved Pending Edit"
 msgstr "Edició Pendent Aprovada"
 
-#: treemap/audit.py:1348
+#: opentreemap/treemap/audit.py:1348
 #, fuzzy
 #| msgid "Recent Edits"
 msgid "Reject Pending Edit"
 msgstr "Edicions recents"
 
-#: treemap/audit.py:1349
+#: opentreemap/treemap/audit.py:1349
 #, fuzzy
 #| msgid "Recent Edits"
 msgid "Rejected Edit"
 msgstr "Edicions recents"
 
-#: treemap/audit.py:1350
+#: opentreemap/treemap/audit.py:1350
 msgid "Approved Edit"
 msgstr "Aprovada Edició"
 
 #. Translators: 'none' in this case refers to clearing the
 #. list. Should be a human-friendly translation of 'null'
-#: treemap/audit.py:1438
+#: opentreemap/treemap/audit.py:1438
 msgid "none"
 msgstr "cap"
 
-#: treemap/decorators.py:173
+#: opentreemap/treemap/decorators.py:173
 msgid "One or more of the specified values are invalid."
 msgstr "Un o més dels valors especificats són invàlids."
 
 #. Translators: 'Energy conserved' is the name of an eco benefit
-#: treemap/ecobenefits.py:434
+#: opentreemap/treemap/ecobenefits.py:434
 #, fuzzy
 #| msgid "Energy Conserved"
 msgid "Energy conserved"
 msgstr "Energia conservada"
 
 #. Translators: 'Stormwater filtered' is the name of an eco benefit
-#: treemap/ecobenefits.py:436
+#: opentreemap/treemap/ecobenefits.py:436
 #, fuzzy
 #| msgid "Stormwater Intercepted"
 msgid "Stormwater filtered"
 msgstr "Aigua de pluja interceptada"
 
 #. Translators: 'Carbon dioxide removed' is the name of an eco benefit
-#: treemap/ecobenefits.py:438
+#: opentreemap/treemap/ecobenefits.py:438
 #, fuzzy
 #| msgid "Carbon dioxide reduced"
 msgid "Carbon dioxide removed"
 msgstr "Reducció de diòxid de carboni"
 
 #. Translators: 'Carbon dioxide stored' is the name of an eco benefit
-#: treemap/ecobenefits.py:440
+#: opentreemap/treemap/ecobenefits.py:440
 #, fuzzy
 #| msgid "Carbon dioxide reduced"
 msgid "Carbon dioxide stored to date"
 msgstr "Reducció de diòxid de carboni"
 
 #. Translators: 'Air quality improved' is the name of an eco benefit
-#: treemap/ecobenefits.py:442
+#: opentreemap/treemap/ecobenefits.py:442
 #, fuzzy
 #| msgid "Air Quality"
 msgid "Air quality improved"
 msgstr "Qualitat de l'aire"
 
-#: treemap/images.py:59
+#: opentreemap/treemap/images.py:59
 msgid "The uploaded image is too large"
 msgstr "La imatge pujada és massa llarga"
 
-#: treemap/images.py:67
+#: opentreemap/treemap/images.py:67
 msgid "Invalid image"
 msgstr "Imatge no vàlida"
 
-#: treemap/images.py:100
+#: opentreemap/treemap/images.py:100
 msgid "Image upload issue"
 msgstr "Imatge pujada "
 
-#: treemap/instance.py:44
+#: opentreemap/treemap/instance.py:44
 #, python-format
 msgid "%(instancename)s is a reserved name and cannot be used"
 msgstr "%(instancename)s és un nom reservat i no pot ser emprat"
 
-#: treemap/instance.py:111
+#: opentreemap/treemap/instance.py:111
 msgid "Can view \"External Link\" of a tree or map feature"
 msgstr ""
 
-#: treemap/instance.py:114
+#: opentreemap/treemap/instance.py:114
 msgid "Can View External Link"
 msgstr ""
 
-#: treemap/instance.py:195
+#: opentreemap/treemap/instance.py:195
 msgid ""
 "Must start with a letter and may only contain letters, numbers, or dashes "
 "(\"-\")"
@@ -204,140 +205,142 @@ msgstr ""
 "Must start with a letter and may only contain letters, numbers, or dashes "
 "(\"-\")"
 
-#: treemap/instance.py:197
+#: opentreemap/treemap/instance.py:197
 msgid "Invalid URL name"
 msgstr "URL invàlida"
 
-#: treemap/lib/external_link.py:51
-#: treemap/templates/treemap/unsupported.html:23
+#: opentreemap/treemap/lib/external_link.py:51
+#: opentreemap/treemap/templates/treemap/unsupported.html:23
 msgid " or "
 msgstr "o"
 
-#: treemap/lib/map_feature.py:34
+#: opentreemap/treemap/lib/map_feature.py:34
 #, python-format
 msgid "I added a photo of this %s!"
 msgstr "He afegit una foto per aquest %s!"
 
-#: treemap/lib/map_feature.py:269
+#: opentreemap/treemap/lib/map_feature.py:269
 #, fuzzy
 #| msgid "Add a Tree"
 msgid "Add a tree"
 msgstr "Afegir un arbre"
 
-#: treemap/lib/map_feature.py:271
+#: opentreemap/treemap/lib/map_feature.py:271
 msgid "Add the diameter"
 msgstr "Afegir el diametre"
 
-#: treemap/lib/map_feature.py:273
+#: opentreemap/treemap/lib/map_feature.py:273
 msgid "Add the species"
 msgstr "Afegir espècies"
 
-#: treemap/lib/map_feature.py:275 treemap/lib/map_feature.py:340
+#: opentreemap/treemap/lib/map_feature.py:275
+#: opentreemap/treemap/lib/map_feature.py:340
 #, fuzzy
 #| msgid "Add Photos"
 msgid "Add a photo"
 msgstr "Afegir fotos"
 
-#: treemap/lib/map_feature.py:427
+#: opentreemap/treemap/lib/map_feature.py:427
 #, python-format
 msgid "%(feature)s on %(treemap)s"
 msgstr "%(feature)s sobre %(treemap)s"
 
-#: treemap/lib/map_feature.py:434
+#: opentreemap/treemap/lib/map_feature.py:434
 #, python-format
 msgid "This %(feature)s saves %(currency)s%(amount)s per year."
 msgstr "Aquesta %(feature)s estalvia %(currency)s%(amount)s per any."
 
-#: treemap/lib/map_feature.py:442
+#: opentreemap/treemap/lib/map_feature.py:442
 #, python-format
 msgid "This %(feature)s is mapped on %(treemap)s"
 msgstr "Aquesta %(feature)s està mapejada a %(treemap)s"
 
-#: treemap/models.py:44
+#: opentreemap/treemap/models.py:44
 msgid "set the location"
 msgstr "Especifica la ubicació"
 
-#: treemap/models.py:45
+#: opentreemap/treemap/models.py:45
 msgid "updated the location"
 msgstr "actualitzada la ubicació"
 
-#: treemap/models.py:46
+#: opentreemap/treemap/models.py:46
 msgid "deleted the location"
 msgstr "borrada la ubicació"
 
-#: treemap/models.py:47
+#: opentreemap/treemap/models.py:47
 msgid "approved an edit of the location"
 msgstr "aprovada una edició del ubicació"
 
-#: treemap/models.py:48
+#: opentreemap/treemap/models.py:48
 msgid "rejected an edit of the location"
 msgstr "rebutjada una edició de la ubicació"
 
-#: treemap/models.py:57
+#: opentreemap/treemap/models.py:57
 msgid "read only"
 msgstr "només lectura"
 
-#: treemap/models.py:59
+#: opentreemap/treemap/models.py:59
 msgid "editable"
 msgstr "editable"
 
-#: treemap/models.py:61 treemap/models.py:62 treemap/models.py:63
+#: opentreemap/treemap/models.py:61 opentreemap/treemap/models.py:62
+#: opentreemap/treemap/models.py:63
 #, fuzzy, python-format
 msgid "made the tree %(value)s"
 msgstr "calculat el valor de l'arbre %(value)s"
 
-#: treemap/models.py:64 treemap/models.py:65
+#: opentreemap/treemap/models.py:64 opentreemap/treemap/models.py:65
 #, python-format
 msgid "approved making the tree %(value)s"
 msgstr "aprovat fer l'abre %(value)s"
 
-#: treemap/models.py:99
+#: opentreemap/treemap/models.py:99
 msgid "There is no content for this page yet."
 msgstr "Encara no hi ha contingut per aquesta pàgina."
 
-#: treemap/models.py:150
+#: opentreemap/treemap/models.py:150
 msgid "Symbol is too long"
 msgstr "El simbol és massa llarg"
 
-#: treemap/models.py:167
+#: opentreemap/treemap/models.py:167
 msgid "Values must be not be negative"
 msgstr "Els valors no han de ser negatius"
 
-#: treemap/models.py:256
+#: opentreemap/treemap/models.py:256
 #, fuzzy
 #| msgid "Username:"
 msgid "username"
 msgstr "Usuari:"
 
-#: treemap/models.py:258
+#: opentreemap/treemap/models.py:258
 msgid ""
 "Required. 30 characters or fewer. Letters, numbers and @/./+/-/_ characters"
 msgstr ""
 "Requerit. 30 caràcters o menys. Lletres, números i caràcters @/./+/-/_ "
 
-#: treemap/models.py:263
+#: opentreemap/treemap/models.py:263
 msgid "Enter a valid username."
 msgstr "Introdueix un usuari vàlid."
 
-#: treemap/models.py:265
+#: opentreemap/treemap/models.py:265
 #, fuzzy
 #| msgid "Nearby Address:"
 msgid "email address"
 msgstr "Adreça propera:"
 
-#: treemap/models.py:267
+#: opentreemap/treemap/models.py:267
 msgid "staff status"
 msgstr "status d'empleat"
 
-#: treemap/models.py:268
+#: opentreemap/treemap/models.py:268
 msgid "Designates whether the user can log into this admin site."
 msgstr "Determina  whether si l'usuari pot accedir al lloc d'administració."
 
-#: treemap/models.py:271 treemap/views/photo.py:66
+#: opentreemap/treemap/models.py:271 opentreemap/treemap/views/photo.py:66
 msgid "active"
 msgstr "actiu"
 
-#: treemap/models.py:272
+#: opentreemap/treemap/models.py:272
 msgid ""
 "Designates whether this user should be treated as active. Unselect this "
 "instead of deleting accounts."
@@ -345,129 +348,130 @@ msgstr ""
 "Determina si l'usuari ha de ser tractat com actiu. Deselecciona aquest en "
 "compte de borrar comptes."
 
-#: treemap/models.py:274
+#: opentreemap/treemap/models.py:274
 msgid "date joined"
 msgstr "data d'unió"
 
-#: treemap/models.py:283
+#: opentreemap/treemap/models.py:283
 msgid "user"
 msgstr "usuari"
 
-#: treemap/models.py:284
+#: opentreemap/treemap/models.py:284
 msgid "users"
 msgstr "usuaris"
 
-#: treemap/models.py:311
+#: opentreemap/treemap/models.py:311
 msgid "first name"
 msgstr "nom"
 
-#: treemap/models.py:313
+#: opentreemap/treemap/models.py:313
 msgid "last name"
 msgstr " cognom"
 
-#: treemap/models.py:400
+#: opentreemap/treemap/models.py:400
 msgid "Cannot have spaces in a username"
 msgstr "No es poden tindre espais al nom d'usuari"
 
-#: treemap/models.py:564
+#: opentreemap/treemap/models.py:564
 #, fuzzy
 #| msgid "Nearby Address:"
 msgid "Address"
 msgstr "Adreça propera:"
 
-#: treemap/models.py:566
+#: opentreemap/treemap/models.py:566
 msgid "City"
 msgstr "Ciutat"
 
-#: treemap/models.py:568
+#: opentreemap/treemap/models.py:568
 msgid "Postal Code"
 msgstr "Codi postal"
 
-#: treemap/models.py:576
+#: opentreemap/treemap/models.py:576
 #, fuzzy
 #| msgid "Latest Update"
 msgid "Last Updated"
 msgstr "Última c"
 
-#: treemap/models.py:578
+#: opentreemap/treemap/models.py:578
 #, fuzzy
 #| msgid "Latest Update"
 msgid "Last Updated By"
 msgstr "Última c"
 
-#: treemap/models.py:658
+#: opentreemap/treemap/models.py:658
 msgid "Feature location is not specified"
 msgstr "Ubicació característica no especificada"
 
-#: treemap/models.py:663
+#: opentreemap/treemap/models.py:663
 #, python-format
 msgid "%(model)s must be created inside the map boundaries"
 msgstr "%(model)s s'ha de crear dins del límits del mapa"
 
-#: treemap/models.py:777
+#: opentreemap/treemap/models.py:777
 #, fuzzy
 #| msgid "Species:"
 msgid "Missing Species"
 msgstr "Espècies:"
 
-#: treemap/models.py:779
+#: opentreemap/treemap/models.py:779
 #, fuzzy
 #| msgid "Planting Site"
 msgid "Empty Planting Site"
 msgstr "Lloc de plantació"
 
-#: treemap/models.py:872
+#: opentreemap/treemap/models.py:872
 #, python-format
 msgid "The %(field_name)s must be a decimal number"
 msgstr "El %(field_name)s ha de ser un número decimal"
 
-#: treemap/models.py:877
+#: opentreemap/treemap/models.py:877
 #, fuzzy, python-format
 #| msgid "The %(field_name)s must be greater than zero"
 msgid "The %(field_name)s must be zero or greater"
 msgstr "El %(field_name)s ha de ser més gran que zero"
 
-#: treemap/models.py:881
+#: opentreemap/treemap/models.py:881
 #, python-format
 msgid "The %(field_name)s must be greater than zero"
 msgstr "El %(field_name)s ha de ser més gran que zero"
 
-#: treemap/models.py:885
+#: opentreemap/treemap/models.py:885
 #, python-format
 msgid "The %(field_name)s is too large"
 msgstr "El %(field_name)s és massa llarg"
 
-#: treemap/models.py:894
+#: opentreemap/treemap/models.py:894
 #, fuzzy
 #| msgid "Planting Site"
 msgid "Planting Site Width"
 msgstr "Lloc de plantació"
 
-#: treemap/models.py:896
+#: opentreemap/treemap/models.py:896
 #, fuzzy
 #| msgid "Planting Site"
 msgid "Planting Site Length"
 msgstr "Lloc de plantació"
 
-#: treemap/models.py:899
+#: opentreemap/treemap/models.py:899
 msgid "Custom ID"
 msgstr ""
 
-#: treemap/models.py:904
+#: opentreemap/treemap/models.py:904
 msgid "Planting Site"
 msgstr "Lloc de plantació"
 
-#: treemap/models.py:905 treemap/templates/instance_base.html:122
+#: opentreemap/treemap/models.py:905
+#: opentreemap/treemap/templates/instance_base.html:122
 #, fuzzy
 #| msgid "Planting Site"
 msgid "Planting Sites"
 msgstr "Lloc de plantació"
 
-#: treemap/models.py:916
+#: opentreemap/treemap/models.py:916
 msgid "that have been"
 msgstr "que ha sigut"
 
-#: treemap/models.py:930
+#: opentreemap/treemap/models.py:930
 msgid ""
 "Marking a planting site with an alert does not serve as a way to report "
 "problems with that site. If you have any emergency concerns, please contact "
@@ -477,46 +481,47 @@ msgstr ""
 "d'eixe lloc. Si hi ha una emergència, per favor contacta el teu ajuntament "
 "directament."
 
-#: treemap/models.py:935 treemap/models.py:1053
+#: opentreemap/treemap/models.py:935 opentreemap/treemap/models.py:1053
 msgid "with open alerts for"
 msgstr "amb alertes obertes per"
 
-#: treemap/models.py:994
+#: opentreemap/treemap/models.py:994
 msgid "Cannot delete plot with existing trees."
 msgstr "No es poden "
 
-#: treemap/models.py:1009 treemap/templates/treemap/field/species_div.html:13
-#: treemap/templates/treemap/field/species_tr.html:19
+#: opentreemap/treemap/models.py:1009
+#: opentreemap/treemap/templates/treemap/field/species_div.html:13
+#: opentreemap/treemap/templates/treemap/field/species_tr.html:19
 #, fuzzy
 #| msgid "Species:"
 msgid "Species"
 msgstr "Espècies:"
 
-#: treemap/models.py:1013
+#: opentreemap/treemap/models.py:1013
 #, fuzzy
 #| msgid "Trunk Diameter"
 msgid "Tree Diameter"
 msgstr "Diametre del tronc"
 
-#: treemap/models.py:1015
-#: treemap/templates/treemap/partials/map_feature_accordion.html:29
-#: treemap/views/misc.py:82
+#: opentreemap/treemap/models.py:1015
+#: opentreemap/treemap/templates/treemap/partials/map_feature_accordion.html:29
+#: opentreemap/treemap/views/misc.py:82
 msgid "Tree Height"
 msgstr "Altura del 'arbre"
 
-#: treemap/models.py:1017
+#: opentreemap/treemap/models.py:1017
 msgid "Canopy Height"
 msgstr "Altura de la canòpia"
 
-#: treemap/models.py:1019
+#: opentreemap/treemap/models.py:1019
 msgid "Date Planted"
 msgstr "Data de plantació"
 
-#: treemap/models.py:1021
+#: opentreemap/treemap/models.py:1021
 msgid "Date Removed"
 msgstr "Data d'eliminació"
 
-#: treemap/models.py:1048
+#: opentreemap/treemap/models.py:1048
 msgid ""
 "Marking a tree with an alert does not serve as a way to report problems with "
 "a tree. If you have any emergency tree concerns, please contact your city "
@@ -526,60 +531,63 @@ msgstr ""
 "lloc. Si hi ha una emergència, per favor contacta el teu ajuntament "
 "directament."
 
-#: treemap/models.py:1065
+#: opentreemap/treemap/models.py:1065
 #, fuzzy
 #| msgid "Tree Key"
 msgid "Tree"
 msgstr "Clau d'arbre"
 
-#: treemap/models.py:1065 treemap/templates/instance_base.html:121
+#: opentreemap/treemap/models.py:1065
+#: opentreemap/treemap/templates/instance_base.html:121
 #, fuzzy
 #| msgid "Tree Key"
 msgid "Trees"
 msgstr "Clau d'arbre"
 
-#: treemap/models.py:1189
-#: treemap/templates/treemap/partials/photo_review.html:48
+#: opentreemap/treemap/models.py:1189
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:48
 #, fuzzy
 #| msgid "Add Photos"
 msgid "Photo"
 msgstr "Afegir fotos"
 
-#: treemap/models.py:1189
-#: treemap/templates/treemap/partials/photo_review.html:9
+#: opentreemap/treemap/models.py:1189
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:9
 #, fuzzy
 #| msgid "Add Photos"
 msgid "Photos"
 msgstr "Afegir fotos"
 
-#: treemap/search_fields.py:50 treemap/search_fields.py:63
-#: treemap/templates/treemap/partials/tree_section.html:8
+#: opentreemap/treemap/search_fields.py:50
+#: opentreemap/treemap/search_fields.py:63
+#: opentreemap/treemap/templates/treemap/partials/tree_section.html:8
 #, fuzzy
 #| msgid "General Tree Information"
 msgid "Tree Information"
 msgstr "Informació general de l'arbre"
 
-#: treemap/search_fields.py:54 treemap/search_fields.py:69
-#: treemap/templates/treemap/partials/plot_section.html:8
+#: opentreemap/treemap/search_fields.py:54
+#: opentreemap/treemap/search_fields.py:69
+#: opentreemap/treemap/templates/treemap/partials/plot_section.html:8
 #, fuzzy
 #| msgid "Planting Site"
 msgid "Planting Site Information"
 msgstr "Lloc de plantació"
 
-#: treemap/search_fields.py:57
+#: opentreemap/treemap/search_fields.py:57
 #, fuzzy
 msgid "Stewardship"
 msgstr "Adminsitració"
 
-#: treemap/search_fields.py:78
+#: opentreemap/treemap/search_fields.py:78
 msgid "Must be a non-empty list"
 msgstr "Ha de ser una llista no buida"
 
-#: treemap/search_fields.py:81
+#: opentreemap/treemap/search_fields.py:81
 msgid "Every mobile field group must have a non-empty header"
 msgstr "Tots grups de camps de mòbil han de tindre una capçalera no buida"
 
-#: treemap/search_fields.py:84
+#: opentreemap/treemap/search_fields.py:84
 msgid ""
 "All mobile field groups must have either a \"field_keys\" or "
 "\"collection_udf_keys\" containing a non-empty list"
@@ -587,7 +595,7 @@ msgstr ""
 "Tos els grups de camps mòbils han de tindre o bé un \"field_keys\" o bé  "
 "\"collection_udf_keys\" contentint una llista no buida"
 
-#: treemap/search_fields.py:88
+#: opentreemap/treemap/search_fields.py:88
 msgid ""
 "Mobile field groups cannot contain both \"field_keys\" and "
 "\"collection_udf_keys\" properties"
@@ -595,21 +603,21 @@ msgstr ""
 "grups de camps mòbils no poden contindre ambdos \"field_keys\" i "
 "\"collection_udf_keys\" propietats"
 
-#: treemap/search_fields.py:92
+#: opentreemap/treemap/search_fields.py:92
 msgid ""
 "Collection field groups must have a non-empty \"sort_key\" property defined"
 msgstr ""
 "grups de camps de col·lecció han de tindre no-buits  \"sort_key\" propietats "
 "definides"
 
-#: treemap/search_fields.py:96
+#: opentreemap/treemap/search_fields.py:96
 msgid ""
 "Collection field groups can only contain existing custom collection fields"
 msgstr ""
 "Grups de camps de col·lecció només poden contindre camps existents "
 "personalitzats de col·lecció"
 
-#: treemap/search_fields.py:100
+#: opentreemap/treemap/search_fields.py:100
 msgid ""
 "The \"sort_key\" property of a collection field group must be the name of a "
 "field on present on every collection field in the group"
@@ -617,24 +625,24 @@ msgstr ""
 "La \"sort_key\" propietat del camp de col·lecció ha de ser el nom d'un camp "
 "present en tots els camps de col·lecció del grup"
 
-#: treemap/search_fields.py:103
+#: opentreemap/treemap/search_fields.py:103
 msgid "Fields cannot be specified more than once"
 msgstr "No es poden especificar més d'un camp cada vegada"
 
-#: treemap/search_fields.py:106
+#: opentreemap/treemap/search_fields.py:106
 msgid ""
 "Normal field groups need a model property of either \"tree\" or \"plot\""
 msgstr ""
 "Grups de camps normals necessiten un mòdel de propietat de bé  \"tree\" o "
 "\"plot\""
 
-#: treemap/search_fields.py:110
+#: opentreemap/treemap/search_fields.py:110
 msgid "Normal field groups can only have keys that match their \"model\""
 msgstr ""
 "Grups normals de camps només poden tindre claus que coincidisquen amb \"model"
 "\""
 
-#: treemap/search_fields.py:114
+#: opentreemap/treemap/search_fields.py:114
 msgid ""
 "Normal field groups may only contain existing fields. If you specify a "
 "custom field, it cannot be a collection field"
@@ -642,69 +650,69 @@ msgstr ""
 "Grups de camps normals només poden contindre camps existents. Si especifica "
 "un camp personalitzar, no pot ser un camp de col·lecció"
 
-#: treemap/search_fields.py:127
+#: opentreemap/treemap/search_fields.py:127
 #, fuzzy
 #| msgid "Planting Site"
 msgid "empty planting sites"
 msgstr "Lloc de plantació"
 
-#: treemap/search_fields.py:133
+#: opentreemap/treemap/search_fields.py:133
 #, python-format
 msgid "Show %(models)s"
 msgstr "Mostra %(models)s"
 
-#: treemap/search_fields.py:235
+#: opentreemap/treemap/search_fields.py:235
 #, python-format
 msgid "Show Missing %(field)s"
 msgstr "Mostra faltants %(field)s"
 
-#: treemap/templates/403.html:18
+#: opentreemap/treemap/templates/403.html:18
 msgid "Page Restricted!"
 msgstr "Pàgina restringida!"
 
-#: treemap/templates/403.html:19
+#: opentreemap/treemap/templates/403.html:19
 msgid "Our apologies, but access to this page is limited."
 msgstr "Disculpa, però l'accés a aquesta pàgina és limitat."
 
-#: treemap/templates/404.html:18
+#: opentreemap/treemap/templates/404.html:18
 msgid "No trees here!"
 msgstr "Cap arbre ací!"
 
-#: treemap/templates/404.html:20
+#: opentreemap/treemap/templates/404.html:20
 msgid "Sorry, we couldn't find the page you requested."
 msgstr "Perdona, no hem pogut trobar la pàgina sol·licitada."
 
-#: treemap/templates/404.html:22
+#: opentreemap/treemap/templates/404.html:22
 msgid "Try"
 msgstr "Tracta"
 
-#: treemap/templates/404.html:23
+#: opentreemap/treemap/templates/404.html:23
 #, fuzzy
 #| msgid "Explore Trees"
 msgid "exploring trees"
 msgstr "Explorar arbres"
 
-#: treemap/templates/404.html:24
+#: opentreemap/treemap/templates/404.html:24
 msgid "or feel free to"
 msgstr "sente't lliure per"
 
-#: treemap/templates/404.html:26
+#: opentreemap/treemap/templates/404.html:26
 msgid "You're welcome to "
 msgstr "Eres benvingut a"
 
-#: treemap/templates/404.html:28
+#: opentreemap/treemap/templates/404.html:28
 msgid "contact support"
 msgstr "Contacta el suport tècnic"
 
-#: treemap/templates/404.html:29
+#: opentreemap/treemap/templates/404.html:29
 msgid "if you believe you reached this page in error."
 msgstr "si creus que has arribat a aquesta pàgina per error."
 
-#: treemap/templates/500.html:18
+#: opentreemap/treemap/templates/500.html:18
 msgid "That doesn't look right"
 msgstr "Acò té mala pinta"
 
-#: treemap/templates/500.html:19
+#: opentreemap/treemap/templates/500.html:19
 msgid ""
 "Oh dear, it looks like something is broken on our end. We'll fix the problem "
 "shortly!"
@@ -712,131 +720,138 @@ msgstr ""
 "Estimat, semblà que hi ha alguna cosa trencada a la nostra banda. Dins de "
 "poc arreglarem el problema!"
 
-#: treemap/templates/503.html:18
+#: opentreemap/treemap/templates/503.html:18
 msgid "Service Unavailable"
 msgstr "Servei no disponible"
 
-#: treemap/templates/503.html:19
+#: opentreemap/treemap/templates/503.html:19
 msgid ""
 "Looks like we're down for maintenance. We should be back online shortly."
 msgstr ""
 "Sembla que estem en manteniment. Tornarem a estar en línea properament."
 
-#: treemap/templates/base.html:61 treemap/templates/treemap/index.html:10
+#: opentreemap/treemap/templates/base.html:61
+#: opentreemap/treemap/templates/treemap/index.html:10
 msgid "Explore Trees"
 msgstr "Explorar arbres"
 
-#: treemap/templates/base.html:66 treemap/templates/instance_base.html:46
-#: treemap/templates/treemap/partials/add_feature_menu.html:8
-#: treemap/templates/treemap/partials/add_plot_btn.html:13
+#: opentreemap/treemap/templates/base.html:66
+#: opentreemap/treemap/templates/instance_base.html:46
+#: opentreemap/treemap/templates/treemap/partials/add_feature_menu.html:8
+#: opentreemap/treemap/templates/treemap/partials/add_plot_btn.html:13
 msgid "Adding trees is not available to all users"
 msgstr "Afegir arbres no disponible per a tots els usuaris"
 
-#: treemap/templates/base.html:68 treemap/templates/instance_base.html:54
-#: treemap/templates/treemap/map-add-tree.html:7
-#: treemap/templates/treemap/partials/add_feature_menu.html:16
-#: treemap/templates/treemap/partials/add_plot_btn.html:15
+#: opentreemap/treemap/templates/base.html:68
+#: opentreemap/treemap/templates/instance_base.html:54
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:7
+#: opentreemap/treemap/templates/treemap/partials/add_feature_menu.html:16
+#: opentreemap/treemap/templates/treemap/partials/add_plot_btn.html:15
 msgid "Add a Tree"
 msgstr "Afegir un arbre"
 
-#: treemap/templates/base.html:77 treemap/templates/base.html:101
+#: opentreemap/treemap/templates/base.html:77
+#: opentreemap/treemap/templates/base.html:101
 msgid "My Account"
 msgstr "El meu compte"
 
-#: treemap/templates/base.html:85 treemap/templates/base.html:109
+#: opentreemap/treemap/templates/base.html:85
+#: opentreemap/treemap/templates/base.html:109
 msgid "Logout"
 msgstr "Ix"
 
-#: treemap/templates/base.html:113 treemap/templates/base.html:122
-#: treemap/templates/registration/login.html:6
+#: opentreemap/treemap/templates/base.html:113
+#: opentreemap/treemap/templates/base.html:122
+#: opentreemap/treemap/templates/registration/login.html:6
 msgid "Login"
 msgstr "Login"
 
-#: treemap/templates/base.html:115 treemap/templates/base.html:124
-#: treemap/templates/instance_base.html:94
-#: treemap/templates/instance_base.html:99
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:138
+#: opentreemap/treemap/templates/base.html:115
+#: opentreemap/treemap/templates/base.html:124
+#: opentreemap/treemap/templates/instance_base.html:94
+#: opentreemap/treemap/templates/instance_base.html:99
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:138
 msgid "Sign Up"
 msgstr "Registra't"
 
-#: treemap/templates/instance_base.html:61
+#: opentreemap/treemap/templates/instance_base.html:61
 #, fuzzy
 #| msgid "Explore Trees"
 msgid "Explore Map"
 msgstr "Explorar arbres"
 
-#: treemap/templates/instance_base.html:72
+#: opentreemap/treemap/templates/instance_base.html:72
 msgid "Plan"
 msgstr "Plà"
 
-#: treemap/templates/instance_base.html:81
+#: opentreemap/treemap/templates/instance_base.html:81
 #, fuzzy
 #| msgid "Recent Edits"
 msgid "View Edits"
 msgstr "Edicions recents"
 
-#: treemap/templates/instance_base.html:87
+#: opentreemap/treemap/templates/instance_base.html:87
 msgid "Manage"
 msgstr "Gestiona"
 
-#: treemap/templates/instance_base.html:119
+#: opentreemap/treemap/templates/instance_base.html:119
 msgid "General"
 msgstr "General"
 
-#: treemap/templates/instance_base.html:123
+#: opentreemap/treemap/templates/instance_base.html:123
 msgid "Missing"
 msgstr "Falta"
 
-#: treemap/templates/instance_base.html:139
+#: opentreemap/treemap/templates/instance_base.html:139
 msgid "Export Search Results"
 msgstr "Exporta Resultats de la cerca"
 
-#: treemap/templates/instance_base.html:183
-#: treemap/templates/instance_base.html:185
+#: opentreemap/treemap/templates/instance_base.html:183
+#: opentreemap/treemap/templates/instance_base.html:185
 msgid "Advanced"
 msgstr "Avançat"
 
-#: treemap/templates/instance_base.html:190
-#: treemap/templates/treemap/edits.html:35
+#: opentreemap/treemap/templates/instance_base.html:190
+#: opentreemap/treemap/templates/treemap/edits.html:35
 msgid "Reset"
 msgstr "Canvia"
 
-#: treemap/templates/instance_base.html:193
-#: treemap/templates/treemap/partials/step_set_location.html:11
+#: opentreemap/treemap/templates/instance_base.html:193
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:11
 msgid "Search"
 msgstr "Busca"
 
-#: treemap/templates/instance_base.html:207
+#: opentreemap/treemap/templates/instance_base.html:207
 #, fuzzy
 #| msgid "Tree Key"
 msgid "Tree ID"
 msgstr "Clau d'arbre"
 
-#: treemap/templates/instance_base.html:212
+#: opentreemap/treemap/templates/instance_base.html:212
 msgid "Contact"
 msgstr "Contacte"
 
-#: treemap/templates/registration/activate.html:8
+#: opentreemap/treemap/templates/registration/activate.html:8
 msgid "Account successfully activated"
 msgstr "Compte activat satisfactòriament"
 
-#: treemap/templates/registration/activate.html:9
-#: treemap/templates/registration/login.html:39
-#: treemap/templates/registration/password_reset_complete.html:11
+#: opentreemap/treemap/templates/registration/activate.html:9
+#: opentreemap/treemap/templates/registration/login.html:39
+#: opentreemap/treemap/templates/registration/password_reset_complete.html:11
 msgid "Log in"
 msgstr "Logueja't"
 
-#: treemap/templates/registration/activate.html:9
+#: opentreemap/treemap/templates/registration/activate.html:9
 msgid "to start exploring trees!"
 msgstr "per començar a explorar arbres!"
 
-#: treemap/templates/registration/activate.html:11
+#: opentreemap/treemap/templates/registration/activate.html:11
 #, fuzzy
 #| msgid "Account activation on"
 msgid "Account Activation Issue"
 msgstr "Activación del compte en"
 
-#: treemap/templates/registration/activate.html:13
+#: opentreemap/treemap/templates/registration/activate.html:13
 #, python-format
 msgid ""
 "\n"
@@ -855,11 +870,11 @@ msgstr ""
 "%(support_email)s\">contact el suport tècnic</a> per a asistència.</p>\n"
 "    "
 
-#: treemap/templates/registration/activation_complete.html:7
+#: opentreemap/treemap/templates/registration/activation_complete.html:7
 msgid "Thanks for activating your account"
 msgstr "Gràcies per activar el teu compte"
 
-#: treemap/templates/registration/activation_complete.html:8
+#: opentreemap/treemap/templates/registration/activation_complete.html:8
 msgid ""
 "Your OpenTreeMap account has been confirmed. Login to start exploring trees "
 "near you."
@@ -867,7 +882,7 @@ msgstr ""
 "El teu compte OpenTreeMap s'ha confirmat. Loguejat per començar a explorar "
 "arbres prop teu."
 
-#: treemap/templates/registration/activation_email.txt:2
+#: opentreemap/treemap/templates/registration/activation_email.txt:2
 #, python-format
 msgid ""
 "\n"
@@ -886,7 +901,7 @@ msgstr ""
 "al teu navegador. . L'enllaç només és vàlid durant %(expiration_days)s "
 "dies. \n"
 
-#: treemap/templates/registration/activation_email.txt:13
+#: opentreemap/treemap/templates/registration/activation_email.txt:13
 msgid ""
 "\n"
 "\n"
@@ -914,74 +929,74 @@ msgstr ""
 "requerida.\n"
 "\n"
 
-#: treemap/templates/registration/activation_email_subject.txt:1
+#: opentreemap/treemap/templates/registration/activation_email_subject.txt:1
 #, fuzzy
 #| msgid "Activate account at"
 msgid "Activate your tree map account"
 msgstr "Activar compte a"
 
-#: treemap/templates/registration/login.html:14
+#: opentreemap/treemap/templates/registration/login.html:14
 msgid "Log in to OpenTreeMap"
 msgstr "Loguejat a OpenTreeMap"
 
-#: treemap/templates/registration/login.html:26
+#: opentreemap/treemap/templates/registration/login.html:26
 msgid "Recover my username"
 msgstr "Recuperar el meu usuari"
 
-#: treemap/templates/registration/login.html:31
+#: opentreemap/treemap/templates/registration/login.html:31
 #, fuzzy
 #| msgid "Forgot password"
 msgid "Reset my password"
 msgstr "Has oblidat la contrasenya"
 
-#: treemap/templates/registration/login.html:45
+#: opentreemap/treemap/templates/registration/login.html:45
 #, fuzzy
 #| msgid "Already have an account?"
 msgid "Don't have an account?"
 msgstr "Ja tens un compte?"
 
-#: treemap/templates/registration/login.html:46
-#: treemap/templates/registration/registration_form.html:5
+#: opentreemap/treemap/templates/registration/login.html:46
+#: opentreemap/treemap/templates/registration/registration_form.html:5
 msgid "Register"
 msgstr "Registra't"
 
-#: treemap/templates/registration/password_change_done.html:5
+#: opentreemap/treemap/templates/registration/password_change_done.html:5
 msgid "Password changed"
 msgstr "Contrasenya canviada"
 
-#: treemap/templates/registration/password_change_form.html:9
+#: opentreemap/treemap/templates/registration/password_change_form.html:9
 msgid "Submit"
 msgstr "Envia"
 
-#: treemap/templates/registration/password_reset_complete.html:8
+#: opentreemap/treemap/templates/registration/password_reset_complete.html:8
 #, fuzzy
 #| msgid "Password reset failed"
 msgid "Password Reset"
 msgstr "El canvi de contrasenya ha fallat"
 
-#: treemap/templates/registration/password_reset_complete.html:9
+#: opentreemap/treemap/templates/registration/password_reset_complete.html:9
 #, fuzzy
 #| msgid "Password reset successfully"
 msgid "Your password was reset successfully"
 msgstr "Contrasenya canviada amb èxit"
 
-#: treemap/templates/registration/password_reset_confirm.html:11
+#: opentreemap/treemap/templates/registration/password_reset_confirm.html:11
 msgid "Please enter and confirm a new password for your account."
 msgstr "Per favor, entra i confirma la nova contrasenya per al teu compte."
 
-#: treemap/templates/registration/password_reset_confirm.html:17
-#: treemap/templates/treemap/map_feature_detail.html:53
-#: treemap/templates/treemap/partials/form_buttons.html:14
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:59
-#: treemap/templates/treemap/user.html:66
+#: opentreemap/treemap/templates/registration/password_reset_confirm.html:17
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:53
+#: opentreemap/treemap/templates/treemap/partials/form_buttons.html:14
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:59
+#: opentreemap/treemap/templates/treemap/user.html:66
 msgid "Save"
 msgstr "Desa"
 
-#: treemap/templates/registration/password_reset_confirm.html:20
+#: opentreemap/treemap/templates/registration/password_reset_confirm.html:20
 msgid "Password reset failed"
 msgstr "El canvi de contrasenya ha fallat"
 
-#: treemap/templates/registration/password_reset_done.html:7
+#: opentreemap/treemap/templates/registration/password_reset_done.html:7
 #, fuzzy
 #| msgid "Email with password reset instructions has been sent."
 msgid "Password Reset Instructions Sent"
@@ -989,12 +1004,12 @@ msgstr ""
 "S'ha enviat un correu electrònic amb les instruccions de canvi de "
 "contrasenya "
 
-#: treemap/templates/registration/password_reset_done.html:8
-#: treemap/templates/registration/password_reset_email_sent.html:5
+#: opentreemap/treemap/templates/registration/password_reset_done.html:8
+#: opentreemap/treemap/templates/registration/password_reset_email_sent.html:5
 msgid "Please check your email for instructions on resetting your password."
 msgstr "Per favor, verifica les "
 
-#: treemap/templates/registration/password_reset_email.html:2
+#: opentreemap/treemap/templates/registration/password_reset_email.html:2
 msgid ""
 "Hello,\n"
 "\n"
@@ -1008,7 +1023,7 @@ msgstr ""
 "map. Per continuar el canvi de contrasenya, per favor clica a l'enllaç de "
 "baix o còpia i pega-ho al navegador."
 
-#: treemap/templates/registration/password_reset_email.html:7
+#: opentreemap/treemap/templates/registration/password_reset_email.html:7
 msgid ""
 "\n"
 "If you did not make a request to reset your password then no further action "
@@ -1018,11 +1033,11 @@ msgstr ""
 "Si no has fet una petició per canviar la contrasenya aleshores no has de fer "
 "res més.\n"
 
-#: treemap/templates/registration/password_reset_form.html:8
+#: opentreemap/treemap/templates/registration/password_reset_form.html:8
 msgid "Reset your Password"
 msgstr "Reseteja la teua contrasenya"
 
-#: treemap/templates/registration/password_reset_form.html:9
+#: opentreemap/treemap/templates/registration/password_reset_form.html:9
 msgid ""
 "Forgot the password for your tree map account? Enter your email address and "
 "click \\"
@@ -1030,26 +1045,26 @@ msgstr ""
 "Has oblidat la contrasenya del teu compte de tree map? Introdueix la teua "
 "adreça de correu electrònic i clica \\"
 
-#: treemap/templates/registration/password_reset_form.html:14
-#: treemap/templates/treemap/forgot_username.html:19
+#: opentreemap/treemap/templates/registration/password_reset_form.html:14
+#: opentreemap/treemap/templates/treemap/forgot_username.html:19
 msgid "Send"
 msgstr "Enviar"
 
-#: treemap/templates/registration/password_reset_subject.txt:1
+#: opentreemap/treemap/templates/registration/password_reset_subject.txt:1
 msgid "Reset your tree map password"
 msgstr "Canviar la contraseña del mapa d'arbres"
 
-#: treemap/templates/registration/registration_closed.html:7
+#: opentreemap/treemap/templates/registration/registration_closed.html:7
 msgid "Registration is currently closed."
 msgstr "El registre està actualment tancat."
 
-#: treemap/templates/registration/registration_complete.html:7
+#: opentreemap/treemap/templates/registration/registration_complete.html:7
 #, fuzzy
 #| msgid "Account activation failed"
 msgid "Account created!"
 msgstr "L'activació del compte ha fallat"
 
-#: treemap/templates/registration/registration_complete.html:8
+#: opentreemap/treemap/templates/registration/registration_complete.html:8
 msgid ""
 "Your OpenTreeMap account has been created. You will receive an activation "
 "email shortly; please use it to confirm your account."
@@ -1057,129 +1072,129 @@ msgstr ""
 "El teu compte OpenTreeMap ha sigut creat. Rebràs un correu d'activació en "
 "breu; per favor, empra'l per confirmar el teu compte."
 
-#: treemap/templates/registration/registration_form.html:27
+#: opentreemap/treemap/templates/registration/registration_form.html:27
 #, fuzzy
 #| msgid "Need an account?"
 msgid "Create an Account"
 msgstr "Necessites un compte"
 
-#: treemap/templates/registration/registration_form.html:28
+#: opentreemap/treemap/templates/registration/registration_form.html:28
 #, fuzzy
 #| msgid "Already have an account?"
 msgid "I already have an account"
 msgstr "Ja tens un compte?"
 
-#: treemap/templates/registration/registration_form.html:42
+#: opentreemap/treemap/templates/registration/registration_form.html:42
 #, fuzzy
 #| msgid "Activate account at"
 msgid "Create Account"
 msgstr "Activar compte a"
 
-#: treemap/templates/treemap/edits.html:7
-#: treemap/templates/treemap/edits.html:34
+#: opentreemap/treemap/templates/treemap/edits.html:7
+#: opentreemap/treemap/templates/treemap/edits.html:34
 msgid "Edits"
 msgstr "Edicions"
 
-#: treemap/templates/treemap/edits.html:43
-#: treemap/templates/treemap/map-browse-trees.html:7
+#: opentreemap/treemap/templates/treemap/edits.html:43
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:7
 #, fuzzy
 #| msgid "Edit details"
 msgid "Details"
 msgstr "Editar detalls"
 
-#: treemap/templates/treemap/edits.html:44
+#: opentreemap/treemap/templates/treemap/edits.html:44
 msgid "Edit #"
 msgstr "Edita #"
 
-#: treemap/templates/treemap/edits.html:45
-#: treemap/templates/treemap/partials/map_add_resource.html:16
+#: opentreemap/treemap/templates/treemap/edits.html:45
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:16
 msgid "Type"
 msgstr "Tipus"
 
-#: treemap/templates/treemap/edits.html:46
+#: opentreemap/treemap/templates/treemap/edits.html:46
 #, fuzzy
 msgid "Object ID"
 msgstr "Object ID"
 
-#: treemap/templates/treemap/edits.html:47
+#: opentreemap/treemap/templates/treemap/edits.html:47
 msgid "Field"
 msgstr "Camp"
 
-#: treemap/templates/treemap/edits.html:48
+#: opentreemap/treemap/templates/treemap/edits.html:48
 msgid "Old Value"
 msgstr "Valor antic"
 
-#: treemap/templates/treemap/edits.html:49
+#: opentreemap/treemap/templates/treemap/edits.html:49
 msgid "Current Value"
 msgstr "Valor actual"
 
-#: treemap/templates/treemap/edits.html:50
+#: opentreemap/treemap/templates/treemap/edits.html:50
 msgid "Edited By"
 msgstr "Editat per"
 
-#: treemap/templates/treemap/edits.html:51
+#: opentreemap/treemap/templates/treemap/edits.html:51
 msgid "Edited On"
 msgstr "Editat sobre"
 
-#: treemap/templates/treemap/edits.html:59
+#: opentreemap/treemap/templates/treemap/edits.html:59
 msgid "Detail"
 msgstr "Detall"
 
-#: treemap/templates/treemap/edits.html:90
-#: treemap/templates/treemap/edits.html:97
+#: opentreemap/treemap/templates/treemap/edits.html:90
+#: opentreemap/treemap/templates/treemap/edits.html:97
 msgid "View Image"
 msgstr "Mostra imatge"
 
-#: treemap/templates/treemap/edits.html:160
-#: treemap/templates/treemap/recent_user_edits.html:39
+#: opentreemap/treemap/templates/treemap/edits.html:160
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:39
 msgid "Previous"
 msgstr "Previ"
 
-#: treemap/templates/treemap/edits.html:170
-#: treemap/templates/treemap/recent_user_edits.html:46
+#: opentreemap/treemap/templates/treemap/edits.html:170
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:46
 msgid "Next"
 msgstr "Següent"
 
-#: treemap/templates/treemap/field/resource_tree.html:6
+#: opentreemap/treemap/templates/treemap/field/resource_tree.html:6
 #, fuzzy
 #| msgid "Trunk Diameter"
 msgid "No diameter"
 msgstr "Diametre del tronc"
 
 #. Translators: This is in-between two date boxes for a range search
-#: treemap/templates/treemap/field/search.html:13
+#: opentreemap/treemap/templates/treemap/field/search.html:13
 msgid "through"
 msgstr "a través"
 
-#: treemap/templates/treemap/field/search.html:37
+#: opentreemap/treemap/templates/treemap/field/search.html:37
 msgid "Disabled while a search for this field is active"
 msgstr "Deshabilitat mentre hi haja una cerca activa per aquest camp"
 
-#: treemap/templates/treemap/field/search.html:41
+#: opentreemap/treemap/templates/treemap/field/search.html:41
 msgid "Disabled while a missing search for this field is active."
 msgstr "Deshabilitat mentre una cerca sobre aquest camp està activa."
 
-#: treemap/templates/treemap/field/species_tr.html:4
+#: opentreemap/treemap/templates/treemap/field/species_tr.html:4
 msgid "Common Name"
 msgstr "Nom comú"
 
-#: treemap/templates/treemap/field/species_tr.html:9
+#: opentreemap/treemap/templates/treemap/field/species_tr.html:9
 msgid "Scientific Name"
 msgstr "Nom cièntific"
 
-#: treemap/templates/treemap/field/species_typeahead.html:26
+#: opentreemap/treemap/templates/treemap/field/species_typeahead.html:26
 msgid "Need help identifying the tree's species?"
 msgstr "Necesites ajuda identificant les espècies d'arbres?"
 
-#: treemap/templates/treemap/field/tree_id_tr.html:6
+#: opentreemap/treemap/templates/treemap/field/tree_id_tr.html:6
 msgid "Tree Number"
 msgstr "Número d'arbre"
 
-#: treemap/templates/treemap/forgot_username.html:7
+#: opentreemap/treemap/templates/treemap/forgot_username.html:7
 msgid "Retrieve your Username"
 msgstr "Obté el teu nom d'usuari"
 
-#: treemap/templates/treemap/forgot_username.html:8
+#: opentreemap/treemap/templates/treemap/forgot_username.html:8
 msgid ""
 "Forgot the username for your tree map account? Enter your email address and "
 "click \\"
@@ -1187,19 +1202,19 @@ msgstr ""
 "Has oblidat el nom d'usuari del teu compte tree map? Introdueix el teu "
 "correu electrònic i clica \\"
 
-#: treemap/templates/treemap/forgot_username.html:12
+#: opentreemap/treemap/templates/treemap/forgot_username.html:12
 #, fuzzy
 #| msgid "Nearby Address:"
 msgid "Email Address"
 msgstr "Adreça propera:"
 
-#: treemap/templates/treemap/forgot_username_done.html:7
+#: opentreemap/treemap/templates/treemap/forgot_username_done.html:7
 #, fuzzy
 #| msgid "Email:"
 msgid "Email Sent"
 msgstr "Correu electrònic:"
 
-#: treemap/templates/treemap/forgot_username_done.html:8
+#: opentreemap/treemap/templates/treemap/forgot_username_done.html:8
 #, python-format
 msgid ""
 "\n"
@@ -1214,279 +1229,274 @@ msgstr ""
 "Si no ho veus en 15 minuts, comproba la teua carpeta d'spam.</p>\n"
 "    "
 
-#: treemap/templates/treemap/instance_not_available.html:17
+#: opentreemap/treemap/templates/treemap/instance_not_available.html:17
 msgid "The map you requested is not available to all users."
 msgstr "El mapa "
 
-#: treemap/templates/treemap/map-add-tree.html:12
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:12
 msgid "Add species and additional info"
 msgstr "Afegeix espècies i informació adicional"
 
-#: treemap/templates/treemap/map-add-tree.html:19
-#: treemap/templates/treemap/partials/map_feature_accordion.html:26
-#: treemap/views/map_feature.py:124
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:19
+#: opentreemap/treemap/templates/treemap/partials/map_feature_accordion.html:26
+#: opentreemap/treemap/views/map_feature.py:124
 msgid "Trunk Diameter"
 msgstr "Diametre del tronc"
 
-#: treemap/templates/treemap/map-add-tree.html:33
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:33
 msgid "Finalize this tree"
 msgstr "Finalitza aquest arbre"
 
-#: treemap/templates/treemap/map-add-tree.html:40
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:40
 #, fuzzy
 #| msgid "Nearby Address:"
 msgid "Nearby Address"
 msgstr "Adreça propera:"
 
-#: treemap/templates/treemap/map-add-tree.html:42
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:42
 msgid "After I add this tree..."
 msgstr "Després d'afegir aquest arbre..."
 
-#: treemap/templates/treemap/map-add-tree.html:46
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:46
 msgid "Add another tree with these details"
 msgstr "Afegir altre arbres amb aquestos detalls"
 
-#: treemap/templates/treemap/map-add-tree.html:52
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:52
 msgid "Add another tree with new details"
 msgstr "Afegir un nou arbre amb nous detalls"
 
-#: treemap/templates/treemap/map-add-tree.html:58
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:58
 msgid "Continue editing this tree"
 msgstr "Continuar editant aquest arbre"
 
-#: treemap/templates/treemap/map-add-tree.html:64
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:64
 msgid "I'm done!"
 msgstr "He acabat!"
 
-#: treemap/templates/treemap/map-browse-trees.html:12
-#: treemap/templates/treemap/partials/map_feature_popup.html:17
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:12
+#: opentreemap/treemap/templates/treemap/partials/map_feature_popup.html:17
 #, fuzzy
 #| msgid "Edit details"
 msgid "More Details"
 msgstr "Editar detalls"
 
-#: treemap/templates/treemap/map-browse-trees.html:19
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:53
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:19
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:53
 msgid "Editing of the tree details is not available to all users"
 msgstr "L'edició dels detalls de l'arbre no disponible per a tots els usuaris"
 
-#: treemap/templates/treemap/map-browse-trees.html:20
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:20
 msgid "Quick Edit"
 msgstr "Edició ràpida"
 
-#: treemap/templates/treemap/map-browse-trees.html:32
-#: treemap/templates/treemap/map-browse-trees.html:39
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:32
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:39
 msgid "Editing a plot's location is not available to all users"
 msgstr "Editing a plot's location is not available to all users"
 
-#: treemap/templates/treemap/map-browse-trees.html:53
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:53
 msgid "Eco Benefits"
 msgstr "Beneficis ecològics"
 
-#: treemap/templates/treemap/map-browse-trees.html:58
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:58
 #, fuzzy
 #| msgid "Eco Benefits"
 msgid "Loading Ecobenefits"
 msgstr "Beneficis ecològics"
 
-#: treemap/templates/treemap/map.html:5
+#: opentreemap/treemap/templates/treemap/map.html:5
 msgid "Map"
 msgstr "Mapa"
 
-#: treemap/templates/treemap/map_feature_detail.html:27
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:27
 #, fuzzy
 #| msgid "Add Photos"
 msgid "Add a Photo"
 msgstr "Afegir fotos"
 
-#: treemap/templates/treemap/map_feature_detail.html:37
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:37
 #, fuzzy
 #| msgid "Would you like to share this photo?"
 msgid "Are you sure you want to delete this photo?"
 msgstr "T'agradaria compartir aquesta fotogràfia?"
 
-#: treemap/templates/treemap/map_feature_detail.html:44
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:44
 #, fuzzy
 #| msgid "Deleting of trees is not available to all users"
 msgid "Deleting of photos is not available to all users"
 msgstr "l'eliminació d'arbres no disponible per a tots el usuaris"
 
-#: treemap/templates/treemap/map_feature_detail.html:46
-#: treemap/templates/treemap/partials/form_buttons.html:8
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:58
-#: treemap/templates/treemap/partials/map_feature_popup.html:24
-#: treemap/templates/treemap/user.html:103
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:46
+#: opentreemap/treemap/templates/treemap/partials/form_buttons.html:8
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:58
+#: opentreemap/treemap/templates/treemap/partials/map_feature_popup.html:24
+#: opentreemap/treemap/templates/treemap/user.html:103
 #, fuzzy
 msgid "Edit"
-msgid_plural "Edits"
-msgstr[0] ""
-"#-#-#-#-#  django.pot (PACKAGE VERSION)  #-#-#-#-#\n"
-"#-#-#-#-#  django.pot (PACKAGE VERSION)  #-#-#-#-#\n"
-"#-#-#-#-#  django.pot (PACKAGE VERSION)  #-#-#-#-#\n"
-msgstr[1] ""
+msgstr ""
 "#-#-#-#-#  django.pot (PACKAGE VERSION)  #-#-#-#-#\n"
 "#-#-#-#-#  django.pot (PACKAGE VERSION)  #-#-#-#-#\n"
 "#-#-#-#-#  django.pot (PACKAGE VERSION)  #-#-#-#-#\n"
 
-#: treemap/templates/treemap/map_feature_detail.html:55
-#: treemap/templatetags/form_extras.py:419
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:55
+#: opentreemap/treemap/templatetags/form_extras.py:419
 msgid "Yes"
 msgstr "Sí"
 
-#: treemap/templates/treemap/map_feature_detail.html:56
-#: treemap/templatetags/form_extras.py:419
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:56
+#: opentreemap/treemap/templatetags/form_extras.py:419
 msgid "No"
 msgstr "No"
 
-#: treemap/templates/treemap/map_feature_detail.html:77
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:77
 msgid "Adding tree photos is not available to all users"
 msgstr "Afegir fotogràfies d'arbres no està disponible per a tots els usuaris"
 
-#: treemap/templates/treemap/map_feature_detail.html:79
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:79
 msgid "Adding resource photos is not available to all users"
 msgstr "Afegir fotogràfies de recursos no disponible per a tots el usuaris"
 
-#: treemap/templates/treemap/map_feature_detail.html:81
-#: treemap/templates/treemap/user.html:57
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:81
+#: opentreemap/treemap/templates/treemap/user.html:57
 #, fuzzy
 #| msgid "Add Photos"
 msgid "Add Photo"
 msgstr "Afegir fotos"
 
-#: treemap/templates/treemap/map_feature_detail.html:104
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:104
 #, fuzzy
 #| msgid "Search by Location"
 msgid "Move Location"
 msgstr "Busca per ubicació"
 
-#: treemap/templates/treemap/map_feature_detail.html:105
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:105
 #, fuzzy
 #| msgid "Search by Location"
 msgid "Cancel Move Location"
 msgstr "Busca per ubicació"
 
-#: treemap/templates/treemap/map_feature_photo_detail.html:10
+#: opentreemap/treemap/templates/treemap/map_feature_photo_detail.html:10
 #, fuzzy
 msgid "Map Feature Photo"
 msgstr "Fotogràfia Característica del Mapa"
 
-#: treemap/templates/treemap/map_feature_photo_detail.html:11
-#: treemap/templates/treemap/map_feature_photo_detail.html:25
+#: opentreemap/treemap/templates/treemap/map_feature_photo_detail.html:11
+#: opentreemap/treemap/templates/treemap/map_feature_photo_detail.html:25
 msgid "Photo uploaded on"
 msgstr "Fotogràfia pujada a"
 
-#: treemap/templates/treemap/map_feature_photo_detail.html:26
+#: opentreemap/treemap/templates/treemap/map_feature_photo_detail.html:26
 msgid "View more details on the detail page"
 msgstr "Mostra més detalls a la pàgina de detalls"
 
-#: treemap/templates/treemap/partials/add_feature_menu.html:25
+#: opentreemap/treemap/templates/treemap/partials/add_feature_menu.html:25
 #, python-format
 msgid "Adding %(resources)s is not available to all users"
 msgstr "Afegir %(resources)s no disponible per a tots els usuaris"
 
-#: treemap/templates/treemap/partials/add_feature_menu.html:33
-#: treemap/templates/treemap/partials/map_add_resource.html:8
+#: opentreemap/treemap/templates/treemap/partials/add_feature_menu.html:33
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:8
 #, fuzzy
 #| msgid "Add a Tree"
 msgid "Add a"
 msgstr "Afegir un arbre"
 
-#: treemap/templates/treemap/partials/advanced_search/display.html:6
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/display.html:6
 msgid "Display"
 msgstr "Visualitza"
 
-#: treemap/templates/treemap/partials/advanced_search/fields.html:7
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/fields.html:7
 msgid "disabled in Display"
 msgstr "deshabilitat en visualització"
 
-#: treemap/templates/treemap/partials/advanced_search/more.html:6
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/more.html:6
 msgid "More"
 msgstr "Més"
 
-#: treemap/templates/treemap/partials/advanced_search/tree_care.html:7
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/tree_care.html:7
 #, fuzzy
 #| msgid "Tree Key"
 msgid "Tree Care"
 msgstr "Clau d'arbre"
 
-#: treemap/templates/treemap/partials/advanced_search/tree_care.html:15
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/tree_care.html:15
 msgid "I am looking for"
 msgstr "Estic buscant"
 
-#: treemap/templates/treemap/partials/advanced_search/tree_care.html:64
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/tree_care.html:64
 msgid "between"
 msgstr "entre"
 
-#: treemap/templates/treemap/partials/advanced_search/tree_care.html:69
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/tree_care.html:69
 msgid "and"
 msgstr "i"
 
 #. Translators: Money saved
-#: treemap/templates/treemap/partials/benefit_value_row.html:17
-#: treemap/templates/treemap/partials/benefit_value_row.html:22
+#: opentreemap/treemap/templates/treemap/partials/benefit_value_row.html:17
+#: opentreemap/treemap/templates/treemap/partials/benefit_value_row.html:22
 msgid "saved"
 msgstr "desat"
 
-#: treemap/templates/treemap/partials/canopy_filter_control.html:5
+#: opentreemap/treemap/templates/treemap/partials/canopy_filter_control.html:5
 msgid "Regional Canopy Filter"
 msgstr ""
 
-#: treemap/templates/treemap/partials/canopy_percentages.html:6
+#: opentreemap/treemap/templates/treemap/partials/canopy_percentages.html:6
 #, fuzzy
 #| msgid "Canopy Height"
 msgid "Canopy"
 msgstr "Altura de la canòpia"
 
-#: treemap/templates/treemap/partials/canopy_percentages.html:7
-#: treemap/templates/treemap/partials/map_feature_accordion.html:41
-#: treemap/templates/treemap/partials/resource_detail.html:22
+#: opentreemap/treemap/templates/treemap/partials/canopy_percentages.html:7
+#: opentreemap/treemap/templates/treemap/partials/map_feature_accordion.html:41
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:22
 msgid "Area"
 msgstr ""
 
-#: treemap/templates/treemap/partials/canopy_percentages.html:8
+#: opentreemap/treemap/templates/treemap/partials/canopy_percentages.html:8
 msgid "Category"
 msgstr ""
 
-#: treemap/templates/treemap/partials/collectionudf.html:46
+#: opentreemap/treemap/templates/treemap/partials/collectionudf.html:46
 msgid "No entries yet!"
 msgstr "No hi ha entrades encara!"
 
-#: treemap/templates/treemap/partials/diameter_calculator.html:7
+#: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:7
 #, fuzzy
 #| msgid "Trunk Diameter"
 msgid "Diameter"
 msgstr "Diametre del tronc"
 
-#: treemap/templates/treemap/partials/diameter_calculator.html:8
+#: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:8
 msgid "Circumference"
 msgstr "Circumferència"
 
-#: treemap/templates/treemap/partials/diameter_calculator.html:38
+#: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:38
 #, fuzzy
 msgid "Add another trunk?"
 msgstr "Afegir altre tronc?"
 
-#: treemap/templates/treemap/partials/diameter_calculator.html:44
+#: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:44
 #, fuzzy
 #| msgid "Trunk Diameter"
 msgid "Combined Diameter:"
 msgstr "Diametre del tronc"
 
-#: treemap/templates/treemap/partials/diameter_calculator.html:49
+#: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:49
 msgid "Need help measuring the tree?"
 msgstr "Necesites ajuda mesurant l'arbre?"
 
-#: treemap/templates/treemap/partials/eco_benefits.html:14
+#: opentreemap/treemap/templates/treemap/partials/eco_benefits.html:14
 #, fuzzy
 #| msgid "Tree Height"
 msgid "Tree Benefits"
 msgstr "Altura del 'arbre"
 
-#: treemap/templates/treemap/partials/eco_benefits.html:25
+#: opentreemap/treemap/templates/treemap/partials/eco_benefits.html:25
 msgid "Benefits"
 msgstr "Beneficis"
 
-#: treemap/templates/treemap/partials/eco_benefits.html:35
+#: opentreemap/treemap/templates/treemap/partials/eco_benefits.html:35
 #, fuzzy, python-format
 #| msgid ""
 #| "\n"
@@ -1498,7 +1508,7 @@ msgstr ""
 "\n"
 "        Basat en %(used)s de %(total)s arbres totals"
 
-#: treemap/templates/treemap/partials/eco_benefits.html:38
+#: opentreemap/treemap/templates/treemap/partials/eco_benefits.html:38
 #, fuzzy, python-format
 #| msgid ""
 #| "\n"
@@ -1514,31 +1524,31 @@ msgstr ""
 "            i %(used)s de %(total)s total %(resources)s.\n"
 "          "
 
-#: treemap/templates/treemap/partials/export.html:11
+#: opentreemap/treemap/templates/treemap/partials/export.html:11
 msgid "Preparing your export..."
 msgstr "Preparant la teua exportació..."
 
-#: treemap/templates/treemap/partials/export.html:12
+#: opentreemap/treemap/templates/treemap/partials/export.html:12
 msgid ""
 "There was an error while generating your export. Please try again later."
 msgstr ""
 "Hi ha hagut un error al generar la teua exportació. Per favor, intenta-ho "
 "més tard."
 
-#: treemap/templates/treemap/partials/export.html:15
-#: treemap/templates/treemap/partials/form_buttons.html:11
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:60
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:87
-#: treemap/templates/treemap/partials/upload_file.html:27
-#: treemap/templates/treemap/user.html:67
+#: opentreemap/treemap/templates/treemap/partials/export.html:15
+#: opentreemap/treemap/templates/treemap/partials/form_buttons.html:11
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:60
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:87
+#: opentreemap/treemap/templates/treemap/partials/upload_file.html:27
+#: opentreemap/treemap/templates/treemap/user.html:67
 msgid "Cancel"
 msgstr "Cancel·la"
 
-#: treemap/templates/treemap/partials/export.html:16
+#: opentreemap/treemap/templates/treemap/partials/export.html:16
 msgid "OK"
 msgstr "Ok"
 
-#: treemap/templates/treemap/partials/forgot_username_email.txt:2
+#: opentreemap/treemap/templates/treemap/partials/forgot_username_email.txt:2
 #, python-format
 msgid ""
 "\n"
@@ -1565,112 +1575,112 @@ msgstr ""
 "\n"
 "- The OpenTreeMap Team\n"
 
-#: treemap/templates/treemap/partials/map_add_resource.html:12
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:12
 #, fuzzy, python-format
 msgid " Select %(Resource)s Type "
 msgstr " Selecciona %(Resource)s tipus"
 
-#: treemap/templates/treemap/partials/map_add_resource.html:42
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:42
 msgid "Indicate Nearby Roof Area"
 msgstr "Indicar àrees Taulades pròximes"
 
-#: treemap/templates/treemap/partials/map_add_resource.html:51
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:51
 msgid "Indicate Polygon Area"
 msgstr "Indicar àrea poligonal"
 
-#: treemap/templates/treemap/partials/map_add_resource.html:63
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:63
 #, fuzzy
 #| msgid "About"
 msgid "About this"
 msgstr "Sobre"
 
-#: treemap/templates/treemap/partials/map_add_resource.html:75
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:75
 msgid "Finalize this"
 msgstr "Finalitza"
 
-#: treemap/templates/treemap/partials/map_add_resource.html:86
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:86
 msgid "Add another"
 msgstr "Afegir altre"
 
-#: treemap/templates/treemap/partials/map_add_resource.html:91
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:91
 msgid "Continue editing this"
 msgstr "Continuar editant aquest"
 
-#: treemap/templates/treemap/partials/map_add_resource.html:96
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:96
 msgid "I'm done"
 msgstr "He acabat!"
 
-#: treemap/templates/treemap/partials/map_feature_accordion.html:10
-#: treemap/templates/treemap/partials/map_feature_popup.html:9
+#: opentreemap/treemap/templates/treemap/partials/map_feature_accordion.html:10
+#: opentreemap/treemap/templates/treemap/partials/map_feature_popup.html:9
 msgid "Nearby Address:"
 msgstr "Adreça propera:"
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:32
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:32
 msgid "Remove from Favorites"
 msgstr ""
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:33
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:33
 #, fuzzy
 #| msgid "Add to Favorites"
 msgid "Add to Favorites"
 msgstr "Afegir a favorits"
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:56
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:56
 msgid "Editing of the resource's details is not available to all users"
 msgstr "editar els detalls dels recursos no disponible per a tots el usuaris"
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:68
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:68
 msgid "Deleting of trees is not available to all users"
 msgstr "l'eliminació d'arbres no disponible per a tots el usuaris"
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:72
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:72
 msgid "Deleting of planting sites is not available to all users"
 msgstr "Afegir fotogràfies de recursos no disponible per a tots el usuaris"
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:74
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:74
 #, python-format
 msgid "Deleting of %(resources)s is not available to all users"
 msgstr ""
 "L'eliminació de %(resources)s no està disponbile per a tots els usuaris"
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:86
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:86
 msgid "Confirm Deletion"
 msgstr "Confirmar esborrat"
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:103
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:103
 #, fuzzy
 #| msgid "Commments"
 msgid "Comments"
 msgstr "Comentaris"
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:115
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:115
 msgid "Removed by Moderator"
 msgstr "Eliminat pel moderador"
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:129
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:129
 msgid "This comment has been removed by a moderator."
 msgstr "Aquest comentari ha sigut eliminat pel moderador."
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:139
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:139
 msgid "or"
 msgstr "o"
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:139
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:139
 msgid "log in"
 msgstr "entra"
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:140
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:140
 msgid "to add comments"
 msgstr "afegir comentaris"
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:148
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:148
 msgid ""
 "The comment system does not serve as a way to report problems with a tree."
 msgstr ""
 "El sistema de comentaris no servei com una forma d'informar sobre problemes "
 "sobre un arbre."
 
-#: treemap/templates/treemap/partials/map_feature_detail_base.html:150
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:150
 #, fuzzy, python-format
 #| msgid ""
 #| "\n"
@@ -1688,53 +1698,53 @@ msgstr ""
 "problems with a %(resource)s.\n"
 "                "
 
-#: treemap/templates/treemap/partials/map_feature_popup.html:22
+#: opentreemap/treemap/templates/treemap/partials/map_feature_popup.html:22
 msgid "Editing a tree's details is not available to all users"
 msgstr "L'edició dels detalls d'un arbre no disponible per a tots els usuaris"
 
-#: treemap/templates/treemap/partials/photo.html:21
-#: treemap/templates/treemap/partials/photo_review.html:32
+#: opentreemap/treemap/templates/treemap/partials/photo.html:21
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:32
 msgid "Archive"
 msgstr "Arxiu"
 
-#: treemap/templates/treemap/partials/photo.html:24
+#: opentreemap/treemap/templates/treemap/partials/photo.html:24
 #, fuzzy
 #| msgid "View all details"
 msgid "View Detail"
 msgstr "Mostra tots els detalls"
 
-#: treemap/templates/treemap/partials/photo_carousel.html:18
+#: opentreemap/treemap/templates/treemap/partials/photo_carousel.html:18
 #, fuzzy
 #| msgid "number"
 msgid "Photo number"
 msgstr "números"
 
-#: treemap/templates/treemap/partials/photo_carousel.html:21
+#: opentreemap/treemap/templates/treemap/partials/photo_carousel.html:21
 msgid "Delete photo number"
 msgstr ""
 
-#: treemap/templates/treemap/partials/photo_carousel.html:29
+#: opentreemap/treemap/templates/treemap/partials/photo_carousel.html:29
 #, fuzzy
 #| msgid "There are no trees nearby"
 msgid "There are no photos"
 msgstr "No hi ha arbres a prop"
 
-#: treemap/templates/treemap/partials/photo_review.html:45
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:45
 msgid "Id"
 msgstr "Id"
 
-#: treemap/templates/treemap/partials/photo_review.html:51
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:51
 #, fuzzy
 #| msgid "Action"
 msgid "Actions"
 msgstr "Acció"
 
-#: treemap/templates/treemap/partials/photo_review.html:54
-#: treemap/templates/treemap/recent_user_edits.html:12
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:54
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:12
 msgid "Date"
 msgstr "Data"
 
-#: treemap/templates/treemap/partials/photo_review.html:70
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:70
 #, python-format
 msgid ""
 "\n"
@@ -1745,27 +1755,27 @@ msgstr ""
 "                    No hi ha %(filtered)s fotos.\n"
 "                "
 
-#: treemap/templates/treemap/partials/photo_social_media_sharing.html:8
+#: opentreemap/treemap/templates/treemap/partials/photo_social_media_sharing.html:8
 msgid "Photo Added!"
 msgstr "Fotogràfia afegida!"
 
-#: treemap/templates/treemap/partials/photo_social_media_sharing.html:11
+#: opentreemap/treemap/templates/treemap/partials/photo_social_media_sharing.html:11
 msgid "Would you like to share this photo?"
 msgstr "T'agradaria compartir aquesta fotogràfia?"
 
-#: treemap/templates/treemap/partials/photo_social_media_sharing.html:27
+#: opentreemap/treemap/templates/treemap/partials/photo_social_media_sharing.html:27
 msgid "Don't show me again"
 msgstr "No m'ho mostres altra vegada"
 
-#: treemap/templates/treemap/partials/photo_social_media_sharing.html:28
+#: opentreemap/treemap/templates/treemap/partials/photo_social_media_sharing.html:28
 msgid "No Thanks"
 msgstr "No gràcies"
 
-#: treemap/templates/treemap/partials/plot_detail.html:21
+#: opentreemap/treemap/templates/treemap/partials/plot_detail.html:21
 msgid "Yearly Ecosystem Services"
 msgstr "Serveis d'ecosistemes anuals"
 
-#: treemap/templates/treemap/partials/plot_detail.html:27
+#: opentreemap/treemap/templates/treemap/partials/plot_detail.html:27
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -1789,16 +1799,16 @@ msgstr ""
 "opentreemap.org/faq/#03\">OpenTreeMap FAQ page.</a>\n"
 "      "
 
-#: treemap/templates/treemap/partials/plot_detail.html:40
-#: treemap/templates/treemap/partials/resource_detail.html:101
+#: opentreemap/treemap/templates/treemap/partials/plot_detail.html:40
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:101
 msgid "Warning!"
 msgstr "Advertència!"
 
-#: treemap/templates/treemap/partials/plot_detail.html:42
+#: opentreemap/treemap/templates/treemap/partials/plot_detail.html:42
 msgid "You are about to delete this tree. Do you want to continue?"
 msgstr "Estàs a punt d'esborrar aquest arbre. Vols continuar?"
 
-#: treemap/templates/treemap/partials/plot_detail.html:44
+#: opentreemap/treemap/templates/treemap/partials/plot_detail.html:44
 msgid ""
 "You are about to delete this planting site. Once deleted, it will not be "
 "possible to view the details of this planting site or the trees it has "
@@ -1808,17 +1818,17 @@ msgstr ""
 "serà possible vore els detalls d'aquest lloc de plantació o dels arbres que "
 "contenia en el passat. Segur que vols continuar?"
 
-#: treemap/templates/treemap/partials/plot_detail_add_tree.html:8
+#: opentreemap/treemap/templates/treemap/partials/plot_detail_add_tree.html:8
 msgid "There is no tree for this planting site."
 msgstr "No hi ha cap arbre per aquest lloc de plantació."
 
-#: treemap/templates/treemap/partials/plot_detail_add_tree.html:11
+#: opentreemap/treemap/templates/treemap/partials/plot_detail_add_tree.html:11
 #, fuzzy
 #| msgid "Add a Tree"
 msgid "Add Tree"
 msgstr "Afegir un arbre"
 
-#: treemap/templates/treemap/partials/plot_eco.html:5
+#: opentreemap/treemap/templates/treemap/partials/plot_eco.html:5
 msgid ""
 "\n"
 "      <p>Ecosystem benefits cannot be calculated for this species of tree in "
@@ -1834,7 +1844,7 @@ msgstr ""
 "suporta calculs per aqueste espècies.</p>\n"
 "      "
 
-#: treemap/templates/treemap/partials/plot_eco.html:10
+#: opentreemap/treemap/templates/treemap/partials/plot_eco.html:10
 #, fuzzy
 msgid ""
 "\n"
@@ -1851,7 +1861,7 @@ msgstr ""
 "      <p>We were unable to calculate ecosystem benefits for this tree.</p>\n"
 "      "
 
-#: treemap/templates/treemap/partials/plot_eco.html:16
+#: opentreemap/treemap/templates/treemap/partials/plot_eco.html:16
 msgid ""
 "Add the diameter of the tree and select a species to calculate the yearly "
 "ecosystem services."
@@ -1859,7 +1869,7 @@ msgstr ""
 "Afegeix el diametre a l'arbre i selecciona una espècies per a calcular el "
 "serveis anuals a l'ecosistema."
 
-#: treemap/templates/treemap/partials/plot_section.html:13
+#: opentreemap/treemap/templates/treemap/partials/plot_section.html:13
 #, fuzzy, python-format
 #| msgid ""
 #| "\n"
@@ -1880,27 +1890,27 @@ msgstr ""
 "\"%(polygonal_url)s\">ves a %(display_name)s pàgina de detalls.</a>\n"
 "  "
 
-#: treemap/templates/treemap/partials/resource_detail.html:11
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:11
 #, fuzzy
 #| msgid "General Tree Information"
 msgid "Information"
 msgstr "Informació general de l'arbre"
 
-#: treemap/templates/treemap/partials/resource_detail.html:16
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:16
 msgid "number"
 msgstr "números"
 
-#: treemap/templates/treemap/partials/resource_detail.html:46
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:46
 #, fuzzy
 #| msgid "Yearly Ecosystem Services"
 msgid "Ecosystem Services"
 msgstr "Serveis d'ecosistemes anuals"
 
-#: treemap/templates/treemap/partials/resource_detail.html:63
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:63
 msgid "Associated Trees"
 msgstr "Arbres associats"
 
-#: treemap/templates/treemap/partials/resource_detail.html:88
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:88
 #, fuzzy, python-format
 #| msgid ""
 #| "\n"
@@ -1915,7 +1925,7 @@ msgstr ""
 "        Aquest %(resource)s no conté cap arbre.\n"
 "    "
 
-#: treemap/templates/treemap/partials/resource_detail.html:102
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:102
 #, fuzzy, python-format
 #| msgid ""
 #| "\n"
@@ -1931,83 +1941,83 @@ msgstr ""
 "    Estàs a punt d'eliminar aquest %(resource)s. Vols continuar?\n"
 "    "
 
-#: treemap/templates/treemap/partials/search_location.html:6
+#: opentreemap/treemap/templates/treemap/partials/search_location.html:6
 msgid "Search by Location"
 msgstr "Busca per ubicació"
 
-#: treemap/templates/treemap/partials/search_location.html:14
-#: treemap/templates/treemap/partials/step_set_location.html:10
+#: opentreemap/treemap/templates/treemap/partials/search_location.html:14
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:10
 msgid "Address, City, State"
 msgstr "Adreça, Població, Provincia"
 
-#: treemap/templates/treemap/partials/search_species.html:7
+#: opentreemap/treemap/templates/treemap/partials/search_species.html:7
 msgid "Search by Species"
 msgstr "Busca per espècies"
 
-#: treemap/templates/treemap/partials/search_species.html:20
+#: opentreemap/treemap/templates/treemap/partials/search_species.html:20
 msgid "Disabled while missing species search is active"
 msgstr "Deshabilitat mentre hi haja una cerca activa"
 
-#: treemap/templates/treemap/partials/sidebar.html:6
+#: opentreemap/treemap/templates/treemap/partials/sidebar.html:6
 msgid "Latest Update"
 msgstr "Última c"
 
-#: treemap/templates/treemap/partials/sidebar.html:17
+#: opentreemap/treemap/templates/treemap/partials/sidebar.html:17
 msgid "Complete"
 msgstr "Completat"
 
-#: treemap/templates/treemap/partials/sidebar.html:27
-#: treemap/templates/treemap/user.html:137
+#: opentreemap/treemap/templates/treemap/partials/sidebar.html:27
+#: opentreemap/treemap/templates/treemap/user.html:137
 msgid "Recent Edits"
 msgstr "Edicions recents"
 
-#: treemap/templates/treemap/partials/sidebar.html:42
+#: opentreemap/treemap/templates/treemap/partials/sidebar.html:42
 #, fuzzy
 #| msgid "Nearby Address:"
 msgid "Nearby Trees"
 msgstr "Adreça propera:"
 
-#: treemap/templates/treemap/partials/sidebar.html:51
+#: opentreemap/treemap/templates/treemap/partials/sidebar.html:51
 msgid "There are no trees nearby"
 msgstr "No hi ha arbres a prop"
 
-#: treemap/templates/treemap/partials/step_controls.html:6
+#: opentreemap/treemap/templates/treemap/partials/step_controls.html:6
 msgid "Step"
 msgstr "Pas"
 
-#: treemap/templates/treemap/partials/step_controls.html:9
+#: opentreemap/treemap/templates/treemap/partials/step_controls.html:9
 msgid "of"
 msgstr "de"
 
-#: treemap/templates/treemap/partials/step_controls.html:15
+#: opentreemap/treemap/templates/treemap/partials/step_controls.html:15
 msgid "« Back"
 msgstr ""
 
-#: treemap/templates/treemap/partials/step_controls.html:20
+#: opentreemap/treemap/templates/treemap/partials/step_controls.html:20
 msgid "Done"
 msgstr ""
 
-#: treemap/templates/treemap/partials/step_controls.html:20
+#: opentreemap/treemap/templates/treemap/partials/step_controls.html:20
 #, fuzzy
 #| msgid "Next"
 msgid "Next »"
 msgstr "Següent"
 
-#: treemap/templates/treemap/partials/step_set_location.html:4
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:4
 msgid "Set the"
 msgstr "Fixa el"
 
-#: treemap/templates/treemap/partials/step_set_location.html:4
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:4
 #, fuzzy
 #| msgid "Action"
 msgid "location"
 msgstr "Acció"
 
-#: treemap/templates/treemap/partials/step_set_location.html:13
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:13
 msgid "Use Current Location"
 msgstr "Utilitza l'ubicació actual"
 
-#: treemap/templates/treemap/partials/step_set_location.html:16
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:16
 #, fuzzy
 #| msgid ""
 #| "Choose a point on the map, enter an address including city, or select "
@@ -2017,7 +2027,7 @@ msgstr ""
 "Choose a point on the map, enter an address including city, or select \"Use "
 "Current Location.\""
 
-#: treemap/templates/treemap/partials/step_set_location.html:19
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:19
 #, fuzzy
 #| msgid ""
 #| "Choose a point on the map, enter an address including city, or select "
@@ -2029,30 +2039,30 @@ msgstr ""
 "Choose a point on the map, enter an address including city, or select \"Use "
 "Current Location.\""
 
-#: treemap/templates/treemap/partials/step_set_location.html:23
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:23
 msgid "Unable to locate this address."
 msgstr ""
 
-#: treemap/templates/treemap/partials/step_set_location.html:24
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:24
 msgid ""
 "Unable to locate this address. You may need to include a city and state."
 msgstr ""
 "No ha sigut possible localitzar aquesta adreça. Hauràs d'incloure una "
 "poblicació i provincia."
 
-#: treemap/templates/treemap/partials/step_set_location.html:27
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:27
 msgid "Unable to determine current location"
 msgstr "No s'ha pogut determiner l'ubicació actual"
 
-#: treemap/templates/treemap/partials/step_set_location.html:30
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:30
 msgid "Please move marker to exact location of the"
 msgstr "Per favor, mou el marcador a la posició exacta de"
 
-#: treemap/templates/treemap/partials/udf_edit_field.html:16
+#: opentreemap/treemap/templates/treemap/partials/udf_edit_field.html:16
 msgid "Today"
 msgstr "Hui"
 
-#: treemap/templates/treemap/partials/upload_file.html:12
+#: opentreemap/treemap/templates/treemap/partials/upload_file.html:12
 #, python-format
 msgid ""
 "\n"
@@ -2060,28 +2070,28 @@ msgid ""
 "          "
 msgstr ""
 
-#: treemap/templates/treemap/recent_user_edits.html:8
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:8
 msgid "Action"
 msgstr "Acció"
 
-#: treemap/templates/treemap/recent_user_edits.html:9
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:9
 msgid "Item"
 msgstr "Element"
 
-#: treemap/templates/treemap/recent_user_edits.html:10
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:10
 msgid "Value Changed"
 msgstr "Valor canviat"
 
-#: treemap/templates/treemap/recent_user_edits.html:11
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:11
 msgid "New Value"
 msgstr "Nou valor"
 
-#: treemap/templates/treemap/unsupported.html:19
+#: opentreemap/treemap/templates/treemap/unsupported.html:19
 msgid "OpenTreeMap currently requires Internet Explorer version 10 or higher."
 msgstr ""
 "OpenTreeMap actualment requereix Internet Explorer versió 10 o superior."
 
-#: treemap/templates/treemap/unsupported.html:20
+#: opentreemap/treemap/templates/treemap/unsupported.html:20
 msgid ""
 "Internet Explorer 9 support is coming soon, we're still working out the "
 "kinks."
@@ -2089,7 +2099,7 @@ msgstr ""
 "El suport d'Internet Explorer 9 arribarà prompte, encar continuem treballant "
 "amb els detalls."
 
-#: treemap/templates/treemap/unsupported.html:21
+#: opentreemap/treemap/templates/treemap/unsupported.html:21
 msgid ""
 "If you cannot upgrade your version of Internet Explorer, we recommend using "
 "either"
@@ -2097,33 +2107,33 @@ msgstr ""
 "Si no pots actualitzar la teua versió d'Internet Explorer, recomanem emprar "
 "o bé"
 
-#: treemap/templates/treemap/user.html:41
+#: opentreemap/treemap/templates/treemap/user.html:41
 #, fuzzy
 #| msgid "Add Photos"
 msgid "Set a Photo"
 msgstr "Afegir fotos"
 
-#: treemap/templates/treemap/user.html:61
+#: opentreemap/treemap/templates/treemap/user.html:61
 msgid "User Profile"
 msgstr "Perfil d'usuari"
 
-#: treemap/templates/treemap/user.html:65
+#: opentreemap/treemap/templates/treemap/user.html:65
 msgid "Edit Profile"
 msgstr "Editar perfil"
 
-#: treemap/templates/treemap/user.html:68
+#: opentreemap/treemap/templates/treemap/user.html:68
 #, fuzzy
 #| msgid "Forgot password"
 msgid "Reset Password"
 msgstr "Has oblidat la contrasenya"
 
-#: treemap/templates/treemap/user.html:80
+#: opentreemap/treemap/templates/treemap/user.html:80
 #, fuzzy
 #| msgid "Reputation:"
 msgid "Reputation"
 msgstr "Reputació:"
 
-#: treemap/templates/treemap/user.html:91
+#: opentreemap/treemap/templates/treemap/user.html:91
 #, fuzzy
 #| msgid "Tree Key"
 msgid "Tree Map"
@@ -2131,7 +2141,7 @@ msgid_plural "Tree Maps"
 msgstr[0] "Clau d'arbre"
 msgstr[1] "Clau d'arbre"
 
-#: treemap/templates/treemap/user.html:97
+#: opentreemap/treemap/templates/treemap/user.html:97
 #, fuzzy
 #| msgid "Add to Favorites"
 msgid "Favorite"
@@ -2139,84 +2149,84 @@ msgid_plural "Favorites"
 msgstr[0] "Afegir a favorits"
 msgstr[1] "Afegir a favorits"
 
-#: treemap/templates/treemap/user.html:129
+#: opentreemap/treemap/templates/treemap/user.html:129
 msgid "You have not starred any favorites yet."
 msgstr "No has puntuat cap favorit encara."
 
-#: treemap/templates/treemap/user.html:131
+#: opentreemap/treemap/templates/treemap/user.html:131
 msgid "This person has not starred any favorites yet."
 msgstr "Aquesta persona no ha puntuat cap favorit encara."
 
-#: treemap/templatetags/auth_extras.py:244
+#: opentreemap/treemap/templatetags/auth_extras.py:244
 msgid "Can't forward login if already logged in"
 msgstr ""
 
-#: treemap/templatetags/form_extras.py:506
+#: opentreemap/treemap/templatetags/form_extras.py:506
 #, fuzzy
 #| msgid "Recover my username"
 msgid "Please type a username"
 msgstr "Recuperar el meu usuari"
 
-#: treemap/udf.py:76
+#: opentreemap/treemap/udf.py:76
 msgid "invalid model type - must subclass UDFModel"
 msgstr "tipus de mòdel invàlid - ha de ser subclasse del mòdel UDFModel"
 
-#: treemap/udf.py:150
+#: opentreemap/treemap/udf.py:150
 #, python-format
 msgid "created a %(model)s entry"
 msgstr "creada una entrada %(model)s"
 
-#: treemap/udf.py:151
+#: opentreemap/treemap/udf.py:151
 #, python-format
 msgid "updated the %(model)s entry"
 msgstr "actualitzada l'entrada del %(model)s"
 
-#: treemap/udf.py:152
+#: opentreemap/treemap/udf.py:152
 #, python-format
 msgid "deleted the %(model)s entry"
 msgstr "esborrada l'entrada %(model)s"
 
-#: treemap/udf.py:153
+#: opentreemap/treemap/udf.py:153
 #, python-format
 msgid "approved an edit to the %(model)s entry"
 msgstr "aprovada una edició a l'entrada de %(model)s"
 
-#: treemap/udf.py:155
+#: opentreemap/treemap/udf.py:155
 #, python-format
 msgid "rejected an edit to the %(model)s entry"
 msgstr "rejected an edit to the %(model)s entry"
 
-#: treemap/udf.py:358
+#: opentreemap/treemap/udf.py:358
 msgid "Can't change choices on a non-choice field"
 msgstr "No es poden canviar eleccions en un camp de no-elecció"
 
-#: treemap/udf.py:363
+#: opentreemap/treemap/udf.py:363
 #, python-format
 msgid "Choice '%(choice)s' not found"
 msgstr "Elecció '%(choice)s' no trobada"
 
-#: treemap/udf.py:460 treemap/udf.py:498
+#: opentreemap/treemap/udf.py:460 opentreemap/treemap/udf.py:498
 msgid "Name is required for collection fields"
 msgstr "El nom és requisit per als camp de col·lecció"
 
-#: treemap/udf.py:471 treemap/udf.py:535
+#: opentreemap/treemap/udf.py:471 opentreemap/treemap/udf.py:535
 msgid "Name is allowed only for collection fields"
 msgstr "Nom està permés només per camps de col·lecció"
 
-#: treemap/udf.py:545
+#: opentreemap/treemap/udf.py:545
 #, python-format
 msgid "Invalid model '%(model_type)s'"
 msgstr "Mòdel invàlid '%(model_type)s'"
 
-#: treemap/udf.py:554
+#: opentreemap/treemap/udf.py:554
 msgid "Cannot use fields that already exist on the model"
 msgstr "No es poden emprar camps que ja existisquen al mòdel."
 
-#: treemap/udf.py:558
+#: opentreemap/treemap/udf.py:558
 msgid "Name cannot be blank"
 msgstr "El nom no pot estar en blanc"
 
-#: treemap/udf.py:562
+#: opentreemap/treemap/udf.py:562
 msgid ""
 "A field name may not contain percent (%), period (.), underscore (_), or "
 "quote (\") characters."
@@ -2224,279 +2234,279 @@ msgstr ""
 "Un camp de nom no ha de contrindre percentatge (%), punt (.), guionet baix "
 "(_), o cometes (\")."
 
-#: treemap/udf.py:576
+#: opentreemap/treemap/udf.py:576
 #, python-format
 msgid "There is already a custom %(model_type)s field with name '%(name)s'"
 msgstr "Ja existeix un camp personalitzat %(model_type)s amb el nom '%(name)s'"
 
-#: treemap/udf.py:595
+#: opentreemap/treemap/udf.py:595
 msgid "Name must not be empty"
 msgstr "Nom no ha d'estar buit"
 
-#: treemap/udf.py:604
+#: opentreemap/treemap/udf.py:604
 msgid "Names must not be duplicates"
 msgstr "El noms no poden estar duplicats"
 
-#: treemap/udf.py:609
+#: opentreemap/treemap/udf.py:609
 msgid "Id is an invalid name"
 msgstr "Id és un nom no vàlid"
 
-#: treemap/udf.py:625
+#: opentreemap/treemap/udf.py:625
 #, fuzzy
 msgid "type required data type definition"
 msgstr "tipus requereix la definició del tipus de dades"
 
-#: treemap/udf.py:630
+#: opentreemap/treemap/udf.py:630
 msgid "invalid datatype"
 msgstr "Tipus de dada invàlida"
 
-#: treemap/udf.py:636
+#: opentreemap/treemap/udf.py:636
 #, fuzzy
 msgid "Missing choices key"
 msgstr "Falta la clau de les eleccions"
 
-#: treemap/udf.py:640
+#: opentreemap/treemap/udf.py:640
 msgid "Choice must be a string"
 msgstr "L'elecció a de ser una cadena"
 
-#: treemap/udf.py:642
+#: opentreemap/treemap/udf.py:642
 msgid "Empty choice is not allowed"
 msgstr "L'elecció buida no està permesa"
 
-#: treemap/udf.py:645
+#: opentreemap/treemap/udf.py:645
 msgid "There must be at least one choice"
 msgstr "Ha d'haver al menys una elecció"
 
-#: treemap/udf.py:648
+#: opentreemap/treemap/udf.py:648
 msgid "Duplicate choices are not allowed"
 msgstr "Eleccions duplicades no estan permeses"
 
-#: treemap/udf.py:812
+#: opentreemap/treemap/udf.py:812
 #, python-format
 msgid "%(fieldname)s must be a real number"
 msgstr "%(fieldname)s ha de ser un número real"
 
-#: treemap/udf.py:822 treemap/udf.py:831
+#: opentreemap/treemap/udf.py:822 opentreemap/treemap/udf.py:831
 #, python-format
 msgid "%(fieldname)s must be an integer"
 msgstr "%(fieldname)s ha de ser un enter"
 
-#: treemap/udf.py:836
+#: opentreemap/treemap/udf.py:836
 #, python-format
 msgid "%(fieldname)s user not found"
 msgstr "%(fieldname)s usuari no trobat"
 
-#: treemap/udf.py:846
+#: opentreemap/treemap/udf.py:846
 #, python-format
 msgid "%(fieldname)s must be formatted as YYYY-MM-DD"
 msgstr "%(fieldname)s ha d'estar formatat com YYYY-MM-DD"
 
-#: treemap/udf.py:853
+#: opentreemap/treemap/udf.py:853
 #, fuzzy, python-format
 #| msgid "%(fieldname)s must be an integer"
 msgid "%(fieldname)s year must be >= 1900"
 msgstr "%(fieldname)s ha de ser un enter"
 
-#: treemap/udf.py:862
+#: opentreemap/treemap/udf.py:862
 #, python-format
 msgid "Invalid choice (%(given)s). Expecting %(allowed)s"
 msgstr "Elecció incorrecta (%(given)s). Esperant %(allowed)s"
 
-#: treemap/udf.py:874
+#: opentreemap/treemap/udf.py:874
 #, python-format
 msgid "%(fieldname)s must be valid JSON"
 msgstr "%(fieldname)s ha de ser un JSON vàlid"
 
-#: treemap/udf.py:1346 treemap/udf.py:1362
+#: opentreemap/treemap/udf.py:1346 opentreemap/treemap/udf.py:1362
 #, fuzzy
 msgid "Invalid user defined field name"
 msgstr "camp de nom definit d'usuari invàlid"
 
-#: treemap/units.py:73
+#: opentreemap/treemap/units.py:73
 msgid "inches"
 msgstr "polçades"
 
-#: treemap/units.py:74
+#: opentreemap/treemap/units.py:74
 msgid "feet"
 msgstr "peu"
 
-#: treemap/units.py:75
+#: opentreemap/treemap/units.py:75
 #, fuzzy
 #| msgid "Recent Edits"
 msgid "centimeters"
 msgstr "Edicions recents"
 
-#: treemap/units.py:76
+#: opentreemap/treemap/units.py:76
 msgid "meters"
 msgstr "metres"
 
-#: treemap/units.py:77
+#: opentreemap/treemap/units.py:77
 msgid "pounds per year"
 msgstr "lliures per any"
 
-#: treemap/units.py:78
+#: opentreemap/treemap/units.py:78
 msgid "kilograms per year"
 msgstr "kilograms per any"
 
-#: treemap/units.py:79
+#: opentreemap/treemap/units.py:79
 msgid "pounds"
 msgstr "lliures"
 
-#: treemap/units.py:80
+#: opentreemap/treemap/units.py:80
 msgid "kilograms"
 msgstr "kilograms"
 
-#: treemap/units.py:81
+#: opentreemap/treemap/units.py:81
 msgid "kilowatt-hours per year"
 msgstr "kilowatt-hora per any"
 
-#: treemap/units.py:82
+#: opentreemap/treemap/units.py:82
 msgid "gallons"
 msgstr "galons"
 
-#: treemap/units.py:83
+#: opentreemap/treemap/units.py:83
 msgid "gallons per year"
 msgstr "galons per any"
 
-#: treemap/units.py:84
+#: opentreemap/treemap/units.py:84
 msgid "liters"
 msgstr "litres"
 
-#: treemap/units.py:85
+#: opentreemap/treemap/units.py:85
 msgid "liters per year"
 msgstr "litres per any"
 
-#: treemap/units.py:86
+#: opentreemap/treemap/units.py:86
 msgid "feet²"
 msgstr "peus²"
 
-#: treemap/units.py:87
+#: opentreemap/treemap/units.py:87
 msgid "meters²"
 msgstr "metres²"
 
 #. Translators: "in" is an abbreviation for "inches"
-#: treemap/units.py:92
+#: opentreemap/treemap/units.py:92
 msgid "in"
 msgstr ""
 
 #. Translators: "ft" is an abbreviation for "feet"
-#: treemap/units.py:94
+#: opentreemap/treemap/units.py:94
 #, fuzzy
 #| msgid "feet"
 msgid "ft"
 msgstr "peu"
 
 #. Translators: "cm" is an abbreviation for "centimeters"
-#: treemap/units.py:96
+#: opentreemap/treemap/units.py:96
 msgid "cm"
 msgstr ""
 
 #. Translators: "m" is an abbreviation for "meters"
-#: treemap/units.py:98
+#: opentreemap/treemap/units.py:98
 msgid "m"
 msgstr ""
 
 #. Translators: "lbs/year" is an abbreviation for "pounds per year"
-#: treemap/units.py:100
+#: opentreemap/treemap/units.py:100
 msgid "lbs/year"
 msgstr ""
 
 #. Translators: "kg/year" is an abbreviation for "kilograms per year"
-#: treemap/units.py:102
+#: opentreemap/treemap/units.py:102
 msgid "kg/year"
 msgstr ""
 
 #. Translators: "lbs" is an abbreviation for "pounds"
-#: treemap/units.py:104
+#: opentreemap/treemap/units.py:104
 msgid "lbs"
 msgstr ""
 
 #. Translators: "kg" is an abbreviation for "kilograms"
-#: treemap/units.py:106
+#: opentreemap/treemap/units.py:106
 msgid "kg"
 msgstr ""
 
 #. Translators: "kwh/year" is an abbreviation for "kilowatt-hours per year"
-#: treemap/units.py:108
+#: opentreemap/treemap/units.py:108
 msgid "kwh/year"
 msgstr ""
 
 #. Translators: "gal" is an abbreviation for "gallons"
-#: treemap/units.py:110
+#: opentreemap/treemap/units.py:110
 #, fuzzy
 #| msgid "gallons"
 msgid "gal"
 msgstr "galons"
 
 #. Translators: "gal/year" is an abbreviation for "gallons per year"
-#: treemap/units.py:112
+#: opentreemap/treemap/units.py:112
 msgid "gal/year"
 msgstr ""
 
 #. Translators: "L" is an abbreviation for "liters"
-#: treemap/units.py:114
+#: opentreemap/treemap/units.py:114
 msgid "L"
 msgstr ""
 
 #. Translators: "L/year" is an abbreviation for "liters per year"
-#: treemap/units.py:116
+#: opentreemap/treemap/units.py:116
 msgid "L/year"
 msgstr ""
 
 #. Translators: "ft²" is an abbreviation for "square feet"
-#: treemap/units.py:118
+#: opentreemap/treemap/units.py:118
 #, fuzzy
 #| msgid "feet²"
 msgid "ft²"
 msgstr "peus²"
 
 #. Translators: "m²" is an abbreviation for "square meters"
-#: treemap/units.py:120
+#: opentreemap/treemap/units.py:120
 msgid "m²"
 msgstr ""
 
-#: treemap/util.py:46
+#: opentreemap/treemap/util.py:46
 #, python-format
 msgid "invalid model type: \"%s\""
 msgstr "Tipus de mòdel invàlid: \"%s\""
 
-#: treemap/views/misc.py:249
+#: opentreemap/treemap/views/misc.py:249
 msgid "URL or resource not found"
 msgstr "URL o recurs no trobat"
 
-#: treemap/views/misc.py:250
+#: opentreemap/treemap/views/misc.py:250
 msgid "An unhandled error occured"
 msgstr "Ha succeit un error no tractat"
 
-#: treemap/views/misc.py:251
+#: opentreemap/treemap/views/misc.py:251
 msgid "Resource is temporarily unavailable"
 msgstr "Recursos temporalment no disponibles"
 
-#: treemap/views/photo.py:66
+#: opentreemap/treemap/views/photo.py:66
 #, fuzzy
 #| msgid "Action"
 msgid "Active"
 msgstr "Acció"
 
-#: treemap/views/photo.py:67
+#: opentreemap/treemap/views/photo.py:67
 msgid "Archived"
 msgstr "Arxivat"
 
-#: treemap/views/photo.py:67
+#: opentreemap/treemap/views/photo.py:67
 msgid "archived"
 msgstr "arxivat"
 
-#: treemap/views/tree.py:88
+#: opentreemap/treemap/views/tree.py:88
 msgid "Total annual benefits"
 msgstr "Beneficis anuals totals"
 
-#: treemap/views/tree.py:98
+#: opentreemap/treemap/views/tree.py:98
 msgid "tree"
 msgid_plural "trees"
 msgstr[0] ""
 msgstr[1] ""
 
-#: treemap/views/tree.py:100
+#: opentreemap/treemap/views/tree.py:100
 #, fuzzy
 #| msgid "Planting Site"
 msgid "empty planting site"
@@ -2504,39 +2514,39 @@ msgid_plural "empty planting sites"
 msgstr[0] "Lloc de plantació"
 msgstr[1] "Lloc de plantació"
 
-#: treemap/views/user.py:29
+#: opentreemap/treemap/views/user.py:29
 msgid "First Name"
 msgstr "Nom"
 
-#: treemap/views/user.py:33
+#: opentreemap/treemap/views/user.py:33
 msgid "Last Name"
 msgstr "Cognom"
 
-#: treemap/views/user.py:37
+#: opentreemap/treemap/views/user.py:37
 msgid "Organization"
 msgstr "Organització"
 
-#: treemap/views/user.py:41
+#: opentreemap/treemap/views/user.py:41
 msgid "Make Info Visible"
 msgstr "Fer la informació visible"
 
-#: treemap/views/user.py:46
+#: opentreemap/treemap/views/user.py:46
 #, fuzzy
 #| msgid "Email:"
 msgid "Email"
 msgstr "Correu electrònic:"
 
-#: treemap/views/user.py:50
+#: opentreemap/treemap/views/user.py:50
 #, fuzzy
 #| msgid "Latest Update"
 msgid "Email Updates"
 msgstr "Última c"
 
-#: treemap/views/user.py:127
+#: opentreemap/treemap/views/user.py:127
 msgid "Email field is required"
 msgstr "Camp de correu electrònic requerit"
 
-#: treemap/views/user.py:139
+#: opentreemap/treemap/views/user.py:139
 msgid "Account Recovery"
 msgstr "Recuperació del compte"
 
