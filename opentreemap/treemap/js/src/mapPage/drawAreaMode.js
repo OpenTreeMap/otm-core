@@ -2,8 +2,8 @@
 
 var $ = require('jquery'),
     L = require('leaflet'),
-    adHocPolygon = require('treemap/mapPage/adHocPolygon.js'),
-    plotMarker   = require('treemap/lib/plotMarker.js');
+    locationSearchUI = require('treemap/mapPage/locationSearchUI.js'),
+    plotMarker = require('treemap/lib/plotMarker.js');
 
 var map,
     modes,
@@ -30,7 +30,7 @@ function init(options) {
 
 function activate() {
     plotMarker.hide();
-    adHocPolygon.showDrawAreaControls();
+    locationSearchUI.showDrawAreaControls();
     setTooltips(customTooltips);
     drawer.enable();
     map.on('draw:created', onDrawComplete);
@@ -39,7 +39,7 @@ function activate() {
 }
 
 function onDrawComplete(e) {
-    adHocPolygon.setPolygon(e.layer);
+    locationSearchUI.setPolygon(e.layer);
     polygonComplete = true;
     modes.activateBrowseTreesMode(true);
 }
@@ -60,9 +60,9 @@ function deactivate() {
     map.off('draw:created', onDrawComplete);
     $(document).off('keydown', onKeyDown);
     if (polygonComplete) {
-        adHocPolygon.showCustomAreaControls();
+        locationSearchUI.showCustomAreaControls();
     } else {
-        adHocPolygon.showStandardControls();
+        locationSearchUI.showStandardControls();
     }
 }
 

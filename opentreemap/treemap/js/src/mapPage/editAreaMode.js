@@ -2,8 +2,8 @@
 
 var $ = require('jquery'),
     L = require('leaflet'),
-    adHocPolygon = require('treemap/mapPage/adHocPolygon.js'),
-    plotMarker   = require('treemap/lib/plotMarker.js');
+    locationSearchUI = require('treemap/mapPage/locationSearchUI.js'),
+    plotMarker = require('treemap/lib/plotMarker.js');
 
 var map,
     modes,
@@ -35,9 +35,9 @@ function init(options) {
 function activate() {
     plotMarker.hide();
     setTooltips(customTooltip);
-    adHocPolygon.showEditAreaControls();
+    locationSearchUI.showEditAreaControls();
 
-    polygonFeatureGroup.addLayer(adHocPolygon.getPolygon());
+    polygonFeatureGroup.addLayer(locationSearchUI.getPolygon());
     editor.enable();
 
     $(document).on('keydown', onKeyDown);
@@ -64,7 +64,7 @@ function cancelEditing() {
 
 function deactivate() {
     setTooltips(originalTooltip);
-    adHocPolygon.showCustomAreaControls();
+    locationSearchUI.showCustomAreaControls();
     if (!editsSaved) {
         editor.revertLayers();
     }
