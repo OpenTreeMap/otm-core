@@ -11,14 +11,15 @@ import json
 from django.utils.translation import ugettext as _
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.contrib.gis.geos import Polygon
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 
 from stormwater.models import PolygonalMapFeature
 
-from treemap.models import User, Species, StaticPage, Instance
+from treemap.models import User, Species, StaticPage, Instance, Boundary
 
 from treemap.plugin import get_viewable_instances_filter
 
@@ -108,13 +109,21 @@ def static_page(request, instance, page):
 
 
 def boundary_to_geojson(request, instance, boundary_id):
-    boundary = get_object_or_404(instance.boundaries, pk=boundary_id)
+    boundary = get_object_or_404(Boundary.all_objects, pk=boundary_id)
     geom = boundary.geom
 
     # Leaflet prefers to work with lat/lng so we do the transformation
     # here, since it way easier than doing it client-side
     geom.transform('4326')
     return HttpResponse(geom.geojson)
+
+
+def add_anonymous_boundary(request):
+    request_dict = json.loads(request.body)
+    polygon = Polygon(request_dict.get('polygon', []))
+    b = Boundary.anonymous(polygon)
+    b.save()
+    return {'id': b.id}
 
 
 def boundary_autocomplete(request, instance):

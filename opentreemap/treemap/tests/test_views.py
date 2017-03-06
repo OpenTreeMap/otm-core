@@ -26,7 +26,7 @@ from treemap.udf import UserDefinedFieldDefinition
 from treemap.audit import (Audit, approve_or_reject_audit_and_apply,
                            add_default_permissions, AuthorizeException)
 from treemap.models import (Instance, Species, User, Plot, Tree, TreePhoto,
-                            InstanceUser, StaticPage, ITreeRegion)
+                            InstanceUser, StaticPage, ITreeRegion, Boundary)
 from treemap.routes import (root_settings_js, instance_settings_js,
                             instance_user_page)
 
@@ -36,7 +36,8 @@ from treemap.lib.tree import add_tree_photo_helper
 from treemap.lib.user import get_user_instances
 from treemap.views.misc import (public_instances_geojson, species_list,
                                 boundary_autocomplete, boundary_to_geojson,
-                                edits, compile_scss, static_page)
+                                edits, compile_scss, static_page,
+                                add_anonymous_boundary)
 from treemap.views.map_feature import (update_map_feature, delete_map_feature,
                                        rotate_map_feature_photo, plot_detail,
                                        delete_photo)
@@ -51,7 +52,7 @@ from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            set_read_permissions, make_tweaker_user,
                            make_plain_user, LocalMediaTestCase, media_dir,
                            make_instance_user, set_invisible_permissions,
-                           make_observer_role)
+                           make_observer_role, make_anonymous_boundary)
 from treemap.tests.base import OTMTestCase
 from treemap.tests.test_udfs import make_collection_udf
 
@@ -155,6 +156,37 @@ class BoundaryViewTest(ViewTestCase):
 
         self.assertEqual(response.content,
                          boundary.geom.transform(4326, clone=True).geojson)
+
+    def test_anonymous_boundary_to_geojson_view(self):
+        boundary = make_anonymous_boundary(1)
+        # Anonymous boundaries do not get added to instance.boundaries
+        response = boundary_to_geojson(
+            make_request(),
+            self.instance,
+            boundary.pk)
+
+        self.assertEqual(response.content,
+                         boundary.geom.transform(4326, clone=True).geojson)
+
+    def test_add_anonymous_boundary_view(self):
+        request_dict = {
+            'polygon': [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
+        }
+        content = add_anonymous_boundary(make_request(
+            body=json.dumps(request_dict)))
+
+        self.assertIn('id', content)
+        boundary_id = content['id']
+        anonymous_boundary = Boundary.all_objects.get(pk=boundary_id)
+
+        gjs_response = boundary_to_geojson(
+            make_request(),
+            self.instance,
+            boundary_id)
+
+        self.assertEqual(gjs_response.content,
+                         anonymous_boundary.geom.transform(
+                             4326, clone=True).geojson)
 
     def test_autocomplete_view(self):
         response = boundary_autocomplete(make_request(), self.instance)

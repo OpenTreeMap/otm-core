@@ -9,7 +9,7 @@ import re
 from copy import copy
 
 from django.conf import settings
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, MultiPolygon
 from django.core.mail import send_mail
 from django.core.exceptions import (ValidationError, MultipleObjectsReturned,
                                     ObjectDoesNotExist)
@@ -1346,6 +1346,15 @@ class TreePhoto(MapFeaturePhoto):
         return data
 
 
+class BoundaryManager(models.GeoManager):
+    """
+    By default, exclude anonymous boundaries from queries.
+    """
+    def get_queryset(self):
+        return super(BoundaryManager, self).get_queryset().exclude(
+            name='', category='', searchable=False)
+
+
 class Boundary(models.Model):
     """
     A plot can belong to many different boundary zones. Boundary zones are
@@ -1373,10 +1382,28 @@ class Boundary(models.Model):
     canopy_percent = models.FloatField(null=True)
     searchable = models.BooleanField(default=True)
 
-    objects = models.GeoManager()
+    objects = BoundaryManager()
+    # Allows access to anonymous boundaries
+    all_objects = models.GeoManager()
 
     def __unicode__(self):
         return self.name
+
+    @classmethod
+    def anonymous(cls, polygon=None):
+        """
+        Given a polygon, create an anonymous boundary and return it.
+        """
+        if polygon is None:
+            raise ValidationError(_('Cannot create an anonymous boundary '
+                                    'without geometry'))
+        b = Boundary()
+        b.name = ''
+        b.category = ''
+        b.sort_order = 1
+        b.searchable = False
+        b.geom = MultiPolygon(polygon)
+        return b
 
 
 class ITreeRegionAbstract(object):

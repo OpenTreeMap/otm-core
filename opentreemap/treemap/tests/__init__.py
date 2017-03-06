@@ -57,6 +57,12 @@ def make_simple_boundary(name, n=1):
     return b
 
 
+def make_anonymous_boundary(n=1):
+    b = Boundary.anonymous(make_simple_polygon(n))
+    b.save()
+    return b
+
+
 def make_simple_polygon(n=1):
     """
     Creates a simple, point-like polygon for testing distances
