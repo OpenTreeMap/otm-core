@@ -147,6 +147,10 @@ $light-to-dark-green: #ffffff 10%,
     }
 }
 
+.leaflet-editing-icon {
+    border-radius: 5px;  // Make 10x10 vertex icon into a circle
+}
+
 @media #{$screen-xs} {
     .leaflet-popup-pane {
         display: none;
