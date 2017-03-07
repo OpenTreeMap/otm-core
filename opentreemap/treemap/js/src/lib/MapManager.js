@@ -259,6 +259,30 @@ MapManager.prototype = {
 
     setCenterLL: function(location, reset) {
         this.setCenterAndZoomLL(this.ZOOM_PLOT, location, reset);
+    },
+
+    customizeVertexIcons: function() {
+        // Leaflet Draw has different polygon vertex icons for touch screens
+        // and non-touch screens, and decides which to use based on Leaflet's
+        // L.Browser.Touch. But with current browsers and Leaflet 1.0.3,
+        // L.Browser.Touch is true for a browser that supports touch even when
+        // you're using a non-touch device. That's why we get giant vertex
+        // icons on desktop devices.
+        //
+        // Since for us polygon editing is unlikely to be done via touch, always
+        // use the non-touch icons.
+        //
+        // Also change the default 8x8 square into a 10x10 circle (with help
+        // from CSS on .leaflet-editing-icon)
+
+        customize(L.Draw.Polyline.prototype);
+        customize(L.Edit.PolyVerticesEdit.prototype);
+
+        function customize(prototype) {
+            var options = prototype.options;
+            options.icon.options.iconSize = new L.Point(10, 10);
+            options.touchIcon = options.icon;
+        }
     }
 };
 
