@@ -1261,7 +1261,12 @@
                 var query, data, isValid;
                 query = this.input.getQuery();
                 data = this.menu.getSelectableData($selectable);
-                isValid = data && query !== data.val;
+                // Changed 3/2017 by Rick Mohr to fix this issue:
+                // https://github.com/corejavascript/typeahead.js/issues/132
+                // (Note this file contains a version from an abandoned repo,
+                // and the above issue is from the best-maintained fork.)
+                //isValid = data && query !== data.val;
+                isValid = data;
                 if (isValid && !this.eventBus.before("autocomplete", data.obj)) {
                     this.input.setQuery(data.val);
                     this.eventBus.trigger("autocomplete", data.obj);

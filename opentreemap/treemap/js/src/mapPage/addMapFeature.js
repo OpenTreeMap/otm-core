@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    L = require('leaflet'),
     toastr = require('toastr'),
     FH = require('treemap/lib/fieldHelpers.js'),
     U = require('treemap/lib/utility.js'),
@@ -10,9 +11,7 @@ var $ = require('jquery'),
     streetView = require('treemap/lib/streetView.js'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
         require('treemap/lib/reverseGeocodeStreamAndUpdateAddressesOnForm.js'),
-    geocoderInvokeUi = require('treemap/lib/geocoderInvokeUi.js'),
-    geocoderResultsUi = require('treemap/lib/geocoderResultsUi.js'),
-    enterOrClickEventStream = require('treemap/lib/baconUtils.js').enterOrClickEventStream,
+    geocoderUi = require('treemap/lib/geocoderUi.js'),
     otmTypeahead = require('treemap/lib/otmTypeahead.js'),
     plotMarker = require('treemap/lib/plotMarker.js'),
     config = require('treemap/lib/config.js');
@@ -35,7 +34,7 @@ function init(options) {
         onSaveBefore = options.onSaveBefore || _.identity,
 
         stepControls = require('treemap/mapPage/stepControls.js').init($sidebar),
-        addressInput = sidebar + ' .form-search input',
+        addressInput = sidebar + ' .form-search #address-input',
         $addressInput = $(addressInput),
         $summaryAddress = U.$find('.summaryAddress', $sidebar),
         $geolocateButton = U.$find('.geolocate', $sidebar),
@@ -53,9 +52,8 @@ function init(options) {
     $form.find('[data-class="display"]').hide();  // Hide display fields
 
     // Handle setting initial position via geolocate button
-    var geolocateStream;
     if (navigator.geolocation) {
-        geolocateStream = $geolocateButton
+        var geolocateStream = $geolocateButton
             .asEventStream('click')
             .flatMap(geolocate);
         geolocateStream
@@ -65,7 +63,6 @@ function init(options) {
             $geolocateError.show();
         });
     } else {
-        geolocateStream = Bacon.never();
         $geolocateButton.prop('disabled', true);
     }
 
@@ -91,41 +88,18 @@ function init(options) {
     });
 
     // Handle setting initial position via address search
-    var searchTriggerStream = enterOrClickEventStream({
-            inputs: addressInput,
-            button: '.geocode'
-        }),
-        geocodeResponseStream = geocoderInvokeUi({
-            searchTriggerStream: searchTriggerStream,
-            addressInput: addressInput
-        }),
-        cleanupLocationFeedbackStream = Bacon.mergeAll([
-            searchTriggerStream,
-            geolocateStream,
-            markerFirstMoveStream,
-            addFeatureStream,
-            deactivateBus
-        ]),
-        geocodedLocationStream = geocoderResultsUi({
-            geocodeResponseStream: geocodeResponseStream,
-            cancelGeocodeSuggestionStream: cleanupLocationFeedbackStream,
-            resultTemplate: '#geocode-results-template',
-            addressInput: addressInput,
-            displayedResults: '.wrapper > .popover [data-class="geocode-result"]'
-        });
-
     var addressTypeahead = otmTypeahead.create({
-        input: addressInput,
-        geocoder: true,
-        geocoderBbox: config.instance.extent
-    });
+            input: addressInput,
+            geocoder: true,
+            geocoderBbox: config.instance.extent
+        }),
+        geocodedLocationStream = geocoderUi({
+            locationTypeahead: addressTypeahead,
+            searchButton: '.geocode'
+        }).geocodedLocationStream;
 
-    cleanupLocationFeedbackStream.onValue(function hideLocationErrors() {
-        $geocodeError.hide();
-        $geolocateError.hide();
-    });
     geocodedLocationStream.onValue(onLocationChosen);
-    geocodeResponseStream.onError(function () {
+    geocodedLocationStream.onError(function () {
         $geocodeError.show();
     });
 
@@ -210,17 +184,19 @@ function init(options) {
     }
 
     function onGeolocateSuccess(lonLat) {
-        var location = U.lonLatToWebMercator(lonLat.coords.longitude, lonLat.coords.latitude);
-        onLocationChosen(location);
+        var latLng = L.latLng(lonLat.coords.latitude, lonLat.coords.longitude);
+        onLocationChosen(latLng);
     }
 
-    function onLocationChosen(location) {
+    function onLocationChosen(latLng) {
         // User has chosen an initial location via geocode or geolocate.
         // Show the marker (zoomed and centered), and let them drag it.
         // Show a message so they know the marker must be moved to continue.
-        mapManager.setCenterWM(location);
-        plotMarker.place(location);
+        mapManager.setCenterLL(latLng);
+        plotMarker.place(U.lonLatToWebMercator(latLng.lng, latLng.lat));
         requireMarkerDrag();
+        $geocodeError.hide();
+        $geolocateError.hide();
     }
 
     function requireMarkerDrag() {
