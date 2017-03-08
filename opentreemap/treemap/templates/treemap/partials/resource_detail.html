@@ -20,7 +20,12 @@
         {% if area %}
             <tr>
                 <td>{% trans "Area" %}</td>
-                <td>{{ area }}</td>
+                <td>
+                    <span class="js-area">
+                        {{ display_area }}
+                    </span>
+                    {{ area_units }}
+                </td>
             </tr>
         {% endif %}
 

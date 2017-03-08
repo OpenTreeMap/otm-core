@@ -25,6 +25,7 @@ from treemap.plugin import get_viewable_instances_filter
 from treemap.lib.user import get_audits, get_audits_params
 from treemap.lib import COLOR_RE
 from treemap.lib.perms import map_feature_is_creatable
+from treemap.units import get_unit_abbreviation, get_units
 from treemap.util import leaf_models_of_class
 
 
@@ -83,6 +84,8 @@ def get_map_view_context(request, instance):
         ],
         'resource_classes': resource_classes,
         'only_one_resource_class': len(resource_classes) == 1,
+        'polygon_area_units': get_unit_abbreviation(
+            get_units(instance, 'greenInfrastructure', 'area')),
         'q': request.GET.get('q'),
     }
     add_map_info_to_context(context, instance)

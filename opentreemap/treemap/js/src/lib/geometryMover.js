@@ -8,8 +8,6 @@ var $ = require('jquery'),
     polylineEditor = require('treemap/lib/polylineEditor.js'),
     format = require('util').format;
 
-require('leafletEditablePolyline');
-
 function init(obj, options) {
     var inlineEditForm = options.inlineEditForm,
         $editLocationButton = $(options.editLocationButton),
@@ -21,13 +19,12 @@ function init(obj, options) {
             $editLocationButton.show();
         } else { // in display mode
             $editLocationButton.hide();
-            obj.disable();
         }
         $cancelEditLocationButton.hide();
     });
 
     inlineEditForm.cancelStream.onValue(function () {
-        obj.onCancel();
+        obj.disable({isCancel: true});
     });
 
     $editLocationButton.click(function () {
@@ -41,14 +38,15 @@ function init(obj, options) {
         // User clicked the "Cancel Move Location" button
         $editLocationButton.show();
         $cancelEditLocationButton.hide();
-        obj.onCancel();
-        obj.disable();
+        obj.disable({isCancel: true});
     });
 
     inlineEditForm
         .saveOkStream
         .map('.responseData')
         .onValue(function (responseData) {
+            obj.onSaveOk(responseData.feature);
+            obj.disable({isCancel: false});
             // Refresh the map if needed
             options.mapManager.updateRevHashes(responseData);
         });
@@ -58,7 +56,7 @@ function extendBase(overrides) {
     var _isEnabled = false,
         obj = _.extend({
             onSaveBefore: _.noop,
-            onSaveAfter: _.noop,
+            onSaveOk: _.noop,
             onCancel: _.noop,
             enable: _.noop,
             disable: _.noop,
@@ -75,8 +73,8 @@ function extendBase(overrides) {
         _isEnabled = true;
     };
 
-    obj.disable = function () {
-        disable();
+    obj.disable = function (options) {
+        disable(options);
         _isEnabled = false;
     };
 
@@ -92,9 +90,9 @@ exports.plotMover = function(options) {
             }
         },
 
-        onSaveAfter: function (data) {
+        onSaveOk: function (feature) {
             var wasInPmf = $('#containing-polygonalmapfeature').length > 0,
-                isNowInPmf = data.feature.containing_polygonalmapfeature;
+                isNowInPmf = feature.containing_polygonalmapfeature;
             if (this.plotMarker.wasMoved() && (wasInPmf || isNowInPmf)) {
                 window.location.reload();
             } else {
@@ -103,13 +101,10 @@ exports.plotMover = function(options) {
             }
         },
 
-        onCancel: function () {
-            // User clicked the inlineEditForm's "Cancel" button (distinct from the
-            // "Cancel Tree Move" button managed by this module). Restore plot location.
-            this.plotMarker.place(this.location);
-        },
-
-        disable: function () {
+        disable: function (options) {
+            if (options && options.isCancel) {
+                this.plotMarker.place(this.location);
+            }
             this.plotMarker.disableMoving();
         },
         enable: function () {
@@ -135,9 +130,9 @@ exports.polygonMover = function (options) {
             }
         },
 
-        onSaveAfter: function (data) {
+        onSaveOk: function (feature) {
             var didContainPlots = $('#contained-plots').length > 0,
-                nowContainsPlots = data.feature.contained_plots.length > 0,
+                nowContainsPlots = feature.contained_plots.length > 0,
                 points;
             if (this.editor.hasMoved(this.location) &&
                 (didContainPlots || nowContainsPlots)) {
@@ -147,12 +142,11 @@ exports.polygonMover = function (options) {
                 if (!_.isNull(points)) {
                     this.location = this.editor.getPoints();
                 }
-                this.editor.removeAreaPolygon();
             }
         },
 
-        disable: function () {
-            this.editor.removeAreaPolygon();
+        disable: function (options) {
+            this.editor.removeAreaPolygon(options.isCancel);
         },
 
         enable: function () {

@@ -45,10 +45,23 @@ otm.settings.trans = Object.freeze({
     noStreetViewText: '{% trans "Could not load street view for this location" %}',
     treeDetails: '{% trans "Tree Details" %}',
     resourceDetails: '{{ term.Resource.singular }}{% trans " Details" %}',
-    {# this has to be broken into two sections because window.onbeforeunload has a default but confirm() does not #}
+    //{# this has to be broken into two sections because window.onbeforeunload has a default but confirm() does not #}
     exitWarning: '{% trans "You have begun entering data. Any unsaved changes will be lost." %}',
     exitQuestion: '{% trans "Are you sure you want to continue?" %}',
-    fileExceedsMaximumFileSize: '{% trans "{0} exceeds the maximum file size of {1}" %}'
+    fileExceedsMaximumFileSize: '{% trans "{0} exceeds the maximum file size of {1}" %}',
+    tooltipsForDrawArea: {
+        start: {
+            message: '{% trans "Click the first corner of your search area" %}',
+            kicker: '{% trans "ESC to cancel" %}'
+        },
+        cont: {
+            message: '{% trans "Click to add a corner" %}',
+            kicker: '{% trans "Add as many as you want" %}'
+        },
+        end: {
+            message: '{% trans "Click first corner to finish" %}'
+        }
+    }
 });
 
 otm.settings.errorMessages = Object.freeze({

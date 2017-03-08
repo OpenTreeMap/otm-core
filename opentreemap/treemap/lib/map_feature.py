@@ -356,12 +356,15 @@ def context_dict_for_resource(request, resource, **kwargs):
 
     if isinstance(resource, PolygonalMapFeature):
         context['contained_plots'] = resource.contained_plots()
+        area = resource.calculate_area()
         __, display_area = get_display_value(instance,
                                              'greenInfrastructure', 'area',
-                                             resource.calculate_area())
+                                             area, digits=0)
         display_units = get_unit_abbreviation(
             get_units(instance, 'greenInfrastructure', 'area'))
-        context['area'] = '{} {}'.format(display_area, display_units)
+        context['area'] = area
+        context['display_area'] = display_area
+        context['area_units'] = display_units
 
     return context
 

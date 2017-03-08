@@ -314,10 +314,14 @@ def _get_tree_limit_context(ie):
     tree_count = MapFeature.objects.filter(instance=ie.instance).count()
     remaining_tree_limit = tree_limit - tree_count
 
-    added_site_q =\
-        Q(data__contains='"planting site id": ""') |\
+    plot_id_absent_q = \
+        Q(data__contains='"planting site id": ""') | \
         ~Q(data__contains='"planting site id"')
-    verified_added_q = Q(status=TreeImportRow.VERIFIED) & added_site_q
+    tree_id_absent_q = \
+        Q(data__contains='"tree id": ""') | \
+        ~Q(data__contains='"tree id"')
+    verified_added_q = \
+        Q(status=TreeImportRow.VERIFIED) & plot_id_absent_q & tree_id_absent_q
 
     verified_count = ie.rows()\
         .filter(verified_added_q)\

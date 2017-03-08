@@ -11,11 +11,12 @@
 
 var _ = require('lodash'),
     Bacon = require('baconjs'),
+    U = require('treemap/lib/utility.js'),
     url = require('url'),
 
     modeNamesForUrl = [
-        require('treemap/lib/addTreeMode.js').name,
-        require('treemap/lib/addResourceMode.js').name,
+        require('treemap/mapPage/addTreeMode.js').name,
+        require('treemap/mapPage/addResourceMode.js').name,
         'prioritization',
         'scenarios'
     ];
@@ -63,11 +64,7 @@ function WindowApi() {
 var serializers = {
     zoomLatLng: function(state, query) {
         if (state.zoomLatLng) {
-            var zoom = state.zoomLatLng.zoom,
-                precision = Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2)),
-                lat = state.zoomLatLng.lat.toFixed(precision),
-                lng = state.zoomLatLng.lng.toFixed(precision);
-            query.z = [zoom, lat, lng].join('/');
+            query.z = U.makeZoomLatLngQuery(state.zoomLatLng);
         }
     },
 

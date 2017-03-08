@@ -18,12 +18,12 @@ var $ = require('jquery'),
 
     MIN_ZOOM_OPTION = layersLib.MIN_ZOOM_OPTION,
     MAX_ZOOM_OPTION = layersLib.MAX_ZOOM_OPTION,
-    BASE_LAYER_OPTION = layersLib.BASE_LAYER_OPTION;
+    BASE_PANE_OPTION = layersLib.BASE_PANE_OPTION;
 
 // Leaflet extensions
 require('utfgrid');
 require('leafletbing');
-require('leafletgoogle');
+require('leaflet.gridlayer.googlemutant');
 require('esri-leaflet');
 
 var MapManager = function() {};  // constructor
@@ -62,9 +62,6 @@ MapManager.prototype = {
                 allPolygonsLayer.setOpacity(0.3);
                 map.addLayer(polygonLayer);
 
-                fixZoomLayerSwitch(map, polygonLayer);
-                fixZoomLayerSwitch(map, allPolygonsLayer);
-
                 // When a map has polygons, we check to see if a utf event was
                 // for a dot, and if not, and if the map is zoomed in enough to
                 // see polygons, we make an AJAX call to see if there
@@ -102,8 +99,6 @@ MapManager.prototype = {
             var boundariesLayer = layersLib.createBoundariesTileLayer();
             map.addLayer(boundariesLayer);
             this.layersControl.addOverlay(boundariesLayer, 'Boundaries');
-
-            fixZoomLayerSwitch(map, boundariesLayer);
         }
 
         if (config.instance.canopyEnabled) {
@@ -134,8 +129,6 @@ MapManager.prototype = {
             });
 
             this.layersControl.addOverlay(canopyLayer, 'Regional Canopy Percentages');
-
-            fixZoomLayerSwitch(map, canopyLayer);
         }
 
         _.each(config.instance.customLayers, _.partial(addCustomLayer, this));
@@ -152,6 +145,8 @@ MapManager.prototype = {
             map = L.map(options.domId),
             type = options.type,
             basemapMapping = getBasemapLayers(type);
+
+        layersLib.initPanes(map);
 
         if (_.isUndefined(bounds)) {
             map.setView(U.webMercatorToLeafletLatLng(center.x, center.y), zoom);
@@ -264,12 +259,42 @@ MapManager.prototype = {
 
     setCenterLL: function(location, reset) {
         this.setCenterAndZoomLL(this.ZOOM_PLOT, location, reset);
+    },
+
+    customizeVertexIcons: function() {
+        // Leaflet Draw has different polygon vertex icons for touch screens
+        // and non-touch screens, and decides which to use based on Leaflet's
+        // L.Browser.Touch. But with current browsers and Leaflet 1.0.3,
+        // L.Browser.Touch is true for a browser that supports touch even when
+        // you're using a non-touch device. That's why we get giant vertex
+        // icons on desktop devices.
+        //
+        // Since for us polygon editing is unlikely to be done via touch, always
+        // use the non-touch icons.
+        //
+        // Also change the default 8x8 square into a 10x10 circle (with help
+        // from CSS on .leaflet-editing-icon)
+
+        customize(L.Draw.Polyline.prototype);
+        customize(L.Edit.PolyVerticesEdit.prototype);
+
+        function customize(prototype) {
+            var options = prototype.options;
+            options.icon.options.iconSize = new L.Point(10, 10);
+            options.touchIcon = options.icon;
+        }
     }
 };
 
 function getBasemapLayers(type) {
-    var options = _.extend({}, MAX_ZOOM_OPTION, BASE_LAYER_OPTION);
+    var options = _.extend({}, MAX_ZOOM_OPTION, BASE_PANE_OPTION);
+
     type = type || config.instance.basemap.type;
+
+    function makeGoogleLayer(layer) {
+        return L.gridLayer.googleMutant(
+            _.extend(options, {type: layer}));
+    }
 
     function makeBingLayer(layer) {
         return new L.BingLayer(
@@ -278,12 +303,7 @@ function getBasemapLayers(type) {
     }
 
     function makeEsriLayer(key) {
-        var layer = L.esri.basemapLayer(key, options);
-        layer.on('load', function () {
-            // Otherwise basemap is behind plot layer (esri-leaflet 1.0.2, leaflet 0.7.3)
-            layer.setZIndex(BASE_LAYER_OPTION.zIndex);
-        });
-        return layer;
+        return L.esri.basemapLayer(key, options);
     }
 
     if (type === 'bing') {
@@ -305,9 +325,10 @@ function getBasemapLayers(type) {
         return [L.tileLayer(config.instance.basemap.data, options)];
     } else {
         return {
-            'Streets': new L.Google('ROADMAP', options),
-            'Hybrid': new L.Google('HYBRID', options),
-            'Satellite': new L.Google('SATELLITE', options)
+            'Streets': makeGoogleLayer('roadmap'),
+            'Hybrid': makeGoogleLayer('hybrid'),
+            'Satellite': makeGoogleLayer('satellite'),
+            'Terrain': makeGoogleLayer('terrain')
         };
     }
 }
@@ -353,16 +374,6 @@ function getDomMapAttribute(dataAttName, domId) {
     var $map = $('#' + domId),
         value = $map.data(dataAttName);
     return value;
-}
-
-// Work around https://github.com/Leaflet/Leaflet/issues/1905
-function fixZoomLayerSwitch(map, layer) {
-    map.on('zoomend', function(e) {
-        var zoom = map.getZoom();
-        if (zoom < MIN_ZOOM_OPTION.minZoom) {
-            layer._clearBgBuffer();
-        }
-    });
 }
 
 function addCustomLayer(mapManager, layerInfo) {

@@ -129,6 +129,36 @@ exports.offsetLatLngByMeters = function(latLng, dx, dy) {
     return { lat: newLat, lng: newLng };
 };
 
+exports.makeZoomLatLngQuery = function(zoomLatLng) {
+    var zoom = zoomLatLng.zoom,
+        precision = Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2)),
+        lat = zoomLatLng.lat.toFixed(precision),
+        lng = zoomLatLng.lng.toFixed(precision),
+        query = [zoom, lat, lng].join('/');
+    return query;
+};
+
+// TODO: Respect instance units configuration.
+// https://github.com/OpenTreeMap/otm-addons/issues/326
+exports.getPolygonDisplayArea = function(poly) {
+    function totalAreaInMeters(collection) {
+        if (_.isArray(collection[0])) {
+            return _.chain(collection)
+                    .map(totalAreaInMeters)
+                    .reduce(function(sum, num) {
+                        return sum + num;
+                    })
+                    .value();
+        } else {
+            return L.GeometryUtil.geodesicArea(collection);
+        }
+    }
+
+    var areaSqMeters = totalAreaInMeters(poly.getLatLngs()),
+        areaSqFeet = areaSqMeters * 10.7639;
+    return areaSqFeet;
+};
+
 var endsWith = exports.endsWith = function(str, ends) {
     if (ends === '') return true;
     if (str === null || ends === null) return false;

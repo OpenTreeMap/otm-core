@@ -226,7 +226,6 @@ def _csv_field_header_map(field_names):
             'udfs',
             'updated_at',
             'updated_by',
-            'tree__id',
             'tree__instance',
             'tree__plot',
             'tree__readonly',

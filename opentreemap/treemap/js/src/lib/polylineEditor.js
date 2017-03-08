@@ -2,8 +2,12 @@
 
 var L = require('leaflet'),
     _ = require('lodash'),
+    Bacon = require('baconjs'),
     U = require('treemap/lib/utility.js'),
+    numeral = require('numeral'),
     config = require('treemap/lib/config.js');
+
+require('leaflet-draw');
 
 function makePolygonFromPoint(p1) {
     var p2 = U.offsetLatLngByMeters(p1, -20, -20);
@@ -14,7 +18,6 @@ function makePolygonFromPoint(p1) {
         [p2.lng, p2.lat],
         [p1.lng, p2.lat]
     ];
-
 }
 
 function flipXY(coordinates) {
@@ -23,13 +26,20 @@ function flipXY(coordinates) {
     });
 }
 
+function showArea(area, areaBus) {
+    var displayArea = numeral(area).format('0,0');
+    areaBus.push(displayArea);
+}
+
 module.exports = function (options) {
-    var areaPolygon,
-        points;
+    var mapManager = options.mapManager,
+        map = mapManager.map,
+        areaPolygon,
+        points,
+        initialArea,
+        areaBus = new Bacon.Bus();
 
     return {
-
-        mapManager: options.mapManager,
 
         initAreaPolygon: function(options) {
             if ((options.points && options.plotMarker) ||
@@ -40,33 +50,19 @@ module.exports = function (options) {
             } else {
                 points = makePolygonFromPoint(options.plotMarker.getLatLng());
             }
-
-            var pointIcon = L.icon({
-                iconUrl: config.staticUrl + 'img/polygon-point.png',
-                iconSize: [11, 11],
-                iconAnchor: [6, 6]
-            }),
-                newPointIcon = L.icon({
-                    iconUrl: config.staticUrl + 'img/polygon-point-new.png',
-                    iconSize: [11, 11],
-                    iconAnchor: [6, 6]
-                });
-
-            areaPolygon = L.Polyline.PolylineEditor(flipXY(points), {
-                pointIcon: pointIcon,
-                newPointIcon: newPointIcon,
-                pointZIndexOffset: 1000
-            });
-            areaPolygon.addTo(this.mapManager.map);
+            mapManager.customizeVertexIcons();
+            areaPolygon = new L.Polygon(flipXY(points));
+            areaPolygon.addTo(map);
+            initialArea = U.getPolygonDisplayArea(areaPolygon);
+            showArea(initialArea, areaBus);
         },
 
         getPoints: function () {
             if (!areaPolygon) {
                 return null;
             }
-            var points = _.map(areaPolygon.getPoints(), function (point) {
-                var latLng = point.getLatLng();
-                return [latLng.lng, latLng.lat];
+            var points = _.map(areaPolygon.getLatLngs()[0], function (point) {
+                return [point.lng, point.lat];
             });
             points.push(points[0]);
             return points;
@@ -86,10 +82,13 @@ module.exports = function (options) {
             }
         },
 
-        removeAreaPolygon: function() {
+        removeAreaPolygon: function(revertArea) {
             if (areaPolygon) {
                 this.disableAreaPolygon();
-                this.mapManager.map.removeLayer(areaPolygon);
+                map.removeLayer(areaPolygon);
+                if (revertArea) {
+                    showArea(initialArea, areaBus);
+                }
                 areaPolygon = null;
             }
         },
@@ -98,13 +97,21 @@ module.exports = function (options) {
             if (!areaPolygon) {
                 this.initAreaPolygon(options);
             }
-            this.mapManager.map.setEditablePolylinesEnabled(true);
+            areaPolygon.editing.enable();
+
+            map.on('draw:editvertex', function () {
+                var area = U.getPolygonDisplayArea(areaPolygon);
+                showArea(area, areaBus);
+            });
         },
 
         disableAreaPolygon: function() {
             if (areaPolygon) {
-                this.mapManager.map.setEditablePolylinesEnabled(false);
+                areaPolygon.editing.disable();
+                map.off('draw:editvertex');
             }
-        }
+        },
+
+        areaStream: areaBus.map(_.identity)
     };
 };

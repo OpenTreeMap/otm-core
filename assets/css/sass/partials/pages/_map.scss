@@ -44,23 +44,26 @@ $light-to-dark-green: #ffffff 10%,
     bottom: 0;
     top: 0;
     right: 350px;
+    z-index: 1;
 
     @media #{$screen-xs} {
         right: 0;
     }
 }
 
+.leaflet-base-map-pane {
+	z-index: 50;
+}
+
+.leaflet-searched-boundary-pane {
+	z-index: 100;
+}
+
+.boundary-polygon {
+    cursor: inherit;
+}
+
 .leaflet-control-container {
-    @each $direction in right, left, top, bottom {
-        .leaflet-#{$direction} {
-            z-index: 9;
-
-            .leaflet-control {
-                margin-#{$direction}: 16px;
-            }
-        }
-    }
-
     // Overrides Leaflet button in bottom-right
     .leaflet-bottom.leaflet-right {
         margin: 0 !important;
@@ -73,7 +76,7 @@ $light-to-dark-green: #ffffff 10%,
 .leaflet-control {
 
     &.leaflet-control-attribution {
-        margin-bottom: 12px;
+        margin-bottom: 14px;
         margin-right: 0;
     }
 
@@ -142,6 +145,10 @@ $light-to-dark-green: #ffffff 10%,
     th, td {
         padding: 0 4px;
     }
+}
+
+.leaflet-editing-icon {
+    border-radius: 5px;  // Make 10x10 vertex icon into a circle
 }
 
 @media #{$screen-xs} {

@@ -16,36 +16,12 @@ function clearLayer(map) {
     }
 }
 
-function showBoundaryGeomOnMapLayerAndZoom(map, boundaryGeom) {
+function showBoundaryGeomOnMapLayerAndZoom(map, boundaryGeoJsonLayer) {
     clearLayer(map);
+    currentLayer = boundaryGeoJsonLayer;
 
-    // We want to put the boundary polygon below the plot tiles
-    // so that plots will display and select normally.
-    // But in Leaflet < 0.8 all polygon layers go in the "overlay pane",
-    // which is above the tile pane:
-    //     Map pane
-    //         Tile pane (position absolute, z-index 2)
-    //             ... tile layers ...
-    //         Objects pane (z-index 2)
-    //             Overlay pane (z-index 4)
-    //                 ... polygon layers ...
-    //             Shadow pane (z-index 5)
-    //             Marker pane (z-index 6)
-    //             Popup pane (z-index 7)
-    // We solve it by putting the tile pane above the overlay pane.
-    // That's not great since we might want other polygons on the map,
-    // *above* the plot tiles.
-    // TODO: When we switch to Leaflet 1.0, make a separate pane to contain
-    // the boundary polygon, with a permanent z-index.
-    // (Also note that these z-indexes are unrelated to the ones in
-    // layers.js, which only apply within the tile pane -- the tile pane
-    // creates a stacking context because it has position absolute.)
-    map.getPanes().tilePane.style.zIndex = 5;
-
-    currentLayer = boundaryGeom;
-
-    map.addLayer(boundaryGeom);
-    map.fitBounds(boundaryGeom.getBounds());
+    map.addLayer(boundaryGeoJsonLayer);
+    map.fitBounds(boundaryGeoJsonLayer.getBounds());
 }
 
 function instanceBoundaryIdToUrl(id) {
@@ -56,9 +32,12 @@ function instanceBoundaryIdToUrl(id) {
 }
 
 function parseGeoJson(style, geojson) {
-    return L.geoJson(geojson, {
-        style: function() { return style; }
-    });
+    var options = _.extend({
+            style: function() { return style; },
+            className: 'boundary-polygon'
+        }, layersLib.SEARCHED_BOUNDARY_PANE_OPTION);
+
+    return L.geoJson(geojson, options);
 }
 
 exports.init = function (options) {

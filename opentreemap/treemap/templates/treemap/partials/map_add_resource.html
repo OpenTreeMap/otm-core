@@ -43,7 +43,7 @@
                 <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
             </div>
             <div class="add-step-content">
-                <div class="alert alert-info">Move the dots on the blue polygon to define the borders of the roof area that will drain into your {{ term.Resource.singular.lower }}.
+                <div class="alert alert-info">Move the squares on the blue polygon to define the borders of the roof area that will drain into your {{ term.Resource.singular.lower }}.
                 </div>
             </div>
           {% else %}
@@ -52,8 +52,11 @@
                 <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
             </div>
             <div class="add-step-content">
-                <div class="alert alert-info">Move the dots on the blue polygon to define the borders of your {{ term.Resource.singular.lower }}.
+                <div class="alert alert-info">Move the squares on the blue polygon to define the borders of your {{ term.Resource.singular.lower }}.
                 </div>
+                {% trans "Area" %}:&nbsp;
+                <span class="inline js-area"></span>
+                {{ polygon_area_units }}
             </div>
           {% endif %}
             {% include 'treemap/partials/step_controls.html' %}

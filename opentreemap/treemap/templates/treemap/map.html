@@ -7,6 +7,13 @@
 {% block head_extra %}
 {% endblock head_extra %}
 
+{% block search %}
+<div class="search-block-wrapper">
+  {% include "treemap/partials/search_species.html" %}
+  {% include "treemap/partials/search_location_polygon_editing.html" %}
+</div>
+{% endblock search %}
+
 {% block searchscripts %}
 <script src="https://maps.googleapis.com/maps/api/js?key={{ settings.GOOGLE_MAPS_API_KEY }}"></script>
 {% include "treemap/partials/canopy_filter_control.html" %}

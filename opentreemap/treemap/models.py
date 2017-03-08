@@ -9,6 +9,7 @@ import re
 from copy import copy
 
 from django.conf import settings
+from django.contrib.gis.geos import Point
 from django.core.mail import send_mail
 from django.core.exceptions import (ValidationError, MultipleObjectsReturned,
                                     ObjectDoesNotExist)
@@ -622,6 +623,12 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     @classproperty
     def geom_field_name(cls):
         return "%s.geom" % to_object_name(cls.map_feature_type)
+
+    @property
+    def latlon(self):
+        latlon = Point(self.geom.x, self.geom.y, srid=3857)
+        latlon.transform(4326)
+        return latlon
 
     @property
     def is_plot(self):

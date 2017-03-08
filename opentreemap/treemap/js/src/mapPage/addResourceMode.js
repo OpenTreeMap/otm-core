@@ -4,7 +4,7 @@ var $ = require('jquery'),
     _ = require('lodash'),
     L = require('leaflet'),
     U = require('treemap/lib/utility.js'),
-    addMapFeature = require('treemap/lib/addMapFeature.js'),
+    addMapFeature = require('treemap/mapPage/addMapFeature.js'),
     polylineEditor = require('treemap/lib/polylineEditor.js'),
     config = require('treemap/lib/config.js'),
     reverse = require('reverse');
@@ -128,6 +128,7 @@ function init(options) {
     function initSteps(type) {
         plotMarker.hide();
         editor.removeAreaPolygon();
+        editor.areaStream.onValue($('.js-area'), 'html');
         hideSubquestions();
         var $type = _.isUndefined(type) ? $() : $resourceType.filter('[value="' + type + '"]');
         if ($type.length === 1) {
