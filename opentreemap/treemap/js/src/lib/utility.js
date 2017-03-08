@@ -141,8 +141,20 @@ exports.makeZoomLatLngQuery = function(zoomLatLng) {
 // TODO: Respect instance units configuration.
 // https://github.com/OpenTreeMap/otm-addons/issues/326
 exports.getPolygonDisplayArea = function(poly) {
-    var latLngs = poly.getLatLngs()[0],
-        areaSqMeters = L.GeometryUtil.geodesicArea(latLngs),
+    function totalAreaInMeters(collection) {
+        if (_.isArray(collection[0])) {
+            return _.chain(collection)
+                    .map(totalAreaInMeters)
+                    .reduce(function(sum, num) {
+                        return sum + num;
+                    })
+                    .value();
+        } else {
+            return L.GeometryUtil.geodesicArea(collection);
+        }
+    }
+
+    var areaSqMeters = totalAreaInMeters(poly.getLatLngs()),
         areaSqFeet = areaSqMeters * 10.7639;
     return areaSqFeet;
 };

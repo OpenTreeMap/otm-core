@@ -32,7 +32,8 @@ function showArea(area, areaBus) {
 }
 
 module.exports = function (options) {
-    var map = options.mapManager.map,
+    var mapManager = options.mapManager,
+        map = mapManager.map,
         areaPolygon,
         points,
         initialArea,
@@ -49,6 +50,7 @@ module.exports = function (options) {
             } else {
                 points = makePolygonFromPoint(options.plotMarker.getLatLng());
             }
+            mapManager.customizeVertexIcons();
             areaPolygon = new L.Polygon(flipXY(points));
             areaPolygon.addTo(map);
             initialArea = U.getPolygonDisplayArea(areaPolygon);
