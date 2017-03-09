@@ -1341,6 +1341,8 @@ class ProtectedUDFTestCase(OTMTestCase):
         self.plot.save_with_user(self.user)
 
     def test_cannot_modify_protected_udf_choice(self):
+        self.assertFalse(self.udf.can_be_deleted(self.user))
+
         # Can't add a choice value which conflicts with an existing
         # protected choice value.
         with self.assertRaises(ValidationError):

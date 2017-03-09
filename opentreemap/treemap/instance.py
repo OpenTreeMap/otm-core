@@ -368,7 +368,10 @@ class Instance(models.Model):
         from treemap.models import Tree, Plot
         from treemap.udf import UDFModel
         from treemap.util import leaf_models_of_class
+        from works_management.models import Task
+
         gsi_enabled = feature_enabled(self, 'green_infrastructure')
+        wmm_enabled = feature_enabled(self, 'works_management')
 
         core_models = {Tree, Plot}
         gsi_models = {clz for clz in leaf_models_of_class(UDFModel)
@@ -376,9 +379,16 @@ class Instance(models.Model):
                       and clz.__name__ in self.map_feature_types
                       and getattr(clz, 'is_editable', False)
                       and clz not in core_models}
-        all_models = core_models | gsi_models
+        wmm_models = {Task} if wmm_enabled else set()
 
-        return {'core': core_models, 'gsi': gsi_models, 'all': all_models}
+        all_models = core_models | gsi_models | wmm_models
+
+        return {
+            'core': core_models,
+            'gsi': gsi_models,
+            'wmm': wmm_models,
+            'all': all_models
+        }
 
     @property
     def collection_udfs(self):

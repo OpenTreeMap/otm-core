@@ -707,6 +707,17 @@ class UserDefinedFieldDefinition(models.Model):
         self.validate()
         super(UserDefinedFieldDefinition, self).save(*args, **kwargs)
 
+    def can_be_deleted(self, user):
+        """
+        Return True if user is able to delete this UDF.
+        """
+        # Deleting collection UDFs is not supported
+        if self.iscollection:
+            return False
+        if self.is_protected:
+            return False
+        return True
+
     @transaction.atomic
     def delete(self, *args, **kwargs):
         save_instance = False

@@ -101,6 +101,10 @@ class Task(UDFModel, Auditable):
     class Meta:
         unique_together = ('instance', 'reference_number')
 
+    @classmethod
+    def display_name(cls, instance):
+        return _('Task')
+
     def clean(self):
         if not self.reference_number:
             raise ValidationError({
