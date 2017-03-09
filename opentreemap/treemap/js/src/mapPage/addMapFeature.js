@@ -14,12 +14,17 @@ var $ = require('jquery'),
     geocoderResultsUi = require('treemap/lib/geocoderResultsUi.js'),
     enterOrClickEventStream = require('treemap/lib/baconUtils.js').enterOrClickEventStream,
     otmTypeahead = require('treemap/lib/otmTypeahead.js'),
+    plotMarker = require('treemap/lib/plotMarker.js'),
     config = require('treemap/lib/config.js');
+
+var dom = {
+    exploreMapHeaderLink: '.navbar li.explore-map',
+    addFeatureHeaderLink: '.navbar li[data-feature=add_plot]'
+};
 
 function init(options) {
     var mapManager = options.mapManager,
-        plotMarker = options.plotMarker,
-        onClose = options.onClose || $.noop,
+        activateBrowseTreesMode = options.activateBrowseTreesMode,
         clearChildEditControls = options.clearEditControls || $.noop,
         sidebar = options.sidebar,
         $sidebar = $(sidebar),
@@ -28,9 +33,6 @@ function init(options) {
         addFeatureRadioOptions = options.addFeatureRadioOptions,
         addFeatureUrl = reverse.add_plot(config.instance.url_name),
         onSaveBefore = options.onSaveBefore || _.identity,
-
-        $addFeatureHeaderLink = options.$addFeatureHeaderLink,
-        $exploreMapHeaderLink = options.$exploreMapHeaderLink,
 
         stepControls = require('treemap/mapPage/stepControls.js').init($sidebar),
         addressInput = sidebar + ' .form-search input',
@@ -77,7 +79,7 @@ function init(options) {
 
     // Handle user clicking "Cancel"
     var cancelStream = U.$find('.cancelBtn', $sidebar).asEventStream('click');
-    cancelStream.onValue(onClose);
+    cancelStream.onValue(exit);
 
     // Handle internal and external deactivation
     var deactivateBus = new Bacon.Bus();
@@ -184,9 +186,8 @@ function init(options) {
     //     deactivate() -> Inactive
 
     function activate() {
-        $addFeatureHeaderLink.addClass("active");
-        $exploreMapHeaderLink.removeClass("active");
-        plotMarker.hide();
+        $(dom.addFeatureHeaderLink).addClass("active");
+        $(dom.exploreMapHeaderLink).removeClass("active");
         stepControls.showStep(0);
         stepControls.enableNext(indexOfSetLocationStep, false);
         $placeMarkerMessage.show();
@@ -267,7 +268,11 @@ function init(options) {
 
     function close() {
         deactivateBus.push();
-        onClose();
+        exit();
+    }
+
+    function exit() {
+        activateBrowseTreesMode({skipPrompt: true});
     }
 
     function onAddFeatureSuccess(result) {
@@ -345,8 +350,12 @@ function init(options) {
     }
 
     function deactivate() {
-        $addFeatureHeaderLink.removeClass("active");
-        $exploreMapHeaderLink.addClass("active");
+        $(dom.addFeatureHeaderLink).removeClass("active");
+        $(dom.exploreMapHeaderLink).addClass("active");
+
+        // Clear classes that control display for mobile
+        $('body').removeClass('add-feature hide-search open');
+        $('#feature-panel').removeClass('expanded with-map');
 
         // We're being deactivated by an external event
         deactivateBus.push();

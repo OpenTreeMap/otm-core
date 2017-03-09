@@ -2,23 +2,24 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
-    L = require('leaflet'),
     toastr = require('toastr'),
     otmTypeahead = require('treemap/lib/otmTypeahead.js'),
     geometryMover = require('treemap/lib/geometryMover.js'),
     diameterCalculator = require('treemap/lib/diameterCalculator.js'),
+    plotMarker = require('treemap/lib/plotMarker.js'),
     reverseGeocodeStreamAndUpdateAddressesOnForm =
         require('treemap/lib/reverseGeocodeStreamAndUpdateAddressesOnForm.js');
 
 var dom = {
     form: '#details-form',
-    ecoBenefits: '.benefit-values'
+    ecoBenefits: '.benefit-values',
+    mapFeatureAccordion: '#map-feature-accordion',
+    treeDetailAccordion: '#tree-detail'
 };
 
 var mapManager,
     inlineEditForm,
     typeaheads,
-    plotMarker,
     calculator,
     currentPlotMover;
 
@@ -26,7 +27,6 @@ function init(options) {
     mapManager = options.mapManager;
     inlineEditForm = options.inlineEditForm;
     typeaheads = options.typeaheads;
-    plotMarker = options.plotMarker;
 
     inlineEditForm.inEditModeProperty.onValue(function (inEditMode) {
         $(dom.ecoBenefits).toggle(!inEditMode);
@@ -78,11 +78,21 @@ function activate() {
     });
 }
 
-function deactivate() {
+function deactivate(options) {
     calculator.destroy();
     inlineEditForm.cancel();
-
     mapManager.map.off('click', onClick);
+    var keepSelection = options && options.keepSelection;
+    if (!keepSelection) {
+        clearSelection();
+    }
+}
+
+function clearSelection() {
+    $(dom.mapFeatureAccordion).html('');
+    $(dom.treeDetailAccordion).collapse('hide');
+    $('body').removeClass('feature-selected');  // for mobile
+    plotMarker.hide();
 }
 
 function onSaveBefore(data) {

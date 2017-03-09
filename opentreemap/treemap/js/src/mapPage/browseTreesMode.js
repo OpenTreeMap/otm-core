@@ -8,13 +8,20 @@ var $ = require('jquery'),
     BU = require('treemap/lib/baconUtils.js'),
     buttonEnabler = require('treemap/lib/buttonEnabler.js'),
     config = require('treemap/lib/config.js'),
-    format = require('util').format;
+    format = require('util').format,
+    plotMarker = require('treemap/lib/plotMarker.js');
 
-var map,
+var dom = {
+        sidebarContent: '#map-info',
+        mapFeatureAccordion: '#map-feature-accordion',
+        treeDetailAccordion: '#tree-detail',
+        fullDetailsButton: '#full-details-button',
+        quickEditButton: '#quick-edit-button'
+    },
+
+    map,
     popup,  // Most recent popup (so it can be deleted)
-    embed,  // True if embed is in the query string
-    plotMarker,
-    $fullDetailsButton;
+    embed;  // True if embed is in the query string
 
 function idToPlotDetailUrl(id) {
     if (id) {
@@ -30,13 +37,9 @@ function idToPlotDetailUrl(id) {
 function init(options) {
     map = options.map;
     embed = options.embed;
-    plotMarker = options.plotMarker;
-    $fullDetailsButton = options.$fullDetailsButton;
 
     var inMyMode = options.inMyMode, // function telling if my mode is active
-        inlineEditForm = options.inlineEditForm,
-        $accordionSection = options.$treeDetailAccordionSection,
-        $buttonGroup = options.$buttonGroup;
+        inlineEditForm = options.inlineEditForm;
 
     var singleSearchResultAsMockUtfEventStream = options.completedSearchStream
             .map(getSingleSearchResultAsMockUtfEvent)
@@ -52,7 +55,7 @@ function init(options) {
                                                    ''),
         plotUrlStream = clickedIdStream.map(idToPlotDetailUrl);
 
-    plotUrlStream.onValue($fullDetailsButton, 'attr', 'href');
+    plotUrlStream.onValue($(dom.fullDetailsButton), 'attr', 'href');
     plotUrlStream.onValue(inlineEditForm.setUpdateUrl);
 
     // Leaflet needs both the content and a coordinate to
@@ -61,50 +64,34 @@ function init(options) {
     utfEventStream
        .map('.latlng')
        .zip(popupHtmlStream, makePopup)
-       .onValue(showPopup);
+       .onValue(togglePopup);
 
-    accordionHtmlStream.onValue(function () { $buttonGroup.show(); });
-
-    accordionHtmlStream.assign($('#map-feature-accordion'), 'html');
-
-    accordionHtmlStream
-        .map(BU.isDefinedNonEmpty)
-        .assign($('body'), 'toggleClass', 'feature-selected');
-
-    accordionHtmlStream
-        .map(BU.isDefinedNonEmpty)
-        .decode({true: 'show', false: 'hide'})
-        .onValue(_.bind($accordionSection.collapse, $accordionSection));
+    accordionHtmlStream.onValue(toggleAccordion);
 
     var featureTypeStream = accordionHtmlStream.map($)
             .map('.attr', 'data-map-feature-type');
 
     featureTypeStream
         .decode({plot: 'visible', resource: 'hidden'})
-        .assign($('#quick-edit-button'), 'css', 'visibility');
+        .assign($(dom.quickEditButton), 'css', 'visibility');
 
-    featureTypeStream
-        .decode({plot: config.trans.treeDetails,
-                 resource: config.trans.resourceDetails})
-        .assign($('#accordion-map-feature-detail-tab'), 'html');
-
-    var showTreeDetailLink = $accordionSection.parent().find('a');
+    var showTreeDetailLink = $(dom.treeDetailAccordion).parent().find('a');
     if (embed) {
         showTreeDetailLink.filter('#full-details-button').attr('target', '_blank');
     }
     showTreeDetailLink.on('click', function(event) {
-        if ($('#map-feature-accordion').html().length === 0) {
+        if ($(dom.mapFeatureAccordion).html().length === 0) {
             event.stopPropagation();
         }
     });
 
     // Need to manually wire this here or we wont get the accordion effect
-    $accordionSection.collapse({
-        parent: $('#map-info'),
-        toggle: false
-    });
-
-    $accordionSection.collapse('hide');
+    $(dom.treeDetailAccordion)
+        .collapse({
+            parent: $(dom.sidebarContent),
+            toggle: false
+        })
+        .collapse('hide');
 }
 
 function getSingleSearchResultAsMockUtfEvent(html) {
@@ -181,7 +168,7 @@ function makePopup(latLon, html) {
     }
 }
 
-function showPopup(newPopup) {
+function togglePopup(newPopup) {
     if (popup) {
         map.closePopup(popup);
     }
@@ -199,6 +186,7 @@ function showPopup(newPopup) {
         plotMarker.place(popup._latlng);
         plotMarker.bindPopup(popup);
     } else {
+        // No popup, or popup without a marker (e.g. just canopy percent)
         plotMarker.unbindPopup();
         plotMarker.hide();
     }
@@ -218,11 +206,27 @@ function getPlotAccordionContent(id) {
     return Bacon.fromPromise(search);
 }
 
-function deactivate() {
+function toggleAccordion(html) {
+    var shouldShow = !!html;
+    $(dom.mapFeatureAccordion).html(html);
+    $(dom.treeDetailAccordion).collapse(shouldShow ? 'show' : 'hide');
+    $('body').toggleClass('feature-selected', shouldShow);  // for mobile
+}
+
+function deactivate(options) {
     if (popup) {
         plotMarker.unbindPopup();
         map.closePopup(popup);
     }
+    var keepSelection = options && options.keepSelection;
+    if (!keepSelection) {
+        clearSelection();
+    }
+}
+
+function clearSelection() {
+    toggleAccordion(false);
+    plotMarker.hide();
 }
 
 module.exports = {
