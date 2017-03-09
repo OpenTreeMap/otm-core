@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from treemap.models import MapFeature, User
 from treemap.audit import Auditable
-from treemap.udf import UDFModel
+from treemap.udf import UDFModel, GeoHStoreUDFManager
 from treemap.instance import Instance
 
 
@@ -46,6 +46,8 @@ class WorkOrder(Auditable, models.Model):
 
 
 class Task(UDFModel, Auditable):
+    objects = GeoHStoreUDFManager()
+
     REQUESTED = 0
     SCHEDULED = 1
     COMPLETED = 2
