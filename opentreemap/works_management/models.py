@@ -69,6 +69,7 @@ class Task(UDFModel, Auditable):
                     'Plant Tree',
                     'Remove Tree',
                 ],
+                'choices': [],
             }
         },
     }

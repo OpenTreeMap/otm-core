@@ -313,6 +313,11 @@ class UserDefinedFieldDefinition(models.Model):
     required:
 
     'choices' - An array of choice options
+
+    Specify choices that may not be modified with the 'protected_choices'
+    key (optional):
+
+    'protected_choices' - An array of choice options
     """
     datatype = models.TextField()
 
@@ -326,12 +331,36 @@ class UserDefinedFieldDefinition(models.Model):
     iscollection = models.BooleanField()
 
     """
+    Protected UDFs cannot be deleted.
+    """
+    # TODO: Change to BooleanField after production deployment
+    is_protected = models.NullBooleanField(default=False)
+
+    """
     Name of the UDFD
     """
     name = models.CharField(max_length=255)
 
     class Meta:
         unique_together = ('instance', 'model_type', 'name')
+
+    @property
+    def all_choices(self):
+        if self.iscollection:
+            raise ValueError(_('Property "all_choices" is invalid '
+                               'for collection UDFs'))
+        return UserDefinedFieldDefinition._all_choices(self.datatype_dict)
+
+    @classmethod
+    def _all_choices(cls, datatype):
+        if datatype['type'] in ('choice', 'multichoice'):
+            # There are situations where "choices" and "protected_choices"
+            # may exist, but the values are None. Default to an empty list
+            # so we can concatenate them.
+            choices = datatype['choices'] or []
+            protected_choices = datatype.get('protected_choices', None) or []
+            return protected_choices + choices
+        return None
 
     def __unicode__(self):
         return ('%s.%s%s' %
@@ -358,17 +387,24 @@ class UserDefinedFieldDefinition(models.Model):
                 {'datatype': [_("Can't change choices "
                                 "on a non-choice field")]})
 
-        if old_choice_value not in datatype['choices']:
+        choices = datatype['choices']
+        protected_choices = datatype.get('protected_choices', None) or []
+        all_choices = UserDefinedFieldDefinition._all_choices(datatype)
+
+        if old_choice_value not in all_choices:
             raise ValidationError(
                 {'datatype': [_("Choice '%(choice)s' not found") % {
                     'choice': old_choice_value}]})
 
-        choices = datatype['choices']
-        if new_choice_value:
-            choices = [c if c != old_choice_value else new_choice_value
-                       for c in choices]
-        else:
-            choices = [c for c in choices if c != old_choice_value]
+        if old_choice_value in protected_choices:
+            raise ValidationError({
+                'datatype': [
+                    _("Can't modify protected choice '%(choice)s'") % {
+                        'choice': old_choice_value}]})
+
+        choices = self._list_replace_or_remove(choices,
+                                               old_choice_value,
+                                               new_choice_value)
 
         datatype['choices'] = choices
         return datatype
@@ -453,14 +489,22 @@ class UserDefinedFieldDefinition(models.Model):
              for choice in l])
         return new_l or None
 
-    def add_choice(self, new_choice_value, name=None):
+    def add_choice(self, new_choice_value, name=None, is_protected=False):
+        choices_key = 'protected_choices' if is_protected else 'choices'
+
+        def _list_append(datatype, key, value):
+            lst = datatype.get(key, None) or []
+            lst.append(value)
+            datatype[key] = lst
+
         if self.iscollection:
             if name is None:
                 raise ValidationError({
                     'name': [_('Name is required for collection fields')]})
 
             datatypes = {d['name']: d for d in self.datatype_dict}
-            datatypes[name]['choices'].append(new_choice_value)
+            datatype = datatypes[name]
+            _list_append(datatype, choices_key, new_choice_value)
 
             self.datatype = json.dumps(datatypes.values())
             self.save()
@@ -471,7 +515,7 @@ class UserDefinedFieldDefinition(models.Model):
                         'Name is allowed only for collection fields')]})
 
             datatype = self.datatype_dict
-            datatype['choices'].append(new_choice_value)
+            _list_append(datatype, choices_key, new_choice_value)
 
             self.datatype = json.dumps(datatype)
             self.save()
@@ -635,6 +679,8 @@ class UserDefinedFieldDefinition(models.Model):
             if choices is None:
                 raise ValidationError(_('Missing choices key'))
 
+            choices = UserDefinedFieldDefinition._all_choices(datatype)
+
             for choice in choices:
                 if not isinstance(choice, basestring):
                     raise ValidationError(_('Choice must be a string'))
@@ -664,6 +710,10 @@ class UserDefinedFieldDefinition(models.Model):
     @transaction.atomic
     def delete(self, *args, **kwargs):
         save_instance = False
+
+        if self.is_protected:
+            raise AuthorizeException("Cannot delete protected UDF '%s'"
+                                     % (self.name))
 
         if self.iscollection:
             UserDefinedCollectionValue.objects.filter(field_definition=self)\
@@ -856,12 +906,14 @@ class UserDefinedFieldDefinition(models.Model):
             return valid_date
 
         elif 'choices' in datatype_dict:
+            choices = UserDefinedFieldDefinition._all_choices(datatype_dict)
+
             def _validate(val):
-                if val not in datatype_dict['choices']:
+                if val not in choices:
                     raise ValidationError(
                         _('Invalid choice (%(given)s). Expecting %(allowed)s')
                         % {'given': val,
-                           'allowed': ', '.join(datatype_dict['choices'])})
+                           'allowed': ', '.join(choices)})
 
             if datatype == 'choice':
                 _validate(value)

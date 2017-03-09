@@ -247,14 +247,11 @@ def _is_udf(model, udf_field_name):
             udf_field_name in model.udf_field_names)
 
 
-def _udf_dict(model, field_name):
-    matches = [field.datatype_dict
-               for field in model.get_user_defined_fields()
-               if field.name == field_name.replace('udf:', '')]
-    if matches:
-        return matches[0]
-    else:
-        raise Exception("Datatype for field %s not found" % field_name)
+def _get_udf(model, field_name):
+    for field in model.get_user_defined_fields():
+        if field.name == field_name.replace('udf:', ''):
+            return field
+    raise Exception("UDF '%s' not defined on model" % field_name)
 
 
 # Should a blank choice be added for choice and multichoice fields?
@@ -284,12 +281,13 @@ def field_type_label_choices(model, field_name, label=None,
         if choices and field.null:
             choices = [{'value': '', 'display_value': ''}] + choices
     else:
-        udf_dict = _udf_dict(model, field_name)
+        udf = _get_udf(model, field_name)
+        udf_dict = udf.datatype_dict
         field_type = udf_dict['type']
         label = label if label else udf_field_name
         if 'choices' in udf_dict:
             choices = [{'value': value, 'display_value': value}
-                       for value in udf_dict['choices']]
+                       for value in udf.all_choices]
             if add_blank == ADD_BLANK_ALWAYS or (
                 add_blank == ADD_BLANK_IF_CHOICE_FIELD
                     and field_type == 'choice'
