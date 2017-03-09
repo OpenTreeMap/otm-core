@@ -367,6 +367,14 @@ class UserDefinedFieldDefinition(models.Model):
                 (self.model_type, self.name,
                  ' (collection)' if self.iscollection else ''))
 
+    def is_protected_choice(self, choice_value, name=None):
+        """
+        Return True if choice_value is protected.
+        """
+        datatype = self._get_datatype_dict(self.datatype_dict, name)
+        protected_choices = datatype.get('protected_choices', None) or []
+        return choice_value in protected_choices
+
     def delete_choice(self, choice_value, name=None):
         update_to = None
 
@@ -489,36 +497,39 @@ class UserDefinedFieldDefinition(models.Model):
              for choice in l])
         return new_l or None
 
+    def _list_append(self, datatype, key, value):
+        """
+        Mutate datatype by appending value to datatype[key] list.
+        """
+        lst = datatype.get(key, None) or []
+        lst.append(value)
+        datatype[key] = lst
+
     def add_choice(self, new_choice_value, name=None, is_protected=False):
         choices_key = 'protected_choices' if is_protected else 'choices'
+        datatype_dict = self.datatype_dict
+        datatype = self._get_datatype_dict(datatype_dict, name)
+        self._list_append(datatype, choices_key, new_choice_value)
+        self.datatype = json.dumps(datatype_dict)
+        self.save()
 
-        def _list_append(datatype, key, value):
-            lst = datatype.get(key, None) or []
-            lst.append(value)
-            datatype[key] = lst
-
+    def _get_datatype_dict(self, datatype_dict, name=None):
+        """
+        Return the correct datatype_dict for collection and
+        non-collection UDFs.
+        """
         if self.iscollection:
             if name is None:
                 raise ValidationError({
                     'name': [_('Name is required for collection fields')]})
-
-            datatypes = {d['name']: d for d in self.datatype_dict}
-            datatype = datatypes[name]
-            _list_append(datatype, choices_key, new_choice_value)
-
-            self.datatype = json.dumps(datatypes.values())
-            self.save()
+            datatypes = {d['name']: d for d in datatype_dict}
+            return datatypes[name]
         else:
             if name is not None:
                 raise ValidationError({
                     'name': [_(
                         'Name is allowed only for collection fields')]})
-
-            datatype = self.datatype_dict
-            _list_append(datatype, choices_key, new_choice_value)
-
-            self.datatype = json.dumps(datatype)
-            self.save()
+            return datatype_dict
 
     @transaction.atomic
     def replace_collection_field_choices(self, field_name, new_choices):
