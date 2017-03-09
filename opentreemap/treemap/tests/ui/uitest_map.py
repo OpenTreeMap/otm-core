@@ -255,11 +255,11 @@ class ModeChangeTest(TreemapUITestCase):
             alert = self.driver.switch_to_alert()
             self.assertEqual(alert.text, expected_alert_text)
             alert.dismiss()
-            self.assertFalse(self.driver.current_url.endswith('addTree'))
+            self.assertFalse(self.is_visible('#sidebar-add-tree'))
 
             self.click_add_tree()
             alert = self.driver.switch_to_alert()
             self.assertEqual(alert.text, expected_alert_text)
 
             alert.accept()
-            self.assertTrue(self.driver.current_url.endswith('addTree'))
+            self.assertTrue(self.is_visible('#sidebar-add-tree'))
