@@ -13,7 +13,8 @@ var $ = require('jquery'),
     urlState = require('treemap/lib/urlState.js'),
     SearchBar = require('treemap/lib/searchBar.js'),
     config = require('treemap/lib/config.js'),
-    boundarySelect = require('treemap/lib/boundarySelect.js');
+    boundarySelect = require('treemap/lib/boundarySelect.js'),
+    locationSearchUI = require('treemap/mapPage/locationSearchUI.js');
 
 $.ajaxSetup(require('treemap/lib/csrf.js').jqueryAjaxSetupOptions);
 
@@ -21,10 +22,16 @@ module.exports.init = function (options) {
     // init mapManager before searchBar so that .setCenterWM is set
     var zoomLatLngOutputStream = mapManager.createTreeMap(options);
 
+    var locationChangedEvents = locationSearchUI.init({
+            map: mapManager.map
+        });
+
     // When there is a single geocode result (either by an exact match
     // or the user selects a candidate) move the map to it and zoom
     // if the map is not already zoomed in.
-    var searchBar = SearchBar.init();
+    var searchBar = SearchBar.init({
+        anotherNonGeocodeObjectStream: locationChangedEvents
+    });
 
     searchBar.geocodedLocationStream.onValue(_.partial(onLocationFound, mapManager));
 
@@ -35,6 +42,9 @@ module.exports.init = function (options) {
                 .map('.search'),       // get search string
             searchBar.resetStream.map({})
         );
+    searchBar.resetStream.onValue(function () {
+        locationSearchUI.clearCustomArea();
+    });
 
     var geocodeEvents = searchBar.searchFiltersProp
         .sampledBy(searchBar.geocodedLocationStream);
@@ -43,6 +53,8 @@ module.exports.init = function (options) {
             triggeredQueryStream,
             searchBar.filterNonGeocodeObjectStream,
             geocodeEvents);
+
+    builtSearchEvents.onValue(locationSearchUI.onSearchChanged);
 
     triggeredQueryStream.onValue(searchBar.applySearchToDom);
 
@@ -54,7 +66,7 @@ module.exports.init = function (options) {
         clearFoundLocationMarker(mapManager.map);
     });
 
-    boundarySelect.init({
+    var parsedStream = boundarySelect.init({
         idStream: builtSearchEvents.map(searchToBoundaryId),
         map: mapManager.map,
         style: options.fillSearchBoundary ? {
@@ -64,6 +76,8 @@ module.exports.init = function (options) {
             fillOpacity: 0
         }
     });
+
+    locationSearchUI.setParsedStream(parsedStream);
 
     var queryObject = url.parse(location.href, true).query;
     var embed = queryObject && queryObject.hasOwnProperty('embed');

@@ -380,7 +380,7 @@ module.exports = exports = {
         Search.reset();
     },
 
-    init: function () {
+    init: function (options) {
         var searchStream = Bacon.mergeAll(
                 initTopTypeaheads(),
                 BU.enterOrClickEventStream({
@@ -416,6 +416,10 @@ module.exports = exports = {
                     displayedResults: '.search-block [data-class="geocode-result"]'
                 });
 
+        if (options.anotherNonGeocodeObjectStream) {
+            filtersStream = filtersStream
+                .merge(options.anotherNonGeocodeObjectStream);
+        }
         geocodeResponseStream.onError(showGeocodeError);
         initSearchUi(searchStream);
 

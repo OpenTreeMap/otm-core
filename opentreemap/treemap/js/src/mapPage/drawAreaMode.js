@@ -37,9 +37,10 @@ function activate() {
 }
 
 function onDrawComplete(e) {
-    locationSearchUI.setPolygon(e.layer);
-    polygonComplete = true;
-    modes.activateBrowseTreesMode();
+    locationSearchUI.completePolygon(e.layer).onValue(function () {
+        polygonComplete = true;
+        modes.activateBrowseTreesMode(true);
+    });
 }
 
 function onKeyDown(e) {

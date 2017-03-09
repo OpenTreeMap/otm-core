@@ -8,7 +8,8 @@ var $ = require('jquery'),
     config = require('treemap/lib/config'),
     reverse = require('reverse');
 
-var currentLayer = null;
+var currentLayer = null,
+    shouldZoomOnLayerChange = true;
 
 function clearLayer(map) {
     if (currentLayer) {
@@ -18,10 +19,13 @@ function clearLayer(map) {
 
 function showBoundaryGeomOnMapLayerAndZoom(map, boundaryGeoJsonLayer) {
     clearLayer(map);
-    currentLayer = boundaryGeoJsonLayer;
 
+    currentLayer = boundaryGeoJsonLayer;
     map.addLayer(boundaryGeoJsonLayer);
-    map.fitBounds(boundaryGeoJsonLayer.getBounds());
+
+    if (shouldZoomOnLayerChange) {
+        map.fitBounds(currentLayer.getBounds());
+    }
 }
 
 function instanceBoundaryIdToUrl(id) {
@@ -37,33 +41,50 @@ function parseGeoJson(style, geojson) {
             className: 'boundary-polygon'
         }, layersLib.SEARCHED_BOUNDARY_PANE_OPTION);
 
-    return L.geoJson(geojson, options);
+    var layer = L.geoJson(geojson, options),
+        inner = layer.getLayers()[0],
+        latLngs = inner.getLatLngs();
+
+    if (1 === latLngs.length) {
+        return L.polygon(latLngs[0][0], options);
+    }
+    return layer;
 }
 
-exports.init = function (options) {
-    var map = options.map,
-        idStream = options.idStream,
-        boundaries = idStream
-            .filter(BU.isDefined)
-            .map(instanceBoundaryIdToUrl)
-            .flatMap(BU.getJsonFromUrl);
+exports = module.exports = {
+    init: function (options) {
+        var map = options.map,
+            idStream = options.idStream,
+            boundaries = idStream
+                .filter(BU.isNumber)
+                .map(instanceBoundaryIdToUrl)
+                .flatMap(BU.getJsonFromUrl),
+            parsed = boundaries.map(parseGeoJson, options.style);
 
-    boundaries.map(parseGeoJson, options.style)
-        .onValue(showBoundaryGeomOnMapLayerAndZoom, map);
+        parsed.onValue(showBoundaryGeomOnMapLayerAndZoom, map);
 
-    // If there is an error fetching or parsing the
-    // boundary, we should clear any existing, stale
-    // boundary highlight.
-    boundaries.onError(clearLayer, map);
+        // If there is an error fetching or parsing the
+        // boundary, we should clear any existing, stale
+        // boundary highlight.
+        boundaries.onError(clearLayer, map);
 
-    // Write the error to the console to allow for
-    // debugging unexpected problems parsing the GeoJSON
-    // or showing the parsed geometry on the map.
-    boundaries.onError(window.console.log);
+        // Write the error to the console to allow for
+        // debugging unexpected problems parsing the GeoJSON
+        // or showing the parsed geometry on the map.
+        boundaries.onError(window.console.log);
 
-    // If the id stream contains an undefined value
-    // it means that the current search does not contain
-    // a boundary component. In that case, we want to
-    // clear any previouly highlighted area.
-    idStream.filter(BU.isUndefined).onValue(clearLayer, map);
+        // If the id stream contains an undefined value
+        // it means that the current search does not contain
+        // a boundary component. In that case, we want to
+        // clear any previouly highlighted area.
+        idStream.filter(BU.isUndefined).onValue(clearLayer, map);
+
+        return parsed;
+    },
+    getCurrentLayer: function () {
+        return currentLayer;
+    },
+    shouldZoomOnLayerChange: function (shouldZoom) {
+        shouldZoomOnLayerChange = shouldZoom;
+    }
 };

@@ -37,6 +37,8 @@ var isUndefined = exports.isUndefined = _.isUndefined;
 
 var isUndefinedOrEmpty = exports.isUndefinedOrEmpty = R.or(_.isUndefined, R.eq(''));
 
+var isNumber = exports.isNumber = R.and(R.not(_.isNaN), _.isNumber);
+
 // Used to get object property values
 // Needed for keys with '.' in them, as Bacon will treat a '.' a in key as an
 // indication that there are nested objects
