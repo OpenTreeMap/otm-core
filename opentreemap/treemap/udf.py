@@ -402,11 +402,9 @@ class UserDefinedFieldDefinition(models.Model):
                     _("Can't modify protected choice '%(choice)s'") % {
                         'choice': old_choice_value}]})
 
-        if new_choice_value:
-            choices = [c if c != old_choice_value else new_choice_value
-                       for c in choices]
-        else:
-            choices = [c for c in choices if c != old_choice_value]
+        choices = self._list_replace_or_remove(choices,
+                                               old_choice_value,
+                                               new_choice_value)
 
         datatype['choices'] = choices
         return datatype
