@@ -55,6 +55,7 @@ def get_or_create_udf(instance, model, udfc_name):
         'instance_id': instance.pk,
         'model_type': model,
         'iscollection': udfc_settings.get('iscollection'),
+        'is_protected': udfc_settings.get('is_protected', False),
         'name': udfc_name,
     }
     try:
@@ -570,13 +571,25 @@ class Instance(models.Model):
         self._map_feature_types = list(self.map_feature_types) + list(types)
         self.save()
 
+        self.initialize_udfs(types, classes)
+        add_default_permissions(self, models=classes)
+
+    def initialize_udfs(self, types, classes):
+        """
+        Add UDF objects to instance if they don't already exist.
+
+        Arguments:
+            types -- List of class names
+            classes -- List of class types
+
+        Example:
+            instance.initialize_udfs([Task.__name__], [Task])
+        """
         for type, clz in zip(types, classes):
-            settings = (getattr(clz, 'udf_settings', {}))
+            settings = getattr(clz, 'udf_settings', {})
             for udfc_name, udfc_settings in settings.items():
                 if udfc_settings.get('defaults'):
                     get_or_create_udf(self, type, udfc_name)
-
-        add_default_permissions(self, models=classes)
 
     @property
     def map_feature_classes(self):
