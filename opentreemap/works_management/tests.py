@@ -22,20 +22,20 @@ def make_team(instance, name='Test Team'):
     return t
 
 
-def make_work_order(instance, user):
+def make_work_order(instance, user, name='Test Work Order'):
     w = WorkOrder()
+    w.name = name
     w.instance = instance
     w.created_by = user
     w.save_with_user(user)
     return w
 
 
-def make_task(instance, user, map_feature, name='Test Task', team=None):
+def make_task(instance, user, map_feature, team=None):
     t = Task()
     t.instance = instance
     t.map_feature = map_feature
     t.team = team
-    t.name = name
     t.created_by = user
     t.requested_on = timezone.now()
     t.scheduled_on = timezone.now()
@@ -64,7 +64,7 @@ class WorksManagementTests(OTMTestCase):
         t = make_task(self.instance, self.user, plot)
         t.work_order = w
         t.save_with_user(self.user)
-        self.assertEqual(1, w.tasks.count())
+        self.assertEqual(1, w.task_set.count())
 
         # Test that WorkOrder updated_at field updates when Tasks update
         old_updated_at = w.updated_at
