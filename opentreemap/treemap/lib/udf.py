@@ -2,8 +2,8 @@ import json
 
 from django.db import transaction
 
-from treemap.audit import Role, FieldPermission
-from treemap.udf import (UserDefinedFieldDefinition)
+from treemap.audit import Role, FieldPermission, Authorizable
+from treemap.udf import UserDefinedFieldDefinition, safe_get_udf_model_class
 from treemap.util import to_object_name
 
 
@@ -45,9 +45,21 @@ def udf_create(params, instance):
         datatype=datatype)
     udf.save()
 
-    field_name = udf.canonical_name
+    Model = safe_get_udf_model_class(model_type)
 
-    # Add the default permission for this UDF to all roles in the instance
+    if issubclass(Model, Authorizable):
+        field_name = udf.canonical_name
+        _add_default_field_permissions(instance, model_type, field_name)
+
+    _add_scalar_udf_to_field_configs(udf, instance)
+
+    return udf
+
+
+def _add_default_field_permissions(instance, model_type, field_name):
+    """
+    Add the default permission for this UDF to all roles in the instance.
+    """
     for role in Role.objects.filter(instance=instance):
         FieldPermission.objects.get_or_create(
             model_name=model_type,
@@ -55,10 +67,6 @@ def udf_create(params, instance):
             permission_level=role.default_permission_level,
             role=role,
             instance=role.instance)
-
-    _add_scalar_udf_to_field_configs(udf, instance)
-
-    return udf
 
 
 def _parse_params(params):
