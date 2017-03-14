@@ -402,7 +402,7 @@ def ecoservice_not_running():
     """Returns True if the ecoservice is not running"""
     try:
         status = subprocess.check_output(
-            ["sudo", "service", settings.ECOSERVICE_NAME, "status"])
+            ["service", settings.ECOSERVICE_NAME, "status"])
         return status.find('start/running') < 0
     except subprocess.CalledProcessError:
         return True

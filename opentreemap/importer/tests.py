@@ -18,8 +18,7 @@ from django.db import connection
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.http import HttpRequest, HttpResponseBadRequest
-from django.contrib.gis.geos import Point, Polygon, MultiPolygon
-from django.utils.translation import ugettext as _
+from django.contrib.gis.geos import Point
 
 from api.test_utils import setupTreemapEnv, mkPlot
 
@@ -1105,9 +1104,10 @@ class TreeIntegrationTests(IntegrationTests):
 
         p2_geom = plot2.geom
         p2_geom.transform(4326)
-        self.assertEqual(int(p2_geom.x*10), 191)
+        # FP math is annoying, some systems the following is 191, others 192
+        self.assertIn(int(p2_geom.x * 10), [191, 192])
         # FP math is annoying, some systems the following is 271, others 272
-        self.assertIn(int(p2_geom.y*10), [271, 272])
+        self.assertIn(int(p2_geom.y * 10), [271, 272])
         self.assertEqual(plot2.current_tree().diameter, 14)
 
     def test_geo_rev_updated(self):

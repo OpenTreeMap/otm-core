@@ -39,7 +39,7 @@ urlpatterns = patterns(
     url('^comments/', include('django_comments.urls')),
     url(r'^', include('geocode.urls')),
     url(r'^stormwater/', include('stormwater.urls')),
-    # Default hardcoded front site. TODO: make this more pretty.
+    # Default hardcoded front site. #TODO: PG make this more pretty.
     url(r'^$', RedirectView.as_view(url='/warszawa/map/')),
     # url(r'^$', routes.landing_page),
     url(r'^config/settings.js$', routes.root_settings_js),
@@ -54,7 +54,7 @@ urlpatterns = patterns(
     # the page of the currently logged in user
     url(r'^accounts/profile/$', routes.profile_to_user_page, name='profile'),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout',
-        {'next_page': '/'}),
+        {'next_page': '/warszawa/map/'}), #TODO: PG make this more pretty
     url(r'^accounts/forgot-username/$', routes.forgot_username,
         name='forgot_username'),
     url(r'^accounts/', include('registration_backend.urls')),
