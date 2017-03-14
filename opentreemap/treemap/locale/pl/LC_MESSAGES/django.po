@@ -37,7 +37,7 @@ msgstr "Jakość powietrza"
 #: templates/base.html:36 templates/instance_base.html:7
 #: templates/treemap/index.html:5
 msgid "Explore Trees"
-msgstr "Zobacz stan drzew"
+msgstr "Zobacz drzewa"
 
 #: templates/base.html:37 templates/instance_base.html:8
 msgid "Add a Tree"
@@ -154,7 +154,7 @@ msgstr "Hasło zostało zmienione"
 #: templates/registration/registration_form.html:28
 #: templates/treemap/plot_detail.html:119
 msgid "Submit"
-msgstr "Dalej"
+msgstr "Zapisz"
 
 #: templates/registration/password_reset_complete.html:6
 msgid "Password reset successfully"
@@ -273,8 +273,8 @@ msgid ""
 "Our database of trees comes from public records and citizen foresters like "
 "you. Update the information for this tree and help us grow!"
 msgstr ""
-"Spis drzew pochodzi z  xxxxx. Pomóż nam uzupełniać brakujące informacje. Do "
-"dzieła!"
+"Spis drzew pochodzi z danych publicznych oraz od ludzi takich jak Ty."
+"Pomóż nam uzupełniać brakujące informacje i wspomóż nas!"
 
 #: templates/treemap/plot_detail.html:30 templates/treemap/recent_edits.html:4
 #: templates/treemap/recent_edits.html:9 templates/treemap/user.html:13
@@ -450,12 +450,115 @@ msgstr "Imię:"
 msgid "Email:"
 msgstr "Email:"
 
-# nie wiem, jaki kontekst uzycia?
 #: templates/treemap/user.html:10
 msgid "Reputation:"
-msgstr ""
+msgstr "Reputacja"
 
-# nie wiem co to dokładnie znaczy
 #: templates/treemap/user.html:11
+msgid "Energy"
+msgstr "Energia"
+
+msgid "Carbon Dioxide"
+msgstr "Dwutlenek węgla"
+
+msgid "Resources"
+msgstr "Baza wiedzy"
+
+msgid "FAQ"
+msgstr "FAQ"
+
+msgid "Your account is now activated."
+msgstr "Twoje konto jest już aktywne. Do dzieła!"
+
+msgid "Link is valid for %(expiration_days)s days."
+msgstr "Link aktywacyjny będzie działał jeszcze %(expiration_days)s dni."
+
+msgid "Reset it"
+msgstr "Zmień hasło"
+
+msgid "Logged out"
+msgstr "Wyloguj się"
+
+msgid "Reset password at %(site_name)s"
+msgstr "Zmień hasło tutaj: %(site_name)s"
+
+msgid "You are now registered. Activation email sent."
+msgstr ""
+"Konto zostało założone.Sprawdź skrzynkę mailową z linkiem aktywacyjnym."
+
+msgid ""
+"\n"
+"    %(tree_count)s</span> tree,\n"
+"  "
+msgid_plural ""
+"\n"
+"    %(tree_count)s</span> trees,\n"
+"  "
+msgstr[0] ""
+"\n"
+"    %(tree_count)s</span> drzewo,"
+msgstr[1] ""
+"\n"
+"    %(tree_count)s</span> drzew,"
+msgstr[2] ""
+
+msgid ""
+"\n"
+"    %(plot_count)s</span> planting site\n"
+"  "
+msgid_plural ""
+"\n"
+"    %(plot_count)s</span> planting sites\n"
+"  "
+msgstr[0] ""
+"\n"
+"    %(plot_count)s</span> miejsce nasadzenia"
+msgstr[1] ""
+"\n"
+"    %(plot_count)s</span> miejsca nasadzeń\n"
+"  "
+msgstr[2] ""
+
+msgid "Your Turn"
+msgstr "Twoja kolej"
+
+# info o źródle danych do uzupełnienia
+msgid ""
+"Our database of trees comes from public records and citizen foresters "
+"like you. Update the information for this tree and help us grow!"
+msgstr ""
+"Spis drzew pochodzi z danych publicznych oraz od osób takich jak Ty."
+"Pomóż nam uzupełniać brakujące informacje i rozwijaj mapę razem z nami!"
+
+msgid "Air pollutants removed"
+msgstr "Zmniejszenie zanieczyszczenia powietrza"
+
+# czy jest jakis termin naukowy?
+msgid "Total Co2 stored to date"
+msgstr "Całkowity dwutlenek węgla"
+
+msgid "ID:"
+msgstr "ID: "
+
+# nie wiem co to, czy musi byc, 
+msgid "Audit ID"
+msgstr "ID "
+
+msgid "Model"
+msgstr "Model"
+
+msgid "Model #"
+msgstr "Model #"
+
+msgid "Commit By"
+msgstr "Wprowadzona przez"
+
+# TBC czy to na pewno to
+msgid "Commit On"
+msgstr "Data wprowadzenia"
+
+msgid "Name:"
+msgstr "Imię:"
+
 msgid "Instance:"
-msgstr "Przykład:"
+msgstr "Instancja:"
