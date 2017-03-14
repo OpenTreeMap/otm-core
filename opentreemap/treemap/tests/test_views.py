@@ -146,7 +146,8 @@ class BoundaryViewTest(ViewTestCase):
             js_boundary['sortOrder'] = boundary.sort_order
 
     def test_boundary_to_geojson_view(self):
-        boundary = make_simple_boundary("Hello, World", 1)
+        distance = 1.0
+        boundary = make_simple_boundary("Hello, World", distance)
         self.instance.boundaries.add(boundary)
         self.instance.save()
         response = boundary_to_geojson(
@@ -157,8 +158,11 @@ class BoundaryViewTest(ViewTestCase):
         self.assertEqual(response.content,
                          boundary.geom.transform(4326, clone=True).geojson)
 
+        self._assert_response_is_srid_3857_distance(response, distance)
+
     def test_anonymous_boundary_to_geojson_view(self):
-        boundary = make_anonymous_boundary(1)
+        distance = 1.0
+        boundary = make_anonymous_boundary(distance)
         # Anonymous boundaries do not get added to instance.boundaries
         response = boundary_to_geojson(
             make_request(),
@@ -168,9 +172,15 @@ class BoundaryViewTest(ViewTestCase):
         self.assertEqual(response.content,
                          boundary.geom.transform(4326, clone=True).geojson)
 
+        self._assert_response_is_srid_3857_distance(response, distance)
+
     def test_add_anonymous_boundary_view(self):
+        distance3857 = 1.0
+        point3857 = Point(distance3857, distance3857, srid=3857)
+        point4326 = point3857.transform(4326, clone=True)
+        n = point4326.get_x()
         request_dict = {
-            'polygon': [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
+            'polygon': [[n, n], [n, n+1], [n+1, n+1], [n+1, n], [n, n]]
         }
         content = add_anonymous_boundary(make_request(
             body=json.dumps(request_dict)))
@@ -187,6 +197,8 @@ class BoundaryViewTest(ViewTestCase):
         self.assertEqual(gjs_response.content,
                          anonymous_boundary.geom.transform(
                              4326, clone=True).geojson)
+
+        self._assert_response_is_srid_3857_distance(gjs_response, distance3857)
 
     def test_autocomplete_view(self):
         response = boundary_autocomplete(make_request(), self.instance)
@@ -208,6 +220,15 @@ class BoundaryViewTest(ViewTestCase):
             self.instance)
 
         self.assertEqual(response, self.test_boundary_hashes[0:2])
+
+    def _assert_response_is_srid_3857_distance(self, response, distance):
+        upper_left_3857 = Point(distance, distance, srid=3857)
+        upper_left_4326 = upper_left_3857.transform(4326, clone=True)
+        json_response = json.loads(response.content)
+        response_upper_left = Point(json_response['coordinates'][0][0][0],
+                                    srid=4326)
+        self.assertAlmostEqual(response_upper_left.get_x(),
+                               upper_left_4326.get_x())
 
 
 class TreePhotoTestCase(LocalMediaTestCase):
