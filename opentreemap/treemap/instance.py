@@ -245,6 +245,9 @@ class Instance(models.Model):
                                         null=True, blank=True)
     eco_rev = models.IntegerField(default=_DEFAULT_REV)
 
+    task_sequence_number = models.IntegerField(default=1, null=True)
+    work_order_sequence_number = models.IntegerField(default=1, null=True)
+
     eco_benefits_conversion = models.ForeignKey(
         'BenefitCurrencyConversion', null=True, blank=True)
 
