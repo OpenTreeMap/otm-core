@@ -771,6 +771,38 @@ class Instance(models.Model):
         if errors:
             raise_errors(errors)
 
+    @transaction.atomic
+    def get_next_task_sequence(self, how_many=1):
+        """
+        Return next sequence value and increment counter by `how_many`.
+
+        Arguments:
+        how_many - Amount of sequence values to allocate
+        """
+        if how_many < 1:
+            raise ValueError('how_many must be >= 1')
+        qs = Instance.objects.filter(id=self.id).select_for_update()
+        old_value = qs[0].task_sequence_number
+        new_value = F('task_sequence_number') + how_many
+        qs.update(task_sequence_number=new_value)
+        return old_value
+
+    @transaction.atomic
+    def get_next_work_order_sequence(self, how_many=1):
+        """
+        Return next sequence value and increment counter by `how_many`.
+
+        Arguments:
+        how_many - Amount of sequence values to allocate
+        """
+        if how_many < 1:
+            raise ValueError('how_many must be >= 1')
+        qs = Instance.objects.filter(id=self.id).select_for_update()
+        old_value = qs[0].work_order_sequence_number
+        new_value = F('work_order_sequence_number') + how_many
+        qs.update(work_order_sequence_number=new_value)
+        return old_value
+
     def save(self, *args, **kwargs):
         self.full_clean()
 
