@@ -51,14 +51,16 @@ def _create_rows(ie, reader):
     idx = 0
 
     for row in reader:
-        data = json.dumps(clean_row_data(row))
-        rows.append(RowModel(data=data, import_event=ie, idx=idx))
+        data = clean_row_data(row)
+        if len(filter(None, data.values())) > 0:  # skip blank rows
+            data = json.dumps(data)
+            rows.append(RowModel(data=data, import_event=ie, idx=idx))
 
-        idx += 1
-        if ((int(idx / settings.IMPORT_BATCH_SIZE) *
-             settings.IMPORT_BATCH_SIZE == idx)):
-            RowModel.objects.bulk_create(rows)
-            rows = []
+            idx += 1
+            if ((int(idx / settings.IMPORT_BATCH_SIZE) *
+                 settings.IMPORT_BATCH_SIZE == idx)):
+                RowModel.objects.bulk_create(rows)
+                rows = []
 
     if rows:
         RowModel.objects.bulk_create(rows)  # create final partial block

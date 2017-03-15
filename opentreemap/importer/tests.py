@@ -1110,6 +1110,20 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertIn(int(p2_geom.y*10), [271, 272])
         self.assertEqual(plot2.current_tree().diameter, 14)
 
+    def test_blank_rows_ignored(self):
+        csv = """
+        | point x | point y | diameter |
+        |         |         |          |
+        | 19.2    | 7.2     | 14       |
+        |         |         |          |
+        """
+        j = self.run_through_process_views(csv)
+        self.assertEqual(j['rows'], 1)
+        # If the blank rows were present they would generate errors
+        # because e.g. required field "point x" has no value
+        ierrors = self.extract_errors(j)
+        self.assertEqual(ierrors, {})
+
     def test_geo_rev_updated(self):
         csv = """
         | point x | point y | diameter |
