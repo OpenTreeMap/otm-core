@@ -90,6 +90,22 @@ class WorksManagementTests(OTMTestCase):
         with self.assertRaises(UserTrackingException):
             t.save()
 
+    def test_instance_sequence_helpers(self):
+        self.assertEqual(1, self.instance.get_next_task_sequence(9))
+        self.assertEqual(10, self.instance.get_next_task_sequence())
+
+        self.assertEqual(1, self.instance.get_next_work_order_sequence(9))
+        self.assertEqual(10, self.instance.get_next_work_order_sequence())
+
+        # Try to commit bad data.
+        self.instance.task_sequence_number = 0
+        self.instance.work_order_sequence_number = 0
+        self.instance.save()
+        self.instance.refresh_from_db()
+
+        self.assertEqual(11, self.instance.task_sequence_number)
+        self.assertEqual(11, self.instance.work_order_sequence_number)
+
     def test_work_order_sequence(self):
         w1 = make_work_order(self.instance, self.user)
         w2 = make_work_order(self.instance, self.user)

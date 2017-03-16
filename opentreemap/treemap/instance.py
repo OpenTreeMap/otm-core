@@ -782,7 +782,7 @@ class Instance(models.Model):
         if how_many < 1:
             raise ValueError('how_many must be >= 1')
         qs = Instance.objects.filter(id=self.id).select_for_update()
-        old_value = qs[0].task_sequence_number
+        old_value = qs.values_list('task_sequence_number', flat=True)[0]
         new_value = F('task_sequence_number') + how_many
         qs.update(task_sequence_number=new_value)
         return old_value
@@ -798,14 +798,22 @@ class Instance(models.Model):
         if how_many < 1:
             raise ValueError('how_many must be >= 1')
         qs = Instance.objects.filter(id=self.id).select_for_update()
-        old_value = qs[0].work_order_sequence_number
+        old_value = qs.values_list('work_order_sequence_number', flat=True)[0]
         new_value = F('work_order_sequence_number') + how_many
         qs.update(work_order_sequence_number=new_value)
         return old_value
 
     def save(self, *args, **kwargs):
-        self.full_clean()
+        self.full_clean(exclude=['task_sequence_number',
+                                 'work_order_sequence_number'])
 
         self.url_name = self.url_name.lower()
+
+        if self.id:
+            # Prevent Django from overwriting these fields with stale data.
+            # These values are managed by get_next_task_sequence and
+            # get_next_work_order_sequence.
+            self.task_sequence_number = F('task_sequence_number')
+            self.work_order_sequence_number = F('work_order_sequence_number')
 
         super(Instance, self).save(*args, **kwargs)
