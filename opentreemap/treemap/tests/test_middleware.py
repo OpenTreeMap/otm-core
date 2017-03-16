@@ -5,7 +5,6 @@ from __future__ import division
 
 from django.conf import settings
 from django.http import HttpResponseRedirect
-from django.test.utils import override_settings
 from opentreemap.middleware import InternetExplorerRedirectMiddleware
 from treemap.tests.base import OTMTestCase
 
@@ -15,6 +14,8 @@ class USER_AGENT_STRINGS:
     IE_7 = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)'
     IE_8 = 'Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.0)'
     IE_9 = 'Mozilla/5.0 (Windows; U; MSIE 9.0; Windows NT 9.0)'
+    IE_10 = 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)'
+    IE_11 = 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0)'
     FIREFOX_22 = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; ' +\
                  'rv:22.0) Gecko/20130328 Firefox/22.0'
 
@@ -30,7 +31,6 @@ class MockRequest():
                 self.META[k] = v
 
 
-@override_settings(IE_VERSION_MINIMUM=9)
 class InternetExplorerRedirectMiddlewareTests(OTMTestCase):
 
     def _request_with_agent(self, *args, **kwargs):
@@ -57,12 +57,26 @@ class InternetExplorerRedirectMiddlewareTests(OTMTestCase):
                           'Expected the middleware to set "ie_version" '
                           'to None')
 
-    def test_sets_version_and_does_not_redirect_for_ie_9(self):
-        req, res = self._request_with_agent(USER_AGENT_STRINGS.IE_9)
+    def test_sets_version_and_does_not_redirect_for_ie_11(self):
+        req, res = self._request_with_agent(USER_AGENT_STRINGS.IE_11)
         self.assertIsNone(res, 'Expected the middleware to return a None '
-                          'response (no redirect) for IE 9')
-        self.assertEquals(9, req.ie_version, 'Expected the middleware to '
-                          'set "ie_version" to 9')
+                          'response (no redirect) for IE 11')
+        self.assertEquals(11, req.ie_version, 'Expected the middleware to '
+                          'set "ie_version" to 11')
+
+    def test_sets_version_and_redirects_ie_10(self):
+        req, res = self._request_with_agent(USER_AGENT_STRINGS.IE_10)
+        self._assert_redirects(res,
+                               settings.IE_VERSION_UNSUPPORTED_REDIRECT_PATH)
+        self.assertEquals(10, req.ie_version, 'Expected the middleware to set '
+                          '"ie_version" to 10')
+
+    def test_sets_version_and_redirects_ie_9(self):
+        req, res = self._request_with_agent(USER_AGENT_STRINGS.IE_9)
+        self._assert_redirects(res,
+                               settings.IE_VERSION_UNSUPPORTED_REDIRECT_PATH)
+        self.assertEquals(9, req.ie_version, 'Expected the middleware to set '
+                          '"ie_version" to 9')
 
     def test_sets_version_and_redirects_ie_8(self):
         req, res = self._request_with_agent(USER_AGENT_STRINGS.IE_8)
