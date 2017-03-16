@@ -4,7 +4,7 @@ var $ = require('jquery'),
     _ = require('lodash'),
     Bacon = require('baconjs'),
     reverse = require('reverse'),
-    config              = require('treemap/lib/config.js'),
+    config = require('treemap/lib/config.js'),
     BU = require('treemap/lib/baconUtils.js'),
     boundarySelect = require('treemap/lib/boundarySelect');
 
@@ -26,18 +26,18 @@ var dom = {
 
 var map,
     polygon,
-    locationChangeBus,
+    customAreaSearchBus,
     createAnonymousBoundary = BU.jsonRequest('POST', reverse.anonymous_boundary());
 
 function init(options) {
-    locationChangeBus = new Bacon.Bus();
+    customAreaSearchBus = new Bacon.Bus();
     map = options.map;
     $(dom.locationInput).on('input', showAppropriateWellButton);
     $(dom.clearLocationInput).click(clearLocationInput);
     $(dom.clearCustomArea).click(clearCustomArea);
 
     // Take away plugability from the outside world
-    return locationChangeBus.map(_.identity);
+    return customAreaSearchBus.map(_.identity);
 }
 
 function showAppropriateWellButton() {
@@ -53,8 +53,8 @@ function clearLocationInput() {
 
 function onSearchChanged(searchEvent) {
     var text = $(dom.locationInput).val(),
+        val = parseInt($(dom.locationValue).val(), 10),
         boundaryId = (!!searchEvent && !!searchEvent.filter &&
-                      !!searchEvent.filter &&
                       !!searchEvent.filter['mapFeature.geom'] &&
                       searchEvent.filter['mapFeature.geom'].IN_BOUNDARY) ||
                       null;
@@ -63,6 +63,8 @@ function onSearchChanged(searchEvent) {
         showControls(dom.controls.searched);
     } else if (boundaryId !== null) {
         $(dom.locationValue).val(String(boundaryId));
+        showControls(dom.controls.customArea);
+    } else if (_.isNumber(val) && !_.isNaN(val)) {
         showControls(dom.controls.customArea);
     } else {
         showControls(dom.controls.standard);
@@ -90,21 +92,19 @@ function completePolygon(newPolygon) {
             });
 
     setPolygon(newPolygon);
-    anonymousBoundaryStream.onValue(function (boundaryID) {
-        $(dom.locationValue).val(boundaryID);
-        boundarySelect.shouldZoomOnLayerChange(false);
-    });
+    var identifiedBoundaryStream = anonymousBoundaryStream
+        .doAction(function (boundaryID) {
+            $(dom.locationValue).val(boundaryID);
+            boundarySelect.shouldZoomOnLayerChange(false);
+        });
 
-    // Map id from anonymousBoundaryStream into the data structure
-    // that locationChangeBus expects.
-    var builtSearchStream = Bacon.combineTemplate({
-        display: null,
-        filter: {
-            'mapFeature.geom': {IN_BOUNDARY: anonymousBoundaryStream}
-        }
-    });
-    locationChangeBus.plug(builtSearchStream);
-    return builtSearchStream;
+    // `customAreaSearchBus` prompts `searchBar` to call `Search.buildSearch`,
+    // which rebuilds the search stringfrom scratch.
+    //
+    // That must happen after an anonymous boundaryhas been created,
+    // and its id set in`dom.locationValue`,
+    // which supplies the value to `Search.buildSearch`.
+    customAreaSearchBus.plug(identifiedBoundaryStream);
 }
 
 function clearCustomArea(e) {
@@ -112,11 +112,10 @@ function clearCustomArea(e) {
     boundarySelect.shouldZoomOnLayerChange(true);
     $(dom.locationValue).val('');
 
+    // The existence of an argument tells us that this method was invoked
+    // from jQuery user event, as opposed to the url being set.
     if (!!e) {
-        locationChangeBus.push({
-            display: null,
-            filter: {}
-        });
+        customAreaSearchBus.push();
     }
 }
 
@@ -127,13 +126,11 @@ function showControls(controls) {
     $(controls).show();
 }
 
-function setParsedStream(parsed) {
-    parsed.onValue(function () {
-        if (polygon) {
-            map.removeLayer(polygon);
-            polygon = null;
-        }
-    });
+function removeDrawingLayer() {
+    if (polygon) {
+        map.removeLayer(polygon);
+        polygon = null;
+    }
 }
 
 module.exports = {
@@ -141,11 +138,11 @@ module.exports = {
     getPolygon: getPolygon,
     setPolygon: setPolygon,
     completePolygon: completePolygon,
+    removeDrawingLayer: removeDrawingLayer,
     onSearchChanged: onSearchChanged,
     showStandardControls: _.partial(showControls, dom.controls.standard),
     showDrawAreaControls: _.partial(showControls, dom.controls.drawArea),
     showCustomAreaControls: _.partial(showControls, dom.controls.customArea),
     showEditAreaControls: _.partial(showControls, dom.controls.editArea),
-    clearCustomArea: clearCustomArea,
-    setParsedStream: setParsedStream
+    clearCustomArea: clearCustomArea
 };

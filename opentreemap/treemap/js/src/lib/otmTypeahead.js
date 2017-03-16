@@ -86,7 +86,6 @@ var create = exports.create = function(options) {
         prefetchEngine,
         queryEngine,
         geocoderEngine,
-        allDataStream,
 
         typeaheadOptions = {
             minLength: options.minLength || 0
@@ -116,7 +115,7 @@ var create = exports.create = function(options) {
         },
         geocoderOptions = {
             limit: 10,
-            source: function (query, sync, async) {
+            source: function(query, sync, async) {
                 if (query === '') {
                     sync([]);
                 } else {
@@ -213,13 +212,16 @@ var create = exports.create = function(options) {
 
         editStream = matchStream.merge(backspaceOrDeleteStream.map(undefined)),
 
-        idStream = matchStream.map(".id")
-                               .merge(backspaceOrDeleteStream.map("")),
+        idStream = matchStream.map(".id").merge(backspaceOrDeleteStream.map("")),
 
         openCloseStream = Bacon.mergeAll(
                 $input.asEventStream('focus typeahead:active typeahead:open').map(true),
                 $input.asEventStream('typeahead:idle typeahead:close').map(false)
-            );
+            ),
+
+        allDataStream,
+
+        enginePostActionBus = new Bacon.Bus();
 
     selectStream.onValue(function() {
         // After the user selects a field, blur the input so that any soft
@@ -264,19 +266,23 @@ var create = exports.create = function(options) {
                 if (value) {
                     setTypeaheadAfterDataLoaded($input, reverse, value);
                 }
+                enginePostActionBus.push();
             });
+
 
             $hidden_input.on('restore', function(event, value) {
                 enginePromise.done(function() {
                     // If we're already loaded, this applies right away
                     setTypeaheadAfterDataLoaded($input, reverse, value);
+                    enginePostActionBus.push();
                 });
 
                 // If we're not, this will get used when loaded later
                 $hidden_input.val(value || '');
+                enginePostActionBus.push();
             });
 
-            allDataStream = Bacon.fromPromise(enginePromise).map(function () {
+            allDataStream = Bacon.fromPromise(enginePromise).map(function() {
                 return prefetchEngine.all();
             });
         } else if (options.remote) {
@@ -335,10 +341,11 @@ var create = exports.create = function(options) {
             }
         },
         selectStream: selectStream,
+        programmaticallyUpdatedStream: enginePostActionBus.map(_.identity),
         allDataStream: allDataStream
     };
 };
 
-exports.bulkCreate = function (typeaheads) {
+exports.bulkCreate = function(typeaheads) {
     _.each(typeaheads, create);
 };

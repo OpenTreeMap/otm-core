@@ -17,7 +17,8 @@ var mapPage = MapPage.init({
         domId: 'map',
         trackZoomLatLng: true,
         fillSearchBoundary: true,
-        saveSearchInUrl: true
+        saveSearchInUrl: true,
+        shouldUseLocationSearchUI: true
     }),
     mapManager = mapPage.mapManager,
 

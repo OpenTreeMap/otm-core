@@ -45,6 +45,8 @@ function parseGeoJson(style, geojson) {
         inner = layer.getLayers()[0],
         latLngs = inner.getLatLngs();
 
+    // Create a polygon instead of a geoJson layer
+    // to support custom area editing.
     if (1 === latLngs.length) {
         return L.polygon(latLngs[0][0], options);
     }

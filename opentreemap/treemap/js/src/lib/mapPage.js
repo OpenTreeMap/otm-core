@@ -22,15 +22,16 @@ module.exports.init = function (options) {
     // init mapManager before searchBar so that .setCenterWM is set
     var zoomLatLngOutputStream = mapManager.createTreeMap(options);
 
-    var locationChangedEvents = locationSearchUI.init({
+    var customAreaSearchEvents = options.shouldUseLocationSearchUI &&
+        locationSearchUI.init({
             map: mapManager.map
-        });
+        }) || null;
 
     // When there is a single geocode result (either by an exact match
     // or the user selects a candidate) move the map to it and zoom
     // if the map is not already zoomed in.
     var searchBar = SearchBar.init({
-        anotherNonGeocodeObjectStream: locationChangedEvents
+        anotherNonGeocodeObjectStream: customAreaSearchEvents
     });
 
     searchBar.geocodedLocationStream.onValue(_.partial(onLocationFound, mapManager));
@@ -42,9 +43,6 @@ module.exports.init = function (options) {
                 .map('.search'),       // get search string
             searchBar.resetStream.map({})
         );
-    searchBar.resetStream.onValue(function () {
-        locationSearchUI.clearCustomArea();
-    });
 
     var geocodeEvents = searchBar.searchFiltersProp
         .sampledBy(searchBar.geocodedLocationStream);
@@ -54,7 +52,14 @@ module.exports.init = function (options) {
             searchBar.filterNonGeocodeObjectStream,
             geocodeEvents);
 
-    builtSearchEvents.onValue(locationSearchUI.onSearchChanged);
+    if (options.shouldUseLocationSearchUI) {
+        builtSearchEvents
+            .merge(searchBar.programmaticallyUpdatedStream)
+            .onValue(locationSearchUI.onSearchChanged);
+        searchBar.resetStream.onValue(function () {
+            locationSearchUI.clearCustomArea();
+        });
+    }
 
     triggeredQueryStream.onValue(searchBar.applySearchToDom);
 
@@ -66,7 +71,7 @@ module.exports.init = function (options) {
         clearFoundLocationMarker(mapManager.map);
     });
 
-    var parsedStream = boundarySelect.init({
+    var boundaryLayerStream = boundarySelect.init({
         idStream: builtSearchEvents.map(searchToBoundaryId),
         map: mapManager.map,
         style: options.fillSearchBoundary ? {
@@ -77,7 +82,9 @@ module.exports.init = function (options) {
         }
     });
 
-    locationSearchUI.setParsedStream(parsedStream);
+    if (options.shouldUseLocationSearchUI) {
+        boundaryLayerStream.onValue(locationSearchUI.removeDrawingLayer);
+    }
 
     var queryObject = url.parse(location.href, true).query;
     var embed = queryObject && queryObject.hasOwnProperty('embed');

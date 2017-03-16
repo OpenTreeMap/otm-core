@@ -3,8 +3,7 @@
 var $ = require('jquery'),
     L = require('leaflet'),
     boundarySelect = require('treemap/lib/boundarySelect.js'),
-    locationSearchUI = require('treemap/mapPage/locationSearchUI.js'),
-    plotMarker = require('treemap/lib/plotMarker.js');
+    locationSearchUI = require('treemap/mapPage/locationSearchUI.js');
 
 var map,
     modes,
@@ -55,10 +54,8 @@ function onKeyDown(e) {
 function saveArea() {
     editor.save();
     editsSaved = true;
-    locationSearchUI.completePolygon(boundarySelect.getCurrentLayer())
-        .onValue(function () {
-            modes.activateBrowseTreesMode(true);
-        });
+    locationSearchUI.completePolygon(boundarySelect.getCurrentLayer());
+    modes.activateBrowseTreesMode(true);
 }
 
 function cancelEditing() {

@@ -73,7 +73,7 @@ var showGeocodeError = function (e) {
 };
 
 var getSearchDatum = function() {
-    return otmTypeahead.getDatum($('#boundary-typeahead'));
+    return otmTypeahead.getDatum($(dom.locationSearchTypeahead));
 };
 
 function redirectToSearchPage(filters, wmCoords) {
@@ -102,7 +102,7 @@ function initTopTypeaheads() {
         locationTypeahead = otmTypeahead.create({
             name: "boundaries",
             url: reverse.boundary_list(config.instance.url_name),
-            input: "#boundary-typeahead",
+            input: dom.locationSearchTypeahead,
             template: "#boundary-element-template",
             hidden: "#boundary",
             button: "#boundary-toggle",
@@ -128,7 +128,10 @@ function initTopTypeaheads() {
             locationTypeahead.clear();
         });
 
-    return triggerSearchStream;
+    return {
+        triggerSearchStream: triggerSearchStream,
+        programmaticallyUpdatedStream: locationTypeahead.programmaticallyUpdatedStream
+    };
 }
 
 function initSearchUi(searchStream) {
@@ -381,12 +384,26 @@ module.exports = exports = {
     },
 
     init: function (options) {
-        var searchStream = Bacon.mergeAll(
-                initTopTypeaheads(),
+        var typeaheadStreams = initTopTypeaheads(),
+            searchStream = Bacon.mergeAll(
+                typeaheadStreams.triggerSearchStream,
                 BU.enterOrClickEventStream({
                     inputs: 'input[data-class="search"]',
-                    button: '#perform-search,#location-perform-search'})),
-            resetStream = $(dom.resetButton).asEventStream("click"),
+                    button: '#perform-search,#location-perform-search'}));
+
+        // If we're on a page where custom area is supported,
+        // we need searchStream to also produce events when
+        // the geojson from the anonymous boundary representing the
+        // custom area has arrived and been rendered.
+        //
+        // So merge its results into the searchStream which will
+        // eventually result in buildSearch.
+        if (!!options.anotherNonGeocodeObjectStream) {
+            searchStream = searchStream
+                .merge(options.anotherNonGeocodeObjectStream);
+        }
+
+        var resetStream = $(dom.resetButton).asEventStream("click"),
             searchFiltersProp = searchStream.map(Search.buildSearch).toProperty(),
             filtersStream = searchStream
                 // Filter out geocoded selections.
@@ -405,21 +422,17 @@ module.exports = exports = {
 
             geocodeResponseStream = geocoderInvokeUi({
                 searchTriggerStream: searchStream,
-                addressInput: '#boundary-typeahead'
+                addressInput: dom.locationSearchTypeahead
             }),
             geocodedLocationStream = geocoderResultsUi(
                 {
                     geocodeResponseStream: geocodeResponseStream,
                     cancelGeocodeSuggestionStream: resetStream,
                     resultTemplate: '#geocode-results-template',
-                    addressInput: '#boundary-typeahead',
+                    addressInput: dom.locationSearchTypeahead,
                     displayedResults: '.search-block [data-class="geocode-result"]'
                 });
 
-        if (options.anotherNonGeocodeObjectStream) {
-            filtersStream = filtersStream
-                .merge(options.anotherNonGeocodeObjectStream);
-        }
         geocodeResponseStream.onError(showGeocodeError);
         initSearchUi(searchStream);
 
@@ -442,6 +455,9 @@ module.exports = exports = {
 
             // has a value on all events that change the current search
             searchChangedStream: searchChangedStream,
+
+            // Used when the url changes, resulting in a location search change
+            programmaticallyUpdatedStream: typeaheadStreams.programmaticallyUpdatedStream,
 
             applySearchToDom: function (search) {
                 Search.applySearchToDom(search);
