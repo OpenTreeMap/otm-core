@@ -1196,7 +1196,7 @@ msgstr "Wszystkow wskazuje na to, że właśnie kodujemy. Do zobaczenia niebawem
 
 #: treemap/templates/base.html:55 treemap/templates/treemap/index.html:10
 msgid "Explore Trees"
-msgstr "Przeglądaj spis drzew"
+msgstr "Zobacz drzewa"
 
 #: treemap/templates/base.html:60 treemap/templates/instance_base.html:25
 #: treemap/templates/instance_base.html:46
@@ -1238,7 +1238,7 @@ msgstr "Dodaj "
 
 #: treemap/templates/instance_base.html:55
 msgid "Explore Map"
-msgstr "Spacer wśród drzew"
+msgstr "Zobacz mapę"
 
 # nie znam kontekstu, moze byc nietrafione!!
 #: treemap/templates/instance_base.html:64
@@ -2322,3 +2322,4 @@ msgstr "Email jest obowiązkowy"
 #: treemap/views/user.py:139
 msgid "Account Recovery"
 msgstr "Odzyskaj konto"
+

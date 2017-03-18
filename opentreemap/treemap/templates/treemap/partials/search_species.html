@@ -11,7 +11,7 @@
                    data-class="search"
                    id="species-typeahead"
                    class="form-control"
-                   placeholder="Common or Scientific Name"
+		   placeholder="{% trans "Common or scientific name" %}"
                    data-thumbprint="{{ request|species_thumbprint }}"/>
             <input name="species.id" data-search-type="IS" type="hidden" id="search-species" />
         </div>
