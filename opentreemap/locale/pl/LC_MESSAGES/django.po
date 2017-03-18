@@ -2267,6 +2267,7 @@ msgid ""
 "Current Location.\""
 msgstr ""
 "Wskaż punkt na mapie, dodaj adres lub wybierz \"Użyj mojej lokalizacji\"."
+""
 
 #: treemap/templates/treemap/partials/step_set_location.html:12
 msgid ""

@@ -50,7 +50,7 @@ msgstr "Wyloguj się"
 #: templates/base.html:44 templates/registration/login.html:4
 #: templates/registration/login.html:20
 msgid "Login"
-msgstr "Zaloguj się"
+msgstr "Login"
 
 #: templates/base.html:45 templates/treemap/plot_detail.html:122
 msgid "Sign Up"
@@ -142,7 +142,7 @@ msgstr "Zmień hasło"
 
 #: templates/registration/logout.html:8
 msgid "Logged out"
-msgstr "Wyloguj się"
+msgstr "Wylogowany"
 
 #: templates/registration/password_change_done.html:5
 msgid "Password changed"
@@ -208,7 +208,6 @@ msgstr[0] ""
 msgstr[1] ""
 "\n"
 "    %(tree_count)s</span> drzew,"
-msgstr[2] ""
 
 #: templates/treemap/partials/eco_benefits.html:22
 #, python-format
@@ -227,7 +226,6 @@ msgstr[1] ""
 "\n"
 "    %(plot_count)s</span> miejsca nasadzeń\n"
 "  "
-msgstr[2] ""
 
 #: templates/treemap/map.html:4
 msgid "Map"
@@ -453,112 +451,6 @@ msgstr "Email:"
 #: templates/treemap/user.html:10
 msgid "Reputation:"
 msgstr "Reputacja"
-
-#: templates/treemap/user.html:11
-msgid "Energy"
-msgstr "Energia"
-
-msgid "Carbon Dioxide"
-msgstr "Dwutlenek węgla"
-
-msgid "Resources"
-msgstr "Baza wiedzy"
-
-msgid "FAQ"
-msgstr "FAQ"
-
-msgid "Your account is now activated."
-msgstr "Twoje konto jest już aktywne. Do dzieła!"
-
-msgid "Link is valid for %(expiration_days)s days."
-msgstr "Link aktywacyjny będzie działał jeszcze %(expiration_days)s dni."
-
-msgid "Reset it"
-msgstr "Zmień hasło"
-
-msgid "Logged out"
-msgstr "Wyloguj się"
-
-msgid "Reset password at %(site_name)s"
-msgstr "Zmień hasło tutaj: %(site_name)s"
-
-msgid "You are now registered. Activation email sent."
-msgstr ""
-"Konto zostało założone.Sprawdź skrzynkę mailową z linkiem aktywacyjnym."
-
-msgid ""
-"\n"
-"    %(tree_count)s</span> tree,\n"
-"  "
-msgid_plural ""
-"\n"
-"    %(tree_count)s</span> trees,\n"
-"  "
-msgstr[0] ""
-"\n"
-"    %(tree_count)s</span> drzewo,"
-msgstr[1] ""
-"\n"
-"    %(tree_count)s</span> drzew,"
-msgstr[2] ""
-
-msgid ""
-"\n"
-"    %(plot_count)s</span> planting site\n"
-"  "
-msgid_plural ""
-"\n"
-"    %(plot_count)s</span> planting sites\n"
-"  "
-msgstr[0] ""
-"\n"
-"    %(plot_count)s</span> miejsce nasadzenia"
-msgstr[1] ""
-"\n"
-"    %(plot_count)s</span> miejsca nasadzeń\n"
-"  "
-msgstr[2] ""
-
-msgid "Your Turn"
-msgstr "Twoja kolej"
-
-# info o źródle danych do uzupełnienia
-msgid ""
-"Our database of trees comes from public records and citizen foresters "
-"like you. Update the information for this tree and help us grow!"
-msgstr ""
-"Spis drzew pochodzi z danych publicznych oraz od osób takich jak Ty."
-"Pomóż nam uzupełniać brakujące informacje i rozwijaj mapę razem z nami!"
-
-msgid "Air pollutants removed"
-msgstr "Zmniejszenie zanieczyszczenia powietrza"
-
-# czy jest jakis termin naukowy?
-msgid "Total Co2 stored to date"
-msgstr "Całkowity dwutlenek węgla"
-
-msgid "ID:"
-msgstr "ID: "
-
-# nie wiem co to, czy musi byc, 
-msgid "Audit ID"
-msgstr "ID "
-
-msgid "Model"
-msgstr "Model"
-
-msgid "Model #"
-msgstr "Model #"
-
-msgid "Commit By"
-msgstr "Wprowadzona przez"
-
-# TBC czy to na pewno to
-msgid "Commit On"
-msgstr "Data wprowadzenia"
-
-msgid "Name:"
-msgstr "Imię:"
 
 msgid "Instance:"
 msgstr "Instancja:"
