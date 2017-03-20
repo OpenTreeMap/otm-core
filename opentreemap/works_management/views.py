@@ -1,1 +1,2 @@
-# Create your views here.
+def work_orders(request, instance):
+    return {}
