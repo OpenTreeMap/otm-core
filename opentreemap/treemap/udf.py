@@ -495,7 +495,7 @@ class UserDefinedFieldDefinition(models.Model):
             None,
             [(new if choice == old else choice)
              for choice in l])
-        return new_l or None
+        return new_l
 
     def _list_append(self, datatype, key, value):
         """
