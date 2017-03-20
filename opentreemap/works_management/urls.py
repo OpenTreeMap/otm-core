@@ -11,4 +11,5 @@ from works_management import routes
 urlpatterns = patterns(
     '',
     url(r'^work-orders/$', routes.work_orders, name='work_orders'),
+    url(r'^create-tasks/$', routes.create_tasks, name='create_tasks'),
 )

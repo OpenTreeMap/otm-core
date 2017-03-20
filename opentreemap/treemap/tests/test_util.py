@@ -3,12 +3,15 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.core.exceptions import ValidationError
 from django.contrib.sessions.middleware import SessionMiddleware
 
-from treemap.util import add_visited_instance, get_last_visited_instance
+from treemap.util import (add_visited_instance, get_last_visited_instance,
+                          safe_get_model_class)
 from treemap.models import InstanceUser
 from treemap.tests import (ViewTestCase, make_instance, make_request,
                            make_user_with_default_role)
+from treemap.tests.base import OTMTestCase
 
 
 class VisitedInstancesTests(ViewTestCase):
@@ -87,3 +90,26 @@ class VisitedInstancesTests(ViewTestCase):
         add_visited_instance(self.request, self.instance1)
         self.assertEqual(self.instance1,
                          get_last_visited_instance(self.request))
+
+
+class GetModelTestCase(OTMTestCase):
+    def test_get_safe_model_class(self):
+        clz = safe_get_model_class('Plot')
+        self.assertTrue(hasattr(clz, '_meta'), 'Got a class for Plot')
+        self.assertEqual(clz._meta.model_name, 'plot')
+
+        clz = safe_get_model_class('RainGarden')
+        self.assertTrue(hasattr(clz, '_meta'), 'Got a class for RainGarden')
+        self.assertEqual(clz._meta.model_name, 'raingarden')
+
+        clz = safe_get_model_class('works_management.WorkOrder')
+        self.assertTrue(hasattr(clz, '_meta'), 'Got a class for WorkOrder')
+        self.assertEqual(clz._meta.model_name, 'workorder')
+
+    def test_fail_get_safe_model_class(self):
+        with self.assertRaises(ValidationError):
+            safe_get_model_class('foo')
+        with self.assertRaises(ValidationError):
+            safe_get_model_class('works_management.foo')
+        with self.assertRaises(ValidationError):
+            safe_get_model_class('foo.bar')

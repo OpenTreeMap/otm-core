@@ -20,13 +20,14 @@ import hashlib
 import json
 from urllib import urlencode
 
-from opentreemap.util import extent_intersection, extent_as_json
+from opentreemap.util import extent_intersection, extent_as_json, dotted_split
 
 from treemap.search_fields import (
     DEFAULT_MOBILE_SEARCH_FIELDS, DEFAULT_MOBILE_API_FIELDS,
     DEFAULT_WEB_DETAIL_FIELDS, DEFAULT_SEARCH_FIELDS, INSTANCE_FIELD_ERRORS,
     advanced_search_fields, get_udfc_search_fields)
 
+from treemap.util import get_models_by_app_name
 from treemap.species import SPECIES
 from treemap.json_field import JSONField
 from treemap.lib.object_caches import udf_defs
@@ -45,11 +46,12 @@ def reserved_name_validator(name):
                                 'cannot be used') % {'instancename': name})
 
 
-def get_or_create_udf(instance, model, udfc_name):
+def get_or_create_udf(instance, model, udfc_name, clz=None):
     from treemap.udf import UserDefinedFieldDefinition
     from treemap.util import safe_get_model_class
 
-    clz = safe_get_model_class(model)
+    if not clz:
+        clz = safe_get_model_class(model)
     udfc_settings = clz.udf_settings[udfc_name]
     kwargs = {
         'instance_id': instance.pk,
@@ -367,28 +369,23 @@ class Instance(models.Model):
         from treemap.plugin import feature_enabled
         from treemap.models import Tree, Plot
         from treemap.udf import UDFModel
-        from treemap.util import leaf_models_of_class
-        from works_management.models import Task
 
-        gsi_enabled = feature_enabled(self, 'green_infrastructure')
-        wmm_enabled = feature_enabled(self, 'works_management')
+        def get_udf_models(spec):
+            if not feature_enabled(self, spec['feature_name']):
+                return set()
+            app_name = spec['app_name']
+            return {clz for clz in get_models_by_app_name(app_name)
+                    if issubclass(clz, UDFModel)}
 
-        core_models = {Tree, Plot}
-        gsi_models = {clz for clz in leaf_models_of_class(UDFModel)
-                      if gsi_enabled
-                      and clz.__name__ in self.map_feature_types
-                      and getattr(clz, 'is_editable', False)
-                      and clz not in core_models}
-        wmm_models = {Task} if wmm_enabled else set()
-
-        all_models = core_models | gsi_models | wmm_models
-
-        return {
-            'core': core_models,
-            'gsi': gsi_models,
-            'wmm': wmm_models,
-            'all': all_models
+        foreign_models = {
+            k: get_udf_models(v)
+            for k, v in settings.ENABLEABLE_FEATURES.items()
         }
+        models = {'core': {Tree, Plot}}
+        models.update(foreign_models)
+        models['all'] = reduce(lambda a, b: a | b, models.values())
+
+        return models
 
     @property
     def collection_udfs(self):
@@ -584,7 +581,7 @@ class Instance(models.Model):
         self.initialize_udfs(types, classes)
         add_default_permissions(self, models=classes)
 
-    def initialize_udfs(self, types, classes):
+    def initialize_udfs(self, types, classes, dot=False):
         """
         Add UDF objects to instance if they don't already exist.
 
@@ -595,11 +592,14 @@ class Instance(models.Model):
         Example:
             instance.initialize_udfs([Task.__name__], [Task])
         """
-        for type, clz in zip(types, classes):
+        for model_type, clz in zip(types, classes):
+            if dot:
+                app_name, __ = dotted_split(clz.__module__, 2, maxsplit=2)
+                model_type = '{}.{}'.format(app_name, model_type)
             settings = getattr(clz, 'udf_settings', {})
             for udfc_name, udfc_settings in settings.items():
                 if udfc_settings.get('defaults'):
-                    get_or_create_udf(self, type, udfc_name)
+                    get_or_create_udf(self, model_type, udfc_name, clz=clz)
 
     @property
     def map_feature_classes(self):

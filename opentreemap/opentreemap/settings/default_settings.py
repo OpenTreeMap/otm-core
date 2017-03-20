@@ -9,6 +9,17 @@ FEATURE_BACKEND_FUNCTION = None
 USER_ACTIVATION_FUNCTION = None
 INSTANCE_PERMISSIONS_FUNCTION = 'treemap.instance.get_instance_permission_spec'
 
+ENABLEABLE_FEATURES = {
+    'gsi': {
+        'feature_name': 'green_infrastructure',
+        'app_name': 'stormwater'
+    },
+    'wmm': {
+        'feature_name': 'works_management',
+        'app_name': 'works_management'
+    }
+}
+
 ECOSERVICE_NAME = 'ecoservice'
 
 UITEST_CREATE_INSTANCE_FUNCTION = 'treemap.tests.make_instance'
