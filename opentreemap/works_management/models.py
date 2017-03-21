@@ -38,9 +38,6 @@ class WorkOrder(Auditable, models.Model):
                 'reference_number': [_('Reference number is required.')]})
 
     def save_with_user(self, user, *args, **kwargs):
-        """
-        Update WorkOrder fields when Task is saved.
-        """
         self.full_clean()
         super(WorkOrder, self).save_with_user(user, *args, **kwargs)
 
