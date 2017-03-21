@@ -18,6 +18,10 @@ class Team(models.Model):
     instance = models.ForeignKey(Instance)
     name = models.CharField(max_length=255, null=False, blank=False)
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(Team, self).save(*args, **kwargs)
+
 
 class WorkOrder(Auditable, models.Model):
     instance = models.ForeignKey(Instance)
