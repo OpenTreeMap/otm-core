@@ -36,9 +36,12 @@ def safe_get_model_class(model_string):
     # All of our base models live in 'treemap.models', so
     # we can start with that namespace
     models_module = __import__('treemap.models')
+    wmm_models_module = __import__('works_management.models')
 
     if hasattr(models_module.models, model_string):
         return getattr(models_module.models, model_string)
+    elif hasattr(wmm_models_module.models, model_string):
+        return getattr(wmm_models_module.models, model_string)
     elif MapFeature.has_subclass(model_string):
         return MapFeature.get_subclass(model_string)
     else:

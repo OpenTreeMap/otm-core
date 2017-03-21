@@ -5,6 +5,7 @@ from __future__ import division
 
 from django.contrib.gis.geos import Point
 from django.utils import timezone
+from django.test.utils import override_settings
 
 from treemap.audit import UserTrackingException
 from treemap.models import Plot
@@ -55,9 +56,11 @@ def make_plot(instance, user):
     return plot
 
 
+@override_settings(FEATURE_BACKEND_FUNCTION=None)
 class WorksManagementTests(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
+        self.instance.initialize_udfs([Task.__name__], [Task])
         self.user = make_commander_user(self.instance)
         self.team = make_team(self.instance)
         self.plot = make_plot(self.instance, self.user)
@@ -89,6 +92,15 @@ class WorksManagementTests(OTMTestCase):
         t = make_task(self.instance, self.user, self.plot)
         with self.assertRaises(UserTrackingException):
             t.save()
+
+    def test_task_udf(self):
+        t = make_task(self.instance, self.user,
+                      make_plot(self.instance, self.user))
+        t.udfs['Action'] = 'Plant Tree'
+        t.save_with_user(self.user)
+
+        count = Task.objects.filter(**{'udf:Action': 'Plant Tree'}).count()
+        self.assertEqual(1, count)
 
     def test_instance_sequence_helpers(self):
         self.assertEqual(1, self.instance.get_next_task_sequence(9))
