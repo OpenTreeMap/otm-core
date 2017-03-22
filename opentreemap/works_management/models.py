@@ -87,8 +87,8 @@ class Task(UDFModel, Auditable):
         default=MEDIUM)
 
     requested_on = models.DateField()
-    scheduled_on = models.DateField()
-    closed_on = models.DateField()
+    scheduled_on = models.DateField(null=True)
+    closed_on = models.DateField(null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User)
