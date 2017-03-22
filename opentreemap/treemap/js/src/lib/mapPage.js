@@ -7,7 +7,6 @@ var $ = require('jquery'),
     Bacon = require('baconjs'),
     url = require('url'),
     L = require('leaflet'),
-    U = require('treemap/lib/utility.js'),
     MapManager = require('treemap/lib/MapManager.js'),
     mapManager = new MapManager(),
     urlState = require('treemap/lib/urlState.js'),
@@ -27,13 +26,12 @@ module.exports.init = function (options) {
             map: mapManager.map
         }) || null;
 
-    // When there is a single geocode result (either by an exact match
-    // or the user selects a candidate) move the map to it and zoom
-    // if the map is not already zoomed in.
     var searchBar = SearchBar.init({
-        anotherNonGeocodeObjectStream: customAreaSearchEvents
+        customAreaSearchEvents: customAreaSearchEvents
     });
 
+    // When there is a geocode result, move the map to it and zoom
+    // (if the map is not already zoomed in).
     searchBar.geocodedLocationStream.onValue(_.partial(onLocationFound, mapManager));
 
     var triggeredQueryStream =
@@ -49,7 +47,7 @@ module.exports.init = function (options) {
 
     var builtSearchEvents = Bacon.mergeAll(
             triggeredQueryStream,
-            searchBar.filterNonGeocodeObjectStream,
+            searchBar.filtersStream,
             geocodeEvents);
 
     if (options.shouldUseLocationSearchUI) {
@@ -110,9 +108,8 @@ module.exports.init = function (options) {
     };
 };
 
-function onLocationFound(mapManager, location) {
-    var latLng = U.webMercatorToLeafletLatLng(location.x, location.y),
-        marker = L.marker(latLng, {
+function onLocationFound(mapManager, latLng) {
+    var marker = L.marker(latLng, {
             icon: L.icon({
                 iconUrl: config.staticUrl + 'img/mapmarker_locationsearch.png',
                 iconSize: [70, 60],

@@ -35,7 +35,7 @@ otm.settings.bing_api_key = '{{ BING_API_KEY }}';
 
 otm.settings.geocoder = Object.freeze({
     maxLocations: 20,
-    errorString: '{% trans "That address was not found near this map. You may need to include a city and state." %}',
+    errorString: '{% trans "Location not found." %}',
     reverseGeocoderErrorString: '{% trans "Unable to find an address for the location" %}',
     reverseGeocodeDistance: 200, // Meters
     threshold: 80

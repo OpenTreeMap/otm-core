@@ -173,7 +173,8 @@ var create = exports.create = function(options) {
             remote: {
                 url: url,
                 transform: function(response) {
-                    return response.suggestions;
+                    // Omit choices representing more than one match (e.g. "Beaches")
+                    return _.filter(response.suggestions, {'isCollection': false});
                 },
                 prepare: function(query, settings) {
                     if (options.geocoderBbox) {
@@ -330,6 +331,15 @@ var create = exports.create = function(options) {
     }
 
     return {
+        autocomplete: function () {
+            if ($input.val()) {
+                var top = $input.data('ttTypeahead').menu.getTopSelectable(),
+                    success = $input.typeahead('autocomplete', top);
+                if (!success) {
+                    $input.removeData('datum');
+                }
+            }
+        },
         getDatum: function() {
             return exports.getDatum($input);
         },
@@ -340,6 +350,7 @@ var create = exports.create = function(options) {
                 $hidden_input.val('');
             }
         },
+        input: options.input,
         selectStream: selectStream,
         programmaticallyUpdatedStream: enginePostActionBus.map(_.identity),
         allDataStream: allDataStream

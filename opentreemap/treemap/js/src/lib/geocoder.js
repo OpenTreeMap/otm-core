@@ -1,7 +1,6 @@
 "use strict";
 
 var $ = require('jquery'),
-    U = require('treemap/lib/utility.js'),
     config = require('treemap/lib/config.js'),
     _ = require('lodash'),
     Bacon = require('baconjs');
@@ -77,7 +76,7 @@ exports = module.exports = function () {
             return datumStream.flatMap(function (datum) {
                 return geocodeServer(datum.text, datum.magicKey);
             }).flatMap(function(response) {
-                if (response.candidates && response.candidates.length > 0) {
+                if (response.lat && response.lng) {
                     return Bacon.once(response);
                 } else {
                     return Bacon.once(
