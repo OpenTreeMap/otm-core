@@ -271,7 +271,6 @@ body {
 
     input[type="text"] {
         margin: 0;
-        padding-left: 32px;
         font-size: 1.2rem;
 
         &::placeholder {
@@ -287,6 +286,18 @@ body {
         padding-right: 28px;
     }
 
+    a {
+        padding: 9px 4px 7px;
+        position: absolute;
+        top: 0px;
+        z-index: 9;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: $well-color;
+        font-size: 1.8rem;
+        line-height: 1.6rem;
+    }
     .draw-area {
         right: 4px;
     }
