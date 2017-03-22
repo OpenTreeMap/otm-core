@@ -23,7 +23,7 @@ module.exports.init = function (options) {
 
     var customAreaSearchEvents = options.shouldUseLocationSearchUI &&
         locationSearchUI.init({
-            map: mapManager.map
+            mapManager: mapManager
         }) || null;
 
     var searchBar = SearchBar.init({

@@ -287,25 +287,10 @@ body {
         padding-right: 28px;
     }
 
-    .typeahead-toggle, a {
-        padding: 9px 4px 7px;
-        position: absolute;
-        top: 0px;
-        z-index: 9;
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: $well-color;
-        font-size: 1.8rem;
-        line-height: 1.6rem;
+    .draw-area {
+        right: 4px;
     }
-    .typeahead-toggle {
-        &.active,
-        &:hover {
-            color: $main-text-color;
-        }
-    }
-    .draw-area, .clear-location-input {
+    .clear-location-input {
         right: 0px;
     }
     .search-button, .clear-location-input {
@@ -316,15 +301,18 @@ body {
 .location-search-alternate {
     position: relative;
     padding: 4px 23px 6px 7px;
-    border: 1px solid $secondary-color;
+    border: 2px solid $primary-color;
     border-radius: 6px;
-    background-color: $secondary-color;
-    color: white;
+    background-color: #f1f2f2;
+    color: #231f20;
     display: none;
 
     a {
-        color: white;
+        color: $primary-color;
         cursor: pointer;
+    }
+    a:hover {
+        color: $primary-color;
     }
     .text {
         font-size: 1.2rem;
@@ -333,15 +321,14 @@ body {
         position: absolute;
         right: 3px;
     }
-    .controls {
-        float: right;
-        margin: 4px -15px 0 0;
-
-        .cancel-edit {
-            font-weight: normal;
-            margin-left: 25px;
-        }
+    .edit-area, .save-area {
+        position: absolute;
+        right: 30px;
     }
+}
+
+#custom-area-controls.location-search-alternate {
+   border: 2px solid #f1f2f2;
 }
 
 @media #{$screen-xs} {

@@ -55,11 +55,11 @@ otm.settings.trans = Object.freeze({
             kicker: '{% trans "ESC to cancel" %}'
         },
         cont: {
-            message: '{% trans "Click to add a corner" %}',
-            kicker: '{% trans "Add as many as you want" %}'
+            message: '{% trans "Click to add a corner" %}'
         },
         end: {
-            message: '{% trans "Click first corner to finish" %}'
+            message: '{% trans "Click to add a corner" %}',
+            kicker: '{% trans "Click first corner to finish" %}'
         }
     },
     tooltipForEditArea: [

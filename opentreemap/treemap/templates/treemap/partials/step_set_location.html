@@ -7,7 +7,7 @@
     <div class="add-step-content">
         {# Making onsubmit return false prevents the form from being submitted. We want to run JS code instead #}
         <form class="form-search form-inline" onsubmit="return false;">
-            <input type="text" id="address-input" class="form-control" placeholder="{% trans 'Address, City, State' %}">
+            <input type="text" id="address-input" class="form-control" placeholder="{% trans 'Address' %}">
             <button class="btn geocode">{% trans "Search" %}</button>
         </form>
         <a class="geolocate"><i class="icon-direction"></i> {% trans "Use Current Location" %}</a>

@@ -61,7 +61,6 @@ var create = exports.create = function(options) {
     var template = mustache.compile($(options.template).html()),
         $input = $(options.input),
         $hidden_input = $(options.hidden),
-        $openButton = $(options.button),
         reverse = options.reverse,
         sorter = _.isArray(options.sortKeys) ? getSortFunction(options.sortKeys) : getSortFunction(['value']),
 
@@ -295,39 +294,6 @@ var create = exports.create = function(options) {
                 setTypeahead($input, displayValue || value || '');
             });
         }
-    }
-
-    if (options.button) {
-        // typeahead('open') will not show suggestions unless they have already
-        // been rendered once by focusing on the text box. Doing a quick focus
-        // then blur on page load means we can later call it on button click
-        $input.focus();
-        $input.blur();
-
-        var isOpen = false;
-        $input.on('typeahead:open', function() {
-            isOpen = true;
-        });
-        $input.on('typeahead:close', function() {
-            isOpen = false;
-            $openButton.removeClass('active');
-        });
-        $openButton.on('click', function(e) {
-            e.preventDefault();
-            if (isOpen) {
-                $input.typeahead('close');
-            } else {
-                setTypeahead($input, '');
-                $input.typeahead('open');
-
-                // The open may fail if there is no data to show
-                // If so don't add the active class, because then it can never
-                // be removed
-                if (isOpen) {
-                    $openButton.addClass('active');
-                }
-            }
-        });
     }
 
     return {
