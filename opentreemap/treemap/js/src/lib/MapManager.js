@@ -23,6 +23,7 @@ var $ = require('jquery'),
 // Leaflet extensions
 require('utfgrid');
 require('leafletbing');
+require('es6-promise').polyfill(); // https://gitlab.com/IvanSanchez/Leaflet.GridLayer.GoogleMutant
 require('leaflet.gridlayer.googlemutant');
 require('esri-leaflet');
 
