@@ -53,6 +53,15 @@ module.exports.init = function (options) {
             geocodeEvents);
 
     if (options.shouldUseLocationSearchUI) {
+        // When loading the page from a URL with a BOUNDARY_ID search,
+        // we must wait for the location typeahead to populate the
+        // "Search by Location" input box (by fetching the boundary name
+        // from the server).
+        //
+        // That triggers an event on searchBar.programaticallyUpdatedStream,
+        // and we call locationSearchUI.onSearchChanged,
+        // which uses the presence of text in the "Search by Location" input box
+        // to distinguish between named and anonymous boundaries.
         builtSearchEvents
             .merge(searchBar.programmaticallyUpdatedStream)
             .onValue(locationSearchUI.onSearchChanged);
