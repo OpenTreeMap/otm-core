@@ -13,7 +13,8 @@ var $ = require('jquery'),
     urlState = require('treemap/lib/urlState.js'),
     SearchBar = require('treemap/lib/searchBar.js'),
     config = require('treemap/lib/config.js'),
-    boundarySelect = require('treemap/lib/boundarySelect.js');
+    boundarySelect = require('treemap/lib/boundarySelect.js'),
+    locationSearchUI = require('treemap/mapPage/locationSearchUI.js');
 
 $.ajaxSetup(require('treemap/lib/csrf.js').jqueryAjaxSetupOptions);
 
@@ -21,10 +22,17 @@ module.exports.init = function (options) {
     // init mapManager before searchBar so that .setCenterWM is set
     var zoomLatLngOutputStream = mapManager.createTreeMap(options);
 
+    var customAreaSearchEvents = options.shouldUseLocationSearchUI &&
+        locationSearchUI.init({
+            map: mapManager.map
+        }) || null;
+
     // When there is a single geocode result (either by an exact match
     // or the user selects a candidate) move the map to it and zoom
     // if the map is not already zoomed in.
-    var searchBar = SearchBar.init();
+    var searchBar = SearchBar.init({
+        anotherNonGeocodeObjectStream: customAreaSearchEvents
+    });
 
     searchBar.geocodedLocationStream.onValue(_.partial(onLocationFound, mapManager));
 
@@ -44,6 +52,24 @@ module.exports.init = function (options) {
             searchBar.filterNonGeocodeObjectStream,
             geocodeEvents);
 
+    if (options.shouldUseLocationSearchUI) {
+        // When loading the page from a URL with a BOUNDARY_ID search,
+        // we must wait for the location typeahead to populate the
+        // "Search by Location" input box (by fetching the boundary name
+        // from the server).
+        //
+        // That triggers an event on searchBar.programaticallyUpdatedStream,
+        // and we call locationSearchUI.onSearchChanged,
+        // which uses the presence of text in the "Search by Location" input box
+        // to distinguish between named and anonymous boundaries.
+        builtSearchEvents
+            .merge(searchBar.programmaticallyUpdatedStream)
+            .onValue(locationSearchUI.onSearchChanged);
+        searchBar.resetStream.onValue(function () {
+            locationSearchUI.clearCustomArea();
+        });
+    }
+
     triggeredQueryStream.onValue(searchBar.applySearchToDom);
 
     if (options.saveSearchInUrl) {
@@ -54,7 +80,7 @@ module.exports.init = function (options) {
         clearFoundLocationMarker(mapManager.map);
     });
 
-    boundarySelect.init({
+    var boundaryLayerStream = boundarySelect.init({
         idStream: builtSearchEvents.map(searchToBoundaryId),
         map: mapManager.map,
         style: options.fillSearchBoundary ? {
@@ -64,6 +90,10 @@ module.exports.init = function (options) {
             fillOpacity: 0
         }
     });
+
+    if (options.shouldUseLocationSearchUI) {
+        boundaryLayerStream.onValue(locationSearchUI.removeDrawingLayer);
+    }
 
     var queryObject = url.parse(location.href, true).query;
     var embed = queryObject && queryObject.hasOwnProperty('embed');

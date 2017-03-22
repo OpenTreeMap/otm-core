@@ -120,7 +120,10 @@ def boundary_to_geojson(request, instance, boundary_id):
 
 def add_anonymous_boundary(request):
     request_dict = json.loads(request.body)
-    polygon = Polygon(request_dict.get('polygon', []))
+    srid = request_dict.get('srid', 4326)
+    polygon = Polygon(request_dict.get('polygon', []), srid=srid)
+    if srid != 3857:
+        polygon.transform(3857)
     b = Boundary.anonymous(polygon)
     b.save()
     return {'id': b.id}

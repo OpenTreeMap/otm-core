@@ -11,20 +11,20 @@ var $ = require('jquery'),
     buttonEnabler = require('treemap/lib/buttonEnabler.js'),
     MapPage = require('treemap/lib/mapPage.js'),
     modes = require('treemap/mapPage/modes.js'),
-    locationSearchUI = require('treemap/mapPage/locationSearchUI.js'),
     Search = require('treemap/lib/search.js');
 
 var mapPage = MapPage.init({
         domId: 'map',
         trackZoomLatLng: true,
         fillSearchBoundary: true,
-        saveSearchInUrl: true
+        saveSearchInUrl: true,
+        shouldUseLocationSearchUI: true
     }),
     mapManager = mapPage.mapManager,
 
     triggerSearchFromSidebar = new Bacon.Bus(),
 
-    ecoBenefitsSearchEvents =
+    searchEvents =
         Bacon.mergeAll(
             mapPage.builtSearchEvents,
             triggerSearchFromSidebar.map(mapPage.getMapStateSearch)
@@ -33,8 +33,8 @@ var mapPage = MapPage.init({
     modeChangeStream = mapPage.mapStateChangeStream
         .filter(BU.isPropertyDefined('modeName')),
 
-    completedEcobenefitsSearchStream = Search.init(
-        ecoBenefitsSearchEvents,
+    completedSearchStream = Search.init(
+        searchEvents,
         _.bind(mapManager.setFilter, mapManager));
 
 
@@ -86,12 +86,7 @@ var performAdd = function (e, activateTheMode) {
 buttonEnabler.run();
 
 modes.init(mapManager, triggerSearchFromSidebar, mapPage.embed,
-    completedEcobenefitsSearchStream);
-
-locationSearchUI.init({
-    map: mapManager.map,
-    builtSearchEvents: mapPage.builtSearchEvents
-});
+    completedSearchStream);
 
 // Read state from current URL, initializing
 // zoom/lat/long/search/mode/selection
