@@ -6,13 +6,12 @@
         {% block label %}{% trans "Search by Location" %}{% endblock %}
     </label>
     <div class="autocomplete-group" id="location-search-well">
-        <a class="typeahead-toggle" id="boundary-toggle"><i class="icon-menu"></i></a>
         {% block well-controls %}{% endblock %}
         <input type="text"
                data-class="search"
                id="boundary-typeahead"
                class="form-control"
-               placeholder="{% trans "Address, City, State" %}"
+               placeholder="{% trans "Address" %}"
                data-thumbprint="{{ request.instance.boundary_thumbprint }}"/>
         <a class="btn btn-default search-button" id="location-perform-search"><i class="icon-search"></i></a>
         <input name="mapFeature.geom" data-search-type="IN_BOUNDARY" type="hidden" id="boundary" />

@@ -28,8 +28,10 @@ var map,
     createAnonymousBoundary = BU.jsonRequest('POST', reverse.anonymous_boundary());
 
 function init(options) {
+    var mapManager = options.mapManager;
+    mapManager.customizeVertexIcons();
     customAreaSearchBus = new Bacon.Bus();
-    map = options.map;
+    map = mapManager.map;
     $(dom.locationInput).on('input', showAppropriateWellButton);
     $(dom.clearLocationInput).click(clearLocationInput);
     $(dom.clearCustomArea).click(clearCustomArea);

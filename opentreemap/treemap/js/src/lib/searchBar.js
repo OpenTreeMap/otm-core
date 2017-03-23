@@ -43,7 +43,6 @@ var dom = {
     searchFields: '[data-search-type]',
     searchFieldContainer: '.search-field-wrapper',
     speciesSearchTypeahead: '#species-typeahead',
-    speciesSearchToggle: '#species-toggle',
     speciesSearchContainer: '#species-search-wrapper',
     locationSearchTypeahead: '#boundary-typeahead',
     clearLocationInput: '.clear-location-input',
@@ -301,7 +300,6 @@ function updateDisabledFields(search) {
 
 function updateDisabledSpeciesFields(disabled) {
     $(dom.speciesSearchTypeahead).prop('disabled', disabled);
-    $(dom.speciesSearchToggle).prop('disabled', disabled);
     $(dom.speciesSearchContainer).toggleClass('disabled', disabled);
     $(dom.speciesDisabledMessage).toggle(disabled);
 }
@@ -335,7 +333,6 @@ module.exports = exports = {
                 input: "#species-typeahead",
                 template: "#species-element-template",
                 hidden: "#search-species",
-                button: "#species-toggle",
                 reverse: "id"
             }),
             locationTypeahead = otmTypeahead.create({
@@ -344,7 +341,6 @@ module.exports = exports = {
                 input: dom.locationSearchTypeahead,
                 template: "#boundary-element-template",
                 hidden: "#boundary",
-                button: "#boundary-toggle",
                 reverse: "id",
                 sortKeys: ['sortOrder', 'value'],
                 geocoder: true,
