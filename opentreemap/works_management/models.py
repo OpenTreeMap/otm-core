@@ -18,6 +18,10 @@ class Team(models.Model):
     instance = models.ForeignKey(Instance)
     name = models.CharField(max_length=255, null=False, blank=False)
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(Team, self).save(*args, **kwargs)
+
 
 class WorkOrder(Auditable, models.Model):
     instance = models.ForeignKey(Instance)
@@ -38,9 +42,6 @@ class WorkOrder(Auditable, models.Model):
                 'reference_number': [_('Reference number is required.')]})
 
     def save_with_user(self, user, *args, **kwargs):
-        """
-        Update WorkOrder fields when Task is saved.
-        """
         self.full_clean()
         super(WorkOrder, self).save_with_user(user, *args, **kwargs)
 
