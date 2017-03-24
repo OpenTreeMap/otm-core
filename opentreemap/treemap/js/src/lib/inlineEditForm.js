@@ -90,7 +90,7 @@ exports.init = function(options) {
             $("table[data-udf-id] .placeholder").css('display', 'none');
         },
 
-        getDataToSave = function() {
+        getDataToSave = options.getDataToSave || function() {
             var data = FH.formToDictionary($(form), $(editFields), $(displayFields));
 
             // Extract data for all rows of the collection,
