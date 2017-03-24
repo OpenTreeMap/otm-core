@@ -46,11 +46,7 @@ def create_tasks(request, instance):
 
     May raise ValidationError.
 
-    On success, returns a dict:
-    {
-        task_ids: [],
-        task_fields: {}
-    }
+    On success, returns an empty dict.
     '''
     request_dict = json.loads(request.body)
     filter_str = request_dict.get('q', '')

@@ -271,9 +271,14 @@ class WorksManagementViewTests(OTMTestCase):
         message_dict = validation_exception.message_dict
         self.assertIn('task.requested_on', message_dict)
 
+    # TODO: Like test_bad_field_value, but with multiple bad values,
+    # and assert that the error dict contains complaints for each of them.
     def test_bad_field_values(self):
         pass
 
+    # TODO: Make a request that neither specifies a workorder.name
+    # nor a task.work_order, and assert that the error dict contains
+    # a complaint for task.work_order.
     def test_no_work_order(self):
         pass
 
@@ -323,12 +328,15 @@ class WorksManagementViewTests(OTMTestCase):
         message_dict = validation_exception.message_dict
         self.assertIn('task.udf:Action', message_dict)
 
+    # TODO: try setting values on more than one udf, and assert that
+    # they all get set. Mix protected with regular udfs.
     def test_set_multiple_udfs(self):
         pass
 
-    def test_set_no_such_udf(self):
-        pass
-
+    # TODO: try setting values on more than one udf, where
+    # the values are invalid for those udfs.
+    # Assert that the request throws a ValidationError,
+    # and that the error dict contains complaints for each of them.
     def test_set_multiple_udfs_bad_values(self):
         pass
 

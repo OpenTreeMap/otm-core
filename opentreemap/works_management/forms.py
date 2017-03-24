@@ -15,6 +15,9 @@ class TaskFormException(Exception):
     pass
 
 
+# Use a ModelForm strictly for validation,
+# in order to validate the input without having to create all the tasks
+# for bulk creation, and also do the bulk_create.
 class TaskForm(ModelForm):
     class Meta:
         model = Task
