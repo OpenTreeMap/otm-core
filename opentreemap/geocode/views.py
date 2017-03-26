@@ -101,23 +101,26 @@ def geocode(request):
 
 def _geocode_with_magic_key(address, key):
     # See settings.OMGEO_SETTINGS_FOR_MAGIC_KEY for configuration
-#    print (address)
+    print (address)
+    # address = 'ulica Lojewska 7, Targowek, Warszawa, Woj. Mazowieckie, POL'
     pq = PlaceQuery(query=address, country='Poland')
-#    print (pq)
+    print ('printing pq')
+    print (pq.address)
     geocode_result = geocoder_for_magic_key.geocode(pq)
-#    print ('printing geocode result')
+    print ('printing geocode result')
     candidates = geocode_result.get('candidates', None)
-
+    # print (candidates)
     if candidates:
         # Address searches return many candidates. But the user already
         # chose a specific suggestion so we want the first candidate.
         # The exception is a "point of interest" search, where the user's
         # chosen suggestion may be a category like "Beaches" and you want to
         # see many candidates.
-        if candidates[0].locator_type != 'POI':
-            candidates = [candidates[0]]
+        # if candidates[0].locator_type != 'POI':
+        #     candidates = [candidates[0]]
+        print (candidates)
         candidates = [_omgeo_candidate_to_dict(c) for c in candidates]
-        print (candidates[0].keys())
+        print (candidates)
         return {'candidates': candidates}
     else:
         return _no_results_response(address)
