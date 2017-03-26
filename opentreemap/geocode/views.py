@@ -90,26 +90,46 @@ def geocode(request):
     """
     key = request.REQUEST.get('key')
     address = request.REQUEST.get('address')
-    print (request)
     if key:
-        print ('printing geocode request')
-        print (_geocode_with_magic_key(address, key))
         return _geocode_with_magic_key(address, key)
     else:
         return _geocode_without_magic_key(request, address)
 
 
+def depolonize(address):
+    '''remove Polish signs from word'''
+    new = ''
+    dict_i = {
+        'ę' : 'e',
+        'Ę' : 'E',
+        'ó' : 'o',
+        'Ó' : 'O',
+        'ą' : 'a',
+        'Ą' : 'A',
+        'ś' : 's',
+        'Ś' : 'S',
+        'ł' : 'l',
+        'Ł' : 'L',
+        'ż' : 'z',
+        'Ż' : 'Z',
+        'ź' : 'z',
+        'Ź' : 'Z',
+        'ć' : 'c',
+        'Ć' : 'C',
+        'ń' : 'n',
+        'Ń' : 'N',
+    }
+    for i in address:
+        new = new + dict_i.get(i,i)
+    return new
+
+
 def _geocode_with_magic_key(address, key):
     # See settings.OMGEO_SETTINGS_FOR_MAGIC_KEY for configuration
-    print (address)
-    # address = 'ulica Lojewska 7, Targowek, Warszawa, Woj. Mazowieckie, POL'
+    address = depolonize(address)
     pq = PlaceQuery(query=address, country='Poland')
-    print ('printing pq')
-    print (pq.address)
     geocode_result = geocoder_for_magic_key.geocode(pq)
-    print ('printing geocode result')
     candidates = geocode_result.get('candidates', None)
-    # print (candidates)
     if candidates:
         # Address searches return many candidates. But the user already
         # chose a specific suggestion so we want the first candidate.
@@ -118,9 +138,8 @@ def _geocode_with_magic_key(address, key):
         # see many candidates.
         # if candidates[0].locator_type != 'POI':
         #     candidates = [candidates[0]]
-        print (candidates)
+        # print (candidates)
         candidates = [_omgeo_candidate_to_dict(c) for c in candidates]
-        print (candidates)
         return {'candidates': candidates}
     else:
         return _no_results_response(address)
