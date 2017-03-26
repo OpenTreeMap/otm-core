@@ -19,12 +19,14 @@ from omgeo.places import Viewbox, PlaceQuery
 geocoder = Geocoder(sources=settings.OMGEO_SETTINGS, postprocessors=[])
 geocoder_for_magic_key = Geocoder(
     sources=settings.OMGEO_SETTINGS_FOR_MAGIC_KEY)
-
+geocoder_for_magic_key = Geocoder([['omgeo.services.Google', {'settings': {'api_key': 'GST7YMc0AM9UOsEqAYatIS9GOghnYnwZIip_GQypG1c915E7QT9tDFcpOh9bZgKZQoc3YSyaagDIZhkZHn5vHSnvC5N7'}}]])
 
 def _omgeo_candidate_to_dict(candidate, srid=3857):
+
     p = Point(candidate.x, candidate.y, srid=candidate.wkid)
     if candidate.wkid != srid:
         p.transform(srid)
+    candidate.locator_type = 'PointAddress'
     return {
         'address': candidate.match_addr,
         'region': candidate.match_region,
@@ -88,7 +90,10 @@ def geocode(request):
     """
     key = request.REQUEST.get('key')
     address = request.REQUEST.get('address')
+    print (request)
     if key:
+        print ('printing geocode request')
+        print (_geocode_with_magic_key(address, key))
         return _geocode_with_magic_key(address, key)
     else:
         return _geocode_without_magic_key(request, address)
@@ -96,9 +101,13 @@ def geocode(request):
 
 def _geocode_with_magic_key(address, key):
     # See settings.OMGEO_SETTINGS_FOR_MAGIC_KEY for configuration
-    pq = PlaceQuery(query=address, key=key)
+#    print (address)
+    pq = PlaceQuery(query=address, country='Poland')
+#    print (pq)
     geocode_result = geocoder_for_magic_key.geocode(pq)
+#    print ('printing geocode result')
     candidates = geocode_result.get('candidates', None)
+
     if candidates:
         # Address searches return many candidates. But the user already
         # chose a specific suggestion so we want the first candidate.
@@ -108,6 +117,7 @@ def _geocode_with_magic_key(address, key):
         if candidates[0].locator_type != 'POI':
             candidates = [candidates[0]]
         candidates = [_omgeo_candidate_to_dict(c) for c in candidates]
+        print (candidates[0].keys())
         return {'candidates': candidates}
     else:
         return _no_results_response(address)
