@@ -168,9 +168,12 @@ def return_400_if_validation_errors(req):
             return req(*args, **kwargs)
         except ValidationError as e:
             if hasattr(e, 'message_dict'):
-                message_dict['fieldErrors'] = e.message_dict
                 message_dict['globalErrors'] = [_(
                     'One or more of the specified values are invalid.')]
+                if 'globalErrors' in e.message_dict:
+                    message_dict['globalErrors'] += \
+                        e.message_dict.pop('globalErrors')
+                message_dict['fieldErrors'] = e.message_dict
             else:
                 message_dict['globalErrors'] = e.messages
 

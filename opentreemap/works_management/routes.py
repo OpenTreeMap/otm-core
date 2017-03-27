@@ -6,7 +6,7 @@ from __future__ import division
 from functools import partial
 
 from django_tinsel.utils import decorate as do
-from django_tinsel.decorators import render_template
+from django_tinsel.decorators import render_template, json_api_call
 
 from treemap.decorators import (instance_request, requires_feature,
                                 requires_permission, require_http_method)
@@ -28,3 +28,9 @@ work_orders = do(
     require_http_method('GET'),
     render_template('works_management/work_orders.html'),
     views.work_orders)
+
+create_tasks = do(
+    works_management_instance_request,
+    require_http_method('POST'),
+    json_api_call,
+    views.create_tasks)

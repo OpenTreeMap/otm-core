@@ -18,6 +18,10 @@ class Team(models.Model):
     instance = models.ForeignKey(Instance)
     name = models.CharField(max_length=255, null=False, blank=False)
 
+    @property
+    def model_name(self):
+        return 'works_management.' + self.__class__.__name__
+
 
 class WorkOrder(Auditable, models.Model):
     instance = models.ForeignKey(Instance)
@@ -33,16 +37,27 @@ class WorkOrder(Auditable, models.Model):
         unique_together = ('instance', 'reference_number')
 
     def clean(self):
+        super(WorkOrder, self).clean()
         if not self.reference_number:
             raise ValidationError({
                 'reference_number': [_('Reference number is required.')]})
 
     def save_with_user(self, user, *args, **kwargs):
         """
-        Update WorkOrder fields when Task is saved.
+        Save the WorkOrder, and
+        - create audit records for its fields
+        - set the reference_number to the next instance work order sequence
+          (which has the side effect of updating the instance in the db)
         """
+        if not self.id:
+            self.reference_number = self.instance\
+                .get_next_work_order_sequence()
         self.full_clean()
         super(WorkOrder, self).save_with_user(user, *args, **kwargs)
+
+    @property
+    def model_name(self):
+        return 'works_management.' + self.__class__.__name__
 
 
 class Task(UDFModel, Auditable):
@@ -72,11 +87,11 @@ class Task(UDFModel, Auditable):
 
     instance = models.ForeignKey(Instance)
     map_feature = models.ForeignKey(MapFeature)
-    work_order = models.ForeignKey(WorkOrder, null=True, blank=True)
     team = models.ForeignKey(Team, null=True, blank=True)
+    work_order = models.ForeignKey(WorkOrder, default=None)
 
-    office_notes = models.TextField(blank=True)
-    field_notes = models.TextField(blank=True)
+    office_notes = models.TextField(blank=True, default='')
+    field_notes = models.TextField(blank=True, default='')
 
     status = models.IntegerField(
         choices=STATUS_CHOICES,
@@ -87,8 +102,8 @@ class Task(UDFModel, Auditable):
         default=MEDIUM)
 
     requested_on = models.DateField()
-    scheduled_on = models.DateField()
-    closed_on = models.DateField()
+    scheduled_on = models.DateField(null=True, blank=True, default=None)
+    closed_on = models.DateField(null=True, blank=True, default=None)
 
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User)
@@ -120,14 +135,22 @@ class Task(UDFModel, Auditable):
         return _('Task')
 
     def clean(self):
+        super(Task, self).clean()
         if not self.reference_number:
             raise ValidationError({
                 'reference_number': [_('Reference number is required.')]})
 
     def save_with_user(self, user, *args, **kwargs):
         """
-        Update WorkOrder fields when Task is saved.
+        Save the WorkOrder, and
+        - create audit records for its fields
+        - update WorkOrder updated_at field
+        - set the reference_number to the next instance work order sequence
+          (which has the side effect of updating the instance in the db)
         """
+        if not self.id:
+            self.reference_number = self.instance.get_next_task_sequence()
+
         self.full_clean()
 
         if self.work_order:
@@ -135,3 +158,7 @@ class Task(UDFModel, Auditable):
             self.work_order.save_with_user(user, *args, **kwargs)
 
         super(Task, self).save_with_user(user, *args, **kwargs)
+
+    @property
+    def model_name(self):
+        return 'works_management.' + self.__class__.__name__
