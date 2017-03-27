@@ -74,7 +74,6 @@ urlpatterns = patterns(
                                                   namespace='importer')),
     url(instance_pattern + r'/export/', include('exporter.urls')),
     url(instance_pattern + r'/comments/', include('otm_comments.urls')),
-    url(instance_pattern + r'/', include('works_management.urls')),
 )
 
 if settings.USE_JS_I18N:
