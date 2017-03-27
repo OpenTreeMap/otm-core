@@ -55,7 +55,6 @@ def get_or_create_udf(instance, model, udfc_name):
         'instance_id': instance.pk,
         'model_type': model,
         'iscollection': udfc_settings.get('iscollection'),
-        'is_protected': udfc_settings.get('is_protected', False),
         'name': udfc_name,
     }
     try:
@@ -368,10 +367,7 @@ class Instance(models.Model):
         from treemap.models import Tree, Plot
         from treemap.udf import UDFModel
         from treemap.util import leaf_models_of_class
-        from works_management.models import Task
-
         gsi_enabled = feature_enabled(self, 'green_infrastructure')
-        wmm_enabled = feature_enabled(self, 'works_management')
 
         core_models = {Tree, Plot}
         gsi_models = {clz for clz in leaf_models_of_class(UDFModel)
@@ -379,16 +375,9 @@ class Instance(models.Model):
                       and clz.__name__ in self.map_feature_types
                       and getattr(clz, 'is_editable', False)
                       and clz not in core_models}
-        wmm_models = {Task} if wmm_enabled else set()
+        all_models = core_models | gsi_models
 
-        all_models = core_models | gsi_models | wmm_models
-
-        return {
-            'core': core_models,
-            'gsi': gsi_models,
-            'wmm': wmm_models,
-            'all': all_models
-        }
+        return {'core': core_models, 'gsi': gsi_models, 'all': all_models}
 
     @property
     def collection_udfs(self):
@@ -581,25 +570,13 @@ class Instance(models.Model):
         self._map_feature_types = list(self.map_feature_types) + list(types)
         self.save()
 
-        self.initialize_udfs(types, classes)
-        add_default_permissions(self, models=classes)
-
-    def initialize_udfs(self, types, classes):
-        """
-        Add UDF objects to instance if they don't already exist.
-
-        Arguments:
-            types -- List of class names
-            classes -- List of class types
-
-        Example:
-            instance.initialize_udfs([Task.__name__], [Task])
-        """
         for type, clz in zip(types, classes):
-            settings = getattr(clz, 'udf_settings', {})
+            settings = (getattr(clz, 'udf_settings', {}))
             for udfc_name, udfc_settings in settings.items():
                 if udfc_settings.get('defaults'):
                     get_or_create_udf(self, type, udfc_name)
+
+        add_default_permissions(self, models=classes)
 
     @property
     def map_feature_classes(self):

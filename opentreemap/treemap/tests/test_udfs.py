@@ -942,7 +942,7 @@ class ScalarUDFTest(OTMTestCase):
         audit = self.plot.audits().filter(field='udf:Test multichoice')
 
         self.assertEqual(self.plot.udfs['Test multichoice'], None)
-        self.assertEqual(json.loads(audit[0].current_value), [])
+        self.assertEqual(json.loads(audit[0].current_value), None)
 
         choice = UserDefinedFieldDefinition.objects.get(
             pk=self.multichoice_udfd.pk)
@@ -1341,24 +1341,12 @@ class ProtectedUDFTestCase(OTMTestCase):
         self.plot.save_with_user(self.user)
 
     def test_cannot_modify_protected_udf_choice(self):
-        self.assertFalse(self.udf.can_be_deleted(self.user))
-
-        # Can't add a choice value which conflicts with an existing
-        # protected choice value.
         with self.assertRaises(ValidationError):
             self.udf.add_choice('a')
-
-        # Can't delete protected choice value.
         with self.assertRaises(ValidationError):
             self.udf.delete_choice('a')
-
-        # Can't update protected choice value.
         with self.assertRaises(ValidationError):
             self.udf.update_choice('a', 'z')
-
-    def test_can_add_protected_choice(self):
-        self.udf.add_choice('z', is_protected=True)
-        self.assertIn('z', self.udf.datatype_dict['protected_choices'])
 
     def test_protected_udf_choice_order(self):
         self.assertEqual(['a', 'b', 'c'], self.udf.all_choices)
