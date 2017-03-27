@@ -1306,61 +1306,6 @@ class UdfDeleteTest(OTMTestCase):
         self.assertEquals(1, len(updated_instance.mobile_api_fields))
 
 
-class ProtectedUDFTestCase(OTMTestCase):
-    def setUp(self):
-        User._system_user.save_base()
-
-        self.instance = make_instance()
-        create_stewardship_udfs(self.instance)
-        self.user = make_commander_user(self.instance)
-
-        set_write_permissions(self.instance, self.user,
-                              'Plot', ['udf:Test choice'])
-
-        self.udf = UserDefinedFieldDefinition.objects.create(
-            instance=self.instance,
-            model_type='Plot',
-            datatype=json.dumps({'type': 'choice',
-                                 'protected_choices': ['a'],
-                                 'choices': ['b', 'c']}),
-            iscollection=False,
-            is_protected=True,
-            name='Test choice')
-
-        p = Point(0, 0)
-        self.plot = Plot(geom=p, instance=self.instance)
-        self.plot.save_with_user(self.user)
-
-    def test_cannot_delete_protected_udf(self):
-        with self.assertRaises(AuthorizeException):
-            self.udf.delete()
-
-    def test_can_pick_protected_udf_choice(self):
-        # Assert that ValidationError is not raised
-        self.plot.udfs['Test choice'] = 'a'
-        self.plot.save_with_user(self.user)
-
-    def test_cannot_modify_protected_udf_choice(self):
-        with self.assertRaises(ValidationError):
-            self.udf.add_choice('a')
-        with self.assertRaises(ValidationError):
-            self.udf.delete_choice('a')
-        with self.assertRaises(ValidationError):
-            self.udf.update_choice('a', 'z')
-
-    def test_protected_udf_choice_order(self):
-        self.assertEqual(['a', 'b', 'c'], self.udf.all_choices)
-
-    def test_invalid_udf_definition(self):
-        # Ensure that UDFs cannot be created with *only* protected choices.
-        # The "choices" key must always exist.
-        body = {'udf.name': 'cool udf',
-                'udf.model': 'Plot',
-                'udf.type': 'choice',
-                'udf.protected_choices': ['a']}
-        self.assertRaises(ValidationError, udf_create, body, self.instance)
-
-
 class UdfCRUTestCase(OTMTestCase):
     def setUp(self):
         User._system_user.save_base()
