@@ -8,11 +8,9 @@ import copy
 import re
 from datetime import date, datetime
 
-from django.core.exceptions import (ValidationError, FieldError,
-                                    ImproperlyConfigured)
+from django.core.exceptions import ValidationError, FieldError
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.gis.db import models
-from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.fields.subclassing import Creator
@@ -26,8 +24,6 @@ from django.db.models.sql.query import Query
 from django_hstore.fields import DictionaryField, HStoreDict
 from django_hstore.managers import HStoreManager, HStoreGeoManager
 from django_hstore.query import HStoreGeoQuerySet
-
-from opentreemap.util import dotted_split
 
 from treemap.instance import Instance
 from treemap.audit import (UserTrackable, Audit, UserTrackingException,
@@ -62,11 +58,6 @@ from treemap.decorators import classproperty
 _UDF_NAME_REGEX = re.compile(r'^[^_"%.]+$')
 
 
-_APP_NAME_KEYS = {
-    v['app_name']: k for k, v in settings.ENABLEABLE_FEATURES.items()
-}
-
-
 def safe_get_udf_model_class(model_string):
     """
     In a couple of cases we want to be able to convert a string
@@ -79,16 +70,12 @@ def safe_get_udf_model_class(model_string):
     subtype of UDFModel
     """
     model_class = safe_get_model_class(model_string)
-    _validate_is_udf_class(model_class, model_string)
+
+    # It must have be a UDF subclass
+    if not isinstance(model_class(), UDFModel):
+        raise ValidationError(_('invalid model type - must subclass UDFModel'))
 
     return model_class
-
-
-def _validate_is_udf_class(model_class, name):
-    if not issubclass(model_class, UDFModel):
-        raise ValidationError(
-            _('invalid model type %(name) - must extend UDFModel') %
-            {'name': name})
 
 
 class UserDefinedCollectionValue(UserTrackable, models.Model):
@@ -605,41 +592,22 @@ class UserDefinedFieldDefinition(models.Model):
             self._update_choice_scalar(old_choice_value, new_choice_value)
 
     def validate(self):
-        class_name = model_type = self.model_type
-        if not model_type:
-            raise ValidationError(
-                {'udf.model': [_('Cannot save a custom field '
-                                 'with no model type')]})
-        key = 'all'
-        if '.' in model_type:
-            app_name, class_name = dotted_split(model_type, 2, maxsplit=1)
-            key = _APP_NAME_KEYS[app_name]
+        model_type = self.model_type
 
-        classes = [cls for cls
-                   in self.instance.editable_udf_models()[key]
-                   if cls.__name__ == class_name]
-        if 0 == len(classes):
+        if model_type not in {cls.__name__ for cls
+                              in self.instance.editable_udf_models()['all']}:
             raise ValidationError(
                 {'udf.model': [_("Invalid model '%(model_type)s'") %
                                {'model_type': model_type}]})
 
-        if 1 < len(classes):
-            raise ImproperlyConfigured(
-                _('%(model_type)s matched %(count)d classes, '
-                  'but should only match one') %
-                {'model_type': model_type, 'count': len(classes)})
-
-        model_class = classes[0]
-        _validate_is_udf_class(model_class, model_type)
+        model_class = safe_get_udf_model_class(model_type)
 
         field_names = [field.name for field in model_class._meta.fields]
 
         if self.name in field_names:
             raise ValidationError(
-                {'name': [_(
-                    '%(name)s cannot be a custom field because '
-                    'it already exists on %(model)s') %
-                    {'name': self.name, 'model': class_name}]})
+                {'name': [_('Cannot use fields that already '
+                            'exist on the model')]})
         if not self.name:
             raise ValidationError(
                 {'name': [_('Name cannot be blank')]})
@@ -1236,12 +1204,12 @@ class UDFModel(UserTrackable, models.Model):
 
     def get_user_defined_fields(self):
         if hasattr(self, 'instance'):
-            return udf_defs(self.instance, self.model_name)
+            return udf_defs(self.instance, self._model_name)
         else:
             return []
 
     def audits(self):
-        regular_audits = Q(model=self.model_name,
+        regular_audits = Q(model=self._model_name,
                            model_id=self.pk,
                            instance=self.instance)
 
@@ -1253,7 +1221,7 @@ class UDFModel(UserTrackable, models.Model):
         return Audit.objects.filter(all_audits).order_by('created')
 
     def search_slug(self):
-        return to_object_name(self.model_name)
+        return to_object_name(self.__class__.__name__)
 
     def collection_udfs_audit_ids(self):
         return self.static_collection_udfs_audit_ids(
@@ -1294,11 +1262,7 @@ class UDFModel(UserTrackable, models.Model):
     def save(self, *args, **kwargs):
         raise UserTrackingException(
             'All changes to %s objects must be saved via "save_with_user"' %
-            (self.model_name))
-
-    @property
-    def model_name(self):
-        return self.__class__.__name__
+            (self._model_name))
 
     @property
     def udf_field_names(self):
@@ -1306,14 +1270,14 @@ class UDFModel(UserTrackable, models.Model):
 
     @property
     def scalar_udf_names_and_fields(self):
-        model_name = to_object_name(self.model_name)
+        model_name = to_object_name(self.__class__.__name__)
         return [(field.name, model_name + ".udf:" + field.name)
                 for field in self.get_user_defined_fields()
                 if not field.iscollection]
 
     @property
     def collection_udf_names_and_fields(self):
-        model_name = to_object_name(self.model_name)
+        model_name = to_object_name(self.__class__.__name__)
         return [(field.name, model_name + ".udf:" + field.name)
                 for field in self.collection_udfs]
 
@@ -1333,7 +1297,7 @@ class UDFModel(UserTrackable, models.Model):
         return [udf.collection_audit_name for udf in self.collection_udfs]
 
     def collection_udfs_search_names(self):
-        object_name = to_object_name(self.model_name)
+        object_name = to_object_name(self.__class__.__name__)
         return ['udf:%s:%s' % (object_name, udf.pk)
                 for udf in self.collection_udfs]
 
