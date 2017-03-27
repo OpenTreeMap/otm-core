@@ -201,7 +201,11 @@
             width: calc(100% - #{$mobile-search-button-group-width});
         }
         .draw-area {
-            display: none;
+            // JS add/removes 'style="display: inline;"' for desktop users.
+            // Overriding with '!important' for mobile without having to
+            // either make the JS conditional on screen size, or use
+            // a `hidden` class instead of `.show()`, `.hide()`
+            display: none !important;
         }
         &:not(.expanded) {
             &.collapsed {
