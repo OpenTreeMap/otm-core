@@ -275,7 +275,6 @@ MANAGED_APPS = (
     'importer',
     'appevents',
     'stormwater',
-    'works_management',
 )
 
 UNMANAGED_APPS = (
