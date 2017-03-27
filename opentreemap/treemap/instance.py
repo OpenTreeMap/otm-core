@@ -245,9 +245,6 @@ class Instance(models.Model):
                                         null=True, blank=True)
     eco_rev = models.IntegerField(default=_DEFAULT_REV)
 
-    task_sequence_number = models.IntegerField(default=1, null=True)
-    work_order_sequence_number = models.IntegerField(default=1, null=True)
-
     eco_benefits_conversion = models.ForeignKey(
         'BenefitCurrencyConversion', null=True, blank=True)
 
@@ -771,49 +768,9 @@ class Instance(models.Model):
         if errors:
             raise_errors(errors)
 
-    @transaction.atomic
-    def get_next_task_sequence(self, how_many=1):
-        """
-        Return next sequence value and increment counter by `how_many`.
-
-        Arguments:
-        how_many - Amount of sequence values to allocate
-        """
-        if how_many < 1:
-            raise ValueError('how_many must be >= 1')
-        qs = Instance.objects.filter(id=self.id).select_for_update()
-        old_value = qs.values_list('task_sequence_number', flat=True)[0]
-        new_value = F('task_sequence_number') + how_many
-        qs.update(task_sequence_number=new_value)
-        return old_value
-
-    @transaction.atomic
-    def get_next_work_order_sequence(self, how_many=1):
-        """
-        Return next sequence value and increment counter by `how_many`.
-
-        Arguments:
-        how_many - Amount of sequence values to allocate
-        """
-        if how_many < 1:
-            raise ValueError('how_many must be >= 1')
-        qs = Instance.objects.filter(id=self.id).select_for_update()
-        old_value = qs.values_list('work_order_sequence_number', flat=True)[0]
-        new_value = F('work_order_sequence_number') + how_many
-        qs.update(work_order_sequence_number=new_value)
-        return old_value
-
     def save(self, *args, **kwargs):
-        self.full_clean(exclude=['task_sequence_number',
-                                 'work_order_sequence_number'])
+        self.full_clean()
 
         self.url_name = self.url_name.lower()
-
-        if self.id:
-            # Prevent Django from overwriting these fields with stale data.
-            # These values are managed by get_next_task_sequence and
-            # get_next_work_order_sequence.
-            self.task_sequence_number = F('task_sequence_number')
-            self.work_order_sequence_number = F('work_order_sequence_number')
 
         super(Instance, self).save(*args, **kwargs)

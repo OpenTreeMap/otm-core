@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib.gis.db import models
-from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 
@@ -26,24 +25,6 @@ class WorkOrder(Auditable, models.Model):
     created_by = models.ForeignKey(User)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # This value comes from `instance.work_order_sequence_number`
-    reference_number = models.IntegerField()
-
-    class Meta:
-        unique_together = ('instance', 'reference_number')
-
-    def clean(self):
-        if not self.reference_number:
-            raise ValidationError({
-                'reference_number': [_('Reference number is required.')]})
-
-    def save_with_user(self, user, *args, **kwargs):
-        """
-        Update WorkOrder fields when Task is saved.
-        """
-        self.full_clean()
-        super(WorkOrder, self).save_with_user(user, *args, **kwargs)
-
 
 class Task(UDFModel, Auditable):
     REQUESTED = 0
@@ -60,11 +41,11 @@ class Task(UDFModel, Auditable):
 
     instance = models.ForeignKey(Instance)
     map_feature = models.ForeignKey(MapFeature)
-    work_order = models.ForeignKey(WorkOrder, null=True, blank=True)
-    team = models.ForeignKey(Team, null=True, blank=True)
+    work_order = models.ForeignKey(WorkOrder, null=True, related_name='tasks')
+    team = models.ForeignKey(Team, null=True)
 
-    office_notes = models.TextField(blank=True)
-    field_notes = models.TextField(blank=True)
+    office_notes = models.TextField()
+    field_notes = models.TextField()
 
     status = models.IntegerField(
         choices=STATUS_CHOICES,
@@ -77,9 +58,6 @@ class Task(UDFModel, Auditable):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User)
     updated_at = models.DateTimeField(auto_now=True)
-
-    # This value comes from `instance.task_sequence_number`
-    reference_number = models.IntegerField()
 
     udf_settings = {
         'Action': {
@@ -96,22 +74,11 @@ class Task(UDFModel, Auditable):
         },
     }
 
-    class Meta:
-        unique_together = ('instance', 'reference_number')
-
-    def clean(self):
-        if not self.reference_number:
-            raise ValidationError({
-                'reference_number': [_('Reference number is required.')]})
-
     def save_with_user(self, user, *args, **kwargs):
         """
         Update WorkOrder fields when Task is saved.
         """
-        self.full_clean()
-
         if self.work_order:
             self.work_order.updated_at = timezone.now()
             self.work_order.save_with_user(user, *args, **kwargs)
-
         super(Task, self).save_with_user(user, *args, **kwargs)
