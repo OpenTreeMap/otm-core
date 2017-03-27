@@ -14,55 +14,36 @@ from django.http import HttpResponse
 from django.utils.encoding import force_str
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.conf import settings
-from django.core.exceptions import (ValidationError, MultipleObjectsReturned,
-                                    ImproperlyConfigured)
+from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.utils.translation import ugettext_lazy as _
 
-from opentreemap.util import dict_pop, dotted_split
+from opentreemap.util import dict_pop
+from treemap.instance import Instance
 
 
 def safe_get_model_class(model_string):
     """
-    Given a string describing a model, return the actual model class.
+    In a couple of cases we want to be able to convert a string
+    into a valid django model class. For instance, if we have
+    'Plot' we want to get the actual class for 'treemap.models.Plot'
+    in a safe way.
 
-    If the string contains a dot, it should be of the form
-    "<app_name>.<ModelName>".
-
-    If the string does not contain a dot, it should either be
-    in the `treemap` app or extend `treemap.MapFeature`.
-
-    If it can't find the class for the string, it raises
-    django.core.exceptions.ValidationError.
-
-    Dotless is the old way.
-
-    Dotted is more robust in that model names do not have to be
-    unique across apps.
+    This function returns the class represented by the given model
+    if it exists in 'treemap.models'
     """
+    from treemap.models import MapFeature
 
-    try:
-        class SplitException(Exception):
-            pass
-        app_name, model_name = dotted_split(model_string, 2, maxsplit=1,
-                                            cls=SplitException)
-        models_module = apps.get_app(app_name)
-        return getattr(models_module, model_name)
-    except (ImproperlyConfigured, AttributeError):
+    # All of our base models live in 'treemap.models', so
+    # we can start with that namespace
+    models_module = __import__('treemap.models')
+
+    if hasattr(models_module.models, model_string):
+        return getattr(models_module.models, model_string)
+    elif MapFeature.has_subclass(model_string):
+        return MapFeature.get_subclass(model_string)
+    else:
         raise ValidationError(
             _('invalid model type: "%s"') % model_string)
-    except (SplitException):
-        # All of our base models live in 'treemap.models', so
-        # we can start with that namespace
-        from treemap.models import MapFeature
-        models_module = __import__('treemap.models')
-
-        if hasattr(models_module.models, model_string):
-            return getattr(models_module.models, model_string)
-        elif MapFeature.has_subclass(model_string):
-            return MapFeature.get_subclass(model_string)
-        else:
-            raise ValidationError(
-                _('invalid model type: "%s"') % model_string)
 
 
 def get_model_for_instance(object_name, instance=None):
@@ -109,7 +90,6 @@ def get_last_visited_instance(request):
             # visited_instances have entries '(<pk>, <timestamp>)'
             instance_id = visited_instances[-1][0]
             try:
-                from treemap.instance import Instance
                 instance = Instance.objects.get(pk=instance_id)
             except (Instance.DoesNotExist, MultipleObjectsReturned):
                 instance = None
@@ -144,7 +124,6 @@ def get_instance_or_404(**kwargs):
     url_name, found = dict_pop(kwargs, 'url_name')
     if found:
         kwargs['url_name__iexact'] = url_name
-    from treemap.instance import Instance
     return get_object_or_404(Instance, **kwargs)
 
 
@@ -205,12 +184,6 @@ def get_filterable_audit_models():
     models = map_features + ['Tree']
 
     return models
-
-
-def get_models_by_app_name(app_name):
-    models_module = apps.get_app(app_name)
-    return [m for m in apps.get_models()
-            if m.__module__ == models_module.__name__]
 
 
 def get_csv_response(filename):

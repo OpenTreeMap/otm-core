@@ -8,11 +8,9 @@ import copy
 import re
 from datetime import date, datetime
 
-from django.core.exceptions import (ValidationError, FieldError,
-                                    ImproperlyConfigured)
+from django.core.exceptions import ValidationError, FieldError
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.gis.db import models
-from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.fields.subclassing import Creator
@@ -26,8 +24,6 @@ from django.db.models.sql.query import Query
 from django_hstore.fields import DictionaryField, HStoreDict
 from django_hstore.managers import HStoreManager, HStoreGeoManager
 from django_hstore.query import HStoreGeoQuerySet
-
-from opentreemap.util import dotted_split
 
 from treemap.instance import Instance
 from treemap.audit import (UserTrackable, Audit, UserTrackingException,
@@ -62,11 +58,6 @@ from treemap.decorators import classproperty
 _UDF_NAME_REGEX = re.compile(r'^[^_"%.]+$')
 
 
-_APP_NAME_KEYS = {
-    v['app_name']: k for k, v in settings.ENABLEABLE_FEATURES.items()
-}
-
-
 def safe_get_udf_model_class(model_string):
     """
     In a couple of cases we want to be able to convert a string
@@ -79,16 +70,12 @@ def safe_get_udf_model_class(model_string):
     subtype of UDFModel
     """
     model_class = safe_get_model_class(model_string)
-    _validate_is_udf_class(model_class, model_string)
+
+    # It must have be a UDF subclass
+    if not isinstance(model_class(), UDFModel):
+        raise ValidationError(_('invalid model type - must subclass UDFModel'))
 
     return model_class
-
-
-def _validate_is_udf_class(model_class, name):
-    if not issubclass(model_class, UDFModel):
-        raise ValidationError(
-            _('invalid model type %(name) - must extend UDFModel') %
-            {'name': name})
 
 
 class UserDefinedCollectionValue(UserTrackable, models.Model):
@@ -326,11 +313,6 @@ class UserDefinedFieldDefinition(models.Model):
     required:
 
     'choices' - An array of choice options
-
-    Specify choices that may not be modified with the 'protected_choices'
-    key (optional):
-
-    'protected_choices' - An array of choice options
     """
     datatype = models.TextField()
 
@@ -344,12 +326,6 @@ class UserDefinedFieldDefinition(models.Model):
     iscollection = models.BooleanField()
 
     """
-    Protected UDFs cannot be deleted.
-    """
-    # TODO: Change to BooleanField after production deployment
-    is_protected = models.NullBooleanField(default=False)
-
-    """
     Name of the UDFD
     """
     name = models.CharField(max_length=255)
@@ -357,36 +333,10 @@ class UserDefinedFieldDefinition(models.Model):
     class Meta:
         unique_together = ('instance', 'model_type', 'name')
 
-    @property
-    def all_choices(self):
-        if self.iscollection:
-            raise ValueError(_('Property "all_choices" is invalid '
-                               'for collection UDFs'))
-        return UserDefinedFieldDefinition._all_choices(self.datatype_dict)
-
-    @classmethod
-    def _all_choices(cls, datatype):
-        if datatype['type'] in ('choice', 'multichoice'):
-            # There are situations where "choices" and "protected_choices"
-            # may exist, but the values are None. Default to an empty list
-            # so we can concatenate them.
-            choices = datatype['choices'] or []
-            protected_choices = datatype.get('protected_choices', None) or []
-            return protected_choices + choices
-        return None
-
     def __unicode__(self):
         return ('%s.%s%s' %
                 (self.model_type, self.name,
                  ' (collection)' if self.iscollection else ''))
-
-    def is_protected_choice(self, choice_value, name=None):
-        """
-        Return True if choice_value is protected.
-        """
-        datatype = self._get_datatype_dict(self.datatype_dict, name)
-        protected_choices = datatype.get('protected_choices', None) or []
-        return choice_value in protected_choices
 
     def delete_choice(self, choice_value, name=None):
         update_to = None
@@ -408,24 +358,17 @@ class UserDefinedFieldDefinition(models.Model):
                 {'datatype': [_("Can't change choices "
                                 "on a non-choice field")]})
 
-        choices = datatype['choices']
-        protected_choices = datatype.get('protected_choices', None) or []
-        all_choices = UserDefinedFieldDefinition._all_choices(datatype)
-
-        if old_choice_value not in all_choices:
+        if old_choice_value not in datatype['choices']:
             raise ValidationError(
                 {'datatype': [_("Choice '%(choice)s' not found") % {
                     'choice': old_choice_value}]})
 
-        if old_choice_value in protected_choices:
-            raise ValidationError({
-                'datatype': [
-                    _("Can't modify protected choice '%(choice)s'") % {
-                        'choice': old_choice_value}]})
-
-        choices = self._list_replace_or_remove(choices,
-                                               old_choice_value,
-                                               new_choice_value)
+        choices = datatype['choices']
+        if new_choice_value:
+            choices = [c if c != old_choice_value else new_choice_value
+                       for c in choices]
+        else:
+            choices = [c for c in choices if c != old_choice_value]
 
         datatype['choices'] = choices
         return datatype
@@ -508,41 +451,30 @@ class UserDefinedFieldDefinition(models.Model):
             None,
             [(new if choice == old else choice)
              for choice in l])
-        return new_l
+        return new_l or None
 
-    def _list_append(self, datatype, key, value):
-        """
-        Mutate datatype by appending value to datatype[key] list.
-        """
-        lst = datatype.get(key, None) or []
-        lst.append(value)
-        datatype[key] = lst
-
-    def add_choice(self, new_choice_value, name=None, is_protected=False):
-        choices_key = 'protected_choices' if is_protected else 'choices'
-        datatype_dict = self.datatype_dict
-        datatype = self._get_datatype_dict(datatype_dict, name)
-        self._list_append(datatype, choices_key, new_choice_value)
-        self.datatype = json.dumps(datatype_dict)
-        self.save()
-
-    def _get_datatype_dict(self, datatype_dict, name=None):
-        """
-        Return the correct datatype_dict for collection and
-        non-collection UDFs.
-        """
+    def add_choice(self, new_choice_value, name=None):
         if self.iscollection:
             if name is None:
                 raise ValidationError({
                     'name': [_('Name is required for collection fields')]})
-            datatypes = {d['name']: d for d in datatype_dict}
-            return datatypes[name]
+
+            datatypes = {d['name']: d for d in self.datatype_dict}
+            datatypes[name]['choices'].append(new_choice_value)
+
+            self.datatype = json.dumps(datatypes.values())
+            self.save()
         else:
             if name is not None:
                 raise ValidationError({
                     'name': [_(
                         'Name is allowed only for collection fields')]})
-            return datatype_dict
+
+            datatype = self.datatype_dict
+            datatype['choices'].append(new_choice_value)
+
+            self.datatype = json.dumps(datatype)
+            self.save()
 
     @transaction.atomic
     def replace_collection_field_choices(self, field_name, new_choices):
@@ -605,41 +537,22 @@ class UserDefinedFieldDefinition(models.Model):
             self._update_choice_scalar(old_choice_value, new_choice_value)
 
     def validate(self):
-        class_name = model_type = self.model_type
-        if not model_type:
-            raise ValidationError(
-                {'udf.model': [_('Cannot save a custom field '
-                                 'with no model type')]})
-        key = 'all'
-        if '.' in model_type:
-            app_name, class_name = dotted_split(model_type, 2, maxsplit=1)
-            key = _APP_NAME_KEYS[app_name]
+        model_type = self.model_type
 
-        classes = [cls for cls
-                   in self.instance.editable_udf_models()[key]
-                   if cls.__name__ == class_name]
-        if 0 == len(classes):
+        if model_type not in {cls.__name__ for cls
+                              in self.instance.editable_udf_models()['all']}:
             raise ValidationError(
                 {'udf.model': [_("Invalid model '%(model_type)s'") %
                                {'model_type': model_type}]})
 
-        if 1 < len(classes):
-            raise ImproperlyConfigured(
-                _('%(model_type)s matched %(count)d classes, '
-                  'but should only match one') %
-                {'model_type': model_type, 'count': len(classes)})
-
-        model_class = classes[0]
-        _validate_is_udf_class(model_class, model_type)
+        model_class = safe_get_udf_model_class(model_type)
 
         field_names = [field.name for field in model_class._meta.fields]
 
         if self.name in field_names:
             raise ValidationError(
-                {'name': [_(
-                    '%(name)s cannot be a custom field because '
-                    'it already exists on %(model)s') %
-                    {'name': self.name, 'model': class_name}]})
+                {'name': [_('Cannot use fields that already '
+                            'exist on the model')]})
         if not self.name:
             raise ValidationError(
                 {'name': [_('Name cannot be blank')]})
@@ -722,8 +635,6 @@ class UserDefinedFieldDefinition(models.Model):
             if choices is None:
                 raise ValidationError(_('Missing choices key'))
 
-            choices = UserDefinedFieldDefinition._all_choices(datatype)
-
             for choice in choices:
                 if not isinstance(choice, basestring):
                     raise ValidationError(_('Choice must be a string'))
@@ -750,24 +661,9 @@ class UserDefinedFieldDefinition(models.Model):
         self.validate()
         super(UserDefinedFieldDefinition, self).save(*args, **kwargs)
 
-    def can_be_deleted(self, user):
-        """
-        Return True if user is able to delete this UDF.
-        """
-        # Deleting collection UDFs is not supported
-        if self.iscollection:
-            return False
-        if self.is_protected:
-            return False
-        return True
-
     @transaction.atomic
     def delete(self, *args, **kwargs):
         save_instance = False
-
-        if self.is_protected:
-            raise AuthorizeException("Cannot delete protected UDF '%s'"
-                                     % (self.name))
 
         if self.iscollection:
             UserDefinedCollectionValue.objects.filter(field_definition=self)\
@@ -960,14 +856,12 @@ class UserDefinedFieldDefinition(models.Model):
             return valid_date
 
         elif 'choices' in datatype_dict:
-            choices = UserDefinedFieldDefinition._all_choices(datatype_dict)
-
             def _validate(val):
-                if val not in choices:
+                if val not in datatype_dict['choices']:
                     raise ValidationError(
                         _('Invalid choice (%(given)s). Expecting %(allowed)s')
                         % {'given': val,
-                           'allowed': ', '.join(choices)})
+                           'allowed': ', '.join(datatype_dict['choices'])})
 
             if datatype == 'choice':
                 _validate(value)
@@ -1236,12 +1130,12 @@ class UDFModel(UserTrackable, models.Model):
 
     def get_user_defined_fields(self):
         if hasattr(self, 'instance'):
-            return udf_defs(self.instance, self.model_name)
+            return udf_defs(self.instance, self._model_name)
         else:
             return []
 
     def audits(self):
-        regular_audits = Q(model=self.model_name,
+        regular_audits = Q(model=self._model_name,
                            model_id=self.pk,
                            instance=self.instance)
 
@@ -1253,7 +1147,7 @@ class UDFModel(UserTrackable, models.Model):
         return Audit.objects.filter(all_audits).order_by('created')
 
     def search_slug(self):
-        return to_object_name(self.model_name)
+        return to_object_name(self.__class__.__name__)
 
     def collection_udfs_audit_ids(self):
         return self.static_collection_udfs_audit_ids(
@@ -1294,11 +1188,7 @@ class UDFModel(UserTrackable, models.Model):
     def save(self, *args, **kwargs):
         raise UserTrackingException(
             'All changes to %s objects must be saved via "save_with_user"' %
-            (self.model_name))
-
-    @property
-    def model_name(self):
-        return self.__class__.__name__
+            (self._model_name))
 
     @property
     def udf_field_names(self):
@@ -1306,14 +1196,14 @@ class UDFModel(UserTrackable, models.Model):
 
     @property
     def scalar_udf_names_and_fields(self):
-        model_name = to_object_name(self.model_name)
+        model_name = to_object_name(self.__class__.__name__)
         return [(field.name, model_name + ".udf:" + field.name)
                 for field in self.get_user_defined_fields()
                 if not field.iscollection]
 
     @property
     def collection_udf_names_and_fields(self):
-        model_name = to_object_name(self.model_name)
+        model_name = to_object_name(self.__class__.__name__)
         return [(field.name, model_name + ".udf:" + field.name)
                 for field in self.collection_udfs]
 
@@ -1333,7 +1223,7 @@ class UDFModel(UserTrackable, models.Model):
         return [udf.collection_audit_name for udf in self.collection_udfs]
 
     def collection_udfs_search_names(self):
-        object_name = to_object_name(self.model_name)
+        object_name = to_object_name(self.__class__.__name__)
         return ['udf:%s:%s' % (object_name, udf.pk)
                 for udf in self.collection_udfs]
 

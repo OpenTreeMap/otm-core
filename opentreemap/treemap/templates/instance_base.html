@@ -83,16 +83,6 @@ ga('set', 'page', pathname);
 </li>
 {% endif %}
 
-{% if request.instance|feature_enabled:'works_management' %}
-  {% if last_effective_instance_user|has_permission:'access_works_management' %}
-    <li class="{% block activeworkorders %}{% endblock %} hidden-xs">
-      <a href="{% url 'work_orders' instance_url_name=request.instance.url_name %}">
-        <span>{% trans "Work Orders" %}</span>
-      </a>
-    </li>
-  {% endif %}
-{% endif %}
-
 {% if settings.MANAGEMENT_VIEW_NAME and last_effective_instance_user.admin %}
 <li class="hidden-xs {% block activemanagement %}{% endblock %}">
   <a href="{% url settings.MANAGEMENT_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Manage" %}</a>

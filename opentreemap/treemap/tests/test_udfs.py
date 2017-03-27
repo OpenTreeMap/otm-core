@@ -942,7 +942,7 @@ class ScalarUDFTest(OTMTestCase):
         audit = self.plot.audits().filter(field='udf:Test multichoice')
 
         self.assertEqual(self.plot.udfs['Test multichoice'], None)
-        self.assertEqual(json.loads(audit[0].current_value), [])
+        self.assertEqual(json.loads(audit[0].current_value), None)
 
         choice = UserDefinedFieldDefinition.objects.get(
             pk=self.multichoice_udfd.pk)
@@ -1304,73 +1304,6 @@ class UdfDeleteTest(OTMTestCase):
 
         updated_instance = Instance.objects.get(pk=self.instance.pk)
         self.assertEquals(1, len(updated_instance.mobile_api_fields))
-
-
-class ProtectedUDFTestCase(OTMTestCase):
-    def setUp(self):
-        User._system_user.save_base()
-
-        self.instance = make_instance()
-        create_stewardship_udfs(self.instance)
-        self.user = make_commander_user(self.instance)
-
-        set_write_permissions(self.instance, self.user,
-                              'Plot', ['udf:Test choice'])
-
-        self.udf = UserDefinedFieldDefinition.objects.create(
-            instance=self.instance,
-            model_type='Plot',
-            datatype=json.dumps({'type': 'choice',
-                                 'protected_choices': ['a'],
-                                 'choices': ['b', 'c']}),
-            iscollection=False,
-            is_protected=True,
-            name='Test choice')
-
-        p = Point(0, 0)
-        self.plot = Plot(geom=p, instance=self.instance)
-        self.plot.save_with_user(self.user)
-
-    def test_cannot_delete_protected_udf(self):
-        with self.assertRaises(AuthorizeException):
-            self.udf.delete()
-
-    def test_can_pick_protected_udf_choice(self):
-        # Assert that ValidationError is not raised
-        self.plot.udfs['Test choice'] = 'a'
-        self.plot.save_with_user(self.user)
-
-    def test_cannot_modify_protected_udf_choice(self):
-        self.assertFalse(self.udf.can_be_deleted(self.user))
-
-        # Can't add a choice value which conflicts with an existing
-        # protected choice value.
-        with self.assertRaises(ValidationError):
-            self.udf.add_choice('a')
-
-        # Can't delete protected choice value.
-        with self.assertRaises(ValidationError):
-            self.udf.delete_choice('a')
-
-        # Can't update protected choice value.
-        with self.assertRaises(ValidationError):
-            self.udf.update_choice('a', 'z')
-
-    def test_can_add_protected_choice(self):
-        self.udf.add_choice('z', is_protected=True)
-        self.assertIn('z', self.udf.datatype_dict['protected_choices'])
-
-    def test_protected_udf_choice_order(self):
-        self.assertEqual(['a', 'b', 'c'], self.udf.all_choices)
-
-    def test_invalid_udf_definition(self):
-        # Ensure that UDFs cannot be created with *only* protected choices.
-        # The "choices" key must always exist.
-        body = {'udf.name': 'cool udf',
-                'udf.model': 'Plot',
-                'udf.type': 'choice',
-                'udf.protected_choices': ['a']}
-        self.assertRaises(ValidationError, udf_create, body, self.instance)
 
 
 class UdfCRUTestCase(OTMTestCase):
