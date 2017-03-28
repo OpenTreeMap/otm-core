@@ -11,6 +11,8 @@
 <div class="search-block-wrapper">
   {% include "treemap/partials/search_species.html" %}
   {% include "treemap/partials/search_location_polygon_editing.html" %}
+  <a class="geolocate"><i class="icon-direction"></i> {% trans "Use Current Location" %}</a>
+ 
 </div>
 {% endblock search %}
 
@@ -27,7 +29,7 @@
   <div id="map" class="map"
        data-has-boundaries="{{ has_boundaries }}"
        data-has-polygons="{{ has_polygons }}"
-       data-bounds="{{ request.instance.map_extent_as_json }}">
+       data-bounds="{{ request.instance.map_extent_as_json }}"><!--change map_extent_as_json -->
   </div>
   <div class="sidebar">
     <div id="sidebar-browse-trees">

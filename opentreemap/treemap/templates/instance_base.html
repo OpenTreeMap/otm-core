@@ -76,13 +76,13 @@ ga('set', 'page', pathname);
     {% endif %}
   {% endif %}
 {% endif %}
-
+<!-- 2017.03.18 not to see recnt edits, find a smarter way
 {% if request.instance|feature_enabled:'recent_edits_report' %}
 <li class="hidden-xs {% block activerecentedits %}{% endblock %}">
   <a href="{% url 'edits' instance_url_name=request.instance.url_name %}">{% trans "View Edits" %}</a>
 </li>
 {% endif %}
-
+-->
 {% if settings.MANAGEMENT_VIEW_NAME and last_effective_instance_user.admin %}
 <li class="hidden-xs {% block activemanagement %}{% endblock %}">
   <a href="{% url settings.MANAGEMENT_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Manage" %}</a>
@@ -130,8 +130,10 @@ ga('set', 'page', pathname);
 
   <div class="stats-bar">
     <div class="stats-list">
+      <!-- to pewnie bierze jakos z jsa i trzeba to odnalezc 2017.03.18
       <div id="tree-and-planting-site-counts">
       </div>
+      -->
       {% if not embed %}
         {% block subhead_exports %}
           {% if request.instance|export_enabled_for:request.user %}
