@@ -361,7 +361,7 @@ module.exports = exports = {
             // we need searchStream to also produce events when
             // the geojson from the anonymous boundary representing the
             // custom area has arrived and been rendered.
-            customAreaSearchEvents = options.customAreaSearchEvents || Bacon.never(),
+            customAreaSearchEvents = (!!options && options.customAreaSearchEvents) || Bacon.never(),
             searchStream = Bacon.mergeAll(
                 ui.triggerSearchStream,
                 clearLocationInputStream,
